@@ -43,7 +43,7 @@ public abstract class OsMongoIterable<ResultT> {
         this.resultClass = resultClass;
     }
 
-    abstract void callNative(OsJNIResultCallback callback);
+    abstract void callNative(final OsJNIResultCallback callback);
 
     public Collection<ResultT> getCollection() {
         AtomicReference<Collection<ResultT>> success = new AtomicReference<>(null);

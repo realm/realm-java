@@ -319,22 +319,18 @@ class MongoCollectionTest {
             // Sample call to findOneAndUpdate() where we get the previous document back
             val sampleUpdate = Document("\$set", Document("hello", "hellothere"))
             sampleUpdate["\$inc"] = Document("num", 1)
-            assertEquals(
-                    sampleDoc.withoutId(),
+            assertEquals(sampleDoc.withoutId(),
                     findOneAndUpdate(
                             Document("hello", "world1"),
                             sampleUpdate
-                    ).blockingGetResult()!!.withoutId()
-            )
+                    ).blockingGetResult()!!.withoutId())
             assertEquals(1, count().blockingGetResult())
 
             // Make sure the update took place
             val expectedDoc = Document("hello", "hellothere")
             expectedDoc["num"] = 3
-            assertEquals(
-                    expectedDoc.withoutId(),
-                    find().first().blockingGetResult()!!.withoutId()
-            )
+            assertEquals(expectedDoc.withoutId(),
+                    find().first().blockingGetResult()!!.withoutId())
             assertEquals(1, count().blockingGetResult())
 
             // Call findOneAndUpdate() again but get the new document
@@ -377,10 +373,8 @@ class MongoCollectionTest {
             ).blockingGetResult()
             assertEquals(doc1, result2!!.withoutId())
             assertEquals(1, count().blockingGetResult())
-            assertEquals(
-                    doc1.withoutId(),
-                    find().first().blockingGetResult()!!.withoutId()
-            )
+            assertEquals(doc1.withoutId(),
+                    find().first().blockingGetResult()!!.withoutId())
 
             // Test the upsert option where the server should perform upsert and return new document
             val options3 = FindOneAndModifyOptions()
@@ -443,41 +437,42 @@ class MongoCollectionTest {
     fun find() {
         with(getCollectionInternal(COLLECTION_NAME)) {
             var iter = find()
-            assertFalse(iter.iterator().blockingGetResult()!!
-                    .hasNext().blockingGetResult()!!)
+            assertFalse(iter.iterator().blockingGetResult()!!.hasNext().blockingGetResult()!!)
             assertNull(iter.first().blockingGetResult())
 
             val doc1 = Document("hello", "world")
             val doc2 = Document("hello", "friend")
             doc2["proj"] = "field"
             insertMany(listOf(doc1, doc2)).blockingGetResult()
+
             assertTrue(iter.iterator().blockingGetResult()!!
                     .hasNext().blockingGetResult()!!)
             assertEquals(doc1.withoutId(), iter.first().blockingGetResult()!!.withoutId())
-            assertEquals(
-                    doc2.withoutId(),
+            assertEquals(doc2.withoutId(),
                     iter.limit(1)
                             .sort(Document("_id", -1))
                             .iterator().blockingGetResult()!!
                             .next().blockingGetResult()!!
-                            .withoutId()
-            )
+                            .withoutId())
 
             iter = find(doc1)
             assertTrue(iter.iterator().blockingGetResult()!!.hasNext().blockingGetResult()!!)
-            assertEquals(doc1.withoutId(), iter.iterator().blockingGetResult()!!.next().blockingGetResult()!!.withoutId())
+            assertEquals(doc1.withoutId(),
+                    iter.iterator().blockingGetResult()!!
+                            .next().blockingGetResult()!!.withoutId())
 
             iter = find().filter(doc1)
             assertTrue(iter.iterator().blockingGetResult()!!.hasNext().blockingGetResult()!!)
-            assertEquals(doc1.withoutId(), iter.iterator().blockingGetResult()!!.next().blockingGetResult()!!.withoutId())
+            assertEquals(doc1.withoutId(),
+                    iter.iterator().blockingGetResult()!!
+                            .next().blockingGetResult()!!.withoutId())
 
-            assertEquals(
-                    Document("proj", "field"),
-                    find(doc2).projection(Document("proj", 1))
+            val expected = Document("proj", "field")
+            assertEquals(expected,
+                    find(doc2)
+                            .projection(Document("proj", 1))
                             .iterator().blockingGetResult()!!
-                            .next().blockingGetResult()!!
-                            .withoutId()
-            )
+                            .next().blockingGetResult()!!.withoutId())
 
             val asyncIter = iter.iterator().blockingGetResult()!!
             assertEquals(doc1, asyncIter.tryNext().blockingGetResult()!!.withoutId())
@@ -485,8 +480,34 @@ class MongoCollectionTest {
             assertFails { find(Document("\$who", 1)).first().blockingGetResult() }
 
             // FIXME: add into, forEach and map methods to the iterable
+        }
+    }
 
-            // FIXME: projections and sort aren't currently working due to a bug in Stitch: https://jira.mongodb.org/browse/REALMC-5787
+    @Test
+    fun aggregate() {
+        with(getCollectionInternal(COLLECTION_NAME)) {
+            var iter = aggregate(listOf())
+            assertFalse(iter.iterator().blockingGetResult()!!.hasNext().blockingGetResult()!!)
+            assertNull(iter.first().blockingGetResult())
+
+            val doc1 = Document("hello", "world")
+            val doc2 = Document("hello", "friend")
+            insertMany(listOf(doc1, doc2)).blockingGetResult()
+            assertTrue(iter.iterator().blockingGetResult()!!.hasNext().blockingGetResult()!!)
+            assertEquals(doc1.withoutId(), iter.first().blockingGetResult()!!.withoutId())
+
+            iter = aggregate(listOf(Document("\$sort", Document("_id", -1)), Document("\$limit", 1)))
+            assertEquals(
+                    doc2.withoutId(),
+                    iter.iterator().blockingGetResult()!!
+                            .next().blockingGetResult()!!.withoutId()
+            )
+
+            iter = aggregate(listOf(Document("\$match", doc1)))
+            assertTrue(iter.iterator().blockingGetResult()!!.hasNext().blockingGetResult()!!)
+            assertEquals(doc1.withoutId(), iter.iterator().blockingGetResult()!!.next().blockingGetResult()!!.withoutId())
+
+            assertFails { aggregate(listOf(Document("\$who", 1))).first().blockingGetResult() }
         }
     }
 

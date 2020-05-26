@@ -23,23 +23,26 @@ import io.realm.internal.objectstore.OsAggregateIterable;
 
 /**
  * FIXME
+ *
  * @param <ResultT>
  */
 public class AggregateIterable<ResultT> extends MongoIterable<ResultT> {
 
-    public AggregateIterable(final TaskDispatcher dispatcher, final OsAggregateIterable osAggregateIterable) {
+    private OsAggregateIterable<ResultT> osAggregateIterable;
+
+    public AggregateIterable(final TaskDispatcher dispatcher,
+                             final OsAggregateIterable<ResultT> osAggregateIterable) {
         super(dispatcher);
+        this.osAggregateIterable = osAggregateIterable;
     }
 
     @Override
     Collection<ResultT> getCollection() {
-        // FIXME: coming up
-        return null;
+        return osAggregateIterable.getCollection();
     }
 
     @Override
     ResultT getFirst() {
-        // FIXME: coming up
-        return null;
+        return osAggregateIterable.first();
     }
 }

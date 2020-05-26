@@ -33,20 +33,20 @@ public class OsFindIterable<ResultT> extends OsMongoIterable<ResultT> {
 
     private final FindOptions options;
     private final String encodedEmptyDocument;
+
     private Bson filter;
 
     OsFindIterable(final OsMongoCollection osMongoCollection,
                    final CodecRegistry codecRegistry,
-                   final Class<ResultT> resultClass,
-                   final Bson filter) {
+                   final Class<ResultT> resultClass) {
         super(osMongoCollection, codecRegistry, resultClass);
-        this.filter = filter;
         this.options = new FindOptions();
+        this.filter = new Document();
         this.encodedEmptyDocument = JniBsonProtocol.encode(new Document(), codecRegistry);
     }
 
     @Override
-    void callNative(OsJNIResultCallback callback) {
+    void callNative(final OsJNIResultCallback callback) {
         String filterString = JniBsonProtocol.encode(filter, codecRegistry);
         String projectionString = encodedEmptyDocument;
         String sortString = encodedEmptyDocument;

@@ -280,9 +280,8 @@ public class MongoCollection<DocumentT> {
      * @param pipeline the aggregation pipeline
      * @return an iterable containing the result of the aggregation operation
      */
-    // FIXME: this one should also use an iterable
-    public Task<DocumentT> aggregate(final List<? extends Bson> pipeline) {
-        throw new UnsupportedOperationException("Not Implemented");
+    public AggregateIterable<DocumentT> aggregate(final List<? extends Bson> pipeline) {
+        return new AggregateIterable<>(dispatcher, osMongoCollection.aggregate(pipeline));
     }
 
     /**
@@ -293,10 +292,9 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return an iterable containing the result of the aggregation operation
      */
-    // FIXME: this one should also use an iterable
-    public <ResultT> Task<ResultT> aggregate(final List<? extends Bson> pipeline,
-                                             final Class<ResultT> resultClass) {
-        throw new UnsupportedOperationException("Not Implemented");
+    public <ResultT> AggregateIterable<ResultT> aggregate(final List<? extends Bson> pipeline,
+                                                          final Class<ResultT> resultClass) {
+        return new AggregateIterable<>(dispatcher, osMongoCollection.aggregate(pipeline, resultClass));
     }
 
     /**

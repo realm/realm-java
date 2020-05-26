@@ -24,22 +24,20 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.objectstore.OsFindIterable;
-import io.realm.mongodb.mongo.options.FindOptions;
 
 /**
  * FIXME
+ *
  * @param <ResultT>
  */
 public class FindIterable<ResultT> extends MongoIterable<ResultT> {
 
     private final OsFindIterable<ResultT> osFindIterable;
-    private final FindOptions findOptions;
 
     public FindIterable(final TaskDispatcher dispatcher,
                         final OsFindIterable<ResultT> osFindIterable) {
         super(dispatcher);
         this.osFindIterable = osFindIterable;
-        this.findOptions = new FindOptions();
     }
 
     @Override

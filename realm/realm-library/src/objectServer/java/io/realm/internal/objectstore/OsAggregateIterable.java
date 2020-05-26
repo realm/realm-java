@@ -17,23 +17,37 @@
 package io.realm.internal.objectstore;
 
 import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.conversions.Bson;
 
+import java.util.List;
+
+import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 
 /**
  * FIXME
+ *
  * @param <ResultT>
  */
 public class OsAggregateIterable<ResultT> extends OsMongoIterable<ResultT> {
 
+    private List<? extends Bson> pipeline;
+
     OsAggregateIterable(final OsMongoCollection osMongoCollection,
                         final CodecRegistry codecRegistry,
-                        final Class<ResultT> resultClass) {
+                        final Class<ResultT> resultClass,
+                        final List<? extends Bson> pipeline) {
         super(osMongoCollection, codecRegistry, resultClass);
+        this.pipeline = pipeline;
     }
 
     @Override
-    void callNative(OsJNIResultCallback callback) {
-        // FIXME: coming up
+    void callNative(final OsJNIResultCallback callback) {
+        String pipelineString = JniBsonProtocol.encode(pipeline, codecRegistry);
+        nativeAggregate(osMongoCollection.getNativePtr(), pipelineString, callback);
     }
+
+    private static native void nativeAggregate(long remoteMongoCollectionPtr,
+                                               String pipeline,
+                                               OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }

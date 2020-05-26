@@ -159,13 +159,25 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     private <ResultT> OsFindIterable<ResultT> findInternal(final Bson filter,
                                                            final Class<ResultT> resultClass,
                                                            @Nullable final FindOptions options) {
-        OsFindIterable<ResultT> osFindIterable = new OsFindIterable<>(this, codecRegistry, resultClass, filter);
+        OsFindIterable<ResultT> osFindIterable = new OsFindIterable<>(this, codecRegistry, resultClass);
+        osFindIterable.filter(filter);
+
         if (options != null) {
-            osFindIterable.filter(filter);
             osFindIterable.limit(options.getLimit());
             osFindIterable.projection(options.getProjection());
         }
         return osFindIterable;
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public OsAggregateIterable<DocumentT> aggregate(final List<? extends Bson> pipeline) {
+        return aggregate(pipeline, documentClass);
+    }
+
+    public <ResultT> OsAggregateIterable<ResultT> aggregate(final List<? extends Bson> pipeline,
+                                                            final Class<ResultT> resultClass) {
+        return new OsAggregateIterable<>(this, codecRegistry, resultClass, pipeline);
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
