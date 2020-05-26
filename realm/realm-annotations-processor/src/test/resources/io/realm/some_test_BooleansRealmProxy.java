@@ -293,7 +293,7 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
         return realm.copyToRealm(obj);
     }
 
-    private static some_test_BooleansRealmProxy newProxyInstance(BaseRealm realm, Row row) {
+    static some_test_BooleansRealmProxy newProxyInstance(BaseRealm realm, Row row) {
         // Ignore default values to avoid creating unexpected objects from RealmModel/RealmList fields
         final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         objectContext.set(realm, row, realm.getSchema().getColumnInfo(some.test.Booleans.class), false, Collections.<String>emptyList());
@@ -450,6 +450,10 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
         unmanagedCopy.realmSet$anotherBoolean(realmSource.realmGet$anotherBoolean());
 
         return unmanagedObject;
+    }
+
+    public static void updateEmbeddedObject(Realm realm, some.test.Booleans unmanagedObject, some.test.Booleans managedObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
+        throw new IllegalStateException("This class is not marked embedded: some.test.Booleans");
     }
 
     @Override

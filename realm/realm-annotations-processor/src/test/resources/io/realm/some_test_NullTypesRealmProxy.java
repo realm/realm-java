@@ -992,6 +992,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
 
     @Override
     public void realmSet$fieldObjectNull(some.test.NullTypes value) {
+        Realm realm = (Realm) proxyState.getRealm$realm();
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -1000,7 +1001,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
                 return;
             }
             if (value != null && !RealmObject.isManaged(value)) {
-                value = ((Realm) proxyState.getRealm$realm()).copyToRealm(value);
+                value = realm.copyToRealm(value);
             }
             final Row row = proxyState.getRow$realm();
             if (value == null) {
@@ -2611,7 +2612,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
         return realm.copyToRealm(obj);
     }
 
-    private static some_test_NullTypesRealmProxy newProxyInstance(BaseRealm realm, Row row) {
+    static some_test_NullTypesRealmProxy newProxyInstance(BaseRealm realm, Row row) {
         // Ignore default values to avoid creating unexpected objects from RealmModel/RealmList fields
         final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         objectContext.set(realm, row, realm.getSchema().getColumnInfo(some.test.NullTypes.class), false, Collections.<String>emptyList());
@@ -4672,6 +4673,10 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
         unmanagedCopy.realmGet$fieldObjectIdListNull().addAll(realmSource.realmGet$fieldObjectIdListNull());
 
         return unmanagedObject;
+    }
+
+    public static void updateEmbeddedObject(Realm realm, some.test.NullTypes unmanagedObject, some.test.NullTypes managedObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
+        throw new IllegalStateException("This class is not marked embedded: some.test.NullTypes");
     }
 
     @Override

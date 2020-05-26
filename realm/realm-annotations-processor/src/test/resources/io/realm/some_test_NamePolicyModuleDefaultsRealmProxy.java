@@ -229,7 +229,7 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
         return realm.copyToRealm(obj);
     }
 
-    private static some_test_NamePolicyModuleDefaultsRealmProxy newProxyInstance(BaseRealm realm, Row row) {
+    static some_test_NamePolicyModuleDefaultsRealmProxy newProxyInstance(BaseRealm realm, Row row) {
         // Ignore default values to avoid creating unexpected objects from RealmModel/RealmList fields
         final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         objectContext.set(realm, row, realm.getSchema().getColumnInfo(some.test.NamePolicyModuleDefaults.class), false, Collections.<String>emptyList());
@@ -406,6 +406,10 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
         unmanagedCopy.realmSet$lastName(realmSource.realmGet$lastName());
 
         return unmanagedObject;
+    }
+
+    public static void updateEmbeddedObject(Realm realm, some.test.NamePolicyModuleDefaults unmanagedObject, some.test.NamePolicyModuleDefaults managedObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
+        throw new IllegalStateException("This class is not marked embedded: some.test.NamePolicyModuleDefaults");
     }
 
     @Override

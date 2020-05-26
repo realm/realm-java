@@ -123,6 +123,7 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
 
     @Override
     public void realmSet$child(some.test.EmbeddedClass value) {
+        Realm realm = (Realm) proxyState.getRealm$realm();
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
@@ -131,7 +132,9 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
                 return;
             }
             if (value != null && !RealmObject.isManaged(value)) {
-                value = ((Realm) proxyState.getRealm$realm()).copyToRealm(value);
+                some.test.EmbeddedClass proxyObject = realm.createEmbeddedObject(some.test.EmbeddedClass.class, this, "child");
+                some_test_EmbeddedClassRealmProxy.updateEmbeddedObject(realm, value, proxyObject, new HashMap<>(), Collections.EMPTY_SET);
+                value = proxyObject;
             }
             final Row row = proxyState.getRow$realm();
             if (value == null) {
@@ -149,8 +152,11 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
             proxyState.getRow$realm().nullifyLink(columnInfo.childColKey);
             return;
         }
-        proxyState.checkValidObject(value);
-        proxyState.getRow$realm().setLink(columnInfo.childColKey, ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getObjectKey());
+        if (RealmObject.isManaged(value)) {
+            proxyState.checkValidObject(value);
+        }
+        some.test.EmbeddedClass proxyObject = realm.createEmbeddedObject(some.test.EmbeddedClass.class, this, "child");
+        some_test_EmbeddedClassRealmProxy.updateEmbeddedObject(realm, value, proxyObject, new HashMap<>(), Collections.EMPTY_SET);
     }
 
     @Override
@@ -436,23 +442,34 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
         } else {
             some.test.EmbeddedClass cachechild = (some.test.EmbeddedClass) cache.get(childObj);
             if (cachechild != null) {
-                realmObjectCopy.realmSet$child(cachechild);
+                throw new IllegalArgumentException("Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cachechild.toString()");
             } else {
-                realmObjectCopy.realmSet$child(some_test_EmbeddedClassRealmProxy.copyOrUpdate(realm, (some_test_EmbeddedClassRealmProxy.EmbeddedClassColumnInfo) realm.getSchema().getColumnInfo(some.test.EmbeddedClass.class), childObj, update, cache, flags));
+                some.test.EmbeddedClass linkedObject = realmObjectCopy.realmGet$child();
+                if (linkedObject == null) {
+                    long objKey = ((RealmObjectProxy) realmObjectCopy).realmGet$proxyState().getRow$realm().createEmbeddedObject(columnInfo.childColKey);
+                    Row linkedObjectRow = realm.getTable(some.test.EmbeddedClass.class).getUncheckedRow(objKey);
+                    linkedObject = some_test_EmbeddedClassRealmProxy.newProxyInstance(realm, linkedObjectRow);
+                    cache.put(childObj, (RealmObjectProxy) linkedObject);
+                }
+                some_test_EmbeddedClassRealmProxy.updateEmbeddedObject(realm, childObj, linkedObject, cache, flags);
             }
         }
 
-        RealmList<some.test.EmbeddedClass> childrenList = realmObjectSource.realmGet$children();
-        if (childrenList != null) {
-            RealmList<some.test.EmbeddedClass> childrenRealmList = realmObjectCopy.realmGet$children();
-            childrenRealmList.clear();
-            for (int i = 0; i < childrenList.size(); i++) {
-                some.test.EmbeddedClass childrenItem = childrenList.get(i);
-                some.test.EmbeddedClass cachechildren = (some.test.EmbeddedClass) cache.get(childrenItem);
+        RealmList<some.test.EmbeddedClass> childrenUnmanagedList = realmObjectSource.realmGet$children();
+        if (childrenUnmanagedList != null) {
+            RealmList<some.test.EmbeddedClass> childrenManagedList = realmObjectCopy.realmGet$children();
+            childrenManagedList.clear();
+            for (int i = 0; i < childrenUnmanagedList.size(); i++) {
+                some.test.EmbeddedClass childrenUnmanagedItem = childrenUnmanagedList.get(i);
+                some.test.EmbeddedClass cachechildren = (some.test.EmbeddedClass) cache.get(childrenUnmanagedItem);
                 if (cachechildren != null) {
-                    childrenRealmList.add(cachechildren);
+                    throw new IllegalArgumentException("Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cachechildren.toString()");
                 } else {
-                    childrenRealmList.add(some_test_EmbeddedClassRealmProxy.copyOrUpdate(realm, (some_test_EmbeddedClassRealmProxy.EmbeddedClassColumnInfo) realm.getSchema().getColumnInfo(some.test.EmbeddedClass.class), childrenItem, update, cache, flags));
+                    long objKey = childrenManagedList.getOsList().createAndAddEmbeddedObject();
+                    Row linkedObjectRow = realm.getTable(some.test.EmbeddedClass.class).getUncheckedRow(objKey);
+                    some.test.EmbeddedClass linkedObject = some_test_EmbeddedClassRealmProxy.newProxyInstance(realm, linkedObjectRow);
+                    cache.put(childrenUnmanagedItem, (RealmObjectProxy) linkedObject);
+                    some_test_EmbeddedClassRealmProxy.updateEmbeddedObject(realm, childrenUnmanagedItem, linkedObject, new HashMap<>(), Collections.EMPTY_SET);
                 }
             }
         }
@@ -746,19 +763,25 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
             long objKey = ((RealmObjectProxy) realmObject).realmGet$proxyState().getRow$realm().createEmbeddedObject(columnInfo.childColKey);
             Row row = realm.getTable(some.test.EmbeddedClass.class).getUncheckedRow(objKey);
             some.test.EmbeddedClass proxyObject = some_test_EmbeddedClassRealmProxy.newProxyInstance(realm, row);
-            some_test_EmbeddedClassRealmProxy.update(realm, (some_test_EmbeddedClassRealmProxy.EmbeddedClassColumnInfo) realm.getSchema().getColumnInfo(some.test.EmbeddedClass.class), proxyObject, childObj, cache, flags);
+            cache.put(childObj, (RealmObjectProxy) proxyObject);
+            some_test_EmbeddedClassRealmProxy.updateEmbeddedObject(realm, childObj, proxyObject, cache, flags);
         }
 
-        RealmList<some.test.EmbeddedClass> childrenList = realmObjectSource.realmGet$children();
-        if (childrenList != null) {
+        RealmList<some.test.EmbeddedClass> childrenUnmanagedList = realmObjectSource.realmGet$children();
+        if (childrenUnmanagedList != null) {
             RealmList<some.test.EmbeddedClass> childrenManagedCopy = new RealmList<some.test.EmbeddedClass>();
-            for (int i = 0; i < childrenList.size(); i++) {
-                some.test.EmbeddedClass childrenItem = childrenList.get(i);
-                some.test.EmbeddedClass cachechildren = (some.test.EmbeddedClass) cache.get(childrenItem);
+            for (int i = 0; i < childrenUnmanagedList.size(); i++) {
+                some.test.EmbeddedClass childrenUnmanagedItem = childrenUnmanagedList.get(i);
+                some.test.EmbeddedClass cachechildren = (some.test.EmbeddedClass) cache.get(childrenUnmanagedItem);
                 if (cachechildren != null) {
-                    childrenManagedCopy.add(cachechildren);
+                    throw new IllegalArgumentException("Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cachechildren.toString()");
                 } else {
-                    childrenManagedCopy.add(some_test_EmbeddedClassRealmProxy.copyOrUpdate(realm, (some_test_EmbeddedClassRealmProxy.EmbeddedClassColumnInfo) realm.getSchema().getColumnInfo(some.test.EmbeddedClass.class), childrenItem, true, cache, flags));
+                    long objKey = realmObjectTarget.realmGet$children().getOsList().createAndAddEmbeddedObject();
+                    Row row = realm.getTable(some.test.EmbeddedClass.class).getUncheckedRow(objKey);
+                    some.test.EmbeddedClass proxyObject = some_test_EmbeddedClassRealmProxy.newProxyInstance(realm, row);
+                    cache.put(childrenUnmanagedItem, (RealmObjectProxy) proxyObject);
+                    childrenManagedCopy.add(proxyObject);
+                    some_test_EmbeddedClassRealmProxy.updateEmbeddedObject(realm, childrenUnmanagedItem, proxyObject, new HashMap<>(), Collections.EMPTY_SET);
                 }
             }
             builder.addObjectList(columnInfo.childrenColKey, childrenManagedCopy);
@@ -766,8 +789,12 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
             builder.addObjectList(columnInfo.childrenColKey, new RealmList<some.test.EmbeddedClass>());
         }
 
-        builder.updateExistingObject();
+        builder.updateExistingTopLevelObject();
         return realmObject;
+    }
+
+    public static void updateEmbeddedObject(Realm realm, some.test.EmbeddedClassSimpleParent unmanagedObject, some.test.EmbeddedClassSimpleParent managedObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
+        throw new IllegalStateException("This class is not marked embedded: some.test.EmbeddedClassSimpleParent");
     }
 
     @Override

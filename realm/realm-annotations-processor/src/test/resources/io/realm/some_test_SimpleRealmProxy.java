@@ -221,7 +221,7 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
         return realm.copyToRealm(obj);
     }
 
-    private static some_test_SimpleRealmProxy newProxyInstance(BaseRealm realm, Row row) {
+    static some_test_SimpleRealmProxy newProxyInstance(BaseRealm realm, Row row) {
         // Ignore default values to avoid creating unexpected objects from RealmModel/RealmList fields
         final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         objectContext.set(realm, row, realm.getSchema().getColumnInfo(some.test.Simple.class), false, Collections.<String>emptyList());
@@ -382,6 +382,10 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
         unmanagedCopy.realmSet$age(realmSource.realmGet$age());
 
         return unmanagedObject;
+    }
+
+    public static void updateEmbeddedObject(Realm realm, some.test.Simple unmanagedObject, some.test.Simple managedObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
+        throw new IllegalStateException("This class is not marked embedded: some.test.Simple");
     }
 
     @Override
