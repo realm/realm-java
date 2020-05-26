@@ -206,26 +206,25 @@ public class OsRealmConfig implements NativeObject {
         NativeContext.dummyContext.addReference(this);
 
         // Retrieve Sync settings first. We need syncRealmUrl to identify if this is a SyncConfig
+        int j = 0;
         Object[] syncConfigurationOptions = ObjectServerFacade.getSyncFacadeIfPossible().getSyncConfigurationOptions(realmConfiguration);
-        String syncUserIdentifier = (String) syncConfigurationOptions[0];
-        String syncRealmUrl = (String) syncConfigurationOptions[1];
-        String syncRealmAuthUrl = (String) syncConfigurationOptions[2];
-        String syncRefreshToken = (String) syncConfigurationOptions[3];
-        String syncAccessToken = (String) syncConfigurationOptions[4];
-        String deviceId = (String) syncConfigurationOptions[5];
-        boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncConfigurationOptions[6]));
-        String syncSslTrustCertificatePath = (String) syncConfigurationOptions[7];
-        Byte sessionStopPolicy = (Byte) syncConfigurationOptions[8];
-        String urlPrefix = (String)(syncConfigurationOptions[9]);
-        String customAuthorizationHeaderName = (String)(syncConfigurationOptions[10]);
-        Byte clientResyncMode = (Byte) syncConfigurationOptions[12];
-        String partitionValue = (String) syncConfigurationOptions[13];
-        Object syncService = syncConfigurationOptions[14];
+        String syncUserIdentifier = (String) syncConfigurationOptions[j++];
+        String syncRealmUrl = (String) syncConfigurationOptions[j++];
+        String syncRealmAuthUrl = (String) syncConfigurationOptions[j++];
+        String syncRefreshToken = (String) syncConfigurationOptions[j++];
+        String syncAccessToken = (String) syncConfigurationOptions[j++];
+        String deviceId = (String) syncConfigurationOptions[j++];
+        Byte sessionStopPolicy = (Byte) syncConfigurationOptions[j++];
+        String urlPrefix = (String)(syncConfigurationOptions[j++]);
+        String customAuthorizationHeaderName = (String)(syncConfigurationOptions[j++]);
+        //noinspection unchecked
+        Map<String, String> customHeadersMap = (Map<String, String>) (syncConfigurationOptions[j++]);
+        Byte clientResyncMode = (Byte) syncConfigurationOptions[j++];
+        String partitionValue = (String) syncConfigurationOptions[j++];
+        Object syncService = syncConfigurationOptions[j++];
 
         // Convert the headers into a String array to make it easier to send through JNI
         // [key1, value1, key2, value2, ...]
-        //noinspection unchecked
-        Map<String, String> customHeadersMap = (Map<String, String>) (syncConfigurationOptions[11]);
         String[] customHeaders = new String[customHeadersMap != null ? customHeadersMap.size() * 2 : 0];
         if (customHeadersMap != null) {
             int i = 0;
@@ -300,7 +299,6 @@ public class OsRealmConfig implements NativeObject {
             } catch (URISyntaxException e) {
                 RealmLog.error(e, "Cannot create a URI from the Realm URL address");
             }
-            nativeSetSyncConfigSslSettings(nativePtr, syncClientValidateSsl, syncSslTrustCertificatePath);
 
             // TODO: maybe expose the option for a custom Proxy or ProxySelector in the config?
             ProxySelector proxySelector = ProxySelector.getDefault();
