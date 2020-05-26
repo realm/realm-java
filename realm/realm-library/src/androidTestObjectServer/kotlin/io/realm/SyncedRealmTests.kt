@@ -180,7 +180,7 @@ class SyncedRealmTests {
     }
 
     @Test
-    @Ignore("Flaky, seems like Realm.compactRealm(config) sometimes returns false")
+    @Ignore("FIXME Flaky, seems like Realm.compactRealm(config) sometimes returns false")
     fun compactRealm_populatedRealm() {
         val config = configFactory.createSyncConfigurationBuilder(createNewUser()).build()
         Realm.getInstance(config).use { realm ->
