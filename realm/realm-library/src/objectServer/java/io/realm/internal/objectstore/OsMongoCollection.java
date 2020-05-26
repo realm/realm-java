@@ -67,13 +67,12 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     private static final int FIND_ONE = 13;
     private static final int FIND_ONE_WITH_OPTIONS = 14;
 
-    private static final String EMPTY_STRING = "";
-
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
     private final long nativePtr;
     private final Class<DocumentT> documentClass;
     private final CodecRegistry codecRegistry;
+    private final String emptyDocument;
 
     OsMongoCollection(final long nativeCollectionPtr,
                       final Class<DocumentT> documentClass,
@@ -81,6 +80,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         this.nativePtr = nativeCollectionPtr;
         this.documentClass = documentClass;
         this.codecRegistry = codecRegistry;
+        this.emptyDocument = JniBsonProtocol.encode(new Document(), codecRegistry);
     }
 
     @Override
@@ -208,17 +208,19 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         };
 
         String encodedFilter = JniBsonProtocol.encode(filter, codecRegistry);
+        String projectionString = emptyDocument;
+        String sortString = emptyDocument;
 
         switch (findOneType) {
             case FIND_ONE:
-                nativeFindOne(FIND_ONE, nativePtr, encodedFilter, EMPTY_STRING, EMPTY_STRING, 0, callback);
+                nativeFindOne(FIND_ONE, nativePtr, encodedFilter, projectionString, sortString, 0, callback);
                 break;
             case FIND_ONE_WITH_OPTIONS:
                 if (options == null) {
                     throw new IllegalStateException("FindOptions must not be null.");
                 }
-                String projectionString = JniBsonProtocol.encode(options.getProjection(), codecRegistry);
-                String sortString = JniBsonProtocol.encode(options.getSort(), codecRegistry);
+                projectionString = JniBsonProtocol.encode(options.getProjection(), codecRegistry);
+                sortString = JniBsonProtocol.encode(options.getSort(), codecRegistry);
 
                 nativeFindOne(FIND_ONE_WITH_OPTIONS, nativePtr, encodedFilter, projectionString, sortString, options.getLimit(), callback);
                 break;
@@ -453,17 +455,21 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
         String encodedFilter = JniBsonProtocol.encode(filter, codecRegistry);
         String encodedUpdate = JniBsonProtocol.encode(update, codecRegistry);
-        String encodedProjection = null;
-        String encodedSort = null;
+        String encodedProjection = emptyDocument;
+        String encodedSort = emptyDocument;
         if (options != null) {
-            encodedProjection = JniBsonProtocol.encode(options.getProjection(), codecRegistry);
-            encodedSort = JniBsonProtocol.encode(options.getSort(), codecRegistry);
+            if (options.getProjection() != null) {
+                encodedProjection = JniBsonProtocol.encode(options.getProjection(), codecRegistry);
+            }
+            if (options.getSort() != null) {
+                encodedSort = JniBsonProtocol.encode(options.getSort(), codecRegistry);
+            }
         }
 
         // FIXME: add assertion for options
         switch (type) {
             case FIND_ONE_AND_UPDATE:
-                nativeFindOneAndUpdate(type, nativePtr, encodedFilter, encodedUpdate, EMPTY_STRING, EMPTY_STRING, false, false, callback);
+                nativeFindOneAndUpdate(type, nativePtr, encodedFilter, encodedUpdate, encodedProjection, encodedSort, false, false, callback);
                 break;
             case FIND_ONE_AND_UPDATE_WITH_OPTIONS:
                 if (options == null) {
@@ -472,7 +478,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                 nativeFindOneAndUpdate(type, nativePtr, encodedFilter, encodedUpdate, encodedProjection, encodedSort, options.isUpsert(), options.isReturnNewDocument(), callback);
                 break;
             case FIND_ONE_AND_REPLACE:
-                nativeFindOneAndReplace(type, nativePtr, encodedFilter, encodedUpdate, EMPTY_STRING, EMPTY_STRING, false, false,callback);
+                nativeFindOneAndReplace(type, nativePtr, encodedFilter, encodedUpdate, encodedProjection, encodedSort, false, false,callback);
                 break;
             case FIND_ONE_AND_REPLACE_WITH_OPTIONS:
                 if (options == null) {
@@ -481,7 +487,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                 nativeFindOneAndReplace(type, nativePtr, encodedFilter, encodedUpdate, encodedProjection, encodedSort, options.isUpsert(), options.isReturnNewDocument(), callback);
                 break;
             case FIND_ONE_AND_DELETE:
-                nativeFindOneAndDelete(type, nativePtr, encodedFilter, EMPTY_STRING, EMPTY_STRING, false, false, callback);
+                nativeFindOneAndDelete(type, nativePtr, encodedFilter, encodedProjection, encodedSort, false, false, callback);
                 break;
             case FIND_ONE_AND_DELETE_WITH_OPTIONS:
                 if (options == null) {

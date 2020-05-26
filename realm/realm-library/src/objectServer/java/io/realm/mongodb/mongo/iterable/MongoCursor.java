@@ -32,8 +32,8 @@ import io.realm.internal.common.TaskDispatcher;
  */
 public class MongoCursor<ResultT> {
 
-    private Iterator<ResultT> iterator;
-    private TaskDispatcher dispatcher;
+    private final Iterator<ResultT> iterator;
+    private final TaskDispatcher dispatcher;
 
     MongoCursor(Iterator<ResultT> iterator, TaskDispatcher dispatcher) {
         this.iterator = iterator;
@@ -47,9 +47,7 @@ public class MongoCursor<ResultT> {
      * retrieve with {@code next()}.
      */
     public Task<Boolean> hasNext() {
-        return dispatcher.dispatchTask(() ->
-                iterator.hasNext()
-        );
+        return dispatcher.dispatchTask(iterator::hasNext);
     }
 
     /**
@@ -59,9 +57,7 @@ public class MongoCursor<ResultT> {
      * a {@link NoSuchElementException } exception.
      */
     public Task<ResultT> next() {
-        return dispatcher.dispatchTask(() ->
-                iterator.next()
-        );
+        return dispatcher.dispatchTask(iterator::next);
     }
 
     /**

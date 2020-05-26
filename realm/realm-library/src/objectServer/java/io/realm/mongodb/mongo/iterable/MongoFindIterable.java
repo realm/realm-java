@@ -29,7 +29,6 @@ public class MongoFindIterable<ResultT> extends MongoIterable<ResultT> {
                              final OsMongoFindIterable<ResultT> osMongoFindIterable) {
         super(dispatcher);
         this.osMongoFindIterable = osMongoFindIterable;
-
     }
 
     @Override
