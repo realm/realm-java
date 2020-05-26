@@ -414,7 +414,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     endControlFlow()
                     emitStatement("%1\$s proxyObject = realm.createEmbeddedObject(%1\$s.class, this, \"%2\$s\")", linkedQualifiedClassName, fieldName)
                     emitStatement("%s.updateEmbeddedObject(realm, value, proxyObject, new HashMap<>(), Collections.EMPTY_SET)", linkedProxyClass)
-
                 } else {
                     emitStatement("proxyState.checkValidObject(value)")
                     emitStatement("proxyState.getRow\$realm().setLink(%s, ((RealmObjectProxy) value).realmGet\$proxyState().getRow\$realm().getObjectKey())", fieldColKeyVariableReference(field))

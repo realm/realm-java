@@ -137,9 +137,9 @@ class Backlink(private val clazz: ClassMetaData, private val backlinkField: Vari
             return false
         }
 
-        // A @LinkingObjects can only be required if the class is embedded there is only one
-        // @LinkingField field defined. And even in that case, it requires runtime schema
-        // validation since we need to know if only one other type is pointing to it.
+        // A @LinkingObjects can only be required if for the class being embedded there is
+        // only one @LinkingField field defined. And even in that case, it requires runtime
+        // schema validation since we need to know if only one other type is pointing to it.
         // If multiple types point to it, we cannot keep the contract of @Required.
         if (field.getAnnotation(Required::class.java) != null && clazz.backlinkFields.isNotEmpty()) {
             Utils.error(String.format(
@@ -164,10 +164,8 @@ class Backlink(private val clazz: ClassMetaData, private val backlinkField: Vari
     }
 
     private fun validateBacklinksAsRealmResults(field: VariableElement): Boolean {
-        // A @LinkingObjects can only be required if the class is embedded there is only one
-        // @LinkingField field defined. And even in that case, it requires runtime schema
-        // validation since we need to know if only one other type is pointing to it.
-        // If multiple types point to it, we cannot keep the contract of @Required.
+        // A @LinkingObjects on a RealmResults cannot be @Required as doesn't have any
+        // meaning.
         if (field.getAnnotation(Required::class.java) != null) {
             Utils.error(String.format(
                     Locale.US,

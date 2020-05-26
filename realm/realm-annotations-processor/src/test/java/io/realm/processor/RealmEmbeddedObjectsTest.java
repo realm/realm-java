@@ -12,7 +12,6 @@ import static org.truth0.Truth.ASSERT;
 
 public class RealmEmbeddedObjectsTest {
 
-    // Check that a class only with class name policy compiles
     @Test
     public void compileEmbeddedObjectFile() {
         ASSERT.about(javaSource())

@@ -6,6 +6,8 @@
 * Destructive updates of a schema of a synced Realm will now consistently throw an `UnsupportedOperationException` instead of some methods throwing `IllegalArgumentException`. The affected methods are `RealmSchema.remove(String)`, `RealmSchema.rename(String, String)`, `RealmObjectSchema.setClassName(String)`, `RealmObjectSchema.removeField(String)`, `RealmObjectSchema.renameField(String, String)`, `RealmObjectSchema.removeIndex(String)`, `RealmObjectSchema.removePrimaryKey()`, `RealmObjectSchema.addPrimaryKey(String)` and `RealmObjectSchema.addField(String, Class<?>, FieldAttribute)` 
 
 ### Enhancements
+* Added support for `org.bson.types.Decimal128` and `org.bson.types.ObjectId` as supported fields in model classes.
+* Added support for `org.bson.types.ObjectId` as a primary key.
 * Added support for "Embedded Objects". They are enabled using `@RealmClass(embedded = true)`. An embedded object must have exactly one parent object linking to it and it will be deleted when the the parent is. Embedded objects can also be the parent of other embedded classes. Read more [here](https://realm.io/docs/java/latest/#embedded-objects). (Issue [#6713](https://github.com/realm/realm-java/issues/6713))  
 
 ### Fixed

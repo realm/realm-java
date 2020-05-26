@@ -75,7 +75,17 @@ inline fun <reified T : RealmModel> Realm.createObject(primaryKeyValue: Any?): T
 }
 
 /**
- * FIXME
+ * Instantiates and adds a new embedded object to the Realm.
+ * <p>
+ * This method should only be used to created objects of types marked as embedded.
+ *
+ * @param T the Class of the object to create. It must be marked with {@code \@RealmClass(embedded = true)}.
+ * @param parentObject The parent object which should a reference to the embedded object. If the parent property is a list
+ * the embedded object will be added to the end of that list.
+ * @param parentProperty the property in the parent class which holds the reference.
+ * @return the newly created embedded object.
+ * @throws IllegalArgumentException if {@code clazz} is not an embedded class or if the property
+ * in the parent class cannot hold objects of the appropriate type.
  */
 inline fun <reified T : RealmModel> Realm.createEmbeddedObject(parentObject: RealmModel, parentProperty: String): T {
     return this.createEmbeddedObject(T::class.java, parentObject, parentProperty)
