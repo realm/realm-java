@@ -21,16 +21,18 @@ import io.realm.*
 import io.realm.mongodb.mongo.MongoClient
 import io.realm.mongodb.mongo.MongoCollection
 import io.realm.mongodb.mongo.MongoDatabase
-import io.realm.mongodb.mongo.options.RemoteCountOptions
+import io.realm.mongodb.mongo.options.CountOptions
+import io.realm.mongodb.mongo.options.FindOneAndModifyOptions
+import io.realm.mongodb.mongo.options.UpdateOptions
 import io.realm.util.blockingGetResult
 import org.bson.Document
 import org.bson.types.ObjectId
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
+import kotlin.test.*
 
 private const val SERVICE_NAME = "BackingDB"    // it comes from the test server's BackingDB/config.json
 private const val DATABASE_NAME = "test_data"   // same as above
@@ -71,19 +73,19 @@ class MongoCollectionTest {
     fun insertOne() {
         with(getCollectionInternal(COLLECTION_NAME)) {
             assertEquals(0, count().blockingGetResult())
-            val doc = Document(mapOf("KEY_1" to "WORLD_1", "KEY_2" to "WORLD_2"))
-            insertOne(doc).blockingGetResult()
+            val doc1 = Document(mapOf("hello_1" to "1", "hello_2" to "2"))
+            insertOne(doc1).blockingGetResult()
             assertEquals(1, count().blockingGetResult())
 
-            // FIXME: revisit this later
-//            val doc = Document("hello", "world")
-//            doc["_id"] = ObjectId()
-//
-//            assertEquals(doc.getObjectId("_id"), insertOne(doc).blockingGetResult()!!.insertedId.asObjectId().value)
-//            assertFailsWith(ObjectServerError::class) { insertOne(doc).blockingGetResult() }
-//
+            // FIXME: revisit when parser is fully operational
 //            val doc2 = Document("hello", "world")
-//            assertNotEquals(doc.getObjectId("_id"), insertOne(doc2).blockingGetResult()!!.insertedId.asObjectId().value)
+//            doc2["_id"] = ObjectId()
+//
+//            assertEquals(doc2.getObjectId("_id"), insertOne(doc2).blockingGetResult()!!.insertedId.asObjectId().value)
+//            assertFailsWith(ObjectServerError::class) { insertOne(doc2).blockingGetResult() }
+//
+//            val doc3 = Document("hello", "world")
+//            assertNotEquals(doc2.getObjectId("_id"), insertOne(doc3).blockingGetResult()!!.insertedId.asObjectId().value)
         }
     }
 
@@ -125,7 +127,7 @@ class MongoCollectionTest {
 
             assertEquals(2, count(rawDoc).blockingGetResult())
             assertEquals(0, count(Document("hello", "Friend")).blockingGetResult())
-            assertEquals(1,count(rawDoc, RemoteCountOptions().limit(1)).blockingGetResult())
+            assertEquals(1,count(rawDoc, CountOptions().limit(1)).blockingGetResult())
 
             // FIXME: investigate error handling for malformed payloads
 //            try {
@@ -226,23 +228,23 @@ class MongoCollectionTest {
             // Test findOne() with filter that does not match any documents and no options
             assertNull(findOne(Document("hello", "worldDNE")).blockingGetResult())
 
-            // FIXME: revisit this later
-//            // Insert 2 more documents into the collection
-////            insertMany(listOf(doc2, doc3)).blockingGetResult()    // use insertOne for now
-//            insertOne(doc2).blockingGetResult()
-//            insertOne(doc3).blockingGetResult()
-//            assertEquals(3, count().blockingGetResult())
-//
+            // FIXME: revisit when parser is fully operational
+            // Insert 2 more documents into the collection
+//            insertMany(listOf(doc2, doc3)).blockingGetResult()    // use insertOne for now
+            insertOne(doc2).blockingGetResult()
+            insertOne(doc3).blockingGetResult()
+            assertEquals(3, count().blockingGetResult())
+
 //            // test findOne() with projection and sort options
 //            val projection = Document("hello", 1)
 //            projection["_id"] = 0
-//            val options1 = RemoteFindOptions()
+//            val options1 = FindOptions()
 //                    .limit(2)
 //                    .projection(projection)
 //                    .sort(Document("hello", 1))
 //            assertEquals(doc1, findOne(Document(), options1).blockingGetResult()!!.withoutId())
 //
-//            val options2 = RemoteFindOptions()
+//            val options2 = FindOptions()
 //                    .limit(2)
 //                    .projection(projection)
 //                    .sort(Document("hello", -1))
@@ -257,6 +259,196 @@ class MongoCollectionTest {
 //                val svcEx = ex.cause as StitchServiceException
 //                assertEquals(StitchServiceErrorCode.MONGODB_ERROR, svcEx.errorCode)
 //            }
+        }
+    }
+
+    @Test
+    fun updateOne() {
+        with(getCollectionInternal(COLLECTION_NAME)) {
+            val doc1 = Document("hello", "world")
+            val result1 = updateOne(Document(), doc1).blockingGetResult()!!
+            assertEquals(0, result1.matchedCount)
+            assertEquals(0, result1.modifiedCount)
+            assertNull(result1.upsertedId)
+
+            val options2 = UpdateOptions().upsert(true)
+            val result2 = updateOne(Document(), doc1, options2).blockingGetResult()!!
+            assertEquals(0, result2.matchedCount)
+            assertEquals(0, result2.modifiedCount)
+            assertFalse(result2.upsertedId!!.isNull)
+
+            val result3 = updateOne(Document(), Document("\$set", Document("woof", "meow"))).blockingGetResult()!!
+            assertEquals(1, result3.matchedCount)
+            assertEquals(1, result3.modifiedCount)
+            assertNull(result3.upsertedId)
+
+            // FIXME: revisit when parser is fully operational
+//            val expectedDoc = Document("hello", "world")
+//            expectedDoc["woof"] = "meow"
+//            assertEquals(expectedDoc, withoutId(Tasks.await(coll.find(Document()).first())))
+//
+//            try {
+//                Tasks.await(coll.updateOne(Document("\$who", 1), Document()))
+//                fail()
+//            } catch (ex: ExecutionException) {
+//                assertTrue(ex.cause is StitchServiceException)
+//                val svcEx = ex.cause as StitchServiceException
+//                assertEquals(StitchServiceErrorCode.MONGODB_ERROR, svcEx.errorCode)
+//            }
+        }
+    }
+
+    @Test
+    fun updateMany() {
+        with(getCollectionInternal(COLLECTION_NAME)) {
+            val doc1 = Document("hello", "world")
+            val result1 = updateMany(Document(), doc1).blockingGetResult()!!
+            assertEquals(0, result1.matchedCount)
+            assertEquals(0, result1.modifiedCount)
+            assertNull(result1.upsertedId)
+
+            val options2 = UpdateOptions().upsert(true)
+            val result2 = updateMany(Document(), doc1, options2).blockingGetResult()!!
+            assertEquals(0, result2.matchedCount)
+            assertEquals(0, result2.modifiedCount)
+            assertNotNull(result2.upsertedId)
+
+            val result3 = updateMany(Document(), Document("\$set", Document("woof", "meow"))).blockingGetResult()!!
+            assertEquals(1, result3.matchedCount)
+            assertEquals(1, result3.modifiedCount)
+            assertNull(result3.upsertedId)
+
+            insertOne(Document()).blockingGetResult()
+            val result4 = updateMany(Document(), Document("\$set", Document("woof", "meow"))).blockingGetResult()!!
+            assertEquals(2, result4.matchedCount)
+            assertEquals(2, result4.modifiedCount)
+
+            // FIXME: revisit when parser is fully operational
+//            val expectedDoc1 = Document("hello", "world")
+//            expectedDoc1["woof"] = "meow"
+//            val expectedDoc2 = Document("woof", "meow")
+//            assertEquals(listOf(expectedDoc1, expectedDoc2), withoutIds(Tasks.await<MutableList<Document>>(coll.find(Document()).into(mutableListOf()))))
+//
+//            try {
+//                Tasks.await(coll.updateMany(Document("\$who", 1), Document()))
+//                fail()
+//            } catch (ex: ExecutionException) {
+//                assertTrue(ex.cause is StitchServiceException)
+//                val svcEx = ex.cause as StitchServiceException
+//                assertEquals(StitchServiceErrorCode.MONGODB_ERROR, svcEx.errorCode)
+//            }
+        }
+    }
+
+    @Test
+    @Ignore
+    // FIXME: revisit when parser is fully operational
+    fun findOneAndUpdate() {
+        with(getCollectionInternal(COLLECTION_NAME)) {
+            val sampleDoc = Document("hello", "world1")
+            sampleDoc["num"] = 2
+
+            // Collection should start out empty
+            // This also tests the null return format
+            assertNull(findOneAndUpdate(Document(), Document()).blockingGetResult())
+
+            // Insert a sample Document
+            insertOne(sampleDoc).blockingGetResult()
+            assertEquals(1, count().blockingGetResult())
+
+            // Sample call to findOneAndUpdate() where we get the previous document back
+            val sampleUpdate = Document("\$set", Document("hello", "hellothere"))
+            sampleUpdate["\$inc"] = Document("num", 1)
+            assertEquals(sampleDoc.withoutId(), findOneAndUpdate(Document("hello", "world1"), sampleUpdate).blockingGetResult())
+            assertEquals(1, count().blockingGetResult())
+
+            // Make sure the update took place
+            val expectedDoc = Document("hello", "hellothere")
+            expectedDoc["num"] = 3
+//            assertEquals(expectedDoc.withoutId(), withoutId(Tasks.await(coll.find().first())))
+            assertEquals(1, count().blockingGetResult())
+
+            // Call findOneAndUpdate() again but get the new document
+            sampleUpdate.remove("\$set")
+            expectedDoc["num"] = 4
+            val result = findOneAndUpdate(Document("hello", "hellothere"), sampleUpdate, FindOneAndModifyOptions().returnNewDocument(true)).blockingGetResult()
+            assertEquals(expectedDoc.withoutId(), result!!.withoutId())
+            assertEquals(1, count().blockingGetResult())
+
+            // Test null behaviour again with a filter that should not match any documents
+            assertNull(findOneAndUpdate(Document("hello", "zzzzz"), Document()).blockingGetResult())
+            assertEquals(1, count().blockingGetResult())
+
+            val doc1 = Document("hello", "world1")
+            doc1["num"] = 1
+
+            val doc2 = Document("hello", "world2")
+            doc2["num"] = 2
+
+            val doc3 = Document("hello", "world3")
+            doc3["num"] = 3
+
+            // Test the upsert option where it should not actually be invoked
+            val result2 = findOneAndUpdate(Document("hello", "hellothere"), Document("\$set", doc1), FindOneAndModifyOptions().returnNewDocument(true).upsert(true)).blockingGetResult()
+            assertEquals(doc1, result2!!.withoutId())
+            assertEquals(1, count().blockingGetResult())
+//            assertEquals(doc1.withoutId(), withoutId(Tasks.await(coll.find().first())))
+
+            // Test the upsert option where the server should perform upsert and return new document
+            val result3 = findOneAndUpdate(Document("hello", "hellothere"), Document("\$set", doc2), FindOneAndModifyOptions().returnNewDocument(true).upsert(true)).blockingGetResult()
+            assertEquals(doc2, result3!!.withoutId())
+            assertEquals(2, count().blockingGetResult())
+
+            // Test the upsert option where the server should perform upsert and return old document
+            // The old document should be empty
+            val result4 = findOneAndUpdate(Document("hello", "hellothere"), Document("\$set", doc3), FindOneAndModifyOptions().upsert(true)).blockingGetResult()
+            assertNull(result4)
+            assertEquals(3, count().blockingGetResult())
+
+            // Test sort and project
+//            assertEquals(listOf(doc1, doc2, doc3),
+//                    withoutIds(Tasks.await<MutableList<Document>>(coll.find().into(mutableListOf()))))
+
+            val sampleProject = Document("hello", 1)
+            sampleProject["_id"] = 0
+
+            val result5 = findOneAndUpdate(Document(), sampleUpdate, FindOneAndModifyOptions().projection(sampleProject).sort(Document("num", 1))).blockingGetResult()
+            assertEquals(Document("hello", "world1"), result5!!.withoutId())
+            assertEquals(3, count().blockingGetResult())
+
+            val result6 = findOneAndUpdate(Document(), sampleUpdate, FindOneAndModifyOptions().projection(sampleProject).sort(Document("num", -1))).blockingGetResult()
+            assertEquals(Document("hello", "world3"), result6!!.withoutId())
+            assertEquals(3, count().blockingGetResult())
+
+            // Test proper failure
+//            try {
+//                Tasks.await(coll.findOneAndUpdate(Document(), Document("\$who", 1)))
+//                fail()
+//            } catch (ex: ExecutionException) {
+//                assertTrue(ex.cause is StitchServiceException)
+//                val svcEx = ex.cause as StitchServiceException
+//                assertEquals(StitchServiceErrorCode.MONGODB_ERROR, svcEx.errorCode)
+//            }
+//
+//            try {
+//                Tasks.await(coll.findOneAndUpdate(Document(), Document("\$who", 1),
+//                        FindOneAndModifyOptions().upsert(true)))
+//                fail()
+//            } catch (ex: ExecutionException) {
+//                assertTrue(ex.cause is StitchServiceException)
+//                val svcEx = ex.cause as StitchServiceException
+//                assertEquals(StitchServiceErrorCode.MONGODB_ERROR, svcEx.errorCode)
+//            }
+        }
+    }
+
+    @Test
+    fun find() {
+        with(getCollectionInternal(COLLECTION_NAME)) {
+            // FIXME: fix find implementation - ignore this code for code review
+            val iter = find().blockingGetResult()!!
+            assertFalse(iter.iterator().hasNext())
+            assertFailsWith<NoSuchElementException> { iter.first() }
         }
     }
 

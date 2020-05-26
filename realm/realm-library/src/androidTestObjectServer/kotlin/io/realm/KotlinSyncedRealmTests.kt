@@ -31,7 +31,6 @@ import org.junit.runner.RunWith
 import java.util.*
 
 @RunWith(AndroidJUnit4::class)
-@Ignore("FIXME This stalls Trying to bypass sync test to see if this is blocking CI")
 class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaining Java tests have been moved
 
     private lateinit var app: TestRealmApp
@@ -147,7 +146,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
                 val dog = SyncDog()
                 dog.name = "Fido $i"
                 it.insert(dog)
-                person.dogs.add(dog.id)
+                person.dogs.add(dog)
             }
             realm.insert(person)
         }

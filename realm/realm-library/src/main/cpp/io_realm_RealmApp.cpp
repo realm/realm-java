@@ -91,7 +91,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_RealmApp_nativeCreate(JNIEnv* env, jobject
                                                             jlong j_request_timeout_ms,
                                                             jstring j_sync_base_dir,
                                                             jstring j_user_agent_binding_info,
-                                                            jstring j_user_agent_application_info)
+                                                            jstring j_user_agent_application_info,
+                                                            jstring j_platform,
+                                                            jstring j_platform_version,
+                                                            jstring j_sdk_version)
 {
     try {
 
@@ -108,14 +111,19 @@ JNIEXPORT jlong JNICALL Java_io_realm_RealmApp_nativeCreate(JNIEnv* env, jobject
         JStringAccessor base_url(env, j_base_url);
         JStringAccessor app_name(env, j_app_name);
         JStringAccessor app_version(env, j_app_version);
-
+        JStringAccessor platform(env, j_platform);
+        JStringAccessor platform_version(env, j_platform_version);
+        JStringAccessor sdk_version(env, j_sdk_version);
         auto app_config = App::Config{
                 app_id,
                 transport_generator,
                 util::Optional<std::string>(base_url),
                 util::Optional<std::string>(app_name),
                 util::Optional<std::string>(app_version),
-                util::Optional<std::uint64_t>(j_request_timeout_ms)
+                util::Optional<std::uint64_t>(j_request_timeout_ms),
+                platform,
+                platform_version,
+                sdk_version
         };
 
         // Sync Config

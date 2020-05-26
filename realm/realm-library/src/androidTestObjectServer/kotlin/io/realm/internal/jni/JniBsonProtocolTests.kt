@@ -19,7 +19,7 @@ package io.realm.internal.jni
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.Realm
-import io.realm.RealmAppConfiguration.Builder.DEFAULT_BSON_CODEC_REGISTRY
+import io.realm.RealmAppConfiguration.DEFAULT_BSON_CODEC_REGISTRY
 import org.bson.*
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
@@ -58,8 +58,8 @@ class JniBsonProtocolTests {
             try {
                 when (type) {
                     BsonType.DOUBLE -> {
-                        collector.checkThat(JniBsonProtocol.roundtrip(1.4f, Float::class.java, DEFAULT_BSON_CODEC_REGISTRY).toFloat(), IsEqual(1.4f));
-                        collector.checkThat(JniBsonProtocol.roundtrip(1.4, Double::class.java, DEFAULT_BSON_CODEC_REGISTRY).toDouble(), IsEqual(1.4));
+                        collector.checkThat(JniBsonProtocol.roundtrip(1.4f, Float::class.java, DEFAULT_BSON_CODEC_REGISTRY).toFloat(), IsEqual(1.4f))
+                        collector.checkThat(JniBsonProtocol.roundtrip(1.4, Double::class.java, DEFAULT_BSON_CODEC_REGISTRY).toDouble(), IsEqual(1.4))
                         val value = BsonDouble(1.4)
                         checkEquals(value, BsonDouble::class.java)
                         allBsonTypes.add(value)
@@ -98,7 +98,7 @@ class JniBsonProtocolTests {
                     }
                     BsonType.BOOLEAN -> {
                         val value: Boolean = true
-                        collector.checkThat(JniBsonProtocol.roundtrip(value, java.lang.Boolean::class.java, DEFAULT_BSON_CODEC_REGISTRY).booleanValue(), IsEqual(value));
+                        collector.checkThat(JniBsonProtocol.roundtrip(value, java.lang.Boolean::class.java, DEFAULT_BSON_CODEC_REGISTRY).booleanValue(), IsEqual(value))
                         val value1 = BsonBoolean(true)
                         checkEquals(value1, BsonBoolean::class.java)
                         allBsonTypes.add(value1)
@@ -222,7 +222,7 @@ class JniBsonProtocolTests {
 
     // Utility method to call and verify that output is equal to input and append errors to the collector
     private fun <T> checkEquals(value: T, clz: Class<T>) {
-        collector.checkThat(call(value, clz), IsEqual(value));
+        collector.checkThat(call(value, clz), IsEqual(value))
     }
 
 }
