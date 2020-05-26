@@ -18,9 +18,9 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.SyncTestUtils.Companion.createTestUser
+import io.realm.entities.*
 import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
-import io.realm.entities.*
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import org.junit.*
@@ -182,7 +182,7 @@ class SyncedRealmTests {
     @Test
     @Ignore("Flaky, seems like Realm.compactRealm(config) sometimes returns false")
     fun compactRealm_populatedRealm() {
-        val config = configFactory.createSyncConfigurationBuilder(createTestUser(app)).build()
+        val config = configFactory.createSyncConfigurationBuilder(createNewUser()).build()
         Realm.getInstance(config).use { realm ->
             realm.executeTransaction { r: Realm ->
                 for (i in 0..9) {
