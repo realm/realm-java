@@ -19,25 +19,27 @@ package io.realm.mongodb.mongo.iterable;
 import java.util.Collection;
 
 import io.realm.internal.common.TaskDispatcher;
-import io.realm.internal.objectstore.OsMongoFindIterable;
+import io.realm.internal.objectstore.OsAggregateIterable;
 
-public class MongoFindIterable<ResultT> extends MongoIterable<ResultT> {
+/**
+ * FIXME
+ * @param <ResultT>
+ */
+public class AggregateIterable<ResultT> extends MongoIterable<ResultT> {
 
-    private final OsMongoFindIterable<ResultT> osMongoFindIterable;
-
-    public MongoFindIterable(final TaskDispatcher dispatcher,
-                             final OsMongoFindIterable<ResultT> osMongoFindIterable) {
+    public AggregateIterable(final TaskDispatcher dispatcher, final OsAggregateIterable osAggregateIterable) {
         super(dispatcher);
-        this.osMongoFindIterable = osMongoFindIterable;
     }
 
     @Override
     Collection<ResultT> getCollection() {
-        return osMongoFindIterable.getCollection();
+        // FIXME: coming up
+        return null;
     }
 
     @Override
     ResultT getFirst() {
-        return osMongoFindIterable.first();
+        // FIXME: coming up
+        return null;
     }
 }
