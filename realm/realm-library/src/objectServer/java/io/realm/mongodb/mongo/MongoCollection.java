@@ -25,7 +25,8 @@ import java.util.List;
 
 import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.objectstore.OsMongoCollection;
-import io.realm.mongodb.mongo.iterable.MongoFindIterable;
+import io.realm.mongodb.mongo.iterable.AggregateIterable;
+import io.realm.mongodb.mongo.iterable.FindIterable;
 import io.realm.mongodb.mongo.options.CountOptions;
 import io.realm.mongodb.mongo.options.FindOneAndModifyOptions;
 import io.realm.mongodb.mongo.options.FindOptions;
@@ -211,13 +212,13 @@ public class MongoCollection<DocumentT> {
      *
      * @return the find iterable interface
      */
-    public MongoFindIterable<DocumentT> find() {
-        return new MongoFindIterable<>(dispatcher, osMongoCollection.find());
+    public FindIterable<DocumentT> find() {
+        return new FindIterable<>(dispatcher, osMongoCollection.find());
     }
 
     // FIXME: javadoc
-    public MongoFindIterable<DocumentT> find(final FindOptions options) {
-        return new MongoFindIterable<>(dispatcher, osMongoCollection.find(options));
+    public FindIterable<DocumentT> find(final FindOptions options) {
+        return new FindIterable<>(dispatcher, osMongoCollection.find(options));
     }
 
     /**
@@ -227,14 +228,14 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return the find iterable interface
      */
-    public <ResultT> MongoFindIterable<ResultT> find(final Class<ResultT> resultClass) {
-        return new MongoFindIterable<>(dispatcher, osMongoCollection.find(resultClass));
+    public <ResultT> FindIterable<ResultT> find(final Class<ResultT> resultClass) {
+        return new FindIterable<>(dispatcher, osMongoCollection.find(resultClass));
     }
 
     // FIXME: javadoc
-    public <ResultT> MongoFindIterable<ResultT> find(final Class<ResultT> resultClass,
-                                                     final FindOptions options) {
-        return new MongoFindIterable<>(dispatcher, osMongoCollection.find(resultClass, options));
+    public <ResultT> FindIterable<ResultT> find(final Class<ResultT> resultClass,
+                                                final FindOptions options) {
+        return new FindIterable<>(dispatcher, osMongoCollection.find(resultClass, options));
     }
 
     /**
@@ -243,13 +244,13 @@ public class MongoCollection<DocumentT> {
      * @param filter the query filter
      * @return the find iterable interface
      */
-    public MongoFindIterable<DocumentT> find(final Bson filter) {
-        return new MongoFindIterable<>(dispatcher, osMongoCollection.find(filter));
+    public FindIterable<DocumentT> find(final Bson filter) {
+        return new FindIterable<>(dispatcher, osMongoCollection.find(filter));
     }
 
     // FIXME: javadoc
-    public MongoFindIterable<DocumentT> find(final Bson filter, final FindOptions options) {
-        return new MongoFindIterable<>(dispatcher, osMongoCollection.find(filter, options));
+    public FindIterable<DocumentT> find(final Bson filter, final FindOptions options) {
+        return new FindIterable<>(dispatcher, osMongoCollection.find(filter, options));
     }
 
     /**
@@ -260,16 +261,16 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return the find iterable interface
      */
-    public <ResultT> MongoFindIterable<ResultT> find(final Bson filter,
-                                                     final Class<ResultT> resultClass) {
-        return new MongoFindIterable<>(dispatcher, osMongoCollection.find(filter, resultClass));
+    public <ResultT> FindIterable<ResultT> find(final Bson filter,
+                                                final Class<ResultT> resultClass) {
+        return new FindIterable<>(dispatcher, osMongoCollection.find(filter, resultClass));
     }
 
     // FIXME: javadoc
-    public <ResultT> MongoFindIterable<ResultT> find(final Bson filter,
-                                                     final Class<ResultT> resultClass,
-                                                     final FindOptions options) {
-        return new MongoFindIterable<>(dispatcher,
+    public <ResultT> FindIterable<ResultT> find(final Bson filter,
+                                                final Class<ResultT> resultClass,
+                                                final FindOptions options) {
+        return new FindIterable<>(dispatcher,
                 osMongoCollection.find(filter, resultClass, options));
     }
 

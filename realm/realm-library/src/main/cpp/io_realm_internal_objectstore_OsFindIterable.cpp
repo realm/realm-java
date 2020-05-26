@@ -42,11 +42,11 @@ static std::function<jobject(JNIEnv*, util::Optional<bson::BsonArray>)> collecti
 };
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsMongoFindIterable_nativeFind(JNIEnv *env,
-                                                                  jclass,
-                                                                  jlong j_collection_ptr,
-                                                                  jstring j_filter,
-                                                                  jobject j_callback) {
+Java_io_realm_internal_objectstore_OsFindIterable_nativeFind(JNIEnv *env,
+                                                             jclass,
+                                                             jlong j_collection_ptr,
+                                                             jstring j_filter,
+                                                             jobject j_callback) {
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 
@@ -58,14 +58,14 @@ Java_io_realm_internal_objectstore_OsMongoFindIterable_nativeFind(JNIEnv *env,
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsMongoFindIterable_nativeFindWithOptions(JNIEnv *env,
-                                                                             jclass,
-                                                                             jlong j_collection_ptr,
-                                                                             jstring j_filter,
-                                                                             jstring j_projection,
-                                                                             jstring j_sort,
-                                                                             jlong j_limit,
-                                                                             jobject j_callback) {
+Java_io_realm_internal_objectstore_OsFindIterable_nativeFindWithOptions(JNIEnv *env,
+                                                                        jclass,
+                                                                        jlong j_collection_ptr,
+                                                                        jstring j_filter,
+                                                                        jstring j_projection,
+                                                                        jstring j_sort,
+                                                                        jlong j_limit,
+                                                                        jobject j_callback) {
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 

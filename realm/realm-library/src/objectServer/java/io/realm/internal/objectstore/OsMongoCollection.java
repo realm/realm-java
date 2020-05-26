@@ -125,45 +125,45 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public OsMongoFindIterable<DocumentT> find() {
+    public OsFindIterable<DocumentT> find() {
         return findInternal(new Document(), documentClass, null);
     }
 
-    public OsMongoFindIterable<DocumentT> find(final FindOptions options) {
+    public OsFindIterable<DocumentT> find(final FindOptions options) {
         return findInternal(new Document(), documentClass, options);
     }
 
-    public <ResultT> OsMongoFindIterable<ResultT> find(final Class<ResultT> resultClass) {
+    public <ResultT> OsFindIterable<ResultT> find(final Class<ResultT> resultClass) {
         return findInternal(new Document(), resultClass, null);
     }
 
-    public <ResultT> OsMongoFindIterable<ResultT> find(final Class<ResultT> resultClass, final FindOptions options) {
+    public <ResultT> OsFindIterable<ResultT> find(final Class<ResultT> resultClass, final FindOptions options) {
         return findInternal(new Document(), resultClass, options);
     }
 
-    public OsMongoFindIterable<DocumentT> find(final Bson filter) {
+    public OsFindIterable<DocumentT> find(final Bson filter) {
         return findInternal(filter, documentClass, null);
     }
 
-    public OsMongoFindIterable<DocumentT> find(final Bson filter, final FindOptions options) {
+    public OsFindIterable<DocumentT> find(final Bson filter, final FindOptions options) {
         return findInternal(filter, documentClass, options);
     }
 
-    public <ResultT> OsMongoFindIterable<ResultT> find(final Bson filter,
-                                                       final Class<ResultT> resultClass) {
+    public <ResultT> OsFindIterable<ResultT> find(final Bson filter,
+                                                  final Class<ResultT> resultClass) {
         return findInternal(filter, resultClass, null);
     }
 
-    public <ResultT> OsMongoFindIterable<ResultT> find(final Bson filter,
-                                                       final Class<ResultT> resultClass,
-                                                       final FindOptions options) {
+    public <ResultT> OsFindIterable<ResultT> find(final Bson filter,
+                                                  final Class<ResultT> resultClass,
+                                                  final FindOptions options) {
         return findInternal(filter, resultClass, options);
     }
 
-    private <ResultT> OsMongoFindIterable<ResultT> findInternal(final Bson filter,
-                                                                final Class<ResultT> resultClass,
-                                                                @Nullable final FindOptions options) {
-        return new OsMongoFindIterable<>(this, codecRegistry, resultClass, filter, options);
+    private <ResultT> OsFindIterable<ResultT> findInternal(final Bson filter,
+                                                           final Class<ResultT> resultClass,
+                                                           @Nullable final FindOptions options) {
+        return new OsFindIterable<>(this, codecRegistry, resultClass, filter, options);
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -194,7 +194,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return findOneInternal(FIND_ONE_WITH_OPTIONS, filter, options, resultClass);
     }
 
-    private <ResultT> ResultT findOneInternal(@FindOneType final int findOneType,
+    private <ResultT> ResultT findOneInternal(final int findOneType,
                                               final Bson filter,
                                               @Nullable final FindOptions options,
                                               final Class<ResultT> resultClass) {
@@ -281,7 +281,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return deleteInternal(DELETE_MANY, filter);
     }
 
-    private DeleteResult deleteInternal(@DeleteType final int type, final Bson filter) {
+    private DeleteResult deleteInternal(final int type, final Bson filter) {
         AtomicReference<DeleteResult> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         OsJNIResultCallback<DeleteResult> callback = new OsJNIResultCallback<DeleteResult>(success, error) {
@@ -325,7 +325,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return updateInternal(UPDATE_MANY_WITH_OPTIONS, filter, update, options);
     }
 
-    private UpdateResult updateInternal(@UpdateType final int type,
+    private UpdateResult updateInternal(final int type,
                                         final Bson filter,
                                         final Bson update,
                                         @Nullable final UpdateOptions options) {
@@ -439,7 +439,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return findOneAndOperationInternal(FIND_ONE_AND_DELETE_WITH_OPTIONS, filter, null, options, resultClass);
     }
 
-    private <ResultT> ResultT findOneAndOperationInternal(@FindOneAndOperationType final int type,
+    private <ResultT> ResultT findOneAndOperationInternal(final int type,
                                                           final Bson filter,
                                                           @Nullable final Bson update,
                                                           @Nullable final FindOneAndModifyOptions options,
@@ -466,7 +466,6 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
             }
         }
 
-        // FIXME: add assertion for options
         switch (type) {
             case FIND_ONE_AND_UPDATE:
                 nativeFindOneAndUpdate(type, nativePtr, encodedFilter, encodedUpdate, encodedProjection, encodedSort, false, false, callback);
@@ -510,32 +509,32 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         }
     }
 
-    @Retention(RetentionPolicy.SOURCE)
-    @IntDef({UPDATE_ONE, UPDATE_ONE_WITH_OPTIONS, UPDATE_MANY, UPDATE_MANY_WITH_OPTIONS})
-    @interface UpdateType {
-    }
-
-    @Retention(RetentionPolicy.SOURCE)
-    @IntDef({DELETE_ONE, DELETE_MANY})
-    @interface DeleteType {
-    }
-
-    @Retention(RetentionPolicy.SOURCE)
-    @IntDef({FIND_ONE, FIND_ONE_WITH_OPTIONS})
-    @interface FindOneType {
-    }
-
-    @Retention(RetentionPolicy.SOURCE)
-    @IntDef({FIND_ONE_AND_UPDATE, FIND_ONE_AND_UPDATE_WITH_OPTIONS, FIND_ONE_AND_REPLACE, FIND_ONE_AND_REPLACE_WITH_OPTIONS, FIND_ONE_AND_DELETE, FIND_ONE_AND_DELETE_WITH_OPTIONS})
-    @interface FindOneAndOperationType {
-    }
+//    @Retention(RetentionPolicy.SOURCE)
+//    @IntDef({UPDATE_ONE, UPDATE_ONE_WITH_OPTIONS, UPDATE_MANY, UPDATE_MANY_WITH_OPTIONS})
+//    @interface UpdateType {
+//    }
+//
+//    @Retention(RetentionPolicy.SOURCE)
+//    @IntDef({DELETE_ONE, DELETE_MANY})
+//    @interface DeleteType {
+//    }
+//
+//    @Retention(RetentionPolicy.SOURCE)
+//    @IntDef({FIND_ONE, FIND_ONE_WITH_OPTIONS})
+//    @interface FindOneType {
+//    }
+//
+//    @Retention(RetentionPolicy.SOURCE)
+//    @IntDef({FIND_ONE_AND_UPDATE, FIND_ONE_AND_UPDATE_WITH_OPTIONS, FIND_ONE_AND_REPLACE, FIND_ONE_AND_REPLACE_WITH_OPTIONS, FIND_ONE_AND_DELETE, FIND_ONE_AND_DELETE_WITH_OPTIONS})
+//    @interface FindOneAndOperationType {
+//    }
 
     private static native long nativeGetFinalizerMethodPtr();
     private static native void nativeCount(long remoteMongoCollectionPtr,
                                            String filter,
                                            long limit,
                                            OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeFindOne(@FindOneType int findOneType,
+    private static native void nativeFindOne(int findOneType,
                                              long nativePtr,
                                              String filter,
                                              String projection,
@@ -548,17 +547,17 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     private static native void nativeInsertMany(long remoteMongoCollectionPtr,
                                                 String documents,
                                                 OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeDelete(@DeleteType int deleteType,
+    private static native void nativeDelete(int deleteType,
                                             long remoteMongoCollectionPtr,
                                             String document,
                                             OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeUpdate(@UpdateType int updateType,
+    private static native void nativeUpdate(int updateType,
                                             long remoteMongoCollectionPtr,
                                             String filter,
                                             String update,
                                             boolean upsert,
                                             OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeFindOneAndUpdate(@FindOneAndOperationType int findOneAndUpdateType,
+    private static native void nativeFindOneAndUpdate(int findOneAndUpdateType,
                                                       long remoteMongoCollectionPtr,
                                                       String filter,
                                                       String update,
@@ -567,7 +566,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                                                       boolean upsert,
                                                       boolean returnNewDocument,
                                                       OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeFindOneAndReplace(@FindOneAndOperationType int findOneAndReplaceType,
+    private static native void nativeFindOneAndReplace(int findOneAndReplaceType,
                                                        long remoteMongoCollectionPtr,
                                                        String filter,
                                                        String update,
@@ -576,7 +575,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                                                        boolean upsert,
                                                        boolean returnNewDocument,
                                                        OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    private static native void nativeFindOneAndDelete(@FindOneAndOperationType int findOneAndDeleteType,
+    private static native void nativeFindOneAndDelete(int findOneAndDeleteType,
                                                       long remoteMongoCollectionPtr,
                                                       String filter,
                                                       String projection,

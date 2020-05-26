@@ -365,7 +365,7 @@ class MongoCollectionTest {
             {"arguments":[{"database":"test_data","collection":"COLLECTION_NAME","query":{"hello":"zzzzz"},"update":{}}],"name":"findOneAndUpdate","service":"BackingDB"}
 
              Response - should be null:
-            {"_id": {"$oid": "5eccc5d4d93d045d7390774c"}, "hello": "hellothere", "num": 4}
+            {"_id": {"$oid": "5eccc1eed93d045d73907621"}, "hello": "hellothere", "num": 4}
 
              *
              *
