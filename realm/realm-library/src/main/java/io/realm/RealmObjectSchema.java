@@ -120,7 +120,7 @@ public abstract class RealmObjectSchema {
      * @param className the new name for this class.
      * @throws IllegalArgumentException if className is {@code null} or an empty string, or its length exceeds 56
      * characters.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or from a synced Realm.
      * @see RealmSchema#rename(String, String)
      */
     public abstract RealmObjectSchema setClassName(String className);
@@ -140,7 +140,8 @@ public abstract class RealmObjectSchema {
      * @return the updated schema.
      * @throws IllegalArgumentException if the type isn't supported, field name is illegal or a field with that name
      * already exists.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or if adding a
+     * a field with {@link FieldAttribute#PRIMARY_KEY} attribute to a schema of a synced Realm.
      */
     public abstract RealmObjectSchema addField(String fieldName, Class<?> fieldType, FieldAttribute... attributes);
 
@@ -202,7 +203,7 @@ public abstract class RealmObjectSchema {
      * @param fieldName field name to remove.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or for a synced Realm.
      */
     public abstract RealmObjectSchema removeField(String fieldName);
 
@@ -213,7 +214,7 @@ public abstract class RealmObjectSchema {
      * @param newFieldName the new field name.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist or if the new field name already exists.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or for a synced Realm.
      */
     public abstract RealmObjectSchema renameField(String currentFieldName, String newFieldName);
 
@@ -259,7 +260,7 @@ public abstract class RealmObjectSchema {
      * @param fieldName field to remove index from.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist or the field doesn't have an index.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or of a synced Realm.
      */
     public abstract RealmObjectSchema removeIndex(String fieldName);
 
@@ -272,7 +273,7 @@ public abstract class RealmObjectSchema {
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist, the field cannot be a primary key or it already
      * has a primary key defined.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or this method is called on a synced Realm.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or of a synced Realm.
      */
     public abstract RealmObjectSchema addPrimaryKey(String fieldName);
 
@@ -283,7 +284,7 @@ public abstract class RealmObjectSchema {
      *
      * @return the updated schema.
      * @throws IllegalArgumentException if the class doesn't have a primary key defined.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or of a synced Realm.
      */
     public abstract RealmObjectSchema removePrimaryKey();
 

@@ -20,6 +20,7 @@
 #include "util.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/jni_utils.hpp"
+#include "jni_util/bson_util.hpp"
 
 #include <sync/app.hpp>
 
@@ -52,9 +53,11 @@ JNIEXPORT void JNICALL Java_io_realm_EmailPasswordAuth_nativeCallFunction(JNIEnv
             case io_realm_EmailPasswordAuth_TYPE_SEND_RESET_PASSWORD_EMAIL:
                 client.send_reset_password_email(args[0], JavaNetworkTransport::create_void_callback(env, j_callback));
                 break;
-            case io_realm_EmailPasswordAuth_TYPE_CALL_RESET_PASSWORD_FUNCTION:
-                client.call_reset_password_function(args[0], args[1], args[2], JavaNetworkTransport::create_void_callback(env, j_callback));
+            case io_realm_EmailPasswordAuth_TYPE_CALL_RESET_PASSWORD_FUNCTION: {
+                bson::BsonArray reset_arg(JniBsonProtocol::string_to_bson(args[2]));
+                client.call_reset_password_function(args[0], args[1], reset_arg, JavaNetworkTransport::create_void_callback(env, j_callback));
                 break;
+            }
             case io_realm_EmailPasswordAuth_TYPE_RESET_PASSWORD:
                 client.reset_password(args[0], args[1], args[2], JavaNetworkTransport::create_void_callback(env, j_callback));
                 break;
