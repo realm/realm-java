@@ -222,6 +222,8 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         };
 
         String encodedFilter = JniBsonProtocol.encode(filter, codecRegistry);
+
+        // default to empty docs or update if needed
         String projectionString = encodedEmptyDocument;
         String sortString = encodedEmptyDocument;
 
@@ -329,7 +331,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
     public UpdateResult updateOne(final Bson filter,
                                   final Bson update,
-                                  @Nullable final UpdateOptions options) {
+                                  final UpdateOptions options) {
         return updateInternal(UPDATE_ONE_WITH_OPTIONS, filter, update, options);
     }
 
@@ -339,7 +341,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
     public UpdateResult updateMany(final Bson filter,
                                    final Bson update,
-                                   @Nullable final UpdateOptions options) {
+                                   final UpdateOptions options) {
         return updateInternal(UPDATE_MANY_WITH_OPTIONS, filter, update, options);
     }
 
@@ -388,7 +390,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public DocumentT findOneAndUpdate(final Bson filter, final Bson update) {
-        return findOneAndModify(FIND_ONE_AND_UPDATE, filter, update, null, documentClass);
+        return findOneAndUpdate(filter, update, documentClass);
     }
 
     public <ResultT> ResultT findOneAndUpdate(final Bson filter,
@@ -400,7 +402,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     public DocumentT findOneAndUpdate(final Bson filter,
                                       final Bson update,
                                       final FindOneAndModifyOptions options) {
-        return findOneAndModify(FIND_ONE_AND_UPDATE_WITH_OPTIONS, filter, update, options, documentClass);
+        return findOneAndUpdate(filter, update, options, documentClass);
     }
 
     public <ResultT> ResultT findOneAndUpdate(final Bson filter,
@@ -413,7 +415,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public DocumentT findOneAndReplace(final Bson filter, final Bson replacement) {
-        return findOneAndModify(FIND_ONE_AND_REPLACE, filter, replacement, null, documentClass);
+        return findOneAndReplace(filter, replacement, documentClass);
     }
 
     public <ResultT> ResultT findOneAndReplace(final Bson filter,
@@ -425,7 +427,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     public DocumentT findOneAndReplace(final Bson filter,
                                        final Bson replacement,
                                        final FindOneAndModifyOptions options) {
-        return findOneAndModify(FIND_ONE_AND_REPLACE_WITH_OPTIONS, filter, replacement, options, documentClass);
+        return findOneAndReplace(filter, replacement, options, documentClass);
     }
 
     public <ResultT> ResultT findOneAndReplace(final Bson filter,
@@ -438,28 +440,28 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public DocumentT findOneAndDelete(final Bson filter) {
-        return findOneAndModify(FIND_ONE_AND_DELETE, filter, null, null, documentClass);
+        return findOneAndDelete(filter, documentClass);
     }
 
     public <ResultT> ResultT findOneAndDelete(final Bson filter,
                                               final Class<ResultT> resultClass) {
-        return findOneAndModify(FIND_ONE_AND_DELETE, filter, null, null, resultClass);
+        return findOneAndModify(FIND_ONE_AND_DELETE, filter, new Document(), null, resultClass);
     }
 
     public DocumentT findOneAndDelete(final Bson filter,
                                       final FindOneAndModifyOptions options) {
-        return findOneAndModify(FIND_ONE_AND_DELETE_WITH_OPTIONS, filter, null, options, documentClass);
+        return findOneAndDelete(filter, options, documentClass);
     }
 
     public <ResultT> ResultT findOneAndDelete(final Bson filter,
                                               final FindOneAndModifyOptions options,
                                               final Class<ResultT> resultClass) {
-        return findOneAndModify(FIND_ONE_AND_DELETE_WITH_OPTIONS, filter, null, options, resultClass);
+        return findOneAndModify(FIND_ONE_AND_DELETE_WITH_OPTIONS, filter, new Document(), options, resultClass);
     }
 
     private <ResultT> ResultT findOneAndModify(final int type,
                                                final Bson filter,
-                                               @Nullable final Bson update,
+                                               final Bson update,
                                                @Nullable final FindOneAndModifyOptions options,
                                                final Class<ResultT> resultClass) {
         AtomicReference<ResultT> success = new AtomicReference<>(null);
@@ -472,7 +474,9 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         };
 
         final String encodedFilter = JniBsonProtocol.encode(filter, codecRegistry);
-        String encodedUpdate = update != null ? JniBsonProtocol.encode(update, codecRegistry) : encodedEmptyDocument;
+        final String encodedUpdate = JniBsonProtocol.encode(update, codecRegistry);
+
+        // default to empty docs or update if needed
         String encodedProjection = encodedEmptyDocument;
         String encodedSort = encodedEmptyDocument;
         if (options != null) {
