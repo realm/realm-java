@@ -132,7 +132,7 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOne(JNIEnv* env,
             case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE:
                 collection->find_one(filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
                 break;
-            case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_WITH_OPTIONS:
+            case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_WITH_OPTIONS: {
                 uint64_t limit = std::uint64_t(j_limit);
 
                 bson::BsonDocument projection(JniBsonProtocol::parse_checked(env, j_projection, Bson::Type::Document, "BSON projection must be a Document"));
@@ -145,6 +145,9 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOne(JNIEnv* env,
 
                 collection->find_one(filter, options, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
                 break;
+            }
+            default:
+                throw std::logic_error(util::format("Unknown find_one type: %1", j_find_one_type));
         }
     }
     CATCH_STD()
@@ -262,7 +265,7 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndUpdate(JNIE
             case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_AND_UPDATE:
                 collection->find_one_and_update(filter, update, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
                 break;
-            case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_AND_UPDATE_WITH_OPTIONS:
+            case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_AND_UPDATE_WITH_OPTIONS: {
                 bson::BsonDocument projection(JniBsonProtocol::parse_checked(env, j_projection, Bson::Type::Document, "BSON projection must be a Document"));
                 bson::BsonDocument sort(JniBsonProtocol::parse_checked(env, j_sort, Bson::Type::Document, "BSON sort must be a Document"));
                 RemoteMongoCollection::RemoteFindOneAndModifyOptions options = {
@@ -273,6 +276,9 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndUpdate(JNIE
                 };
                 collection->find_one_and_update(filter, update, options, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
                 break;
+            }
+            default:
+                throw std::logic_error(util::format("Unknown find_one_and_update type: %1", j_find_one_and_update_type));
         }
     }
     CATCH_STD()
@@ -300,7 +306,7 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndReplace(JNI
             case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_AND_REPLACE:
                 collection->find_one_and_replace(filter, update, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
                 break;
-            case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_AND_REPLACE_WITH_OPTIONS:
+            case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_AND_REPLACE_WITH_OPTIONS: {
                 bson::BsonDocument projection(JniBsonProtocol::parse_checked(env, j_projection, Bson::Type::Document, "BSON projection must be a Document"));
                 bson::BsonDocument sort(JniBsonProtocol::parse_checked(env, j_sort, Bson::Type::Document, "BSON sort must be a Document"));
                 RemoteMongoCollection::RemoteFindOneAndModifyOptions options = {
@@ -311,6 +317,9 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndReplace(JNI
                 };
                 collection->find_one_and_replace(filter, update, options, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
                 break;
+            }
+            default:
+                throw std::logic_error(util::format("Unknown find_one_and_replace type: %1", j_find_one_and_replace_type));
         }
     }
     CATCH_STD()
@@ -336,7 +345,7 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndDelete(JNIE
             case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_AND_DELETE:
                 collection->find_one_and_delete(filter, JavaNetworkTransport::create_void_callback(env, j_callback));
                 break;
-            case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_AND_DELETE_WITH_OPTIONS:
+            case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_AND_DELETE_WITH_OPTIONS: {
                 bson::BsonDocument projection(JniBsonProtocol::parse_checked(env, j_projection, Bson::Type::Document, "BSON projection must be a Document"));
                 bson::BsonDocument sort(JniBsonProtocol::parse_checked(env, j_sort, Bson::Type::Document, "BSON sort must be a Document"));
                 RemoteMongoCollection::RemoteFindOneAndModifyOptions options = {
@@ -347,6 +356,9 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndDelete(JNIE
                 };
                 collection->find_one_and_delete(filter, options, JavaNetworkTransport::create_void_callback(env, j_callback));
                 break;
+            }
+            default:
+                throw std::logic_error(util::format("Unknown find_one_and_delete type: %1", j_find_one_and_delete_type));
         }
     }
     CATCH_STD()

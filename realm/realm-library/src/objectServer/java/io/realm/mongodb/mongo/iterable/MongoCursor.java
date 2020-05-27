@@ -21,23 +21,20 @@ import com.google.android.gms.tasks.Task;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import io.realm.internal.common.TaskDispatcher;
-
 /**
- * The Mongo Cursor interface.
+ * The Mongo Cursor class.
+ * <p>
  * An application should ensure that a cursor is closed in all circumstances, e.g. using a
  * try-with-resources statement.
  *
  * @param <ResultT> The type of documents the cursor contains
  */
-public class MongoCursor<ResultT> {
+public class MongoCursor<ResultT> implements Iterator<ResultT> {
 
     private final Iterator<ResultT> iterator;
-    private final TaskDispatcher dispatcher;
 
-    MongoCursor(Iterator<ResultT> iterator, TaskDispatcher dispatcher) {
+    MongoCursor(Iterator<ResultT> iterator) {
         this.iterator = iterator;
-        this.dispatcher = dispatcher;
     }
 
     /**
@@ -46,8 +43,9 @@ public class MongoCursor<ResultT> {
      * @return A {@link Task} containing whether or not there is a next document to
      * retrieve with {@code next()}.
      */
-    public Task<Boolean> hasNext() {
-        return dispatcher.dispatchTask(iterator::hasNext);
+    @Override
+    public boolean hasNext() {
+        return iterator.hasNext();
     }
 
     /**
@@ -56,8 +54,9 @@ public class MongoCursor<ResultT> {
      * @return A {@link Task} containing the next document if available or a failed task with
      * a {@link NoSuchElementException } exception.
      */
-    public Task<ResultT> next() {
-        return dispatcher.dispatchTask(iterator::next);
+    @Override
+    public ResultT next() {
+        return iterator.next();
     }
 
     /**
@@ -65,12 +64,10 @@ public class MongoCursor<ResultT> {
      *
      * @return A {@link Task} containing the next document if available or null.
      */
-    public Task<ResultT> tryNext() {
-        return dispatcher.dispatchTask(() -> {
-            if (!iterator.hasNext()) {
-                return null;
-            }
-            return iterator.next();
-        });
+    public ResultT tryNext() {
+        if (!iterator.hasNext()) {
+            return null;
+        }
+        return iterator.next();
     }
 }

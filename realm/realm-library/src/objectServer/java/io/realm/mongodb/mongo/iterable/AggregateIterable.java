@@ -17,14 +17,16 @@
 package io.realm.mongodb.mongo.iterable;
 
 import java.util.Collection;
+import java.util.List;
 
 import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.objectstore.OsAggregateIterable;
+import io.realm.mongodb.mongo.MongoCollection;
 
 /**
- * FIXME
+ * Specific iterable for {@link MongoCollection#aggregate(List)} operations.
  *
- * @param <ResultT>
+ * @param <ResultT> The type to which this iterable will decode documents.
  */
 public class AggregateIterable<ResultT> extends MongoIterable<ResultT> {
 

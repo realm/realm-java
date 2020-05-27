@@ -24,11 +24,6 @@ import java.util.List;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 
-/**
- * FIXME
- *
- * @param <ResultT>
- */
 public class OsAggregateIterable<ResultT> extends OsMongoIterable<ResultT> {
 
     private List<? extends Bson> pipeline;

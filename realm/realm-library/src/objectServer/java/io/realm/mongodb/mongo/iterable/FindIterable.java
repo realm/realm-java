@@ -24,11 +24,12 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.objectstore.OsFindIterable;
+import io.realm.mongodb.mongo.MongoCollection;
 
 /**
- * FIXME
+ * Specific iterable for {@link MongoCollection#find()} operations.
  *
- * @param <ResultT>
+ * @param <ResultT> The type to which this iterable will decode documents.
  */
 public class FindIterable<ResultT> extends MongoIterable<ResultT> {
 

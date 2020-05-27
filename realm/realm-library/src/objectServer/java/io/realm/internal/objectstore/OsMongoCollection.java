@@ -231,7 +231,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                 break;
             case FIND_ONE_WITH_OPTIONS:
                 if (options == null) {
-                    throw new IllegalStateException("FindOptions must not be null.");
+                    throw new IllegalArgumentException("FindOptions must not be null.");
                 }
                 projectionString = JniBsonProtocol.encode(options.getProjection(), codecRegistry);
                 sortString = JniBsonProtocol.encode(options.getSort(), codecRegistry);
@@ -239,7 +239,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                 nativeFindOne(FIND_ONE_WITH_OPTIONS, nativePtr, encodedFilter, projectionString, sortString, options.getLimit(), callback);
                 break;
             default:
-                throw new IllegalStateException("Invalid fineOne type: " + type);
+                throw new IllegalArgumentException("Invalid fineOne type: " + type);
         }
 
         return ResultHandler.handleResult(success, error);
@@ -316,7 +316,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                 nativeDelete(DELETE_MANY, nativePtr, jsonDocument, callback);
                 break;
             default:
-                throw new IllegalStateException("Invalid delete type: " + type);
+                throw new IllegalArgumentException("Invalid delete type: " + type);
         }
         return ResultHandler.handleResult(success, error);
     }
@@ -375,12 +375,12 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
             case UPDATE_ONE_WITH_OPTIONS:
             case UPDATE_MANY_WITH_OPTIONS:
                 if (options == null) {
-                    throw new IllegalStateException("UpdateOptions must not be null.");
+                    throw new IllegalArgumentException("UpdateOptions must not be null.");
                 }
                 nativeUpdate(type, nativePtr, jsonFilter, jsonUpdate, options.isUpsert(), callback);
                 break;
             default:
-                throw new IllegalStateException("Invalid update type: " + type);
+                throw new IllegalArgumentException("Invalid update type: " + type);
         }
         return ResultHandler.handleResult(success, error);
     }
@@ -490,7 +490,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                 break;
             case FIND_ONE_AND_UPDATE_WITH_OPTIONS:
                 if (options == null) {
-                    throw new IllegalStateException("FindOneAndModifyOptions must not be null");
+                    throw new IllegalArgumentException("FindOneAndModifyOptions must not be null");
                 }
                 nativeFindOneAndUpdate(type, nativePtr, encodedFilter, encodedUpdate, encodedProjection, encodedSort, options.isUpsert(), options.isReturnNewDocument(), callback);
                 break;
@@ -499,7 +499,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                 break;
             case FIND_ONE_AND_REPLACE_WITH_OPTIONS:
                 if (options == null) {
-                    throw new IllegalStateException("FindOneAndModifyOptions must not be null");
+                    throw new IllegalArgumentException("FindOneAndModifyOptions must not be null");
                 }
                 nativeFindOneAndReplace(type, nativePtr, encodedFilter, encodedUpdate, encodedProjection, encodedSort, options.isUpsert(), options.isReturnNewDocument(), callback);
                 break;
@@ -508,12 +508,12 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                 break;
             case FIND_ONE_AND_DELETE_WITH_OPTIONS:
                 if (options == null) {
-                    throw new IllegalStateException("FindOneAndModifyOptions must not be null");
+                    throw new IllegalArgumentException("FindOneAndModifyOptions must not be null");
                 }
                 nativeFindOneAndDelete(type, nativePtr, encodedFilter, encodedProjection, encodedSort, options.isUpsert(), options.isReturnNewDocument(), callback);
                 break;
             default:
-                throw new IllegalStateException("Invalid modify type: " + type);
+                throw new IllegalArgumentException("Invalid modify type: " + type);
         }
 
         return ResultHandler.handleResult(success, error);

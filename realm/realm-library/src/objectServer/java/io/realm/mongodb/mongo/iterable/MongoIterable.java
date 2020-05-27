@@ -24,8 +24,11 @@ import io.realm.internal.common.TaskDispatcher;
 
 /**
  * The MongoIterable is the results from an operation, such as a query.
+ * <p>
+ * This class somewhat mimics the behavior of an {@link Iterable} but given its results may be
+ * obtained asynchronously, its values are wrapped inside a {@link Task}.
  *
- * @param <ResultT> The type that this iterable will decode documents to.
+ * @param <ResultT> The type to which this iterable will decode documents.
  */
 public abstract class MongoIterable<ResultT> {
 
@@ -37,12 +40,14 @@ public abstract class MongoIterable<ResultT> {
 
     /**
      * Gets the collection from the Object Store.
+     *
      * @return collection with the results from the Object Store.
      */
     abstract Collection<ResultT> getCollection();
 
     /**
      * Gets the first entry in the result collection
+     *
      * @return first entry in the collection.
      */
     abstract ResultT getFirst();
@@ -54,7 +59,7 @@ public abstract class MongoIterable<ResultT> {
      */
     public Task<MongoCursor<ResultT>> iterator() {
         return dispatcher.dispatchTask(() ->
-                new MongoCursor<>(getCollection().iterator(), dispatcher)
+                new MongoCursor<>(getCollection().iterator())
         );
     }
 
