@@ -52,6 +52,9 @@ public abstract class OsMongoIterable<ResultT> {
             @Override
             @SuppressWarnings("unchecked")
             protected Collection<ResultT> mapSuccess(Object result) {
+                // FIXME: use resultClass here
+                assert (resultClass.toString() != null);
+
                 return JniBsonProtocol.decode((String) result, Collection.class, codecRegistry);
             }
         };
