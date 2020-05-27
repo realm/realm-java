@@ -71,8 +71,8 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     private final String encodedEmptyDocument;
 
     OsMongoCollection(final long nativeCollectionPtr,
-                             final Class<DocumentT> documentClass,
-                             final CodecRegistry codecRegistry) {
+                      final Class<DocumentT> documentClass,
+                      final CodecRegistry codecRegistry) {
         this.nativePtr = nativeCollectionPtr;
         this.documentClass = documentClass;
         this.codecRegistry = codecRegistry;

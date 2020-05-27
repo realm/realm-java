@@ -28,7 +28,10 @@ import io.realm.mongodb.mongo.options.FindOneAndModifyOptions
 import io.realm.mongodb.mongo.options.FindOptions
 import io.realm.mongodb.mongo.options.UpdateOptions
 import io.realm.util.blockingGetResult
+import io.realm.util.mongodb.CustomType
 import org.bson.Document
+import org.bson.codecs.configuration.CodecConfigurationException
+import org.bson.codecs.configuration.CodecRegistries
 import org.bson.types.ObjectId
 import org.junit.After
 import org.junit.Before
@@ -65,7 +68,7 @@ class MongoCollectionTest {
 
     @After
     fun tearDown() {
-        with(getCollectionInternal(COLLECTION_NAME)) {
+        with(getCollectionInternal()) {
             deleteMany(Document()).blockingGetResult()
         }
 
@@ -76,7 +79,7 @@ class MongoCollectionTest {
 
     @Test
     fun count() {
-        with(getCollectionInternal(COLLECTION_NAME)) {
+        with(getCollectionInternal()) {
             assertEquals(0, count().blockingGetResult())
 
             val rawDoc = Document("hello", "world")
@@ -97,7 +100,7 @@ class MongoCollectionTest {
     // FIXME: break down into different tests cases
     @Test
     fun findOne() {
-        with(getCollectionInternal(COLLECTION_NAME)) {
+        with(getCollectionInternal()) {
             val doc1 = Document("hello", "world1")
             val doc2 = Document("hello", "world2")
             val doc3 = Document("hello", "world3")
@@ -140,7 +143,7 @@ class MongoCollectionTest {
 
     @Test
     fun find() {
-        with(getCollectionInternal(COLLECTION_NAME)) {
+        with(getCollectionInternal()) {
             var iter = find()
             assertFalse(iter.iterator().blockingGetResult()!!.hasNext())
             assertNull(iter.first().blockingGetResult())
@@ -186,7 +189,7 @@ class MongoCollectionTest {
 
     @Test
     fun aggregate() {
-        with(getCollectionInternal(COLLECTION_NAME)) {
+        with(getCollectionInternal()) {
             var iter = aggregate(listOf())
             assertFalse(iter.iterator().blockingGetResult()!!.hasNext())
             assertNull(iter.first().blockingGetResult())
@@ -214,7 +217,7 @@ class MongoCollectionTest {
 
     @Test
     fun insertOne() {
-        with(getCollectionInternal(COLLECTION_NAME)) {
+        with(getCollectionInternal()) {
             assertEquals(0, count().blockingGetResult())
 
             val doc1 = Document(mapOf("hello_1" to "1", "hello_2" to "2"))
@@ -234,7 +237,7 @@ class MongoCollectionTest {
 
     @Test
     fun insertMany() {
-        with(getCollectionInternal(COLLECTION_NAME)) {
+        with(getCollectionInternal()) {
             val doc1 = Document("hello", "world")
             doc1["_id"] = ObjectId()
 
@@ -261,7 +264,7 @@ class MongoCollectionTest {
 
     @Test
     fun deleteOne_singleDocument() {
-        with(getCollectionInternal(COLLECTION_NAME)) {
+        with(getCollectionInternal()) {
             assertEquals(0, count().blockingGetResult())
 
             val rawDoc = Document(KEY_1, VALUE_1)
@@ -276,7 +279,7 @@ class MongoCollectionTest {
 
     @Test
     fun deleteOne_listOfDocuments() {
-        with(getCollectionInternal(COLLECTION_NAME)) {
+        with(getCollectionInternal()) {
             assertEquals(0, count().blockingGetResult())
 
             val rawDoc = Document(KEY_1, VALUE_1)
@@ -292,7 +295,7 @@ class MongoCollectionTest {
 
     @Test
     fun deleteMany_singleDocument() {
-        with(getCollectionInternal(COLLECTION_NAME)) {
+        with(getCollectionInternal()) {
             assertEquals(0, count().blockingGetResult())
 
             val rawDoc = Document(KEY_1, VALUE_1)
@@ -307,7 +310,7 @@ class MongoCollectionTest {
 
     @Test
     fun deleteMany_listOfDocuments() {
-        with(getCollectionInternal(COLLECTION_NAME)) {
+        with(getCollectionInternal()) {
             assertEquals(0, count().blockingGetResult())
 
             val rawDoc = Document(KEY_1, VALUE_1)
@@ -329,7 +332,7 @@ class MongoCollectionTest {
 
     @Test
     fun updateOne() {
-        with(getCollectionInternal(COLLECTION_NAME)) {
+        with(getCollectionInternal()) {
             val doc1 = Document("hello", "world")
             val result1 = updateOne(Document(), doc1).blockingGetResult()!!
             assertEquals(0, result1.matchedCount)
@@ -357,7 +360,7 @@ class MongoCollectionTest {
 
     @Test
     fun updateMany() {
-        with(getCollectionInternal(COLLECTION_NAME)) {
+        with(getCollectionInternal()) {
             val doc1 = Document("hello", "world")
             val result1 = updateMany(Document(), doc1).blockingGetResult()!!
             assertEquals(0, result1.matchedCount)
@@ -384,7 +387,7 @@ class MongoCollectionTest {
 
     @Test
     fun findOneAndUpdate() {
-        with(getCollectionInternal(COLLECTION_NAME)) {
+        with(getCollectionInternal()) {
             val sampleDoc = Document("hello", "world1")
             sampleDoc["num"] = 2
 
@@ -528,7 +531,7 @@ class MongoCollectionTest {
 
     @Test
     fun testFindOneAndReplace() {
-        with(getCollectionInternal(COLLECTION_NAME)) {
+        with(getCollectionInternal()) {
             val sampleDoc = Document("hello", "world1")
             sampleDoc["num"] = 2
 
@@ -635,7 +638,7 @@ class MongoCollectionTest {
     @Test
     @Ignore("find_one_and_delete function is wrongly implemented in OS")
     fun testFindOneAndDelete() {
-        with(getCollectionInternal(COLLECTION_NAME)) {
+        with(getCollectionInternal()) {
             val sampleDoc = Document("hello", "world1")
             sampleDoc["num"] = 1
 
@@ -709,14 +712,61 @@ class MongoCollectionTest {
         }
     }
 
-    // FIXME: more to come
+    @Test
+    fun testWithDocument() {
+        // add support for Bson documents as it's needed for proper collection initialization
+        val expandedCodecRegistry = CodecRegistries
+                .fromRegistries(RealmAppConfiguration.DEFAULT_BSON_CODEC_REGISTRY,
+                        CodecRegistries.fromCodecs(CustomType.Codec()))
 
-    private fun getCollectionInternal(collectionName: String, javaClass: Class<Document>? = null): MongoCollection<Document> {
-        return when (javaClass) {
-            null -> database.getCollection(collectionName)
-            else -> database.getCollection(collectionName, javaClass)
+        val expected = CustomType(ObjectId(), 42)
+
+        with(getCollectionInternal()) {
+            var coll = withDocumentClass(CustomType::class.java)
+            assertEquals(CustomType::class.java, coll.documentClass)
+
+            assertFailsWith(CodecConfigurationException::class) {
+                coll.insertOne(expected).blockingGetResult()
+            }
+
+            val defaultCodecRegistry = RealmAppConfiguration.DEFAULT_BSON_CODEC_REGISTRY
+            assertEquals(defaultCodecRegistry, coll.codecRegistry)
+
+            coll = coll.withCodecRegistry(expandedCodecRegistry)
+            assertEquals(expected.id,
+                    coll.insertOne(expected).blockingGetResult()!!.insertedId.asObjectId().value)
+            assertEquals(expected, coll.find().first().blockingGetResult())
+        }
+
+        val expected2 = CustomType(null, 42)
+
+        with(getCollectionInternal(CustomType::class.java)
+                .withCodecRegistry(expandedCodecRegistry)) {
+            insertOne(expected2).blockingGetResult()!!
+            val actual = find().first().blockingGetResult()!!
+            assertEquals(expected2.intValue, actual.intValue)
+            assertNotNull(expected.id)
+        }
+
+        with(getCollectionInternal(CustomType::class.java)
+                .withCodecRegistry(expandedCodecRegistry)) {
+            val actual = find(Document(), CustomType::class.java).first().blockingGetResult()!!
+            assertEquals(expected2.intValue, actual.intValue)
+            assertNotNull(expected.id)
+
+            val iter = aggregate(listOf(Document("\$match", Document())), CustomType::class.java)
+            assertTrue(iter.iterator().blockingGetResult()!!.hasNext())
+            assertEquals(expected, iter.iterator().blockingGetResult()!!.next())
         }
     }
+
+    // FIXME: more to come
+
+    private fun getCollectionInternal(): MongoCollection<Document> =
+            database.getCollection(COLLECTION_NAME)
+
+    private fun <ResultT> getCollectionInternal(resultClass: Class<ResultT>): MongoCollection<ResultT> =
+            database.getCollection(COLLECTION_NAME, resultClass)
 
     private fun Document.withId(objectId: ObjectId? = null): Document {
         return apply { this["_id"] = objectId ?: ObjectId() }

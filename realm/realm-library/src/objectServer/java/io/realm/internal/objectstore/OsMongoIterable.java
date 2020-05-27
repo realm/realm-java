@@ -18,6 +18,7 @@ package io.realm.internal.objectstore;
 
 import org.bson.codecs.configuration.CodecRegistry;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicReference;
@@ -32,8 +33,7 @@ public abstract class OsMongoIterable<ResultT> {
     final OsMongoCollection osMongoCollection;
     final CodecRegistry codecRegistry;
 
-    // FIXME: collections have to be mapped using this
-    private Class<ResultT> resultClass;
+    private final Class<ResultT> resultClass;
 
     OsMongoIterable(final OsMongoCollection osMongoCollection,
                     final CodecRegistry codecRegistry,
@@ -50,12 +50,8 @@ public abstract class OsMongoIterable<ResultT> {
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         OsJNIResultCallback<Collection<ResultT>> callback = new OsJNIResultCallback<Collection<ResultT>>(success, error) {
             @Override
-            @SuppressWarnings("unchecked")
             protected Collection<ResultT> mapSuccess(Object result) {
-                // FIXME: use resultClass here
-                assert (resultClass.toString() != null);
-
-                return JniBsonProtocol.decode((String) result, Collection.class, codecRegistry);
+                return mapCollection(result);
             }
         };
 
@@ -69,10 +65,9 @@ public abstract class OsMongoIterable<ResultT> {
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
             @Override
-            @SuppressWarnings("unchecked")
             protected ResultT mapSuccess(Object result) {
-                Collection<ResultT> collection = JniBsonProtocol.decode((String) result, Collection.class, codecRegistry);
-                Iterator<ResultT> iter = collection.iterator();
+                Collection<ResultT> decodedCollection = mapCollection(result);
+                Iterator<ResultT> iter = decodedCollection.iterator();
                 return iter.hasNext() ? iter.next() : null;
             }
         };
@@ -80,5 +75,15 @@ public abstract class OsMongoIterable<ResultT> {
         callNative(callback);
 
         return ResultHandler.handleResult(success, error);
+    }
+
+    private Collection<ResultT> mapCollection(Object result) {
+        Collection<?> collection = JniBsonProtocol.decode((String) result, Collection.class, codecRegistry);
+        Collection<ResultT> decodedCollection = new ArrayList<>();
+        for (Object collectionElement: collection) {
+            String encodedElement = JniBsonProtocol.encode(collectionElement, codecRegistry);
+            decodedCollection.add(JniBsonProtocol.decode(encodedElement, resultClass, codecRegistry));
+        }
+        return decodedCollection;
     }
 }
