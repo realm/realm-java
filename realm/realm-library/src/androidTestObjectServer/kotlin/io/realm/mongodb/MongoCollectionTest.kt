@@ -551,7 +551,7 @@ class MongoCollectionTest {
             assertEquals(1, count().blockingGetResult())
 
             // Make sure the update took place
-            var expectedDoc = Document("hello", "world2")
+            val expectedDoc = Document("hello", "world2")
             expectedDoc["num"] = 2
             assertEquals(expectedDoc.withoutId(), find().first().blockingGetResult()!!.withoutId())
             assertEquals(1, count().blockingGetResult())

@@ -426,7 +426,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                                               final Bson update,
                                               final FindOneAndModifyOptions options,
                                               final Class<ResultT> resultClass) {
-        return findOneAndModify(FIND_ONE_AND_UPDATE, filter, update, options, resultClass);
+        return findOneAndModify(FIND_ONE_AND_UPDATE_WITH_OPTIONS, filter, update, options, resultClass);
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -451,7 +451,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                                                final Bson replacement,
                                                final FindOneAndModifyOptions options,
                                                final Class<ResultT> resultClass) {
-        return findOneAndModify(FIND_ONE_AND_REPLACE, filter, replacement, options, resultClass);
+        return findOneAndModify(FIND_ONE_AND_REPLACE_WITH_OPTIONS, filter, replacement, options, resultClass);
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
