@@ -26,15 +26,16 @@ import io.realm.internal.objectstore.OsMongoDatabase;
  */
 public class MongoDatabase {
 
-    private String databaseName;
+    private String name;
     private OsMongoDatabase osMongoDatabase;
 
-    MongoDatabase(OsMongoDatabase osMongoDatabase, String databaseName) {
+    MongoDatabase(OsMongoDatabase osMongoDatabase, String name) {
+        this.osMongoDatabase = osMongoDatabase;
+
         // we deliver the database name because we don't want to modify the C++ code right now,
         // although ideally it should be done there, i.e. remote_mongo_database.hpp should
         // include the public (Java) API's methods that aren't there yet.
-        this.databaseName = databaseName;
-        this.osMongoDatabase = osMongoDatabase;
+        this.name = name;
     }
 
     /**
@@ -43,7 +44,7 @@ public class MongoDatabase {
      * @return the database name
      */
     public String getName() {
-        return databaseName;
+        return name;
     }
 
     /**
@@ -54,7 +55,10 @@ public class MongoDatabase {
      */
     public MongoCollection<Document> getCollection(final String collectionName) {
         Util.checkEmpty(collectionName, "collectionName");
-        return new MongoCollection<>(osMongoDatabase.getCollection(collectionName));
+        return new MongoCollection<>(
+                new MongoNamespace(name, collectionName),
+                osMongoDatabase.getCollection(collectionName)
+        );
     }
 
     /**
@@ -71,6 +75,9 @@ public class MongoDatabase {
     ) {
         Util.checkEmpty(collectionName, "collectionName");
         Util.checkNull(documentClass, "documentClass");
-        return new MongoCollection<>(osMongoDatabase.getCollection(collectionName, documentClass));
+        return new MongoCollection<>(
+                new MongoNamespace(name, collectionName),
+                osMongoDatabase.getCollection(collectionName, documentClass)
+        );
     }
 }

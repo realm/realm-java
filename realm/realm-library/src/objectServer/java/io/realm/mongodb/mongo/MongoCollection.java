@@ -49,11 +49,14 @@ import io.realm.mongodb.mongo.result.UpdateResult;
  */
 public class MongoCollection<DocumentT> {
 
-    private OsMongoCollection<DocumentT> osMongoCollection;
+    private final MongoNamespace nameSpace;
+    private final OsMongoCollection<DocumentT> osMongoCollection;
 
-    private TaskDispatcher dispatcher = new TaskDispatcher();
+    private final TaskDispatcher dispatcher = new TaskDispatcher();
 
-    MongoCollection(final OsMongoCollection<DocumentT> osMongoCollection) {
+    MongoCollection(final MongoNamespace nameSpace,
+                    final OsMongoCollection<DocumentT> osMongoCollection) {
+        this.nameSpace = nameSpace;
         this.osMongoCollection = osMongoCollection;
     }
 
@@ -63,7 +66,30 @@ public class MongoCollection<DocumentT> {
      * @return the namespace
      */
     public MongoNamespace getNamespace() {
-        throw new RuntimeException("Not Implemented");
+        return nameSpace;
+    }
+
+    /**
+     * Get the class of documents stored in this collection.
+     * <p>
+     * If you used the simple {@link MongoDatabase#getCollection(String)} to get
+     * this collection,
+     * this is {@link org.bson.Document}.
+     * </p>
+     *
+     * @return the class
+     */
+    public Class<DocumentT> getDocumentClass() {
+        return osMongoCollection.getDocumentClass();
+    }
+
+    /**
+     * Get the codec registry for the RemoteMongoCollection.
+     *
+     * @return the {@link CodecRegistry}
+     */
+    public CodecRegistry getCodecRegistry() {
+        return osMongoCollection.getCodecRegistry();
     }
 
     /**
@@ -77,7 +103,7 @@ public class MongoCollection<DocumentT> {
      */
     public <NewDocumentT> MongoCollection<NewDocumentT> withDocumentClass(
             final Class<NewDocumentT> clazz) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return new MongoCollection<>(nameSpace, osMongoCollection.withDocumentClass(clazz));
     }
 
     /**
@@ -88,7 +114,7 @@ public class MongoCollection<DocumentT> {
      * @return a new RemoteMongoCollection instance with the different codec registry
      */
     public MongoCollection<DocumentT> withCodecRegistry(final CodecRegistry codecRegistry) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return new MongoCollection<>(nameSpace, osMongoCollection.withCodecRegistry(codecRegistry));
     }
 
     /**
@@ -97,9 +123,7 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the number of documents in the collection
      */
     public Task<Long> count() {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.count()
-        );
+        return dispatcher.dispatchTask(osMongoCollection::count);
     }
 
     /**
@@ -133,9 +157,7 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the result of the find one operation
      */
     public Task<DocumentT> findOne() {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.findOne()
-        );
+        return dispatcher.dispatchTask(osMongoCollection::findOne);
     }
 
     /**

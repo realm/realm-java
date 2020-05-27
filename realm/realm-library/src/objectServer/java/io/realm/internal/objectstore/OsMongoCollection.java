@@ -71,8 +71,8 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     private final String encodedEmptyDocument;
 
     OsMongoCollection(final long nativeCollectionPtr,
-                      final Class<DocumentT> documentClass,
-                      final CodecRegistry codecRegistry) {
+                             final Class<DocumentT> documentClass,
+                             final CodecRegistry codecRegistry) {
         this.nativePtr = nativeCollectionPtr;
         this.documentClass = documentClass;
         this.codecRegistry = codecRegistry;
@@ -87,6 +87,23 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     @Override
     public long getNativeFinalizerPtr() {
         return nativeFinalizerPtr;
+    }
+
+    public Class<DocumentT> getDocumentClass() {
+        return documentClass;
+    }
+
+    public CodecRegistry getCodecRegistry() {
+        return codecRegistry;
+    }
+
+    public <NewDocumentT> OsMongoCollection<NewDocumentT> withDocumentClass(
+            final Class<NewDocumentT> clazz) {
+        return new OsMongoCollection<>(nativePtr, clazz, codecRegistry);
+    }
+
+    public OsMongoCollection<DocumentT> withCodecRegistry(final CodecRegistry codecRegistry) {
+        return new OsMongoCollection<>(nativePtr, documentClass, codecRegistry);
     }
 
     public Long count() {
