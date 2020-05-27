@@ -133,7 +133,7 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
             }
             if (value != null && !RealmObject.isManaged(value)) {
                 some.test.EmbeddedClass proxyObject = realm.createEmbeddedObject(some.test.EmbeddedClass.class, this, "child");
-                some_test_EmbeddedClassRealmProxy.updateEmbeddedObject(realm, value, proxyObject, new HashMap<>(), Collections.EMPTY_SET);
+                some_test_EmbeddedClassRealmProxy.updateEmbeddedObject(realm, value, proxyObject, new HashMap<RealmModel, RealmObjectProxy>(), Collections.EMPTY_SET);
                 value = proxyObject;
             }
             final Row row = proxyState.getRow$realm();
@@ -156,7 +156,7 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
             proxyState.checkValidObject(value);
         }
         some.test.EmbeddedClass proxyObject = realm.createEmbeddedObject(some.test.EmbeddedClass.class, this, "child");
-        some_test_EmbeddedClassRealmProxy.updateEmbeddedObject(realm, value, proxyObject, new HashMap<>(), Collections.EMPTY_SET);
+        some_test_EmbeddedClassRealmProxy.updateEmbeddedObject(realm, value, proxyObject, new HashMap<RealmModel, RealmObjectProxy>(), Collections.EMPTY_SET);
     }
 
     @Override
@@ -466,7 +466,7 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
                     Row linkedObjectRow = realm.getTable(some.test.EmbeddedClass.class).getUncheckedRow(objKey);
                     some.test.EmbeddedClass linkedObject = some_test_EmbeddedClassRealmProxy.newProxyInstance(realm, linkedObjectRow);
                     cache.put(childrenUnmanagedItem, (RealmObjectProxy) linkedObject);
-                    some_test_EmbeddedClassRealmProxy.updateEmbeddedObject(realm, childrenUnmanagedItem, linkedObject, new HashMap<>(), Collections.EMPTY_SET);
+                    some_test_EmbeddedClassRealmProxy.updateEmbeddedObject(realm, childrenUnmanagedItem, linkedObject, new HashMap<RealmModel, RealmObjectProxy>(), Collections.EMPTY_SET);
                 }
             }
         }
@@ -778,7 +778,7 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
                     some.test.EmbeddedClass proxyObject = some_test_EmbeddedClassRealmProxy.newProxyInstance(realm, row);
                     cache.put(childrenUnmanagedItem, (RealmObjectProxy) proxyObject);
                     childrenManagedCopy.add(proxyObject);
-                    some_test_EmbeddedClassRealmProxy.updateEmbeddedObject(realm, childrenUnmanagedItem, proxyObject, new HashMap<>(), Collections.EMPTY_SET);
+                    some_test_EmbeddedClassRealmProxy.updateEmbeddedObject(realm, childrenUnmanagedItem, proxyObject, new HashMap<RealmModel, RealmObjectProxy>(), Collections.EMPTY_SET);
                 }
             }
             builder.addObjectList(columnInfo.childrenColKey, childrenManagedCopy);

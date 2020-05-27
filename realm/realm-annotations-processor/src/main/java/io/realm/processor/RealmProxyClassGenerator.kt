@@ -384,7 +384,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     beginControlFlow("if (value != null && !RealmObject.isManaged(value))")
                         if (fieldTypeMetaData.embedded) {
                             emitStatement("%1\$s proxyObject = realm.createEmbeddedObject(%1\$s.class, this, \"%2\$s\")", linkedQualifiedClassName, fieldName)
-                            emitStatement("%s.updateEmbeddedObject(realm, value, proxyObject, new HashMap<>(), Collections.EMPTY_SET)", linkedProxyClass)
+                            emitStatement("%s.updateEmbeddedObject(realm, value, proxyObject, new HashMap<RealmModel, RealmObjectProxy>(), Collections.EMPTY_SET)", linkedProxyClass)
                             emitStatement("value = proxyObject")
                         } else {
                             emitStatement("value = realm.copyToRealm(value)")
@@ -413,7 +413,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitStatement("proxyState.checkValidObject(value)")
                     endControlFlow()
                     emitStatement("%1\$s proxyObject = realm.createEmbeddedObject(%1\$s.class, this, \"%2\$s\")", linkedQualifiedClassName, fieldName)
-                    emitStatement("%s.updateEmbeddedObject(realm, value, proxyObject, new HashMap<>(), Collections.EMPTY_SET)", linkedProxyClass)
+                    emitStatement("%s.updateEmbeddedObject(realm, value, proxyObject, new HashMap<RealmModel, RealmObjectProxy>(), Collections.EMPTY_SET)", linkedProxyClass)
                 } else {
                     emitStatement("proxyState.checkValidObject(value)")
                     emitStatement("proxyState.getRow\$realm().setLink(%s, ((RealmObjectProxy) value).realmGet\$proxyState().getRow\$realm().getObjectKey())", fieldColKeyVariableReference(field))
@@ -1560,7 +1560,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                             emitStatement("Row linkedObjectRow = realm.getTable(%s.class).getUncheckedRow(objKey)", genericType)
                                             emitStatement("%s linkedObject = %s.newProxyInstance(realm, linkedObjectRow)", genericType, linkedProxyClass)
                                             emitStatement("cache.put(%sUnmanagedItem, (RealmObjectProxy) linkedObject)", fieldName)
-                                            emitStatement("%s.updateEmbeddedObject(realm, %sUnmanagedItem, linkedObject, new HashMap<>(), Collections.EMPTY_SET)", linkedProxyClass, fieldName)
+                                            emitStatement("%s.updateEmbeddedObject(realm, %sUnmanagedItem, linkedObject, new HashMap<RealmModel, RealmObjectProxy>(), Collections.EMPTY_SET)", linkedProxyClass, fieldName)
                                         endControlFlow()
 
                                     } else {
@@ -1744,7 +1744,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                             emitStatement("%s proxyObject = %s.newProxyInstance(realm, row)", genericType, proxyClass)
                                             emitStatement("cache.put(%sUnmanagedItem, (RealmObjectProxy) proxyObject)", fieldName)
                                             emitStatement("%sManagedCopy.add(proxyObject)", fieldName)
-                                            emitStatement("%s.updateEmbeddedObject(realm, %sUnmanagedItem, proxyObject, new HashMap<>(), Collections.EMPTY_SET)", Utils.getProxyClassSimpleName(field), fieldName)
+                                            emitStatement("%s.updateEmbeddedObject(realm, %sUnmanagedItem, proxyObject, new HashMap<RealmModel, RealmObjectProxy>(), Collections.EMPTY_SET)", Utils.getProxyClassSimpleName(field), fieldName)
                                         endControlFlow()
                                     endControlFlow()
                                     emitStatement("builder.addObjectList(%s, %sManagedCopy)", fieldColKey, fieldName)
