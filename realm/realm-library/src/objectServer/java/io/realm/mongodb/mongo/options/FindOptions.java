@@ -25,6 +25,7 @@ import org.bson.conversions.Bson;
  * The options to apply to a find operation (also commonly referred to as a query).
  */
 public class FindOptions {
+
     private int limit;
     private Bson projection;
     private Bson sort;

@@ -298,7 +298,7 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndReplace(JNI
 
         switch (j_find_one_and_replace_type) {
             case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_AND_REPLACE:
-                collection->find_one_and_update(filter, update, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
+                collection->find_one_and_replace(filter, update, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
                 break;
             case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_AND_REPLACE_WITH_OPTIONS:
                 bson::BsonDocument projection(JniBsonProtocol::parse_checked(env, j_projection, Bson::Type::Document, "BSON projection must be a Document"));
