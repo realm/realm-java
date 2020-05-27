@@ -327,24 +327,24 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
             return (some.test.Booleans) cachedRealmObject;
         }
 
-        some_test_BooleansRealmProxyInterface realmObjectSource = (some_test_BooleansRealmProxyInterface) newObject;
+        some_test_BooleansRealmProxyInterface unmanagedSource = (some_test_BooleansRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.Booleans.class);
         OsObjectBuilder builder = new OsObjectBuilder(table, flags);
 
         // Add all non-"object reference" fields
-        builder.addBoolean(columnInfo.doneColKey, realmObjectSource.realmGet$done());
-        builder.addBoolean(columnInfo.isReadyColKey, realmObjectSource.realmGet$isReady());
-        builder.addBoolean(columnInfo.mCompletedColKey, realmObjectSource.realmGet$mCompleted());
-        builder.addBoolean(columnInfo.anotherBooleanColKey, realmObjectSource.realmGet$anotherBoolean());
+        builder.addBoolean(columnInfo.doneColKey, unmanagedSource.realmGet$done());
+        builder.addBoolean(columnInfo.isReadyColKey, unmanagedSource.realmGet$isReady());
+        builder.addBoolean(columnInfo.mCompletedColKey, unmanagedSource.realmGet$mCompleted());
+        builder.addBoolean(columnInfo.anotherBooleanColKey, unmanagedSource.realmGet$anotherBoolean());
 
         // Create the underlying object and cache it before setting any object/objectlist references
         // This will allow us to break any circular dependencies by using the object cache.
         Row row = builder.createNewObject();
-        io.realm.some_test_BooleansRealmProxy realmObjectCopy = newProxyInstance(realm, row);
-        cache.put(newObject, realmObjectCopy);
+        io.realm.some_test_BooleansRealmProxy managedCopy = newProxyInstance(realm, row);
+        cache.put(newObject, managedCopy);
 
-        return realmObjectCopy;
+        return managedCopy;
     }
 
     public static long insert(Realm realm, some.test.Booleans object, Map<RealmModel,Long> cache) {

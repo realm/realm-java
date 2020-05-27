@@ -1428,57 +1428,57 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             return (some.test.AllTypes) cachedRealmObject;
         }
 
-        some_test_AllTypesRealmProxyInterface realmObjectSource = (some_test_AllTypesRealmProxyInterface) newObject;
+        some_test_AllTypesRealmProxyInterface unmanagedSource = (some_test_AllTypesRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.AllTypes.class);
         OsObjectBuilder builder = new OsObjectBuilder(table, flags);
 
         // Add all non-"object reference" fields
-        builder.addString(columnInfo.columnStringColKey, realmObjectSource.realmGet$columnString());
-        builder.addInteger(columnInfo.columnLongColKey, realmObjectSource.realmGet$columnLong());
-        builder.addFloat(columnInfo.columnFloatColKey, realmObjectSource.realmGet$columnFloat());
-        builder.addDouble(columnInfo.columnDoubleColKey, realmObjectSource.realmGet$columnDouble());
-        builder.addBoolean(columnInfo.columnBooleanColKey, realmObjectSource.realmGet$columnBoolean());
-        builder.addDecimal128(columnInfo.columnDecimal128ColKey, realmObjectSource.realmGet$columnDecimal128());
-        builder.addObjectId(columnInfo.columnObjectIdColKey, realmObjectSource.realmGet$columnObjectId());
-        builder.addDate(columnInfo.columnDateColKey, realmObjectSource.realmGet$columnDate());
-        builder.addByteArray(columnInfo.columnBinaryColKey, realmObjectSource.realmGet$columnBinary());
-        builder.addMutableRealmInteger(columnInfo.columnMutableRealmIntegerColKey, realmObjectSource.realmGet$columnMutableRealmInteger());
-        builder.addStringList(columnInfo.columnStringListColKey, realmObjectSource.realmGet$columnStringList());
-        builder.addByteArrayList(columnInfo.columnBinaryListColKey, realmObjectSource.realmGet$columnBinaryList());
-        builder.addBooleanList(columnInfo.columnBooleanListColKey, realmObjectSource.realmGet$columnBooleanList());
-        builder.addLongList(columnInfo.columnLongListColKey, realmObjectSource.realmGet$columnLongList());
-        builder.addIntegerList(columnInfo.columnIntegerListColKey, realmObjectSource.realmGet$columnIntegerList());
-        builder.addShortList(columnInfo.columnShortListColKey, realmObjectSource.realmGet$columnShortList());
-        builder.addByteList(columnInfo.columnByteListColKey, realmObjectSource.realmGet$columnByteList());
-        builder.addDoubleList(columnInfo.columnDoubleListColKey, realmObjectSource.realmGet$columnDoubleList());
-        builder.addFloatList(columnInfo.columnFloatListColKey, realmObjectSource.realmGet$columnFloatList());
-        builder.addDateList(columnInfo.columnDateListColKey, realmObjectSource.realmGet$columnDateList());
-        builder.addDecimal128List(columnInfo.columnDecimal128ListColKey, realmObjectSource.realmGet$columnDecimal128List());
-        builder.addObjectIdList(columnInfo.columnObjectIdListColKey, realmObjectSource.realmGet$columnObjectIdList());
+        builder.addString(columnInfo.columnStringColKey, unmanagedSource.realmGet$columnString());
+        builder.addInteger(columnInfo.columnLongColKey, unmanagedSource.realmGet$columnLong());
+        builder.addFloat(columnInfo.columnFloatColKey, unmanagedSource.realmGet$columnFloat());
+        builder.addDouble(columnInfo.columnDoubleColKey, unmanagedSource.realmGet$columnDouble());
+        builder.addBoolean(columnInfo.columnBooleanColKey, unmanagedSource.realmGet$columnBoolean());
+        builder.addDecimal128(columnInfo.columnDecimal128ColKey, unmanagedSource.realmGet$columnDecimal128());
+        builder.addObjectId(columnInfo.columnObjectIdColKey, unmanagedSource.realmGet$columnObjectId());
+        builder.addDate(columnInfo.columnDateColKey, unmanagedSource.realmGet$columnDate());
+        builder.addByteArray(columnInfo.columnBinaryColKey, unmanagedSource.realmGet$columnBinary());
+        builder.addMutableRealmInteger(columnInfo.columnMutableRealmIntegerColKey, unmanagedSource.realmGet$columnMutableRealmInteger());
+        builder.addStringList(columnInfo.columnStringListColKey, unmanagedSource.realmGet$columnStringList());
+        builder.addByteArrayList(columnInfo.columnBinaryListColKey, unmanagedSource.realmGet$columnBinaryList());
+        builder.addBooleanList(columnInfo.columnBooleanListColKey, unmanagedSource.realmGet$columnBooleanList());
+        builder.addLongList(columnInfo.columnLongListColKey, unmanagedSource.realmGet$columnLongList());
+        builder.addIntegerList(columnInfo.columnIntegerListColKey, unmanagedSource.realmGet$columnIntegerList());
+        builder.addShortList(columnInfo.columnShortListColKey, unmanagedSource.realmGet$columnShortList());
+        builder.addByteList(columnInfo.columnByteListColKey, unmanagedSource.realmGet$columnByteList());
+        builder.addDoubleList(columnInfo.columnDoubleListColKey, unmanagedSource.realmGet$columnDoubleList());
+        builder.addFloatList(columnInfo.columnFloatListColKey, unmanagedSource.realmGet$columnFloatList());
+        builder.addDateList(columnInfo.columnDateListColKey, unmanagedSource.realmGet$columnDateList());
+        builder.addDecimal128List(columnInfo.columnDecimal128ListColKey, unmanagedSource.realmGet$columnDecimal128List());
+        builder.addObjectIdList(columnInfo.columnObjectIdListColKey, unmanagedSource.realmGet$columnObjectIdList());
 
         // Create the underlying object and cache it before setting any object/objectlist references
         // This will allow us to break any circular dependencies by using the object cache.
         Row row = builder.createNewObject();
-        io.realm.some_test_AllTypesRealmProxy realmObjectCopy = newProxyInstance(realm, row);
-        cache.put(newObject, realmObjectCopy);
+        io.realm.some_test_AllTypesRealmProxy managedCopy = newProxyInstance(realm, row);
+        cache.put(newObject, managedCopy);
 
         // Finally add all fields that reference other Realm Objects, either directly or through a list
-        some.test.AllTypes columnObjectObj = realmObjectSource.realmGet$columnObject();
+        some.test.AllTypes columnObjectObj = unmanagedSource.realmGet$columnObject();
         if (columnObjectObj == null) {
-            realmObjectCopy.realmSet$columnObject(null);
+            managedCopy.realmSet$columnObject(null);
         } else {
             some.test.AllTypes cachecolumnObject = (some.test.AllTypes) cache.get(columnObjectObj);
             if (cachecolumnObject != null) {
-                realmObjectCopy.realmSet$columnObject(cachecolumnObject);
+                managedCopy.realmSet$columnObject(cachecolumnObject);
             } else {
-                realmObjectCopy.realmSet$columnObject(some_test_AllTypesRealmProxy.copyOrUpdate(realm, (some_test_AllTypesRealmProxy.AllTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.AllTypes.class), columnObjectObj, update, cache, flags));
+                managedCopy.realmSet$columnObject(some_test_AllTypesRealmProxy.copyOrUpdate(realm, (some_test_AllTypesRealmProxy.AllTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.AllTypes.class), columnObjectObj, update, cache, flags));
             }
         }
 
-        RealmList<some.test.AllTypes> columnRealmListUnmanagedList = realmObjectSource.realmGet$columnRealmList();
+        RealmList<some.test.AllTypes> columnRealmListUnmanagedList = unmanagedSource.realmGet$columnRealmList();
         if (columnRealmListUnmanagedList != null) {
-            RealmList<some.test.AllTypes> columnRealmListManagedList = realmObjectCopy.realmGet$columnRealmList();
+            RealmList<some.test.AllTypes> columnRealmListManagedList = managedCopy.realmGet$columnRealmList();
             columnRealmListManagedList.clear();
             for (int i = 0; i < columnRealmListUnmanagedList.size(); i++) {
                 some.test.AllTypes columnRealmListUnmanagedItem = columnRealmListUnmanagedList.get(i);
@@ -1491,7 +1491,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
         }
 
-        return realmObjectCopy;
+        return managedCopy;
     }
 
     public static long insert(Realm realm, some.test.AllTypes object, Map<RealmModel,Long> cache) {

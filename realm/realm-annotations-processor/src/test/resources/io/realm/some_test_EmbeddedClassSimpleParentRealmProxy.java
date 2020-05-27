@@ -421,43 +421,40 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
             return (some.test.EmbeddedClassSimpleParent) cachedRealmObject;
         }
 
-        some_test_EmbeddedClassSimpleParentRealmProxyInterface realmObjectSource = (some_test_EmbeddedClassSimpleParentRealmProxyInterface) newObject;
+        some_test_EmbeddedClassSimpleParentRealmProxyInterface unmanagedSource = (some_test_EmbeddedClassSimpleParentRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.EmbeddedClassSimpleParent.class);
         OsObjectBuilder builder = new OsObjectBuilder(table, flags);
 
         // Add all non-"object reference" fields
-        builder.addString(columnInfo.idColKey, realmObjectSource.realmGet$id());
+        builder.addString(columnInfo.idColKey, unmanagedSource.realmGet$id());
 
         // Create the underlying object and cache it before setting any object/objectlist references
         // This will allow us to break any circular dependencies by using the object cache.
         Row row = builder.createNewObject();
-        io.realm.some_test_EmbeddedClassSimpleParentRealmProxy realmObjectCopy = newProxyInstance(realm, row);
-        cache.put(newObject, realmObjectCopy);
+        io.realm.some_test_EmbeddedClassSimpleParentRealmProxy managedCopy = newProxyInstance(realm, row);
+        cache.put(newObject, managedCopy);
 
         // Finally add all fields that reference other Realm Objects, either directly or through a list
-        some.test.EmbeddedClass childObj = realmObjectSource.realmGet$child();
+        some.test.EmbeddedClass childObj = unmanagedSource.realmGet$child();
         if (childObj == null) {
-            realmObjectCopy.realmSet$child(null);
+            managedCopy.realmSet$child(null);
         } else {
             some.test.EmbeddedClass cachechild = (some.test.EmbeddedClass) cache.get(childObj);
             if (cachechild != null) {
                 throw new IllegalArgumentException("Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cachechild.toString()");
             } else {
-                some.test.EmbeddedClass linkedObject = realmObjectCopy.realmGet$child();
-                if (linkedObject == null) {
-                    long objKey = ((RealmObjectProxy) realmObjectCopy).realmGet$proxyState().getRow$realm().createEmbeddedObject(columnInfo.childColKey);
-                    Row linkedObjectRow = realm.getTable(some.test.EmbeddedClass.class).getUncheckedRow(objKey);
-                    linkedObject = some_test_EmbeddedClassRealmProxy.newProxyInstance(realm, linkedObjectRow);
-                    cache.put(childObj, (RealmObjectProxy) linkedObject);
-                }
+                long objKey = ((RealmObjectProxy) managedCopy).realmGet$proxyState().getRow$realm().createEmbeddedObject(columnInfo.childColKey);
+                Row linkedObjectRow = realm.getTable(some.test.EmbeddedClass.class).getUncheckedRow(objKey);
+                some.test.EmbeddedClass linkedObject = some_test_EmbeddedClassRealmProxy.newProxyInstance(realm, linkedObjectRow);
+                cache.put(childObj, (RealmObjectProxy) linkedObject);
                 some_test_EmbeddedClassRealmProxy.updateEmbeddedObject(realm, childObj, linkedObject, cache, flags);
             }
         }
 
-        RealmList<some.test.EmbeddedClass> childrenUnmanagedList = realmObjectSource.realmGet$children();
+        RealmList<some.test.EmbeddedClass> childrenUnmanagedList = unmanagedSource.realmGet$children();
         if (childrenUnmanagedList != null) {
-            RealmList<some.test.EmbeddedClass> childrenManagedList = realmObjectCopy.realmGet$children();
+            RealmList<some.test.EmbeddedClass> childrenManagedList = managedCopy.realmGet$children();
             childrenManagedList.clear();
             for (int i = 0; i < childrenUnmanagedList.size(); i++) {
                 some.test.EmbeddedClass childrenUnmanagedItem = childrenUnmanagedList.get(i);
@@ -474,7 +471,7 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
             }
         }
 
-        return realmObjectCopy;
+        return managedCopy;
     }
 
     public static long insert(Realm realm, some.test.EmbeddedClassSimpleParent object, Map<RealmModel,Long> cache) {

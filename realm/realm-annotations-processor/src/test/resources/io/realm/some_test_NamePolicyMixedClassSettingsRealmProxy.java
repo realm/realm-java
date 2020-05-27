@@ -263,22 +263,22 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
             return (some.test.NamePolicyMixedClassSettings) cachedRealmObject;
         }
 
-        some_test_NamePolicyMixedClassSettingsRealmProxyInterface realmObjectSource = (some_test_NamePolicyMixedClassSettingsRealmProxyInterface) newObject;
+        some_test_NamePolicyMixedClassSettingsRealmProxyInterface unmanagedSource = (some_test_NamePolicyMixedClassSettingsRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.NamePolicyMixedClassSettings.class);
         OsObjectBuilder builder = new OsObjectBuilder(table, flags);
 
         // Add all non-"object reference" fields
-        builder.addString(columnInfo.firstNameColKey, realmObjectSource.realmGet$firstName());
-        builder.addString(columnInfo.lastNameColKey, realmObjectSource.realmGet$lastName());
+        builder.addString(columnInfo.firstNameColKey, unmanagedSource.realmGet$firstName());
+        builder.addString(columnInfo.lastNameColKey, unmanagedSource.realmGet$lastName());
 
         // Create the underlying object and cache it before setting any object/objectlist references
         // This will allow us to break any circular dependencies by using the object cache.
         Row row = builder.createNewObject();
-        io.realm.some_test_NamePolicyMixedClassSettingsRealmProxy realmObjectCopy = newProxyInstance(realm, row);
-        cache.put(newObject, realmObjectCopy);
+        io.realm.some_test_NamePolicyMixedClassSettingsRealmProxy managedCopy = newProxyInstance(realm, row);
+        cache.put(newObject, managedCopy);
 
-        return realmObjectCopy;
+        return managedCopy;
     }
 
     public static long insert(Realm realm, some.test.NamePolicyMixedClassSettings object, Map<RealmModel,Long> cache) {

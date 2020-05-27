@@ -1466,7 +1466,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement("return (%s) cachedRealmObject", qualifiedJavaClassName)
                 endControlFlow()
                 emitEmptyLine()
-                emitStatement("%1\$s realmObjectSource = (%1\$s) newObject", interfaceName)
+                emitStatement("%1\$s unmanagedSource = (%1\$s) newObject", interfaceName)
                 emitEmptyLine()
                 emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
                 emitStatement("OsObjectBuilder builder = new OsObjectBuilder(table, flags)")
@@ -1478,7 +1478,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     val fieldColKey = fieldColKeyVariableReference(field)
                     val fieldName = field.simpleName.toString()
                     val getter = metadata.getInternalGetter(fieldName)
-                    emitStatement("builder.%s(%s, realmObjectSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey, getter)
+                    emitStatement("builder.%s(%s, unmanagedSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey, getter)
                 }
 
                 // Create the underlying object
@@ -1486,8 +1486,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 emitSingleLineComment("Create the underlying object and cache it before setting any object/objectlist references")
                 emitSingleLineComment("This will allow us to break any circular dependencies by using the object cache.")
                 emitStatement("Row row = builder.createNewObject()")
-                emitStatement("%s realmObjectCopy = newProxyInstance(realm, row)", generatedClassName)
-                emitStatement("cache.put(newObject, realmObjectCopy)")
+                emitStatement("%s managedCopy = newProxyInstance(realm, row)", generatedClassName)
+                emitStatement("cache.put(newObject, managedCopy)")
 
                 // Copy all object references or lists-of-objects
                 emitEmptyLine()
@@ -1508,9 +1508,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val linkedQualifiedClassName: QualifiedClassName = Utils.getFieldTypeQualifiedName(field)
                             val linkedProxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field)
 
-                            emitStatement("%s %sObj = realmObjectSource.%s()", fieldType, fieldName, getter)
+                            emitStatement("%s %sObj = unmanagedSource.%s()", fieldType, fieldName, getter)
                             beginControlFlow("if (%sObj == null)", fieldName)
-                                emitStatement("realmObjectCopy.%s(null)", setter)
+                                emitStatement("managedCopy.%s(null)", setter)
                             nextControlFlow("else")
                                 emitStatement("%s cache%s = (%s) cache.get(%sObj)", fieldType, fieldName, fieldType, fieldName)
 
@@ -1518,20 +1518,17 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     beginControlFlow("if (cache%s != null)", fieldName)
                                         emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cache%s.toString()\")", fieldName)
                                     nextControlFlow("else")
-                                        emitStatement("%s linkedObject = realmObjectCopy.%s()", linkedQualifiedClassName, getter)
-                                        beginControlFlow("if (linkedObject == null)")
-                                            emitStatement("long objKey = ((RealmObjectProxy) realmObjectCopy).realmGet\$proxyState().getRow\$realm().createEmbeddedObject(%s)", fieldColKey)
-                                            emitStatement("Row linkedObjectRow = realm.getTable(%s.class).getUncheckedRow(objKey)", linkedQualifiedClassName)
-                                            emitStatement("linkedObject = %s.newProxyInstance(realm, linkedObjectRow)", linkedProxyClass)
-                                            emitStatement("cache.put(%sObj, (RealmObjectProxy) linkedObject)", fieldName)
-                                        endControlFlow()
+                                        emitStatement("long objKey = ((RealmObjectProxy) managedCopy).realmGet\$proxyState().getRow\$realm().createEmbeddedObject(%s)", fieldColKey)
+                                        emitStatement("Row linkedObjectRow = realm.getTable(%s.class).getUncheckedRow(objKey)", linkedQualifiedClassName)
+                                        emitStatement("%s linkedObject = %s.newProxyInstance(realm, linkedObjectRow)", linkedQualifiedClassName, linkedProxyClass)
+                                        emitStatement("cache.put(%sObj, (RealmObjectProxy) linkedObject)", fieldName)
                                         emitStatement("%s.updateEmbeddedObject(realm, %sObj, linkedObject, cache, flags)", linkedProxyClass, fieldName)
                                    endControlFlow()
                                 } else {
                                     beginControlFlow("if (cache%s != null)", fieldName)
-                                        emitStatement("realmObjectCopy.%s(cache%s)", setter, fieldName)
+                                        emitStatement("managedCopy.%s(cache%s)", setter, fieldName)
                                     nextControlFlow("else")
-                                        emitStatement("realmObjectCopy.%s(%s.copyOrUpdate(realm, (%s) realm.getSchema().getColumnInfo(%s.class), %sObj, update, cache, flags))", setter, linkedProxyClass, columnInfoClassName(field), linkedQualifiedClassName, fieldName)
+                                        emitStatement("managedCopy.%s(%s.copyOrUpdate(realm, (%s) realm.getSchema().getColumnInfo(%s.class), %sObj, update, cache, flags))", setter, linkedProxyClass, columnInfoClassName(field), linkedQualifiedClassName, fieldName)
                                     endControlFlow()
                                 }
 
@@ -1546,9 +1543,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
                             val linkedProxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field);
 
-                            emitStatement("RealmList<%s> %sUnmanagedList = realmObjectSource.%s()", genericType, fieldName, getter)
+                            emitStatement("RealmList<%s> %sUnmanagedList = unmanagedSource.%s()", genericType, fieldName, getter)
                             beginControlFlow("if (%sUnmanagedList != null)", fieldName)
-                                emitStatement("RealmList<%s> %sManagedList = realmObjectCopy.%s()", genericType, fieldName, getter)
+                                emitStatement("RealmList<%s> %sManagedList = managedCopy.%s()", genericType, fieldName, getter)
                                 // Clear is needed. See bug https://github.com/realm/realm-java/issues/4957
                                 emitStatement("%sManagedList.clear()", fieldName)
                                 beginControlFlow("for (int i = 0; i < %sUnmanagedList.size(); i++)", fieldName)
@@ -1583,7 +1580,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         }
                     }
                 }
-                emitStatement("return realmObjectCopy")
+                emitStatement("return managedCopy")
             endMethod()
             emitEmptyLine()
         }

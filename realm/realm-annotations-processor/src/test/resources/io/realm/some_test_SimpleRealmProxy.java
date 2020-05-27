@@ -255,22 +255,22 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
             return (some.test.Simple) cachedRealmObject;
         }
 
-        some_test_SimpleRealmProxyInterface realmObjectSource = (some_test_SimpleRealmProxyInterface) newObject;
+        some_test_SimpleRealmProxyInterface unmanagedSource = (some_test_SimpleRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.Simple.class);
         OsObjectBuilder builder = new OsObjectBuilder(table, flags);
 
         // Add all non-"object reference" fields
-        builder.addString(columnInfo.nameColKey, realmObjectSource.realmGet$name());
-        builder.addInteger(columnInfo.ageColKey, realmObjectSource.realmGet$age());
+        builder.addString(columnInfo.nameColKey, unmanagedSource.realmGet$name());
+        builder.addInteger(columnInfo.ageColKey, unmanagedSource.realmGet$age());
 
         // Create the underlying object and cache it before setting any object/objectlist references
         // This will allow us to break any circular dependencies by using the object cache.
         Row row = builder.createNewObject();
-        io.realm.some_test_SimpleRealmProxy realmObjectCopy = newProxyInstance(realm, row);
-        cache.put(newObject, realmObjectCopy);
+        io.realm.some_test_SimpleRealmProxy managedCopy = newProxyInstance(realm, row);
+        cache.put(newObject, managedCopy);
 
-        return realmObjectCopy;
+        return managedCopy;
     }
 
     public static long insert(Realm realm, some.test.Simple object, Map<RealmModel,Long> cache) {
