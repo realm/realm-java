@@ -254,6 +254,10 @@ public class OsObject implements NativeObject {
         }
     }
 
+    public static long createEmbeddedObject(Table parentTable, long parentObjectKey, long parentColumnKey) {
+        return nativeCreateEmbeddedObject(parentTable.getNativePtr(), parentObjectKey, parentColumnKey);
+    }
+
     // Called by JNI
     @SuppressWarnings("unused")
     private void notifyChangeListeners(String[] changedFields) {
@@ -300,5 +304,7 @@ public class OsObject implements NativeObject {
     private static native long nativeCreateNewObjectWithObjectIdPrimaryKey(long sharedRealmPtr,
                                                                            long tableRefPtr, long pk_column_index,
                                                                            @Nullable String data);
+
+    private static native long nativeCreateEmbeddedObject(long parentTablePtr, long parentObjectKey, long parentObjectColumnKey);
 
 }

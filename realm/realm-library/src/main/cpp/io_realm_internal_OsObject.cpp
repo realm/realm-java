@@ -389,3 +389,24 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWit
     CATCH_STD()
     return 0;
 }
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateEmbeddedObject(
+    JNIEnv* env, jclass, jlong j_parent_table_ptr, jlong j_parent_object_key, jlong j_parent_column_key)
+{
+    try {
+        TableRef table = TBL_REF(j_parent_table_ptr);
+        ObjKey obj_key(static_cast<int64_t>(j_parent_object_key));
+        Obj parent_obj = table->get_object(obj_key);
+        ColKey col_key(static_cast<int64_t>(j_parent_column_key));
+        Obj child_obj;
+        if (table->get_column_type(col_key) == type_Link) {
+            child_obj = parent_obj.create_and_set_linked_object(col_key);
+        } else {
+            LnkLstPtr list = parent_obj.get_linklist_ptr(col_key);
+            child_obj = list->create_and_insert_linked_object(list->size());
+        }
+        return to_jlong_or_not_found(child_obj.get_key());
+    }
+    CATCH_STD()
+    return 0;
+}
