@@ -66,7 +66,6 @@ import io.realm.rx.RxObservableFactory;
 public class RealmConfiguration {
 
     public static final String DEFAULT_REALM_NAME = "default.realm";
-    public static final int KEY_LENGTH = 64;
 
     private static final Object DEFAULT_MODULE;
     protected static final RealmProxyMediator DEFAULT_MODULE_MEDIATOR;
@@ -409,7 +408,7 @@ public class RealmConfiguration {
         stringBuilder.append("\n");
         stringBuilder.append("canonicalPath: ").append(canonicalPath);
         stringBuilder.append("\n");
-        stringBuilder.append("key: ").append("[length: ").append(key == null ? 0 : KEY_LENGTH).append("]");
+        stringBuilder.append("key: ").append("[length: ").append(key == null ? 0 : Realm.ENCRYPTION_KEY_LENGTH).append("]");
         stringBuilder.append("\n");
         stringBuilder.append("schemaVersion: ").append(Long.toString(schemaVersion));
         stringBuilder.append("\n");
@@ -561,17 +560,17 @@ public class RealmConfiguration {
 
         /**
          * Sets the 64 byte key used to encrypt and decrypt the Realm file.
-         * Sets the {@value io.realm.RealmConfiguration#KEY_LENGTH} bytes key used to encrypt and decrypt the Realm file.
+         * Sets the {@value io.realm.Realm#ENCRYPTION_KEY_LENGTH} bytes key used to encrypt and decrypt the Realm file.
          */
         public Builder encryptionKey(byte[] key) {
             //noinspection ConstantConditions
             if (key == null) {
                 throw new IllegalArgumentException("A non-null key must be provided");
             }
-            if (key.length != KEY_LENGTH) {
+            if (key.length != Realm.ENCRYPTION_KEY_LENGTH) {
                 throw new IllegalArgumentException(String.format(Locale.US,
                         "The provided key must be %s bytes. Yours was: %s",
-                        KEY_LENGTH, key.length));
+                        Realm.ENCRYPTION_KEY_LENGTH, key.length));
             }
             this.key = Arrays.copyOf(key, key.length);
             return this;
