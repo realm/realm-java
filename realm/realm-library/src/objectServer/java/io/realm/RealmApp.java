@@ -20,6 +20,8 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 
+import org.bson.codecs.configuration.CodecRegistry;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -33,9 +35,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.realm.internal.Keep;
 import io.realm.internal.KeepMember;
 import io.realm.internal.RealmNotifier;
+import io.realm.internal.network.ResultHandler;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
@@ -45,6 +47,7 @@ import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.network.OkHttpNetworkTransport;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.log.RealmLog;
+import io.realm.mongodb.functions.Functions;
 
 /**
  * FIXME
@@ -121,7 +124,10 @@ public class RealmApp {
                 config.getRequestTimeoutMs(),
                 syncDir,
                 userAgentBindingInfo,
-                appDefinedUserAgent);
+                appDefinedUserAgent,
+                "android",
+                android.os.Build.VERSION.RELEASE,
+                io.realm.BuildConfig.VERSION_NAME);
     }
 
     private String getSyncBaseDirectory() {
@@ -267,7 +273,7 @@ public class RealmApp {
                 return new RealmUser(nativePtr, RealmApp.this);
             }
         });
-        RealmUser user = handleResult(success, error);
+        RealmUser user = ResultHandler.handleResult(success, error);
         notifyUserLoggedIn(user);
         return user;
     }
@@ -370,6 +376,25 @@ public class RealmApp {
     }
 
     /**
+     * Returns a <i>Functions</i> manager for invoking MongoDB Realm Functions.
+     * <p>
+     * This will use the associated app's default codec registry to encode and decode arguments and
+     * results.
+     */
+    public Functions getFunctions(RealmUser user) {
+        return new FunctionsImpl(user);
+    }
+
+    /**
+     * Returns a <i>Functions</i> manager for invoking MongoDB Realm Functions with custom
+     * codec registry for encoding and decoding arguments and results.
+     */
+    public Functions getFunctions(RealmUser user, CodecRegistry codecRegistry) {
+        return new FunctionsImpl(user, codecRegistry);
+    }
+
+
+    /**
      * Returns the configuration object for this app.
      *
      * @return the configuration for this app.
@@ -393,32 +418,19 @@ public class RealmApp {
         return networkTransport;
     }
 
-    // Handle returning the correct result or throw an exception. Must be separated from
-    // OsJNIResultCallback due to how the Object Store callbacks work.
-    static <T> T handleResult(@Nullable AtomicReference<T> success, AtomicReference<ObjectServerError> error) {
-        if (success != null && success.get() == null && error.get() == null) {
-            throw new IllegalStateException("Network result callback did not trigger correctly");
-        }
-        if (error.get() != null) {
-            throw error.get();
-        } else {
-            if (success != null) {
-                return success.get();
-            } else {
-                return null;
-            }
-        }
-    }
-
     // Class wrapping requests made against MongoDB Realm. Is also responsible for calling with success/error on the
     // correct thread.
-    static abstract class Request<T> {
+    // FIXME Made public to use in Functions. Consider reworking when RealmApp, RealmUser is moved
+    //  to mongodb package and async MongoDB API's are settled
+    public static abstract class Request<T> {
         @Nullable
         private final RealmApp.Callback<T> callback;
         private final RealmNotifier handler;
         private final ThreadPoolExecutor networkPoolExecutor;
 
-        Request(ThreadPoolExecutor networkPoolExecutor, @Nullable RealmApp.Callback<T> callback) {
+        // FIXME Made public to use in Functions. Consider reworking when RealmApp, RealmUser is moved
+        //  to mongodb package and async MongoDB API's are settled
+        public Request(ThreadPoolExecutor networkPoolExecutor, @Nullable RealmApp.Callback<T> callback) {
             this.callback = callback;
             this.handler = new AndroidRealmNotifier(null, new AndroidCapabilities());
             this.networkPoolExecutor = networkPoolExecutor;
@@ -589,7 +601,10 @@ public class RealmApp {
                                      long requestTimeoutMs,
                                      String syncDirPath,
                                      String bindingUserInfo,
-                                     String appUserInfo);
+                                     String appUserInfo,
+                                     String platform,
+                                     String platformVersion,
+                                     String sdkVersion);
     private static native void nativeLogin(long nativeAppPtr, long nativeCredentialsPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     @Nullable
     private static native Long nativeCurrentUser(long nativePtr);

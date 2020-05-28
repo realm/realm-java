@@ -2,6 +2,14 @@
     "id": "5e9578c1a06f8d660afdaa2d",
     "database": "test_data",
     "collection": "SyncPerson",
+    "relationships": {
+        "dogs": {
+            "ref": "#/stitch/BackingDB/test_data/SyncDog",
+            "source_key": "dogs",
+            "foreign_key": "_id",
+            "is_list": true
+        }
+    },
     "roles": [
         {
             "name": "default",
@@ -38,8 +46,7 @@
         "required": [
             "firstName",
             "lastName",
-            "age",
-            "dogs"
+            "age"
         ],
         "title": "SyncPerson"
     }

@@ -1,5 +1,7 @@
 #!groovy
 
+@Library('realm-ci') _
+
 import groovy.json.JsonOutput
 
 def buildSuccess = false
@@ -9,7 +11,7 @@ def dockerNetworkId = UUID.randomUUID().toString()
 def releaseBranches = ['master', 'next-major', 'v10'] // Branches from which we release SNAPSHOT's
 def currentBranch = env.CHANGE_BRANCH
 try {
-  node('docker-cph-01') { // FIXME: Only working Slave
+  node('android') {
     timeout(time: 90, unit: 'MINUTES') {
       // Allocate a custom workspace to avoid having % in the path (it breaks ld)
       ws('/tmp/realm-java') {
@@ -39,26 +41,29 @@ try {
           // Run in debug more for better error reporting
         }
 
-        // Prepare Docker images
-        // FIXME: Had issues moving these into a seperate Stage step. Is this needed?
-        buildEnv = docker.build 'realm-java:snapshot'
-        def props = readProperties file: 'dependencies.list'
-        echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER_VERSION}"
-        def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER_VERSION}")
-        docker.withRegistry('https://docker.pkg.github.com', 'github-packages-token') {
-          mdbRealmImage.pull()
-        }
-        def commandServerEnv = docker.build 'mongodb-realm-command-server', "tools/sync_test_server"
-
         try {
-          // Prepare Docker containers used by Instrumentation tests
-          // TODO: How much of this logic can be moved to start_server.sh for shared logic with local testing.
-          sh "docker network create ${dockerNetworkId}"
-          mongoDbRealmContainer = mdbRealmImage.run("--network ${dockerNetworkId}")
-          mongoDbRealmCommandServerContainer = commandServerEnv.run("--network container:${mongoDbRealmContainer.id}")
-          sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config"
-          sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmContainer.id}:/tmp/"
-          sh "docker exec -i ${mongoDbRealmContainer.id} sh /tmp/setup_mongodb_realm.sh"
+
+          def buildEnv = null
+          stage('Prepare Docker Images') {
+            buildEnv = buildDockerEnv("ci/realm-java:v10", push: currentBranch == 'v10') // TODO Should be renamed to 'master' when merged there.
+            def props = readProperties file: 'dependencies.list'
+            echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER_VERSION}"
+            def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER_VERSION}")
+            docker.withRegistry('https://docker.pkg.github.com', 'github-packages-token') {
+              mdbRealmImage.pull()
+            }
+            def commandServerEnv = docker.build 'mongodb-realm-command-server', "tools/sync_test_server"
+
+            // Prepare Docker containers used by Instrumentation tests
+            // TODO: How much of this logic can be moved to start_server.sh for shared logic with local testing.
+            sh "docker network create ${dockerNetworkId}"
+            mongoDbRealmContainer = mdbRealmImage.run("--network ${dockerNetworkId}")
+            mongoDbRealmCommandServerContainer = commandServerEnv.run("--network container:${mongoDbRealmContainer.id}")
+            sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config"
+            sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmContainer.id}:/tmp/"
+            sh "docker exec -i ${mongoDbRealmContainer.id} sh /tmp/setup_mongodb_realm.sh"
+          }
+
 
           buildEnv.inside("-e HOME=/tmp " +
                   "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
@@ -95,7 +100,6 @@ try {
                 }
               }
 
-
               stage('Static code analysis') {
                 try {
                   gradle('realm', "findbugs ${abiFilter}") // FIXME Renable pmd and checkstyle
@@ -117,7 +121,7 @@ try {
                 try {
                   backgroundPid = startLogCatCollector()
                   forwardAdbPorts()
-                  gradle('realm', "${instrumentationTestTarget}")
+                  gradle('realm', "${instrumentationTestTarget} ${abiFilter}")
                 } finally {
                   stopLogCatCollector(backgroundPid)
                   storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
@@ -153,10 +157,13 @@ try {
             }
           }
         } finally {
-          archiveServerLogs(mongoDbRealmContainer.id, mongoDbRealmCommandServerContainer.id)
-          mongoDbRealmContainer.stop()
-          mongoDbRealmCommandServerContainer.stop()
-          sh "docker network rm ${dockerNetworkId}"
+          // We assume that creating these containers and the docker network can be considered an atomic operation.
+          if (mongoDbRealmContainer != null && mongoDbRealmCommandServerContainer != null) {
+            archiveServerLogs(mongoDbRealmContainer.id, mongoDbRealmCommandServerContainer.id)
+            mongoDbRealmContainer.stop()
+            mongoDbRealmCommandServerContainer.stop()
+            sh "docker network rm ${dockerNetworkId}"
+          }
         }
       }
     }
@@ -192,22 +199,31 @@ def forwardAdbPorts() {
   '''
 }
 
-def String startLogCatCollector() {
-  sh '''adb logcat -c
-  adb logcat -v time > "logcat.txt" &
-  echo $! > pid
-  '''
-  return readFile("pid").trim()
+String startLogCatCollector() {
+  // Cancel build quickly if no device is available. The lock acquired already should
+  // ensure we have access to a device. If not, it is most likely a more severe problem.
+  timeout(time: 1, unit: 'MINUTES') {
+    sh 'adb devices'
+    sh """adb logcat -c
+      adb logcat -v time > 'logcat.txt' &
+      echo \$! > pid
+    """
+    return readFile("pid").trim()
+  }
 }
 
 def stopLogCatCollector(String backgroundPid) {
-  sh "kill ${backgroundPid}"
-  zip([
-          'zipFile': 'logcat.zip',
-          'archive': true,
-          'glob' : 'logcat.txt'
-  ])
-  sh 'rm logcat.txt'
+  // The pid might not be available if the build was terminated early or stopped due to
+  // a build error.
+  if (backgroundPid != null) {
+    sh "kill ${backgroundPid}"
+    zip([
+            'zipFile': 'logcat.zip',
+            'archive': true,
+            'glob' : 'logcat.txt'
+    ])
+    sh 'rm logcat.txt'
+  }
 }
 
 def archiveServerLogs(String mongoDbRealmContainerId, String commandServerContainerId) {

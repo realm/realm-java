@@ -17,6 +17,9 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import org.bson.codecs.StringCodec
+import org.bson.codecs.configuration.CodecRegistries
+import org.bson.codecs.configuration.CodecRegistry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -195,6 +198,29 @@ class RealmAppConfigurationTests {
     @Test
     fun baseUrl_invalidValuesThrows() {
         TODO()
+    }
+
+    @Test
+    fun codecRegistry_null() {
+        val builder: RealmAppConfiguration.Builder = RealmAppConfiguration.Builder("app-id")
+        assertFailsWith<IllegalArgumentException> {
+            builder.codecRegistry(TestHelper.getNull())
+        }
+    }
+
+    @Test
+    fun defaultFunctionsCodecRegistry() {
+        val config: RealmAppConfiguration = RealmAppConfiguration.Builder("app-id").build()
+        assertEquals(RealmAppConfiguration.DEFAULT_BSON_CODEC_REGISTRY, config.defaultCodecRegistry)
+    }
+
+    @Test
+    fun customCodecRegistry() {
+        val configCodecRegistry = CodecRegistries.fromCodecs(StringCodec())
+        val config: RealmAppConfiguration = RealmAppConfiguration.Builder("app-id")
+                .codecRegistry(configCodecRegistry)
+                .build()
+        assertEquals(configCodecRegistry, config.defaultCodecRegistry)
     }
 
 }

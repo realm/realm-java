@@ -16,6 +16,7 @@
 package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
 import io.realm.rule.BlockingLooperThread
 import org.junit.After
@@ -37,6 +38,7 @@ class RealmUserTests {
 
     @Before
     fun setUp() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         app = TestRealmApp()
         admin = ServerAdmin()
         anonUser = app.login(RealmCredentials.anonymous())
@@ -270,6 +272,40 @@ class RealmUserTests {
             fail()
         } catch (ex: IllegalStateException) {
         }
+    }
+
+    @Test
+    fun getDeviceId() {
+        // TODO No reason to integration test this. Use a stubbed response instead.
+        val user: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        assertTrue(user.deviceId.isNotEmpty() && user.deviceId.length == 24) // Server returns a UUID
+    }
+    @Test
+    fun equals() {
+        // TODO Could be that we could use a fake user
+        val user: RealmUser = app.registerUserAndLogin("user1@example.com", "123456")
+        assertEquals(user, user)
+        assertNotEquals(user, app)
+        user.logOut()
+
+        val sameUserNewLogin = app.login(RealmCredentials.emailPassword(user.email!!, "123456"))
+        // Verify that it is not same object but uses underlying OSSyncUser equality on identity
+        assertFalse(user === sameUserNewLogin)
+        assertEquals(user, sameUserNewLogin)
+
+        val differentUser: RealmUser = app.registerUserAndLogin("user2@example.com", "123456")
+        assertNotEquals(user, differentUser)
+    }
+
+    @Test
+    fun hashCode_user() {
+        val user: RealmUser = app.registerUserAndLogin("user1@example.com", "123456")
+        user.logOut()
+
+        val sameUserNewLogin = app.login(RealmCredentials.emailPassword(user.email!!, "123456"))
+        // Verify that two equal users also returns same hashCode
+        assertFalse(user === sameUserNewLogin)
+        assertEquals(user.hashCode(), sameUserNewLogin.hashCode())
     }
 
 }

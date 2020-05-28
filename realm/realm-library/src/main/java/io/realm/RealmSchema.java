@@ -111,7 +111,7 @@ public abstract class RealmSchema {
      * to it will throw an {@link IllegalStateException}. Removes those classes or fields first.
      *
      * @param className name of the class to remove.
-     * @throws UnsupportedOperationException if this {@link RealmSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmSchema} is immutable or of a synced Realm.
      */
     public abstract void remove(String className);
 
@@ -121,7 +121,7 @@ public abstract class RealmSchema {
      * @param oldClassName old class name.
      * @param newClassName new class name.
      * @return a schema object for renamed class.
-     * @throws UnsupportedOperationException if this {@link RealmSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmSchema} is immutable or of a synced Realm.
      */
     public abstract RealmObjectSchema rename(String oldClassName, String newClassName);
 

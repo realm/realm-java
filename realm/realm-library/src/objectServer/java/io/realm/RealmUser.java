@@ -15,6 +15,8 @@
  */
 package io.realm;
 
+import org.bson.codecs.configuration.CodecRegistry;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -22,15 +24,15 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.internal.network.ResultHandler;
 import io.realm.internal.Util;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
-import io.realm.mongodb.RemoteMongoClient;
-
-import static io.realm.RealmApp.handleResult;
+import io.realm.mongodb.functions.Functions;
+import io.realm.mongodb.mongo.MongoClient;
 
 /**
  * FIXME
@@ -40,7 +42,8 @@ public class RealmUser {
     OsSyncUser osUser;
     private final RealmApp app;
     private ApiKeyAuth apiKeyAuthProvider = null;
-    private RemoteMongoClient remoteMongoClient = null;
+    private MongoClient mongoClient = null;
+    private Functions functions = null;
 
     /**
      * FIXME
@@ -205,6 +208,15 @@ public class RealmUser {
 
 
     /**
+     * Returns a unique identifier for the device the user logged in to.
+     *
+     * @return a unique device identifier for the user.
+     */
+    public String getDeviceId() {
+        return osUser.getDeviceId();
+    }
+
+    /**
      * Returns the {@link RealmApp} this user is associated with.
      *
      * @return the {@link RealmApp} this user is associated with.
@@ -273,7 +285,7 @@ public class RealmUser {
                 return RealmUser.this;
             }
         });
-        return handleResult(success, error);
+        return ResultHandler.handleResult(success, error);
     }
 
     /**
@@ -328,7 +340,7 @@ public class RealmUser {
                 return RealmUser.this;
             }
         });
-        handleResult(success, error);
+        ResultHandler.handleResult(success, error);
         if (loggedIn) {
             app.notifyUserLoggedOut(this);
         }
@@ -375,7 +387,7 @@ public class RealmUser {
         boolean loggedIn = isLoggedIn();
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
         nativeLogOut(app.nativePtr, osUser.getNativePtr(), new OsJNIVoidResultCallback(error));
-        handleResult(null, error);
+        ResultHandler.handleResult(null, error);
         if (loggedIn) {
             app.notifyUserLoggedOut(this);
         }
@@ -425,10 +437,25 @@ public class RealmUser {
     }
 
     /**
-     * FIXME Add support for functions. Name of Class and method still TBD.
+     * Returns a <i>Realm Functions</i> manager for invoking MongoDB Realm Functions.
+     * <p>
+     * This will use the associated app's default codec registry to encode and decode arguments and
+     * results.
      */
-    public RealmFunctions getFunctions() {
-        return null;
+    public synchronized Functions getFunctions() {
+        checkLoggedIn();
+        if (functions == null) {
+            functions = new FunctionsImpl(this);
+        }
+        return functions;
+    }
+
+    /**
+     * Returns a <i>Realm Functions</i> manager for invoking MongoDB Realm Functions with custom
+     * codec registry for encoding and decoding arguments and results.
+     */
+    public Functions getFunctions(CodecRegistry codecRegistry) {
+        return new FunctionsImpl(this, codecRegistry);
     }
 
     /**
@@ -441,12 +468,11 @@ public class RealmUser {
     /**
      * FIXME Add support for the MongoDB wrapper. Name of Class and method still TBD.
      */
-    public RemoteMongoClient getRemoteMongoClient() {
-        if (remoteMongoClient == null) {
-            // FIXME: serviceName?
-            remoteMongoClient = new RemoteMongoClient(this, "serviceName");
+    public MongoClient getMongoClient(String serviceName) {
+        if (mongoClient == null) {
+            mongoClient = new MongoClient(this, serviceName, app.getConfiguration().getDefaultCodecRegistry());
         }
-        return remoteMongoClient;
+        return mongoClient;
     }
 
     @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")

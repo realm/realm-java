@@ -146,7 +146,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
                 val dog = SyncDog()
                 dog.name = "Fido $i"
                 it.insert(dog)
-                person.dogs.add(dog.id)
+                person.dogs.add(dog)
             }
             realm.insert(person)
         }
