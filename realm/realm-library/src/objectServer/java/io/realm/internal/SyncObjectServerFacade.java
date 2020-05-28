@@ -21,8 +21,6 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 
-import org.bson.BsonValue;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -30,9 +28,9 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.RealmApp;
 import io.realm.RealmConfiguration;
+import io.realm.RealmSync;
 import io.realm.RealmUser;
 import io.realm.SyncConfiguration;
-import io.realm.RealmSync;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.android.AndroidCapabilities;
@@ -87,20 +85,6 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String customAuthorizationHeaderName = app.getConfiguration().getAuthorizationHeaderName();
             Map<String, String> customHeaders = app.getConfiguration().getCustomRequestHeaders();
 
-            // Temporary work-around for serializing supported bson values
-            BsonValue val = syncConfig.getPartitionValue();
-            String partitionValue = null;
-            if (val.isString()) {
-                partitionValue = "\"" + val.asString().getValue() + "\"";
-            } else if (val.isInt32()) {
-                partitionValue = "{ \"$bsonInt\" : " + val.asInt32().intValue() + " }";
-            } else if (val.isInt64()) {
-                partitionValue = "{ \"$bsonLong\" : " + val.asInt64().longValue() + " }";
-            } else if (val.isObjectId()) {
-                partitionValue = "{ \"$oid\" : " + val.asObjectId().toString() + " }";
-            } else {
-                throw new IllegalArgumentException("Unsupported type: " + val);
-            }
             int i = 0;
             Object[] configObj = new Object[SYNC_CONFIG_OPTIONS];
             configObj[i++] = rosUserIdentity;
@@ -114,7 +98,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             configObj[i++] = customAuthorizationHeaderName;
             configObj[i++] = customHeaders;
             configObj[i++] = OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL;
-            configObj[i++] = partitionValue;
+            configObj[i++] = syncConfig.getPartitionValue();
             configObj[i++] = app.getSync();
             return configObj;
         } else {

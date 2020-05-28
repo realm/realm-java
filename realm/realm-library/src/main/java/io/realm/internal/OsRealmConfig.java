@@ -16,17 +16,21 @@
 
 package io.realm.internal;
 
+import org.bson.BsonValue;
+
 import java.io.File;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 
 import io.realm.CompactOnLaunchCallback;
+import io.realm.RealmAppConfiguration;
 import io.realm.RealmConfiguration;
+import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.log.RealmLog;
 
 /**
@@ -220,7 +224,7 @@ public class OsRealmConfig implements NativeObject {
         //noinspection unchecked
         Map<String, String> customHeadersMap = (Map<String, String>) (syncConfigurationOptions[j++]);
         Byte clientResyncMode = (Byte) syncConfigurationOptions[j++];
-        String partitionValue = (String) syncConfigurationOptions[j++];
+        BsonValue partitionValue = (BsonValue) syncConfigurationOptions[j++];
         Object syncService = syncConfigurationOptions[j++];
 
         // Convert the headers into a String array to make it easier to send through JNI
@@ -233,6 +237,20 @@ public class OsRealmConfig implements NativeObject {
                 customHeaders[i + 1] = entry.getValue();
                 i = i + 2;
             }
+        }
+
+        // TODO Simplify. org.bson serialization only allows writing full documents, so the partition
+        //  key is embedded in a document with key 'value' and unwrapped in JNI.
+        String encodedPartitionValue;
+        switch (partitionValue.getBsonType()) {
+            case STRING:
+            case OBJECT_ID:
+            case INT32:
+            case INT64:
+                encodedPartitionValue = JniBsonProtocol.encode(partitionValue, RealmAppConfiguration.DEFAULT_BSON_CODEC_REGISTRY);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported type: " + partitionValue);
         }
 
         // Set encryption key
@@ -291,7 +309,7 @@ public class OsRealmConfig implements NativeObject {
                     customAuthorizationHeaderName,
                     customHeaders,
                     clientResyncMode,
-                    partitionValue,
+                    encodedPartitionValue,
                     syncService);
             try {
                 resolvedSyncRealmUrl = syncRealmAuthUrl + urlPrefix.substring(1); // FIXME
