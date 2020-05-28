@@ -22,7 +22,7 @@ import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.mongo.MongoClient
 import io.realm.mongodb.mongo.MongoCollection
-import io.realm.mongodb.mongo.MongoDatabase
+import io.realm.mongodb.mongo.MongoNamespace
 import io.realm.mongodb.mongo.options.CountOptions
 import io.realm.mongodb.mongo.options.FindOneAndModifyOptions
 import io.realm.mongodb.mongo.options.FindOptions
@@ -42,7 +42,7 @@ import kotlin.test.*
 
 private const val SERVICE_NAME = "BackingDB"    // it comes from the test server's BackingDB/config.json
 private const val DATABASE_NAME = "test_data"   // same as above
-private const val COLLECTION_NAME = "COLLECTION_NAME"
+private const val COLLECTION_NAME = "test_data"
 
 @RunWith(AndroidJUnit4::class)
 class MongoCollectionTest {
@@ -50,7 +50,6 @@ class MongoCollectionTest {
     private lateinit var app: TestRealmApp
     private lateinit var user: RealmUser
     private lateinit var client: MongoClient
-    private lateinit var database: MongoDatabase
 
     @Before
     fun setUp() {
@@ -61,7 +60,6 @@ class MongoCollectionTest {
         app = TestRealmApp()
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         client = user.getMongoClient(SERVICE_NAME)
-        database = client.getDatabase(DATABASE_NAME)
     }
 
     @After
@@ -1050,11 +1048,23 @@ class MongoCollectionTest {
         }
     }
 
-    private fun getCollectionInternal(): MongoCollection<Document> =
-            database.getCollection(COLLECTION_NAME)
+    private fun getCollectionInternal(): MongoCollection<Document> {
+        return client.getDatabase(DATABASE_NAME).let {
+            assertEquals(it.name, DATABASE_NAME)
+            it.getCollection(COLLECTION_NAME).also { collection ->
+                assertEquals(MongoNamespace(DATABASE_NAME, it.name), collection.namespace)
+            }
+        }
+    }
 
-    private fun <ResultT> getCollectionInternal(resultClass: Class<ResultT>): MongoCollection<ResultT> =
-            database.getCollection(COLLECTION_NAME, resultClass)
+    private fun <ResultT> getCollectionInternal(resultClass: Class<ResultT>): MongoCollection<ResultT> {
+        return client.getDatabase(DATABASE_NAME).let {
+            assertEquals(it.name, DATABASE_NAME)
+            it.getCollection(COLLECTION_NAME, resultClass).also { collection ->
+                assertEquals(MongoNamespace(DATABASE_NAME, it.name), collection.namespace)
+            }
+        }
+    }
 
     private fun Document.withId(objectId: ObjectId? = null): Document {
         return apply { this["_id"] = objectId ?: ObjectId() }
