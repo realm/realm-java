@@ -16,12 +16,8 @@
 
 package io.realm.entities;
 
-import org.bson.types.ObjectId;
-
 import io.realm.RealmList;
 import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
-import io.realm.annotations.RealmField;
 
 public class Owner extends RealmObject {
 
@@ -29,11 +25,6 @@ public class Owner extends RealmObject {
     public static String FIELD_NAME = "name";
     public static String FIELD_DOGS = "dogs";
     public static String FIELD_CAT = "cat";
-
-    // FIXME Needed for sync. Does it break usage other places as it now requires createObject with primary key value
-    @PrimaryKey
-    @RealmField(name = "_id")
-    private ObjectId id = new ObjectId();
 
     private String name;
     private RealmList<Dog> dogs;

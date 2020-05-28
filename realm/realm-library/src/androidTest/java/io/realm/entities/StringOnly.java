@@ -16,21 +16,12 @@
 
 package io.realm.entities;
 
-import org.bson.types.ObjectId;
-
 import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
-import io.realm.annotations.RealmField;
 
 public class StringOnly extends RealmObject {
 
     public static final String CLASS_NAME = "StringOnly";
     public static final String FIELD_CHARS = "chars";
-
-    // FIXME Needed for sync. Does it break usage other places as it now requires createObject with primary key value
-    @PrimaryKey
-    @RealmField(name = "_id")
-    private ObjectId id = new ObjectId();
 
     private String chars;
 

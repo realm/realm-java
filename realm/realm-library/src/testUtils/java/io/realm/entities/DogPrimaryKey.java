@@ -21,14 +21,11 @@ import java.util.Date;
 
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
-import io.realm.annotations.RealmField;
 
 public class DogPrimaryKey extends RealmObject {
 
     public static final String CLASS_NAME = "DogPrimaryKey";
 
-    // FIXME Needed for sync. Does it break usage other places as it now requires createObject with primary key value
-    @RealmField(name = "_id")
     @PrimaryKey
     private long id;
     private String name;
@@ -51,6 +48,7 @@ public class DogPrimaryKey extends RealmObject {
     public DogPrimaryKey(String name) {
         this.name = name;
     }
+
 
     public long getId() {
         return id;
