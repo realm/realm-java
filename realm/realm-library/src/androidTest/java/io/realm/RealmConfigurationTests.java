@@ -201,8 +201,8 @@ public class RealmConfigurationTests {
     public void constructBuilder_wrongKeyLengthThrows() {
         byte[][] wrongKeys = new byte[][] {
                 new byte[0],
-                new byte[RealmConfiguration.KEY_LENGTH - 1],
-                new byte[RealmConfiguration.KEY_LENGTH + 1]
+                new byte[Realm.ENCRYPTION_KEY_LENGTH - 1],
+                new byte[Realm.ENCRYPTION_KEY_LENGTH + 1]
         };
         for (byte[] key : wrongKeys) {
             try {
