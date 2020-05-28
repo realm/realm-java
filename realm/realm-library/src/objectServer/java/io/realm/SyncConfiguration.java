@@ -502,7 +502,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * synchronized to the Realm.
          * @see <a href="FIXME">Link to docs about partions</a>
          */
-        private Builder(RealmUser user, BsonValue partitionValue) {
+        Builder(RealmUser user, BsonValue partitionValue) {
             Context context = BaseRealm.applicationContext;
             if (context == null) {
                 throw new IllegalStateException("Call `Realm.init(Context)` before creating a SyncConfiguration");

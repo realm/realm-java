@@ -53,6 +53,7 @@ class ResourceContainer : Closeable {
     @Synchronized
     override fun close() {
         resources.map { it.close() }
+        resources.clear()
     }
 
     @Synchronized
