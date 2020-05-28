@@ -178,6 +178,7 @@ class RealmAppConfigurationTests {
     }
 
     @Test
+    @Ignore("FIXME")
     fun appVersion_invalidValuesThrows() {
         TODO()
     }
