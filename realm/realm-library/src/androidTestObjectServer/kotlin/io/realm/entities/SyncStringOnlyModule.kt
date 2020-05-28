@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2020 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,15 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.realm.entities
 
 import io.realm.annotations.RealmModule
 
-const val defaultPartitionValue = "default"
-
-/**
- * The set of classes initially supported by MongoDB Realm.
- */
-@RealmModule(classes = [SyncDog::class, SyncPerson::class, SyncAllTypes::class])
-class DefaultSyncSchema {
-}
+@RealmModule(classes = [SyncStringOnly::class])
+class SyncStringOnlyModule

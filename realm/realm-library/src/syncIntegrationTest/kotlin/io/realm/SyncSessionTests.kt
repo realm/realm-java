@@ -5,7 +5,10 @@ import android.os.HandlerThread
 import android.os.SystemClock
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.entities.*
+import io.realm.entities.DefaultSyncSchema
+import io.realm.entities.SyncAllTypes
+import io.realm.entities.SyncStringOnly
+import io.realm.entities.SyncStringOnlyModule
 import io.realm.exceptions.DownloadingRealmInterruptedException
 import io.realm.internal.OsRealmConfig
 import io.realm.kotlin.syncSession
@@ -93,7 +96,7 @@ class SyncSessionTests {
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
         syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user)
-                .schema(AllTypes::class.java, Dog::class.java, Owner::class.java, Cat::class.java, DogPrimaryKey::class.java)
+                .modules(DefaultSyncSchema())
                 .build()
     }
 
@@ -114,11 +117,11 @@ class SyncSessionTests {
         val partitionValue = "123464652"
         val syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, BsonString(partitionValue))
-                .schema(AllTypes::class.java, Dog::class.java, Owner::class.java, Cat::class.java, DogPrimaryKey::class.java)
+                .modules(DefaultSyncSchema())
                 .build()
         Realm.getInstance(syncConfiguration).use { realm ->
             realm.executeTransaction {
-                realm.createObject(AllTypes::class.java, ObjectId())
+                realm.createObject(SyncAllTypes::class.java, ObjectId())
             }
             realm.syncSession.uploadAllLocalChanges()
         }
@@ -137,11 +140,11 @@ class SyncSessionTests {
         val int = 123536462
         val syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, BsonInt32(int))
-                .schema(AllTypes::class.java, Dog::class.java, Owner::class.java, Cat::class.java, DogPrimaryKey::class.java)
+                .modules(DefaultSyncSchema())
                 .build()
         Realm.getInstance(syncConfiguration).use { realm ->
             realm.executeTransaction {
-                realm.createObject(AllTypes::class.java, ObjectId())
+                realm.createObject(SyncAllTypes::class.java, ObjectId())
             }
             realm.syncSession.uploadAllLocalChanges()
         }
@@ -156,11 +159,11 @@ class SyncSessionTests {
         val long = 1243513244L
         val syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, BsonInt64(long))
-                .schema(AllTypes::class.java, Dog::class.java, Owner::class.java, Cat::class.java, DogPrimaryKey::class.java)
+                .modules(DefaultSyncSchema())
                 .build()
         Realm.getInstance(syncConfiguration).use { realm ->
             realm.executeTransaction {
-                realm.createObject(AllTypes::class.java, ObjectId())
+                realm.createObject(SyncAllTypes::class.java, ObjectId())
             }
             realm.syncSession.uploadAllLocalChanges()
         }
@@ -175,11 +178,11 @@ class SyncSessionTests {
         val objectId = ObjectId("5ecf72df02aa3c32ab6b4ce0")
         val syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, BsonObjectId(objectId))
-                .schema(AllTypes::class.java, Dog::class.java, Owner::class.java, Cat::class.java, DogPrimaryKey::class.java)
+                .modules(DefaultSyncSchema())
                 .build()
         Realm.getInstance(syncConfiguration).use { realm ->
             realm.executeTransaction {
-                realm.createObject(AllTypes::class.java, ObjectId())
+                realm.createObject(SyncAllTypes::class.java, ObjectId())
             }
             realm.syncSession.uploadAllLocalChanges()
         }
@@ -191,11 +194,13 @@ class SyncSessionTests {
     fun differentPathsForDifferentPartitionValues() {
         val syncConfiguration1 = configFactory
                 .createSyncConfigurationBuilder(user, BsonString("partitionvalue1"))
-                .schema(AllTypes::class.java, Dog::class.java, Owner::class.java, Cat::class.java, DogPrimaryKey::class.java)
+                .modules(DefaultSyncSchema())
+
                 .build()
         val syncConfiguration2 = configFactory
                 .createSyncConfigurationBuilder(user, BsonString("partitionvalue2"))
-                .schema(AllTypes::class.java, Dog::class.java, Owner::class.java, Cat::class.java, DogPrimaryKey::class.java)
+                .modules(DefaultSyncSchema())
+
                 .build()
         Realm.getInstance(syncConfiguration1).use { realm1 ->
             Realm.getInstance(syncConfiguration2).use { realm2 ->
@@ -243,10 +248,10 @@ class SyncSessionTests {
     @Test
     // FIXME Find a way to flush data from server between each run
     @Ignore("Needs clean server as asserting on number of rows of a specific class")
-    fun uploadDownloadAllChangesWorking() {
+    fun uploadDownloadAllChanges() {
         Realm.getInstance(syncConfiguration).use { realm ->
             realm.executeTransaction {
-                realm.createObject(AllTypes::class.java, ObjectId())
+                realm.createObject(SyncAllTypes::class.java, ObjectId())
             }
             realm.syncSession.uploadAllLocalChanges()
         }
@@ -255,38 +260,52 @@ class SyncSessionTests {
         val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
         val config2 = configFactory
                 .createSyncConfigurationBuilder(user2)
+                .modules(DefaultSyncSchema())
                 .build()
 
         Realm.getInstance(config2).use { realm ->
             realm.syncSession.downloadAllServerChanges()
             realm.refresh()
             // FIXME Requires server to flush data between each run
-            assertEquals(1, realm.where(AllTypes::class.java).count())
+            assertEquals(1, realm.where(SyncAllTypes::class.java).count())
         }
     }
 
     @Test
-    // FIXME Find a way to flush data from server between each run
-    @Ignore("Needs clean server as asserting on number of rows of a specific class")
-    fun uploadDownloadAllChanges() {
+    // FIXME Investigate further
+    @Ignore("Bad changeset for session with different partitionValue")
+    fun sameSchemeWithDifferentPartitionValue() {
         Realm.getInstance(syncConfiguration).use { realm ->
             realm.executeTransaction {
-                realm.createObject(AllTypes::class.java, ObjectId())
+                realm.createObject(SyncAllTypes::class.java, ObjectId())
             }
             realm.syncSession.uploadAllLocalChanges()
         }
 
+        // Not relevant for test but just to verify that we actually download the correct schema
         // New user but same Realm as configuration has the same partition value
         val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
         val config2 = configFactory
-                .createSyncConfigurationBuilder(user2, syncConfiguration.partitionValue)
+                .createSyncConfigurationBuilder(user2)
+                .modules(DefaultSyncSchema())
                 .build()
 
         Realm.getInstance(config2).use { realm ->
             realm.syncSession.downloadAllServerChanges()
-            realm.refresh()
-            // FIXME Requires server to flush data between each run
-            assertEquals(1, realm.where(AllTypes::class.java).count())
+        }
+
+        // New user and different partition value
+        val user3 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
+        val config3 = configFactory
+                .createSyncConfigurationBuilder(user3, BsonObjectId(ObjectId()))
+                .modules(DefaultSyncSchema())
+                .build()
+
+        Realm.getInstance(config3).use { realm ->
+            realm.executeTransaction {
+                realm.createObject(SyncAllTypes::class.java, ObjectId())
+            }
+            realm.syncSession.uploadAllLocalChanges()
         }
     }
 
@@ -298,7 +317,7 @@ class SyncSessionTests {
         val t = Thread(Runnable {
             Realm.getInstance(syncConfiguration).use { userRealm ->
                 userRealm.executeTransaction {
-                    userRealm.createObject(AllTypes::class.java, ObjectId())
+                    userRealm.createObject(SyncAllTypes::class.java, ObjectId())
                 }
                 val userSession = userRealm.syncSession
                 try {
@@ -342,7 +361,7 @@ class SyncSessionTests {
                 adminRealm.refresh()
 
                 // FIXME Requires server to flush data
-                assertEquals(1, adminRealm.where(AllTypes::class.java).count())
+                assertEquals(1, adminRealm.where(SyncAllTypes::class.java).count())
             }
         })
         t.start()
@@ -359,7 +378,7 @@ class SyncSessionTests {
             // New partitionValue to differentiate sync session
             val syncConfiguration2 = configFactory
                     .createSyncConfigurationBuilder(user, BsonObjectId(ObjectId()))
-                    .schema(AllTypes::class.java, Dog::class.java, Owner::class.java, Cat::class.java, DogPrimaryKey::class.java)
+                    .modules(DefaultSyncSchema())
                     .build()
 
             Realm.getInstance(syncConfiguration2).use { realm2 ->
@@ -405,36 +424,36 @@ class SyncSessionTests {
     fun logBackResumeUpload() {
         val config1 = configFactory
                 .createSyncConfigurationBuilder(user)
-                .modules(StringOnlyModule())
+                .modules(SyncStringOnlyModule())
                 .waitForInitialRemoteData()
                 .build()
         Realm.getInstance(config1).use { realm1 ->
-            realm1.executeTransaction { realm -> realm.createObject(StringOnly::class.java, ObjectId()).chars = "1" }
+            realm1.executeTransaction { realm -> realm.createObject(SyncStringOnly::class.java, ObjectId()).chars = "1" }
             val session1: SyncSession = realm1.syncSession
             session1.uploadAllLocalChanges()
             user.logOut()
 
             // add a commit while we're still offline
-            realm1.executeTransaction { realm -> realm.createObject(StringOnly::class.java, ObjectId()).chars = "2" }
+            realm1.executeTransaction { realm -> realm.createObject(SyncStringOnly::class.java, ObjectId()).chars = "2" }
             val testCompleted = CountDownLatch(1)
             val handlerThread = HandlerThread("HandlerThread")
             handlerThread.start()
             val looper = handlerThread.looper
             val handler = Handler(looper)
-            val allResults = AtomicReference<RealmResults<StringOnly>>() // notifier could be GC'ed before it get a chance to trigger the second commit, so declaring it outside the Runnable
+            val allResults = AtomicReference<RealmResults<SyncStringOnly>>() // notifier could be GC'ed before it get a chance to trigger the second commit, so declaring it outside the Runnable
             handler.post { // access the Realm from an different path on the device (using admin user), then monitor
                 // when the offline commits get synchronized
                 // FIXME Do we somehow need to extract the refreshtoken...and could it be the reason for app.login not working later on
                 val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
                 val config2: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user2, config1.partitionValue)
-                        .modules(StringOnlyModule())
+                        .modules(SyncStringOnlyModule())
                         .waitForInitialRemoteData()
                         .build()
                 val realm2 = Realm.getInstance(config2)
 
-                allResults.set(realm2.where(StringOnly::class.java).sort(StringOnly.FIELD_CHARS).findAll())
-                val realmChangeListener: RealmChangeListener<RealmResults<StringOnly>> = object : RealmChangeListener<RealmResults<StringOnly>> {
-                    override fun onChange(stringOnlies: RealmResults<StringOnly>) {
+                allResults.set(realm2.where(SyncStringOnly::class.java).sort(SyncStringOnly.FIELD_CHARS).findAll())
+                val realmChangeListener: RealmChangeListener<RealmResults<SyncStringOnly>> = object : RealmChangeListener<RealmResults<SyncStringOnly>> {
+                    override fun onChange(stringOnlies: RealmResults<SyncStringOnly>) {
                         if (stringOnlies.size == 2) {
                             assertEquals("1", stringOnlies[0]!!.chars)
                             assertEquals("2", stringOnlies[1]!!.chars)
@@ -475,13 +494,13 @@ class SyncSessionTests {
         val config1 = configFactory
                 .createSyncConfigurationBuilder(user)
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED)
-                .modules(StringOnlyModule())
+                .modules(SyncStringOnlyModule())
                 .build()
         Realm.getInstance(config1).use { realm ->
             realm.executeTransaction {
                 // upload 10MB
                 for (i in 0..4) {
-                    realm.createObject(StringOnly::class.java, ObjectId()).chars = twoMBString
+                    realm.createObject(SyncStringOnly::class.java, ObjectId()).chars = twoMBString
                 }
             }
         }
@@ -494,17 +513,17 @@ class SyncSessionTests {
         handler.post { // using an other user to open the Realm on different path on the device to monitor when all the uploads are done
             val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
             val config2: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user2, config1.partitionValue)
-                    .modules(StringOnlyModule())
+                    .modules(SyncStringOnlyModule())
                     .build()
             Realm.getInstance(config2).use { realm2 ->
-                val all = realm2.where(StringOnly::class.java).findAll()
+                val all = realm2.where(SyncStringOnly::class.java).findAll()
                 if (all.size == 5) {
                     realm2.close()
                     testCompleted.countDown()
                     handlerThread.quit()
                 } else {
                     strongRefs.add(all)
-                    val realmChangeListener = OrderedRealmCollectionChangeListener { results: RealmResults<StringOnly?>, changeSet: OrderedCollectionChangeSet? ->
+                    val realmChangeListener = OrderedRealmCollectionChangeListener { results: RealmResults<SyncStringOnly?>, changeSet: OrderedCollectionChangeSet? ->
                         if (results.size == 5) {
                             realm2.close()
                             testCompleted.countDown()
@@ -530,11 +549,11 @@ class SyncSessionTests {
         var credentials = SyncCredentials.usernamePassword(uniqueName, "password", true)
         val config1 = configFactory
                 .createSyncConfigurationBuilder(user)
-                .modules(StringOnlyModule())
+                .modules(SyncStringOnlyModule())
                 .build()
         Realm.getInstance(config1).use { realm ->
             realm.executeTransaction {
-                realm.createObject(StringOnly::class.java, ObjectId()).chars = "1"
+                realm.createObject(SyncStringOnly::class.java, ObjectId()).chars = "1"
             }
             val session: SyncSession = realm.syncSession
             session.uploadAllLocalChanges()
@@ -555,13 +574,13 @@ class SyncSessionTests {
             handler.post { // using an admin user to open the Realm on different path on the device then some commits
                 val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
                 val config2: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user2, config1.partitionValue)
-                        .modules(StringOnlyModule())
+                        .modules(SyncStringOnlyModule())
                         .waitForInitialRemoteData()
                         .build()
                 Realm.getInstance(config2).use { realm2 ->
                     realm2.executeTransaction {
-                        realm2.createObject(StringOnly::class.java, ObjectId()).chars = "2"
-                        realm2.createObject(StringOnly::class.java, ObjectId()).chars = "3"
+                        realm2.createObject(SyncStringOnly::class.java, ObjectId()).chars = "2"
+                        realm2.createObject(SyncStringOnly::class.java, ObjectId()).chars = "3"
                     }
                     realm2.syncSession.uploadAllLocalChanges()
                 }
@@ -572,7 +591,7 @@ class SyncSessionTests {
             // Resume downloading
             session.downloadAllServerChanges()
             realm.refresh() //FIXME not calling refresh will still point to the previous version of the Realm count == 1
-            assertEquals(3, realm.where(StringOnly::class.java).count())
+            assertEquals(3, realm.where(SyncStringOnly::class.java).count())
         }
     }
 
@@ -710,10 +729,10 @@ class SyncSessionTests {
     fun waitForInitialRemoteData_throwsOnTimeout() = looperThread.runBlocking {
         val syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user)
-                .schema(AllTypes::class.java, Dog::class.java, Owner::class.java, Cat::class.java, DogPrimaryKey::class.java)
+                .modules(DefaultSyncSchema())
                 .initialData { bgRealm: Realm ->
                     for (i in 0..99) {
-                        bgRealm.createObject(AllTypes::class.java, ObjectId())
+                        bgRealm.createObject(SyncAllTypes::class.java, ObjectId())
                     }
                 }
                 .waitForInitialRemoteData(1, TimeUnit.MILLISECONDS)

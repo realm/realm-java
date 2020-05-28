@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2020 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,13 +15,22 @@
  */
 package io.realm.entities
 
-import io.realm.annotations.RealmModule
+import io.realm.RealmObject
+import io.realm.annotations.PrimaryKey
+import io.realm.annotations.RealmField
+import org.bson.types.ObjectId
 
-const val defaultPartitionValue = "default"
+open class SyncStringOnly : RealmObject() {
 
-/**
- * The set of classes initially supported by MongoDB Realm.
- */
-@RealmModule(classes = [SyncDog::class, SyncPerson::class, SyncAllTypes::class])
-class DefaultSyncSchema {
+    companion object {
+        const val CLASS_NAME = "StringOnly"
+        const val FIELD_CHARS = "chars"
+    }
+
+    @PrimaryKey
+    @RealmField(name = "_id")
+    var id = ObjectId()
+
+    var chars: String? = null
+
 }
