@@ -341,6 +341,13 @@ class EmbeddedObjectsTest {
     }
 
     @Test
+    @Ignore("FIXME")
+    fun copyToRealmOrUpdate_deleteReplacedObjects() {
+        TODO()
+
+    }
+
+    @Test
     @Ignore("Add in another PR")
     fun insert_noParentThrows() {
         TODO()
@@ -353,32 +360,80 @@ class EmbeddedObjectsTest {
     }
 
     @Test
-    @Ignore("Add in another PR")
     fun insert_simpleSingleChild() {
-        TODO()
+        realm.executeTransaction {
+            val parent = EmbeddedSimpleParent("parent1")
+            parent.child = EmbeddedSimpleChild("child1")
+            it.insert(parent)
+        }
+
+        assertEquals(1, realm.where<EmbeddedSimpleParent>().count())
+        assertEquals(1, realm.where<EmbeddedSimpleChild>().count())
     }
 
     @Test
-    @Ignore("Add in another PR")
     fun insert_simpleChildList() {
-        TODO()
+        realm.executeTransaction {
+            val parent = EmbeddedSimpleListParent("parent1")
+            parent.children = RealmList(EmbeddedSimpleChild("child1"))
+            it.insert(parent)
+        }
+
+        assertEquals(1, realm.where<EmbeddedSimpleListParent>().count())
+        assertEquals(1, realm.where<EmbeddedSimpleChild>().count())
     }
 
     @Test
-    @Ignore("Add in another PR")
     fun insert_treeSchema() {
-        TODO()
+        realm.executeTransaction {
+            val parent = EmbeddedTreeParent("parent1")
+
+            val node1 = EmbeddedTreeNode("node1")
+            node1.leafNode = EmbeddedTreeLeaf("leaf1")
+            parent.middleNode = node1
+            val node2 = EmbeddedTreeNode("node2")
+            node2.leafNodeList.add(EmbeddedTreeLeaf("leaf2"))
+            node2.leafNodeList.add(EmbeddedTreeLeaf("leaf3"))
+            parent.middleNodeList.add(node2)
+
+            it.insert(parent)
+        }
+
+        assertEquals(1, realm.where<EmbeddedTreeParent>().count())
+        assertEquals(2, realm.where<EmbeddedTreeNode>().count())
+        assertEquals(3, realm.where<EmbeddedTreeLeaf>().count())
     }
 
     @Test
-    @Ignore("Add in another PR")
     fun insert_circularSchema() {
-        TODO()
+        realm.executeTransaction {
+            val parent = EmbeddedCircularParent("parent")
+            val child1 = EmbeddedCircularChild("child1")
+            val child2 = EmbeddedCircularChild("child2")
+            child1.singleChild = child2
+            parent.singleChild = child1
+            it.insert(parent)
+        }
+
+        assertEquals(1, realm.where<EmbeddedCircularParent>().count())
+        assertEquals(2, realm.where<EmbeddedCircularChild>().count())
     }
 
     @Test
     @Ignore("Add in another PR")
     fun insertOrUpdate_deletesOldEmbeddedObject() {
+        TODO()
+    }
+
+    @Test
+    @Ignore("Add in another PR")
+    fun insert_listWithEmbeddedObjects() {
+        TODO()
+    }
+
+    @Test
+    @Ignore("Add in another PR")
+    fun insertOrUpdate_listWithEmbeddedObjects() {
         TODO()
     }
 

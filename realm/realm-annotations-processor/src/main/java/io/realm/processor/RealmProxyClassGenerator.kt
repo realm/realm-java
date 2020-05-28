@@ -1027,12 +1027,25 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     @Throws(IOException::class)
     private fun emitInsertMethod(writer: JavaWriter) {
         writer.apply {
-            beginMethod("long","insert", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), "Realm", "realm", qualifiedJavaClassName.toString(), "object", "Map<RealmModel,Long>", "cache")
+            val topLevelArgs = arrayOf("Realm", "realm",
+                    qualifiedJavaClassName.toString(), "object",
+                    "Map<RealmModel,Long>", "cache")
+            val embeddedArgs = arrayOf("Realm", "realm",
+                    "Table", "parentObjectTable",
+                    "long", "parentColumnKey",
+                    "long", "parentObjectKey",
+                    qualifiedJavaClassName.toString(), "object",
+                    "Map<RealmModel,Long>", "cache")
+            val args = if (metadata.embedded) embeddedArgs else topLevelArgs
+            beginMethod("long","insert", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), *args)
 
-            // If object is already in the Realm there is nothing to update
-            beginControlFlow("if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
-                emitStatement("return ((RealmObjectProxy) object).realmGet\$proxyState().getRow\$realm().getObjectKey()")
-            endControlFlow()
+            // If object is already in the Realm there is nothing to update, unless it is an embedded
+            // object. In which case we always update the underlying object.
+            if (!metadata.embedded) {
+                beginControlFlow("if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
+                   emitStatement("return ((RealmObjectProxy) object).realmGet\$proxyState().getRow\$realm().getObjectKey()")
+                endControlFlow()
+            }
 
             emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
             emitStatement("long tableNativePtr = table.getNativePtr()")
@@ -1045,33 +1058,55 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
             for (field in metadata.fields) {
                 val fieldName = field.simpleName.toString()
-                val fieldType = field.asType().toString()
+                val fieldType = QualifiedClassName(field.asType().toString())
                 val getter = metadata.getInternalGetter(fieldName)
 
                 when {
                     Utils.isRealmModel(field) -> {
+                        // FIXME: How to support types from other compilation units?
+                        val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
+
                         emitEmptyLine()
                         emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
                         beginControlFlow("if (%sObj != null)", fieldName)
                             emitStatement("Long cache%1\$s = cache.get(%1\$sObj)", fieldName)
-                            beginControlFlow("if (cache%s == null)", fieldName)
-                                emitStatement("cache%s = %s.insert(realm, %sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
-                            endControlFlow()
-                            emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1\$sColKey, objKey, cache%1\$s, false)", fieldName)
+                            if (fieldTypeMetaData.embedded) {
+                                beginControlFlow("if (cache%s != null)", fieldName)
+                                    emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cache%s.toString())", fieldName)
+                                nextControlFlow("else")
+                                    emitStatement("cache%1\$s = %2\$s.insert(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
+                                endControlFlow()
+                            } else {
+                                beginControlFlow("if (cache%s == null)", fieldName)
+                                    emitStatement("cache%s = %s.insert(realm, %sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
+                                endControlFlow()
+                                emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1\$sColKey, objKey, cache%1\$s, false)", fieldName)
+                            }
                         endControlFlow()
                     }
                     Utils.isRealmModelList(field) -> {
-                        val genericType = Utils.getGenericTypeQualifiedName(field)
+                        val genericType = Utils.getGenericTypeQualifiedName(field)!!
+                        // FIXME: How to support types from other compilation units?
+                        val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
+
                         emitEmptyLine()
                         emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                         beginControlFlow("if (%sList != null)", fieldName)
                             emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
                             beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
                                 emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
-                                beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
-                                    emitStatement("cacheItemIndex%1\$s = %2\$s.insert(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
-                                endControlFlow()
-                                emitStatement("%1\$sOsList.addRow(cacheItemIndex%1\$s)", fieldName)
+                                if (fieldTypeMetaData.embedded) {
+                                    beginControlFlow("if (cacheItemIndex%s != null)", fieldName)
+                                        emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cacheItemIndex%s.toString())", fieldName)
+                                    nextControlFlow("else")
+                                        emitStatement("cacheItemIndex%1\$s = %2\$s.insert(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sItem, cache)", fieldName, Utils.getProxyClassName(genericType), fieldName)
+                                    endControlFlow()
+                                } else {
+                                    beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
+                                        emitStatement("cacheItemIndex%1\$s = %2\$s.insert(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
+                                    endControlFlow()
+                                    emitStatement("%1\$sOsList.addRow(cacheItemIndex%1\$s)", fieldName)
+                                }
                             endControlFlow()
                         endControlFlow()
                     }
@@ -1093,7 +1128,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     }
                     else -> {
                         if (metadata.primaryKey !== field) {
-                            setTableValues(writer, fieldType, fieldName, interfaceName, getter, false)
+                            setTableValues(writer, fieldType.toString(), fieldName, interfaceName, getter, false)
                         }
                     }
                 }
@@ -1108,7 +1143,18 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     @Throws(IOException::class)
     private fun emitInsertListMethod(writer: JavaWriter) {
         writer.apply {
-            beginMethod("void", "insert", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), "Realm", "realm", "Iterator<? extends RealmModel>", "objects", "Map<RealmModel,Long>", "cache")
+            val topLevelArgs = arrayOf("Realm", "realm",
+                    "Iterator<? extends RealmModel>", "objects",
+                    "Map<RealmModel,Long>", "cache")
+            val embeddedArgs = arrayOf("Realm", "realm",
+                    "Table", "parentObjectTable",
+                    "long", "parentColumnKey",
+                    "long", "parentObjectKey",
+                    "Iterator<? extends RealmModel>", "objects",
+                    "Map<RealmModel,Long>", "cache")
+            val args = if (metadata.embedded) embeddedArgs else topLevelArgs
+
+            beginMethod("void", "insert", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), *args)
                 emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
                 emitStatement("long tableNativePtr = table.getNativePtr()")
                 emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)", columnInfoClassName(), columnInfoClassName(), qualifiedJavaClassName)
@@ -1131,31 +1177,53 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                     for (field in metadata.fields) {
                         val fieldName = field.simpleName.toString()
-                        val fieldType = field.asType().toString()
+                        val fieldType = QualifiedClassName(field.asType().toString())
                         val getter = metadata.getInternalGetter(fieldName)
 
                         if (Utils.isRealmModel(field)) {
+                            // FIXME: How to support types from other compilation units?
+                            val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
+
                             emitEmptyLine()
                             emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
                             beginControlFlow("if (%sObj != null)", fieldName)
                                 emitStatement("Long cache%1\$s = cache.get(%1\$sObj)", fieldName)
-                                beginControlFlow("if (cache%s == null)", fieldName)
-                                    emitStatement("cache%s = %s.insert(realm, %sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
-                                endControlFlow()
-                                emitStatement("table.setLink(columnInfo.%1\$sColKey, objKey, cache%1\$s, false)", fieldName)
+                                if (fieldTypeMetaData.embedded) {
+                                    beginControlFlow("if (cache%s != null)", fieldName)
+                                        emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cache%s.toString())", fieldName)
+                                    nextControlFlow("else")
+                                        emitStatement("cache%1\$s = %2\$s.insert(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
+                                    endControlFlow()
+                                } else {
+                                    beginControlFlow("if (cache%s == null)", fieldName)
+                                        emitStatement("cache%s = %s.insert(realm, %sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
+                                    endControlFlow()
+                                    emitStatement("table.setLink(columnInfo.%1\$sColKey, objKey, cache%1\$s, false)", fieldName)
+                                }
                             endControlFlow()
                         } else if (Utils.isRealmModelList(field)) {
-                            val genericType = Utils.getGenericTypeQualifiedName(field)
+                            val genericType = Utils.getGenericTypeQualifiedName(field)!!
+                            // FIXME: How to support types from other compilation units?
+                            val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
+
                             emitEmptyLine()
                             emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                             beginControlFlow("if (%sList != null)", fieldName)
                                 emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
                                 beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
                                     emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
-                                    beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
-                                        emitStatement("cacheItemIndex%1\$s = %2\$s.insert(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
-                                    endControlFlow()
-                                    emitStatement("%1\$sOsList.addRow(cacheItemIndex%1\$s)", fieldName)
+                                    if (fieldTypeMetaData.embedded) {
+                                        beginControlFlow("if (cacheItemIndex%s != null)", fieldName)
+                                            emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cacheItemIndex%s.toString())", fieldName)
+                                        nextControlFlow("else")
+                                            emitStatement("cacheItemIndex%1\$s = %2\$s.insert(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sItem, cache)", fieldName, Utils.getProxyClassName(genericType), fieldName)
+                                        endControlFlow()
+                                    } else {
+                                        beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
+                                            emitStatement("cacheItemIndex%1\$s = %2\$s.insert(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
+                                        endControlFlow()
+                                        emitStatement("%1\$sOsList.addRow(cacheItemIndex%1\$s)", fieldName)
+                                    }
                                 endControlFlow()
                             endControlFlow()
                         } else if (Utils.isRealmValueList(field)) {
@@ -1175,7 +1243,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                         } else {
                             if (metadata.primaryKey !== field) {
-                                setTableValues(writer, fieldType, fieldName, interfaceName, getter, false)
+                                setTableValues(writer, fieldType.toString(), fieldName, interfaceName, getter, false)
                             }
                         }
                     }
@@ -1188,7 +1256,17 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     @Throws(IOException::class)
     private fun emitInsertOrUpdateMethod(writer: JavaWriter) {
         writer.apply {
-            beginMethod("long", "insertOrUpdate", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), "Realm", "realm", qualifiedJavaClassName.toString(), "object", "Map<RealmModel,Long>", "cache")
+            val topLevelArgs = arrayOf("Realm", "realm",
+                    qualifiedJavaClassName.toString(), "object",
+                    "Map<RealmModel,Long>", "cache")
+            val embeddedArgs = arrayOf("Realm", "realm",
+                    "Table", "parentObjectTable",
+                    "long", "parentColumnKey",
+                    "long", "parentObjectKey",
+                    qualifiedJavaClassName.toString(), "object",
+                    "Map<RealmModel,Long>", "cache")
+            val args = if (metadata.embedded) embeddedArgs else topLevelArgs
+            beginMethod("long", "insertOrUpdate", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), *args)
 
             // If object is already in the Realm there is nothing to update
             beginControlFlow("if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
@@ -1205,24 +1283,38 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
             for (field in metadata.fields) {
                 val fieldName = field.simpleName.toString()
-                val fieldType = field.asType().toString()
+                val fieldType = QualifiedClassName(field.asType().toString())
                 val getter = metadata.getInternalGetter(fieldName)
 
                 if (Utils.isRealmModel(field)) {
+                    // FIXME: How to support types from other compilation units?
+                    val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
+
                     emitEmptyLine()
                     emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
                     beginControlFlow("if (%sObj != null)", fieldName)
                         emitStatement("Long cache%1\$s = cache.get(%1\$sObj)", fieldName)
-                        beginControlFlow("if (cache%s == null)", fieldName)
-                            emitStatement("cache%1\$s = %2\$s.insertOrUpdate(realm, %1\$sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field))
-                        endControlFlow()
-                        emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1\$sColKey, objKey, cache%1\$s, false)", fieldName)
+                        if (fieldTypeMetaData.embedded) {
+                            beginControlFlow("if (cache%s != null)", fieldName)
+                                emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cache%s.toString())", fieldName)
+                            nextControlFlow("else")
+                                emitStatement("cache%1\$s = %2\$s.insertOrUpdate(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
+                            endControlFlow()
+                        } else {
+                            beginControlFlow("if (cache%s == null)", fieldName)
+                                emitStatement("cache%1\$s = %2\$s.insertOrUpdate(realm, %1\$sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field))
+                            endControlFlow()
+                            emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1\$sColKey, objKey, cache%1\$s, false)", fieldName)
+                        }
                     nextControlFlow("else")
                         // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
                         emitStatement("Table.nativeNullifyLink(tableNativePtr, columnInfo.%sColKey, objKey)", fieldName)
                     endControlFlow()
                 } else if (Utils.isRealmModelList(field)) {
-                    val genericType = Utils.getGenericTypeQualifiedName(field)
+                    val genericType = Utils.getGenericTypeQualifiedName(field)!!
+                    // FIXME: How to support types from other compilation units?
+                    val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
+
                     emitEmptyLine()
                     emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
                     emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
@@ -1232,20 +1324,36 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         beginControlFlow("for (int i = 0; i < objects; i++)")
                             emitStatement("%1\$s %2\$sItem = %2\$sList.get(i)", genericType, fieldName)
                             emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
-                            beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
-                                emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
-                            endControlFlow()
-                            emitStatement("%1\$sOsList.setRow(i, cacheItemIndex%1\$s)", fieldName)
+                            if (fieldTypeMetaData.embedded) {
+                                beginControlFlow("if (cacheItemIndex%s != null)", fieldName)
+                                    emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cacheItemIndex%s.toString())", fieldName)
+                                nextControlFlow("else")
+                                    emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sItem, cache)", fieldName, Utils.getProxyClassName(genericType), fieldName)
+                                endControlFlow()
+                            } else {
+                                beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
+                                    emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
+                                endControlFlow()
+                                emitStatement("%1\$sOsList.setRow(i, cacheItemIndex%1\$s)", fieldName)
+                            }
                         endControlFlow()
                     nextControlFlow("else")
                         emitStatement("%1\$sOsList.removeAll()", fieldName)
                         beginControlFlow("if (%sList != null)", fieldName)
                             beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
                                 emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
-                                beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
-                                    emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
-                                endControlFlow()
-                                emitStatement("%1\$sOsList.addRow(cacheItemIndex%1\$s)", fieldName)
+                                if (fieldTypeMetaData.embedded) {
+                                    beginControlFlow("if (cacheItemIndex%s != null)", fieldName)
+                                        emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cacheItemIndex%s.toString())", fieldName)
+                                    nextControlFlow("else")
+                                        emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sItem, cache)", fieldName, Utils.getProxyClassName(genericType), fieldName)
+                                    endControlFlow()
+                                } else {
+                                    beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
+                                        emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
+                                    endControlFlow()
+                                    emitStatement("%1\$sOsList.addRow(cacheItemIndex%1\$s)", fieldName)
+                                }
                             endControlFlow()
                         endControlFlow()
                     endControlFlow()
@@ -1269,7 +1377,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitEmptyLine()
                 } else {
                     if (metadata.primaryKey !== field) {
-                        setTableValues(writer, fieldType, fieldName, interfaceName, getter, true)
+                        setTableValues(writer, fieldType.toString(), fieldName, interfaceName, getter, true)
                     }
                 }
             }
@@ -1283,7 +1391,18 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     @Throws(IOException::class)
     private fun emitInsertOrUpdateListMethod(writer: JavaWriter) {
         writer.apply {
-            beginMethod("void", "insertOrUpdate", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), "Realm", "realm", "Iterator<? extends RealmModel>", "objects", "Map<RealmModel,Long>", "cache")
+            val topLevelArgs = arrayOf("Realm", "realm",
+                    "Iterator<? extends RealmModel>", "objects",
+                    "Map<RealmModel,Long>", "cache")
+            val embeddedArgs = arrayOf("Realm", "realm",
+                    "Table", "parentObjectTable",
+                    "long", "parentColumnKey",
+                    "long", "parentObjectKey",
+                    "Iterator<? extends RealmModel>", "objects",
+                    "Map<RealmModel,Long>", "cache")
+            val args = if (metadata.embedded) embeddedArgs else topLevelArgs
+
+            beginMethod("void", "insertOrUpdate", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), *args)
                 emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
                 emitStatement("long tableNativePtr = table.getNativePtr()")
                 emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)", columnInfoClassName(), columnInfoClassName(), qualifiedJavaClassName)
@@ -1305,26 +1424,40 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                     for (field in metadata.fields) {
                         val fieldName = field.simpleName.toString()
-                        val fieldType = field.asType().toString()
+                        val fieldType = QualifiedClassName(field.asType().toString())
                         val getter = metadata.getInternalGetter(fieldName)
 
                         when {
                             Utils.isRealmModel(field) -> {
+                                // FIXME: How to support types from other compilation units?
+                                val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
+
                                 emitEmptyLine()
                                 emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
                                 beginControlFlow("if (%sObj != null)", fieldName)
                                     emitStatement("Long cache%1\$s = cache.get(%1\$sObj)", fieldName)
-                                    beginControlFlow("if (cache%s == null)", fieldName)
-                                        emitStatement("cache%1\$s = %2\$s.insertOrUpdate(realm, %1\$sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field))
-                                    endControlFlow()
-                                    emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1\$sColKey, objKey, cache%1\$s, false)", fieldName)
+                                    if (fieldTypeMetaData.embedded) {
+                                        beginControlFlow("if (cache%s != null)", fieldName)
+                                            emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cache%s.toString())", fieldName)
+                                        nextControlFlow("else")
+                                            emitStatement("cache%1\$s = %2\$s.insertOrUpdate(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
+                                        endControlFlow()
+                                    } else {
+                                        beginControlFlow("if (cache%s == null)", fieldName)
+                                            emitStatement("cache%1\$s = %2\$s.insertOrUpdate(realm, %1\$sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field))
+                                        endControlFlow()
+                                        emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1\$sColKey, objKey, cache%1\$s, false)", fieldName)
+                                    }
                                 nextControlFlow("else")
                                     // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
                                     emitStatement("Table.nativeNullifyLink(tableNativePtr, columnInfo.%sColKey, objKey)", fieldName)
                                 endControlFlow()
                             }
                             Utils.isRealmModelList(field) -> {
-                                val genericType = Utils.getGenericTypeQualifiedName(field)
+                                val genericType = Utils.getGenericTypeQualifiedName(field)!!
+                                // FIXME: How to support types from other compilation units?
+                                val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
+
                                 emitEmptyLine()
                                 emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
                                 emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
@@ -1334,20 +1467,36 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     beginControlFlow("for (int i = 0; i < objectCount; i++)")
                                         emitStatement("%1\$s %2\$sItem = %2\$sList.get(i)", genericType, fieldName)
                                         emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
-                                        beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
-                                            emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
-                                        endControlFlow()
-                                        emitStatement("%1\$sOsList.setRow(i, cacheItemIndex%1\$s)", fieldName)
+                                        if (fieldTypeMetaData.embedded) {
+                                            beginControlFlow("if (cacheItemIndex%s != null)", fieldName)
+                                                emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cacheItemIndex%s.toString())", fieldName)
+                                            nextControlFlow("else")
+                                                emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sItem, cache)", fieldName, Utils.getProxyClassName(genericType), fieldName)
+                                            endControlFlow()
+                                        } else {
+                                            beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
+                                                emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
+                                            endControlFlow()
+                                            emitStatement("%1\$sOsList.setRow(i, cacheItemIndex%1\$s)", fieldName)
+                                        }
                                     endControlFlow()
                                 nextControlFlow("else")
                                     emitStatement("%1\$sOsList.removeAll()", fieldName)
                                     beginControlFlow("if (%sList != null)", fieldName)
                                         beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
                                             emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
-                                            beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
-                                                emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
-                                            endControlFlow()
-                                            emitStatement("%1\$sOsList.addRow(cacheItemIndex%1\$s)", fieldName)
+                                            if (fieldTypeMetaData.embedded) {
+                                                beginControlFlow("if (cacheItemIndex%s != null)", fieldName)
+                                                    emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cacheItemIndex%s.toString())", fieldName)
+                                                nextControlFlow("else")
+                                                    emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sItem, cache)", fieldName, Utils.getProxyClassName(genericType), fieldName)
+                                                endControlFlow()
+                                            } else {
+                                                beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
+                                                    emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
+                                                endControlFlow()
+                                                emitStatement("%1\$sOsList.addRow(cacheItemIndex%1\$s)", fieldName)
+                                            }
                                         endControlFlow()
                                     endControlFlow()
                                 endControlFlow()
@@ -1373,7 +1522,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             }
                             else -> {
                                 if (metadata.primaryKey !== field) {
-                                    setTableValues(writer, fieldType, fieldName, interfaceName, getter, true)
+                                    setTableValues(writer, fieldType.toString(), fieldName, interfaceName, getter, true)
                                 }
                             }
                         }
@@ -1444,8 +1593,13 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 endControlFlow()
                 emitStatement("cache.put(object, objKey)")
             } else {
-                emitStatement("long objKey = OsObject.createRow(table)")
-                emitStatement("cache.put(object, objKey)")
+                if (metadata.embedded) {
+                    emitStatement("long objKey = OsObject.createEmbeddedObject(parentObjectTable, parentObjectKey, parentColumnKey)")
+                    emitStatement("cache.put(object, objKey)")
+                } else {
+                    emitStatement("long objKey = OsObject.createRow(table)")
+                    emitStatement("cache.put(object, objKey)")
+                }
             }
         }
     }
@@ -1541,7 +1695,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val listElementType: QualifiedClassName = Utils.getRealmListType(field)!!
                             val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(listElementType)
                             val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
-                            val linkedProxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field);
+                            val linkedProxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field)
 
                             emitStatement("RealmList<%s> %sUnmanagedList = unmanagedSource.%s()", genericType, fieldName, getter)
                             beginControlFlow("if (%sUnmanagedList != null)", fieldName)
@@ -1724,7 +1878,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Utils.isRealmModelList(field) -> {
                             // FIXME: How to support Embedded objects defined in another compilation unit?
                             val genericType: QualifiedClassName = Utils.getRealmListType(field)!!
-                            val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType);
+                            val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
                             val proxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field)
 
                             emitEmptyLine()
