@@ -31,9 +31,9 @@ public class MongoClient {
     private CodecRegistry codecRegistry;
 
     public MongoClient(final RealmUser realmUser, final String serviceName, final CodecRegistry codecRegistry) {
-        this.codecRegistry = codecRegistry;
         Util.checkEmpty(serviceName, "serviceName");
-        osMongoClient = new OsMongoClient(realmUser, serviceName);
+        this.codecRegistry = codecRegistry;
+        this.osMongoClient = new OsMongoClient(realmUser, serviceName);
     }
 
     /**

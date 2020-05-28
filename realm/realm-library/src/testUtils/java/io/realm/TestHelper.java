@@ -76,6 +76,9 @@ import static junit.framework.Assert.fail;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public class TestHelper {
     public static final int VERY_SHORT_WAIT_SECS = 1;
     public static final int SHORT_WAIT_SECS = 10;
@@ -328,7 +331,7 @@ public class TestHelper {
 
     // Returns a random key used by encrypted Realms.
     public static byte[] getRandomKey() {
-        byte[] key = new byte[64];
+        byte[] key = new byte[Realm.ENCRYPTION_KEY_LENGTH];
         RANDOM.nextBytes(key);
         return key;
     }
@@ -342,7 +345,7 @@ public class TestHelper {
 
     // Returns a random key from the given seed. Used by encrypted Realms.
     public static byte[] getRandomKey(long seed) {
-        byte[] key = new byte[64];
+        byte[] key = new byte[Realm.ENCRYPTION_KEY_LENGTH];
         new Random(seed).nextBytes(key);
         return key;
     }
@@ -1316,6 +1319,12 @@ public class TestHelper {
     @SuppressWarnings("TypeParameterUnusedInFormals")
     public static <T> T getNull() {
         return null;
+    }
+
+    // Workaround to cheat Kotlins type system when testing interop with Java
+    @Nonnull
+    public static <T> T allowNull(@Nullable T value) {
+        return value;
     }
 
     public static String randomObjectIdHexString() {

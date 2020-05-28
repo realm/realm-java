@@ -31,10 +31,6 @@ public class MongoDatabase {
 
     MongoDatabase(OsMongoDatabase osMongoDatabase, String name) {
         this.osMongoDatabase = osMongoDatabase;
-
-        // we deliver the database name because we don't want to modify the C++ code right now,
-        // although ideally it should be done there, i.e. remote_mongo_database.hpp should
-        // include the public (Java) API's methods that aren't there yet.
         this.name = name;
     }
 
