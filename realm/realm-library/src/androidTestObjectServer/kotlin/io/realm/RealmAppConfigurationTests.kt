@@ -135,7 +135,6 @@ class RealmAppConfigurationTests {
                 .build()
         assertEquals(expectedRoot, config.syncRootDirectory)
 
-
         // FIXME Add check when opening Realm
     }
 
@@ -160,27 +159,20 @@ class RealmAppConfigurationTests {
         assertFailsWith<IllegalArgumentException> { builder.syncRootDirectory(file) }
     }
 
-    // FIXME: Add tests for remaining builder methods
-    //    builder.baseUrl()
-    //    builder.defaultSyncErrorHandler()
-    //    builder.encryptionKey()
-    //    builder.logLevel()
-    //    builder.requestTimeout()
-    //    builder.syncRootDir()
-
-    @Ignore
     @Test
+    @Ignore("FIXME")
     fun appName() {
         TODO("FIXME: When support has been added in ObjectStore")
     }
 
     @Test
+    @Ignore("FIXME")
     fun appName_invalidValuesThrows() {
         TODO()
     }
 
-    @Ignore
     @Test
+    @Ignore("FIXME")
     fun appVersion() {
         TODO("FIXME: When support has been added in ObjectStore")
     }
@@ -191,12 +183,50 @@ class RealmAppConfigurationTests {
     }
 
     @Test
+    @Ignore("FIXME")
     fun baseUrl() {
         TODO()
     }
 
     @Test
+    @Ignore("FIXME")
     fun baseUrl_invalidValuesThrows() {
+        TODO()
+    }
+
+    @Test
+    @Ignore("FIXME")
+    fun defaultSyncErrorHandler() {
+        TODO()
+    }
+
+    @Test
+    @Ignore("FIXME")
+    fun defaultSyncErrorHandler_invalidValuesThrows() {
+        TODO()
+    }
+
+    @Test
+    @Ignore("FIXME")
+    fun encryptionKey() {
+        TODO()
+    }
+
+    @Test
+    @Ignore("FIXME")
+    fun encryptionKey_invalidValuesThrows() {
+        TODO()
+    }
+
+    @Test
+    @Ignore("FIXME")
+    fun requestTimeout() {
+        TODO()
+    }
+
+    @Test
+    @Ignore("FIXME")
+    fun requestTimeout_invalidValuesThrows() {
         TODO()
     }
 
