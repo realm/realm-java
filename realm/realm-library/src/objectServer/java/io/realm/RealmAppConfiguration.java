@@ -72,6 +72,7 @@ public class RealmAppConfiguration {
      */
     public static final String DEFAULT_AUTHORIZATION_HEADER_NAME = "Authorization";
 
+    /**
      * Default BSON codec registry for encoding/decoding arguments and results to/from MongoDB Realm backend.
      *
      * @see RealmAppConfiguration#getDefaultCodecRegistry()
