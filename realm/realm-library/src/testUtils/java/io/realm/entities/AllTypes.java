@@ -23,6 +23,8 @@ import io.realm.MutableRealmInteger;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.TestHelper;
+import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.RealmField;
 import io.realm.annotations.Required;
 
 import org.bson.types.Decimal128;
@@ -56,6 +58,11 @@ public class AllTypes extends RealmObject {
             = new String[] {FIELD_REALMOBJECT, FIELD_REALMLIST, FIELD_DOUBLE, FIELD_FLOAT,
             FIELD_STRING_LIST, FIELD_BINARY_LIST, FIELD_BOOLEAN_LIST, FIELD_LONG_LIST,
             FIELD_DOUBLE_LIST, FIELD_FLOAT_LIST, FIELD_DATE_LIST};
+
+    // FIXME Needed for sync. Does it break usage other places as it now requires createObject with primary key value
+    @PrimaryKey
+    @RealmField(name = "_id")
+    private ObjectId id = new ObjectId();
 
     @Required
     private String columnString = "";
