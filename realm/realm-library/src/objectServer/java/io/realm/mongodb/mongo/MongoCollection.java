@@ -203,7 +203,7 @@ public class MongoCollection<DocumentT> {
      * Finds a document in the collection.
      *
      * @param filter  the query filter
-     * @param options A RemoteFindOptions struct
+     * @param options a {@link FindOptions} struct
      * @return a task containing the result of the find one operation
      */
     public Task<DocumentT> findOne(final Bson filter, final FindOptions options) {
@@ -216,7 +216,7 @@ public class MongoCollection<DocumentT> {
      * Finds a document in the collection.
      *
      * @param filter      the query filter
-     * @param options     A RemoteFindOptions struct
+     * @param options     a {@link FindOptions} struct
      * @param resultClass the class to decode each document into
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the result of the find one operation
@@ -238,7 +238,12 @@ public class MongoCollection<DocumentT> {
         return new FindIterable<>(dispatcher, osMongoCollection.find());
     }
 
-    // FIXME: javadoc
+    /**
+     * Finds all documents in the collection that match the given filter.
+     *
+     * @param options a {@link FindOptions} struct
+     * @return the find iterable interface
+     */
     public FindIterable<DocumentT> find(final FindOptions options) {
         return new FindIterable<>(dispatcher, osMongoCollection.find(options));
     }
@@ -254,7 +259,14 @@ public class MongoCollection<DocumentT> {
         return new FindIterable<>(dispatcher, osMongoCollection.find(resultClass));
     }
 
-    // FIXME: javadoc
+    /**
+     * Finds all documents in the collection that match the given filter.
+     *
+     * @param resultClass the class to decode each document into
+     * @param options a {@link FindOptions} struct
+     * @param <ResultT>   the target document type of the iterable.
+     * @return the find iterable interface
+     */
     public <ResultT> FindIterable<ResultT> find(final Class<ResultT> resultClass,
                                                 final FindOptions options) {
         return new FindIterable<>(dispatcher, osMongoCollection.find(resultClass, options));
@@ -270,7 +282,13 @@ public class MongoCollection<DocumentT> {
         return new FindIterable<>(dispatcher, osMongoCollection.find(filter));
     }
 
-    // FIXME: javadoc
+    /**
+     * Finds all documents in the collection that match the given filter.
+     *
+     * @param filter the query filter
+     * @param options a {@link FindOptions} struct
+     * @return the find iterable interface
+     */
     public FindIterable<DocumentT> find(final Bson filter, final FindOptions options) {
         return new FindIterable<>(dispatcher, osMongoCollection.find(filter, options));
     }
@@ -288,7 +306,15 @@ public class MongoCollection<DocumentT> {
         return new FindIterable<>(dispatcher, osMongoCollection.find(filter, resultClass));
     }
 
-    // FIXME: javadoc
+    /**
+     * Finds all documents in the collection that match the given filter.
+     *
+     * @param filter      the query filter
+     * @param resultClass the class to decode each document into
+     * @param options     a {@link FindOptions} struct
+     * @param <ResultT>   the target document type of the iterable.
+     * @return the find iterable interface
+     */
     public <ResultT> FindIterable<ResultT> find(final Bson filter,
                                                 final Class<ResultT> resultClass,
                                                 final FindOptions options) {
@@ -470,7 +496,7 @@ public class MongoCollection<DocumentT> {
      *
      * @param filter  the query filter
      * @param update  the update document
-     * @param options A RemoteFindOneAndModifyOptions struct
+     * @param options a {@link FindOneAndModifyOptions} struct
      * @return a task containing the resulting document
      */
     public Task<DocumentT> findOneAndUpdate(final Bson filter,
@@ -486,7 +512,7 @@ public class MongoCollection<DocumentT> {
      *
      * @param filter      the query filter
      * @param update      the update document
-     * @param options     A RemoteFindOneAndModifyOptions struct
+     * @param options     a {@link FindOneAndModifyOptions} struct
      * @param resultClass the class to decode each document into
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the resulting document
@@ -535,7 +561,7 @@ public class MongoCollection<DocumentT> {
      *
      * @param filter      the query filter
      * @param replacement the document to replace the matched document with
-     * @param options     A RemoteFindOneAndModifyOptions struct
+     * @param options     a {@link FindOneAndModifyOptions} struct
      * @return a task containing the resulting document
      */
     public Task<DocumentT> findOneAndReplace(final Bson filter,
@@ -551,7 +577,7 @@ public class MongoCollection<DocumentT> {
      *
      * @param filter      the query filter
      * @param replacement the document to replace the matched document with
-     * @param options     A RemoteFindOneAndModifyOptions struct
+     * @param options     a {@link FindOneAndModifyOptions} struct
      * @param resultClass the class to decode each document into
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the resulting document
@@ -596,7 +622,7 @@ public class MongoCollection<DocumentT> {
      * Finds a document in the collection and delete it.
      *
      * @param filter  the query filter
-     * @param options A RemoteFindOneAndModifyOptions struct
+     * @param options a {@link FindOneAndModifyOptions} struct
      * @return a task containing the resulting document
      */
     public Task<DocumentT> findOneAndDelete(final Bson filter,
@@ -610,7 +636,7 @@ public class MongoCollection<DocumentT> {
      * Finds a document in the collection and delete it.
      *
      * @param filter      the query filter
-     * @param options     A RemoteFindOneAndModifyOptions struct
+     * @param options     a {@link FindOneAndModifyOptions} struct
      * @param resultClass the class to decode each document into
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the resulting document
@@ -622,96 +648,4 @@ public class MongoCollection<DocumentT> {
                 osMongoCollection.findOneAndDelete(filter, options, resultClass)
         );
     }
-
-    // FIXME: what about these?
-//    /**
-//     * Watches a collection. The resulting stream will be notified of all events on this collection
-//     * that the active user is authorized to see based on the configured MongoDB rules.
-//     *
-//     * @return the stream of change events.
-//     */
-//    Task<AsyncChangeStream<DocumentT, ChangeEvent<DocumentT>>> watch();
-//
-//    /**
-//     * Watches specified IDs in a collection.  This convenience overload supports the use case
-//     * of non-{@link BsonValue} instances of {@link ObjectId}.
-//     *
-//     * @param ids unique object identifiers of the IDs to watch.
-//     * @return the stream of change events.
-//     */
-//    Task<AsyncChangeStream<DocumentT, ChangeEvent<DocumentT>>> watch(final ObjectId... ids);
-//
-//    /**
-//     * Watches specified IDs in a collection.
-//     *
-//     * @param ids the ids to watch.
-//     * @return the stream of change events.
-//     */
-//    Task<AsyncChangeStream<DocumentT, ChangeEvent<DocumentT>>> watch(final BsonValue... ids);
-//
-//    /**
-//     * Watches a collection. The provided BSON document will be used as a match expression filter on
-//     * the change events coming from the stream.
-//     * See https://docs.mongodb.com/manual/reference/operator/aggregation/match/ for documentation
-//     * around how to define a match filter. Defining the match expression to filter ChangeEvents is
-//     * similar to defining the match expression for triggers:
-//     * https://docs.mongodb.com/stitch/triggers/database-triggers/
-//     *
-//     * @param matchFilter the $match filter to apply to incoming change events
-//     * @return the stream of change events.
-//     */
-//    Task<AsyncChangeStream<DocumentT, ChangeEvent<DocumentT>>> watchWithFilter(
-//            final BsonDocument matchFilter);
-//
-//    /**
-//     * Watches a collection. The provided BSON document will be used as a match expression filter on
-//     * the change events coming from the stream.
-//     * See https://docs.mongodb.com/manual/reference/operator/aggregation/match/ for documentation
-//     * around how to define a match filter. Defining the match expression to filter ChangeEvents is
-//     * similar to defining the match expression for triggers:
-//     * https://docs.mongodb.com/stitch/triggers/database-triggers/
-//     *
-//     * @param matchFilter the $match filter to apply to incoming change events
-//     * @return the stream of change events.
-//     */
-//    Task<AsyncChangeStream<DocumentT, ChangeEvent<DocumentT>>> watchWithFilter(
-//            final Document matchFilter);
-//
-//    /**
-//     * Watches specified IDs in a collection.  This convenience overload supports the use case
-//     * of non-{@link BsonValue} instances of {@link ObjectId}. This convenience overload supports the
-//     * use case of non-{@link BsonValue} instances of {@link ObjectId}. Requests a stream where the
-//     * full document of update events, and several other unnecessary fields are omitted from the
-//     * change event objects returned by the server. This can save on network usage when watching
-//     * large documents.
-//     *
-//     * @param ids unique object identifiers of the IDs to watch.
-//     * @return the stream of change events.
-//     */
-//    Task<AsyncChangeStream<DocumentT, CompactChangeEvent<DocumentT>>> watchCompact(
-//            final ObjectId... ids);
-//
-//    /**
-//     * Watches specified IDs in a collection. This convenience overload supports the use case of
-//     * non-{@link BsonValue} instances of {@link ObjectId}. Requests a stream where the full document
-//     * of update events, and several other unnecessary fields are omitted from the change event
-//     * objects returned by the server. This can save on network usage when watching large documents.
-//     *
-//     * @param ids the ids to watch.
-//     * @return the stream of change events.
-//     */
-//    Task<AsyncChangeStream<DocumentT, CompactChangeEvent<DocumentT>>> watchCompact(
-//            final BsonValue... ids);
-
-    // FIXME: what about this one?
-//    /**
-//     * A set of synchronization related operations on this collection.
-//     *
-//     * <p>
-//     * WARNING: This is a BETA feature and the API and on-device storage format
-//     * are subject to change.
-//     * </p>
-//     * @return set of sync operations for this collection
-//     */
-//    Sync<DocumentT> sync();
 }
