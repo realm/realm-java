@@ -273,7 +273,8 @@ public class RealmAppConfiguration {
         }
 
         /**
-         * Sets the encryption key used to encrypt user meta data. The
+         * Sets the encryption key used to encrypt user meta data only. Individual Realms needs to
+         * use {@link SyncConfiguration.Builder#encryptionKey(byte[])} to make them encrypted.
          *
          * @param key a 64 byte encryption key.
          * @throws IllegalArgumentException if the key is not 64 bytes long.
