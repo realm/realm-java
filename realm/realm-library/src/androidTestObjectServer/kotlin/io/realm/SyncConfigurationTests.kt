@@ -94,6 +94,7 @@ class SyncConfigurationTests {
     }
 
     @Test
+    // FIXME Tests are not exhaustive
     fun equals_not() {
         val user1: RealmUser = createTestUser(app)
         val user2: RealmUser = createTestUser(app)

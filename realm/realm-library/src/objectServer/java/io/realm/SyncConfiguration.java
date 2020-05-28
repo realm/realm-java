@@ -279,7 +279,8 @@ public class SyncConfiguration extends RealmConfiguration {
         if (sessionStopPolicy != that.sessionStopPolicy) return false;
         if (syncUrlPrefix != null ? !syncUrlPrefix.equals(that.syncUrlPrefix) : that.syncUrlPrefix != null)
             return false;
-        return clientResyncMode == that.clientResyncMode;
+        if (clientResyncMode != that.clientResyncMode) return false;
+        return partitionValue == that.partitionValue;
     }
 
     @Override
@@ -294,6 +295,7 @@ public class SyncConfiguration extends RealmConfiguration {
         result = 31 * result + sessionStopPolicy.hashCode();
         result = 31 * result + (syncUrlPrefix != null ? syncUrlPrefix.hashCode() : 0);
         result = 31 * result + clientResyncMode.hashCode();
+        result = 31 * result + partitionValue.hashCode();
         return result;
     }
 
@@ -318,6 +320,8 @@ public class SyncConfiguration extends RealmConfiguration {
         sb.append("syncUrlPrefix: ").append(syncUrlPrefix);
         sb.append("\n");
         sb.append("clientResyncMode: ").append(clientResyncMode);
+        sb.append("\n");
+        sb.append("partitionValue: ").append(partitionValue);
         return sb.toString();
     }
 
