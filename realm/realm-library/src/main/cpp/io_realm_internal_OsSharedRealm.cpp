@@ -230,7 +230,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetTableRef(J
                 name_str = name_str.substr(TABLE_PREFIX.length());
             }
             THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
-                                 format("The class '%1' doesn't exist in this Realm.", name_str));
+                                 util::format("The class '%1' doesn't exist in this Realm.", name_str));
         }
 
         TableRef* tableRef = new TableRef(group.get_table(name));
@@ -256,7 +256,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTable(J
         // Sync doesn't throw when table exists.
         if (group.has_table(table_name)) {
             THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
-                                 format(c_table_name_exists_exception_msg, table_name.substr(TABLE_PREFIX.length())));
+                                 util::format(c_table_name_exists_exception_msg, table_name.substr(TABLE_PREFIX.length())));
         }
         table = sync::create_table(static_cast<Transaction&>(group), table_name); // throws
 #else
@@ -267,7 +267,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTable(J
     catch (TableNameInUse& e) {
         // We need to print the table name, so catch the exception here.
         std::string class_name_str(table_name.substr(TABLE_PREFIX.length()));
-        ThrowException(env, IllegalArgument, format(c_table_name_exists_exception_msg, class_name_str));
+        ThrowException(env, IllegalArgument, util::format(c_table_name_exists_exception_msg, class_name_str));
     }
     CATCH_STD()
 
@@ -292,7 +292,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTableWi
         // Sync doesn't throw when table exists.
         if (group.has_table(table_name)) {
             THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
-                                 format(c_table_name_exists_exception_msg, class_name_str));
+                                 util::format(c_table_name_exists_exception_msg, class_name_str));
         }
         table =
             sync::create_table_with_primary_key(static_cast<Transaction&>(group), table_name, pkType, field_name, is_nullable);
@@ -304,7 +304,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTableWi
     }
     catch (TableNameInUse& e) {
         // We need to print the table name, so catch the exception here.
-        ThrowException(env, IllegalArgument, format(c_table_name_exists_exception_msg, class_name_str));
+        ThrowException(env, IllegalArgument, util::format(c_table_name_exists_exception_msg, class_name_str));
     }
     CATCH_STD()
 

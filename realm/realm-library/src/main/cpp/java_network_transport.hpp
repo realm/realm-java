@@ -107,9 +107,9 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
 
     // Helper method for constructing callbacks for REST calls that must return an actual result to Java
     template<typename T>
-    static std::function<void(T, Optional<app::AppError>)> create_result_callback(JNIEnv* env, jobject j_callback, const std::function<jobject (JNIEnv*, T)>& success_mapper) {
+    static std::function<void(T, util::Optional<app::AppError>)> create_result_callback(JNIEnv* env, jobject j_callback, const std::function<jobject (JNIEnv*, T)>& success_mapper) {
         jobject callback = env->NewGlobalRef(j_callback);
-        return [callback, success_mapper](T result, Optional<app::AppError> error) {
+        return [callback, success_mapper](T result, util::Optional<app::AppError> error) {
             JNIEnv* env = JniUtils::get_env(true);
 
             static JavaClass java_callback_class(env, "io/realm/internal/jni/OsJNIResultCallback");
@@ -133,9 +133,9 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
     }
 
     // Helper method for constructing callbacks for REST calls that doesn't return any results to Java.
-    static std::function<void(Optional<app::AppError>)> create_void_callback(JNIEnv* env, jobject j_callback) {
+    static std::function<void(util::Optional<app::AppError>)> create_void_callback(JNIEnv* env, jobject j_callback) {
         jobject callback = env->NewGlobalRef(j_callback);
-        return [callback](Optional<app::AppError> error) {
+        return [callback](util::Optional<app::AppError> error) {
             JNIEnv* env = JniUtils::get_env(true);
 
             static JavaClass java_callback_class(env, "io/realm/internal/jni/OsJNIVoidResultCallback");
