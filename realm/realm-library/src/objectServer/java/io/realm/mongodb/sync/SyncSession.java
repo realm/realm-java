@@ -208,6 +208,7 @@ public class SyncSession {
         }
     }
 
+    // FIXME Doc: WAITING_FOR_ACCESS_TOKEN is gone!
     /**
      * Get the current session's state, as defined in {@link SyncSession.State}.
      *
@@ -521,6 +522,7 @@ public class SyncSession {
         }
     }
 
+    // FIXME Doc: WAITING_FOR_ACCESS_TOKEN is gone!
     /**
      * Attempts to start the session and enable synchronization with the Realm Object Server.
      * <p>
@@ -618,6 +620,7 @@ public class SyncSession {
         }
     }
 
+    // FIXME Doc: Sync#setDefaultSeesionErrorHandler is gone?!?
     /**
      * Interface used to report any session errors.
      *

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_FunctionsImpl.h"
+#include "io_realm_mongodb_FunctionsImpl.h"
 
 #include "util.hpp"
 #include "jni_util/bson_util.hpp"

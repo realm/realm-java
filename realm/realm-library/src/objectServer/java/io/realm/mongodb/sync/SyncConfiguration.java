@@ -354,9 +354,9 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Returns {@code true} if the Realm file must be deleted once the {@link SyncUser} owning it logs out.
+     * Returns {@code true} if the Realm file must be deleted once the {@link User} owning it logs out.
      *
-     * @return {@code true} if the Realm file must be deleted if the {@link SyncUser} logs out. {@code false} if the file
+     * @return {@code true} if the Realm file must be deleted if the {@link User} logs out. {@code false} if the file
      *         is allowed to remain behind.
      */
     public boolean shouldDeleteRealmOnLogout() {
@@ -387,7 +387,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     @Override
-    boolean isSyncConfiguration() {
+    protected boolean isSyncConfiguration() {
         return true;
     }
 

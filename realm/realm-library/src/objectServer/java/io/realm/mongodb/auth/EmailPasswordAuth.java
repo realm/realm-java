@@ -35,7 +35,7 @@ import static io.realm.mongodb.App.NETWORK_POOL_EXECUTOR;
  * Class encapsulating functionality provided when {@link User}'s are logged in through the
  * {@link Credentials.IdentityProvider#EMAIL_PASSWORD} provider.
  */
-public class EmailPasswordAuth {
+public abstract class EmailPasswordAuth {
 
     private static final int TYPE_REGISTER_USER = 1;
     private static final int TYPE_CONFIRM_USER = 2;
@@ -44,13 +44,13 @@ public class EmailPasswordAuth {
     private static final int TYPE_CALL_RESET_PASSWORD_FUNCTION = 5;
     private static final int TYPE_RESET_PASSWORD = 6;
 
-    private final App app;
+    protected final App app;
 
     /**
      * Creates an authentication provider exposing functionality to using an email and password
      * for login into a Realm Application.
      */
-    public EmailPasswordAuth(App app) {
+    protected EmailPasswordAuth(App app) {
         this.app = app;
     }
 
@@ -67,10 +67,7 @@ public class EmailPasswordAuth {
         Util.checkEmpty(email, "email");
         Util.checkEmpty(password, "password");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeCallFunction(TYPE_REGISTER_USER,
-                app.nativePtr,
-                new OsJNIVoidResultCallback(error),
-                email, password);
+        call(TYPE_REGISTER_USER, new OsJNIVoidResultCallback(error), email, password);
         ResultHandler.handleResult(null, error);
     }
 
@@ -108,10 +105,7 @@ public class EmailPasswordAuth {
         Util.checkEmpty(token, "token");
         Util.checkEmpty(tokenId, "tokenId");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeCallFunction(TYPE_CONFIRM_USER,
-                app.nativePtr,
-                new OsJNIVoidResultCallback(error),
-                token, tokenId);
+        call(TYPE_CONFIRM_USER, new OsJNIVoidResultCallback(error), token, tokenId);
         ResultHandler.handleResult(null, error);
     }
 
@@ -144,10 +138,7 @@ public class EmailPasswordAuth {
     public void resendConfirmationEmail(String email) throws ObjectServerError {
         Util.checkEmpty(email, "email");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeCallFunction(TYPE_RESEND_CONFIRMATION_EMAIL,
-                app.nativePtr,
-                new OsJNIVoidResultCallback(error),
-                email);
+        call(TYPE_RESEND_CONFIRMATION_EMAIL, new OsJNIVoidResultCallback(error), email);
         ResultHandler.handleResult(null, error);
     }
 
@@ -179,10 +170,7 @@ public class EmailPasswordAuth {
     public void sendResetPasswordEmail(String email) throws ObjectServerError {
         Util.checkEmpty(email, "email");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeCallFunction(TYPE_SEND_RESET_PASSWORD_EMAIL,
-                app.nativePtr,
-                new OsJNIVoidResultCallback(error),
-                email);
+        call(TYPE_SEND_RESET_PASSWORD_EMAIL, new OsJNIVoidResultCallback(error), email);
         ResultHandler.handleResult(null, error);
     }
 
@@ -220,10 +208,7 @@ public class EmailPasswordAuth {
         Util.checkEmpty(newPassword, "newPassword");
         String encodedArgs = JniBsonProtocol.encode(Arrays.asList(args), app.getConfiguration().getDefaultCodecRegistry());
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeCallFunction(TYPE_CALL_RESET_PASSWORD_FUNCTION,
-                app.nativePtr,
-                new OsJNIVoidResultCallback(error),
-                email, newPassword, encodedArgs);
+        call(TYPE_CALL_RESET_PASSWORD_FUNCTION, new OsJNIVoidResultCallback(error), email, newPassword, encodedArgs);
         ResultHandler.handleResult(null, error);
     }
 
@@ -264,10 +249,7 @@ public class EmailPasswordAuth {
         Util.checkEmpty(tokenId, "tokenId");
         Util.checkEmpty(newPassword, "newPassword");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeCallFunction(TYPE_RESET_PASSWORD,
-                app.nativePtr,
-                new OsJNIVoidResultCallback(error),
-                token, tokenId, newPassword);
+        call(TYPE_RESET_PASSWORD, new OsJNIVoidResultCallback(error), token, tokenId, newPassword);
         ResultHandler.handleResult(null, error);
     }
 
@@ -293,8 +275,6 @@ public class EmailPasswordAuth {
         }.start();
     }
 
-    private static native void nativeCallFunction(int functionType,
-                                                  long appNativePtr,
-                                                  OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback,
-                                                  String... args);
+    protected abstract void call(int functionType, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback, String... args);
+
 }

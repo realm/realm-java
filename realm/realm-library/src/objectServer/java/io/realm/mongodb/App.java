@@ -38,7 +38,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.BaseRealm;
 import io.realm.BuildConfig;
 import io.realm.mongodb.auth.EmailPasswordAuth;
-import io.realm.FunctionsImpl;
 import io.realm.RealmAsyncTask;
 import io.realm.mongodb.sync.Sync;
 import io.realm.internal.KeepMember;
@@ -83,7 +82,7 @@ public class App {
     OsJavaNetworkTransport networkTransport;
     final Sync syncManager;
     public final long nativePtr; //FIXME Find a way to make this package protected
-    private final EmailPasswordAuth emailAuthProvider = new EmailPasswordAuth(this);
+    private final EmailPasswordAuth emailAuthProvider = new EmailPasswordAuthImpl(this);
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<>();
     private Handler mainHandler = new Handler(Looper.getMainLooper());
 

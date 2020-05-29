@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_RealmApp.h"
+#include "io_realm_mongodb_App.h"
 
 #include "java_network_transport.hpp"
 #include "util.hpp"
@@ -83,7 +83,7 @@ struct AndroidSyncLoggerFactory : public realm::SyncLoggerFactory {
     }
 } s_sync_logger_factory;
 
-JNIEXPORT jlong JNICALL Java_io_realm_RealmApp_nativeCreate(JNIEnv* env, jobject obj,
+JNIEXPORT jlong JNICALL Java_io_realm_mongodb_App_nativeCreate(JNIEnv* env, jobject obj,
                                                             jstring j_app_id,
                                                             jstring j_base_url,
                                                             jstring j_app_name,
@@ -152,7 +152,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_RealmApp_nativeCreate(JNIEnv* env, jobject
 }
 
 
-JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeLogin(JNIEnv* env, jclass, jlong j_app_ptr, jlong j_credentials_ptr, jobject j_callback)
+JNIEXPORT void JNICALL Java_io_realm_mongodb_App_nativeLogin(JNIEnv* env, jclass, jlong j_app_ptr, jlong j_credentials_ptr, jobject j_callback)
 {
     try {
         auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
@@ -167,7 +167,7 @@ JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeLogin(JNIEnv* env, jclass, j
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeLogOut(JNIEnv* env, jclass, jlong j_app_ptr, jlong j_user_ptr, jobject j_callback)
+JNIEXPORT void JNICALL Java_io_realm_mongodb_App_nativeLogOut(JNIEnv* env, jclass, jlong j_app_ptr, jlong j_user_ptr, jobject j_callback)
 {
     try {
         auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
@@ -177,7 +177,7 @@ JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeLogOut(JNIEnv* env, jclass, 
     CATCH_STD()
 }
 
-JNIEXPORT jobject JNICALL Java_io_realm_RealmApp_nativeCurrentUser(JNIEnv* env, jclass, jlong j_app_ptr)
+JNIEXPORT jobject JNICALL Java_io_realm_mongodb_App_nativeCurrentUser(JNIEnv* env, jclass, jlong j_app_ptr)
 {
     try {
         auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
@@ -194,7 +194,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_RealmApp_nativeCurrentUser(JNIEnv* env, 
     return NULL;
 }
 
-JNIEXPORT jlongArray JNICALL Java_io_realm_RealmApp_nativeGetAllUsers(JNIEnv* env, jclass, jlong j_app_ptr)
+JNIEXPORT jlongArray JNICALL Java_io_realm_mongodb_App_nativeGetAllUsers(JNIEnv* env, jclass, jlong j_app_ptr)
 {
     try {
         auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
@@ -221,7 +221,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_RealmApp_nativeGetAllUsers(JNIEnv* en
     return nullptr;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_RealmApp_nativeSwitchUser(JNIEnv* env,
+JNIEXPORT void JNICALL Java_io_realm_mongodb_App_nativeSwitchUser(JNIEnv* env,
                                                                jclass,
                                                                jlong j_app_ptr,
                                                                jlong j_user_ptr)

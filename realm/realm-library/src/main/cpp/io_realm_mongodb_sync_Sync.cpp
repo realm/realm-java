@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_RealmSync.h"
+#include "io_realm_mongodb_sync_Sync.h"
 
 #include <object-store/src/impl/realm_coordinator.hpp>
 #include <sync/sync_manager.hpp>
@@ -30,7 +30,7 @@ using namespace realm;
 using namespace realm::jni_util;
 using namespace realm::util;
 
-JNIEXPORT void JNICALL Java_io_realm_RealmSync_nativeReset(JNIEnv* env, jclass)
+JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeReset(JNIEnv* env, jclass)
 {
     try {
         SyncManager::shared().reset_for_testing();
@@ -38,7 +38,7 @@ JNIEXPORT void JNICALL Java_io_realm_RealmSync_nativeReset(JNIEnv* env, jclass)
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_RealmSync_nativeSimulateSyncError(JNIEnv* env, jclass, jstring local_realm_path,
+JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeSimulateSyncError(JNIEnv* env, jclass, jstring local_realm_path,
                                                                        jint err_code, jstring err_message,
                                                                        jboolean is_fatal)
 {
@@ -57,7 +57,7 @@ JNIEXPORT void JNICALL Java_io_realm_RealmSync_nativeSimulateSyncError(JNIEnv* e
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_RealmSync_nativeReconnect(JNIEnv* env, jclass)
+JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeReconnect(JNIEnv* env, jclass)
 {
     try {
         SyncManager::shared().reconnect();
@@ -65,7 +65,7 @@ JNIEXPORT void JNICALL Java_io_realm_RealmSync_nativeReconnect(JNIEnv* env, jcla
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_RealmSync_nativeCreateSession(JNIEnv* env, jclass, jlong j_native_config_ptr)
+JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeCreateSession(JNIEnv* env, jclass, jlong j_native_config_ptr)
 {
     try {
         auto& config = *reinterpret_cast<Realm::Config*>(j_native_config_ptr);

@@ -17,7 +17,7 @@
 #include <jni.h>
 #include <string>
 
-#include "io_realm_SyncSession.h"
+#include "io_realm_mongodb_sync_SyncSession.h"
 
 #include "object-store/src/sync/sync_manager.hpp"
 #include "object-store/src/sync/sync_session.hpp"
@@ -36,26 +36,26 @@ using namespace realm::sync;
 using namespace realm::_impl;
 
 static_assert(SyncSession::PublicState::Active ==
-                  static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_ACTIVE),
+                  static_cast<SyncSession::PublicState>(io_realm_mongodb_sync_SyncSession_STATE_VALUE_ACTIVE),
               "");
 static_assert(SyncSession::PublicState::Dying ==
-                  static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_DYING),
+                  static_cast<SyncSession::PublicState>(io_realm_mongodb_sync_SyncSession_STATE_VALUE_DYING),
               "");
 static_assert(SyncSession::PublicState::Inactive ==
-                  static_cast<SyncSession::PublicState>(io_realm_SyncSession_STATE_VALUE_INACTIVE),
+                  static_cast<SyncSession::PublicState>(io_realm_mongodb_sync_SyncSession_STATE_VALUE_INACTIVE),
               "");
 
 static_assert(SyncSession::ConnectionState::Disconnected ==
-              static_cast<SyncSession::ConnectionState >(io_realm_SyncSession_CONNECTION_VALUE_DISCONNECTED),
+              static_cast<SyncSession::ConnectionState >(io_realm_mongodb_sync_SyncSession_CONNECTION_VALUE_DISCONNECTED),
               "");
 static_assert(SyncSession::ConnectionState::Connecting ==
-              static_cast<SyncSession::ConnectionState>(io_realm_SyncSession_CONNECTION_VALUE_CONNECTING),
+              static_cast<SyncSession::ConnectionState>(io_realm_mongodb_sync_SyncSession_CONNECTION_VALUE_CONNECTING),
               "");
 static_assert(SyncSession::ConnectionState::Connected ==
-              static_cast<SyncSession::ConnectionState>(io_realm_SyncSession_CONNECTION_VALUE_CONNECTED),
+              static_cast<SyncSession::ConnectionState>(io_realm_mongodb_sync_SyncSession_CONNECTION_VALUE_CONNECTED),
               "");
 
-JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIEnv* env, jobject j_session_object,
+JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddProgressListener(JNIEnv* env, jobject j_session_object,
                                                                             jstring j_local_realm_path,
                                                                             jlong listener_id, jint direction,
                                                                             jboolean is_streaming)
@@ -105,7 +105,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddProgressListener(JNIE
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeRemoveProgressListener(JNIEnv* env, jclass,
+JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeRemoveProgressListener(JNIEnv* env, jclass,
                                                                               jstring j_local_realm_path,
                                                                               jlong listener_token)
 {
@@ -119,7 +119,7 @@ JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeRemoveProgressListener(JN
     CATCH_STD()
 }
 
-JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadCompletion(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeWaitForDownloadCompletion(JNIEnv* env,
                                                                                      jobject session_object,
                                                                                      jint callback_id,
                                                                                      jstring j_local_realm_path)
@@ -153,7 +153,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForDownloadComple
     return JNI_FALSE;
 }
 
-JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForUploadCompletion(JNIEnv* env,
+JNIEXPORT jboolean JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeWaitForUploadCompletion(JNIEnv* env,
                                                                                    jobject session_object,
                                                                                    jint callback_id,
                                                                                    jstring j_local_realm_path)
@@ -187,7 +187,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_SyncSession_nativeWaitForUploadCompleti
 }
 
 
-JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetState(JNIEnv* env, jclass, jstring j_local_realm_path)
+JNIEXPORT jbyte JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeGetState(JNIEnv* env, jclass, jstring j_local_realm_path)
 {
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
@@ -196,11 +196,11 @@ JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetState(JNIEnv* env, jc
         if (session) {
             switch (session->state()) {
                 case SyncSession::PublicState::Active:
-                    return io_realm_SyncSession_STATE_VALUE_ACTIVE;
+                    return io_realm_mongodb_sync_SyncSession_STATE_VALUE_ACTIVE;
                 case SyncSession::PublicState::Dying:
-                    return io_realm_SyncSession_STATE_VALUE_DYING;
+                    return io_realm_mongodb_sync_SyncSession_STATE_VALUE_DYING;
                 case SyncSession::PublicState::Inactive:
-                    return io_realm_SyncSession_STATE_VALUE_INACTIVE;
+                    return io_realm_mongodb_sync_SyncSession_STATE_VALUE_INACTIVE;
             }
         }
     }
@@ -208,7 +208,7 @@ JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetState(JNIEnv* env, jc
     return -1;
 }
 
-JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetConnectionState(JNIEnv* env, jclass, jstring j_local_realm_path)
+JNIEXPORT jbyte JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeGetConnectionState(JNIEnv* env, jclass, jstring j_local_realm_path)
 {
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
@@ -217,11 +217,11 @@ JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetConnectionState(JNIEn
         if (session) {
             switch (session->connection_state()) {
                 case SyncSession::ConnectionState::Disconnected:
-                    return io_realm_SyncSession_CONNECTION_VALUE_DISCONNECTED;
+                    return io_realm_mongodb_sync_SyncSession_CONNECTION_VALUE_DISCONNECTED;
                 case SyncSession::ConnectionState::Connecting:
-                    return io_realm_SyncSession_CONNECTION_VALUE_CONNECTING;
+                    return io_realm_mongodb_sync_SyncSession_CONNECTION_VALUE_CONNECTING;
                 case SyncSession::ConnectionState::Connected:
-                    return io_realm_SyncSession_CONNECTION_VALUE_CONNECTED;
+                    return io_realm_mongodb_sync_SyncSession_CONNECTION_VALUE_CONNECTED;
             }
         }
     }
@@ -231,14 +231,14 @@ JNIEXPORT jbyte JNICALL Java_io_realm_SyncSession_nativeGetConnectionState(JNIEn
 
 static jlong get_connection_value(SyncSession::ConnectionState state) {
     switch (state) {
-        case SyncSession::ConnectionState::Disconnected: return static_cast<jlong>(io_realm_SyncSession_CONNECTION_VALUE_DISCONNECTED);
-        case SyncSession::ConnectionState::Connecting: return static_cast<jlong>(io_realm_SyncSession_CONNECTION_VALUE_CONNECTING);
-        case SyncSession::ConnectionState::Connected: return static_cast<jlong>(io_realm_SyncSession_CONNECTION_VALUE_CONNECTED);
+        case SyncSession::ConnectionState::Disconnected: return static_cast<jlong>(io_realm_mongodb_sync_SyncSession_CONNECTION_VALUE_DISCONNECTED);
+        case SyncSession::ConnectionState::Connecting: return static_cast<jlong>(io_realm_mongodb_sync_SyncSession_CONNECTION_VALUE_CONNECTING);
+        case SyncSession::ConnectionState::Connected: return static_cast<jlong>(io_realm_mongodb_sync_SyncSession_CONNECTION_VALUE_CONNECTED);
     }
     return static_cast<jlong>(-1);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddConnectionListener(JNIEnv* env, jclass, jstring j_local_realm_path)
+JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddConnectionListener(JNIEnv* env, jclass, jstring j_local_realm_path)
 {
     try {
         // JNIEnv is thread confined, so we need a deep copy in order to capture the string in the lambda
@@ -282,7 +282,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_SyncSession_nativeAddConnectionListener(JN
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeRemoveConnectionListener(JNIEnv* env, jclass, jlong listener_id, jstring j_local_realm_path)
+JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeRemoveConnectionListener(JNIEnv* env, jclass, jlong listener_id, jstring j_local_realm_path)
 {
     try {
         // JNIEnv is thread confined, so we need a deep copy in order to capture the string in the lambda
@@ -295,7 +295,7 @@ JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeRemoveConnectionListener(
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeStart(JNIEnv* env, jclass, jstring j_local_realm_path)
+JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeStart(JNIEnv* env, jclass, jstring j_local_realm_path)
 {
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);
@@ -312,7 +312,7 @@ JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeStart(JNIEnv* env, jclass
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_SyncSession_nativeStop(JNIEnv* env, jclass, jstring j_local_realm_path)
+JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeStop(JNIEnv* env, jclass, jstring j_local_realm_path)
 {
     try {
         JStringAccessor local_realm_path(env, j_local_realm_path);

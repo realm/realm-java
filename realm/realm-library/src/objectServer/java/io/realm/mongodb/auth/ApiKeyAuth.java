@@ -38,7 +38,7 @@ import static io.realm.mongodb.App.NETWORK_POOL_EXECUTOR;
 /**
  * This class exposes functionality for a user to manage API keys under their control.
  */
-public class ApiKeyAuth {
+public abstract class ApiKeyAuth {
 
     private static final int TYPE_CREATE = 1;
     private static final int TYPE_FETCH_SINGLE = 2;
@@ -54,7 +54,7 @@ public class ApiKeyAuth {
      *
      * @param user user that is controlling the API keys.
      */
-    public ApiKeyAuth(User user) {
+    protected ApiKeyAuth(User user) {
         this.user = user;
     }
 
@@ -87,7 +87,7 @@ public class ApiKeyAuth {
                 return createKeyFromNative((Object[]) result);
             }
         };
-        nativeCallFunction(TYPE_CREATE, user.getApp().nativePtr, user.osUser.getNativePtr(), name, callback);
+        call(TYPE_CREATE, name, callback);
         return ResultHandler.handleResult(success, error);
     }
 
@@ -123,7 +123,7 @@ public class ApiKeyAuth {
         Util.checkNull(id, "id");
         AtomicReference<UserApiKey> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeCallFunction(TYPE_FETCH_SINGLE, user.getApp().nativePtr, user.osUser.getNativePtr(), id.toHexString(), new OsJNIResultCallback<UserApiKey>(success, error) {
+        call(TYPE_FETCH_SINGLE, id.toHexString(), new OsJNIResultCallback<UserApiKey>(success, error) {
             @Override
             protected UserApiKey mapSuccess(Object result) {
                 return createKeyFromNative((Object[]) result);
@@ -158,7 +158,7 @@ public class ApiKeyAuth {
     public List<UserApiKey> fetchAllApiKeys() throws ObjectServerError {
         AtomicReference<List<UserApiKey>> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeCallFunction(TYPE_FETCH_ALL, user.getApp().nativePtr, user.osUser.getNativePtr(), null, new OsJNIResultCallback<List<UserApiKey>>(success, error) {
+        call(TYPE_FETCH_ALL, null, new OsJNIResultCallback<List<UserApiKey>>(success, error) {
             @Override
             protected List<UserApiKey> mapSuccess(Object result) {
                 Object[] keyData = (Object[]) result;
@@ -199,7 +199,7 @@ public class ApiKeyAuth {
     public void deleteApiKey(ObjectId id) throws ObjectServerError {
         Util.checkNull(id, "id");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeCallFunction(TYPE_DELETE, user.getApp().nativePtr, user.osUser.getNativePtr(), id.toHexString(), new OsJNIVoidResultCallback(error));
+        call(TYPE_DELETE, id.toHexString(), new OsJNIVoidResultCallback(error));
         ResultHandler.handleResult(null, error);
     }
 
@@ -231,7 +231,7 @@ public class ApiKeyAuth {
     public void disableApiKey(ObjectId id) throws ObjectServerError {
         Util.checkNull(id, "id");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeCallFunction(TYPE_DISABLE, user.getApp().nativePtr, user.osUser.getNativePtr(), id.toHexString(), new OsJNIVoidResultCallback(error));
+        call(TYPE_DISABLE, id.toHexString(), new OsJNIVoidResultCallback(error));
         ResultHandler.handleResult(null, error);
     }
 
@@ -263,7 +263,7 @@ public class ApiKeyAuth {
     public void enableApiKey(ObjectId id) throws ObjectServerError {
         Util.checkNull(id, "id");
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeCallFunction(TYPE_ENABLE, user.getApp().nativePtr, user.osUser.getNativePtr(), id.toHexString(), new OsJNIVoidResultCallback(error));
+        call(TYPE_ENABLE, id.toHexString(), new OsJNIVoidResultCallback(error));
         ResultHandler.handleResult(null, error);
     }
 
@@ -315,5 +315,6 @@ public class ApiKeyAuth {
                 '}';
     }
 
-    private static native void nativeCallFunction(int functionType, long nativeAppPtr, long nativeUserPtr, @Nullable String arg, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    abstract protected void call(int functionType, @Nullable String arg, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+
 }

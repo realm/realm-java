@@ -15,5 +15,6 @@
  */
 package io.realm.mongodb.push;
 
-class Push {
+// FIXME Javadoc?? Has to be public to live in separate package.
+public class Push {
 }

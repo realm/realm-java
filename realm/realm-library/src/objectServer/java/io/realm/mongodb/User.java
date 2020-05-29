@@ -35,7 +35,7 @@ import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
 import io.realm.mongodb.functions.Functions;
 import io.realm.mongodb.mongo.MongoClient;
-import io.realm.mongodb.push.RealmPushNotifications;
+import io.realm.mongodb.push.Push;
 
 /**
  * FIXME
@@ -434,7 +434,7 @@ public class User {
     public synchronized ApiKeyAuth getApiKeyAuth() {
         checkLoggedIn();
         if (apiKeyAuthProvider == null) {
-            apiKeyAuthProvider = new ApiKeyAuth(this);
+            apiKeyAuthProvider = new ApiKeyAuthImpl(this);
         }
         return apiKeyAuthProvider;
     }
@@ -464,7 +464,7 @@ public class User {
     /**
      * FIXME Add support for push notifications. Name of Class and method still TBD.
      */
-    public RealmPushNotifications getPushNotifications() {
+    public Push getPushNotifications() {
         return null;
     }
 
