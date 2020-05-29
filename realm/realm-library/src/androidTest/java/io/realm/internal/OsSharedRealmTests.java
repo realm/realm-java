@@ -196,7 +196,7 @@ public class OsSharedRealmTests {
         // Refresh existing instance
         sharedRealm.refresh();
         assertTrue(sharedRealm.hasTable("NewTable"));
-        assertFalse(listenerCalled.get()); // TODO: Change to assertTrue once bug is fixed
+        assertTrue(listenerCalled.get());
     }
 
     @Test
