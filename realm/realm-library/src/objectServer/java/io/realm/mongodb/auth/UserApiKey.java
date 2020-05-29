@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 import io.realm.mongodb.App;
 import io.realm.mongodb.User;
 
+// FIXME Doc: Where did getApiKeyAuthProvider go
 /**
  * Class representing an API key for a {@link User}. An API can be used to represent the
  * user when logging instead of using email and password.

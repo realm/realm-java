@@ -58,10 +58,20 @@ public abstract class ApiKeyAuth {
         this.user = user;
     }
 
+    /**
+     * Returns the {@link User} that this instance in associated with.
+     *
+     * @return The {@link User} that this instance in associated with.
+     */
     public User getUser() {
         return user;
     }
 
+    /**
+     * Returns the {@link App} that this instance in associated with.
+     *
+     * @return The {@link App} that this instance in associated with.
+     */
     public App getApp() {
         return user.getApp();
     }
@@ -74,7 +84,7 @@ public abstract class ApiKeyAuth {
      * The key is enabled when created. It can be disabled by calling {@link #disableApiKey(ObjectId)}.
      *
      * @param name the name of the key
-     * @throws ObjectServer if the server failed to create the API key.
+     * @throws ObjectServerError if the server failed to create the API key.
      * @return the new API key for the user.
      */
     public UserApiKey createApiKey(String name) throws ObjectServerError {
@@ -117,7 +127,7 @@ public abstract class ApiKeyAuth {
      * Fetches a specific user API key associated with the user.
      *
      * @param id the id of the key to fetch.
-     * @throws ObjectServer if the server failed to fetch the API key.
+     * @throws ObjectServerError if the server failed to fetch the API key.
      */
     public UserApiKey fetchApiKey(ObjectId id) throws ObjectServerError {
         Util.checkNull(id, "id");
@@ -153,7 +163,7 @@ public abstract class ApiKeyAuth {
     /**
      * Fetches all API keys associated with the user.
      *
-     * @throws ObjectServer if the server failed to fetch the API keys.
+     * @throws ObjectServerError if the server failed to fetch the API keys.
      */
     public List<UserApiKey> fetchAllApiKeys() throws ObjectServerError {
         AtomicReference<List<UserApiKey>> success = new AtomicReference<>(null);
@@ -194,7 +204,7 @@ public abstract class ApiKeyAuth {
      * Deletes a specific API key created by the user.
      *
      * @param id the id of the key to delete.
-     * @throws ObjectServer if the server failed to delete the API key.
+     * @throws ObjectServerError if the server failed to delete the API key.
      */
     public void deleteApiKey(ObjectId id) throws ObjectServerError {
         Util.checkNull(id, "id");
@@ -226,7 +236,7 @@ public abstract class ApiKeyAuth {
      * Disables a specific API key created by the user.
      *
      * @param id the id of the key to disable.
-     * @throws ObjectServer if the server failed to disable the API key.
+     * @throws ObjectServerError if the server failed to disable the API key.
      */
     public void disableApiKey(ObjectId id) throws ObjectServerError {
         Util.checkNull(id, "id");
@@ -258,7 +268,7 @@ public abstract class ApiKeyAuth {
      * Enables a specific API key created by the user.
      *
      * @param id the id of the key to enable.
-     * @throws ObjectServer if the server failed to enable the API key.
+     * @throws ObjectServerError if the server failed to enable the API key.
      */
     public void enableApiKey(ObjectId id) throws ObjectServerError {
         Util.checkNull(id, "id");
