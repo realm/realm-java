@@ -16,6 +16,9 @@
 package io.realm
 
 import io.realm.admin.ServerAdmin
+import io.realm.mongodb.RealmApp
+import io.realm.mongodb.RealmUser
+import io.realm.mongodb.auth.RealmCredentials
 
 /**
  * Resets the Realm Application and delete all local state.

@@ -18,7 +18,7 @@ package io.realm.mongodb.mongo;
 
 import org.bson.codecs.configuration.CodecRegistry;
 
-import io.realm.RealmUser;
+import io.realm.mongodb.RealmUser;
 import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsMongoClient;
 

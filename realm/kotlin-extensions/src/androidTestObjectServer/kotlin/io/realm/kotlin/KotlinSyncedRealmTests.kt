@@ -1,8 +1,9 @@
 package io.realm.kotlin
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
+import io.realm.mongodb.RealmApp
+import io.realm.mongodb.sync.SyncConfiguration
 import org.junit.*
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail

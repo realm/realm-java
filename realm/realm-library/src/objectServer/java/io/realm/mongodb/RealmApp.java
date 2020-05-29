@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm;
+package io.realm.mongodb;
 
 import android.content.Context;
 import android.os.Build;
@@ -35,6 +35,13 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.BaseRealm;
+import io.realm.BuildConfig;
+import io.realm.mongodb.auth.EmailPasswordAuth;
+import io.realm.FunctionsImpl;
+import io.realm.RealmAsyncTask;
+import io.realm.mongodb.auth.RealmCredentials;
+import io.realm.mongodb.sync.RealmSync;
 import io.realm.internal.KeepMember;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.network.ResultHandler;

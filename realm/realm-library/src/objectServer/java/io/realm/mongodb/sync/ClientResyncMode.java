@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Realm Inc.
+ * Copyright 2020 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package io.realm;
+package io.realm.mongodb.sync;
 
+import io.realm.mongodb.ObjectServerError;
 import io.realm.internal.OsRealmConfig;
 
 /**
@@ -44,12 +45,12 @@ enum ClientResyncMode {
     /**
      * A manual Client Resync is also known as a Client Reset.
      * <p>
-     * A {@link io.realm.ClientResetRequiredError} will be sent to
-     * {@link io.realm.SyncSession.ErrorHandler#onError(SyncSession, ObjectServerError)}, triggering
+     * A {@link ClientResetRequiredError} will be sent to
+     * {@link SyncSession.ErrorHandler#onError(SyncSession, ObjectServerError)}, triggering
      * a Client Reset. Doing this provides a handle to both the old and new Realm file, enabling
      * full control of which changes to move, if any.
      *
-     * @see io.realm.SyncSession.ErrorHandler#onError(SyncSession, ObjectServerError) for more
+     * @see SyncSession.ErrorHandler#onError(SyncSession, ObjectServerError) for more
      * information about when and why Client Reset occurs and how to deal with it.
      */
     MANUAL(OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL);

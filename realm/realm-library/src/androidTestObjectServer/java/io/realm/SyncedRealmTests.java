@@ -31,6 +31,9 @@ import java.io.IOException;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
+import io.realm.mongodb.RealmApp;
+import io.realm.mongodb.RealmUser;
+import io.realm.mongodb.sync.SyncConfiguration;
 import io.realm.rule.RunInLooperThread;
 
 import static org.junit.Assert.assertEquals;

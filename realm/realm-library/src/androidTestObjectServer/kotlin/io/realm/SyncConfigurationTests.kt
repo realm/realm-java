@@ -22,6 +22,11 @@ import io.realm.entities.StringOnly
 import io.realm.entities.StringOnlyModule
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
+import io.realm.mongodb.ObjectServerError
+import io.realm.mongodb.RealmUser
+import io.realm.mongodb.sync.ClientResyncMode
+import io.realm.mongodb.sync.SyncConfiguration
+import io.realm.mongodb.sync.SyncSession
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule

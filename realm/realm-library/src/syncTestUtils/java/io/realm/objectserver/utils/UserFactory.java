@@ -19,15 +19,10 @@ package io.realm.objectserver.utils;
 import android.os.Handler;
 import android.os.HandlerThread;
 
-import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
-import io.realm.RealmApp;
-import io.realm.RealmCredentials;
-import io.realm.RealmUser;
 import io.realm.RealmConfiguration;
 import io.realm.TestHelper;
 import io.realm.log.RealmLog;

@@ -20,8 +20,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
-import io.realm.ErrorCode;
-import io.realm.ObjectServerError;
+import io.realm.mongodb.ErrorCode;
+import io.realm.mongodb.ObjectServerError;
 import io.realm.internal.Keep;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 

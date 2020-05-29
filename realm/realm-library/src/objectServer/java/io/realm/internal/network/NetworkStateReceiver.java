@@ -25,7 +25,7 @@ import android.net.NetworkInfo;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import io.realm.RealmSync;
+import io.realm.mongodb.sync.RealmSync;
 import io.realm.internal.Util;
 
 /**

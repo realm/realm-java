@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2020 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm;
+package io.realm.mongodb.sync;
 
 import android.content.Context;
 
@@ -42,13 +42,23 @@ import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.BaseRealm;
+import io.realm.ClientResyncMode;
+import io.realm.CompactOnLaunchCallback;
+import io.realm.DefaultCompactOnLaunchCallback;
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
+import io.realm.RealmMigration;
+import io.realm.RealmModel;
 import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Util;
-import io.realm.log.RealmLog;
+import io.realm.mongodb.RealmApp;
+import io.realm.mongodb.RealmUser;
+import io.realm.mongodb.auth.RealmCredentials;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 

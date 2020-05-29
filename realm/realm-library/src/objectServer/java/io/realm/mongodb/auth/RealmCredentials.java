@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package io.realm;
+package io.realm.mongodb.auth;
 
 import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsAppCredentials;
+import io.realm.mongodb.RealmApp;
 
 /**
  * Credentials represent a login with a given login provider, and are used by the MongoDB Realm to

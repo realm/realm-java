@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2020 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package io.realm;
+package io.realm.mongodb;
 
 
 import java.util.Locale;
 
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.log.RealmLog;
+import io.realm.mongodb.sync.SyncConfiguration;
 
 /**
  * This class enumerate all potential errors related to using the Object Server or synchronizing data.

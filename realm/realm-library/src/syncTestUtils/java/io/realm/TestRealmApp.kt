@@ -15,10 +15,11 @@
  */
 package io.realm
 
-import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.internal.network.OkHttpNetworkTransport
 import io.realm.internal.objectstore.OsJavaNetworkTransport
 import io.realm.log.LogLevel
+import io.realm.mongodb.RealmApp
+import io.realm.mongodb.RealmAppConfiguration
 
 /**
  * This class wraps various methods making it easier to create an RealmApp that can be used

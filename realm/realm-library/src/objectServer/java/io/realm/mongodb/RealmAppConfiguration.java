@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm;
+package io.realm.mongodb;
 
 import android.content.Context;
 
@@ -37,6 +37,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
+import io.realm.BaseRealm;
+import io.realm.mongodb.sync.SyncSession;
 import io.realm.internal.Util;
 import io.realm.log.RealmLog;
 

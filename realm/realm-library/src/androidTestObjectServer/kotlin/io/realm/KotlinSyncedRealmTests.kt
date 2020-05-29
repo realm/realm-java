@@ -22,6 +22,10 @@ import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
+import io.realm.mongodb.RealmUser
+import io.realm.mongodb.auth.RealmCredentials
+import io.realm.mongodb.sync.SyncConfiguration
+import io.realm.mongodb.sync.SyncSession
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before

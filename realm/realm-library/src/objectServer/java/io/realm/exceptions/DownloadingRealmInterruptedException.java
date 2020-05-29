@@ -16,7 +16,7 @@
 
 package io.realm.exceptions;
 
-import io.realm.SyncConfiguration;
+import io.realm.mongodb.sync.SyncConfiguration;
 
 
 /**

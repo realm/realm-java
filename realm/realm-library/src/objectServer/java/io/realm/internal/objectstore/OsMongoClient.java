@@ -18,7 +18,7 @@ package io.realm.internal.objectstore;
 
 import org.bson.codecs.configuration.CodecRegistry;
 
-import io.realm.RealmUser;
+import io.realm.mongodb.RealmUser;
 import io.realm.internal.NativeObject;
 
 public class OsMongoClient implements NativeObject {

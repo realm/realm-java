@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Realm Inc.
+ * Copyright 2020 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package io.realm;
+package io.realm.mongodb.sync;
 
 import java.io.File;
+
+import io.realm.mongodb.ErrorCode;
+import io.realm.mongodb.ObjectServerError;
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 
 /**
  * Class encapsulating information needed for handling a Client Reset event.
  *
- * @see io.realm.SyncSession.ErrorHandler#onError(SyncSession, ObjectServerError) for more information
+ * @see SyncSession.ErrorHandler#onError(SyncSession, ObjectServerError) for more information
  *      about when and why Client Reset occurs and how to deal with it.
  */
 public class ClientResetRequiredError extends ObjectServerError {

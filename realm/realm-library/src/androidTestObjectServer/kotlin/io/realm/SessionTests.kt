@@ -25,6 +25,11 @@ import io.realm.exceptions.RealmFileException
 import io.realm.exceptions.RealmMigrationNeededException
 import io.realm.kotlin.syncSession
 import io.realm.log.RealmLog
+import io.realm.mongodb.ErrorCode
+import io.realm.mongodb.ObjectServerError
+import io.realm.mongodb.RealmUser
+import io.realm.mongodb.sync.*
+import io.realm.mongodb.sync.ProgressListener
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.ResourceContainer
 import io.realm.util.assertFailsWithMessage

@@ -28,11 +28,11 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.RealmApp;
+import io.realm.mongodb.RealmApp;
 import io.realm.RealmConfiguration;
-import io.realm.RealmUser;
-import io.realm.SyncConfiguration;
-import io.realm.RealmSync;
+import io.realm.mongodb.sync.RealmSync;
+import io.realm.mongodb.RealmUser;
+import io.realm.mongodb.sync.SyncConfiguration;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.android.AndroidCapabilities;

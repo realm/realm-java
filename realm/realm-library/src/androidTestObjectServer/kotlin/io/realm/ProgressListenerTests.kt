@@ -23,6 +23,9 @@ import io.realm.kotlin.where
 import io.realm.kotlin.syncSession
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
+import io.realm.mongodb.RealmUser
+import io.realm.mongodb.auth.RealmCredentials
+import io.realm.mongodb.sync.*
 import io.realm.rule.BlockingLooperThread
 import org.junit.*
 import org.junit.Assert.*

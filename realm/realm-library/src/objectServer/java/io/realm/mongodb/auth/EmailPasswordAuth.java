@@ -13,18 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm;
+package io.realm.mongodb.auth;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.mongodb.ObjectServerError;
+import io.realm.RealmAsyncTask;
 import io.realm.internal.network.ResultHandler;
 import io.realm.internal.Util;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
+import io.realm.mongodb.RealmApp;
+import io.realm.mongodb.RealmUser;
 
-import static io.realm.RealmApp.NETWORK_POOL_EXECUTOR;
+import static io.realm.mongodb.RealmApp.NETWORK_POOL_EXECUTOR;
 
 /**
  * Class encapsulating functionality provided when {@link RealmUser}'s are logged in through the

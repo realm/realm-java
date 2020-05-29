@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2020 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package io.realm;
+package io.realm.mongodb;
 
 import javax.annotation.Nullable;
 
 import io.realm.internal.Util;
+import io.realm.mongodb.sync.SyncSession;
 
 /**
  * This class is a wrapper for all errors happening when communicating with the Realm Object Server.

@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm;
+package io.realm.mongodb;
+
+import io.realm.mongodb.auth.RealmCredentials;
 
 /**
  * Each RealmUser is represented by 1 or more identities each defined by an

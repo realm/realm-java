@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm;
+package io.realm.mongodb;
 
 import org.bson.codecs.configuration.CodecRegistry;
 
@@ -24,6 +24,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.mongodb.auth.ApiKeyAuth;
+import io.realm.RealmAsyncTask;
+import io.realm.mongodb.auth.RealmCredentials;
 import io.realm.internal.network.ResultHandler;
 import io.realm.internal.Util;
 import io.realm.internal.jni.OsJNIResultCallback;
@@ -33,6 +36,7 @@ import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
 import io.realm.mongodb.functions.Functions;
 import io.realm.mongodb.mongo.MongoClient;
+import io.realm.mongodb.push.RealmPushNotifications;
 
 /**
  * FIXME
@@ -271,7 +275,7 @@ public class RealmUser {
      *
      * @param credentials the credentials to link with the current user.
      * @throws IllegalStateException if no user is currently logged in.
-     * @return the {@link io.realm.RealmUser} the credentials were linked to.
+     * @return the {@link RealmUser} the credentials were linked to.
      */
     public RealmUser linkCredentials(RealmCredentials credentials) {
         Util.checkNull(credentials, "credentials");

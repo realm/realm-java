@@ -20,13 +20,12 @@ import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.List;
 
-import io.realm.ObjectServerError;
-import io.realm.RealmApp;
-import io.realm.RealmAppConfiguration;
+import io.realm.mongodb.ObjectServerError;
+import io.realm.mongodb.RealmApp;
+import io.realm.mongodb.RealmAppConfiguration;
 import io.realm.RealmAsyncTask;
-import io.realm.RealmUser;
+import io.realm.mongodb.RealmUser;
 import io.realm.internal.Util;
-import io.realm.internal.jni.JniBsonProtocol;
 
 /**
  * A <i>Functions<i> manager to call MongoDB Realm functions.

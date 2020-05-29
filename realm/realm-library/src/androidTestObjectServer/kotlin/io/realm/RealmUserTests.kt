@@ -18,6 +18,12 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
+import io.realm.mongodb.ErrorCode
+import io.realm.mongodb.ObjectServerError
+import io.realm.mongodb.RealmApp
+import io.realm.mongodb.RealmUser
+import io.realm.mongodb.auth.ApiKeyAuth
+import io.realm.mongodb.auth.RealmCredentials
 import io.realm.rule.BlockingLooperThread
 import org.junit.After
 import org.junit.Assert.*

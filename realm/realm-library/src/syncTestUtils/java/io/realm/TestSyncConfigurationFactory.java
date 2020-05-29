@@ -17,6 +17,8 @@
 package io.realm;
 
 import io.realm.internal.OsRealmConfig;
+import io.realm.mongodb.RealmUser;
+import io.realm.mongodb.sync.SyncConfiguration;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 /**

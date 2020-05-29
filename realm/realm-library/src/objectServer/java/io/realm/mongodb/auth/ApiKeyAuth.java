@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm;
+package io.realm.mongodb.auth;
 
 import org.bson.types.ObjectId;
 
@@ -23,13 +23,18 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
+import io.realm.mongodb.ObjectServerError;
+import io.realm.RealmAsyncTask;
+import io.realm.mongodb.RealmUserApiKey;
 import io.realm.internal.network.ResultHandler;
 import io.realm.internal.Util;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
+import io.realm.mongodb.RealmApp;
+import io.realm.mongodb.RealmUser;
 
-import static io.realm.RealmApp.NETWORK_POOL_EXECUTOR;
+import static io.realm.mongodb.RealmApp.NETWORK_POOL_EXECUTOR;
 
 /**
  * This class exposes functionality for a user to manage API keys under their control.

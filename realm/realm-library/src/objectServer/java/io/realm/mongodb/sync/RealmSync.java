@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2020 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,45 +14,27 @@
  * limitations under the License.
  */
 
-package io.realm;
+package io.realm.mongodb.sync;
 
-import android.content.Context;
-import android.os.Build;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.security.GeneralSecurityException;
-import java.security.KeyStore;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.annotation.Nullable;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.mongodb.ErrorCode;
 import io.realm.internal.Keep;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.Util;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.log.RealmLog;
-import okhttp3.internal.tls.OkHostnameVerifier;
+import io.realm.mongodb.RealmApp;
+import io.realm.mongodb.RealmUser;
 
 /**
- * Class wrapping Sync responsibilities for a {@link io.realm.RealmApp}.
+ * Class wrapping Sync responsibilities for a {@link RealmApp}.
  *
  * FIXME: Better description that makes sense for end users.
  */

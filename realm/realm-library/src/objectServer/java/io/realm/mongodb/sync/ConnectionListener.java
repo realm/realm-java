@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Realm Inc.
+ * Copyright 2020 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm;
+package io.realm.mongodb.sync;
 
 /**
  * Interface used when reporting changes that happened to the connection used by the session.
@@ -22,7 +22,7 @@ package io.realm;
  * change will be reported to all sessions.
  * <p>
  * If a disconnect happened due to an error, that error will be reported to the sessions
- * {@link io.realm.SyncSession.ErrorHandler}.
+ * {@link SyncSession.ErrorHandler}.
  *
  * @see SyncSession#isConnected()
  * @see SyncConfiguration.Builder#errorHandler(SyncSession.ErrorHandler)

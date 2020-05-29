@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2020 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm;
+package io.realm.mongodb.sync;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -29,10 +29,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.mongodb.ErrorCode;
+import io.realm.mongodb.ObjectServerError;
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.internal.Keep;
 import io.realm.internal.Util;
 import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
+import io.realm.mongodb.RealmUser;
 
 /**
  * A session controls how data is synchronized between a single Realm on the device and the server
