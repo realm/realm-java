@@ -15,8 +15,7 @@ def slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
 def currentBranch = env.CHANGE_BRANCH
 // 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen, so
 // we avoid running emulators on already emulated hosts like 'docker' which runs in AWS.
-// FIXME: Replace `docker-cph-01` with `android` once all devices are working again
-def nodeName = (releaseBranches.contains(currentBranch)) ? 'docker-cph-01' : 'brix'
+def nodeName = (releaseBranches.contains(currentBranch)) ? 'android' : 'brix'
 try {
   node(nodeName) {
     timeout(time: 90, unit: 'MINUTES') {
