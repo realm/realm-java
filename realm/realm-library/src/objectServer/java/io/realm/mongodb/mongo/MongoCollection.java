@@ -24,9 +24,9 @@ import org.bson.conversions.Bson;
 import java.util.List;
 
 import io.realm.internal.common.TaskDispatcher;
-import io.realm.internal.objectstore.OsMongoCollection;
 import io.realm.mongodb.mongo.iterable.AggregateIterable;
 import io.realm.mongodb.mongo.iterable.FindIterable;
+import io.realm.internal.objectstore.OsMongoCollection;
 import io.realm.mongodb.mongo.options.CountOptions;
 import io.realm.mongodb.mongo.options.FindOneAndModifyOptions;
 import io.realm.mongodb.mongo.options.FindOptions;
@@ -37,7 +37,7 @@ import io.realm.mongodb.mongo.result.InsertOneResult;
 import io.realm.mongodb.mongo.result.UpdateResult;
 
 /**
- * The RemoteMongoCollection interface provides read and write access to documents.
+ * The MongoCollection interface provides read and write access to documents.
  * <p>
  * Use {@link MongoDatabase#getCollection} to get a collection instance.
  * </p><p>
@@ -51,13 +51,14 @@ public class MongoCollection<DocumentT> {
 
     private final MongoNamespace nameSpace;
     private final OsMongoCollection<DocumentT> osMongoCollection;
-
-    private final TaskDispatcher dispatcher = new TaskDispatcher();
+    private final TaskDispatcher dispatcher;
 
     MongoCollection(final MongoNamespace nameSpace,
-                    final OsMongoCollection<DocumentT> osMongoCollection) {
+                    final OsMongoCollection<DocumentT> osMongoCollection,
+                    final TaskDispatcher dispatcher) {
         this.nameSpace = nameSpace;
         this.osMongoCollection = osMongoCollection;
+        this.dispatcher = dispatcher;
     }
 
     /**
@@ -70,51 +71,51 @@ public class MongoCollection<DocumentT> {
     }
 
     /**
-     * Get the class of documents stored in this collection.
+     * Gets the class of documents stored in this collection.
      * <p>
-     * If you used the simple {@link MongoDatabase#getCollection(String)} to get
-     * this collection,
+     * If you used the simple {@link MongoDatabase#getCollection(String)} to get this collection,
      * this is {@link org.bson.Document}.
      * </p>
      *
-     * @return the class
+     * @return the class of documents in this collection
      */
     public Class<DocumentT> getDocumentClass() {
         return osMongoCollection.getDocumentClass();
     }
 
     /**
-     * Get the codec registry for the RemoteMongoCollection.
+     * Gets the codec registry for the MongoCollection.
      *
-     * @return the {@link CodecRegistry}
+     * @return the {@link CodecRegistry} for this collection
      */
     public CodecRegistry getCodecRegistry() {
         return osMongoCollection.getCodecRegistry();
     }
 
     /**
-     * Create a new RemoteMongoCollection instance with a different default class to cast any
+     * Creates a new MongoCollection instance with a different default class to cast any
      * documents returned from the database into.
      *
-     * @param clazz          the default class to cast any documents returned from the database into.
+     * @param clazz          the default class to which any documents returned from the database
+     *                       will be cast.
      * @param <NewDocumentT> The type that the new collection will encode documents from and decode
      *                       documents to.
-     * @return a new RemoteMongoCollection instance with the different default class
+     * @return a new MongoCollection instance with the different default class
      */
     public <NewDocumentT> MongoCollection<NewDocumentT> withDocumentClass(
             final Class<NewDocumentT> clazz) {
-        return new MongoCollection<>(nameSpace, osMongoCollection.withDocumentClass(clazz));
+        return new MongoCollection<>(nameSpace, osMongoCollection.withDocumentClass(clazz), dispatcher);
     }
 
     /**
-     * Create a new RemoteMongoCollection instance with a different codec registry.
+     * Creates a new MongoCollection instance with a different codec registry.
      *
      * @param codecRegistry the new {@link CodecRegistry} for the
      *                      collection.
-     * @return a new RemoteMongoCollection instance with the different codec registry
+     * @return a new MongoCollection instance with the different codec registry
      */
     public MongoCollection<DocumentT> withCodecRegistry(final CodecRegistry codecRegistry) {
-        return new MongoCollection<>(nameSpace, osMongoCollection.withCodecRegistry(codecRegistry));
+        return new MongoCollection<>(nameSpace, osMongoCollection.withCodecRegistry(codecRegistry), dispatcher);
     }
 
     /**
@@ -231,118 +232,151 @@ public class MongoCollection<DocumentT> {
 
     /**
      * Finds all documents in the collection.
+     * <p>
+     * All documents will be delivered in the form of a {@link FindIterable} from which individual
+     * elements can be extracted.
      *
-     * @return the find iterable interface
+     * @return an iterable containing the result of the find operation
      */
     public FindIterable<DocumentT> find() {
-        return new FindIterable<>(dispatcher, osMongoCollection.find());
+        return osMongoCollection.find();
     }
 
     /**
-     * Finds all documents in the collection that match the given filter.
+     * Finds all documents in the collection using {@link FindOptions} to build the query.
+     * <p>
+     * All documents will be delivered in the form of a {@link FindIterable} from which individual
+     * elements can be extracted.
      *
-     * @param options a {@link FindOptions} struct
-     * @return the find iterable interface
+     * @param options a {@link FindOptions} struct for building the query
+     * @return an iterable containing the result of the find operation
      */
     public FindIterable<DocumentT> find(final FindOptions options) {
-        return new FindIterable<>(dispatcher, osMongoCollection.find(options));
+        return osMongoCollection.find(options);
     }
 
     /**
-     * Finds all documents in the collection.
+     * Finds all documents in the collection specifying an output class.
+     * <p>
+     * All documents will be delivered in the form of a {@link FindIterable} from which individual
+     * elements can be extracted.
      *
      * @param resultClass the class to decode each document into
      * @param <ResultT>   the target document type of the iterable.
-     * @return the find iterable interface
+     * @return an iterable containing the result of the find operation
      */
     public <ResultT> FindIterable<ResultT> find(final Class<ResultT> resultClass) {
-        return new FindIterable<>(dispatcher, osMongoCollection.find(resultClass));
+        return osMongoCollection.find(resultClass);
     }
 
     /**
-     * Finds all documents in the collection that match the given filter.
+     * Finds all documents in the collection specifying an output class and also using
+     * {@link FindOptions} to build the query.
+     * <p>
+     * All documents will be delivered in the form of a {@link FindIterable} from which individual
+     * elements can be extracted.
      *
      * @param resultClass the class to decode each document into
-     * @param options a {@link FindOptions} struct
+     * @param options a {@link FindOptions} struct for building the query
      * @param <ResultT>   the target document type of the iterable.
-     * @return the find iterable interface
+     * @return an iterable containing the result of the find operation
      */
     public <ResultT> FindIterable<ResultT> find(final Class<ResultT> resultClass,
                                                 final FindOptions options) {
-        return new FindIterable<>(dispatcher, osMongoCollection.find(resultClass, options));
+        return osMongoCollection.find(resultClass, options);
     }
 
     /**
      * Finds all documents in the collection that match the given filter.
+     * <p>
+     * All documents will be delivered in the form of a {@link FindIterable} from which individual
+     * elements can be extracted.
      *
      * @param filter the query filter
-     * @return the find iterable interface
+     * @return an iterable containing the result of the find operation
      */
     public FindIterable<DocumentT> find(final Bson filter) {
-        return new FindIterable<>(dispatcher, osMongoCollection.find(filter));
+        return osMongoCollection.find(filter);
     }
 
     /**
-     * Finds all documents in the collection that match the given filter.
+     * Finds all documents in the collection that match the given filter using {@link FindOptions}
+     * to build the query.
+     * <p>
+     * All documents will be delivered in the form of a {@link FindIterable} from which individual
+     * elements can be extracted.
      *
      * @param filter the query filter
      * @param options a {@link FindOptions} struct
-     * @return the find iterable interface
+     * @return an iterable containing the result of the find operation
      */
     public FindIterable<DocumentT> find(final Bson filter, final FindOptions options) {
-        return new FindIterable<>(dispatcher, osMongoCollection.find(filter, options));
+        return osMongoCollection.find(filter, options);
     }
 
     /**
-     * Finds all documents in the collection that match the given filter.
+     * Finds all documents in the collection that match the given filter specifying an output class.
+     * <p>
+     * All documents will be delivered in the form of a {@link FindIterable} from which individual
+     * elements can be extracted.
      *
      * @param filter      the query filter
      * @param resultClass the class to decode each document into
      * @param <ResultT>   the target document type of the iterable.
-     * @return the find iterable interface
+     * @return an iterable containing the result of the find operation
      */
     public <ResultT> FindIterable<ResultT> find(final Bson filter,
                                                 final Class<ResultT> resultClass) {
-        return new FindIterable<>(dispatcher, osMongoCollection.find(filter, resultClass));
+        return osMongoCollection.find(filter, resultClass);
     }
 
     /**
-     * Finds all documents in the collection that match the given filter.
+     * Finds all documents in the collection that match the given filter specifying an output class
+     * and also using {@link FindOptions} to build the query.
+     * <p>
+     * All documents will be delivered in the form of a {@link FindIterable} from which individual
+     * elements can be extracted.
      *
      * @param filter      the query filter
      * @param resultClass the class to decode each document into
      * @param options     a {@link FindOptions} struct
      * @param <ResultT>   the target document type of the iterable.
-     * @return the find iterable interface
+     * @return an iterable containing the result of the find operation
      */
     public <ResultT> FindIterable<ResultT> find(final Bson filter,
                                                 final Class<ResultT> resultClass,
                                                 final FindOptions options) {
-        return new FindIterable<>(dispatcher,
-                osMongoCollection.find(filter, resultClass, options));
+        return osMongoCollection.find(filter, resultClass, options);
     }
 
     /**
      * Aggregates documents according to the specified aggregation pipeline.
+     * <p>
+     * All documents will be delivered in the form of an {@link AggregateIterable} from which
+     * individual elements can be extracted.
      *
      * @param pipeline the aggregation pipeline
-     * @return an iterable containing the result of the aggregation operation
+     * @return an {@link AggregateIterable} from which the results can be extracted
      */
     public AggregateIterable<DocumentT> aggregate(final List<? extends Bson> pipeline) {
-        return new AggregateIterable<>(dispatcher, osMongoCollection.aggregate(pipeline));
+        return osMongoCollection.aggregate(pipeline);
     }
 
     /**
-     * Aggregates documents according to the specified aggregation pipeline.
+     * Aggregates documents according to the specified aggregation pipeline specifying an output
+     * class.
+     * <p>
+     * All documents will be delivered in the form of an {@link AggregateIterable} from which
+     * individual elements can be extracted.
      *
      * @param pipeline    the aggregation pipeline
      * @param resultClass the class to decode each document into
      * @param <ResultT>   the target document type of the iterable.
-     * @return an iterable containing the result of the aggregation operation
+     * @return an {@link AggregateIterable} from which the results can be extracted
      */
     public <ResultT> AggregateIterable<ResultT> aggregate(final List<? extends Bson> pipeline,
                                                           final Class<ResultT> resultClass) {
-        return new AggregateIterable<>(dispatcher, osMongoCollection.aggregate(pipeline, resultClass));
+        return osMongoCollection.aggregate(pipeline, resultClass);
     }
 
     /**

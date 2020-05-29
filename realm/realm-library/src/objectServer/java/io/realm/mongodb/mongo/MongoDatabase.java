@@ -19,6 +19,7 @@ package io.realm.mongodb.mongo;
 import org.bson.Document;
 
 import io.realm.internal.Util;
+import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.objectstore.OsMongoDatabase;
 
 /**
@@ -26,12 +27,16 @@ import io.realm.internal.objectstore.OsMongoDatabase;
  */
 public class MongoDatabase {
 
-    private String name;
-    private OsMongoDatabase osMongoDatabase;
+    private final String name;
+    private final TaskDispatcher dispatcher;
+    private final OsMongoDatabase osMongoDatabase;
 
-    MongoDatabase(OsMongoDatabase osMongoDatabase, String name) {
+    MongoDatabase(final OsMongoDatabase osMongoDatabase,
+                  final String name,
+                  final TaskDispatcher dispatcher) {
         this.osMongoDatabase = osMongoDatabase;
         this.name = name;
+        this.dispatcher = dispatcher;
     }
 
     /**
@@ -51,10 +56,9 @@ public class MongoDatabase {
      */
     public MongoCollection<Document> getCollection(final String collectionName) {
         Util.checkEmpty(collectionName, "collectionName");
-        return new MongoCollection<>(
-                new MongoNamespace(name, collectionName),
-                osMongoDatabase.getCollection(collectionName)
-        );
+        return new MongoCollection<>(new MongoNamespace(name, collectionName),
+                osMongoDatabase.getCollection(collectionName),
+                dispatcher);
     }
 
     /**
@@ -71,9 +75,8 @@ public class MongoDatabase {
     ) {
         Util.checkEmpty(collectionName, "collectionName");
         Util.checkNull(documentClass, "documentClass");
-        return new MongoCollection<>(
-                new MongoNamespace(name, collectionName),
-                osMongoDatabase.getCollection(collectionName, documentClass)
-        );
+        return new MongoCollection<>(new MongoNamespace(name, collectionName),
+                osMongoDatabase.getCollection(collectionName, documentClass),
+                dispatcher);
     }
 }

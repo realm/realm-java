@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_internal_objectstore_OsAggregateIterable.h"
+#include "io_realm_mongodb_mongo_iterable_AggregateIterable.h"
 
 #include "java_class_global_def.hpp"
 #include "java_network_transport.hpp"
@@ -43,7 +43,7 @@ static std::function<jobject(JNIEnv*, util::Optional<bson::BsonArray>)> collecti
 };
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsAggregateIterable_nativeAggregate(JNIEnv* env,
+Java_io_realm_mongodb_mongo_iterable_AggregateIterable_nativeAggregate(JNIEnv* env,
                                                                        jclass,
                                                                        jlong j_collection_ptr,
                                                                        jstring j_pipeline,

@@ -466,7 +466,8 @@ public class RealmUser {
     }
 
     /**
-     * FIXME Add support for the MongoDB wrapper. Name of Class and method still TBD.
+     * Returns a {@link MongoClient} instance for accessing documents in the database.
+     * @param serviceName the service name used to connect to the server
      */
     public MongoClient getMongoClient(String serviceName) {
         if (mongoClient == null) {

@@ -16,39 +16,58 @@
 
 package io.realm.mongodb.mongo.iterable;
 
+import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
-
-import java.util.Collection;
 
 import javax.annotation.Nullable;
 
 import io.realm.internal.common.TaskDispatcher;
-import io.realm.internal.objectstore.OsFindIterable;
-import io.realm.mongodb.mongo.MongoCollection;
+import io.realm.internal.jni.JniBsonProtocol;
+import io.realm.internal.jni.OsJNIResultCallback;
+import io.realm.internal.objectstore.OsJavaNetworkTransport;
+import io.realm.internal.objectstore.OsMongoCollection;
+import io.realm.mongodb.mongo.options.FindOptions;
 
 /**
- * Specific iterable for {@link MongoCollection#find()} operations.
+ * Specific iterable for {@link io.realm.mongodb.mongo.MongoCollection#find()} operations.
  *
  * @param <ResultT> The type to which this iterable will decode documents.
  */
 public class FindIterable<ResultT> extends MongoIterable<ResultT> {
 
-    private final OsFindIterable<ResultT> osFindIterable;
+    private static final int FIND = 1;
+    private static final int FIND_WITH_OPTIONS = 2;
 
-    public FindIterable(final TaskDispatcher dispatcher,
-                        final OsFindIterable<ResultT> osFindIterable) {
-        super(dispatcher);
-        this.osFindIterable = osFindIterable;
+    private final FindOptions options;
+    private final String encodedEmptyDocument;
+
+    private Bson filter;
+
+    public FindIterable(final OsMongoCollection osMongoCollection,
+                        final CodecRegistry codecRegistry,
+                        final Class<ResultT> resultClass,
+                        final TaskDispatcher dispatcher) {
+        super(osMongoCollection, codecRegistry, resultClass, dispatcher);
+        this.options = new FindOptions();
+        this.filter = new Document();
+        this.encodedEmptyDocument = JniBsonProtocol.encode(new Document(), codecRegistry);
     }
 
     @Override
-    Collection<ResultT> getCollection() {
-        return osFindIterable.getCollection();
-    }
+    void callNative(final OsJNIResultCallback callback) {
+        String filterString = JniBsonProtocol.encode(filter, codecRegistry);
+        String projectionString = encodedEmptyDocument;
+        String sortString = encodedEmptyDocument;
 
-    @Override
-    ResultT getFirst() {
-        return osFindIterable.first();
+        if (options == null) {
+            nativeFind(FIND, osMongoCollection.getNativePtr(), filterString, projectionString, sortString, 0, callback);
+        } else {
+            projectionString = JniBsonProtocol.encode(options.getProjection(), codecRegistry);
+            sortString = JniBsonProtocol.encode(options.getSort(), codecRegistry);
+
+            nativeFind(FIND_WITH_OPTIONS, osMongoCollection.getNativePtr(), filterString, projectionString, sortString, options.getLimit(), callback);
+        }
     }
 
     /**
@@ -58,7 +77,7 @@ public class FindIterable<ResultT> extends MongoIterable<ResultT> {
      * @return this
      */
     public FindIterable<ResultT> filter(@Nullable final Bson filter) {
-        osFindIterable.filter(filter);
+        this.filter = filter;
         return this;
     }
 
@@ -68,8 +87,8 @@ public class FindIterable<ResultT> extends MongoIterable<ResultT> {
      * @param limit the limit, which may be 0
      * @return this
      */
-    public FindIterable<ResultT> limit(final int limit) {
-        osFindIterable.limit(limit);
+    public FindIterable<ResultT> limit(int limit) {
+        this.options.limit(limit);
         return this;
     }
 
@@ -80,7 +99,7 @@ public class FindIterable<ResultT> extends MongoIterable<ResultT> {
      * @return this
      */
     public FindIterable<ResultT> projection(@Nullable final Bson projection) {
-        osFindIterable.projection(projection);
+        this.options.projection(projection);
         return this;
     }
 
@@ -91,7 +110,15 @@ public class FindIterable<ResultT> extends MongoIterable<ResultT> {
      * @return this
      */
     public FindIterable<ResultT> sort(@Nullable final Bson sort) {
-        osFindIterable.sort(sort);
+        this.options.sort(sort);
         return this;
     }
+
+    private static native void nativeFind(int findType,
+                                          long remoteMongoCollectionPtr,
+                                          String filter,
+                                          String projection,
+                                          String sort,
+                                          long limit,
+                                          OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }

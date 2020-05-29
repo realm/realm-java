@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_internal_objectstore_OsFindIterable.h"
+#include "io_realm_mongodb_mongo_iterable_FindIterable.h"
 
 #include "java_class_global_def.hpp"
 #include "java_network_transport.hpp"
@@ -42,7 +42,7 @@ static std::function<jobject(JNIEnv*, util::Optional<bson::BsonArray>)> collecti
 };
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsFindIterable_nativeFind(JNIEnv *env,
+Java_io_realm_mongodb_mongo_iterable_FindIterable_nativeFind(JNIEnv *env,
                                                              jclass,
                                                              jint j_find_type,
                                                              jlong j_collection_ptr,
@@ -57,10 +57,10 @@ Java_io_realm_internal_objectstore_OsFindIterable_nativeFind(JNIEnv *env,
         bson::BsonDocument filter(JniBsonProtocol::parse_checked(env, j_filter, Bson::Type::Document, "BSON filter must be a Document"));
 
         switch (j_find_type) {
-            case io_realm_internal_objectstore_OsFindIterable_FIND:
+            case io_realm_mongodb_mongo_iterable_FindIterable_FIND:
                 collection->find(filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find));
                 break;
-            case io_realm_internal_objectstore_OsFindIterable_FIND_WITH_OPTIONS:
+            case io_realm_mongodb_mongo_iterable_FindIterable_FIND_WITH_OPTIONS:
                 uint64_t limit = std::uint64_t(j_limit);
                 bson::BsonDocument projection(JniBsonProtocol::parse_checked(env, j_projection, Bson::Type::Document, "BSON projection must be a Document"));
                 bson::BsonDocument sort(JniBsonProtocol::parse_checked(env, j_sort, Bson::Type::Document, "BSON sort must be a Document"));

@@ -16,35 +16,42 @@
 
 package io.realm.mongodb.mongo.iterable;
 
-import java.util.Collection;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.conversions.Bson;
+
 import java.util.List;
 
 import io.realm.internal.common.TaskDispatcher;
-import io.realm.internal.objectstore.OsAggregateIterable;
-import io.realm.mongodb.mongo.MongoCollection;
+import io.realm.internal.jni.JniBsonProtocol;
+import io.realm.internal.jni.OsJNIResultCallback;
+import io.realm.internal.objectstore.OsJavaNetworkTransport;
+import io.realm.internal.objectstore.OsMongoCollection;
 
 /**
- * Specific iterable for {@link MongoCollection#aggregate(List)} operations.
+ * Specific iterable for {@link io.realm.mongodb.mongo.MongoCollection#aggregate(List)} operations.
  *
  * @param <ResultT> The type to which this iterable will decode documents.
  */
 public class AggregateIterable<ResultT> extends MongoIterable<ResultT> {
 
-    private OsAggregateIterable<ResultT> osAggregateIterable;
+    private List<? extends Bson> pipeline;
 
-    public AggregateIterable(final TaskDispatcher dispatcher,
-                             final OsAggregateIterable<ResultT> osAggregateIterable) {
-        super(dispatcher);
-        this.osAggregateIterable = osAggregateIterable;
+    public AggregateIterable(final OsMongoCollection osMongoCollection,
+                             final CodecRegistry codecRegistry,
+                             final TaskDispatcher dispatcher,
+                             final Class<ResultT> resultClass,
+                             final List<? extends Bson> pipeline) {
+        super(osMongoCollection, codecRegistry, resultClass, dispatcher);
+        this.pipeline = pipeline;
     }
 
     @Override
-    Collection<ResultT> getCollection() {
-        return osAggregateIterable.getCollection();
+    void callNative(final OsJNIResultCallback callback) {
+        String pipelineString = JniBsonProtocol.encode(pipeline, codecRegistry);
+        nativeAggregate(osMongoCollection.getNativePtr(), pipelineString, callback);
     }
 
-    @Override
-    ResultT getFirst() {
-        return osAggregateIterable.first();
-    }
+    private static native void nativeAggregate(long remoteMongoCollectionPtr,
+                                               String pipeline,
+                                               OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }

@@ -18,18 +18,20 @@ package io.realm.mongodb.mongo.iterable;
 
 import com.google.android.gms.tasks.Task;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 /**
- * The Mongo Cursor class.
+ * The Mongo Cursor class is fundamentally an {@link Iterator} containing an additional
+ * {@code tryNext()} method for convenience.
  * <p>
  * An application should ensure that a cursor is closed in all circumstances, e.g. using a
  * try-with-resources statement.
  *
  * @param <ResultT> The type of documents the cursor contains
  */
-public class MongoCursor<ResultT> implements Iterator<ResultT> {
+public class MongoCursor<ResultT> implements Iterator<ResultT>, Closeable {
 
     private final Iterator<ResultT> iterator;
 
@@ -37,23 +39,11 @@ public class MongoCursor<ResultT> implements Iterator<ResultT> {
         this.iterator = iterator;
     }
 
-    /**
-     * Returns whether or not there is a next document to retrieve with {@code next()}.
-     *
-     * @return A {@link Task} containing whether or not there is a next document to
-     * retrieve with {@code next()}.
-     */
     @Override
     public boolean hasNext() {
         return iterator.hasNext();
     }
 
-    /**
-     * Returns the next document.
-     *
-     * @return A {@link Task} containing the next document if available or a failed task with
-     * a {@link NoSuchElementException } exception.
-     */
     @Override
     public ResultT next() {
         return iterator.next();
@@ -69,5 +59,10 @@ public class MongoCursor<ResultT> implements Iterator<ResultT> {
             return null;
         }
         return iterator.next();
+    }
+
+    @Override
+    public void close() {
+
     }
 }

@@ -20,6 +20,7 @@ import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import io.realm.internal.NativeObject;
+import io.realm.internal.common.TaskDispatcher;
 
 public class OsMongoDatabase implements NativeObject {
 
@@ -27,10 +28,14 @@ public class OsMongoDatabase implements NativeObject {
 
     private final long nativePtr;
     private final CodecRegistry codecRegistry;
+    private final TaskDispatcher dispatcher;
 
-    OsMongoDatabase(long nativeDatabasePtr, CodecRegistry codecRegistry) {
+    OsMongoDatabase(final long nativeDatabasePtr,
+                    final CodecRegistry codecRegistry,
+                    final TaskDispatcher dispatcher) {
         this.nativePtr = nativeDatabasePtr;
         this.codecRegistry = codecRegistry;
+        this.dispatcher = dispatcher;
     }
 
     public OsMongoCollection<Document> getCollection(final String collectionName) {
@@ -40,7 +45,7 @@ public class OsMongoDatabase implements NativeObject {
     public <DocumentT> OsMongoCollection<DocumentT> getCollection(final String collectionName,
                                                                   final Class<DocumentT> documentClass) {
         long nativeCollectionPtr = nativeGetCollection(nativePtr, collectionName);
-        return new OsMongoCollection<>(nativeCollectionPtr, documentClass, codecRegistry);
+        return new OsMongoCollection<>(nativeCollectionPtr, documentClass, codecRegistry, dispatcher);
     }
 
     @Override

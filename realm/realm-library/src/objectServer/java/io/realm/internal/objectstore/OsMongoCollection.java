@@ -34,9 +34,13 @@ import javax.annotation.Nullable;
 
 import io.realm.ObjectServerError;
 import io.realm.internal.NativeObject;
+import io.realm.internal.Util;
+import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.network.ResultHandler;
+import io.realm.mongodb.mongo.iterable.AggregateIterable;
+import io.realm.mongodb.mongo.iterable.FindIterable;
 import io.realm.mongodb.mongo.options.CountOptions;
 import io.realm.mongodb.mongo.options.FindOneAndModifyOptions;
 import io.realm.mongodb.mongo.options.FindOptions;
@@ -69,13 +73,16 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     private final Class<DocumentT> documentClass;
     private final CodecRegistry codecRegistry;
     private final String encodedEmptyDocument;
+    private final TaskDispatcher dispatcher;
 
     OsMongoCollection(final long nativeCollectionPtr,
                       final Class<DocumentT> documentClass,
-                      final CodecRegistry codecRegistry) {
+                      final CodecRegistry codecRegistry,
+                      final TaskDispatcher dispatcher) {
         this.nativePtr = nativeCollectionPtr;
         this.documentClass = documentClass;
         this.codecRegistry = codecRegistry;
+        this.dispatcher = dispatcher;
         this.encodedEmptyDocument = JniBsonProtocol.encode(new Document(), codecRegistry);
     }
 
@@ -99,11 +106,11 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
     public <NewDocumentT> OsMongoCollection<NewDocumentT> withDocumentClass(
             final Class<NewDocumentT> clazz) {
-        return new OsMongoCollection<>(nativePtr, clazz, codecRegistry);
+        return new OsMongoCollection<>(nativePtr, clazz, codecRegistry, dispatcher);
     }
 
     public OsMongoCollection<DocumentT> withCodecRegistry(final CodecRegistry codecRegistry) {
-        return new OsMongoCollection<>(nativePtr, documentClass, codecRegistry);
+        return new OsMongoCollection<>(nativePtr, documentClass, codecRegistry, dispatcher);
     }
 
     public Long count() {
@@ -136,68 +143,63 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return ResultHandler.handleResult(success, error);
     }
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public OsFindIterable<DocumentT> find() {
+    public FindIterable<DocumentT> find() {
         return findInternal(new Document(), documentClass, null);
     }
 
-    public OsFindIterable<DocumentT> find(final FindOptions options) {
+    public FindIterable<DocumentT> find(final FindOptions options) {
         return findInternal(new Document(), documentClass, options);
     }
 
-    public <ResultT> OsFindIterable<ResultT> find(final Class<ResultT> resultClass) {
+    public <ResultT> FindIterable<ResultT> find(final Class<ResultT> resultClass) {
         return findInternal(new Document(), resultClass, null);
     }
 
-    public <ResultT> OsFindIterable<ResultT> find(final Class<ResultT> resultClass, final FindOptions options) {
+    public <ResultT> FindIterable<ResultT> find(final Class<ResultT> resultClass, final FindOptions options) {
         return findInternal(new Document(), resultClass, options);
     }
 
-    public OsFindIterable<DocumentT> find(final Bson filter) {
+    public FindIterable<DocumentT> find(final Bson filter) {
         return findInternal(filter, documentClass, null);
     }
 
-    public OsFindIterable<DocumentT> find(final Bson filter, final FindOptions options) {
+    public FindIterable<DocumentT> find(final Bson filter, final FindOptions options) {
         return findInternal(filter, documentClass, options);
     }
 
-    public <ResultT> OsFindIterable<ResultT> find(final Bson filter,
-                                                  final Class<ResultT> resultClass) {
+    public <ResultT> FindIterable<ResultT> find(final Bson filter,
+                                                final Class<ResultT> resultClass) {
         return findInternal(filter, resultClass, null);
     }
 
-    public <ResultT> OsFindIterable<ResultT> find(final Bson filter,
-                                                  final Class<ResultT> resultClass,
-                                                  final FindOptions options) {
+    public <ResultT> FindIterable<ResultT> find(final Bson filter,
+                                                final Class<ResultT> resultClass,
+                                                final FindOptions options) {
         return findInternal(filter, resultClass, options);
     }
 
-    private <ResultT> OsFindIterable<ResultT> findInternal(final Bson filter,
-                                                           final Class<ResultT> resultClass,
-                                                           @Nullable final FindOptions options) {
-        OsFindIterable<ResultT> osFindIterable = new OsFindIterable<>(this, codecRegistry, resultClass);
-        osFindIterable.filter(filter);
+    private <ResultT> FindIterable<ResultT> findInternal(final Bson filter,
+                                                         final Class<ResultT> resultClass,
+                                                         @Nullable final FindOptions options) {
+        FindIterable<ResultT> findIterable =
+                new FindIterable<>(this, codecRegistry, resultClass, dispatcher);
+        findIterable.filter(filter);
 
         if (options != null) {
-            osFindIterable.limit(options.getLimit());
-            osFindIterable.projection(options.getProjection());
+            findIterable.limit(options.getLimit());
+            findIterable.projection(options.getProjection());
         }
-        return osFindIterable;
+        return findIterable;
     }
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public OsAggregateIterable<DocumentT> aggregate(final List<? extends Bson> pipeline) {
+    public AggregateIterable<DocumentT> aggregate(final List<? extends Bson> pipeline) {
         return aggregate(pipeline, documentClass);
     }
 
-    public <ResultT> OsAggregateIterable<ResultT> aggregate(final List<? extends Bson> pipeline,
-                                                            final Class<ResultT> resultClass) {
-        return new OsAggregateIterable<>(this, codecRegistry, resultClass, pipeline);
+    public <ResultT> AggregateIterable<ResultT> aggregate(final List<? extends Bson> pipeline,
+                                                          final Class<ResultT> resultClass) {
+        return new AggregateIterable<>(this, codecRegistry, dispatcher, resultClass, pipeline);
     }
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public DocumentT findOne() {
         return findOneInternal(FIND_ONE, new Document(), null, documentClass);
@@ -249,9 +251,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                 nativeFindOne(FIND_ONE, nativePtr, encodedFilter, projectionString, sortString, 0, callback);
                 break;
             case FIND_ONE_WITH_OPTIONS:
-                if (options == null) {
-                    throw new IllegalArgumentException("FindOptions must not be null.");
-                }
+                Util.checkNull(options, "options");
                 projectionString = JniBsonProtocol.encode(options.getProjection(), codecRegistry);
                 sortString = JniBsonProtocol.encode(options.getSort(), codecRegistry);
 
@@ -263,8 +263,6 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
         return ResultHandler.handleResult(success, error);
     }
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public InsertOneResult insertOne(final DocumentT document) {
         AtomicReference<InsertOneResult> success = new AtomicReference<>(null);
@@ -281,8 +279,6 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         nativeInsertOne(nativePtr, encodedDocument, callback);
         return ResultHandler.handleResult(success, error);
     }
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public InsertManyResult insertMany(final List<? extends DocumentT> documents) {
         AtomicReference<InsertManyResult> success = new AtomicReference<>(null);
@@ -305,8 +301,6 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         nativeInsertMany(nativePtr, encodedDocumentArray, callback);
         return ResultHandler.handleResult(success, error);
     }
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public DeleteResult deleteOne(final Bson filter) {
         return deleteInternal(DELETE_ONE, filter);
@@ -339,8 +333,6 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         }
         return ResultHandler.handleResult(success, error);
     }
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public UpdateResult updateOne(final Bson filter, final Bson update) {
         return updateInternal(UPDATE_ONE, filter, update, null);
@@ -393,9 +385,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                 break;
             case UPDATE_ONE_WITH_OPTIONS:
             case UPDATE_MANY_WITH_OPTIONS:
-                if (options == null) {
-                    throw new IllegalArgumentException("UpdateOptions must not be null.");
-                }
+                Util.checkNull(options, "options");
                 nativeUpdate(type, nativePtr, jsonFilter, jsonUpdate, options.isUpsert(), callback);
                 break;
             default:
@@ -403,8 +393,6 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         }
         return ResultHandler.handleResult(success, error);
     }
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public DocumentT findOneAndUpdate(final Bson filter, final Bson update) {
         return findOneAndUpdate(filter, update, documentClass);
@@ -429,8 +417,6 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return findOneAndModify(FIND_ONE_AND_UPDATE_WITH_OPTIONS, filter, update, options, resultClass);
     }
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
     public DocumentT findOneAndReplace(final Bson filter, final Bson replacement) {
         return findOneAndReplace(filter, replacement, documentClass);
     }
@@ -453,8 +439,6 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                                                final Class<ResultT> resultClass) {
         return findOneAndModify(FIND_ONE_AND_REPLACE_WITH_OPTIONS, filter, replacement, options, resultClass);
     }
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public DocumentT findOneAndDelete(final Bson filter) {
         return findOneAndDelete(filter, documentClass);
@@ -510,27 +494,21 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                 nativeFindOneAndUpdate(type, nativePtr, encodedFilter, encodedUpdate, encodedProjection, encodedSort, false, false, callback);
                 break;
             case FIND_ONE_AND_UPDATE_WITH_OPTIONS:
-                if (options == null) {
-                    throw new IllegalArgumentException("FindOneAndModifyOptions must not be null");
-                }
+                Util.checkNull(options, "options");
                 nativeFindOneAndUpdate(type, nativePtr, encodedFilter, encodedUpdate, encodedProjection, encodedSort, options.isUpsert(), options.isReturnNewDocument(), callback);
                 break;
             case FIND_ONE_AND_REPLACE:
                 nativeFindOneAndReplace(type, nativePtr, encodedFilter, encodedUpdate, encodedProjection, encodedSort, false, false,callback);
                 break;
             case FIND_ONE_AND_REPLACE_WITH_OPTIONS:
-                if (options == null) {
-                    throw new IllegalArgumentException("FindOneAndModifyOptions must not be null");
-                }
+                Util.checkNull(options, "options");
                 nativeFindOneAndReplace(type, nativePtr, encodedFilter, encodedUpdate, encodedProjection, encodedSort, options.isUpsert(), options.isReturnNewDocument(), callback);
                 break;
             case FIND_ONE_AND_DELETE:
                 nativeFindOneAndDelete(type, nativePtr, encodedFilter, encodedProjection, encodedSort, false, false, callback);
                 break;
             case FIND_ONE_AND_DELETE_WITH_OPTIONS:
-                if (options == null) {
-                    throw new IllegalArgumentException("FindOneAndModifyOptions must not be null");
-                }
+                Util.checkNull(options, "options");
                 nativeFindOneAndDelete(type, nativePtr, encodedFilter, encodedProjection, encodedSort, options.isUpsert(), options.isReturnNewDocument(), callback);
                 break;
             default:
@@ -539,8 +517,6 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
         return ResultHandler.handleResult(success, error);
     }
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     private <T> T findSuccessMapper(@Nullable Object result, Class<T> resultClass) {
         if (result == null) {

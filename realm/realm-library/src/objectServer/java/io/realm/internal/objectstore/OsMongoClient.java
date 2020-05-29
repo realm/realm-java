@@ -20,20 +20,26 @@ import org.bson.codecs.configuration.CodecRegistry;
 
 import io.realm.RealmUser;
 import io.realm.internal.NativeObject;
+import io.realm.internal.common.TaskDispatcher;
 
 public class OsMongoClient implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
     private final long nativePtr;
+    private final TaskDispatcher dispatcher;
 
-    public OsMongoClient(RealmUser realmUser, String serviceName) {
+    public OsMongoClient(final RealmUser realmUser,
+                         final String serviceName,
+                         final TaskDispatcher dispatcher) {
         this.nativePtr = nativeCreate(realmUser.getApp().nativePtr, serviceName);
+        this.dispatcher = dispatcher;
     }
 
-    public OsMongoDatabase getRemoteDatabase(final String databaseName, final CodecRegistry codecRegistry) {
+    public OsMongoDatabase getRemoteDatabase(final String databaseName,
+                                             final CodecRegistry codecRegistry) {
         long nativeDatabasePtr = nativeCreateDatabase(nativePtr, databaseName);
-        return new OsMongoDatabase(nativeDatabasePtr, codecRegistry);
+        return new OsMongoDatabase(nativeDatabasePtr, codecRegistry, dispatcher);
     }
 
     @Override

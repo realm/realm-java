@@ -20,6 +20,7 @@ import org.bson.codecs.configuration.CodecRegistry;
 
 import io.realm.RealmUser;
 import io.realm.internal.Util;
+import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.objectstore.OsMongoClient;
 
 /**
@@ -27,13 +28,24 @@ import io.realm.internal.objectstore.OsMongoClient;
  */
 public class MongoClient {
 
-    private OsMongoClient osMongoClient;
-    private CodecRegistry codecRegistry;
+    private final OsMongoClient osMongoClient;
+    private final CodecRegistry codecRegistry;
+    private final TaskDispatcher dispatcher;
 
-    public MongoClient(final RealmUser realmUser, final String serviceName, final CodecRegistry codecRegistry) {
+    /**
+     * MongoClient public constructor.
+     *
+     * @param realmUser     user owning this client
+     * @param serviceName   service name to connect to the server
+     * @param codecRegistry needed for encoding and decoding database documents
+     */
+    public MongoClient(final RealmUser realmUser,
+                       final String serviceName,
+                       final CodecRegistry codecRegistry) {
         Util.checkEmpty(serviceName, "serviceName");
         this.codecRegistry = codecRegistry;
-        this.osMongoClient = new OsMongoClient(realmUser, serviceName);
+        this.dispatcher = new TaskDispatcher();
+        this.osMongoClient = new OsMongoClient(realmUser, serviceName, dispatcher);
     }
 
     /**
@@ -44,6 +56,6 @@ public class MongoClient {
      */
     public MongoDatabase getDatabase(final String databaseName) {
         Util.checkEmpty(databaseName, "databaseName");
-        return new MongoDatabase(osMongoClient.getRemoteDatabase(databaseName, codecRegistry), databaseName);
+        return new MongoDatabase(osMongoClient.getRemoteDatabase(databaseName, codecRegistry), databaseName, dispatcher);
     }
 }

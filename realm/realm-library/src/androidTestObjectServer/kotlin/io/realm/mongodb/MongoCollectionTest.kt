@@ -54,9 +54,6 @@ class MongoCollectionTest {
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-
-        RealmLog.setLevel(LogLevel.DEBUG)
-
         app = TestRealmApp()
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         client = user.getMongoClient(SERVICE_NAME)
