@@ -21,12 +21,15 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 
+import org.bson.BsonValue;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.RealmApp;
+import io.realm.RealmAppConfiguration;
 import io.realm.RealmConfiguration;
 import io.realm.RealmSync;
 import io.realm.RealmUser;
@@ -34,6 +37,7 @@ import io.realm.SyncConfiguration;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.android.AndroidCapabilities;
+import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.objectstore.OsAsyncOpenTask;
 
@@ -85,6 +89,21 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String customAuthorizationHeaderName = app.getConfiguration().getAuthorizationHeaderName();
             Map<String, String> customHeaders = app.getConfiguration().getCustomRequestHeaders();
 
+            // TODO Simplify. org.bson serialization only allows writing full documents, so the partition
+            //  key is embedded in a document with key 'value' and unwrapped in JNI.
+            BsonValue partitionValue = syncConfig.getPartitionValue();
+            String encodedPartitionValue;
+            switch (partitionValue.getBsonType()) {
+                case STRING:
+                case OBJECT_ID:
+                case INT32:
+                case INT64:
+                    encodedPartitionValue = JniBsonProtocol.encode(partitionValue, RealmAppConfiguration.DEFAULT_BSON_CODEC_REGISTRY);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unsupported type: " + partitionValue);
+            }
+
             int i = 0;
             Object[] configObj = new Object[SYNC_CONFIG_OPTIONS];
             configObj[i++] = rosUserIdentity;
@@ -98,7 +117,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             configObj[i++] = customAuthorizationHeaderName;
             configObj[i++] = customHeaders;
             configObj[i++] = OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL;
-            configObj[i++] = syncConfig.getPartitionValue();
+            configObj[i++] = encodedPartitionValue;
             configObj[i++] = app.getSync();
             return configObj;
         } else {
