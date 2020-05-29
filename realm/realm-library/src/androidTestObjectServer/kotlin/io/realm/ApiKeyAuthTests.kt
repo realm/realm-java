@@ -21,6 +21,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
 import io.realm.mongodb.*
 import io.realm.mongodb.auth.ApiKeyAuth
+import io.realm.mongodb.auth.UserApiKey
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.ObjectId
 import org.junit.After
@@ -32,13 +33,13 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class ApiKeyAuthTests {
     private val looperThread = BlockingLooperThread()
-    private lateinit var app: TestRealmApp
+    private lateinit var app: TestApp
     private lateinit var admin: ServerAdmin
-    private lateinit var user: RealmUser
+    private lateinit var user: User
     private lateinit var provider: ApiKeyAuth
 
     // Callback use to verify that an Illegal Argument was thrown from async methods
-    private val checkNullInVoidCallback = RealmApp.Callback<Void> { result ->
+    private val checkNullInVoidCallback = App.Callback<Void> { result ->
         if (result.isSuccess) {
             fail()
         } else {
@@ -47,7 +48,7 @@ class ApiKeyAuthTests {
         }
     }
 
-    private val checkNullInApiKeyCallback = RealmApp.Callback<RealmUserApiKey> { result ->
+    private val checkNullInApiKeyCallback = App.Callback<UserApiKey> { result ->
         if (result.isSuccess) {
             fail()
         } else {
@@ -70,7 +71,7 @@ class ApiKeyAuthTests {
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         admin = ServerAdmin()
-        app = TestRealmApp()
+        app = TestApp()
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         provider = user.apiKeyAuth
     }
@@ -93,7 +94,7 @@ class ApiKeyAuthTests {
 
     @Test
     fun createApiKey() {
-        val key: RealmUserApiKey = provider.createApiKey("my-key")
+        val key: UserApiKey = provider.createApiKey("my-key")
         assertEquals("my-key", key.name)
         assertNotNull("my-key", key.value)
         assertNotNull("my-key", key.id)
@@ -148,8 +149,8 @@ class ApiKeyAuthTests {
 
     @Test
     fun fetchApiKey() {
-        val key1: RealmUserApiKey = provider.createApiKey("my-key")
-        val key2: RealmUserApiKey = provider.fetchApiKey(key1.id)
+        val key1: UserApiKey = provider.createApiKey("my-key")
+        val key2: UserApiKey = provider.fetchApiKey(key1.id)
 
         assertEquals(key1.id, key2.id)
         assertEquals(key1.name, key2.name)
@@ -177,7 +178,7 @@ class ApiKeyAuthTests {
 
     @Test
     fun fetchApiKeyAsync() {
-        val key1: RealmUserApiKey = provider.createApiKey("my-key")
+        val key1: UserApiKey = provider.createApiKey("my-key")
         looperThread.runBlocking {
             provider.fetchApiKeyAsync(key1.id) { result ->
                 val key2 = result.orThrow
@@ -192,9 +193,9 @@ class ApiKeyAuthTests {
 
     @Test
     fun fetchAllApiKeys() {
-        val key1: RealmUserApiKey = provider.createApiKey("my-key")
-        val key2: RealmUserApiKey = provider.createApiKey("other-key")
-        val allKeys: List<RealmUserApiKey> = provider.fetchAllApiKeys()
+        val key1: UserApiKey = provider.createApiKey("my-key")
+        val key2: UserApiKey = provider.createApiKey("other-key")
+        val allKeys: List<UserApiKey> = provider.fetchAllApiKeys()
         assertEquals(2, allKeys.size)
         assertTrue(allKeys.any { it.id == key1.id })
         assertTrue(allKeys.any { it.id == key2.id })
@@ -202,11 +203,11 @@ class ApiKeyAuthTests {
 
     @Test
     fun fetchAllApiKeysAsync() {
-        val key1: RealmUserApiKey = provider.createApiKey("my-key")
-        val key2: RealmUserApiKey = provider.createApiKey("other-key")
+        val key1: UserApiKey = provider.createApiKey("my-key")
+        val key2: UserApiKey = provider.createApiKey("other-key")
         looperThread.runBlocking {
             provider.fetchAllApiKeys() { result ->
-                val keys: List<RealmUserApiKey> = result.orThrow
+                val keys: List<UserApiKey> = result.orThrow
                 assertEquals(2, keys.size)
                 assertTrue(keys.any { it.id == key1.id })
                 assertTrue(keys.any { it.id == key2.id })
@@ -217,7 +218,7 @@ class ApiKeyAuthTests {
 
     @Test
     fun deleteApiKey() {
-        val key1: RealmUserApiKey = provider.createApiKey("my-key")
+        val key1: UserApiKey = provider.createApiKey("my-key")
         assertNotNull(provider.fetchApiKey(key1.id))
         provider.deleteApiKey(key1.id)
         try {
@@ -248,7 +249,7 @@ class ApiKeyAuthTests {
 
     @Test
     fun deleteApiKeyAsync() {
-        val key: RealmUserApiKey = provider.createApiKey("my-key")
+        val key: UserApiKey = provider.createApiKey("my-key")
         assertNotNull(provider.fetchApiKey(key.id))
         looperThread.runBlocking {
             provider.deleteApiKeyAsync(key.id) { result ->
@@ -281,7 +282,7 @@ class ApiKeyAuthTests {
 
     @Test
     fun enableApiKey() {
-        val key: RealmUserApiKey = provider.createApiKey("my-key")
+        val key: UserApiKey = provider.createApiKey("my-key")
         provider.disableApiKey(key.id)
         assertFalse(provider.fetchApiKey(key.id).isEnabled)
         provider.enableApiKey(key.id)
@@ -290,7 +291,7 @@ class ApiKeyAuthTests {
 
     @Test
     fun enableApiKey_alreadyEnabled() {
-        val key: RealmUserApiKey = provider.createApiKey("my-key")
+        val key: UserApiKey = provider.createApiKey("my-key")
         provider.disableApiKey(key.id)
         assertFalse(provider.fetchApiKey(key.id).isEnabled)
         provider.enableApiKey(key.id)
@@ -319,7 +320,7 @@ class ApiKeyAuthTests {
 
     @Test
     fun enableApiKeyAsync() {
-        val key: RealmUserApiKey = provider.createApiKey("my-key")
+        val key: UserApiKey = provider.createApiKey("my-key")
         provider.disableApiKey(key.id)
         assertFalse(provider.fetchApiKey(key.id).isEnabled)
         looperThread.runBlocking {
@@ -348,14 +349,14 @@ class ApiKeyAuthTests {
 
     @Test
     fun disableApiKey() {
-        val key: RealmUserApiKey = provider.createApiKey("my-key")
+        val key: UserApiKey = provider.createApiKey("my-key")
         provider.disableApiKey(key.id)
         assertFalse(provider.fetchApiKey(key.id).isEnabled)
     }
 
     @Test
     fun disableApiKey_alreadyDisabled() {
-        val key: RealmUserApiKey = provider.createApiKey("my-key")
+        val key: UserApiKey = provider.createApiKey("my-key")
         provider.disableApiKey(key.id)
         assertFalse(provider.fetchApiKey(key.id).isEnabled)
         provider.disableApiKey(key.id)
@@ -382,7 +383,7 @@ class ApiKeyAuthTests {
 
     @Test
     fun disableApiKeyAsync() {
-        val key: RealmUserApiKey = provider.createApiKey("my-key")
+        val key: UserApiKey = provider.createApiKey("my-key")
         assertTrue(key.isEnabled)
         looperThread.runBlocking {
             provider.disableApiKeyAsync(key.id) { result ->

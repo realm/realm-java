@@ -29,15 +29,15 @@ import io.realm.mongodb.functions.Functions;
 
 /**
  * Internal implementation of Functions invoking the actual OS function in the context of the
- * {@link RealmUser}/{@link RealmApp}.
+ * {@link User}/{@link App}.
  */
 class FunctionsImpl extends Functions {
 
-    FunctionsImpl(RealmUser user) {
+    FunctionsImpl(User user) {
         this(user, user.getApp().getConfiguration().getDefaultCodecRegistry());
     }
 
-    FunctionsImpl(RealmUser user, CodecRegistry codecRegistry) {
+    FunctionsImpl(User user, CodecRegistry codecRegistry) {
         super(user, codecRegistry);
     }
 

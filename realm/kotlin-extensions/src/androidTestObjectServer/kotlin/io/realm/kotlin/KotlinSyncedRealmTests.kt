@@ -2,7 +2,7 @@ package io.realm.kotlin
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.*
-import io.realm.mongodb.RealmApp
+import io.realm.mongodb.App
 import io.realm.mongodb.sync.SyncConfiguration
 import org.junit.*
 import org.junit.Assert.assertEquals
@@ -15,14 +15,14 @@ class KotlinSyncedRealmTests {
     @get:Rule
     val configFactory = TestSyncConfigurationFactory()
 
-    private lateinit var app: RealmApp
+    private lateinit var app: App
     private lateinit var realm: Realm
 
     @Before
     fun setUp() {
         // FIXME
 //        Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-//        app = RealmApp("foo")
+//        app = App("foo")
 //        val user = SyncTestUtils.createTestUser(app)
 //        realm = Realm.getInstance(configFactory.createSyncConfigurationBuilder(user).build())
     }
@@ -34,7 +34,7 @@ class KotlinSyncedRealmTests {
 //            realm.close()
 //        }
 //        if (this::app.isInitialized) {
-//            RealmApp.CREATED = false
+//            App.CREATED = false
 //        }
     }
 

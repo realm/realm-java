@@ -17,7 +17,7 @@
 package io.realm;
 
 import io.realm.internal.OsRealmConfig;
-import io.realm.mongodb.RealmUser;
+import io.realm.mongodb.User;
 import io.realm.mongodb.sync.SyncConfiguration;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -27,7 +27,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
  */
 public class TestSyncConfigurationFactory extends TestRealmConfigurationFactory {
 
-    public SyncConfiguration.Builder createSyncConfigurationBuilder(RealmUser user) {
+    public SyncConfiguration.Builder createSyncConfigurationBuilder(User user) {
         return new SyncConfiguration.Builder(user, "default")
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY);
     }

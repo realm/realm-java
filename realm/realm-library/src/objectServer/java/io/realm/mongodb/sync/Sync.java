@@ -30,23 +30,23 @@ import io.realm.internal.OsRealmConfig;
 import io.realm.internal.Util;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.log.RealmLog;
-import io.realm.mongodb.RealmApp;
-import io.realm.mongodb.RealmUser;
+import io.realm.mongodb.App;
+import io.realm.mongodb.User;
 
 /**
- * Class wrapping Sync responsibilities for a {@link RealmApp}.
+ * Class wrapping Sync responsibilities for a {@link App}.
  *
  * FIXME: Better description that makes sense for end users.
  */
 @Keep
 @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
-public class RealmSync {
+public class Sync {
 
-    private final RealmApp app;
+    private final App app;
     // keeps track of SyncSession, using 'realm_path'. Java interface with the ObjectStore using the 'realm_path'
     private Map<String, SyncSession> sessions = new ConcurrentHashMap<>();
 
-    RealmSync(RealmApp app) {
+    Sync(App app) {
         this.app = app;
     }
 
@@ -146,7 +146,7 @@ public class RealmSync {
         return session;
     }
 
-    List<SyncSession> getAllSyncSessions(RealmUser user) {
+    List<SyncSession> getAllSyncSessions(User user) {
         //noinspection ConstantConditions
         if (user == null) {
             throw new IllegalArgumentException("A non-empty 'syncUser' is required.");

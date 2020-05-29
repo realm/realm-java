@@ -18,7 +18,7 @@ package io.realm.mongodb.mongo;
 
 import org.bson.codecs.configuration.CodecRegistry;
 
-import io.realm.mongodb.RealmUser;
+import io.realm.mongodb.User;
 import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsMongoClient;
 
@@ -30,10 +30,10 @@ public class MongoClient {
     private OsMongoClient osMongoClient;
     private CodecRegistry codecRegistry;
 
-    public MongoClient(final RealmUser realmUser, final String serviceName, final CodecRegistry codecRegistry) {
+    public MongoClient(final User user, final String serviceName, final CodecRegistry codecRegistry) {
         this.codecRegistry = codecRegistry;
         Util.checkEmpty(serviceName, "serviceName");
-        osMongoClient = new OsMongoClient(realmUser, serviceName);
+        osMongoClient = new OsMongoClient(user, serviceName);
     }
 
     /**

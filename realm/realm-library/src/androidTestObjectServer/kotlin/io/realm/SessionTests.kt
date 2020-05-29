@@ -27,7 +27,7 @@ import io.realm.kotlin.syncSession
 import io.realm.log.RealmLog
 import io.realm.mongodb.ErrorCode
 import io.realm.mongodb.ObjectServerError
-import io.realm.mongodb.RealmUser
+import io.realm.mongodb.User
 import io.realm.mongodb.sync.*
 import io.realm.mongodb.sync.ProgressListener
 import io.realm.rule.BlockingLooperThread
@@ -46,8 +46,8 @@ import kotlin.test.*
 @RunWith(AndroidJUnit4::class)
 class SessionTests {
     private lateinit var configuration: SyncConfiguration
-    private lateinit var app: TestRealmApp
-    private lateinit var user: RealmUser
+    private lateinit var app: TestApp
+    private lateinit var user: User
 
     @get:Rule
     val configFactory = TestSyncConfigurationFactory()
@@ -57,7 +57,7 @@ class SessionTests {
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        app = TestRealmApp()
+        app = TestApp()
         // TODO We could potentially work without a fully functioning user to speed up tests, but
         //  seems like the old  way of "faking" it, does now work for now, so using a real user.
         // user = SyncTestUtils.createTestUser(app)

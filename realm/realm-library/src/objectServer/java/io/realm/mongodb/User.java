@@ -26,7 +26,6 @@ import javax.annotation.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.mongodb.auth.ApiKeyAuth;
 import io.realm.RealmAsyncTask;
-import io.realm.mongodb.auth.RealmCredentials;
 import io.realm.internal.network.ResultHandler;
 import io.realm.internal.Util;
 import io.realm.internal.jni.OsJNIResultCallback;
@@ -41,10 +40,10 @@ import io.realm.mongodb.push.RealmPushNotifications;
 /**
  * FIXME
  */
-public class RealmUser {
+public class User {
 
     OsSyncUser osUser;
-    private final RealmApp app;
+    private final App app;
     private ApiKeyAuth apiKeyAuthProvider = null;
     private MongoClient mongoClient = null;
     private Functions functions = null;
@@ -85,7 +84,7 @@ public class RealmUser {
     }
 
 
-    RealmUser(long nativePtr, RealmApp app) {
+    User(long nativePtr, App app) {
         this.osUser = new OsSyncUser(nativePtr);
         this.app = app;
     }
@@ -184,12 +183,12 @@ public class RealmUser {
      * FIXME
      * @return
      */
-    public List<RealmUserIdentity> getIdentities() {
+    public List<UserIdentity> getIdentities() {
         Pair<String, String>[] osIdentities = osUser.getIdentities();
-        List<RealmUserIdentity> identities = new ArrayList<>(osIdentities.length);
+        List<UserIdentity> identities = new ArrayList<>(osIdentities.length);
         for (int i = 0; i < osIdentities.length; i++) {
             Pair<String, String> data = osIdentities[i];
-            identities.add(new RealmUserIdentity(data.first, data.second));
+            identities.add(new UserIdentity(data.first, data.second));
         }
         return identities;
     }
@@ -221,11 +220,11 @@ public class RealmUser {
     }
 
     /**
-     * Returns the {@link RealmApp} this user is associated with.
+     * Returns the {@link App} this user is associated with.
      *
-     * @return the {@link RealmApp} this user is associated with.
+     * @return the {@link App} this user is associated with.
      */
-    public RealmApp getApp() {
+    public App getApp() {
         return app;
     }
 
@@ -264,9 +263,9 @@ public class RealmUser {
      * <pre>
      * {@code
      * // Example
-     * RealmApp app = new RealmApp("app-id")
-     * RealmUser user = app.login(RealmCredentials.anonymous());
-     * user.linkCredentials(RealmCredentials.emailPassword("email", "password"));
+     * App app = new App("app-id")
+     * User user = app.login(Credentials.anonymous());
+     * user.linkCredentials(Credentials.emailPassword("email", "password"));
      * }
      * </pre>
      * <p>
@@ -275,18 +274,18 @@ public class RealmUser {
      *
      * @param credentials the credentials to link with the current user.
      * @throws IllegalStateException if no user is currently logged in.
-     * @return the {@link RealmUser} the credentials were linked to.
+     * @return the {@link User} the credentials were linked to.
      */
-    public RealmUser linkCredentials(RealmCredentials credentials) {
+    public User linkCredentials(Credentials credentials) {
         Util.checkNull(credentials, "credentials");
         checkLoggedIn();
-        AtomicReference<RealmUser> success = new AtomicReference<>(null);
+        AtomicReference<User> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeLinkUser(app.nativePtr, osUser.getNativePtr(), credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<RealmUser>(success, error) {
+        nativeLinkUser(app.nativePtr, osUser.getNativePtr(), credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<User>(success, error) {
             @Override
-            protected RealmUser mapSuccess(Object result) {
+            protected User mapSuccess(Object result) {
                 osUser = new OsSyncUser((long) result); // OS returns the updated user as a new one.
-                return RealmUser.this;
+                return User.this;
             }
         });
         return ResultHandler.handleResult(success, error);
@@ -301,9 +300,9 @@ public class RealmUser {
      * <pre>
      * {@code
      * // Example
-     * RealmApp app = new RealmApp("app-id")
-     * RealmUser user = app.login(RealmCredentials.anonymous());
-     * user.linkCredentials(RealmCredentials.emailPassword("email", "password"));
+     * App app = new App("app-id")
+     * User user = app.login(Credentials.anonymous());
+     * user.linkCredentials(Credentials.emailPassword("email", "password"));
      * }
      * </pre>
      * <p>
@@ -315,11 +314,11 @@ public class RealmUser {
      * always happen on the same thread as this method is called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask linkCredentialsAsync(RealmCredentials credentials, RealmApp.Callback<RealmUser> callback) {
+    public RealmAsyncTask linkCredentialsAsync(Credentials credentials, App.Callback<User> callback) {
         Util.checkLooperThread("Asynchronous linking identities is only possible from looper threads.");
-        return new RealmApp.Request<RealmUser>(RealmApp.NETWORK_POOL_EXECUTOR, callback) {
+        return new App.Request<User>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public RealmUser run() throws ObjectServerError {
+            public User run() throws ObjectServerError {
                 return linkCredentials(credentials);
             }
         }.start();
@@ -334,14 +333,14 @@ public class RealmUser {
      * @throws ObjectServerError if called from the UI thread or if the user was logged in, but
      * could not be logged out.
      */
-    public RealmUser remove() throws ObjectServerError {
+    public User remove() throws ObjectServerError {
         boolean loggedIn = isLoggedIn();
-        AtomicReference<RealmUser> success = new AtomicReference<>(null);
+        AtomicReference<User> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeRemoveUser(app.nativePtr, osUser.getNativePtr(), new OsJNIResultCallback<RealmUser>(success, error) {
+        nativeRemoveUser(app.nativePtr, osUser.getNativePtr(), new OsJNIResultCallback<User>(success, error) {
             @Override
-            protected RealmUser mapSuccess(Object result) {
-                return RealmUser.this;
+            protected User mapSuccess(Object result) {
+                return User.this;
             }
         });
         ResultHandler.handleResult(success, error);
@@ -360,11 +359,11 @@ public class RealmUser {
      * happen on the same thread as this method is called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask removeAsync(RealmApp.Callback<RealmUser> callback) {
+    public RealmAsyncTask removeAsync(App.Callback<User> callback) {
         Util.checkLooperThread("Asynchronous removal of users is only possible from looper threads.");
-        return new RealmApp.Request<RealmUser>(RealmApp.NETWORK_POOL_EXECUTOR, callback) {
+        return new App.Request<User>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public RealmUser run() throws ObjectServerError {
+            public User run() throws ObjectServerError {
                 return remove();
             }
         }.start();
@@ -380,8 +379,8 @@ public class RealmUser {
      * will be notified and user credentials will be deleted from this device.
      * <p>
      * Logging out anonymous users will remove them immediately instead of marking them as
-     * {@link RealmUser.State#LOGGED_OUT}. All other users will be marked as {@link RealmUser.State#LOGGED_OUT}
-     * and will still be returned by {@link RealmApp#allUsers()}. They can be removed completely by calling
+     * {@link User.State#LOGGED_OUT}. All other users will be marked as {@link User.State#LOGGED_OUT}
+     * and will still be returned by {@link App#allUsers()}. They can be removed completely by calling
      * {@link #remove()}.
      *
      * @throws ObjectServerError if an error occurred while trying to log the user out of the Realm
@@ -407,21 +406,21 @@ public class RealmUser {
      * will be notified and user credentials will be deleted from this device.
      * <p>
      * Logging out anonymous users will remove them immediately instead of marking them as
-     * {@link RealmUser.State#LOGGED_OUT}. All other users will be marked as {@link RealmUser.State#LOGGED_OUT}
-     * and will still be returned by {@link RealmApp#allUsers()}. They can be removed completely by calling
+     * {@link User.State#LOGGED_OUT}. All other users will be marked as {@link User.State#LOGGED_OUT}
+     * and will still be returned by {@link App#allUsers()}. They can be removed completely by calling
      * {@link #remove()}.
      *
      * @param callback callback when logging out has completed or failed. The callback will always
      * happen on the same thread as this method is called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask logOutAsync(RealmApp.Callback<RealmUser> callback) {
+    public RealmAsyncTask logOutAsync(App.Callback<User> callback) {
         Util.checkLooperThread("Asynchronous log out is only possible from looper threads.");
-        return new RealmApp.Request<RealmUser>(RealmApp.NETWORK_POOL_EXECUTOR, callback) {
+        return new App.Request<User>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public RealmUser run() throws ObjectServerError {
+            public User run() throws ObjectServerError {
                 logOut();
-                return RealmUser.this;
+                return User.this;
             }
         }.start();
     }
@@ -485,10 +484,10 @@ public class RealmUser {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RealmUser realmUser = (RealmUser) o;
+        User user = (User) o;
 
-        if (!osUser.equals(realmUser.osUser)) return false;
-        return app.equals(realmUser.app);
+        if (!osUser.equals(user.osUser)) return false;
+        return app.equals(user.app);
     }
 
     @Override

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.realm.mongodb.auth;
+package io.realm.mongodb;
 
 import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsAppCredentials;
-import io.realm.mongodb.RealmApp;
+import io.realm.mongodb.auth.EmailPasswordAuth;
 
 /**
  * Credentials represent a login with a given login provider, and are used by the MongoDB Realm to
@@ -32,11 +32,11 @@ import io.realm.mongodb.RealmApp;
  * <pre>
  * {@code
  * // Example
- * RealmApp app = new RealmApp("app-id");
- * RealmCredentials credentials = RealmCredentials.emailPassword("email", "password");
- * RealmUser user = app.loginAsync(credentials, new RealmApp.Callback<RealmUser>() {
+ * App app = new App("app-id");
+ * Credentials credentials = Credentials.emailPassword("email", "password");
+ * User user = app.loginAsync(credentials, new App.Callback<User>() {
  *   \@Override
- *   public void onResult(Result<RealmUser> result) {
+ *   public void onResult(Result<User> result) {
  *     if (result.isSuccess() {
  *       handleLogin(result.get());
  *     } else {
@@ -48,7 +48,7 @@ import io.realm.mongodb.RealmApp;
  * </pre>
  * @see <a href="https://docs.mongodb.com/stitch/authentication/providers/">Authentication Providers</a>
  */
-public class RealmCredentials {
+public class Credentials {
 
     OsAppCredentials osCredentials;
 
@@ -61,10 +61,10 @@ public class RealmCredentials {
      * The anonymous user must be linked to another real user to preserve data after a log out.
      *
      * @return a set of credentials that can be used to log into MongoDB Realm using
-     * {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)}.
+     * {@link App#loginAsync(Credentials, App.Callback)}.
      */
-    public static RealmCredentials anonymous() {
-        return new RealmCredentials(OsAppCredentials.anonymous());
+    public static Credentials anonymous() {
+        return new Credentials(OsAppCredentials.anonymous());
     }
 
     /**
@@ -74,11 +74,11 @@ public class RealmCredentials {
      *
      * @param key the API key to use for login.
      * @return a set of credentials that can be used to log into MongoDB Realm using
-     * {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)}.
+     * {@link App#loginAsync(Credentials, App.Callback)}.
      */
-    public static RealmCredentials apiKey(String key) {
+    public static Credentials apiKey(String key) {
         Util.checkEmpty(key, "id");
-        return new RealmCredentials(OsAppCredentials.apiKey(key));
+        return new Credentials(OsAppCredentials.apiKey(key));
     }
 
     /**
@@ -88,11 +88,11 @@ public class RealmCredentials {
      *
      * @param idToken the ID token generated when using your Apple login.
      * @return a set of credentials that can be used to log into MongoDB Realm using
-     * {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)}.
+     * {@link App#loginAsync(Credentials, App.Callback)}.
      */
-    public static RealmCredentials apple(String idToken) {
+    public static Credentials apple(String idToken) {
         Util.checkEmpty(idToken, "idToken");
-        return new RealmCredentials(OsAppCredentials.apple(idToken));
+        return new Credentials(OsAppCredentials.apple(idToken));
     }
 
     /**
@@ -101,12 +101,12 @@ public class RealmCredentials {
      * This provider must be enabled on MongoDB Realm to work.
      *
      * @return a set of credentials that can be used to log into MongoDB Realm using
-     * {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)}.
+     * {@link App#loginAsync(Credentials, App.Callback)}.
      */
-    public static RealmCredentials customFunction(String functionName, Object... arguments) {
+    public static Credentials customFunction(String functionName, Object... arguments) {
         // FIXME: How to check arguments?
         Util.checkEmpty(functionName, "functionName");
-        return new RealmCredentials(OsAppCredentials.customFunction(functionName, arguments));
+        return new Credentials(OsAppCredentials.customFunction(functionName, arguments));
     }
 
     /**
@@ -115,12 +115,12 @@ public class RealmCredentials {
      * @param email email of the user logging in.
      * @param password password of the user logging in.
      * @return a set of credentials that can be used to log into MongoDB Realm using
-     * {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)}.
+     * {@link App#loginAsync(Credentials, App.Callback)}.
      */
-    public static RealmCredentials emailPassword(String email, String password) {
+    public static Credentials emailPassword(String email, String password) {
         Util.checkEmpty(email, "email");
         Util.checkEmpty(password, "password");
-        return new RealmCredentials(OsAppCredentials.emailPassword(email, password));
+        return new Credentials(OsAppCredentials.emailPassword(email, password));
     }
 
     /**
@@ -130,11 +130,11 @@ public class RealmCredentials {
      *
      * @param accessToken the access token returned when logging in to Facebook.
      * @return a set of credentials that can be used to log into MongoDB Realm using
-     * {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)}.
+     * {@link App#loginAsync(Credentials, App.Callback)}.
      */
-    public static RealmCredentials facebook(String accessToken) {
+    public static Credentials facebook(String accessToken) {
         Util.checkEmpty(accessToken, "accessToken");
-        return new RealmCredentials(OsAppCredentials.facebook(accessToken));
+        return new Credentials(OsAppCredentials.facebook(accessToken));
     }
 
     /**
@@ -144,11 +144,11 @@ public class RealmCredentials {
      *
      * @param googleToken the access token returned when logging in to Google.
      * @return a set of credentials that can be used to log into MongoDB Realm using
-     * {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)}.
+     * {@link App#loginAsync(Credentials, App.Callback)}.
      */
-    public static RealmCredentials google(String googleToken) {
+    public static Credentials google(String googleToken) {
         Util.checkEmpty(googleToken, "googleToken");
-        return new RealmCredentials(OsAppCredentials.google(googleToken));
+        return new Credentials(OsAppCredentials.google(googleToken));
     }
 
     /**
@@ -159,11 +159,11 @@ public class RealmCredentials {
      *
      * @param jwtToken the jwt token returned after a custom login to a another service.
      * @return a set of credentials that can be used to log into MongoDB Realm using
-     * {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)}.
+     * {@link App#loginAsync(Credentials, App.Callback)}.
      */
-    public static RealmCredentials jwt(String jwtToken) {
+    public static Credentials jwt(String jwtToken) {
         Util.checkEmpty(jwtToken, "jwtToken");
-        return new RealmCredentials(OsAppCredentials.jwt(jwtToken));
+        return new Credentials(OsAppCredentials.jwt(jwtToken));
     }
 
     /**
@@ -184,7 +184,7 @@ public class RealmCredentials {
         return osCredentials.asJson();
     }
 
-    private RealmCredentials(OsAppCredentials credentials) {
+    private Credentials(OsAppCredentials credentials) {
         this.osCredentials = credentials;
     }
 

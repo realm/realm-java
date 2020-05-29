@@ -17,17 +17,16 @@ package io.realm
 
 import io.realm.internal.network.OkHttpNetworkTransport
 import io.realm.internal.objectstore.OsJavaNetworkTransport
-import io.realm.log.LogLevel
-import io.realm.mongodb.RealmApp
-import io.realm.mongodb.RealmAppConfiguration
+import io.realm.mongodb.App
+import io.realm.mongodb.AppConfiguration
 
 /**
- * This class wraps various methods making it easier to create an RealmApp that can be used
+ * This class wraps various methods making it easier to create an App that can be used
  * for testing.
  *
  * NOTE: This class must remain in the [io.realm] package in order to work.
  */
-class TestRealmApp(networkTransport: OsJavaNetworkTransport? = null, customizeConfig: (RealmAppConfiguration.Builder) -> Unit = {}) : RealmApp(createConfiguration()) {
+class TestApp(networkTransport: OsJavaNetworkTransport? = null, customizeConfig: (AppConfiguration.Builder) -> Unit = {}) : App(createConfiguration()) {
 
     init {
         if (networkTransport != null) {
@@ -36,8 +35,8 @@ class TestRealmApp(networkTransport: OsJavaNetworkTransport? = null, customizeCo
     }
 
     companion object {
-        fun createConfiguration(): RealmAppConfiguration {
-            return RealmAppConfiguration.Builder(initializeMongoDbRealm())
+        fun createConfiguration(): AppConfiguration {
+            return AppConfiguration.Builder(initializeMongoDbRealm())
                     .baseUrl("http://127.0.0.1:9090")
                     .appName("MongoDB Realm Integration Tests")
                     .appVersion("1.0.")

@@ -26,7 +26,7 @@ import io.realm.internal.Keep;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 
 // Common callback for handling results from the ObjectStore layer.
-// NOTE: This class is called from JNI. If renamed, adjust callbacks in RealmApp.cpp
+// NOTE: This class is called from JNI. If renamed, adjust callbacks in App.cpp
 @Keep
 public abstract class OsJNIResultCallback<T> extends OsJavaNetworkTransport.NetworkTransportJNIResultCallback {
 

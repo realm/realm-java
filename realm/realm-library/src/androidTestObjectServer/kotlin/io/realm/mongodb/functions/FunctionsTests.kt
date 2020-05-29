@@ -21,8 +21,8 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.admin.ServerAdmin
 import io.realm.mongodb.ErrorCode
-import io.realm.mongodb.RealmUser
-import io.realm.mongodb.auth.RealmCredentials
+import io.realm.mongodb.User
+import io.realm.mongodb.Credentials
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.assertFailsWithErrorCode
 import org.bson.*
@@ -61,10 +61,10 @@ class FunctionsTests {
 
     private val looperThread = BlockingLooperThread()
 
-    private lateinit var app: TestRealmApp
+    private lateinit var app: TestApp
     private lateinit var functions: Functions
 
-    private lateinit var anonUser: RealmUser
+    private lateinit var anonUser: User
     private lateinit var admin: ServerAdmin
 
     // Custom registry with support for encoding/decoding Dogs
@@ -82,9 +82,9 @@ class FunctionsTests {
     @Before
     fun setup() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        app = TestRealmApp()
+        app = TestApp()
         admin = ServerAdmin()
-        anonUser = app.login(RealmCredentials.anonymous())
+        anonUser = app.login(Credentials.anonymous())
         functions = anonUser.functions
     }
 
@@ -374,8 +374,8 @@ class FunctionsTests {
     @Test
     fun defaultCodecRegistry() {
         // TODO Maybe we should test that setting configuration specific would propagate all the way
-        //  to here, but we do not have infrastructure to easily override TestRealmApp configuration,
-        //  and actual configuration is verified in RealmAppConfigurationTests
+        //  to here, but we do not have infrastructure to easily override TestApp configuration,
+        //  and actual configuration is verified in AppConfigurationTests
         assertEquals(app.configuration.defaultCodecRegistry, functions.defaultCodecRegistry)
     }
 

@@ -37,7 +37,7 @@ import io.realm.internal.Keep;
 import io.realm.internal.Util;
 import io.realm.internal.util.Pair;
 import io.realm.log.RealmLog;
-import io.realm.mongodb.RealmUser;
+import io.realm.mongodb.User;
 
 /**
  * A session controls how data is synchronized between a single Realm on the device and the server
@@ -167,12 +167,12 @@ public class SyncSession {
     }
 
     /**
-     * Returns the {@link RealmUser} defined by the {@link SyncConfiguration} that is used to connect to
+     * Returns the {@link User} defined by the {@link SyncConfiguration} that is used to connect to
      * MongoDB Realm.
      *
-     * @return {@link RealmUser} used to authenticate the session on MongoDB Realm.
+     * @return {@link User} used to authenticate the session on MongoDB Realm.
      */
-    public RealmUser getUser() {
+    public User getUser() {
         return configuration.getUser();
     }
 
@@ -621,7 +621,7 @@ public class SyncSession {
     /**
      * Interface used to report any session errors.
      *
-     * @see RealmSync#setDefaultSessionErrorHandler(ErrorHandler)
+     * @see Sync#setDefaultSessionErrorHandler(ErrorHandler)
      * @see SyncConfiguration.Builder#errorHandler(ErrorHandler)
      */
     public interface ErrorHandler {

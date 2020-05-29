@@ -25,14 +25,15 @@ import io.realm.internal.Util;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
-import io.realm.mongodb.RealmApp;
-import io.realm.mongodb.RealmUser;
+import io.realm.mongodb.App;
+import io.realm.mongodb.Credentials;
+import io.realm.mongodb.User;
 
-import static io.realm.mongodb.RealmApp.NETWORK_POOL_EXECUTOR;
+import static io.realm.mongodb.App.NETWORK_POOL_EXECUTOR;
 
 /**
- * Class encapsulating functionality provided when {@link RealmUser}'s are logged in through the
- * {@link RealmCredentials.IdentityProvider#EMAIL_PASSWORD} provider.
+ * Class encapsulating functionality provided when {@link User}'s are logged in through the
+ * {@link Credentials.IdentityProvider#EMAIL_PASSWORD} provider.
  */
 public class EmailPasswordAuth {
 
@@ -43,13 +44,13 @@ public class EmailPasswordAuth {
     private static final int TYPE_CALL_RESET_PASSWORD_FUNCTION = 5;
     private static final int TYPE_RESET_PASSWORD = 6;
 
-    private final RealmApp app;
+    private final App app;
 
     /**
      * Creates an authentication provider exposing functionality to using an email and password
      * for login into a Realm Application.
      */
-    public EmailPasswordAuth(RealmApp app) {
+    public EmailPasswordAuth(App app) {
         this.app = app;
     }
 
@@ -85,9 +86,9 @@ public class EmailPasswordAuth {
      * @throws IllegalStateException if called from a non-looper thread.
      * @throws ObjectServerError if the server failed to register the user.
      */
-    public RealmAsyncTask registerUserAsync(String email, String password, RealmApp.Callback<Void> callback) {
+    public RealmAsyncTask registerUserAsync(String email, String password, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous registration of a user is only possible from looper threads.");
-        return new RealmApp.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+        return new App.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 registerUser(email, password);
@@ -123,9 +124,9 @@ public class EmailPasswordAuth {
      * happen on the same thread as this method is called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask confirmUserAsync(String token, String tokenId, RealmApp.Callback<Void> callback) {
+    public RealmAsyncTask confirmUserAsync(String token, String tokenId, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous confirmation of a user is only possible from looper threads.");
-        return new RealmApp.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+        return new App.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 confirmUser(token, tokenId);
@@ -158,9 +159,9 @@ public class EmailPasswordAuth {
      * always happen on the same thread as this method is called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask resendConfirmationEmailAsync(String email, RealmApp.Callback<Void> callback) {
+    public RealmAsyncTask resendConfirmationEmailAsync(String email, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous resending the confirmation email is only possible from looper threads.");
-        return new RealmApp.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+        return new App.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 resendConfirmationEmail(email);
@@ -193,9 +194,9 @@ public class EmailPasswordAuth {
      * always happen on the same thread as this method is called on.
      * @throws ObjectServerError if the server failed to confirm the user.
      */
-    public RealmAsyncTask sendResetPasswordEmailAsync(String email, RealmApp.Callback<Void> callback) {
+    public RealmAsyncTask sendResetPasswordEmailAsync(String email, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous sending the reset password email is only possible from looper threads.");
-        return new RealmApp.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+        return new App.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 sendResetPasswordEmail(email);
@@ -206,7 +207,7 @@ public class EmailPasswordAuth {
 
     /**
      * Call the reset password function configured to the
-     * {@link RealmCredentials.IdentityProvider#EMAIL_PASSWORD} provider.
+     * {@link Credentials.IdentityProvider#EMAIL_PASSWORD} provider.
      *
      * @param email the email of the user.
      * @param newPassword the new password of the user.
@@ -228,7 +229,7 @@ public class EmailPasswordAuth {
 
     /**
      * Call the reset password function configured to the
-     * {@link RealmCredentials.IdentityProvider#EMAIL_PASSWORD} provider.
+     * {@link Credentials.IdentityProvider#EMAIL_PASSWORD} provider.
      *
      * @param email the email of the user.
      * @param newPassword the new password of the user.
@@ -238,9 +239,9 @@ public class EmailPasswordAuth {
      * happen on the same thread as this this method is called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask callResetPasswordFunctionAsync(String email, String newPassword, Object[] args, RealmApp.Callback<Void> callback) {
+    public RealmAsyncTask callResetPasswordFunctionAsync(String email, String newPassword, Object[] args, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous calling the password reset function is only possible from looper threads.");
-        return new RealmApp.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+        return new App.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 callResetPasswordFunction(email, newPassword, args);
@@ -281,9 +282,9 @@ public class EmailPasswordAuth {
      * happen on the same thread as this this method is called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask resetPasswordAsync(String token, String tokenId, String newPassword, RealmApp.Callback<Void> callback) {
+    public RealmAsyncTask resetPasswordAsync(String token, String tokenId, String newPassword, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous reset of a password is only possible from looper threads.");
-        return new RealmApp.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+        return new App.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 resetPassword(token, tokenId, newPassword);

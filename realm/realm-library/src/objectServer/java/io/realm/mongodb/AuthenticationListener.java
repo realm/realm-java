@@ -16,8 +16,6 @@
 
 package io.realm.mongodb;
 
-import io.realm.mongodb.RealmUser;
-
 /**
  * Interface describing events related to Users and their authentication
  */
@@ -25,14 +23,14 @@ public interface AuthenticationListener {
     /**
      * A user was logged into the Object Server
      *
-     * @param user {@link RealmUser} that is now logged in.
+     * @param user {@link User} that is now logged in.
      */
-    void loggedIn(RealmUser user);
+    void loggedIn(User user);
 
     /**
      * A user was successfully logged out from the Object Server.
      *
-     * @param user {@link RealmUser} that was successfully logged out.
+     * @param user {@link User} that was successfully logged out.
      */
-    void loggedOut(RealmUser user);
+    void loggedOut(User user);
 }

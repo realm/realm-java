@@ -25,16 +25,15 @@ import javax.annotation.Nullable;
 
 import io.realm.mongodb.ObjectServerError;
 import io.realm.RealmAsyncTask;
-import io.realm.mongodb.RealmUserApiKey;
 import io.realm.internal.network.ResultHandler;
 import io.realm.internal.Util;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
-import io.realm.mongodb.RealmApp;
-import io.realm.mongodb.RealmUser;
+import io.realm.mongodb.App;
+import io.realm.mongodb.User;
 
-import static io.realm.mongodb.RealmApp.NETWORK_POOL_EXECUTOR;
+import static io.realm.mongodb.App.NETWORK_POOL_EXECUTOR;
 
 /**
  * This class exposes functionality for a user to manage API keys under their control.
@@ -48,22 +47,22 @@ public class ApiKeyAuth {
     private static final int TYPE_DISABLE = 5;
     private static final int TYPE_ENABLE = 6;
 
-    private final RealmUser user;
+    private final User user;
 
     /**
      * Create an instance of this class for a specific user.
      *
      * @param user user that is controlling the API keys.
      */
-    public ApiKeyAuth(RealmUser user) {
+    public ApiKeyAuth(User user) {
         this.user = user;
     }
 
-    public RealmUser getUser() {
+    public User getUser() {
         return user;
     }
 
-    public RealmApp getApp() {
+    public App getApp() {
         return user.getApp();
     }
 
@@ -78,13 +77,13 @@ public class ApiKeyAuth {
      * @throws ObjectServer if the server failed to create the API key.
      * @return the new API key for the user.
      */
-    public RealmUserApiKey createApiKey(String name) throws ObjectServerError {
+    public UserApiKey createApiKey(String name) throws ObjectServerError {
         Util.checkEmpty(name, "name");
-        AtomicReference<RealmUserApiKey> success = new AtomicReference<>(null);
+        AtomicReference<UserApiKey> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        OsJNIResultCallback<RealmUserApiKey> callback = new OsJNIResultCallback<RealmUserApiKey>(success, error) {
+        OsJNIResultCallback<UserApiKey> callback = new OsJNIResultCallback<UserApiKey>(success, error) {
             @Override
-            protected RealmUserApiKey mapSuccess(Object result) {
+            protected UserApiKey mapSuccess(Object result) {
                 return createKeyFromNative((Object[]) result);
             }
         };
@@ -104,11 +103,11 @@ public class ApiKeyAuth {
      * happen on the same thread as this method is called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask createApiKeyAsync(String name, RealmApp.Callback<RealmUserApiKey> callback) {
+    public RealmAsyncTask createApiKeyAsync(String name, App.Callback<UserApiKey> callback) {
         Util.checkLooperThread("Asynchronous creation of api keys are only possible from looper threads.");
-        return new RealmApp.Request<RealmUserApiKey>(NETWORK_POOL_EXECUTOR, callback) {
+        return new App.Request<UserApiKey>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public RealmUserApiKey run() throws ObjectServerError {
+            public UserApiKey run() throws ObjectServerError {
                 return createApiKey(name);
             }
         }.start();
@@ -120,13 +119,13 @@ public class ApiKeyAuth {
      * @param id the id of the key to fetch.
      * @throws ObjectServer if the server failed to fetch the API key.
      */
-    public RealmUserApiKey fetchApiKey(ObjectId id) throws ObjectServerError {
+    public UserApiKey fetchApiKey(ObjectId id) throws ObjectServerError {
         Util.checkNull(id, "id");
-        AtomicReference<RealmUserApiKey> success = new AtomicReference<>(null);
+        AtomicReference<UserApiKey> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeCallFunction(TYPE_FETCH_SINGLE, user.getApp().nativePtr, user.osUser.getNativePtr(), id.toHexString(), new OsJNIResultCallback<RealmUserApiKey>(success, error) {
+        nativeCallFunction(TYPE_FETCH_SINGLE, user.getApp().nativePtr, user.osUser.getNativePtr(), id.toHexString(), new OsJNIResultCallback<UserApiKey>(success, error) {
             @Override
-            protected RealmUserApiKey mapSuccess(Object result) {
+            protected UserApiKey mapSuccess(Object result) {
                 return createKeyFromNative((Object[]) result);
             }
         });
@@ -141,11 +140,11 @@ public class ApiKeyAuth {
      * will always happen on the same thread as this method was called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask fetchApiKeyAsync(ObjectId id, RealmApp.Callback<RealmUserApiKey> callback) {
+    public RealmAsyncTask fetchApiKeyAsync(ObjectId id, App.Callback<UserApiKey> callback) {
         Util.checkLooperThread("Asynchronous fetching an api key is only possible from looper threads.");
-        return new RealmApp.Request<RealmUserApiKey>(NETWORK_POOL_EXECUTOR, callback) {
+        return new App.Request<UserApiKey>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public RealmUserApiKey run() throws ObjectServerError {
+            public UserApiKey run() throws ObjectServerError {
                 return fetchApiKey(id);
             }
         }.start();
@@ -156,14 +155,14 @@ public class ApiKeyAuth {
      *
      * @throws ObjectServer if the server failed to fetch the API keys.
      */
-    public List<RealmUserApiKey> fetchAllApiKeys() throws ObjectServerError {
-        AtomicReference<List<RealmUserApiKey>> success = new AtomicReference<>(null);
+    public List<UserApiKey> fetchAllApiKeys() throws ObjectServerError {
+        AtomicReference<List<UserApiKey>> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeCallFunction(TYPE_FETCH_ALL, user.getApp().nativePtr, user.osUser.getNativePtr(), null, new OsJNIResultCallback<List<RealmUserApiKey>>(success, error) {
+        nativeCallFunction(TYPE_FETCH_ALL, user.getApp().nativePtr, user.osUser.getNativePtr(), null, new OsJNIResultCallback<List<UserApiKey>>(success, error) {
             @Override
-            protected List<RealmUserApiKey> mapSuccess(Object result) {
+            protected List<UserApiKey> mapSuccess(Object result) {
                 Object[] keyData = (Object[]) result;
-                List<RealmUserApiKey> list = new ArrayList<>();
+                List<UserApiKey> list = new ArrayList<>();
                 for (int i = 0; i < keyData.length; i++) {
                     list.add(createKeyFromNative((Object[]) keyData[i]));
                 }
@@ -181,11 +180,11 @@ public class ApiKeyAuth {
      * will always happen on the same thread as this method was called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask fetchAllApiKeys(RealmApp.Callback<List<RealmUserApiKey>> callback) {
+    public RealmAsyncTask fetchAllApiKeys(App.Callback<List<UserApiKey>> callback) {
         Util.checkLooperThread("Asynchronous fetching an api key is only possible from looper threads.");
-        return new RealmApp.Request<List<RealmUserApiKey>>(NETWORK_POOL_EXECUTOR, callback) {
+        return new App.Request<List<UserApiKey>>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public List<RealmUserApiKey> run() throws ObjectServerError {
+            public List<UserApiKey> run() throws ObjectServerError {
                 return fetchAllApiKeys();
             }
         }.start();
@@ -212,9 +211,9 @@ public class ApiKeyAuth {
      * will always happen on the same thread as this method was called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask deleteApiKeyAsync(ObjectId id, RealmApp.Callback<Void> callback) {
+    public RealmAsyncTask deleteApiKeyAsync(ObjectId id, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous deleting an api key is only possible from looper threads.");
-        return new RealmApp.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+        return new App.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 deleteApiKey(id);
@@ -244,9 +243,9 @@ public class ApiKeyAuth {
      * will always happen on the same thread as this method was called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask disableApiKeyAsync(ObjectId id, RealmApp.Callback<Void> callback) {
+    public RealmAsyncTask disableApiKeyAsync(ObjectId id, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous disabling an api key is only possible from looper threads.");
-        return new RealmApp.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+        return new App.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 disableApiKey(id);
@@ -276,9 +275,9 @@ public class ApiKeyAuth {
      * will always happen on the same thread as this method was called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask enableApiKeyAsync(ObjectId id, RealmApp.Callback<Void> callback) {
+    public RealmAsyncTask enableApiKeyAsync(ObjectId id, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous enabling an api key is only possible from looper threads.");
-        return new RealmApp.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+        return new App.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 enableApiKey(id);
@@ -287,8 +286,8 @@ public class ApiKeyAuth {
         }.start();
     }
 
-    private RealmUserApiKey createKeyFromNative(Object[] keyData) {
-        return new RealmUserApiKey(new ObjectId((String) keyData[0]),
+    private UserApiKey createKeyFromNative(Object[] keyData) {
+        return new UserApiKey(new ObjectId((String) keyData[0]),
                 (String) keyData[1],
                 (String) keyData[2],
                 !(Boolean) keyData[3]); // Server returns disabled state instead of enabled

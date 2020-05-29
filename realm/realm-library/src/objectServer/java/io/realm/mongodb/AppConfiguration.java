@@ -43,27 +43,27 @@ import io.realm.internal.Util;
 import io.realm.log.RealmLog;
 
 /**
- * A RealmAppConfiguration is used to setup a MongoDB Realm application.
+ * A AppConfiguration is used to setup a MongoDB Realm application.
  * <p>
- * Instances of a RealmAppConfiguration can only created by using the
- * {@link io.realm.RealmAppConfiguration.Builder} and calling its
- * {@link io.realm.RealmAppConfiguration.Builder#build()} method.
+ * Instances of a AppConfiguration can only created by using the
+ * {@link AppConfiguration.Builder} and calling its
+ * {@link AppConfiguration.Builder#build()} method.
  * <p>
- * Configuring a RealmApp is only required if the default settings are not enough. Otherwise calling
- * {@code new RealmApp("app-id")} is sufficient.
+ * Configuring a App is only required if the default settings are not enough. Otherwise calling
+ * {@code new App("app-id")} is sufficient.
  */
-public class RealmAppConfiguration {
+public class AppConfiguration {
 
     /**
      * The default url for MongoDB Realm applications.
-     * 
+     *
      * @see Builder#baseUrl(String)
      */
     public final static String DEFAULT_BASE_URL = "https://realm-dev.mongodb.com";  //FIXME change to production url before beta release
 
     /**
      * The default request timeout for network requests towards MongoDB Realm in seconds.
-     * 
+     *
      * @see Builder#requestTimeout(long, TimeUnit)
      */
     public final static long DEFAULT_REQUEST_TIMEOUT = 60;
@@ -77,8 +77,8 @@ public class RealmAppConfiguration {
     /**
      * Default BSON codec registry for encoding/decoding arguments and results to/from MongoDB Realm backend.
      *
-     * @see RealmAppConfiguration#getDefaultCodecRegistry()
-     * @see RealmAppConfiguration.Builder#codecRegistry(CodecRegistry)
+     * @see AppConfiguration#getDefaultCodecRegistry()
+     * @see AppConfiguration.Builder#codecRegistry(CodecRegistry)
      * @see ValueCodecProvider
      * @see BsonValueCodecProvider
      * @see IterableCodecProvider
@@ -110,17 +110,17 @@ public class RealmAppConfiguration {
     private final File syncRootDir; // Root directory for storing Sync related files
     private final CodecRegistry codecRegistry;
 
-    private RealmAppConfiguration(String appId,
-                                 String appName,
-                                 String appVersion,
-                                 URL baseUrl,
+    private AppConfiguration(String appId,
+                             String appName,
+                             String appVersion,
+                             URL baseUrl,
                                  SyncSession.ErrorHandler defaultErrorHandler,
                                  @Nullable byte[] encryptionKey,
-                                 long requestTimeoutMs,
-                                 String authorizationHeaderName,
-                                 Map<String, String> customHeaders,
-                                 File syncRootdir,
-                                 CodecRegistry codecRegistry) {
+                             long requestTimeoutMs,
+                             String authorizationHeaderName,
+                             Map<String, String> customHeaders,
+                             File syncRootdir,
+                             CodecRegistry codecRegistry) {
 
         this.appId = appId;
         this.appName = appName;
@@ -217,7 +217,7 @@ public class RealmAppConfiguration {
     public CodecRegistry getDefaultCodecRegistry() { return codecRegistry; }
 
     /**
-     * Builder used to construct instances of a {@link RealmAppConfiguration} in a fluent manner.
+     * Builder used to construct instances of a {@link AppConfiguration} in a fluent manner.
      */
     public static class Builder {
 
@@ -256,7 +256,7 @@ public class RealmAppConfiguration {
         private CodecRegistry codecRegistry = DEFAULT_BSON_CODEC_REGISTRY;
 
         /**
-         * Creates an instance of the Builder for the RealmAppConfiguration.
+         * Creates an instance of the Builder for the AppConfiguration.
          *
          * @param appId the application id of the MongoDB Realm Application.
          */
@@ -331,7 +331,7 @@ public class RealmAppConfiguration {
         /**
          * Sets the default timeout used by network requests against the MongoDB Realm application.
          * Requests will terminate with a failure if they exceed this limit. The default value is
-         * {@link RealmAppConfiguration#DEFAULT_REQUEST_TIMEOUT} seconds.
+         * {@link AppConfiguration#DEFAULT_REQUEST_TIMEOUT} seconds.
          *
          * @param time the timeout value for network requests.
          * @param unit the unit of time used to define the timeout.
@@ -438,7 +438,7 @@ public class RealmAppConfiguration {
                 throw new IllegalArgumentException(baseUrl);
             }
         }
-        
+
         // FIXME Doc
         public Builder codecRegistry(CodecRegistry codecRegistry) {
             Util.checkNull(codecRegistry, "codecRegistry");
@@ -447,12 +447,12 @@ public class RealmAppConfiguration {
         }
 
         /**
-         * Creates the RealmAppConfiguration.
+         * Creates the AppConfiguration.
          *
-         * @return the RealmAppConfiguration that can be used to create a {@link RealmApp}.
+         * @return the AppConfiguration that can be used to create a {@link App}.
          */
-        public RealmAppConfiguration build() {
-            return new RealmAppConfiguration(appId,
+        public AppConfiguration build() {
+            return new AppConfiguration(appId,
                     appName,
                     appVersion,
                     baseUrl,

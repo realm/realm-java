@@ -26,7 +26,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import io.realm.CompactOnLaunchCallback;
-import io.realm.mongodb.RealmAppConfiguration;
+import io.realm.mongodb.AppConfiguration;
 import io.realm.RealmConfiguration;
 import io.realm.log.RealmLog;
 

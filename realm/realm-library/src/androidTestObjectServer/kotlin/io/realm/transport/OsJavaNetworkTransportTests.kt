@@ -21,9 +21,9 @@ import io.realm.*
 import io.realm.internal.objectstore.OsJavaNetworkTransport
 import io.realm.mongodb.ErrorCode
 import io.realm.mongodb.ObjectServerError
-import io.realm.mongodb.RealmApp
-import io.realm.mongodb.RealmUser
-import io.realm.mongodb.auth.RealmCredentials
+import io.realm.mongodb.App
+import io.realm.mongodb.User
+import io.realm.mongodb.Credentials
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -41,7 +41,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class OsJavaNetworkTransportTests {
 
-    private lateinit var app: RealmApp
+    private lateinit var app: App
     private val successHeaders: Map<String, String> = mapOf(Pair("Content-Type", "application/json"))
 
     @Before
@@ -59,10 +59,10 @@ class OsJavaNetworkTransportTests {
     // Test that the round trip works in case of a successful HTTP request.
     @Test
     fun requestSuccess() {
-        app = TestRealmApp(object: OsJavaNetworkTransport() {
+        app = TestApp(object: OsJavaNetworkTransport() {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
                 var result = ""
-                if (url.endsWith("/providers/${RealmCredentials.IdentityProvider.ANONYMOUS.id}/login")) {
+                if (url.endsWith("/providers/${Credentials.IdentityProvider.ANONYMOUS.id}/login")) {
                     result = """
                         {
                             "access_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjVlNjk2M2RmYWZlYTYzMjU0NTgxYzAyNiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODM5NjcyMDgsImlhdCI6MTU4Mzk2NTQwOCwiaXNzIjoiNWU2OTY0ZTBhZmVhNjMyNTQ1ODFjMWEzIiwic3RpdGNoX2RldklkIjoiMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwIiwic3RpdGNoX2RvbWFpbklkIjoiNWU2OTYzZGVhZmVhNjMyNTQ1ODFjMDI1Iiwic3ViIjoiNWU2OTY0ZTBhZmVhNjMyNTQ1ODFjMWExIiwidHlwIjoiYWNjZXNzIn0.J4mp8LnlsxTQRV_7W2Er4qY0tptR76PJGG1k6HSMmUYqgfpJC2Fnbcf1VCoebzoNolH2-sr8AHDVBBCyjxRjqoY9OudFHmWZKmhDV1ysxPP4XmID0nUuN45qJSO8QEAqoOmP1crXjrUZWedFw8aaCZE-bxYfvcDHyjBcbNKZqzawwUw2PyTOlrNjgs01k2J4o5a5XzYkEsJuzr4_8UqKW6zXvYj24UtqnqoYatW5EzpX63m2qig8AcBwPK4ZHb5wEEUdf4QZxkRY5QmTgRHP8SSqVUB_mkHgKaizC_tSB3E0BekaDfLyWVC1taAstXJNfzgFtLI86AzuXS2dCiCfqQ",
@@ -113,8 +113,8 @@ class OsJavaNetworkTransportTests {
             }
         })
 
-        val creds = RealmCredentials.anonymous()
-        val user: RealmUser = app.login(creds)
+        val creds = Credentials.anonymous()
+        val user: User = app.login(creds)
         assertNotNull(user)
     }
 
@@ -122,7 +122,7 @@ class OsJavaNetworkTransportTests {
     // to the user as an exception.
     @Test
     fun requestFailWithServerError() {
-        app = TestRealmApp(object: OsJavaNetworkTransport() {
+        app = TestApp(object: OsJavaNetworkTransport() {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
                 val result = """
                     {
@@ -135,7 +135,7 @@ class OsJavaNetworkTransportTests {
             }
         })
 
-        val creds = RealmCredentials.emailPassword("foo", "bar")
+        val creds = Credentials.emailPassword("foo", "bar")
         try {
             app.login(creds)
             fail()
@@ -149,13 +149,13 @@ class OsJavaNetworkTransportTests {
     // to the user.
     @Test
     fun requestFailWithHttpError() {
-        app = TestRealmApp(object: OsJavaNetworkTransport() {
+        app = TestApp(object: OsJavaNetworkTransport() {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
                 return Response.httpResponse(500, mapOf(), "Boom!")
             }
         })
 
-        val creds = RealmCredentials.anonymous()
+        val creds = Credentials.anonymous()
         try {
             app.login(creds)
             fail()
@@ -168,13 +168,13 @@ class OsJavaNetworkTransportTests {
     // Test that custom error codes thrown from the Java transport are correctly reported back to the user.
     @Test
     fun requestFailWithCustomError() {
-        app = TestRealmApp(object: OsJavaNetworkTransport() {
+        app = TestApp(object: OsJavaNetworkTransport() {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
                 return Response.ioError("Boom!")
             }
         })
 
-        val creds = RealmCredentials.anonymous()
+        val creds = Credentials.anonymous()
         try {
             app.login(creds)
             fail()
@@ -189,13 +189,13 @@ class OsJavaNetworkTransportTests {
     // to the user.
     @Test
     fun requestFailWithTransportException() {
-        app = TestRealmApp(object: OsJavaNetworkTransport() {
+        app = TestApp(object: OsJavaNetworkTransport() {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
                 throw IllegalStateException("Boom!")
             }
         })
 
-        val creds = RealmCredentials.anonymous()
+        val creds = Credentials.anonymous()
         try {
             app.login(creds)
             fail()
@@ -207,13 +207,13 @@ class OsJavaNetworkTransportTests {
     // Test that if the Java transport throws a fatal error it is correctly returned to the user.
     @Test
     fun requestFailWithTransportError() {
-        app = TestRealmApp(object: OsJavaNetworkTransport() {
+        app = TestApp(object: OsJavaNetworkTransport() {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
                 throw Error("Boom!")
             }
         })
 
-        val creds = RealmCredentials.anonymous()
+        val creds = Credentials.anonymous()
         try {
             app.login(creds)
             fail()

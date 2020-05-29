@@ -15,24 +15,22 @@
  */
 package io.realm.mongodb;
 
-import io.realm.mongodb.auth.RealmCredentials;
-
 /**
- * Each RealmUser is represented by 1 or more identities each defined by an
- * {@link RealmCredentials.IdentityProvider}.
+ * Each User is represented by 1 or more identities each defined by an
+ * {@link Credentials.IdentityProvider}.
  *
  * This class represents the identity defined by a specific provider.
  */
-public class RealmUserIdentity {
+public class UserIdentity {
 
     private final String userId;
     private final String providerId;
-    private final RealmCredentials.IdentityProvider provider;
+    private final Credentials.IdentityProvider provider;
 
-    RealmUserIdentity(String id, String providerId) {
+    UserIdentity(String id, String providerId) {
         this.userId = id;
         this.providerId = providerId;
-        this.provider = RealmCredentials.IdentityProvider.fromId(providerId);
+        this.provider = Credentials.IdentityProvider.fromId(providerId);
     }
 
     /**
@@ -49,7 +47,7 @@ public class RealmUserIdentity {
      *
      * @return
      */
-    public RealmCredentials.IdentityProvider getProvider() {
+    public Credentials.IdentityProvider getProvider() {
         return provider;
     }
 
@@ -58,7 +56,7 @@ public class RealmUserIdentity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RealmUserIdentity that = (RealmUserIdentity) o;
+        UserIdentity that = (UserIdentity) o;
 
         if (!userId.equals(that.userId)) return false;
         if (!providerId.equals(that.providerId)) return false;
@@ -75,7 +73,7 @@ public class RealmUserIdentity {
 
     @Override
     public String toString() {
-        return "RealmUserIdentity{" +
+        return "UserIdentity{" +
                 "userId='" + userId + '\'' +
                 ", providerId='" + providerId + '\'' +
                 '}';

@@ -31,8 +31,9 @@ import java.io.IOException;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
-import io.realm.mongodb.RealmApp;
-import io.realm.mongodb.RealmUser;
+import io.realm.mongodb.App;
+import io.realm.mongodb.AppExtKt;
+import io.realm.mongodb.User;
 import io.realm.mongodb.sync.SyncConfiguration;
 import io.realm.rule.RunInLooperThread;
 
@@ -44,7 +45,7 @@ import static org.junit.Assert.fail;
 /**
  * Testing sync specific methods on {@link Realm}.
  */
-@Ignore("FIXME: RealmApp refactor")
+@Ignore("FIXME: App refactor")
 @RunWith(AndroidJUnit4.class)
 public class SyncedRealmTests {
 
@@ -58,11 +59,11 @@ public class SyncedRealmTests {
     public final ExpectedException thrown = ExpectedException.none();
 
     private Realm realm;
-    private RealmApp app;
+    private App app;
 
     @Before
     public void setUp() {
-        app = new TestRealmApp();
+        app = new TestApp();
     }
 
     @After
@@ -71,7 +72,7 @@ public class SyncedRealmTests {
             realm.close();
         }
         if (app != null) {
-            RealmAppExtKt.close(app);
+            AppExtKt.close(app);
         }
     }
 
@@ -92,7 +93,7 @@ public class SyncedRealmTests {
     @Test
     @Ignore("Going to be removed anyway")
     public void testUpgradingOptionalSubscriptionFields() throws IOException {
-        RealmUser user = SyncTestUtils.createTestUser(app);
+        User user = SyncTestUtils.createTestUser(app);
 
         // Put an older Realm at the location where Realm would otherwise create a new empty one.
         // This way, Realm will upgrade this file instead.
@@ -136,7 +137,7 @@ public class SyncedRealmTests {
 
     @Test
     public void compactOnLaunch_shouldCompact() throws IOException {
-        RealmUser user = SyncTestUtils.createTestUser(app);
+        User user = SyncTestUtils.createTestUser(app);
 
         // Fill Realm with data and record size
         SyncConfiguration config1 = configFactory.createSyncConfigurationBuilder(user).build();

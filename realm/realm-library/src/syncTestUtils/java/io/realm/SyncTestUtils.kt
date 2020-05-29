@@ -19,9 +19,9 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.internal.objectstore.OsJavaNetworkTransport
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
-import io.realm.mongodb.RealmApp
-import io.realm.mongodb.RealmUser
-import io.realm.mongodb.auth.RealmCredentials
+import io.realm.mongodb.App
+import io.realm.mongodb.User
+import io.realm.mongodb.Credentials
 import io.realm.mongodb.sync.SyncConfiguration
 import io.realm.objectserver.utils.UserFactory
 import java.io.File
@@ -51,7 +51,7 @@ class SyncTestUtils {
                 // in order to be able to fully re-initialize.
 
                 // This will set the 'm_metadata_manager' in 'sync_manager.cpp' to be 'null'
-                // causing the RealmUser to remain in memory.
+                // causing the User to remain in memory.
                 // They're actually not persisted into disk.
                 // move this call to 'tearDown' to clean in-memory & on-disk users
                 // once https://github.com/realm/realm-object-store/issues/207 is resolved
@@ -81,7 +81,7 @@ class SyncTestUtils {
 
         @JvmStatic
         @JvmOverloads
-        fun createTestUser(app: RealmApp, userIdentifier: String = UUID.randomUUID().toString()): RealmUser {
+        fun createTestUser(app: App, userIdentifier: String = UUID.randomUUID().toString()): User {
             val transportBackup = app.networkTransport
             app.networkTransport = object : OsJavaNetworkTransport() {
                 override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: Map<String, String>, body: String): Response {
@@ -134,7 +134,7 @@ class SyncTestUtils {
                     }
                 }
             }
-            val user = app.login(RealmCredentials.anonymous())
+            val user = app.login(Credentials.anonymous())
             app.networkTransport = transportBackup
             return user
         }

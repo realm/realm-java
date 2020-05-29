@@ -23,7 +23,7 @@ import io.realm.entities.StringOnlyModule
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import io.realm.mongodb.ObjectServerError
-import io.realm.mongodb.RealmUser
+import io.realm.mongodb.User
 import io.realm.mongodb.sync.ClientResyncMode
 import io.realm.mongodb.sync.SyncConfiguration
 import io.realm.mongodb.sync.SyncSession
@@ -44,12 +44,12 @@ class SyncConfigurationTests {
     @get:Rule
     val configFactory = TestSyncConfigurationFactory()
 
-    private lateinit var app: TestRealmApp
+    private lateinit var app: TestApp
 
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        app = TestRealmApp()
+        app = TestApp()
     }
 
     @After
@@ -71,28 +71,28 @@ class SyncConfigurationTests {
 
     @Test
     fun errorHandler_fromSyncManager() {
-        val user: RealmUser = createTestUser(app)
+        val user: User = createTestUser(app)
         val config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
         assertEquals(app.configuration.defaultErrorHandler, config.errorHandler)
     }
 
     @Test
     fun errorHandler_nullThrows() {
-        val user: RealmUser = createTestUser(app)
+        val user: User = createTestUser(app)
         val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
         assertFailsWith<IllegalArgumentException> { builder.errorHandler(TestHelper.getNull())  }
     }
 
     @Test
     fun equals() {
-        val user: RealmUser = createTestUser(app)
+        val user: User = createTestUser(app)
         val config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
         assertTrue(config == config)
     }
 
     @Test
     fun equals_same() {
-        val user: RealmUser = createTestUser(app)
+        val user: User = createTestUser(app)
         val config1: SyncConfiguration = SyncConfiguration.Builder(user, DEFAULT_PARTITION).build()
         val config2: SyncConfiguration = SyncConfiguration.Builder(user, DEFAULT_PARTITION).build()
         assertTrue(config1 == config2)
@@ -100,8 +100,8 @@ class SyncConfigurationTests {
 
     @Test
     fun equals_not() {
-        val user1: RealmUser = createTestUser(app)
-        val user2: RealmUser = createTestUser(app)
+        val user1: User = createTestUser(app)
+        val user2: User = createTestUser(app)
         val config1: SyncConfiguration = SyncConfiguration.Builder(user1, DEFAULT_PARTITION).build()
         val config2: SyncConfiguration = SyncConfiguration.Builder(user2, DEFAULT_PARTITION).build()
         assertFalse(config1 == config2)
@@ -109,15 +109,15 @@ class SyncConfigurationTests {
 
     @Test
     fun hashCode_equal() {
-        val user: RealmUser = createTestUser(app)
+        val user: User = createTestUser(app)
         val config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
         assertEquals(config.hashCode(), config.hashCode())
     }
 
     @Test
     fun hashCode_notEquals() {
-        val user1: RealmUser = createTestUser(app)
-        val user2: RealmUser = createTestUser(app)
+        val user1: User = createTestUser(app)
+        val user2: User = createTestUser(app)
         val config1: SyncConfiguration = SyncConfiguration.defaultConfig(user1, DEFAULT_PARTITION)
         val config2: SyncConfiguration = SyncConfiguration.defaultConfig(user2, DEFAULT_PARTITION)
         assertNotEquals(config1.hashCode(), config2.hashCode())
@@ -125,7 +125,7 @@ class SyncConfigurationTests {
 
     @Test
     fun get_syncSpecificValues() {
-        val user: RealmUser = createTestUser(app)
+        val user: User = createTestUser(app)
         val config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
         assertTrue(user == config.user)
         assertEquals("ws://127.0.0.1:9090/", config.serverUrl.toString()) // FIXME: Figure out exactly what to return here
@@ -135,7 +135,7 @@ class SyncConfigurationTests {
 
     @Test
     fun encryption() {
-        val user: RealmUser = createTestUser(app)
+        val user: User = createTestUser(app)
         val config: SyncConfiguration = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
                 .encryptionKey(TestHelper.getRandomKey())
                 .build()
@@ -144,21 +144,21 @@ class SyncConfigurationTests {
 
     @Test
     fun encryption_invalid_null() {
-        val user: RealmUser = createTestUser(app)
+        val user: User = createTestUser(app)
         val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
         assertFailsWith<IllegalArgumentException> { builder.encryptionKey(TestHelper.getNull()) }
     }
 
     @Test
     fun encryption_invalid_wrong_length() {
-        val user: RealmUser = createTestUser(app)
+        val user: User = createTestUser(app)
         val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
         assertFailsWith<IllegalArgumentException> { builder.encryptionKey(byteArrayOf(1, 2, 3)) }
     }
 
     @Test
     fun initialData() {
-        val user: RealmUser = createTestUser(app)
+        val user: User = createTestUser(app)
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .schema(StringOnly::class.java)
                 .initialData(object : Realm.Transaction {
@@ -185,14 +185,14 @@ class SyncConfigurationTests {
 
     @Test
     fun defaultRxFactory() {
-        val user: RealmUser = createTestUser(app)
+        val user: User = createTestUser(app)
         val config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
         assertNotNull(config.rxFactory)
     }
 
     @Test
     fun toString_nonEmpty() {
-        val user: RealmUser = createTestUser(app)
+        val user: User = createTestUser(app)
         val config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
         val configStr = config.toString()
         assertTrue(configStr.isNotEmpty())
@@ -202,8 +202,8 @@ class SyncConfigurationTests {
     // own copy on the filesystem. This is e.g. what happens if a Realm is shared using a PermissionOffer.
     @Test
     fun multipleUsersReferenceSameRealm() {
-        val user1: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        val user2: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        val user1: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        val user2: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
 
         val config1: SyncConfiguration = SyncConfiguration.Builder(user1, DEFAULT_PARTITION)
                 .modules(StringOnlyModule())
@@ -226,14 +226,14 @@ class SyncConfigurationTests {
 
     @Test
     fun defaultConfiguration_throwsIfNotLoggedIn() {
-        val user: RealmUser = createTestUser(app)
+        val user: User = createTestUser(app)
         user.osUser.invalidate()
         assertFailsWith<IllegalArgumentException> { SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION) }
     }
 
     @Test
     fun clientResyncMode() {
-        val user: RealmUser = createTestUser(app)
+        val user: User = createTestUser(app)
 
         // Default mode for full Realms
         var config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
@@ -248,7 +248,7 @@ class SyncConfigurationTests {
 
     @Test
     fun clientResyncMode_throwsOnNull() {
-        val user: RealmUser = createTestUser(app)
+        val user: User = createTestUser(app)
         val config: SyncConfiguration.Builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
         try {
             config.clientResyncMode(TestHelper.getNull())

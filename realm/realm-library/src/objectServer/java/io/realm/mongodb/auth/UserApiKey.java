@@ -13,28 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.mongodb;
+package io.realm.mongodb.auth;
 
 import org.bson.types.ObjectId;
 
 import javax.annotation.Nullable;
 
+import io.realm.mongodb.App;
+import io.realm.mongodb.User;
+
 /**
- * Class representing an API key for a {@link RealmUser}. An API can be used to represent the
+ * Class representing an API key for a {@link User}. An API can be used to represent the
  * user when logging instead of using email and password.
  * <p>
- * These keys are created and managed through {@link RealmApp#getApiKeyAuthProvider()}.
+ * These keys are created and managed through {@link App#getApiKeyAuthProvider()}.
  * <p>
  * Note that a keys {@link #value} is only available when the key is created, after that it is not
  * visible. So anyone creating an API key is responsible for storing it safely after that.
  */
-public class RealmUserApiKey {
+public class UserApiKey {
     private final ObjectId id;
     private final String value;
     private final String name;
     private final boolean enabled;
 
-    RealmUserApiKey(ObjectId id, @Nullable String value, String name, boolean enabled) {
+    UserApiKey(ObjectId id, @Nullable String value, String name, boolean enabled) {
         this.id = id;
         this.value = value;
         this.name = name;
@@ -85,7 +88,7 @@ public class RealmUserApiKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RealmUserApiKey that = (RealmUserApiKey) o;
+        UserApiKey that = (UserApiKey) o;
 
         if (enabled != that.enabled) return false;
         if (!id.equals(that.id)) return false;
@@ -104,7 +107,7 @@ public class RealmUserApiKey {
 
     @Override
     public String toString() {
-        return "RealmUserApiKey{" +
+        return "UserApiKey{" +
                 "id=" + id +
                 ", value='" + value + '\'' +
                 ", name='" + name + '\'' +

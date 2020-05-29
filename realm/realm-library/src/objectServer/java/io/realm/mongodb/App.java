@@ -40,8 +40,7 @@ import io.realm.BuildConfig;
 import io.realm.mongodb.auth.EmailPasswordAuth;
 import io.realm.FunctionsImpl;
 import io.realm.RealmAsyncTask;
-import io.realm.mongodb.auth.RealmCredentials;
-import io.realm.mongodb.sync.RealmSync;
+import io.realm.mongodb.sync.Sync;
 import io.realm.internal.KeepMember;
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.network.ResultHandler;
@@ -59,14 +58,14 @@ import io.realm.mongodb.functions.Functions;
 /**
  * FIXME
  */
-public class RealmApp {
+public class App {
 
     // Implementation notes:
-    // The public API's currently only allow for one RealmApp, however this is a restriction
+    // The public API's currently only allow for one App, however this is a restriction
     // we might want to lift in the future. So any implementation details so ideally be made
     // with that in mind, i.e. keep static state to minimum.
 
-    // Currently we only allow one instance of RealmApp (due to restrictions in ObjectStore that
+    // Currently we only allow one instance of App (due to restrictions in ObjectStore that
     // only allows one underlying SyncClient).
     // FIXME: Lift this restriction so it is possible to create multiple app instances.
     public volatile static boolean CREATED = false;
@@ -80,46 +79,46 @@ public class RealmApp {
     @SuppressFBWarnings("MS_SHOULD_BE_FINAL")
     public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = RealmThreadPoolExecutor.newDefaultExecutor();
 
-    private final RealmAppConfiguration config;
+    private final AppConfiguration config;
     OsJavaNetworkTransport networkTransport;
-    final RealmSync syncManager;
+    final Sync syncManager;
     public final long nativePtr; //FIXME Find a way to make this package protected
     private final EmailPasswordAuth emailAuthProvider = new EmailPasswordAuth(this);
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<>();
     private Handler mainHandler = new Handler(Looper.getMainLooper());
 
-    public RealmApp(String appId) {
-        this(new RealmAppConfiguration.Builder(appId).build());
+    public App(String appId) {
+        this(new AppConfiguration.Builder(appId).build());
     }
 
     /**
      * FIXME
      * @param config
      */
-    public RealmApp(RealmAppConfiguration config) {
+    public App(AppConfiguration config) {
         this.config = config;
         this.networkTransport = new OkHttpNetworkTransport();
         networkTransport.setAuthorizationHeaderName(config.getAuthorizationHeaderName());
         for (Map.Entry<String, String> entry : config.getCustomRequestHeaders().entrySet()) {
             networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());
         }
-        this.syncManager = new RealmSync(this);
+        this.syncManager = new Sync(this);
         this.nativePtr = init(config);
 
-        // FIXME: Right now we only support one RealmApp. This class will throw a
+        // FIXME: Right now we only support one App. This class will throw a
         // exception if you try to create it twice. This is a really hacky way to do this
         // Figure out a better API that is always forward compatible
-        synchronized (RealmSync.class) {
+        synchronized (Sync.class) {
             if (CREATED) {
-                throw new IllegalStateException("Only one RealmApp is currently supported. " +
-                        "This restriction will be lifted soon. Instead, store the RealmApp" +
+                throw new IllegalStateException("Only one App is currently supported. " +
+                        "This restriction will be lifted soon. Instead, store the App" +
                         "instance in a shared global variable.");
             }
             CREATED = true;
         }
     }
 
-    private long init(RealmAppConfiguration config) {
+    private long init(AppConfiguration config) {
         String userAgentBindingInfo = getBindingInfo();
         String appDefinedUserAgent = getAppInfo(config);
         String syncDir = getSyncBaseDirectory();
@@ -143,7 +142,7 @@ public class RealmApp {
         }
         Context context = BaseRealm.applicationContext;
         String syncDir;
-        if (RealmSync.Debug.separatedDirForSyncManager) {
+        if (Sync.Debug.separatedDirForSyncManager) {
             try {
                 // Files.createTempDirectory is not available on JDK 6.
                 File dir = File.createTempFile("remote_sync_", "_" + android.os.Process.myPid(), context.getFilesDir());
@@ -166,7 +165,7 @@ public class RealmApp {
         return syncDir;
     }
 
-    private String getAppInfo(RealmAppConfiguration config) {
+    private String getAppInfo(AppConfiguration config) {
         // Create app UserAgent string
         String appDefinedUserAgent = "Unknown";
         try {
@@ -214,28 +213,28 @@ public class RealmApp {
      * <p>
      * If two or more users are logged in, it is the last valid user that is returned by this method.
      *
-     * @return current {@link RealmUser} that has logged in and is still valid. {@code null} if no
+     * @return current {@link User} that has logged in and is still valid. {@code null} if no
      * user is logged in or the user has expired.
      */
     @Nullable
-    public RealmUser currentUser() {
+    public User currentUser() {
         Long userPtr = nativeCurrentUser(nativePtr);
-        return (userPtr != null) ? new RealmUser(userPtr, this) : null;
+        return (userPtr != null) ? new User(userPtr, this) : null;
     }
 
     /**
-     * Returns all known users that are either {@link RealmUser.State#LOGGED_IN} or
-     * {@link RealmUser.State#LOGGED_OUT}.
+     * Returns all known users that are either {@link User.State#LOGGED_IN} or
+     * {@link User.State#LOGGED_OUT}.
      * <p>
      * Only users that at some point logged into this device will be returned.
      *
      * @return a map of user identifiers and users known locally.
      */
-    public Map<String, RealmUser> allUsers() {
+    public Map<String, User> allUsers() {
         long[] nativeUsers = nativeGetAllUsers(nativePtr);
-        HashMap<String, RealmUser> users = new HashMap<>(nativeUsers.length);
+        HashMap<String, User> users = new HashMap<>(nativeUsers.length);
         for (int i = 0; i < nativeUsers.length; i++) {
-            RealmUser user = new RealmUser(nativeUsers[i], this);
+            User user = new User(nativeUsers[i], this);
             users.put(user.getId(), user);
         }
         return users;
@@ -245,9 +244,9 @@ public class RealmApp {
      * Switch current user. The current user is the user returned by {@link #currentUser()}.
      *
      * @param user the new current user.
-     * @throws IllegalArgumentException if the user is is not {@link RealmUser.State#LOGGED_IN}.
+     * @throws IllegalArgumentException if the user is is not {@link User.State#LOGGED_IN}.
      */
-    public RealmUser switchUser(RealmUser user) {
+    public User switchUser(User user) {
         Util.checkNull(user, "user");
         nativeSwitchUser(nativePtr, user.osUser.getNativePtr());
         return user;
@@ -256,36 +255,36 @@ public class RealmApp {
     /**
      * Logs in as a user with the given credentials associated with an authentication provider.
      * <p>
-     * The user who logs in becomes the current user. Other RealmApp functionality acts on behalf of
+     * The user who logs in becomes the current user. Other App functionality acts on behalf of
      * the current user.
      * <p>
      * If there was already a current user, that user is still logged in and can be found in the
      * list returned by {@link #allUsers()}.
      * <p>
      * It is also possible to switch between which user is considered the current user by using
-     * {@link #switchUser(RealmUser)}.
+     * {@link #switchUser(User)}.
      *
      * @param credentials the credentials representing the type of login.
-     * @return a {@link RealmUser} representing the logged in user.
+     * @return a {@link User} representing the logged in user.
      * @throws ObjectServerError if the user could not be logged in.
      */
-    public RealmUser login(RealmCredentials credentials) throws ObjectServerError {
+    public User login(Credentials credentials) throws ObjectServerError {
         Util.checkNull(credentials, "credentials");
-        AtomicReference<RealmUser> success = new AtomicReference<>(null);
+        AtomicReference<User> success = new AtomicReference<>(null);
         AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
-        nativeLogin(nativePtr, credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<RealmUser>(success, error) {
+        nativeLogin(nativePtr, credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<User>(success, error) {
             @Override
-            protected RealmUser mapSuccess(Object result) {
+            protected User mapSuccess(Object result) {
                 Long nativePtr = (Long) result;
-                return new RealmUser(nativePtr, RealmApp.this);
+                return new User(nativePtr, App.this);
             }
         });
-        RealmUser user = ResultHandler.handleResult(success, error);
+        User user = ResultHandler.handleResult(success, error);
         notifyUserLoggedIn(user);
         return user;
     }
 
-    private void notifyUserLoggedIn(RealmUser user) {
+    private void notifyUserLoggedIn(User user) {
         mainHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -296,7 +295,7 @@ public class RealmApp {
         });
     }
 
-    void notifyUserLoggedOut(RealmUser user) {
+    void notifyUserLoggedOut(User user) {
         mainHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -310,25 +309,25 @@ public class RealmApp {
     /**
      * Logs in as a user with the given credentials associated with an authentication provider.
      * <p>
-     * The user who logs in becomes the current user. Other RealmApp functionality acts on behalf of
+     * The user who logs in becomes the current user. Other App functionality acts on behalf of
      * the current user.
      * <p>
      * If there was already a current user, that user is still logged in and can be found in the
      * list returned by {@link #allUsers()}.
      * <p>
      * It is also possible to switch between which user is considered the current user by using
-     * {@link #switchUser(RealmUser)}.
+     * {@link #switchUser(User)}.
      *
      * @param credentials the credentials representing the type of login.
      * @param callback callback when logging in has completed or failed. The callback will always
      * happen on the same thread as this method is called on.
      * @throws IllegalStateException if not called on a looper thread.
      */
-     public RealmAsyncTask loginAsync(RealmCredentials credentials, Callback<RealmUser> callback) {
+     public RealmAsyncTask loginAsync(Credentials credentials, Callback<User> callback) {
         Util.checkLooperThread("Asynchronous log in is only possible from looper threads.");
-        return new Request<RealmUser>(NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<User>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public RealmUser run() throws ObjectServerError {
+            public User run() throws ObjectServerError {
                 return login(credentials);
             }
         }.start();
@@ -336,9 +335,9 @@ public class RealmApp {
 
     /**
      * Returns a wrapper for interacting with functionality related to users either being created or
-     * logged in using the {@link RealmCredentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
+     * logged in using the {@link Credentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
      *
-     * @return wrapper for interacting with the {@link RealmCredentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
+     * @return wrapper for interacting with the {@link Credentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
      */
     public EmailPasswordAuth getEmailPasswordAuth() {
          return emailAuthProvider;
@@ -378,7 +377,7 @@ public class RealmApp {
      * FIXME: Figure out naming of this method and class.
      * @return
      */
-    public RealmSync getSync() {
+    public Sync getSync() {
         return syncManager;
     }
 
@@ -388,7 +387,7 @@ public class RealmApp {
      * This will use the associated app's default codec registry to encode and decode arguments and
      * results.
      */
-    public Functions getFunctions(RealmUser user) {
+    public Functions getFunctions(User user) {
         return new FunctionsImpl(user);
     }
 
@@ -396,7 +395,7 @@ public class RealmApp {
      * Returns a <i>Functions</i> manager for invoking MongoDB Realm Functions with custom
      * codec registry for encoding and decoding arguments and results.
      */
-    public Functions getFunctions(RealmUser user, CodecRegistry codecRegistry) {
+    public Functions getFunctions(User user, CodecRegistry codecRegistry) {
         return new FunctionsImpl(user, codecRegistry);
     }
 
@@ -406,7 +405,7 @@ public class RealmApp {
      *
      * @return the configuration for this app.
      */
-    public RealmAppConfiguration getConfiguration() {
+    public AppConfiguration getConfiguration() {
         return config;
     }
 
@@ -427,17 +426,17 @@ public class RealmApp {
 
     // Class wrapping requests made against MongoDB Realm. Is also responsible for calling with success/error on the
     // correct thread.
-    // FIXME Made public to use in Functions. Consider reworking when RealmApp, RealmUser is moved
+    // FIXME Made public to use in Functions. Consider reworking when App, User is moved
     //  to mongodb package and async MongoDB API's are settled
     public static abstract class Request<T> {
         @Nullable
-        private final RealmApp.Callback<T> callback;
+        private final App.Callback<T> callback;
         private final RealmNotifier handler;
         private final ThreadPoolExecutor networkPoolExecutor;
 
-        // FIXME Made public to use in Functions. Consider reworking when RealmApp, RealmUser is moved
+        // FIXME Made public to use in Functions. Consider reworking when App, User is moved
         //  to mongodb package and async MongoDB API's are settled
-        public Request(ThreadPoolExecutor networkPoolExecutor, @Nullable RealmApp.Callback<T> callback) {
+        public Request(ThreadPoolExecutor networkPoolExecutor, @Nullable App.Callback<T> callback) {
             this.callback = callback;
             this.handler = new AndroidRealmNotifier(null, new AndroidCapabilities());
             this.networkPoolExecutor = networkPoolExecutor;
@@ -588,7 +587,7 @@ public class RealmApp {
     }
 
     /**
-     * Callback for async methods available to the {@link RealmApp}.
+     * Callback for async methods available to the {@link App}.
      *
      * @param <T> Type returned if the request was a success.
      */

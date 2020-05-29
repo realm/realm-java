@@ -22,8 +22,8 @@ import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
-import io.realm.mongodb.RealmUser
-import io.realm.mongodb.auth.RealmCredentials
+import io.realm.mongodb.User
+import io.realm.mongodb.Credentials
 import io.realm.mongodb.sync.SyncConfiguration
 import io.realm.mongodb.sync.SyncSession
 import org.junit.After
@@ -37,7 +37,7 @@ import java.util.*
 @RunWith(AndroidJUnit4::class)
 class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaining Java tests have been moved
 
-    private lateinit var app: TestRealmApp
+    private lateinit var app: TestApp
     private lateinit var realm: Realm
     private lateinit var partitionValue: String
 
@@ -45,7 +45,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         RealmLog.setLevel(LogLevel.TRACE)
-        app = TestRealmApp()
+        app = TestApp()
         partitionValue = UUID.randomUUID().toString()
     }
 
@@ -63,7 +63,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
     // Smoke test for Sync. Waiting for working Sync support.
     @Test
     fun connectWithInitialSchema() {
-        val user: RealmUser = createNewUser()
+        val user: User = createNewUser()
         val config = createDefaultConfig(user)
         realm = Realm.getInstance(config)
         app.syncManager.getSession(config).uploadAllLocalChanges()
@@ -75,7 +75,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
     @Test
     fun roundTripObjectsNotInServerSchemaObject() {
         // User 1 creates an object an uploads it to MongoDB Realm
-        val user1: RealmUser = createNewUser()
+        val user1: User = createNewUser()
         val config1: SyncConfiguration = createCustomConfig(user1, partitionValue)
         realm = Realm.getInstance(config1)
         realm.executeTransaction {
@@ -88,7 +88,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
         realm.close()
 
         // User 2 logs and using the same partition key should see the object
-        val user2: RealmUser = createNewUser()
+        val user2: User = createNewUser()
         val config2 = createCustomConfig(user2, partitionValue)
         realm = Realm.getInstance(config2)
         realm.syncSession.downloadAllServerChanges()
@@ -101,7 +101,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
     @Test
     fun roundTripSimpleObjectsInServerSchema() {
         // User 1 creates an object an uploads it to MongoDB Realm
-        val user1: RealmUser = createNewUser()
+        val user1: User = createNewUser()
         val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
         realm = Realm.getInstance(config1)
         realm.executeTransaction {
@@ -122,7 +122,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
         realm.close()
 
         // User 2 logs and using the same partition key should see the object
-        val user2: RealmUser = createNewUser()
+        val user2: User = createNewUser()
         val config2 = createDefaultConfig(user2, partitionValue)
         realm = Realm.getInstance(config2)
         realm.syncSession.downloadAllServerChanges()
@@ -138,7 +138,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
     @Test
     fun roundTripObjectsWithLists() {
         // User 1 creates an object an uploads it to MongoDB Realm
-        val user1: RealmUser = createNewUser()
+        val user1: User = createNewUser()
         val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
         realm = Realm.getInstance(config1)
         realm.executeTransaction {
@@ -160,7 +160,7 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
         realm.close()
 
         // User 2 logs and using the same partition key should see the object
-        val user2: RealmUser = createNewUser()
+        val user2: User = createNewUser()
         val config2 = createDefaultConfig(user2, partitionValue)
         realm = Realm.getInstance(config2)
         realm.syncSession.downloadAllServerChanges()
@@ -171,29 +171,29 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
 
     @Test
     fun session() {
-        val user: RealmUser = app.login(RealmCredentials.anonymous())
+        val user: User = app.login(Credentials.anonymous())
         realm = Realm.getInstance(createDefaultConfig(user))
         assertNotNull(realm.syncSession)
         assertEquals(SyncSession.State.ACTIVE, realm.syncSession.state)
         assertEquals(user, realm.syncSession.user)
     }
 
-    private fun createDefaultConfig(user: RealmUser, partitionValue: String = defaultPartitionValue): SyncConfiguration {
+    private fun createDefaultConfig(user: User, partitionValue: String = defaultPartitionValue): SyncConfiguration {
         return SyncConfiguration.Builder(user, partitionValue)
                 .modules(DefaultSyncSchema())
                 .build()
     }
 
-    private fun createCustomConfig(user: RealmUser, partitionValue: String = defaultPartitionValue): SyncConfiguration {
+    private fun createCustomConfig(user: User, partitionValue: String = defaultPartitionValue): SyncConfiguration {
         return SyncConfiguration.Builder(user, partitionValue)
                 .schema(SyncColor::class.java)
                 .build()
     }
 
-    private fun createNewUser(): RealmUser {
+    private fun createNewUser(): User {
         val email = TestHelper.getRandomEmail()
         val password = "123456"
         app.emailPasswordAuth.registerUser(email, password)
-        return app.login(RealmCredentials.emailPassword(email, password))
+        return app.login(Credentials.emailPassword(email, password))
     }
 }

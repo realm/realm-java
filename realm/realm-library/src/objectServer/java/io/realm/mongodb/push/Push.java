@@ -15,5 +15,5 @@
  */
 package io.realm.mongodb.push;
 
-class RealmPushNotifications {
+class Push {
 }

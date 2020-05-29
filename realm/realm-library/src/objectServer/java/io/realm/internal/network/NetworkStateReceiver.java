@@ -25,7 +25,7 @@ import android.net.NetworkInfo;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import io.realm.mongodb.sync.RealmSync;
+import io.realm.mongodb.sync.Sync;
 import io.realm.internal.Util;
 
 /**
@@ -68,7 +68,7 @@ public class NetworkStateReceiver extends BroadcastReceiver {
      * @return {@code true} if device is online, otherwise {@code false}.
      */
     public static boolean isOnline(Context context) {
-        if (RealmSync.Debug.skipOnlineChecking) {
+        if (Sync.Debug.skipOnlineChecking) {
             return true;
         }
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);

@@ -21,8 +21,8 @@ import io.realm.admin.ServerAdmin
 import io.realm.mongodb.AuthenticationListener
 import io.realm.mongodb.ErrorCode
 import io.realm.mongodb.ObjectServerError
-import io.realm.mongodb.RealmUser
-import io.realm.mongodb.auth.RealmCredentials
+import io.realm.mongodb.User
+import io.realm.mongodb.Credentials
 import io.realm.rule.BlockingLooperThread
 import org.bson.codecs.StringCodec
 import org.bson.codecs.configuration.CodecRegistries
@@ -36,16 +36,16 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
-class RealmAppTests {
+class AppTests {
 
     private val looperThread = BlockingLooperThread()
-    private lateinit var app: TestRealmApp
+    private lateinit var app: TestApp
     private lateinit var admin: ServerAdmin
 
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        app = TestRealmApp()
+        app = TestApp()
         admin = ServerAdmin()
     }
 
@@ -58,14 +58,14 @@ class RealmAppTests {
 
     @Test
     fun login() {
-        val creds = RealmCredentials.anonymous()
+        val creds = Credentials.anonymous()
         var user = app.login(creds)
         assertNotNull(user)
     }
 
     @Test
     fun login_invalidUserThrows() {
-        val credentials = RealmCredentials.emailPassword("foo", "bar")
+        val credentials = Credentials.emailPassword("foo", "bar")
         try {
             app.login(credentials)
             fail()
@@ -81,7 +81,7 @@ class RealmAppTests {
 
     @Test
     fun loginAsync() = looperThread.runBlocking {
-        app.loginAsync(RealmCredentials.anonymous()) { result ->
+        app.loginAsync(Credentials.anonymous()) { result ->
             assertNotNull(result.orThrow)
             looperThread.testComplete()
         }
@@ -89,7 +89,7 @@ class RealmAppTests {
 
     @Test
     fun loginAsync_invalidUserThrows() = looperThread.runBlocking {
-        app.loginAsync(RealmCredentials.emailPassword("foo", "bar")) { result ->
+        app.loginAsync(Credentials.emailPassword("foo", "bar")) { result ->
             assertFalse(result.isSuccess)
             assertEquals(ErrorCode.SERVICE_UNKNOWN, result.error.errorCode)
             looperThread.testComplete()
@@ -99,7 +99,7 @@ class RealmAppTests {
     @Test
     fun loginAsync_throwsOnNonLooperThread() {
         try {
-            app.loginAsync(RealmCredentials.anonymous()) { fail() }
+            app.loginAsync(Credentials.anonymous()) { fail() }
             fail()
         } catch (ignore: IllegalStateException) {
         }
@@ -108,7 +108,7 @@ class RealmAppTests {
     @Test
     fun currentUser() {
         assertNull(app.currentUser())
-        val user: RealmUser = app.login(RealmCredentials.anonymous())
+        val user: User = app.login(Credentials.anonymous())
         assertEquals(user, app.currentUser())
         user.logOut()
         assertNull(app.currentUser())
@@ -117,18 +117,18 @@ class RealmAppTests {
     @Test
     fun allUsers() {
         assertEquals(0, app.allUsers().size)
-        val user1 = app.login(RealmCredentials.anonymous())
+        val user1 = app.login(Credentials.anonymous())
         var allUsers = app.allUsers()
         assertEquals(1, allUsers.size)
         assertTrue(allUsers.containsKey(user1.id))
         assertEquals(user1, allUsers[user1.id])
 
-        val user2 = app.login(RealmCredentials.anonymous())
+        val user2 = app.login(Credentials.anonymous())
         allUsers = app.allUsers()
         assertEquals(2, allUsers.size)
         assertTrue(allUsers.containsKey(user2.id))
 
-        val user3: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        val user3: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         allUsers = app.allUsers()
         assertEquals(3, allUsers.size)
         assertTrue(allUsers.containsKey(user3.id))
@@ -138,7 +138,7 @@ class RealmAppTests {
         allUsers = app.allUsers()
         assertEquals(3, allUsers.size)
         assertTrue(allUsers.containsKey(user3.id))
-        assertEquals(RealmUser.State.LOGGED_OUT, allUsers[user3.id]!!.state)
+        assertEquals(User.State.LOGGED_OUT, allUsers[user3.id]!!.state)
 
         // Logging out anonymous users will remove them completely
         user1.logOut()
@@ -149,22 +149,22 @@ class RealmAppTests {
 
     @Test
     fun allUsers_retrieveRemovedUser() {
-        val user1: RealmUser = app.login(RealmCredentials.anonymous())
-        val allUsers: Map<String, RealmUser> = app.allUsers()
+        val user1: User = app.login(Credentials.anonymous())
+        val allUsers: Map<String, User> = app.allUsers()
         assertEquals(1, allUsers.size)
         user1.logOut()
         assertEquals(1, allUsers.size)
-        val userCopy: RealmUser = allUsers[user1.id] ?: error("Could not find user")
+        val userCopy: User = allUsers[user1.id] ?: error("Could not find user")
         assertEquals(user1, userCopy)
-        assertEquals(RealmUser.State.REMOVED, userCopy.state)
+        assertEquals(User.State.REMOVED, userCopy.state)
         assertTrue(app.allUsers().isEmpty())
     }
 
     @Test
     fun switchUser() {
-        val user1: RealmUser = app.login(RealmCredentials.anonymous())
+        val user1: User = app.login(Credentials.anonymous())
         assertEquals(user1, app.currentUser())
-        val user2: RealmUser = app.login(RealmCredentials.anonymous())
+        val user2: User = app.login(Credentials.anonymous())
         assertEquals(user2, app.currentUser())
 
         assertEquals(user1, app.switchUser(user1))
@@ -173,8 +173,8 @@ class RealmAppTests {
 
     @Test
     fun switchUser_throwIfUserNotLoggedIn() {
-        val user1: RealmUser = app.login(RealmCredentials.anonymous())
-        val user2: RealmUser = app.login(RealmCredentials.anonymous())
+        val user1: User = app.login(Credentials.anonymous())
+        val user2: User = app.login(Credentials.anonymous())
         assertEquals(user2, app.currentUser())
 
         user1.logOut()
@@ -187,8 +187,8 @@ class RealmAppTests {
 
     @Test
     fun currentUser_FallbackToNextValidUser() {
-        val user1: RealmUser = app.login(RealmCredentials.anonymous())
-        val user2: RealmUser = app.login(RealmCredentials.anonymous())
+        val user1: User = app.login(Credentials.anonymous())
+        val user2: User = app.login(Credentials.anonymous())
         assertEquals(user2, app.currentUser())
         user2.logOut()
         assertEquals(user1, app.currentUser())
@@ -213,21 +213,21 @@ class RealmAppTests {
 
     @Test
     fun authListener() {
-        val userRef = AtomicReference<RealmUser>(null)
+        val userRef = AtomicReference<User>(null)
         looperThread.runBlocking {
             val authenticationListener = object : AuthenticationListener {
-                override fun loggedIn(user: RealmUser) {
+                override fun loggedIn(user: User) {
                     userRef.set(user)
                     user.logOutAsync { /* Ignore */ }
                 }
 
-                override fun loggedOut(user: RealmUser) {
+                override fun loggedOut(user: User) {
                     assertEquals(userRef.get(), user)
                     looperThread.testComplete()
                 }
             }
             app.addAuthenticationListener(authenticationListener)
-            app.login(RealmCredentials.anonymous())
+            app.login(Credentials.anonymous())
         }
     }
 
@@ -239,12 +239,12 @@ class RealmAppTests {
     @Test
     fun authListener_remove() = looperThread.runBlocking {
         val failListener = object : AuthenticationListener {
-            override fun loggedIn(user: RealmUser) { fail() }
-            override fun loggedOut(user: RealmUser) { fail() }
+            override fun loggedIn(user: User) { fail() }
+            override fun loggedOut(user: User) { fail() }
         }
         val successListener = object : AuthenticationListener {
-            override fun loggedOut(user: RealmUser) { fail() }
-            override fun loggedIn(user: RealmUser) { looperThread.testComplete() }
+            override fun loggedOut(user: User) { fail() }
+            override fun loggedIn(user: User) { looperThread.testComplete() }
         }
         // This test depends on listeners being executed in order which is an
         // implementation detail, but there isn't a sure fire way to do this
@@ -252,18 +252,18 @@ class RealmAppTests {
         app.addAuthenticationListener(failListener)
         app.addAuthenticationListener(successListener)
         app.removeAuthenticationListener(failListener)
-        app.login(RealmCredentials.anonymous())
+        app.login(Credentials.anonymous())
     }
 
     @Test
     fun functions_defaultCodecRegistry() {
-        var user = app.login(RealmCredentials.anonymous())
+        var user = app.login(Credentials.anonymous())
         assertEquals(app.configuration.defaultCodecRegistry, app.getFunctions(user).defaultCodecRegistry)
     }
 
     @Test
     fun functions_customCodecRegistry() {
-        var user = app.login(RealmCredentials.anonymous())
+        var user = app.login(Credentials.anonymous())
         val registry = CodecRegistries.fromCodecs(StringCodec())
         assertEquals(registry, app.getFunctions(user, registry).defaultCodecRegistry)
     }

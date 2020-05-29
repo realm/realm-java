@@ -20,10 +20,10 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
 import io.realm.mongodb.ErrorCode
 import io.realm.mongodb.ObjectServerError
-import io.realm.mongodb.RealmApp
-import io.realm.mongodb.RealmUser
+import io.realm.mongodb.App
+import io.realm.mongodb.User
 import io.realm.mongodb.auth.ApiKeyAuth
-import io.realm.mongodb.auth.RealmCredentials
+import io.realm.mongodb.Credentials
 import io.realm.rule.BlockingLooperThread
 import org.junit.After
 import org.junit.Assert.*
@@ -34,20 +34,20 @@ import org.junit.runner.RunWith
 import java.lang.IllegalArgumentException
 
 @RunWith(AndroidJUnit4::class)
-class RealmUserTests {
+class UserTests {
 
     val looperThread = BlockingLooperThread()
 
-    private lateinit var app: RealmApp
-    private lateinit var anonUser: RealmUser
+    private lateinit var app: App
+    private lateinit var anonUser: User
     private lateinit var admin: ServerAdmin
 
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        app = TestRealmApp()
+        app = TestApp()
         admin = ServerAdmin()
-        anonUser = app.login(RealmCredentials.anonymous())
+        anonUser = app.login(Credentials.anonymous())
     }
 
     @After
@@ -64,19 +64,19 @@ class RealmUserTests {
 
     @Test
     fun getState_anonymousUser() {
-        assertEquals(RealmUser.State.LOGGED_IN, anonUser.state)
+        assertEquals(User.State.LOGGED_IN, anonUser.state)
         anonUser.logOut()
-        assertEquals(RealmUser.State.REMOVED, anonUser.state)
+        assertEquals(User.State.REMOVED, anonUser.state)
     }
 
     @Test
     fun getState_emailUser() {
         val emailUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertEquals(RealmUser.State.LOGGED_IN, emailUser.state)
+        assertEquals(User.State.LOGGED_IN, emailUser.state)
         emailUser.logOut()
-        assertEquals(RealmUser.State.LOGGED_OUT, emailUser.state)
+        assertEquals(User.State.LOGGED_OUT, emailUser.state)
         emailUser.remove()
-        assertEquals(RealmUser.State.REMOVED, emailUser.state)
+        assertEquals(User.State.REMOVED, emailUser.state)
     }
 
     @Test
@@ -84,17 +84,17 @@ class RealmUserTests {
         anonUser.logOut(); // Remove user created for other tests
 
         // Anonymous users are removed upon log out
-        val user1: RealmUser = app.login(RealmCredentials.anonymous())
+        val user1: User = app.login(Credentials.anonymous())
         assertEquals(user1, app.currentUser())
         user1.logOut()
-        assertEquals(RealmUser.State.REMOVED, user1.state)
+        assertEquals(User.State.REMOVED, user1.state)
         assertNull(app.currentUser())
 
         // Users registered with Email/Password will register as Logged Out
-        val user2: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        val user2: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         assertEquals(user2, app.currentUser())
         user2.logOut()
-        assertEquals(RealmUser.State.LOGGED_OUT, user2.state)
+        assertEquals(User.State.LOGGED_OUT, user2.state)
         assertNull(app.currentUser())
     }
 
@@ -102,18 +102,18 @@ class RealmUserTests {
     fun logOutAsync() = looperThread.runBlocking {
         assertEquals(anonUser, app.currentUser())
         anonUser.logOutAsync() { result ->
-            val callbackUser: RealmUser = result.orThrow
+            val callbackUser: User = result.orThrow
             assertNull(app.currentUser())
             assertEquals(anonUser, callbackUser)
-            assertEquals(RealmUser.State.REMOVED, anonUser.state)
-            assertEquals(RealmUser.State.REMOVED, callbackUser.state)
+            assertEquals(User.State.REMOVED, anonUser.state)
+            assertEquals(User.State.REMOVED, callbackUser.state)
             looperThread.testComplete()
         }
     }
 
     @Test
     fun logOutAsync_throwsOnNonLooperThread() {
-        val user: RealmUser = app.login(RealmCredentials.anonymous())
+        val user: User = app.login(Credentials.anonymous())
         try {
             user.logOutAsync { fail() }
             fail()
@@ -125,25 +125,25 @@ class RealmUserTests {
     @Test
     fun linkUser() {
         admin.setAutomaticConfirmation(enabled = false)
-        val anonUser: RealmUser = app.login(RealmCredentials.anonymous())
+        val anonUser: User = app.login(Credentials.anonymous())
         assertEquals(1, anonUser.identities.size)
 
         val email = TestHelper.getRandomEmail()
         val password = "123456"
         app.emailPasswordAuth.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
-        var linkedUser: RealmUser = anonUser.linkCredentials(RealmCredentials.emailPassword(email, password))
+        var linkedUser: User = anonUser.linkCredentials(Credentials.emailPassword(email, password))
         assertTrue(anonUser === linkedUser)
         assertEquals(2, linkedUser.identities.size)
-        assertEquals(RealmCredentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
+        assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
         admin.setAutomaticConfirmation(enabled = true)
 
         val otherEmail = TestHelper.getRandomEmail()
         val otherPassword = "123456"
         app.emailPasswordAuth.registerUser(otherEmail, otherPassword)
-        linkedUser = anonUser.linkCredentials(RealmCredentials.emailPassword(email, password))
+        linkedUser = anonUser.linkCredentials(Credentials.emailPassword(email, password))
         assertTrue(anonUser === linkedUser)
         assertEquals(3, linkedUser.identities.size)
-        assertEquals(RealmCredentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[2].provider)
+        assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[2].provider)
         admin.setAutomaticConfirmation(enabled = true)
     }
 
@@ -152,10 +152,10 @@ class RealmUserTests {
     fun linkUser_existingCredentialsThrows() {
         val email = TestHelper.getRandomEmail()
         val password = "123456"
-        val emailUser: RealmUser = app.registerUserAndLogin(email, password)
-        val anonymousUser: RealmUser = app.login(RealmCredentials.anonymous())
+        val emailUser: User = app.registerUserAndLogin(email, password)
+        val anonymousUser: User = app.login(Credentials.anonymous())
         try {
-            anonymousUser.linkCredentials(RealmCredentials.emailPassword(email, password))
+            anonymousUser.linkCredentials(Credentials.emailPassword(email, password))
             fail()
         } catch (ex: ObjectServerError) {
             assertEquals(ErrorCode.BAD_REQUEST, ex.errorCode)
@@ -176,17 +176,17 @@ class RealmUserTests {
     @Test
     fun linkUserAsync() {
         admin.setAutomaticConfirmation(enabled = false)
-        val user: RealmUser = app.login(RealmCredentials.anonymous())
+        val user: User = app.login(Credentials.anonymous())
         assertEquals(1, user.identities.size)
         val email = TestHelper.getRandomEmail()
         val password = "123456"
         app.emailPasswordAuth.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
         looperThread.runBlocking {
-            anonUser.linkCredentialsAsync(RealmCredentials.emailPassword(email, password)) { result ->
-                val linkedUser: RealmUser = result.orThrow
+            anonUser.linkCredentialsAsync(Credentials.emailPassword(email, password)) { result ->
+                val linkedUser: User = result.orThrow
                 assertTrue(user === linkedUser)
                 assertEquals(2, linkedUser.identities.size)
-                assertEquals(RealmCredentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
+                assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
                 admin.setAutomaticConfirmation(enabled = true)
             }
         }
@@ -196,7 +196,7 @@ class RealmUserTests {
     @Test
     fun linkUserAsync_throwsOnNonLooperThread() {
         try {
-            anonUser.linkCredentialsAsync(RealmCredentials.emailPassword(TestHelper.getRandomEmail(), "123456")) { fail() }
+            anonUser.linkCredentialsAsync(Credentials.emailPassword(TestHelper.getRandomEmail(), "123456")) { fail() }
             fail()
         } catch (ignore: java.lang.IllegalStateException) {
         }
@@ -211,7 +211,7 @@ class RealmUserTests {
         assertEquals(user1, app.currentUser())
         assertEquals(1, app.allUsers().size)
         user1.remove()
-        assertEquals(RealmUser.State.REMOVED, user1.state)
+        assertEquals(User.State.REMOVED, user1.state)
         assertNull(app.currentUser())
         assertEquals(0, app.allUsers().size)
 
@@ -221,7 +221,7 @@ class RealmUserTests {
         assertNull(app.currentUser())
         assertEquals(1, app.allUsers().size)
         user2.remove()
-        assertEquals(RealmUser.State.REMOVED, user2.state)
+        assertEquals(User.State.REMOVED, user2.state)
         assertEquals(0, app.allUsers().size)
     }
 
@@ -235,7 +235,7 @@ class RealmUserTests {
             assertEquals(user, app.currentUser())
             assertEquals(1, app.allUsers().size)
             user.removeAsync { result ->
-                assertEquals(RealmUser.State.REMOVED, result.orThrow.state)
+                assertEquals(User.State.REMOVED, result.orThrow.state)
                 assertNull(app.currentUser())
                 assertEquals(0, app.allUsers().size)
                 looperThread.testComplete()
@@ -249,7 +249,7 @@ class RealmUserTests {
             assertNull(app.currentUser())
             assertEquals(1, app.allUsers().size)
             user.removeAsync { result ->
-                assertEquals(RealmUser.State.REMOVED, result.orThrow.state)
+                assertEquals(User.State.REMOVED, result.orThrow.state)
                 assertEquals(0, app.allUsers().size)
                 looperThread.testComplete()
             }
@@ -258,7 +258,7 @@ class RealmUserTests {
 
     @Test
     fun removeUserAsync_nonLooperThreadThrows() {
-        val user: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "1234567")
+        val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "1234567")
         try {
             user.removeAsync { fail() }
         } catch (ignore: IllegalStateException) {
@@ -267,7 +267,7 @@ class RealmUserTests {
 
     @Test
     fun getApiKeyAuthProvider() {
-        val user: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val provider1: ApiKeyAuth = user.apiKeyAuth
         assertEquals(user, provider1.user)
 
@@ -283,32 +283,32 @@ class RealmUserTests {
     @Test
     fun getDeviceId() {
         // TODO No reason to integration test this. Use a stubbed response instead.
-        val user: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         assertTrue(user.deviceId.isNotEmpty() && user.deviceId.length == 24) // Server returns a UUID
     }
     @Test
     fun equals() {
         // TODO Could be that we could use a fake user
-        val user: RealmUser = app.registerUserAndLogin("user1@example.com", "123456")
+        val user: User = app.registerUserAndLogin("user1@example.com", "123456")
         assertEquals(user, user)
         assertNotEquals(user, app)
         user.logOut()
 
-        val sameUserNewLogin = app.login(RealmCredentials.emailPassword(user.email!!, "123456"))
+        val sameUserNewLogin = app.login(Credentials.emailPassword(user.email!!, "123456"))
         // Verify that it is not same object but uses underlying OSSyncUser equality on identity
         assertFalse(user === sameUserNewLogin)
         assertEquals(user, sameUserNewLogin)
 
-        val differentUser: RealmUser = app.registerUserAndLogin("user2@example.com", "123456")
+        val differentUser: User = app.registerUserAndLogin("user2@example.com", "123456")
         assertNotEquals(user, differentUser)
     }
 
     @Test
     fun hashCode_user() {
-        val user: RealmUser = app.registerUserAndLogin("user1@example.com", "123456")
+        val user: User = app.registerUserAndLogin("user1@example.com", "123456")
         user.logOut()
 
-        val sameUserNewLogin = app.login(RealmCredentials.emailPassword(user.email!!, "123456"))
+        val sameUserNewLogin = app.login(Credentials.emailPassword(user.email!!, "123456"))
         // Verify that two equal users also returns same hashCode
         assertFalse(user === sameUserNewLogin)
         assertEquals(user.hashCode(), sameUserNewLogin.hashCode())

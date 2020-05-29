@@ -17,7 +17,7 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.mongodb.RealmAppConfiguration
+import io.realm.mongodb.AppConfiguration
 import org.bson.codecs.StringCodec
 import org.bson.codecs.configuration.CodecRegistries
 import org.junit.Assert.assertEquals
@@ -33,7 +33,7 @@ import java.lang.IllegalArgumentException
 import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
-class RealmAppConfigurationTests {
+class AppConfigurationTests {
 
     @get:Rule
     val tempFolder = TemporaryFolder()
@@ -45,17 +45,17 @@ class RealmAppConfigurationTests {
 
     @Test
     fun authorizationHeaderName_illegalArgumentsThrows() {
-        val builder: RealmAppConfiguration.Builder = RealmAppConfiguration.Builder("app-id")
+        val builder: AppConfiguration.Builder = AppConfiguration.Builder("app-id")
         assertFailsWith<IllegalArgumentException> { builder.authorizationHeaderName(TestHelper.getNull()) }
         assertFailsWith<IllegalArgumentException> { builder.authorizationHeaderName("") }
     }
 
     @Test
     fun authorizationHeaderName() {
-        val config1 = RealmAppConfiguration.Builder("app-id").build()
+        val config1 = AppConfiguration.Builder("app-id").build()
         assertEquals("Authorization", config1.authorizationHeaderName)
 
-        val config2 = RealmAppConfiguration.Builder("app-id")
+        val config2 = AppConfiguration.Builder("app-id")
                 .authorizationHeaderName("CustomAuth")
                 .build()
         assertEquals("CustomAuth", config2.authorizationHeaderName)
@@ -67,7 +67,7 @@ class RealmAppConfigurationTests {
 
     @Test
     fun addCustomRequestHeader_illegalArgumentThrows() {
-        val builder: RealmAppConfiguration.Builder = RealmAppConfiguration.Builder("app-id")
+        val builder: AppConfiguration.Builder = AppConfiguration.Builder("app-id")
         assertFailsWith<IllegalArgumentException> { builder.addCustomRequestHeader("", "val") }
         assertFailsWith<IllegalArgumentException> { builder.addCustomRequestHeader(TestHelper.getNull(), "val") }
         assertFailsWith<IllegalArgumentException> { builder.addCustomRequestHeader("header", TestHelper.getNull()) }
@@ -76,7 +76,7 @@ class RealmAppConfigurationTests {
 
     @Test
     fun addCustomRequestHeader() {
-        val config = RealmAppConfiguration.Builder("app-id")
+        val config = AppConfiguration.Builder("app-id")
             .addCustomRequestHeader("header1", "val1")
             .addCustomRequestHeader("header2", "val2")
             .build()
@@ -95,7 +95,7 @@ class RealmAppConfigurationTests {
         val inputHeaders: MutableMap<String, String> = LinkedHashMap()
         inputHeaders["header1"] = "value1"
         inputHeaders["header2"] = "value2"
-        val config = RealmAppConfiguration.Builder("app-id")
+        val config = AppConfiguration.Builder("app-id")
             .addCustomRequestHeaders(TestHelper.getNull())
             .addCustomRequestHeaders(inputHeaders)
             .build()
@@ -107,7 +107,7 @@ class RealmAppConfigurationTests {
 
     @Test
     fun addCustomHeader_combinesSingleAndMultiple() {
-        val config = RealmAppConfiguration.Builder("app-id")
+        val config = AppConfiguration.Builder("app-id")
                 .addCustomRequestHeader("header3", "val3")
                 .addCustomRequestHeaders(mapOf(Pair("header1", "val1")))
                 .build()
@@ -119,7 +119,7 @@ class RealmAppConfigurationTests {
 
     @Test
     fun syncRootDirectory_default() {
-        val config = RealmAppConfiguration.Builder("app-id").build()
+        val config = AppConfiguration.Builder("app-id").build()
         val expectedDefaultRoot = File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "mongodb-realm")
         assertEquals(expectedDefaultRoot, config.syncRootDirectory)
 
@@ -128,7 +128,7 @@ class RealmAppConfigurationTests {
 
     @Test
     fun syncRootDirectory() {
-        val builder: RealmAppConfiguration.Builder = RealmAppConfiguration.Builder("app-id")
+        val builder: AppConfiguration.Builder = AppConfiguration.Builder("app-id")
         val expectedRoot = tempFolder.newFolder()
         val config = builder
                 .syncRootDirectory(expectedRoot)
@@ -140,20 +140,20 @@ class RealmAppConfigurationTests {
 
     @Test
     fun syncRootDirectory_null() {
-        val builder: RealmAppConfiguration.Builder = RealmAppConfiguration.Builder("app-id")
+        val builder: AppConfiguration.Builder = AppConfiguration.Builder("app-id")
         assertFailsWith<IllegalArgumentException> { builder.syncRootDirectory(TestHelper.getNull()) }
     }
 
     @Test
     fun syncRootDirectory_writeProtectedDir() {
-        val builder: RealmAppConfiguration.Builder = RealmAppConfiguration.Builder("app-id")
+        val builder: AppConfiguration.Builder = AppConfiguration.Builder("app-id")
         val dir = File("/")
         assertFailsWith<IllegalArgumentException> { builder.syncRootDirectory(dir) }
     }
 
     @Test
     fun syncRootDirectory_dirIsAFile() {
-        val builder: RealmAppConfiguration.Builder = RealmAppConfiguration.Builder("app-id")
+        val builder: AppConfiguration.Builder = AppConfiguration.Builder("app-id")
         val file = File(tempFolder.newFolder(), "dummyfile")
         assertTrue(file.createNewFile())
         assertFailsWith<IllegalArgumentException> { builder.syncRootDirectory(file) }
@@ -233,7 +233,7 @@ class RealmAppConfigurationTests {
 
     @Test
     fun codecRegistry_null() {
-        val builder: RealmAppConfiguration.Builder = RealmAppConfiguration.Builder("app-id")
+        val builder: AppConfiguration.Builder = AppConfiguration.Builder("app-id")
         assertFailsWith<IllegalArgumentException> {
             builder.codecRegistry(TestHelper.getNull())
         }
@@ -241,14 +241,14 @@ class RealmAppConfigurationTests {
 
     @Test
     fun defaultFunctionsCodecRegistry() {
-        val config: RealmAppConfiguration = RealmAppConfiguration.Builder("app-id").build()
-        assertEquals(RealmAppConfiguration.DEFAULT_BSON_CODEC_REGISTRY, config.defaultCodecRegistry)
+        val config: AppConfiguration = AppConfiguration.Builder("app-id").build()
+        assertEquals(AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY, config.defaultCodecRegistry)
     }
 
     @Test
     fun customCodecRegistry() {
         val configCodecRegistry = CodecRegistries.fromCodecs(StringCodec())
-        val config: RealmAppConfiguration = RealmAppConfiguration.Builder("app-id")
+        val config: AppConfiguration = AppConfiguration.Builder("app-id")
                 .codecRegistry(configCodecRegistry)
                 .build()
         assertEquals(configCodecRegistry, config.defaultCodecRegistry)

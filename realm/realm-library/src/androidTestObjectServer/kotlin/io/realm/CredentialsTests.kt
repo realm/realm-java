@@ -19,8 +19,8 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.mongodb.ErrorCode
 import io.realm.mongodb.ObjectServerError
-import io.realm.mongodb.RealmApp
-import io.realm.mongodb.auth.RealmCredentials
+import io.realm.mongodb.App
+import io.realm.mongodb.Credentials
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.BeforeClass
@@ -30,9 +30,9 @@ import org.junit.runner.RunWith
 import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
-class RealmCredentialsTests {
+class CredentialsTests {
 
-    private lateinit var app: RealmApp
+    private lateinit var app: App
 
 
     companion object {
@@ -53,7 +53,7 @@ class RealmCredentialsTests {
 
     @Test
     fun anonymous() {
-        val creds = RealmCredentials.anonymous()
+        val creds = Credentials.anonymous()
         assertEquals("anon-user", creds.identityProvider.id)
         assertTrue(creds.asJson().contains("anon-user")) // Treat the JSON as an opaque value.
     }
@@ -61,28 +61,28 @@ class RealmCredentialsTests {
     @Ignore("FIXME: Awaiting ObjectStore support")
     @Test
     fun apiKey() {
-        val creds = RealmCredentials.apiKey("token")
+        val creds = Credentials.apiKey("token")
         assertEquals("anon-user", creds.identityProvider.id)
         assertTrue(creds.asJson().contains("token")) // Treat the JSON as an opaque value.
     }
 
     @Test
     fun apiKey_invalidInput() {
-        assertFailsWith<IllegalArgumentException> { RealmCredentials.apiKey("") }
-        assertFailsWith<IllegalArgumentException> { RealmCredentials.apiKey(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { Credentials.apiKey("") }
+        assertFailsWith<IllegalArgumentException> { Credentials.apiKey(TestHelper.getNull()) }
     }
 
     @Test
     fun apple() {
-        val creds = RealmCredentials.apple("apple-token")
+        val creds = Credentials.apple("apple-token")
         assertEquals("oauth2-apple", creds.identityProvider.id)
         assertTrue(creds.asJson().contains("apple-token")) // Treat the JSON as a largely opaque value.
     }
 
     @Test
     fun apple_invalidInput() {
-        assertFailsWith<IllegalArgumentException> { RealmCredentials.apple("") }
-        assertFailsWith<IllegalArgumentException> { RealmCredentials.apple(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { Credentials.apple("") }
+        assertFailsWith<IllegalArgumentException> { Credentials.apple(TestHelper.getNull()) }
     }
 
     @Ignore("FIXME: Awaiting ObjectStore support")
@@ -99,7 +99,7 @@ class RealmCredentialsTests {
 
     @Test
     fun emailPassword() {
-        val creds = RealmCredentials.emailPassword("foo@bar.com", "secret")
+        val creds = Credentials.emailPassword("foo@bar.com", "secret")
         assertEquals("local-userpass", creds.identityProvider.id)
         // Treat the JSON as a largely opaque value.
         assertTrue(creds.asJson().contains("foo@bar.com"))
@@ -108,53 +108,53 @@ class RealmCredentialsTests {
 
     @Test
     fun emailPassword_invalidInput() {
-        assertFailsWith<IllegalArgumentException> { RealmCredentials.emailPassword("", "password") }
-        assertFailsWith<IllegalArgumentException> { RealmCredentials.emailPassword("email", "") }
-        assertFailsWith<IllegalArgumentException> { RealmCredentials.emailPassword(TestHelper.getNull(), "password") }
-        assertFailsWith<IllegalArgumentException> { RealmCredentials.emailPassword("email", TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { Credentials.emailPassword("", "password") }
+        assertFailsWith<IllegalArgumentException> { Credentials.emailPassword("email", "") }
+        assertFailsWith<IllegalArgumentException> { Credentials.emailPassword(TestHelper.getNull(), "password") }
+        assertFailsWith<IllegalArgumentException> { Credentials.emailPassword("email", TestHelper.getNull()) }
     }
 
     @Test
     fun facebook() {
-        val creds = RealmCredentials.facebook("fb-token")
+        val creds = Credentials.facebook("fb-token")
         assertEquals("oauth2-facebook", creds.identityProvider.id)
         assertTrue(creds.asJson().contains("fb-token"))
     }
 
     @Test
     fun facebook_invalidInput() {
-        assertFailsWith<IllegalArgumentException> { RealmCredentials.facebook("") }
-        assertFailsWith<IllegalArgumentException> { RealmCredentials.facebook(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { Credentials.facebook("") }
+        assertFailsWith<IllegalArgumentException> { Credentials.facebook(TestHelper.getNull()) }
     }
 
     @Test
     fun google() {
-        val creds = RealmCredentials.google("google-token")
+        val creds = Credentials.google("google-token")
         assertEquals("oauth2-google", creds.identityProvider.id)
         assertTrue(creds.asJson().contains("google-token"))
     }
 
     @Test
     fun google_invalidInput() {
-        assertFailsWith<IllegalArgumentException> { RealmCredentials.google("") }
-        assertFailsWith<IllegalArgumentException> { RealmCredentials.google(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { Credentials.google("") }
+        assertFailsWith<IllegalArgumentException> { Credentials.google(TestHelper.getNull()) }
     }
 
     @Ignore("FIXME: Awaiting ObjectStore support")
     @Test
     fun jwt() {
-        val creds = RealmCredentials.google("jwt-token")
+        val creds = Credentials.google("jwt-token")
         assertEquals("jwt", creds.identityProvider.id)
         assertTrue(creds.asJson().contains("jwt-token"))
     }
 
     @Test
     fun jwt_invalidInput() {
-        assertFailsWith<IllegalArgumentException> { RealmCredentials.jwt("") }
-        assertFailsWith<IllegalArgumentException> { RealmCredentials.jwt(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { Credentials.jwt("") }
+        assertFailsWith<IllegalArgumentException> { Credentials.jwt(TestHelper.getNull()) }
     }
 
-    fun expectErrorCode(app: RealmApp, expectedCode: ErrorCode, credentials: RealmCredentials) {
+    fun expectErrorCode(app: App, expectedCode: ErrorCode, credentials: Credentials) {
         try {
             app.login(credentials)
             fail()
@@ -165,28 +165,28 @@ class RealmCredentialsTests {
 
     @Test
     fun loginUsingCredentials() {
-        app = TestRealmApp()
-        RealmCredentials.IdentityProvider.values().forEach { provider ->
+        app = TestApp()
+        Credentials.IdentityProvider.values().forEach { provider ->
             when(provider) {
-                RealmCredentials.IdentityProvider.ANONYMOUS -> {
-                    val user = app.login(RealmCredentials.anonymous())
+                Credentials.IdentityProvider.ANONYMOUS -> {
+                    val user = app.login(Credentials.anonymous())
                     assertNotNull(user)
                 }
-                RealmCredentials.IdentityProvider.API_KEY -> {
+                Credentials.IdentityProvider.API_KEY -> {
                     // FIXME: Wait for API Key support in OS
-//                        val user: RealmUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-//                        val key: RealmUserApiKey = app.apiKeyAuthProvider.createApiKey("my-key");
-//                        val apiKeyUser = app.login(RealmCredentials.apiKey(key.value!!))
+//                        val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+//                        val key: UserApiKey = app.apiKeyAuthProvider.createApiKey("my-key");
+//                        val apiKeyUser = app.login(Credentials.apiKey(key.value!!))
 //                        assertNotNull(apiKeyUser)
                 }
-                RealmCredentials.IdentityProvider.CUSTOM_FUNCTION -> {
+                Credentials.IdentityProvider.CUSTOM_FUNCTION -> {
                     // FIXME Wait for Custom Function support
                 }
-                RealmCredentials.IdentityProvider.EMAIL_PASSWORD -> {
+                Credentials.IdentityProvider.EMAIL_PASSWORD -> {
                     val email = TestHelper.getRandomEmail()
                     val password = "123456"
                     app.emailPasswordAuth.registerUser(email, password)
-                    val user = app.login(RealmCredentials.emailPassword(email, password))
+                    val user = app.login(Credentials.emailPassword(email, password))
                     assertNotNull(user)
                 }
 
@@ -194,19 +194,19 @@ class RealmCredentialsTests {
                 // login service. Instead we attempt to login and verify that a proper exception
                 // is thrown. At least that should verify that correctly formatted JSON is being
                 // sent across the wire.
-                RealmCredentials.IdentityProvider.FACEBOOK -> {
-                    expectErrorCode(app, ErrorCode.INVALID_SESSION, RealmCredentials.facebook("facebook-token"))
+                Credentials.IdentityProvider.FACEBOOK -> {
+                    expectErrorCode(app, ErrorCode.INVALID_SESSION, Credentials.facebook("facebook-token"))
                 }
-                RealmCredentials.IdentityProvider.APPLE -> {
-                    expectErrorCode(app, ErrorCode.INVALID_SESSION, RealmCredentials.apple("apple-token"))
+                Credentials.IdentityProvider.APPLE -> {
+                    expectErrorCode(app, ErrorCode.INVALID_SESSION, Credentials.apple("apple-token"))
                 }
-                RealmCredentials.IdentityProvider.GOOGLE -> {
-                    expectErrorCode(app, ErrorCode.INVALID_SESSION, RealmCredentials.google("google-token"))
+                Credentials.IdentityProvider.GOOGLE -> {
+                    expectErrorCode(app, ErrorCode.INVALID_SESSION, Credentials.google("google-token"))
                 }
-                RealmCredentials.IdentityProvider.JWT ->  {
-                    expectErrorCode(app, ErrorCode.INVALID_SESSION, RealmCredentials.jwt("jwt-token"))
+                Credentials.IdentityProvider.JWT ->  {
+                    expectErrorCode(app, ErrorCode.INVALID_SESSION, Credentials.jwt("jwt-token"))
                 }
-                RealmCredentials.IdentityProvider.UNKNOWN -> {
+                Credentials.IdentityProvider.UNKNOWN -> {
                     // Ignore
                 }
             }

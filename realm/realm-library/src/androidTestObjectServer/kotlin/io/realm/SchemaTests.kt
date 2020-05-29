@@ -39,11 +39,11 @@ class SchemaTests {
     val errorCollector = ErrorCollector()
 
     private lateinit var config: SyncConfiguration
-    private lateinit var app: TestRealmApp
+    private lateinit var app: TestApp
 
     @Before
     fun setUp() {
-        app = TestRealmApp()
+        app = TestApp()
         val user = createTestUser(app)
         config = configFactory.createSyncConfigurationBuilder(user).build()
     }

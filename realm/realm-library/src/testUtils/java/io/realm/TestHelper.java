@@ -1277,7 +1277,7 @@ public class TestHelper {
     static {
         Class app = null;
         try {
-            app = Class.forName("io.realm.mongodb.RealmApp");
+            app = Class.forName("io.realm.mongodb.App");
         } catch (ClassNotFoundException e) {
             // Ignore
         }

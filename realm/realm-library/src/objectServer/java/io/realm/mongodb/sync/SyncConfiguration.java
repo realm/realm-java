@@ -56,9 +56,9 @@ import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Util;
-import io.realm.mongodb.RealmApp;
-import io.realm.mongodb.RealmUser;
-import io.realm.mongodb.auth.RealmCredentials;
+import io.realm.mongodb.App;
+import io.realm.mongodb.User;
+import io.realm.mongodb.Credentials;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
@@ -66,15 +66,15 @@ import io.realm.rx.RxObservableFactory;
  * A {@link SyncConfiguration} is used to setup a Realm Database that can be synchronized between
  * devices using MongoDB Realm.
  * <p>
- * A valid {@link RealmUser} is required to create a {@link SyncConfiguration}. See
- * {@link RealmCredentials} and {@link RealmApp#loginAsync(RealmCredentials, RealmApp.Callback)} for
+ * A valid {@link User} is required to create a {@link SyncConfiguration}. See
+ * {@link Credentials} and {@link App#loginAsync(Credentials, App.Callback)} for
  * more information on how to get a user object.
  * <p>
  * A minimal {@link SyncConfiguration} can be found below.
  * <pre>
  * {@code
- * RealmApp app = new RealmApp("app-id");
- * RealmUser user = app.login(RealmCredentials.anonymous());
+ * App app = new App("app-id");
+ * User user = app.login(Credentials.anonymous());
  * SyncConfiguration config = SyncConfiguration.defaultConfiguration(user, "partition-value");
  * Realm realm = Realm.getInstance(config);
  * }
@@ -102,7 +102,7 @@ public class SyncConfiguration extends RealmConfiguration {
     static final int MAX_FILE_NAME_LENGTH = 255;
     private static final char[] INVALID_CHARS = {'<', '>', ':', '"', '/', '\\', '|', '?', '*'};
     private final URI serverUrl;
-    private final RealmUser user;
+    private final User user;
     private final SyncSession.ErrorHandler errorHandler;
     private final boolean deleteRealmOnLogout;
     private final boolean waitForInitialData;
@@ -126,7 +126,7 @@ public class SyncConfiguration extends RealmConfiguration {
                               @Nullable Realm.Transaction initialDataTransaction,
                               boolean readOnly,
                               long maxNumberOfActiveVersions,
-                              RealmUser user,
+                              User user,
                               URI serverUrl,
                               SyncSession.ErrorHandler errorHandler,
                               boolean deleteRealmOnLogout,
@@ -204,7 +204,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * @return
      */
     @Beta
-    public static SyncConfiguration defaultConfig(RealmUser user, String partitionValue) {
+    public static SyncConfiguration defaultConfig(User user, String partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
@@ -216,7 +216,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * @return
      */
     @Beta
-    public static SyncConfiguration defaultConfig(RealmUser user, long partitionValue) {
+    public static SyncConfiguration defaultConfig(User user, long partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
@@ -228,7 +228,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * @return
      */
     @Beta
-    public static SyncConfiguration defaultConfig(RealmUser user, int partitionValue) {
+    public static SyncConfiguration defaultConfig(User user, int partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
@@ -240,7 +240,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * @return
      */
     @Beta
-    public static SyncConfiguration defaultConfig(RealmUser user, ObjectId partitionValue) {
+    public static SyncConfiguration defaultConfig(User user, ObjectId partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
@@ -264,7 +264,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     // Extract the full server path, minus the file name
-    private static String getServerPath(RealmUser user, URI serverUrl) {
+    private static String getServerPath(User user, URI serverUrl) {
         // FIXME Add support for partion key
         // Current scheme is <rootDir>/<appId>/<userId>/default.realm or
         // Current scheme is <rootDir>/<appId>/<userId>/<hashedPartionKey>/default.realm
@@ -336,7 +336,7 @@ public class SyncConfiguration extends RealmConfiguration {
      *
      * @return the user.
      */
-    public RealmUser getUser() {
+    public User getUser() {
         return user;
     }
 
@@ -453,7 +453,7 @@ public class SyncConfiguration extends RealmConfiguration {
         // sync specific
         private boolean deleteRealmOnLogout = false;
         private URI serverUrl;
-        private RealmUser user = null;
+        private User user = null;
         private SyncSession.ErrorHandler errorHandler;
         private OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy = OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED;
         private CompactOnLaunchCallback compactOnLaunch;
@@ -469,7 +469,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param user
          * @param partitionValue
          */
-        public Builder(RealmUser user, String partitionValue) {
+        public Builder(User user, String partitionValue) {
             this(user, new BsonString(partitionValue));
         }
 
@@ -479,7 +479,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param user
          * @param partitionValue
          */
-        public Builder(RealmUser user, ObjectId partitionValue) {
+        public Builder(User user, ObjectId partitionValue) {
             this(user, new BsonObjectId(partitionValue));
         }
 
@@ -489,7 +489,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param user
          * @param partitionValue
          */
-        public Builder(RealmUser user, int partitionValue) {
+        public Builder(User user, int partitionValue) {
             this(user, new BsonInt32(partitionValue));
         }
 
@@ -499,7 +499,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param user
          * @param partitionValue
          */
-        public Builder(RealmUser user, long partitionValue) {
+        public Builder(User user, long partitionValue) {
             this(user, new BsonInt64(partitionValue));
         }
 
@@ -512,7 +512,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * synchronized to the Realm.
          * @see <a href="FIXME">Link to docs about partions</a>
          */
-        private Builder(RealmUser user, BsonValue partitionValue) {
+        private Builder(User user, BsonValue partitionValue) {
             Context context = BaseRealm.applicationContext;
             if (context == null) {
                 throw new IllegalStateException("Call `Realm.init(Context)` before creating a SyncConfiguration");
@@ -529,7 +529,7 @@ public class SyncConfiguration extends RealmConfiguration {
             this.errorHandler = user.getApp().getConfiguration().getDefaultErrorHandler();
         }
 
-        private void validateAndSet(RealmUser user) {
+        private void validateAndSet(User user) {
             //noinspection ConstantConditions
             if (user == null) {
                 throw new IllegalArgumentException("Non-null `user` required.");
@@ -765,7 +765,7 @@ public class SyncConfiguration extends RealmConfiguration {
 
         /**
          * Sets the error handler used by this configuration. This will override any handler set by calling
-         * {@link RealmSync#setDefaultSessionErrorHandler(SyncSession.ErrorHandler)}.
+         * {@link Sync#setDefaultSessionErrorHandler(SyncSession.ErrorHandler)}.
          * <p>
          * Only errors not handled by the defined {@code SyncPolicy} will be reported to this error handler.
          *

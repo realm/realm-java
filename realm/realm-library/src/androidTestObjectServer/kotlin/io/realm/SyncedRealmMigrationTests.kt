@@ -40,11 +40,11 @@ class SyncedRealmMigrationTests {
     @get:Rule
     val configFactory = TestSyncConfigurationFactory()
 
-    private lateinit var app: TestRealmApp
+    private lateinit var app: TestApp
 
     @Before
     fun setUp() {
-        app = TestRealmApp()
+        app = TestApp()
     }
 
     @After
