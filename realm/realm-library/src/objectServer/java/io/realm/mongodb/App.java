@@ -35,8 +35,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.realm.BaseRealm;
 import io.realm.BuildConfig;
+import io.realm.Realm;
 import io.realm.mongodb.auth.EmailPasswordAuth;
 import io.realm.RealmAsyncTask;
 import io.realm.mongodb.sync.Sync;
@@ -79,8 +79,10 @@ public class App {
     public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = RealmThreadPoolExecutor.newDefaultExecutor();
 
     private final AppConfiguration config;
-    OsJavaNetworkTransport networkTransport;
+    // FIXME Review public exposure
+    public OsJavaNetworkTransport networkTransport;
     final Sync syncManager;
+    // FIXME Review public exposure
     public final long nativePtr; //FIXME Find a way to make this package protected
     private final EmailPasswordAuth emailAuthProvider = new EmailPasswordAuthImpl(this);
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<>();
@@ -136,10 +138,10 @@ public class App {
     }
 
     private String getSyncBaseDirectory() {
-        if (BaseRealm.applicationContext == null) {
+        Context context = Realm.getApplicationContext();
+        if (context == null) {
             throw new IllegalStateException("Call Realm.init() first.");
         }
-        Context context = BaseRealm.applicationContext;
         String syncDir;
         if (Sync.Debug.separatedDirForSyncManager) {
             try {

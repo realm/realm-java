@@ -17,10 +17,7 @@ package io.realm
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import io.realm.mongodb.ErrorCode
-import io.realm.mongodb.ObjectServerError
-import io.realm.mongodb.App
-import io.realm.mongodb.Credentials
+import io.realm.mongodb.*
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.BeforeClass

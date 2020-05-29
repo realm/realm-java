@@ -110,7 +110,8 @@ public class RealmConfiguration {
 
     // We need to enumerate all parameters since SyncConfiguration and RealmConfiguration supports different
     // subsets of them.
-    protected RealmConfiguration(@Nullable File realmDirectory,
+    // FIXME DO NOT COMMIT
+    public RealmConfiguration(@Nullable File realmDirectory,
             @Nullable String realmFileName,
             String canonicalPath,
             @Nullable String assetFilePath,
@@ -178,7 +179,8 @@ public class RealmConfiguration {
      * @return the mediator of the schema.
      */
     // Protected for testing with mockito.
-    protected RealmProxyMediator getSchemaMediator() {
+    // FIXME Review public exposure
+    public RealmProxyMediator getSchemaMediator() {
         return schemaMediator;
     }
 
@@ -435,7 +437,8 @@ public class RealmConfiguration {
      * @return {@code true} if RxJava dependency exist, {@code false} otherwise.
      */
     @SuppressWarnings("LiteralClassName")
-    static synchronized boolean isRxJavaAvailable() {
+    // FIXME REVIEW public exposure
+    public static synchronized boolean isRxJavaAvailable() {
         if (rxJavaAvailable == null) {
             try {
                 Class.forName("io.reactivex.Flowable");
@@ -459,7 +462,7 @@ public class RealmConfiguration {
     }
 
     // Checks if this configuration is a SyncConfiguration instance.
-    boolean isSyncConfiguration() {
+    protected boolean isSyncConfiguration() {
         return false;
     }
 

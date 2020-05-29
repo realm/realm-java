@@ -42,8 +42,6 @@ import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.realm.BaseRealm;
-import io.realm.ClientResyncMode;
 import io.realm.CompactOnLaunchCallback;
 import io.realm.DefaultCompactOnLaunchCallback;
 import io.realm.Realm;
@@ -513,7 +511,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * @see <a href="FIXME">Link to docs about partions</a>
          */
         private Builder(User user, BsonValue partitionValue) {
-            Context context = BaseRealm.applicationContext;
+            Context context = Realm.getApplicationContext();
             if (context == null) {
                 throw new IllegalStateException("Call `Realm.init(Context)` before creating a SyncConfiguration");
             }
@@ -990,6 +988,7 @@ public class SyncConfiguration extends RealmConfiguration {
                 clientResyncMode = ClientResyncMode.MANUAL;
             }
 
+            // FIXME How to get access to this
             if (rxFactory == null && isRxJavaAvailable()) {
                 rxFactory = new RealmObservableFactory(true);
             }

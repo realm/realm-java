@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
-import io.realm.BaseRealm;
+import io.realm.Realm;
 import io.realm.mongodb.sync.SyncSession;
 import io.realm.internal.Util;
 import io.realm.log.RealmLog;
@@ -263,7 +263,7 @@ public class AppConfiguration {
         public Builder(String appId) {
             Util.checkEmpty(appId, "appId");
             this.appId = appId;
-            Context context = BaseRealm.applicationContext;
+            Context context = Realm.getApplicationContext();
             if (context == null) {
                 throw new IllegalStateException("Call `Realm.init(Context)` before calling this method.");
             }

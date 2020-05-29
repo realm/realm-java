@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm
+package io.realm.mongodb.sync
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import io.realm.mongodb.sync.Progress
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith

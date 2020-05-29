@@ -46,7 +46,8 @@ public class Sync {
     // keeps track of SyncSession, using 'realm_path'. Java interface with the ObjectStore using the 'realm_path'
     private Map<String, SyncSession> sessions = new ConcurrentHashMap<>();
 
-    Sync(App app) {
+    // FIXME Review public exposure
+    public Sync(App app) {
         this.app = app;
     }
 

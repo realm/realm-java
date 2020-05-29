@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package io.realm.mongodb.functions
+package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.*
 import io.realm.admin.ServerAdmin
-import io.realm.mongodb.ErrorCode
-import io.realm.mongodb.User
-import io.realm.mongodb.Credentials
+import io.realm.mongodb.*
+import io.realm.mongodb.functions.Functions
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.assertFailsWithErrorCode
 import org.bson.*

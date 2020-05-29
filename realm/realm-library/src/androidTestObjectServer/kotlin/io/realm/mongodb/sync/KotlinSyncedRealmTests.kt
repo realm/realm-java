@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm
+package io.realm.mongodb.sync
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.realm.Realm
+import io.realm.TestApp
+import io.realm.TestHelper
 import io.realm.entities.*
 import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
-import io.realm.mongodb.User
 import io.realm.mongodb.Credentials
-import io.realm.mongodb.sync.SyncConfiguration
-import io.realm.mongodb.sync.SyncSession
+import io.realm.mongodb.User
+import io.realm.mongodb.close
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -61,40 +63,42 @@ class KotlinSyncedRealmTests { // FIXME: Rename to SyncedRealmTests once remaini
     }
 
     // Smoke test for Sync. Waiting for working Sync support.
-    @Test
-    fun connectWithInitialSchema() {
-        val user: User = createNewUser()
-        val config = createDefaultConfig(user)
-        realm = Realm.getInstance(config)
-        app.syncManager.getSession(config).uploadAllLocalChanges()
-        app.syncManager.getSession(config).downloadAllServerChanges()
-        assertTrue(realm.isEmpty)
-    }
+//        // FIXME Already migrated in #6859
+//    @Test
+//    fun connectWithInitialSchema() {
+//        val user: User = createNewUser()
+//        val config = createDefaultConfig(user)
+//        realm = Realm.getInstance(config)
+//        app.syncManager.getSession(config).uploadAllLocalChanges()
+//        app.syncManager.getSession(config).downloadAllServerChanges()
+//        assertTrue(realm.isEmpty)
+//    }
 
     // Smoke test for Sync
-    @Test
-    fun roundTripObjectsNotInServerSchemaObject() {
-        // User 1 creates an object an uploads it to MongoDB Realm
-        val user1: User = createNewUser()
-        val config1: SyncConfiguration = createCustomConfig(user1, partitionValue)
-        realm = Realm.getInstance(config1)
-        realm.executeTransaction {
-            for (i in 1..10) {
-                it.insert(SyncColor())
-            }
-        }
-        app.syncManager.getSession(config1).uploadAllLocalChanges()
-        assertEquals(10, realm.where<SyncColor>().count())
-        realm.close()
-
-        // User 2 logs and using the same partition key should see the object
-        val user2: User = createNewUser()
-        val config2 = createCustomConfig(user2, partitionValue)
-        realm = Realm.getInstance(config2)
-        realm.syncSession.downloadAllServerChanges()
-        realm.refresh()
-        assertEquals(10, realm.where<SyncColor>().count())
-    }
+//        // FIXME Already migrated in #6859
+//    @Test
+//    fun roundTripObjectsNotInServerSchemaObject() {
+//        // User 1 creates an object an uploads it to MongoDB Realm
+//        val user1: User = createNewUser()
+//        val config1: SyncConfiguration = createCustomConfig(user1, partitionValue)
+//        realm = Realm.getInstance(config1)
+//        realm.executeTransaction {
+//            for (i in 1..10) {
+//                it.insert(SyncColor())
+//            }
+//        }
+//        app.syncManager.getSession(config1).uploadAllLocalChanges()
+//        assertEquals(10, realm.where<SyncColor>().count())
+//        realm.close()
+//
+//        // User 2 logs and using the same partition key should see the object
+//        val user2: User = createNewUser()
+//        val config2 = createCustomConfig(user2, partitionValue)
+//        realm = Realm.getInstance(config2)
+//        realm.syncSession.downloadAllServerChanges()
+//        realm.refresh()
+//        assertEquals(10, realm.where<SyncColor>().count())
+//    }
 
     // Smoke test for sync
     // Insert different types with no links between them

@@ -18,11 +18,7 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
-import io.realm.mongodb.AuthenticationListener
-import io.realm.mongodb.ErrorCode
-import io.realm.mongodb.ObjectServerError
-import io.realm.mongodb.User
-import io.realm.mongodb.Credentials
+import io.realm.mongodb.*
 import io.realm.rule.BlockingLooperThread
 import org.bson.codecs.StringCodec
 import org.bson.codecs.configuration.CodecRegistries

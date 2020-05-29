@@ -21,12 +21,8 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
-import io.realm.mongodb.ErrorCode
-import io.realm.mongodb.ObjectServerError
-import io.realm.mongodb.App
-import io.realm.mongodb.User
+import io.realm.mongodb.*
 import io.realm.mongodb.auth.EmailPasswordAuth
-import io.realm.mongodb.Credentials
 import io.realm.rule.BlockingLooperThread
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -431,7 +427,7 @@ class EmailPasswordAuthTests {
             provider.callResetPasswordFunctionAsync(TestHelper.getNull(), "new-password", arrayOf(), checkNullArgCallback)
         }
         looperThread.runBlocking {
-            provider.callResetPasswordFunctionAsync("foo@bar.baz", io.realm.TestHelper.getNull(), arrayOf(), checkNullArgCallback)
+            provider.callResetPasswordFunctionAsync("foo@bar.baz", TestHelper.getNull(), arrayOf(), checkNullArgCallback)
         }
     }
 

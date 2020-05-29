@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm
+package io.realm.mongodb.sync
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.realm.*
 import io.realm.SyncTestUtils.Companion.createTestUser
 import io.realm.entities.IndexedFields
 import io.realm.entities.PrimaryKeyAsString
@@ -24,6 +25,7 @@ import io.realm.internal.OsObjectSchemaInfo
 import io.realm.internal.OsRealmConfig
 import io.realm.internal.OsSchemaInfo
 import io.realm.internal.OsSharedRealm
+import io.realm.mongodb.close
 import io.realm.util.assertFailsWithMessage
 import org.hamcrest.CoreMatchers
 import org.junit.*
@@ -103,7 +105,8 @@ class SyncedRealmMigrationTests {
                         .addField("newField", String::class.java)
                 // A schema version has to be set otherwise Object Store will try to initialize the schema again and reach an
                 // error branch. That is not a real case.
-                dynamicRealm.version = 0
+                // FIXME How to achieve the similar without access to setters
+//                dynamicRealm.version = 0
             }
         }
 
@@ -155,7 +158,8 @@ class SyncedRealmMigrationTests {
                 schema.create(className)
                         .addField(IndexedFields.FIELD_INDEXED_STRING, String::class.java) // No index
                         .addField(IndexedFields.FIELD_NON_INDEXED_STRING, String::class.java)
-                dynamicRealm.version = 42
+                // FIXME How to achieve the similar without access to setters
+//                dynamicRealm.version = 42
             }
         }
 
@@ -183,11 +187,12 @@ class SyncedRealmMigrationTests {
                 schema.create(className)
                         .addField(IndexedFields.FIELD_INDEXED_STRING, String::class.java) // No index
                         .addField(IndexedFields.FIELD_NON_INDEXED_STRING, String::class.java)
-                dynamicRealm.version = 43
+                // FIXME How to achieve the similar without access to setters
+//                dynamicRealm.version = 43
             }
         }
 
-        Realm.getInstance(config).use {realm ->
+        Realm.getInstance(config).use { realm ->
             // Opening at different schema version (42) should rebuild indexes
             val indexedFieldsSchema = realm.schema[className]!!
             assertNotNull(indexedFieldsSchema)
@@ -212,7 +217,8 @@ class SyncedRealmMigrationTests {
                 schema.create(className)
                         .addField(IndexedFields.FIELD_INDEXED_STRING, String::class.java) // No index
                 // .addField(IndexedFields.FIELD_NON_INDEXED_STRING, String.class); // Missing field
-                dynamicRealm.version = 41
+                // FIXME How to achieve the similar without access to setters
+//                dynamicRealm.version = 41
             }
         }
 
@@ -236,7 +242,8 @@ class SyncedRealmMigrationTests {
             val schema = dynamicRealm.schema
             dynamicRealm.executeTransaction {
                 schema.create(className) // Create empty class
-                dynamicRealm.version = 1
+                // FIXME How to achieve the similar without access to setters
+//                dynamicRealm.version = 1
             }
         }
 
@@ -269,13 +276,4 @@ class SyncedRealmMigrationTests {
         Realm.getInstance(config).close()
     }
 
-    companion object {
-        @BeforeClass
-        fun beforeClass() {
-            // another Test class may have the BaseRealm.applicationContext set but
-            // the SyncManager reset. This will make assertion to fail, we need to re-initialise
-            // the sync_manager.cpp#m_file_manager (configFactory rule do this)
-            BaseRealm.applicationContext = null
-        }
-    }
 }
