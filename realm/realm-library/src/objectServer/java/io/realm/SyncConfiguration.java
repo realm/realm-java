@@ -585,10 +585,10 @@ public class SyncConfiguration extends RealmConfiguration {
             if (key == null) {
                 throw new IllegalArgumentException("A non-null key must be provided");
             }
-            if (key.length != KEY_LENGTH) {
+            if (key.length != Realm.ENCRYPTION_KEY_LENGTH) {
                 throw new IllegalArgumentException(String.format(Locale.US,
                         "The provided key must be %s bytes. Yours was: %s",
-                        KEY_LENGTH, key.length));
+                        Realm.ENCRYPTION_KEY_LENGTH, key.length));
             }
             this.key = Arrays.copyOf(key, key.length);
             return this;

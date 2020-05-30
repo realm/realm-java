@@ -171,7 +171,7 @@ static inline const ObjectSchema& get_schema(const Schema& schema, TableRef tabl
     std::string class_name = std::string(table_name.substr(TABLE_PREFIX.length()));
     auto it = schema.find(class_name);
     if (it == schema.end()) {
-        throw std::runtime_error(format("Class '%1' cannot be found in the schema.", class_name.data()));
+        throw std::runtime_error(util::format("Class '%1' cannot be found in the schema.", class_name.data()));
     }
     return *it;
 }
