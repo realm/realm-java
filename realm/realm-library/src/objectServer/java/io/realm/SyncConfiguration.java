@@ -280,7 +280,7 @@ public class SyncConfiguration extends RealmConfiguration {
         if (syncUrlPrefix != null ? !syncUrlPrefix.equals(that.syncUrlPrefix) : that.syncUrlPrefix != null)
             return false;
         if (clientResyncMode != that.clientResyncMode) return false;
-        return partitionValue == that.partitionValue;
+        return partitionValue.equals(that.partitionValue);
     }
 
     @Override
