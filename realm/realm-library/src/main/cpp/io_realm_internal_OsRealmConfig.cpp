@@ -254,7 +254,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
     REALM_ASSERT(!config.sync_config);
 
     try {
-        static JavaClass sync_manager_class(env, "io/realm/RealmSync");
+        static JavaClass sync_manager_class(env, "io/realm/mongodb/sync/Sync");
         // Doing the methods lookup from the thread that loaded the lib, to avoid
         // https://developer.android.com/training/articles/perf-jni.html#faq_FindClass
         static JavaMethod java_error_callback_method(env, sync_manager_class, "notifyErrorHandler",
@@ -394,7 +394,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSyncConfigS
         }
         else if (config.sync_config->client_validate_ssl) {
             // set default callback to allow Android to check the certificate
-            static JavaClass sync_manager_class(env, "io/realm/RealmSync");
+            static JavaClass sync_manager_class(env, "io/realm/mongodb/sync/Sync");
             static JavaMethod java_ssl_verify_callback(env, sync_manager_class, "sslVerifyCallback",
                                                        "(Ljava/lang/String;Ljava/lang/String;I)Z", true);
 

@@ -64,7 +64,7 @@ static std::function<jobject(JNIEnv*, std::vector<App::UserAPIKey>)> multi_key_m
     return arr;
 };
 
-JNIEXPORT void JNICALL Java_io_realm_ApiKeyAuth_nativeCallFunction(JNIEnv* env,
+JNIEXPORT void JNICALL Java_io_realm_mongodb_ApiKeyAuthImpl_nativeCallFunction(JNIEnv* env,
                                                                    jclass,
                                                                    jint j_function_type,
                                                                    jlong j_app_ptr,

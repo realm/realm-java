@@ -74,7 +74,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddProgress
 
         SyncSession::NotifierType type = (direction == 1) ? SyncSession::NotifierType::download : SyncSession::NotifierType::upload;
 
-        static JavaClass java_syncsession_class(env, "io/realm/SyncSession");
+        static JavaClass java_syncsession_class(env, "io/realm/mongodb/sync/SyncSession");
         static JavaMethod java_notify_progress_listener(env, java_syncsession_class, "notifyProgressListener", "(JJJ)V");
 
         auto session_ref = env->NewGlobalRef(j_session_object); // This leaks. FIXME
@@ -129,7 +129,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeWaitForD
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
 
         if (session) {
-            static JavaClass java_sync_session_class(env, "io/realm/SyncSession");
+            static JavaClass java_sync_session_class(env, "io/realm/mongodb/sync/SyncSession");
             static JavaMethod java_notify_result_method(env, java_sync_session_class, "notifyAllChangesSent",
                                                         "(ILjava/lang/Long;Ljava/lang/String;)V");
             auto obj = env->NewGlobalRef(session_object);
@@ -163,7 +163,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeWaitForU
         auto session = SyncManager::shared().get_existing_session(local_realm_path);
 
         if (session) {
-            static JavaClass java_sync_session_class(env, "io/realm/SyncSession");
+            static JavaClass java_sync_session_class(env, "io/realm/mongodb/sync/SyncSession");
             static JavaMethod java_notify_result_method(env, java_sync_session_class, "notifyAllChangesSent",
                                                         "(ILjava/lang/Long;Ljava/lang/String;)V");
             auto obj = env->NewGlobalRef(session_object);
@@ -252,7 +252,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddConnecti
             return 0;
         }
 
-        static JavaClass java_syncmanager_class(env, "io/realm/RealmSync");
+        static JavaClass java_syncmanager_class(env, "io/realm/mongodb/sync/Sync");
         static JavaMethod java_notify_connection_listener(env, java_syncmanager_class, "notifyConnectionListeners", "(Ljava/lang/String;JJ)V", true);
 
         std::function<SyncSession::ConnectionStateCallback > callback = [local_realm_path](SyncSession::ConnectionState old_state, SyncSession::ConnectionState new_state) {
