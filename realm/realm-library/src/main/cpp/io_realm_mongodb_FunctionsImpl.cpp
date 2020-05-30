@@ -27,7 +27,7 @@ using namespace realm::app;
 using namespace realm::bson;
 using namespace realm::jni_util;
 
-static std::function<jobject(JNIEnv*, Optional<Bson> )> success_mapper = [](JNIEnv* env, Optional<Bson> response) {
+static std::function<jobject(JNIEnv*, util::Optional<Bson> )> success_mapper = [](JNIEnv* env, util::Optional<Bson> response) {
     if (response) {
         return JniBsonProtocol::bson_to_jstring(env, *response);
     } else {
@@ -44,9 +44,9 @@ Java_io_realm_FunctionsImpl_nativeCallFunction(JNIEnv* env, jclass , jlong j_app
         auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
 
-        std::function<void(Optional<Bson>, Optional<app::AppError>)> callback = JavaNetworkTransport::create_result_callback(env, j_callback, success_mapper);
+        std::function<void(util::Optional<Bson>, util::Optional<app::AppError>)> callback = JavaNetworkTransport::create_result_callback(env, j_callback, success_mapper);
 
-        auto handler = [callback](Optional<app::AppError> error, Optional<Bson> response) {
+        auto handler = [callback](util::Optional<app::AppError> error, util::Optional<Bson> response) {
             callback(response, error);
         };
 
