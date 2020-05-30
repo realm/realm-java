@@ -73,6 +73,7 @@ class FunctionsTests {
                 )
         )
     }
+
     // Custom string decoder returning hardcoded value
     private class CustomStringDecoder(val value: String) : Decoder<String> {
         override fun decode(reader: BsonReader, decoderContext: DecoderContext): String {
@@ -80,16 +81,22 @@ class FunctionsTests {
             return value
         }
     }
+
     // Custom codec that throws an exception when encoding/decoding integers
-    private val faultyIntegerCodec =  object: Codec<Integer> {
+    private val faultyIntegerCodec = object : Codec<Integer> {
         override fun decode(reader: BsonReader, decoderContext: DecoderContext): Integer {
             throw RuntimeException("Simulated error")
         }
-        override fun getEncoderClass(): Class<Integer> { return Integer::class.java }
+
+        override fun getEncoderClass(): Class<Integer> {
+            return Integer::class.java
+        }
+
         override fun encode(writer: BsonWriter?, value: Integer?, encoderContext: EncoderContext?) {
             throw RuntimeException("Simulated error")
         }
     }
+
     // Custom registry that throws an exception when encoding/decoding integers
     private val faultyIntegerRegistry = CodecRegistries.fromRegistries(
             CodecRegistries.fromProviders(IterableCodecProvider()),
@@ -141,16 +148,10 @@ class FunctionsTests {
                     assertEquals(values3, functions.callFunction(FIRST_ARG_FUNCTION, listOf(values3), List::class.java))
                 }
                 BsonType.BINARY -> {
-                    // FIXME Does not seem to work, typically this has indicated an issue with C++
-                    //  parser. Probably because of embedding an array in an array, added explicit test
-//                    val value = byteArrayOf(1, 2, 3)
-//                    val actual = functions.callFunction(FIRST_ARG_FUNCTION, listOf(value), ByteArray::class.java)
-//                    assertEquals(value.toList(), actual.toList())
-//                    // FIXME C++ Does not seem to preserve subtype
-//                    // arg      = "{"value": {"$binary": {"base64": "JmS8oQitTny4IPS2tyjmdA==", "subType": "04"}}}"
-//                    // response = "{"value":{"$binary":{"base64":"JmS8oQitTny4IPS2tyjmdA==","subType":"00"}}}"
-//                    // assertTypedEcho(BsonBinary(UUID.randomUUID()), BsonBinary::class.java)
-//                    assertTypedEcho(BsonBinary(byteArrayOf(1,2,3)), BsonBinary::class.java)
+                    val value = byteArrayOf(1, 2, 3)
+                    val actual = functions.callFunction(FIRST_ARG_FUNCTION, listOf(value), ByteArray::class.java)
+                    assertEquals(value.toList(), actual.toList())
+                    assertTypeOfFirstArgFunction(BsonBinary(byteArrayOf(1, 2, 3)), BsonBinary::class.java)
                 }
                 BsonType.OBJECT_ID -> {
                     assertTypeOfFirstArgFunction(ObjectId(), ObjectId::class.java)
@@ -189,7 +190,8 @@ class FunctionsTests {
                     assertEquals(documents[0], functions.callFunction(FIRST_ARG_FUNCTION, documents, Document::class.java))
                 }
                 BsonType.DATE_TIME -> {
-                    // FIXME See jniParseError_date
+                    val now = Date(System.currentTimeMillis())
+                    assertEquals(now, functions.callFunction(FIRST_ARG_FUNCTION, listOf(now), Date::class.java))
                 }
                 BsonType.UNDEFINED,
                 BsonType.NULL,
@@ -212,7 +214,7 @@ class FunctionsTests {
         }
     }
 
-    private fun <T : Any> assertTypeOfFirstArgFunction(value: T, returnClass: Class<T>) : T {
+    private fun <T : Any> assertTypeOfFirstArgFunction(value: T, returnClass: Class<T>): T {
         val actual = functions.callFunction(FIRST_ARG_FUNCTION, listOf(value), returnClass)
         assertEquals(value, actual)
         return actual
@@ -353,7 +355,7 @@ class FunctionsTests {
     @Test
     fun unknownFunction() {
         assertFailsWithErrorCode(ErrorCode.FUNCTION_NOT_FOUND) {
-             functions.callFunction("unknown", listOf(32), String::class.java)
+            functions.callFunction("unknown", listOf(32), String::class.java)
         }
     }
 
@@ -418,7 +420,7 @@ class FunctionsTests {
         }
         // User email must match "canevaluate" section of servers "functions/authorizedOnly/config.json"
         val authorizedUser = app.registerUserAndLogin("authorizeduser@example.org", "asdfasdf")
-        assertNotNull(authorizedUser.functions.callFunction("authorizedOnly", listOf(1,2,3), Document::class.java))
+        assertNotNull(authorizedUser.functions.callFunction("authorizedOnly", listOf(1, 2, 3), Document::class.java))
     }
 
     @Test
@@ -450,17 +452,21 @@ class FunctionsTests {
     fun illegalBsonArgument() {
         // Coded that will generate non-BsonArray from list
         val faultyListCodec = object : Codec<Iterable<*>> {
-            override fun getEncoderClass(): Class<Iterable<*>> { return Iterable::class.java }
+            override fun getEncoderClass(): Class<Iterable<*>> {
+                return Iterable::class.java
+            }
+
             override fun encode(writer: BsonWriter, value: Iterable<*>, encoderContext: EncoderContext) {
                 writer.writeString("Not an array")
             }
+
             override fun decode(reader: BsonReader?, decoderContext: DecoderContext?): ArrayList<*> {
                 TODO("Not yet implemented")
             }
         }
         // Codec registry that will use the above faulty codec for lists
         val faultyCodecRegistry = CodecRegistries.fromProviders(
-                object: CodecProvider {
+                object : CodecProvider {
                     override fun <T : Any> get(clazz: Class<T>?, registry: CodecRegistry?): Codec<T> {
                         @Suppress("UNCHECKED_CAST")
                         return faultyListCodec as Codec<T>
@@ -472,9 +478,9 @@ class FunctionsTests {
         }
     }
 
+    // Test cases previously failing due to C++ parsing
     @Test
-    @Ignore("JNI parsing crashes tests")
-    fun jniParseError_arrayOfBinary() {
+    fun roundtrip_arrayOfBinary() {
         val value = byteArrayOf(1, 2, 3)
         val listOf = listOf(value)
         val actual = functions.callFunction(FIRST_ARG_FUNCTION, listOf, ByteArray::class.java)
@@ -482,16 +488,17 @@ class FunctionsTests {
     }
 
     @Test
-    @Ignore("JNI parsing fails to parse into a bson array")
-    fun jniParseError_arrayOfDocuments() {
-        val map = mapOf("foo" to 5, "bar" to  7)
+    fun roundtrip_arrayOfDocuments() {
+        val map = mapOf("foo" to 5, "bar" to 7)
         assertEquals(map, functions.callFunction(FIRST_ARG_FUNCTION, listOf(map), Map::class.java))
     }
 
     @Test
-    @Ignore("JNI parsing seems to truncate value to 32-bit")
-    fun jniParseError_date() {
-        val now = Date(System.currentTimeMillis())
-        assertEquals(now, functions.callFunction(FIRST_ARG_FUNCTION, listOf(now), Date::class.java))
+    @Ignore("C++ parser does not support binary subtypes yet")
+    fun roundtrip_binaryUuid() {
+        // arg      = "{"value": {"$binary": {"base64": "JmS8oQitTny4IPS2tyjmdA==", "subType": "04"}}}"
+        // response = "{"value":{"$binary":{"base64":"JmS8oQitTny4IPS2tyjmdA==","subType":"00"}}}"
+        assertTypeOfFirstArgFunction(BsonBinary(UUID.randomUUID()), BsonBinary::class.java)
     }
+
 }
