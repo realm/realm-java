@@ -464,7 +464,7 @@ public class RealmConfiguration {
         return false;
     }
 
-    protected static RealmConfiguration forRecoveryFromSync(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
+    protected static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
         return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true, Long.MAX_VALUE);
     }
 

@@ -191,11 +191,11 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         RealmProxyMediator schemaMediator = createSchemaMediator(validatedModules, Collections.<Class<? extends RealmModel>>emptySet());
-        return RealmConfiguration.forRecoveryFromSync(canonicalPath, encryptionKey, schemaMediator);
+        return RealmConfiguration.forRecovery(canonicalPath, encryptionKey, schemaMediator);
     }
 
     RealmConfiguration forErrorRecovery(String canonicalPath) {
-        return SyncConfiguration.forRecovery(canonicalPath, getEncryptionKey(), getSchemaMediator());
+        return RealmConfiguration.forRecovery(canonicalPath, getEncryptionKey(), getSchemaMediator());
     }
 
     /**
