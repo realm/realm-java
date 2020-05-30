@@ -26,6 +26,7 @@ import androidx.databinding.DataBindingUtil
 import com.mongodb.realm.example.databinding.ActivityLoginBinding
 import io.realm.*
 import io.realm.log.RealmLog
+import io.realm.mongodb.Credentials
 
 class LoginActivity : AppCompatActivity() {
 
@@ -76,7 +77,7 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
         } else {
-            val creds = RealmCredentials.emailPassword(username, password)
+            val creds = Credentials.emailPassword(username, password)
             APP.loginAsync(creds) {
                 progressDialog.dismiss()
                 if (!it.isSuccess) {
