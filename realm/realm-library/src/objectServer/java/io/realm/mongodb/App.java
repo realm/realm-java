@@ -59,6 +59,12 @@ import io.realm.mongodb.functions.Functions;
  */
 public class App {
 
+    static final class SyncImpl extends Sync {
+        protected SyncImpl(App app) {
+            super(app);
+        }
+    }
+
     // Implementation notes:
     // The public API's currently only allow for one App, however this is a restriction
     // we might want to lift in the future. So any implementation details so ideally be made
@@ -79,10 +85,10 @@ public class App {
     public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = RealmThreadPoolExecutor.newDefaultExecutor();
 
     private final AppConfiguration config;
-    // FIXME Review public exposure
+    // FIXME Review public exposure - Test only can be hidden by extension functions
     public OsJavaNetworkTransport networkTransport;
     final Sync syncManager;
-    // FIXME Review public exposure
+    // FIXME Review public exposure - Can be removed when MongoClient is abstracted and implementation is side-by-side with App
     public final long nativePtr; //FIXME Find a way to make this package protected
     private final EmailPasswordAuth emailAuthProvider = new EmailPasswordAuthImpl(this);
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<>();
@@ -103,7 +109,7 @@ public class App {
         for (Map.Entry<String, String> entry : config.getCustomRequestHeaders().entrySet()) {
             networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());
         }
-        this.syncManager = new Sync(this);
+        this.syncManager = new SyncImpl(this);
         this.nativePtr = init(config);
 
         // FIXME: Right now we only support one App. This class will throw a

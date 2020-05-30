@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm
+package io.realm.mongodb.sync
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.realm.Realm
 import io.realm.SyncTestUtils.Companion.createTestUser
+import io.realm.TestApp
+import io.realm.TestHelper
+import io.realm.TestSyncConfigurationFactory
 import io.realm.entities.*
 import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
@@ -27,8 +31,6 @@ import io.realm.mongodb.App
 import io.realm.mongodb.Credentials
 import io.realm.mongodb.User
 import io.realm.mongodb.close
-import io.realm.mongodb.sync.SyncConfiguration
-import io.realm.mongodb.sync.SyncSession
 import org.junit.*
 import org.junit.Assert.*
 import org.junit.runner.RunWith

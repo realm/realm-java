@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.realm
 
-package io.realm;
-
-import io.realm.internal.OsRealmConfig;
-import io.realm.mongodb.User;
-import io.realm.mongodb.sync.SyncConfiguration;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.internal.OsRealmConfig
+import io.realm.mongodb.User
+import io.realm.mongodb.sync.SyncConfiguration
+import io.realm.mongodb.sync.test_sessionStopPolicy
+import io.realm.rule.TestRealmConfigurationFactory
 
 /**
  * Test rule used for creating SyncConfigurations. Will ensure that any Realm files are deleted when the
  * test ends.
  */
-public class TestSyncConfigurationFactory extends TestRealmConfigurationFactory {
-
-    public SyncConfiguration.Builder createSyncConfigurationBuilder(User user) {
-        return new SyncConfiguration.Builder(user, "default")
-                .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY);
+class TestSyncConfigurationFactory : TestRealmConfigurationFactory() {
+    fun createSyncConfigurationBuilder(user: User?): SyncConfiguration.Builder {
+        return SyncConfiguration.Builder(user, "default")
+                .test_sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
     }
 }

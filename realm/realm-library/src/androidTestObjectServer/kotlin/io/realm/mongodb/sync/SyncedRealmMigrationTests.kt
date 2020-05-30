@@ -105,8 +105,7 @@ class SyncedRealmMigrationTests {
                         .addField("newField", String::class.java)
                 // A schema version has to be set otherwise Object Store will try to initialize the schema again and reach an
                 // error branch. That is not a real case.
-                // FIXME How to achieve the similar without access to setters
-//                dynamicRealm.version = 0
+                dynamicRealm.version = 0
             }
         }
 
@@ -158,8 +157,7 @@ class SyncedRealmMigrationTests {
                 schema.create(className)
                         .addField(IndexedFields.FIELD_INDEXED_STRING, String::class.java) // No index
                         .addField(IndexedFields.FIELD_NON_INDEXED_STRING, String::class.java)
-                // FIXME How to achieve the similar without access to setters
-//                dynamicRealm.version = 42
+                dynamicRealm.version = 42
             }
         }
 
@@ -187,8 +185,7 @@ class SyncedRealmMigrationTests {
                 schema.create(className)
                         .addField(IndexedFields.FIELD_INDEXED_STRING, String::class.java) // No index
                         .addField(IndexedFields.FIELD_NON_INDEXED_STRING, String::class.java)
-                // FIXME How to achieve the similar without access to setters
-//                dynamicRealm.version = 43
+                dynamicRealm.version = 43
             }
         }
 
@@ -217,8 +214,7 @@ class SyncedRealmMigrationTests {
                 schema.create(className)
                         .addField(IndexedFields.FIELD_INDEXED_STRING, String::class.java) // No index
                 // .addField(IndexedFields.FIELD_NON_INDEXED_STRING, String.class); // Missing field
-                // FIXME How to achieve the similar without access to setters
-//                dynamicRealm.version = 41
+                dynamicRealm.version = 41
             }
         }
 
@@ -242,8 +238,7 @@ class SyncedRealmMigrationTests {
             val schema = dynamicRealm.schema
             dynamicRealm.executeTransaction {
                 schema.create(className) // Create empty class
-                // FIXME How to achieve the similar without access to setters
-//                dynamicRealm.version = 1
+                dynamicRealm.version = 1
             }
         }
 

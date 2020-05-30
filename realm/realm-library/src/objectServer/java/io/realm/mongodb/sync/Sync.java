@@ -40,14 +40,13 @@ import io.realm.mongodb.User;
  */
 @Keep
 @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
-public class Sync {
+public abstract class Sync {
 
     private final App app;
     // keeps track of SyncSession, using 'realm_path'. Java interface with the ObjectStore using the 'realm_path'
     private Map<String, SyncSession> sessions = new ConcurrentHashMap<>();
 
-    // FIXME Review public exposure
-    public Sync(App app) {
+    protected Sync(App app) {
         this.app = app;
     }
 
@@ -279,7 +278,6 @@ public class Sync {
     synchronized void reset() {
         nativeReset();
         sessions.clear();
-        app.networkTransport.resetHeaders();
     }
 
     /**

@@ -30,6 +30,7 @@ import io.realm.mongodb.sync.ext_reset
 fun App.close() {
     ServerAdmin().deleteAllUsers()
     this.syncManager.ext_reset()
+    this.networkTransport.resetHeaders()
     App.CREATED = false
     BaseRealmExt.clear()
 }

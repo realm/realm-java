@@ -150,7 +150,7 @@ abstract class BaseRealm implements Closeable {
     // FIXME Could we put this in Realm.getApplicationContext() only. Do not know why this lives
     //  on BaseRealm as it is never initialized/used for DynamicRealm, so might as well just
     //  be on Realm.
-    // FIXME Public exposure
+    // FIXME Review public exposure - Needed from <X>Configuration.Builder. Can we expose this? Alternatively required as argument to <X>Configruation.Builders
     public static Context getApplicationContext() {
         return applicationContext;
     }

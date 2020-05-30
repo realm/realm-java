@@ -191,7 +191,11 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         RealmProxyMediator schemaMediator = createSchemaMediator(validatedModules, Collections.<Class<? extends RealmModel>>emptySet());
-        return forRecovery(canonicalPath, encryptionKey, schemaMediator);
+        return RealmConfiguration.forRecoveryFromSync(canonicalPath, encryptionKey, schemaMediator);
+    }
+
+    RealmConfiguration forErrorRecovery(String canonicalPath) {
+        return SyncConfiguration.forRecovery(canonicalPath, getEncryptionKey(), getSchemaMediator());
     }
 
     /**
@@ -257,9 +261,6 @@ public class SyncConfiguration extends RealmConfiguration {
         return forRecovery(canonicalPath, null);
     }
 
-    static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
-        return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true, Long.MAX_VALUE);
-    }
 
     // Extract the full server path, minus the file name
     private static String getServerPath(User user, URI serverUrl) {
@@ -579,7 +580,7 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Sets the {@value io.realm.RealmConfiguration#KEY_LENGTH} bytes key used to encrypt and decrypt the Realm file.
+         * Sets the {@value io.realm.Realm#ENCRYPTION_KEY_LENGTH} bytes key used to encrypt and decrypt the Realm file.
          *
          * @param key the encryption key.
          * @throws IllegalArgumentException if key is invalid.

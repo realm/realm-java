@@ -46,7 +46,7 @@ class SyncTestUtils {
 
             // Reset log level
             RealmLog.setLevel(originalLogLevel)
-            if (BaseRealm.applicationContext != null) {
+            if (Realm.getApplicationContext() != null) {
                 // Realm was already initialized. Reset all internal state
                 // in order to be able to fully re-initialize.
 
@@ -56,7 +56,7 @@ class SyncTestUtils {
                 // move this call to 'tearDown' to clean in-memory & on-disk users
                 // once https://github.com/realm/realm-object-store/issues/207 is resolved
                 // SyncManager.reset(); // FIXME
-                BaseRealm.applicationContext = null // Required for Realm.init() to work
+                BaseRealmExt.clear() // Required for Realm.init() to work
             }
             deleteRosFiles()
             Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)

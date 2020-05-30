@@ -227,9 +227,8 @@ class SyncConfigurationTests {
 
     @Test
     fun defaultConfiguration_throwsIfNotLoggedIn() {
-        val user: User = createTestUser(app)
-        // FIXME Reevaluate
-//        user.osUser.invalidate()
+        // TODO Maybe we could avoid registering a real user
+        val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         user.logOut()
         assertFailsWith<IllegalArgumentException> { SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION) }
     }

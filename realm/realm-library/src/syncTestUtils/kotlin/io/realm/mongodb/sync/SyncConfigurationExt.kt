@@ -16,7 +16,8 @@
 
 package io.realm.mongodb.sync
 
-// Helper to expose package protected methods for testing purpose
-fun Sync.ext_reset() {
-    this.reset()
+import io.realm.internal.OsRealmConfig
+
+fun SyncConfiguration.Builder.test_sessionStopPolicy(policy: OsRealmConfig.SyncSessionStopPolicy): SyncConfiguration.Builder {
+    return this.sessionStopPolicy(policy)
 }

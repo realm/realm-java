@@ -20,11 +20,13 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.TestHelper.TestLogger
+import io.realm.entities.DefaultSyncSchema
 import io.realm.entities.StringOnly
 import io.realm.entities.StringOnlyModule
 import io.realm.exceptions.RealmFileException
 import io.realm.exceptions.RealmMigrationNeededException
 import io.realm.kotlin.syncSession
+import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.*
 import io.realm.rule.BlockingLooperThread
@@ -59,7 +61,9 @@ class SessionTests {
         //  seems like the old  way of "faking" it, does now work for now, so using a real user.
         // user = SyncTestUtils.createTestUser(app)
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        configuration = SyncConfiguration.defaultConfig(user, "default")
+        configuration = SyncConfiguration.Builder(user, "default")
+                .modules(DefaultSyncSchema())
+                .build()
     }
 
     @After
@@ -395,7 +399,8 @@ class SessionTests {
     fun uploadAllLocalChanges_returnFalseWhenTimedOut() {
         Realm.getInstance(configuration).use { realm ->
             val session = realm.syncSession
-            assertFalse(session.uploadAllLocalChanges(100, TimeUnit.MILLISECONDS))
+            // We never assume to be able to download changes with one 1ms
+            assertFalse(session.uploadAllLocalChanges(1, TimeUnit.MILLISECONDS))
         }
     }
 
@@ -455,10 +460,17 @@ class SessionTests {
 
         Realm.getInstance(configuration).use { realm ->
             val session = realm.syncSession
+            // FIXME This test requires errors to be reported, when running full test suite the
+            //  some test running refore leaves it at FATAL. Do we have conventions about it? For
+            //  now just lowering while triggering the actual test
+            val level = RealmLog.getLevel()
+            RealmLog.setLevel(LogLevel.WARN)
             val testLogger = TestLogger()
             RealmLog.add(testLogger)
             session.notifySessionError("unknown", 3, "Unknown Error")
             RealmLog.remove(testLogger)
+            // FIXME
+            RealmLog.setLevel(level)
             assertTrue(errorHandlerCalled.get())
             assertEquals("Unknown error code: 'unknown:3'", testLogger.message)
         }

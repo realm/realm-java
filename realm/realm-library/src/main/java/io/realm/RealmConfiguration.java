@@ -110,8 +110,7 @@ public class RealmConfiguration {
 
     // We need to enumerate all parameters since SyncConfiguration and RealmConfiguration supports different
     // subsets of them.
-    // FIXME DO NOT COMMIT
-    public RealmConfiguration(@Nullable File realmDirectory,
+    protected RealmConfiguration(@Nullable File realmDirectory,
             @Nullable String realmFileName,
             String canonicalPath,
             @Nullable String assetFilePath,
@@ -179,8 +178,7 @@ public class RealmConfiguration {
      * @return the mediator of the schema.
      */
     // Protected for testing with mockito.
-    // FIXME Review public exposure
-    public RealmProxyMediator getSchemaMediator() {
+    protected RealmProxyMediator getSchemaMediator() {
         return schemaMediator;
     }
 
@@ -437,7 +435,7 @@ public class RealmConfiguration {
      * @return {@code true} if RxJava dependency exist, {@code false} otherwise.
      */
     @SuppressWarnings("LiteralClassName")
-    // FIXME REVIEW public exposure
+    // FIXME Review public exposure - Needed from SyncConfiguration.Builder can we expose this?
     public static synchronized boolean isRxJavaAvailable() {
         if (rxJavaAvailable == null) {
             try {
@@ -464,6 +462,10 @@ public class RealmConfiguration {
     // Checks if this configuration is a SyncConfiguration instance.
     protected boolean isSyncConfiguration() {
         return false;
+    }
+
+    protected static RealmConfiguration forRecoveryFromSync(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
+        return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true, Long.MAX_VALUE);
     }
 
     /**
