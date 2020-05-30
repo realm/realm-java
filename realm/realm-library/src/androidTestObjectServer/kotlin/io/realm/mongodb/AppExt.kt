@@ -17,9 +17,8 @@ package io.realm.mongodb
 
 import io.realm.BaseRealmExt
 import io.realm.admin.ServerAdmin
-import io.realm.clear
-import io.realm.mongodb.App
-import io.realm.mongodb.sync.ext_reset
+import io.realm.test_clear
+import io.realm.mongodb.sync.test_reset
 
 /**
  * Resets the Realm Application and delete all local state.
@@ -29,10 +28,10 @@ import io.realm.mongodb.sync.ext_reset
  */
 fun App.close() {
     ServerAdmin().deleteAllUsers()
-    this.syncManager.ext_reset()
+    this.syncManager.test_reset()
     this.networkTransport.resetHeaders()
     App.CREATED = false
-    BaseRealmExt.clear()
+    BaseRealmExt.test_clear()
 }
 
 /**

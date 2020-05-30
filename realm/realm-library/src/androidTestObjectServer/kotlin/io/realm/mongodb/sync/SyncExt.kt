@@ -17,6 +17,6 @@
 package io.realm.mongodb.sync
 
 // Helper to expose package protected methods for testing purpose
-fun Sync.ext_reset() {
+fun Sync.test_reset() {
     this.reset()
 }
