@@ -137,6 +137,11 @@ public class Realm extends BaseRealm {
 
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
 
+    /**
+     * The required length for encryption keys used to encrypt Realm data.
+     */
+    public static final int ENCRYPTION_KEY_LENGTH = 64;
+
     private static final Object defaultConfigurationLock = new Object();
     // guarded by `defaultConfigurationLock`
     private static RealmConfiguration defaultConfiguration;

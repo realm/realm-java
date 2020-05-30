@@ -58,7 +58,7 @@ struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
     void handle_error(std::exception const& e) override
     {
         JNIEnv* env = JniUtils::get_env(true);
-        std::string msg = format("An exception has been thrown on the sync client thread:\n%1", e.what());
+        std::string msg = util::format("An exception has been thrown on the sync client thread:\n%1", e.what());
         Log::f(msg.c_str());
         // Since user has no way to handle exceptions thrown on the sync client thread, we just convert it to a Java
         // exception to get more debug information for ourself.
@@ -75,7 +75,7 @@ private:
 
 struct AndroidSyncLoggerFactory : public realm::SyncLoggerFactory {
     // The level param is ignored. Use the global RealmLog.setLevel() to control all log levels.
-    std::unique_ptr<util::Logger> make_logger(Logger::Level) override
+    std::unique_ptr<util::Logger> make_logger(util::Logger::Level) override
     {
         auto logger = std::make_unique<CoreLoggerBridge>(std::string("REALM_SYNC"));
         // Cast to std::unique_ptr<util::Logger>

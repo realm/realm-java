@@ -1,11 +1,12 @@
 package io.realm.util
 
+import android.util.ArraySet
 import io.realm.ErrorCode
 import io.realm.ObjectServerError
 import org.hamcrest.Matcher
 import org.junit.Assert.*
 import org.junit.rules.ErrorCollector
-import kotlin.test.assertFailsWith
+import java.io.Closeable
 
 // Helper methods for improving Kotlin unit tests.
 
@@ -42,3 +43,21 @@ inline fun <reified T> assertFailsWithMessage(matcher: Matcher<in String?>, bloc
         assertThat(e.message, matcher)
     }
 }
+
+/**
+ * A **resource container** to keep references for objects that should later be closed.
+ */
+class ResourceContainer : Closeable {
+    val resources = ArraySet<Closeable>()
+
+    @Synchronized
+    override fun close() {
+        resources.map { it.close() }
+    }
+
+    @Synchronized
+    fun add(resource: Closeable) {
+        resources.add(resource)
+    }
+}
+

@@ -175,12 +175,12 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
     if (is_pk_null) {
 
         if (bool(table->find_first_null(col_key))) {
-            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, util::format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
         }
     }
     else {
         if (bool(table->find_first_int(col_key, pk_value))) {
-            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, pk_value));
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, util::format(PK_EXCEPTION_MSG_FORMAT, pk_value));
         }
     }
 
@@ -203,12 +203,12 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
     if (pk_value) {
         if (bool(table->find_first_string(col_key, str_accessor))) {
             THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS,
-                                 format(PK_EXCEPTION_MSG_FORMAT, str_accessor.operator std::string()));
+                                 util::format(PK_EXCEPTION_MSG_FORMAT, str_accessor.operator std::string()));
         }
     }
     else {
         if (bool(table->find_first_null(col_key))) {
-            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, util::format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
         }
     }
     return table->create_object_with_primary_key(StringData(str_accessor));
@@ -230,14 +230,14 @@ static inline Obj do_create_row_with_object_id_primary_key(JNIEnv* env, jlong sh
         auto objectId = ObjectId(StringData(str_accessor).data());
         if (bool(table->find_first_object_id(col_key, objectId))) {
             THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS,
-                                 format(PK_EXCEPTION_MSG_FORMAT, str_accessor.operator std::string()));
+                                 util::format(PK_EXCEPTION_MSG_FORMAT, str_accessor.operator std::string()));
         }
 
         return table->create_object_with_primary_key(objectId);
     }
     else {
         if (bool(table->find_first_null(col_key))) {
-            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, util::format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
         }
         return table->create_object_with_primary_key(realm::util::Optional<realm::ObjectId>());
     }

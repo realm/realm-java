@@ -18,6 +18,7 @@ package io.realm.internal.objectstore;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.realm.RealmAppConfiguration;
 import io.realm.internal.Keep;
 
 /**
@@ -73,7 +74,7 @@ public abstract class OsJavaNetworkTransport {
      * Used for testing.
      */
     public void resetHeaders() {
-        authorizationHeaderName = "Authorization";
+        authorizationHeaderName = RealmAppConfiguration.DEFAULT_AUTHORIZATION_HEADER_NAME;
         customHeaders.clear();
     }
 
