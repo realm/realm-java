@@ -1748,7 +1748,7 @@ public class Realm extends BaseRealm {
             throw new IllegalStateException("`copyOrUpdate` can only be called inside a write transaction.");
 
         }
-        if (configuration.getSchemaMediator().isEmbedded(object.getClass())) {
+        if (configuration.getSchemaMediator().isEmbedded(Util.getOriginalModelClass(object.getClass()))) {
             throw new IllegalArgumentException("Embedded objects cannot be copied into Realm by themselves. They need to be attached to a parent object");
         }
         try {
