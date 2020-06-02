@@ -61,6 +61,7 @@ android {
                 'src/androidTestObjectServer/kotlin',
                 '../realm-library/src/testUtils/java',
                 '../realm-library/src/testUtils/kotlin',
+                '../realm-library/src/syncTestUtils/java',
                 '../realm-library/src/syncTestUtils/kotlin',
         ]
     }
