@@ -18,7 +18,7 @@ package io.realm.mongodb.sync
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.Realm
-import io.realm.SyncTestUtils.Companion.createTestUser
+import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
 import io.realm.TestApp
 import io.realm.TestHelper
 import io.realm.TestSyncConfigurationFactory

@@ -81,8 +81,7 @@ public class App {
     public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = RealmThreadPoolExecutor.newDefaultExecutor();
 
     private final AppConfiguration config;
-    // FIXME Review public exposure - Test only can be hidden by extension functions
-    public OsJavaNetworkTransport networkTransport;
+    protected OsJavaNetworkTransport networkTransport;
     final Sync syncManager;
     // FIXME Review public exposure - Can be removed when MongoClient is abstracted and implementation is side-by-side with App
     public final long nativePtr; //FIXME Find a way to make this package protected

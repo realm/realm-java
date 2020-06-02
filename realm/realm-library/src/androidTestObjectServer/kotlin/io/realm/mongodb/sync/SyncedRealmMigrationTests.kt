@@ -17,7 +17,7 @@ package io.realm.mongodb.sync
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.*
-import io.realm.SyncTestUtils.Companion.createTestUser
+import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
 import io.realm.entities.IndexedFields
 import io.realm.entities.PrimaryKeyAsString
 import io.realm.entities.StringOnly
