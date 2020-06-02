@@ -13,12 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.objectserver.utils
 
-import io.realm.RealmObject
+package io.realm.objectserver.utils;
+
+import io.realm.RealmObject;
 
 // Used by UserFactory. Storing current user name for testing to share the same user name across processes.
-open class UserFactoryStore : RealmObject() {
-    var userName: String? = null
+public class UserFactoryStore extends RealmObject {
+    private String userName;
 
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
 }
