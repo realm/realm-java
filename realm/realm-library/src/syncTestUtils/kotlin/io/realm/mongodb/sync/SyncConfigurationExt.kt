@@ -16,8 +16,13 @@
 
 package io.realm.mongodb.sync
 
+import io.realm.RealmModel
 import io.realm.internal.OsRealmConfig
 
-fun SyncConfiguration.Builder.test_sessionStopPolicy(policy: OsRealmConfig.SyncSessionStopPolicy): SyncConfiguration.Builder {
+fun SyncConfiguration.Builder.testSchema(firstClass: Class<out RealmModel>, vararg x: Class<out RealmModel> ) : SyncConfiguration.Builder {
+    return this.schema(firstClass, *x)
+}
+
+fun SyncConfiguration.Builder.testSessionStopPolicy(policy: OsRealmConfig.SyncSessionStopPolicy): SyncConfiguration.Builder {
     return this.sessionStopPolicy(policy)
 }

@@ -333,8 +333,7 @@ public class DynamicRealm extends BaseRealm {
      *
      * @param version the schema version to be set.
      */
-    // FIXME Review public exposure - Test only can be hidden by extension functions
-    public void setVersion(long version) {
+    void setVersion(long version) {
         OsObjectStore.setSchemaVersion(sharedRealm, version);
     }
 

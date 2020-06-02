@@ -18,7 +18,7 @@ package io.realm
 import io.realm.internal.OsRealmConfig
 import io.realm.mongodb.User
 import io.realm.mongodb.sync.SyncConfiguration
-import io.realm.mongodb.sync.test_sessionStopPolicy
+import io.realm.mongodb.sync.testSessionStopPolicy
 import io.realm.rule.TestRealmConfigurationFactory
 
 /**
@@ -28,6 +28,6 @@ import io.realm.rule.TestRealmConfigurationFactory
 class TestSyncConfigurationFactory : TestRealmConfigurationFactory() {
     fun createSyncConfigurationBuilder(user: User?): SyncConfiguration.Builder {
         return SyncConfiguration.Builder(user, "default")
-                .test_sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
+                .testSessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
     }
 }
