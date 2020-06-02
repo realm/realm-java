@@ -208,13 +208,10 @@ public class SyncSession {
         }
     }
 
-    // FIXME Doc: WAITING_FOR_ACCESS_TOKEN is gone!
     /**
      * Get the current session's state, as defined in {@link SyncSession.State}.
-     *
-     * Note that the state may change after this method returns, example: the authentication
-     * token will expire, causing the session to move to {@link State#WAITING_FOR_ACCESS_TOKEN}
-     * after it was in {@link State#ACTIVE}.
+     * <p>
+     * Note that the state may change after this method returns.
      *
      * @return the state of the session.
      * @see SyncSession.State
@@ -522,7 +519,6 @@ public class SyncSession {
         }
     }
 
-    // FIXME Doc: WAITING_FOR_ACCESS_TOKEN is gone!
     /**
      * Attempts to start the session and enable synchronization with the Realm Object Server.
      * <p>
@@ -531,8 +527,8 @@ public class SyncSession {
      * <p>
      * If the session was already started, calling this method will do nothing.
      * <p>
-     * A session is considered started if {@link #getState()} returns either {@link State#ACTIVE} or
-     * {@link State#WAITING_FOR_ACCESS_TOKEN}. If the session is {@link State#DYING}, the session
+     * A session is considered started if {@link #getState()} returns {@link State#ACTIVE}.
+     * If the session is {@link State#DYING}, the session
      * will be moved back to {@link State#ACTIVE}.
      *
      * @see #getState()
@@ -620,11 +616,9 @@ public class SyncSession {
         }
     }
 
-    // FIXME Doc: Sync#setDefaultSeesionErrorHandler is gone?!?
     /**
      * Interface used to report any session errors.
      *
-     * @see Sync#setDefaultSessionErrorHandler(ErrorHandler)
      * @see SyncConfiguration.Builder#errorHandler(ErrorHandler)
      */
     public interface ErrorHandler {

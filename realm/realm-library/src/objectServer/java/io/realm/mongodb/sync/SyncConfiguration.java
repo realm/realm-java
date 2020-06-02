@@ -767,10 +767,8 @@ public class SyncConfiguration extends RealmConfiguration {
             return this;
         }
 
-        // FIXME Doc: Where did Sync#setDefaultSessionErrorHandler go?
         /**
-         * Sets the error handler used by this configuration. This will override any handler set by calling
-         * {@link Sync#setDefaultSessionErrorHandler(SyncSession.ErrorHandler)}.
+         * Sets the error handler used by this configuration.
          * <p>
          * Only errors not handled by the defined {@code SyncPolicy} will be reported to this error handler.
          *

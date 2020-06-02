@@ -439,7 +439,7 @@ class SessionTests {
     fun downloadAllServerChanges_returnFalseWhenTimedOut() {
         Realm.getInstance(configuration).use { realm ->
             val session = realm.syncSession
-            // We never assume to be able to download changes with one 1ms
+            // We never assume to be able to download changes within one 1ms
             assertFalse(session.downloadAllServerChanges(1, TimeUnit.MILLISECONDS))
         }
     }
@@ -458,8 +458,8 @@ class SessionTests {
 
         Realm.getInstance(configuration).use { realm ->
             val session = realm.syncSession
-            // FIXME This test requires errors to be reported, when running full test suite the
-            //  some test running refore leaves it at FATAL. Do we have conventions about it? For
+            // TODO This test requires errors to be reported, when running full test suite
+            //  some test running before leaves it at FATAL. Do we have conventions about it? For
             //  now just lowering while triggering the actual test
             val level = RealmLog.getLevel()
             RealmLog.setLevel(LogLevel.WARN)
@@ -467,7 +467,7 @@ class SessionTests {
             RealmLog.add(testLogger)
             session.notifySessionError("unknown", 3, "Unknown Error")
             RealmLog.remove(testLogger)
-            // FIXME
+            // TODO See comment above
             RealmLog.setLevel(level)
             assertTrue(errorHandlerCalled.get())
             assertEquals("Unknown error code: 'unknown:3'", testLogger.message)

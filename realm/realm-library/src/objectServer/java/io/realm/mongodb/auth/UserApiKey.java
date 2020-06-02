@@ -22,12 +22,12 @@ import javax.annotation.Nullable;
 import io.realm.mongodb.App;
 import io.realm.mongodb.User;
 
-// FIXME Doc: Where did getApiKeyAuthProvider go
 /**
  * Class representing an API key for a {@link User}. An API can be used to represent the
  * user when logging instead of using email and password.
  * <p>
- * These keys are created and managed through {@link App#getApiKeyAuthProvider()}.
+ * These keys are created or fetched through {@link ApiKeyAuth#createApiKey(String)} or the various
+ * {@code fetch}-methods.
  * <p>
  * Note that a keys {@link #value} is only available when the key is created, after that it is not
  * visible. So anyone creating an API key is responsible for storing it safely after that.
