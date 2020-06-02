@@ -913,9 +913,7 @@ class MongoClientTest {
         }
     }
 
-    // FIXME: un-ignore when fixed in OS
     @Test
-    @Ignore("find_one_and_delete function is wrongly implemented in OS")
     fun findOneAndDelete() {
         with(getCollectionInternal()) {
             val sampleDoc = Document("hello", "world1").apply { this["num"] = 1 }
@@ -1007,7 +1005,7 @@ class MongoClientTest {
             var coll = withDocumentClass(CustomType::class.java)
             assertEquals(CustomType::class.java, coll.documentClass)
 
-            assertFailsWith(CodecConfigurationException::class) {
+            assertFailsWith(ObjectServerError::class) {
                 coll.insertOne(expected).blockingGetResult()
             }
 

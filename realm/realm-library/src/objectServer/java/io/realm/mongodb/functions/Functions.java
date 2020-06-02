@@ -17,18 +17,17 @@
 package io.realm.mongodb.functions;
 
 import org.bson.codecs.Decoder;
-import org.bson.codecs.configuration.CodecConfigurationException;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.List;
 
-import io.realm.ErrorCode;
 import io.realm.ObjectServerError;
 import io.realm.RealmApp;
 import io.realm.RealmAppConfiguration;
 import io.realm.RealmAsyncTask;
 import io.realm.RealmUser;
 import io.realm.internal.Util;
+import io.realm.internal.jni.JniBsonProtocol;
 
 /**
  * A <i>Functions<i> manager to call MongoDB Realm functions.
@@ -73,7 +72,7 @@ public abstract class Functions {
      * @see RealmAppConfiguration#getDefaultCodecRegistry()
      */
     public <ResultT> ResultT callFunction(String name, List<?> args, Class<ResultT> resultClass, CodecRegistry codecRegistry) {
-        return invoke(name, args, codecRegistry, decoder(codecRegistry, resultClass));
+        return invoke(name, args, codecRegistry, JniBsonProtocol.decoder(codecRegistry, resultClass));
     }
 
     /**
@@ -140,7 +139,8 @@ public abstract class Functions {
         return new RealmApp.Request<T>(RealmApp.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public T run() throws ObjectServerError {
-                return invoke(name, args, codecRegistry, decoder(codecRegistry, resultClass));
+                Decoder<T> decoder = JniBsonProtocol.decoder(codecRegistry, resultClass);
+                return invoke(name, args, codecRegistry, decoder);
             }
         }.start();
     }
@@ -225,13 +225,5 @@ public abstract class Functions {
     }
 
     protected abstract <T> T invoke(String name, List<?> args, CodecRegistry codecRegistry, Decoder<T> resultDecoder);
-
-    private static <T> Decoder<T> decoder(CodecRegistry codecRegistry, Class<T> clz) {
-        try {
-            return codecRegistry.get(clz);
-        } catch (Exception e) {
-            throw new ObjectServerError(ErrorCode.BSON_CODEC_NOT_FOUND, "Could not resolve decoder for " + clz.getName(), e);
-        }
-    }
 
 }

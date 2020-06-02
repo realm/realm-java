@@ -17,6 +17,7 @@
 package io.realm.internal.jni;
 
 import org.bson.BsonValue;
+import org.bson.codecs.Codec;
 import org.bson.codecs.Decoder;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.Encoder;
@@ -36,7 +37,7 @@ import io.realm.ObjectServerError;
 
 /**
  * Protocol for passing {@link BsonValue}s to JNI.
- *
+ * <p>
  * For now this just encapsulated the BSON value in a document with key {@value VALUE}. This
  * overcomes the shortcoming of {@code org.bson.JsonWrite} not being able to serialize single values.
  */
@@ -45,11 +46,16 @@ public class JniBsonProtocol {
     private static final String VALUE = "value";
 
     private static JsonWriterSettings writerSettings = JsonWriterSettings.builder()
-                .outputMode(JsonMode.EXTENDED)
-                .build();
+            .outputMode(JsonMode.EXTENDED)
+            .build();
 
     public static <T> String encode(T value, CodecRegistry registry) {
-        return encode(value, (Encoder<T>)registry.get(value.getClass()));
+        try {
+            Codec<?> codec = registry.get(value.getClass());
+            return encode(value, (Encoder<T>) codec);
+        } catch (Exception e) {
+            throw new ObjectServerError(ErrorCode.BSON_CODEC_NOT_FOUND, "Could not resolve decoder for " + value.getClass().getSimpleName(), e);
+        }
     }
 
     public static <T> String encode(T value, Encoder<T> encoder) {
@@ -73,16 +79,20 @@ public class JniBsonProtocol {
     }
 
     public static <T> T decode(String string, Decoder<T> decoder) {
+        StringReader stringReader = new StringReader(string);
+        JsonReader jsonReader = new JsonReader(stringReader);
+        jsonReader.readStartDocument();
+        jsonReader.readName(VALUE);
+        T value = decoder.decode(jsonReader, DecoderContext.builder().build());
+        jsonReader.readEndDocument();
+        return value;
+    }
+
+    public static <T> Decoder<T> decoder(CodecRegistry codecRegistry, Class<T> clz) {
         try {
-            StringReader stringReader = new StringReader(string);
-            JsonReader jsonReader = new JsonReader(stringReader);
-            jsonReader.readStartDocument();
-            jsonReader.readName(VALUE);
-            T value = decoder.decode(jsonReader, DecoderContext.builder().build());
-            jsonReader.readEndDocument();
-            return value;
+            return codecRegistry.get(clz);
         } catch (Exception e) {
-            throw new ObjectServerError(ErrorCode.BSON_DECODING, "Error decoding value " + string, e);
+            throw new ObjectServerError(ErrorCode.BSON_CODEC_NOT_FOUND, "Could not resolve decoder for " + clz.getName(), e);
         }
     }
 }

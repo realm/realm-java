@@ -36,8 +36,8 @@ public class OsMongoClient implements NativeObject {
         this.dispatcher = dispatcher;
     }
 
-    public OsMongoDatabase getRemoteDatabase(final String databaseName,
-                                             final CodecRegistry codecRegistry) {
+    public OsMongoDatabase getDatabase(final String databaseName,
+                                       final CodecRegistry codecRegistry) {
         long nativeDatabasePtr = nativeCreateDatabase(nativePtr, databaseName);
         return new OsMongoDatabase(nativeDatabasePtr, codecRegistry, dispatcher);
     }

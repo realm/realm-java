@@ -56,6 +56,6 @@ public class MongoClient {
      */
     public MongoDatabase getDatabase(final String databaseName) {
         Util.checkEmpty(databaseName, "databaseName");
-        return new MongoDatabase(osMongoClient.getRemoteDatabase(databaseName, codecRegistry), databaseName, dispatcher);
+        return new MongoDatabase(osMongoClient.getDatabase(databaseName, codecRegistry), databaseName, dispatcher);
     }
 }
