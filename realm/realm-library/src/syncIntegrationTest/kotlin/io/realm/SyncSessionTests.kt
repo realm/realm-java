@@ -257,30 +257,41 @@ class SyncSessionTests {
             realm.syncSession.uploadAllLocalChanges()
         }
 
-        // Not relevant for test but just to verify that we actually download the correct schema
-        // New user but same Realm as configuration has the same partition value
+        // New user and different partition value
         val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
         val config2 = configFactory
-                .createSyncConfigurationBuilder(user2)
+                .createSyncConfigurationBuilder(user2, BsonObjectId(ObjectId()))
+                .modules(DefaultSyncSchema())
+                .build()
+
+        Realm.getInstance(config2).use { realm ->
+            realm.executeTransaction {
+                realm.createObject(SyncSupportedTypes::class.java, ObjectId())
+            }
+            realm.syncSession.uploadAllLocalChanges()
+        }
+    }
+
+    @Test
+    fun differentPartitionValue_noCrosstalk() {
+        Realm.getInstance(syncConfiguration).use { realm ->
+            realm.executeTransaction {
+                realm.createObject(SyncSupportedTypes::class.java, ObjectId())
+            }
+            realm.syncSession.uploadAllLocalChanges()
+        }
+
+        // New user and different partition value
+        val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
+        val config2 = configFactory
+                .createSyncConfigurationBuilder(user2, BsonObjectId(ObjectId()))
                 .modules(DefaultSyncSchema())
                 .build()
 
         Realm.getInstance(config2).use { realm ->
             realm.syncSession.downloadAllServerChanges()
-        }
-
-        // New user and different partition value
-        val user3 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
-        val config3 = configFactory
-                .createSyncConfigurationBuilder(user3, BsonObjectId(ObjectId()))
-                .modules(DefaultSyncSchema())
-                .build()
-
-        Realm.getInstance(config3).use { realm ->
-            realm.executeTransaction {
-                realm.createObject(SyncSupportedTypes::class.java, ObjectId())
-            }
-            realm.syncSession.uploadAllLocalChanges()
+            // We should not have any data here
+            assertEquals(0, realm.where(SyncSupportedTypes::class.java).count())
         }
     }
 
@@ -299,26 +310,14 @@ class SyncSessionTests {
             realm.syncSession.uploadAllLocalChanges()
         }
 
-        // Not relevant for test but just to verify that we actually download the correct schema
-        // New user but same Realm as configuration has the same partition value
+        // New user and different partition value
         val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
         val config2 = configFactory
-                .createSyncConfigurationBuilder(user2)
+                .createSyncConfigurationBuilder(user2, BsonObjectId(ObjectId()))
                 .modules(SyncAllTypesSchema())
                 .build()
 
         Realm.getInstance(config2).use { realm ->
-            realm.syncSession.downloadAllServerChanges()
-        }
-
-        // New user and different partition value
-        val user3 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
-        val config3 = configFactory
-                .createSyncConfigurationBuilder(user3, BsonObjectId(ObjectId()))
-                .modules(SyncAllTypesSchema())
-                .build()
-
-        Realm.getInstance(config3).use { realm ->
             realm.executeTransaction {
                 realm.createObject(SyncAllTypes::class.java, ObjectId())
             }
