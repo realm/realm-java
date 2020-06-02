@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
+import io.realm.internal.mongodb.Request;
 import io.realm.mongodb.ObjectServerError;
 import io.realm.RealmAsyncTask;
 import io.realm.internal.network.ResultHandler;
@@ -115,7 +116,7 @@ public abstract class ApiKeyAuth {
      */
     public RealmAsyncTask createApiKeyAsync(String name, App.Callback<UserApiKey> callback) {
         Util.checkLooperThread("Asynchronous creation of api keys are only possible from looper threads.");
-        return new App.Request<UserApiKey>(NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<UserApiKey>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public UserApiKey run() throws ObjectServerError {
                 return createApiKey(name);
@@ -152,7 +153,7 @@ public abstract class ApiKeyAuth {
      */
     public RealmAsyncTask fetchApiKeyAsync(ObjectId id, App.Callback<UserApiKey> callback) {
         Util.checkLooperThread("Asynchronous fetching an api key is only possible from looper threads.");
-        return new App.Request<UserApiKey>(NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<UserApiKey>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public UserApiKey run() throws ObjectServerError {
                 return fetchApiKey(id);
@@ -192,7 +193,7 @@ public abstract class ApiKeyAuth {
      */
     public RealmAsyncTask fetchAllApiKeys(App.Callback<List<UserApiKey>> callback) {
         Util.checkLooperThread("Asynchronous fetching an api key is only possible from looper threads.");
-        return new App.Request<List<UserApiKey>>(NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<List<UserApiKey>>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public List<UserApiKey> run() throws ObjectServerError {
                 return fetchAllApiKeys();
@@ -223,7 +224,7 @@ public abstract class ApiKeyAuth {
      */
     public RealmAsyncTask deleteApiKeyAsync(ObjectId id, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous deleting an api key is only possible from looper threads.");
-        return new App.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 deleteApiKey(id);
@@ -255,7 +256,7 @@ public abstract class ApiKeyAuth {
      */
     public RealmAsyncTask disableApiKeyAsync(ObjectId id, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous disabling an api key is only possible from looper threads.");
-        return new App.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 disableApiKey(id);
@@ -287,7 +288,7 @@ public abstract class ApiKeyAuth {
      */
     public RealmAsyncTask enableApiKeyAsync(ObjectId id, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous enabling an api key is only possible from looper threads.");
-        return new App.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 enableApiKey(id);

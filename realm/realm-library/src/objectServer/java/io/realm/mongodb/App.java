@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -37,16 +36,13 @@ import javax.annotation.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.BuildConfig;
 import io.realm.Realm;
+import io.realm.internal.mongodb.Request;
 import io.realm.mongodb.auth.EmailPasswordAuth;
 import io.realm.RealmAsyncTask;
 import io.realm.mongodb.sync.Sync;
 import io.realm.internal.KeepMember;
-import io.realm.internal.RealmNotifier;
 import io.realm.internal.network.ResultHandler;
 import io.realm.internal.Util;
-import io.realm.internal.android.AndroidCapabilities;
-import io.realm.internal.android.AndroidRealmNotifier;
-import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.network.OkHttpNetworkTransport;
@@ -429,73 +425,6 @@ public class App {
     @KeepMember // Called from JNI
     OsJavaNetworkTransport getNetworkTransport() {
         return networkTransport;
-    }
-
-    // Class wrapping requests made against MongoDB Realm. Is also responsible for calling with success/error on the
-    // correct thread.
-    // FIXME Made public to use in Functions. Consider reworking when App, User is moved
-    //  to mongodb package and async MongoDB API's are settled
-    public static abstract class Request<T> {
-        @Nullable
-        private final App.Callback<T> callback;
-        private final RealmNotifier handler;
-        private final ThreadPoolExecutor networkPoolExecutor;
-
-        // FIXME Made public to use in Functions. Consider reworking when App, User is moved
-        //  to mongodb package and async MongoDB API's are settled
-        public Request(ThreadPoolExecutor networkPoolExecutor, @Nullable App.Callback<T> callback) {
-            this.callback = callback;
-            this.handler = new AndroidRealmNotifier(null, new AndroidCapabilities());
-            this.networkPoolExecutor = networkPoolExecutor;
-        }
-
-        // Implements the request. Return the current sync user if the request succeeded. Otherwise throw an error.
-        public abstract T run() throws ObjectServerError;
-
-        // Start the request
-        public RealmAsyncTask start() {
-            Future<?> authenticateRequest = networkPoolExecutor.submit(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        postSuccess(Request.this.run());
-                    } catch (ObjectServerError e) {
-                        postError(e);
-                    } catch (Throwable e) {
-                        postError(new ObjectServerError(ErrorCode.UNKNOWN, "Unexpected error", e));
-                    }
-                }
-            });
-            return new RealmAsyncTaskImpl(authenticateRequest, networkPoolExecutor);
-        }
-
-        private void postError(final ObjectServerError error) {
-            boolean errorHandled = false;
-            if (callback != null) {
-                Runnable action = new Runnable() {
-                    @Override
-                    public void run() {
-                        callback.onResult(Result.withError(error));
-                    }
-                };
-                errorHandled = handler.post(action);
-            }
-
-            if (!errorHandled) {
-                RealmLog.error(error, "An error was thrown, but could not be posted: \n" + error.toString());
-            }
-        }
-
-        private void postSuccess(final T result) {
-            if (callback != null) {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        callback.onResult((result == null) ? Result.success() : Result.withResult(result));
-                    }
-                });
-            }
-        }
     }
 
     /**

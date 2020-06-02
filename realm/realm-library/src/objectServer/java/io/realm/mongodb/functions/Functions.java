@@ -20,6 +20,7 @@ import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.List;
 
+import io.realm.internal.mongodb.Request;
 import io.realm.mongodb.ObjectServerError;
 import io.realm.mongodb.App;
 import io.realm.mongodb.AppConfiguration;
@@ -125,7 +126,7 @@ public abstract class Functions {
      */
     public <T> RealmAsyncTask callFunctionAsync(String name, List<?> args, Class<T> resultClass, CodecRegistry codecRegistry, App.Callback<T> callback) {
         Util.checkLooperThread("Asynchronous functions is only possible from looper threads.");
-        return new App.Request<T>(App.NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<T>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public T run() throws ObjectServerError {
                 return callFunction(name, args, resultClass, codecRegistry);

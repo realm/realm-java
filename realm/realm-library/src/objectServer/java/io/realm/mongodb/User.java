@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.internal.mongodb.Request;
 import io.realm.mongodb.auth.ApiKeyAuth;
 import io.realm.RealmAsyncTask;
 import io.realm.internal.network.ResultHandler;
@@ -316,7 +317,7 @@ public class User {
      */
     public RealmAsyncTask linkCredentialsAsync(Credentials credentials, App.Callback<User> callback) {
         Util.checkLooperThread("Asynchronous linking identities is only possible from looper threads.");
-        return new App.Request<User>(App.NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<User>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public User run() throws ObjectServerError {
                 return linkCredentials(credentials);
@@ -361,7 +362,7 @@ public class User {
      */
     public RealmAsyncTask removeAsync(App.Callback<User> callback) {
         Util.checkLooperThread("Asynchronous removal of users is only possible from looper threads.");
-        return new App.Request<User>(App.NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<User>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public User run() throws ObjectServerError {
                 return remove();
@@ -416,7 +417,7 @@ public class User {
      */
     public RealmAsyncTask logOutAsync(App.Callback<User> callback) {
         Util.checkLooperThread("Asynchronous log out is only possible from looper threads.");
-        return new App.Request<User>(App.NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<User>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public User run() throws ObjectServerError {
                 logOut();

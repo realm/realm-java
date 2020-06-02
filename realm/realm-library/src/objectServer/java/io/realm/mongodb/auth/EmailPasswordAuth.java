@@ -18,6 +18,7 @@ package io.realm.mongodb.auth;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.internal.mongodb.Request;
 import io.realm.mongodb.ObjectServerError;
 import io.realm.RealmAsyncTask;
 import io.realm.internal.network.ResultHandler;
@@ -85,7 +86,7 @@ public abstract class EmailPasswordAuth {
      */
     public RealmAsyncTask registerUserAsync(String email, String password, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous registration of a user is only possible from looper threads.");
-        return new App.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 registerUser(email, password);
@@ -120,7 +121,7 @@ public abstract class EmailPasswordAuth {
      */
     public RealmAsyncTask confirmUserAsync(String token, String tokenId, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous confirmation of a user is only possible from looper threads.");
-        return new App.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 confirmUser(token, tokenId);
@@ -152,7 +153,7 @@ public abstract class EmailPasswordAuth {
      */
     public RealmAsyncTask resendConfirmationEmailAsync(String email, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous resending the confirmation email is only possible from looper threads.");
-        return new App.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 resendConfirmationEmail(email);
@@ -184,7 +185,7 @@ public abstract class EmailPasswordAuth {
      */
     public RealmAsyncTask sendResetPasswordEmailAsync(String email, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous sending the reset password email is only possible from looper threads.");
-        return new App.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 sendResetPasswordEmail(email);
@@ -226,7 +227,7 @@ public abstract class EmailPasswordAuth {
      */
     public RealmAsyncTask callResetPasswordFunctionAsync(String email, String newPassword, Object[] args, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous calling the password reset function is only possible from looper threads.");
-        return new App.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 callResetPasswordFunction(email, newPassword, args);
@@ -266,7 +267,7 @@ public abstract class EmailPasswordAuth {
      */
     public RealmAsyncTask resetPasswordAsync(String token, String tokenId, String newPassword, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous reset of a password is only possible from looper threads.");
-        return new App.Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws ObjectServerError {
                 resetPassword(token, tokenId, newPassword);
