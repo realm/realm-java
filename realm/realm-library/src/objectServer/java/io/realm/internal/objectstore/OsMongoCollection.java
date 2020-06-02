@@ -135,8 +135,8 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
             }
         };
 
-        String filterString = JniBsonProtocol.encode(filter, codecRegistry);
-        int limit = (options == null) ? 0 : options.getLimit();
+        final String filterString = JniBsonProtocol.encode(filter, codecRegistry);
+        final int limit = (options == null) ? 0 : options.getLimit();
 
         nativeCount(nativePtr, filterString, limit, callback);
 
@@ -240,7 +240,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
             }
         };
 
-        String encodedFilter = JniBsonProtocol.encode(filter, codecRegistry);
+        final String encodedFilter = JniBsonProtocol.encode(filter, codecRegistry);
 
         // default to empty docs or update if needed
         String projectionString = encodedEmptyDocument;
@@ -275,7 +275,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
             }
         };
 
-        String encodedDocument = JniBsonProtocol.encode(document, codecRegistry);
+        final String encodedDocument = JniBsonProtocol.encode(document, codecRegistry);
         nativeInsertOne(nativePtr, encodedDocument, callback);
         return ResultHandler.handleResult(success, error);
     }
@@ -297,7 +297,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
             }
         };
 
-        String encodedDocumentArray = JniBsonProtocol.encode(documents, codecRegistry);
+        final String encodedDocumentArray = JniBsonProtocol.encode(documents, codecRegistry);
         nativeInsertMany(nativePtr, encodedDocumentArray, callback);
         return ResultHandler.handleResult(success, error);
     }
@@ -320,7 +320,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
             }
         };
 
-        String jsonDocument = JniBsonProtocol.encode(filter, codecRegistry);
+        final String jsonDocument = JniBsonProtocol.encode(filter, codecRegistry);
         switch (type) {
             case DELETE_ONE:
                 nativeDelete(DELETE_ONE, nativePtr, jsonDocument, callback);
@@ -375,8 +375,8 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
             }
         };
 
-        String jsonFilter = JniBsonProtocol.encode(filter, codecRegistry);
-        String jsonUpdate = JniBsonProtocol.encode(update, codecRegistry);
+        final String jsonFilter = JniBsonProtocol.encode(filter, codecRegistry);
+        final String jsonUpdate = JniBsonProtocol.encode(update, codecRegistry);
 
         switch (type) {
             case UPDATE_ONE:

@@ -21,6 +21,7 @@ import org.bson.codecs.Decoder;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.Encoder;
 import org.bson.codecs.EncoderContext;
+import org.bson.codecs.configuration.CodecConfigurationException;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonReader;
@@ -29,6 +30,9 @@ import org.bson.json.JsonWriterSettings;
 
 import java.io.StringReader;
 import java.io.StringWriter;
+
+import io.realm.ErrorCode;
+import io.realm.ObjectServerError;
 
 /**
  * Protocol for passing {@link BsonValue}s to JNI.
@@ -49,13 +53,19 @@ public class JniBsonProtocol {
     }
 
     public static <T> String encode(T value, Encoder<T> encoder) {
-        StringWriter stringWriter = new StringWriter();
-        JsonWriter jsonWriter = new JsonWriter(stringWriter, writerSettings);
-        jsonWriter.writeStartDocument();
-        jsonWriter.writeName(VALUE);
-        encoder.encode(jsonWriter, value, EncoderContext.builder().build());
-        jsonWriter.writeEndDocument();
-        return stringWriter.toString();
+        try {
+            StringWriter stringWriter = new StringWriter();
+            JsonWriter jsonWriter = new JsonWriter(stringWriter, writerSettings);
+            jsonWriter.writeStartDocument();
+            jsonWriter.writeName(VALUE);
+            encoder.encode(jsonWriter, value, EncoderContext.builder().build());
+            jsonWriter.writeEndDocument();
+            return stringWriter.toString();
+        } catch (CodecConfigurationException e) {
+            throw new ObjectServerError(ErrorCode.BSON_CODEC_NOT_FOUND, "Could not resolve encoder for value of class " + value.getClass().getSimpleName(), e);
+        } catch (Exception e) {
+            throw new ObjectServerError(ErrorCode.BSON_ENCODING, "Error encoding value", e);
+        }
     }
 
     public static <T> T decode(String string, Class<T> clz, CodecRegistry registry) {
@@ -63,12 +73,16 @@ public class JniBsonProtocol {
     }
 
     public static <T> T decode(String string, Decoder<T> decoder) {
-        StringReader stringReader = new StringReader(string);
-        JsonReader jsonReader = new JsonReader(stringReader);
-        jsonReader.readStartDocument();
-        jsonReader.readName(VALUE);
-        T value = decoder.decode(jsonReader, DecoderContext.builder().build());
-        jsonReader.readEndDocument();
-        return value;
+        try {
+            StringReader stringReader = new StringReader(string);
+            JsonReader jsonReader = new JsonReader(stringReader);
+            jsonReader.readStartDocument();
+            jsonReader.readName(VALUE);
+            T value = decoder.decode(jsonReader, DecoderContext.builder().build());
+            jsonReader.readEndDocument();
+            return value;
+        } catch (Exception e) {
+            throw new ObjectServerError(ErrorCode.BSON_DECODING, "Error decoding value " + string, e);
+        }
     }
 }
