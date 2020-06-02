@@ -404,9 +404,9 @@ public class OsObjectBuilder implements Closeable {
 
     /**
      * Updates any existing object if it exists, otherwise creates a new one.
-     * 
+     * <p>
      * Updating an existing object requires that the primary key is defined as one of the fields.
-     *
+     * <P>
      * The builder is automatically closed after calling this method.
      */
     public void updateExistingTopLevelObject() {
