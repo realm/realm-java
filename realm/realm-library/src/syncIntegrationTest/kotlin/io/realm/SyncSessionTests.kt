@@ -5,10 +5,7 @@ import android.os.HandlerThread
 import android.os.SystemClock
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.entities.DefaultSyncSchema
-import io.realm.entities.SyncAllTypes
-import io.realm.entities.SyncStringOnly
-import io.realm.entities.SyncStringOnlyModule
+import io.realm.entities.*
 import io.realm.exceptions.DownloadingRealmInterruptedException
 import io.realm.internal.OsRealmConfig
 import io.realm.kotlin.syncSession
@@ -95,7 +92,10 @@ class SyncSessionTests {
         app = TestRealmApp()
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
         syncConfiguration = configFactory
-                .createSyncConfigurationBuilder(user)
+                // TODO We generate new partition value for each test to avoid overlaps in data. We
+                //  could make test booting with a cleaner state by somehow flushing data between
+                //  tests.
+                .createSyncConfigurationBuilder(user, BsonObjectId(ObjectId()))
                 .modules(DefaultSyncSchema())
                 .build()
     }
@@ -109,11 +109,7 @@ class SyncSessionTests {
     }
 
     @Test
-    // FIXME Investigate further
-    @Ignore("Works on first run, but generates Bad changeset on subsequent runs. Even after " +
-            "just running one of the other partitionValue test...even if registering a new user")
     fun partitionValue_string() {
-        // FIXME See comment for partitionValue_int32
         val partitionValue = "123464652"
         val syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, BsonString(partitionValue))
@@ -121,22 +117,14 @@ class SyncSessionTests {
                 .build()
         Realm.getInstance(syncConfiguration).use { realm ->
             realm.executeTransaction {
-                realm.createObject(SyncAllTypes::class.java, ObjectId())
+                realm.createObject(SyncDog::class.java, ObjectId())
             }
             realm.syncSession.uploadAllLocalChanges()
         }
     }
 
     @Test
-    // FIXME Investigate further
-    @Ignore("Works on first run, but generates Bad changeset on subsequent runs. Even after " +
-            "just running one of the other partitionValue test...even if registering a new user")
     fun partitionValue_int32() {
-        // FIXME Seems like we cannot repeatedly connect if we change the partitionValue, subsequent
-        //  runs will fail with a
-        //    Connection[1]: Session[1]: Failed to transform received changeset: Schema mismatch: Property 'columnStringList' in class 'AllTypes' is nullable on one side and not on the other.
-        //    Connection[1]: Connection closed due to error
-        //    Session Error[ws://127.0.0.1:9090/]: CLIENT_BAD_CHANGESET(realm::sync::Client::Error:112): Bad changeset (DOWNLOAD)
         val int = 123536462
         val syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, BsonInt32(int))
@@ -144,18 +132,14 @@ class SyncSessionTests {
                 .build()
         Realm.getInstance(syncConfiguration).use { realm ->
             realm.executeTransaction {
-                realm.createObject(SyncAllTypes::class.java, ObjectId())
+                realm.createObject(SyncDog::class.java, ObjectId())
             }
             realm.syncSession.uploadAllLocalChanges()
         }
     }
 
     @Test
-    // FIXME Investigate further
-    @Ignore("Works on first run, but generates Bad changeset on subsequent runs. Even after " +
-            "just running one of the other partitionValue test...even if registering a new user")
     fun partitionValue_int64() {
-        // FIXME See comment for partitionValue_int32
         val long = 1243513244L
         val syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, BsonInt64(long))
@@ -163,18 +147,14 @@ class SyncSessionTests {
                 .build()
         Realm.getInstance(syncConfiguration).use { realm ->
             realm.executeTransaction {
-                realm.createObject(SyncAllTypes::class.java, ObjectId())
+                realm.createObject(SyncDog::class.java, ObjectId())
             }
             realm.syncSession.uploadAllLocalChanges()
         }
     }
 
     @Test
-    // FIXME Investigate further
-    @Ignore("Works on first run, but generates Bad changeset on subsequent runs. Even after " +
-            "just running one of the other partitionValue test...even if registering a new user")
     fun partitionValue_objectId() {
-        // FIXME See comment for partitionValue_int32
         val objectId = ObjectId("5ecf72df02aa3c32ab6b4ce0")
         val syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, BsonObjectId(objectId))
@@ -182,7 +162,7 @@ class SyncSessionTests {
                 .build()
         Realm.getInstance(syncConfiguration).use { realm ->
             realm.executeTransaction {
-                realm.createObject(SyncAllTypes::class.java, ObjectId())
+                realm.createObject(SyncDog::class.java, ObjectId())
             }
             realm.syncSession.uploadAllLocalChanges()
         }
@@ -246,12 +226,10 @@ class SyncSessionTests {
     }
 
     @Test
-    // FIXME Find a way to flush data from server between each run
-    @Ignore("Needs clean server as asserting on number of rows of a specific class")
     fun uploadDownloadAllChanges() {
         Realm.getInstance(syncConfiguration).use { realm ->
             realm.executeTransaction {
-                realm.createObject(SyncAllTypes::class.java, ObjectId())
+                realm.createObject(SyncSupportedTypes::class.java, ObjectId())
             }
             realm.syncSession.uploadAllLocalChanges()
         }
@@ -259,25 +237,22 @@ class SyncSessionTests {
         // New user but same Realm as configuration has the same partition value
         val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
         val config2 = configFactory
-                .createSyncConfigurationBuilder(user2)
+                .createSyncConfigurationBuilder(user2, syncConfiguration.partitionValue)
                 .modules(DefaultSyncSchema())
                 .build()
 
         Realm.getInstance(config2).use { realm ->
             realm.syncSession.downloadAllServerChanges()
             realm.refresh()
-            // FIXME Requires server to flush data between each run
-            assertEquals(1, realm.where(SyncAllTypes::class.java).count())
+            assertEquals(1, realm.where(SyncSupportedTypes::class.java).count())
         }
     }
 
     @Test
-    // FIXME Investigate further
-    @Ignore("Bad changeset for session with different partitionValue")
-    fun sameSchemeWithDifferentPartitionValue() {
+    fun differentPartitionValue_supportedTypes() {
         Realm.getInstance(syncConfiguration).use { realm ->
             realm.executeTransaction {
-                realm.createObject(SyncAllTypes::class.java, ObjectId())
+                realm.createObject(SyncSupportedTypes::class.java, ObjectId())
             }
             realm.syncSession.uploadAllLocalChanges()
         }
@@ -303,6 +278,48 @@ class SyncSessionTests {
 
         Realm.getInstance(config3).use { realm ->
             realm.executeTransaction {
+                realm.createObject(SyncSupportedTypes::class.java, ObjectId())
+            }
+            realm.syncSession.uploadAllLocalChanges()
+        }
+    }
+
+    @Test
+    // FIXME Investigate further
+    @Ignore("Bad changeset for session with different partitionValue")
+    fun differentPartitionValue_allTypes() {
+        val config = configFactory
+                .createSyncConfigurationBuilder(user)
+                .modules(SyncAllTypesSchema())
+                .build()
+        Realm.getInstance(config).use { realm ->
+            realm.executeTransaction {
+                realm.createObject(SyncAllTypes::class.java, ObjectId())
+            }
+            realm.syncSession.uploadAllLocalChanges()
+        }
+
+        // Not relevant for test but just to verify that we actually download the correct schema
+        // New user but same Realm as configuration has the same partition value
+        val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
+        val config2 = configFactory
+                .createSyncConfigurationBuilder(user2)
+                .modules(SyncAllTypesSchema())
+                .build()
+
+        Realm.getInstance(config2).use { realm ->
+            realm.syncSession.downloadAllServerChanges()
+        }
+
+        // New user and different partition value
+        val user3 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
+        val config3 = configFactory
+                .createSyncConfigurationBuilder(user3, BsonObjectId(ObjectId()))
+                .modules(SyncAllTypesSchema())
+                .build()
+
+        Realm.getInstance(config3).use { realm ->
+            realm.executeTransaction {
                 realm.createObject(SyncAllTypes::class.java, ObjectId())
             }
             realm.syncSession.uploadAllLocalChanges()
@@ -310,14 +327,12 @@ class SyncSessionTests {
     }
 
     @Test
-    // FIXME Find a way to flush data from server between each run
-    @Ignore("Needs clean server as asserting on number of rows of a specific class")
     fun interruptWaits() {
         // FIXME Convert to BackgroundLooperThread? Is it doable with all the interruptions
         val t = Thread(Runnable {
             Realm.getInstance(syncConfiguration).use { userRealm ->
                 userRealm.executeTransaction {
-                    userRealm.createObject(SyncAllTypes::class.java, ObjectId())
+                    userRealm.createObject(SyncSupportedTypes::class.java, ObjectId())
                 }
                 val userSession = userRealm.syncSession
                 try {
@@ -339,7 +354,8 @@ class SyncSessionTests {
             // New user but same Realm as configuration has the same partition value
             val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
             val config2 = configFactory
-                    .createSyncConfigurationBuilder(user2)
+                    .createSyncConfigurationBuilder(user2, syncConfiguration.partitionValue)
+                    .modules(DefaultSyncSchema())
                     .build()
 
             Realm.getInstance(config2).use { adminRealm ->
@@ -360,8 +376,7 @@ class SyncSessionTests {
                 }
                 adminRealm.refresh()
 
-                // FIXME Requires server to flush data
-                assertEquals(1, adminRealm.where(SyncAllTypes::class.java).count())
+                assertEquals(1, adminRealm.where(SyncSupportedTypes::class.java).count())
             }
         })
         t.start()
