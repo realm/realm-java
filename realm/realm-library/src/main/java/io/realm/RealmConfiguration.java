@@ -69,7 +69,6 @@ public class RealmConfiguration {
 
     private static final Object DEFAULT_MODULE;
     protected static final RealmProxyMediator DEFAULT_MODULE_MEDIATOR;
-    private static Boolean rxJavaAvailable;
 
     static {
         DEFAULT_MODULE = Realm.getDefaultModule();
@@ -427,25 +426,6 @@ public class RealmConfiguration {
         stringBuilder.append("maxNumberOfActiveVersions: ").append(maxNumberOfActiveVersions);
 
         return stringBuilder.toString();
-    }
-
-    /**
-     * Checks if RxJava is can be loaded.
-     *
-     * @return {@code true} if RxJava dependency exist, {@code false} otherwise.
-     */
-    @SuppressWarnings("LiteralClassName")
-    // FIXME Review public exposure - Needed from SyncConfiguration.Builder can we expose this?
-    public static synchronized boolean isRxJavaAvailable() {
-        if (rxJavaAvailable == null) {
-            try {
-                Class.forName("io.reactivex.Flowable");
-                rxJavaAvailable = true;
-            } catch (ClassNotFoundException ignore) {
-                rxJavaAvailable = false;
-            }
-        }
-        return rxJavaAvailable;
     }
 
     // Gets the canonical path for a given file.
@@ -853,7 +833,7 @@ public class RealmConfiguration {
                 }
             }
 
-            if (rxFactory == null && isRxJavaAvailable()) {
+            if (rxFactory == null && Util.isRxJavaAvailable()) {
                 rxFactory = new RealmObservableFactory(true);
             }
 

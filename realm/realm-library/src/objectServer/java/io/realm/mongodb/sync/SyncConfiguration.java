@@ -990,7 +990,7 @@ public class SyncConfiguration extends RealmConfiguration {
             }
 
             // FIXME How to get access to this
-            if (rxFactory == null && isRxJavaAvailable()) {
+            if (rxFactory == null && Util.isRxJavaAvailable()) {
                 rxFactory = new RealmObservableFactory(true);
             }
 
