@@ -45,7 +45,7 @@ private const val DATABASE_NAME = "test_data"   // same as above
 private const val COLLECTION_NAME = "test_data"
 
 @RunWith(AndroidJUnit4::class)
-class MongoCollectionTest {
+class MongoClientTest {
 
     private lateinit var app: TestRealmApp
     private lateinit var user: RealmUser
@@ -1054,7 +1054,9 @@ class MongoCollectionTest {
         }
     }
 
-    private fun <ResultT> getCollectionInternal(resultClass: Class<ResultT>): MongoCollection<ResultT> {
+    private fun <ResultT> getCollectionInternal(
+            resultClass: Class<ResultT>
+    ): MongoCollection<ResultT> {
         return client.getDatabase(DATABASE_NAME).let {
             assertEquals(it.name, DATABASE_NAME)
             it.getCollection(COLLECTION_NAME, resultClass).also { collection ->
