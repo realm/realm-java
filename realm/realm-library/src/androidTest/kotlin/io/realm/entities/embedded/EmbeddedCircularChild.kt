@@ -24,12 +24,6 @@ import java.util.*
  * objects are not allowed to have circular references.
  */
 @RealmClass(embedded = true)
-open class EmbeddedCircularChild : RealmObject {
-    constructor() {}
-    constructor(id: String) : super() {
-        this.id = id
-    }
-
-    var id = UUID.randomUUID().toString()
+open class EmbeddedCircularChild(var id: String = UUID.randomUUID().toString()) : RealmObject() {
     var singleChild: EmbeddedCircularChild? = null
 }

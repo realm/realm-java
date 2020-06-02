@@ -221,7 +221,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
         @SuppressWarnings("unchecked") Class<E> clazz = (Class<E>) managedObject.getClass().getSuperclass();
 
         if (clazz.equals(some.test.AllTypes.class)) {
-            io.realm.some_test_AllTypesRealmProxy.updateEmbeddedObject(realm, (some.test.AllTypes) unmanagedObject, (some.test.AllTypes) managedObject, cache, flags);
+            throw getNotEmbeddedClassException("some.test.AllTypes");
         } else {
             throw getMissingProxyClassException(clazz);
         }

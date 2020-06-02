@@ -384,10 +384,6 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
         return unmanagedObject;
     }
 
-    public static void updateEmbeddedObject(Realm realm, some.test.Simple unmanagedObject, some.test.Simple managedObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
-        throw new IllegalStateException("This class is not marked embedded: some.test.Simple");
-    }
-
     @Override
     public ProxyState<?> realmGet$proxyState() {
         return proxyState;

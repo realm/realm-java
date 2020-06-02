@@ -36,11 +36,21 @@ import io.realm.annotations.Required
  * To expose backlinks for use, create a declaration as follows:
  *
  * ```
+ * // For Normal top-level objects
  * class TargetClass {
  *   // ...
  *   @LinkingObjects("sourceField")
  *   final RealmResults<SourceClass> targetField = null;
  * }
+ *
+ * // If the class is an embedded object, we know there is always one parent, so
+ * // backlinks in this case can also be defined this way:
+ * class TargetClass {
+ *   // ...
+ *   @LinkingObjects("sourceField")
+ *   final SourceClass targetField;
+ * }
+ *
  *```
  *
  * The `targetField`, the field annotated with the @LinkingObjects annotation must be final.
@@ -84,12 +94,12 @@ class Backlink(private val clazz: ClassMetaData, private val backlinkField: Vari
     val sourceField: String? = backlinkField.getAnnotation(LinkingObjects::class.java)?.value
 
     /**
-     * {@code true} if the parent link should be modeled as a single link instead of as a RealmResults.
+     * {@code true} if the parent link should be modeled as a RealmResults instead of a single link.
+     * Single links are only supported in classes that are embedded.
      */
     val exposeAsRealmResults: Boolean = Utils.isRealmResults(backlinkField)
 
-    val targetFieldType: String
-        get() = backlinkField.asType().toString()
+    val targetFieldType: String = backlinkField.asType().toString()
 
     /**
      * Validate the source side of the backlink.

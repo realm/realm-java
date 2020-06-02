@@ -2606,10 +2606,6 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         return realmObject;
     }
 
-    public static void updateEmbeddedObject(Realm realm, some.test.AllTypes unmanagedObject, some.test.AllTypes managedObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
-        throw new IllegalStateException("This class is not marked embedded: some.test.AllTypes");
-    }
-
     @Override
     @SuppressWarnings("ArrayToString")
     public String toString() {

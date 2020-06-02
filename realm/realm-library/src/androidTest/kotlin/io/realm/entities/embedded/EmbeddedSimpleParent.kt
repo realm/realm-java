@@ -17,15 +17,9 @@ package io.realm.entities.embedded
 
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
+import java.util.*
 
 // Top-level object describing a simple embedded objects structure consisting of only an object reference.
-open class EmbeddedSimpleParent : RealmObject {
-    constructor() {}
-    constructor(id: String) : super() {
-        this.id = id
-    }
-
-    @PrimaryKey
-    var id: String? = null
+open class EmbeddedSimpleParent(@PrimaryKey var id: String = UUID.randomUUID().toString()) : RealmObject() {
     var child: EmbeddedSimpleChild? = null
 }

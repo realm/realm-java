@@ -255,4 +255,8 @@ public abstract class RealmProxyMediator {
         return new RealmException(
                 String.format("'%s' is not part of the schema for this Realm.", className));
     }
+
+    protected static IllegalStateException getNotEmbeddedClassException(String className) {
+        return new IllegalStateException("This class is not marked embedded: " + className);
+    }
 }

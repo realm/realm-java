@@ -18,20 +18,14 @@ package io.realm.entities.embedded
 import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
+import java.util.*
 
 // Top-level node in a object-graph that is three-shaped, i.e. no circular references.
 // The tree depth can be described as:
 // - 1 TreeParent
 // - 1 or more TreeNode's. I.e. a TreeNode can be the child of another TreeNode.
 // - 1 or more TreeLeaf objects. TreeLeaf objects are always at the bottom of tree.
-open class EmbeddedTreeParent : RealmObject {
-    constructor() {}
-    constructor(id: String) : super() {
-        this.id = id
-    }
-
-    @PrimaryKey
-    var id: String? = null
+open class EmbeddedTreeParent(@PrimaryKey var id: String = UUID.randomUUID().toString()) : RealmObject() {
     var middleNode: EmbeddedTreeNode? = null
     var middleNodeList: RealmList<EmbeddedTreeNode> = RealmList()
 }

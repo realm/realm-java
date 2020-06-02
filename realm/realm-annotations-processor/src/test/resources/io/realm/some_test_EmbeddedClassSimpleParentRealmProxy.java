@@ -800,10 +800,6 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
         return realmObject;
     }
 
-    public static void updateEmbeddedObject(Realm realm, some.test.EmbeddedClassSimpleParent unmanagedObject, some.test.EmbeddedClassSimpleParent managedObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
-        throw new IllegalStateException("This class is not marked embedded: some.test.EmbeddedClassSimpleParent");
-    }
-
     @Override
     @SuppressWarnings("ArrayToString")
     public String toString() {

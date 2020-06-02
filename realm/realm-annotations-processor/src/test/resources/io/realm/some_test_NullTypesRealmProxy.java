@@ -4675,10 +4675,6 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
         return unmanagedObject;
     }
 
-    public static void updateEmbeddedObject(Realm realm, some.test.NullTypes unmanagedObject, some.test.NullTypes managedObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
-        throw new IllegalStateException("This class is not marked embedded: some.test.NullTypes");
-    }
-
     @Override
     @SuppressWarnings("ArrayToString")
     public String toString() {

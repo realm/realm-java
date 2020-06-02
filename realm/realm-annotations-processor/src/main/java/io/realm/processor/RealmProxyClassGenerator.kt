@@ -1938,6 +1938,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
     @Throws(IOException::class)
     private fun emitUpdateEmbeddedObjectMethod(writer: JavaWriter) {
+        if (!metadata.embedded) {
+            return
+        }
+
         writer.apply {
             beginMethod("void", "updateEmbeddedObject", EnumSet.of(Modifier.STATIC, Modifier.PUBLIC),
                     "Realm", "realm", // Argument type & argument name
@@ -1946,11 +1950,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     "Map<RealmModel, RealmObjectProxy>", "cache",
                     "Set<ImportFlag>", "flags"
             )
-            if (metadata.embedded) {
                 emitStatement("update(realm, (%s) realm.getSchema().getColumnInfo(%s.class), managedObject, unmanagedObject, cache, flags)", Utils.getSimpleColumnInfoClassName(metadata.qualifiedClassName), metadata.qualifiedClassName)
-            } else {
-                emitStatement("throw new IllegalStateException(\"This class is not marked embedded: %s\")", qualifiedJavaClassName)
-            }
             endMethod()
             emitEmptyLine()
         }

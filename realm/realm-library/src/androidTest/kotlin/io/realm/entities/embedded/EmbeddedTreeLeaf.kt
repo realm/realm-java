@@ -17,6 +17,7 @@ package io.realm.entities.embedded
 
 import io.realm.RealmObject
 import io.realm.annotations.LinkingObjects
+import io.realm.annotations.PrimaryKey
 import io.realm.annotations.RealmClass
 import java.util.*
 
@@ -26,13 +27,7 @@ import java.util.*
 // - 1 or more TreeNode's. I.e. a TreeNode can be the child of another TreeNode.
 // - 1 or more TreeLeaf objects. TreeLeaf objects are always at the bottom of tree.
 @RealmClass(embedded = true)
-open class EmbeddedTreeLeaf : RealmObject {
-    constructor() {}
-    constructor(id: String) : super() {
-        this.id = id
-    }
-
-    var id = UUID.randomUUID().toString()
+open class EmbeddedTreeLeaf(var id: String = UUID.randomUUID().toString()) : RealmObject() {
 
     @LinkingObjects("leafNode")
     val parentRef: EmbeddedTreeNode? = null

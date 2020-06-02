@@ -452,10 +452,6 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
         return unmanagedObject;
     }
 
-    public static void updateEmbeddedObject(Realm realm, some.test.Booleans unmanagedObject, some.test.Booleans managedObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
-        throw new IllegalStateException("This class is not marked embedded: some.test.Booleans");
-    }
-
     @Override
     @SuppressWarnings("ArrayToString")
     public String toString() {
