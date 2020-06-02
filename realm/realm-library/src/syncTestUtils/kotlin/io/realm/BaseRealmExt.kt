@@ -20,6 +20,6 @@ class BaseRealmExt {
     companion object {}
 }
 
-fun BaseRealmExt.Companion.test_clear() {
+fun BaseRealmExt.Companion.testClearApplicationContext() {
     BaseRealm.applicationContext = null;
 }

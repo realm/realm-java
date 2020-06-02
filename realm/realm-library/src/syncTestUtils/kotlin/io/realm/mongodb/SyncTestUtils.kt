@@ -23,7 +23,7 @@ import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.sync.SyncConfiguration
 import io.realm.objectserver.utils.UserFactory
-import io.realm.test_clear
+import io.realm.testClearApplicationContext
 import java.io.File
 import java.lang.IllegalStateException
 import java.util.*
@@ -56,7 +56,7 @@ class SyncTestUtils {
                 // move this call to 'tearDown' to clean in-memory & on-disk users
                 // once https://github.com/realm/realm-object-store/issues/207 is resolved
                 // SyncManager.reset(); // FIXME
-                BaseRealmExt.test_clear() // Required for Realm.init() to work
+                BaseRealmExt.testClearApplicationContext() // Required for Realm.init() to work
             }
             deleteRosFiles()
             Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
