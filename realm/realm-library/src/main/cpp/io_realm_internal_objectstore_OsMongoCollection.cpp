@@ -83,10 +83,6 @@ static std::function<jobject(JNIEnv*, RemoteMongoCollection::RemoteUpdateResult)
     return JniBsonProtocol::bson_to_jstring(env, output);
 };
 
-static std::function<jobject(JNIEnv*, util::Optional<bson::BsonArray>)> collection_mapper_find = [](JNIEnv* env, util::Optional<bson::BsonArray> array) {
-    return array ? JniBsonProtocol::bson_to_jstring(env, *array) : NULL;
-};
-
 static void finalize_collection(jlong ptr) {
     delete reinterpret_cast<RemoteMongoCollection*>(ptr);
 }
@@ -343,7 +339,7 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndDelete(JNIE
 
         switch (j_find_one_and_delete_type) {
             case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_AND_DELETE:
-                collection->find_one_and_delete(filter, JavaNetworkTransport::create_void_callback(env, j_callback));
+                collection->find_one_and_delete(filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
                 break;
             case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_AND_DELETE_WITH_OPTIONS: {
                 bson::BsonDocument projection(JniBsonProtocol::parse_checked(env, j_projection, Bson::Type::Document, "BSON projection must be a Document"));
@@ -354,7 +350,7 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndDelete(JNIE
                         to_bool(j_upsert),
                         to_bool(j_return_new_document)
                 };
-                collection->find_one_and_delete(filter, options, JavaNetworkTransport::create_void_callback(env, j_callback));
+                collection->find_one_and_delete(filter, options, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
                 break;
             }
             default:
