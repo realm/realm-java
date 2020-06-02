@@ -16,8 +16,8 @@
 package io.realm.mongodb
 
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.BaseRealmExt
 import io.realm.Realm
+import io.realm.RealmExt
 import io.realm.internal.objectstore.OsJavaNetworkTransport
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
@@ -56,7 +56,7 @@ class SyncTestUtils {
                 // move this call to 'tearDown' to clean in-memory & on-disk users
                 // once https://github.com/realm/realm-object-store/issues/207 is resolved
                 // SyncManager.reset(); // FIXME
-                BaseRealmExt.testClearApplicationContext() // Required for Realm.init() to work
+                RealmExt.testClearApplicationContext() // Required for Realm.init() to work
             }
             deleteRosFiles()
             Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)

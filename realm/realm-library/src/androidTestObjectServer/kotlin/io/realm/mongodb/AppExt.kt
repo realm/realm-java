@@ -15,10 +15,10 @@
  */
 package io.realm.mongodb
 
-import io.realm.BaseRealmExt
+import io.realm.RealmExt
 import io.realm.admin.ServerAdmin
-import io.realm.testClearApplicationContext
 import io.realm.mongodb.sync.testReset
+import io.realm.testClearApplicationContext
 
 /**
  * Resets the Realm Application and delete all local state.
@@ -31,7 +31,7 @@ fun App.close() {
     this.syncManager.testReset()
     this.networkTransport.resetHeaders()
     App.CREATED = false
-    BaseRealmExt.testClearApplicationContext()
+    RealmExt.testClearApplicationContext()
 }
 
 /**
