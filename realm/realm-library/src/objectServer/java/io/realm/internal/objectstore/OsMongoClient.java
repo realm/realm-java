@@ -27,8 +27,8 @@ public class OsMongoClient implements NativeObject {
 
     private final long nativePtr;
 
-    public OsMongoClient(User user, String serviceName) {
-        this.nativePtr = nativeCreate(user.getApp().nativePtr, serviceName);
+    public OsMongoClient(long appNativePtr, String serviceName) {
+        this.nativePtr = nativeCreate(appNativePtr, serviceName);
     }
 
     public OsMongoDatabase getRemoteDatabase(final String databaseName, final CodecRegistry codecRegistry) {

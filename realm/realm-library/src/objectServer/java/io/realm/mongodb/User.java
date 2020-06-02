@@ -25,6 +25,7 @@ import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.mongodb.Request;
+import io.realm.internal.objectstore.OsMongoClient;
 import io.realm.mongodb.auth.ApiKeyAuth;
 import io.realm.RealmAsyncTask;
 import io.realm.internal.network.ResultHandler;
@@ -84,6 +85,11 @@ public class User {
         }
     }
 
+    private static class MongoClientImpl extends MongoClient {
+        protected MongoClientImpl(OsMongoClient osMongoClient, CodecRegistry codecRegistry) {
+            super(osMongoClient, codecRegistry);
+        }
+    }
 
     User(long nativePtr, App app) {
         this.osUser = new OsSyncUser(nativePtr);
@@ -473,8 +479,10 @@ public class User {
      * FIXME Add support for the MongoDB wrapper. Name of Class and method still TBD.
      */
     public MongoClient getMongoClient(String serviceName) {
+        Util.checkEmpty(serviceName, "serviceName");
         if (mongoClient == null) {
-            mongoClient = new MongoClient(this, serviceName, app.getConfiguration().getDefaultCodecRegistry());
+            OsMongoClient osMongoClient = new OsMongoClient(app.nativePtr, serviceName);
+            mongoClient = new MongoClientImpl(osMongoClient, app.getConfiguration().getDefaultCodecRegistry());
         }
         return mongoClient;
     }

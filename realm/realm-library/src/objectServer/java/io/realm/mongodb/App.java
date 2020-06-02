@@ -83,8 +83,7 @@ public class App {
     private final AppConfiguration config;
     protected OsJavaNetworkTransport networkTransport;
     final Sync syncManager;
-    // FIXME Review public exposure - Can be removed when MongoClient is abstracted and implementation is side-by-side with App
-    public final long nativePtr; //FIXME Find a way to make this package protected
+    final long nativePtr;
     private final EmailPasswordAuth emailAuthProvider = new EmailPasswordAuthImpl(this);
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<>();
     private Handler mainHandler = new Handler(Looper.getMainLooper());
