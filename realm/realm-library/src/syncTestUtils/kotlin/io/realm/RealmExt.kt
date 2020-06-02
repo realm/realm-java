@@ -16,10 +16,10 @@
 
 package io.realm
 
-class BaseRealmExt {
+class RealmExt {
     companion object {}
 }
 
-fun BaseRealmExt.Companion.testClearApplicationContext() {
+fun RealmExt.Companion.testClearApplicationContext() {
     BaseRealm.applicationContext = null;
 }
