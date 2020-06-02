@@ -168,8 +168,8 @@ class SyncConfigurationTests {
                     }
                 })
                 .build()
-        // FIXME How to verify this without access to initialDataTransaction
-//        assertNotNull(config.initialDataTransaction)
+        config
+        assertNotNull(config.initialDataTransaction)
 
         // open the first time - initialData must be triggered
         Realm.getInstance(config).use { realm ->

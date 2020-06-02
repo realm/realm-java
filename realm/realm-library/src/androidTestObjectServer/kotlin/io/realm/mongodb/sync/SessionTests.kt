@@ -217,8 +217,7 @@ class SessionTests {
 
                     // opening a Dynamic Realm should also work
                     DynamicRealm.getInstance(backupRealmConfiguration).use { dynamicRealm ->
-                        // FIXME How to get access to dynamicRealm.schme.checkHasTable
-//                        dynamicRealm.schema.checkHasTable(StringOnly.CLASS_NAME, "Dynamic Realm should contains " + StringOnly.CLASS_NAME)
+                        assertNotNull(dynamicRealm.schema.get(StringOnly.CLASS_NAME))
                         val all = dynamicRealm.where(StringOnly.CLASS_NAME).findAll()
                         assertEquals(1, all.size.toLong())
                         assertEquals("Foo", all.first()!!.getString(StringOnly.FIELD_CHARS))
@@ -269,8 +268,7 @@ class SessionTests {
 
                     // opening a DynamicRealm will work though
                     DynamicRealm.getInstance(backupRealmConfiguration).use { dynamicRealm ->
-                        // FIXME How to get access to dynamicRealm.schme.checkHasTable
-//                        dynamicRealm.schema.checkHasTable(StringOnly.CLASS_NAME, "Dynamic Realm should contains " + StringOnly.CLASS_NAME)
+                        assertNotNull(dynamicRealm.schema.get(StringOnly.CLASS_NAME))
                         val all = dynamicRealm.where(StringOnly.CLASS_NAME).findAll()
                         assertEquals(1, all.size.toLong())
                         assertEquals("Foo", all.first()!!.getString(StringOnly.FIELD_CHARS))

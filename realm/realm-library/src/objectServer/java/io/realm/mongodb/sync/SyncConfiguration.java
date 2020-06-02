@@ -210,6 +210,11 @@ public class SyncConfiguration extends RealmConfiguration {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
+    @Override
+    protected Realm.Transaction getInitialDataTransaction() {
+        return super.getInitialDataTransaction();
+    }
+
     /**
      * FIXME
      *

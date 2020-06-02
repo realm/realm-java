@@ -186,7 +186,7 @@ public class RealmConfiguration {
      *
      * @return the initial data transaction.
      */
-    Realm.Transaction getInitialDataTransaction() {
+    protected Realm.Transaction getInitialDataTransaction() {
         return initialDataTransaction;
     }
 
