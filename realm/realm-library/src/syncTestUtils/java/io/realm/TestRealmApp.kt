@@ -37,7 +37,6 @@ class TestRealmApp(networkTransport: OsJavaNetworkTransport? = null, customizeCo
     companion object {
         fun createConfiguration(): RealmAppConfiguration {
             return RealmAppConfiguration.Builder(initializeMongoDbRealm())
-                    .logLevel(LogLevel.DEBUG)
                     .baseUrl("http://127.0.0.1:9090")
                     .appName("MongoDB Realm Integration Tests")
                     .appVersion("1.0.")

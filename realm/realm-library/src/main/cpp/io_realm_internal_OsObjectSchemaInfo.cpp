@@ -112,7 +112,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetPrope
             return reinterpret_cast<jlong>(new Property(*property));
         }
         THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
-                             format("Property '%1' cannot be found.", property_name.data()));
+                             util::format("Property '%1' cannot be found.", property_name.data()));
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);

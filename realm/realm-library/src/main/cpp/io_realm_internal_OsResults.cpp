@@ -152,7 +152,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_OsResults_nativeAggregate(JNIEn
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
 
         ColKey col_key(column_key);
-        Optional<Mixed> value;
+        util::Optional<Mixed> value;
         switch (agg_func) {
             case io_realm_internal_OsResults_AGGREGATE_FUNCTION_MINIMUM:
                 value = wrapper->collection().min(col_key);
@@ -161,12 +161,12 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_OsResults_nativeAggregate(JNIEn
                 value = wrapper->collection().max(col_key);
                 break;
             case io_realm_internal_OsResults_AGGREGATE_FUNCTION_AVERAGE: {
-                Optional<Mixed> value_count(wrapper->collection().average(col_key));
+                util::Optional<Mixed> value_count(wrapper->collection().average(col_key));
                 if (value_count) {
                     value = value_count;
                 }
                 else {
-                    value = Optional<Mixed>(0.0);
+                    value = util::Optional<Mixed>(0.0);
                 }
                 break;
             }
