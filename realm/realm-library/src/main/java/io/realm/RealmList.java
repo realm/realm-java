@@ -1525,15 +1525,16 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
 
     @Override
     public void appendValue(Object value) {
-        RealmModel unmanagedObject = (RealmModel) value;
+        RealmModel realmObject = (RealmModel) value;
+        boolean copyObject = checkCanObjectBeCopied(realm, realmObject);
         if (isEmbedded((RealmModel) value)) {
             if (value instanceof DynamicRealmObject) {
                 throw new IllegalArgumentException("Embedded objects are not supported by RealmLists of DynamicRealmObjects yet.");
             }
             long objKey = osList.createAndAddEmbeddedObject();
-            updateEmbeddedObject(unmanagedObject, objKey);
+            updateEmbeddedObject(realmObject, objKey);
         } else {
-            final RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
+            RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ?  copyToRealm((RealmModel) value) : realmObject);
             osList.addRow(proxy.realmGet$proxyState().getRow$realm().getObjectKey());
         }
     }
@@ -1547,15 +1548,16 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
     public void insertValue(int index, Object value) {
         // need to check in advance to avoid unnecessary copy of unmanaged object into Realm.
         checkInsertIndex(index);
-        RealmModel unmanagedObject = (RealmModel) value;
-        if (isEmbedded(unmanagedObject)) {
+        RealmModel realmObject = (RealmModel) value;
+        boolean copyObject = checkCanObjectBeCopied(realm, realmObject);
+        if (isEmbedded(realmObject)) {
             if (value instanceof DynamicRealmObject) {
                 throw new IllegalArgumentException("Embedded objects are not supported by RealmLists of DynamicRealmObjects yet.");
             }
             long objKey = osList.createAndAddEmbeddedObject(index);
-            updateEmbeddedObject(unmanagedObject, objKey);
+            updateEmbeddedObject(realmObject, objKey);
         } else {
-            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
+            RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ?  copyToRealm((RealmModel) value) : realmObject);
             osList.insertRow(index, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
         }
     }
@@ -1576,21 +1578,21 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
 
     @Override
     protected void setValue(int index, Object value) {
-        RealmModel unmanagedObject = (RealmModel) value;
-        if (isEmbedded(unmanagedObject)) {
+        RealmModel realmObject = (RealmModel) value;
+        boolean copyObject = checkCanObjectBeCopied(realm, realmObject);
+        if (isEmbedded(realmObject)) {
             if (value instanceof DynamicRealmObject) {
                 throw new IllegalArgumentException("Embedded objects are not supported by RealmLists of DynamicRealmObjects yet.");
             }
             long objKey = osList.createAndSetEmbeddedObject(index);
-            updateEmbeddedObject(unmanagedObject, objKey);
+            updateEmbeddedObject(realmObject, objKey);
         } else {
-            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
+            RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ?  copyToRealm((RealmModel) value) : realmObject);
             osList.setRow(index, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
         }
     }
 
-    // Transparently copies an unmanaged object or managed object from another Realm to the Realm backing this RealmList.
-    private <E extends RealmModel> E copyToRealmIfNeeded(E object) {
+    private boolean checkCanObjectBeCopied(BaseRealm realm, RealmModel object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
 
@@ -1602,7 +1604,7 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
                     String objectClassName = ((DynamicRealmObject) object).getType();
                     if (listClassName.equals(objectClassName)) {
                         // Same Realm instance and same target table
-                        return object;
+                        return false;
                     } else {
                         // Different target table
                         throw new IllegalArgumentException(String.format(Locale.US,
@@ -1623,11 +1625,15 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
                     if (realm != proxy.realmGet$proxyState().getRealm$realm()) {
                         throw new IllegalArgumentException("Cannot copy an object from another Realm instance.");
                     }
-                    return object;
+                    return false;
                 }
             }
         }
+        return true;
+    }
 
+    // Transparently copies an unmanaged object or managed object from another Realm to the Realm backing this RealmList.
+    private <E extends RealmModel> E copyToRealm(E object) {
         // At this point the object can only be a typed object, so the backing Realm cannot be a DynamicRealm.
         Realm realm = (Realm) this.realm;
         if (OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(),
