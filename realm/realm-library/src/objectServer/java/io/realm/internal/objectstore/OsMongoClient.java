@@ -18,7 +18,7 @@ package io.realm.internal.objectstore;
 
 import org.bson.codecs.configuration.CodecRegistry;
 
-import io.realm.RealmUser;
+import io.realm.mongodb.User;
 import io.realm.internal.NativeObject;
 
 public class OsMongoClient implements NativeObject {
@@ -27,8 +27,8 @@ public class OsMongoClient implements NativeObject {
 
     private final long nativePtr;
 
-    public OsMongoClient(RealmUser realmUser, String serviceName) {
-        this.nativePtr = nativeCreate(realmUser.getApp().nativePtr, serviceName);
+    public OsMongoClient(long appNativePtr, String serviceName) {
+        this.nativePtr = nativeCreate(appNativePtr, serviceName);
     }
 
     public OsMongoDatabase getRemoteDatabase(final String databaseName, final CodecRegistry codecRegistry) {

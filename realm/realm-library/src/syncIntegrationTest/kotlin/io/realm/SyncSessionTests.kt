@@ -11,6 +11,8 @@ import io.realm.internal.OsRealmConfig
 import io.realm.kotlin.syncSession
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
+import io.realm.mongodb.*
+import io.realm.mongodb.sync.*
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.ResourceContainer
 import io.realm.util.assertFailsWithMessage
@@ -42,8 +44,8 @@ class SyncSessionTests {
     @get:Rule
     private val looperThread = BlockingLooperThread()
 
-    private lateinit var app: TestRealmApp
-    private lateinit var user: RealmUser
+    private lateinit var app: App
+    private lateinit var user: User
     private lateinit var syncConfiguration: SyncConfiguration
 
     private val configFactory: TestSyncConfigurationFactory = TestSyncConfigurationFactory()
@@ -89,7 +91,7 @@ class SyncSessionTests {
     fun setup() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         RealmLog.setLevel(LogLevel.ALL)
-        app = TestRealmApp()
+        app = TestApp()
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
         syncConfiguration = configFactory
                 // TODO We generate new partition value for each test to avoid overlaps in data. We
@@ -416,7 +418,7 @@ class SyncSessionTests {
                 assertEquals(SyncSession.State.INACTIVE, session2.state)
 
                 // Login again
-                app.login(RealmCredentials.emailPassword(user.email!!, SECRET_PASSWORD))
+                app.login(Credentials.emailPassword(user.email!!, SECRET_PASSWORD))
 
                 // reviving the sessions. The state could be changed concurrently.
                 // FIXME Reavaluate with new sync states
@@ -485,7 +487,7 @@ class SyncSessionTests {
                 allResults.get().addChangeListener(realmChangeListener)
 
                 // login again to re-activate the user
-                val credentials = RealmCredentials.emailPassword(user.email!!, SECRET_PASSWORD)
+                val credentials = Credentials.emailPassword(user.email!!, SECRET_PASSWORD)
                 // this login will re-activate the logged out user, and resume all it's pending sessions
                 // the OS will trigger bindSessionWithConfig with the new refresh_token, in order to obtain
                 // a new access_token.
@@ -507,7 +509,7 @@ class SyncSessionTests {
         val twoMBString = String(chars)
         val config1 = configFactory
                 .createSyncConfigurationBuilder(user)
-                .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED)
+                .testSessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED)
                 .modules(SyncStringOnlyModule())
                 .build()
         Realm.getInstance(config1).use { realm ->
@@ -560,7 +562,7 @@ class SyncSessionTests {
     @Ignore("Does not terminate")
     fun downloadChangesWhenRealmOutOfScope() {
         val uniqueName = UUID.randomUUID().toString()
-        var credentials = SyncCredentials.usernamePassword(uniqueName, "password", true)
+        var credentials = app.emailPasswordAuth.registerUser(uniqueName, "password")
         val config1 = configFactory
                 .createSyncConfigurationBuilder(user)
                 .modules(SyncStringOnlyModule())
@@ -576,7 +578,7 @@ class SyncSessionTests {
             user.logOut()
 
             // Log the user back in.
-            val credentials = RealmCredentials.emailPassword(user.email!!, SECRET_PASSWORD)
+            val credentials = Credentials.emailPassword(user.email!!, SECRET_PASSWORD)
             app.login(credentials)
 
             // now let the admin upload some commits
@@ -618,9 +620,10 @@ class SyncSessionTests {
 
         val configRef = AtomicReference<SyncConfiguration?>(null)
         val config: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
-                .clientResyncMode(ClientResyncMode.MANUAL)
+                // ClientResyncMode is currently hidden, but MANUAL is the default
+                // .clientResyncMode(ClientResyncMode.MANUAL)
                 // FIXME Is this critical for the test
-                // .directory(looperThread.getRoot())
+                //.directory(looperThread.getRoot())
                 .errorHandler { session, error ->
                     val handler = error as ClientResetRequiredError
                     // Execute Client Reset
@@ -754,7 +757,7 @@ class SyncSessionTests {
         assertFailsWith<DownloadingRealmInterruptedException> {
             val instance = Realm.getInstance(syncConfiguration)
             looperThread.closeAfterTest(Closeable {
-                instance.syncSession.close()
+                instance.syncSession.testClose()
                 instance.close()
             })
         }

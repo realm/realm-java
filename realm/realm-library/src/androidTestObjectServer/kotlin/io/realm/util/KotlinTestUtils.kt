@@ -1,8 +1,8 @@
 package io.realm.util
 
 import android.util.ArraySet
-import io.realm.ErrorCode
-import io.realm.ObjectServerError
+import io.realm.mongodb.ErrorCode
+import io.realm.mongodb.ObjectServerError
 import org.hamcrest.Matcher
 import org.junit.Assert.*
 import org.junit.rules.ErrorCollector

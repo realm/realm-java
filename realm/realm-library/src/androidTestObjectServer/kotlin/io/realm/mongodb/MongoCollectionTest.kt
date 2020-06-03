@@ -43,15 +43,15 @@ private const val VALUE_1 = "666"
 @RunWith(AndroidJUnit4::class)
 class MongoCollectionTest {
 
-    private lateinit var app: TestRealmApp
-    private lateinit var user: RealmUser
+    private lateinit var app: TestApp
+    private lateinit var user: User
     private lateinit var client: MongoClient
     private lateinit var database: MongoDatabase
 
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        app = TestRealmApp()
+        app = TestApp()
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         client = user.getMongoClient(SERVICE_NAME)
         database = client.getDatabase(DATABASE_NAME)

@@ -107,7 +107,7 @@ android {
             java.srcDirs += [/* FIXME 'src/syncIntegrationTest/java', */
                              'src/syncIntegrationTest/kotlin',
                              'src/androidTestObjectServer/kotlin', 'src/syncTestUtils/java'
-            ]
+            , 'src/syncTestUtils/kotlin']
             assets.srcDirs += ['src/syncIntegrationTest/assets/']
         }
     }

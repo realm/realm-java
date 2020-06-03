@@ -18,22 +18,21 @@ package io.realm.mongodb.mongo;
 
 import org.bson.codecs.configuration.CodecRegistry;
 
-import io.realm.RealmUser;
+import io.realm.mongodb.User;
 import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsMongoClient;
 
 /**
  * The remote MongoClient used for working with data in MongoDB remotely via Realm.
  */
-public class MongoClient {
+abstract public class MongoClient {
 
     private OsMongoClient osMongoClient;
     private CodecRegistry codecRegistry;
 
-    public MongoClient(final RealmUser realmUser, final String serviceName, final CodecRegistry codecRegistry) {
+    protected MongoClient(OsMongoClient osMongoClient, final CodecRegistry codecRegistry) {
+        this.osMongoClient = osMongoClient;
         this.codecRegistry = codecRegistry;
-        Util.checkEmpty(serviceName, "serviceName");
-        osMongoClient = new OsMongoClient(realmUser, serviceName);
     }
 
     /**
