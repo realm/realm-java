@@ -18,7 +18,6 @@ package io.realm.internal.objectstore;
 
 import org.bson.codecs.configuration.CodecRegistry;
 
-import io.realm.RealmUser;
 import io.realm.internal.NativeObject;
 import io.realm.internal.common.TaskDispatcher;
 
@@ -29,10 +28,10 @@ public class OsMongoClient implements NativeObject {
     private final long nativePtr;
     private final TaskDispatcher dispatcher;
 
-    public OsMongoClient(final RealmUser realmUser,
+    public OsMongoClient(final long appNativePtr,
                          final String serviceName,
                          final TaskDispatcher dispatcher) {
-        this.nativePtr = nativeCreate(realmUser.getApp().nativePtr, serviceName);
+        this.nativePtr = nativeCreate(appNativePtr, serviceName);
         this.dispatcher = dispatcher;
     }
 

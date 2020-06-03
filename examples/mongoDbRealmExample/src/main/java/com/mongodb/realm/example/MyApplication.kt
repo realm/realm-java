@@ -19,19 +19,19 @@ package com.mongodb.realm.example
 import android.app.Application
 
 import io.realm.Realm
-import io.realm.RealmApp
-import io.realm.RealmAppConfiguration
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
+import io.realm.mongodb.App
+import io.realm.mongodb.AppConfiguration
 
-lateinit var APP: RealmApp
+lateinit var APP: App
 
 class MyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
         Realm.init(this)
-        APP = RealmApp(RealmAppConfiguration.Builder(BuildConfig.MONGODB_REALM_APP_ID)
+        APP = App(AppConfiguration.Builder(BuildConfig.MONGODB_REALM_APP_ID)
                 .baseUrl(BuildConfig.MONGODB_REALM_URL)
                 .appName(BuildConfig.VERSION_NAME)
                 .appVersion(BuildConfig.VERSION_CODE.toString())

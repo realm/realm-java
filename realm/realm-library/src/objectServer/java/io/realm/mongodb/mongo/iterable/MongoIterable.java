@@ -25,13 +25,12 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicReference;
 
-import io.realm.ObjectServerError;
 import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.network.ResultHandler;
 import io.realm.internal.objectstore.OsMongoCollection;
-import io.realm.mongodb.mongo.iterable.MongoCursor;
+import io.realm.mongodb.ObjectServerError;
 
 /**
  * The MongoIterable is the results from an operation, such as a {@code find()} or an

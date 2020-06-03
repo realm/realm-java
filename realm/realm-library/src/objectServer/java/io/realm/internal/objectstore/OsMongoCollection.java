@@ -32,13 +32,13 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
-import io.realm.ObjectServerError;
 import io.realm.internal.NativeObject;
 import io.realm.internal.Util;
 import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.network.ResultHandler;
+import io.realm.mongodb.ObjectServerError;
 import io.realm.mongodb.mongo.iterable.AggregateIterable;
 import io.realm.mongodb.mongo.iterable.FindIterable;
 import io.realm.mongodb.mongo.options.CountOptions;

@@ -16,7 +16,7 @@
 package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import io.realm.SyncTestUtils.Companion.createTestUser
+import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
 import io.realm.entities.IndexedFields
 import io.realm.entities.PrimaryKeyAsString
 import io.realm.entities.StringOnly
@@ -24,6 +24,8 @@ import io.realm.internal.OsObjectSchemaInfo
 import io.realm.internal.OsRealmConfig
 import io.realm.internal.OsSchemaInfo
 import io.realm.internal.OsSharedRealm
+import io.realm.mongodb.close
+import io.realm.mongodb.sync.testSchema
 import io.realm.util.assertFailsWithMessage
 import org.hamcrest.CoreMatchers
 import org.junit.*
@@ -40,11 +42,11 @@ class SyncedRealmMigrationTests {
     @get:Rule
     val configFactory = TestSyncConfigurationFactory()
 
-    private lateinit var app: TestRealmApp
+    private lateinit var app: TestApp
 
     @Before
     fun setUp() {
-        app = TestRealmApp()
+        app = TestApp()
     }
 
     @After
@@ -67,7 +69,7 @@ class SyncedRealmMigrationTests {
     @Test
     fun addField_worksWithMigrationError() {
         val config = configFactory.createSyncConfigurationBuilder(createTestUser(app))
-                .schema(StringOnly::class.java)
+                .testSchema(StringOnly::class.java)
                 .build()
 
         // Setup initial Realm schema (with missing fields)
@@ -90,7 +92,7 @@ class SyncedRealmMigrationTests {
     @Test
     fun missingFields_hiddenSilently() {
         val config = configFactory.createSyncConfigurationBuilder(createTestUser(app))
-                .schema(StringOnly::class.java)
+                .testSchema(StringOnly::class.java)
                 .build()
 
         // Setup initial Realm schema (with too many fields)
@@ -120,7 +122,7 @@ class SyncedRealmMigrationTests {
     @Test
     fun breakingSchemaChange_throws() {
         val config = configFactory.createSyncConfigurationBuilder(createTestUser(app))
-                .schema(PrimaryKeyAsString::class.java)
+                .testSchema(PrimaryKeyAsString::class.java)
                 .build()
 
         // Setup initial Realm schema (with a different primary key)
@@ -142,7 +144,7 @@ class SyncedRealmMigrationTests {
     @Test
     fun sameSchemaVersion_doNotRebuildIndexes() {
         val config = configFactory.createSyncConfigurationBuilder(createTestUser(app))
-                .schema(IndexedFields::class.java)
+                .testSchema(IndexedFields::class.java)
                 .schemaVersion(42)
                 .build()
 
@@ -171,7 +173,7 @@ class SyncedRealmMigrationTests {
     @Test
     fun differentSchemaVersions_rebuildIndexes() {
         val config = configFactory.createSyncConfigurationBuilder(createTestUser(app))
-                .schema(IndexedFields::class.java)
+                .testSchema(IndexedFields::class.java)
                 .schemaVersion(42)
                 .build()
 
@@ -187,7 +189,7 @@ class SyncedRealmMigrationTests {
             }
         }
 
-        Realm.getInstance(config).use {realm ->
+        Realm.getInstance(config).use { realm ->
             // Opening at different schema version (42) should rebuild indexes
             val indexedFieldsSchema = realm.schema[className]!!
             assertNotNull(indexedFieldsSchema)
@@ -200,7 +202,7 @@ class SyncedRealmMigrationTests {
     @Test
     fun addingFields_rebuildIndexes() {
         val config = configFactory.createSyncConfigurationBuilder(createTestUser(app))
-                .schema(IndexedFields::class.java)
+                .testSchema(IndexedFields::class.java)
                 .schemaVersion(42)
                 .build()
 
@@ -251,7 +253,7 @@ class SyncedRealmMigrationTests {
     fun moreFieldsThanExpectedIsAllowed() {
         val config = configFactory
                 .createSyncConfigurationBuilder(createTestUser(app))
-                .schema(StringOnly::class.java)
+                .testSchema(StringOnly::class.java)
                 .build()
 
         // Initialize schema
@@ -269,13 +271,4 @@ class SyncedRealmMigrationTests {
         Realm.getInstance(config).close()
     }
 
-    companion object {
-        @BeforeClass
-        fun beforeClass() {
-            // another Test class may have the BaseRealm.applicationContext set but
-            // the SyncManager reset. This will make assertion to fail, we need to re-initialise
-            // the sync_manager.cpp#m_file_manager (configFactory rule do this)
-            BaseRealm.applicationContext = null
-        }
-    }
 }

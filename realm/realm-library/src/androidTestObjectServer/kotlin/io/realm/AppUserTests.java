@@ -51,8 +51,8 @@
 //import io.realm.rule.RunInLooperThread;
 //import io.realm.rule.RunTestInLooperThread;
 //
-//import static io.realm.SyncTestUtils.createTestAdminUser;
-//import static io.realm.SyncTestUtils.createTestUser;
+//import static io.realm.mongodb.SyncTestUtils.createTestAdminUser;
+//import static io.realm.mongodb.SyncTestUtils.createTestUser;
 //import static junit.framework.Assert.assertEquals;
 //import static org.junit.Assert.assertFalse;
 //import static org.junit.Assert.assertNotEquals;

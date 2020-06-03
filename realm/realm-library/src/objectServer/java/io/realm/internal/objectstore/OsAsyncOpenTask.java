@@ -5,9 +5,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import io.realm.ErrorCode;
-import io.realm.ObjectServerError;
-import io.realm.internal.Keep;
+import io.realm.mongodb.ErrorCode;
+import io.realm.mongodb.ObjectServerError;
 import io.realm.internal.KeepMember;
 import io.realm.internal.OsRealmConfig;
 

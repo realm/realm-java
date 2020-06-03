@@ -32,8 +32,8 @@ import org.bson.json.JsonWriterSettings;
 import java.io.StringReader;
 import java.io.StringWriter;
 
-import io.realm.ErrorCode;
-import io.realm.ObjectServerError;
+import io.realm.mongodb.ErrorCode;
+import io.realm.mongodb.ObjectServerError;
 
 /**
  * Protocol for passing {@link BsonValue}s to JNI.
@@ -65,7 +65,7 @@ public class JniBsonProtocol {
             return stringWriter.toString();
         } catch (CodecConfigurationException e) {
             // same exception as in the guard above, but needed here as well nonetheless as the
-            // result might be wrapped around an iterable or a map and the codec for the end type
+            // result might be wrapped inside an iterable or a map and the codec for the end type
             // might be missing
             throw new ObjectServerError(ErrorCode.BSON_CODEC_NOT_FOUND, "Could not resolve encoder for end type", e);
         } catch (Exception e) {
@@ -89,7 +89,7 @@ public class JniBsonProtocol {
             return value;
         } catch (CodecConfigurationException e) {
             // same exception as in the guard above, but needed here as well nonetheless as the
-            // result might be wrapped around an iterable or a map and the codec for the end type
+            // result might be wrapped inside an iterable or a map and the codec for the end type
             // might be missing
             throw new ObjectServerError(ErrorCode.BSON_CODEC_NOT_FOUND, "Could not resolve decoder for end type" + string, e);
         } catch (Exception e) {

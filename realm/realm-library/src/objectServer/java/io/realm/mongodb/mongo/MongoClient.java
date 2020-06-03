@@ -18,7 +18,6 @@ package io.realm.mongodb.mongo;
 
 import org.bson.codecs.configuration.CodecRegistry;
 
-import io.realm.RealmUser;
 import io.realm.internal.Util;
 import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.objectstore.OsMongoClient;
@@ -26,26 +25,18 @@ import io.realm.internal.objectstore.OsMongoClient;
 /**
  * The remote MongoClient used for working with data in MongoDB remotely via Realm.
  */
-public class MongoClient {
+abstract public class MongoClient {
 
     private final OsMongoClient osMongoClient;
     private final CodecRegistry codecRegistry;
     private final TaskDispatcher dispatcher;
 
-    /**
-     * MongoClient public constructor.
-     *
-     * @param realmUser     user owning this client
-     * @param serviceName   service name to connect to the server
-     * @param codecRegistry needed for encoding and decoding database documents
-     */
-    public MongoClient(final RealmUser realmUser,
-                       final String serviceName,
-                       final CodecRegistry codecRegistry) {
-        Util.checkEmpty(serviceName, "serviceName");
+    protected MongoClient(final OsMongoClient osMongoClient,
+                          final CodecRegistry codecRegistry,
+                          final TaskDispatcher dispatcher) {
+        this.osMongoClient = osMongoClient;
         this.codecRegistry = codecRegistry;
-        this.dispatcher = new TaskDispatcher();
-        this.osMongoClient = new OsMongoClient(realmUser, serviceName, dispatcher);
+        this.dispatcher = dispatcher;
     }
 
     /**

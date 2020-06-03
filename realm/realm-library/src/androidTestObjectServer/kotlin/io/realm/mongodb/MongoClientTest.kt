@@ -17,9 +17,9 @@ package io.realm.mongodb
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.*
-import io.realm.log.LogLevel
-import io.realm.log.RealmLog
+import io.realm.Realm
+import io.realm.TestApp
+import io.realm.TestHelper
 import io.realm.mongodb.mongo.MongoClient
 import io.realm.mongodb.mongo.MongoCollection
 import io.realm.mongodb.mongo.MongoNamespace
@@ -30,7 +30,6 @@ import io.realm.mongodb.mongo.options.UpdateOptions
 import io.realm.util.blockingGetResult
 import io.realm.util.mongodb.CustomType
 import org.bson.Document
-import org.bson.codecs.configuration.CodecConfigurationException
 import org.bson.codecs.configuration.CodecRegistries
 import org.bson.types.ObjectId
 import org.junit.After
@@ -47,14 +46,14 @@ private const val COLLECTION_NAME = "test_data"
 @RunWith(AndroidJUnit4::class)
 class MongoClientTest {
 
-    private lateinit var app: TestRealmApp
-    private lateinit var user: RealmUser
+    private lateinit var app: TestApp
+    private lateinit var user: User
     private lateinit var client: MongoClient
 
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        app = TestRealmApp()
+        app = TestApp()
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         client = user.getMongoClient(SERVICE_NAME)
     }
@@ -994,7 +993,7 @@ class MongoClientTest {
     fun withDocument() {
         // aAd default codecs as they too are needed for proper collection initialization
         val expandedCodecRegistry = CodecRegistries
-                .fromRegistries(RealmAppConfiguration.DEFAULT_BSON_CODEC_REGISTRY,
+                .fromRegistries(AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY,
                         CodecRegistries.fromCodecs(CustomType.Codec()))
 
         val expected = CustomType(ObjectId(), 42)
@@ -1009,7 +1008,7 @@ class MongoClientTest {
                 coll.insertOne(expected).blockingGetResult()
             }
 
-            val defaultCodecRegistry = RealmAppConfiguration.DEFAULT_BSON_CODEC_REGISTRY
+            val defaultCodecRegistry = AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY
             assertEquals(defaultCodecRegistry, coll.codecRegistry)
 
             // Use expanded registry

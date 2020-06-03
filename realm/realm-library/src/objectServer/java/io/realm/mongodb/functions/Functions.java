@@ -21,36 +21,37 @@ import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.List;
 
-import io.realm.ObjectServerError;
-import io.realm.RealmApp;
-import io.realm.RealmAppConfiguration;
 import io.realm.RealmAsyncTask;
-import io.realm.RealmUser;
 import io.realm.internal.Util;
 import io.realm.internal.jni.JniBsonProtocol;
+import io.realm.internal.mongodb.Request;
+import io.realm.mongodb.App;
+import io.realm.mongodb.AppConfiguration;
+import io.realm.mongodb.ObjectServerError;
+import io.realm.mongodb.User;
 
 /**
  * A <i>Functions<i> manager to call MongoDB Realm functions.
  * <p>
  * Arguments and results are encoded/decoded with the <i>Functions'</i> codec registry either
- * inherited from the {@link RealmAppConfiguration#getDefaultCodecRegistry()} or set explicitly
- * when creating the <i>Functions</i>-instance through {@link RealmUser#getFunctions(CodecRegistry)}
+ * inherited from the {@link AppConfiguration#getDefaultCodecRegistry()} or set explicitly
+ * when creating the <i>Functions</i>-instance through {@link User#getFunctions(CodecRegistry)}
  * or through the individual calls to {@link #callFunction(String, List, Class, CodecRegistry)}.
  *
- * @see RealmUser#getFunctions()
- * @see RealmUser#getFunctions(CodecRegistry)
- * @see RealmApp#getFunctions(RealmUser)
- * @see RealmApp#getFunctions(RealmUser, CodecRegistry)
- * @see RealmAppConfiguration
+ * @see User#getFunctions()
+ * @see User#getFunctions(CodecRegistry)
+ * @see App#getFunctions(User)
+ * @see App#getFunctions(User, CodecRegistry)
+ * @see AppConfiguration
  * @see CodecRegistry
  */
 public abstract class Functions {
 
-    protected RealmUser user;
+    protected User user;
 
     private CodecRegistry defaultCodecRegistry;
 
-    protected Functions(RealmUser user, CodecRegistry codecRegistry) {
+    protected Functions(User user, CodecRegistry codecRegistry) {
         this.user = user;
         this.defaultCodecRegistry = codecRegistry;
     }
@@ -68,8 +69,8 @@ public abstract class Functions {
      *
      * @throws ObjectServerError if the request failed in some way.
      *
-     * @see #callFunctionAsync(String, List, Class, CodecRegistry, RealmApp.Callback)
-     * @see RealmAppConfiguration#getDefaultCodecRegistry()
+     * @see #callFunctionAsync(String, List, Class, CodecRegistry, App.Callback)
+     * @see AppConfiguration#getDefaultCodecRegistry()
      */
     public <ResultT> ResultT callFunction(String name, List<?> args, Class<ResultT> resultClass, CodecRegistry codecRegistry) {
         return invoke(name, args, codecRegistry, JniBsonProtocol.getCodec(resultClass, codecRegistry));
@@ -88,7 +89,7 @@ public abstract class Functions {
      * @throws ObjectServerError if the request failed in some way.
      *
      * @see #callFunction(String, List, Class, CodecRegistry)
-     * @see RealmAppConfiguration#getDefaultCodecRegistry()
+     * @see AppConfiguration#getDefaultCodecRegistry()
      */
     public <ResultT> ResultT callFunction(String name, List<?> args, Class<ResultT> resultClass) {
         return callFunction(name, args, resultClass, defaultCodecRegistry);
@@ -108,7 +109,7 @@ public abstract class Functions {
      * @throws ObjectServerError if the request failed in some way.
      *
      * @see #callFunction(String, List, Class, CodecRegistry)
-     * @see RealmAppConfiguration#getDefaultCodecRegistry()
+     * @see AppConfiguration#getDefaultCodecRegistry()
      */
     public <ResultT> ResultT callFunction(String name, List<?> args, Decoder<ResultT> resultDecoder) {
         return invoke(name, args, defaultCodecRegistry, resultDecoder);
@@ -131,12 +132,12 @@ public abstract class Functions {
      * @throws IllegalStateException if not called on a looper thread.
      *
      * @see #callFunction(String, List, Class, CodecRegistry)
-     * @see #callFunctionAsync(String, List, Class, CodecRegistry, RealmApp.Callback)
-     * @see RealmAppConfiguration#getDefaultCodecRegistry()
+     * @see #callFunctionAsync(String, List, Class, CodecRegistry, App.Callback)
+     * @see AppConfiguration#getDefaultCodecRegistry()
      */
-    public <T> RealmAsyncTask callFunctionAsync(String name, List<?> args, Class<T> resultClass, CodecRegistry codecRegistry, RealmApp.Callback<T> callback) {
+    public <T> RealmAsyncTask callFunctionAsync(String name, List<?> args, Class<T> resultClass, CodecRegistry codecRegistry, App.Callback<T> callback) {
         Util.checkLooperThread("Asynchronous functions is only possible from looper threads.");
-        return new RealmApp.Request<T>(RealmApp.NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<T>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public T run() throws ObjectServerError {
                 Decoder<T> decoder = JniBsonProtocol.getCodec(resultClass, codecRegistry);
@@ -161,10 +162,10 @@ public abstract class Functions {
      * @throws IllegalStateException if not called on a looper thread.
      *
      * @see #callFunction(String, List, Class)
-     * @see #callFunctionAsync(String, List, Class, CodecRegistry, RealmApp.Callback)
-     * @see RealmAppConfiguration#getDefaultCodecRegistry()
+     * @see #callFunctionAsync(String, List, Class, CodecRegistry, App.Callback)
+     * @see AppConfiguration#getDefaultCodecRegistry()
      */
-    public <T> RealmAsyncTask callFunctionAsync(String name, List<?> args, Class<T> resultClass, RealmApp.Callback<T> callback) {
+    public <T> RealmAsyncTask callFunctionAsync(String name, List<?> args, Class<T> resultClass, App.Callback<T> callback) {
         return callFunctionAsync(name, args, resultClass, defaultCodecRegistry, callback);
     }
 
@@ -183,12 +184,12 @@ public abstract class Functions {
      * @throws IllegalStateException if not called on a looper thread.
      *
      * @see #callFunction(String, List, Class)
-     * @see #callFunctionAsync(String, List, Class, CodecRegistry, RealmApp.Callback)
-     * @see RealmAppConfiguration#getDefaultCodecRegistry()
+     * @see #callFunctionAsync(String, List, Class, CodecRegistry, App.Callback)
+     * @see AppConfiguration#getDefaultCodecRegistry()
      */
-    public <T> RealmAsyncTask callFunctionAsync(String name, List<?> args, Decoder<T> resultDecoder, RealmApp.Callback<T> callback) {
+    public <T> RealmAsyncTask callFunctionAsync(String name, List<?> args, Decoder<T> resultDecoder, App.Callback<T> callback) {
         Util.checkLooperThread("Asynchronous functions is only possible from looper threads.");
-        return new RealmApp.Request<T>(RealmApp.NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<T>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public T run() throws ObjectServerError {
                 return invoke(name, args, defaultCodecRegistry, resultDecoder);
@@ -207,20 +208,20 @@ public abstract class Functions {
     }
 
     /**
-     * Returns the {@link RealmApp} that this instance in associated with.
+     * Returns the {@link App} that this instance in associated with.
      *
-     * @return The {@link RealmApp} that this instance in associated with.
+     * @return The {@link App} that this instance in associated with.
      */
-    public RealmApp getApp() {
+    public App getApp() {
         return user.getApp();
     }
 
     /**
-     * Returns the {@link RealmUser} that this instance in associated with.
+     * Returns the {@link User} that this instance in associated with.
      *
-     * @return The {@link RealmUser} that this instance in associated with.
+     * @return The {@link User} that this instance in associated with.
      */
-    public RealmUser getUser() {
+    public User getUser() {
         return user;
     }
 

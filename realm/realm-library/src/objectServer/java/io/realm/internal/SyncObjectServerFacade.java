@@ -28,11 +28,11 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.RealmApp;
+import io.realm.mongodb.App;
 import io.realm.RealmConfiguration;
-import io.realm.RealmUser;
-import io.realm.SyncConfiguration;
-import io.realm.RealmSync;
+import io.realm.mongodb.sync.Sync;
+import io.realm.mongodb.User;
+import io.realm.mongodb.sync.SyncConfiguration;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.android.AndroidCapabilities;
@@ -74,8 +74,8 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     public Object[] getSyncConfigurationOptions(RealmConfiguration config) {
         if (config instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
-            RealmUser user = syncConfig.getUser();
-            RealmApp app = user.getApp();
+            User user = syncConfig.getUser();
+            App app = user.getApp();
             String rosServerUrl = syncConfig.getServerUrl().toString();
             String rosUserIdentity = user.getId();
             String syncRealmAuthUrl = user.getApp().getConfiguration().getBaseUrl().toString();
@@ -130,7 +130,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     public void wrapObjectStoreSessionIfRequired(OsRealmConfig config) {
         if (config.getRealmConfiguration() instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config.getRealmConfiguration();
-            RealmApp app = syncConfig.getUser().getApp();
+            App app = syncConfig.getUser().getApp();
             app.getSync().getOrCreateSession(syncConfig);
         }
     }
@@ -144,7 +144,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             if (removeSessionMethod == null) {
                 synchronized (SyncObjectServerFacade.class) {
                     if (removeSessionMethod == null) {
-                        Method removeSession = RealmSync.class.getDeclaredMethod("removeSession", SyncConfiguration.class);
+                        Method removeSession = Sync.class.getDeclaredMethod("removeSession", SyncConfiguration.class);
                         removeSession.setAccessible(true);
                         removeSessionMethod = removeSession;
                     }
@@ -191,7 +191,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     public void createNativeSyncSession(RealmConfiguration configuration) {
         if (configuration instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) configuration;
-            RealmApp app = syncConfig.getUser().getApp();
+            App app = syncConfig.getUser().getApp();
             app.getSync().getOrCreateSession(syncConfig);
         }
     }
