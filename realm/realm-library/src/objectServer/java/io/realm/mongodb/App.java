@@ -50,15 +50,14 @@ import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.log.RealmLog;
 import io.realm.mongodb.functions.Functions;
 
-// FIXME Any sane configuration defaults
 /**
  * An <i>App</i> is the main client side entry point for interacting with a <i>MongoDB Realm App</i>.
  *
  * The <i>App</i> can be used to:
  * <ul>
- *   <li>Register uses and perform various user related operations through authorization APIs
- *   ({@link io.realm.mongodb.auth.ApiKeyAuth}, {@link EmailPasswordAuthImpl}, etc)</li>
- *   <li>Synchronize data between the local device and a remote Realm App with {@link io.realm.mongodb.sync.SyncSession}s</li>
+ *   <li>Register uses and perform various user related operations through authentication providers
+ *   ({@link io.realm.mongodb.auth.ApiKeyAuth}, {@link EmailPasswordAuthImpl})</li>
+ *   <li>Synchronize data between the local device and a remote Realm App with Synchronized Realms</li>
  *   <li>Invoke Realm App functions with {@link Functions}</li>
  *   <li>Access remote data from MongoDB databases with a {@link io.realm.mongodb.mongo.MongoClient}</li>
  * </ul>
@@ -67,27 +66,32 @@ import io.realm.mongodb.functions.Functions;
  * <i>App</i> as below:
  * <p>
  * <pre>
- * class MyApplication : Application() {
+ *    class MyApplication extends Application {
  *
- *     override fun onCreate() {
- *         super.onCreate()
- *         Realm.init(this)
+ *         @Override
+ *         public void onCreate() {
+ *             super.onCreate();
  *
- *         // Configure the app
- *         val appConfiguration = AppConfiguration.Builder(BuildConfig.MONGODB_REALM_APP_ID)
- *                 .baseUrl(BuildConfig.MONGODB_REALM_URL)
- *                 .appName(BuildConfig.VERSION_NAME)
- *                 .appVersion(BuildConfig.VERSION_CODE.toString())
- *                 .build()
+ *             Realm.init(this);
  *
- *         // Create App from configuration
- *         App APP = App(appConfiguration)
+ *             AppConfiguration appConfiguration = new AppConfiguration.Builder(BuildConfig.MONGODB_REALM_APP_ID)
+ *                     .appName(BuildConfig.VERSION_NAME)
+ *                     .appVersion(Integer.toString(BuildConfig.VERSION_CODE))
+ *                     .build();
+ *
+ *             App APP = new App(appConfiguration);
+ *         }
+ *
  *     }
- *
- * }
  * </pre>
  * <p>
- * After configuring the <i>App</i> you can register a new user and/or login with an existing user as below:
+ * After configuring the <i>App</i> you can start managing users, configure Synchronized Realms,
+ * call remote Realm Functions and access remote data through Mongo Collections. The below examples
+ * shows the synchronized APIs which cannot be used from the main thread. For the equivalent
+ * asynchronous counter parts. The example project in please see
+ * https://github.com/realm/realm-java/tree/v10/examples/mongoDbRealmExample.
+ *
+ * To register a new user and/or login with an existing user as below:
  * <pre>
  *     // Register new user
  *     User user = APP.getEmailPasswordAuth().registerUser(username, password);
@@ -96,8 +100,8 @@ import io.realm.mongodb.functions.Functions;
  *     APP.login(Credentials.emailPassword(username, password))
  * </pre>
  * <p>
- * With an authorized user you can synchronize data between the local device and the remote Realm App creating a
- * {@link io.realm.mongodb.sync.SyncSession} from a {@link io.realm.mongodb.sync.SyncConfiguration} as below:
+ * With an authorized user you can synchronize data between the local device and the remote Realm
+ * App by opening a Realm with a {@link io.realm.mongodb.sync.SyncConfiguration} as below:
  * <pre>
  *     SyncConfiguration syncConfiguration = new SyncConfiguration.Builder(user, "<partition value>")
  *              .build();
@@ -112,16 +116,28 @@ import io.realm.mongodb.functions.Functions;
  *     instance.close();
  * </pre>
  * <p>
- * // FIXME Functions
- * // FIXME MongoClient
+ * You can call remove Realm functions as below:
+ * <pre>
+ *     Functions functions = user.getFunctions();
+ *     Integer sum = functions.callFunction("sum", Arrays.asList(1, 2, 3, 4), Integer.class);
+ * </pre>
+ * <p>
+ * And access collections from the remote Realm App as below:
+ * <pre>
+ *     MongoClient client = user.getMongoClient(SERVICE_NAME)
+ *     MongoDatabase database = client.getDatabase(DATABASE_NAME)
+ *     MongoCollection<DocumentT> collection = database.getCollection(COLLECTION_NAME);
+ *     Long count = collection.count().blockingGetResult()
+ * </pre>
  * <p>
  *
  * @see AppConfiguration.Builder
- * @see App#login(Credentials)
+ * @see EmailPasswordAuth
  * @see io.realm.mongodb.sync.SyncConfiguration
  * @see User#getFunctions()
  * @see User#getMongoClient(String)
  */
+
 public class App {
 
     static final class SyncImpl extends Sync {
