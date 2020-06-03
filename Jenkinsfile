@@ -104,7 +104,7 @@ try {
 
               stage('Static code analysis') {
                 try {
-                  gradle('realm', "findbugs pmd checkstyle ${abiFilter}") // FIXME Renable pmd and checkstyle
+                  gradle('realm', "findbugs ${abiFilter}") // FIXME Renable pmd and checkstyle
                 } finally {
                   publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
 //                  publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
