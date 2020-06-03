@@ -16,9 +16,12 @@
 
 package io.realm.mongodb.sync;
 
+import io.realm.annotations.Beta;
+
 /**
  * Enum describing how to listen to progress changes.
  */
+@Beta
 public enum ProgressMode {
     /**
      * When registering the {@link ProgressListener}, it will record the current size of changes, and will only

@@ -16,6 +16,7 @@
 
 package io.realm.mongodb.sync;
 
+import io.realm.annotations.Beta;
 import io.realm.mongodb.ObjectServerError;
 import io.realm.internal.OsRealmConfig;
 
@@ -28,6 +29,7 @@ import io.realm.internal.OsRealmConfig;
  * <p>
  * <b>IMPORTANT:</b> Just having the device offline will not trigger a Client Resync.
  */
+@Beta
 enum ClientResyncMode {
 
     /**

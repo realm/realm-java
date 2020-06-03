@@ -23,6 +23,7 @@ import org.bson.conversions.Bson;
 
 import java.util.List;
 
+import io.realm.annotations.Beta;
 import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.objectstore.OsMongoCollection;
 import io.realm.mongodb.mongo.options.CountOptions;
@@ -45,6 +46,7 @@ import io.realm.mongodb.mongo.result.UpdateResult;
  *                    to.
  * @see MongoDatabase
  */
+@Beta
 public class MongoCollection<DocumentT> {
 
     private OsMongoCollection<DocumentT> osMongoCollection;

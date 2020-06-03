@@ -15,12 +15,15 @@
  */
 package io.realm.mongodb;
 
+import io.realm.annotations.Beta;
+
 /**
  * Each User is represented by 1 or more identities each defined by an
  * {@link Credentials.IdentityProvider}.
  *
  * This class represents the identity defined by a specific provider.
  */
+@Beta
 public class UserIdentity {
 
     private final String userId;

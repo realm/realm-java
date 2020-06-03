@@ -16,9 +16,12 @@
 
 package io.realm.mongodb.mongo.options;
 
+import io.realm.annotations.Beta;
+
 /**
  * The options for a count operation.
  */
+@Beta
 public class CountOptions {
     private int limit;
 

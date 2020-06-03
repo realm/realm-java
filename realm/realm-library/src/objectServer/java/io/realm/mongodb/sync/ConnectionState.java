@@ -16,9 +16,12 @@
 
 package io.realm.mongodb.sync;
 
+import io.realm.annotations.Beta;
+
 /**
  * Enum describing the states of the underlying connection used by a {@link SyncSession}.
  */
+@Beta
 public enum ConnectionState {
 
     /**

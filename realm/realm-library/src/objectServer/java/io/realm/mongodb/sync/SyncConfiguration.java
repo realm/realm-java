@@ -92,6 +92,7 @@ import io.realm.rx.RxObservableFactory;
  * @see <a href="https://docs.realm.io/platform/using-synced-realms/syncing-data">The docs</a> for
  * more information about the two types of synchronization.
  */
+@Beta
 public class SyncConfiguration extends RealmConfiguration {
 
     // The FAT file system has limitations of length. Also, not all characters are permitted.

@@ -18,12 +18,14 @@ package io.realm.mongodb.mongo;
 
 import org.bson.Document;
 
+import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsMongoDatabase;
 
 /**
  * The RemoteMongoDatabase provides access to its {@link Document} {@link MongoCollection}s.
  */
+@Beta
 public class MongoDatabase {
 
     private String databaseName;
