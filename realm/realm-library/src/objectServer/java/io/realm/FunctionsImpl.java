@@ -63,6 +63,6 @@ class FunctionsImpl extends Functions {
         return JniBsonProtocol.decode(encodedResponse, resultDecoder);
     }
 
-   private static native void nativeCallFunction(long nativeAppPtr, long nativeUserPtr, String name, String args_json, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    private static native void nativeCallFunction(long nativeAppPtr, long nativeUserPtr, String name, String args_json, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 
 }

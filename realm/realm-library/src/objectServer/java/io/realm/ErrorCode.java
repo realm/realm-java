@@ -40,7 +40,7 @@ public enum ErrorCode {
     NETWORK_IO_EXCEPTION(Type.JAVA, OsJavaNetworkTransport.ERROR_IO),
     NETWORK_INTERRUPTED(Type.JAVA, OsJavaNetworkTransport.ERROR_INTERRUPTED),
     NETWORK_UNKNOWN(Type.JAVA, OsJavaNetworkTransport.ERROR_UNKNOWN),
-    // BSON encoding/decoding errors originalting from java
+    // BSON encoding/decoding errors originating from java
     BSON_CODEC_NOT_FOUND(Type.JAVA, 1100),
     BSON_ENCODING(Type.JAVA, 1101),
     BSON_DECODING(Type.JAVA, 1102),

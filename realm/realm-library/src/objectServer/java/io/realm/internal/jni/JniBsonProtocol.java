@@ -50,12 +50,8 @@ public class JniBsonProtocol {
             .build();
 
     public static <T> String encode(T value, CodecRegistry registry) {
-        try {
-            Codec<?> codec = registry.get(value.getClass());
-            return encode(value, (Encoder<T>) codec);
-        } catch (Exception e) {
-            throw new ObjectServerError(ErrorCode.BSON_CODEC_NOT_FOUND, "Could not resolve decoder for " + value.getClass().getSimpleName(), e);
-        }
+        // catch possible missing codecs before the actual encoding
+        return encode(value, (Encoder<T>) getCodec(value.getClass(), registry));
     }
 
     public static <T> String encode(T value, Encoder<T> encoder) {
@@ -68,24 +64,37 @@ public class JniBsonProtocol {
             jsonWriter.writeEndDocument();
             return stringWriter.toString();
         } catch (CodecConfigurationException e) {
-            throw new ObjectServerError(ErrorCode.BSON_CODEC_NOT_FOUND, "Could not resolve encoder for value of class " + value.getClass().getSimpleName(), e);
+            // same exception as in the guard above, but needed here as well nonetheless as the
+            // result might be wrapped around an iterable or a map and the codec for the end type
+            // might be missing
+            throw new ObjectServerError(ErrorCode.BSON_CODEC_NOT_FOUND, "Could not resolve encoder for end type", e);
         } catch (Exception e) {
             throw new ObjectServerError(ErrorCode.BSON_ENCODING, "Error encoding value", e);
         }
     }
 
     public static <T> T decode(String string, Class<T> clz, CodecRegistry registry) {
-        return decode(string, registry.get(clz));
+        // catch possible missing codecs before the actual decoding
+        return decode(string, getCodec(clz, registry));
     }
 
     public static <T> T decode(String string, Decoder<T> decoder) {
-        StringReader stringReader = new StringReader(string);
-        JsonReader jsonReader = new JsonReader(stringReader);
-        jsonReader.readStartDocument();
-        jsonReader.readName(VALUE);
-        T value = decoder.decode(jsonReader, DecoderContext.builder().build());
-        jsonReader.readEndDocument();
-        return value;
+        try {
+            StringReader stringReader = new StringReader(string);
+            JsonReader jsonReader = new JsonReader(stringReader);
+            jsonReader.readStartDocument();
+            jsonReader.readName(VALUE);
+            T value = decoder.decode(jsonReader, DecoderContext.builder().build());
+            jsonReader.readEndDocument();
+            return value;
+        } catch (CodecConfigurationException e) {
+            // same exception as in the guard above, but needed here as well nonetheless as the
+            // result might be wrapped around an iterable or a map and the codec for the end type
+            // might be missing
+            throw new ObjectServerError(ErrorCode.BSON_CODEC_NOT_FOUND, "Could not resolve decoder for end type" + string, e);
+        } catch (Exception e) {
+            throw new ObjectServerError(ErrorCode.BSON_DECODING, "Error decoding value " + string, e);
+        }
     }
 
     public static <T> Decoder<T> decoder(CodecRegistry codecRegistry, Class<T> clz) {
@@ -93,6 +102,14 @@ public class JniBsonProtocol {
             return codecRegistry.get(clz);
         } catch (Exception e) {
             throw new ObjectServerError(ErrorCode.BSON_CODEC_NOT_FOUND, "Could not resolve decoder for " + clz.getName(), e);
+        }
+    }
+
+    private static <T> Codec<T> getCodec(Class<T> clz, CodecRegistry registry) {
+        try {
+            return registry.get(clz);
+        } catch (CodecConfigurationException e) {
+            throw new ObjectServerError(ErrorCode.BSON_CODEC_NOT_FOUND, "Could not resolve codec for " + clz.getSimpleName(), e);
         }
     }
 }
