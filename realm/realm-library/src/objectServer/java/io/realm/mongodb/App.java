@@ -50,8 +50,77 @@ import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.log.RealmLog;
 import io.realm.mongodb.functions.Functions;
 
+// FIXME Any sane configuration defaults
 /**
- * FIXME
+ * An <i>App</i> is the main client side entry point for interacting with a <i>MongoDB Realm App</i>.
+ *
+ * The <i>App</i> can be used to:
+ * <ul>
+ *   <li>Register uses and perform various user related operations through authorization APIs
+ *   ({@link io.realm.mongodb.auth.ApiKeyAuth}, {@link EmailPasswordAuthImpl}, etc)</li>
+ *   <li>Synchronize data between the local device and a remote Realm App with {@link io.realm.mongodb.sync.SyncSession}s</li>
+ *   <li>Invoke Realm App functions with {@link Functions}</li>
+ *   <li>Access remote data from MongoDB databases with a {@link io.realm.mongodb.mongo.MongoClient}</li>
+ * </ul>
+ * <p>
+ * To create an app that is linked with a remote <i>Realm App</i> initialize Realm and configure the
+ * <i>App</i> as below:
+ * <p>
+ * <pre>
+ * class MyApplication : Application() {
+ *
+ *     override fun onCreate() {
+ *         super.onCreate()
+ *         Realm.init(this)
+ *
+ *         // Configure the app
+ *         val appConfiguration = AppConfiguration.Builder(BuildConfig.MONGODB_REALM_APP_ID)
+ *                 .baseUrl(BuildConfig.MONGODB_REALM_URL)
+ *                 .appName(BuildConfig.VERSION_NAME)
+ *                 .appVersion(BuildConfig.VERSION_CODE.toString())
+ *                 .build()
+ *
+ *         // Create App from configuration
+ *         App APP = App(appConfiguration)
+ *     }
+ *
+ * }
+ * </pre>
+ * <p>
+ * After configuring the <i>App</i> you can register a new user and/or login with an existing user as below:
+ * <pre>
+ *     // Register new user
+ *     User user = APP.getEmailPasswordAuth().registerUser(username, password);
+ *
+ *     // Login with existing
+ *     APP.login(Credentials.emailPassword(username, password))
+ * </pre>
+ * <p>
+ * With an authorized user you can synchronize data between the local device and the remote Realm App creating a
+ * {@link io.realm.mongodb.sync.SyncSession} from a {@link io.realm.mongodb.sync.SyncConfiguration} as below:
+ * <pre>
+ *     SyncConfiguration syncConfiguration = new SyncConfiguration.Builder(user, "<partition value>")
+ *              .build();
+ *
+ *     Realm instance = Realm.getInstance(syncConfiguration);
+ *     SyncSession session = APP.getSync().getSession(syncConfiguration);
+ *
+ *     instance.executeTransaction(realm -> {
+ *         realm.insert(...);
+ *     });
+ *     session.uploadAllLocalChanges();
+ *     instance.close();
+ * </pre>
+ * <p>
+ * // FIXME Functions
+ * // FIXME MongoClient
+ * <p>
+ *
+ * @see AppConfiguration.Builder
+ * @see App#login(Credentials)
+ * @see io.realm.mongodb.sync.SyncConfiguration
+ * @see User#getFunctions()
+ * @see User#getMongoClient(String)
  */
 public class App {
 
@@ -93,8 +162,11 @@ public class App {
     }
 
     /**
-     * FIXME
-     * @param config
+     * Constructor for creating an <i>App</i> according to the given <i>AppConfiguration</i>.
+     *
+     * @param config The configuration to use for this <i>App</i> instance.
+     *
+     * @see AppConfiguration.Builder
      */
     public App(AppConfiguration config) {
         this.config = config;
@@ -210,6 +282,7 @@ public class App {
 
     /**
      * Returns the current user that is logged in and still valid.
+     * <p>
      * A user is invalidated when he/she logs out or the user's refresh token expires or is revoked.
      * <p>
      * If two or more users are logged in, it is the last valid user that is returned by this method.
@@ -242,7 +315,10 @@ public class App {
     }
 
     /**
-     * Switch current user. The current user is the user returned by {@link #currentUser()}.
+     * Switch current user.
+     * <p>
+     *
+     * The current user is the user returned by {@link #currentUser()}.
      *
      * @param user the new current user.
      * @throws IllegalArgumentException if the user is is not {@link User.State#LOGGED_IN}.
@@ -375,31 +451,36 @@ public class App {
     }
 
     /**
-     * FIXME: Figure out naming of this method and class.
-     * @return
+     * Returns the <i>Sync</i> instance managing the ongoing <i>Realm Sync</i> sessions
+     * synchronizing data between the local and the remote <i>Realm App</i> associated with this app.
+     *
+     * @return the <i>Sync</i> instance associated with this <i>App</i>.
      */
     public Sync getSync() {
         return syncManager;
     }
 
     /**
-     * Returns a <i>Functions</i> manager for invoking MongoDB Realm Functions.
+     * Returns a <i>Functions</i> manager for invoking the Realm App's Realm Functions.
      * <p>
-     * This will use the associated app's default codec registry to encode and decode arguments and
-     * results.
+     * This will use the app's default codec registry to encode and decode arguments and results.
+     *
+     * @see Functions
+     * @see AppConfiguration#getDefaultCodecRegistry()
      */
     public Functions getFunctions(User user) {
         return new FunctionsImpl(user);
     }
 
     /**
-     * Returns a <i>Functions</i> manager for invoking MongoDB Realm Functions with custom
+     * Returns a <i>Functions</i> manager for invoking the Realm App's Realm Functions with a custom
      * codec registry for encoding and decoding arguments and results.
+     *
+     * @see Functions
      */
     public Functions getFunctions(User user, CodecRegistry codecRegistry) {
         return new FunctionsImpl(user, codecRegistry);
     }
-
 
     /**
      * Returns the configuration object for this app.
@@ -500,7 +581,7 @@ public class App {
          * is thrown.
          *
          * @return the response object in case the request was a success.
-         * @throws ObjectServer provided error in case the request failed.
+         * @throws ObjectServerError provided error in case the request failed.
          */
         public T getOrThrow() {
             if (isSuccess()) {
