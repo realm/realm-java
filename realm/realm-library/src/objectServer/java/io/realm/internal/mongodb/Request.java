@@ -39,8 +39,6 @@ public abstract class Request<T> {
     private final RealmNotifier handler;
     private final ThreadPoolExecutor networkPoolExecutor;
 
-    // FIXME Made public to use in Functions. Consider reworking when App, User is moved
-    //  to mongodb package and async MongoDB API's are settled
     public Request(ThreadPoolExecutor networkPoolExecutor, @Nullable App.Callback<T> callback) {
         this.callback = callback;
         this.handler = new AndroidRealmNotifier(null, new AndroidCapabilities());
