@@ -97,15 +97,7 @@ public class JniBsonProtocol {
         }
     }
 
-    public static <T> Decoder<T> decoder(CodecRegistry codecRegistry, Class<T> clz) {
-        try {
-            return codecRegistry.get(clz);
-        } catch (Exception e) {
-            throw new ObjectServerError(ErrorCode.BSON_CODEC_NOT_FOUND, "Could not resolve decoder for " + clz.getName(), e);
-        }
-    }
-
-    private static <T> Codec<T> getCodec(Class<T> clz, CodecRegistry registry) {
+    public static <T> Codec<T> getCodec(Class<T> clz, CodecRegistry registry) {
         try {
             return registry.get(clz);
         } catch (CodecConfigurationException e) {

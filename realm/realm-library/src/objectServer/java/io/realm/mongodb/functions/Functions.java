@@ -72,7 +72,7 @@ public abstract class Functions {
      * @see RealmAppConfiguration#getDefaultCodecRegistry()
      */
     public <ResultT> ResultT callFunction(String name, List<?> args, Class<ResultT> resultClass, CodecRegistry codecRegistry) {
-        return invoke(name, args, codecRegistry, JniBsonProtocol.decoder(codecRegistry, resultClass));
+        return invoke(name, args, codecRegistry, JniBsonProtocol.getCodec(resultClass, codecRegistry));
     }
 
     /**
@@ -139,7 +139,7 @@ public abstract class Functions {
         return new RealmApp.Request<T>(RealmApp.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public T run() throws ObjectServerError {
-                Decoder<T> decoder = JniBsonProtocol.decoder(codecRegistry, resultClass);
+                Decoder<T> decoder = JniBsonProtocol.getCodec(resultClass, codecRegistry);
                 return invoke(name, args, codecRegistry, decoder);
             }
         }.start();
