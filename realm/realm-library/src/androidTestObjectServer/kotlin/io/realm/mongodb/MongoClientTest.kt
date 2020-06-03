@@ -27,6 +27,7 @@ import io.realm.mongodb.mongo.options.CountOptions
 import io.realm.mongodb.mongo.options.FindOneAndModifyOptions
 import io.realm.mongodb.mongo.options.FindOptions
 import io.realm.mongodb.mongo.options.UpdateOptions
+import io.realm.util.assertFailsWithErrorCode
 import io.realm.util.blockingGetResult
 import io.realm.util.mongodb.CustomType
 import org.bson.Document
@@ -86,11 +87,9 @@ class MongoClientTest {
             assertEquals(0, count(Document("hello", "Friend")).blockingGetResult())
             assertEquals(1, count(rawDoc, CountOptions().limit(1)).blockingGetResult())
 
-            assertFailsWith(ObjectServerError::class) {
+            assertFailsWithErrorCode(ErrorCode.MONGODB_ERROR) {
                 count(Document("\$who", 1)).blockingGetResult()
             }.also { e ->
-                assertEquals(ErrorCode.MONGODB_ERROR, e.errorCode)
-                assertNotNull(e.errorMessage)
                 assertTrue(e.errorMessage!!.contains("operator", true))
             }
         }
@@ -99,11 +98,9 @@ class MongoClientTest {
     @Test
     fun count_fails() {
         with(getCollectionInternal()) {
-            assertFailsWith(ObjectServerError::class) {
+            assertFailsWithErrorCode(ErrorCode.MONGODB_ERROR) {
                 count(Document("\$who", 1)).blockingGetResult()
             }.also { e ->
-                assertEquals(ErrorCode.MONGODB_ERROR, e.errorCode)
-                assertNotNull(e.errorMessage)
                 assertTrue(e.errorMessage!!.contains("operator", true))
             }
         }
@@ -186,11 +183,9 @@ class MongoClientTest {
     @Test
     fun findOne_fails() {
         with(getCollectionInternal()) {
-            assertFailsWith(ObjectServerError::class) {
+            assertFailsWithErrorCode(ErrorCode.MONGODB_ERROR) {
                 findOne(Document("\$who", 1)).blockingGetResult()
             }.also { e ->
-                assertEquals(ErrorCode.MONGODB_ERROR, e.errorCode)
-                assertNotNull(e.errorMessage)
                 assertTrue(e.errorMessage!!.contains("operator", true))
             }
         }
@@ -251,11 +246,9 @@ class MongoClientTest {
     @Test
     fun find_fails() {
         with(getCollectionInternal()) {
-            assertFailsWith(ObjectServerError::class) {
+            assertFailsWithErrorCode(ErrorCode.MONGODB_ERROR) {
                 find(Document("\$who", 1)).first().blockingGetResult()
             }.also { e ->
-                assertEquals(ErrorCode.MONGODB_ERROR, e.errorCode)
-                assertNotNull(e.errorMessage)
                 assertTrue(e.errorMessage!!.contains("operator", true))
             }
         }
@@ -292,11 +285,9 @@ class MongoClientTest {
     @Test
     fun aggregate_fails() {
         with(getCollectionInternal()) {
-            assertFailsWith(ObjectServerError::class) {
+            assertFailsWithErrorCode(ErrorCode.MONGODB_ERROR) {
                 aggregate(listOf(Document("\$who", 1))).first().blockingGetResult()
             }.also { e ->
-                assertEquals(ErrorCode.MONGODB_ERROR, e.errorCode)
-                assertNotNull(e.errorMessage)
                 assertTrue(e.errorMessage!!.contains("pipeline", true))
             }
         }
@@ -321,11 +312,9 @@ class MongoClientTest {
             val doc1 = Document("hello", "world").apply { this["_id"] = ObjectId() }
             insertOne(doc1).blockingGetResult()
 
-            assertFailsWith(ObjectServerError::class) {
+            assertFailsWithErrorCode(ErrorCode.MONGODB_ERROR) {
                 insertOne(doc1).blockingGetResult()
             }.also { e ->
-                assertEquals(ErrorCode.MONGODB_ERROR, e.errorCode)
-                assertNotNull(e.errorMessage)
                 assertTrue(e.errorMessage!!.contains("duplicate", true))
             }
         }
@@ -355,11 +344,9 @@ class MongoClientTest {
             val doc1 = Document("hello", "world").apply { this["_id"] = ObjectId() }
             insertMany(listOf(doc1)).blockingGetResult()
 
-            assertFailsWith(ObjectServerError::class) {
+            assertFailsWithErrorCode(ErrorCode.MONGODB_ERROR) {
                 insertMany(listOf(doc1)).blockingGetResult()
             }.also { e ->
-                assertEquals(ErrorCode.MONGODB_ERROR, e.errorCode)
-                assertNotNull(e.errorMessage)
                 assertTrue(e.errorMessage!!.contains("duplicate", true))
             }
         }
@@ -393,11 +380,9 @@ class MongoClientTest {
             val documents = listOf(doc1, doc2)
             insertMany(documents).blockingGetResult()
 
-            assertFailsWith(ObjectServerError::class) {
+            assertFailsWithErrorCode(ErrorCode.MONGODB_ERROR) {
                 insertMany(documents).blockingGetResult()
             }.also { e ->
-                assertEquals(ErrorCode.MONGODB_ERROR, e.errorCode)
-                assertNotNull(e.errorMessage)
                 assertTrue(e.errorMessage!!.contains("duplicate", true))
             }
         }
@@ -420,11 +405,9 @@ class MongoClientTest {
     @Test
     fun deleteOne_fails() {
         with(getCollectionInternal()) {
-            assertFailsWith(ObjectServerError::class) {
+            assertFailsWithErrorCode(ErrorCode.MONGODB_ERROR) {
                 deleteOne(Document("\$who", 1)).blockingGetResult()
             }.also { e ->
-                assertEquals(ErrorCode.MONGODB_ERROR, e.errorCode)
-                assertNotNull(e.errorMessage)
                 assertTrue(e.errorMessage!!.contains("operator", true))
             }
         }
@@ -487,11 +470,9 @@ class MongoClientTest {
     @Test
     fun deleteMany_fails() {
         with(getCollectionInternal()) {
-            assertFailsWith(ObjectServerError::class) {
+            assertFailsWithErrorCode(ErrorCode.MONGODB_ERROR) {
                 deleteMany(Document("\$who", 1)).blockingGetResult()
             }.also { e ->
-                assertEquals(ErrorCode.MONGODB_ERROR, e.errorCode)
-                assertNotNull(e.errorMessage)
                 assertTrue(e.errorMessage!!.contains("operator", true))
             }
         }
@@ -547,11 +528,9 @@ class MongoClientTest {
     @Test
     fun updateOne_fails() {
         with(getCollectionInternal()) {
-            assertFailsWith(ObjectServerError::class) {
+            assertFailsWithErrorCode(ErrorCode.MONGODB_ERROR) {
                 updateOne(Document("\$who", 1), Document()).blockingGetResult()
             }.also { e ->
-                assertEquals(ErrorCode.MONGODB_ERROR, e.errorCode)
-                assertNotNull(e.errorMessage)
                 assertTrue(e.errorMessage!!.contains("operator", true))
             }
         }
@@ -624,11 +603,9 @@ class MongoClientTest {
     @Test
     fun updateMany_fails() {
         with(getCollectionInternal()) {
-            assertFailsWith(ObjectServerError::class) {
+            assertFailsWithErrorCode(ErrorCode.MONGODB_ERROR) {
                 updateMany(Document("\$who", 1), Document()).blockingGetResult()
             }.also { e ->
-                assertEquals(ErrorCode.MONGODB_ERROR, e.errorCode)
-                assertNotNull(e.errorMessage)
                 assertTrue(e.errorMessage!!.contains("operator", true))
             }
         }
@@ -774,19 +751,15 @@ class MongoClientTest {
     @Test
     fun findOneAndUpdate_fails() {
         with(getCollectionInternal()) {
-            assertFailsWith(ObjectServerError::class) {
+            assertFailsWithErrorCode(ErrorCode.MONGODB_ERROR) {
                 findOneAndUpdate(Document(), Document("\$who", 1)).blockingGetResult()
             }.also { e ->
-                assertEquals(ErrorCode.MONGODB_ERROR, e.errorCode)
-                assertNotNull(e.errorMessage)
                 assertTrue(e.errorMessage!!.contains("modifier", true))
             }
 
-            assertFailsWith(ObjectServerError::class) {
+            assertFailsWithErrorCode(ErrorCode.MONGODB_ERROR) {
                 findOneAndUpdate(Document(), Document("\$who", 1), FindOneAndModifyOptions().upsert(true)).blockingGetResult()
             }.also { e ->
-                assertEquals(ErrorCode.MONGODB_ERROR, e.errorCode)
-                assertNotNull(e.errorMessage)
                 assertTrue(e.errorMessage!!.contains("modifier", true))
             }
         }
@@ -896,18 +869,12 @@ class MongoClientTest {
     @Test
     fun findOneAndReplace_fails() {
         with(getCollectionInternal()) {
-            assertFailsWith(ObjectServerError::class) {
+            assertFailsWithErrorCode(ErrorCode.INVALID_PARAMETER) {
                 findOneAndReplace(Document(), Document("\$who", 1)).blockingGetResult()
-            }.also { e ->
-                assertEquals(ErrorCode.INVALID_PARAMETER, e.errorCode)
-                assertNotNull(e.errorMessage)
             }
 
-            assertFailsWith(ObjectServerError::class) {
+            assertFailsWithErrorCode(ErrorCode.INVALID_PARAMETER) {
                 findOneAndReplace(Document(), Document("\$who", 1), FindOneAndModifyOptions().upsert(true)).blockingGetResult()
-            }.also { e ->
-                assertEquals(ErrorCode.INVALID_PARAMETER, e.errorCode)
-                assertNotNull(e.errorMessage)
             }
         }
     }
@@ -968,7 +935,7 @@ class MongoClientTest {
             val doc2 = Document("hello", "world2").apply { this["num"] = 2 }
             val doc3 = Document("hello", "world3").apply { this["num"] = 3 }
 
-            insertMany(listOf(doc2, doc3))
+            insertMany(listOf(doc2, doc3)).blockingGetResult()
 
             // Return "hello", hide "_id"
             val sampleProject = Document("hello", 1).apply { this["_id"] = 0 }
