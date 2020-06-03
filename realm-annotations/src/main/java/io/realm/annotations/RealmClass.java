@@ -51,6 +51,35 @@ public @interface RealmClass {
     String name() default "";
 
     /**
+     * Define objects of this type as "Embedded". Embedded objects have a slightly different behavior than
+     * normal objects:
+     * <ul>
+     *     <li>
+     *         They must have exactly 1 parent linking to them when the embedded object is added to
+     *         the Realm. Embedded objects can be the parent of other embedded objects. The parent
+     *         cannot be changed later, except by copying the object.
+     *     </li>
+     *     <li>
+     *         They cannot have fields annotated with {@code \@PrimaryKey}.
+     *     </li>
+     *     <li>
+     *         When a parent object is deleted, all embedded objects are also deleted.
+     *     </li>
+     *     <li>
+     *         It is possible to define an easy reference to the parent object using the
+     *         {@code \@LinkingObjects} annotation:
+     *         <pre>
+     *         {@code
+     *              \@LinkingObjects
+     *              public Parent parent;
+     *         }
+     *         </pre>
+     *     </li>
+     * </ul>
+     */
+    boolean embedded() default false;
+
+    /**
      * The naming policy applied to all fields in this class. The default policy is {@link RealmNamingPolicy#NO_POLICY}.
      * <p>
      * It is possible to override the naming policy for each field by using the {@link RealmField} annotation.

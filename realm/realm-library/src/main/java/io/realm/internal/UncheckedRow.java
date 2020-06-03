@@ -306,6 +306,12 @@ public class UncheckedRow implements NativeObject, Row {
         }
     }
 
+    @Override
+    public long createEmbeddedObject(long columnKey) {
+        parent.checkImmutable();
+        return nativeCreateEmbeddedObject(nativePtr, columnKey);
+    }
+
     /**
      * Converts the unchecked Row to a checked variant.
      *
@@ -409,6 +415,8 @@ public class UncheckedRow implements NativeObject, Row {
     protected native void nativeSetNull(long nativeRowPtr, long columnKey);
 
     protected native long nativeFreeze(long nativeRowPtr, long frozenRealmNativePtr);
+
+    protected native long nativeCreateEmbeddedObject(long nativeRowPtr, long columnKey);
 
     private static native long nativeGetFinalizerPtr();
 }
