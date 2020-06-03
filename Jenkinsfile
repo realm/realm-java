@@ -45,7 +45,9 @@ try {
 
           def buildEnv = null
           stage('Prepare Docker Images') {
-            buildEnv = buildDockerEnv("realm-java-ci:v10", push: currentBranch == 'v10') // TODO Should be renamed to 'master' when merged there.
+            // TODO Should be renamed to 'master' when merged there.
+            // TODO Figure out why caching the image doesn't work.
+            buildEnv = buildDockerEnv("realm-java-ci:v10", push: currentBranch == 'v10-do-not-cache') 
             def props = readProperties file: 'dependencies.list'
             echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER_VERSION}"
             def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER_VERSION}")
@@ -102,7 +104,7 @@ try {
 
               stage('Static code analysis') {
                 try {
-                  gradle('realm', "findbugs pmd checkstyle ${abiFilter}") // FIXME Renable pmd and checkstyle
+                  gradle('realm', "findbugs ${abiFilter}") // FIXME Renable pmd and checkstyle
                 } finally {
                   publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
 //                  publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
