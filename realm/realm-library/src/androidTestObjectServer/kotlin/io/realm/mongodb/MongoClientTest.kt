@@ -359,10 +359,11 @@ class MongoClientTest {
             val doc2 = Document("hello", "world").apply { this["_id"] = ObjectId() }
             val documents = listOf(doc1, doc2)
 
-            val insertedIds = insertMany(documents).blockingGetResult()!!.insertedIds
-            insertedIds.forEach { t, u ->
-                assertEquals(documents[t.toInt()]["_id"], u.asObjectId().value)
-            }
+            insertMany(documents).blockingGetResult()!!
+                    .insertedIds
+                    .forEach { entry ->
+                        assertEquals(documents[entry.key.toInt()]["_id"], entry.value.asObjectId().value)
+                    }
 
             val doc3 = Document("one", "two")
             val doc4 = Document("three", 4)
