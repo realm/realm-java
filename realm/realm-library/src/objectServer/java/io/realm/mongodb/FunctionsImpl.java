@@ -15,6 +15,10 @@
  */
 package io.realm.mongodb;
 
+import org.bson.BSONException;
+import org.bson.BsonElement;
+import org.bson.codecs.Decoder;
+import org.bson.codecs.configuration.CodecConfigurationException;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.List;
@@ -43,10 +47,17 @@ class FunctionsImpl extends Functions {
 
     // Invokes actual MongoDB Realm Function in the context of the associated user/app.
     @Override
-    public <T> T invoke(String name, List<?> args, Class<T> resultClass, CodecRegistry codecRegistry) {
+    public <T> T invoke(String name, List<?> args, CodecRegistry codecRegistry, Decoder<T> resultDecoder) {
         Util.checkEmpty(name, "name");
 
-        String encodedArgs = JniBsonProtocol.encode(args, codecRegistry);
+        String encodedArgs;
+        try {
+            encodedArgs = JniBsonProtocol.encode(args, codecRegistry);
+        } catch (CodecConfigurationException e) {
+            throw new ObjectServerError(ErrorCode.BSON_CODEC_NOT_FOUND, "Could not resolve encoder for arguments", e);
+        } catch (Exception e) {
+            throw new ObjectServerError(ErrorCode.BSON_ENCODING, "Error encoding function arguments", e);
+        }
 
         // NativePO calling scheme is actually synchronous
         AtomicReference<String> success = new AtomicReference<>(null);
@@ -59,8 +70,14 @@ class FunctionsImpl extends Functions {
         };
         nativeCallFunction(user.getApp().nativePtr, user.osUser.getNativePtr(), name, encodedArgs, callback);
         String encodedResponse = ResultHandler.handleResult(success, error);
-        return JniBsonProtocol.decode(encodedResponse, resultClass, codecRegistry);
-   }
+        T result;
+        try {
+            result = JniBsonProtocol.decode(encodedResponse, resultDecoder);
+        } catch (Exception e) {
+            throw new ObjectServerError(ErrorCode.BSON_DECODING, "Error decoding function result", e);
+        }
+        return result;
+    }
 
    private static native void nativeCallFunction(long nativeAppPtr, long nativeUserPtr, String name, String args_json, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 
