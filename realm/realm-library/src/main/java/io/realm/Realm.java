@@ -1869,6 +1869,18 @@ public class Realm extends BaseRealm {
     }
 
     /**
+     * Get the application context used when initializing Realm with {@link Realm#init(Context)} or
+     * {@link Realm#init(Context, String)}.
+     *
+     * @return the application context used when initializing Realm with {@link Realm#init(Context)} or
+     * {@link Realm#init(Context, String)}, or null if Realm has not been initialized yet.
+     */
+    @Nullable
+    public static Context getApplicationContext() {
+        return applicationContext;
+    }
+
+    /**
      * Encapsulates a Realm transaction.
      * <p>
      * Using this class will automatically handle {@link #beginTransaction()} and {@link #commitTransaction()}

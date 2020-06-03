@@ -102,14 +102,14 @@ set(classes_LIST
 set(jni_headers_PATH /./${PROJECT_BINARY_DIR}/jni_include)
 if (build_SYNC)
     list(APPEND classes_LIST
-        io.realm.ClientResetRequiredError
-        io.realm.EmailPasswordAuth
-        io.realm.ApiKeyAuth
-        io.realm.RealmApp
-        io.realm.RealmUser
-        io.realm.RealmSync
-        io.realm.FunctionsImpl
-        io.realm.SyncSession
+        io.realm.mongodb.App
+        io.realm.mongodb.ApiKeyAuthImpl
+        io.realm.mongodb.EmailPasswordAuthImpl
+        io.realm.mongodb.FunctionsImpl
+        io.realm.mongodb.sync.ClientResetRequiredError
+        io.realm.mongodb.sync.Sync
+        io.realm.mongodb.sync.SyncSession
+        io.realm.mongodb.User
         io.realm.internal.objectstore.OsAppCredentials
         io.realm.internal.objectstore.OsAsyncOpenTask
         io.realm.internal.objectstore.OsJavaNetworkTransport
@@ -197,14 +197,14 @@ file(GLOB jni_SRC
 # Those source file are only needed for sync.
 if (NOT build_SYNC)
     list(REMOVE_ITEM jni_SRC
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmApp.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmUser.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_App.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_User.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_FunctionsImpl.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_EmailPasswordAuth.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ApiKeyAuth.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_ClientResetRequiredError.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_RealmSync.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_SyncSession.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_EmailPasswordAuthImpl.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_ApiKeyAuthImpl.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_sync_ClientResetRequiredError.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_sync_Sync.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_sync_SyncSession.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAsyncOpenTask.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAppCredentials.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsJavaNetworkTransport.cpp

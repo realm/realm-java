@@ -21,6 +21,8 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
+import io.realm.mongodb.*
+import io.realm.mongodb.auth.EmailPasswordAuth
 import io.realm.rule.BlockingLooperThread
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -36,11 +38,11 @@ import kotlin.test.assertFailsWith
 class EmailPasswordAuthTests {
 
     private val looperThread = BlockingLooperThread()
-    private lateinit var app: TestRealmApp
+    private lateinit var app: TestApp
     private lateinit var admin: ServerAdmin
 
     // Callback use to verify that an Illegal Argument was thrown from async methods
-    private val checkNullArgCallback = RealmApp.Callback<Void> { result ->
+    private val checkNullArgCallback = App.Callback<Void> { result ->
         if (result.isSuccess) {
             fail()
         } else {
@@ -62,7 +64,7 @@ class EmailPasswordAuthTests {
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        app = TestRealmApp()
+        app = TestApp()
         RealmLog.setLevel(LogLevel.DEBUG)
         admin = ServerAdmin()
         admin.deleteAllUsers()
@@ -81,8 +83,8 @@ class EmailPasswordAuthTests {
         val email = TestHelper.getRandomEmail()
         val password = "password1234"
         app.emailPasswordAuth.registerUser(email, password)
-        val user = app.login(RealmCredentials.emailPassword(email, password))
-        assertEquals(RealmUser.State.LOGGED_IN, user.state)
+        val user = app.login(Credentials.emailPassword(email, password))
+        assertEquals(User.State.LOGGED_IN, user.state)
     }
 
     @Test
@@ -92,8 +94,8 @@ class EmailPasswordAuthTests {
         looperThread.runBlocking {
             app.emailPasswordAuth.registerUserAsync(email, password) { result ->
                 if (result.isSuccess) {
-                    val user2 = app.login(RealmCredentials.emailPassword(email, password))
-                    assertEquals(RealmUser.State.LOGGED_IN, user2.state)
+                    val user2 = app.login(Credentials.emailPassword(email, password))
+                    assertEquals(User.State.LOGGED_IN, user2.state)
                     looperThread.testComplete()
                 } else {
                     fail(result.error.toString())
@@ -344,7 +346,7 @@ class EmailPasswordAuthTests {
         provider.registerUser(email, "123456")
         try {
             provider.callResetPasswordFunction(email, "new-password", "say-the-magic-word", 42)
-            val user = app.login(RealmCredentials.emailPassword(email, "new-password"))
+            val user = app.login(Credentials.emailPassword(email, "new-password"))
             user.logOut()
         } finally {
             admin.setResetFunction(enabled = false)
@@ -363,7 +365,7 @@ class EmailPasswordAuthTests {
                         "new-password",
                         arrayOf("say-the-magic-word", 42)) { result ->
                     if (result.isSuccess) {
-                        val user = app.login(RealmCredentials.emailPassword(email, "new-password"))
+                        val user = app.login(Credentials.emailPassword(email, "new-password"))
                         user.logOut()
                         looperThread.testComplete()
                     } else {
@@ -425,7 +427,7 @@ class EmailPasswordAuthTests {
             provider.callResetPasswordFunctionAsync(TestHelper.getNull(), "new-password", arrayOf(), checkNullArgCallback)
         }
         looperThread.runBlocking {
-            provider.callResetPasswordFunctionAsync("foo@bar.baz", io.realm.TestHelper.getNull(), arrayOf(), checkNullArgCallback)
+            provider.callResetPasswordFunctionAsync("foo@bar.baz", TestHelper.getNull(), arrayOf(), checkNullArgCallback)
         }
     }
 
@@ -509,7 +511,7 @@ class EmailPasswordAuthTests {
     fun callAsyncMethodsOnNonLooperThreadThrows() {
         val provider: EmailPasswordAuth = app.emailPasswordAuth
         val email: String = TestHelper.getRandomEmail()
-        val callback = RealmApp.Callback<Void> { fail() }
+        val callback = App.Callback<Void> { fail() }
         for (method in Method.values()) {
             try {
                 when(method) {

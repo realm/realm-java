@@ -31,6 +31,11 @@ import com.mongodb.realm.example.databinding.ActivityCounterBinding
 import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.RealmLog
+import io.realm.mongodb.User
+import io.realm.mongodb.sync.ProgressListener
+import io.realm.mongodb.sync.ProgressMode
+import io.realm.mongodb.sync.SyncConfiguration
+import io.realm.mongodb.sync.SyncSession
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
@@ -54,15 +59,15 @@ class CounterActivity : AppCompatActivity() {
 
     private var realm: Realm? = null
     private lateinit var session: SyncSession
-    private var user: RealmUser? = null
+    private var user: User? = null
 
     private lateinit var counterView: TextView
     private lateinit var progressBar: MaterialProgressBar
     private lateinit var counter: CRDTCounter // Keep strong reference to counter to keep change listeners alive.
 
-    private val loggedInUser: RealmUser?
+    private val loggedInUser: User?
         get() {
-            var user: RealmUser? = null
+            var user: User? = null
 
             try {
                 user = APP.currentUser()

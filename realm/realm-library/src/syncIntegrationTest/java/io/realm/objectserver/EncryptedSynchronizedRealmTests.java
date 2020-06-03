@@ -11,7 +11,6 @@ import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.StandardIntegrationTest;
 import io.realm.SyncConfiguration;
-import io.realm.SyncCredentials;
 import io.realm.SyncManager;
 import io.realm.SyncSession;
 import io.realm.SyncTestUtils;

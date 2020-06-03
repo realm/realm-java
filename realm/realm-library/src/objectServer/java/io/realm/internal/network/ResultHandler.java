@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
-import io.realm.ObjectServerError;
+import io.realm.mongodb.ObjectServerError;
 
 public class ResultHandler {
 

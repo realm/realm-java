@@ -16,8 +16,10 @@
 package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import io.realm.SyncTestUtils.Companion.createTestUser
+import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
 import io.realm.entities.StringOnly
+import io.realm.mongodb.close
+import io.realm.mongodb.sync.SyncConfiguration
 import io.realm.util.assertFailsWith
 import junit.framework.Assert.*
 import junit.framework.TestCase
@@ -38,11 +40,11 @@ class SchemaTests {
     val errorCollector = ErrorCollector()
 
     private lateinit var config: SyncConfiguration
-    private lateinit var app: TestRealmApp
+    private lateinit var app: TestApp
 
     @Before
     fun setUp() {
-        app = TestRealmApp()
+        app = TestApp()
         val user = createTestUser(app)
         config = configFactory.createSyncConfigurationBuilder(user).build()
     }
