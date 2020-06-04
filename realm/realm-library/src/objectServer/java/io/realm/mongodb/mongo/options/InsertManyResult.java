@@ -20,9 +20,12 @@ import java.util.Map;
 
 import org.bson.BsonValue;
 
+import io.realm.annotations.Beta;
+
 /**
  * The result of an insert many operation.
  */
+@Beta
 public class InsertManyResult {
 
     private final Map<Long, BsonValue> insertedIds;

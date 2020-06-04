@@ -22,6 +22,7 @@ import org.bson.codecs.configuration.CodecRegistry;
 import java.util.List;
 
 import io.realm.RealmAsyncTask;
+import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.internal.mongodb.Request;
 import io.realm.mongodb.App;
@@ -45,6 +46,7 @@ import io.realm.mongodb.User;
  * @see AppConfiguration
  * @see CodecRegistry
  */
+@Beta
 public abstract class Functions {
 
     protected User user;

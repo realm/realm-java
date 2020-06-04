@@ -16,6 +16,7 @@
 
 package io.realm.mongodb;
 
+import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsAppCredentials;
 import io.realm.mongodb.auth.EmailPasswordAuth;
@@ -48,6 +49,7 @@ import io.realm.mongodb.auth.EmailPasswordAuth;
  * </pre>
  * @see <a href="https://docs.mongodb.com/stitch/authentication/providers/">Authentication Providers</a>
  */
+@Beta
 public class Credentials {
 
     OsAppCredentials osCredentials;

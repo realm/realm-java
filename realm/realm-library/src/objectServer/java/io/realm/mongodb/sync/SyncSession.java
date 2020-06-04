@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.annotations.Beta;
 import io.realm.mongodb.ErrorCode;
 import io.realm.mongodb.ObjectServerError;
 import io.realm.Realm;
@@ -59,6 +60,7 @@ import io.realm.mongodb.User;
  * The {@link SyncSession} object is thread safe.
  */
 @Keep
+@Beta
 public class SyncSession {
     private final static int DIRECTION_DOWNLOAD = 1;
     private final static int DIRECTION_UPLOAD = 2;

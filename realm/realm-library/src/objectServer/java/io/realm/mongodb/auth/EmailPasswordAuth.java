@@ -18,6 +18,7 @@ package io.realm.mongodb.auth;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.annotations.Beta;
 import io.realm.internal.mongodb.Request;
 import io.realm.mongodb.ObjectServerError;
 import io.realm.RealmAsyncTask;
@@ -36,6 +37,7 @@ import static io.realm.mongodb.App.NETWORK_POOL_EXECUTOR;
  * Class encapsulating functionality provided when {@link User}'s are logged in through the
  * {@link Credentials.IdentityProvider#EMAIL_PASSWORD} provider.
  */
+@Beta
 public abstract class EmailPasswordAuth {
 
     private static final int TYPE_REGISTER_USER = 1;

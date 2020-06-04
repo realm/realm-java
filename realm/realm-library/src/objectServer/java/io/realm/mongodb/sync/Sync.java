@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.annotations.Beta;
 import io.realm.mongodb.ErrorCode;
 import io.realm.internal.Keep;
 import io.realm.internal.OsRealmConfig;
@@ -40,6 +41,7 @@ import io.realm.mongodb.User;
  */
 @Keep
 @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
+@Beta
 public abstract class Sync {
 
     private final App app;

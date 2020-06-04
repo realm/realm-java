@@ -23,6 +23,8 @@ import org.bson.codecs.pojo.annotations.BsonProperty;
 import java.util.HashSet;
 import java.util.Set;
 
+import io.realm.annotations.Beta;
+
 import static java.util.Arrays.asList;
 import static org.bson.assertions.Assertions.isTrueArgument;
 import static org.bson.assertions.Assertions.notNull;
@@ -30,6 +32,7 @@ import static org.bson.assertions.Assertions.notNull;
 /**
  * A MongoDB namespace, which includes a database name and collection name.
  */
+@Beta
 public final class MongoNamespace {
     public static final String COMMAND_COLLECTION_NAME = "$cmd";
 

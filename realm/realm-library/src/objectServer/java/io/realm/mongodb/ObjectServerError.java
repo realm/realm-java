@@ -18,6 +18,7 @@ package io.realm.mongodb;
 
 import javax.annotation.Nullable;
 
+import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.mongodb.sync.SyncSession;
 
@@ -31,6 +32,7 @@ import io.realm.mongodb.sync.SyncSession;
  *
  * @see ErrorCode for a list of possible errors.
  */
+@Beta
 public class ObjectServerError extends RuntimeException {
 
     // The Java representation of the error.

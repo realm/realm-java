@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.BuildConfig;
 import io.realm.Realm;
+import io.realm.annotations.Beta;
 import io.realm.internal.mongodb.Request;
 import io.realm.mongodb.auth.EmailPasswordAuth;
 import io.realm.RealmAsyncTask;
@@ -139,7 +140,7 @@ import io.realm.mongodb.functions.Functions;
  * @see User#getFunctions()
  * @see User#getMongoClient(String)
  */
-
+@Beta
 public class App {
 
     static final class SyncImpl extends Sync {

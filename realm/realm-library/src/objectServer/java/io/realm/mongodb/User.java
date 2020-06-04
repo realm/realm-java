@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.annotations.Beta;
 import io.realm.internal.mongodb.Request;
 import io.realm.internal.objectstore.OsMongoClient;
 import io.realm.mongodb.auth.ApiKeyAuth;
@@ -42,6 +43,7 @@ import io.realm.mongodb.push.Push;
 /**
  * FIXME
  */
+@Beta
 public class User {
 
     OsSyncUser osUser;
