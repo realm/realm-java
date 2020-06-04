@@ -16,9 +16,11 @@
 
 package io.realm.mongodb;
 
+import io.realm.annotations.Beta;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.mongodb.auth.EmailPasswordAuth;
 
+@Beta
 class EmailPasswordAuthImpl extends EmailPasswordAuth {
 
     EmailPasswordAuthImpl(App app) {

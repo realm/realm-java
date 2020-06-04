@@ -16,9 +16,12 @@
 
 package io.realm.mongodb.mongo.result;
 
+import io.realm.annotations.Beta;
+
 /**
  * The result of a delete operation.
  */
+@Beta
 public class DeleteResult {
 
     private final long deletedCount;

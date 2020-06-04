@@ -16,9 +16,12 @@
 
 package io.realm.mongodb.mongo.options;
 
+import io.realm.annotations.Beta;
+
 /**
  * The options to apply when updating documents.
  */
+@Beta
 public class UpdateOptions {
     private boolean upsert;
 

@@ -15,8 +15,6 @@
  */
 package io.realm.mongodb;
 
-import org.bson.BSONException;
-import org.bson.BsonElement;
 import org.bson.codecs.Decoder;
 import org.bson.codecs.configuration.CodecConfigurationException;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -24,6 +22,7 @@ import org.bson.codecs.configuration.CodecRegistry;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
@@ -35,6 +34,7 @@ import io.realm.mongodb.functions.Functions;
  * Internal implementation of Functions invoking the actual OS function in the context of the
  * {@link User}/{@link App}.
  */
+@Beta
 class FunctionsImpl extends Functions {
 
     FunctionsImpl(User user) {

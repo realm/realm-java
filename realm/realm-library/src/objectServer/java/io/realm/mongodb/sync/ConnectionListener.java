@@ -15,6 +15,8 @@
  */
 package io.realm.mongodb.sync;
 
+import io.realm.annotations.Beta;
+
 /**
  * Interface used when reporting changes that happened to the connection used by the session.
  * <p>
@@ -27,6 +29,7 @@ package io.realm.mongodb.sync;
  * @see SyncSession#isConnected()
  * @see SyncConfiguration.Builder#errorHandler(SyncSession.ErrorHandler)
  */
+@Beta
 public interface ConnectionListener {
 
     /**

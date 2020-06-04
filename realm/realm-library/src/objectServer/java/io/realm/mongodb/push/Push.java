@@ -15,6 +15,11 @@
  */
 package io.realm.mongodb.push;
 
-// FIXME Javadoc?? Has to be public to live in separate package.
+import io.realm.annotations.Beta;
+
+/**
+ * FIXME: Add Javadoc and implementation
+ */
+@Beta
 public class Push {
 }

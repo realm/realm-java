@@ -16,6 +16,7 @@
 
 package io.realm.mongodb.sync;
 
+import io.realm.annotations.Beta;
 import io.realm.log.RealmLog;
 
 
@@ -34,6 +35,7 @@ import io.realm.log.RealmLog;
  * @see SyncSession#addDownloadProgressListener(ProgressMode, ProgressListener)
  * @see SyncSession#addUploadProgressListener(ProgressMode, ProgressListener)
  */
+@Beta
 public class Progress {
 
     private final long transferredBytes;
