@@ -791,7 +791,6 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
                     some_test_EmbeddedClassRealmProxy.updateEmbeddedObject(realm, childrenUnmanagedItem, proxyObject, new HashMap<RealmModel, RealmObjectProxy>(), Collections.EMPTY_SET);
                 }
             }
-            builder.addObjectList(columnInfo.childrenColKey, childrenManagedCopy);
         } else {
             builder.addObjectList(columnInfo.childrenColKey, new RealmList<some.test.EmbeddedClass>());
         }
