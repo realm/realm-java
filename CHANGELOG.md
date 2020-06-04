@@ -17,7 +17,9 @@ The old Realm Cloud legacy API's have undergone significant refactoring. The new
 * Added support for "Embedded Objects". They are enabled using `@RealmClass(embedded = true)`. An embedded object must have exactly one parent object linking to it and it will be deleted when the the parent is. Embedded objects can also be the parent of other embedded classes. Read more [here](https://realm.io/docs/java/latest/#embedded-objects). (Issue [#6713](https://github.com/realm/realm-java/issues/6713))  
 
 ### Fixed
-* None.
+* After upgrading a Realm file, you may at some point receive a 'NoSuchTable' exception. (Issue [Core#3701](https://github.com/realm/realm-core/issues/3701), since 7.0.0)
+* If the Realm file upgrade process was interrupted/killed for various reasons, the following run would some assertions failing. (Issue [#6866](https://github.com/realm/realm-java/issues/6866), since 7.0.0). 
+
 
 ### Compatibility
 * TODO.
