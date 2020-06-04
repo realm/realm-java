@@ -41,7 +41,14 @@ import io.realm.mongodb.mongo.MongoClient;
 import io.realm.mongodb.push.Push;
 
 /**
- * FIXME
+ * A <i>user</i> holds the user's meta data and tokens for accessing Realm App functionality.
+ * <p>
+ * The user is used configure Synchronized Realms and gives access to calling Realm App <i>Functions</>
+ * through {@link Functions} and accessing remote Realm App <i>Mongo Databases</i> through a
+ * {@link MongoClient}.
+ *
+ * @see App#login(Credentials)
+ * @see io.realm.mongodb.sync.SyncConfiguration.Builder#Builder(User, String)
  */
 @Beta
 public class User {
@@ -53,7 +60,7 @@ public class User {
     private Functions functions = null;
 
     /**
-     * FIXME
+     * The different types of users.
      */
     enum UserType {
         NORMAL("normal"),
@@ -71,6 +78,9 @@ public class User {
         }
     }
 
+    /**
+     * The user's potential states.
+     */
     public enum State {
         LOGGED_IN(OsSyncUser.STATE_LOGGED_IN),
         REMOVED(OsSyncUser.STATE_REMOVED),
@@ -99,24 +109,28 @@ public class User {
     }
 
     /**
-     * FIXME
-     * @return
+     * Returns the id of the user.
+     *
+     * @return the id of the user.
      */
     public String getId() {
         return osUser.getIdentity();
     }
 
     /**
-     * FIXME
-     * @return
+     * Returns the name of the user.
+     *
+     * @return the name of the user.
      */
     public String getName() {
         return osUser.nativeGetName();
     }
 
     /**
-     * FIXME
-     * @return
+     * Returns the email address of the user.
+     *
+     * @return the email address of the user or null if there is no email address associated with the user.
+     * address.
      */
     @Nullable
     public String getEmail() {
@@ -124,8 +138,9 @@ public class User {
     }
 
     /**
-     * FIXME
-     * @return
+     * Returns the picture URL of the user.
+     *
+     * @return the picture URL of the user or null if there is no picture URL associated with the user.
      */
     @Nullable
     public String getPictureUrl() {
@@ -133,8 +148,9 @@ public class User {
     }
 
     /**
-     * FIXME
-     * @return
+     * Return the first name of the user.
+     *
+     * @return the first name of the user or null if there is no first name associated with the user.
      */
     @Nullable
     public String getFirstName() {
@@ -142,8 +158,9 @@ public class User {
     }
 
     /**
-     * FIXME
-     * @return
+     * Return the last name of the user.
+     *
+     * @return the last name of the user or null if there is no last name associated with the user.
      */
     @Nullable
     public String getLastName() {
@@ -151,8 +168,9 @@ public class User {
     }
 
     /**
-     * FIXME
-     * @return
+     * Returns the gender of the user.
+     *
+     * @return the gender of the user or null if there is no gender associated with the user.
      */
     @Nullable
     public String getGender() {
@@ -160,8 +178,9 @@ public class User {
     }
 
     /**
-     * FIXME
-     * @return
+     * Returns the birthday of the user.
+     *
+     * @return the birthday of the user or null if there is no birthday associated with the user.
      */
     @Nullable
     public String getBirthday() {
@@ -169,8 +188,9 @@ public class User {
     }
 
     /**
-     * FIXME
-     * @return
+     * Returns the minimum age of the user.
+     *
+     * @return the minimum age of the user or null if there is no minimum age associated with the user.
      */
     @Nullable
     public Long getMinAge() {
@@ -179,8 +199,9 @@ public class User {
     }
 
     /**
-     * FIXME
-     * @return
+     * Returns the maximum age of the user.
+     *
+     * @return the maximum age of the user or null if there is no maximum age associated with the user.
      */
     @Nullable
     public Long getMaxAge() {
@@ -189,8 +210,11 @@ public class User {
     }
 
     /**
-     * FIXME
-     * @return
+     * Returns a new list of the user's identities.
+     *
+     * @return the list of identities.
+     *
+     * @see UserIdentity
      */
     public List<UserIdentity> getIdentities() {
         Pair<String, String>[] osIdentities = osUser.getIdentities();
@@ -203,21 +227,22 @@ public class User {
     }
 
     /**
-     * FIXME
-     * @return
+     * Returns the current access token for the user.
+     *
+     * @return the current access token.
      */
     public String getAccessToken() {
         return osUser.getAccessToken();
     }
 
     /**
-     * FIXME
-     * @return
+     * Returns the current refresh token for the user.
+     *
+     * @return the current refresh token.
      */
     public String getRefreshToken() {
         return osUser.getRefreshToken();
     }
-
 
     /**
      * Returns a unique identifier for the device the user logged in to.
@@ -449,10 +474,12 @@ public class User {
     }
 
     /**
-     * Returns a <i>Realm Functions</i> manager for invoking MongoDB Realm Functions.
+     * Returns a <i>functions</i> manager for invoking MongoDB Realm Functions.
      * <p>
      * This will use the associated app's default codec registry to encode and decode arguments and
      * results.
+     *
+     * @see Functions
      */
     public synchronized Functions getFunctions() {
         checkLoggedIn();
@@ -463,22 +490,30 @@ public class User {
     }
 
     /**
-     * Returns a <i>Realm Functions</i> manager for invoking MongoDB Realm Functions with custom
+     * Returns a <i>functions</i> manager for invoking Realm Functions with custom
      * codec registry for encoding and decoding arguments and results.
+     *
+     * @param codecRegistry The codec registry to use for encoding and decoding arguments and results
+     *                      towards the remote Realm App.
+     * @see Functions
      */
     public Functions getFunctions(CodecRegistry codecRegistry) {
         return new FunctionsImpl(this, codecRegistry);
     }
 
     /**
-     * FIXME Add support for push notifications. Name of Class and method still TBD.
+     * FIXME Add support for push notifications.
      */
-    public Push getPushNotifications() {
+    Push getPush() {
         return null;
     }
 
     /**
-     * FIXME Add support for the MongoDB wrapper. Name of Class and method still TBD.
+     * Returns a <i>Mongo Client</i> for accessing a remote Realm App MongoDB database.
+     *
+     * @param serviceName The service name for which the client will operate.
+     *
+     * @see MongoClient
      */
     public MongoClient getMongoClient(String serviceName) {
         Util.checkEmpty(serviceName, "serviceName");
