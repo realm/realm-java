@@ -119,27 +119,28 @@ class AppTests {
         assertTrue(allUsers.containsKey(user1.id))
         assertEquals(user1, allUsers[user1.id])
 
+        // Only 1 anonymous user exists, so logging in again just returns the old one
         val user2 = app.login(Credentials.anonymous())
         allUsers = app.allUsers()
-        assertEquals(2, allUsers.size)
+        assertEquals(1, allUsers.size)
         assertTrue(allUsers.containsKey(user2.id))
 
         val user3: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         allUsers = app.allUsers()
-        assertEquals(3, allUsers.size)
+        assertEquals(2, allUsers.size)
         assertTrue(allUsers.containsKey(user3.id))
 
         // Logging out users that registered with email/password will just put them in LOGGED_OUT state
         user3.logOut();
         allUsers = app.allUsers()
-        assertEquals(3, allUsers.size)
+        assertEquals(2, allUsers.size)
         assertTrue(allUsers.containsKey(user3.id))
         assertEquals(User.State.LOGGED_OUT, allUsers[user3.id]!!.state)
 
         // Logging out anonymous users will remove them completely
         user1.logOut()
         allUsers = app.allUsers()
-        assertEquals(2, allUsers.size)
+        assertEquals(1, allUsers.size)
         assertFalse(allUsers.containsKey(user1.id))
     }
 
@@ -183,8 +184,8 @@ class AppTests {
 
     @Test
     fun currentUser_FallbackToNextValidUser() {
-        val user1: User = app.login(Credentials.anonymous())
-        val user2: User = app.login(Credentials.anonymous())
+        val user1: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        val user2: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         assertEquals(user2, app.currentUser())
         user2.logOut()
         assertEquals(user1, app.currentUser())
