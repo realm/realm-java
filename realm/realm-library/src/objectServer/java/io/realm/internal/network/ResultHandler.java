@@ -20,13 +20,13 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
-import io.realm.mongodb.ObjectServerError;
+import io.realm.mongodb.AppException;
 
 public class ResultHandler {
 
     // Handle returning the correct result or throw an exception. Must be separated from
     // OsJNIResultCallback due to how the Object Store callbacks work.
-    public static <T> T handleResult(@Nullable AtomicReference<T> success, AtomicReference<ObjectServerError> error) {
+    public static <T> T handleResult(@Nullable AtomicReference<T> success, AtomicReference<AppException> error) {
         if (error.get() != null) {
             throw error.get();
         } else {

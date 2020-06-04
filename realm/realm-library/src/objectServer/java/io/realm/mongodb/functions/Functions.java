@@ -28,7 +28,7 @@ import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.mongodb.Request;
 import io.realm.mongodb.App;
 import io.realm.mongodb.AppConfiguration;
-import io.realm.mongodb.ObjectServerError;
+import io.realm.mongodb.AppException;
 import io.realm.mongodb.User;
 
 /**
@@ -69,7 +69,7 @@ public abstract class Functions {
      * @param <ResultT> The type that the response will be decoded as using the {@code codecRegistry}.
      * @return Result of the Stitch function.
      *
-     * @throws ObjectServerError if the request failed in some way.
+     * @throws AppException if the request failed in some way.
      *
      * @see #callFunctionAsync(String, List, Class, CodecRegistry, App.Callback)
      * @see AppConfiguration#getDefaultCodecRegistry()
@@ -88,7 +88,7 @@ public abstract class Functions {
      * @param <ResultT> The type that the response will be decoded as using the default codec registry.
      * @return Result of the Stitch function.
      *
-     * @throws ObjectServerError if the request failed in some way.
+     * @throws AppException if the request failed in some way.
      *
      * @see #callFunction(String, List, Class, CodecRegistry)
      * @see AppConfiguration#getDefaultCodecRegistry()
@@ -108,7 +108,7 @@ public abstract class Functions {
      * @param <ResultT> The type that the response will be decoded as using the {@code resultDecoder}
      * @return Result of the Stitch function.
      *
-     * @throws ObjectServerError if the request failed in some way.
+     * @throws AppException if the request failed in some way.
      *
      * @see #callFunction(String, List, Class, CodecRegistry)
      * @see AppConfiguration#getDefaultCodecRegistry()
@@ -141,7 +141,7 @@ public abstract class Functions {
         Util.checkLooperThread("Asynchronous functions is only possible from looper threads.");
         return new Request<T>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public T run() throws ObjectServerError {
+            public T run() throws AppException {
                 Decoder<T> decoder = JniBsonProtocol.getCodec(resultClass, codecRegistry);
                 return invoke(name, args, codecRegistry, decoder);
             }
@@ -193,7 +193,7 @@ public abstract class Functions {
         Util.checkLooperThread("Asynchronous functions is only possible from looper threads.");
         return new Request<T>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public T run() throws ObjectServerError {
+            public T run() throws AppException {
                 return invoke(name, args, defaultCodecRegistry, resultDecoder);
             }
         }.start();

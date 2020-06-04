@@ -155,7 +155,7 @@ class CredentialsTests {
         try {
             app.login(credentials)
             fail()
-        } catch (error: ObjectServerError) {
+        } catch (error: AppException) {
             assertEquals(expectedCode, error.errorCode)
         }
     }

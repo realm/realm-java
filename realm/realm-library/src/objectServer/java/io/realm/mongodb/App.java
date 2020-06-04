@@ -269,12 +269,12 @@ public class App {
      *
      * @param credentials the credentials representing the type of login.
      * @return a {@link User} representing the logged in user.
-     * @throws ObjectServerError if the user could not be logged in.
+     * @throws AppException if the user could not be logged in.
      */
-    public User login(Credentials credentials) throws ObjectServerError {
+    public User login(Credentials credentials) throws AppException {
         Util.checkNull(credentials, "credentials");
         AtomicReference<User> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         nativeLogin(nativePtr, credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<User>(success, error) {
             @Override
             protected User mapSuccess(Object result) {
@@ -330,7 +330,7 @@ public class App {
         Util.checkLooperThread("Asynchronous log in is only possible from looper threads.");
         return new Request<User>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public User run() throws ObjectServerError {
+            public User run() throws AppException {
                 return login(credentials);
             }
         }.start();
@@ -435,9 +435,9 @@ public class App {
      */
     public static class Result<T> {
         private T result;
-        private ObjectServerError error;
+        private AppException error;
 
-        private Result(@Nullable T result, @Nullable ObjectServerError exception) {
+        private Result(@Nullable T result, @Nullable AppException exception) {
             this.result = result;
             this.error = exception;
         }
@@ -464,7 +464,7 @@ public class App {
          *
          * @param exception error that occurred.
          */
-        public static <T> Result<T> withError(ObjectServerError exception) {
+        public static <T> Result<T> withError(AppException exception) {
             return new Result<>(null, exception);
         }
 
@@ -515,9 +515,9 @@ public class App {
         /**
          * Returns the error in case of a failed request.
          *
-         * @return the {@link ObjectServerError} in case of a failed request.
+         * @return the {@link AppException} in case of a failed request.
          */
-        public ObjectServerError getError() {
+        public AppException getError() {
             return error;
         }
     }

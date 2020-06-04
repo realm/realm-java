@@ -38,7 +38,7 @@ import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.network.ResultHandler;
-import io.realm.mongodb.ObjectServerError;
+import io.realm.mongodb.AppException;
 import io.realm.mongodb.mongo.iterable.AggregateIterable;
 import io.realm.mongodb.mongo.iterable.FindIterable;
 import io.realm.mongodb.mongo.options.CountOptions;
@@ -127,7 +127,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
     private Long countInternal(final Bson filter, @Nullable final CountOptions options) {
         AtomicReference<Long> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         OsJNIResultCallback<Long> callback = new OsJNIResultCallback<Long>(success, error) {
             @Override
             protected Long mapSuccess(Object result) {
@@ -232,7 +232,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                                               @Nullable final FindOptions options,
                                               final Class<ResultT> resultClass) {
         AtomicReference<ResultT> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
             @Override
             protected ResultT mapSuccess(Object result) {
@@ -266,7 +266,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
     public InsertOneResult insertOne(final DocumentT document) {
         AtomicReference<InsertOneResult> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         OsJNIResultCallback<InsertOneResult> callback = new OsJNIResultCallback<InsertOneResult>(success, error) {
             @Override
             protected InsertOneResult mapSuccess(Object result) {
@@ -282,7 +282,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
     public InsertManyResult insertMany(final List<? extends DocumentT> documents) {
         AtomicReference<InsertManyResult> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         OsJNIResultCallback<InsertManyResult> callback = new OsJNIResultCallback<InsertManyResult>(success, error) {
             @Override
             protected InsertManyResult mapSuccess(Object result) {
@@ -312,7 +312,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
     private DeleteResult deleteInternal(final int type, final Bson filter) {
         AtomicReference<DeleteResult> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         OsJNIResultCallback<DeleteResult> callback = new OsJNIResultCallback<DeleteResult>(success, error) {
             @Override
             protected DeleteResult mapSuccess(Object result) {
@@ -359,7 +359,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                                         final Bson update,
                                         @Nullable final UpdateOptions options) {
         AtomicReference<UpdateResult> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         OsJNIResultCallback<UpdateResult> callback = new OsJNIResultCallback<UpdateResult>(success, error) {
             @Override
             protected UpdateResult mapSuccess(Object result) {
@@ -466,7 +466,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                                                @Nullable final FindOneAndModifyOptions options,
                                                final Class<ResultT> resultClass) {
         AtomicReference<ResultT> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
             @Override
             protected ResultT mapSuccess(Object result) {

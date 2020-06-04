@@ -153,7 +153,7 @@ class UserTests {
         try {
             anonymousUser.linkCredentials(Credentials.emailPassword(email, password))
             fail()
-        } catch (ex: ObjectServerError) {
+        } catch (ex: AppException) {
             assertEquals(ErrorCode.BAD_REQUEST, ex.errorCode)
         }
     }

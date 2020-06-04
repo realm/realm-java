@@ -65,7 +65,7 @@ class AppTests {
         try {
             app.login(credentials)
             fail()
-        } catch(ex: ObjectServerError) {
+        } catch(ex: AppException) {
             assertEquals(ErrorCode.SERVICE_UNKNOWN, ex.errorCode)
         }
     }

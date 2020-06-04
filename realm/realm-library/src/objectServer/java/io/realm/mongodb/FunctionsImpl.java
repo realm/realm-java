@@ -53,7 +53,7 @@ class FunctionsImpl extends Functions {
 
         // NativePO calling scheme is actually synchronous
         AtomicReference<String> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         OsJNIResultCallback<String> callback = new OsJNIResultCallback<String>(success, error) {
             @Override
             protected String mapSuccess(Object result) {

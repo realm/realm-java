@@ -2,7 +2,7 @@ package io.realm.util
 
 import android.util.ArraySet
 import io.realm.mongodb.ErrorCode
-import io.realm.mongodb.ObjectServerError
+import io.realm.mongodb.AppException
 import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.rules.ErrorCollector
@@ -15,16 +15,16 @@ import kotlin.test.fail
 // Helper methods for improving Kotlin unit tests.
 
 /**
- * Verify that an [ObjectServerError] exception is thrown with a specific [ErrorCode]
+ * Verify that an [AppException] exception is thrown with a specific [ErrorCode]
  */
 inline fun assertFailsWithErrorCode(
         expectedCode: ErrorCode,
         method: () -> Unit
-): ObjectServerError {
-    return assertFailsWith(ObjectServerError::class) {
+): AppException {
+    return assertFailsWith(AppException::class) {
         method()
         fail()
-    }.also { e: ObjectServerError ->
+    }.also { e: AppException ->
         assertEquals(expectedCode, e.errorCode, "Unexpected error code")
         assertNotNull(e.errorMessage)
     }
