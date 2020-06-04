@@ -18,9 +18,12 @@ package io.realm.mongodb.mongo.result;
 
 import org.bson.BsonValue;
 
+import io.realm.annotations.Beta;
+
 /**
  * The result of an insert one operation.
  */
+@Beta
 public class InsertOneResult {
 
     private final BsonValue insertedId;

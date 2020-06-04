@@ -24,18 +24,19 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.realm.internal.common.TaskDispatcher;
-import io.realm.internal.mongodb.Request;
-import io.realm.internal.objectstore.OsMongoClient;
-import io.realm.mongodb.auth.ApiKeyAuth;
 import io.realm.RealmAsyncTask;
-import io.realm.internal.network.ResultHandler;
+import io.realm.annotations.Beta;
 import io.realm.internal.Util;
+import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
+import io.realm.internal.mongodb.Request;
+import io.realm.internal.network.ResultHandler;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
+import io.realm.internal.objectstore.OsMongoClient;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
+import io.realm.mongodb.auth.ApiKeyAuth;
 import io.realm.mongodb.functions.Functions;
 import io.realm.mongodb.mongo.MongoClient;
 import io.realm.mongodb.push.Push;
@@ -43,6 +44,7 @@ import io.realm.mongodb.push.Push;
 /**
  * FIXME
  */
+@Beta
 public class User {
 
     OsSyncUser osUser;

@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
+import io.realm.annotations.Beta;
 import io.realm.internal.mongodb.Request;
 import io.realm.mongodb.ObjectServerError;
 import io.realm.RealmAsyncTask;
@@ -39,6 +40,7 @@ import static io.realm.mongodb.App.NETWORK_POOL_EXECUTOR;
 /**
  * This class exposes functionality for a user to manage API keys under their control.
  */
+@Beta
 public abstract class ApiKeyAuth {
 
     private static final int TYPE_CREATE = 1;

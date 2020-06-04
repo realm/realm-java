@@ -21,10 +21,13 @@ import javax.annotation.Nullable;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import io.realm.annotations.Beta;
+
 /**
  * The options to apply to a findOneAndUpdate, findOneAndReplace, or findOneAndDelete operation
  * (also commonly referred to as findOneAndModify operations).
  */
+@Beta
 public class FindOneAndModifyOptions {
 
     private Bson projection;

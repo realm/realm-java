@@ -16,9 +16,12 @@
 
 package io.realm.mongodb;
 
+import io.realm.annotations.Beta;
+
 /**
  * Interface describing events related to Users and their authentication
  */
+@Beta
 public interface AuthenticationListener {
     /**
      * A user was logged into the Object Server

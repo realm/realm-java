@@ -21,9 +21,12 @@ import javax.annotation.Nullable;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import io.realm.annotations.Beta;
+
 /**
  * The options to apply to a find operation (also commonly referred to as a query).
  */
+@Beta
 public class FindOptions {
 
     private int limit;

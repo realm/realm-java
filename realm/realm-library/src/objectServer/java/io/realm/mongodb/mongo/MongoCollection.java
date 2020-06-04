@@ -23,6 +23,7 @@ import org.bson.conversions.Bson;
 
 import java.util.List;
 
+import io.realm.annotations.Beta;
 import io.realm.internal.common.TaskDispatcher;
 import io.realm.mongodb.mongo.iterable.AggregateIterable;
 import io.realm.mongodb.mongo.iterable.FindIterable;
@@ -47,6 +48,7 @@ import io.realm.mongodb.mongo.result.UpdateResult;
  *                    to.
  * @see MongoDatabase
  */
+@Beta
 public class MongoCollection<DocumentT> {
 
     private final MongoNamespace nameSpace;
@@ -104,7 +106,8 @@ public class MongoCollection<DocumentT> {
      */
     public <NewDocumentT> MongoCollection<NewDocumentT> withDocumentClass(
             final Class<NewDocumentT> clazz) {
-        return new MongoCollection<>(nameSpace, osMongoCollection.withDocumentClass(clazz), dispatcher);
+        return new MongoCollection<>(nameSpace,
+                osMongoCollection.withDocumentClass(clazz), dispatcher);
     }
 
     /**
@@ -115,7 +118,8 @@ public class MongoCollection<DocumentT> {
      * @return a new MongoCollection instance with the different codec registry
      */
     public MongoCollection<DocumentT> withCodecRegistry(final CodecRegistry codecRegistry) {
-        return new MongoCollection<>(nameSpace, osMongoCollection.withCodecRegistry(codecRegistry), dispatcher);
+        return new MongoCollection<>(nameSpace,
+                osMongoCollection.withCodecRegistry(codecRegistry), dispatcher);
     }
 
     /**

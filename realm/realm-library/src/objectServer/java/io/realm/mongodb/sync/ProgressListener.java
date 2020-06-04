@@ -17,10 +17,13 @@
 package io.realm.mongodb.sync;
 
 
+import io.realm.annotations.Beta;
+
 /**
  * Interface used when interested in updates on data either being uploaded to or downloaded from
  * a Realm Object Server.
  */
+@Beta
 public interface ProgressListener {
     /**
      * This method will be called periodically from the underlying Object Server Client responsible
