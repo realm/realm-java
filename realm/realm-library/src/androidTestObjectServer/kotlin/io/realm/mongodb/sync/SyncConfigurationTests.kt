@@ -27,10 +27,8 @@ import io.realm.mongodb.AppException
 import io.realm.mongodb.User
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.bson.BsonString
+import org.junit.*
 import org.junit.runner.RunWith
 import kotlin.test.*
 
@@ -231,6 +229,29 @@ class SyncConfigurationTests {
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         user.logOut()
         assertFailsWith<IllegalArgumentException> { SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION) }
+    }
+
+    @Test
+    @Ignore("Not implemented yet")
+    fun shouldWaitForInitialRemoteData() { }
+
+    @Test
+    @Ignore("Not implemented yet")
+    fun getInitialRemoteDataTimeout() { }
+
+    @Test
+    @Ignore("Not implemented yet")
+    fun getSessionStopPolicy () { }
+
+    @Test
+    @Ignore("Not implemented yet")
+    fun getUrlPrefix () { }
+
+    @Test
+    fun getPartitionValue () {
+        val user: User = createTestUser(app)
+        val config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
+        assertEquals(BsonString(DEFAULT_PARTITION), config.partitionValue)
     }
 
     @Test

@@ -232,6 +232,11 @@ class SyncedRealmTests {
         }
     }
 
+    @Test
+    // FIXME Missing test, maybe fitting better in SyncSessionTest.kt...when migrated
+    @Ignore("Not implemented yet")
+    fun refreshConnections() {}
+
     private fun createDefaultConfig(user: User, partitionValue: String = defaultPartitionValue): SyncConfiguration {
         return SyncConfiguration.Builder(user, partitionValue)
                 .modules(DefaultSyncSchema())
