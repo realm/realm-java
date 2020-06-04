@@ -23,7 +23,7 @@ import io.realm.entities.StringOnly
 import io.realm.entities.StringOnlyModule
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
-import io.realm.mongodb.ObjectServerError
+import io.realm.mongodb.AppException
 import io.realm.mongodb.User
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
@@ -63,7 +63,7 @@ class SyncConfigurationTests {
     fun errorHandler() {
         val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
         val errorHandler: SyncSession.ErrorHandler = object : SyncSession.ErrorHandler {
-            override fun onError(session: SyncSession, error: ObjectServerError) {}
+            override fun onError(session: SyncSession, error: AppException) {}
         }
         val config = builder.errorHandler(errorHandler).build()
         assertEquals(errorHandler, config.errorHandler)

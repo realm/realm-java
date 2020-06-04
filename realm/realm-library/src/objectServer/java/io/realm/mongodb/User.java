@@ -24,18 +24,19 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.realm.annotations.Beta;
-import io.realm.internal.mongodb.Request;
-import io.realm.internal.objectstore.OsMongoClient;
-import io.realm.mongodb.auth.ApiKeyAuth;
 import io.realm.RealmAsyncTask;
-import io.realm.internal.network.ResultHandler;
+import io.realm.annotations.Beta;
 import io.realm.internal.Util;
+import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
+import io.realm.internal.mongodb.Request;
+import io.realm.internal.network.ResultHandler;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
+import io.realm.internal.objectstore.OsMongoClient;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
+import io.realm.mongodb.auth.ApiKeyAuth;
 import io.realm.mongodb.functions.Functions;
 import io.realm.mongodb.mongo.MongoClient;
 import io.realm.mongodb.push.Push;
@@ -88,8 +89,10 @@ public class User {
     }
 
     private static class MongoClientImpl extends MongoClient {
-        protected MongoClientImpl(OsMongoClient osMongoClient, CodecRegistry codecRegistry) {
-            super(osMongoClient, codecRegistry);
+        protected MongoClientImpl(OsMongoClient osMongoClient,
+                                  CodecRegistry codecRegistry,
+                                  TaskDispatcher dispatcher) {
+            super(osMongoClient, codecRegistry, dispatcher);
         }
     }
 
@@ -289,7 +292,7 @@ public class User {
         Util.checkNull(credentials, "credentials");
         checkLoggedIn();
         AtomicReference<User> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         nativeLinkUser(app.nativePtr, osUser.getNativePtr(), credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<User>(success, error) {
             @Override
             protected User mapSuccess(Object result) {
@@ -327,7 +330,7 @@ public class User {
         Util.checkLooperThread("Asynchronous linking identities is only possible from looper threads.");
         return new Request<User>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public User run() throws ObjectServerError {
+            public User run() throws AppException {
                 return linkCredentials(credentials);
             }
         }.start();
@@ -339,13 +342,13 @@ public class User {
      * affect the user state on the server.
      *
      * @return user that was removed.
-     * @throws ObjectServerError if called from the UI thread or if the user was logged in, but
+     * @throws AppException if called from the UI thread or if the user was logged in, but
      * could not be logged out.
      */
-    public User remove() throws ObjectServerError {
+    public User remove() throws AppException {
         boolean loggedIn = isLoggedIn();
         AtomicReference<User> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         nativeRemoveUser(app.nativePtr, osUser.getNativePtr(), new OsJNIResultCallback<User>(success, error) {
             @Override
             protected User mapSuccess(Object result) {
@@ -372,7 +375,7 @@ public class User {
         Util.checkLooperThread("Asynchronous removal of users is only possible from looper threads.");
         return new Request<User>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public User run() throws ObjectServerError {
+            public User run() throws AppException {
                 return remove();
             }
         }.start();
@@ -392,12 +395,12 @@ public class User {
      * and will still be returned by {@link App#allUsers()}. They can be removed completely by calling
      * {@link #remove()}.
      *
-     * @throws ObjectServerError if an error occurred while trying to log the user out of the Realm
+     * @throws AppException if an error occurred while trying to log the user out of the Realm
      * App.
      */
-    public void logOut() throws ObjectServerError {
+    public void logOut() throws AppException {
         boolean loggedIn = isLoggedIn();
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         nativeLogOut(app.nativePtr, osUser.getNativePtr(), new OsJNIVoidResultCallback(error));
         ResultHandler.handleResult(null, error);
         if (loggedIn) {
@@ -427,7 +430,7 @@ public class User {
         Util.checkLooperThread("Asynchronous log out is only possible from looper threads.");
         return new Request<User>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public User run() throws ObjectServerError {
+            public User run() throws AppException {
                 logOut();
                 return User.this;
             }
@@ -478,13 +481,15 @@ public class User {
     }
 
     /**
-     * FIXME Add support for the MongoDB wrapper. Name of Class and method still TBD.
+     * Returns a {@link MongoClient} instance for accessing documents in the database.
+     * @param serviceName the service name used to connect to the server
      */
     public MongoClient getMongoClient(String serviceName) {
         Util.checkEmpty(serviceName, "serviceName");
         if (mongoClient == null) {
-            OsMongoClient osMongoClient = new OsMongoClient(app.nativePtr, serviceName);
-            mongoClient = new MongoClientImpl(osMongoClient, app.getConfiguration().getDefaultCodecRegistry());
+            TaskDispatcher dispatcher = new TaskDispatcher();
+            OsMongoClient osMongoClient = new OsMongoClient(app.nativePtr, serviceName, dispatcher);
+            mongoClient = new MongoClientImpl(osMongoClient, app.getConfiguration().getDefaultCodecRegistry(), dispatcher);
         }
         return mongoClient;
     }

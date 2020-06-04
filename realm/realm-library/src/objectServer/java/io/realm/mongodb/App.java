@@ -52,7 +52,93 @@ import io.realm.log.RealmLog;
 import io.realm.mongodb.functions.Functions;
 
 /**
- * FIXME
+ * An <i>App</i> is the main client-side entry point for interacting with a <i>MongoDB Realm App</i>.
+ *
+ * The <i>App</i> can be used to:
+ * <ul>
+ *   <li>Register uses and perform various user-related operations through authentication providers
+ *   ({@link io.realm.mongodb.auth.ApiKeyAuth}, {@link EmailPasswordAuthImpl})</li>
+ *   <li>Synchronize data between the local device and a remote Realm App with Synchronized Realms</li>
+ *   <li>Invoke Realm App functions with {@link Functions}</li>
+ *   <li>Access remote data from MongoDB databases with a {@link io.realm.mongodb.mongo.MongoClient}</li>
+ * </ul>
+ * <p>
+ * To create an app that is linked with a remote <i>Realm App</i> initialize Realm and configure the
+ * <i>App</i> as shown below:
+ * <p>
+ * <pre>
+ *    class MyApplication extends Application {
+ *
+ *         App APP;
+ *
+ *         @Override
+ *         public void onCreate() {
+ *             super.onCreate();
+ *
+ *             Realm.init(this);
+ *
+ *             AppConfiguration appConfiguration = new AppConfiguration.Builder(BuildConfig.MONGODB_REALM_APP_ID)
+ *                     .appName(BuildConfig.VERSION_NAME)
+ *                     .appVersion(Integer.toString(BuildConfig.VERSION_CODE))
+ *                     .build();
+ *
+ *             APP = new App(appConfiguration);
+ *         }
+ *
+ *     }
+ * </pre>
+ * <p>
+ * After configuring the <i>App</i> you can start managing users, configure Synchronized Realms,
+ * call remote Realm Functions and access remote data through Mongo Collections. The examples below
+ * show the synchronized APIs which cannot be used from the main thread. For the equivalent
+ * asynchronous counterparts. The example project in please see
+ * https://github.com/realm/realm-java/tree/v10/examples/mongoDbRealmExample.
+ *
+ * To register a new user and/or login with an existing user do as shown below:
+ * <pre>
+ *     // Register new user
+ *     User user = APP.getEmailPasswordAuth().registerUser(username, password);
+ *
+ *     // Login with existing user
+ *     APP.login(Credentials.emailPassword(username, password))
+ * </pre>
+ * <p>
+ * With an authorized user you can synchronize data between the local device and the remote Realm
+ * App by opening a Realm with a {@link io.realm.mongodb.sync.SyncConfiguration} as indicated below:
+ * <pre>
+ *     SyncConfiguration syncConfiguration = new SyncConfiguration.Builder(user, "<partition value>")
+ *              .build();
+ *
+ *     Realm instance = Realm.getInstance(syncConfiguration);
+ *     SyncSession session = APP.getSync().getSession(syncConfiguration);
+ *
+ *     instance.executeTransaction(realm -> {
+ *         realm.insert(...);
+ *     });
+ *     session.uploadAllLocalChanges();
+ *     instance.close();
+ * </pre>
+ * <p>
+ * You can call remove Realm functions as shown below:
+ * <pre>
+ *     Functions functions = user.getFunctions();
+ *     Integer sum = functions.callFunction("sum", Arrays.asList(1, 2, 3, 4), Integer.class);
+ * </pre>
+ * <p>
+ * And access collections from the remote Realm App as shown here:
+ * <pre>
+ *     MongoClient client = user.getMongoClient(SERVICE_NAME)
+ *     MongoDatabase database = client.getDatabase(DATABASE_NAME)
+ *     MongoCollection<DocumentT> collection = database.getCollection(COLLECTION_NAME);
+ *     Long count = collection.count().blockingGetResult()
+ * </pre>
+ * <p>
+ *
+ * @see AppConfiguration.Builder
+ * @see EmailPasswordAuth
+ * @see io.realm.mongodb.sync.SyncConfiguration
+ * @see User#getFunctions()
+ * @see User#getMongoClient(String)
  */
 @Beta
 public class App {
@@ -95,8 +181,11 @@ public class App {
     }
 
     /**
-     * FIXME
-     * @param config
+     * Constructor for creating an <i>App</i> according to the given <i>AppConfiguration</i>.
+     *
+     * @param config The configuration to use for this <i>App</i> instance.
+     *
+     * @see AppConfiguration.Builder
      */
     public App(AppConfiguration config) {
         this.config = config;
@@ -212,6 +301,7 @@ public class App {
 
     /**
      * Returns the current user that is logged in and still valid.
+     * <p>
      * A user is invalidated when he/she logs out or the user's refresh token expires or is revoked.
      * <p>
      * If two or more users are logged in, it is the last valid user that is returned by this method.
@@ -244,7 +334,9 @@ public class App {
     }
 
     /**
-     * Switch current user. The current user is the user returned by {@link #currentUser()}.
+     * Switch current user.
+     * <p>
+     * The current user is the user returned by {@link #currentUser()}.
      *
      * @param user the new current user.
      * @throws IllegalArgumentException if the user is is not {@link User.State#LOGGED_IN}.
@@ -269,12 +361,12 @@ public class App {
      *
      * @param credentials the credentials representing the type of login.
      * @return a {@link User} representing the logged in user.
-     * @throws ObjectServerError if the user could not be logged in.
+     * @throws AppException if the user could not be logged in.
      */
-    public User login(Credentials credentials) throws ObjectServerError {
+    public User login(Credentials credentials) throws AppException {
         Util.checkNull(credentials, "credentials");
         AtomicReference<User> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         nativeLogin(nativePtr, credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<User>(success, error) {
             @Override
             protected User mapSuccess(Object result) {
@@ -330,7 +422,7 @@ public class App {
         Util.checkLooperThread("Asynchronous log in is only possible from looper threads.");
         return new Request<User>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public User run() throws ObjectServerError {
+            public User run() throws AppException {
                 return login(credentials);
             }
         }.start();
@@ -377,31 +469,36 @@ public class App {
     }
 
     /**
-     * FIXME: Figure out naming of this method and class.
-     * @return
+     * Returns the <i>Sync</i> instance managing the ongoing <i>Realm Sync</i> sessions
+     * synchronizing data between the local and the remote <i>Realm App</i> associated with this app.
+     *
+     * @return the <i>Sync</i> instance associated with this <i>App</i>.
      */
     public Sync getSync() {
         return syncManager;
     }
 
     /**
-     * Returns a <i>Functions</i> manager for invoking MongoDB Realm Functions.
+     * Returns a <i>Functions</i> manager for invoking the Realm App's Realm Functions.
      * <p>
-     * This will use the associated app's default codec registry to encode and decode arguments and
-     * results.
+     * This will use the app's default codec registry to encode and decode arguments and results.
+     *
+     * @see Functions
+     * @see AppConfiguration#getDefaultCodecRegistry()
      */
     public Functions getFunctions(User user) {
         return new FunctionsImpl(user);
     }
 
     /**
-     * Returns a <i>Functions</i> manager for invoking MongoDB Realm Functions with custom
+     * Returns a <i>Functions</i> manager for invoking the Realm App's Realm Functions with a custom
      * codec registry for encoding and decoding arguments and results.
+     *
+     * @see Functions
      */
     public Functions getFunctions(User user, CodecRegistry codecRegistry) {
         return new FunctionsImpl(user, codecRegistry);
     }
-
 
     /**
      * Returns the configuration object for this app.
@@ -435,9 +532,9 @@ public class App {
      */
     public static class Result<T> {
         private T result;
-        private ObjectServerError error;
+        private AppException error;
 
-        private Result(@Nullable T result, @Nullable ObjectServerError exception) {
+        private Result(@Nullable T result, @Nullable AppException exception) {
             this.result = result;
             this.error = exception;
         }
@@ -464,7 +561,7 @@ public class App {
          *
          * @param exception error that occurred.
          */
-        public static <T> Result<T> withError(ObjectServerError exception) {
+        public static <T> Result<T> withError(AppException exception) {
             return new Result<>(null, exception);
         }
 
@@ -502,7 +599,7 @@ public class App {
          * is thrown.
          *
          * @return the response object in case the request was a success.
-         * @throws ObjectServer provided error in case the request failed.
+         * @throws ObjectServerError provided error in case the request failed.
          */
         public T getOrThrow() {
             if (isSuccess()) {
@@ -515,9 +612,9 @@ public class App {
         /**
          * Returns the error in case of a failed request.
          *
-         * @return the {@link ObjectServerError} in case of a failed request.
+         * @return the {@link AppException} in case of a failed request.
          */
-        public ObjectServerError getError() {
+        public AppException getError() {
             return error;
         }
     }

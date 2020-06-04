@@ -19,8 +19,8 @@ package io.realm.mongodb.mongo;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import io.realm.annotations.Beta;
-import io.realm.mongodb.User;
 import io.realm.internal.Util;
+import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.objectstore.OsMongoClient;
 
 /**
@@ -29,12 +29,16 @@ import io.realm.internal.objectstore.OsMongoClient;
 @Beta
 abstract public class MongoClient {
 
-    private OsMongoClient osMongoClient;
-    private CodecRegistry codecRegistry;
+    private final OsMongoClient osMongoClient;
+    private final CodecRegistry codecRegistry;
+    private final TaskDispatcher dispatcher;
 
-    protected MongoClient(OsMongoClient osMongoClient, final CodecRegistry codecRegistry) {
+    protected MongoClient(final OsMongoClient osMongoClient,
+                          final CodecRegistry codecRegistry,
+                          final TaskDispatcher dispatcher) {
         this.osMongoClient = osMongoClient;
         this.codecRegistry = codecRegistry;
+        this.dispatcher = dispatcher;
     }
 
     /**
@@ -45,6 +49,6 @@ abstract public class MongoClient {
      */
     public MongoDatabase getDatabase(final String databaseName) {
         Util.checkEmpty(databaseName, "databaseName");
-        return new MongoDatabase(osMongoClient.getRemoteDatabase(databaseName, codecRegistry), databaseName);
+        return new MongoDatabase(osMongoClient.getDatabase(databaseName, codecRegistry), databaseName, dispatcher);
     }
 }

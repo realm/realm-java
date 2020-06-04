@@ -106,7 +106,7 @@ class ApiKeyAuthTests {
         try {
             provider.createApiKey("%s")
             fail()
-        } catch (e: ObjectServerError) {
+        } catch (e: AppException) {
             assertEquals(ErrorCode.INVALID_PARAMETER, e.errorCode)
         }
     }
@@ -163,7 +163,7 @@ class ApiKeyAuthTests {
         try {
             provider.fetchApiKey(ObjectId())
             fail()
-        } catch (e: ObjectServerError) {
+        } catch (e: AppException) {
             assertEquals(ErrorCode.API_KEY_NOT_FOUND, e.errorCode)
         }
     }
@@ -224,7 +224,7 @@ class ApiKeyAuthTests {
         try {
             provider.fetchApiKey(key1.id)
             fail()
-        } catch (e: ObjectServerError) {
+        } catch (e: AppException) {
             assertEquals(ErrorCode.API_KEY_NOT_FOUND, e.errorCode)
         }
     }
@@ -234,7 +234,7 @@ class ApiKeyAuthTests {
         try {
             provider.deleteApiKey(ObjectId())
             fail()
-        } catch (e: ObjectServerError) {
+        } catch (e: AppException) {
             assertEquals(ErrorCode.API_KEY_NOT_FOUND, e.errorCode)
         }
     }
@@ -257,7 +257,7 @@ class ApiKeyAuthTests {
                     try {
                         provider.fetchApiKey(key.id)
                         fail()
-                    } catch (e: ObjectServerError) {
+                    } catch (e: AppException) {
                         assertEquals(ErrorCode.API_KEY_NOT_FOUND, e.errorCode)
                     }
                     looperThread.testComplete()
@@ -305,7 +305,7 @@ class ApiKeyAuthTests {
         try {
             provider.enableApiKey(ObjectId())
             fail()
-        } catch (e: ObjectServerError) {
+        } catch (e: AppException) {
             assertEquals(ErrorCode.API_KEY_NOT_FOUND, e.errorCode)
         }
     }
@@ -368,7 +368,7 @@ class ApiKeyAuthTests {
         try {
             provider.disableApiKey(ObjectId())
             fail()
-        } catch (e: ObjectServerError) {
+        } catch (e: AppException) {
             assertEquals(ErrorCode.API_KEY_NOT_FOUND, e.errorCode)
         }
     }
@@ -423,7 +423,7 @@ class ApiKeyAuthTests {
                     Method.DISABLE -> provider.disableApiKey(ObjectId())
                 }
                 fail("$method should have thrown an exception")
-            } catch (error: ObjectServerError) {
+            } catch (error: AppException) {
                 assertEquals(ErrorCode.NETWORK_UNKNOWN, error.errorCode)
             }
         }
@@ -461,7 +461,7 @@ class ApiKeyAuthTests {
                     Method.DISABLE -> provider.disableApiKey(ObjectId())
                 }
                 fail("$method should have thrown an exception")
-            } catch (error: ObjectServerError) {
+            } catch (error: AppException) {
                 assertEquals(ErrorCode.INVALID_SESSION, error.errorCode)
             }
         }

@@ -20,18 +20,18 @@ import java.io.File;
 
 import io.realm.annotations.Beta;
 import io.realm.mongodb.ErrorCode;
-import io.realm.mongodb.ObjectServerError;
+import io.realm.mongodb.AppException;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
 /**
  * Class encapsulating information needed for handling a Client Reset event.
  *
- * @see SyncSession.ErrorHandler#onError(SyncSession, ObjectServerError) for more information
+ * @see SyncSession.ErrorHandler#onError(SyncSession, AppException) for more information
  *      about when and why Client Reset occurs and how to deal with it.
  */
 @Beta
-public class ClientResetRequiredError extends ObjectServerError {
+public class ClientResetRequiredError extends AppException {
 
     private final SyncConfiguration originalConfiguration;
     private final RealmConfiguration backupConfiguration;

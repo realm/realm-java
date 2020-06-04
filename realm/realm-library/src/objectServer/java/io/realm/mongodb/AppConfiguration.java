@@ -78,6 +78,8 @@ public class AppConfiguration {
 
     /**
      * Default BSON codec registry for encoding/decoding arguments and results to/from MongoDB Realm backend.
+     * <p>
+     * This will encode/decode most primitive types, list and map types and BsonValues.
      *
      * @see AppConfiguration#getDefaultCodecRegistry()
      * @see AppConfiguration.Builder#codecRegistry(CodecRegistry)
@@ -215,7 +217,16 @@ public class AppConfiguration {
         return syncRootDir;
     }
 
-    // FIXME Doc
+    /**
+     * Returns the default codec registry used to encode and decode BSON arguments and results when
+     * calling remote Realm {@link io.realm.mongodb.functions.Functions} and accessing a remote
+     * {@link io.realm.mongodb.mongo.MongoDatabase}.
+     *
+     * @return The default codec registry for the App.
+     *
+     * @see #DEFAULT_BSON_CODEC_REGISTRY
+     * @see Builder#getDefaultCodecRegistry()
+     */
     public CodecRegistry getDefaultCodecRegistry() { return codecRegistry; }
 
     /**
@@ -229,7 +240,7 @@ public class AppConfiguration {
         private URL baseUrl = createUrl(DEFAULT_BASE_URL);
         private SyncSession.ErrorHandler defaultErrorHandler = new SyncSession.ErrorHandler() {
             @Override
-            public void onError(SyncSession session, ObjectServerError error) {
+            public void onError(SyncSession session, AppException error) {
                 if (error.getErrorCode() == ErrorCode.CLIENT_RESET) {
                     RealmLog.error("Client Reset required for: " + session.getConfiguration().getServerUrl());
                     return;
@@ -278,7 +289,7 @@ public class AppConfiguration {
 
         /**
          * Sets the encryption key used to encrypt user meta data only. Individual Realms needs to
-         * use {@link SyncConfiguration.Builder#encryptionKey(byte[])} to make them encrypted.
+         * use {@link io.realm.mongodb.sync.SyncConfiguration.Builder#encryptionKey(byte[])} to make them encrypted.
          *
          * @param key a 64 byte encryption key.
          * @throws IllegalArgumentException if the key is not 64 bytes long.
@@ -396,8 +407,8 @@ public class AppConfiguration {
          * session.
          * <p>
          * This default can be overridden by calling
-         * {@link SyncConfiguration.Builder#errorHandler(SyncSession.ErrorHandler)} when creating
-         * the {@link SyncConfiguration}.
+         * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#errorHandler(SyncSession.ErrorHandler)} when creating
+         * the {@link io.realm.mongodb.sync.SyncConfiguration}.
          *
          * @param errorHandler the default error handler.
          */
@@ -441,7 +452,18 @@ public class AppConfiguration {
             }
         }
 
-        // FIXME Doc
+        /**
+         * Set the default codec registry used to encode and decode BSON arguments and results when
+         * calling remote Realm {@link io.realm.mongodb.functions.Functions} and accessing a remote
+         * {@link io.realm.mongodb.mongo.MongoDatabase}.
+         * <p>
+         * Will default to {@link #DEFAULT_BSON_CODEC_REGISTRY} if not specified.
+         *
+         * @param codecRegistry The default codec registry for the App.
+         *
+         * @see #DEFAULT_BSON_CODEC_REGISTRY
+         * @see Builder#getDefaultCodecRegistry()
+         */
         public Builder codecRegistry(CodecRegistry codecRegistry) {
             Util.checkNull(codecRegistry, "codecRegistry");
             this.codecRegistry = codecRegistry;

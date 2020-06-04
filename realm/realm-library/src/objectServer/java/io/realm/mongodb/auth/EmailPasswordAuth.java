@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.annotations.Beta;
 import io.realm.internal.mongodb.Request;
-import io.realm.mongodb.ObjectServerError;
+import io.realm.mongodb.AppException;
 import io.realm.RealmAsyncTask;
 import io.realm.internal.network.ResultHandler;
 import io.realm.internal.Util;
@@ -64,12 +64,12 @@ public abstract class EmailPasswordAuth {
      * @param password the password to associate with the email. The password must be between
      * 6 and 128 characters long.
      *
-     * @throws ObjectServerError if the server failed to register the user.
+     * @throws AppException if the server failed to register the user.
      */
-    public void registerUser(String email, String password) throws ObjectServerError {
+    public void registerUser(String email, String password) throws AppException {
         Util.checkEmpty(email, "email");
         Util.checkEmpty(password, "password");
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         call(TYPE_REGISTER_USER, new OsJNIVoidResultCallback(error), email, password);
         ResultHandler.handleResult(null, error);
     }
@@ -84,13 +84,13 @@ public abstract class EmailPasswordAuth {
      * happen on the same thread as this method is called on.
      *
      * @throws IllegalStateException if called from a non-looper thread.
-     * @throws ObjectServerError if the server failed to register the user.
+     * @throws AppException if the server failed to register the user.
      */
     public RealmAsyncTask registerUserAsync(String email, String password, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous registration of a user is only possible from looper threads.");
         return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public Void run() throws ObjectServerError {
+            public Void run() throws AppException {
                 registerUser(email, password);
                 return null;
             }
@@ -102,12 +102,12 @@ public abstract class EmailPasswordAuth {
      *
      * @param token the confirmation token.
      * @param tokenId the id of the confirmation token.
-     * @throws ObjectServerError if the server failed to confirm the user.
+     * @throws AppException if the server failed to confirm the user.
      */
-    public void confirmUser(String token, String tokenId) throws ObjectServerError {
+    public void confirmUser(String token, String tokenId) throws AppException {
         Util.checkEmpty(token, "token");
         Util.checkEmpty(tokenId, "tokenId");
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         call(TYPE_CONFIRM_USER, new OsJNIVoidResultCallback(error), token, tokenId);
         ResultHandler.handleResult(null, error);
     }
@@ -125,7 +125,7 @@ public abstract class EmailPasswordAuth {
         Util.checkLooperThread("Asynchronous confirmation of a user is only possible from looper threads.");
         return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public Void run() throws ObjectServerError {
+            public Void run() throws AppException {
                 confirmUser(token, tokenId);
                 return null;
             }
@@ -136,11 +136,11 @@ public abstract class EmailPasswordAuth {
      * Resend the confirmation for a user to the given email.
      *
      * @param email the email of the user.
-     * @throws ObjectServerError if the server failed to confirm the user.
+     * @throws AppException if the server failed to confirm the user.
      */
-    public void resendConfirmationEmail(String email) throws ObjectServerError {
+    public void resendConfirmationEmail(String email) throws AppException {
         Util.checkEmpty(email, "email");
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         call(TYPE_RESEND_CONFIRMATION_EMAIL, new OsJNIVoidResultCallback(error), email);
         ResultHandler.handleResult(null, error);
     }
@@ -157,7 +157,7 @@ public abstract class EmailPasswordAuth {
         Util.checkLooperThread("Asynchronous resending the confirmation email is only possible from looper threads.");
         return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public Void run() throws ObjectServerError {
+            public Void run() throws AppException {
                 resendConfirmationEmail(email);
                 return null;
             }
@@ -168,11 +168,11 @@ public abstract class EmailPasswordAuth {
      * Sends a user a password reset email for the given email.
      *
      * @param email the email of the user.
-     * @throws ObjectServerError if the server failed to confirm the user.
+     * @throws AppException if the server failed to confirm the user.
      */
-    public void sendResetPasswordEmail(String email) throws ObjectServerError {
+    public void sendResetPasswordEmail(String email) throws AppException {
         Util.checkEmpty(email, "email");
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         call(TYPE_SEND_RESET_PASSWORD_EMAIL, new OsJNIVoidResultCallback(error), email);
         ResultHandler.handleResult(null, error);
     }
@@ -183,13 +183,13 @@ public abstract class EmailPasswordAuth {
      * @param email the email of the user.
      * @param callback callback when sending the email has completed or failed. The callback will
      * always happen on the same thread as this method is called on.
-     * @throws ObjectServerError if the server failed to confirm the user.
+     * @throws AppException if the server failed to confirm the user.
      */
     public RealmAsyncTask sendResetPasswordEmailAsync(String email, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous sending the reset password email is only possible from looper threads.");
         return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public Void run() throws ObjectServerError {
+            public Void run() throws AppException {
                 sendResetPasswordEmail(email);
                 return null;
             }
@@ -204,13 +204,13 @@ public abstract class EmailPasswordAuth {
      * @param newPassword the new password of the user.
      * @param args any additional arguments provided to the reset function. All arguments must
      * be able to be converted to JSON compatible values using {@code toString()}.
-     * @throws ObjectServerError if the server failed to confirm the user.
+     * @throws AppException if the server failed to confirm the user.
      */
-    public void callResetPasswordFunction(String email, String newPassword, Object... args) throws ObjectServerError {
+    public void callResetPasswordFunction(String email, String newPassword, Object... args) throws AppException {
         Util.checkEmpty(email, "email");
         Util.checkEmpty(newPassword, "newPassword");
         String encodedArgs = JniBsonProtocol.encode(Arrays.asList(args), app.getConfiguration().getDefaultCodecRegistry());
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         call(TYPE_CALL_RESET_PASSWORD_FUNCTION, new OsJNIVoidResultCallback(error), email, newPassword, encodedArgs);
         ResultHandler.handleResult(null, error);
     }
@@ -231,7 +231,7 @@ public abstract class EmailPasswordAuth {
         Util.checkLooperThread("Asynchronous calling the password reset function is only possible from looper threads.");
         return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public Void run() throws ObjectServerError {
+            public Void run() throws AppException {
                 callResetPasswordFunction(email, newPassword, args);
                 return null;
             }
@@ -245,13 +245,13 @@ public abstract class EmailPasswordAuth {
      * @param tokenId the id of the reset password token.
      * @param newPassword the new password for the user identified by the {@code token}. The password
      * must be between 6 and 128 characters long.
-     * @throws ObjectServerError if the server failed to confirm the user.
+     * @throws AppException if the server failed to confirm the user.
      */
-    public void resetPassword(String token, String tokenId, String newPassword) throws ObjectServerError {
+    public void resetPassword(String token, String tokenId, String newPassword) throws AppException {
         Util.checkEmpty(token, "token");
         Util.checkEmpty(tokenId, "tokenId");
         Util.checkEmpty(newPassword, "newPassword");
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         call(TYPE_RESET_PASSWORD, new OsJNIVoidResultCallback(error), token, tokenId, newPassword);
         ResultHandler.handleResult(null, error);
     }
@@ -271,7 +271,7 @@ public abstract class EmailPasswordAuth {
         Util.checkLooperThread("Asynchronous reset of a password is only possible from looper threads.");
         return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public Void run() throws ObjectServerError {
+            public Void run() throws AppException {
                 resetPassword(token, tokenId, newPassword);
                 return null;
             }

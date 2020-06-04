@@ -110,7 +110,7 @@ class EmailPasswordAuthTests {
         try {
             provider.registerUser("invalid-email", "1234")
             fail()
-        } catch (ex: ObjectServerError) {
+        } catch (ex: AppException) {
             assertEquals(ErrorCode.BAD_REQUEST, ex.errorCode)
         }
     }
@@ -161,7 +161,7 @@ class EmailPasswordAuthTests {
         try {
             provider.confirmUser("invalid-token", "invalid-token-id")
             fail()
-        } catch (ex: ObjectServerError) {
+        } catch (ex: AppException) {
             assertEquals(ErrorCode.BAD_REQUEST, ex.errorCode)
         }
     }
@@ -241,7 +241,7 @@ class EmailPasswordAuthTests {
         try {
             provider.resendConfirmationEmail("foo")
             fail()
-        } catch (error: ObjectServerError) {
+        } catch (error: AppException) {
             assertEquals(ErrorCode.USER_NOT_FOUND, error.errorCode)
         } finally {
             admin.setAutomaticConfirmation(true)
@@ -309,7 +309,7 @@ class EmailPasswordAuthTests {
         try {
             provider.sendResetPasswordEmail("unknown@10gen.com")
             fail()
-        } catch (error: ObjectServerError) {
+        } catch (error: AppException) {
             assertEquals(ErrorCode.USER_NOT_FOUND, error.errorCode)
         }
     }
@@ -386,7 +386,7 @@ class EmailPasswordAuthTests {
         provider.registerUser(email, "123456")
         try {
             provider.callResetPasswordFunction(email, "new-password", "wrong-magic-word")
-        } catch (error: ObjectServerError) {
+        } catch (error: AppException) {
             assertEquals(ErrorCode.SERVICE_UNKNOWN, error.errorCode)
         } finally {
             admin.setResetFunction(enabled = false)
@@ -448,7 +448,7 @@ class EmailPasswordAuthTests {
         val provider = app.emailPasswordAuth
         try {
             provider.resetPassword("invalid-token", "invalid-token-id", "new-password")
-        } catch (error: ObjectServerError) {
+        } catch (error: AppException) {
             assertEquals(ErrorCode.BAD_REQUEST, error.errorCode)
         }
     }
@@ -501,7 +501,7 @@ class EmailPasswordAuthTests {
                     Method.RESET_PASSWORD -> provider.resetPassword("token", "token-id", "password")
                 }
                 fail("$method should have thrown an exception")
-            } catch (error: ObjectServerError) {
+            } catch (error: AppException) {
                 assertEquals(ErrorCode.NETWORK_UNKNOWN, error.errorCode)
             }
         }
