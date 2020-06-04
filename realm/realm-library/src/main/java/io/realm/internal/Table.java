@@ -702,6 +702,18 @@ public class Table implements NativeObject {
         return new Table(frozenRealm, nativeFreeze(frozenRealm.getNativePtr(), nativeTableRefPtr));
     }
 
+    public boolean isEmbedded() {
+        return nativeIsEmbedded(nativeTableRefPtr);
+    }
+
+    /**
+     * Returns true if the state was changed, false if not. If false was returned, it meant
+     * some invariant was broken when trying to change the state
+     */
+    public boolean setEmbedded(boolean embedded) {
+        return nativeSetEmbedded(nativeTableRefPtr, embedded);
+    }
+
     @Nullable
     public static String getClassNameForTable(@Nullable String name) {
         if (name == null) { return null; }
@@ -844,4 +856,8 @@ public class Table implements NativeObject {
     private static native long nativeGetFinalizerPtr();
 
     private static native long nativeFreeze(long frozenSharedRealmPtr, long nativeTableRefPtr);
+
+    private static native boolean nativeIsEmbedded(long nativeTableRefPtr);
+
+    private static native boolean nativeSetEmbedded(long nativeTableRefPtr, boolean isEmbedded);
 }

@@ -19,6 +19,7 @@ import org.bson.types.ObjectId;
 
 import javax.annotation.Nullable;
 
+import io.realm.annotations.Beta;
 import io.realm.mongodb.App;
 import io.realm.mongodb.User;
 
@@ -32,6 +33,7 @@ import io.realm.mongodb.User;
  * Note that a keys {@link #value} is only available when the key is created, after that it is not
  * visible. So anyone creating an API key is responsible for storing it safely after that.
  */
+@Beta
 public class UserApiKey {
     private final ObjectId id;
     private final String value;

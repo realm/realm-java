@@ -18,6 +18,7 @@ package io.realm.mongodb.sync;
 
 import java.io.File;
 
+import io.realm.annotations.Beta;
 import io.realm.mongodb.ErrorCode;
 import io.realm.mongodb.ObjectServerError;
 import io.realm.Realm;
@@ -29,6 +30,7 @@ import io.realm.RealmConfiguration;
  * @see SyncSession.ErrorHandler#onError(SyncSession, ObjectServerError) for more information
  *      about when and why Client Reset occurs and how to deal with it.
  */
+@Beta
 public class ClientResetRequiredError extends ObjectServerError {
 
     private final SyncConfiguration originalConfiguration;

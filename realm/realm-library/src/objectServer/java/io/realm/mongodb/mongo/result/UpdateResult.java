@@ -20,9 +20,12 @@ import javax.annotation.Nullable;
 
 import org.bson.BsonValue;
 
+import io.realm.annotations.Beta;
+
 /**
  * The result of an update operation.
  */
+@Beta
 public class UpdateResult {
 
     private final long matchedCount;

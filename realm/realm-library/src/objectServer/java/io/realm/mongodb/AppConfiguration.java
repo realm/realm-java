@@ -38,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 import io.realm.Realm;
+import io.realm.annotations.Beta;
 import io.realm.mongodb.sync.SyncSession;
 import io.realm.internal.Util;
 import io.realm.log.RealmLog;
@@ -52,6 +53,7 @@ import io.realm.log.RealmLog;
  * Configuring a App is only required if the default settings are not enough. Otherwise calling
  * {@code new App("app-id")} is sufficient.
  */
+@Beta
 public class AppConfiguration {
 
     /**

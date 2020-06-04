@@ -18,10 +18,11 @@ package io.realm.mongodb;
 
 import javax.annotation.Nullable;
 
+import io.realm.annotations.Beta;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.mongodb.auth.ApiKeyAuth;
 
-
+@Beta
 class ApiKeyAuthImpl extends ApiKeyAuth {
 
     ApiKeyAuthImpl(User user) {

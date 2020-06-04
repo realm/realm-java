@@ -6,7 +6,9 @@
 * Destructive updates of a schema of a synced Realm will now consistently throw an `UnsupportedOperationException` instead of some methods throwing `IllegalArgumentException`. The affected methods are `RealmSchema.remove(String)`, `RealmSchema.rename(String, String)`, `RealmObjectSchema.setClassName(String)`, `RealmObjectSchema.removeField(String)`, `RealmObjectSchema.renameField(String, String)`, `RealmObjectSchema.removeIndex(String)`, `RealmObjectSchema.removePrimaryKey()`, `RealmObjectSchema.addPrimaryKey(String)` and `RealmObjectSchema.addField(String, Class<?>, FieldAttribute)` 
 
 ### Enhancements
-* None.
+* Added support for `org.bson.types.Decimal128` and `org.bson.types.ObjectId` as supported fields in model classes.
+* Added support for `org.bson.types.ObjectId` as a primary key.
+* Added support for "Embedded Objects". They are enabled using `@RealmClass(embedded = true)`. An embedded object must have exactly one parent object linking to it and it will be deleted when the the parent is. Embedded objects can also be the parent of other embedded classes. Read more [here](https://realm.io/docs/java/latest/#embedded-objects). (Issue [#6713](https://github.com/realm/realm-java/issues/6713))  
 
 ### Fixed
 * None.
@@ -41,12 +43,12 @@ NOTE: This version bumps the Realm file format to version 10. Files created with
 * [ObjectServer] `IncompatibleSyncedFileException` is removed and no longer thrown.
 
 ### Enhancements
-* Added support for `org.bson.types.Decimal128` and `org.bson.types.ObjectId` as supported fields in model classes.
-* Add support for `org.bson.types.ObjectId` as a primary key.
 * Added `Realm.freeze()`, `RealmObject.freeze()`, `RealmResults.freeze()` and `RealmList.freeze()`. These methods will return a frozen version of the current Realm data. This data can be read from any thread without throwing an `IllegalStateException`, but will never change. All frozen Realms and data can be closed by calling `Realm.close()` on the frozen Realm, but fully closing all live Realms will also close the frozen ones. Frozen data can be queried as normal, but trying to mutate it in any way will throw an `IllegalStateException`. This includes all methods that attempt to refresh or add change listeners. (Issue [#6590](https://github.com/realm/realm-java/pull/6590))
 * Added `Realm.isFrozen()`, `RealmObject.isFrozen()`, `RealmObject.isFrozen(RealmModel)`, `RealmResults.isFrozen()` and `RealmList.isFrozen()`, which returns whether or not the data is frozen.
 * Added `RealmConfiguration.Builder.maxNumberOfActiveVersions(long number)`. Setting this will cause Realm to throw an `IllegalStateException` if too many versions of the Realm data are live at the same time. Having too many versions can dramatically increase the filesize of the Realm.
-* `RealmResults.asJSON()` is no longer `@Beta`.
+* Storing large binary blobs in Realm files no longer forces the file to be at least 8x the size of the largest blob.
+* Reduce the size of transaction logs stored inside the Realm file, reducing file size growth from large transactions.
+* `RealmResults.asJSON()` is no longer `@Beta`
 * The default `toString()` for proxy objects now print the length of binary fields. (Issue [#6767](https://github.com/realm/realm-java/pull/6767))
 
 ### Fixes

@@ -18,6 +18,7 @@ package io.realm.mongodb.mongo;
 
 import org.bson.codecs.configuration.CodecRegistry;
 
+import io.realm.annotations.Beta;
 import io.realm.mongodb.User;
 import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsMongoClient;
@@ -25,6 +26,7 @@ import io.realm.internal.objectstore.OsMongoClient;
 /**
  * The remote MongoClient used for working with data in MongoDB remotely via Realm.
  */
+@Beta
 abstract public class MongoClient {
 
     private OsMongoClient osMongoClient;
