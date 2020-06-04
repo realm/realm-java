@@ -30,7 +30,7 @@ import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.network.ResultHandler;
 import io.realm.internal.objectstore.OsMongoCollection;
-import io.realm.mongodb.ObjectServerError;
+import io.realm.mongodb.AppException;
 
 /**
  * The MongoIterable is the results from an operation, such as a {@code find()} or an
@@ -85,7 +85,7 @@ public abstract class MongoIterable<ResultT> {
      */
     public Task<ResultT> first() {
         AtomicReference<ResultT> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
             @Override
             protected ResultT mapSuccess(Object result) {
@@ -104,7 +104,7 @@ public abstract class MongoIterable<ResultT> {
 
     private Collection<ResultT> getCollection() {
         AtomicReference<Collection<ResultT>> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         OsJNIResultCallback<Collection<ResultT>> callback = new OsJNIResultCallback<Collection<ResultT>>(success, error) {
             @Override
             protected Collection<ResultT> mapSuccess(Object result) {

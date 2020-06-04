@@ -23,7 +23,7 @@ import io.realm.internal.Util;
 import io.realm.mongodb.sync.SyncSession;
 
 /**
- * This class is a wrapper for all errors happening when communicating with the Realm Object Server.
+ * This class is a wrapper for all errors happening when communicating with a MongoDB Realm app.
  * This include both exceptions and protocol errors.
  *
  * Only {@link #getErrorCode()} is guaranteed to contain a value. If the error was caused by an underlying exception
@@ -33,7 +33,7 @@ import io.realm.mongodb.sync.SyncSession;
  * @see ErrorCode for a list of possible errors.
  */
 @Beta
-public class ObjectServerError extends RuntimeException {
+public class AppException extends RuntimeException {
 
     // The Java representation of the error.
     private final ErrorCode error;
@@ -52,7 +52,7 @@ public class ObjectServerError extends RuntimeException {
      * @param errorCode error code for this type of error.
      * @param errorMessage detailed error message.
      */
-    public ObjectServerError(ErrorCode errorCode, String errorMessage) {
+    public AppException(ErrorCode errorCode, String errorMessage) {
         this(errorCode, errorCode.getType(), errorCode.intValue(), errorMessage, (Throwable) null);
     }
 
@@ -66,7 +66,7 @@ public class ObjectServerError extends RuntimeException {
      * @param errorCode error code for this type of error.
      * @param errorMessage detailed error message.
      */
-    public ObjectServerError(String errorType, int errorCode, String errorMessage) {
+    public AppException(String errorType, int errorCode, String errorMessage) {
         this(ErrorCode.UNKNOWN, errorType, errorCode, errorMessage, null);
     }
 
@@ -76,7 +76,7 @@ public class ObjectServerError extends RuntimeException {
      * @param errorCode error code for this type of error.
      * @param exception underlying exception causing this error.
      */
-    public ObjectServerError(ErrorCode errorCode, Throwable exception) {
+    public AppException(ErrorCode errorCode, Throwable exception) {
         this(errorCode, null, exception);
     }
 
@@ -87,7 +87,7 @@ public class ObjectServerError extends RuntimeException {
      * @param title title for this type of error.
      * @param hint a hint for resolving the error.
      */
-    public ObjectServerError(ErrorCode errorCode, String title, @Nullable String hint) {
+    public AppException(ErrorCode errorCode, String title, @Nullable String hint) {
         this(errorCode, (hint != null) ? title + " : " + hint : title, (Throwable) null);
     }
 
@@ -98,12 +98,12 @@ public class ObjectServerError extends RuntimeException {
      * @param errorMessage detailed error message.
      * @param exception underlying exception if the error was caused by this.
      */
-    public ObjectServerError(ErrorCode errorCode, @Nullable String errorMessage, @Nullable Throwable exception) {
+    public AppException(ErrorCode errorCode, @Nullable String errorMessage, @Nullable Throwable exception) {
         this(errorCode, errorCode.getType(), errorCode.intValue(), errorMessage, exception);
     }
 
-    public ObjectServerError(ErrorCode errorCode, String nativeErrorType, int nativeErrorCode,
-                             @Nullable String errorMessage, @Nullable Throwable exception) {
+    public AppException(ErrorCode errorCode, String nativeErrorType, int nativeErrorCode,
+                        @Nullable String errorMessage, @Nullable Throwable exception) {
         this.error = errorCode;
         this.nativeErrorType = nativeErrorType;
         this.nativeErrorIntValue = nativeErrorCode;

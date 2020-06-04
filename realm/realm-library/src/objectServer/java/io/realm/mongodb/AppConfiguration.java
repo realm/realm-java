@@ -240,7 +240,7 @@ public class AppConfiguration {
         private URL baseUrl = createUrl(DEFAULT_BASE_URL);
         private SyncSession.ErrorHandler defaultErrorHandler = new SyncSession.ErrorHandler() {
             @Override
-            public void onError(SyncSession session, ObjectServerError error) {
+            public void onError(SyncSession session, AppException error) {
                 if (error.getErrorCode() == ErrorCode.CLIENT_RESET) {
                     RealmLog.error("Client Reset required for: " + session.getConfiguration().getServerUrl());
                     return;
