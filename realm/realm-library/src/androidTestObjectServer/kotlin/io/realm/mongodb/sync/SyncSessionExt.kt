@@ -17,10 +17,6 @@
 package io.realm.mongodb.sync
 
 // Helper to expose package protected methods for testing purpose
-fun Sync.testReset() {
-    this.reset()
-}
-
-fun Sync.simulateClientReset(session: SyncSession) {
-    this.simulateClientReset(session)
+fun SyncSession.testClose() {
+    this.close()
 }

@@ -18,11 +18,24 @@ package io.realm.mongodb.sync
 
 import io.realm.RealmModel
 import io.realm.internal.OsRealmConfig
+import io.realm.mongodb.User
+import org.bson.BsonValue
 
+class SyncConfigurationExt {
+    companion object
+}
+
+// Added to expose Builder(User, BsonValue) outside io.realm.mongodb.sync package for test
+fun SyncConfigurationExt.Companion.Builder(user: User, partitionValue: BsonValue): SyncConfiguration.Builder {
+    return SyncConfiguration.Builder(user, partitionValue)
+}
+
+// Added to expose schema outside io.realm.mongodb.sync package for test
 fun SyncConfiguration.Builder.testSchema(firstClass: Class<out RealmModel>, vararg x: Class<out RealmModel> ) : SyncConfiguration.Builder {
     return this.schema(firstClass, *x)
 }
 
+// Added to expose sesssionStopPolicy outside io.realm.mongodb.sync package for test
 fun SyncConfiguration.Builder.testSessionStopPolicy(policy: OsRealmConfig.SyncSessionStopPolicy): SyncConfiguration.Builder {
     return this.sessionStopPolicy(policy)
 }

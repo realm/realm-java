@@ -292,7 +292,8 @@ public class SyncConfiguration extends RealmConfiguration {
         if (sessionStopPolicy != that.sessionStopPolicy) return false;
         if (syncUrlPrefix != null ? !syncUrlPrefix.equals(that.syncUrlPrefix) : that.syncUrlPrefix != null)
             return false;
-        return clientResyncMode == that.clientResyncMode;
+        if (clientResyncMode != that.clientResyncMode) return false;
+        return partitionValue.equals(that.partitionValue);
     }
 
     @Override
@@ -307,6 +308,7 @@ public class SyncConfiguration extends RealmConfiguration {
         result = 31 * result + sessionStopPolicy.hashCode();
         result = 31 * result + (syncUrlPrefix != null ? syncUrlPrefix.hashCode() : 0);
         result = 31 * result + clientResyncMode.hashCode();
+        result = 31 * result + partitionValue.hashCode();
         return result;
     }
 
@@ -331,6 +333,8 @@ public class SyncConfiguration extends RealmConfiguration {
         sb.append("syncUrlPrefix: ").append(syncUrlPrefix);
         sb.append("\n");
         sb.append("clientResyncMode: ").append(clientResyncMode);
+        sb.append("\n");
+        sb.append("partitionValue: ").append(partitionValue);
         return sb.toString();
     }
 
@@ -524,7 +528,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * synchronized to the Realm.
          * @see <a href="FIXME">Link to docs about partions</a>
          */
-        private Builder(User user, BsonValue partitionValue) {
+        Builder(User user, BsonValue partitionValue) {
             Context context = Realm.getApplicationContext();
             if (context == null) {
                 throw new IllegalStateException("Call `Realm.init(Context)` before creating a SyncConfiguration");

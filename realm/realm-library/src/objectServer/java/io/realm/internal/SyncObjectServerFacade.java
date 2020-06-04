@@ -30,12 +30,14 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.mongodb.App;
 import io.realm.RealmConfiguration;
+import io.realm.mongodb.AppConfiguration;
 import io.realm.mongodb.sync.Sync;
 import io.realm.mongodb.User;
 import io.realm.mongodb.sync.SyncConfiguration;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.android.AndroidCapabilities;
+import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.objectstore.OsAsyncOpenTask;
 
@@ -87,20 +89,21 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String customAuthorizationHeaderName = app.getConfiguration().getAuthorizationHeaderName();
             Map<String, String> customHeaders = app.getConfiguration().getCustomRequestHeaders();
 
-            // Temporary work-around for serializing supported bson values
-            BsonValue val = syncConfig.getPartitionValue();
-            String partitionValue = null;
-            if (val.isString()) {
-                partitionValue = "\"" + val.asString().getValue() + "\"";
-            } else if (val.isInt32()) {
-                partitionValue = "{ \"$bsonInt\" : " + val.asInt32().intValue() + " }";
-            } else if (val.isInt64()) {
-                partitionValue = "{ \"$bsonLong\" : " + val.asInt64().longValue() + " }";
-            } else if (val.isObjectId()) {
-                partitionValue = "{ \"$oid\" : " + val.asObjectId().toString() + " }";
-            } else {
-                throw new IllegalArgumentException("Unsupported type: " + val);
+            // TODO Simplify. org.bson serialization only allows writing full documents, so the partition
+            //  key is embedded in a document with key 'value' and unwrapped in JNI.
+            BsonValue partitionValue = syncConfig.getPartitionValue();
+            String encodedPartitionValue;
+            switch (partitionValue.getBsonType()) {
+                case STRING:
+                case OBJECT_ID:
+                case INT32:
+                case INT64:
+                    encodedPartitionValue = JniBsonProtocol.encode(partitionValue, AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unsupported type: " + partitionValue);
             }
+
             int i = 0;
             Object[] configObj = new Object[SYNC_CONFIG_OPTIONS];
             configObj[i++] = rosUserIdentity;
@@ -114,7 +117,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             configObj[i++] = customAuthorizationHeaderName;
             configObj[i++] = customHeaders;
             configObj[i++] = OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL;
-            configObj[i++] = partitionValue;
+            configObj[i++] = encodedPartitionValue;
             configObj[i++] = app.getSync();
             return configObj;
         } else {

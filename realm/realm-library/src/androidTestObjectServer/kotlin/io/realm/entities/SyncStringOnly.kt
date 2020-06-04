@@ -13,14 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.realm.entities
 
-package io.realm.mongodb.sync
+import io.realm.RealmObject
+import io.realm.annotations.PrimaryKey
+import io.realm.annotations.RealmField
+import org.bson.types.ObjectId
 
-// Helper to expose package protected methods for testing purpose
-fun Sync.testReset() {
-    this.reset()
-}
+open class SyncStringOnly : RealmObject() {
 
-fun Sync.simulateClientReset(session: SyncSession) {
-    this.simulateClientReset(session)
+    companion object {
+        const val CLASS_NAME = "StringOnly"
+        const val FIELD_CHARS = "chars"
+    }
+
+    @PrimaryKey
+    @RealmField(name = "_id")
+    var id = ObjectId()
+
+    var chars: String? = null
+
 }

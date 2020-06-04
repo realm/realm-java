@@ -260,22 +260,6 @@ public abstract class Sync {
     }
 
     /**
-     * Called from native code. This method is not allowed to throw as it would be swallowed
-     * by the native Sync Client thread. Instead log all exceptions to logcat.
-     */
-    @SuppressWarnings("unused")
-    private synchronized void notifyConnectionListeners(String localRealmPath, long oldState, long newState) {
-        SyncSession session = sessions.get(localRealmPath);
-        if (session != null) {
-            try {
-                session.notifyConnectionListeners(ConnectionState.fromNativeValue(oldState), ConnectionState.fromNativeValue(newState));
-            } catch (Exception exception) {
-                RealmLog.error(exception);
-            }
-        }
-    }
-
-    /**
      * Realm will automatically detect when a device gets connectivity after being offline and
      * resume syncing.
      * <p>
