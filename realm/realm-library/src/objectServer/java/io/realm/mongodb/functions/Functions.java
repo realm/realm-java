@@ -24,10 +24,10 @@ import java.util.List;
 import io.realm.RealmAsyncTask;
 import io.realm.annotations.Beta;
 import io.realm.internal.Util;
+import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.mongodb.Request;
 import io.realm.mongodb.App;
 import io.realm.mongodb.AppConfiguration;
-import io.realm.mongodb.ErrorCode;
 import io.realm.mongodb.ObjectServerError;
 import io.realm.mongodb.User;
 
@@ -75,7 +75,7 @@ public abstract class Functions {
      * @see AppConfiguration#getDefaultCodecRegistry()
      */
     public <ResultT> ResultT callFunction(String name, List<?> args, Class<ResultT> resultClass, CodecRegistry codecRegistry) {
-        return invoke(name, args, codecRegistry, decoder(codecRegistry, resultClass));
+        return invoke(name, args, codecRegistry, JniBsonProtocol.getCodec(resultClass, codecRegistry));
     }
 
     /**
@@ -142,7 +142,8 @@ public abstract class Functions {
         return new Request<T>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public T run() throws ObjectServerError {
-                return invoke(name, args, codecRegistry, decoder(codecRegistry, resultClass));
+                Decoder<T> decoder = JniBsonProtocol.getCodec(resultClass, codecRegistry);
+                return invoke(name, args, codecRegistry, decoder);
             }
         }.start();
     }
@@ -227,13 +228,5 @@ public abstract class Functions {
     }
 
     protected abstract <T> T invoke(String name, List<?> args, CodecRegistry codecRegistry, Decoder<T> resultDecoder);
-
-    private static <T> Decoder<T> decoder(CodecRegistry codecRegistry, Class<T> clz) {
-        try {
-            return codecRegistry.get(clz);
-        } catch (Exception e) {
-            throw new ObjectServerError(ErrorCode.BSON_CODEC_NOT_FOUND, "Could not resolve decoder for " + clz.getName(), e);
-        }
-    }
 
 }
