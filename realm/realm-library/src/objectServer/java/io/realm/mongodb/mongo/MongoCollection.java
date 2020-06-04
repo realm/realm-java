@@ -25,6 +25,8 @@ import java.util.List;
 
 import io.realm.annotations.Beta;
 import io.realm.internal.common.TaskDispatcher;
+import io.realm.mongodb.mongo.iterable.AggregateIterable;
+import io.realm.mongodb.mongo.iterable.FindIterable;
 import io.realm.internal.objectstore.OsMongoCollection;
 import io.realm.mongodb.mongo.options.CountOptions;
 import io.realm.mongodb.mongo.options.FindOneAndModifyOptions;
@@ -36,7 +38,7 @@ import io.realm.mongodb.mongo.result.InsertOneResult;
 import io.realm.mongodb.mongo.result.UpdateResult;
 
 /**
- * The RemoteMongoCollection interface provides read and write access to documents.
+ * The MongoCollection interface provides read and write access to documents.
  * <p>
  * Use {@link MongoDatabase#getCollection} to get a collection instance.
  * </p><p>
@@ -49,13 +51,16 @@ import io.realm.mongodb.mongo.result.UpdateResult;
 @Beta
 public class MongoCollection<DocumentT> {
 
-    private OsMongoCollection<DocumentT> osMongoCollection;
+    private final MongoNamespace nameSpace;
+    private final OsMongoCollection<DocumentT> osMongoCollection;
+    private final TaskDispatcher dispatcher;
 
-    private TaskDispatcher dispatcher;
-
-    MongoCollection(OsMongoCollection<DocumentT> osMongoCollection) {
-        this.dispatcher = new TaskDispatcher();
+    MongoCollection(final MongoNamespace nameSpace,
+                    final OsMongoCollection<DocumentT> osMongoCollection,
+                    final TaskDispatcher dispatcher) {
+        this.nameSpace = nameSpace;
         this.osMongoCollection = osMongoCollection;
+        this.dispatcher = dispatcher;
     }
 
     /**
@@ -64,32 +69,57 @@ public class MongoCollection<DocumentT> {
      * @return the namespace
      */
     public MongoNamespace getNamespace() {
-        throw new RuntimeException("Not Implemented");
+        return nameSpace;
     }
 
     /**
-     * Create a new RemoteMongoCollection instance with a different default class to cast any
+     * Gets the class of documents stored in this collection.
+     * <p>
+     * If you used the simple {@link MongoDatabase#getCollection(String)} to get this collection,
+     * this is {@link org.bson.Document}.
+     * </p>
+     *
+     * @return the class of documents in this collection
+     */
+    public Class<DocumentT> getDocumentClass() {
+        return osMongoCollection.getDocumentClass();
+    }
+
+    /**
+     * Gets the codec registry for the MongoCollection.
+     *
+     * @return the {@link CodecRegistry} for this collection
+     */
+    public CodecRegistry getCodecRegistry() {
+        return osMongoCollection.getCodecRegistry();
+    }
+
+    /**
+     * Creates a new MongoCollection instance with a different default class to cast any
      * documents returned from the database into.
      *
-     * @param clazz          the default class to cast any documents returned from the database into.
+     * @param clazz          the default class to which any documents returned from the database
+     *                       will be cast.
      * @param <NewDocumentT> The type that the new collection will encode documents from and decode
      *                       documents to.
-     * @return a new RemoteMongoCollection instance with the different default class
+     * @return a new MongoCollection instance with the different default class
      */
     public <NewDocumentT> MongoCollection<NewDocumentT> withDocumentClass(
             final Class<NewDocumentT> clazz) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return new MongoCollection<>(nameSpace,
+                osMongoCollection.withDocumentClass(clazz), dispatcher);
     }
 
     /**
-     * Create a new RemoteMongoCollection instance with a different codec registry.
+     * Creates a new MongoCollection instance with a different codec registry.
      *
      * @param codecRegistry the new {@link CodecRegistry} for the
      *                      collection.
-     * @return a new RemoteMongoCollection instance with the different codec registry
+     * @return a new MongoCollection instance with the different codec registry
      */
     public MongoCollection<DocumentT> withCodecRegistry(final CodecRegistry codecRegistry) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return new MongoCollection<>(nameSpace,
+                osMongoCollection.withCodecRegistry(codecRegistry), dispatcher);
     }
 
     /**
@@ -98,9 +128,7 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the number of documents in the collection
      */
     public Task<Long> count() {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.count()
-        );
+        return dispatcher.dispatchTask(osMongoCollection::count);
     }
 
     /**
@@ -134,9 +162,7 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the result of the find one operation
      */
     public Task<DocumentT> findOne() {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.findOne()
-        );
+        return dispatcher.dispatchTask(osMongoCollection::findOne);
     }
 
     /**
@@ -182,7 +208,7 @@ public class MongoCollection<DocumentT> {
      * Finds a document in the collection.
      *
      * @param filter  the query filter
-     * @param options A RemoteFindOptions struct
+     * @param options a {@link FindOptions} struct
      * @return a task containing the result of the find one operation
      */
     public Task<DocumentT> findOne(final Bson filter, final FindOptions options) {
@@ -195,15 +221,14 @@ public class MongoCollection<DocumentT> {
      * Finds a document in the collection.
      *
      * @param filter      the query filter
-     * @param options     A RemoteFindOptions struct
+     * @param options     a {@link FindOptions} struct
      * @param resultClass the class to decode each document into
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the result of the find one operation
      */
-    public <ResultT> Task<ResultT> findOne(
-            final Bson filter,
-            final FindOptions options,
-            final Class<ResultT> resultClass) {
+    public <ResultT> Task<ResultT> findOne(final Bson filter,
+                                           final FindOptions options,
+                                           final Class<ResultT> resultClass) {
         return dispatcher.dispatchTask(() ->
                 osMongoCollection.findOne(filter, options, resultClass)
         );
@@ -211,110 +236,151 @@ public class MongoCollection<DocumentT> {
 
     /**
      * Finds all documents in the collection.
+     * <p>
+     * All documents will be delivered in the form of a {@link FindIterable} from which individual
+     * elements can be extracted.
      *
-     * @return the find iterable interface
+     * @return an iterable containing the result of the find operation
      */
-    // FIXME: fix find implementation - ignore this code for code review
-    public Task<Iterable<DocumentT>> find() {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.find()
-        );
-    }
-
-    // FIXME: fix find implementation - ignore this code for code review
-    public Task<Iterable<DocumentT>> find(final FindOptions options) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.find(options)
-        );
+    public FindIterable<DocumentT> find() {
+        return osMongoCollection.find();
     }
 
     /**
-     * Finds all documents in the collection.
+     * Finds all documents in the collection using {@link FindOptions} to build the query.
+     * <p>
+     * All documents will be delivered in the form of a {@link FindIterable} from which individual
+     * elements can be extracted.
+     *
+     * @param options a {@link FindOptions} struct for building the query
+     * @return an iterable containing the result of the find operation
+     */
+    public FindIterable<DocumentT> find(final FindOptions options) {
+        return osMongoCollection.find(options);
+    }
+
+    /**
+     * Finds all documents in the collection specifying an output class.
+     * <p>
+     * All documents will be delivered in the form of a {@link FindIterable} from which individual
+     * elements can be extracted.
      *
      * @param resultClass the class to decode each document into
      * @param <ResultT>   the target document type of the iterable.
-     * @return the find iterable interface
+     * @return an iterable containing the result of the find operation
      */
-    // FIXME: fix find implementation - ignore this code for code review
-    public <ResultT> Task<Iterable<ResultT>> find(final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.find(resultClass)
-        );
+    public <ResultT> FindIterable<ResultT> find(final Class<ResultT> resultClass) {
+        return osMongoCollection.find(resultClass);
     }
 
-    // FIXME: fix find implementation - ignore this code for code review
-    public <ResultT> Task<Iterable<ResultT>> find(final Class<ResultT> resultClass, final FindOptions options) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.find(resultClass, options)
-        );
+    /**
+     * Finds all documents in the collection specifying an output class and also using
+     * {@link FindOptions} to build the query.
+     * <p>
+     * All documents will be delivered in the form of a {@link FindIterable} from which individual
+     * elements can be extracted.
+     *
+     * @param resultClass the class to decode each document into
+     * @param options a {@link FindOptions} struct for building the query
+     * @param <ResultT>   the target document type of the iterable.
+     * @return an iterable containing the result of the find operation
+     */
+    public <ResultT> FindIterable<ResultT> find(final Class<ResultT> resultClass,
+                                                final FindOptions options) {
+        return osMongoCollection.find(resultClass, options);
     }
 
     /**
      * Finds all documents in the collection that match the given filter.
+     * <p>
+     * All documents will be delivered in the form of a {@link FindIterable} from which individual
+     * elements can be extracted.
      *
      * @param filter the query filter
-     * @return the find iterable interface
+     * @return an iterable containing the result of the find operation
      */
-    // FIXME: fix find implementation - ignore this code for code review
-    public Task<Iterable<DocumentT>> find(final Bson filter) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.find(filter)
-        );
-    }
-
-    // FIXME: fix find implementation - ignore this code for code review
-    public Task<Iterable<DocumentT>> find(final Bson filter, final FindOptions options) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.find(filter, options)
-        );
+    public FindIterable<DocumentT> find(final Bson filter) {
+        return osMongoCollection.find(filter);
     }
 
     /**
-     * Finds all documents in the collection that match the given filter.
+     * Finds all documents in the collection that match the given filter using {@link FindOptions}
+     * to build the query.
+     * <p>
+     * All documents will be delivered in the form of a {@link FindIterable} from which individual
+     * elements can be extracted.
+     *
+     * @param filter the query filter
+     * @param options a {@link FindOptions} struct
+     * @return an iterable containing the result of the find operation
+     */
+    public FindIterable<DocumentT> find(final Bson filter, final FindOptions options) {
+        return osMongoCollection.find(filter, options);
+    }
+
+    /**
+     * Finds all documents in the collection that match the given filter specifying an output class.
+     * <p>
+     * All documents will be delivered in the form of a {@link FindIterable} from which individual
+     * elements can be extracted.
      *
      * @param filter      the query filter
      * @param resultClass the class to decode each document into
      * @param <ResultT>   the target document type of the iterable.
-     * @return the find iterable interface
+     * @return an iterable containing the result of the find operation
      */
-    // FIXME: fix find implementation - ignore this code for code review
-    public <ResultT> Task<Iterable<ResultT>> find(final Bson filter, final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.find(filter, resultClass)
-        );
+    public <ResultT> FindIterable<ResultT> find(final Bson filter,
+                                                final Class<ResultT> resultClass) {
+        return osMongoCollection.find(filter, resultClass);
     }
 
-    // FIXME: fix find implementation - ignore this code for code review
-    public <ResultT> Task<Iterable<ResultT>> find(final Bson filter,
-                                        final Class<ResultT> resultClass,
-                                        final FindOptions options) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.find(filter, resultClass, options)
-        );
+    /**
+     * Finds all documents in the collection that match the given filter specifying an output class
+     * and also using {@link FindOptions} to build the query.
+     * <p>
+     * All documents will be delivered in the form of a {@link FindIterable} from which individual
+     * elements can be extracted.
+     *
+     * @param filter      the query filter
+     * @param resultClass the class to decode each document into
+     * @param options     a {@link FindOptions} struct
+     * @param <ResultT>   the target document type of the iterable.
+     * @return an iterable containing the result of the find operation
+     */
+    public <ResultT> FindIterable<ResultT> find(final Bson filter,
+                                                final Class<ResultT> resultClass,
+                                                final FindOptions options) {
+        return osMongoCollection.find(filter, resultClass, options);
     }
 
     /**
      * Aggregates documents according to the specified aggregation pipeline.
+     * <p>
+     * All documents will be delivered in the form of an {@link AggregateIterable} from which
+     * individual elements can be extracted.
      *
      * @param pipeline the aggregation pipeline
-     * @return an iterable containing the result of the aggregation operation
+     * @return an {@link AggregateIterable} from which the results can be extracted
      */
-    public Task<DocumentT> aggregate(final List<? extends Bson> pipeline) {
-        throw new UnsupportedOperationException("Not Implemented");
+    public AggregateIterable<DocumentT> aggregate(final List<? extends Bson> pipeline) {
+        return osMongoCollection.aggregate(pipeline);
     }
 
     /**
-     * Aggregates documents according to the specified aggregation pipeline.
+     * Aggregates documents according to the specified aggregation pipeline specifying an output
+     * class.
+     * <p>
+     * All documents will be delivered in the form of an {@link AggregateIterable} from which
+     * individual elements can be extracted.
      *
      * @param pipeline    the aggregation pipeline
      * @param resultClass the class to decode each document into
      * @param <ResultT>   the target document type of the iterable.
-     * @return an iterable containing the result of the aggregation operation
+     * @return an {@link AggregateIterable} from which the results can be extracted
      */
-    public <ResultT> Task<ResultT> aggregate(
-            final List<? extends Bson> pipeline,
-            final Class<ResultT> resultClass) {
-        throw new UnsupportedOperationException("Not Implemented");
+    public <ResultT> AggregateIterable<ResultT> aggregate(final List<? extends Bson> pipeline,
+                                                          final Class<ResultT> resultClass) {
+        return osMongoCollection.aggregate(pipeline, resultClass);
     }
 
     /**
@@ -468,7 +534,7 @@ public class MongoCollection<DocumentT> {
      *
      * @param filter  the query filter
      * @param update  the update document
-     * @param options A RemoteFindOneAndModifyOptions struct
+     * @param options a {@link FindOneAndModifyOptions} struct
      * @return a task containing the resulting document
      */
     public Task<DocumentT> findOneAndUpdate(final Bson filter,
@@ -484,16 +550,15 @@ public class MongoCollection<DocumentT> {
      *
      * @param filter      the query filter
      * @param update      the update document
-     * @param options     A RemoteFindOneAndModifyOptions struct
+     * @param options     a {@link FindOneAndModifyOptions} struct
      * @param resultClass the class to decode each document into
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the resulting document
      */
-    public <ResultT> Task<ResultT> findOneAndUpdate(
-            final Bson filter,
-            final Bson update,
-            final FindOneAndModifyOptions options,
-            final Class<ResultT> resultClass) {
+    public <ResultT> Task<ResultT> findOneAndUpdate(final Bson filter,
+                                                    final Bson update,
+                                                    final FindOneAndModifyOptions options,
+                                                    final Class<ResultT> resultClass) {
         return dispatcher.dispatchTask(() ->
                 osMongoCollection.findOneAndUpdate(filter, update, options, resultClass)
         );
@@ -534,7 +599,7 @@ public class MongoCollection<DocumentT> {
      *
      * @param filter      the query filter
      * @param replacement the document to replace the matched document with
-     * @param options     A RemoteFindOneAndModifyOptions struct
+     * @param options     a {@link FindOneAndModifyOptions} struct
      * @return a task containing the resulting document
      */
     public Task<DocumentT> findOneAndReplace(final Bson filter,
@@ -550,16 +615,15 @@ public class MongoCollection<DocumentT> {
      *
      * @param filter      the query filter
      * @param replacement the document to replace the matched document with
-     * @param options     A RemoteFindOneAndModifyOptions struct
+     * @param options     a {@link FindOneAndModifyOptions} struct
      * @param resultClass the class to decode each document into
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the resulting document
      */
-    public <ResultT> Task<ResultT> findOneAndReplace(
-            final Bson filter,
-            final Bson replacement,
-            final FindOneAndModifyOptions options,
-            final Class<ResultT> resultClass) {
+    public <ResultT> Task<ResultT> findOneAndReplace(final Bson filter,
+                                                     final Bson replacement,
+                                                     final FindOneAndModifyOptions options,
+                                                     final Class<ResultT> resultClass) {
         return dispatcher.dispatchTask(() ->
                 osMongoCollection.findOneAndReplace(filter, replacement, options, resultClass)
         );
@@ -596,7 +660,7 @@ public class MongoCollection<DocumentT> {
      * Finds a document in the collection and delete it.
      *
      * @param filter  the query filter
-     * @param options A RemoteFindOneAndModifyOptions struct
+     * @param options a {@link FindOneAndModifyOptions} struct
      * @return a task containing the resulting document
      */
     public Task<DocumentT> findOneAndDelete(final Bson filter,
@@ -610,7 +674,7 @@ public class MongoCollection<DocumentT> {
      * Finds a document in the collection and delete it.
      *
      * @param filter      the query filter
-     * @param options     A RemoteFindOneAndModifyOptions struct
+     * @param options     a {@link FindOneAndModifyOptions} struct
      * @param resultClass the class to decode each document into
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the resulting document
@@ -622,96 +686,4 @@ public class MongoCollection<DocumentT> {
                 osMongoCollection.findOneAndDelete(filter, options, resultClass)
         );
     }
-
-    // FIXME: what about these?
-//    /**
-//     * Watches a collection. The resulting stream will be notified of all events on this collection
-//     * that the active user is authorized to see based on the configured MongoDB rules.
-//     *
-//     * @return the stream of change events.
-//     */
-//    Task<AsyncChangeStream<DocumentT, ChangeEvent<DocumentT>>> watch();
-//
-//    /**
-//     * Watches specified IDs in a collection.  This convenience overload supports the use case
-//     * of non-{@link BsonValue} instances of {@link ObjectId}.
-//     *
-//     * @param ids unique object identifiers of the IDs to watch.
-//     * @return the stream of change events.
-//     */
-//    Task<AsyncChangeStream<DocumentT, ChangeEvent<DocumentT>>> watch(final ObjectId... ids);
-//
-//    /**
-//     * Watches specified IDs in a collection.
-//     *
-//     * @param ids the ids to watch.
-//     * @return the stream of change events.
-//     */
-//    Task<AsyncChangeStream<DocumentT, ChangeEvent<DocumentT>>> watch(final BsonValue... ids);
-//
-//    /**
-//     * Watches a collection. The provided BSON document will be used as a match expression filter on
-//     * the change events coming from the stream.
-//     * See https://docs.mongodb.com/manual/reference/operator/aggregation/match/ for documentation
-//     * around how to define a match filter. Defining the match expression to filter ChangeEvents is
-//     * similar to defining the match expression for triggers:
-//     * https://docs.mongodb.com/stitch/triggers/database-triggers/
-//     *
-//     * @param matchFilter the $match filter to apply to incoming change events
-//     * @return the stream of change events.
-//     */
-//    Task<AsyncChangeStream<DocumentT, ChangeEvent<DocumentT>>> watchWithFilter(
-//            final BsonDocument matchFilter);
-//
-//    /**
-//     * Watches a collection. The provided BSON document will be used as a match expression filter on
-//     * the change events coming from the stream.
-//     * See https://docs.mongodb.com/manual/reference/operator/aggregation/match/ for documentation
-//     * around how to define a match filter. Defining the match expression to filter ChangeEvents is
-//     * similar to defining the match expression for triggers:
-//     * https://docs.mongodb.com/stitch/triggers/database-triggers/
-//     *
-//     * @param matchFilter the $match filter to apply to incoming change events
-//     * @return the stream of change events.
-//     */
-//    Task<AsyncChangeStream<DocumentT, ChangeEvent<DocumentT>>> watchWithFilter(
-//            final Document matchFilter);
-//
-//    /**
-//     * Watches specified IDs in a collection.  This convenience overload supports the use case
-//     * of non-{@link BsonValue} instances of {@link ObjectId}. This convenience overload supports the
-//     * use case of non-{@link BsonValue} instances of {@link ObjectId}. Requests a stream where the
-//     * full document of update events, and several other unnecessary fields are omitted from the
-//     * change event objects returned by the server. This can save on network usage when watching
-//     * large documents.
-//     *
-//     * @param ids unique object identifiers of the IDs to watch.
-//     * @return the stream of change events.
-//     */
-//    Task<AsyncChangeStream<DocumentT, CompactChangeEvent<DocumentT>>> watchCompact(
-//            final ObjectId... ids);
-//
-//    /**
-//     * Watches specified IDs in a collection. This convenience overload supports the use case of
-//     * non-{@link BsonValue} instances of {@link ObjectId}. Requests a stream where the full document
-//     * of update events, and several other unnecessary fields are omitted from the change event
-//     * objects returned by the server. This can save on network usage when watching large documents.
-//     *
-//     * @param ids the ids to watch.
-//     * @return the stream of change events.
-//     */
-//    Task<AsyncChangeStream<DocumentT, CompactChangeEvent<DocumentT>>> watchCompact(
-//            final BsonValue... ids);
-
-    // FIXME: what about this one?
-//    /**
-//     * A set of synchronization related operations on this collection.
-//     *
-//     * <p>
-//     * WARNING: This is a BETA feature and the API and on-device storage format
-//     * are subject to change.
-//     * </p>
-//     * @return set of sync operations for this collection
-//     */
-//    Sync<DocumentT> sync();
 }

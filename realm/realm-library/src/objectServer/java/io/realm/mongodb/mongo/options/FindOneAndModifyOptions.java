@@ -18,6 +18,7 @@ package io.realm.mongodb.mongo.options;
 
 import javax.annotation.Nullable;
 
+import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import io.realm.annotations.Beta;
@@ -28,10 +29,16 @@ import io.realm.annotations.Beta;
  */
 @Beta
 public class FindOneAndModifyOptions {
+
     private Bson projection;
     private Bson sort;
     private boolean upsert;
     private boolean returnNewDocument;
+
+    public FindOneAndModifyOptions() {
+        this.projection = new Document();
+        this.sort = new Document();
+    }
 
     /**
      * Gets a document describing the fields to return for all matching documents.

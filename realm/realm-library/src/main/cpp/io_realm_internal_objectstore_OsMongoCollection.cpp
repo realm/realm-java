@@ -83,10 +83,6 @@ static std::function<jobject(JNIEnv*, RemoteMongoCollection::RemoteUpdateResult)
     return JniBsonProtocol::bson_to_jstring(env, output);
 };
 
-static std::function<jobject(JNIEnv*, util::Optional<bson::BsonArray>)> collection_mapper_find = [](JNIEnv* env, util::Optional<bson::BsonArray> array) {
-    return array ? JniBsonProtocol::bson_to_jstring(env, *array) : NULL;
-};
-
 static void finalize_collection(jlong ptr) {
     delete reinterpret_cast<RemoteMongoCollection*>(ptr);
 }
@@ -116,41 +112,39 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeCount(JNIEnv* env,
 JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOne(JNIEnv* env,
                                                                    jclass,
+                                                                   jint j_find_one_type,
                                                                    jlong j_collection_ptr,
                                                                    jstring j_filter,
+                                                                   jstring j_projection,
+                                                                   jstring j_sort,
+                                                                   jlong j_limit,
                                                                    jobject j_callback) {
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 
         bson::BsonDocument filter(JniBsonProtocol::parse_checked(env, j_filter, Bson::Type::Document, "BSON filter must be a Document"));
-        collection->find_one(filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
-    }
-    CATCH_STD()
-}
 
-JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneWithOptions(JNIEnv* env,
-                                                                              jclass,
-                                                                              jlong j_collection_ptr,
-                                                                              jstring j_filter,
-                                                                              jstring j_projection,
-                                                                              jstring j_sort,
-                                                                              jlong j_limit,
-                                                                              jobject j_callback) {
-    try {
-        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
-        uint64_t limit = std::uint64_t(j_limit);
+        switch (j_find_one_type) {
+            case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE:
+                collection->find_one(filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
+                break;
+            case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_WITH_OPTIONS: {
+                uint64_t limit = std::uint64_t(j_limit);
 
-        bson::BsonDocument filter(JniBsonProtocol::parse_checked(env, j_filter, Bson::Type::Document, "BSON filter must be a Document"));
-        bson::BsonDocument projection(JniBsonProtocol::parse_checked(env, j_projection, Bson::Type::Document, "BSON projection must be a Document"));
-        bson::BsonDocument sort(JniBsonProtocol::parse_checked(env, j_sort, Bson::Type::Document, "BSON sort must be a Document"));
-        RemoteMongoCollection::RemoteFindOptions options = {
-                limit,
-                projection,
-                sort
-        };
+                bson::BsonDocument projection(JniBsonProtocol::parse_checked(env, j_projection, Bson::Type::Document, "BSON projection must be a Document"));
+                bson::BsonDocument sort(JniBsonProtocol::parse_checked(env, j_sort, Bson::Type::Document, "BSON sort must be a Document"));
+                RemoteMongoCollection::RemoteFindOptions options = {
+                        limit,
+                        projection,
+                        sort
+                };
 
-        collection->find_one(filter, options, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
+                collection->find_one(filter, options, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
+                break;
+            }
+            default:
+                throw std::logic_error(util::format("Unknown find_one type: %1", j_find_one_type));
+        }
     }
     CATCH_STD()
 }
@@ -186,101 +180,61 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeInsertMany(JNIEnv* en
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsMongoCollection_nativeDeleteOne(JNIEnv* env,
-                                                                     jclass,
-                                                                     jlong j_collection_ptr,
-                                                                     jstring j_document,
-                                                                     jobject j_callback) {
+Java_io_realm_internal_objectstore_OsMongoCollection_nativeDelete(JNIEnv* env,
+                                                                  jclass,
+                                                                  jint j_delete_type,
+                                                                  jlong j_collection_ptr,
+                                                                  jstring j_document,
+                                                                  jobject j_callback) {
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
-
         bson::BsonDocument filter(JniBsonProtocol::parse_checked(env, j_document, Bson::Type::Document, "BSON document must be a Document"));
-        collection->delete_one(filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_count));
+
+        switch (j_delete_type) {
+            case io_realm_internal_objectstore_OsMongoCollection_DELETE_ONE:
+                collection->delete_one(filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_count));
+                break;
+            case io_realm_internal_objectstore_OsMongoCollection_DELETE_MANY:
+                collection->delete_many(filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_count));
+                break;
+            default:
+                throw std::logic_error(util::format("Unknown delete type: %1", j_delete_type));
+        }
     }
     CATCH_STD()
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsMongoCollection_nativeDeleteMany(JNIEnv* env,
-                                                                      jclass,
-                                                                      jlong j_collection_ptr,
-                                                                      jstring j_document,
-                                                                      jobject j_callback) {
-    try {
-        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
-
-        bson::BsonDocument filter(JniBsonProtocol::parse_checked(env, j_document, Bson::Type::Document, "BSON document must be a Document"));
-        collection->delete_many(filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_count));
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsMongoCollection_nativeUpdateOne(JNIEnv *env,
-                                                                     jclass,
-                                                                     jlong j_collection_ptr,
-                                                                     jstring j_filter,
-                                                                     jstring j_update,
-                                                                     jobject j_callback) {
-    try {
-        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
-
-        bson::BsonDocument filter(JniBsonProtocol::parse_checked(env, j_filter, Bson::Type::Document, "BSON filter must be a Document"));
-        bson::BsonDocument update(JniBsonProtocol::parse_checked(env, j_update, Bson::Type::Document, "BSON update must be a Document"));
-        collection->update_one(filter, update, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_update));
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsMongoCollection_nativeUpdateOneWithOptions(JNIEnv *env,
-                                                                                jclass,
-                                                                                jlong j_collection_ptr,
-                                                                                jstring j_filter,
-                                                                                jstring j_update,
-                                                                                jboolean j_upsert,
-                                                                                jobject j_callback) {
+Java_io_realm_internal_objectstore_OsMongoCollection_nativeUpdate(JNIEnv *env,
+                                                                  jclass,
+                                                                  jint j_update_type,
+                                                                  jlong j_collection_ptr,
+                                                                  jstring j_filter,
+                                                                  jstring j_update,
+                                                                  jboolean j_upsert,
+                                                                  jobject j_callback) {
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 
         bson::BsonDocument filter(JniBsonProtocol::parse_checked(env, j_filter, Bson::Type::Document, "BSON filter must be a Document"));
         bson::BsonDocument update(JniBsonProtocol::parse_checked(env, j_update, Bson::Type::Document, "BSON update must be a Document"));
-        collection->update_one(filter, update, to_bool(j_upsert), JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_update));
-    }
-    CATCH_STD()
-}
 
-JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsMongoCollection_nativeUpdateMany(JNIEnv *env,
-                                                                      jclass,
-                                                                      jlong j_collection_ptr,
-                                                                      jstring j_filter,
-                                                                      jstring j_update,
-                                                                      jobject j_callback) {
-    try {
-        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
-
-        bson::BsonDocument filter(JniBsonProtocol::parse_checked(env, j_filter, Bson::Type::Document, "BSON filter must be a Document"));
-        bson::BsonDocument update(JniBsonProtocol::parse_checked(env, j_update, Bson::Type::Document, "BSON update must be a Document"));
-        collection->update_many(filter, update, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_update));
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsMongoCollection_nativeUpdateManyWithOptions(JNIEnv *env,
-                                                                                 jclass,
-                                                                                 jlong j_collection_ptr,
-                                                                                 jstring j_filter,
-                                                                                 jstring j_update,
-                                                                                 jboolean j_upsert,
-                                                                                 jobject j_callback) {
-    try {
-        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
-
-        bson::BsonDocument filter(JniBsonProtocol::parse_checked(env, j_filter, Bson::Type::Document, "BSON filter must be a Document"));
-        bson::BsonDocument update(JniBsonProtocol::parse_checked(env, j_update, Bson::Type::Document, "BSON update must be a Document"));
-        collection->update_many(filter, update, to_bool(j_upsert), JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_update));
+        switch (j_update_type) {
+            case io_realm_internal_objectstore_OsMongoCollection_UPDATE_ONE:
+                collection->update_one(filter, update, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_update));
+                break;
+            case io_realm_internal_objectstore_OsMongoCollection_UPDATE_ONE_WITH_OPTIONS:
+                collection->update_one(filter, update, to_bool(j_upsert), JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_update));
+                break;
+            case io_realm_internal_objectstore_OsMongoCollection_UPDATE_MANY:
+                collection->update_many(filter, update, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_update));
+                break;
+            case io_realm_internal_objectstore_OsMongoCollection_UPDATE_MANY_WITH_OPTIONS:
+                collection->update_many(filter, update, to_bool(j_upsert), JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_update));
+                break;
+            default:
+                throw std::logic_error(util::format("Unknown update type: %1", j_update_type));
+        }
     }
     CATCH_STD()
 }
@@ -288,45 +242,40 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeUpdateManyWithOptions
 JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndUpdate(JNIEnv *env,
                                                                             jclass,
+                                                                            jint j_find_one_and_update_type,
                                                                             jlong j_collection_ptr,
                                                                             jstring j_filter,
                                                                             jstring j_update,
+                                                                            jstring j_projection,
+                                                                            jstring j_sort,
+                                                                            jboolean j_upsert,
+                                                                            jboolean j_return_new_document,
                                                                             jobject j_callback) {
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 
         bson::BsonDocument filter(JniBsonProtocol::parse_checked(env, j_filter, Bson::Type::Document, "BSON filter must be a Document"));
         bson::BsonDocument update(JniBsonProtocol::parse_checked(env, j_update, Bson::Type::Document, "BSON update must be a Document"));
-        collection->find_one_and_update(filter, update, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
-    }
-    CATCH_STD()
-}
 
-JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndUpdateWithOptions(JNIEnv *env,
-                                                                                       jclass,
-                                                                                       jlong j_collection_ptr,
-                                                                                       jstring j_filter,
-                                                                                       jstring j_update,
-                                                                                       jstring j_projection,
-                                                                                       jstring j_sort,
-                                                                                       jboolean j_upsert,
-                                                                                       jboolean j_return_new_document,
-                                                                                       jobject j_callback) {
-    try {
-        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
-
-        bson::BsonDocument filter(JniBsonProtocol::parse_checked(env, j_filter, Bson::Type::Document, "BSON filter must be a Document"));
-        bson::BsonDocument update(JniBsonProtocol::parse_checked(env, j_update, Bson::Type::Document, "BSON update must be a Document"));
-        bson::BsonDocument projection(JniBsonProtocol::parse_checked(env, j_projection, Bson::Type::Document, "BSON projection must be a Document"));
-        bson::BsonDocument sort(JniBsonProtocol::parse_checked(env, j_sort, Bson::Type::Document, "BSON sort must be a Document"));
-        RemoteMongoCollection::RemoteFindOneAndModifyOptions options = {
-                projection,
-                sort,
-                to_bool(j_upsert),
-                to_bool(j_return_new_document)
-        };
-        collection->find_one_and_update(filter, update, options, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
+        switch (j_find_one_and_update_type) {
+            case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_AND_UPDATE:
+                collection->find_one_and_update(filter, update, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
+                break;
+            case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_AND_UPDATE_WITH_OPTIONS: {
+                bson::BsonDocument projection(JniBsonProtocol::parse_checked(env, j_projection, Bson::Type::Document, "BSON projection must be a Document"));
+                bson::BsonDocument sort(JniBsonProtocol::parse_checked(env, j_sort, Bson::Type::Document, "BSON sort must be a Document"));
+                RemoteMongoCollection::RemoteFindOneAndModifyOptions options = {
+                        projection,
+                        sort,
+                        to_bool(j_upsert),
+                        to_bool(j_return_new_document)
+                };
+                collection->find_one_and_update(filter, update, options, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
+                break;
+            }
+            default:
+                throw std::logic_error(util::format("Unknown find_one_and_update type: %1", j_find_one_and_update_type));
+        }
     }
     CATCH_STD()
 }
@@ -334,45 +283,40 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndUpdateWithO
 JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndReplace(JNIEnv *env,
                                                                              jclass,
+                                                                             jint j_find_one_and_replace_type,
                                                                              jlong j_collection_ptr,
                                                                              jstring j_filter,
                                                                              jstring j_update,
+                                                                             jstring j_projection,
+                                                                             jstring j_sort,
+                                                                             jboolean j_upsert,
+                                                                             jboolean j_return_new_document,
                                                                              jobject j_callback) {
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 
         bson::BsonDocument filter(JniBsonProtocol::parse_checked(env, j_filter, Bson::Type::Document, "BSON filter must be a Document"));
         bson::BsonDocument update(JniBsonProtocol::parse_checked(env, j_update, Bson::Type::Document, "BSON update must be a Document"));
-        collection->find_one_and_update(filter, update, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
-    }
-    CATCH_STD()
-}
 
-JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndReplaceWithOptions(JNIEnv *env,
-                                                                                        jclass,
-                                                                                        jlong j_collection_ptr,
-                                                                                        jstring j_filter,
-                                                                                        jstring j_update,
-                                                                                        jstring j_projection,
-                                                                                        jstring j_sort,
-                                                                                        jboolean j_upsert,
-                                                                                        jboolean j_return_new_document,
-                                                                                        jobject j_callback) {
-    try {
-        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
-
-        bson::BsonDocument filter(JniBsonProtocol::parse_checked(env, j_filter, Bson::Type::Document, "BSON filter must be a Document"));
-        bson::BsonDocument update(JniBsonProtocol::parse_checked(env, j_update, Bson::Type::Document, "BSON update must be a Document"));
-        bson::BsonDocument projection(JniBsonProtocol::parse_checked(env, j_projection, Bson::Type::Document, "BSON projection must be a Document"));
-        bson::BsonDocument sort(JniBsonProtocol::parse_checked(env, j_sort, Bson::Type::Document, "BSON sort must be a Document"));
-        RemoteMongoCollection::RemoteFindOneAndModifyOptions options = {
-                projection,
-                sort,
-                to_bool(j_upsert),
-                to_bool(j_return_new_document)
-        };
-        collection->find_one_and_replace(filter, update, options, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
+        switch (j_find_one_and_replace_type) {
+            case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_AND_REPLACE:
+                collection->find_one_and_replace(filter, update, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
+                break;
+            case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_AND_REPLACE_WITH_OPTIONS: {
+                bson::BsonDocument projection(JniBsonProtocol::parse_checked(env, j_projection, Bson::Type::Document, "BSON projection must be a Document"));
+                bson::BsonDocument sort(JniBsonProtocol::parse_checked(env, j_sort, Bson::Type::Document, "BSON sort must be a Document"));
+                RemoteMongoCollection::RemoteFindOneAndModifyOptions options = {
+                        projection,
+                        sort,
+                        to_bool(j_upsert),
+                        to_bool(j_return_new_document)
+                };
+                collection->find_one_and_replace(filter, update, options, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
+                break;
+            }
+            default:
+                throw std::logic_error(util::format("Unknown find_one_and_replace type: %1", j_find_one_and_replace_type));
+        }
     }
     CATCH_STD()
 }
@@ -380,82 +324,38 @@ Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndReplaceWith
 JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndDelete(JNIEnv *env,
                                                                             jclass,
+                                                                            jint j_find_one_and_delete_type,
                                                                             jlong j_collection_ptr,
                                                                             jstring j_filter,
+                                                                            jstring j_projection,
+                                                                            jstring j_sort,
+                                                                            jboolean j_upsert,
+                                                                            jboolean j_return_new_document,
                                                                             jobject j_callback) {
     try {
         auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
 
         bson::BsonDocument filter(JniBsonProtocol::parse_checked(env, j_filter, Bson::Type::Document, "BSON filter must be a Document"));
-        collection->find_one_and_delete(filter, JavaNetworkTransport::create_void_callback(env, j_callback));
-    }
-    CATCH_STD()
-}
 
-JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindOneAndDeleteWithOptions(JNIEnv *env,
-                                                                                       jclass,
-                                                                                       jlong j_collection_ptr,
-                                                                                       jstring j_filter,
-                                                                                       jstring j_projection,
-                                                                                       jstring j_sort,
-                                                                                       jboolean j_upsert,
-                                                                                       jboolean j_return_new_document,
-                                                                                       jobject j_callback) {
-    try {
-        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
-
-        bson::BsonDocument filter(JniBsonProtocol::parse_checked(env, j_filter, Bson::Type::Document, "BSON filter must be a Document"));
-        bson::BsonDocument projection(JniBsonProtocol::parse_checked(env, j_projection, Bson::Type::Document, "BSON projection must be a Document"));
-        bson::BsonDocument sort(JniBsonProtocol::parse_checked(env, j_sort, Bson::Type::Document, "BSON sort must be a Document"));
-        RemoteMongoCollection::RemoteFindOneAndModifyOptions options = {
-                projection,
-                sort,
-                to_bool(j_upsert),
-                to_bool(j_return_new_document)
-        };
-        collection->find_one_and_delete(filter, options, JavaNetworkTransport::create_void_callback(env, j_callback));
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsMongoCollection_nativeFind(JNIEnv *env,
-                                                                jclass,
-                                                                jlong j_collection_ptr,
-                                                                jstring j_filter,
-                                                                jobject j_callback) {
-    try {
-        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
-
-        bson::BsonDocument filter(JniBsonProtocol::parse_checked(env, j_filter, Bson::Type::Document, "BSON filter must be a Document"));
-        collection->find(filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find));
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsMongoCollection_nativeFindWithOptions(JNIEnv *env,
-                                                                           jclass,
-                                                                           jlong j_collection_ptr,
-                                                                           jstring j_filter,
-                                                                           jstring j_projection,
-                                                                           jstring j_sort,
-                                                                           jlong j_limit,
-                                                                           jobject j_callback) {
-    try {
-        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
-
-        uint64_t limit = std::uint64_t(j_limit);
-        bson::BsonDocument filter(JniBsonProtocol::parse_checked(env, j_filter, Bson::Type::Document, "BSON filter must be a Document"));
-        bson::BsonDocument projection(JniBsonProtocol::parse_checked(env, j_projection, Bson::Type::Document, "BSON projection must be a Document"));
-        bson::BsonDocument sort(JniBsonProtocol::parse_checked(env, j_sort, Bson::Type::Document, "BSON sort must be a Document"));
-        RemoteMongoCollection::RemoteFindOptions options = {
-                limit,
-                projection,
-                sort
-        };
-        collection->find(filter, options, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find));
+        switch (j_find_one_and_delete_type) {
+            case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_AND_DELETE:
+                collection->find_one_and_delete(filter, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
+                break;
+            case io_realm_internal_objectstore_OsMongoCollection_FIND_ONE_AND_DELETE_WITH_OPTIONS: {
+                bson::BsonDocument projection(JniBsonProtocol::parse_checked(env, j_projection, Bson::Type::Document, "BSON projection must be a Document"));
+                bson::BsonDocument sort(JniBsonProtocol::parse_checked(env, j_sort, Bson::Type::Document, "BSON sort must be a Document"));
+                RemoteMongoCollection::RemoteFindOneAndModifyOptions options = {
+                        projection,
+                        sort,
+                        to_bool(j_upsert),
+                        to_bool(j_return_new_document)
+                };
+                collection->find_one_and_delete(filter, options, JavaNetworkTransport::create_result_callback(env, j_callback, collection_mapper_find_one));
+                break;
+            }
+            default:
+                throw std::logic_error(util::format("Unknown find_one_and_delete type: %1", j_find_one_and_delete_type));
+        }
     }
     CATCH_STD()
 }

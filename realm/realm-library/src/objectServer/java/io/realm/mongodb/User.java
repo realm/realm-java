@@ -24,18 +24,19 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.realm.annotations.Beta;
-import io.realm.internal.mongodb.Request;
-import io.realm.internal.objectstore.OsMongoClient;
-import io.realm.mongodb.auth.ApiKeyAuth;
 import io.realm.RealmAsyncTask;
-import io.realm.internal.network.ResultHandler;
+import io.realm.annotations.Beta;
 import io.realm.internal.Util;
+import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
+import io.realm.internal.mongodb.Request;
+import io.realm.internal.network.ResultHandler;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
+import io.realm.internal.objectstore.OsMongoClient;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
+import io.realm.mongodb.auth.ApiKeyAuth;
 import io.realm.mongodb.functions.Functions;
 import io.realm.mongodb.mongo.MongoClient;
 import io.realm.mongodb.push.Push;
@@ -98,8 +99,10 @@ public class User {
     }
 
     private static class MongoClientImpl extends MongoClient {
-        protected MongoClientImpl(OsMongoClient osMongoClient, CodecRegistry codecRegistry) {
-            super(osMongoClient, codecRegistry);
+        protected MongoClientImpl(OsMongoClient osMongoClient,
+                                  CodecRegistry codecRegistry,
+                                  TaskDispatcher dispatcher) {
+            super(osMongoClient, codecRegistry, dispatcher);
         }
     }
 
@@ -509,17 +512,15 @@ public class User {
     }
 
     /**
-     * Returns a <i>Mongo Client</i> for accessing a remote Realm App MongoDB database.
-     *
-     * @param serviceName The service name for which the client will operate.
-     *
-     * @see MongoClient
+     * Returns a {@link MongoClient} instance for accessing documents in the database.
+     * @param serviceName the service name used to connect to the server
      */
     public MongoClient getMongoClient(String serviceName) {
         Util.checkEmpty(serviceName, "serviceName");
         if (mongoClient == null) {
-            OsMongoClient osMongoClient = new OsMongoClient(app.nativePtr, serviceName);
-            mongoClient = new MongoClientImpl(osMongoClient, app.getConfiguration().getDefaultCodecRegistry());
+            TaskDispatcher dispatcher = new TaskDispatcher();
+            OsMongoClient osMongoClient = new OsMongoClient(app.nativePtr, serviceName, dispatcher);
+            mongoClient = new MongoClientImpl(osMongoClient, app.getConfiguration().getDefaultCodecRegistry(), dispatcher);
         }
         return mongoClient;
     }
