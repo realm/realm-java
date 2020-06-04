@@ -279,8 +279,18 @@ class EmbeddedObjectsTest {
         }
 
         assertEquals(1, realm.where<EmbeddedTreeParent>().count())
+        assertEquals("parent1", realm.where<EmbeddedTreeParent>().findFirst()!!.id)
+
         assertEquals(2, realm.where<EmbeddedTreeNode>().count())
+        val nodeResults = realm.where<EmbeddedTreeNode>().findAll()
+        assertTrue(nodeResults.any { it.id == "node1" })
+        assertTrue(nodeResults.any { it.id == "node2" })
+
         assertEquals(3, realm.where<EmbeddedTreeLeaf>().count())
+        val leafResults = realm.where<EmbeddedTreeLeaf>().findAll()
+        assertTrue(leafResults.any { it.id == "leaf1" })
+        assertTrue(leafResults.any { it.id == "leaf2" })
+        assertTrue(leafResults.any { it.id == "leaf3" })
     }
 
     @Test
@@ -379,8 +389,18 @@ class EmbeddedObjectsTest {
         }
 
         assertEquals(1, realm.where<EmbeddedTreeParent>().count())
+        assertEquals("parent1", realm.where<EmbeddedTreeParent>().findFirst()!!.id)
+
         assertEquals(2, realm.where<EmbeddedTreeNode>().count())
+        val nodeResults = realm.where<EmbeddedTreeNode>().findAll()
+        assertTrue(nodeResults.any { it.id == "node1" })
+        assertTrue(nodeResults.any { it.id == "node2" })
+
         assertEquals(3, realm.where<EmbeddedTreeLeaf>().count())
+        val leafResults = realm.where<EmbeddedTreeLeaf>().findAll()
+        assertTrue(leafResults.any { it.id == "leaf1" })
+        assertTrue(leafResults.any { it.id == "leaf2" })
+        assertTrue(leafResults.any { it.id == "leaf3" })
     }
 
     @Test

@@ -1901,7 +1901,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                             emitStatement("%s.updateEmbeddedObject(realm, %sUnmanagedItem, proxyObject, new HashMap<RealmModel, RealmObjectProxy>(), Collections.EMPTY_SET)", Utils.getProxyClassSimpleName(field), fieldName)
                                         endControlFlow()
                                     endControlFlow()
-                                    emitStatement("builder.addObjectList(%s, %sManagedCopy)", fieldColKey, fieldName)
                                 } else {
                                     beginControlFlow("for (int i = 0; i < %sUnmanagedList.size(); i++)", fieldName)
                                         emitStatement("%1\$s %2\$sItem = %2\$sUnmanagedList.get(i)", genericType, fieldName)
