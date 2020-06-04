@@ -43,7 +43,7 @@ import io.realm.mongodb.push.Push;
 /**
  * A <i>user</i> holds the user's meta data and tokens for accessing Realm App functionality.
  * <p>
- * The user is used configure Synchronized Realms and gives access to calling Realm App <i>Functions</>
+ * The user is used to configure Synchronized Realms and gives access to calling Realm App <i>Functions</>
  * through {@link Functions} and accessing remote Realm App <i>Mongo Databases</i> through a
  * {@link MongoClient}.
  *
