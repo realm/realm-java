@@ -68,6 +68,8 @@ import io.realm.mongodb.functions.Functions;
  * <pre>
  *    class MyApplication extends Application {
  *
+ *         App APP;
+ *
  *         @Override
  *         public void onCreate() {
  *             super.onCreate();
@@ -79,7 +81,7 @@ import io.realm.mongodb.functions.Functions;
  *                     .appVersion(Integer.toString(BuildConfig.VERSION_CODE))
  *                     .build();
  *
- *             App APP = new App(appConfiguration);
+ *             APP = new App(appConfiguration);
  *         }
  *
  *     }
