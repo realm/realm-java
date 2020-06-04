@@ -35,9 +35,28 @@ import io.realm.mongodb.App;
 import io.realm.mongodb.User;
 
 /**
- * Class wrapping Sync responsibilities for a {@link App}.
+ * A <i>sync</i> manager handling synchronization of local Realms with remote Realm Apps.
+ * <p>
+ * The primary role of this is to access the {@link SyncSession} for a synchronized Realm. After
+ * opening the synchronized Realm you can access the {@link SyncSession} and perform synchronization
+ * related operations as shown below:
+ * <pre>
+ *     App app = new App("app-id");
+ *     User user = app.login(Credentials.anonymous());
+ *     SyncConfiguration syncConfiguration = new SyncConfiguration.Builder(user, "<partition value>")
+ *              .build();
+ *     Realm instance = Realm.getInstance(syncConfiguration);
+ *     SyncSession session = app.getSync().getSession(syncConfiguration);
  *
- * FIXME: Better description that makes sense for end users.
+ *     instance.executeTransaction(realm -> {
+ *         realm.insert(...);
+ *     });
+ *     session.uploadAllLocalChanges();
+ *     instance.close();
+ * </pre>
+ *
+ * @see App#getSync()
+ * @see Sync#getSession(SyncConfiguration)
  */
 @Keep
 @SuppressFBWarnings("MS_CANNOT_BE_FINAL")
