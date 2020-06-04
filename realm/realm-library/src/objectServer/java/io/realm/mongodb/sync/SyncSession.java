@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.annotations.Beta;
 import io.realm.mongodb.ErrorCode;
-import io.realm.mongodb.ObjectServerError;
+import io.realm.mongodb.AppException;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.internal.Keep;
@@ -200,11 +200,11 @@ public class SyncSession {
                     "Read more here: https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup.",
                     configuration, backupRealmConfiguration));
         } else {
-            ObjectServerError wrappedError;
+            AppException wrappedError;
             if (errCode == ErrorCode.UNKNOWN) {
-                wrappedError = new ObjectServerError(nativeErrorCategory, nativeErrorCode, errorMessage);
+                wrappedError = new AppException(nativeErrorCategory, nativeErrorCode, errorMessage);
             } else {
-                wrappedError = new ObjectServerError(errCode, errorMessage);
+                wrappedError = new AppException(errCode, errorMessage);
             }
             errorHandler.onError(this, wrappedError);
         }
@@ -272,9 +272,18 @@ public class SyncSession {
         }
     }
 
-    void notifyConnectionListeners(ConnectionState oldState, ConnectionState newState) {
+    /**
+     * Called from native code. This method is not allowed to throw as it would be swallowed
+     * by the native Sync Client thread. Instead log all exceptions to logcat.
+     */
+    @SuppressWarnings("unused")
+    void notifyConnectionListeners(long oldState, long newState) {
         for (ConnectionListener listener : connectionListeners) {
-            listener.onChange(oldState, newState);
+            try {
+                listener.onChange(ConnectionState.fromNativeValue(oldState), ConnectionState.fromNativeValue(newState));
+            } catch (Exception exception) {
+                RealmLog.error(exception);
+            }
         }
     }
 
@@ -585,7 +594,7 @@ public class SyncSession {
                         throw new IllegalArgumentException("Unknown direction: " + direction);
                 }
 
-                throw new ObjectServerError(ErrorCode.UNKNOWN, errorMsg + " Has the SyncClient been started?");
+                throw new AppException(ErrorCode.UNKNOWN, errorMsg + " Has the SyncClient been started?");
             }
             try {
                 result = wrapper.waitForServerChanges(timeout, unit);
@@ -669,7 +678,7 @@ public class SyncSession {
          * @param session {@link SyncSession} this error happened on.
          * @param error type of error.
          */
-        void onError(SyncSession session, ObjectServerError error);
+        void onError(SyncSession session, AppException error);
     }
 
     // Wrapper class for handling the async operations of the underlying SyncSession calling
@@ -715,13 +724,13 @@ public class SyncSession {
          */
         public void throwExceptionIfNeeded() {
             if (resultReceived && errorCode != null) {
-                throw new ObjectServerError(ErrorCode.UNKNOWN,
+                throw new AppException(ErrorCode.UNKNOWN,
                         String.format(Locale.US, "Internal error (%d): %s", errorCode, errorMessage));
             }
         }
     }
 
-    private static native long nativeAddConnectionListener(String localRealmPath);
+    private native long nativeAddConnectionListener(String localRealmPath);
     private static native void nativeRemoveConnectionListener(long listenerId, String localRealmPath);
     private native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
     private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);

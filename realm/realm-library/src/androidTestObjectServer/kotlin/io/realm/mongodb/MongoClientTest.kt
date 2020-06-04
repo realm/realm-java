@@ -972,7 +972,7 @@ class MongoClientTest {
             var coll = withDocumentClass(CustomType::class.java)
             assertEquals(CustomType::class.java, coll.documentClass)
 
-            assertFailsWith(ObjectServerError::class) {
+            assertFailsWith(AppException::class) {
                 coll.insertOne(expected).blockingGetResult()
             }
 

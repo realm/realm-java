@@ -127,7 +127,7 @@ class SessionTests {
     fun errorHandler_clientResetReported() = looperThread.runBlocking {
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
-                .errorHandler { session: SyncSession, error: ObjectServerError ->
+                .errorHandler { session: SyncSession, error: AppException ->
                     if (error.errorCode != ErrorCode.CLIENT_RESET) {
                         fail("Wrong error $error")
                         return@errorHandler
@@ -156,7 +156,7 @@ class SessionTests {
 
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
-                .errorHandler { session: SyncSession?, error: ObjectServerError ->
+                .errorHandler { session: SyncSession?, error: AppException ->
                     if (error.errorCode != ErrorCode.CLIENT_RESET) {
                         fail("Wrong error $error")
                         return@errorHandler
@@ -192,7 +192,7 @@ class SessionTests {
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .schema(StringOnly::class.java)
-                .errorHandler { session: SyncSession?, error: ObjectServerError ->
+                .errorHandler { session: SyncSession?, error: AppException ->
                     if (error.errorCode != ErrorCode.CLIENT_RESET) {
                         fail("Wrong error $error")
                         return@errorHandler
@@ -244,7 +244,7 @@ class SessionTests {
         val resources = ResourceContainer()
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
-                .errorHandler { session: SyncSession?, error: ObjectServerError ->
+                .errorHandler { session: SyncSession?, error: AppException ->
                     if (error.errorCode != ErrorCode.CLIENT_RESET) {
                         fail("Wrong error $error")
                         return@errorHandler
@@ -315,7 +315,7 @@ class SessionTests {
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .encryptionKey(randomKey)
                 .modules(StringOnlyModule())
-                .errorHandler { session: SyncSession?, error: ObjectServerError ->
+                .errorHandler { session: SyncSession?, error: AppException ->
                     if (error.errorCode != ErrorCode.CLIENT_RESET) {
                         fail("Wrong error $error")
                         return@errorHandler
@@ -449,7 +449,7 @@ class SessionTests {
     fun unrecognizedErrorCode_errorHandler() {
         val errorHandlerCalled = AtomicBoolean(false)
         configuration = configFactory.createSyncConfigurationBuilder(user)
-                .errorHandler { session: SyncSession?, error: ObjectServerError ->
+                .errorHandler { session: SyncSession?, error: AppException ->
                     errorHandlerCalled.set(true)
                     assertEquals(ErrorCode.UNKNOWN, error.errorCode)
                     assertEquals(ErrorCode.Category.FATAL, error.category)

@@ -238,7 +238,7 @@ static jlong get_connection_value(SyncSession::ConnectionState state) {
     return static_cast<jlong>(-1);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddConnectionListener(JNIEnv* env, jclass, jstring j_local_realm_path)
+JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddConnectionListener(JNIEnv* env, jobject j_session_object, jstring j_local_realm_path)
 {
     try {
         // JNIEnv is thread confined, so we need a deep copy in order to capture the string in the lambda
@@ -252,17 +252,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddConnecti
             return 0;
         }
 
-        static JavaClass java_syncmanager_class(env, "io/realm/mongodb/sync/Sync");
-        static JavaMethod java_notify_connection_listener(env, java_syncmanager_class, "notifyConnectionListeners", "(Ljava/lang/String;JJ)V", true);
+        static JavaClass java_syncmanager_class(env, "io/realm/mongodb/sync/SyncSession");
+        static JavaMethod java_notify_connection_listener(env, java_syncmanager_class, "notifyConnectionListeners", "(JJ)V");
 
-        std::function<SyncSession::ConnectionStateCallback > callback = [local_realm_path](SyncSession::ConnectionState old_state, SyncSession::ConnectionState new_state) {
+        auto session_ref = env->NewGlobalRef(j_session_object); // FIXME Leaking reference to session
+        std::function<SyncSession::ConnectionStateCallback > callback = [session_ref](SyncSession::ConnectionState old_state, SyncSession::ConnectionState new_state) {
             JNIEnv* local_env = jni_util::JniUtils::get_env(true);
 
             jlong old_connection_value = get_connection_value(old_state);
             jlong new_connection_value = get_connection_value(new_state);
 
-            JavaLocalRef<jstring> path(local_env, to_jstring(local_env, local_realm_path));
-            local_env->CallStaticVoidMethod(java_syncmanager_class, java_notify_connection_listener, path.get(),
+            local_env->CallVoidMethod(session_ref, java_notify_connection_listener,
                                         old_connection_value, new_connection_value);
 
             // All exceptions will be caught on the Java side of handlers, but Errors will still end

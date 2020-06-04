@@ -23,14 +23,12 @@ import io.realm.entities.StringOnly
 import io.realm.entities.StringOnlyModule
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
-import io.realm.mongodb.ObjectServerError
+import io.realm.mongodb.AppException
 import io.realm.mongodb.User
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.bson.BsonString
+import org.junit.*
 import org.junit.runner.RunWith
 import kotlin.test.*
 
@@ -63,7 +61,7 @@ class SyncConfigurationTests {
     fun errorHandler() {
         val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
         val errorHandler: SyncSession.ErrorHandler = object : SyncSession.ErrorHandler {
-            override fun onError(session: SyncSession, error: ObjectServerError) {}
+            override fun onError(session: SyncSession, error: AppException) {}
         }
         val config = builder.errorHandler(errorHandler).build()
         assertEquals(errorHandler, config.errorHandler)
@@ -99,6 +97,7 @@ class SyncConfigurationTests {
     }
 
     @Test
+    // FIXME Tests are not exhaustive
     fun equals_not() {
         val user1: User = createTestUser(app)
         val user2: User = createTestUser(app)
@@ -231,6 +230,29 @@ class SyncConfigurationTests {
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         user.logOut()
         assertFailsWith<IllegalArgumentException> { SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION) }
+    }
+
+    @Test
+    @Ignore("Not implemented yet")
+    fun shouldWaitForInitialRemoteData() { }
+
+    @Test
+    @Ignore("Not implemented yet")
+    fun getInitialRemoteDataTimeout() { }
+
+    @Test
+    @Ignore("Not implemented yet")
+    fun getSessionStopPolicy () { }
+
+    @Test
+    @Ignore("Not implemented yet")
+    fun getUrlPrefix () { }
+
+    @Test
+    fun getPartitionValue () {
+        val user: User = createTestUser(app)
+        val config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
+        assertEquals(BsonString(DEFAULT_PARTITION), config.partitionValue)
     }
 
     @Test

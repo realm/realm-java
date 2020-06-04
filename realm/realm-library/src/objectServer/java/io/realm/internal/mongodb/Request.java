@@ -29,7 +29,7 @@ import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
 import io.realm.mongodb.App;
 import io.realm.mongodb.ErrorCode;
-import io.realm.mongodb.ObjectServerError;
+import io.realm.mongodb.AppException;
 
 // Class wrapping requests made against MongoDB Realm. Is also responsible for calling with success/error on the
 // correct thread.
@@ -46,7 +46,7 @@ public abstract class Request<T> {
     }
 
     // Implements the request. Return the current sync user if the request succeeded. Otherwise throw an error.
-    public abstract T run() throws ObjectServerError;
+    public abstract T run() throws AppException;
 
     // Start the request
     public RealmAsyncTask start() {
@@ -55,17 +55,17 @@ public abstract class Request<T> {
             public void run() {
                 try {
                     postSuccess(Request.this.run());
-                } catch (ObjectServerError e) {
+                } catch (AppException e) {
                     postError(e);
                 } catch (Throwable e) {
-                    postError(new ObjectServerError(ErrorCode.UNKNOWN, "Unexpected error", e));
+                    postError(new AppException(ErrorCode.UNKNOWN, "Unexpected error", e));
                 }
             }
         });
         return new RealmAsyncTaskImpl(authenticateRequest, networkPoolExecutor);
     }
 
-    private void postError(final ObjectServerError error) {
+    private void postError(final AppException error) {
         boolean errorHandled = false;
         if (callback != null) {
             Runnable action = new Runnable() {

@@ -20,8 +20,8 @@ import java.io.File;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 
@@ -220,7 +220,7 @@ public class OsRealmConfig implements NativeObject {
         //noinspection unchecked
         Map<String, String> customHeadersMap = (Map<String, String>) (syncConfigurationOptions[j++]);
         Byte clientResyncMode = (Byte) syncConfigurationOptions[j++];
-        String partitionValue = (String) syncConfigurationOptions[j++];
+        String encodedPartitionValue = (String) syncConfigurationOptions[j++];
         Object syncService = syncConfigurationOptions[j++];
 
         // Convert the headers into a String array to make it easier to send through JNI
@@ -291,7 +291,7 @@ public class OsRealmConfig implements NativeObject {
                     customAuthorizationHeaderName,
                     customHeaders,
                     clientResyncMode,
-                    partitionValue,
+                    encodedPartitionValue,
                     syncService);
             try {
                 resolvedSyncRealmUrl = syncRealmAuthUrl + urlPrefix.substring(1); // FIXME

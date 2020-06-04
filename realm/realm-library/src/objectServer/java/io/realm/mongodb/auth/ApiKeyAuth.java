@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
 
 import io.realm.annotations.Beta;
 import io.realm.internal.mongodb.Request;
-import io.realm.mongodb.ObjectServerError;
+import io.realm.mongodb.AppException;
 import io.realm.RealmAsyncTask;
 import io.realm.internal.network.ResultHandler;
 import io.realm.internal.Util;
@@ -87,13 +87,13 @@ public abstract class ApiKeyAuth {
      * The key is enabled when created. It can be disabled by calling {@link #disableApiKey(ObjectId)}.
      *
      * @param name the name of the key
-     * @throws ObjectServerError if the server failed to create the API key.
+     * @throws AppException if the server failed to create the API key.
      * @return the new API key for the user.
      */
-    public UserApiKey createApiKey(String name) throws ObjectServerError {
+    public UserApiKey createApiKey(String name) throws AppException {
         Util.checkEmpty(name, "name");
         AtomicReference<UserApiKey> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         OsJNIResultCallback<UserApiKey> callback = new OsJNIResultCallback<UserApiKey>(success, error) {
             @Override
             protected UserApiKey mapSuccess(Object result) {
@@ -120,7 +120,7 @@ public abstract class ApiKeyAuth {
         Util.checkLooperThread("Asynchronous creation of api keys are only possible from looper threads.");
         return new Request<UserApiKey>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public UserApiKey run() throws ObjectServerError {
+            public UserApiKey run() throws AppException {
                 return createApiKey(name);
             }
         }.start();
@@ -130,12 +130,12 @@ public abstract class ApiKeyAuth {
      * Fetches a specific user API key associated with the user.
      *
      * @param id the id of the key to fetch.
-     * @throws ObjectServerError if the server failed to fetch the API key.
+     * @throws AppException if the server failed to fetch the API key.
      */
-    public UserApiKey fetchApiKey(ObjectId id) throws ObjectServerError {
+    public UserApiKey fetchApiKey(ObjectId id) throws AppException {
         Util.checkNull(id, "id");
         AtomicReference<UserApiKey> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         call(TYPE_FETCH_SINGLE, id.toHexString(), new OsJNIResultCallback<UserApiKey>(success, error) {
             @Override
             protected UserApiKey mapSuccess(Object result) {
@@ -157,7 +157,7 @@ public abstract class ApiKeyAuth {
         Util.checkLooperThread("Asynchronous fetching an api key is only possible from looper threads.");
         return new Request<UserApiKey>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public UserApiKey run() throws ObjectServerError {
+            public UserApiKey run() throws AppException {
                 return fetchApiKey(id);
             }
         }.start();
@@ -166,11 +166,11 @@ public abstract class ApiKeyAuth {
     /**
      * Fetches all API keys associated with the user.
      *
-     * @throws ObjectServerError if the server failed to fetch the API keys.
+     * @throws AppException if the server failed to fetch the API keys.
      */
-    public List<UserApiKey> fetchAllApiKeys() throws ObjectServerError {
+    public List<UserApiKey> fetchAllApiKeys() throws AppException {
         AtomicReference<List<UserApiKey>> success = new AtomicReference<>(null);
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         call(TYPE_FETCH_ALL, null, new OsJNIResultCallback<List<UserApiKey>>(success, error) {
             @Override
             protected List<UserApiKey> mapSuccess(Object result) {
@@ -197,7 +197,7 @@ public abstract class ApiKeyAuth {
         Util.checkLooperThread("Asynchronous fetching an api key is only possible from looper threads.");
         return new Request<List<UserApiKey>>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public List<UserApiKey> run() throws ObjectServerError {
+            public List<UserApiKey> run() throws AppException {
                 return fetchAllApiKeys();
             }
         }.start();
@@ -207,11 +207,11 @@ public abstract class ApiKeyAuth {
      * Deletes a specific API key created by the user.
      *
      * @param id the id of the key to delete.
-     * @throws ObjectServerError if the server failed to delete the API key.
+     * @throws AppException if the server failed to delete the API key.
      */
-    public void deleteApiKey(ObjectId id) throws ObjectServerError {
+    public void deleteApiKey(ObjectId id) throws AppException {
         Util.checkNull(id, "id");
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         call(TYPE_DELETE, id.toHexString(), new OsJNIVoidResultCallback(error));
         ResultHandler.handleResult(null, error);
     }
@@ -228,7 +228,7 @@ public abstract class ApiKeyAuth {
         Util.checkLooperThread("Asynchronous deleting an api key is only possible from looper threads.");
         return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public Void run() throws ObjectServerError {
+            public Void run() throws AppException {
                 deleteApiKey(id);
                 return null;
             }
@@ -239,11 +239,11 @@ public abstract class ApiKeyAuth {
      * Disables a specific API key created by the user.
      *
      * @param id the id of the key to disable.
-     * @throws ObjectServerError if the server failed to disable the API key.
+     * @throws AppException if the server failed to disable the API key.
      */
-    public void disableApiKey(ObjectId id) throws ObjectServerError {
+    public void disableApiKey(ObjectId id) throws AppException {
         Util.checkNull(id, "id");
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         call(TYPE_DISABLE, id.toHexString(), new OsJNIVoidResultCallback(error));
         ResultHandler.handleResult(null, error);
     }
@@ -260,7 +260,7 @@ public abstract class ApiKeyAuth {
         Util.checkLooperThread("Asynchronous disabling an api key is only possible from looper threads.");
         return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public Void run() throws ObjectServerError {
+            public Void run() throws AppException {
                 disableApiKey(id);
                 return null;
             }
@@ -271,11 +271,11 @@ public abstract class ApiKeyAuth {
      * Enables a specific API key created by the user.
      *
      * @param id the id of the key to enable.
-     * @throws ObjectServerError if the server failed to enable the API key.
+     * @throws AppException if the server failed to enable the API key.
      */
-    public void enableApiKey(ObjectId id) throws ObjectServerError {
+    public void enableApiKey(ObjectId id) throws AppException {
         Util.checkNull(id, "id");
-        AtomicReference<ObjectServerError> error = new AtomicReference<>(null);
+        AtomicReference<AppException> error = new AtomicReference<>(null);
         call(TYPE_ENABLE, id.toHexString(), new OsJNIVoidResultCallback(error));
         ResultHandler.handleResult(null, error);
     }
@@ -292,7 +292,7 @@ public abstract class ApiKeyAuth {
         Util.checkLooperThread("Asynchronous enabling an api key is only possible from looper threads.");
         return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public Void run() throws ObjectServerError {
+            public Void run() throws AppException {
                 enableApiKey(id);
                 return null;
             }

@@ -153,7 +153,7 @@ class UserTests {
         try {
             anonymousUser.linkCredentials(Credentials.emailPassword(email, password))
             fail()
-        } catch (ex: ObjectServerError) {
+        } catch (ex: AppException) {
             assertEquals(ErrorCode.BAD_REQUEST, ex.errorCode)
         }
     }
@@ -282,6 +282,23 @@ class UserTests {
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         assertTrue(user.deviceId.isNotEmpty() && user.deviceId.length == 24) // Server returns a UUID
     }
+
+    // FIXME Test for all meta data
+    @Ignore("Not implemented yet")
+    fun user_metaData() { }
+
+    // FIXME
+    @Ignore("Not implemented yet")
+    fun accessToken() { }
+
+    // FIXME
+    @Ignore("Not implemented yet")
+    fun refreshToken() { }
+
+    // FIXME
+    @Ignore("Not implemented yet")
+    fun isLoggedIn() { }
+
     @Test
     fun equals() {
         // TODO Could be that we could use a fake user

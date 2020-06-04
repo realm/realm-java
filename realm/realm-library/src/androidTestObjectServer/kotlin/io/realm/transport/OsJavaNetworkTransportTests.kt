@@ -135,7 +135,7 @@ class OsJavaNetworkTransportTests {
         try {
             app.login(creds)
             fail()
-        } catch (ex: ObjectServerError) {
+        } catch (ex: AppException) {
             assertEquals(ErrorCode.AUTH_ERROR, ex.errorCode)
             assertEquals(ErrorCode.Type.SERVICE, ex.errorType)
         }
@@ -155,7 +155,7 @@ class OsJavaNetworkTransportTests {
         try {
             app.login(creds)
             fail()
-        } catch (ex: ObjectServerError) {
+        } catch (ex: AppException) {
             assertEquals(ErrorCode.INTERNAL_SERVER_ERROR, ex.errorCode)
             assertEquals(ErrorCode.Type.HTTP, ex.errorType)
         }
@@ -174,7 +174,7 @@ class OsJavaNetworkTransportTests {
         try {
             app.login(creds)
             fail()
-        } catch (ex: ObjectServerError) {
+        } catch (ex: AppException) {
             assertEquals(ErrorCode.NETWORK_IO_EXCEPTION, ex.errorCode)
             assertEquals(ErrorCode.Type.JAVA, ex.errorType)
         }

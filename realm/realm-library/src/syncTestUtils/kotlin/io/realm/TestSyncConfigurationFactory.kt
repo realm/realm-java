@@ -17,7 +17,11 @@ package io.realm
 
 import io.realm.internal.OsRealmConfig
 import io.realm.mongodb.User
+import io.realm.mongodb.sync.Builder
 import io.realm.mongodb.sync.SyncConfiguration
+import io.realm.mongodb.sync.SyncConfigurationExt
+import org.bson.BsonValue;
+
 import io.realm.mongodb.sync.testSessionStopPolicy
 import io.realm.rule.TestRealmConfigurationFactory
 
@@ -29,5 +33,10 @@ class TestSyncConfigurationFactory : TestRealmConfigurationFactory() {
     fun createSyncConfigurationBuilder(user: User?): SyncConfiguration.Builder {
         return SyncConfiguration.Builder(user, "default")
                 .testSessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
+    }
+
+    fun createSyncConfigurationBuilder(user: User, partitionValue: BsonValue): SyncConfiguration.Builder {
+        return SyncConfigurationExt.Builder(user, partitionValue)
+                .testSessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY);
     }
 }

@@ -28,11 +28,11 @@ import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.mongodb.Request;
 import io.realm.mongodb.App;
 import io.realm.mongodb.AppConfiguration;
-import io.realm.mongodb.ObjectServerError;
+import io.realm.mongodb.AppException;
 import io.realm.mongodb.User;
 
 /**
- * A <i>Functions<i> manager to call MongoDB Realm functions.
+ * A <i>Functions<i> manager to call remote Realm functions for the associated Realm App.
  * <p>
  * Arguments and results are encoded/decoded with the <i>Functions'</i> codec registry either
  * inherited from the {@link AppConfiguration#getDefaultCodecRegistry()} or set explicitly
@@ -62,14 +62,14 @@ public abstract class Functions {
      * Call a MongoDB Realm function synchronously with custom codec registry encoding/decoding
      * arguments/results.
      *
-     * @param name Name of the Stitch function to call.
-     * @param args Arguments to the Stitch function.
+     * @param name Name of the Realm function to call.
+     * @param args Arguments to the Realm function.
      * @param resultClass  The type that the functions result should be converted to.
      * @param codecRegistry Codec registry to use for argument encoding and result decoding.
      * @param <ResultT> The type that the response will be decoded as using the {@code codecRegistry}.
-     * @return Result of the Stitch function.
+     * @return Result of the Realm function.
      *
-     * @throws ObjectServerError if the request failed in some way.
+     * @throws AppException if the request failed in some way.
      *
      * @see #callFunctionAsync(String, List, Class, CodecRegistry, App.Callback)
      * @see AppConfiguration#getDefaultCodecRegistry()
@@ -82,13 +82,13 @@ public abstract class Functions {
      * Call a MongoDB Realm function synchronously with default codec registry encoding/decoding
      * arguments/results.
      *
-     * @param name Name of the Stitch function to call.
-     * @param args Arguments to the Stitch function.
+     * @param name Name of the Realm function to call.
+     * @param args Arguments to the Realm function.
      * @param resultClass  The type that the functions result should be converted to.
      * @param <ResultT> The type that the response will be decoded as using the default codec registry.
-     * @return Result of the Stitch function.
+     * @return Result of the Realm function.
      *
-     * @throws ObjectServerError if the request failed in some way.
+     * @throws AppException if the request failed in some way.
      *
      * @see #callFunction(String, List, Class, CodecRegistry)
      * @see AppConfiguration#getDefaultCodecRegistry()
@@ -102,13 +102,13 @@ public abstract class Functions {
      * <p>
      * The arguments will be encoded with the default codec registry encoding.
      *
-     * @param name Name of the Stitch function to call.
-     * @param args Arguments to the Stitch function.
+     * @param name Name of the Realm function to call.
+     * @param args Arguments to the Realm function.
      * @param resultDecoder The decoder used to decode the result.
      * @param <ResultT> The type that the response will be decoded as using the {@code resultDecoder}
-     * @return Result of the Stitch function.
+     * @return Result of the Realm function.
      *
-     * @throws ObjectServerError if the request failed in some way.
+     * @throws AppException if the request failed in some way.
      *
      * @see #callFunction(String, List, Class, CodecRegistry)
      * @see AppConfiguration#getDefaultCodecRegistry()
@@ -123,13 +123,13 @@ public abstract class Functions {
      * <p>
      * This is the asynchronous equivalent of {@link #callFunction(String, List, Class, CodecRegistry)}.
      *
-     * @param name Name of the Stitch function to call.
-     * @param args Arguments to the Stitch function.
+     * @param name Name of the Realm function to call.
+     * @param args Arguments to the Realm function.
      * @param resultClass  The type that the functions result should be converted to.
      * @param codecRegistry Codec registry to use for argument encoding and result decoding.
      * @param callback The callback that will receive the result or any errors from the request.
      * @param <T> The type that the response will be decoded as using the default codec registry.
-     * @return Result of the Stitch function.
+     * @return Result of the Realm function.
      *
      * @throws IllegalStateException if not called on a looper thread.
      *
@@ -141,7 +141,7 @@ public abstract class Functions {
         Util.checkLooperThread("Asynchronous functions is only possible from looper threads.");
         return new Request<T>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public T run() throws ObjectServerError {
+            public T run() throws AppException {
                 Decoder<T> decoder = JniBsonProtocol.getCodec(resultClass, codecRegistry);
                 return invoke(name, args, codecRegistry, decoder);
             }
@@ -154,12 +154,12 @@ public abstract class Functions {
      * <p>
      * This is the asynchronous equivalent of {@link #callFunction(String, List, Class)}.
      *
-     * @param name Name of the Stitch function to call.
-     * @param args Arguments to the Stitch function.
+     * @param name Name of the Realm function to call.
+     * @param args Arguments to the Realm function.
      * @param resultClass  The type that the functions result should be converted to.
      * @param callback The callback that will receive the result or any errors from the request.
      * @param <T> The type that the response will be decoded as using the default codec registry.
-     * @return Result of the Stitch function.
+     * @return Result of the Realm function.
      *
      * @throws IllegalStateException if not called on a looper thread.
      *
@@ -176,12 +176,12 @@ public abstract class Functions {
      * <p>
      * This is the asynchronous equivalent of {@link #callFunction(String, List, Decoder)}.
      *
-     * @param name Name of the Stitch function to call.
-     * @param args Arguments to the Stitch function.
+     * @param name Name of the Realm function to call.
+     * @param args Arguments to the Realm function.
      * @param resultDecoder The decoder used to decode the result.
      * @param callback The callback that will receive the result or any errors from the request.
      * @param <T> The type that the response will be decoded as using the {@code resultDecoder}
-     * @return Result of the Stitch function.
+     * @return Result of the Realm function.
      *
      * @throws IllegalStateException if not called on a looper thread.
      *
@@ -193,7 +193,7 @@ public abstract class Functions {
         Util.checkLooperThread("Asynchronous functions is only possible from looper threads.");
         return new Request<T>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public T run() throws ObjectServerError {
+            public T run() throws AppException {
                 return invoke(name, args, defaultCodecRegistry, resultDecoder);
             }
         }.start();

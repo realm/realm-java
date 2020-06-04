@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package io.realm.mongodb.sync
+package io.realm.entities
 
-// Helper to expose package protected methods for testing purpose
-fun Sync.testReset() {
-    this.reset()
-}
+import io.realm.annotations.RealmModule
 
-fun Sync.simulateClientReset(session: SyncSession) {
-    this.simulateClientReset(session)
-}
+@RealmModule(classes = [SyncStringOnly::class])
+class SyncStringOnlyModule

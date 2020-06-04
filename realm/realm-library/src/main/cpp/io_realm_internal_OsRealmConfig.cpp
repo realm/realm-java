@@ -26,6 +26,7 @@
 #endif
 
 #include <linux/errno.h>
+#include <jni_util/bson_util.hpp>
 
 #include "java_accessor.hpp"
 #include "util.hpp"
@@ -332,8 +333,13 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         SyncSessionStopPolicy session_stop_policy = static_cast<SyncSessionStopPolicy>(j_session_stop_policy);
 
         JStringAccessor realm_url(env, j_sync_realm_url);
-        JStringAccessor partion_key_value(env, j_partion_key_value);
-        config.sync_config = std::make_shared<SyncConfig>(SyncConfig{user, partion_key_value});
+        // TODO Simplify. Java serialization only allows writing full documents, so the partition
+        //  key is embedded in a document with key 'value'. To get is as string were we parse it
+        //  and reformat with C++ bson serialization as it supports serializing single values.
+        Bson bson(JniBsonProtocol::jstring_to_bson(env, j_partion_key_value));
+        std::stringstream buffer;
+        buffer << bson;
+        config.sync_config = std::make_shared<SyncConfig>(SyncConfig{user, buffer.str()});
         config.sync_config->stop_policy = session_stop_policy;
         config.sync_config->error_handler = std::move(error_handler);
         switch (j_client_reset_mode) {
