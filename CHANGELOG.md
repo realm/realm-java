@@ -1,8 +1,14 @@
 ## 10.0.0 (YYYY-MM-DD)
 
+We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
+
+The old Realm Cloud legacy API's have undergone significant refactoring. The new API's are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
+
 ### Breaking Changes
-* Removed all references and API's releated to permissions. These are now managed through MongoDB Realm. Read more [here](XXX).
-* Removed Query Based Sync API's and Subscriptions. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release. `SyncConfiguration.partionKey()` has been added as a replacement. Read more [here](XXX).  
+* [RealmApp] Removed all references and API's releated to permissions. These are now managed through MongoDB Realm.
+* [RealmApp] Query Based Sync API's and Subscriptions. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release. `SyncConfiguration.partionKey()` has been added as a replacement.  
+* [RealmApp] Removed support for Client Resync. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release.
+* [RealmApp] Removed suppport for custom SSL certificates. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release.
 * Destructive updates of a schema of a synced Realm will now consistently throw an `UnsupportedOperationException` instead of some methods throwing `IllegalArgumentException`. The affected methods are `RealmSchema.remove(String)`, `RealmSchema.rename(String, String)`, `RealmObjectSchema.setClassName(String)`, `RealmObjectSchema.removeField(String)`, `RealmObjectSchema.renameField(String, String)`, `RealmObjectSchema.removeIndex(String)`, `RealmObjectSchema.removePrimaryKey()`, `RealmObjectSchema.addPrimaryKey(String)` and `RealmObjectSchema.addField(String, Class<?>, FieldAttribute)` 
 
 ### Enhancements
@@ -17,12 +23,16 @@
 * TODO.
 
 ### Internal
+* Updated to Object Store commit: 043997a250b451dec03e74e1ebdffd6de1bd3b91.
+* Updated to Realm Sync 10.0.0-beta.1.
+* Updated to Realm Core 10.0.0-beta.1.
 * OKHttp was upgraded to 3.12.0 from 3.10.0.
 * Updated Android Gradle Plugin to 3.6.1.
 * Updated Gradle to 5.6.4 
 * Updated Dokka to 0.10.1
 * Updated Android Build Tools to 29.0.2.
 * Updated compileSdkVersion to 29.
+
 
 ## 7.0.0(YYYY-MM-DD)
 
