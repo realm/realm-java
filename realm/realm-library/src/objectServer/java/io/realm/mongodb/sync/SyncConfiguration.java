@@ -993,7 +993,6 @@ public class SyncConfiguration extends RealmConfiguration {
                 clientResyncMode = ClientResyncMode.MANUAL;
             }
 
-            // FIXME How to get access to this
             if (rxFactory == null && Util.isRxJavaAvailable()) {
                 rxFactory = new RealmObservableFactory(true);
             }
