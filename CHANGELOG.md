@@ -20,9 +20,10 @@ The old Realm Cloud legacy API's have undergone significant refactoring. The new
 * After upgrading a Realm file, you may at some point receive a 'NoSuchTable' exception. (Issue [Core#3701](https://github.com/realm/realm-core/issues/3701), since 7.0.0)
 * If the Realm file upgrade process was interrupted/killed for various reasons, the following run would some assertions failing. (Issue [#6866](https://github.com/realm/realm-java/issues/6866), since 7.0.0). 
 
-
 ### Compatibility
-* TODO.
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
 
 ### Internal
 * Updated to Object Store commit: 043997a250b451dec03e74e1ebdffd6de1bd3b91.
