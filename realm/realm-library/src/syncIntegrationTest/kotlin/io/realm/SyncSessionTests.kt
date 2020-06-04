@@ -650,8 +650,6 @@ class SyncSessionTests {
     }
 
     @Test
-    // FIXME Implement connection listeners
-    @Ignore("Connection listener callback is not implemented yet")
     fun registerConnectionListener() = looperThread.runBlocking {
         getSession { session: SyncSession ->
             session.addConnectionChangeListener { oldState: ConnectionState?, newState: ConnectionState ->
@@ -665,8 +663,6 @@ class SyncSessionTests {
     }
 
     @Test
-    // FIXME Implement connection listeners
-    @Ignore("Connection listener callback is not implemented yet")
     fun removeConnectionListener() = looperThread.runBlocking {
         Realm.getInstance(syncConfiguration).use { realm ->
             val session: SyncSession = realm.syncSession
@@ -689,8 +685,6 @@ class SyncSessionTests {
     }
 
     @Test
-    // FIXME Implement connection listeners
-    @Ignore("Connection listener callback is not implemented yet")
     fun getIsConnected() = looperThread.runBlocking {
         getActiveSession { session: SyncSession ->
             assertEquals(session.connectionState, ConnectionState.CONNECTED)
@@ -700,8 +694,6 @@ class SyncSessionTests {
     }
 
     @Test
-    // FIXME Implement connection listeners
-    @Ignore("Connection listener callback is not implemented yet")
     fun stopStartSession() = looperThread.runBlocking {
         getActiveSession { session: SyncSession ->
             assertEquals(SyncSession.State.ACTIVE, session.state)
@@ -714,8 +706,6 @@ class SyncSessionTests {
     }
 
     @Test
-    // FIXME Implement connection listeners
-    @Ignore("Connection listener callback is not implemented yet")
     fun start_multipleTimes() = looperThread.runBlocking {
         getActiveSession { session ->
             session.start()
@@ -727,8 +717,6 @@ class SyncSessionTests {
     }
 
     @Test
-    // FIXME Implement connection listeners
-    @Ignore("Connection listener callback is not implemented yet")
     fun stop_multipleTimes() = looperThread.runBlocking {
         getActiveSession { session ->
             session.stop()

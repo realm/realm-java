@@ -272,9 +272,18 @@ public class SyncSession {
         }
     }
 
-    void notifyConnectionListeners(ConnectionState oldState, ConnectionState newState) {
+    /**
+     * Called from native code. This method is not allowed to throw as it would be swallowed
+     * by the native Sync Client thread. Instead log all exceptions to logcat.
+     */
+    @SuppressWarnings("unused")
+    void notifyConnectionListeners(long oldState, long newState) {
         for (ConnectionListener listener : connectionListeners) {
-            listener.onChange(oldState, newState);
+            try {
+                listener.onChange(ConnectionState.fromNativeValue(oldState), ConnectionState.fromNativeValue(newState));
+            } catch (Exception exception) {
+                RealmLog.error(exception);
+            }
         }
     }
 
@@ -721,7 +730,7 @@ public class SyncSession {
         }
     }
 
-    private static native long nativeAddConnectionListener(String localRealmPath);
+    private native long nativeAddConnectionListener(String localRealmPath);
     private static native void nativeRemoveConnectionListener(long listenerId, String localRealmPath);
     private native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
     private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
