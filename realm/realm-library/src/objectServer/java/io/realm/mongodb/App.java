@@ -51,11 +51,11 @@ import io.realm.log.RealmLog;
 import io.realm.mongodb.functions.Functions;
 
 /**
- * An <i>App</i> is the main client side entry point for interacting with a <i>MongoDB Realm App</i>.
+ * An <i>App</i> is the main client-side entry point for interacting with a <i>MongoDB Realm App</i>.
  *
  * The <i>App</i> can be used to:
  * <ul>
- *   <li>Register uses and perform various user related operations through authentication providers
+ *   <li>Register uses and perform various user-related operations through authentication providers
  *   ({@link io.realm.mongodb.auth.ApiKeyAuth}, {@link EmailPasswordAuthImpl})</li>
  *   <li>Synchronize data between the local device and a remote Realm App with Synchronized Realms</li>
  *   <li>Invoke Realm App functions with {@link Functions}</li>
@@ -63,7 +63,7 @@ import io.realm.mongodb.functions.Functions;
  * </ul>
  * <p>
  * To create an app that is linked with a remote <i>Realm App</i> initialize Realm and configure the
- * <i>App</i> as below:
+ * <i>App</i> as shown below:
  * <p>
  * <pre>
  *    class MyApplication extends Application {
@@ -86,22 +86,22 @@ import io.realm.mongodb.functions.Functions;
  * </pre>
  * <p>
  * After configuring the <i>App</i> you can start managing users, configure Synchronized Realms,
- * call remote Realm Functions and access remote data through Mongo Collections. The below examples
- * shows the synchronized APIs which cannot be used from the main thread. For the equivalent
- * asynchronous counter parts. The example project in please see
+ * call remote Realm Functions and access remote data through Mongo Collections. The examples below
+ * show the synchronized APIs which cannot be used from the main thread. For the equivalent
+ * asynchronous counterparts. The example project in please see
  * https://github.com/realm/realm-java/tree/v10/examples/mongoDbRealmExample.
  *
- * To register a new user and/or login with an existing user as below:
+ * To register a new user and/or login with an existing user do as shown below:
  * <pre>
  *     // Register new user
  *     User user = APP.getEmailPasswordAuth().registerUser(username, password);
  *
- *     // Login with existing
+ *     // Login with existing user
  *     APP.login(Credentials.emailPassword(username, password))
  * </pre>
  * <p>
  * With an authorized user you can synchronize data between the local device and the remote Realm
- * App by opening a Realm with a {@link io.realm.mongodb.sync.SyncConfiguration} as below:
+ * App by opening a Realm with a {@link io.realm.mongodb.sync.SyncConfiguration} as indicated below:
  * <pre>
  *     SyncConfiguration syncConfiguration = new SyncConfiguration.Builder(user, "<partition value>")
  *              .build();
@@ -116,13 +116,13 @@ import io.realm.mongodb.functions.Functions;
  *     instance.close();
  * </pre>
  * <p>
- * You can call remove Realm functions as below:
+ * You can call remove Realm functions as shown below:
  * <pre>
  *     Functions functions = user.getFunctions();
  *     Integer sum = functions.callFunction("sum", Arrays.asList(1, 2, 3, 4), Integer.class);
  * </pre>
  * <p>
- * And access collections from the remote Realm App as below:
+ * And access collections from the remote Realm App as shown here:
  * <pre>
  *     MongoClient client = user.getMongoClient(SERVICE_NAME)
  *     MongoDatabase database = client.getDatabase(DATABASE_NAME)
@@ -333,7 +333,6 @@ public class App {
     /**
      * Switch current user.
      * <p>
-     *
      * The current user is the user returned by {@link #currentUser()}.
      *
      * @param user the new current user.
