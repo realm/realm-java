@@ -42,7 +42,7 @@ import kotlin.test.*
 
 private const val SERVICE_NAME = "BackingDB"    // it comes from the test server's BackingDB/config.json
 private const val DATABASE_NAME = "test_data"   // same as above
-private const val COLLECTION_NAME = "test_data"
+private const val COLLECTION_NAME = "mongo_data" // name of collection used by tests
 
 @RunWith(AndroidJUnit4::class)
 class MongoClientTest {
@@ -61,10 +61,11 @@ class MongoClientTest {
 
     @After
     fun tearDown() {
-        with(getCollectionInternal()) {
-            deleteMany(Document()).blockingGetResult()
+        if (this::client.isInitialized) {
+            with(getCollectionInternal()) {
+                deleteMany(Document()).blockingGetResult()
+            }
         }
-
         if (this::app.isInitialized) {
             app.close()
         }
@@ -1014,7 +1015,7 @@ class MongoClientTest {
         return client.getDatabase(DATABASE_NAME).let {
             assertEquals(it.name, DATABASE_NAME)
             it.getCollection(COLLECTION_NAME).also { collection ->
-                assertEquals(MongoNamespace(DATABASE_NAME, it.name), collection.namespace)
+                assertEquals(MongoNamespace(DATABASE_NAME, COLLECTION_NAME), collection.namespace)
             }
         }
     }
@@ -1025,7 +1026,7 @@ class MongoClientTest {
         return client.getDatabase(DATABASE_NAME).let {
             assertEquals(it.name, DATABASE_NAME)
             it.getCollection(COLLECTION_NAME, resultClass).also { collection ->
-                assertEquals(MongoNamespace(DATABASE_NAME, it.name), collection.namespace)
+                assertEquals(MongoNamespace(DATABASE_NAME, COLLECTION_NAME), collection.namespace)
             }
         }
     }

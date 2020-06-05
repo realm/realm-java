@@ -18,6 +18,7 @@ package io.realm.mongodb
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.Realm
 import io.realm.RealmExt
+import io.realm.TestHelper
 import io.realm.internal.objectstore.OsJavaNetworkTransport
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
@@ -25,7 +26,6 @@ import io.realm.mongodb.sync.SyncConfiguration
 import io.realm.objectserver.utils.UserFactory
 import io.realm.testClearApplicationContext
 import java.io.File
-import java.lang.IllegalStateException
 import java.util.*
 
 class SyncTestUtils {
@@ -134,7 +134,7 @@ class SyncTestUtils {
                     }
                 }
             }
-            val user = app.login(Credentials.anonymous())
+            val user = app.login(Credentials.emailPassword(TestHelper.getRandomEmail(), "123456"))
             app.networkTransport = transportBackup
             return user
         }

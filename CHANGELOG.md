@@ -1,9 +1,15 @@
-## 10.0.0 (YYYY-MM-DD)
+## 10.0.0-BETA.1 (YYYY-MM-DD)
+
+We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
+
+The old Realm Cloud legacy API's have undergone significant refactoring. The new API's are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
 
 ### Breaking Changes
-* Removed all references and API's releated to permissions. These are now managed through MongoDB Realm. Read more [here](XXX).
-* Removed Query Based Sync API's and Subscriptions. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release. `SyncConfiguration.partionKey()` has been added as a replacement. Read more [here](XXX).  
-* Destructive updates of a schema of a synced Realm will now consistently throw an `UnsupportedOperationException` instead of some methods throwing `IllegalArgumentException`. The affected methods are `RealmSchema.remove(String)`, `RealmSchema.rename(String, String)`, `RealmObjectSchema.setClassName(String)`, `RealmObjectSchema.removeField(String)`, `RealmObjectSchema.renameField(String, String)`, `RealmObjectSchema.removeIndex(String)`, `RealmObjectSchema.removePrimaryKey()`, `RealmObjectSchema.addPrimaryKey(String)` and `RealmObjectSchema.addField(String, Class<?>, FieldAttribute)` 
+* [RealmApp] Removed all references and API's releated to permissions. These are now managed through MongoDB Realm.
+* [RealmApp] Query Based Sync API's and Subscriptions. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release. `SyncConfiguration.partitionKey()` has been added as a replacement.  
+* [RealmApp] Removed support for Client Resync. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release.
+* [RealmApp] Removed suppport for custom SSL certificates. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release.
+* [RealmApp] Destructive updates of a schema of a synced Realm will now consistently throw an `UnsupportedOperationException` instead of some methods throwing `IllegalArgumentException`. The affected methods are `RealmSchema.remove(String)`, `RealmSchema.rename(String, String)`, `RealmObjectSchema.setClassName(String)`, `RealmObjectSchema.removeField(String)`, `RealmObjectSchema.renameField(String, String)`, `RealmObjectSchema.removeIndex(String)`, `RealmObjectSchema.removePrimaryKey()`, `RealmObjectSchema.addPrimaryKey(String)` and `RealmObjectSchema.addField(String, Class<?>, FieldAttribute)` 
 
 ### Enhancements
 * Added support for `org.bson.types.Decimal128` and `org.bson.types.ObjectId` as supported fields in model classes.
@@ -11,18 +17,25 @@
 * Added support for "Embedded Objects". They are enabled using `@RealmClass(embedded = true)`. An embedded object must have exactly one parent object linking to it and it will be deleted when the the parent is. Embedded objects can also be the parent of other embedded classes. Read more [here](https://realm.io/docs/java/latest/#embedded-objects). (Issue [#6713](https://github.com/realm/realm-java/issues/6713))  
 
 ### Fixed
-* None.
+* After upgrading a Realm file, you may at some point receive a 'NoSuchTable' exception. (Issue [Core#3701](https://github.com/realm/realm-core/issues/3701), since 7.0.0)
+* If the Realm file upgrade process was interrupted/killed for various reasons, the following run would some assertions failing. (Issue [#6866](https://github.com/realm/realm-java/issues/6866), since 7.0.0). 
 
 ### Compatibility
-* TODO.
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
 
 ### Internal
+* Updated to Object Store commit: 6d081a53377514f9b77736cb03051a03d829da92.
+* Updated to Realm Sync 10.0.0-beta.1.
+* Updated to Realm Core 10.0.0-beta.1.
 * OKHttp was upgraded to 3.12.0 from 3.10.0.
 * Updated Android Gradle Plugin to 3.6.1.
 * Updated Gradle to 5.6.4 
 * Updated Dokka to 0.10.1
 * Updated Android Build Tools to 29.0.2.
 * Updated compileSdkVersion to 29.
+
 
 ## 7.0.0(YYYY-MM-DD)
 

@@ -95,6 +95,9 @@ public enum ErrorCode {
     USER_BLACKLISTED(Type.PROTOCOL, 220),                          // User has been blacklisted (BIND)
     TRANSACT_BEFORE_UPLOAD(Type.PROTOCOL, 221),                    // Serialized transaction before upload completion
     CLIENT_FILE_EXPIRED(Type.PROTOCOL, 222),                       // Client file has expired
+    USER_MISMATCH(Type.PROTOCOL, 223),                             // User mismatch for client file identifier (IDENT)
+    TOO_MANY_SESSIONS(Type.PROTOCOL, 224),                         // Too many sessions in connection (BIND)
+    INVALID_SCHEMA_CHANGE(Type.PROTOCOL, 225),                     // Invalid schema change (UPLOAD)
 
     // Sync Network Client errors.
     // See https://github.com/realm/realm-sync/blob/master/src/realm/sync/client.hpp#L1230
