@@ -22,6 +22,7 @@ import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import io.realm.annotations.Beta;
 import io.realm.internal.common.TaskDispatcher;
@@ -128,7 +129,12 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the number of documents in the collection
      */
     public Task<Long> count() {
-        return dispatcher.dispatchTask(osMongoCollection::count);
+        return dispatcher.dispatchTask(new Callable<Long>() {
+            @Override
+            public Long call() throws Exception {
+                return osMongoCollection.count();
+            }
+        });
     }
 
     /**
@@ -138,8 +144,12 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the number of documents in the collection
      */
     public Task<Long> count(final Bson filter) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.count(filter)
+        return dispatcher.dispatchTask(new Callable<Long>() {
+                                           @Override
+                                           public Long call() throws Exception {
+                                               return osMongoCollection.count(filter);
+                                           }
+                                       }
         );
     }
 
@@ -151,8 +161,12 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the number of documents in the collection
      */
     public Task<Long> count(final Bson filter, final CountOptions options) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.count(filter, options)
+        return dispatcher.dispatchTask(new Callable<Long>() {
+                                           @Override
+                                           public Long call() throws Exception {
+                                               return osMongoCollection.count(filter, options);
+                                           }
+                                       }
         );
     }
 
@@ -162,7 +176,12 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the result of the find one operation
      */
     public Task<DocumentT> findOne() {
-        return dispatcher.dispatchTask(osMongoCollection::findOne);
+        return dispatcher.dispatchTask(new Callable<DocumentT>() {
+            @Override
+            public DocumentT call() throws Exception {
+                return osMongoCollection.findOne();
+            }
+        });
     }
 
     /**
@@ -173,8 +192,12 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the result of the find one operation
      */
     public <ResultT> Task<ResultT> findOne(final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.findOne(resultClass)
+        return dispatcher.dispatchTask(new Callable<ResultT>() {
+                                           @Override
+                                           public ResultT call() throws Exception {
+                                               return osMongoCollection.findOne(resultClass);
+                                           }
+                                       }
         );
     }
 
@@ -185,8 +208,12 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the result of the find one operation
      */
     public Task<DocumentT> findOne(final Bson filter) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.findOne(filter)
+        return dispatcher.dispatchTask(new Callable<DocumentT>() {
+                                           @Override
+                                           public DocumentT call() throws Exception {
+                                               return osMongoCollection.findOne(filter);
+                                           }
+                                       }
         );
     }
 
@@ -199,8 +226,12 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the result of the find one operation
      */
     public <ResultT> Task<ResultT> findOne(final Bson filter, final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.findOne(filter, resultClass)
+        return dispatcher.dispatchTask(new Callable<ResultT>() {
+                                           @Override
+                                           public ResultT call() throws Exception {
+                                               return osMongoCollection.findOne(filter, resultClass);
+                                           }
+                                       }
         );
     }
 
@@ -212,8 +243,12 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the result of the find one operation
      */
     public Task<DocumentT> findOne(final Bson filter, final FindOptions options) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.findOne(filter, options)
+        return dispatcher.dispatchTask(new Callable<DocumentT>() {
+                                           @Override
+                                           public DocumentT call() throws Exception {
+                                               return osMongoCollection.findOne(filter, options);
+                                           }
+                                       }
         );
     }
 
@@ -229,8 +264,12 @@ public class MongoCollection<DocumentT> {
     public <ResultT> Task<ResultT> findOne(final Bson filter,
                                            final FindOptions options,
                                            final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.findOne(filter, options, resultClass)
+        return dispatcher.dispatchTask(new Callable<ResultT>() {
+                                           @Override
+                                           public ResultT call() throws Exception {
+                                               return osMongoCollection.findOne(filter, options, resultClass);
+                                           }
+                                       }
         );
     }
 
@@ -391,8 +430,12 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the result of the insert one operation
      */
     public Task<InsertOneResult> insertOne(final DocumentT document) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.insertOne(document)
+        return dispatcher.dispatchTask(new Callable<InsertOneResult>() {
+                                           @Override
+                                           public InsertOneResult call() throws Exception {
+                                               return osMongoCollection.insertOne(document);
+                                           }
+                                       }
         );
     }
 
@@ -403,8 +446,12 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the result of the insert many operation
      */
     public Task<InsertManyResult> insertMany(final List<? extends DocumentT> documents) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.insertMany(documents)
+        return dispatcher.dispatchTask(new Callable<InsertManyResult>() {
+                                           @Override
+                                           public InsertManyResult call() throws Exception {
+                                               return osMongoCollection.insertMany(documents);
+                                           }
+                                       }
         );
     }
 
@@ -417,8 +464,12 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the result of the remove one operation
      */
     public Task<DeleteResult> deleteOne(final Bson filter) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.deleteOne(filter)
+        return dispatcher.dispatchTask(new Callable<DeleteResult>() {
+                                           @Override
+                                           public DeleteResult call() throws Exception {
+                                               return osMongoCollection.deleteOne(filter);
+                                           }
+                                       }
         );
     }
 
@@ -430,8 +481,12 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the result of the remove many operation
      */
     public Task<DeleteResult> deleteMany(final Bson filter) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.deleteMany(filter)
+        return dispatcher.dispatchTask(new Callable<DeleteResult>() {
+                                           @Override
+                                           public DeleteResult call() throws Exception {
+                                               return osMongoCollection.deleteMany(filter);
+                                           }
+                                       }
         );
     }
 
@@ -444,8 +499,12 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the result of the update one operation
      */
     public Task<UpdateResult> updateOne(final Bson filter, final Bson update) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.updateOne(filter, update)
+        return dispatcher.dispatchTask(new Callable<UpdateResult>() {
+                                           @Override
+                                           public UpdateResult call() throws Exception {
+                                               return osMongoCollection.updateOne(filter, update);
+                                           }
+                                       }
         );
     }
 
@@ -462,8 +521,12 @@ public class MongoCollection<DocumentT> {
             final Bson filter,
             final Bson update,
             final UpdateOptions updateOptions) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.updateOne(filter, update, updateOptions)
+        return dispatcher.dispatchTask(new Callable<UpdateResult>() {
+                                           @Override
+                                           public UpdateResult call() throws Exception {
+                                               return osMongoCollection.updateOne(filter, update, updateOptions);
+                                           }
+                                       }
         );
     }
 
@@ -476,8 +539,12 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the result of the update many operation
      */
     public Task<UpdateResult> updateMany(final Bson filter, final Bson update) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.updateMany(filter, update)
+        return dispatcher.dispatchTask(new Callable<UpdateResult>() {
+                                           @Override
+                                           public UpdateResult call() throws Exception {
+                                               return osMongoCollection.updateMany(filter, update);
+                                           }
+                                       }
         );
     }
 
@@ -494,8 +561,12 @@ public class MongoCollection<DocumentT> {
             final Bson filter,
             final Bson update,
             final UpdateOptions updateOptions) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.updateMany(filter, update, updateOptions)
+        return dispatcher.dispatchTask(new Callable<UpdateResult>() {
+                                           @Override
+                                           public UpdateResult call() throws Exception {
+                                               return osMongoCollection.updateMany(filter, update, updateOptions);
+                                           }
+                                       }
         );
     }
 
@@ -507,8 +578,12 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the resulting document
      */
     public Task<DocumentT> findOneAndUpdate(final Bson filter, final Bson update) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.findOneAndUpdate(filter, update)
+        return dispatcher.dispatchTask(new Callable<DocumentT>() {
+                                           @Override
+                                           public DocumentT call() throws Exception {
+                                               return osMongoCollection.findOneAndUpdate(filter, update);
+                                           }
+                                       }
         );
     }
 
@@ -524,8 +599,12 @@ public class MongoCollection<DocumentT> {
     public <ResultT> Task<ResultT> findOneAndUpdate(final Bson filter,
                                                     final Bson update,
                                                     final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.findOneAndUpdate(filter, update, resultClass)
+        return dispatcher.dispatchTask(new Callable<ResultT>() {
+                                           @Override
+                                           public ResultT call() throws Exception {
+                                               return osMongoCollection.findOneAndUpdate(filter, update, resultClass);
+                                           }
+                                       }
         );
     }
 
@@ -540,8 +619,12 @@ public class MongoCollection<DocumentT> {
     public Task<DocumentT> findOneAndUpdate(final Bson filter,
                                             final Bson update,
                                             final FindOneAndModifyOptions options) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.findOneAndUpdate(filter, update, options)
+        return dispatcher.dispatchTask(new Callable<DocumentT>() {
+                                           @Override
+                                           public DocumentT call() throws Exception {
+                                               return osMongoCollection.findOneAndUpdate(filter, update, options);
+                                           }
+                                       }
         );
     }
 
@@ -559,8 +642,12 @@ public class MongoCollection<DocumentT> {
                                                     final Bson update,
                                                     final FindOneAndModifyOptions options,
                                                     final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.findOneAndUpdate(filter, update, options, resultClass)
+        return dispatcher.dispatchTask(new Callable<ResultT>() {
+                                           @Override
+                                           public ResultT call() throws Exception {
+                                               return osMongoCollection.findOneAndUpdate(filter, update, options, resultClass);
+                                           }
+                                       }
         );
     }
 
@@ -572,8 +659,12 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the resulting document
      */
     public Task<DocumentT> findOneAndReplace(final Bson filter, final Bson replacement) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.findOneAndReplace(filter, replacement)
+        return dispatcher.dispatchTask(new Callable<DocumentT>() {
+                                           @Override
+                                           public DocumentT call() throws Exception {
+                                               return osMongoCollection.findOneAndReplace(filter, replacement);
+                                           }
+                                       }
         );
     }
 
@@ -589,8 +680,12 @@ public class MongoCollection<DocumentT> {
     public <ResultT> Task<ResultT> findOneAndReplace(final Bson filter,
                                                      final Bson replacement,
                                                      final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.findOneAndReplace(filter, replacement, resultClass)
+        return dispatcher.dispatchTask(new Callable<ResultT>() {
+                                           @Override
+                                           public ResultT call() throws Exception {
+                                               return osMongoCollection.findOneAndReplace(filter, replacement, resultClass);
+                                           }
+                                       }
         );
     }
 
@@ -605,8 +700,12 @@ public class MongoCollection<DocumentT> {
     public Task<DocumentT> findOneAndReplace(final Bson filter,
                                              final Bson replacement,
                                              final FindOneAndModifyOptions options) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.findOneAndReplace(filter, replacement, options)
+        return dispatcher.dispatchTask(new Callable<DocumentT>() {
+                                           @Override
+                                           public DocumentT call() throws Exception {
+                                               return osMongoCollection.findOneAndReplace(filter, replacement, options);
+                                           }
+                                       }
         );
     }
 
@@ -624,8 +723,12 @@ public class MongoCollection<DocumentT> {
                                                      final Bson replacement,
                                                      final FindOneAndModifyOptions options,
                                                      final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.findOneAndReplace(filter, replacement, options, resultClass)
+        return dispatcher.dispatchTask(new Callable<ResultT>() {
+                                           @Override
+                                           public ResultT call() throws Exception {
+                                               return osMongoCollection.findOneAndReplace(filter, replacement, options, resultClass);
+                                           }
+                                       }
         );
     }
 
@@ -636,8 +739,12 @@ public class MongoCollection<DocumentT> {
      * @return a task containing the resulting document
      */
     public Task<DocumentT> findOneAndDelete(final Bson filter) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.findOneAndDelete(filter)
+        return dispatcher.dispatchTask(new Callable<DocumentT>() {
+                                           @Override
+                                           public DocumentT call() throws Exception {
+                                               return osMongoCollection.findOneAndDelete(filter);
+                                           }
+                                       }
         );
     }
 
@@ -651,8 +758,12 @@ public class MongoCollection<DocumentT> {
      */
     public <ResultT> Task<ResultT> findOneAndDelete(final Bson filter,
                                                     final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.findOneAndDelete(filter, resultClass)
+        return dispatcher.dispatchTask(new Callable<ResultT>() {
+                                           @Override
+                                           public ResultT call() throws Exception {
+                                               return osMongoCollection.findOneAndDelete(filter, resultClass);
+                                           }
+                                       }
         );
     }
 
@@ -665,8 +776,12 @@ public class MongoCollection<DocumentT> {
      */
     public Task<DocumentT> findOneAndDelete(final Bson filter,
                                             final FindOneAndModifyOptions options) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.findOneAndDelete(filter, options)
+        return dispatcher.dispatchTask(new Callable<DocumentT>() {
+                                           @Override
+                                           public DocumentT call() throws Exception {
+                                               return osMongoCollection.findOneAndDelete(filter, options);
+                                           }
+                                       }
         );
     }
 
@@ -682,8 +797,12 @@ public class MongoCollection<DocumentT> {
     public <ResultT> Task<ResultT> findOneAndDelete(final Bson filter,
                                                     final FindOneAndModifyOptions options,
                                                     final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(() ->
-                osMongoCollection.findOneAndDelete(filter, options, resultClass)
+        return dispatcher.dispatchTask(new Callable<ResultT>() {
+                                           @Override
+                                           public ResultT call() throws Exception {
+                                               return osMongoCollection.findOneAndDelete(filter, options, resultClass);
+                                           }
+                                       }
         );
     }
 }

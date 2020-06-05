@@ -23,6 +23,7 @@ import org.bson.codecs.configuration.CodecRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.internal.common.TaskDispatcher;
@@ -70,8 +71,12 @@ public abstract class MongoIterable<ResultT> {
      * @return an asynchronous task with cursor of the operation represented by this iterable.
      */
     public Task<MongoCursor<ResultT>> iterator() {
-        return dispatcher.dispatchTask(() ->
-                new MongoCursor<>(getCollection().iterator())
+        return dispatcher.dispatchTask(new Callable<MongoCursor<ResultT>>() {
+                                           @Override
+                                           public MongoCursor<ResultT> call() throws Exception {
+                                               return new MongoCursor<>(MongoIterable.this.getCollection().iterator());
+                                           }
+                                       }
         );
     }
 
@@ -84,8 +89,8 @@ public abstract class MongoIterable<ResultT> {
      * @return a task containing the first item or null.
      */
     public Task<ResultT> first() {
-        AtomicReference<ResultT> success = new AtomicReference<>(null);
-        AtomicReference<AppException> error = new AtomicReference<>(null);
+        final AtomicReference<ResultT> success = new AtomicReference<>(null);
+        final AtomicReference<AppException> error = new AtomicReference<>(null);
         OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
             @Override
             protected ResultT mapSuccess(Object result) {
@@ -97,8 +102,12 @@ public abstract class MongoIterable<ResultT> {
 
         callNative(callback);
 
-        return dispatcher.dispatchTask(() ->
-                ResultHandler.handleResult(success, error)
+        return dispatcher.dispatchTask(new Callable<ResultT>() {
+                                           @Override
+                                           public ResultT call() throws Exception {
+                                               return ResultHandler.handleResult(success, error);
+                                           }
+                                       }
         );
     }
 

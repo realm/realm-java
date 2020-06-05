@@ -57,11 +57,14 @@ public class ThreadDispatcher implements Dispatcher {
     @SuppressWarnings("FutureReturnValueIgnored")
     private <T> void dispatch(final Callable<T> callable, final Callback<T, Exception> callback) {
         // ignoring the output of this future messes with Findbugs, thus the suppress
-        executorService.submit(() -> {
-            try {
-                callback.onComplete(OperationResult.successfulResultOf(callable.call()));
-            } catch (final Exception e) {
-                callback.onComplete(OperationResult.failedResultOf(e));
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    callback.onComplete(OperationResult.successfulResultOf(callable.call()));
+                } catch (final Exception e) {
+                    callback.onComplete(OperationResult.failedResultOf(e));
+                }
             }
         });
     }
