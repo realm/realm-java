@@ -26,7 +26,7 @@ The old Realm Cloud legacy API's have undergone significant refactoring. The new
 * Realm Studio 10.0.0 and above is required to open Realms created by this version.
 
 ### Internal
-* Updated to Object Store commit: 043997a250b451dec03e74e1ebdffd6de1bd3b91.
+* Updated to Object Store commit: 6d081a53377514f9b77736cb03051a03d829da92.
 * Updated to Realm Sync 10.0.0-beta.1.
 * Updated to Realm Core 10.0.0-beta.1.
 * OKHttp was upgraded to 3.12.0 from 3.10.0.
