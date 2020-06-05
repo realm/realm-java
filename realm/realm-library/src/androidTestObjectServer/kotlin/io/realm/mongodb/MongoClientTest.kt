@@ -61,10 +61,11 @@ class MongoClientTest {
 
     @After
     fun tearDown() {
-        with(getCollectionInternal()) {
-            deleteMany(Document()).blockingGetResult()
+        if (this::client.isInitialized) {
+            with(getCollectionInternal()) {
+                deleteMany(Document()).blockingGetResult()
+            }
         }
-
         if (this::app.isInitialized) {
             app.close()
         }
