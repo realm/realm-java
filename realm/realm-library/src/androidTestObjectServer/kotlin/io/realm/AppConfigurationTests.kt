@@ -30,6 +30,7 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.io.File
 import java.lang.IllegalArgumentException
+import java.net.URL
 import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
@@ -184,15 +185,24 @@ class AppConfigurationTests {
     }
 
     @Test
-    @Ignore("FIXME")
     fun baseUrl() {
-        TODO()
+        val url = "http://myurl.com"
+        val config = AppConfiguration.Builder("foo").baseUrl(url).build()
+        assertEquals(URL(url), config.baseUrl)
     }
 
     @Test
-    @Ignore("FIXME")
+    fun baseUrl_defaultValue() {
+        val url = "https://realm.mongodb.com"
+        val config = AppConfiguration.Builder("foo").build()
+        assertEquals(URL(url), config.baseUrl)
+    }
+    @Test
     fun baseUrl_invalidValuesThrows() {
-        TODO()
+        val configBuilder = AppConfiguration.Builder("foo")
+        assertFailsWith<IllegalArgumentException> { configBuilder.baseUrl("") }
+        assertFailsWith<IllegalArgumentException> { configBuilder.baseUrl(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { configBuilder.baseUrl("invalid-url") }
     }
 
     @Test

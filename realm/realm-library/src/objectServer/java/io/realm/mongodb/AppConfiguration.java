@@ -61,7 +61,7 @@ public class AppConfiguration {
      *
      * @see Builder#baseUrl(String)
      */
-    public final static String DEFAULT_BASE_URL = "https://realm-dev.mongodb.com";  //FIXME change to production url before beta release
+    public final static String DEFAULT_BASE_URL = "https://realm.mongodb.com";
 
     /**
      * The default request timeout for network requests towards MongoDB Realm in seconds.
