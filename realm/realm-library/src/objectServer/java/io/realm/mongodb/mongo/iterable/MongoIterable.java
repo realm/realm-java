@@ -38,7 +38,7 @@ import io.realm.mongodb.AppException;
  * {@code aggregate()} query.
  * <p>
  * This class somewhat mimics the behavior of an {@link Iterable} but given its results are
- * obtained asynchronously, its values are wrapped inside a {@link Task}.
+ * obtained asynchronously, its values are wrapped inside a {@code Task}.
  *
  * @param <ResultT> The type to which this iterable will decode documents.
  */
@@ -65,7 +65,7 @@ public abstract class MongoIterable<ResultT> {
     /**
      * Returns a cursor of the operation represented by this iterable.
      * <p>
-     * The result is wrapped in a {@link Task} since the iterator should be capable of
+     * The result is wrapped in a {@code Task} since the iterator should be capable of
      * asynchronously retrieve documents from the server.
      *
      * @return an asynchronous task with cursor of the operation represented by this iterable.
@@ -83,7 +83,7 @@ public abstract class MongoIterable<ResultT> {
     /**
      * Helper to return the first item in the iterator or null.
      * <p>
-     * The result is wrapped in a {@link Task} since the iterator should be capable of
+     * The result is wrapped in a {@code Task} since the iterator should be capable of
      * asynchronously retrieve documents from the server.
      *
      * @return a task containing the first item or null.
