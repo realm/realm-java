@@ -43,12 +43,12 @@ import io.realm.mongodb.User;
  * <pre>
  *     App app = new App("app-id");
  *     User user = app.login(Credentials.anonymous());
- *     SyncConfiguration syncConfiguration = new SyncConfiguration.Builder(user, "<partition value>")
+ *     SyncConfiguration syncConfiguration = new SyncConfiguration.Builder(user, "&lt;partition value&gt;")
  *              .build();
  *     Realm instance = Realm.getInstance(syncConfiguration);
  *     SyncSession session = app.getSync().getSession(syncConfiguration);
  *
- *     instance.executeTransaction(realm -> {
+ *     instance.executeTransaction(realm -&gt; {
  *         realm.insert(...);
  *     });
  *     session.uploadAllLocalChanges();

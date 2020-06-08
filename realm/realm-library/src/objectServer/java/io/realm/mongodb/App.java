@@ -71,7 +71,7 @@ import io.realm.mongodb.functions.Functions;
  *
  *         App APP;
  *
- *         @Override
+ *         \@Override
  *         public void onCreate() {
  *             super.onCreate();
  *
@@ -106,13 +106,13 @@ import io.realm.mongodb.functions.Functions;
  * With an authorized user you can synchronize data between the local device and the remote Realm
  * App by opening a Realm with a {@link io.realm.mongodb.sync.SyncConfiguration} as indicated below:
  * <pre>
- *     SyncConfiguration syncConfiguration = new SyncConfiguration.Builder(user, "<partition value>")
+ *     SyncConfiguration syncConfiguration = new SyncConfiguration.Builder(user, "&lt;partition value&gt;")
  *              .build();
  *
  *     Realm instance = Realm.getInstance(syncConfiguration);
  *     SyncSession session = APP.getSync().getSession(syncConfiguration);
  *
- *     instance.executeTransaction(realm -> {
+ *     instance.executeTransaction(realm -&gt; {
  *         realm.insert(...);
  *     });
  *     session.uploadAllLocalChanges();
@@ -129,7 +129,7 @@ import io.realm.mongodb.functions.Functions;
  * <pre>
  *     MongoClient client = user.getMongoClient(SERVICE_NAME)
  *     MongoDatabase database = client.getDatabase(DATABASE_NAME)
- *     MongoCollection<DocumentT> collection = database.getCollection(COLLECTION_NAME);
+ *     MongoCollection&lt;DocumentT&gt; collection = database.getCollection(COLLECTION_NAME);
  *     Long count = collection.count().blockingGetResult()
  * </pre>
  * <p>
@@ -599,7 +599,7 @@ public class App {
          * is thrown.
          *
          * @return the response object in case the request was a success.
-         * @throws ObjectServerError provided error in case the request failed.
+         * @throws AppException provided error in case the request failed.
          */
         public T getOrThrow() {
             if (isSuccess()) {

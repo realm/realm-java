@@ -52,7 +52,7 @@ public class MongoCursor<ResultT> implements Iterator<ResultT>, Closeable {
     /**
      * A special {@code next()} case that returns the next document if available or null.
      *
-     * @return A {@link Task} containing the next document if available or null.
+     * @return A {@code Task} containing the next document if available or null.
      */
     public ResultT tryNext() {
         if (!iterator.hasNext()) {
