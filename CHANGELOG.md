@@ -12,6 +12,7 @@ The old Realm Cloud legacy API's have undergone significant refactoring. The new
 
 ### Fixed
 * [RealmApp] `AppConfiguration` did not fallback to the correct default baseUrl if none was provided. (Since 10.0.0-BETA.1) 
+* [RealmApp] When restarting an app, re-using the already logged in user would result in Sync not resuming. (Since 10.0.0-BETA.1)
 
 ### Compatibility
 * File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
