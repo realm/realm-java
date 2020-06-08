@@ -8,6 +8,7 @@
             "database_name": "test_data",
             "partition": {
                 "key": "realm_id",
+                "type": "string",
                 "permissions": {
                     "read": true,
                     "write": true
