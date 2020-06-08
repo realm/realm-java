@@ -119,6 +119,7 @@ if (build_SYNC)
         io.realm.internal.objectstore.OsSyncUser
         io.realm.mongodb.mongo.iterable.AggregateIterable
         io.realm.mongodb.mongo.iterable.FindIterable
+        io.realm.mongodb.push.PushClient
     )
 endif()
 create_javah(TARGET jni_headers
@@ -216,6 +217,7 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsSyncUser.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_mongo_iterable_AggregateIterable.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_mongo_iterable_FindIterable.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_push_PushClient.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/jni_util/bson_util.cpp
     )
 endif()

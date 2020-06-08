@@ -39,7 +39,7 @@ import io.realm.internal.util.Pair;
 import io.realm.mongodb.auth.ApiKeyAuth;
 import io.realm.mongodb.functions.Functions;
 import io.realm.mongodb.mongo.MongoClient;
-import io.realm.mongodb.push.Push;
+import io.realm.mongodb.push.PushClient;
 
 /**
  * A <i>user</i> holds the user's meta data and tokens for accessing Realm App functionality.
@@ -59,6 +59,8 @@ public class User {
     private ApiKeyAuth apiKeyAuthProvider = null;
     private MongoClient mongoClient = null;
     private Functions functions = null;
+    private PushClient pushClient = null;
+    private TaskDispatcher dispatcher = new TaskDispatcher();
 
     /**
      * The different types of users.
@@ -507,8 +509,11 @@ public class User {
     /**
      * FIXME Add support for push notifications.
      */
-    Push getPush() {
-        return null;
+    public PushClient getPushNotifications() {
+        if (pushClient == null) {
+            pushClient = new PushClient(app.nativePtr, dispatcher);
+        }
+        return pushClient;
     }
 
     /**
@@ -518,7 +523,6 @@ public class User {
     public MongoClient getMongoClient(String serviceName) {
         Util.checkEmpty(serviceName, "serviceName");
         if (mongoClient == null) {
-            TaskDispatcher dispatcher = new TaskDispatcher();
             OsMongoClient osMongoClient = new OsMongoClient(app.nativePtr, serviceName, dispatcher);
             mongoClient = new MongoClientImpl(osMongoClient, app.getConfiguration().getDefaultCodecRegistry(), dispatcher);
         }
