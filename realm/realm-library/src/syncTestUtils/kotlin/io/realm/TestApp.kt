@@ -26,6 +26,9 @@ import io.realm.mongodb.AppConfiguration
  *
  * NOTE: This class must remain in the [io.realm] package in order to work.
  */
+const val SERVICE_NAME = "BackingDB"    // it comes from the test server's BackingDB/config.json
+const val DATABASE_NAME = "test_data"   // same as above
+
 class TestApp(networkTransport: OsJavaNetworkTransport? = null, customizeConfig: (AppConfiguration.Builder) -> Unit = {}) : App(createConfiguration()) {
 
     init {

@@ -15,6 +15,7 @@
  */
 package io.realm.mongodb;
 
+import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import io.realm.RealmAsyncTask;
 import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.internal.common.TaskDispatcher;
+import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.mongodb.Request;
@@ -278,6 +280,18 @@ public class User {
             }
         }
         throw new IllegalStateException("Unknown state: " + nativeState);
+    }
+
+    /**
+     * Return the custom user data associated with the user in the Realm App.
+     * <p>
+     * The data is only refreshed when the user's access token is refreshed.
+     *
+     * @return The custom user data associated with the user.
+     */
+    public Document getCustomData() {
+        String encodedData = nativeCustomData(osUser.getNativePtr());
+        return JniBsonProtocol.decode(encodedData, app.getConfiguration().getDefaultCodecRegistry().get(Document.class));
     }
 
     /**
@@ -550,6 +564,7 @@ public class User {
         }
     }
 
+    private static native String nativeCustomData(long nativeUserPtr);
     private static native void nativeRemoveUser(long nativeAppPtr, long nativeUserPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeLinkUser(long nativeAppPtr, long nativeUserPtr, long nativeCredentialsPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeLogOut(long appNativePtr, long userNativePtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);

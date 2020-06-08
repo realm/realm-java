@@ -22,11 +22,27 @@
 #include "jni_util/jni_utils.hpp"
 
 #include <sync/app.hpp>
+#include <jni_util/bson_util.hpp>
 
 using namespace realm;
 using namespace realm::app;
 using namespace realm::jni_util;
 using namespace realm::_impl;
+
+JNIEXPORT jstring JNICALL Java_io_realm_mongodb_User_nativeCustomData
+        (JNIEnv* env, jclass, jlong j_user_ptr) {
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
+        const util::Optional<bson::BsonDocument> custom_data(user->custom_data());
+        if (custom_data) {
+            return JniBsonProtocol::bson_to_jstring(env, *custom_data);
+        } else {
+            return JniBsonProtocol::bson_to_jstring(env, BsonDocument());
+        }
+    }
+    CATCH_STD()
+    return JniBsonProtocol::bson_to_jstring(env, BsonDocument());
+}
 
 JNIEXPORT void JNICALL Java_io_realm_mongodb_User_nativeLinkUser(JNIEnv* env,
                                                              jclass,

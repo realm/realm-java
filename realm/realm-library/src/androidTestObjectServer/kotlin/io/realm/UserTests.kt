@@ -20,7 +20,10 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
 import io.realm.mongodb.*
 import io.realm.mongodb.auth.ApiKeyAuth
+import io.realm.mongodb.mongo.MongoNamespace
 import io.realm.rule.BlockingLooperThread
+import io.realm.util.blockingGetResult
+import org.bson.Document
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -325,6 +328,34 @@ class UserTests {
         // Verify that two equal users also returns same hashCode
         assertFalse(user === sameUserNewLogin)
         assertEquals(user.hashCode(), sameUserNewLogin.hashCode())
+    }
+
+    @Test
+    fun customData() {
+        val password = "123456"
+        val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), password)
+        val client = user.getMongoClient(SERVICE_NAME)
+
+        // Name of collection and property used for storing custom user data. Must match server config.json
+        val COLLECTION_NAME = "custom_user_data"
+        val USER_ID_FIELD = "userid"
+
+        // Local test variables
+        val CUSTOM_FIELD = "custom_field"
+        val CUSTOM_DATA = "custom_data"
+
+        client.getDatabase(DATABASE_NAME).let {
+            it.getCollection(COLLECTION_NAME).also { collection ->
+                collection.insertMany(listOf(Document(mapOf(USER_ID_FIELD to user.id, CUSTOM_FIELD to CUSTOM_DATA)))).blockingGetResult()
+            }
+        }
+        // Data is not immediately available
+        assertEquals(Document(), user.customData)
+
+        // But will be updated when authorization token is refreshed
+        user.logOut()
+        app.login(Credentials.emailPassword(user.email, password))
+        assertEquals(CUSTOM_DATA, user.customData.get(CUSTOM_FIELD))
     }
 
 }
