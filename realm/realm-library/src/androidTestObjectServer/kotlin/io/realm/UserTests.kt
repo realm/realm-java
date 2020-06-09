@@ -20,7 +20,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
 import io.realm.mongodb.*
 import io.realm.mongodb.auth.ApiKeyAuth
-import io.realm.mongodb.mongo.MongoNamespace
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.blockingGetResult
 import org.bson.Document
@@ -30,7 +29,10 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.lang.IllegalArgumentException
+import kotlin.test.assertFailsWith
+
+val CUSTOM_USER_DATA_FIELD = "custom_field"
+val CUSTOM_USER_DATA_VALUE = "custom_data"
 
 @RunWith(AndroidJUnit4::class)
 class UserTests {
@@ -331,31 +333,77 @@ class UserTests {
     }
 
     @Test
-    fun customData() {
-        val password = "123456"
-        val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), password)
-        val client = user.getMongoClient(SERVICE_NAME)
-
-        // Name of collection and property used for storing custom user data. Must match server config.json
-        val COLLECTION_NAME = "custom_user_data"
-        val USER_ID_FIELD = "userid"
-
-        // Local test variables
-        val CUSTOM_FIELD = "custom_field"
-        val CUSTOM_DATA = "custom_data"
-
-        client.getDatabase(DATABASE_NAME).let {
-            it.getCollection(COLLECTION_NAME).also { collection ->
-                collection.insertMany(listOf(Document(mapOf(USER_ID_FIELD to user.id, CUSTOM_FIELD to CUSTOM_DATA)))).blockingGetResult()
-            }
-        }
+    fun customData_initiallyEmpty() {
+        val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         // Data is not immediately available
         assertEquals(Document(), user.customData)
+    }
+
+    @Test
+    fun customData_refresh() {
+        val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        // Data is not immediately available
+        assertEquals(Document(), user.customData)
+
+        updateCustomData(user, Document(CUSTOM_USER_DATA_FIELD, CUSTOM_USER_DATA_VALUE))
+
+        val updatedCustomData = user.refreshCustomData()
+        assertEquals(CUSTOM_USER_DATA_VALUE, updatedCustomData[CUSTOM_USER_DATA_FIELD])
+        assertEquals(CUSTOM_USER_DATA_VALUE, user.customData[CUSTOM_USER_DATA_FIELD])
+    }
+
+    @Test
+    fun customData_refreshAsync() = looperThread.runBlocking {
+        val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        // Data is not immediately available
+        assertEquals(Document(), user.customData)
+
+        updateCustomData(user, Document(CUSTOM_USER_DATA_FIELD, CUSTOM_USER_DATA_VALUE))
+
+        val updatedCustomData = user.refreshCustomData { result ->
+            val updatedCustomData = result.orThrow
+            assertEquals(CUSTOM_USER_DATA_VALUE, updatedCustomData[CUSTOM_USER_DATA_FIELD])
+            assertEquals(CUSTOM_USER_DATA_VALUE, user.customData[CUSTOM_USER_DATA_FIELD])
+            looperThread.testComplete()
+        }
+    }
+
+    @Test
+    fun customData_refreshByLogout() {
+        val password = "123456"
+        val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), password)
+        // Data is not immediately available
+        assertEquals(Document(), user.customData)
+
+        updateCustomData(user, Document(CUSTOM_USER_DATA_FIELD, CUSTOM_USER_DATA_VALUE))
 
         // But will be updated when authorization token is refreshed
         user.logOut()
         app.login(Credentials.emailPassword(user.email, password))
-        assertEquals(CUSTOM_DATA, user.customData.get(CUSTOM_FIELD))
+        assertEquals(CUSTOM_USER_DATA_VALUE, user.customData.get(CUSTOM_USER_DATA_FIELD))
     }
 
+    @Test
+    fun customData_refreshAsyncThrowsOnNonLooper() {
+        val password = "123456"
+        val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), password)
+
+        // Data is not immediately available
+        assertFailsWith<java.lang.IllegalStateException> {
+            user.refreshCustomData { }
+        }
+    }
+
+    private fun updateCustomData(user: User, data: Document) {
+        // Name of collection and property used for storing custom user data. Must match server config.json
+        val COLLECTION_NAME = "custom_user_data"
+        val USER_ID_FIELD = "userid"
+
+        val client = user.getMongoClient(SERVICE_NAME)
+        client.getDatabase(DATABASE_NAME).let {
+            it.getCollection(COLLECTION_NAME).also { collection ->
+                collection.insertOne(data.append(USER_ID_FIELD , user.id)).blockingGetResult()
+            }
+        }
+    }
 }

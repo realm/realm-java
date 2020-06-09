@@ -285,14 +285,47 @@ public class User {
     /**
      * Return the custom user data associated with the user in the Realm App.
      * <p>
-     * The data is only refreshed when the user's access token is refreshed.
+     * The data is only refreshed when the user's access token is refreshed or when explicitly
+     * {@link #refreshCustomData() refreshed}.
      *
      * @return The custom user data associated with the user.
      */
     public Document getCustomData() {
-        String encodedData = nativeCustomData(osUser.getNativePtr());
-        return JniBsonProtocol.decode(encodedData, app.getConfiguration().getDefaultCodecRegistry().get(Document.class));
+        return osUser.getCustomData();
     }
+
+    /**
+     * Re-fetch custom user data from the Realm App.
+     *
+     * @return The updated custom user data associated with the user.
+     *
+     * @throws AppException if the request failed in some way.
+     */
+    public Document refreshCustomData() {
+        osUser.refreshCustomData();
+        return getCustomData();
+    }
+
+    /**
+     * Re-fetch custom user data from the Realm App asynchronously.
+     * <p>
+     * This is the asynchronous variant of {@link #refreshCustomData()}.
+     *
+     * @param callback The callback that will receive the result or any errors from the request.
+     * @return The task representing the ongoing operation.
+     *
+     * @throws IllegalStateException if not called on a looper thread.
+     */
+    public RealmAsyncTask refreshCustomData(App.Callback<Document> callback) {
+        Util.checkLooperThread("Asynchronous functions is only possible from looper threads.");
+        return new Request<Document>(App.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public Document run() throws AppException {
+                return refreshCustomData();
+            }
+        }.start();
+    }
+
 
     /**
      * Returns true if the user is currently logged in.
@@ -564,7 +597,6 @@ public class User {
         }
     }
 
-    private static native String nativeCustomData(long nativeUserPtr);
     private static native void nativeRemoveUser(long nativeAppPtr, long nativeUserPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeLinkUser(long nativeAppPtr, long nativeUserPtr, long nativeCredentialsPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
     private static native void nativeLogOut(long appNativePtr, long userNativePtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
