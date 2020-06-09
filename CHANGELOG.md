@@ -1,3 +1,27 @@
+## 10.0.0-BETA.3 (2020-06-09)
+
+We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
+
+The old Realm Cloud legacy API's have undergone significant refactoring. The new API's are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
+
+### Breaking Changes 
+* None
+
+### Enhancements
+* None
+
+### Fixed
+* [RealmApp] When restarting an app, the base URL used would in some cases be incorrect. (Since 10.0.0-BETA.2)
+
+### Compatibility
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
+
+### Internal
+* Updated to Object Store commit: c02707bc28e1886970c5da29ef481dc0cb6c3dd8.
+
+
 ## 10.0.0-BETA.2 (2020-06-08)
 
 We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
