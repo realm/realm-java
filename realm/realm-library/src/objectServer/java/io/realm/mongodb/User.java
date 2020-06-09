@@ -514,7 +514,7 @@ public class User {
     }
 
     /**
-     * FIXME Add support for push notifications.
+     * Returns the {@link PushClient} instance for allowing support for push notifications.
      */
     public PushClient getPushNotifications() {
         if (pushClient == null) {
