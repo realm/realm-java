@@ -116,10 +116,10 @@ if (build_SYNC)
         io.realm.internal.objectstore.OsMongoClient
         io.realm.internal.objectstore.OsMongoCollection
         io.realm.internal.objectstore.OsMongoDatabase
+        io.realm.internal.objectstore.OsPushClient
         io.realm.internal.objectstore.OsSyncUser
         io.realm.mongodb.mongo.iterable.AggregateIterable
         io.realm.mongodb.mongo.iterable.FindIterable
-        io.realm.mongodb.push.PushClient
     )
 endif()
 create_javah(TARGET jni_headers
@@ -204,7 +204,7 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_User.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_FunctionsImpl.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_EmailPasswordAuthImpl.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_ApiKeyAuthImpl.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_ApiKeyAuthImpl.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_sync_ClientResetRequiredError.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_sync_Sync.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_sync_SyncSession.cpp
@@ -214,10 +214,10 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoClient.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoCollection.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoDatabase.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsPushClient.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsSyncUser.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_mongo_iterable_AggregateIterable.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_mongo_iterable_FindIterable.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_push_PushClient.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/jni_util/bson_util.cpp
     )
 endif()

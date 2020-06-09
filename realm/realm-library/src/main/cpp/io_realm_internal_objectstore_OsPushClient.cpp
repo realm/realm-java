@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_mongodb_push_PushClient.h"
+#include "io_realm_internal_objectstore_OsPushClient.h"
 
 #include "java_class_global_def.hpp"
 #include "java_network_transport.hpp"
@@ -38,17 +38,22 @@ using namespace realm::bson;
 using namespace realm::jni_util;
 using namespace realm::_impl;
 
-static std::function<jobject(JNIEnv*, util::Optional<bson::BsonArray>)> collection_mapper_find = [](JNIEnv* env, util::Optional<bson::BsonArray> array) {
-    return array ? JniBsonProtocol::bson_to_jstring(env, *array) : NULL;
-};
+static void finalize_push_client(jlong ptr) {
+    delete reinterpret_cast<PushClient*>(ptr);
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_objectstore_OsPushClient_nativeGetFinalizerMethodPtr(JNIEnv*, jclass) {
+    return reinterpret_cast<jlong>(&finalize_push_client);
+}
 
 JNIEXPORT void JNICALL
-Java_io_realm_mongodb_push_PushClient_nativeRegisterDevice(JNIEnv *env,
-                                                           jclass,
-                                                           jlong j_app_ptr,
-                                                           jstring j_service_name,
-                                                           jstring j_registration_token,
-                                                           jobject j_callback) {
+Java_io_realm_internal_objectstore_OsPushClient_nativeRegisterDevice(JNIEnv *env,
+                                                                     jclass,
+                                                                     jlong j_app_ptr,
+                                                                     jstring j_service_name,
+                                                                     jstring j_registration_token,
+                                                                     jobject j_callback) {
     try {
         std::shared_ptr<App> &app = *reinterpret_cast<std::shared_ptr<App> *>(j_app_ptr);
 
@@ -64,12 +69,12 @@ Java_io_realm_mongodb_push_PushClient_nativeRegisterDevice(JNIEnv *env,
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_mongodb_push_PushClient_nativeDeregisterDevice(JNIEnv *env,
-                                                             jclass,
-                                                             jlong j_app_ptr,
-                                                             jstring j_service_name,
-                                                             jstring j_registration_token,
-                                                             jobject j_callback) {
+Java_io_realm_internal_objectstore_OsPushClient_nativeDeregisterDevice(JNIEnv *env,
+                                                                       jclass,
+                                                                       jlong j_app_ptr,
+                                                                       jstring j_service_name,
+                                                                       jstring j_registration_token,
+                                                                       jobject j_callback) {
     try {
         std::shared_ptr<App> &app = *reinterpret_cast<std::shared_ptr<App> *>(j_app_ptr);
 

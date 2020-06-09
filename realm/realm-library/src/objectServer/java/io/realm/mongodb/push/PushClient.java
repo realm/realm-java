@@ -24,19 +24,20 @@ import io.realm.annotations.Beta;
 import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.network.ResultHandler;
+import io.realm.internal.objectstore.OsPushClient;
 import io.realm.mongodb.AppException;
 
 /**
  * The PushClient allows to register/deregister for push notifications from a client app.
  */
 @Beta
-public class PushClient {
+public abstract class PushClient {
 
-    private final long appNativePtr;
     private final TaskDispatcher dispatcher;
+    private final OsPushClient osPushClient;
 
-    public PushClient(final long appNativePtr, final TaskDispatcher dispatcher) {
-        this.appNativePtr = appNativePtr;
+    public PushClient(final OsPushClient osPushClient, TaskDispatcher dispatcher) {
+        this.osPushClient = osPushClient;
         this.dispatcher = dispatcher;
     }
 
@@ -50,10 +51,8 @@ public class PushClient {
     public Task<Void> registerDevice(String registrationToken, String serviceName) {
         return dispatcher.dispatchTask(new Callable<Void>() {
             @Override
-            public Void call() throws Exception {
-                AtomicReference<AppException> error = new AtomicReference<>(null);
-                nativeRegisterDevice(appNativePtr, serviceName, registrationToken, new OsJNIVoidResultCallback(error));
-                ResultHandler.handleResult(null, error);
+            public Void call() {
+                osPushClient.registerDevice(registrationToken, serviceName);
                 return null;
             }
         });
@@ -68,15 +67,10 @@ public class PushClient {
     public Task<Void> deregisterDevice(String registrationToken, String serviceName) {
         return dispatcher.dispatchTask(new Callable<Void>() {
             @Override
-            public Void call() throws Exception {
-                AtomicReference<AppException> error = new AtomicReference<>(null);
-                nativeDeregisterDevice(appNativePtr, serviceName, registrationToken, new OsJNIVoidResultCallback(error));
-                ResultHandler.handleResult(null, error);
+            public Void call() {
+                osPushClient.deregisterDevice(registrationToken, serviceName);
                 return null;
             }
         });
     }
-
-    private static native void nativeRegisterDevice(long nativeAppPtr, String serviceName, String registrationToken, OsJNIVoidResultCallback callback);
-    private static native void nativeDeregisterDevice(long nativeAppPtr, String serviceName, String registrationToken, OsJNIVoidResultCallback callback);
 }

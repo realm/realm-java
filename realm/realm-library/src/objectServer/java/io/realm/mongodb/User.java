@@ -34,6 +34,7 @@ import io.realm.internal.mongodb.Request;
 import io.realm.internal.network.ResultHandler;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsMongoClient;
+import io.realm.internal.objectstore.OsPushClient;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
 import io.realm.mongodb.auth.ApiKeyAuth;
@@ -105,6 +106,12 @@ public class User {
                                   CodecRegistry codecRegistry,
                                   TaskDispatcher dispatcher) {
             super(osMongoClient, codecRegistry, dispatcher);
+        }
+    }
+
+    private static class PushClientImpl extends PushClient {
+        protected PushClientImpl(OsPushClient osPushClient, TaskDispatcher dispatcher) {
+            super(osPushClient, dispatcher);
         }
     }
 
@@ -511,7 +518,8 @@ public class User {
      */
     public PushClient getPushNotifications() {
         if (pushClient == null) {
-            pushClient = new PushClient(app.nativePtr, dispatcher);
+            OsPushClient osPushClient = new OsPushClient(app.nativePtr);
+            pushClient = new PushClientImpl(osPushClient, dispatcher);
         }
         return pushClient;
     }
