@@ -26,7 +26,6 @@
 
 #include <realm/util/optional.hpp>
 #include <sync/app.hpp>
-#include <sync/sync_user.hpp>
 #include <sync/remote_mongo_database.hpp>
 #include <sync/remote_mongo_collection.hpp>
 #include <jni_util/bson_util.hpp>

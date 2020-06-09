@@ -21,15 +21,9 @@
 #include "util.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/jni_utils.hpp"
-#include "jni_util/bson_util.hpp"
-#include "object-store/src/util/bson/bson.hpp"
 
 #include <realm/util/optional.hpp>
 #include <sync/app.hpp>
-#include <sync/sync_user.hpp>
-#include <sync/remote_mongo_database.hpp>
-#include <sync/remote_mongo_collection.hpp>
-#include <jni_util/bson_util.hpp>
 #include <jni.h>
 
 using namespace realm;
