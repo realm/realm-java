@@ -42,7 +42,7 @@ yes | stitch-cli login --config-path=/tmp/stitch-config \
 IMPORT_RESPONSE=$(stitch-cli import \
                   --config-path=/tmp/stitch-config \
                   --base-url=http://localhost:9090 \
-                  --path=/tmp/app_config \
+                  --path=/tmp/app_config_empty \
                   --app-name realm-sdk-integration-tests \
                   --project-id "$GROUP_ID" \
                   --strategy replace \
@@ -64,7 +64,7 @@ stitch-cli import \
                   --config-path=/tmp/stitch-config \
                   --base-url=http://localhost:9090 \
                   --path=/tmp/app_config \
-                  --app-name realm-sdk-integration-tests \
+                  --app-id="realm-sdk-integration-tests-$APP_ID_SUFFIX" \
                   --project-id "$GROUP_ID" \
                   --strategy replace \
                   -y
