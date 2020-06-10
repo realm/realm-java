@@ -530,7 +530,7 @@ public class User {
      * Returns a {@link MongoClient} instance for accessing documents in the database.
      * @param serviceName the service name used to connect to the server
      */
-    public MongoClient getMongoClient(String serviceName) {
+    public synchronized MongoClient getMongoClient(String serviceName) {
         Util.checkEmpty(serviceName, "serviceName");
         if (mongoClient == null) {
             initDispatcher();
