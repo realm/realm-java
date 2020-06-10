@@ -59,22 +59,6 @@ stitch-cli secrets add \
                   --base-url=http://localhost:9090 \
                   --config-path=/tmp/stitch-config
 
-#    - b) Firebase Cloud Messaging: create your own app and paste the "server key" here
-stitch-cli secrets add \
-                  --name="FCM_SERVER_KEY" \
-                  --value="AAAAQLogIEA:APA91bGq5nvqcwR0NE3aQKADal14gP9sFS9MJ28JFqXeJ8h8kffHUaQ2GnpWFzbPRRCQn4P2Ux_HGTWJ9xxgZUmkv-Stcl4-Nbj3vcLOQP253wdzsQsc3dSIDKG53eWxTXWMr0_uleAE" \
-                  --app-id="realm-sdk-integration-tests-$APP_ID_SUFFIX" \
-                  --base-url=http://localhost:9090 \
-                  --config-path=/tmp/stitch-config
-
-#    - c) Firebase Cloud Messaging: create your own app and paste the "sender ID" here
-stitch-cli secrets add \
-                  --name="FCM_SENDER_ID" \
-                  --value="278000574528" \
-                  --app-id="realm-sdk-integration-tests-$APP_ID_SUFFIX" \
-                  --base-url=http://localhost:9090 \
-                  --config-path=/tmp/stitch-config
-
 # 4. Now we can correctly import the Stitch app
 stitch-cli import \
                   --config-path=/tmp/stitch-config \
