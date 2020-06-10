@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_internal_objectstore_OsPushClient.h"
+#include "io_realm_internal_objectstore_OsPush.h"
 
 #include "java_class_global_def.hpp"
 #include "java_network_transport.hpp"
@@ -37,17 +37,17 @@ static void finalize_push_client(jlong ptr) {
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_objectstore_OsPushClient_nativeGetFinalizerMethodPtr(JNIEnv*, jclass) {
+Java_io_realm_internal_objectstore_OsPush_nativeGetFinalizerMethodPtr(JNIEnv*, jclass) {
     return reinterpret_cast<jlong>(&finalize_push_client);
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsPushClient_nativeRegisterDevice(JNIEnv *env,
-                                                                     jclass,
-                                                                     jlong j_app_ptr,
-                                                                     jstring j_service_name,
-                                                                     jstring j_registration_token,
-                                                                     jobject j_callback) {
+Java_io_realm_internal_objectstore_OsPush_nativeRegisterDevice(JNIEnv *env,
+                                                               jclass,
+                                                               jlong j_app_ptr,
+                                                               jstring j_service_name,
+                                                               jstring j_registration_token,
+                                                               jobject j_callback) {
     try {
         std::shared_ptr<App> &app = *reinterpret_cast<std::shared_ptr<App> *>(j_app_ptr);
 
@@ -63,12 +63,12 @@ Java_io_realm_internal_objectstore_OsPushClient_nativeRegisterDevice(JNIEnv *env
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsPushClient_nativeDeregisterDevice(JNIEnv *env,
-                                                                       jclass,
-                                                                       jlong j_app_ptr,
-                                                                       jstring j_service_name,
-                                                                       jstring j_registration_token,
-                                                                       jobject j_callback) {
+Java_io_realm_internal_objectstore_OsPush_nativeDeregisterDevice(JNIEnv *env,
+                                                                 jclass,
+                                                                 jlong j_app_ptr,
+                                                                 jstring j_service_name,
+                                                                 jstring j_registration_token,
+                                                                 jobject j_callback) {
     try {
         std::shared_ptr<App> &app = *reinterpret_cast<std::shared_ptr<App> *>(j_app_ptr);
 

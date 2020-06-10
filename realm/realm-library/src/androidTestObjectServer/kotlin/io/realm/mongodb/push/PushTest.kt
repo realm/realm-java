@@ -21,22 +21,23 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.Realm
 import io.realm.TestApp
 import io.realm.TestHelper
-import io.realm.mongodb.*
+import io.realm.mongodb.ErrorCode
+import io.realm.mongodb.User
+import io.realm.mongodb.close
+import io.realm.mongodb.registerUserAndLogin
 import io.realm.util.assertFailsWithErrorCode
 import io.realm.util.blockingGetResult
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 import kotlin.test.fail
 
 private const val SERVICE_NAME = "gcm"      // it comes from the test server's gcm/config.json
 private const val SAMPLE_TOKEN = "fXXW6Qv0Tb2fgNf3pFOtqt:APA91bGs4YUXswCC2w8-X9tSdwo9-r6KwAeicP0FDJtBubyuFgorbAICNTftI4SbSSynvN0s-KVWXaGUo1eWuumkGJzFWngwuxQWWv5uolsfjidYz3kLEdiwWW0D_igtD5nRtYZu6gMW"
 
 @RunWith(AndroidJUnit4::class)
-class PushClientTest {
+class PushTest {
 
     private lateinit var app: TestApp
     private lateinit var user: User
@@ -58,32 +59,28 @@ class PushClientTest {
 
     @Test
     fun registerDevice() {
-        var allGood = true
         try {
-            user.pushNotifications.registerDevice(SAMPLE_TOKEN, SERVICE_NAME).blockingGetResult()
+            user.push.registerDevice(SAMPLE_TOKEN, SERVICE_NAME).blockingGetResult()
         } catch (e: Exception) {
-            allGood = false
+            fail(e.toString())
         }
-        assertTrue(allGood)
     }
 
     @Test
     fun registerDevice_twice() {
-        var allGood = true
+        // the API allows registering/deregistering twice, just checking we don't get errors
         try {
-            user.pushNotifications.registerDevice(SAMPLE_TOKEN, SERVICE_NAME).blockingGetResult()
-            user.pushNotifications.registerDevice(SAMPLE_TOKEN, SERVICE_NAME).blockingGetResult()
+            user.push.registerDevice(SAMPLE_TOKEN, SERVICE_NAME).blockingGetResult()
+            user.push.registerDevice(SAMPLE_TOKEN, SERVICE_NAME).blockingGetResult()
         } catch (e: Exception) {
-            allGood = false
+            fail(e.toString())
         }
-        assertTrue(allGood)
     }
 
     @Test
     fun registerDevice_throwsBecauseOfUnknownService() {
         assertFailsWithErrorCode(ErrorCode.SERVICE_NOT_FOUND) {
-            user.pushNotifications.registerDevice(SAMPLE_TOKEN, "asdf").blockingGetResult()
-            fail("should never reach this")
+            user.push.registerDevice(SAMPLE_TOKEN, "asdf").blockingGetResult()
         }
     }
 
@@ -91,39 +88,34 @@ class PushClientTest {
     fun registerDevice_throwsBecauseOfLoggedOutUser() {
         user.logOut()
         assertFailsWithErrorCode(ErrorCode.SERVICE_UNKNOWN) {
-            user.pushNotifications.registerDevice(SAMPLE_TOKEN, SERVICE_NAME).blockingGetResult()
-            fail("should never reach this")
+            user.push.registerDevice(SAMPLE_TOKEN, SERVICE_NAME).blockingGetResult()
         }
     }
 
     @Test
     fun deregisterDevice() {
-        var allGood = true
         try {
-            user.pushNotifications.registerDevice(SAMPLE_TOKEN, SERVICE_NAME).blockingGetResult()
+            user.push.deregisterDevice(SAMPLE_TOKEN, SERVICE_NAME).blockingGetResult()
         } catch (e: Exception) {
-            allGood = false
+            fail(e.toString())
         }
-        assertTrue(allGood)
     }
 
     @Test
     fun deregisterDevice_twice() {
-        var allGood = true
+        // the API allows registering/deregistering twice, just checking we don't get errors
         try {
-            user.pushNotifications.registerDevice(SAMPLE_TOKEN, SERVICE_NAME).blockingGetResult()
-            user.pushNotifications.deregisterDevice(SAMPLE_TOKEN, SERVICE_NAME).blockingGetResult()
+            user.push.deregisterDevice(SAMPLE_TOKEN, SERVICE_NAME).blockingGetResult()
+            user.push.deregisterDevice(SAMPLE_TOKEN, SERVICE_NAME).blockingGetResult()
         } catch (e: Exception) {
-            allGood = false
+            fail(e.toString())
         }
-        assertTrue(allGood)
     }
 
     @Test
     fun deregisterDevice_throwsBecauseOfUnknownService() {
         assertFailsWithErrorCode(ErrorCode.SERVICE_NOT_FOUND) {
-            user.pushNotifications.deregisterDevice(SAMPLE_TOKEN, "asdf").blockingGetResult()
-            fail("should never reach this")
+            user.push.deregisterDevice(SAMPLE_TOKEN, "asdf").blockingGetResult()
         }
     }
 
@@ -131,8 +123,7 @@ class PushClientTest {
     fun deregisterDevice_throwsBecauseOfLoggedOutUser() {
         user.logOut()
         assertFailsWithErrorCode(ErrorCode.SERVICE_UNKNOWN) {
-            user.pushNotifications.deregisterDevice(SAMPLE_TOKEN, SERVICE_NAME).blockingGetResult()
-            fail("should never reach this")
+            user.push.deregisterDevice(SAMPLE_TOKEN, SERVICE_NAME).blockingGetResult()
         }
     }
 }

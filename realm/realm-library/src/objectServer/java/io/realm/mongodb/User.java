@@ -34,13 +34,13 @@ import io.realm.internal.mongodb.Request;
 import io.realm.internal.network.ResultHandler;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsMongoClient;
-import io.realm.internal.objectstore.OsPushClient;
+import io.realm.internal.objectstore.OsPush;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
 import io.realm.mongodb.auth.ApiKeyAuth;
 import io.realm.mongodb.functions.Functions;
 import io.realm.mongodb.mongo.MongoClient;
-import io.realm.mongodb.push.PushClient;
+import io.realm.mongodb.push.Push;
 
 /**
  * A <i>user</i> holds the user's meta data and tokens for accessing Realm App functionality.
@@ -60,8 +60,8 @@ public class User {
     private ApiKeyAuth apiKeyAuthProvider = null;
     private MongoClient mongoClient = null;
     private Functions functions = null;
-    private PushClient pushClient = null;
-    private TaskDispatcher dispatcher = new TaskDispatcher();
+    private Push push = null;
+    private TaskDispatcher dispatcher = null;
 
     /**
      * The different types of users.
@@ -109,9 +109,9 @@ public class User {
         }
     }
 
-    private static class PushClientImpl extends PushClient {
-        protected PushClientImpl(OsPushClient osPushClient, TaskDispatcher dispatcher) {
-            super(osPushClient, dispatcher);
+    private static class PushImpl extends Push {
+        protected PushImpl(OsPush osPush, TaskDispatcher dispatcher) {
+            super(osPush, dispatcher);
         }
     }
 
@@ -514,14 +514,16 @@ public class User {
     }
 
     /**
-     * Returns the {@link PushClient} instance for allowing support for push notifications.
+     * Returns the {@link Push} instance for managing push notification registrations.
      */
-    public PushClient getPushNotifications() {
-        if (pushClient == null) {
-            OsPushClient osPushClient = new OsPushClient(app.nativePtr);
-            pushClient = new PushClientImpl(osPushClient, dispatcher);
+    public synchronized Push getPush() {
+        if (push == null) {
+            initDispatcher();
+            Util.checkNull(dispatcher, "dispatcher");
+            OsPush osPush = new OsPush(app.nativePtr);
+            push = new PushImpl(osPush, dispatcher);
         }
-        return pushClient;
+        return push;
     }
 
     /**
@@ -531,10 +533,18 @@ public class User {
     public MongoClient getMongoClient(String serviceName) {
         Util.checkEmpty(serviceName, "serviceName");
         if (mongoClient == null) {
+            initDispatcher();
+            Util.checkNull(dispatcher, "dispatcher");
             OsMongoClient osMongoClient = new OsMongoClient(app.nativePtr, serviceName, dispatcher);
             mongoClient = new MongoClientImpl(osMongoClient, app.getConfiguration().getDefaultCodecRegistry(), dispatcher);
         }
         return mongoClient;
+    }
+
+    private synchronized void initDispatcher() {
+        if (dispatcher == null) {
+            dispatcher = new TaskDispatcher();
+        }
     }
 
     @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")

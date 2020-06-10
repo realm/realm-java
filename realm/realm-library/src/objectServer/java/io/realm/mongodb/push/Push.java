@@ -18,29 +18,26 @@ package io.realm.mongodb.push;
 import com.google.android.gms.tasks.Task;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.annotations.Beta;
 import io.realm.internal.common.TaskDispatcher;
-import io.realm.internal.jni.OsJNIVoidResultCallback;
-import io.realm.internal.network.ResultHandler;
-import io.realm.internal.objectstore.OsPushClient;
-import io.realm.mongodb.AppException;
+import io.realm.internal.objectstore.OsPush;
 
 /**
- * The PushClient allows to register/deregister for push notifications from a client app.
+ * The Push client allows to register/deregister for push notifications from a client app.
  */
 @Beta
-public abstract class PushClient {
+public abstract class Push {
 
     private final TaskDispatcher dispatcher;
-    private final OsPushClient osPushClient;
+    private final OsPush osPush;
 
-    public PushClient(final OsPushClient osPushClient, TaskDispatcher dispatcher) {
-        this.osPushClient = osPushClient;
+    public Push(final OsPush osPush, TaskDispatcher dispatcher) {
+        this.osPush = osPush;
         this.dispatcher = dispatcher;
     }
 
+    // TODO: Task vs RealmAsyncTask - https://github.com/realm/realm-java/issues/6914
     /**
      * Registers the given FCM registration token with the currently logged in user's
      * device on MongoDB Realm.
@@ -52,12 +49,13 @@ public abstract class PushClient {
         return dispatcher.dispatchTask(new Callable<Void>() {
             @Override
             public Void call() {
-                osPushClient.registerDevice(registrationToken, serviceName);
+                osPush.registerDevice(registrationToken, serviceName);
                 return null;
             }
         });
     }
 
+    // TODO: Task vs RealmAsyncTask - https://github.com/realm/realm-java/issues/6914
     /**
      * Deregisters the FCM registration token bound to the currently logged in user's
      * device on MongoDB Realm.
@@ -68,7 +66,7 @@ public abstract class PushClient {
         return dispatcher.dispatchTask(new Callable<Void>() {
             @Override
             public Void call() {
-                osPushClient.deregisterDevice(registrationToken, serviceName);
+                osPush.deregisterDevice(registrationToken, serviceName);
                 return null;
             }
         });

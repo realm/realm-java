@@ -23,13 +23,13 @@ import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.network.ResultHandler;
 import io.realm.mongodb.AppException;
 
-public class OsPushClient implements NativeObject {
+public class OsPush implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
     private final long nativePtr;
 
-    public OsPushClient(final long appNativePtr) {
+    public OsPush(final long appNativePtr) {
         this.nativePtr = appNativePtr;
     }
 
