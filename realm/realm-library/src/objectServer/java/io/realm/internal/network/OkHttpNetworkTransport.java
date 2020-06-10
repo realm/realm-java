@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
+import io.realm.mongodb.AppConfiguration;
 import okhttp3.Call;
 import okhttp3.ConnectionPool;
 import okhttp3.Headers;
@@ -41,6 +42,19 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
                     case "post": builder.post(RequestBody.create(JSON, body)); break;
                     case "put": builder.put(RequestBody.create(JSON, body)); break;
                     default: throw new IllegalArgumentException("Unknown method type: "+ method);
+                }
+
+                // TODO Ensure that we have correct custom headers until OS handles it
+                //  first of all add all custom headers
+                for (Map.Entry<String, String> entry : getCustomRequestHeaders().entrySet()) {
+                    builder.addHeader(entry.getKey(), entry.getValue());
+                }
+                //  and then replace default authorization header with custom one if present
+                String authorizationHeaderValue = headers.get(AppConfiguration.DEFAULT_AUTHORIZATION_HEADER_NAME);
+                String authorizationHeaderName = getAuthorizationHeaderName();
+                if (authorizationHeaderValue != null && !AppConfiguration.DEFAULT_AUTHORIZATION_HEADER_NAME.equals(authorizationHeaderName)) {
+                    headers.remove(AppConfiguration.DEFAULT_AUTHORIZATION_HEADER_NAME);
+                    headers.put(authorizationHeaderName, authorizationHeaderValue);
                 }
 
                 for (Map.Entry<String, String> entry : headers.entrySet()) {

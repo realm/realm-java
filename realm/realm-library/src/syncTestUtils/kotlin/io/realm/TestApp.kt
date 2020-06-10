@@ -26,7 +26,7 @@ import io.realm.mongodb.AppConfiguration
  *
  * NOTE: This class must remain in the [io.realm] package in order to work.
  */
-class TestApp(networkTransport: OsJavaNetworkTransport? = null, customizeConfig: (AppConfiguration.Builder) -> Unit = {}) : App(createConfiguration()) {
+class TestApp(networkTransport: OsJavaNetworkTransport? = null, builder: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }) : App(builder(configurationBuilder()).build()) {
 
     init {
         if (networkTransport != null) {
@@ -35,12 +35,11 @@ class TestApp(networkTransport: OsJavaNetworkTransport? = null, customizeConfig:
     }
 
     companion object {
-        fun createConfiguration(): AppConfiguration {
+        fun configurationBuilder(): AppConfiguration.Builder {
             return AppConfiguration.Builder(initializeMongoDbRealm())
                     .baseUrl("http://127.0.0.1:9090")
                     .appName("MongoDB Realm Integration Tests")
                     .appVersion("1.0.")
-                    .build()
         }
 
         // Initializes MongoDB Realm. Clears all local state and fetches the application ID.

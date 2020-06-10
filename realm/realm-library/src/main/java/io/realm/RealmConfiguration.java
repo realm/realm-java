@@ -245,7 +245,7 @@ public class RealmConfiguration {
      *
      * @return {@code true} if the Realm file exists, {@code false} otherwise.
      */
-    boolean realmExists() {
+    protected boolean realmExists() {
         return new File(canonicalPath).exists();
     }
 

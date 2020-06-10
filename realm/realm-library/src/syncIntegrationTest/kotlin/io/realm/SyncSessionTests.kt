@@ -730,7 +730,8 @@ class SyncSessionTests {
     @Test
     // FIXME Investigate
     @Ignore("Asserts with no_session when tearing down, meaning that all session are not " +
-            "closed, but realm seems to be closed, so further investigation is needed")
+            "closed, but realm seems to be closed, so further investigation is needed " +
+            "seems to be caused by https://github.com/realm/realm-java/issues/5416")
     fun waitForInitialRemoteData_throwsOnTimeout() = looperThread.runBlocking {
         val syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user)
