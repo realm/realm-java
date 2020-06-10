@@ -110,8 +110,8 @@ public class User {
     }
 
     private static class PushImpl extends Push {
-        protected PushImpl(OsPush osPush, TaskDispatcher dispatcher) {
-            super(osPush, dispatcher);
+        protected PushImpl(OsPush osPush) {
+            super(osPush);
         }
     }
 
@@ -516,12 +516,10 @@ public class User {
     /**
      * Returns the {@link Push} instance for managing push notification registrations.
      */
-    public synchronized Push getPush() {
+    public synchronized Push getPush(String serviceName) {
         if (push == null) {
-            initDispatcher();
-            Util.checkNull(dispatcher, "dispatcher");
-            OsPush osPush = new OsPush(app.nativePtr);
-            push = new PushImpl(osPush, dispatcher);
+            OsPush osPush = new OsPush(app.nativePtr, osUser, serviceName);
+            push = new PushImpl(osPush);
         }
         return push;
     }
@@ -533,18 +531,13 @@ public class User {
     public synchronized MongoClient getMongoClient(String serviceName) {
         Util.checkEmpty(serviceName, "serviceName");
         if (mongoClient == null) {
-            initDispatcher();
-            Util.checkNull(dispatcher, "dispatcher");
+            if (dispatcher == null) {
+                dispatcher = new TaskDispatcher();
+            }
             OsMongoClient osMongoClient = new OsMongoClient(app.nativePtr, serviceName, dispatcher);
             mongoClient = new MongoClientImpl(osMongoClient, app.getConfiguration().getDefaultCodecRegistry(), dispatcher);
         }
         return mongoClient;
-    }
-
-    private synchronized void initDispatcher() {
-        if (dispatcher == null) {
-            dispatcher = new TaskDispatcher();
-        }
     }
 
     @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")

@@ -15,13 +15,13 @@
  */
 package io.realm.mongodb.push;
 
-import com.google.android.gms.tasks.Task;
-
-import java.util.concurrent.Callable;
-
+import io.realm.RealmAsyncTask;
 import io.realm.annotations.Beta;
-import io.realm.internal.common.TaskDispatcher;
+import io.realm.internal.Util;
+import io.realm.internal.mongodb.Request;
 import io.realm.internal.objectstore.OsPush;
+import io.realm.mongodb.App;
+import io.realm.mongodb.AppException;
 
 /**
  * The Push client allows to register/deregister for push notifications from a client app.
@@ -29,46 +29,71 @@ import io.realm.internal.objectstore.OsPush;
 @Beta
 public abstract class Push {
 
-    private final TaskDispatcher dispatcher;
     private final OsPush osPush;
 
-    public Push(final OsPush osPush, TaskDispatcher dispatcher) {
+    public Push(final OsPush osPush) {
         this.osPush = osPush;
-        this.dispatcher = dispatcher;
     }
 
-    // TODO: Task vs RealmAsyncTask - https://github.com/realm/realm-java/issues/6914
     /**
      * Registers the given FCM registration token with the currently logged in user's
      * device on MongoDB Realm.
      *
-     * @param registrationToken the registration token to register.
-     * @return A {@link Task} that completes when the registration is finished.
+     * @param registrationToken The registration token to register.
      */
-    public Task<Void> registerDevice(String registrationToken, String serviceName) {
-        return dispatcher.dispatchTask(new Callable<Void>() {
-            @Override
-            public Void call() {
-                osPush.registerDevice(registrationToken, serviceName);
-                return null;
-            }
-        });
+    public void registerDevice(String registrationToken) {
+        osPush.registerDevice(registrationToken);
     }
 
-    // TODO: Task vs RealmAsyncTask - https://github.com/realm/realm-java/issues/6914
+    /**
+     * Registers the given FCM registration token with the currently logged in user's
+     * device on MongoDB Realm.
+     *
+     * @param registrationToken The registration token to register.
+     * @param callback          The callback used when the device has been registered or the call
+     *                          failed - it will always happen on the same thread as this method was
+     *                          called on.
+     */
+    public RealmAsyncTask registerDeviceAsync(String registrationToken,
+                                              App.Callback<Void> callback) {
+        Util.checkLooperThread("Asynchronous registering a device is only possible from looper threads.");
+        return new Request<Void>(App.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public Void run() throws AppException {
+                osPush.registerDevice(registrationToken);
+                return null;
+            }
+        }.start();
+    }
+
     /**
      * Deregisters the FCM registration token bound to the currently logged in user's
      * device on MongoDB Realm.
      *
-     * @return A {@link Task} that completes when the deregistration is finished.
+     * @param registrationToken the registration token to deregister.
      */
-    public Task<Void> deregisterDevice(String registrationToken, String serviceName) {
-        return dispatcher.dispatchTask(new Callable<Void>() {
+    public void deregisterDevice(String registrationToken) {
+        osPush.deregisterDevice(registrationToken);
+    }
+
+    /**
+     * Deregisters the FCM registration token bound to the currently logged in user's
+     * device on MongoDB Realm.
+     *
+     * @param registrationToken The registration token to register.
+     * @param callback          The callback used when the device has been registered or the call
+     *                          failed - it will always happen on the same thread as this method was
+     *                          called on.
+     */
+    public RealmAsyncTask deregisterDeviceAsync(String registrationToken,
+                                                App.Callback<Void> callback) {
+        Util.checkLooperThread("Asynchronous deregistering a device is only possible from looper threads.");
+        return new Request<Void>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public Void call() {
-                osPush.deregisterDevice(registrationToken, serviceName);
+            public Void run() throws AppException {
+                osPush.deregisterDevice(registrationToken);
                 return null;
             }
-        });
+        }.start();
     }
 }

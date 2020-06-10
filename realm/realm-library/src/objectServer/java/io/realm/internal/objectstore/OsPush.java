@@ -22,15 +22,20 @@ import io.realm.internal.NativeObject;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.network.ResultHandler;
 import io.realm.mongodb.AppException;
+import io.realm.mongodb.User;
 
 public class OsPush implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
     private final long nativePtr;
+    private final OsSyncUser osSyncUser;
+    private final String serviceName;
 
-    public OsPush(final long appNativePtr) {
-        this.nativePtr = appNativePtr;
+    public OsPush(final long appNativePtr, final OsSyncUser osSyncUser, final String serviceName) {
+        this.nativePtr = nativeCreate(appNativePtr, serviceName);
+        this.osSyncUser = osSyncUser;
+        this.serviceName = serviceName;
     }
 
     @Override
@@ -43,19 +48,20 @@ public class OsPush implements NativeObject {
         return nativeFinalizerPtr;
     }
 
-    public void registerDevice(String registrationToken, String serviceName) {
+    public void registerDevice(String registrationToken) {
         AtomicReference<AppException> error = new AtomicReference<>(null);
-        nativeRegisterDevice(nativePtr, serviceName, registrationToken, new OsJNIVoidResultCallback(error));
+        nativeRegisterDevice(nativePtr, osSyncUser.getNativePtr(), serviceName, registrationToken, new OsJNIVoidResultCallback(error));
         ResultHandler.handleResult(null, error);
     }
 
-    public void deregisterDevice(String registrationToken, String serviceName) {
+    public void deregisterDevice(String registrationToken) {
         AtomicReference<AppException> error = new AtomicReference<>(null);
-        nativeDeregisterDevice(nativePtr, serviceName, registrationToken, new OsJNIVoidResultCallback(error));
+        nativeDeregisterDevice(nativePtr, osSyncUser.getNativePtr(), serviceName, registrationToken, new OsJNIVoidResultCallback(error));
         ResultHandler.handleResult(null, error);
     }
 
+    private static native long nativeCreate(long nativeAppPtr, String serviceName);
     private static native long nativeGetFinalizerMethodPtr();
-    private static native void nativeRegisterDevice(long nativeAppPtr, String serviceName, String registrationToken, OsJNIVoidResultCallback callback);
-    private static native void nativeDeregisterDevice(long nativeAppPtr, String serviceName, String registrationToken, OsJNIVoidResultCallback callback);
+    private static native void nativeRegisterDevice(long nativePtr, long nativeUserPtr, String serviceName, String registrationToken, OsJNIVoidResultCallback callback);
+    private static native void nativeDeregisterDevice(long nativePtr, long nativeUserPtr, String serviceName, String registrationToken, OsJNIVoidResultCallback callback);
 }
