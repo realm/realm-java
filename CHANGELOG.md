@@ -11,7 +11,7 @@ The old Realm Cloud legacy API's have undergone significant refactoring. The new
 * None
 
 ### Fixed
-* [RealmApp] When opening asynced Realm with a cached user, and the user access token had expired. It would crash the app with `Assertion failed: cls with (class_name) = ["io/realm/internal/objectstore/OsJavaNetworkTransport$Response"]`. (Issue [#6937](https://github.com/realm/realm-java/issues/6937), since 10.0.0-BETA.1)
+* [RealmApp] Opening a synced Realm for a cached user with expired access token would crash the app with `Assertion failed: cls with (class_name) = ["io/realm/internal/objectstore/OsJavaNetworkTransport$Response"]`. (Issue [#6937](https://github.com/realm/realm-java/issues/6937), since 10.0.0-BETA.1)
 
 ### Compatibility
 * File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
