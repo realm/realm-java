@@ -3,10 +3,10 @@
     "name": "gcm",
     "type": "gcm",
     "config": {
-        "senderId": "278000574528"
+        "senderId": "FCM_SENDER_ID"
     },
     "secret_config": {
-        "apiKey": "FCM"
+        "apiKey": "FCM_SERVER_KEY"
     },
     "version": 1
 }
