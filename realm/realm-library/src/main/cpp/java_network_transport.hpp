@@ -84,11 +84,10 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
             return;
         } else {
             // Read response
-            static JavaClass responseClass(env, "io/realm/internal/objectstore/OsJavaNetworkTransport$Response");
-            static JavaMethod get_http_code_method(env, responseClass, "getHttpResponseCode", "()I");
-            static JavaMethod get_custom_code_method(env, responseClass, "getCustomResponseCode", "()I");
-            static JavaMethod get_headers_method(env, responseClass, "getJNIFriendlyHeaders", "()[Ljava/lang/String;");
-            static JavaMethod get_body_method(env, responseClass, "getBody", "()Ljava/lang/String;");
+            static JavaMethod get_http_code_method(env, JavaClassGlobalDef::network_transport_response_class(), "getHttpResponseCode", "()I");
+            static JavaMethod get_custom_code_method(env, JavaClassGlobalDef::network_transport_response_class(), "getCustomResponseCode", "()I");
+            static JavaMethod get_headers_method(env, JavaClassGlobalDef::network_transport_response_class(), "getJNIFriendlyHeaders", "()[Ljava/lang/String;");
+            static JavaMethod get_body_method(env, JavaClassGlobalDef::network_transport_response_class(), "getBody", "()Ljava/lang/String;");
 
             jint http_code = env->CallIntMethod(response, get_http_code_method);
             jint custom_code = env->CallIntMethod(response, get_custom_code_method);
