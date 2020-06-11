@@ -44,6 +44,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           libvirt-daemon-system \
                           openjdk-8-jdk-headless \
                           qemu-kvm \
+                          qt5-default \
                           s3cmd \
                           unzip \
                           virt-manager \
