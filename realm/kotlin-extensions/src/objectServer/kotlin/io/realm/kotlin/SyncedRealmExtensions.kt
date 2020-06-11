@@ -16,8 +16,8 @@
 package io.realm.kotlin
 
 import io.realm.Realm
-import io.realm.SyncConfiguration
-import io.realm.SyncSession
+import io.realm.mongodb.sync.SyncConfiguration
+import io.realm.mongodb.sync.SyncSession
 
 
 /**

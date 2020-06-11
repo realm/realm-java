@@ -120,6 +120,11 @@ public interface Row {
 
     void setObjectId(long columnKey, ObjectId value);
 
+    // Creates a new Embedded object in the given property.
+    // This will replace any existing object which will be
+    // deleted. The Obj pointer for the new object is returned.
+    long createEmbeddedObject(long columnKey);
+
     /**
      * Checks if the row is still valid.
      *

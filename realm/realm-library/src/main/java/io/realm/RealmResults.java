@@ -451,7 +451,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      *
      * @param fieldName name of the field to update.
      * @param value new value for the field.
-     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a {@code ObjectId field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a {@code ObjectId} field.
      */
     public void setObjectId(String fieldName, @Nullable ObjectId value) {
         checkNonEmptyFieldName(fieldName);

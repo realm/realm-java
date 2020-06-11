@@ -128,12 +128,13 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             return type != "io.realm.DynamicRealmObject" && !type.endsWith(".RealmObject") && !type.endsWith("RealmProxy")
         }
 
+    var embedded: Boolean = false
+        private set
+
     val classElement: Element
         get() = classType
 
     init {
-
-
         for (element in classType.enclosedElements) {
             if (element is ExecutableElement) {
                 val name = element.getSimpleName()
@@ -308,6 +309,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         if (realmClassAnnotation.fieldNamingPolicy != RealmNamingPolicy.NO_POLICY) {
             defaultFieldNameFormatter = Utils.getNameFormatter(realmClassAnnotation.fieldNamingPolicy)
         }
+
+        embedded = realmClassAnnotation.embedded
 
         // Categorize and check the rest of the file
         if (!categorizeClassElements()) {
@@ -548,7 +551,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
                 }
             }
         } else if (isRequiredField(field)) {
-            if (!checkBasicRequiredAnnotationUsage(element, field)) {
+            if (!checkBasicRequiredAnnotationUsage(field)) {
                 return false
             }
         } else {
@@ -675,25 +678,30 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
 
     // The field has the @Required annotation
     // Returns `true` if the field could be correctly validated, `false` if an error was reported.
-    private fun checkBasicRequiredAnnotationUsage(element: Element, variableElement: VariableElement): Boolean {
-        if (Utils.isPrimitiveType(variableElement)) {
+    private fun checkBasicRequiredAnnotationUsage(field: VariableElement): Boolean {
+        if (Utils.isPrimitiveType(field)) {
             Utils.error(String.format(Locale.US,
-                    "@Required or @NotNull annotation is unnecessary for primitive field \"%s\".", element))
+                    "@Required or @NotNull annotation is unnecessary for primitive field \"%s\".", field))
             return false
         }
 
-        if (Utils.isRealmModel(variableElement)) {
-            Utils.error(String.format(Locale.US,
-                    "Field \"%s\" with type \"%s\" cannot be @Required or @NotNull.", element, element.asType()))
-            return false
+        if (Utils.isRealmModel(field)) {
+            /**
+             * Defer checking if @Required usage is valid when checking backlinks. See [categorizeBacklinkField]
+             */
+            if (!embedded || field.getAnnotation(LinkingObjects::class.java) == null) {
+                Utils.error(String.format(Locale.US,
+                        "Field \"%s\" with type \"%s\" cannot be @Required or @NotNull.", field, field.asType()))
+                return false
+            }
         }
 
         // Should never get here - user should remove @Required
-        if (nullableFields.contains(variableElement)) {
+        if (nullableFields.contains(field)) {
             Utils.error(String.format(Locale.US,
                     "Field \"%s\" with type \"%s\" appears to be nullable. Consider removing @Required.",
-                    element,
-                    element.asType()))
+                    field,
+                    field.asType()))
 
             return false
         }
@@ -706,6 +714,15 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     // From Core 6 String primary keys no longer needs to be indexed, and from Core 10
     // none of the primary key types do.
     private fun categorizePrimaryKeyField(fieldElement: RealmFieldElement): Boolean {
+        // Embedded Objects do not support primary keys at all
+        if (embedded) {
+            Utils.error(String.format(Locale.US,
+                    "A model class marked as embedded cannot contain a @PrimaryKey. One was defined for: %s",
+                    fieldElement.simpleName.toString()))
+            return false
+        }
+
+        // Only one primary key pr. class is allowed
         if (primaryKey != null) {
             Utils.error(String.format(Locale.US,
                     "A class cannot have more than one @PrimaryKey. Both \"%s\" and \"%s\" are annotated as @PrimaryKey.",
@@ -714,6 +731,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             return false
         }
 
+        // Check that the primary key is defined on a supported field
         val fieldType = fieldElement.asType()
         if (!isValidPrimaryKeyType(fieldType)) {
             Utils.error(String.format(Locale.US,

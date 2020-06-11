@@ -37,6 +37,8 @@ import io.realm.log.RealmLog;
 
 public class Util {
 
+    private static Boolean rxJavaAvailable;
+
     public static String getTablePrefix() {
         return nativeGetTablePrefix();
     }
@@ -198,6 +200,24 @@ public class Util {
         if (new AndroidCapabilities().isMainThread()) {
             throw new IllegalStateException(errorMessage);
         }
+    }
+
+    /**
+     * Checks if RxJava is can be loaded.
+     *
+     * @return {@code true} if RxJava dependency exist, {@code false} otherwise.
+     */
+    @SuppressWarnings("LiteralClassName")
+    public static synchronized boolean isRxJavaAvailable() {
+        if (rxJavaAvailable == null) {
+            try {
+                Class.forName("io.reactivex.Flowable");
+                rxJavaAvailable = true;
+            } catch (ClassNotFoundException ignore) {
+                rxJavaAvailable = false;
+            }
+        }
+        return rxJavaAvailable;
     }
 
 }

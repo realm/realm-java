@@ -20,20 +20,20 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
-import io.realm.ErrorCode;
-import io.realm.ObjectServerError;
+import io.realm.mongodb.ErrorCode;
+import io.realm.mongodb.AppException;
 import io.realm.internal.Keep;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 
 // Common callback for handling results from the ObjectStore layer.
-// NOTE: This class is called from JNI. If renamed, adjust callbacks in RealmApp.cpp
+// NOTE: This class is called from JNI. If renamed, adjust callbacks in App.cpp
 @Keep
 public abstract class OsJNIResultCallback<T> extends OsJavaNetworkTransport.NetworkTransportJNIResultCallback {
 
     private final AtomicReference<T> success;
-    private final AtomicReference<ObjectServerError> error;
+    private final AtomicReference<AppException> error;
 
-    public OsJNIResultCallback(@Nullable AtomicReference<T> success, AtomicReference<ObjectServerError> error) {
+    public OsJNIResultCallback(@Nullable AtomicReference<T> success, AtomicReference<AppException> error) {
         this.success = success;
         this.error = error;
     }
@@ -55,9 +55,9 @@ public abstract class OsJNIResultCallback<T> extends OsJavaNetworkTransport.Netw
         if (code == ErrorCode.UNKNOWN) {
             // In case of UNKNOWN errors parse as much error information on as possible.
             String detailedErrorMessage = String.format("{%s::%s} %s", nativeErrorCategory, nativeErrorCode, errorMessage);
-            error.set(new ObjectServerError(code, detailedErrorMessage));
+            error.set(new AppException(code, detailedErrorMessage));
         } else {
-            error.set(new ObjectServerError(code, errorMessage));
+            error.set(new AppException(code, errorMessage));
         }
     }
 }

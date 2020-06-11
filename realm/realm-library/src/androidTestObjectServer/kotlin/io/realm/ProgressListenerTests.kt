@@ -23,6 +23,10 @@ import io.realm.kotlin.where
 import io.realm.kotlin.syncSession
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
+import io.realm.mongodb.Credentials
+import io.realm.mongodb.User
+import io.realm.mongodb.close
+import io.realm.mongodb.sync.*
 import io.realm.rule.BlockingLooperThread
 import org.junit.*
 import org.junit.Assert.*
@@ -41,7 +45,7 @@ class ProgressListenerTests {
     }
 
     private val looperThread = BlockingLooperThread()
-    private lateinit var app: TestRealmApp
+    private lateinit var app: TestApp
     private lateinit var realm: Realm
     private lateinit var partitionValue: String
 
@@ -50,7 +54,7 @@ class ProgressListenerTests {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         RealmLog.setLevel(LogLevel.TRACE)
         partitionValue = UUID.randomUUID().toString()
-        app = TestRealmApp()
+        app = TestApp()
     }
 
     @After
@@ -68,10 +72,10 @@ class ProgressListenerTests {
     @Test
     fun downloadProgressListener_changesOnly() {
         val allChangesDownloaded = CountDownLatch(1)
-        val user1: RealmUser = app.login(RealmCredentials.anonymous())
+        val user1: User = app.login(Credentials.anonymous())
         val user1Config = createSyncConfig(user1)
         createRemoteData(user1Config)
-        val user2: RealmUser = app.login(RealmCredentials.anonymous())
+        val user2: User = app.login(Credentials.anonymous())
         val user2Config = createSyncConfig(user2)
         val realm = Realm.getInstance(user2Config)
         val session: SyncSession = realm.syncSession
@@ -92,7 +96,7 @@ class ProgressListenerTests {
         val transferCompleted = AtomicInteger(0)
         val allChangesDownloaded = CountDownLatch(1)
         val startWorker = CountDownLatch(1)
-        val user1: RealmUser = app.login(RealmCredentials.anonymous())
+        val user1: User = app.login(Credentials.anonymous())
         val user1Config: SyncConfiguration = createSyncConfig(user1)
 
         // Create worker thread that puts data into another Realm.
@@ -102,7 +106,7 @@ class ProgressListenerTests {
             createRemoteData(user1Config)
         })
         worker.start()
-        val user2: RealmUser = app.login(RealmCredentials.anonymous())
+        val user2: User = app.login(Credentials.anonymous())
         val user2Config: SyncConfiguration = createSyncConfig(user2)
         val user2Realm = Realm.getInstance(user2Config)
         val session: SyncSession = user2Realm.syncSession
@@ -344,7 +348,7 @@ class ProgressListenerTests {
         return objectCounts
     }
 
-    private fun createSyncConfig(user: RealmUser = app.login(RealmCredentials.anonymous()), partitionValue: String = getTestPartitionValue()): SyncConfiguration {
+    private fun createSyncConfig(user: User = app.login(Credentials.anonymous()), partitionValue: String = getTestPartitionValue()): SyncConfiguration {
         return SyncConfiguration.Builder(user, partitionValue)
                 .modules(DefaultSyncSchema())
                 .build()

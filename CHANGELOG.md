@@ -1,19 +1,84 @@
-## 10.0.0 (YYYY-MM-DD)
+## 10.0.0-BETA.3 (2020-06-09)
 
-### Breaking Changes
-* Removed all references and API's releated to permissions. These are now managed through MongoDB Realm. Read more [here](XXX).
-* Removed Query Based Sync API's and Subscriptions. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release. `SyncConfiguration.partionKey()` has been added as a replacement. Read more [here](XXX).  
+We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
+
+The old Realm Cloud legacy API's have undergone significant refactoring. The new API's are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
+
+### Breaking Changes 
+* None
 
 ### Enhancements
-* None.
+* None
 
 ### Fixed
-* None.
+* [RealmApp] When restarting an app, the base URL used would in some cases be incorrect. (Since 10.0.0-BETA.2)
 
 ### Compatibility
-* TODO.
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
 
 ### Internal
+* Updated to Object Store commit: c02707bc28e1886970c5da29ef481dc0cb6c3dd8.
+
+
+## 10.0.0-BETA.2 (2020-06-08)
+
+We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
+
+The old Realm Cloud legacy API's have undergone significant refactoring. The new API's are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
+
+### Breaking Changes 
+* None
+
+### Enhancements
+* None
+
+### Fixed
+* [RealmApp] `AppConfiguration` did not fallback to the correct default baseUrl if none was provided. (Since 10.0.0-BETA.1) 
+* [RealmApp] When restarting an app, re-using the already logged in user would result in Sync not resuming. (Since 10.0.0-BETA.1)
+
+### Compatibility
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
+
+### Internal
+* Updated to Object Store commit: c50be4dd178ef7e11d453f61a5ac2afa8c1c10bf.
+* Updated to Realm Sync 10.0.0-beta.2.
+
+
+## 10.0.0-BETA.1 (2020-06-05)
+
+We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
+
+The old Realm Cloud legacy API's have undergone significant refactoring. The new API's are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
+
+### Breaking Changes
+* [RealmApp] Removed all references and API's releated to permissions. These are now managed through MongoDB Realm.
+* [RealmApp] Query Based Sync API's and Subscriptions. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release. `SyncConfiguration.partitionKey()` has been added as a replacement.  
+* [RealmApp] Removed support for Client Resync. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release.
+* [RealmApp] Removed suppport for custom SSL certificates. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release.
+* [RealmApp] Destructive updates of a schema of a synced Realm will now consistently throw an `UnsupportedOperationException` instead of some methods throwing `IllegalArgumentException`. The affected methods are `RealmSchema.remove(String)`, `RealmSchema.rename(String, String)`, `RealmObjectSchema.setClassName(String)`, `RealmObjectSchema.removeField(String)`, `RealmObjectSchema.renameField(String, String)`, `RealmObjectSchema.removeIndex(String)`, `RealmObjectSchema.removePrimaryKey()`, `RealmObjectSchema.addPrimaryKey(String)` and `RealmObjectSchema.addField(String, Class<?>, FieldAttribute)` 
+
+### Enhancements
+* Added support for `org.bson.types.Decimal128` and `org.bson.types.ObjectId` as supported fields in model classes.
+* Added support for `org.bson.types.ObjectId` as a primary key.
+* Added support for "Embedded Objects". They are enabled using `@RealmClass(embedded = true)`. An embedded object must have exactly one parent object linking to it and it will be deleted when the the parent is. Embedded objects can also be the parent of other embedded classes. Read more [here](https://realm.io/docs/java/latest/#embedded-objects). (Issue [#6713](https://github.com/realm/realm-java/issues/6713))  
+
+### Fixed
+* After upgrading a Realm file, you may at some point receive a 'NoSuchTable' exception. (Issue [Core#3701](https://github.com/realm/realm-core/issues/3701), since 7.0.0)
+* If the Realm file upgrade process was interrupted/killed for various reasons, the following run would some assertions failing. (Issue [#6866](https://github.com/realm/realm-java/issues/6866), since 7.0.0). 
+
+### Compatibility
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
+
+### Internal
+* Updated to Object Store commit: 6d081a53377514f9b77736cb03051a03d829da922.
+* Updated to Realm Sync 10.0.0-beta.1.
+* Updated to Realm Core 10.0.0-beta.1.
 * OKHttp was upgraded to 3.12.0 from 3.10.0.
 * Updated Android Gradle Plugin to 3.6.1.
 * Updated Gradle to 5.6.4 
@@ -21,9 +86,10 @@
 * Updated Android Build Tools to 29.0.2.
 * Updated compileSdkVersion to 29.
 
+
 ## 7.0.0(YYYY-MM-DD)
 
-NOTE: This version bumps the Realm file format to version 10. It is not possible to downgrade version 9 or earlier. Files created with older versions of Realm will be automatically upgraded.
+NOTE: This version bumps the Realm file format to version 10. Files created with previous versions of Realm will be automatically upgraded. It is not possible to downgrade to version 9 or earlier. 
 
 ### Breaking Changes
 * [ObjectServer] Removed deprecated method `SyncConfiguration.Builder.partialRealm()`. Use `SyncConfiguration.Builder.fullSynchronization()` instead.
@@ -40,17 +106,21 @@ NOTE: This version bumps the Realm file format to version 10. It is not possible
 * [ObjectServer] `IncompatibleSyncedFileException` is removed and no longer thrown.
 
 ### Enhancements
-* Added support for `org.bson.types.Decimal128` and `org.bson.types.ObjectId` as supported fields in model classes.
-* Add support for `org.bson.types.ObjectId` as a primary key.
 * Added `Realm.freeze()`, `RealmObject.freeze()`, `RealmResults.freeze()` and `RealmList.freeze()`. These methods will return a frozen version of the current Realm data. This data can be read from any thread without throwing an `IllegalStateException`, but will never change. All frozen Realms and data can be closed by calling `Realm.close()` on the frozen Realm, but fully closing all live Realms will also close the frozen ones. Frozen data can be queried as normal, but trying to mutate it in any way will throw an `IllegalStateException`. This includes all methods that attempt to refresh or add change listeners. (Issue [#6590](https://github.com/realm/realm-java/pull/6590))
 * Added `Realm.isFrozen()`, `RealmObject.isFrozen()`, `RealmObject.isFrozen(RealmModel)`, `RealmResults.isFrozen()` and `RealmList.isFrozen()`, which returns whether or not the data is frozen.
 * Added `RealmConfiguration.Builder.maxNumberOfActiveVersions(long number)`. Setting this will cause Realm to throw an `IllegalStateException` if too many versions of the Realm data are live at the same time. Having too many versions can dramatically increase the filesize of the Realm.
-* `RealmResults.asJSON()` is no longer `@Beta`.
+* Storing large binary blobs in Realm files no longer forces the file to be at least 8x the size of the largest blob.
+* Reduce the size of transaction logs stored inside the Realm file, reducing file size growth from large transactions.
+* `RealmResults.asJSON()` is no longer `@Beta`
+* The default `toString()` for proxy objects now print the length of binary fields. (Issue [#6767](https://github.com/realm/realm-java/pull/6767))
+
+### Fixes
+* If a DynamicRealm and Realm was opened for the same file they would share transaction state by accident. The implication was that writes to a `Realm` would immediately show up in the `DynamicRealm`. This has been fixed, so now it is required to call `refresh()` on the other Realm or wait for normal change listeners to detect the change.
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
 * File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
-* APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
 
 ### Internal
 * `OsSharedRealm.VersionID.hashCode()` was not implemented correctly and included the memory location in the hashcode.
@@ -58,9 +128,27 @@ NOTE: This version bumps the Realm file format to version 10. It is not possible
 * The NDK has been upgraded from r10e to r21.
 * The compiler used for C++ code has changed from GCC to Clang.
 * OpenSSL used by Realms encryption layer has been upgraded from 1.0.2k to 1.1.1b.
-* Updated to Object Store commit: 66199adbfffbe153e696309a53d4ec03e32c44e3.
+* Updated to Object Store commit: 820b74e2378f111991877d43068a95d2b7a2e404.
 * Updated to Realm Sync 5.0.3.
 * Updated to Realm Core 6.0.4.
+
+### Credits
+* Thanks to @joxon for better support for binary fields in proxy objects.
+
+
+## 6.1.0(2020-01-17)
+
+### Fixed
+* None.
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
+
+### Internal
+* None.
+
 
 
 ## 6.1.0(2020-01-17)

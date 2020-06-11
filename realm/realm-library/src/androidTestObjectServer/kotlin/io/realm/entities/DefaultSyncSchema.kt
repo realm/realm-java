@@ -22,6 +22,6 @@ const val defaultPartitionValue = "default"
 /**
  * The set of classes initially supported by MongoDB Realm.
  */
-@RealmModule(classes = [SyncDog::class, SyncPerson::class])
+@RealmModule(classes = [SyncDog::class, SyncPerson::class, SyncSupportedTypes::class])
 class DefaultSyncSchema {
 }

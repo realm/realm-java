@@ -198,6 +198,11 @@ public enum FrozenPendingRow implements Row {
     }
 
     @Override
+    public long createEmbeddedObject(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
     public boolean isValid() {
         return false;
     }

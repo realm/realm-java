@@ -5,9 +5,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import io.realm.ErrorCode;
-import io.realm.ObjectServerError;
-import io.realm.internal.Keep;
+import io.realm.mongodb.ErrorCode;
+import io.realm.mongodb.AppException;
 import io.realm.internal.KeepMember;
 import io.realm.internal.OsRealmConfig;
 
@@ -41,7 +40,7 @@ public class OsAsyncOpenTask {
 
         String errorMessage = error.get();
         if (errorMessage != null) {
-            throw new ObjectServerError(ErrorCode.UNKNOWN, errorMessage);
+            throw new AppException(ErrorCode.UNKNOWN, errorMessage);
         }
     }
 

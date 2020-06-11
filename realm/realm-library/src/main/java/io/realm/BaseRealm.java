@@ -147,7 +147,7 @@ abstract class BaseRealm implements Closeable {
         this.shouldCloseSharedRealm = false;
     }
 
-    /**
+   /**
      * Sets the auto-refresh status of the Realm instance.
      * <p>
      * Auto-refresh is a feature that enables automatic update of the current Realm instance and all its derived objects
@@ -513,8 +513,7 @@ abstract class BaseRealm implements Closeable {
      */
     void checkNotInSync() {
         if (configuration.isSyncConfiguration()) {
-            throw new IllegalArgumentException("You cannot perform changes to a schema. " +
-                    "Please update app and restart.");
+            throw new UnsupportedOperationException("You cannot perform destructive changes to a schema of a synced Realm");
         }
     }
 

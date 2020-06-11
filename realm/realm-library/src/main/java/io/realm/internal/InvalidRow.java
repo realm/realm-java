@@ -193,6 +193,11 @@ public enum InvalidRow implements Row {
     }
 
     @Override
+    public long createEmbeddedObject(long columnKey) {
+        throw getStubException();
+    }
+
+    @Override
     public boolean isValid() {
         return false;
     }

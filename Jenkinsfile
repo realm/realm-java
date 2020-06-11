@@ -1,5 +1,7 @@
 #!groovy
 
+@Library('realm-ci') _
+
 import groovy.json.JsonOutput
 
 def buildSuccess = false
@@ -52,25 +54,31 @@ try {
           deviceSerial = "emulator-5554"
         }
 
-        // Prepare Docker images
-        buildEnv = docker.build 'realm-java:snapshot'
-        def props = readProperties file: 'dependencies.list'
-        echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER_VERSION}"
-        def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER_VERSION}")
-        docker.withRegistry('https://docker.pkg.github.com', 'github-packages-token') {
-          mdbRealmImage.pull()
-        }
-        def commandServerEnv = docker.build 'mongodb-realm-command-server', "tools/sync_test_server"
-
         try {
-          // Prepare Docker containers used by Instrumentation tests
-          // TODO: How much of this logic can be moved to start_server.sh for shared logic with local testing.
-          sh "docker network create ${dockerNetworkId}"
-          mongoDbRealmContainer = mdbRealmImage.run("--network ${dockerNetworkId}")
-          mongoDbRealmCommandServerContainer = commandServerEnv.run("--network container:${mongoDbRealmContainer.id}")
-          sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config"
-          sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmContainer.id}:/tmp/"
-          sh "docker exec -i ${mongoDbRealmContainer.id} sh /tmp/setup_mongodb_realm.sh"
+
+          def buildEnv = null
+          stage('Prepare Docker Images') {
+            // TODO Should be renamed to 'master' when merged there.
+            // TODO Figure out why caching the image doesn't work.
+            buildEnv = buildDockerEnv("realm-java-ci:v10", push: currentBranch == 'v10-do-not-cache') 
+            def props = readProperties file: 'dependencies.list'
+            echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER_VERSION}"
+            def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER_VERSION}")
+            docker.withRegistry('https://docker.pkg.github.com', 'github-packages-token') {
+              mdbRealmImage.pull()
+            }
+            def commandServerEnv = docker.build 'mongodb-realm-command-server', "tools/sync_test_server"
+
+            // Prepare Docker containers used by Instrumentation tests
+            // TODO: How much of this logic can be moved to start_server.sh for shared logic with local testing.
+            sh "docker network create ${dockerNetworkId}"
+            mongoDbRealmContainer = mdbRealmImage.run("--network ${dockerNetworkId}")
+            mongoDbRealmCommandServerContainer = commandServerEnv.run("--network container:${mongoDbRealmContainer.id}")
+            sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config"
+            sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmContainer.id}:/tmp/"
+            sh "docker exec -i ${mongoDbRealmContainer.id} sh /tmp/setup_mongodb_realm.sh"
+          }
+
 
           // There is a chance that real devices are attached to the host, so if the emulator is
           // running we need to make sure that ADB and tests targets the correct device.
@@ -78,6 +86,7 @@ try {
           if (deviceSerial != null) {
             restrictDevice = "-e ANDROID_SERIAL=${deviceSerial} "
           }
+
           buildEnv.inside("-e HOME=/tmp " +
                   "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
                   "--privileged " +
@@ -113,13 +122,16 @@ try {
             }
           }
         } finally {
-          archiveServerLogs(mongoDbRealmContainer.id, mongoDbRealmCommandServerContainer.id)
-          mongoDbRealmContainer.stop()
-          mongoDbRealmCommandServerContainer.stop()
+          // We assume that creating these containers and the docker network can be considered an atomic operation.
+          if (mongoDbRealmContainer != null && mongoDbRealmCommandServerContainer != null) {
+            archiveServerLogs(mongoDbRealmContainer.id, mongoDbRealmCommandServerContainer.id)
+            mongoDbRealmContainer.stop()
+            mongoDbRealmCommandServerContainer.stop()
+            sh "docker network rm ${dockerNetworkId}"
+          }
           if (emulatorContainer != null) {
             emulatorContainer.stop()
           }
-          sh "docker network rm ${dockerNetworkId}"
         }
       }
     }
@@ -239,7 +251,7 @@ def forwardAdbPorts() {
 
 String startLogCatCollector() {
   // Cancel build quickly if no device is available. The lock acquired already should
-  // ensure we have access to a device. If not, it is most likely a bug.
+  // ensure we have access to a device. If not, it is most likely a more severe problem.
   timeout(time: 1, unit: 'MINUTES') {
     sh 'adb devices'
     sh """adb logcat -c
@@ -251,6 +263,8 @@ String startLogCatCollector() {
 }
 
 def stopLogCatCollector(String backgroundPid) {
+  // The pid might not be available if the build was terminated early or stopped due to
+  // a build error.
   if (backgroundPid != null) {
     sh "kill ${backgroundPid}"
     zip([
