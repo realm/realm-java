@@ -52,6 +52,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+// TODO: Some of these tests are blocked by https://github.com/realm/realm-java/issues/6921
 @RunWith(AndroidJUnit4.class)
 public class ProgressListenerTests extends StandardIntegrationTest {
 
