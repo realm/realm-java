@@ -295,7 +295,7 @@ public class User {
      * Return the custom user data associated with the user in the Realm App.
      * <p>
      * The data is only refreshed when the user's access token is refreshed or when explicitly
-     * {@link #refreshCustomData() refreshed}.
+     * calling {@link #refreshCustomData()}.
      *
      * @return The custom user data associated with the user.
      */
@@ -307,7 +307,6 @@ public class User {
      * Re-fetch custom user data from the Realm App.
      *
      * @return The updated custom user data associated with the user.
-     *
      * @throws AppException if the request failed in some way.
      */
     public Document refreshCustomData() {
