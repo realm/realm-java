@@ -41,7 +41,6 @@ ID=$(docker run --rm -i -t -d --network mongodb-realm-network -p9090:9090 -p8888
 docker run --rm -i -t -d --network container:$ID -v$TMP_DIR:/tmp --name mongodb-realm-command-server mongodb-realm-command-server
 
 docker cp "$DOCKERFILE_DIR"/app_config mongodb-realm:/tmp/app_config
-docker cp "$DOCKERFILE_DIR"/app_config_empty mongodb-realm:/tmp/app_config_empty
 docker cp "$DOCKERFILE_DIR"/setup_mongodb_realm.sh mongodb-realm:/tmp/
 docker exec -it mongodb-realm sh /tmp/setup_mongodb_realm.sh
 
