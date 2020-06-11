@@ -36,6 +36,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           jq \
                           libc6 \
                           libgcc1 \
+                          libglu1 \
                           libncurses5 \
                           libstdc++6 \
                           libz1 \

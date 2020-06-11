@@ -107,8 +107,12 @@ try {
               //  system-images;android-24;default;arm64-v8a
               sh """yes '\n' | avdmanager create avd -n CIEmulator -k '${emulatorImage}' --force"""
               sh "adb start-server" // https://stackoverflow.com/questions/56198290/problems-with-adb-exe
+              sh "emulator -accel-check"
               // Required due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
-              sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-window -gpu off -noaudio -no-boot-anim &"
+              // FIXME: -no-window -gpu off -noaudio doesn't work, crahes with
+              // ERROR: resizing partition e2fsck failed with exit code 8
+              // E0611 10:55:18.277171892     117 socket_utils_common_posix.cc:201] check for SO_REUSEPORT: {"created":"@1591865718.277155756","description":"SO_REUSEPORT unavailable on compiling system","file":"/mnt/tmpfs/src/android/emu-master-dev/external/grpc/src/core/lib/iomgr/socket_utils_common_posix.cc","file_line":169}
+              sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-boot-anim -wipe-data -partition-size 4098"
               try {
                 runBuild(abiFilter, instrumentationTestTarget)
               } finally {
