@@ -1,26 +1,26 @@
 {
-  "database": "test_data",
-  "collection": "mongo_data",
-  "roles": [
-    {
-      "name": "default",
-      "apply_when": {},
-      "insert": true,
-      "delete": true,
-      "additional_fields": {}
-    }
-  ],
-  "schema": {
-    "properties": {
-      "_id": {
-        "bsonType": "objectId"
-      },
-      "realm_id": {
-        "bsonType": "string"
-      }
-    },
-    "required": [
+    "id": "5edea20f0f99fe616bf40adf",
+    "database": "test_data",
+    "collection": "mongo_data",
+    "roles": [
+        {
+            "name": "default",
+            "apply_when": {},
+            "insert": true,
+            "delete": true,
+            "additional_fields": {}
+        }
     ],
-    "title": "mongo_data"
-  }
+    "schema": {
+        "properties": {
+            "_id": {
+                "bsonType": "objectId"
+            },
+            "realm_id": {
+                "bsonType": "string"
+            }
+        },
+        "required": [],
+        "title": "mongo_data"
+    }
 }
