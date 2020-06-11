@@ -99,15 +99,14 @@ try {
                   "-e REALM_CORE_DOWNLOAD_DIR=/tmp/.gradle " +
                   "--network container:${mongoDbRealmContainer.id} ") {
 
-            // Lock required around all usages of Gradle as it isn't
-            // able to share its cache between builds.
             if (useEmulator) {
               // TODO: We should wait until the emulator is online. For now assume it starts fast enough
-              // before the tests will run, since the library needs to build first.
-              // Emulator support for ARM is limited. The latest images are:
-              // system-images;android-24;default;armeabi-v7a
-              // system-images;android-24;default;arm64-v8a
+              //  before the tests will run, since the library needs to build first.
+              //  Emulator support for ARM is limited. The latest images are:
+              //  system-images;android-24;default;armeabi-v7a
+              //  system-images;android-24;default;arm64-v8a
               sh """yes '\n' | avdmanager create avd -n CIEmulator -k '${emulatorImage}' --force"""
+              sh "adb start-server" // https://stackoverflow.com/questions/56198290/problems-with-adb-exe
               // Required due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
               sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-window -gpu off -noaudio -no-boot-anim &"
               try {
