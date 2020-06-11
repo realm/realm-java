@@ -337,7 +337,7 @@ class UserTests {
             "https://github.com/realm/realm-java/issues/6942")
     fun customData_initiallyEmpty() {
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        // Data is not immediately available
+        // Newly registered users do not have any custom data with current test server setup
         assertEquals(Document(), user.customData)
     }
 
@@ -346,7 +346,7 @@ class UserTests {
             "https://github.com/realm/realm-java/issues/6942")
     fun customData_refresh() {
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        // Data is not immediately available
+        // Newly registered users do not have any custom data with current test server setup
         assertEquals(Document(), user.customData)
 
         updateCustomData(user, Document(CUSTOM_USER_DATA_FIELD, CUSTOM_USER_DATA_VALUE))
