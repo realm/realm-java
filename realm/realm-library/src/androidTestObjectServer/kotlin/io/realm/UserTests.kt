@@ -333,6 +333,8 @@ class UserTests {
     }
 
     @Test
+    @Ignore("Cannot automate custom user data cluster setup yet due to missing CLI support " +
+            "https://github.com/realm/realm-java/issues/6942")
     fun customData_initiallyEmpty() {
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         // Data is not immediately available
@@ -340,6 +342,8 @@ class UserTests {
     }
 
     @Test
+    @Ignore("Cannot automate custom user data cluster setup yet due to missing CLI support " +
+            "https://github.com/realm/realm-java/issues/6942")
     fun customData_refresh() {
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         // Data is not immediately available
@@ -353,6 +357,8 @@ class UserTests {
     }
 
     @Test
+    @Ignore("Cannot automate custom user data cluster setup yet due to missing CLI support " +
+            "https://github.com/realm/realm-java/issues/6942")
     fun customData_refreshAsync() = looperThread.runBlocking {
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         // Newly registered users do not have any custom data with current test server setup
@@ -369,6 +375,8 @@ class UserTests {
     }
 
     @Test
+    @Ignore("Cannot automate custom user data cluster setup yet due to missing CLI support " +
+            "https://github.com/realm/realm-java/issues/6942")
     fun customData_refreshByLogout() {
         val password = "123456"
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), password)
@@ -384,6 +392,8 @@ class UserTests {
     }
 
     @Test
+    @Ignore("Cannot automate custom user data cluster setup yet due to missing CLI support " +
+            "https://github.com/realm/realm-java/issues/6942")
     fun customData_refreshAsyncThrowsOnNonLooper() {
         val password = "123456"
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), password)
