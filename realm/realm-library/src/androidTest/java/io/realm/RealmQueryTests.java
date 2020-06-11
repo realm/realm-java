@@ -3382,6 +3382,7 @@ public class RealmQueryTests extends QueryTests {
 
         try {
             realm.where(AllJavaTypes.class).distinct(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY).findAllAsync();
+            fail("Unsupported linked field");
         } catch (IllegalArgumentException ignored) {
         }
         looperThread.testComplete();
@@ -3421,46 +3422,55 @@ public class RealmQueryTests extends QueryTests {
         // An empty string field in the middle.
         try {
             query.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, "", AnnotationIndexTypes.FIELD_INDEX_INT).findAll();
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
         // An empty string field at the end.
         try {
             query.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.FIELD_INDEX_INT, "").findAll();
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
         // A null string field in the middle.
         try {
             query.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, (String) null, AnnotationIndexTypes.FIELD_INDEX_INT).findAll();
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
         // A null string field at the end.
         try {
             query.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.FIELD_INDEX_INT, (String) null).findAll();
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
         // (String) Null makes varargs a null array.
         try {
             query.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, (String) null).findAll();
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
         // Two (String) null for first and varargs fields.
         try {
             query.distinct((String) null, (String) null).findAll();
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
         // "" & (String) null combination.
         try {
             query.distinct("", (String) null).findAll();
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
         // "" & (String) null combination.
         try {
             query.distinct((String) null, "").findAll();
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
         // Two empty fields tests.
         try {
             query.distinct("", "").findAll();
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
@@ -3483,10 +3493,8 @@ public class RealmQueryTests extends QueryTests {
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
-        try {
-            query.distinct(AnnotationIndexTypes.FIELD_NOT_INDEX_STRING, AnnotationIndexTypes.NOT_INDEX_FIELDS).findAll();
-        } catch (IllegalArgumentException ignored) {
-        }
+        RealmResults<AnnotationIndexTypes> distinctMulti = query.distinct(AnnotationIndexTypes.FIELD_NOT_INDEX_STRING, AnnotationIndexTypes.NOT_INDEX_FIELDS).findAll();
+        assertEquals(3, distinctMulti.size());
     }
 
     @Test
@@ -3498,6 +3506,7 @@ public class RealmQueryTests extends QueryTests {
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
         try {
             query.distinct(AnnotationIndexTypes.FIELD_INDEX_INT, AnnotationIndexTypes.NONEXISTANT_MIX_FIELDS).findAll();
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
@@ -3509,6 +3518,7 @@ public class RealmQueryTests extends QueryTests {
         RealmQuery<AllTypes> query = realm.where(AllTypes.class);
         try {
             query.distinct(AllTypes.FIELD_REALMOBJECT, AllTypes.INVALID_TYPES_FIELDS_FOR_DISTINCT).findAll();
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
@@ -3522,6 +3532,7 @@ public class RealmQueryTests extends QueryTests {
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
         try {
             query.distinct(AnnotationIndexTypes.INDEX_LINKED_FIELD_STRING, AnnotationIndexTypes.INDEX_LINKED_FIELDS).findAll();
+            fail("Unsupported linked field");
         } catch (IllegalArgumentException ignored) {
         }
     }
@@ -3535,6 +3546,7 @@ public class RealmQueryTests extends QueryTests {
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
         try {
             query.distinct(AnnotationIndexTypes.NOT_INDEX_LINKED_FILED_STRING, AnnotationIndexTypes.NOT_INDEX_LINKED_FIELDS).findAll();
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
@@ -3546,6 +3558,7 @@ public class RealmQueryTests extends QueryTests {
         RealmQuery<AllJavaTypes> query = realm.where(AllJavaTypes.class);
         try {
             query.distinct(AllJavaTypes.INVALID_LINKED_BINARY_FIELD_FOR_DISTINCT, AllJavaTypes.INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT).findAll();
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
