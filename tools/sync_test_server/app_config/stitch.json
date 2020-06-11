@@ -6,7 +6,11 @@
     "deployment_model": "GLOBAL",
     "security": {},
     "custom_user_data_config": {
-        "enabled": false
+        "enabled": true,
+        "mongo_service_id": "5ede0729eab8deea4edf0579",
+        "database_name": "test_data",
+        "collection_name": "custom_user_data",
+        "user_id_field": "userid"
     },
     "sync": {
         "development_mode_enabled": true

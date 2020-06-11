@@ -17,9 +17,7 @@ package io.realm.mongodb
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.Realm
-import io.realm.TestApp
-import io.realm.TestHelper
+import io.realm.*
 import io.realm.mongodb.mongo.MongoClient
 import io.realm.mongodb.mongo.MongoCollection
 import io.realm.mongodb.mongo.MongoNamespace
@@ -40,8 +38,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.*
 
-private const val SERVICE_NAME = "BackingDB"    // it comes from the test server's BackingDB/config.json
-private const val DATABASE_NAME = "test_data"   // same as above
 private const val COLLECTION_NAME = "mongo_data" // name of collection used by tests
 
 @RunWith(AndroidJUnit4::class)

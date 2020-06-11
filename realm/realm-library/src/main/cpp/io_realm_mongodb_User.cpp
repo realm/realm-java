@@ -22,6 +22,7 @@
 #include "jni_util/jni_utils.hpp"
 
 #include <sync/app.hpp>
+#include <jni_util/bson_util.hpp>
 
 using namespace realm;
 using namespace realm::app;
