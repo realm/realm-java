@@ -355,7 +355,7 @@ class UserTests {
     @Test
     fun customData_refreshAsync() = looperThread.runBlocking {
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        // Data is not immediately available
+        // Newly registered users do not have any custom data with current test server setup
         assertEquals(Document(), user.customData)
 
         updateCustomData(user, Document(CUSTOM_USER_DATA_FIELD, CUSTOM_USER_DATA_VALUE))
@@ -372,7 +372,7 @@ class UserTests {
     fun customData_refreshByLogout() {
         val password = "123456"
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), password)
-        // Data is not immediately available
+        // Newly registered users do not have any custom data with current test server setup
         assertEquals(Document(), user.customData)
 
         updateCustomData(user, Document(CUSTOM_USER_DATA_FIELD, CUSTOM_USER_DATA_VALUE))
@@ -388,7 +388,6 @@ class UserTests {
         val password = "123456"
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), password)
 
-        // Data is not immediately available
         assertFailsWith<java.lang.IllegalStateException> {
             user.refreshCustomData { }
         }
@@ -406,4 +405,5 @@ class UserTests {
             }
         }
     }
+
 }
