@@ -1,11 +1,11 @@
 # Realm Sync release used by Realm Java (This includes Realm Core)
 # https://github.com/realm/realm-sync/releases
-REALM_SYNC_VERSION=10.0.0-beta.1
-REALM_SYNC_SHA256=1ce7b45620fa0eb8465130db272f0ebf941ee84f561e3274c12aee423c96c176
+REALM_SYNC_VERSION=10.0.0-beta.2
+REALM_SYNC_SHA256=0572f751ced210656ed7d567dce9e56b5cca19c3070096ff38c255c9585ccf0f
 
 # Version of MongoDB Realm used by integration tests
 # See https://github.com/realm/ci/packages/147854 for available versions
-MONGODB_REALM_SERVER_VERSION=2020-06-04
+MONGODB_REALM_SERVER_VERSION=2020-06-08
 
 # Common Android settings across projects
 GRADLE_BUILD_TOOLS=3.6.1

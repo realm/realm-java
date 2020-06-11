@@ -35,9 +35,9 @@ import io.realm.mongodb.auth.EmailPasswordAuth;
  * // Example
  * App app = new App("app-id");
  * Credentials credentials = Credentials.emailPassword("email", "password");
- * User user = app.loginAsync(credentials, new App.Callback<User>() {
+ * User user = app.loginAsync(credentials, new App.Callback&lt;User&gt;() {
  *   \@Override
- *   public void onResult(Result<User> result) {
+ *   public void onResult(Result&lt;User&gt; result) {
  *     if (result.isSuccess() {
  *       handleLogin(result.get());
  *     } else {
@@ -45,6 +45,7 @@ import io.realm.mongodb.auth.EmailPasswordAuth;
  *     }
  *   }
  * ));
+ * }
  * }
  * </pre>
  * @see <a href="https://docs.mongodb.com/stitch/authentication/providers/">Authentication Providers</a>

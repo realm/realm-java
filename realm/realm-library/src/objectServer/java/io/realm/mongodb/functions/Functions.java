@@ -32,7 +32,7 @@ import io.realm.mongodb.AppException;
 import io.realm.mongodb.User;
 
 /**
- * A <i>Functions<i> manager to call remote Realm functions for the associated Realm App.
+ * A <i>Functions</i> manager to call remote Realm functions for the associated Realm App.
  * <p>
  * Arguments and results are encoded/decoded with the <i>Functions'</i> codec registry either
  * inherited from the {@link AppConfiguration#getDefaultCodecRegistry()} or set explicitly

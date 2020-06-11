@@ -59,6 +59,14 @@ stitch-cli secrets add \
                   --base-url=http://localhost:9090 \
                   --config-path=/tmp/stitch-config
 
+#    - b) GCM (Firebase Cloud Messaging): Requires a server key - add your key here to test actual push notifications.
+stitch-cli secrets add \
+                  --name="gcm" \
+                  --value="gcm" \
+                  --app-id="realm-sdk-integration-tests-$APP_ID_SUFFIX" \
+                  --base-url=http://localhost:9090 \
+                  --config-path=/tmp/stitch-config
+
 # 4. Now we can correctly import the Stitch app
 stitch-cli import \
                   --config-path=/tmp/stitch-config \

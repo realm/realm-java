@@ -36,6 +36,7 @@ import io.realm.internal.mongodb.Request;
 import io.realm.internal.network.ResultHandler;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsMongoClient;
+import io.realm.internal.objectstore.OsPush;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
 import io.realm.mongodb.auth.ApiKeyAuth;
@@ -46,7 +47,7 @@ import io.realm.mongodb.push.Push;
 /**
  * A <i>user</i> holds the user's meta data and tokens for accessing Realm App functionality.
  * <p>
- * The user is used to configure Synchronized Realms and gives access to calling Realm App <i>Functions</>
+ * The user is used to configure Synchronized Realms and gives access to calling Realm App <i>Functions</i>
  * through {@link Functions} and accessing remote Realm App <i>Mongo Databases</i> through a
  * {@link MongoClient}.
  *
@@ -61,6 +62,8 @@ public class User {
     private ApiKeyAuth apiKeyAuthProvider = null;
     private MongoClient mongoClient = null;
     private Functions functions = null;
+    private Push push = null;
+    private TaskDispatcher dispatcher = null;
 
     /**
      * The different types of users.
@@ -105,6 +108,12 @@ public class User {
                                   CodecRegistry codecRegistry,
                                   TaskDispatcher dispatcher) {
             super(osMongoClient, codecRegistry, dispatcher);
+        }
+    }
+
+    private static class PushImpl extends Push {
+        protected PushImpl(OsPush osPush) {
+            super(osPush);
         }
     }
 
@@ -552,20 +561,26 @@ public class User {
     }
 
     /**
-     * FIXME Add support for push notifications.
+     * Returns the {@link Push} instance for managing push notification registrations.
      */
-    Push getPush() {
-        return null;
+    public synchronized Push getPush(String serviceName) {
+        if (push == null) {
+            OsPush osPush = new OsPush(app.nativePtr, osUser, serviceName);
+            push = new PushImpl(osPush);
+        }
+        return push;
     }
 
     /**
      * Returns a {@link MongoClient} instance for accessing documents in the database.
      * @param serviceName the service name used to connect to the server
      */
-    public MongoClient getMongoClient(String serviceName) {
+    public synchronized MongoClient getMongoClient(String serviceName) {
         Util.checkEmpty(serviceName, "serviceName");
         if (mongoClient == null) {
-            TaskDispatcher dispatcher = new TaskDispatcher();
+            if (dispatcher == null) {
+                dispatcher = new TaskDispatcher();
+            }
             OsMongoClient osMongoClient = new OsMongoClient(app.nativePtr, serviceName, dispatcher);
             mongoClient = new MongoClientImpl(osMongoClient, app.getConfiguration().getDefaultCodecRegistry(), dispatcher);
         }

@@ -257,35 +257,36 @@ def betaTag = 'Beta:a:<div style="border-style:solid;border-width:2px">This soft
         'considered at production quality, and should be used with care.</div>'
 
 task javadoc(type: Javadoc) {
-// FIXME: Disable JavaDoc until API Stabilizes a bit more
-//    source android.sourceSets.objectServer.java.srcDirs
-//    source android.sourceSets.main.java.srcDirs
-//    source "../../realm-annotations/src/main/java"
-//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-//    options {
-//        title = "Realm ${project.version}"
-//        memberLevel = JavadocMemberLevel.PUBLIC
-//        docEncoding = 'UTF-8'
-//        encoding = 'UTF-8'
-//        charSet = 'UTF-8'
-//        locale = 'en_US'
-//        overview = 'src/overview.html'
-//
-//        links "https://docs.oracle.com/javase/7/docs/api/"
-//        links "http://reactivex.io/RxJava/javadoc/"
-//        linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
-//
-//        tags = [betaTag]
-//    }
-//    exclude '**/internal/**'
-//    exclude '**/BuildConfig.java'
-//    exclude '**/R.java'
-//    doLast {
-//        copy {
-//            from "src/realm-java-overview.png"
-//            into "$buildDir/docs/javadoc"
-//        }
-//    }
+    source android.sourceSets.objectServer.java.srcDirs
+    source android.sourceSets.main.java.srcDirs
+    source "../../realm-annotations/src/main/java"
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    options {
+        title = "Realm ${project.version}"
+        memberLevel = JavadocMemberLevel.PUBLIC
+        docEncoding = 'UTF-8'
+        encoding = 'UTF-8'
+        charSet = 'UTF-8'
+        locale = 'en_US'
+        overview = 'src/overview.html'
+
+        links "https://docs.oracle.com/javase/7/docs/api/"
+        links "http://reactivex.io/RxJava/javadoc/"
+        // TODO We probably need to add the bson.jar to the classpath for these to work
+        links "https://www.javadoc.io/doc/org.mongodb/bson/${properties.getProperty('BSON_DEPENDENCY_VERSION')}/"
+        linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
+
+        tags = [betaTag]
+    }
+    exclude '**/internal/**'
+    exclude '**/BuildConfig.java'
+    exclude '**/R.java'
+    doLast {
+        copy {
+            from "src/realm-java-overview.png"
+            into "$buildDir/docs/javadoc"
+        }
+    }
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
