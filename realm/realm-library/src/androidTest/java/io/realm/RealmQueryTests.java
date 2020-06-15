@@ -3796,13 +3796,16 @@ public class RealmQueryTests extends QueryTests {
         // Object representing null
         for (DynamicRealmObject object : all) {
             List<? super Object> elements = new ArrayList<>(fields.length);
-            for (Object f : fields) {
-                String field = (String) f;
-                String[] split = field.split("\\.");
-                DynamicRealmObject object1 = object.get(split[0]);
-                String x = split[1];
-                if (!object1.isNull(x)) {
-                    elements.add(object1.get(x));
+            for (Object field : fields) {
+                String[] split = ((String) field).split("\\.");
+                int i = 0;
+                while(i < split.length - 1) {
+                    object = object.get(split[i]);
+                    i++;
+                }
+                String fieldName = split[i];
+                if (!object.isNull(fieldName)) {
+                    elements.add(object.get(fieldName));
                 } else {
                     elements.add(NULL_PLACEHOLDER);
                 }
