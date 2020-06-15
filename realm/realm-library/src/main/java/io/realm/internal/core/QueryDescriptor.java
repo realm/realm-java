@@ -73,7 +73,7 @@ public class QueryDescriptor {
     }
 
     public static QueryDescriptor getInstanceForDistinct(FieldDescriptor.SchemaProxy proxy, Table table, String[] fieldDescriptions) {
-        return getInstance(proxy, table, fieldDescriptions, null, FieldDescriptor.NO_LINK_FIELD_TYPE, DISTINCT_VALID_FIELD_TYPES, "Distinct is not supported");
+        return getInstance(proxy, table, fieldDescriptions, null, FieldDescriptor.ALL_LINK_FIELD_TYPES, DISTINCT_VALID_FIELD_TYPES, "Distinct is not supported");
     }
 
     private static QueryDescriptor getInstance(

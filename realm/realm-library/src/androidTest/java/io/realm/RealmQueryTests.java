@@ -20,14 +20,20 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -58,6 +64,8 @@ import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class RealmQueryTests extends QueryTests {
+
+    private static final Object NULL_PLACEHOLDER = new Object();
 
     private void populateTestRealm(Realm testRealm, int dataSize) {
         testRealm.beginTransaction();
@@ -3169,14 +3177,17 @@ public class RealmQueryTests extends QueryTests {
         final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
+        DynamicRealm dynamicRealm = DynamicRealm.createInstance(realm.sharedRealm);
+        RealmResults<DynamicRealmObject> all = dynamicRealm.where(AnnotationIndexTypes.CLASS_NAME)
+                .findAll();
+
         for (String field : AnnotationIndexTypes.INDEX_FIELDS) {
-            try {
-                realm.where(AnnotationIndexTypes.class)
-                        .distinct(AnnotationIndexTypes.FIELD_OBJECT + "." + field)
-                        .findAll();
-                fail("Unsupported Index" + field + " linked field");
-            } catch (IllegalArgumentException ignored) {
-            }
+            String fieldName = AnnotationIndexTypes.FIELD_OBJECT + "." + field;
+            RealmResults<AnnotationIndexTypes> distinct = realm.where(AnnotationIndexTypes.class)
+                    .distinct(fieldName)
+                    .findAll();
+            Set<List<? super Object>> values = distinct(all, fieldName);
+            assertEquals(field, values.size(), distinct.size());
         }
     }
 
@@ -3186,26 +3197,31 @@ public class RealmQueryTests extends QueryTests {
         final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
+        DynamicRealm dynamicRealm = DynamicRealm.createInstance(realm.sharedRealm);
+        RealmResults<DynamicRealmObject> all = dynamicRealm.where(AnnotationIndexTypes.CLASS_NAME)
+                .findAll();
+
         for (String field : AnnotationIndexTypes.NOT_INDEX_FIELDS) {
-            try {
-                realm.where(AnnotationIndexTypes.class)
-                        .distinct(AnnotationIndexTypes.FIELD_OBJECT + "." + field)
-                        .findAll();
-                fail("Unsupported notIndex" + field + " linked field");
-            } catch (IllegalArgumentException ignored) {
-            }
+            String fieldName = AnnotationIndexTypes.FIELD_OBJECT + "." + field;
+            RealmResults<AnnotationIndexTypes> distinct = realm.where(AnnotationIndexTypes.class)
+                    .distinct(fieldName)
+                    .findAll();
+            Set<List<? super Object>> values = distinct(all, fieldName);
+            assertEquals(field, values.size(), distinct.size());
         }
     }
 
     @Test
     public void distinct_invalidTypesLinkedFields() {
         populateForDistinctInvalidTypesLinked(realm);
-
-        try {
-            realm.where(AllJavaTypes.class)
-                    .distinct(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY)
-                    .findAll();
-        } catch (IllegalArgumentException ignored) {
+        for (String field : AllJavaTypes.INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT) {
+            try {
+                realm.where(AllJavaTypes.class)
+                        .distinct(field)
+                        .findAll();
+                fail(field);
+            } catch (IllegalArgumentException ignored) {
+            }
         }
     }
 
@@ -3363,28 +3379,70 @@ public class RealmQueryTests extends QueryTests {
     public void distinct_async_indexedLinkedFields() {
         final long numberOfBlocks = 3;
         final long numberOfObjects = 3;
+        final Realm realm = looperThread.getRealm();
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
+        DynamicRealm dynamicRealm = DynamicRealm.createInstance(realm.sharedRealm);
+        RealmResults<DynamicRealmObject> all = dynamicRealm.where(AnnotationIndexTypes.CLASS_NAME)
+                .findAll();
+
+        AtomicInteger count = new AtomicInteger(0);
+
         for (String field : AnnotationIndexTypes.INDEX_FIELDS) {
-            try {
-                realm.where(AnnotationIndexTypes.class).distinct(AnnotationIndexTypes.FIELD_OBJECT + "." + field).findAllAsync();
-                fail("Unsupported " + field + " linked field");
-            } catch (IllegalArgumentException ignored) {
-            }
+            String fieldName = AnnotationIndexTypes.FIELD_OBJECT + "." + field;
+            RealmResults<AnnotationIndexTypes> distinct = realm.where(AnnotationIndexTypes.class).distinct(fieldName).findAllAsync();
+            looperThread.keepStrongReference(distinct);
+            distinct.addChangeListener(new RealmChangeListener<RealmResults<AnnotationIndexTypes>>() {
+                @Override
+                public void onChange(RealmResults<AnnotationIndexTypes> annotationIndexTypes) {
+                    Set<List<? super Object>> values = RealmQueryTests.this.distinct(all, fieldName);
+                    assertEquals(field, values.size(), distinct.size());
+                    int i = count.incrementAndGet();
+                    if (i == AnnotationIndexTypes.INDEX_FIELDS.length) {
+                        looperThread.testComplete();
+                    }
+                }
+            });
+        }
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void distinct_async_notIndexedLinkedFields() {
+        final long numberOfBlocks = 3;
+        final long numberOfObjects = 3;
+        final Realm realm = looperThread.getRealm();
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
+
+        DynamicRealm dynamicRealm = DynamicRealm.createInstance(realm.sharedRealm);
+        RealmResults<DynamicRealmObject> all = dynamicRealm.where(AnnotationIndexTypes.CLASS_NAME)
+                .findAll();
+
+        for (String field : AnnotationIndexTypes.NOT_INDEX_FIELDS) {
+            String fieldName = AnnotationIndexTypes.FIELD_OBJECT + "." + field;
+            RealmResults<AnnotationIndexTypes> distinct = realm.where(AnnotationIndexTypes.class).distinct(fieldName).findAllAsync();
+            looperThread.keepStrongReference(distinct);
+            distinct.addChangeListener(annotationIndexTypes -> {
+                Set<List<? super Object>> values = distinct(all, fieldName);
+                assertEquals(field, values.size(), annotationIndexTypes.size());
+            });
         }
         looperThread.testComplete();
     }
 
     @Test
     @RunTestInLooperThread
-    public void distinct_async_notIndexedLinkedFields() {
+    public void distinct_async_invalidTypesLinkedFields() {
         populateForDistinctInvalidTypesLinked(realm);
 
-        try {
-            realm.where(AllJavaTypes.class).distinct(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY).findAllAsync();
-            fail("Unsupported linked field");
-        } catch (IllegalArgumentException ignored) {
+        for (String field : AllJavaTypes.INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT) {
+            try {
+                RealmResults<AllJavaTypes> distinct = realm.where(AllJavaTypes.class).distinct(field).findAllAsync();
+                fail(field);
+            } catch (IllegalArgumentException e) {
+            }
         }
+
         looperThread.testComplete();
     }
 
@@ -3529,12 +3587,18 @@ public class RealmQueryTests extends QueryTests {
         final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
+        DynamicRealm dynamicRealm = DynamicRealm.createInstance(realm.sharedRealm);
+        RealmResults<DynamicRealmObject> all = dynamicRealm.where(AnnotationIndexTypes.CLASS_NAME)
+                .findAll();
+
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
-        try {
-            query.distinct(AnnotationIndexTypes.INDEX_LINKED_FIELD_STRING, AnnotationIndexTypes.INDEX_LINKED_FIELDS).findAll();
-            fail("Unsupported linked field");
-        } catch (IllegalArgumentException ignored) {
-        }
+        RealmResults<AnnotationIndexTypes> distinct = query.distinct(AnnotationIndexTypes.INDEX_LINKED_FIELD_STRING, AnnotationIndexTypes.INDEX_LINKED_FIELDS).findAll();
+
+        List<String> fields = new ArrayList();
+        fields.add(AnnotationIndexTypes.INDEX_LINKED_FIELD_STRING);
+        fields.addAll(Arrays.asList(AnnotationIndexTypes.INDEX_LINKED_FIELDS));
+        Set<List<? super Object>> values = distinct(all, fields.toArray());
+        assertEquals(values.size(), distinct.size());
     }
 
     @Test
@@ -3543,12 +3607,18 @@ public class RealmQueryTests extends QueryTests {
         final long numberOfObjects = 3;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
 
+        DynamicRealm dynamicRealm = DynamicRealm.createInstance(realm.sharedRealm);
+        RealmResults<DynamicRealmObject> all = dynamicRealm.where(AnnotationIndexTypes.CLASS_NAME)
+                .findAll();
+
         RealmQuery<AnnotationIndexTypes> query = realm.where(AnnotationIndexTypes.class);
-        try {
-            query.distinct(AnnotationIndexTypes.NOT_INDEX_LINKED_FILED_STRING, AnnotationIndexTypes.NOT_INDEX_LINKED_FIELDS).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
+        RealmResults<AnnotationIndexTypes> distinct = query.distinct(AnnotationIndexTypes.NOT_INDEX_LINKED_FILED_STRING, AnnotationIndexTypes.NOT_INDEX_LINKED_FIELDS).findAll();
+
+        List<String> fields = new ArrayList();
+        fields.add(AnnotationIndexTypes.NOT_INDEX_LINKED_FILED_STRING);
+        fields.addAll(Arrays.asList(AnnotationIndexTypes.NOT_INDEX_LINKED_FIELDS));
+        Set<List<? super Object>> values = distinct(all, fields.toArray());
+        assertEquals(values.size(), distinct.size());
     }
 
     @Test
@@ -3557,7 +3627,8 @@ public class RealmQueryTests extends QueryTests {
 
         RealmQuery<AllJavaTypes> query = realm.where(AllJavaTypes.class);
         try {
-            query.distinct(AllJavaTypes.INVALID_LINKED_BINARY_FIELD_FOR_DISTINCT, AllJavaTypes.INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT).findAll();
+            // Invalid type (binary) mixed with valid types
+            query.distinct(AllJavaTypes.FIELD_STRING, AllJavaTypes.INVALID_LINKED_BINARY_FIELD_FOR_DISTINCT).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -3718,5 +3789,27 @@ public class RealmQueryTests extends QueryTests {
         }
     }
 
+    // Manual distinct method for verification. Uses field value's equals.
+    @NotNull
+    private Set<List<? super Object>> distinct(RealmResults<DynamicRealmObject> all, Object... fields) {
+        Set<List<? super Object>> values = new HashSet();
+        // Object representing null
+        for (DynamicRealmObject object : all) {
+            List<? super Object> elements = new ArrayList<>(fields.length);
+            for (Object f : fields) {
+                String field = (String) f;
+                String[] split = field.split("\\.");
+                DynamicRealmObject object1 = object.get(split[0]);
+                String x = split[1];
+                if (!object1.isNull(x)) {
+                    elements.add(object1.get(x));
+                } else {
+                    elements.add(NULL_PLACEHOLDER);
+                }
+            }
+            values.add(elements);
+        }
+        return values;
+    }
 
 }
