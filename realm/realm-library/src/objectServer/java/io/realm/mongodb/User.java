@@ -15,6 +15,7 @@
  */
 package io.realm.mongodb;
 
+import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import io.realm.RealmAsyncTask;
 import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.internal.common.TaskDispatcher;
+import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.mongodb.Request;
@@ -288,6 +290,50 @@ public class User {
         }
         throw new IllegalStateException("Unknown state: " + nativeState);
     }
+
+    /**
+     * Return the custom user data associated with the user in the Realm App.
+     * <p>
+     * The data is only refreshed when the user's access token is refreshed or when explicitly
+     * calling {@link #refreshCustomData()}.
+     *
+     * @return The custom user data associated with the user.
+     */
+    public Document getCustomData() {
+        return osUser.getCustomData();
+    }
+
+    /**
+     * Re-fetch custom user data from the Realm App.
+     *
+     * @return The updated custom user data associated with the user.
+     * @throws AppException if the request failed in some way.
+     */
+    public Document refreshCustomData() {
+        osUser.refreshCustomData();
+        return getCustomData();
+    }
+
+    /**
+     * Re-fetch custom user data from the Realm App asynchronously.
+     * <p>
+     * This is the asynchronous variant of {@link #refreshCustomData()}.
+     *
+     * @param callback The callback that will receive the result or any errors from the request.
+     * @return The task representing the ongoing operation.
+     *
+     * @throws IllegalStateException if not called on a looper thread.
+     */
+    public RealmAsyncTask refreshCustomData(App.Callback<Document> callback) {
+        Util.checkLooperThread("Asynchronous functions is only possible from looper threads.");
+        return new Request<Document>(App.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public Document run() throws AppException {
+                return refreshCustomData();
+            }
+        }.start();
+    }
+
 
     /**
      * Returns true if the user is currently logged in.
