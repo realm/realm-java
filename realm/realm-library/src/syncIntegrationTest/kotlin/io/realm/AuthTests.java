@@ -1,4 +1,4 @@
-package io.realm.objectserver;
+package io.realm;
 
 import android.os.Handler;
 import android.os.Looper;
