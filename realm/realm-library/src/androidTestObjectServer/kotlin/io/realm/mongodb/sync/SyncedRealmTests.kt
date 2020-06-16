@@ -41,6 +41,7 @@ import java.util.*
  * Testing sync specific methods on [Realm].
  */
 @RunWith(AndroidJUnit4::class)
+@Ignore("FIXME")
 class SyncedRealmTests {
 
     @get:Rule
