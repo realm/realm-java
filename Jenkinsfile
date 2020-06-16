@@ -17,7 +17,7 @@ def slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
 def currentBranch = env.CHANGE_BRANCH
 // 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen, so
 // we avoid running emulators on already emulated hosts like 'docker' which runs in AWS.
-def nodeName = (releaseBranches.contains(currentBranch)) ? 'android' : 'brix'
+def nodeName = (releaseBranches.contains(currentBranch)) ? 'android' : 'docker-cph-03'
 try {
   node(nodeName) {
     timeout(time: 90, unit: 'MINUTES') {
@@ -60,7 +60,7 @@ try {
           stage('Prepare Docker Images') {
             // TODO Should be renamed to 'master' when merged there.
             // TODO Figure out why caching the image doesn't work.
-            buildEnv = buildDockerEnv("realm-java-ci:v10", push: currentBranch == 'v10-do-not-cache') 
+            buildEnv = buildDockerEnv("realm-java-ci:v10", push: currentBranch == 'v10-do-not-cache')
             def props = readProperties file: 'dependencies.list'
             echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER_VERSION}"
             def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER_VERSION}")
@@ -112,7 +112,7 @@ try {
               // FIXME: -no-window -gpu off -noaudio doesn't work, crahes with
               // ERROR: resizing partition e2fsck failed with exit code 8
               // E0611 10:55:18.277171892     117 socket_utils_common_posix.cc:201] check for SO_REUSEPORT: {"created":"@1591865718.277155756","description":"SO_REUSEPORT unavailable on compiling system","file":"/mnt/tmpfs/src/android/emu-master-dev/external/grpc/src/core/lib/iomgr/socket_utils_common_posix.cc","file_line":169}
-              sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-boot-anim -wipe-data -partition-size 4098"
+              sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-boot-anim -no-window -wipe-data -partition-size 4098 &"
               try {
                 runBuild(abiFilter, instrumentationTestTarget)
               } finally {
@@ -173,12 +173,12 @@ def runBuild(abiFilter, instrumentationTestTarget) {
 
   stage('JVM tests') {
     try {
-        sh "chmod +x gradlew && ./gradlew check ${abiFilter} --stacktrace"
+      sh "chmod +x gradlew && ./gradlew check ${abiFilter} --stacktrace"
     } finally {
-        storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
-        storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
-        storeJunitResults 'realm/realm-library/build/test-results/**/TEST-*.xml'
-        step([$class: 'LintPublisher'])
+      storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
+      storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
+      storeJunitResults 'realm/realm-library/build/test-results/**/TEST-*.xml'
+      step([$class: 'LintPublisher'])
     }
   }
 
@@ -257,7 +257,7 @@ String startLogCatCollector() {
   // ensure we have access to a device. If not, it is most likely a more severe problem.
   timeout(time: 1, unit: 'MINUTES') {
     sh 'adb devices'
-    sh """adb logcat -c
+    sh """adb logcat -b all -c 
       adb logcat -v time > 'logcat.txt' &
       echo \$! > pid
     """
