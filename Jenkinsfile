@@ -4,20 +4,20 @@
 
 import groovy.json.JsonOutput
 
-def buildSuccess = false
-def mongoDbRealmContainer = null
-def mongoDbRealmCommandServerContainer = null
-def emulatorContainer = null
-def dockerNetworkId = UUID.randomUUID().toString()
+buildSuccess = false
+mongoDbRealmContainer = null
+mongoDbRealmCommandServerContainer = null
+emulatorContainer = null
+dockerNetworkId = UUID.randomUUID().toString()
 // Branches from which we release SNAPSHOT's.
 // Only release branches need to run on actual hardware.
-def releaseBranches = ['master', 'next-major', 'v10']
+releaseBranches = ['master', 'next-major', 'v10']
 // Branches that are "important", so if the do not compile they will generate a Slack notification
-def slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
-def currentBranch = env.CHANGE_BRANCH
+slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
+currentBranch = env.CHANGE_BRANCH
 // 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen, so
 // we avoid running emulators on already emulated hosts like 'docker' which runs in AWS.
-def nodeName = (releaseBranches.contains(currentBranch)) ? 'android' : 'docker-cph-03' // Switch to `brix` when all CPH nodes work: https://jira.mongodb.org/browse/RCI-14
+nodeName = (releaseBranches.contains(currentBranch)) ? 'android' : 'docker-cph-03' // Switch to `brix` when all CPH nodes work: https://jira.mongodb.org/browse/RCI-14
 try {
   node(nodeName) {
     timeout(time: 90, unit: 'MINUTES') {
@@ -110,12 +110,12 @@ try {
                 // Need to go to ANDROID_HOME due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
                 sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-boot-anim -no-window -wipe-data -noaudio -partition-size 4098 &"
                 try {
-                  runBuild(abiFilter, instrumentationTestTarget, currentBranch)
+                  runBuild(abiFilter, instrumentationTestTarget)
                 } finally {
                   sh "adb emu kill"
                 }
               } else {
-                runBuild(abiFilter, instrumentationTestTarget, currentBranch)
+                runBuild(abiFilter, instrumentationTestTarget)
               }
             }
           }
@@ -160,7 +160,7 @@ try {
 }
 
 // Runs all build steps
-def runBuild(abiFilter, instrumentationTestTarget, currentBranch) {
+def runBuild(abiFilter, instrumentationTestTarget) {
 
   stage('Build') {
     sh "chmod +x gradlew && ./gradlew assemble javadoc ${abiFilter} --stacktrace"
