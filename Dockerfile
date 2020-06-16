@@ -18,6 +18,7 @@ ENV PATH ${PATH}:${ANDROID_HOME}/emulator:${ANDROID_HOME}/tools:${ANDROID_HOME}/
 ENV PATH ${PATH}:${NDK_HOME}
 ENV NDK_CCACHE /usr/bin/ccache
 ENV CCACHE_CPP2 yes
+ENV QT_SELECT qt5
 
 # Keep the packages in alphabetical order to make it easy to avoid duplication
 # tzdata needs to be installed first. See https://askubuntu.com/questions/909277/avoiding-user-interaction-with-tzdata-when-installing-certbot-in-a-docker-contai
