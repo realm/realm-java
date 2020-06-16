@@ -17,7 +17,7 @@ def slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
 def currentBranch = env.CHANGE_BRANCH
 // 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen, so
 // we avoid running emulators on already emulated hosts like 'docker' which runs in AWS.
-def nodeName = (releaseBranches.contains(currentBranch)) ? 'android' : 'docker-cph-03'
+def nodeName = (releaseBranches.contains(currentBranch)) ? 'android' : 'docker-cph-03' // Switch to `brix` when all CPH nodes work: https://jira.mongodb.org/browse/RCI-14
 try {
   node(nodeName) {
     timeout(time: 90, unit: 'MINUTES') {
@@ -110,12 +110,12 @@ try {
                 // Need to go to ANDROID_HOME due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
                 sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-boot-anim -no-window -wipe-data -noaudio -partition-size 4098 &"
                 try {
-                  runBuild(abiFilter, instrumentationTestTarget)
+                  runBuild(abiFilter, instrumentationTestTarget, currentBranch)
                 } finally {
                   sh "adb emu kill"
                 }
               } else {
-                runBuild(abiFilter, instrumentationTestTarget)
+                runBuild(abiFilter, instrumentationTestTarget, currentBranch)
               }
             }
           }
@@ -160,7 +160,7 @@ try {
 }
 
 // Runs all build steps
-def runBuild(abiFilter, instrumentationTestTarget) {
+def runBuild(abiFilter, instrumentationTestTarget, currentBranch) {
 
   stage('Build') {
     sh "chmod +x gradlew && ./gradlew assemble javadoc ${abiFilter} --stacktrace"
@@ -251,8 +251,10 @@ String startLogCatCollector() {
   // Cancel build quickly if no device is available. The lock acquired already should
   // ensure we have access to a device. If not, it is most likely a more severe problem.
   timeout(time: 1, unit: 'MINUTES') {
+    // Need ADB as root to clear all buffers: https://stackoverflow.com/a/47686978/1389357
     sh 'adb devices'
-    sh """adb logcat -b all -c 
+    sh """adb root
+      adb logcat -b all -c 
       adb logcat -v time > 'logcat.txt' &
       echo \$! > pid
     """
@@ -266,9 +268,9 @@ def stopLogCatCollector(String backgroundPid) {
   if (backgroundPid != null) {
     sh "kill ${backgroundPid}"
     zip([
-            'zipFile': 'logcat.zip',
-            'archive': true,
-            'glob' : 'logcat.txt'
+      'zipFile': 'logcat.zip',
+      'archive': true,
+      'glob' : 'logcat.txt'
     ])
     sh 'rm logcat.txt'
   }
@@ -314,9 +316,9 @@ def getTagsString(Map<String, String> tags) {
 
 def storeJunitResults(String path) {
   step([
-          $class: 'JUnitResultArchiver',
-          allowEmptyResults: true,
-          testResults: path
+    $class: 'JUnitResultArchiver',
+    allowEmptyResults: true,
+    testResults: path
   ])
 }
 
