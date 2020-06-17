@@ -67,7 +67,7 @@ public class AllJavaTypes extends RealmObject {
     public static final String FIELD_LO_OBJECT = "objectParents";
     public static final String FIELD_LO_LIST = "listParents";
 
-    public static final String[] INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT = new String[] {
+    public static final String[] INVALID_FIELD_TYPES_FOR_DISTINCT = new String[] {
             FIELD_OBJECT + "." + FIELD_LIST,
             FIELD_OBJECT + "." + FIELD_STRING_LIST,
             FIELD_OBJECT + "." + FIELD_BINARY_LIST,

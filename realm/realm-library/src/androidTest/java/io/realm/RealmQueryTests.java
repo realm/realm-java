@@ -3494,6 +3494,8 @@ public class RealmQueryTests extends QueryTests {
         RealmResults<DynamicRealmObject> all = dynamicRealm.where(AnnotationIndexTypes.CLASS_NAME)
                 .findAll();
 
+        AtomicInteger count = new AtomicInteger(0);
+
         for (String field : AnnotationIndexTypes.NOT_INDEX_FIELDS) {
             String fieldName = AnnotationIndexTypes.FIELD_OBJECT + "." + field;
             RealmResults<AnnotationIndexTypes> distinct = realm.where(AnnotationIndexTypes.class).distinct(fieldName).findAllAsync();
@@ -3501,9 +3503,12 @@ public class RealmQueryTests extends QueryTests {
             distinct.addChangeListener(annotationIndexTypes -> {
                 Set<List<? super Object>> values = distinct(all, fieldName);
                 assertEquals(field, values.size(), annotationIndexTypes.size());
+                int i = count.incrementAndGet();
+                if (i == AnnotationIndexTypes.INDEX_FIELDS.length) {
+                    looperThread.testComplete();
+                }
             });
         }
-        looperThread.testComplete();
     }
 
     // Smoke test of async distinct on unsupported types. Underlying mechanism is the same as for sync test
@@ -3513,7 +3518,7 @@ public class RealmQueryTests extends QueryTests {
     public void distinct_async_invalidTypesLinkedFields() {
         populateForDistinctInvalidTypesLinked(realm);
 
-        for (String field : AllJavaTypes.INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT) {
+        for (String field : AllJavaTypes.INVALID_FIELD_TYPES_FOR_DISTINCT) {
             try {
                 realm.where(AllJavaTypes.class).distinct(field).findAllAsync();
                 fail(field);
@@ -3706,7 +3711,7 @@ public class RealmQueryTests extends QueryTests {
         RealmQuery<AllJavaTypes> query = realm.where(AllJavaTypes.class);
         try {
             // Invalid type (binary) mixed with valid types
-            query.distinct(AllJavaTypes.FIELD_STRING, AllJavaTypes.INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT).findAll();
+            query.distinct(AllJavaTypes.FIELD_STRING, AllJavaTypes.INVALID_FIELD_TYPES_FOR_DISTINCT).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
