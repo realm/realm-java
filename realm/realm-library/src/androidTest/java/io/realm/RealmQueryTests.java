@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.internal.util.collections.Sets;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -3065,7 +3066,6 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(TEST_DATA_SIZE - 1, results.get(TEST_DATA_SIZE - 1).getColumnRealmObject().getAge());
     }
 
-    // RealmQuery.distinct(): requires indexing, and type = boolean, integer, date, string.
     private void populateForDistinct(Realm realm, long numberOfBlocks, long numberOfObjects, boolean withNull) {
         realm.beginTransaction();
         for (int i = 0; i < numberOfObjects * numberOfBlocks; i++) {
@@ -3080,6 +3080,29 @@ public class RealmQueryTests extends QueryTests {
                 obj.setNotIndexDate(withNull ? null : new Date(1000L * j));
                 obj.setNotIndexString(withNull ? null : "Test " + j);
                 obj.setFieldObject(obj);
+            }
+        }
+        realm.commitTransaction();
+    }
+
+    private void populateForDistinctAllTypes(Realm realm, long numberOfBlocks, long numberOfObjects) {
+        realm.beginTransaction();
+        for (int i = 0; i < numberOfBlocks; i++) {
+            Dog dog = realm.createObject(Dog.class);
+            for (int j = 0; j < numberOfObjects; j++) {
+                AllTypes obj = realm.createObject(AllTypes.class);
+                obj.setColumnBinary(new byte[j]);
+                obj.setColumnString("Test " + j);
+                obj.setColumnLong(j);
+                obj.setColumnFloat(j/1000f);
+                obj.setColumnDouble(j/1000d);
+                obj.setColumnBoolean(j % 2 == 0);
+                obj.setColumnDate(new Date(1000L * j));
+                obj.setColumnDecimal128(new Decimal128(j));
+                obj.setColumnObjectId(new ObjectId(j, j));
+                obj.setColumnMutableRealmInteger(j);
+                obj.setColumnRealmLink(obj);
+                obj.setColumnRealmObject(dog);
             }
         }
         realm.commitTransaction();
@@ -3128,21 +3151,105 @@ public class RealmQueryTests extends QueryTests {
                 .distinct(AnnotationIndexTypes.FIELD_INDEX_DATE);
     }
 
-    @Test
-    public void distinct_notIndexedFields() {
+    private void distinctAllFields(Realm realm, String prefix) {
         final long numberOfBlocks = 3;
         final long numberOfObjects = 3;
-        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        RealmResults<AnnotationIndexTypes> distinctBool = realm.where(AnnotationIndexTypes.class)
-                .distinct(AnnotationIndexTypes.FIELD_NOT_INDEX_BOOL)
+        populateForDistinctAllTypes(realm, numberOfBlocks, numberOfObjects);
+
+        DynamicRealm dynamicRealm = DynamicRealm.createInstance(realm.sharedRealm);
+        RealmResults<DynamicRealmObject> all = dynamicRealm.where(AllTypes.CLASS_NAME)
                 .findAll();
-        assertEquals(2, distinctBool.size());
-        for (String field : new String[]{AnnotationIndexTypes.FIELD_NOT_INDEX_LONG,
-                AnnotationIndexTypes.FIELD_NOT_INDEX_DATE, AnnotationIndexTypes.FIELD_NOT_INDEX_STRING}) {
-            RealmResults<AnnotationIndexTypes> distinct = realm.where(AnnotationIndexTypes.class).distinct(field).findAll();
-            assertEquals(field, numberOfBlocks, distinct.size());
+
+        HashSet types = new HashSet(Arrays.asList(RealmFieldType.values()));
+
+        RealmObjectSchema schema = realm.getSchema().getSchemaForClass(AllTypes.CLASS_NAME);
+
+        Set<String> fieldNames = schema.getFieldNames();
+        for (String fieldName : fieldNames) {
+            String field = prefix + fieldName;
+            RealmFieldType type = schema.getFieldType(fieldName);
+            if (supportDistinct(type)) {
+                RealmResults<AllTypes> distinct = realm.where(AllTypes.class)
+                        .distinct(fieldName)
+                        .findAll();
+                Set<List<? super Object>> values = distinct(all, field);
+                // Test against manual distinct implementation
+                assertEquals(field, values.size(), distinct.size());
+                // Test against expected numbers from setup
+                switch (type) {
+                    case BOOLEAN:
+                        assertEquals(field, 2, distinct.size());
+                        break;
+                    case OBJECT:
+                        if (fieldName.equals("columnRealmObject")) {
+                            assertEquals(field, numberOfBlocks, distinct.size());
+                        } else if (fieldName.equals("columnRealmLink")){
+                            assertEquals(field, numberOfBlocks * numberOfObjects, distinct.size());
+                        } else {
+                            fail("Unknown object " + fieldName);
+                        }
+                        break;
+                    default:
+                        assertEquals(field, numberOfObjects, distinct.size());
+                        break;
+                }
+            } else {
+                try {
+                    realm.where(AllTypes.class)
+                            .distinct(fieldName)
+                            .findAll();
+                    fail();
+                } catch (IllegalArgumentException ignore) {
+                }
+            }
+            types.remove(type);
         }
+
+        // LinkingObjects are not returned as part of the schema lookup
+        assertEquals(types.toString(), Sets.newSet(RealmFieldType.LINKING_OBJECTS), types);
+    }
+
+    @Test
+    public void distinct_allFields() {
+        distinctAllFields(realm, "");
+    }
+
+    @Test
+    public void distinct_linkedAllFields() {
+        distinctAllFields(realm, AllTypes.FIELD_REALMLINK + ".");
+    }
+
+    @Test
+    public void distinct_nestedLinkedAllFields() {
+        distinctAllFields(realm, AllTypes.FIELD_REALMLINK + "." + AllTypes.FIELD_REALMLINK + ".");
+    }
+
+    @Test
+    public void distinct_backLink() {
+        final long numberOfBlocks = 3;
+        final long numberOfObjects = 3;
+
+        populateForDistinctAllTypes(realm, numberOfBlocks, numberOfObjects);
+
+        DynamicRealm dynamicRealm = DynamicRealm.createInstance(realm.sharedRealm);
+        RealmResults<DynamicRealmObject> all = dynamicRealm.where(AllTypes.CLASS_NAME)
+                .findAll();
+
+        RealmResults<AllTypes> distinct = realm.where(AllTypes.class)
+                .distinct(AllTypes.FIELD_REALMBACKLINK)
+                .findAll();
+        assertEquals(numberOfBlocks * numberOfObjects, distinct.size());
+
+        RealmResults<AllTypes> distinctLinked = realm.where(AllTypes.class)
+                .distinct(AllTypes.FIELD_REALMLINK + "." + AllTypes.FIELD_REALMBACKLINK)
+                .findAll();
+        assertEquals(numberOfBlocks * numberOfObjects, distinctLinked.size());
+
+        RealmResults<AllTypes> distinctNestedLink = realm.where(AllTypes.class)
+                .distinct(AllTypes.FIELD_REALMLINK + "." + AllTypes.FIELD_REALMLINK + "." + AllTypes.FIELD_REALMBACKLINK)
+                .findAll();
+        assertEquals(numberOfBlocks * numberOfObjects, distinctNestedLink.size());
     }
 
     @Test
@@ -3158,19 +3265,7 @@ public class RealmQueryTests extends QueryTests {
         }
     }
 
-    @Test
-    public void distinct_invalidTypes() {
-        populateTestRealm();
-
-        for (String field : new String[]{AllTypes.FIELD_REALMOBJECT, AllTypes.FIELD_REALMLIST, AllTypes.FIELD_DOUBLE, AllTypes.FIELD_FLOAT}) {
-            try {
-                realm.where(AllTypes.class).distinct(field).findAll();
-                fail(field);
-            } catch (IllegalArgumentException ignored) {
-            }
-        }
-    }
-
+    // Smoke test of distinct on indexed linked fields
     @Test
     public void distinct_indexedLinkedFields() {
         final long numberOfBlocks = 3;
@@ -3191,40 +3286,8 @@ public class RealmQueryTests extends QueryTests {
         }
     }
 
-    @Test
-    public void distinct_notIndexedLinkedFields() {
-        final long numberOfBlocks = 3;
-        final long numberOfObjects = 3;
-        populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
-
-        DynamicRealm dynamicRealm = DynamicRealm.createInstance(realm.sharedRealm);
-        RealmResults<DynamicRealmObject> all = dynamicRealm.where(AnnotationIndexTypes.CLASS_NAME)
-                .findAll();
-
-        for (String field : AnnotationIndexTypes.NOT_INDEX_FIELDS) {
-            String fieldName = AnnotationIndexTypes.FIELD_OBJECT + "." + field;
-            RealmResults<AnnotationIndexTypes> distinct = realm.where(AnnotationIndexTypes.class)
-                    .distinct(fieldName)
-                    .findAll();
-            Set<List<? super Object>> values = distinct(all, fieldName);
-            assertEquals(field, values.size(), distinct.size());
-        }
-    }
-
-    @Test
-    public void distinct_invalidTypesLinkedFields() {
-        populateForDistinctInvalidTypesLinked(realm);
-        for (String field : AllJavaTypes.INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT) {
-            try {
-                realm.where(AllJavaTypes.class)
-                        .distinct(field)
-                        .findAll();
-                fail(field);
-            } catch (IllegalArgumentException ignored) {
-            }
-        }
-    }
-
+    // Smoke test of async distinct. Underlying mechanism is the same as for sync test
+    // (distinct_allFields), so just verifying async mechanism.
     @Test
     @RunTestInLooperThread
     public void distinct_async() throws Throwable {
@@ -3360,20 +3423,31 @@ public class RealmQueryTests extends QueryTests {
         looperThread.testComplete();
     }
 
+    // Smoke test of async distinct invalid types. Underlying mechanism is the same as for sync test
+    // (distinct_allFields), so just verifying async mechanism.
     @Test
     @RunTestInLooperThread
     public void distinct_async_invalidTypes() {
         populateTestRealm(realm, TEST_DATA_SIZE);
 
-        for (String field : new String[]{AllTypes.FIELD_REALMOBJECT, AllTypes.FIELD_REALMLIST, AllTypes.FIELD_DOUBLE, AllTypes.FIELD_FLOAT}) {
-            try {
-                realm.where(AllTypes.class).distinct(field).findAllAsync();
-            } catch (IllegalArgumentException ignored) {
+        RealmObjectSchema schema = realm.getSchema().getSchemaForClass(AllTypes.CLASS_NAME);
+
+        Set<String> fieldNames = schema.getFieldNames();
+        for (String fieldName : fieldNames) {
+            String field = fieldName;
+            RealmFieldType type = schema.getFieldType(fieldName);
+            if (!supportDistinct(type)) {
+                try {
+                    realm.where(AllTypes.class).distinct(field).findAllAsync();
+                } catch (IllegalArgumentException ignored) {
+                }
             }
         }
         looperThread.testComplete();
     }
 
+    // Smoke test of async distinct index linked types. Underlying mechanism is the same as for sync test
+    // (distinct_linkedAllFields), so just verifying async mechanism.
     @Test
     @RunTestInLooperThread
     public void distinct_async_indexedLinkedFields() {
@@ -3406,6 +3480,8 @@ public class RealmQueryTests extends QueryTests {
         }
     }
 
+    // Smoke test of async distinct index linked types. Underlying mechanism is the same as for sync test
+    // (distinct_linkedAllFields), so just verifying async mechanism.
     @Test
     @RunTestInLooperThread
     public void distinct_async_notIndexedLinkedFields() {
@@ -3430,6 +3506,8 @@ public class RealmQueryTests extends QueryTests {
         looperThread.testComplete();
     }
 
+    // Smoke test of async distinct on unsupported types. Underlying mechanism is the same as for sync test
+    // (distinct_linkedAllFields), so just verifying async mechanism.
     @Test
     @RunTestInLooperThread
     public void distinct_async_invalidTypesLinkedFields() {
@@ -3437,7 +3515,7 @@ public class RealmQueryTests extends QueryTests {
 
         for (String field : AllJavaTypes.INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT) {
             try {
-                RealmResults<AllJavaTypes> distinct = realm.where(AllJavaTypes.class).distinct(field).findAllAsync();
+                realm.where(AllJavaTypes.class).distinct(field).findAllAsync();
                 fail(field);
             } catch (IllegalArgumentException e) {
             }
@@ -3628,7 +3706,7 @@ public class RealmQueryTests extends QueryTests {
         RealmQuery<AllJavaTypes> query = realm.where(AllJavaTypes.class);
         try {
             // Invalid type (binary) mixed with valid types
-            query.distinct(AllJavaTypes.FIELD_STRING, AllJavaTypes.INVALID_LINKED_BINARY_FIELD_FOR_DISTINCT).findAll();
+            query.distinct(AllJavaTypes.FIELD_STRING, AllJavaTypes.INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT).findAll();
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -3789,15 +3867,51 @@ public class RealmQueryTests extends QueryTests {
         }
     }
 
+    // FIXME Maybe move to QueryDescriptor or maybe even to RealmFieldType?
+    private boolean supportDistinct(RealmFieldType type) {
+        switch (type) {
+            case INTEGER:
+            case BOOLEAN:
+            case STRING:
+            case BINARY:
+            case DATE:
+            case FLOAT:
+            case DOUBLE:
+            case OBJECT:
+            case DECIMAL128:
+            case OBJECT_ID:
+            case LINKING_OBJECTS:
+                return true;
+            case LIST:
+            case INTEGER_LIST:
+            case BOOLEAN_LIST:
+            case STRING_LIST:
+            case BINARY_LIST:
+            case DATE_LIST:
+            case FLOAT_LIST:
+            case DOUBLE_LIST:
+            case DECIMAL128_LIST:
+            case OBJECT_ID_LIST:
+                return false;
+        }
+        // Should never reach here as the above switch is exhaustive
+        throw new UnsupportedOperationException("Unhandled realm field type " + type);
+    }
+
     // Manual distinct method for verification. Uses field value's equals.
     @NotNull
     private Set<List<? super Object>> distinct(RealmResults<DynamicRealmObject> all, Object... fields) {
         Set<List<? super Object>> values = new HashSet();
-        // Object representing null
+
+        // Parsed hierarchical field accessors
+        List<String[]> fieldAccessors = new ArrayList<>();
+        for (Object field : fields) {
+            fieldAccessors.add(((String) field).split("\\."));
+        }
+
         for (DynamicRealmObject object : all) {
             List<? super Object> elements = new ArrayList<>(fields.length);
-            for (Object field : fields) {
-                String[] split = ((String) field).split("\\.");
+            for (String[] split : fieldAccessors) {
                 int i = 0;
                 while(i < split.length - 1) {
                     object = object.get(split[i]);
@@ -3805,7 +3919,13 @@ public class RealmQueryTests extends QueryTests {
                 }
                 String fieldName = split[i];
                 if (!object.isNull(fieldName)) {
-                    elements.add(object.get(fieldName));
+                    Object e = object.get(fieldName);
+                    // Need to convert byte arrays to list to detect duplicates when inserting to values
+                    if (e instanceof byte[]) {
+                        elements.add(convertBytesToList((byte[]) e));
+                    } else {
+                        elements.add(e);
+                    }
                 } else {
                     elements.add(NULL_PLACEHOLDER);
                 }
@@ -3813,6 +3933,14 @@ public class RealmQueryTests extends QueryTests {
             values.add(elements);
         }
         return values;
+    }
+
+    private static List<Byte> convertBytesToList(byte[] bytes) {
+        final List<Byte> list = new ArrayList<>();
+        for (byte b : bytes) {
+            list.add(b);
+        }
+        return list;
     }
 
 }

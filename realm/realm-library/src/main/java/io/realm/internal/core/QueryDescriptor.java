@@ -51,7 +51,11 @@ public class QueryDescriptor {
 
     //@VisibleForTesting
     public final static Set<RealmFieldType> DISTINCT_VALID_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            RealmFieldType.BOOLEAN, RealmFieldType.INTEGER, RealmFieldType.STRING, RealmFieldType.DATE, RealmFieldType.DECIMAL128, RealmFieldType.OBJECT_ID)));
+            RealmFieldType.BOOLEAN, RealmFieldType.INTEGER, RealmFieldType.STRING,
+            RealmFieldType.BINARY, RealmFieldType.DATE, RealmFieldType.FLOAT, RealmFieldType.DOUBLE,
+            RealmFieldType.DECIMAL128, RealmFieldType.OBJECT_ID, RealmFieldType.OBJECT,
+            RealmFieldType.LINKING_OBJECTS
+    )));
 
     public static QueryDescriptor getInstanceForSort(FieldDescriptor.SchemaProxy proxy, Table table, String fieldDescription, Sort sortOrder) {
         return getInstanceForSort(proxy, table, new String[] {fieldDescription}, new Sort[] {sortOrder});
