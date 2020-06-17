@@ -54,14 +54,14 @@ public class OsPush implements NativeObject {
         ResultHandler.handleResult(null, error);
     }
 
-    public void deregisterDevice(String registrationToken) {
+    public void deregisterDevice() {
         AtomicReference<AppException> error = new AtomicReference<>(null);
-        nativeDeregisterDevice(nativePtr, osSyncUser.getNativePtr(), serviceName, registrationToken, new OsJNIVoidResultCallback(error));
+        nativeDeregisterDevice(nativePtr, osSyncUser.getNativePtr(), serviceName, new OsJNIVoidResultCallback(error));
         ResultHandler.handleResult(null, error);
     }
 
     private static native long nativeCreate(long nativeAppPtr, String serviceName);
     private static native long nativeGetFinalizerMethodPtr();
     private static native void nativeRegisterDevice(long nativePtr, long nativeUserPtr, String serviceName, String registrationToken, OsJNIVoidResultCallback callback);
-    private static native void nativeDeregisterDevice(long nativePtr, long nativeUserPtr, String serviceName, String registrationToken, OsJNIVoidResultCallback callback);
+    private static native void nativeDeregisterDevice(long nativePtr, long nativeUserPtr, String serviceName, OsJNIVoidResultCallback callback);
 }
