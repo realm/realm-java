@@ -16,6 +16,8 @@
 
 package io.realm.mongodb;
 
+import org.bson.Document;
+
 import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsAppCredentials;
@@ -48,6 +50,7 @@ import io.realm.mongodb.auth.EmailPasswordAuth;
  * }
  * }
  * </pre>
+ *
  * @see <a href="https://docs.mongodb.com/stitch/authentication/providers/">Authentication Providers</a>
  */
 @Beta
@@ -71,7 +74,7 @@ public class Credentials {
     }
 
     /**
-     * Creates credentials representing a login using an API key.
+     * Creates credentials representing a login using a user API key.
      * <p>
      * This provider must be enabled on MongoDB Realm to work.
      *
@@ -80,8 +83,22 @@ public class Credentials {
      * {@link App#loginAsync(Credentials, App.Callback)}.
      */
     public static Credentials apiKey(String key) {
-        Util.checkEmpty(key, "id");
-        return new Credentials(OsAppCredentials.apiKey(key));
+        Util.checkEmpty(key, "key");
+        return new Credentials(OsAppCredentials.userApiKey(key));
+    }
+
+    /**
+     * Creates credentials representing a login using a server API key.
+     * <p>
+     * This provider must be enabled on MongoDB Realm to work.
+     *
+     * @param key the API key to use for login.
+     * @return a set of credentials that can be used to log into MongoDB Realm using
+     * {@link App#loginAsync(Credentials, App.Callback)}.
+     */
+    public static Credentials serverApiKey(String key) {
+        Util.checkEmpty(key, "key");
+        return new Credentials(OsAppCredentials.serverApiKey(key));
     }
 
     /**
@@ -99,23 +116,25 @@ public class Credentials {
     }
 
     /**
-     * FIXME
+     * Creates credentials representing a remote function previously added to MongoDB Realm. The
+     * input parameters
      * <p>
      * This provider must be enabled on MongoDB Realm to work.
      *
+     * @param arguments {@link Document} containing the values passed to the remote function. The
+     *                  keys must match the names given to the remote function parameters.
      * @return a set of credentials that can be used to log into MongoDB Realm using
      * {@link App#loginAsync(Credentials, App.Callback)}.
      */
-    public static Credentials customFunction(String functionName, Object... arguments) {
-        // FIXME: How to check arguments?
-        Util.checkEmpty(functionName, "functionName");
-        return new Credentials(OsAppCredentials.customFunction(functionName, arguments));
+    public static Credentials customFunction(Document arguments) {
+        Util.checkNull(arguments, "arguments");
+        return new Credentials(OsAppCredentials.customFunction(arguments));
     }
 
     /**
      * Creates credentials representing a login using email and password.
      *
-     * @param email email of the user logging in.
+     * @param email    email of the user logging in.
      * @param password password of the user logging in.
      * @return a set of credentials that can be used to log into MongoDB Realm using
      * {@link App#loginAsync(Credentials, App.Callback)}.
@@ -127,7 +146,7 @@ public class Credentials {
     }
 
     /**
-     * Creates credentials representing a login using an Facebook access token.
+     * Creates credentials representing a login using a Facebook access token.
      * <p>
      * This provider must be enabled on MongoDB Realm to work.
      *
@@ -141,7 +160,7 @@ public class Credentials {
     }
 
     /**
-     * Creates credentials representing a login using an Google access token.
+     * Creates credentials representing a login using a Google access token.
      * <p>
      * This provider must be enabled on MongoDB Realm to work.
      *
@@ -155,7 +174,7 @@ public class Credentials {
     }
 
     /**
-     * Creates credentials representing a login using an JWT Token. This token is normally generated
+     * Creates credentials representing a login using a JWT Token. This token is normally generated
      * after a custom OAuth2 login flow.
      * <p>
      * This provider must be enabled on MongoDB Realm to work.
@@ -200,9 +219,10 @@ public class Credentials {
      */
     public enum IdentityProvider {
         ANONYMOUS("anon-user"),
-        API_KEY(""), // FIXME
+        API_KEY("api-key"),
+        SERVER_API_KEY("api-key"),
         APPLE("oauth2-apple"),
-        CUSTOM_FUNCTION(""), // FIXME
+        CUSTOM_FUNCTION("custom-function"),
         EMAIL_PASSWORD("local-userpass"),
         FACEBOOK("oauth2-facebook"),
         GOOGLE("oauth2-google"),

@@ -15,7 +15,11 @@
  */
 package io.realm.internal.objectstore;
 
+import org.bson.Document;
+
 import io.realm.internal.NativeObject;
+import io.realm.internal.jni.JniBsonProtocol;
+import io.realm.mongodb.AppConfiguration;
 
 /**
  * Class wrapping ObjectStores {@code realm::app::AppCredentials}.
@@ -24,28 +28,34 @@ public class OsAppCredentials implements NativeObject {
 
     private static final int TYPE_ANONYMOUS = 1;
     private static final int TYPE_API_KEY = 2;
-    private static final int TYPE_APPLE = 3;
-    private static final int TYPE_CUSTOM_FUNCTION = 4;
-    private static final int TYPE_EMAIL_PASSWORD = 5;
-    private static final int TYPE_FACEBOOK = 6;
-    private static final int TYPE_GOOGLE = 7;
-    private static final int TYPE_JWT = 8;
+    private static final int TYPE_SERVER_API_KEY = 3;
+    private static final int TYPE_APPLE = 4;
+    private static final int TYPE_CUSTOM_FUNCTION = 5;
+    private static final int TYPE_EMAIL_PASSWORD = 6;
+    private static final int TYPE_FACEBOOK = 7;
+    private static final int TYPE_GOOGLE = 8;
+    private static final int TYPE_JWT = 9;
     private static final long finalizerPtr = nativeGetFinalizerMethodPtr();
 
     public static OsAppCredentials anonymous() {
         return new OsAppCredentials(nativeCreate(TYPE_ANONYMOUS));
     }
 
-    public static OsAppCredentials apiKey(String key) {
+    public static OsAppCredentials userApiKey(String key) {
         return new OsAppCredentials(nativeCreate(TYPE_API_KEY, key));
+    }
+
+    public static OsAppCredentials serverApiKey(String key) {
+        return new OsAppCredentials(nativeCreate(TYPE_SERVER_API_KEY, key));
     }
 
     public static OsAppCredentials apple(String idToken) {
         return new OsAppCredentials(nativeCreate(TYPE_APPLE, idToken));
     }
 
-    public static OsAppCredentials customFunction(String functionName, Object... args) {
-        return new OsAppCredentials(nativeCreate(TYPE_CUSTOM_FUNCTION, functionName, args));
+    public static OsAppCredentials customFunction(Document args) {
+        String encodedArgs = JniBsonProtocol.encode(args, AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY);
+        return new OsAppCredentials(nativeCreate(TYPE_CUSTOM_FUNCTION, encodedArgs));
     }
 
     public static OsAppCredentials emailPassword(String email, String password) {
