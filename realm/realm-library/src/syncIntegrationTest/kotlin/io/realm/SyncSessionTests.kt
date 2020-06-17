@@ -39,7 +39,6 @@ typealias SessionCallback = (SyncSession) -> Unit
 private val SECRET_PASSWORD = "123456"
 
 @RunWith(AndroidJUnit4::class)
-@Ignore("FIXME: Unsure why they break on CI")
 class SyncSessionTests {
 
     @get:Rule
@@ -112,6 +111,7 @@ class SyncSessionTests {
     }
 
     @Test
+    @Ignore("FIXME")
     fun partitionValue_string() {
         val partitionValue = "123464652"
         val syncConfiguration = configFactory
@@ -127,6 +127,7 @@ class SyncSessionTests {
     }
 
     @Test
+    @Ignore("FIXME")
     fun partitionValue_int32() {
         val int = 123536462
         val syncConfiguration = configFactory
@@ -142,6 +143,7 @@ class SyncSessionTests {
     }
 
     @Test
+    @Ignore("FIXME")
     fun partitionValue_int64() {
         val long = 1243513244L
         val syncConfiguration = configFactory
@@ -157,6 +159,7 @@ class SyncSessionTests {
     }
 
     @Test
+    @Ignore("FIXME")
     fun partitionValue_objectId() {
         val objectId = ObjectId("5ecf72df02aa3c32ab6b4ce0")
         val syncConfiguration = configFactory
@@ -229,6 +232,7 @@ class SyncSessionTests {
     }
 
     @Test
+    @Ignore("FIXME")
     fun uploadDownloadAllChanges() {
         Realm.getInstance(syncConfiguration).use { realm ->
             realm.executeTransaction {
@@ -252,6 +256,7 @@ class SyncSessionTests {
     }
 
     @Test
+    @Ignore("FIXME")
     fun differentPartitionValue_supportedTypes() {
         Realm.getInstance(syncConfiguration).use { realm ->
             realm.executeTransaction {
@@ -276,6 +281,7 @@ class SyncSessionTests {
     }
 
     @Test
+    @Ignore("FIXME")
     fun differentPartitionValue_noCrosstalk() {
         Realm.getInstance(syncConfiguration).use { realm ->
             realm.executeTransaction {

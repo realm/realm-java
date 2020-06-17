@@ -41,7 +41,6 @@ import java.util.*
  * Testing sync specific methods on [Realm].
  */
 @RunWith(AndroidJUnit4::class)
-@Ignore("FIXME")
 class SyncedRealmTests {
 
     @get:Rule
@@ -68,6 +67,7 @@ class SyncedRealmTests {
 
     // Smoke test for Sync. Waiting for working Sync support.
     @Test
+    @Ignore("FIXME")
     fun connectWithInitialSchema() {
         val user: User = createNewUser()
         val config = createDefaultConfig(user)
@@ -109,6 +109,7 @@ class SyncedRealmTests {
     // Smoke test for sync
     // Insert different types with no links between them
     @Test
+    @Ignore("FIXME")
     fun roundTripSimpleObjectsInServerSchema() {
         // User 1 creates an object an uploads it to MongoDB Realm
         val user1: User = createNewUser()
@@ -145,6 +146,7 @@ class SyncedRealmTests {
     // Smoke test for sync
     // Insert objects with links between them
     @Test
+    @Ignore("FIXME")
     fun roundTripObjectsWithLists() {
         // User 1 creates an object an uploads it to MongoDB Realm
         val user1: User = createNewUser()

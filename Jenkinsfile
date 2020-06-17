@@ -9,14 +9,12 @@ mongoDbRealmContainer = null
 mongoDbRealmCommandServerContainer = null
 emulatorContainer = null
 dockerNetworkId = UUID.randomUUID().toString()
-// Branches from which we release SNAPSHOT's.
-// Only release branches need to run on actual hardware.
+// Branches from which we release SNAPSHOT's. Only release branches need to run on actual hardware.
 releaseBranches = ['master', 'next-major', 'v10']
-// Branches that are "important", so if the do not compile they will generate a Slack notification
+// Branches that are "important", so if they do not compile they will generate a Slack notification
 slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
 currentBranch = env.CHANGE_BRANCH
-// 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen, so
-// we avoid running emulators on already emulated hosts like 'docker' which runs in AWS.
+// 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen.
 nodeName = (releaseBranches.contains(currentBranch)) ? 'android' : 'docker-cph-03' // Switch to `brix` when all CPH nodes work: https://jira.mongodb.org/browse/RCI-14
 try {
   node(nodeName) {
@@ -60,7 +58,7 @@ try {
           stage('Prepare Docker Images') {
             // TODO Should be renamed to 'master' when merged there.
             // TODO Figure out why caching the image doesn't work.
-            buildEnv = buildDockerEnv("realm-java-ci:v10", push: currentBranch == 'v10-do-not-cache')
+            buildEnv = buildDockerEnv("realm-java-ci:v10", push: currentBranch == 'v10')
             def props = readProperties file: 'dependencies.list'
             echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER_VERSION}"
             def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER_VERSION}")
@@ -78,7 +76,6 @@ try {
             sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmContainer.id}:/tmp/"
             sh "docker exec -i ${mongoDbRealmContainer.id} sh /tmp/setup_mongodb_realm.sh"
           }
-
 
           // There is a chance that real devices are attached to the host, so if the emulator is
           // running we need to make sure that ADB and tests targets the correct device.

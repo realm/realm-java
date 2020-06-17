@@ -22,7 +22,6 @@ ENV CCACHE_CPP2 yes
 # Keep the packages in alphabetical order to make it easy to avoid duplication
 # tzdata needs to be installed first. See https://askubuntu.com/questions/909277/avoiding-user-interaction-with-tzdata-when-installing-certbot-in-a-docker-contai
 # `file` is need by the Android Emulator
-# FIXME: Ask Yavor/Jacek about how to best configure qemu/kvm
 RUN DEBIAN_FRONTEND=noninteractive \
     && apt-get update -qq \
     && apt-get install -y tzdata \
@@ -66,17 +65,16 @@ RUN sdkmanager --update
 RUN yes | sdkmanager --licenses
 
 # SDKs
-# Please keep these in descending order!
 # The `yes` is for accepting all non-standard tool licenses.
 # Please keep all sections in descending order!
 RUN yes | sdkmanager \
-    'platform-tools' \
     'build-tools;29.0.2' \
+    'cmake;3.6.4111459' \
+    'emulator' \
     'extras;android;m2repository' \
     'platforms;android-29' \
-    'cmake;3.6.4111459' \
+    'platform-tools' \
     'ndk;21.0.6113669' \
-    'emulator' \
     'system-images;android-29;default;x86'
 
 # Make the SDK universally writable
