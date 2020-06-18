@@ -164,7 +164,7 @@ class CredentialsTests {
     @Ignore("FIXME: Awaiting ObjectStore support")
     @Test
     fun jwt() {
-        val creds = Credentials.google("jwt-token")
+        val creds = Credentials.jwt("jwt-token")
         assertEquals(Credentials.IdentityProvider.JWT, creds.identityProvider)
         assertTrue(creds.asJson().contains("jwt-token"))
     }
@@ -192,7 +192,7 @@ class CredentialsTests {
                     val key: UserApiKey = user.apiKeyAuth.createApiKey("my-key");
                     user.logOut()
                     val apiKeyUser = app.login(Credentials.apiKey(key.value!!))
-                    assertEquals(user, apiKeyUser)
+                    assertEquals(user.id, apiKeyUser.id)
                 }
                 Credentials.IdentityProvider.SERVER_API_KEY -> {
                     // Create key using the admin API and then log in
