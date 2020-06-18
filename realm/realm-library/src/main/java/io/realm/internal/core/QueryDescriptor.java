@@ -57,6 +57,10 @@ public class QueryDescriptor {
             RealmFieldType.LINKING_OBJECTS
     )));
 
+    public final static Set<RealmFieldType> DISTINCT_VALID_LINK_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            RealmFieldType.OBJECT, RealmFieldType.LINKING_OBJECTS
+    )));
+
     public static QueryDescriptor getInstanceForSort(FieldDescriptor.SchemaProxy proxy, Table table, String fieldDescription, Sort sortOrder) {
         return getInstanceForSort(proxy, table, new String[] {fieldDescription}, new Sort[] {sortOrder});
     }
@@ -77,7 +81,7 @@ public class QueryDescriptor {
     }
 
     public static QueryDescriptor getInstanceForDistinct(FieldDescriptor.SchemaProxy proxy, Table table, String[] fieldDescriptions) {
-        return getInstance(proxy, table, fieldDescriptions, null, FieldDescriptor.ALL_LINK_FIELD_TYPES, DISTINCT_VALID_FIELD_TYPES, "Distinct is not supported");
+        return getInstance(proxy, table, fieldDescriptions, null, DISTINCT_VALID_LINK_FIELD_TYPES, DISTINCT_VALID_FIELD_TYPES, "Distinct is not supported");
     }
 
     private static QueryDescriptor getInstance(
