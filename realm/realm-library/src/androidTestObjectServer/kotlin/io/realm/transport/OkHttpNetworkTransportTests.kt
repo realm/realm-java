@@ -127,21 +127,15 @@ class OkHttpNetworkTransportTests {
                     Pair("Accept", "application/json")
             )
 
-            val t = Thread(Runnable {
-                val response: OsJavaNetworkTransport.Response = transport.sendRequest(method.nativeKey,
-                        url,
-                        5000,
-                        headers,
-                        body)
-                assertEquals(0, response.httpResponseCode)
-                assertEquals(OsJavaNetworkTransport.ERROR_IO, response.customResponseCode)
-                assertTrue(response.body.contains("interrupted"))
-            })
-            t.start()
-            // There is a very small chance that the network request already completed when getting
-            // to here, which would cause the test to fail. Ignore this possibility for now.
-            t.interrupt()
-            t.join()
+            Thread.currentThread().interrupt()
+            val response: OsJavaNetworkTransport.Response = transport.sendRequest(method.nativeKey,
+                    url,
+                    5000,
+                    headers,
+                    body)
+            assertEquals(0, response.httpResponseCode)
+            assertEquals(OsJavaNetworkTransport.ERROR_IO, response.customResponseCode)
+            assertTrue(response.body.contains("interrupted"))
         }
     }
 
