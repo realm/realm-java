@@ -57,12 +57,6 @@ public class OsSharedRealmTests {
     }
 
     @Test
-    public void getVersionID_without_read_or_write_transaction_throws() {
-        thrown.expectMessage("Cannot get versionId, this could be related to a non existing read/write transaction");
-        sharedRealm.getVersionID();
-    }
-
-    @Test
     public void hasTable() {
         assertFalse(sharedRealm.hasTable("MyTable"));
         sharedRealm.beginTransaction();
@@ -202,7 +196,7 @@ public class OsSharedRealmTests {
         // Refresh existing instance
         sharedRealm.refresh();
         assertTrue(sharedRealm.hasTable("NewTable"));
-        assertFalse(listenerCalled.get()); // TODO: Change to assertTrue once bug is fixed
+        assertTrue(listenerCalled.get());
     }
 
     @Test

@@ -17,9 +17,12 @@ package io.realm
 
 import androidx.test.annotation.UiThreadTest
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
+import io.realm.mongodb.*
+import io.realm.mongodb.auth.EmailPasswordAuth
 import io.realm.rule.BlockingLooperThread
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -35,11 +38,11 @@ import kotlin.test.assertFailsWith
 class EmailPasswordAuthTests {
 
     private val looperThread = BlockingLooperThread()
-    private lateinit var app: TestRealmApp
+    private lateinit var app: TestApp
     private lateinit var admin: ServerAdmin
 
     // Callback use to verify that an Illegal Argument was thrown from async methods
-    private val checkNullArgCallback = RealmApp.Callback<Void> { result ->
+    private val checkNullArgCallback = App.Callback<Void> { result ->
         if (result.isSuccess) {
             fail()
         } else {
@@ -60,7 +63,8 @@ class EmailPasswordAuthTests {
 
     @Before
     fun setUp() {
-        app = TestRealmApp()
+        Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
+        app = TestApp()
         RealmLog.setLevel(LogLevel.DEBUG)
         admin = ServerAdmin()
         admin.deleteAllUsers()
@@ -93,8 +97,8 @@ class EmailPasswordAuthTests {
         val email = TestHelper.getRandomEmail()
         val password = "password1234"
         app.emailPasswordAuth.registerUser(email, password)
-        val user = app.login(RealmCredentials.emailPassword(email, password))
-        assertEquals(RealmUser.State.LOGGED_IN, user.state)
+        val user = app.login(Credentials.emailPassword(email, password))
+        assertEquals(User.State.LOGGED_IN, user.state)
     }
 
     @Test
@@ -104,8 +108,8 @@ class EmailPasswordAuthTests {
         looperThread.runBlocking {
             app.emailPasswordAuth.registerUserAsync(email, password) { result ->
                 if (result.isSuccess) {
-                    val user2 = app.login(RealmCredentials.emailPassword(email, password))
-                    assertEquals(RealmUser.State.LOGGED_IN, user2.state)
+                    val user2 = app.login(Credentials.emailPassword(email, password))
+                    assertEquals(User.State.LOGGED_IN, user2.state)
                     looperThread.testComplete()
                 } else {
                     fail(result.error.toString())
@@ -120,7 +124,7 @@ class EmailPasswordAuthTests {
         try {
             provider.registerUser("invalid-email", "1234")
             fail()
-        } catch (ex: ObjectServerError) {
+        } catch (ex: AppException) {
             assertEquals(ErrorCode.BAD_REQUEST, ex.errorCode)
         }
     }
@@ -171,7 +175,7 @@ class EmailPasswordAuthTests {
         try {
             provider.confirmUser("invalid-token", "invalid-token-id")
             fail()
-        } catch (ex: ObjectServerError) {
+        } catch (ex: AppException) {
             assertEquals(ErrorCode.BAD_REQUEST, ex.errorCode)
         }
     }
@@ -251,7 +255,7 @@ class EmailPasswordAuthTests {
         try {
             provider.resendConfirmationEmail("foo")
             fail()
-        } catch (error: ObjectServerError) {
+        } catch (error: AppException) {
             assertEquals(ErrorCode.USER_NOT_FOUND, error.errorCode)
         } finally {
             admin.setAutomaticConfirmation(true)
@@ -319,7 +323,7 @@ class EmailPasswordAuthTests {
         try {
             provider.sendResetPasswordEmail("unknown@10gen.com")
             fail()
-        } catch (error: ObjectServerError) {
+        } catch (error: AppException) {
             assertEquals(ErrorCode.USER_NOT_FOUND, error.errorCode)
         }
     }
@@ -356,7 +360,7 @@ class EmailPasswordAuthTests {
         provider.registerUser(email, "123456")
         try {
             provider.callResetPasswordFunction(email, "new-password", "say-the-magic-word", 42)
-            val user = app.login(RealmCredentials.emailPassword(email, "new-password"))
+            val user = app.login(Credentials.emailPassword(email, "new-password"))
             user.logOut()
         } finally {
             admin.setResetFunction(enabled = false)
@@ -375,7 +379,7 @@ class EmailPasswordAuthTests {
                         "new-password",
                         arrayOf("say-the-magic-word", 42)) { result ->
                     if (result.isSuccess) {
-                        val user = app.login(RealmCredentials.emailPassword(email, "new-password"))
+                        val user = app.login(Credentials.emailPassword(email, "new-password"))
                         user.logOut()
                         looperThread.testComplete()
                     } else {
@@ -396,7 +400,7 @@ class EmailPasswordAuthTests {
         provider.registerUser(email, "123456")
         try {
             provider.callResetPasswordFunction(email, "new-password", "wrong-magic-word")
-        } catch (error: ObjectServerError) {
+        } catch (error: AppException) {
             assertEquals(ErrorCode.SERVICE_UNKNOWN, error.errorCode)
         } finally {
             admin.setResetFunction(enabled = false)
@@ -437,7 +441,7 @@ class EmailPasswordAuthTests {
             provider.callResetPasswordFunctionAsync(TestHelper.getNull(), "new-password", arrayOf(), checkNullArgCallback)
         }
         looperThread.runBlocking {
-            provider.callResetPasswordFunctionAsync("foo@bar.baz", io.realm.TestHelper.getNull(), arrayOf(), checkNullArgCallback)
+            provider.callResetPasswordFunctionAsync("foo@bar.baz", TestHelper.getNull(), arrayOf(), checkNullArgCallback)
         }
     }
 
@@ -458,7 +462,7 @@ class EmailPasswordAuthTests {
         val provider = app.emailPasswordAuth
         try {
             provider.resetPassword("invalid-token", "invalid-token-id", "new-password")
-        } catch (error: ObjectServerError) {
+        } catch (error: AppException) {
             assertEquals(ErrorCode.BAD_REQUEST, error.errorCode)
         }
     }
@@ -511,7 +515,7 @@ class EmailPasswordAuthTests {
                     Method.RESET_PASSWORD -> provider.resetPassword("token", "token-id", "password")
                 }
                 fail("$method should have thrown an exception")
-            } catch (error: ObjectServerError) {
+            } catch (error: AppException) {
                 assertEquals(ErrorCode.NETWORK_UNKNOWN, error.errorCode)
             }
         }
@@ -521,7 +525,7 @@ class EmailPasswordAuthTests {
     fun callAsyncMethodsOnNonLooperThreadThrows() {
         val provider: EmailPasswordAuth = app.emailPasswordAuth
         val email: String = TestHelper.getRandomEmail()
-        val callback = RealmApp.Callback<Void> { fail() }
+        val callback = App.Callback<Void> { fail() }
         for (method in Method.values()) {
             try {
                 when(method) {

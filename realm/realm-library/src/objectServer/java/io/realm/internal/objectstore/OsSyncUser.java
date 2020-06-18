@@ -15,8 +15,22 @@
  */
 package io.realm.internal.objectstore;
 
+import org.bson.Document;
+
+import java.util.concurrent.atomic.AtomicReference;
+
+import io.realm.RealmAsyncTask;
 import io.realm.internal.NativeObject;
+import io.realm.internal.Util;
+import io.realm.internal.jni.JniBsonProtocol;
+import io.realm.internal.jni.OsJNIResultCallback;
+import io.realm.internal.jni.OsJNIVoidResultCallback;
+import io.realm.internal.mongodb.Request;
+import io.realm.internal.network.ResultHandler;
 import io.realm.internal.util.Pair;
+import io.realm.mongodb.App;
+import io.realm.mongodb.AppConfiguration;
+import io.realm.mongodb.AppException;
 
 public class OsSyncUser implements NativeObject {
 
@@ -99,11 +113,27 @@ public class OsSyncUser implements NativeObject {
         return identities;
     }
 
+    public String getDeviceId() {
+        return nativeGetDeviceId(nativePtr);
+    }
+
     /**
      * @return {@link #STATE_LOGGED_IN}, {@link #STATE_LOGGED_OUT} or {@link #STATE_REMOVED}
      */
     public byte getState() {
         return nativeGetState(nativePtr);
+    }
+
+    public Document getCustomData() {
+        String encodedData = nativeCustomData(nativePtr);
+        // Stitch also used default codec registry for parsing access token
+        return JniBsonProtocol.decode(encodedData, AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY.get(Document.class));
+    }
+
+    public void refreshCustomData() {
+        AtomicReference<AppException> error = new AtomicReference<>(null);
+        nativeRefreshCustomData(nativePtr, new OsJNIVoidResultCallback(error));
+        ResultHandler.handleResult(null, error);
     }
 
     public void invalidate() {
@@ -145,4 +175,7 @@ public class OsSyncUser implements NativeObject {
     private static native byte nativeGetState(long nativePtr);
     private static native void nativeSetState(long nativePtr, byte state);
     private static native String nativeGetProviderType(long nativePtr);
+    private static native String nativeGetDeviceId(long nativePtr);
+    private static native String nativeCustomData(long nativeUserPtr);
+    private static native void nativeRefreshCustomData(long nativeUserPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }

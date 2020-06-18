@@ -1,0 +1,12 @@
+{
+    "id": "5edea20f0f99fe616bf40ae1",
+    "name": "authorizedOnly",
+    "private": false,
+    "can_evaluate": {
+        "%%user.data.email": {
+            "%in": [
+                "authorizeduser@example.org"
+            ]
+        }
+    }
+}

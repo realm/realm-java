@@ -19,8 +19,11 @@
 #include "java_class_global_def.hpp"
 #include "util.hpp"
 #include "jni_util/java_class.hpp"
+#include "java_network_transport.hpp"
 
 #include <sync/sync_user.hpp>
+#include <jni_util/bson_util.hpp>
+#include <object-store/src/util/bson/bson.hpp>
 
 using namespace realm;
 using namespace realm::_impl;
@@ -227,4 +230,40 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGe
     }
     CATCH_STD();
     return nullptr;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetDeviceId(JNIEnv* env, jclass, jlong j_native_ptr)
+{
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        std::string device_id = user->device_id();
+        return to_jstring(env, device_id);
+    }
+    CATCH_STD();
+    return nullptr;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeCustomData(JNIEnv* env, jclass, jlong j_native_ptr) {
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        const util::Optional<bson::BsonDocument> custom_data(user->custom_data());
+        if (custom_data) {
+            return JniBsonProtocol::bson_to_jstring(env, *custom_data);
+        } else {
+            return JniBsonProtocol::bson_to_jstring(env, BsonDocument());
+        }
+    }
+    CATCH_STD()
+    return JniBsonProtocol::bson_to_jstring(env, BsonDocument());
+}
+
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeRefreshCustomData
+        (JNIEnv* env, jclass, jlong j_native_ptr, jobject j_callback) {
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        std::function<void(util::Optional<app::AppError>)> callback = JavaNetworkTransport::create_void_callback(env, j_callback);
+        user->refresh_custom_data(callback);
+    }
+    CATCH_STD()
 }

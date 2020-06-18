@@ -26,6 +26,7 @@
 #endif
 
 #include <linux/errno.h>
+#include <jni_util/bson_util.hpp>
 
 #include "java_accessor.hpp"
 #include "util.hpp"
@@ -245,7 +246,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeEnableChangeNo
 #if REALM_ENABLE_SYNC
 JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSyncConfig(
     JNIEnv* env, jclass, jlong native_ptr, jstring j_sync_realm_url, jstring j_auth_url, jstring j_user_id,
-    jstring j_refresh_token, jstring j_access_token, jbyte j_session_stop_policy, jstring j_url_prefix,
+    jstring j_refresh_token, jstring j_access_token, jstring j_device_id, jbyte j_session_stop_policy, jstring j_url_prefix,
     jstring j_custom_auth_header_name, jobjectArray j_custom_headers_array, jbyte j_client_reset_mode,
     jstring j_partion_key_value, jobject j_java_sync_service)
 {
@@ -254,7 +255,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
     REALM_ASSERT(!config.sync_config);
 
     try {
-        static JavaClass sync_manager_class(env, "io/realm/RealmSync");
+        static JavaClass sync_manager_class(env, "io/realm/mongodb/sync/Sync");
         // Doing the methods lookup from the thread that loaded the lib, to avoid
         // https://developer.android.com/training/articles/perf-jni.html#faq_FindClass
         static JavaMethod java_error_callback_method(env, sync_manager_class, "notifyErrorHandler",
@@ -325,14 +326,20 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             JStringAccessor realm_auth_url(env, j_auth_url);
             JStringAccessor refresh_token(env, j_refresh_token);
             JStringAccessor access_token(env, j_access_token);
-            user = SyncManager::shared().get_user(user_id, auth_url, refresh_token, access_token);
+            JStringAccessor device_id(env, j_device_id);
+            user = SyncManager::shared().get_user(user_id, auth_url, refresh_token, access_token, device_id);
         }
 
         SyncSessionStopPolicy session_stop_policy = static_cast<SyncSessionStopPolicy>(j_session_stop_policy);
 
         JStringAccessor realm_url(env, j_sync_realm_url);
-        JStringAccessor partion_key_value(env, j_partion_key_value);
-        config.sync_config = std::make_shared<SyncConfig>(SyncConfig{user, partion_key_value});
+        // TODO Simplify. Java serialization only allows writing full documents, so the partition
+        //  key is embedded in a document with key 'value'. To get is as string were we parse it
+        //  and reformat with C++ bson serialization as it supports serializing single values.
+        Bson bson(JniBsonProtocol::jstring_to_bson(env, j_partion_key_value));
+        std::stringstream buffer;
+        buffer << bson;
+        config.sync_config = std::make_shared<SyncConfig>(SyncConfig{user, buffer.str()});
         config.sync_config->stop_policy = session_stop_policy;
         config.sync_config->error_handler = std::move(error_handler);
         switch (j_client_reset_mode) {
@@ -393,7 +400,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSyncConfigS
         }
         else if (config.sync_config->client_validate_ssl) {
             // set default callback to allow Android to check the certificate
-            static JavaClass sync_manager_class(env, "io/realm/RealmSync");
+            static JavaClass sync_manager_class(env, "io/realm/mongodb/sync/Sync");
             static JavaMethod java_ssl_verify_callback(env, sync_manager_class, "sslVerifyCallback",
                                                        "(Ljava/lang/String;Ljava/lang/String;I)Z", true);
 

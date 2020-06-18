@@ -175,12 +175,12 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
     if (is_pk_null) {
 
         if (bool(table->find_first_null(col_key))) {
-            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, util::format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
         }
     }
     else {
         if (bool(table->find_first_int(col_key, pk_value))) {
-            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, pk_value));
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, util::format(PK_EXCEPTION_MSG_FORMAT, pk_value));
         }
     }
 
@@ -203,12 +203,12 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
     if (pk_value) {
         if (bool(table->find_first_string(col_key, str_accessor))) {
             THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS,
-                                 format(PK_EXCEPTION_MSG_FORMAT, str_accessor.operator std::string()));
+                                 util::format(PK_EXCEPTION_MSG_FORMAT, str_accessor.operator std::string()));
         }
     }
     else {
         if (bool(table->find_first_null(col_key))) {
-            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, util::format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
         }
     }
     return table->create_object_with_primary_key(StringData(str_accessor));
@@ -230,14 +230,14 @@ static inline Obj do_create_row_with_object_id_primary_key(JNIEnv* env, jlong sh
         auto objectId = ObjectId(StringData(str_accessor).data());
         if (bool(table->find_first_object_id(col_key, objectId))) {
             THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS,
-                                 format(PK_EXCEPTION_MSG_FORMAT, str_accessor.operator std::string()));
+                                 util::format(PK_EXCEPTION_MSG_FORMAT, str_accessor.operator std::string()));
         }
 
         return table->create_object_with_primary_key(objectId);
     }
     else {
         if (bool(table->find_first_null(col_key))) {
-            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, util::format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
         }
         return table->create_object_with_primary_key(realm::util::Optional<realm::ObjectId>());
     }
@@ -385,6 +385,27 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWit
         } else {
             THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, "Invalid Object returned from 'do_create_row_with_object_id_primary_key'");
         }
+    }
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateEmbeddedObject(
+    JNIEnv* env, jclass, jlong j_parent_table_ptr, jlong j_parent_object_key, jlong j_parent_column_key)
+{
+    try {
+        TableRef table = TBL_REF(j_parent_table_ptr);
+        ObjKey obj_key(static_cast<int64_t>(j_parent_object_key));
+        Obj parent_obj = table->get_object(obj_key);
+        ColKey col_key(static_cast<int64_t>(j_parent_column_key));
+        Obj child_obj;
+        if (table->get_column_type(col_key) == type_Link) {
+            child_obj = parent_obj.create_and_set_linked_object(col_key);
+        } else {
+            LnkLstPtr list = parent_obj.get_linklist_ptr(col_key);
+            child_obj = list->create_and_insert_linked_object(list->size());
+        }
+        return to_jlong_or_not_found(child_obj.get_key());
     }
     CATCH_STD()
     return 0;

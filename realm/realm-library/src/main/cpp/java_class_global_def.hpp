@@ -55,6 +55,9 @@ private:
         , m_realm_notifier(env, "io/realm/internal/RealmNotifier", false)
         , m_bson_decimal128(env, "org/bson/types/Decimal128", false)
         , m_bson_object_id(env, "org/bson/types/ObjectId", false)
+#if REALM_ENABLE_SYNC
+        , m_network_transport_response(env, "io/realm/internal/objectstore/OsJavaNetworkTransport$Response", false)
+#endif
     {
     }
 
@@ -70,6 +73,10 @@ private:
     jni_util::JavaClass m_realm_notifier;
     jni_util::JavaClass m_bson_decimal128;
     jni_util::JavaClass m_bson_object_id;
+
+#if REALM_ENABLE_SYNC
+    jni_util::JavaClass m_network_transport_response;
+#endif
 
     inline static std::unique_ptr<JavaClassGlobalDef>& instance()
     {
@@ -181,6 +188,13 @@ public:
     {
         return instance()->m_java_lang_object;
     }
+
+#if REALM_ENABLE_SYNC
+    inline static const jni_util::JavaClass& network_transport_response_class()
+    {
+        return instance()->m_network_transport_response;
+    }
+#endif
 };
 
 } // namespace realm

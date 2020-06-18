@@ -90,7 +90,7 @@ public class QueryDescriptorTests {
     }
 
     @Test
-    public void getInstanceForDistinct_shouldThrowOnLinkAndListListField() {
+    public void getInstanceForDistinct_shouldThrowOnListField() {
         RealmFieldType type = RealmFieldType.STRING;
         RealmFieldType objectType = RealmFieldType.OBJECT;
         RealmFieldType listType = RealmFieldType.LIST;
@@ -100,12 +100,6 @@ public class QueryDescriptorTests {
 
         try {
             QueryDescriptor.getInstanceForDistinct(null, table, String.format("%s.%s", listType.name(), type.name()));
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-
-        try {
-            QueryDescriptor.getInstanceForDistinct(null, table, String.format("%s.%s", objectType.name(), type.name()));
             fail();
         } catch (IllegalArgumentException ignored) {
         }

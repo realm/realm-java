@@ -218,10 +218,11 @@ public class IOSRealmTests {
     }
 
     private byte[] getIOSKey() {
-        byte[] keyData = new byte[64];
+        byte[] keyData = new byte[Realm.ENCRYPTION_KEY_LENGTH];
         for (int i = 0; i < keyData.length; i++) {
             keyData[i] = 1;
         }
         return keyData;
     }
+    
 }

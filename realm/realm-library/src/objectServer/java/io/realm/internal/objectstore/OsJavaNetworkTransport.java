@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.internal.Keep;
+import io.realm.mongodb.AppConfiguration;
 
 /**
  * Java implementation of the transport layer exposed by ObjectStore when communicating with
@@ -73,7 +74,7 @@ public abstract class OsJavaNetworkTransport {
      * Used for testing.
      */
     public void resetHeaders() {
-        authorizationHeaderName = "Authorization";
+        authorizationHeaderName = AppConfiguration.DEFAULT_AUTHORIZATION_HEADER_NAME;
         customHeaders.clear();
     }
 
