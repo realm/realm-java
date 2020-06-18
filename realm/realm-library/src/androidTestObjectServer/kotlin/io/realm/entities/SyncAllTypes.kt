@@ -51,9 +51,6 @@ open class SyncAllTypes : RealmObject() {
         const val FIELD_DOUBLE_LIST = "columnDoubleList"
         const val FIELD_FLOAT_LIST = "columnFloatList"
         const val FIELD_DATE_LIST = "columnDateList"
-        val INVALID_TYPES_FIELDS_FOR_DISTINCT = arrayOf(FIELD_REALMOBJECT, FIELD_REALMLIST, FIELD_DOUBLE, FIELD_FLOAT,
-                FIELD_STRING_LIST, FIELD_BINARY_LIST, FIELD_BOOLEAN_LIST, FIELD_LONG_LIST,
-                FIELD_DOUBLE_LIST, FIELD_FLOAT_LIST, FIELD_DATE_LIST)
     }
 
     @PrimaryKey
@@ -63,7 +60,10 @@ open class SyncAllTypes : RealmObject() {
     @Required
     var columnString = ""
     var columnLong: Long = 0
-    var columnFloat = 0f
+
+    // FIXME Float ruins initial upload of scheme, works if added to schema later
+//    var columnFloat = 0f
+
     var columnDouble = 0.0
     var isColumnBoolean = false
 
@@ -80,16 +80,29 @@ open class SyncAllTypes : RealmObject() {
     var columnObjectId = ObjectId(TestHelper.randomObjectIdHexString())
     val columnRealmInteger = MutableRealmInteger.ofNull()
     var columnRealmObject: SyncDog? = null
+
     var columnRealmList: RealmList<SyncDog>? = null
+    @Required
     var columnStringList: RealmList<String>? = null
+    @Required
     var columnBinaryList: RealmList<ByteArray>? = null
+    @Required
     var columnBooleanList: RealmList<Boolean>? = null
+    @Required
     var columnLongList: RealmList<Long>? = null
+    @Required
     var columnDoubleList: RealmList<Double>? = null
-    var columnFloatList: RealmList<Float>? = null
+
+    // FIXME Float ruins initial upload of scheme, works if added to schema later
+//    @Required
+//    var columnFloatList: RealmList<Float>? = null
+
+    @Required
     var columnDateList: RealmList<Date>? = null
+    @Required
     var columnDecimal128List: RealmList<Decimal128>? = null
 
+    @Required
     var columnObjectIdList: RealmList<ObjectId>? = null
 
     fun setColumnMutableRealmInteger(value: Int) {
