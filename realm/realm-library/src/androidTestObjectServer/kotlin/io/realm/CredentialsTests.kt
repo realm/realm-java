@@ -43,7 +43,6 @@ class CredentialsTests {
         @JvmStatic
         fun setUp() {
             Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-            RealmLog.setLevel(LogLevel.DEBUG)
         }
     }
 
@@ -58,21 +57,21 @@ class CredentialsTests {
     @Test
     fun anonymous() {
         val creds = Credentials.anonymous()
-        assertEquals(Credentials.IdentityProvider.ANONYMOUS.id, creds.identityProvider.id)
+        assertEquals(Credentials.IdentityProvider.ANONYMOUS, creds.identityProvider)
         assertTrue(creds.asJson().contains("anon-user")) // Treat the JSON as an opaque value.
     }
 
     @Test
     fun apiKey() {
         val creds = Credentials.apiKey("token")
-        assertEquals(Credentials.IdentityProvider.SERVER_API_KEY.id, creds.identityProvider.id)
+        assertEquals(Credentials.IdentityProvider.API_KEY, creds.identityProvider)
         assertTrue(creds.asJson().contains("token")) // Treat the JSON as an opaque value.
     }
 
     @Test
     fun serverApiKey() {
         val creds = Credentials.serverApiKey("token")
-        assertEquals(Credentials.IdentityProvider.API_KEY.id, creds.identityProvider.id)
+        assertEquals(Credentials.IdentityProvider.SERVER_API_KEY, creds.identityProvider)
         assertTrue(creds.asJson().contains("token")) // Treat the JSON as an opaque value.
     }
 
@@ -91,7 +90,7 @@ class CredentialsTests {
     @Test
     fun apple() {
         val creds = Credentials.apple("apple-token")
-        assertEquals(Credentials.IdentityProvider.APPLE.id, creds.identityProvider.id)
+        assertEquals(Credentials.IdentityProvider.APPLE, creds.identityProvider)
         assertTrue(creds.asJson().contains("apple-token")) // Treat the JSON as a largely opaque value.
     }
 
@@ -109,7 +108,7 @@ class CredentialsTests {
                 "mail" to "myfakemail@mongodb.com",
                 "id" to 666
         ).let { Credentials.customFunction(Document(it)) }
-        assertEquals(Credentials.IdentityProvider.CUSTOM_FUNCTION.id, creds.identityProvider.id)
+        assertEquals(Credentials.IdentityProvider.CUSTOM_FUNCTION, creds.identityProvider)
         assertTrue(creds.asJson().contains(mail))
         assertTrue(creds.asJson().contains(id.toString()))
     }
@@ -122,7 +121,7 @@ class CredentialsTests {
     @Test
     fun emailPassword() {
         val creds = Credentials.emailPassword("foo@bar.com", "secret")
-        assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD.id, creds.identityProvider.id)
+        assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD, creds.identityProvider)
         // Treat the JSON as a largely opaque value.
         assertTrue(creds.asJson().contains("foo@bar.com"))
         assertTrue(creds.asJson().contains("secret"))
@@ -139,7 +138,7 @@ class CredentialsTests {
     @Test
     fun facebook() {
         val creds = Credentials.facebook("fb-token")
-        assertEquals(Credentials.IdentityProvider.FACEBOOK.id, creds.identityProvider.id)
+        assertEquals(Credentials.IdentityProvider.FACEBOOK, creds.identityProvider)
         assertTrue(creds.asJson().contains("fb-token"))
     }
 
@@ -152,7 +151,7 @@ class CredentialsTests {
     @Test
     fun google() {
         val creds = Credentials.google("google-token")
-        assertEquals(Credentials.IdentityProvider.GOOGLE.id, creds.identityProvider.id)
+        assertEquals(Credentials.IdentityProvider.GOOGLE, creds.identityProvider)
         assertTrue(creds.asJson().contains("google-token"))
     }
 
@@ -166,7 +165,7 @@ class CredentialsTests {
     @Test
     fun jwt() {
         val creds = Credentials.google("jwt-token")
-        assertEquals(Credentials.IdentityProvider.JWT.id, creds.identityProvider.id)
+        assertEquals(Credentials.IdentityProvider.JWT, creds.identityProvider)
         assertTrue(creds.asJson().contains("jwt-token"))
     }
 

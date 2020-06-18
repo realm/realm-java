@@ -84,7 +84,7 @@ public class Credentials {
      */
     public static Credentials apiKey(String key) {
         Util.checkEmpty(key, "key");
-        return new Credentials(OsAppCredentials.userApiKey(key));
+        return new Credentials(OsAppCredentials.apiKey(key));
     }
 
     /**
@@ -116,13 +116,13 @@ public class Credentials {
     }
 
     /**
-     * Creates credentials representing a remote function previously added to MongoDB Realm. The
-     * input parameters
+     * Creates credentials representing a remote function from MongoDB Realm using a
+     * {@link Document} which will be parsed as an argument to the remote function, so the keys must
+     * match the format and names the function expects.
      * <p>
      * This provider must be enabled on MongoDB Realm to work.
      *
-     * @param arguments {@link Document} containing the values passed to the remote function. The
-     *                  keys must match the names given to the remote function parameters.
+     * @param arguments document containing the function arguments.
      * @return a set of credentials that can be used to log into MongoDB Realm using
      * {@link App#loginAsync(Credentials, App.Callback)}.
      */
@@ -189,12 +189,12 @@ public class Credentials {
     }
 
     /**
-     * Returns the id for the provider used to authenticate with.
+     * Returns the identity provider used to authenticate with.
      *
-     * @return the id identifying the chosen authentication provider.
+     * @return the provider identifying the chosen credentials.
      */
     public IdentityProvider getIdentityProvider() {
-        return IdentityProvider.fromId(osCredentials.getProvider());
+        return osCredentials.getProvider();
     }
 
     /**
@@ -220,7 +220,7 @@ public class Credentials {
     public enum IdentityProvider {
         ANONYMOUS("anon-user"),
         API_KEY("api-key"),
-        SERVER_API_KEY("api-key"),
+        SERVER_API_KEY("api-key"),      // same value as API_KEY as per OS specifications
         APPLE("oauth2-apple"),
         CUSTOM_FUNCTION("custom-function"),
         EMAIL_PASSWORD("local-userpass"),
