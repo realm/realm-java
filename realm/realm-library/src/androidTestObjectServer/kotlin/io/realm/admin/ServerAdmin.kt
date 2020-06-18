@@ -123,10 +123,16 @@ class ServerAdmin {
     fun deleteAllUsers() {
         deleteAllRegisteredUsers()
         deleteAllPendingUsers()
+        if (getPendingUsersCount() > 0) {
+            throw IllegalStateException("Not all pending users were deleted.")
+        }
+        if (getUsersCount() > 0) {
+            throw IllegalStateException("Not all users were deleted.")
+        }
     }
 
     private fun deleteAllPendingUsers() {
-        var request = Request.Builder()
+        val request = Request.Builder()
                 .url("$baseUrl/groups/$groupId/apps/$appId/user_registrations/pending_users")
                 .get()
         val pendingUsers = JSONArray(executeRequest(request))
@@ -140,15 +146,16 @@ class ServerAdmin {
                 }
             }
         }
+    }
 
+    fun getPendingUsersCount(): Int {
         // Ensure that all users actually were deleted
-        request = Request.Builder()
+        val request = Request.Builder()
                 .url("$baseUrl/groups/$groupId/apps/$appId/user_registrations/pending_users")
                 .get()
-        val remainingUsers = JSONArray(executeRequest(request))
-        if (remainingUsers.length() > 0) {
-            throw IllegalStateException("Not all pending users were deleted: $remainingUsers")
-        }
+        val users = JSONArray(executeRequest(request))
+        RealmLog.debug(users.toString())
+        return users.length()
     }
 
     private fun deleteAllRegisteredUsers() {
@@ -163,15 +170,16 @@ class ServerAdmin {
                     .delete()
             executeRequest(request)
         }
+    }
 
+    fun getUsersCount(): Int {
         // Ensure that all users actually were deleted
-        request = Request.Builder()
+        val request = Request.Builder()
                 .url("$baseUrl/groups/$groupId/apps/$appId/users")
                 .get()
-        val remainingUsers = JSONArray(executeRequest(request))
-        if (remainingUsers.length() > 0) {
-            throw IllegalStateException("Not all registered users were deleted: $remainingUsers")
-        }
+        val users = JSONArray(executeRequest(request))
+        RealmLog.debug(users.toString())
+        return users.length()
     }
 
     private fun deletePendingUser(email: String) {

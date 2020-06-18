@@ -68,6 +68,12 @@ class EmailPasswordAuthTests {
         RealmLog.setLevel(LogLevel.DEBUG)
         admin = ServerAdmin()
         admin.deleteAllUsers()
+        if (admin.getUsersCount() > 0) {
+            throw IllegalStateException("Users found before starting test")
+        }
+        if (admin.getPendingUsersCount() > 0) {
+            throw IllegalStateException("Pending users found before starting test")
+        }
     }
 
     @After
@@ -76,20 +82,6 @@ class EmailPasswordAuthTests {
             app.close()
         }
         RealmLog.setLevel(LogLevel.WARN)
-    }
-
-    @Test
-    fun stitchRaceCondition() {
-        val email = "test@10gen.com"
-        val password = "password"
-        val provider = app.emailPasswordAuth
-        for (i in 0..50) {
-            admin.setAutomaticConfirmation(false)
-            provider.registerUser(email, password)
-            provider.resendConfirmationEmail(email)
-            admin.setAutomaticConfirmation(true)
-            admin.deleteAllUsers()
-        }
     }
 
     @Test
