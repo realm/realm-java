@@ -3177,7 +3177,7 @@ public class RealmQueryTests extends QueryTests {
             if (supportDistinct(type)) {
                 // Actual query
                 RealmResults<AllTypes> distinct = realm.where(AllTypes.class)
-                        .distinct(fieldName)
+                        .distinct(field)
                         .findAll();
 
                 // Assert query result
@@ -3206,7 +3206,7 @@ public class RealmQueryTests extends QueryTests {
                 // Test that unsupported types throw exception as expected
                 try {
                     realm.where(AllTypes.class)
-                            .distinct(fieldName)
+                            .distinct(field)
                             .findAll();
                     fail();
                 } catch (IllegalArgumentException ignore) {
