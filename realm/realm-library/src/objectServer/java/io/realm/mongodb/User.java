@@ -15,6 +15,7 @@
  */
 package io.realm.mongodb;
 
+import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.ArrayList;
@@ -28,12 +29,14 @@ import io.realm.RealmAsyncTask;
 import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.internal.common.TaskDispatcher;
+import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.mongodb.Request;
 import io.realm.internal.network.ResultHandler;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsMongoClient;
+import io.realm.internal.objectstore.OsPush;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.internal.util.Pair;
 import io.realm.mongodb.auth.ApiKeyAuth;
@@ -59,6 +62,8 @@ public class User {
     private ApiKeyAuth apiKeyAuthProvider = null;
     private MongoClient mongoClient = null;
     private Functions functions = null;
+    private Push push = null;
+    private TaskDispatcher dispatcher = null;
 
     /**
      * The different types of users.
@@ -103,6 +108,12 @@ public class User {
                                   CodecRegistry codecRegistry,
                                   TaskDispatcher dispatcher) {
             super(osMongoClient, codecRegistry, dispatcher);
+        }
+    }
+
+    private static class PushImpl extends Push {
+        protected PushImpl(OsPush osPush) {
+            super(osPush);
         }
     }
 
@@ -279,6 +290,50 @@ public class User {
         }
         throw new IllegalStateException("Unknown state: " + nativeState);
     }
+
+    /**
+     * Return the custom user data associated with the user in the Realm App.
+     * <p>
+     * The data is only refreshed when the user's access token is refreshed or when explicitly
+     * calling {@link #refreshCustomData()}.
+     *
+     * @return The custom user data associated with the user.
+     */
+    public Document getCustomData() {
+        return osUser.getCustomData();
+    }
+
+    /**
+     * Re-fetch custom user data from the Realm App.
+     *
+     * @return The updated custom user data associated with the user.
+     * @throws AppException if the request failed in some way.
+     */
+    public Document refreshCustomData() {
+        osUser.refreshCustomData();
+        return getCustomData();
+    }
+
+    /**
+     * Re-fetch custom user data from the Realm App asynchronously.
+     * <p>
+     * This is the asynchronous variant of {@link #refreshCustomData()}.
+     *
+     * @param callback The callback that will receive the result or any errors from the request.
+     * @return The task representing the ongoing operation.
+     *
+     * @throws IllegalStateException if not called on a looper thread.
+     */
+    public RealmAsyncTask refreshCustomData(App.Callback<Document> callback) {
+        Util.checkLooperThread("Asynchronous functions is only possible from looper threads.");
+        return new Request<Document>(App.NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public Document run() throws AppException {
+                return refreshCustomData();
+            }
+        }.start();
+    }
+
 
     /**
      * Returns true if the user is currently logged in.
@@ -505,20 +560,26 @@ public class User {
     }
 
     /**
-     * FIXME Add support for push notifications.
+     * Returns the {@link Push} instance for managing push notification registrations.
      */
-    Push getPush() {
-        return null;
+    public synchronized Push getPush(String serviceName) {
+        if (push == null) {
+            OsPush osPush = new OsPush(app.nativePtr, osUser, serviceName);
+            push = new PushImpl(osPush);
+        }
+        return push;
     }
 
     /**
      * Returns a {@link MongoClient} instance for accessing documents in the database.
      * @param serviceName the service name used to connect to the server
      */
-    public MongoClient getMongoClient(String serviceName) {
+    public synchronized MongoClient getMongoClient(String serviceName) {
         Util.checkEmpty(serviceName, "serviceName");
         if (mongoClient == null) {
-            TaskDispatcher dispatcher = new TaskDispatcher();
+            if (dispatcher == null) {
+                dispatcher = new TaskDispatcher();
+            }
             OsMongoClient osMongoClient = new OsMongoClient(app.nativePtr, serviceName, dispatcher);
             mongoClient = new MongoClientImpl(osMongoClient, app.getConfiguration().getDefaultCodecRegistry(), dispatcher);
         }

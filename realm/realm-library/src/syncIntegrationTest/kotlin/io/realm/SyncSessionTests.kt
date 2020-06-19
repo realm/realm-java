@@ -16,6 +16,7 @@ import io.realm.mongodb.*
 import io.realm.mongodb.sync.*
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.ResourceContainer
+import io.realm.util.assertFailsWithErrorCode
 import io.realm.util.assertFailsWithMessage
 import org.bson.BsonInt32
 import org.bson.BsonInt64
@@ -244,7 +245,7 @@ class SyncSessionTests {
     fun uploadDownloadAllChanges() {
         Realm.getInstance(syncConfiguration).use { realm ->
             realm.executeTransaction {
-                realm.createObject(SyncSupportedTypes::class.java, ObjectId())
+                realm.createObject(SyncAllTypes::class.java, ObjectId())
             }
             realm.syncSession.uploadAllLocalChanges()
         }
@@ -259,15 +260,35 @@ class SyncSessionTests {
         Realm.getInstance(config2).use { realm ->
             realm.syncSession.downloadAllServerChanges()
             realm.refresh()
-            assertEquals(1, realm.where(SyncSupportedTypes::class.java).count())
+            assertEquals(1, realm.where(SyncAllTypes::class.java).count())
+        }
+    }
+
+    // TODO This test is only for tracking failure when uploading SyncAllTypes including float field.
+    //  Once this test fails (meaning that the full schema can be uploaded) the test can be removed
+    //  and we can include the float field in SyncAllTypes
+    @Test
+    fun uploadDownloadAllChangesWithFloatFails() {
+        val config = configFactory
+                .createSyncConfigurationBuilder(user, syncConfiguration.partitionValue)
+                .testSchema(SyncAllTypesWithFloat::class.java, SyncDog::class.java, SyncPerson::class.java)
+                .build()
+
+        Realm.getInstance(config).use { realm ->
+            realm.executeTransaction {
+                realm.createObject(SyncAllTypesWithFloat::class.java, ObjectId())
+            }
+            assertFailsWithErrorCode(ErrorCode.UNKNOWN) {
+                realm.syncSession.uploadAllLocalChanges()
+            }
         }
     }
 
     @Test
-    fun differentPartitionValue_supportedTypes() {
+    fun differentPartitionValue_allTypes() {
         Realm.getInstance(syncConfiguration).use { realm ->
             realm.executeTransaction {
-                realm.createObject(SyncSupportedTypes::class.java, ObjectId())
+                realm.createObject(SyncAllTypes::class.java, ObjectId())
             }
             realm.syncSession.uploadAllLocalChanges()
         }
@@ -281,7 +302,7 @@ class SyncSessionTests {
 
         Realm.getInstance(config2).use { realm ->
             realm.executeTransaction {
-                realm.createObject(SyncSupportedTypes::class.java, ObjectId())
+                realm.createObject(SyncAllTypes::class.java, ObjectId())
             }
             realm.syncSession.uploadAllLocalChanges()
         }
@@ -291,7 +312,7 @@ class SyncSessionTests {
     fun differentPartitionValue_noCrosstalk() {
         Realm.getInstance(syncConfiguration).use { realm ->
             realm.executeTransaction {
-                realm.createObject(SyncSupportedTypes::class.java, ObjectId())
+                realm.createObject(SyncAllTypes::class.java, ObjectId())
             }
             realm.syncSession.uploadAllLocalChanges()
         }
@@ -306,95 +327,60 @@ class SyncSessionTests {
         Realm.getInstance(config2).use { realm ->
             realm.syncSession.downloadAllServerChanges()
             // We should not have any data here
-            assertEquals(0, realm.where(SyncSupportedTypes::class.java).count())
-        }
-    }
-
-    @Test
-    // FIXME Investigate further
-    @Ignore("Bad changeset for session with different partitionValue")
-    fun differentPartitionValue_allTypes() {
-        val config = configFactory
-                .createSyncConfigurationBuilder(user)
-                .modules(SyncAllTypesSchema())
-                .build()
-        Realm.getInstance(config).use { realm ->
-            realm.executeTransaction {
-                realm.createObject(SyncAllTypes::class.java, ObjectId())
-            }
-            realm.syncSession.uploadAllLocalChanges()
-        }
-
-        // New user and different partition value
-        val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
-        val config2 = configFactory
-                .createSyncConfigurationBuilder(user2, BsonObjectId(ObjectId()))
-                .modules(SyncAllTypesSchema())
-                .build()
-
-        Realm.getInstance(config2).use { realm ->
-            realm.executeTransaction {
-                realm.createObject(SyncAllTypes::class.java, ObjectId())
-            }
-            realm.syncSession.uploadAllLocalChanges()
+            assertEquals(0, realm.where(SyncAllTypes::class.java).count())
         }
     }
 
     @Test
     fun interruptWaits() {
-        // FIXME Convert to BackgroundLooperThread? Is it doable with all the interruptions
-        val t = Thread(Runnable {
-            Realm.getInstance(syncConfiguration).use { userRealm ->
-                userRealm.executeTransaction {
-                    userRealm.createObject(SyncSupportedTypes::class.java, ObjectId())
-                }
-                val userSession = userRealm.syncSession
-                try {
-                    // 1. Start download (which will be interrupted)
-                    Thread.currentThread().interrupt()
-                    userSession.downloadAllServerChanges()
-                    fail()
-                } catch (ignored: InterruptedException) {
-                    assertFalse(Thread.currentThread().isInterrupted)
-                }
-                try {
-                    // 2. Upload all changes
-                    userSession.uploadAllLocalChanges()
-                } catch (e: InterruptedException) {
-                    fail("Upload interrupted")
-                }
+        Realm.getInstance(syncConfiguration).use { userRealm ->
+            userRealm.executeTransaction {
+                userRealm.createObject(SyncAllTypes::class.java, ObjectId())
             }
-
-            // New user but same Realm as configuration has the same partition value
-            val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
-            val config2 = configFactory
-                    .createSyncConfigurationBuilder(user2, syncConfiguration.partitionValue)
-                    .modules(DefaultSyncSchema())
-                    .build()
-
-            Realm.getInstance(config2).use { adminRealm ->
-                val adminSession: SyncSession = adminRealm.syncSession
-                try {
-                    // 3. Start upload (which will be interrupted)
-                    Thread.currentThread().interrupt()
-                    adminSession.uploadAllLocalChanges()
-                    fail()
-                } catch (ignored: InterruptedException) {
-                    assertFalse(Thread.currentThread().isInterrupted) // clear interrupted flag
-                }
-                try {
-                    // 4. Download all changes
-                    adminSession.downloadAllServerChanges()
-                } catch (e: InterruptedException) {
-                    fail("Download interrupted")
-                }
-                adminRealm.refresh()
-
-                assertEquals(1, adminRealm.where(SyncSupportedTypes::class.java).count())
+            val userSession = userRealm.syncSession
+            try {
+                // 1. Start download (which will be interrupted)
+                Thread.currentThread().interrupt()
+                userSession.downloadAllServerChanges()
+                fail()
+            } catch (ignored: InterruptedException) {
+                assertFalse(Thread.currentThread().isInterrupted)
             }
-        })
-        t.start()
-        t.join()
+            try {
+                // 2. Upload all changes
+                userSession.uploadAllLocalChanges()
+            } catch (e: InterruptedException) {
+                fail("Upload interrupted")
+            }
+        }
+
+        // New user but same Realm as configuration has the same partition value
+        val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
+        val config2 = configFactory
+                .createSyncConfigurationBuilder(user2, syncConfiguration.partitionValue)
+                .modules(DefaultSyncSchema())
+                .build()
+
+        Realm.getInstance(config2).use { adminRealm ->
+            val adminSession: SyncSession = adminRealm.syncSession
+            try {
+                // 3. Start upload (which will be interrupted)
+                Thread.currentThread().interrupt()
+                adminSession.uploadAllLocalChanges()
+                fail()
+            } catch (ignored: InterruptedException) {
+                assertFalse(Thread.currentThread().isInterrupted) // clear interrupted flag
+            }
+            try {
+                // 4. Download all changes
+                adminSession.downloadAllServerChanges()
+            } catch (e: InterruptedException) {
+                fail("Download interrupted")
+            }
+            adminRealm.refresh()
+
+            assertEquals(1, adminRealm.where(SyncAllTypes::class.java).count())
+        }
     }
 
     // check that logging out a SyncUser used by different Realm will
