@@ -69,29 +69,25 @@ public abstract class Push {
     /**
      * Deregisters the FCM registration token bound to the currently logged in user's
      * device on MongoDB Realm.
-     *
-     * @param registrationToken the registration token to deregister.
      */
-    public void deregisterDevice(String registrationToken) {
-        osPush.deregisterDevice(registrationToken);
+    public void deregisterDevice() {
+        osPush.deregisterDevice();
     }
 
     /**
      * Deregisters the FCM registration token bound to the currently logged in user's
      * device on MongoDB Realm.
      *
-     * @param registrationToken The registration token to register.
-     * @param callback          The callback used when the device has been registered or the call
-     *                          failed - it will always happen on the same thread as this method was
-     *                          called on.
+     * @param callback The callback used when the device has been registered or the call
+     *                 failed - it will always happen on the same thread as this method was
+     *                 called on.
      */
-    public RealmAsyncTask deregisterDeviceAsync(String registrationToken,
-                                                App.Callback<Void> callback) {
+    public RealmAsyncTask deregisterDeviceAsync(App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous deregistering a device is only possible from looper threads.");
         return new Request<Void>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws AppException {
-                osPush.deregisterDevice(registrationToken);
+                osPush.deregisterDevice();
                 return null;
             }
         }.start();

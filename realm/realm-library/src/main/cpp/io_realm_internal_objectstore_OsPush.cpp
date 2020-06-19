@@ -84,17 +84,14 @@ Java_io_realm_internal_objectstore_OsPush_nativeDeregisterDevice(JNIEnv *env,
                                                                jlong j_push_client_ptr,
                                                                jlong j_user_ptr,
                                                                jstring j_service_name,
-                                                               jstring j_registration_token,
                                                                jobject j_callback) {
     try {
         auto push_client = reinterpret_cast<PushClient*>(j_push_client_ptr);
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
 
         JStringAccessor service_name(env, j_service_name);
-        JStringAccessor registration_token(env, j_registration_token);
 
-        push_client->deregister_device(registration_token,
-                                       user,
+        push_client->deregister_device(user,
                                        JavaNetworkTransport::create_void_callback(env, j_callback));
     }
     CATCH_STD()

@@ -18,10 +18,13 @@
 
 #include "util.hpp"
 
+#include <jni_util/bson_util.hpp>
 #include <sync/app_credentials.hpp>
 
 using namespace realm;
 using namespace realm::app;
+using namespace realm::bson;
+using namespace realm::jni_util;
 
 static void finalize_credentials(jlong ptr)
 {
@@ -33,7 +36,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsAppCredentials_nati
     return reinterpret_cast<jlong>(&finalize_credentials);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsAppCredentials_nativeCreate(JNIEnv* env, jclass, jint j_type, jobjectArray j_args)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsAppCredentials_nativeCreate(JNIEnv* env,
+                                                                                         jclass,
+                                                                                         jint j_type,
+                                                                                         jobjectArray j_args)
 {
     try {
         AppCredentials creds = AppCredentials::anonymous(); // Is there a way to avoid setting this to a specific value?
@@ -67,8 +73,22 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsAppCredentials_nati
                 creds = AppCredentials::custom(token);
                 break;
             }
-            case io_realm_internal_objectstore_OsAppCredentials_TYPE_CUSTOM_FUNCTION:
-            case io_realm_internal_objectstore_OsAppCredentials_TYPE_API_KEY:
+            case io_realm_internal_objectstore_OsAppCredentials_TYPE_API_KEY: {
+                JStringAccessor token(env, (jstring) env->GetObjectArrayElement(j_args, 0));
+                creds = AppCredentials::user_api_key(token);
+                break;
+            }
+            case io_realm_internal_objectstore_OsAppCredentials_TYPE_SERVER_API_KEY: {
+                JStringAccessor token(env, (jstring) env->GetObjectArrayElement(j_args, 0));
+                creds = AppCredentials::server_api_key(token);
+                break;
+            }
+            case io_realm_internal_objectstore_OsAppCredentials_TYPE_CUSTOM_FUNCTION: {
+                jstring j_payload = (jstring) env->GetObjectArrayElement(j_args, 0);
+                bson::BsonDocument payload(JniBsonProtocol::parse_checked(env, j_payload, Bson::Type::Document, "Payload must be a Document"));
+                creds = AppCredentials::function(payload);
+                break;
+            }
             default:
                 throw std::runtime_error(util::format("Unknown credentials type: %1", j_type));
         }
