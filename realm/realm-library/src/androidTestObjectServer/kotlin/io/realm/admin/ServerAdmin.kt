@@ -61,7 +61,7 @@ class ServerAdmin {
         if (code < 200 || code > 299) {
             throw IllegalArgumentException("HTTP error $code : $body")
         }
-
+        RealmLog.debug("Response = $body")
         return body
     }
 
