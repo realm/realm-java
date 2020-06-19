@@ -40,60 +40,50 @@ public class OsAppCredentials implements NativeObject {
     private static final long finalizerPtr = nativeGetFinalizerMethodPtr();
 
     public static OsAppCredentials anonymous() {
-        return new OsAppCredentials(nativeCreate(TYPE_ANONYMOUS), Credentials.IdentityProvider.ANONYMOUS);
+        return new OsAppCredentials(nativeCreate(TYPE_ANONYMOUS));
     }
 
     public static OsAppCredentials apiKey(String key) {
-        return new OsAppCredentials(nativeCreate(TYPE_API_KEY, key), Credentials.IdentityProvider.API_KEY);
+        return new OsAppCredentials(nativeCreate(TYPE_API_KEY, key));
     }
 
     public static OsAppCredentials serverApiKey(String key) {
-        return new OsAppCredentials(nativeCreate(TYPE_SERVER_API_KEY, key), Credentials.IdentityProvider.SERVER_API_KEY);
+        return new OsAppCredentials(nativeCreate(TYPE_SERVER_API_KEY, key));
     }
 
     public static OsAppCredentials apple(String idToken) {
-        return new OsAppCredentials(nativeCreate(TYPE_APPLE, idToken), Credentials.IdentityProvider.APPLE);
+        return new OsAppCredentials(nativeCreate(TYPE_APPLE, idToken));
     }
 
     public static OsAppCredentials customFunction(Document args) {
         String encodedArgs = JniBsonProtocol.encode(args, AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY);
-        return new OsAppCredentials(nativeCreate(TYPE_CUSTOM_FUNCTION, encodedArgs), Credentials.IdentityProvider.CUSTOM_FUNCTION);
+        return new OsAppCredentials(nativeCreate(TYPE_CUSTOM_FUNCTION, encodedArgs));
     }
 
     public static OsAppCredentials emailPassword(String email, String password) {
-        return new OsAppCredentials(nativeCreate(TYPE_EMAIL_PASSWORD, email, password), Credentials.IdentityProvider.EMAIL_PASSWORD);
+        return new OsAppCredentials(nativeCreate(TYPE_EMAIL_PASSWORD, email, password));
     }
 
     public static OsAppCredentials facebook(String accessToken) {
-        return new OsAppCredentials(nativeCreate(TYPE_FACEBOOK, accessToken), Credentials.IdentityProvider.FACEBOOK);
+        return new OsAppCredentials(nativeCreate(TYPE_FACEBOOK, accessToken));
     }
 
     public static OsAppCredentials google(String whatToCallThisToken) {
-        return new OsAppCredentials(nativeCreate(TYPE_GOOGLE, whatToCallThisToken), Credentials.IdentityProvider.GOOGLE);
+        return new OsAppCredentials(nativeCreate(TYPE_GOOGLE, whatToCallThisToken));
     }
 
     public static OsAppCredentials jwt(String jwtToken) {
-        return new OsAppCredentials(nativeCreate(TYPE_JWT, jwtToken), Credentials.IdentityProvider.JWT);
+        return new OsAppCredentials(nativeCreate(TYPE_JWT, jwtToken));
     }
 
     private final long nativePtr;
-    private final Credentials.IdentityProvider identityProvider;
 
-    private OsAppCredentials(long nativePtr, Credentials.IdentityProvider identityProvider) {
+    private OsAppCredentials(long nativePtr) {
         this.nativePtr = nativePtr;
-        this.identityProvider = identityProvider;
     }
 
-    public Credentials.IdentityProvider getProvider() {
-        String nativeProvider = nativeGetProvider(nativePtr);
-        String id = identityProvider.getId();
-
-        // Sanity check - ensure nothing changed in the OS
-        if (nativeProvider.equals(id)) {
-            return identityProvider;
-        } else {
-            throw new AssertionError("The provider from the Object Store differs from the one in Realm.");
-        }
+    public String getProvider() {
+        return nativeGetProvider(nativePtr);
     }
 
     public String asJson() {

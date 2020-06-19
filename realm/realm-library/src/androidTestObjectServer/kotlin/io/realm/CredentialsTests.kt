@@ -18,8 +18,6 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
-import io.realm.log.LogLevel
-import io.realm.log.RealmLog
 import io.realm.mongodb.*
 import io.realm.mongodb.auth.UserApiKey
 import org.bson.Document

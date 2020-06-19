@@ -51,12 +51,14 @@ import io.realm.mongodb.auth.EmailPasswordAuth;
  * }
  * </pre>
  *
- * @see <a href="https://docs.mongodb.com/stitch/authentication/providers/">Authentication Providers</a>
+ * @see <a href="https://docs.mongodb.com/realm/authentication/providers/">Authentication Providers</a>
  */
 @Beta
 public class Credentials {
 
     OsAppCredentials osCredentials;
+
+    private final IdentityProvider identityProvider;
 
     /**
      * Creates credentials representing an anonymous user.
@@ -70,7 +72,7 @@ public class Credentials {
      * {@link App#loginAsync(Credentials, App.Callback)}.
      */
     public static Credentials anonymous() {
-        return new Credentials(OsAppCredentials.anonymous());
+        return new Credentials(OsAppCredentials.anonymous(), IdentityProvider.ANONYMOUS);
     }
 
     /**
@@ -84,7 +86,7 @@ public class Credentials {
      */
     public static Credentials apiKey(String key) {
         Util.checkEmpty(key, "key");
-        return new Credentials(OsAppCredentials.apiKey(key));
+        return new Credentials(OsAppCredentials.apiKey(key), IdentityProvider.API_KEY);
     }
 
     /**
@@ -98,7 +100,7 @@ public class Credentials {
      */
     public static Credentials serverApiKey(String key) {
         Util.checkEmpty(key, "key");
-        return new Credentials(OsAppCredentials.serverApiKey(key));
+        return new Credentials(OsAppCredentials.serverApiKey(key), IdentityProvider.SERVER_API_KEY);
     }
 
     /**
@@ -112,7 +114,7 @@ public class Credentials {
      */
     public static Credentials apple(String idToken) {
         Util.checkEmpty(idToken, "idToken");
-        return new Credentials(OsAppCredentials.apple(idToken));
+        return new Credentials(OsAppCredentials.apple(idToken), IdentityProvider.APPLE);
     }
 
     /**
@@ -128,7 +130,8 @@ public class Credentials {
      */
     public static Credentials customFunction(Document arguments) {
         Util.checkNull(arguments, "arguments");
-        return new Credentials(OsAppCredentials.customFunction(arguments));
+        return new Credentials(OsAppCredentials.customFunction(arguments),
+                IdentityProvider.CUSTOM_FUNCTION);
     }
 
     /**
@@ -142,7 +145,8 @@ public class Credentials {
     public static Credentials emailPassword(String email, String password) {
         Util.checkEmpty(email, "email");
         Util.checkEmpty(password, "password");
-        return new Credentials(OsAppCredentials.emailPassword(email, password));
+        return new Credentials(OsAppCredentials.emailPassword(email, password),
+                IdentityProvider.EMAIL_PASSWORD);
     }
 
     /**
@@ -156,7 +160,7 @@ public class Credentials {
      */
     public static Credentials facebook(String accessToken) {
         Util.checkEmpty(accessToken, "accessToken");
-        return new Credentials(OsAppCredentials.facebook(accessToken));
+        return new Credentials(OsAppCredentials.facebook(accessToken), IdentityProvider.FACEBOOK);
     }
 
     /**
@@ -170,7 +174,7 @@ public class Credentials {
      */
     public static Credentials google(String googleToken) {
         Util.checkEmpty(googleToken, "googleToken");
-        return new Credentials(OsAppCredentials.google(googleToken));
+        return new Credentials(OsAppCredentials.google(googleToken), IdentityProvider.GOOGLE);
     }
 
     /**
@@ -185,7 +189,7 @@ public class Credentials {
      */
     public static Credentials jwt(String jwtToken) {
         Util.checkEmpty(jwtToken, "jwtToken");
-        return new Credentials(OsAppCredentials.jwt(jwtToken));
+        return new Credentials(OsAppCredentials.jwt(jwtToken), IdentityProvider.JWT);
     }
 
     /**
@@ -194,7 +198,15 @@ public class Credentials {
      * @return the provider identifying the chosen credentials.
      */
     public IdentityProvider getIdentityProvider() {
-        return osCredentials.getProvider();
+        String nativeProvider = osCredentials.getProvider();
+        String id = identityProvider.getId();
+
+        // Sanity check - ensure nothing changed in the OS
+        if (nativeProvider.equals(id)) {
+            return identityProvider;
+        } else {
+            throw new AssertionError("The provider from the Object Store differs from the one in Realm.");
+        }
     }
 
     /**
@@ -206,8 +218,9 @@ public class Credentials {
         return osCredentials.asJson();
     }
 
-    private Credentials(OsAppCredentials credentials) {
+    private Credentials(OsAppCredentials credentials, IdentityProvider identityProvider) {
         this.osCredentials = credentials;
+        this.identityProvider = identityProvider;
     }
 
     /**
