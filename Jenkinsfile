@@ -379,7 +379,7 @@ def dockerBuild(Map args=[:], String name) {
     echo "oldId: ${oldId}"
 
     def buildArgs = "--cache-from \"${imageName}\" ${extra_args} ${directory}"
-    echo "buildArgs: ${args}"
+    echo "buildArgs: ${buildArgs}"
     image = docker.build(imageName, buildArgs)
     if (push && getImageId(image.imageName()) != oldId) {
       image.push(remoteName)
