@@ -3,12 +3,15 @@ package io.realm.internal.network;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
+import io.realm.log.obfuscator.LogObfuscator;
+import io.realm.mongodb.Credentials;
 import okhttp3.Call;
 import okhttp3.ConnectionPool;
 import okhttp3.Headers;
@@ -22,10 +25,21 @@ import okio.Buffer;
 
 public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
 
-
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+
     private static final Charset UTF8 = Charset.forName("UTF-8");
+
     private volatile OkHttpClient client = null;
+
+    private Map<String, LogObfuscator> logObfuscators;
+
+    public OkHttpNetworkTransport() {
+        this.logObfuscators = new HashMap<>();
+    }
+
+    public OkHttpNetworkTransport(Map<String, LogObfuscator> logObfuscators) {
+        this.logObfuscators  = logObfuscators;
+    }
 
     @Override
     public Response sendRequest(String method, String url, long timeoutMs, Map<String, String> headers, String body) {
@@ -90,7 +104,10 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
                                     // We only expect request context to be JSON.
                                     Buffer buffer = new Buffer();
                                     request.body().writeTo(buffer);
-                                    sb.append(buffer.readString(UTF8));
+
+                                    // Obfuscate login sensitive information
+                                    String obfuscatedOutput = LogObfuscator.obfuscate(request.url().pathSegments(), logObfuscators, buffer.readString(UTF8));
+                                    sb.append(obfuscatedOutput);
                                 }
                                 RealmLog.debug("HTTP Request = \n%s", sb);
                             }

@@ -39,6 +39,7 @@ import javax.annotation.Nullable;
 
 import io.realm.Realm;
 import io.realm.annotations.Beta;
+import io.realm.log.obfuscator.LogObfuscator;
 import io.realm.mongodb.sync.SyncSession;
 import io.realm.internal.Util;
 import io.realm.log.RealmLog;
@@ -107,25 +108,27 @@ public class AppConfiguration {
     private final String appVersion;
     private final URL baseUrl;
     private final SyncSession.ErrorHandler defaultErrorHandler;
-    @Nullable private final byte[] encryptionKey;
+    @Nullable
+    private final byte[] encryptionKey;
     private final long requestTimeoutMs;
     private final String authorizationHeaderName;
     private final Map<String, String> customHeaders;
     private final File syncRootDir; // Root directory for storing Sync related files
     private final CodecRegistry codecRegistry;
+    private final Map<String, LogObfuscator> logObfuscators;
 
     private AppConfiguration(String appId,
                              String appName,
                              String appVersion,
                              URL baseUrl,
-                                 SyncSession.ErrorHandler defaultErrorHandler,
-                                 @Nullable byte[] encryptionKey,
+                             SyncSession.ErrorHandler defaultErrorHandler,
+                             @Nullable byte[] encryptionKey,
                              long requestTimeoutMs,
                              String authorizationHeaderName,
                              Map<String, String> customHeaders,
                              File syncRootdir,
-                             CodecRegistry codecRegistry) {
-
+                             CodecRegistry codecRegistry,
+                             Map<String, LogObfuscator> logObfuscators) {
         this.appId = appId;
         this.appName = appName;
         this.appVersion = appVersion;
@@ -137,6 +140,7 @@ public class AppConfiguration {
         this.customHeaders = Collections.unmodifiableMap(customHeaders);
         this.syncRootDir = syncRootdir;
         this.codecRegistry = codecRegistry;
+        this.logObfuscators = logObfuscators;
     }
 
     /**
@@ -223,11 +227,22 @@ public class AppConfiguration {
      * {@link io.realm.mongodb.mongo.MongoDatabase}.
      *
      * @return The default codec registry for the App.
-     *
      * @see #DEFAULT_BSON_CODEC_REGISTRY
      * @see Builder#getDefaultCodecRegistry()
      */
-    public CodecRegistry getDefaultCodecRegistry() { return codecRegistry; }
+    public CodecRegistry getDefaultCodecRegistry() {
+        return codecRegistry;
+    }
+
+    /**
+     * Provides a map of identity provider strings and {@link LogObfuscator}s used to hide sensitive
+     * information from the debug logs.
+     *
+     * @return the log obfuscators to be used.
+     */
+    public Map<String, LogObfuscator> getLogObfuscators() {
+        return logObfuscators;
+    }
 
     /**
      * Builder used to construct instances of a {@link AppConfiguration} in a fluent manner.
@@ -267,6 +282,7 @@ public class AppConfiguration {
         private Map<String, String> customHeaders = new HashMap<>();
         private File syncRootDir;
         private CodecRegistry codecRegistry = DEFAULT_BSON_CODEC_REGISTRY;
+        private Map<String, LogObfuscator> logObfuscators = LogObfuscatorFactory.getObfuscators();
 
         /**
          * Creates an instance of the Builder for the AppConfiguration.
@@ -378,7 +394,7 @@ public class AppConfiguration {
         /**
          * Adds an extra HTTP header to append to every request to a Realm Object Server.
          *
-         * @param headerName the name of the header.
+         * @param headerName  the name of the header.
          * @param headerValue the value of header.
          * @throws IllegalArgumentException if a non-empty {@code headerName} is provided or a null {@code headerValue}.
          */
@@ -424,6 +440,7 @@ public class AppConfiguration {
          * <p>
          * The default root dir is {@code Context.getFilesDir()/mongodb-realm}.
          * </p>
+         *
          * @param rootDir where to store sync related files.
          */
         public Builder syncRootDirectory(File rootDir) {
@@ -460,13 +477,26 @@ public class AppConfiguration {
          * Will default to {@link #DEFAULT_BSON_CODEC_REGISTRY} if not specified.
          *
          * @param codecRegistry The default codec registry for the App.
-         *
          * @see #DEFAULT_BSON_CODEC_REGISTRY
          * @see Builder#getDefaultCodecRegistry()
          */
         public Builder codecRegistry(CodecRegistry codecRegistry) {
             Util.checkNull(codecRegistry, "codecRegistry");
             this.codecRegistry = codecRegistry;
+            return this;
+        }
+
+        /**
+         * Set the default log obfuscators used to keep sensitive data from being displayed in the
+         * logcat. These obfuscators default to
+         * {@link LogObfuscatorFactory#getObfuscators()} in a production environment.
+         *
+         * @param logObfuscators map of identity providers and their corresponding
+         *                       {@link LogObfuscator}s.
+         */
+        public Builder logObfuscators(Map<String, LogObfuscator> logObfuscators) {
+            Util.checkNull(logObfuscators, "logObfuscators");
+            this.logObfuscators = logObfuscators;
             return this;
         }
 
@@ -486,7 +516,8 @@ public class AppConfiguration {
                     authorizationHeaderName,
                     customHeaders,
                     syncRootDir,
-                    codecRegistry);
+                    codecRegistry,
+                    logObfuscators);
         }
     }
 }

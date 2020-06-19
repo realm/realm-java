@@ -189,7 +189,7 @@ public class App {
      */
     public App(AppConfiguration config) {
         this.config = config;
-        this.networkTransport = new OkHttpNetworkTransport();
+        this.networkTransport = new OkHttpNetworkTransport(config.getLogObfuscators());
         networkTransport.setAuthorizationHeaderName(config.getAuthorizationHeaderName());
         for (Map.Entry<String, String> entry : config.getCustomRequestHeaders().entrySet()) {
             networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());

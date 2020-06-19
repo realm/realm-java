@@ -210,6 +210,10 @@ dependencies {
     compileOnly 'io.reactivex.rxjava2:rxjava:2.1.5'
     compileOnly 'com.google.code.findbugs:findbugs-annotations:3.0.1'
 
+    testImplementation 'junit:junit:4.12'
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+
     api "io.realm:realm-annotations:${version}"
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation 'com.getkeepsafe.relinker:relinker:1.4.0'

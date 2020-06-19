@@ -29,7 +29,10 @@ import io.realm.mongodb.AppConfiguration
 const val SERVICE_NAME = "BackingDB"    // it comes from the test server's BackingDB/config.json
 const val DATABASE_NAME = "test_data"   // same as above
 
-class TestApp(networkTransport: OsJavaNetworkTransport? = null, customizeConfig: (AppConfiguration.Builder) -> Unit = {}) : App(createConfiguration()) {
+class TestApp(
+        networkTransport: OsJavaNetworkTransport? = null,
+        customizeConfig: (AppConfiguration.Builder) -> Unit = {}) : App(createConfiguration()
+) {
 
     init {
         if (networkTransport != null) {
@@ -43,6 +46,7 @@ class TestApp(networkTransport: OsJavaNetworkTransport? = null, customizeConfig:
                     .baseUrl("http://127.0.0.1:9090")
                     .appName("MongoDB Realm Integration Tests")
                     .appVersion("1.0.")
+                    .logObfuscators(mapOf())        // No logcat obfuscation in tests
                     .build()
         }
 
@@ -56,7 +60,7 @@ class TestApp(networkTransport: OsJavaNetworkTransport? = null, customizeConfig:
                     mapOf(),
                     ""
             )
-            return when(response.httpResponseCode) {
+            return when (response.httpResponseCode) {
                 200 -> response.body
                 else -> throw IllegalStateException(response.toString())
             }
