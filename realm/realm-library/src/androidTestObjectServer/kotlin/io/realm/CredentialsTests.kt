@@ -18,8 +18,6 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
-import io.realm.log.LogLevel
-import io.realm.log.RealmLog
 import io.realm.mongodb.*
 import io.realm.mongodb.auth.UserApiKey
 import org.bson.Document
@@ -43,7 +41,6 @@ class CredentialsTests {
         @JvmStatic
         fun setUp() {
             Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-            RealmLog.setLevel(LogLevel.DEBUG)
         }
     }
 
@@ -180,48 +177,47 @@ class CredentialsTests {
     fun loginUsingCredentials() {
         app = TestApp()
         admin = ServerAdmin()
-
         Credentials.IdentityProvider.values().forEach { provider ->
             when (provider) {
-//                Credentials.IdentityProvider.ANONYMOUS -> {
-//                    val user = app.login(Credentials.anonymous())
-//                    assertNotNull(user)
-//                }
-//                Credentials.IdentityProvider.API_KEY -> {
-//                    // Log in, create an API key, log out, log in with the key, compare users
-//                    val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-//                    val key: UserApiKey = user.apiKeyAuth.createApiKey("my-key");
-//                    user.logOut()
-//                    val apiKeyUser = app.login(Credentials.apiKey(key.value!!))
-//                    assertEquals(user.id, apiKeyUser.id)
-//                }
-//                Credentials.IdentityProvider.SERVER_API_KEY -> {
-//                    // Create key using the admin API and then log in
-//                    val serverKey = admin.createServerApiKey()
-//                    val serverKeyUser = app.login(Credentials.serverApiKey(serverKey))
-//                    assertNotNull(serverKeyUser)
-//                }
-//                Credentials.IdentityProvider.CUSTOM_FUNCTION -> {
-//                    val customFunction = mapOf(
-//                            "mail" to "myfakemail@mongodb.com",
-//                            "id" to 666
-//                    ).let {
-//                        Credentials.customFunction(Document(it))
-//                    }
-//
-//                    // We are not testing the authentication function itself, but rather that the
-//                    // credentials work
-//                    val functionUser = app.login(customFunction)
-//                    assertNotNull(functionUser)
-//                }
-//                Credentials.IdentityProvider.EMAIL_PASSWORD -> {
-//                    val email = TestHelper.getRandomEmail()
-//                    val password = "123456"
-//                    app.emailPasswordAuth.registerUser(email, password)
-//                    val user = app.login(Credentials.emailPassword(email, password))
-//                    assertNotNull(user)
-//                }
-//
+                Credentials.IdentityProvider.ANONYMOUS -> {
+                    val user = app.login(Credentials.anonymous())
+                    assertNotNull(user)
+                }
+                Credentials.IdentityProvider.API_KEY -> {
+                    // Log in, create an API key, log out, log in with the key, compare users
+                    val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+                    val key: UserApiKey = user.apiKeyAuth.createApiKey("my-key");
+                    user.logOut()
+                    val apiKeyUser = app.login(Credentials.apiKey(key.value!!))
+                    assertEquals(user.id, apiKeyUser.id)
+                }
+                Credentials.IdentityProvider.SERVER_API_KEY -> {
+                    // Create key using the admin API and then log in
+                    val serverKey = admin.createServerApiKey()
+                    val serverKeyUser = app.login(Credentials.serverApiKey(serverKey))
+                    assertNotNull(serverKeyUser)
+                }
+                Credentials.IdentityProvider.CUSTOM_FUNCTION -> {
+                    val customFunction = mapOf(
+                            "mail" to "myfakemail@mongodb.com",
+                            "id" to 666
+                    ).let {
+                        Credentials.customFunction(Document(it))
+                    }
+
+                    // We are not testing the authentication function itself, but rather that the
+                    // credentials work
+                    val functionUser = app.login(customFunction)
+                    assertNotNull(functionUser)
+                }
+                Credentials.IdentityProvider.EMAIL_PASSWORD -> {
+                    val email = TestHelper.getRandomEmail()
+                    val password = "123456"
+                    app.emailPasswordAuth.registerUser(email, password)
+                    val user = app.login(Credentials.emailPassword(email, password))
+                    assertNotNull(user)
+                }
+
                 // These providers are hard to test for real since they depend on a 3rd party
                 // login service. Instead we attempt to login and verify that a proper exception
                 // is thrown. At least that should verify that correctly formatted JSON is being
