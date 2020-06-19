@@ -265,7 +265,12 @@ public class SyncSession {
             Progress newProgressNotification = new Progress(transferredBytes, transferableBytes);
             if (!newProgressNotification.equals(listener.second)) {
                 listener.second = newProgressNotification;
-                listener.first.onChange(newProgressNotification);
+                // FIXME It this correct place to guard this
+                try {
+                    listener.first.onChange(newProgressNotification);
+                } catch (Exception e) {
+                    // FIXME ...and if so do we have some standard way of signaling user exceptions
+                }
             }
         } else {
             RealmLog.debug("Trying unknown listener failed: " + listenerId);

@@ -26,6 +26,7 @@ import io.realm.log.RealmLog
 import io.realm.mongodb.Credentials
 import io.realm.mongodb.User
 import io.realm.mongodb.close
+import io.realm.mongodb.registerUserAndLogin
 import io.realm.mongodb.sync.*
 import io.realm.rule.BlockingLooperThread
 import org.junit.*
@@ -36,7 +37,6 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
-@Ignore("These are generally flaky. We need to investigate further.")
 @RunWith(AndroidJUnit4::class)
 class ProgressListenerTests {
 
@@ -68,14 +68,13 @@ class ProgressListenerTests {
         RealmLog.setLevel(LogLevel.WARN)
     }
 
-    @Ignore("See https://mongodb.slack.com/archives/CQLDYRJ3V/p1587563930459100")
     @Test
     fun downloadProgressListener_changesOnly() {
         val allChangesDownloaded = CountDownLatch(1)
-        val user1: User = app.login(Credentials.anonymous())
+        val user1: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val user1Config = createSyncConfig(user1)
         createRemoteData(user1Config)
-        val user2: User = app.login(Credentials.anonymous())
+        val user2: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val user2Config = createSyncConfig(user2)
         val realm = Realm.getInstance(user2Config)
         val session: SyncSession = realm.syncSession
@@ -96,7 +95,7 @@ class ProgressListenerTests {
         val transferCompleted = AtomicInteger(0)
         val allChangesDownloaded = CountDownLatch(1)
         val startWorker = CountDownLatch(1)
-        val user1: User = app.login(Credentials.anonymous())
+        val user1: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456") // login(Credentials.anonymous())
         val user1Config: SyncConfiguration = createSyncConfig(user1)
 
         // Create worker thread that puts data into another Realm.
@@ -106,7 +105,7 @@ class ProgressListenerTests {
             createRemoteData(user1Config)
         })
         worker.start()
-        val user2: User = app.login(Credentials.anonymous())
+        val user2: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456") // login(Credentials.anonymous())
         val user2Config: SyncConfiguration = createSyncConfig(user2)
         val user2Realm = Realm.getInstance(user2Config)
         val session: SyncSession = user2Realm.syncSession
@@ -133,6 +132,7 @@ class ProgressListenerTests {
                 }
             }
         }
+        writeSampleData(user2Realm) // Write first batch of sample data
         TestHelper.awaitOrFail(allChangesDownloaded)
         user2Realm.close()
         // worker thread will hang if logout happens before listener triggered.
@@ -348,7 +348,7 @@ class ProgressListenerTests {
         return objectCounts
     }
 
-    private fun createSyncConfig(user: User = app.login(Credentials.anonymous()), partitionValue: String = getTestPartitionValue()): SyncConfiguration {
+    private fun createSyncConfig(user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456"), partitionValue: String = getTestPartitionValue()): SyncConfiguration {
         return SyncConfiguration.Builder(user, partitionValue)
                 .modules(DefaultSyncSchema())
                 .build()
