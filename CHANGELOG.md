@@ -1,4 +1,4 @@
-## 10.0.0-BETA.5 (YYYY-MM-DD)
+## 10.0.0-BETA.5 (2020-06-19)
 
 We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
 
@@ -8,6 +8,7 @@ The old Realm Cloud legacy API's have undergone significant refactoring. The new
 * None.
 
 ### Enhancements
+* [RealmApp] Added support for Api Keys, Server Api Keys and Custom Functions as Credential types when logging in.
 * Added support for `distinct` queries on non-index and linked fields. (Issue [#1906](https://github.com/realm/realm-java/issues/1906))
 
 ### Fixed
@@ -19,7 +20,7 @@ The old Realm Cloud legacy API's have undergone significant refactoring. The new
 * Realm Studio 10.0.0 and above is required to open Realms created by this version.
 
 ### Internal
-* None.
+* Upgraded to Object Store commit: e1570f8d3d7cf4d77f049933e6a241a501301383.
 
 ## 10.0.0-BETA.4 (2020-06-11)
 
@@ -28,7 +29,7 @@ We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Clo
 The old Realm Cloud legacy API's have undergone significant refactoring. The new API's are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
 
 ### Breaking Changes 
-* None
+* None.
 
 ### Enhancements
 * [RealmApp] Added support for Custom Data using `User.customData()` and `User.refreshCustomData()`.
@@ -53,10 +54,10 @@ We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Clo
 The old Realm Cloud legacy API's have undergone significant refactoring. The new API's are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
 
 ### Breaking Changes 
-* None
+* None.
 
 ### Enhancements
-* None
+* None.
 
 ### Fixed
 * [RealmApp] When restarting an app, the base URL used would in some cases be incorrect. (Since 10.0.0-BETA.2)
@@ -77,10 +78,10 @@ We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Clo
 The old Realm Cloud legacy API's have undergone significant refactoring. The new API's are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
 
 ### Breaking Changes 
-* None
+* None.
 
 ### Enhancements
-* None
+* None.
 
 ### Fixed
 * [RealmApp] `AppConfiguration` did not fallback to the correct default baseUrl if none was provided. (Since 10.0.0-BETA.1) 
