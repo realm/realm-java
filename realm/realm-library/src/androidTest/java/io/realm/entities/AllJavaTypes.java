@@ -67,16 +67,21 @@ public class AllJavaTypes extends RealmObject {
     public static final String FIELD_LO_OBJECT = "objectParents";
     public static final String FIELD_LO_LIST = "listParents";
 
-    public static final String[] INVALID_FIELDS_FOR_DISTINCT
-            = new String[] {FIELD_OBJECT, FIELD_LIST, FIELD_DOUBLE, FIELD_FLOAT, FIELD_LO_OBJECT, FIELD_LO_LIST};
-
-    public static final String INVALID_LINKED_BINARY_FIELD_FOR_DISTINCT
-            = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY;
-
-    public static final String[] INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT = new String[] {
-            FIELD_OBJECT + "." + FIELD_BINARY,
-            FIELD_OBJECT + "." + FIELD_OBJECT,
-            FIELD_OBJECT + "." + FIELD_LIST};
+    public static final String[] INVALID_FIELD_TYPES_FOR_DISTINCT = new String[] {
+            FIELD_OBJECT + "." + FIELD_LIST,
+            FIELD_OBJECT + "." + FIELD_STRING_LIST,
+            FIELD_OBJECT + "." + FIELD_BINARY_LIST,
+            FIELD_OBJECT + "." + FIELD_BOOLEAN_LIST,
+            FIELD_OBJECT + "." + FIELD_LONG_LIST,
+            FIELD_OBJECT + "." + FIELD_INTEGER_LIST,
+            FIELD_OBJECT + "." + FIELD_SHORT_LIST,
+            FIELD_OBJECT + "." + FIELD_BYTE_LIST,
+            FIELD_OBJECT + "." + FIELD_DOUBLE_LIST,
+            FIELD_OBJECT + "." + FIELD_FLOAT_LIST,
+            FIELD_OBJECT + "." + FIELD_DATE_LIST,
+            FIELD_OBJECT + "." + FIELD_DECIMAL128_LIST,
+            FIELD_OBJECT + "." + FIELD_OBJECT_ID_LIST,
+    };
 
     @Ignore
     private String fieldIgnored;

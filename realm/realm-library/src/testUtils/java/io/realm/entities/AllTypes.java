@@ -22,7 +22,9 @@ import java.util.Date;
 import io.realm.MutableRealmInteger;
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.RealmResults;
 import io.realm.TestHelper;
+import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.Required;
 
 import org.bson.types.Decimal128;
@@ -42,8 +44,10 @@ public class AllTypes extends RealmObject {
     public static final String FIELD_DECIMAL128 = "columnDecimal128";
     public static final String FIELD_OBJECT_ID = "columnObjectId";
     public static final String FIELD_REALMOBJECT = "columnRealmObject";
-    public static final String FIELD_REALMLIST = "columnRealmList";
+    public static final String FIELD_REALMLINK = "columnRealmLink";
+    public static final String FIELD_REALMBACKLINK = "columnRealmBackLink";
 
+    public static final String FIELD_REALMLIST = "columnRealmList";
     public static final String FIELD_STRING_LIST = "columnStringList";
     public static final String FIELD_BINARY_LIST = "columnBinaryList";
     public static final String FIELD_BOOLEAN_LIST = "columnBooleanList";
@@ -73,7 +77,13 @@ public class AllTypes extends RealmObject {
     private ObjectId columnObjectId = new ObjectId(TestHelper.randomObjectIdHexString());
 
     private final MutableRealmInteger columnMutableRealmInteger = MutableRealmInteger.ofNull();
+
     private Dog columnRealmObject;
+    private AllTypes columnRealmLink;
+
+    @LinkingObjects("columnRealmLink")
+    final private RealmResults<AllTypes> columnRealmBackLink = null;
+
     private RealmList<Dog> columnRealmList;
 
     private RealmList<String> columnStringList;
@@ -146,6 +156,7 @@ public class AllTypes extends RealmObject {
         columnMutableRealmInteger.set(value);
     }
 
+
     public void setColumnBinary(byte[] columnBinary) {
         this.columnBinary = columnBinary;
     }
@@ -156,6 +167,18 @@ public class AllTypes extends RealmObject {
 
     public void setColumnRealmObject(Dog columnRealmObject) {
         this.columnRealmObject = columnRealmObject;
+    }
+
+    public AllTypes getColumnRealmLink() {
+        return columnRealmLink;
+    }
+
+    public void setColumnRealmLink(AllTypes columnRealmLink) {
+        this.columnRealmLink = columnRealmLink;
+    }
+
+    public RealmResults<AllTypes> getColumnRealmBackLink() {
+        return columnRealmBackLink;
     }
 
     public RealmList<Dog> getColumnRealmList() {
