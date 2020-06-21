@@ -20,22 +20,33 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * FIXME
+ * The LoginInfoObfuscator keeps sensitive login information from being displayed in the logcat.
  */
 public class LoginInfoObfuscator {
 
     private Map<String, PatternObfuscator> patternObfuscatorMap;
 
+    /**
+     * {@link Map} of identity providers and {@link PatternObfuscator}s used to determine which
+     * obfuscator has to be used.
+     *
+     * @param patternObfuscatorMap the map of credential identity providers and obfuscators.
+     */
     public LoginInfoObfuscator(Map<String, PatternObfuscator> patternObfuscatorMap) {
         this.patternObfuscatorMap = patternObfuscatorMap;
     }
 
     /**
-     * FIXME
+     * Obfuscates a logcat entry or not depending on whether the request that is being sent is a
+     * login request. If it is, its full path must contain a {@code providers} segment. If it is not
+     * the logcat entry will not be obfuscated
+     * <p>
+     * Once extracted the identity provider its corresponding {@link PatternObfuscator} will carry
+     * out the obfuscation.
      *
-     * @param urlSegments
-     * @param input
-     * @return
+     * @param urlSegments the URL segments of the request to be sent.
+     * @param input       the original logcat entry.
+     * @return the obfuscated logcat entry.
      */
     public String obfuscate(List<String> urlSegments, String input) {
         if (urlSegments.contains("providers")) {

@@ -21,7 +21,8 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
- * Obfuscator for API key-related login requests.
+ * Obfuscator for API key-related login requests. It will replace the {@code "key":"<KEY>"} pattern
+ * with {@code "key":"***"}.
  */
 public class ApiKeyObfuscator extends PatternObfuscator {
 

@@ -21,7 +21,8 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
- * Obfuscator for custom function-related login requests.
+ * Obfuscator for custom function-related login requests. It will replace all function arguments
+ * that appear before {@code "options":"***"} with {@code "functionArgs":"***"}.
  */
 public class CustomFunctionObfuscator extends PatternObfuscator {
 

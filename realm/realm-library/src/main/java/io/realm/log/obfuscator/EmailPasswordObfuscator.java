@@ -22,6 +22,18 @@ import java.util.regex.Pattern;
 
 /**
  * Obfuscator for email- and password-related login requests.
+ * <p>
+ * It will replace the
+ * <ul>
+ * <li>{@code "username":"<USERNAME>"} and</li>
+ * <li>{@code "password":"<PASSWORD>"}</li>
+ * </ul>
+ * patterns with
+ * <ul>
+ * <li>{@code "username":"***"} and</li>
+ * <li>{@code "password":"***"}</li>
+ * </ul>
+ * respectively.
  */
 public class EmailPasswordObfuscator extends PatternObfuscator {
 

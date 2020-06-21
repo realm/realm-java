@@ -17,6 +17,7 @@
 package io.realm.log.obfuscator;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,8 +43,10 @@ public abstract class PatternObfuscator {
 
     protected String obfuscate(String input) {
         String obfuscatedString = input;
-        for (Pattern pattern : patternReplacementMap.keySet()) {
-            String replacement = patternReplacementMap.get(pattern);
+        Set<Map.Entry<Pattern, String>> entries = patternReplacementMap.entrySet();
+        for (Map.Entry<Pattern, String> entry : entries) {
+            String replacement = entry.getValue();
+            Pattern pattern = entry.getKey();
             Util.checkNull(replacement, "replacement");
             Matcher matcher = pattern.matcher(obfuscatedString);
             obfuscatedString = matcher.replaceFirst(replacement);

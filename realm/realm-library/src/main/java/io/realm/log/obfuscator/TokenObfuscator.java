@@ -22,6 +22,15 @@ import java.util.regex.Pattern;
 
 /**
  * Obfuscator for token-related login requests.
+ * <p>
+ * It will replace the
+ * <ul>
+ * <li>{@code "authCode":"<TOKEN>"},</li>
+ * <li>{@code "id_token":"<TOKEN>"},</li>
+ * <li>{@code "token":"<TOKEN>"}, and</li>
+ * <li>{@code "access_token":"<TOKEN>"}</li>
+ * </ul>
+ * patterns with {@code "token":"***"}.
  */
 public class TokenObfuscator extends PatternObfuscator {
 
