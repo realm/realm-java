@@ -23,14 +23,14 @@ import java.util.regex.Pattern;
 /**
  * Obfuscator for email- and password-related login requests.
  */
-public class EmailPasswordObfuscator extends LogObfuscator {
+public class EmailPasswordObfuscator extends PatternObfuscator {
 
     private EmailPasswordObfuscator(Map<Pattern, String> patternReplacementMap) {
         super(patternReplacementMap);
     }
 
     /**
-     * Creates a {@link LogObfuscator} for emails and passwords.
+     * Creates a {@link PatternObfuscator} for emails and passwords.
      *
      * @return an obfuscator that keeps emails and passwords from being displayed in the logcat.
      */

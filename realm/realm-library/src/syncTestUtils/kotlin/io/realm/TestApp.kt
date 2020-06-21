@@ -17,6 +17,7 @@ package io.realm
 
 import io.realm.internal.network.OkHttpNetworkTransport
 import io.realm.internal.objectstore.OsJavaNetworkTransport
+import io.realm.log.obfuscator.LoginInfoObfuscator
 import io.realm.mongodb.App
 import io.realm.mongodb.AppConfiguration
 
@@ -46,13 +47,13 @@ class TestApp(
                     .baseUrl("http://127.0.0.1:9090")
                     .appName("MongoDB Realm Integration Tests")
                     .appVersion("1.0.")
-                    .logObfuscators(mapOf())        // No logcat obfuscation in tests
+                    .loginInfoObfuscator(LoginInfoObfuscator(mapOf()))      // No logcat obfuscation in tests
                     .build()
         }
 
         // Initializes MongoDB Realm. Clears all local state and fetches the application ID.
         private fun initializeMongoDbRealm(): String {
-            val transport = OkHttpNetworkTransport()
+            val transport = OkHttpNetworkTransport(LoginInfoObfuscator(mapOf()))
             val response = transport.sendRequest(
                     "get",
                     "http://127.0.0.1:8888/application-id",

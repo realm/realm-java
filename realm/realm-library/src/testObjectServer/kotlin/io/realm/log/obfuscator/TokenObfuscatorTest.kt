@@ -19,29 +19,28 @@ import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-private const val IRRELEVANT_INPUT = """{"blahblahblah":"blehblehbleh"}"""
-private const val ORIGINAL_INPUT_1 = """{"blahblahblah":"blehblehbleh","authCode":"my_authCode","something":"random"}"""
-private const val ORIGINAL_INPUT_2 = """{"blahblahblah":"blehblehbleh","provider":"my_provider","something":"random"}"""
-private const val ORIGINAL_INPUT_3 = """{"blahblahblah":"blehblehbleh","token":"my_token","something":"random"}"""
-private const val ORIGINAL_INPUT_4 = """{"blahblahblah":"blehblehbleh","access_token":"my_access_token","something":"random"}"""
-private const val OBFUSCATED_OUTPUT = """{"blahblahblah":"blehblehbleh","token":"***","something":"random"}"""
+const val TOKEN_ORIGINAL_INPUT_GENERIC = """{"blahblahblah":"blehblehbleh","token":"my_token","something":"random"}"""
+const val TOKEN_ORIGINAL_INPUT_APPLE = """{"blahblahblah":"blehblehbleh","id_token":"my_provider","something":"random"}"""
+const val TOKEN_ORIGINAL_INPUT_FACEBOOK = """{"blahblahblah":"blehblehbleh","access_token":"my_access_token","something":"random"}"""
+const val TOKEN_ORIGINAL_INPUT_GOOGLE = """{"blahblahblah":"blehblehbleh","authCode":"my_authCode","something":"random"}"""
+const val TOKEN_OBFUSCATED_OUTPUT = """{"blahblahblah":"blehblehbleh","token":"***","something":"random"}"""
 
 class TokenObfuscatorTest {
 
     @Test
     fun obfuscate() {
         TokenObfuscator.obfuscator()
-                .obfuscate(ORIGINAL_INPUT_1)
-                .let { assertEquals(OBFUSCATED_OUTPUT, it) }
+                .obfuscate(TOKEN_ORIGINAL_INPUT_GENERIC)
+                .let { assertEquals(TOKEN_OBFUSCATED_OUTPUT, it) }
         TokenObfuscator.obfuscator()
-                .obfuscate(ORIGINAL_INPUT_2)
-                .let { assertEquals(OBFUSCATED_OUTPUT, it) }
+                .obfuscate(TOKEN_ORIGINAL_INPUT_APPLE)
+                .let { assertEquals(TOKEN_OBFUSCATED_OUTPUT, it) }
         TokenObfuscator.obfuscator()
-                .obfuscate(ORIGINAL_INPUT_3)
-                .let { assertEquals(OBFUSCATED_OUTPUT, it) }
+                .obfuscate(TOKEN_ORIGINAL_INPUT_FACEBOOK)
+                .let { assertEquals(TOKEN_OBFUSCATED_OUTPUT, it) }
         TokenObfuscator.obfuscator()
-                .obfuscate(ORIGINAL_INPUT_4)
-                .let { assertEquals(OBFUSCATED_OUTPUT, it) }
+                .obfuscate(TOKEN_ORIGINAL_INPUT_GOOGLE)
+                .let { assertEquals(TOKEN_OBFUSCATED_OUTPUT, it) }
     }
 
     @Test

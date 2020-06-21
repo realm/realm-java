@@ -22,13 +22,13 @@ import java.util.Map;
 import io.realm.log.obfuscator.ApiKeyObfuscator;
 import io.realm.log.obfuscator.CustomFunctionObfuscator;
 import io.realm.log.obfuscator.EmailPasswordObfuscator;
-import io.realm.log.obfuscator.LogObfuscator;
+import io.realm.log.obfuscator.PatternObfuscator;
 import io.realm.log.obfuscator.TokenObfuscator;
 
-public class LogObfuscatorFactory {
+public class PatternObfuscatorFactory {
 
-    private static Map<String, LogObfuscator> logObfuscators =
-            new HashMap<String, LogObfuscator>() {{
+    private static Map<String, PatternObfuscator> logObfuscators =
+            new HashMap<String, PatternObfuscator>() {{
                 put(Credentials.IdentityProvider.API_KEY.getId(), ApiKeyObfuscator.obfuscator());
                 put(Credentials.IdentityProvider.SERVER_API_KEY.getId(), ApiKeyObfuscator.obfuscator());
                 put(Credentials.IdentityProvider.APPLE.getId(), TokenObfuscator.obfuscator());
@@ -40,12 +40,12 @@ public class LogObfuscatorFactory {
             }};
 
     /**
-     * Provides a {@link Map} of providers and {@link LogObfuscator}s to be used in a
+     * Provides a {@link Map} of providers and {@link PatternObfuscator}s to be used in a
      * {@link io.realm.mongodb.App}.
      *
      * @return the obfuscators that will be used in the app.
      */
-    public static Map<String, LogObfuscator> getObfuscators() {
+    public static Map<String, PatternObfuscator> getObfuscators() {
         return logObfuscators;
     }
 }

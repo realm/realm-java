@@ -23,14 +23,14 @@ import java.util.regex.Pattern;
 /**
  * Obfuscator for API key-related login requests.
  */
-public class ApiKeyObfuscator extends LogObfuscator {
+public class ApiKeyObfuscator extends PatternObfuscator {
 
     private ApiKeyObfuscator(Map<Pattern, String> patternReplacementMap) {
         super(patternReplacementMap);
     }
 
     /**
-     * Creates a {@link LogObfuscator} for API keys.
+     * Creates a {@link PatternObfuscator} for API keys.
      *
      * @return an obfuscator that keeps API key information from being displayed in the logcat.
      */

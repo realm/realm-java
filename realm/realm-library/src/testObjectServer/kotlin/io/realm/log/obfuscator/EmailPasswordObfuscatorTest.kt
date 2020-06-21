@@ -19,17 +19,16 @@ import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-private const val IRRELEVANT_INPUT = """{"blahblahblah":"blehblehbleh"}"""
-private const val ORIGINAL_INPUT = """{"blahblahblah":"blehblehbleh","username":"my_username","password":"123456","something":"random"}"""
-private const val OBFUSCATED_OUTPUT = """{"blahblahblah":"blehblehbleh","username":"***","password":"***","something":"random"}"""
+const val EMAIL_PASSWORD_ORIGINAL_INPUT = """{"blahblahblah":"blehblehbleh","username":"my_username","password":"123456","something":"random"}"""
+const val EMAIL_PASSWORD_OBFUSCATED_OUTPUT = """{"blahblahblah":"blehblehbleh","username":"***","password":"***","something":"random"}"""
 
 class EmailPasswordObfuscatorTest {
 
     @Test
     fun obfuscate() {
         EmailPasswordObfuscator.obfuscator()
-                .obfuscate(ORIGINAL_INPUT)
-                .let { assertEquals(OBFUSCATED_OUTPUT, it) }
+                .obfuscate(EMAIL_PASSWORD_ORIGINAL_INPUT)
+                .let { assertEquals(EMAIL_PASSWORD_OBFUSCATED_OUTPUT, it) }
     }
 
     @Test

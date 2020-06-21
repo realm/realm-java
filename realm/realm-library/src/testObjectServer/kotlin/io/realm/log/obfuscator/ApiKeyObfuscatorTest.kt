@@ -19,17 +19,16 @@ import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-private const val IRRELEVANT_INPUT = """{"blahblahblah":"blehblehbleh"}"""
-private const val ORIGINAL_INPUT = """{"blahblahblah":"blehblehbleh","key":"my_key","something":"random"}"""
-private const val OBFUSCATED_OUTPUT = """{"blahblahblah":"blehblehbleh","key":"***","something":"random"}"""
+const val API_KEY_ORIGINAL_INPUT = """{"blahblahblah":"blehblehbleh","key":"my_key","something":"random"}"""
+const val API_KEY_OBFUSCATED_OUTPUT = """{"blahblahblah":"blehblehbleh","key":"***","something":"random"}"""
 
 class ApiKeyObfuscatorTest {
 
     @Test
     fun obfuscate() {
         ApiKeyObfuscator.obfuscator()
-                .obfuscate(ORIGINAL_INPUT)
-                .let { assertEquals(OBFUSCATED_OUTPUT, it) }
+                .obfuscate(API_KEY_ORIGINAL_INPUT)
+                .let { assertEquals(API_KEY_OBFUSCATED_OUTPUT, it) }
     }
 
     @Test

@@ -19,17 +19,16 @@ import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-private const val IRRELEVANT_INPUT = """{"blahblahblah":"blehblehbleh"}"""
-private const val ORIGINAL_INPUT = """{"mail":"myfakemail@mongodb.com","id":{"{$}numberInt":"666"},"options":{"device":{"appVersion":"1.0.","appId":"realm-sdk-integration-tests-grbrc","platform":"android","platformVersion":"10","sdkVersion":"10.0.0-BETA.5-SNAPSHOT"}}}"""
-private const val OBFUSCATED_OUTPUT = """{"functionArgs":"***","options":{"device":{"appVersion":"1.0.","appId":"realm-sdk-integration-tests-grbrc","platform":"android","platformVersion":"10","sdkVersion":"10.0.0-BETA.5-SNAPSHOT"}}}"""
+const val CUSTOM_FUNCTION_ORIGINAL_INPUT = """{"mail":"myfakemail@mongodb.com","id":{"{$}numberInt":"666"},"options":{"device":{"appVersion":"1.0.","appId":"realm-sdk-integration-tests-grbrc","platform":"android","platformVersion":"10","sdkVersion":"10.0.0-BETA.5-SNAPSHOT"}}}"""
+const val CUSTOM_FUNCTION_OBFUSCATED_OUTPUT = """{"functionArgs":"***","options":{"device":{"appVersion":"1.0.","appId":"realm-sdk-integration-tests-grbrc","platform":"android","platformVersion":"10","sdkVersion":"10.0.0-BETA.5-SNAPSHOT"}}}"""
 
 class CustomFunctionObfuscatorTest {
 
     @Test
     fun obfuscate() {
         CustomFunctionObfuscator.obfuscator()
-                .obfuscate(ORIGINAL_INPUT)
-                .let { assertEquals(OBFUSCATED_OUTPUT, it) }
+                .obfuscate(CUSTOM_FUNCTION_ORIGINAL_INPUT)
+                .let { assertEquals(CUSTOM_FUNCTION_OBFUSCATED_OUTPUT, it) }
     }
 
     @Test

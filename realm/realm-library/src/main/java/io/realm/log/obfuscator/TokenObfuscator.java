@@ -23,14 +23,14 @@ import java.util.regex.Pattern;
 /**
  * Obfuscator for token-related login requests.
  */
-public class TokenObfuscator extends LogObfuscator {
+public class TokenObfuscator extends PatternObfuscator {
 
     private TokenObfuscator(Map<Pattern, String> patternReplacementMap) {
         super(patternReplacementMap);
     }
 
     /**
-     * Creates a {@link LogObfuscator} for tokens.
+     * Creates a {@link PatternObfuscator} for tokens.
      *
      * @return an obfuscator that keeps token information from being displayed in the logcat.
      */
@@ -41,7 +41,7 @@ public class TokenObfuscator extends LogObfuscator {
     private static Map<Pattern, String> getPatterns() {
         Map<Pattern, String> map = new HashMap<>();
         map.put(Pattern.compile("((\"authCode\"):(\".+?\"))"), "\"token\":\"***\"");
-        map.put(Pattern.compile("((\"provider\"):(\".+?\"))"), "\"token\":\"***\"");
+        map.put(Pattern.compile("((\"id_token\"):(\".+?\"))"), "\"token\":\"***\"");
         map.put(Pattern.compile("((\"token\"):(\".+?\"))"), "\"token\":\"***\"");
         map.put(Pattern.compile("((\"access_token\"):(\".+?\"))"), "\"token\":\"***\"");
         return map;

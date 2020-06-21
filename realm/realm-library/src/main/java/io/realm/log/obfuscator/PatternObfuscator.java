@@ -16,7 +16,6 @@
 
 package io.realm.log.obfuscator;
 
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,25 +23,24 @@ import java.util.regex.Pattern;
 import io.realm.internal.Util;
 
 /**
- * The obfuscator hides sensitive information from being displayed in the logcat.
+ * The obfuscator keeps login-sensitive information from being displayed in the logcat.
  * <p>
  * Children classes have to provide a map of regex {@link Pattern}s and replacement strings to
  * correctly hide the information.
  * <p>
  * For example, the following pattern finds instances of {@code "token":"<TOKEN_GOES_HERE>"} in the
  * logcat: {@code Pattern.compile("((\"token\"):(\".+?\"))")}. And the replacement string
- * {@code "\"token\":\"***\""} replaces those instances with {@code "token":"***"}, which
- * effectively keeps the token from being displayed in the logcat.
+ * {@code "\"token\":\"***\""} replaces those instances with {@code "token":"***"}.
  */
-public abstract class LogObfuscator {
+public abstract class PatternObfuscator {
 
     private Map<Pattern, String> patternReplacementMap;
 
-    LogObfuscator(Map<Pattern, String> patternReplacementMap) {
+    PatternObfuscator(Map<Pattern, String> patternReplacementMap) {
         this.patternReplacementMap = patternReplacementMap;
     }
 
-    String obfuscate(String input) {
+    protected String obfuscate(String input) {
         String obfuscatedString = input;
         for (Pattern pattern : patternReplacementMap.keySet()) {
             String replacement = patternReplacementMap.get(pattern);
@@ -53,24 +51,16 @@ public abstract class LogObfuscator {
         return obfuscatedString;
     }
 
-    /**
-     * FIXME
-     *
-     * @param urlSegments
-     * @param logObfuscators
-     * @param obfuscatedOutput
-     * @return
-     */
-    public static String obfuscate(List<String> urlSegments,
-                                   Map<String, LogObfuscator> logObfuscators,
-                                   String obfuscatedOutput) {
-        if (urlSegments.contains("providers")) {
-            String provider = urlSegments.get(urlSegments.indexOf("providers") + 1);
-            LogObfuscator logObfuscator = logObfuscators.get(provider);
-            if (logObfuscator != null) {
-                return logObfuscator.obfuscate(obfuscatedOutput);
-            }
-        }
-        return obfuscatedOutput;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PatternObfuscator)) return false;
+        PatternObfuscator that = (PatternObfuscator) o;
+        return patternReplacementMap.equals(that.patternReplacementMap);
+    }
+
+    @Override
+    public int hashCode() {
+        return patternReplacementMap.hashCode() + 13;
     }
 }

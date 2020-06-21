@@ -39,10 +39,11 @@ import javax.annotation.Nullable;
 
 import io.realm.Realm;
 import io.realm.annotations.Beta;
-import io.realm.log.obfuscator.LogObfuscator;
-import io.realm.mongodb.sync.SyncSession;
 import io.realm.internal.Util;
 import io.realm.log.RealmLog;
+import io.realm.log.obfuscator.LoginInfoObfuscator;
+import io.realm.log.obfuscator.PatternObfuscator;
+import io.realm.mongodb.sync.SyncSession;
 
 /**
  * A AppConfiguration is used to setup a MongoDB Realm application.
@@ -115,7 +116,7 @@ public class AppConfiguration {
     private final Map<String, String> customHeaders;
     private final File syncRootDir; // Root directory for storing Sync related files
     private final CodecRegistry codecRegistry;
-    private final Map<String, LogObfuscator> logObfuscators;
+    private final LoginInfoObfuscator loginInfoObfuscator;
 
     private AppConfiguration(String appId,
                              String appName,
@@ -128,7 +129,7 @@ public class AppConfiguration {
                              Map<String, String> customHeaders,
                              File syncRootdir,
                              CodecRegistry codecRegistry,
-                             Map<String, LogObfuscator> logObfuscators) {
+                             LoginInfoObfuscator loginInfoObfuscator) {
         this.appId = appId;
         this.appName = appName;
         this.appVersion = appVersion;
@@ -140,7 +141,7 @@ public class AppConfiguration {
         this.customHeaders = Collections.unmodifiableMap(customHeaders);
         this.syncRootDir = syncRootdir;
         this.codecRegistry = codecRegistry;
-        this.logObfuscators = logObfuscators;
+        this.loginInfoObfuscator = loginInfoObfuscator;
     }
 
     /**
@@ -235,13 +236,13 @@ public class AppConfiguration {
     }
 
     /**
-     * Provides a map of identity provider strings and {@link LogObfuscator}s used to hide sensitive
-     * information from the debug logs.
+     * Returns the {@link LoginInfoObfuscator} used in the app, which keeps sensitive information
+     * from being displayed in the logcat.
      *
-     * @return the log obfuscators to be used.
+     * @return the obfuscator.
      */
-    public Map<String, LogObfuscator> getLogObfuscators() {
-        return logObfuscators;
+    public LoginInfoObfuscator getLoginInfoObfuscator() {
+        return loginInfoObfuscator;
     }
 
     /**
@@ -282,7 +283,7 @@ public class AppConfiguration {
         private Map<String, String> customHeaders = new HashMap<>();
         private File syncRootDir;
         private CodecRegistry codecRegistry = DEFAULT_BSON_CODEC_REGISTRY;
-        private Map<String, LogObfuscator> logObfuscators = LogObfuscatorFactory.getObfuscators();
+        private LoginInfoObfuscator loginInfoObfuscator = new LoginInfoObfuscator(PatternObfuscatorFactory.getObfuscators());
 
         /**
          * Creates an instance of the Builder for the AppConfiguration.
@@ -487,16 +488,15 @@ public class AppConfiguration {
         }
 
         /**
-         * Set the default log obfuscators used to keep sensitive data from being displayed in the
-         * logcat. These obfuscators default to
-         * {@link LogObfuscatorFactory#getObfuscators()} in a production environment.
+         * Sets the {@link LoginInfoObfuscator} used to keep sensitive data from being displayed in
+         * the logcat. These obfuscators default to
+         * {@link PatternObfuscatorFactory#getObfuscators()} in a production environment.
          *
-         * @param logObfuscators map of identity providers and their corresponding
-         *                       {@link LogObfuscator}s.
+         * @param loginInfoObfuscator The default login obfuscator for the app.
          */
-        public Builder logObfuscators(Map<String, LogObfuscator> logObfuscators) {
-            Util.checkNull(logObfuscators, "logObfuscators");
-            this.logObfuscators = logObfuscators;
+        public Builder loginInfoObfuscator(LoginInfoObfuscator loginInfoObfuscator) {
+            Util.checkNull(loginInfoObfuscator, "loginInfoObfuscator");
+            this.loginInfoObfuscator = loginInfoObfuscator;
             return this;
         }
 
@@ -517,7 +517,7 @@ public class AppConfiguration {
                     customHeaders,
                     syncRootDir,
                     codecRegistry,
-                    logObfuscators);
+                    loginInfoObfuscator);
         }
     }
 }

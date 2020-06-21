@@ -20,6 +20,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.Realm
 import io.realm.internal.network.OkHttpNetworkTransport
 import io.realm.internal.objectstore.OsJavaNetworkTransport
+import io.realm.log.obfuscator.LoginInfoObfuscator
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -48,7 +49,7 @@ class OkHttpNetworkTransportTests {
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        transport = OkHttpNetworkTransport()
+        transport = OkHttpNetworkTransport(LoginInfoObfuscator(mapOf()))
     }
 
     @Test

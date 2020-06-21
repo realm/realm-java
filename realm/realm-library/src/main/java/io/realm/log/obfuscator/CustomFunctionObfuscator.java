@@ -23,14 +23,14 @@ import java.util.regex.Pattern;
 /**
  * Obfuscator for custom function-related login requests.
  */
-public class CustomFunctionObfuscator extends LogObfuscator {
+public class CustomFunctionObfuscator extends PatternObfuscator {
 
     private CustomFunctionObfuscator(Map<Pattern, String> patternReplacementMap) {
         super(patternReplacementMap);
     }
 
     /**
-     * Creates a {@link LogObfuscator} for custom functions.
+     * Creates a {@link PatternObfuscator} for custom functions.
      *
      * @return an obfuscator that keeps custom function information from being displayed in the
      * logcat.

@@ -18,10 +18,11 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.log.obfuscator.EmailPasswordObfuscator
-import io.realm.mongodb.LogObfuscatorFactory
+import io.realm.log.obfuscator.LoginInfoObfuscator
 import io.realm.log.obfuscator.TokenObfuscator
 import io.realm.mongodb.AppConfiguration
 import io.realm.mongodb.Credentials
+import io.realm.mongodb.PatternObfuscatorFactory
 import org.bson.codecs.StringCodec
 import org.bson.codecs.configuration.CodecRegistries
 import org.junit.Assert.assertEquals
@@ -269,40 +270,21 @@ class AppConfigurationTests {
     }
 
     @Test
-    fun logObfuscators_null() {
+    fun loginInfoObfuscator_null() {
         AppConfiguration.Builder("app-id").let {
-            assertFailsWith<IllegalArgumentException> { it.logObfuscators(null) }
+            assertFailsWith<IllegalArgumentException> {
+                it.loginInfoObfuscator(null)
+            }
         }
     }
 
     @Test
-    fun defaultLogObfuscators() {
+    fun defaultLoginInfoObfuscator() {
         AppConfiguration.Builder("app-id")
                 .build()
                 .let {
-                    assertEquals(LogObfuscatorFactory.getObfuscators(), it.logObfuscators)
-                }
-    }
-
-    @Test
-    fun emptyLogObfuscators() {
-        AppConfiguration.Builder("app-id")
-                .logObfuscators(mapOf())
-                .build()
-                .let {
-                    assertEquals(0, it.logObfuscators.size)
-                }
-    }
-
-    @Test
-    fun customLogObfuscators() {
-        AppConfiguration.Builder("app-id")
-                .logObfuscators(
-                        mapOf(Credentials.IdentityProvider.GOOGLE.id to TokenObfuscator.obfuscator(),
-                                Credentials.IdentityProvider.EMAIL_PASSWORD.id to EmailPasswordObfuscator.obfuscator())
-                ).build()
-                .let {
-                    assertEquals(2, it.logObfuscators.size)
+                    val defaultLoginInfoObfuscator = LoginInfoObfuscator(PatternObfuscatorFactory.getObfuscators())
+                    assertEquals(defaultLoginInfoObfuscator, it.loginInfoObfuscator)
                 }
     }
 }

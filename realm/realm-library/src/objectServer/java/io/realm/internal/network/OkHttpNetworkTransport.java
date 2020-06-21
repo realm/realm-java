@@ -3,15 +3,14 @@ package io.realm.internal.network;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
-import io.realm.log.obfuscator.LogObfuscator;
-import io.realm.mongodb.Credentials;
+import io.realm.log.obfuscator.LoginInfoObfuscator;
+import io.realm.log.obfuscator.PatternObfuscator;
 import okhttp3.Call;
 import okhttp3.ConnectionPool;
 import okhttp3.Headers;
@@ -31,14 +30,10 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
 
     private volatile OkHttpClient client = null;
 
-    private Map<String, LogObfuscator> logObfuscators;
+    private LoginInfoObfuscator loginInfoObfuscator;
 
-    public OkHttpNetworkTransport() {
-        this.logObfuscators = new HashMap<>();
-    }
-
-    public OkHttpNetworkTransport(Map<String, LogObfuscator> logObfuscators) {
-        this.logObfuscators  = logObfuscators;
+    public OkHttpNetworkTransport(LoginInfoObfuscator loginInfoObfuscator) {
+        this.loginInfoObfuscator = loginInfoObfuscator;
     }
 
     @Override
@@ -106,7 +101,7 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
                                     request.body().writeTo(buffer);
 
                                     // Obfuscate login sensitive information
-                                    String obfuscatedOutput = LogObfuscator.obfuscate(request.url().pathSegments(), logObfuscators, buffer.readString(UTF8));
+                                    String obfuscatedOutput = loginInfoObfuscator.obfuscate(request.url().pathSegments(), buffer.readString(UTF8));
                                     sb.append(obfuscatedOutput);
                                 }
                                 RealmLog.debug("HTTP Request = \n%s", sb);
