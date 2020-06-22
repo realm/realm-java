@@ -14,34 +14,37 @@
  * limitations under the License.
  */
 
-package io.realm.log.obfuscator;
+package io.realm.internal.obfuscator;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
- * Obfuscator for API key-related login requests. It will replace the {@code "key":"<KEY>"} pattern
- * with {@code "key":"***"}.
+ * Obfuscator for custom function-related login requests. It will replace all function arguments
+ * that appear before {@code "options":"***"} with {@code "functionArgs":"***"}.
  */
-public class ApiKeyObfuscator extends PatternObfuscator {
+public class CustomFunctionObfuscator extends RegexPatternObfuscator {
 
-    private ApiKeyObfuscator(Map<Pattern, String> patternReplacementMap) {
+    public static final String CUSTOM_FUNCTION_KEY = "functionArgs";
+
+    private CustomFunctionObfuscator(Map<Pattern, String> patternReplacementMap) {
         super(patternReplacementMap);
     }
 
     /**
-     * Creates a {@link PatternObfuscator} for API keys.
+     * Creates a {@link RegexPatternObfuscator} for custom functions.
      *
-     * @return an obfuscator that keeps API key information from being displayed in the logcat.
+     * @return an obfuscator that keeps custom function information from being displayed in the
+     * logcat.
      */
-    public static ApiKeyObfuscator obfuscator() {
-        return new ApiKeyObfuscator(getPatterns());
+    public static CustomFunctionObfuscator obfuscator() {
+        return new CustomFunctionObfuscator(getPatterns());
     }
 
     private static Map<Pattern, String> getPatterns() {
         Map<Pattern, String> map = new HashMap<>();
-        map.put(Pattern.compile("((\"key\"):(\".+?\"))"), "\"key\":\"***\"");
+        map.put(Pattern.compile("\\{(.+?),\"options\":"), "{\"" + CUSTOM_FUNCTION_KEY + "\":\"***\",\"options\":");
         return map;
     }
 }

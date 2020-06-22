@@ -18,7 +18,6 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
-import io.realm.internal.network.interceptor.LoggingInterceptor
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.*
@@ -31,6 +30,7 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.assertFailsWith
+
 
 @RunWith(AndroidJUnit4::class)
 class CredentialsTests {
@@ -179,7 +179,7 @@ class CredentialsTests {
 
     @Test
     fun loginUsingCredentials() {
-        app = TestApp(loggingInterceptor = LoggingInterceptor.interceptor("providers"))
+        app = TestApp()
         admin = ServerAdmin()
         Credentials.IdentityProvider.values().forEach { provider ->
             when (provider) {
@@ -243,6 +243,7 @@ class CredentialsTests {
                 }
             }
         }
+        app.close()
     }
 
     private fun expectErrorCode(app: App, expectedCode: ErrorCode, credentials: Credentials) {

@@ -24,8 +24,8 @@ import javax.annotation.Nullable;
 
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
-import io.realm.log.obfuscator.HttpLogObfuscator;
-import io.realm.log.obfuscator.PatternObfuscator;
+import io.realm.internal.obfuscator.HttpLogObfuscator;
+import io.realm.internal.obfuscator.RegexPatternObfuscator;
 import io.realm.mongodb.RegexObfuscatorPatternFactory;
 import okhttp3.Interceptor;
 import okhttp3.Request;
@@ -101,7 +101,7 @@ public class LoggingInterceptor implements Interceptor {
      */
     public static LoggingInterceptor interceptor(@Nullable String feature) {
         if (feature != null) {
-            Map<String, PatternObfuscator> obfuscators = RegexObfuscatorPatternFactory.getObfuscators(RegexObfuscatorPatternFactory.LOGIN_FEATURE);
+            Map<String, RegexPatternObfuscator> obfuscators = RegexObfuscatorPatternFactory.getObfuscators(RegexObfuscatorPatternFactory.LOGIN_FEATURE);
             HttpLogObfuscator logObfuscator = HttpLogObfuscator.obfuscator(feature, obfuscators);
             return new LoggingInterceptor(logObfuscator);
         }

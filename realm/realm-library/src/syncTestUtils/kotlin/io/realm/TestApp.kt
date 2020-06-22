@@ -45,7 +45,8 @@ class TestApp(
 
     companion object {
 
-        private val defaultInterceptor = LoggingInterceptor.interceptor(RegexObfuscatorPatternFactory.LOGIN_FEATURE)
+        // Interceptor with no logcat obfuscation by default
+        private val defaultInterceptor = LoggingInterceptor.interceptor(null)
 
         fun createConfiguration(loggingInterceptor: LoggingInterceptor? = null): AppConfiguration {
             return AppConfiguration.Builder(initializeMongoDbRealm(loggingInterceptor))

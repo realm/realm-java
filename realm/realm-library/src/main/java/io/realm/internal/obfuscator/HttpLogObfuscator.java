@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.log.obfuscator;
+package io.realm.internal.obfuscator;
 
 import java.util.List;
 import java.util.Map;
@@ -27,9 +27,9 @@ import io.realm.internal.Util;
 public class HttpLogObfuscator {
 
     private String feature;
-    private Map<String, PatternObfuscator> patternObfuscatorMap;
+    private Map<String, RegexPatternObfuscator> patternObfuscatorMap;
 
-    private HttpLogObfuscator(String feature, Map<String, PatternObfuscator> patternObfuscatorMap) {
+    private HttpLogObfuscator(String feature, Map<String, RegexPatternObfuscator> patternObfuscatorMap) {
         Util.checkNull(feature, "feature");
         this.feature = feature;
         Util.checkNull(patternObfuscatorMap, "patternObfuscatorMap");
@@ -48,7 +48,7 @@ public class HttpLogObfuscator {
         int featureIndex = urlSegments.indexOf(feature);
         if (featureIndex != -1) {
             String value = urlSegments.get(featureIndex + 1);    // value is in the next segment
-            PatternObfuscator patternObfuscator = patternObfuscatorMap.get(value);
+            RegexPatternObfuscator patternObfuscator = patternObfuscatorMap.get(value);
             if (patternObfuscator != null) {
                 return patternObfuscator.obfuscate(input);
             }
@@ -71,16 +71,16 @@ public class HttpLogObfuscator {
 
     /**
      * Returns an initialized {@link HttpLogObfuscator} for a specific feature (e.g. login would be
-     * {@code providers}) and its corresponding {@link PatternObfuscator}s.
+     * {@code providers}) and its corresponding {@link RegexPatternObfuscator}s.
      *
      * @param feature            the feature to obfuscate.
      * @param patternObfuscators {@link Map} of keys subject to being obfuscated and
-     *                           {@link PatternObfuscator}s used to determine which obfuscator has
+     *                           {@link RegexPatternObfuscator}s used to determine which obfuscator has
      *                           to be used for the given feature.
      * @return the log obfuscator to be used.
      */
     public static HttpLogObfuscator obfuscator(String feature,
-                                               Map<String, PatternObfuscator> patternObfuscators) {
+                                               Map<String, RegexPatternObfuscator> patternObfuscators) {
         return new HttpLogObfuscator(feature, patternObfuscators);
     }
 }

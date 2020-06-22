@@ -23,6 +23,8 @@ import android.os.Looper;
 
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.junit.Assert;
 
 import java.io.BufferedReader;
@@ -50,6 +52,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.BacklinksSource;
@@ -72,12 +77,6 @@ import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
-
-import org.bson.types.Decimal128;
-import org.bson.types.ObjectId;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 public class TestHelper {
     public static final int VERY_SHORT_WAIT_SECS = 1;
@@ -386,8 +385,10 @@ public class TestHelper {
      */
     public static class TestLogger implements RealmLogger {
 
+        private static final int BUFFER_SIZE = 4;
         private final int minimumLevel;
         public String message;
+        public String previousMessage;
         public Throwable throwable;
 
         public TestLogger() {
@@ -401,6 +402,7 @@ public class TestHelper {
         @Override
         public void log(int level, String tag, Throwable throwable, String message) {
             if (minimumLevel <= level) {
+                this.previousMessage = this.message;
                 this.message = message;
                 this.throwable = throwable;
             }

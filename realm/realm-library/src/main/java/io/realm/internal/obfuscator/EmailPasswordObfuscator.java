@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.log.obfuscator;
+package io.realm.internal.obfuscator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,14 +37,18 @@ import java.util.regex.Pattern;
  * </ul>
  * respectively.
  */
-public class EmailPasswordObfuscator extends PatternObfuscator {
+public class EmailPasswordObfuscator extends RegexPatternObfuscator {
+
+    public static final String EMAIL_KEY = "email";
+    public static final String USERNAME_KEY = "username";
+    public static final String PASSWORD_KEY = "password";
 
     private EmailPasswordObfuscator(Map<Pattern, String> patternReplacementMap) {
         super(patternReplacementMap);
     }
 
     /**
-     * Creates a {@link PatternObfuscator} for emails and passwords.
+     * Creates a {@link RegexPatternObfuscator} for emails and passwords.
      *
      * @return an obfuscator that keeps emails and passwords from being displayed in the logcat.
      */
@@ -54,9 +58,9 @@ public class EmailPasswordObfuscator extends PatternObfuscator {
 
     private static Map<Pattern, String> getPatterns() {
         Map<Pattern, String> map = new HashMap<>();
-        map.put(Pattern.compile("((\"email\"):(\".+?\"))"), "\"email\":\"***\"");
-        map.put(Pattern.compile("((\"username\"):(\".+?\"))"), "\"username\":\"***\"");
-        map.put(Pattern.compile("((\"password\"):(\".+?\"))"), "\"password\":\"***\"");
+        map.put(Pattern.compile("((\"" + EMAIL_KEY + "\"):(\".+?\"))"), "\"" + EMAIL_KEY + "\":\"***\"");
+        map.put(Pattern.compile("((\"" + USERNAME_KEY + "\"):(\".+?\"))"), "\"" + USERNAME_KEY + "\":\"***\"");
+        map.put(Pattern.compile("((\"" + PASSWORD_KEY + "\"):(\".+?\"))"), "\"" + PASSWORD_KEY + "\":\"***\"");
         return map;
     }
 }

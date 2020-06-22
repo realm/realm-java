@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.log.obfuscator;
+package io.realm.internal.obfuscator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,14 +39,19 @@ import java.util.regex.Pattern;
  * </ul>
  * respectively.
  */
-public class TokenObfuscator extends PatternObfuscator {
+public class TokenObfuscator extends RegexPatternObfuscator {
+
+    public static final String AUTHCODE_KEY = "authCode";
+    public static final String ID_TOKEN_KEY = "id_token";
+    public static final String TOKEN_KEY = "token";
+    public static final String ACCESS_TOKEN_KEY = "access_token";
 
     private TokenObfuscator(Map<Pattern, String> patternReplacementMap) {
         super(patternReplacementMap);
     }
 
     /**
-     * Creates a {@link PatternObfuscator} for tokens.
+     * Creates a {@link RegexPatternObfuscator} for tokens.
      *
      * @return an obfuscator that keeps token information from being displayed in the logcat.
      */
@@ -56,10 +61,10 @@ public class TokenObfuscator extends PatternObfuscator {
 
     private static Map<Pattern, String> getPatterns() {
         Map<Pattern, String> map = new HashMap<>();
-        map.put(Pattern.compile("((\"authCode\"):(\".+?\"))"), "\"authCode\":\"***\"");
-        map.put(Pattern.compile("((\"id_token\"):(\".+?\"))"), "\"id_token\":\"***\"");
-        map.put(Pattern.compile("((\"token\"):(\".+?\"))"), "\"token\":\"***\"");
-        map.put(Pattern.compile("((\"access_token\"):(\".+?\"))"), "\"access_token\":\"***\"");
+        map.put(Pattern.compile("((\"" + AUTHCODE_KEY + "\"):(\".+?\"))"), "\"" + AUTHCODE_KEY + "\":\"***\"");
+        map.put(Pattern.compile("((\"" + ID_TOKEN_KEY + "\"):(\".+?\"))"), "\"" + ID_TOKEN_KEY + "\":\"***\"");
+        map.put(Pattern.compile("((\"" + TOKEN_KEY + "\"):(\".+?\"))"), "\"" + TOKEN_KEY + "\":\"***\"");
+        map.put(Pattern.compile("((\"" + ACCESS_TOKEN_KEY + "\"):(\".+?\"))"), "\"" + ACCESS_TOKEN_KEY + "\":\"***\"");
         return map;
     }
 }

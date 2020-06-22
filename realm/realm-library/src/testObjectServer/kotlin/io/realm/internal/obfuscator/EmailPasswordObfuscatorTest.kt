@@ -13,14 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.log.obfuscator
+package io.realm.internal.obfuscator
 
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-const val EMAIL_PASSWORD_ORIGINAL_INPUT = """{"blahblahblah":"blehblehbleh","username":"my_username","password":"123456","something":"random"}"""
-const val EMAIL_PASSWORD_OBFUSCATED_OUTPUT = """{"blahblahblah":"blehblehbleh","username":"***","password":"***","something":"random"}"""
+val EMAIL_PASSWORD_ORIGINAL_INPUT = """
+{
+  "blahblahblah":"blehblehbleh",
+  "username":"my_username",
+  "password":"123456",
+  "something":"random"
+}
+""".trimIndent()
+val EMAIL_PASSWORD_OBFUSCATED_OUTPUT = """
+{
+  "blahblahblah":"blehblehbleh",
+  "username":"***",
+  "password":"***",
+  "something":"random"
+}
+""".trimIndent()
 
 class EmailPasswordObfuscatorTest {
 

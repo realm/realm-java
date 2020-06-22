@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.log.obfuscator;
+package io.realm.internal.obfuscator;
 
 import java.util.Map;
 import java.util.Set;
@@ -33,11 +33,11 @@ import io.realm.internal.Util;
  * logcat: {@code Pattern.compile("((\"token\"):(\".+?\"))")}. And the replacement string
  * {@code "\"token\":\"***\""} replaces those instances with {@code "token":"***"}.
  */
-public abstract class PatternObfuscator {
+public abstract class RegexPatternObfuscator {
 
     private Map<Pattern, String> patternReplacementMap;
 
-    PatternObfuscator(Map<Pattern, String> patternReplacementMap) {
+    RegexPatternObfuscator(Map<Pattern, String> patternReplacementMap) {
         this.patternReplacementMap = patternReplacementMap;
     }
 
@@ -57,8 +57,8 @@ public abstract class PatternObfuscator {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof PatternObfuscator)) return false;
-        PatternObfuscator that = (PatternObfuscator) o;
+        if (!(o instanceof RegexPatternObfuscator)) return false;
+        RegexPatternObfuscator that = (RegexPatternObfuscator) o;
         return patternReplacementMap.equals(that.patternReplacementMap);
     }
 

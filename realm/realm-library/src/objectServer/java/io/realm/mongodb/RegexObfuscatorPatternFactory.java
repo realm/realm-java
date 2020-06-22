@@ -19,18 +19,18 @@ package io.realm.mongodb;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.realm.log.obfuscator.ApiKeyObfuscator;
-import io.realm.log.obfuscator.CustomFunctionObfuscator;
-import io.realm.log.obfuscator.EmailPasswordObfuscator;
-import io.realm.log.obfuscator.PatternObfuscator;
-import io.realm.log.obfuscator.TokenObfuscator;
+import io.realm.internal.obfuscator.ApiKeyObfuscator;
+import io.realm.internal.obfuscator.CustomFunctionObfuscator;
+import io.realm.internal.obfuscator.EmailPasswordObfuscator;
+import io.realm.internal.obfuscator.RegexPatternObfuscator;
+import io.realm.internal.obfuscator.TokenObfuscator;
 
 public class RegexObfuscatorPatternFactory {
 
     public static final String LOGIN_FEATURE = "providers";
 
-    private static Map<String, PatternObfuscator> loginObfuscators =
-            new HashMap<String, PatternObfuscator>() {{
+    private static Map<String, RegexPatternObfuscator> loginObfuscators =
+            new HashMap<String, RegexPatternObfuscator>() {{
                 put(Credentials.IdentityProvider.API_KEY.getId(), ApiKeyObfuscator.obfuscator());
                 put(Credentials.IdentityProvider.SERVER_API_KEY.getId(), ApiKeyObfuscator.obfuscator());
                 put(Credentials.IdentityProvider.APPLE.getId(), TokenObfuscator.obfuscator());
@@ -42,13 +42,13 @@ public class RegexObfuscatorPatternFactory {
             }};
 
     /**
-     * Provides the {@link Map} of providers and {@link PatternObfuscator}s corresponding to a
+     * Provides the {@link Map} of providers and {@link RegexPatternObfuscator}s corresponding to a
      * concrete feature to be used in a {@link io.realm.mongodb.App}.
      *
      * @param feature the feature to obfuscate.
      * @return the obfuscators that will be used in the app.
      */
-    public static Map<String, PatternObfuscator> getObfuscators(String feature) {
+    public static Map<String, RegexPatternObfuscator> getObfuscators(String feature) {
         if (feature.equals(LOGIN_FEATURE)) {
             return loginObfuscators;
         }

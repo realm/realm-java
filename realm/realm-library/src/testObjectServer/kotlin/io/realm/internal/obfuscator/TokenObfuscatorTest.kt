@@ -13,20 +13,68 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.log.obfuscator
+package io.realm.internal.obfuscator
 
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-const val TOKEN_ORIGINAL_INPUT_GENERIC = """{"blahblahblah":"blehblehbleh","token":"my_token","something":"random"}"""
-const val TOKEN_ORIGINAL_INPUT_APPLE = """{"blahblahblah":"blehblehbleh","id_token":"my_provider","something":"random"}"""
-const val TOKEN_ORIGINAL_INPUT_FACEBOOK = """{"blahblahblah":"blehblehbleh","access_token":"my_access_token","something":"random"}"""
-const val TOKEN_ORIGINAL_INPUT_GOOGLE = """{"blahblahblah":"blehblehbleh","authCode":"my_authCode","something":"random"}"""
-const val TOKEN_OBFUSCATED_OUTPUT_GENERIC = """{"blahblahblah":"blehblehbleh","token":"***","something":"random"}"""
-const val TOKEN_OBFUSCATED_OUTPUT_APPLE = """{"blahblahblah":"blehblehbleh","id_token":"***","something":"random"}"""
-const val TOKEN_OBFUSCATED_OUTPUT_FACEBOOK = """{"blahblahblah":"blehblehbleh","access_token":"***","something":"random"}"""
-const val TOKEN_OBFUSCATED_OUTPUT_GOOGLE = """{"blahblahblah":"blehblehbleh","authCode":"***","something":"random"}"""
+val TOKEN_ORIGINAL_INPUT_GENERIC = """
+{
+  "blahblahblah":"blehblehbleh",
+  "token":"my_token",
+  "something":"random"
+}
+""".trimIndent()
+val TOKEN_ORIGINAL_INPUT_APPLE = """
+{
+  "blahblahblah":"blehblehbleh",
+  "id_token":"my_provider",
+  "something":"random"
+}
+""".trimIndent()
+val TOKEN_ORIGINAL_INPUT_FACEBOOK = """
+{
+  "blahblahblah":"blehblehbleh",
+  "access_token":"my_access_token",
+  "something":"random"
+}
+""".trimIndent()
+val TOKEN_ORIGINAL_INPUT_GOOGLE = """
+{
+  "blahblahblah":"blehblehbleh",
+  "authCode":"my_authCode",
+  "something":"random"
+}
+""".trimIndent()
+val TOKEN_OBFUSCATED_OUTPUT_GENERIC = """
+{
+  "blahblahblah":"blehblehbleh",
+  "token":"***",
+  "something":"random"
+}
+""".trimIndent()
+val TOKEN_OBFUSCATED_OUTPUT_APPLE = """
+{
+  "blahblahblah":"blehblehbleh",
+  "id_token":"***",
+  "something":"random"
+}
+""".trimIndent()
+val TOKEN_OBFUSCATED_OUTPUT_FACEBOOK = """
+{
+  "blahblahblah":"blehblehbleh",
+  "access_token":"***",
+  "something":"random"
+}
+""".trimIndent()
+val TOKEN_OBFUSCATED_OUTPUT_GOOGLE = """
+{
+  "blahblahblah":"blehblehbleh",
+  "authCode":"***",
+  "something":"random"
+}
+""".trimIndent()
 
 class TokenObfuscatorTest {
 

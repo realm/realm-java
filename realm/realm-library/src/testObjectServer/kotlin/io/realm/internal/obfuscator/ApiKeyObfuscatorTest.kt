@@ -13,14 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.log.obfuscator
+package io.realm.internal.obfuscator
 
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-const val API_KEY_ORIGINAL_INPUT = """{"blahblahblah":"blehblehbleh","key":"my_key","something":"random"}"""
-const val API_KEY_OBFUSCATED_OUTPUT = """{"blahblahblah":"blehblehbleh","key":"***","something":"random"}"""
+val API_KEY_ORIGINAL_INPUT = """
+{
+  "blahblahblah":"blehblehbleh",
+  "key":"my_key",
+  "something":"random"
+}
+""".trimIndent()
+val API_KEY_OBFUSCATED_OUTPUT = """
+{
+  "blahblahblah":"blehblehbleh",
+  "key":"***",
+  "something":"random"
+}
+""".trimIndent()
 
 class ApiKeyObfuscatorTest {
 
