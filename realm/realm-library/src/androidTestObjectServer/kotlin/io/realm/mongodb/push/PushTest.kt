@@ -115,20 +115,20 @@ class PushTest {
 
     @Test
     fun deregisterDevice() {
-        user.getPush(SERVICE_NAME).deregisterDevice(SAMPLE_TOKEN)
+        user.getPush(SERVICE_NAME).deregisterDevice()
     }
 
     @Test
     fun deregisterDevice_twice() {
         // the API allows registering/deregistering twice, just checking we don't get errors
-        user.getPush(SERVICE_NAME).deregisterDevice(SAMPLE_TOKEN)
-        user.getPush(SERVICE_NAME).deregisterDevice(SAMPLE_TOKEN)
+        user.getPush(SERVICE_NAME).deregisterDevice()
+        user.getPush(SERVICE_NAME).deregisterDevice()
     }
 
     @Test
     fun deregisterDevice_throwsBecauseOfUnknownService() {
         assertFailsWithErrorCode(ErrorCode.SERVICE_NOT_FOUND) {
-            user.getPush("asdf").deregisterDevice(SAMPLE_TOKEN)
+            user.getPush("asdf").deregisterDevice()
         }
     }
 
@@ -136,14 +136,14 @@ class PushTest {
     fun deregisterDevice_throwsBecauseOfLoggedOutUser() {
         user.logOut()
         assertFailsWithErrorCode(ErrorCode.SERVICE_UNKNOWN) {
-            user.getPush(SERVICE_NAME).deregisterDevice(SAMPLE_TOKEN)
+            user.getPush(SERVICE_NAME).deregisterDevice()
         }
     }
 
     @Test
     fun deregisterDeviceAsync() {
         looperThread.runBlocking {
-            user.getPush(SERVICE_NAME).deregisterDeviceAsync(SAMPLE_TOKEN) {
+            user.getPush(SERVICE_NAME).deregisterDeviceAsync() {
                 looperThread.testComplete()
             }
         }
@@ -152,14 +152,14 @@ class PushTest {
     @Test
     fun deregisterDeviceAsync_throwsBecauseOfWrongThread() {
         assertFailsWith(IllegalStateException::class) {
-            user.getPush(SERVICE_NAME).deregisterDeviceAsync(SAMPLE_TOKEN) { /* do nothing */ }
+            user.getPush(SERVICE_NAME).deregisterDeviceAsync() { /* do nothing */ }
         }
     }
 
     @Test
     fun deregisterDeviceAsync_throwsBecauseOfUnknownService() {
         looperThread.runBlocking {
-            user.getPush("asdf").deregisterDeviceAsync(SAMPLE_TOKEN) {
+            user.getPush("asdf").deregisterDeviceAsync() {
                 assertEquals(ErrorCode.SERVICE_NOT_FOUND, it.error.errorCode)
                 looperThread.testComplete()
             }

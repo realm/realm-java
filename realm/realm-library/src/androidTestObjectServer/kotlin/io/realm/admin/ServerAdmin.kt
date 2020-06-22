@@ -198,4 +198,16 @@ class ServerAdmin {
         }
         return providerId!!
     }
+
+    /**
+     * Creates an admin API key that can be used for testing purposes.
+     */
+    fun createServerApiKey(): String {
+        val body = mapOf(Pair("name", "SERVER_KEY"))
+        val builder = Request.Builder()
+                .url("$baseUrl/groups/$groupId/apps/$appId/api_keys")
+                .post(RequestBody.create(json, JSONObject(body).toString()))
+        val result = JSONObject(executeRequest(builder))
+        return result.getString("key")
+    }
 }

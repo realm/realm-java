@@ -3,7 +3,7 @@
     "name": "custom-function",
     "type": "custom-function",
     "config": {
-        "authFunctionName": "authFunc"
+        "authFunctionName": "testAuthFunc"
     },
     "disabled": false
 }

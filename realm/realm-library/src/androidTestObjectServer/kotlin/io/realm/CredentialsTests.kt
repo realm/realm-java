@@ -15,9 +15,12 @@
  */
 package io.realm
 
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import io.realm.admin.ServerAdmin
 import io.realm.mongodb.*
+import io.realm.mongodb.auth.UserApiKey
+import org.bson.Document
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.BeforeClass
@@ -30,9 +33,10 @@ import kotlin.test.assertFailsWith
 class CredentialsTests {
 
     private lateinit var app: App
-
+    private lateinit var admin: ServerAdmin
 
     companion object {
+
         @BeforeClass
         @JvmStatic
         fun setUp() {
@@ -51,15 +55,21 @@ class CredentialsTests {
     @Test
     fun anonymous() {
         val creds = Credentials.anonymous()
-        assertEquals("anon-user", creds.identityProvider.id)
+        assertEquals(Credentials.IdentityProvider.ANONYMOUS, creds.identityProvider)
         assertTrue(creds.asJson().contains("anon-user")) // Treat the JSON as an opaque value.
     }
 
-    @Ignore("FIXME: Awaiting ObjectStore support")
     @Test
     fun apiKey() {
         val creds = Credentials.apiKey("token")
-        assertEquals("anon-user", creds.identityProvider.id)
+        assertEquals(Credentials.IdentityProvider.API_KEY, creds.identityProvider)
+        assertTrue(creds.asJson().contains("token")) // Treat the JSON as an opaque value.
+    }
+
+    @Test
+    fun serverApiKey() {
+        val creds = Credentials.serverApiKey("token")
+        assertEquals(Credentials.IdentityProvider.SERVER_API_KEY, creds.identityProvider)
         assertTrue(creds.asJson().contains("token")) // Treat the JSON as an opaque value.
     }
 
@@ -70,9 +80,15 @@ class CredentialsTests {
     }
 
     @Test
+    fun serverApiKey_invalidInput() {
+        assertFailsWith<IllegalArgumentException> { Credentials.serverApiKey("") }
+        assertFailsWith<IllegalArgumentException> { Credentials.serverApiKey(TestHelper.getNull()) }
+    }
+
+    @Test
     fun apple() {
         val creds = Credentials.apple("apple-token")
-        assertEquals("oauth2-apple", creds.identityProvider.id)
+        assertEquals(Credentials.IdentityProvider.APPLE, creds.identityProvider)
         assertTrue(creds.asJson().contains("apple-token")) // Treat the JSON as a largely opaque value.
     }
 
@@ -82,22 +98,28 @@ class CredentialsTests {
         assertFailsWith<IllegalArgumentException> { Credentials.apple(TestHelper.getNull()) }
     }
 
-    @Ignore("FIXME: Awaiting ObjectStore support")
     @Test
     fun customFunction() {
-        TODO()
+        val mail = "myfakemail@mongodb.com"
+        val id = 666
+        val creds = mapOf(
+                "mail" to "myfakemail@mongodb.com",
+                "id" to 666
+        ).let { Credentials.customFunction(Document(it)) }
+        assertEquals(Credentials.IdentityProvider.CUSTOM_FUNCTION, creds.identityProvider)
+        assertTrue(creds.asJson().contains(mail))
+        assertTrue(creds.asJson().contains(id.toString()))
     }
 
-    @Ignore("FIXME: Awaiting ObjectStore support")
     @Test
     fun customFunction_invalidInput() {
-        TODO()
+        assertFailsWith<IllegalArgumentException> { Credentials.customFunction(null) }
     }
 
     @Test
     fun emailPassword() {
         val creds = Credentials.emailPassword("foo@bar.com", "secret")
-        assertEquals("local-userpass", creds.identityProvider.id)
+        assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD, creds.identityProvider)
         // Treat the JSON as a largely opaque value.
         assertTrue(creds.asJson().contains("foo@bar.com"))
         assertTrue(creds.asJson().contains("secret"))
@@ -114,7 +136,7 @@ class CredentialsTests {
     @Test
     fun facebook() {
         val creds = Credentials.facebook("fb-token")
-        assertEquals("oauth2-facebook", creds.identityProvider.id)
+        assertEquals(Credentials.IdentityProvider.FACEBOOK, creds.identityProvider)
         assertTrue(creds.asJson().contains("fb-token"))
     }
 
@@ -127,7 +149,7 @@ class CredentialsTests {
     @Test
     fun google() {
         val creds = Credentials.google("google-token")
-        assertEquals("oauth2-google", creds.identityProvider.id)
+        assertEquals(Credentials.IdentityProvider.GOOGLE, creds.identityProvider)
         assertTrue(creds.asJson().contains("google-token"))
     }
 
@@ -140,8 +162,8 @@ class CredentialsTests {
     @Ignore("FIXME: Awaiting ObjectStore support")
     @Test
     fun jwt() {
-        val creds = Credentials.google("jwt-token")
-        assertEquals("jwt", creds.identityProvider.id)
+        val creds = Credentials.jwt("jwt-token")
+        assertEquals(Credentials.IdentityProvider.JWT, creds.identityProvider)
         assertTrue(creds.asJson().contains("jwt-token"))
     }
 
@@ -151,33 +173,43 @@ class CredentialsTests {
         assertFailsWith<IllegalArgumentException> { Credentials.jwt(TestHelper.getNull()) }
     }
 
-    fun expectErrorCode(app: App, expectedCode: ErrorCode, credentials: Credentials) {
-        try {
-            app.login(credentials)
-            fail()
-        } catch (error: AppException) {
-            assertEquals(expectedCode, error.errorCode)
-        }
-    }
-
     @Test
     fun loginUsingCredentials() {
         app = TestApp()
+        admin = ServerAdmin()
+
         Credentials.IdentityProvider.values().forEach { provider ->
-            when(provider) {
+            when (provider) {
                 Credentials.IdentityProvider.ANONYMOUS -> {
                     val user = app.login(Credentials.anonymous())
                     assertNotNull(user)
                 }
                 Credentials.IdentityProvider.API_KEY -> {
-                    // FIXME: Wait for API Key support in OS
-//                        val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-//                        val key: UserApiKey = app.apiKeyAuthProvider.createApiKey("my-key");
-//                        val apiKeyUser = app.login(Credentials.apiKey(key.value!!))
-//                        assertNotNull(apiKeyUser)
+                    // Log in, create an API key, log out, log in with the key, compare users
+                    val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+                    val key: UserApiKey = user.apiKeyAuth.createApiKey("my-key");
+                    user.logOut()
+                    val apiKeyUser = app.login(Credentials.apiKey(key.value!!))
+                    assertEquals(user.id, apiKeyUser.id)
+                }
+                Credentials.IdentityProvider.SERVER_API_KEY -> {
+                    // Create key using the admin API and then log in
+                    val serverKey = admin.createServerApiKey()
+                    val serverKeyUser = app.login(Credentials.serverApiKey(serverKey))
+                    assertNotNull(serverKeyUser)
                 }
                 Credentials.IdentityProvider.CUSTOM_FUNCTION -> {
-                    // FIXME Wait for Custom Function support
+                    val customFunction = mapOf(
+                            "mail" to "myfakemail@mongodb.com",
+                            "id" to 666
+                    ).let {
+                        Credentials.customFunction(Document(it))
+                    }
+
+                    // We are not testing the authentication function itself, but rather that the
+                    // credentials work
+                    val functionUser = app.login(customFunction)
+                    assertNotNull(functionUser)
                 }
                 Credentials.IdentityProvider.EMAIL_PASSWORD -> {
                     val email = TestHelper.getRandomEmail()
@@ -200,13 +232,22 @@ class CredentialsTests {
                 Credentials.IdentityProvider.GOOGLE -> {
                     expectErrorCode(app, ErrorCode.INVALID_SESSION, Credentials.google("google-token"))
                 }
-                Credentials.IdentityProvider.JWT ->  {
+                Credentials.IdentityProvider.JWT -> {
                     expectErrorCode(app, ErrorCode.INVALID_SESSION, Credentials.jwt("jwt-token"))
                 }
                 Credentials.IdentityProvider.UNKNOWN -> {
                     // Ignore
                 }
             }
+        }
+    }
+
+    private fun expectErrorCode(app: App, expectedCode: ErrorCode, credentials: Credentials) {
+        try {
+            app.login(credentials)
+            fail()
+        } catch (error: AppException) {
+            assertEquals(expectedCode, error.errorCode)
         }
     }
 }
