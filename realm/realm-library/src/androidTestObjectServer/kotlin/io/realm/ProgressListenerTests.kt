@@ -19,21 +19,25 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.DefaultSyncSchema
 import io.realm.entities.SyncDog
-import io.realm.kotlin.where
 import io.realm.kotlin.syncSession
+import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
-import io.realm.mongodb.Credentials
 import io.realm.mongodb.User
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
 import io.realm.mongodb.sync.*
 import io.realm.rule.BlockingLooperThread
-import org.junit.*
+import org.junit.After
 import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.Timeout
 import org.junit.runner.RunWith
 import java.util.*
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -48,6 +52,9 @@ class ProgressListenerTests {
     private lateinit var app: TestApp
     private lateinit var realm: Realm
     private lateinit var partitionValue: String
+
+    @get:Rule
+    var timeout: Timeout? = Timeout(10, TimeUnit.SECONDS)
 
     @Before
     fun setUp() {
