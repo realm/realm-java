@@ -16,10 +16,11 @@
 package io.realm
 
 import io.realm.internal.network.OkHttpNetworkTransport
+import io.realm.internal.network.interceptor.LoggingInterceptor
 import io.realm.internal.objectstore.OsJavaNetworkTransport
-import io.realm.log.obfuscator.LoginInfoObfuscator
 import io.realm.mongodb.App
 import io.realm.mongodb.AppConfiguration
+import io.realm.mongodb.RegexObfuscatorPatternFactory
 
 /**
  * This class wraps various methods making it easier to create an App that can be used
@@ -32,7 +33,8 @@ const val DATABASE_NAME = "test_data"   // same as above
 
 class TestApp(
         networkTransport: OsJavaNetworkTransport? = null,
-        customizeConfig: (AppConfiguration.Builder) -> Unit = {}) : App(createConfiguration()
+        loggingInterceptor: LoggingInterceptor? = null,
+        customizeConfig: (AppConfiguration.Builder) -> Unit = {}) : App(createConfiguration(loggingInterceptor)
 ) {
 
     init {
@@ -42,18 +44,21 @@ class TestApp(
     }
 
     companion object {
-        fun createConfiguration(): AppConfiguration {
-            return AppConfiguration.Builder(initializeMongoDbRealm())
+
+        private val defaultInterceptor = LoggingInterceptor.interceptor(RegexObfuscatorPatternFactory.LOGIN_FEATURE)
+
+        fun createConfiguration(loggingInterceptor: LoggingInterceptor? = null): AppConfiguration {
+            return AppConfiguration.Builder(initializeMongoDbRealm(loggingInterceptor))
                     .baseUrl("http://127.0.0.1:9090")
                     .appName("MongoDB Realm Integration Tests")
                     .appVersion("1.0.")
-                    .loginInfoObfuscator(LoginInfoObfuscator(mapOf()))      // No logcat obfuscation in tests
+                    .loggingInterceptor(loggingInterceptor ?: defaultInterceptor)
                     .build()
         }
 
         // Initializes MongoDB Realm. Clears all local state and fetches the application ID.
-        private fun initializeMongoDbRealm(): String {
-            val transport = OkHttpNetworkTransport(LoginInfoObfuscator(mapOf()))
+        private fun initializeMongoDbRealm(loggingInterceptor: LoggingInterceptor? = null): String {
+            val transport = OkHttpNetworkTransport(loggingInterceptor ?: defaultInterceptor)
             val response = transport.sendRequest(
                     "get",
                     "http://127.0.0.1:8888/application-id",

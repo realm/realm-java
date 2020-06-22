@@ -40,9 +40,8 @@ import javax.annotation.Nullable;
 import io.realm.Realm;
 import io.realm.annotations.Beta;
 import io.realm.internal.Util;
+import io.realm.internal.network.interceptor.LoggingInterceptor;
 import io.realm.log.RealmLog;
-import io.realm.log.obfuscator.LoginInfoObfuscator;
-import io.realm.log.obfuscator.PatternObfuscator;
 import io.realm.mongodb.sync.SyncSession;
 
 /**
@@ -116,7 +115,7 @@ public class AppConfiguration {
     private final Map<String, String> customHeaders;
     private final File syncRootDir; // Root directory for storing Sync related files
     private final CodecRegistry codecRegistry;
-    private final LoginInfoObfuscator loginInfoObfuscator;
+    private final LoggingInterceptor loggingInterceptor;
 
     private AppConfiguration(String appId,
                              String appName,
@@ -129,7 +128,7 @@ public class AppConfiguration {
                              Map<String, String> customHeaders,
                              File syncRootdir,
                              CodecRegistry codecRegistry,
-                             LoginInfoObfuscator loginInfoObfuscator) {
+                             LoggingInterceptor loggingInterceptor) {
         this.appId = appId;
         this.appName = appName;
         this.appVersion = appVersion;
@@ -141,7 +140,7 @@ public class AppConfiguration {
         this.customHeaders = Collections.unmodifiableMap(customHeaders);
         this.syncRootDir = syncRootdir;
         this.codecRegistry = codecRegistry;
-        this.loginInfoObfuscator = loginInfoObfuscator;
+        this.loggingInterceptor = loggingInterceptor;
     }
 
     /**
@@ -236,13 +235,13 @@ public class AppConfiguration {
     }
 
     /**
-     * Returns the {@link LoginInfoObfuscator} used in the app, which keeps sensitive information
+     * Returns the {@link LoggingInterceptor} used in the app, which keeps sensitive information
      * from being displayed in the logcat.
      *
-     * @return the obfuscator.
+     * @return the logging interceptor.
      */
-    public LoginInfoObfuscator getLoginInfoObfuscator() {
-        return loginInfoObfuscator;
+    public LoggingInterceptor getLoggingInterceptor() {
+        return loggingInterceptor;
     }
 
     /**
@@ -283,7 +282,7 @@ public class AppConfiguration {
         private Map<String, String> customHeaders = new HashMap<>();
         private File syncRootDir;
         private CodecRegistry codecRegistry = DEFAULT_BSON_CODEC_REGISTRY;
-        private LoginInfoObfuscator loginInfoObfuscator = new LoginInfoObfuscator(PatternObfuscatorFactory.getObfuscators());
+        private LoggingInterceptor loggingInterceptor = LoggingInterceptor.interceptor(RegexObfuscatorPatternFactory.LOGIN_FEATURE);
 
         /**
          * Creates an instance of the Builder for the AppConfiguration.
@@ -440,7 +439,6 @@ public class AppConfiguration {
          * between the device and MongoDB Realm.
          * <p>
          * The default root dir is {@code Context.getFilesDir()/mongodb-realm}.
-         * </p>
          *
          * @param rootDir where to store sync related files.
          */
@@ -488,15 +486,14 @@ public class AppConfiguration {
         }
 
         /**
-         * Sets the {@link LoginInfoObfuscator} used to keep sensitive data from being displayed in
-         * the logcat. These obfuscators default to
-         * {@link PatternObfuscatorFactory#getObfuscators()} in a production environment.
+         * Sets the {@link LoggingInterceptor} used to keep sensitive data from being displayed in
+         * the logcat.
          *
-         * @param loginInfoObfuscator The default login obfuscator for the app.
+         * @param loggingInterceptor The default login interceptor for the app.
          */
-        public Builder loginInfoObfuscator(LoginInfoObfuscator loginInfoObfuscator) {
-            Util.checkNull(loginInfoObfuscator, "loginInfoObfuscator");
-            this.loginInfoObfuscator = loginInfoObfuscator;
+        public Builder loggingInterceptor(LoggingInterceptor loggingInterceptor) {
+            Util.checkNull(loggingInterceptor, "loggingInterceptor");
+            this.loggingInterceptor = loggingInterceptor;
             return this;
         }
 
@@ -517,7 +514,7 @@ public class AppConfiguration {
                     customHeaders,
                     syncRootDir,
                     codecRegistry,
-                    loginInfoObfuscator);
+                    loggingInterceptor);
         }
     }
 }

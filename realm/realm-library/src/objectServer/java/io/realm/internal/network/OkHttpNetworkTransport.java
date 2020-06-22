@@ -1,39 +1,31 @@
 package io.realm.internal.network;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import io.realm.internal.network.interceptor.LoggingInterceptor;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
-import io.realm.log.LogLevel;
-import io.realm.log.RealmLog;
-import io.realm.log.obfuscator.LoginInfoObfuscator;
-import io.realm.log.obfuscator.PatternObfuscator;
 import okhttp3.Call;
 import okhttp3.ConnectionPool;
 import okhttp3.Headers;
-import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
-import okio.Buffer;
 
 public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
-    private static final Charset UTF8 = Charset.forName("UTF-8");
-
     private volatile OkHttpClient client = null;
 
-    private LoginInfoObfuscator loginInfoObfuscator;
+    private LoggingInterceptor loggingInterceptor;
 
-    public OkHttpNetworkTransport(LoginInfoObfuscator loginInfoObfuscator) {
-        this.loginInfoObfuscator = loginInfoObfuscator;
+    public OkHttpNetworkTransport(LoggingInterceptor loggingInterceptor) {
+        this.loggingInterceptor = loggingInterceptor;
     }
 
     @Override
@@ -84,31 +76,7 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
             client = new OkHttpClient.Builder()
                     .callTimeout(timeoutMs, TimeUnit.MILLISECONDS)
                     .followRedirects(true)
-                    .addInterceptor(new Interceptor() {
-                        @Override
-                        public okhttp3.Response intercept(Chain chain) throws IOException {
-                            Request request = chain.request();
-                            if (RealmLog.getLevel() <= LogLevel.DEBUG) {
-                                StringBuilder sb = new StringBuilder(request.method());
-                                sb.append(' ');
-                                sb.append(request.url());
-                                sb.append('\n');
-                                sb.append(request.headers());
-                                if (request.body() != null) {
-                                    // Stripped down version of https://github.com/square/okhttp/blob/master/okhttp-logging-interceptor/src/main/java/okhttp3/logging/HttpLoggingInterceptor.java
-                                    // We only expect request context to be JSON.
-                                    Buffer buffer = new Buffer();
-                                    request.body().writeTo(buffer);
-
-                                    // Obfuscate login sensitive information
-                                    String obfuscatedOutput = loginInfoObfuscator.obfuscate(request.url().pathSegments(), buffer.readString(UTF8));
-                                    sb.append(obfuscatedOutput);
-                                }
-                                RealmLog.debug("HTTP Request = \n%s", sb);
-                            }
-                            return chain.proceed(request);
-                        }
-                    })
+                    .addInterceptor(loggingInterceptor)
                     // using custom Connection Pool to evict idle connection after 5 seconds rather than 5 minutes (which is the default)
                     // keeping idle connection on the pool will prevent the ROS to be stopped, since the HttpUtils#stopSyncServer query
                     // will not return before the tests timeout (ex 10 seconds for AuthTests)
@@ -119,7 +87,7 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
         return client;
     }
 
-    // Parse Headers outputtet from OKHttp to the format expected by ObjectStore
+    // Parse Headers output from OKHttp to the format expected by ObjectStore
     private Map<String, String> parseHeaders(Headers headers) {
         HashMap<String, String> osHeaders = new HashMap<>(headers.size()/2);
         for (String key : headers.names()) {

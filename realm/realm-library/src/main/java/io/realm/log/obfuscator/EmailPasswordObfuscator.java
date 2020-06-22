@@ -25,11 +25,13 @@ import java.util.regex.Pattern;
  * <p>
  * It will replace the
  * <ul>
+ * <li>{@code "email":"<EMAIL>"},</li>
  * <li>{@code "username":"<USERNAME>"} and</li>
  * <li>{@code "password":"<PASSWORD>"}</li>
  * </ul>
  * patterns with
  * <ul>
+ * <li>{@code "email":"***"},</li>
  * <li>{@code "username":"***"} and</li>
  * <li>{@code "password":"***"}</li>
  * </ul>

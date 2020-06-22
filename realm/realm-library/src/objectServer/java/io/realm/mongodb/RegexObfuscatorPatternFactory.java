@@ -25,9 +25,11 @@ import io.realm.log.obfuscator.EmailPasswordObfuscator;
 import io.realm.log.obfuscator.PatternObfuscator;
 import io.realm.log.obfuscator.TokenObfuscator;
 
-public class PatternObfuscatorFactory {
+public class RegexObfuscatorPatternFactory {
 
-    private static Map<String, PatternObfuscator> logObfuscators =
+    public static final String LOGIN_FEATURE = "providers";
+
+    private static Map<String, PatternObfuscator> loginObfuscators =
             new HashMap<String, PatternObfuscator>() {{
                 put(Credentials.IdentityProvider.API_KEY.getId(), ApiKeyObfuscator.obfuscator());
                 put(Credentials.IdentityProvider.SERVER_API_KEY.getId(), ApiKeyObfuscator.obfuscator());
@@ -40,12 +42,16 @@ public class PatternObfuscatorFactory {
             }};
 
     /**
-     * Provides a {@link Map} of providers and {@link PatternObfuscator}s to be used in a
-     * {@link io.realm.mongodb.App}.
+     * Provides the {@link Map} of providers and {@link PatternObfuscator}s corresponding to a
+     * concrete feature to be used in a {@link io.realm.mongodb.App}.
      *
+     * @param feature the feature to obfuscate.
      * @return the obfuscators that will be used in the app.
      */
-    public static Map<String, PatternObfuscator> getObfuscators() {
-        return logObfuscators;
+    public static Map<String, PatternObfuscator> getObfuscators(String feature) {
+        if (feature.equals(LOGIN_FEATURE)) {
+            return loginObfuscators;
+        }
+        throw new IllegalArgumentException("No feature found for " + feature);
     }
 }

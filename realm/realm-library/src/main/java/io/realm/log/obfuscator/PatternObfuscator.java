@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 import io.realm.internal.Util;
 
 /**
- * The obfuscator keeps login-sensitive information from being displayed in the logcat.
+ * The obfuscator removes sensitive information from logcat entries.
  * <p>
  * Children classes have to provide a map of regex {@link Pattern}s and replacement strings to
  * correctly hide the information.

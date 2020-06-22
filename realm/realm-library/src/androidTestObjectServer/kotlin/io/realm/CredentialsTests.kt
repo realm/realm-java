@@ -18,6 +18,9 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
+import io.realm.internal.network.interceptor.LoggingInterceptor
+import io.realm.log.LogLevel
+import io.realm.log.RealmLog
 import io.realm.mongodb.*
 import io.realm.mongodb.auth.UserApiKey
 import org.bson.Document
@@ -41,6 +44,8 @@ class CredentialsTests {
         @JvmStatic
         fun setUp() {
             Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
+
+            RealmLog.setLevel(LogLevel.DEBUG)
         }
     }
 
@@ -50,7 +55,6 @@ class CredentialsTests {
             app.close()
         }
     }
-
 
     @Test
     fun anonymous() {
@@ -175,7 +179,7 @@ class CredentialsTests {
 
     @Test
     fun loginUsingCredentials() {
-        app = TestApp()
+        app = TestApp(loggingInterceptor = LoggingInterceptor.interceptor("providers"))
         admin = ServerAdmin()
         Credentials.IdentityProvider.values().forEach { provider ->
             when (provider) {

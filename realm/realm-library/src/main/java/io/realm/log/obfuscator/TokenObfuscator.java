@@ -30,7 +30,14 @@ import java.util.regex.Pattern;
  * <li>{@code "token":"<TOKEN>"}, and</li>
  * <li>{@code "access_token":"<TOKEN>"}</li>
  * </ul>
- * patterns with {@code "token":"***"}.
+ * patterns with
+ * <ul>
+ * <li>{@code "authCode":"***"},</li>
+ * <li>{@code "id_token":"***"},</li>
+ * <li>{@code "token":"***"}, and</li>
+ * <li>{@code "access_token":"***"}</li>
+ * </ul>
+ * respectively.
  */
 public class TokenObfuscator extends PatternObfuscator {
 
@@ -49,10 +56,10 @@ public class TokenObfuscator extends PatternObfuscator {
 
     private static Map<Pattern, String> getPatterns() {
         Map<Pattern, String> map = new HashMap<>();
-        map.put(Pattern.compile("((\"authCode\"):(\".+?\"))"), "\"token\":\"***\"");
-        map.put(Pattern.compile("((\"id_token\"):(\".+?\"))"), "\"token\":\"***\"");
+        map.put(Pattern.compile("((\"authCode\"):(\".+?\"))"), "\"authCode\":\"***\"");
+        map.put(Pattern.compile("((\"id_token\"):(\".+?\"))"), "\"id_token\":\"***\"");
         map.put(Pattern.compile("((\"token\"):(\".+?\"))"), "\"token\":\"***\"");
-        map.put(Pattern.compile("((\"access_token\"):(\".+?\"))"), "\"token\":\"***\"");
+        map.put(Pattern.compile("((\"access_token\"):(\".+?\"))"), "\"access_token\":\"***\"");
         return map;
     }
 }

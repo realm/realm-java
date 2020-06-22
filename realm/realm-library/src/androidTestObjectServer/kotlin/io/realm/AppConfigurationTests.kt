@@ -17,12 +17,8 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.log.obfuscator.EmailPasswordObfuscator
-import io.realm.log.obfuscator.LoginInfoObfuscator
-import io.realm.log.obfuscator.TokenObfuscator
+import io.realm.internal.network.interceptor.LoggingInterceptor
 import io.realm.mongodb.AppConfiguration
-import io.realm.mongodb.Credentials
-import io.realm.mongodb.PatternObfuscatorFactory
 import org.bson.codecs.StringCodec
 import org.bson.codecs.configuration.CodecRegistries
 import org.junit.Assert.assertEquals
@@ -273,7 +269,7 @@ class AppConfigurationTests {
     fun loginInfoObfuscator_null() {
         AppConfiguration.Builder("app-id").let {
             assertFailsWith<IllegalArgumentException> {
-                it.loginInfoObfuscator(null)
+                it.loggingInterceptor(null)
             }
         }
     }
@@ -283,8 +279,8 @@ class AppConfigurationTests {
         AppConfiguration.Builder("app-id")
                 .build()
                 .let {
-                    val defaultLoginInfoObfuscator = LoginInfoObfuscator(PatternObfuscatorFactory.getObfuscators())
-                    assertEquals(defaultLoginInfoObfuscator, it.loginInfoObfuscator)
+                    val defaultLoggingInterceptor = LoggingInterceptor.interceptor("providers")
+                    assertEquals(defaultLoggingInterceptor, it.loggingInterceptor)
                 }
     }
 }
