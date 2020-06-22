@@ -385,7 +385,6 @@ public class TestHelper {
      */
     public static class TestLogger implements RealmLogger {
 
-        private static final int BUFFER_SIZE = 4;
         private final int minimumLevel;
         public String message;
         public String previousMessage;
