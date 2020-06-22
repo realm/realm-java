@@ -164,63 +164,55 @@ def runBuild(abiFilter, instrumentationTestTarget) {
   }
 
   stage('Tests') {
-    parallel {
-      stage('JVM tests') {
-        try {
-          sh "chmod +x gradlew && ./gradlew check ${abiFilter} --stacktrace"
-        } finally {
-          storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
-          storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
-          storeJunitResults 'realm/realm-library/build/test-results/**/TEST-*.xml'
-          step([$class: 'LintPublisher'])
-        }
+    parallel 'JVM' : {
+      try {
+        sh "chmod +x gradlew && ./gradlew check ${abiFilter} --stacktrace"
+      } finally {
+        storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
+        storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
+        storeJunitResults 'realm/realm-library/build/test-results/**/TEST-*.xml'
+        step([$class: 'LintPublisher'])
       }
-
-      stage('Realm Transformer tests') {
-        try {
-          gradle('realm-transformer', 'check')
-        } finally {
-          storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
-        }
+    }, 
+    'Realm Transformer' : {
+      try {
+        gradle('realm-transformer', 'check')
+      } finally {
+        storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
       }
-
-      stage('Static code analysis') {
-        try {
-          gradle('realm', "findbugs ${abiFilter}") // FIXME Renable pmd and checkstyle
-        } finally {
-          publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
-    //                  publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
-    //                  step([$class: 'CheckStylePublisher',
-    //                        canComputeNew: false,
-    //                        defaultEncoding: '',
-    //                        healthy: '',
-    //                        pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
-    //                        unHealthy: ''
-    //                  ])
-        }
+    },
+    'Static code analysis' : {
+      try {
+        gradle('realm', "findbugs ${abiFilter}") // FIXME Renable pmd and checkstyle
+      } finally {
+        publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
+  //                  publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
+  //                  step([$class: 'CheckStylePublisher',
+  //                        canComputeNew: false,
+  //                        defaultEncoding: '',
+  //                        healthy: '',
+  //                        pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
+  //                        unHealthy: ''
+  //                  ])
       }
-
-      stage('Intstrumentation Tests') {
-        String backgroundPid
-        try {
-          backgroundPid = startLogCatCollector()
-          forwardAdbPorts()
-          gradle('realm', "${instrumentationTestTarget} ${abiFilter}")
-        } finally {
-          stopLogCatCollector(backgroundPid)
-          storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
-          storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
-        }
+    },
+    'Instrumentation' : {
+      String backgroundPid
+      try {
+        backgroundPid = startLogCatCollector()
+        forwardAdbPorts()
+        gradle('realm', "${instrumentationTestTarget} ${abiFilter}")
+      } finally {
+        stopLogCatCollector(backgroundPid)
+        storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+        storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
       }
-
-      // Gradle plugin tests require that artifacts are available, so this
-      // step needs to be after the instrumentation tests
-      stage('Gradle plugin tests') {
-        try {
-          gradle('gradle-plugin', 'check --debug')
-        } finally {
-          storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
-        }
+    },
+    'Gradle Plugin' : {
+      try {
+        gradle('gradle-plugin', 'check --debug')
+      } finally {
+        storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
       }
     }
   }
