@@ -44,8 +44,6 @@ class CredentialsTests {
         @JvmStatic
         fun setUp() {
             Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-
-            RealmLog.setLevel(LogLevel.DEBUG)
         }
     }
 
