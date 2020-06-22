@@ -774,7 +774,8 @@ class SyncSessionTests {
         }
 
         // TODO We cannot currently easily verify that token is actually invalid and triggering
-        //  refresh.
+        //  refresh. If OS includes support for reacting on this we should verify that it is
+        //  refreshed.
         //Realm.getInstance(configuration).use { realm ->
         //     realm.syncSession.downloadAllServerChanges()
         //}
