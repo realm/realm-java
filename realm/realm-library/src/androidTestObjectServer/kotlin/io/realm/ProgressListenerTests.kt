@@ -52,7 +52,7 @@ class ProgressListenerTests {
     private lateinit var partitionValue: String
 
     @get:Rule
-    var timeout: Timeout? = Timeout(10, TimeUnit.SECONDS)
+    var timeout: Timeout? = Timeout(180, TimeUnit.SECONDS)
 
     @Before
     fun setUp() {
@@ -77,8 +77,8 @@ class ProgressListenerTests {
         val user1Config = createSyncConfig(user1)
         val user2: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val user2Config = createSyncConfig(user2)
-        createRemoteData(user1Config)
         Realm.getInstance(user2Config).use { realm ->
+            createRemoteData(user1Config)
             realm.syncSession.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES) { progress ->
                 RealmLog.error(progress.toString())
                 if (progress.isTransferComplete) {
@@ -344,6 +344,7 @@ class ProgressListenerTests {
 
     private fun getStoreTestDataSize(config: RealmConfiguration): Long {
         Realm.getInstance(config).use { realm ->
+            realm.refresh()
             return realm.where<SyncDog>().count()
         }
     }
