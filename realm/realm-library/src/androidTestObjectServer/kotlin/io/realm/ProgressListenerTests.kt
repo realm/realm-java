@@ -59,6 +59,10 @@ class ProgressListenerTests {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         RealmLog.setLevel(LogLevel.TRACE)
         partitionValue = UUID.randomUUID().toString()
+        // Seems like tests aborted due to timeout does not close app (tearDown). Trying to do it explicitly
+        if (this::app.isInitialized) {
+            app.close()
+        }
         app = TestApp()
     }
 
