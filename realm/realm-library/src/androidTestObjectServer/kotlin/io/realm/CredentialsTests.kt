@@ -239,7 +239,6 @@ class CredentialsTests {
                 }
             }
         }
-        app.close()
     }
 
     private fun expectErrorCode(app: App, expectedCode: ErrorCode, credentials: Credentials) {
