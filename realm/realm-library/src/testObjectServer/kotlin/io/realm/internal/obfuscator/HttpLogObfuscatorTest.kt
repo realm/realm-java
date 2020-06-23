@@ -65,7 +65,7 @@ class HttpLogObfuscatorTest {
     @Test
     fun obfuscate_customFunction() {
         with(HttpLogObfuscator.obfuscator(FEATURE, loginObfuscators)) {
-            assertEquals(CustomFunctionObfuscatorTest.CUSTOM_FUNCTION_OBFUSCATED_OUTPUT, obfuscate(customFunctionUrlSegments, CustomFunctionObfuscatorTest.CUSTOM_FUNCTION_ORIGINAL_INPUT))
+            assertEquals(CUSTOM_FUNCTION_OBFUSCATED_OUTPUT, obfuscate(customFunctionUrlSegments, CUSTOM_FUNCTION_ORIGINAL_INPUT))
         }
     }
 
