@@ -48,9 +48,7 @@ class ProgressListenerTests {
         private const val TEST_SIZE: Long = 10
     }
 
-    private val looperThread = BlockingLooperThread()
     private lateinit var app: TestApp
-    private lateinit var realm: Realm
     private lateinit var partitionValue: String
 
     @get:Rule
@@ -66,9 +64,6 @@ class ProgressListenerTests {
 
     @After
     fun tearDown() {
-        if (this::realm.isInitialized) {
-            realm.close()
-        }
         if (this::app.isInitialized) {
             app.close()
         }
@@ -80,21 +75,20 @@ class ProgressListenerTests {
         val allChangesDownloaded = CountDownLatch(1)
         val user1: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val user1Config = createSyncConfig(user1)
-        createRemoteData(user1Config)
         val user2: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val user2Config = createSyncConfig(user2)
-        val realm = Realm.getInstance(user2Config)
-        val session: SyncSession = realm.syncSession
-        session.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES) { progress ->
-            RealmLog.error(progress.toString())
-            if (progress.isTransferComplete) {
-                assertTransferComplete(progress, true)
-                assertEquals(TEST_SIZE, getStoreTestDataSize(user2Config))
-                allChangesDownloaded.countDown()
+        createRemoteData(user1Config)
+        Realm.getInstance(user2Config).use { realm ->
+            realm.syncSession.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES) { progress ->
+                RealmLog.error(progress.toString())
+                if (progress.isTransferComplete) {
+                    assertTransferComplete(progress, true)
+                    assertEquals(TEST_SIZE, getStoreTestDataSize(user2Config))
+                    allChangesDownloaded.countDown()
+                }
             }
+            TestHelper.awaitOrFail(allChangesDownloaded)
         }
-        TestHelper.awaitOrFail(allChangesDownloaded)
-        realm.close()
     }
 
     @Test
@@ -114,34 +108,34 @@ class ProgressListenerTests {
         worker.start()
         val user2: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456") // login(Credentials.anonymous())
         val user2Config: SyncConfiguration = createSyncConfig(user2)
-        val user2Realm = Realm.getInstance(user2Config)
-        val session: SyncSession = user2Realm.syncSession
-        session.addDownloadProgressListener(ProgressMode.INDEFINITELY) { progress ->
-            val objectCounts = getStoreTestDataSize(user2Config)
-            // The downloading progress listener could be triggered at the db version where only contains the meta
-            // data. So we start checking from when the first 10 objects downloaded.
-            RealmLog.warn(String.format(
-                    Locale.ENGLISH, "downloadProgressListener_indefinitely download %d/%d objects count:%d",
-                    progress.transferredBytes, progress.transferableBytes, objectCounts))
-            if (objectCounts != 0L && progress.isTransferComplete) {
-                when (transferCompleted.incrementAndGet()) {
-                    1 -> {
-                        assertEquals(TEST_SIZE, objectCounts)
-                        assertTransferComplete(progress, true)
-                        startWorker.countDown()
+        Realm.getInstance(user2Config).use { user2Realm ->
+            val session: SyncSession = user2Realm.syncSession
+            session.addDownloadProgressListener(ProgressMode.INDEFINITELY) { progress ->
+                val objectCounts = getStoreTestDataSize(user2Config)
+                // The downloading progress listener could be triggered at the db version where only contains the meta
+                // data. So we start checking from when the first 10 objects downloaded.
+                RealmLog.warn(String.format(
+                        Locale.ENGLISH, "downloadProgressListener_indefinitely download %d/%d objects count:%d",
+                        progress.transferredBytes, progress.transferableBytes, objectCounts))
+                if (objectCounts != 0L && progress.isTransferComplete) {
+                    when (transferCompleted.incrementAndGet()) {
+                        1 -> {
+                            assertEquals(TEST_SIZE, objectCounts)
+                            assertTransferComplete(progress, true)
+                            startWorker.countDown()
+                        }
+                        2 -> {
+                            assertTransferComplete(progress, true)
+                            assertEquals(TEST_SIZE * 2, objectCounts)
+                            allChangesDownloaded.countDown()
+                        }
+                        else -> fail("Transfer complete called too many times:" + transferCompleted.get())
                     }
-                    2 -> {
-                        assertTransferComplete(progress, true)
-                        assertEquals(TEST_SIZE * 2, objectCounts)
-                        allChangesDownloaded.countDown()
-                    }
-                    else -> fail("Transfer complete called too many times:" + transferCompleted.get())
                 }
             }
+            writeSampleData(user2Realm) // Write first batch of sample data
+            TestHelper.awaitOrFail(allChangesDownloaded)
         }
-        writeSampleData(user2Realm) // Write first batch of sample data
-        TestHelper.awaitOrFail(allChangesDownloaded)
-        user2Realm.close()
         // worker thread will hang if logout happens before listener triggered.
         worker.join()
         user1.logOut()
@@ -154,47 +148,47 @@ class ProgressListenerTests {
         val transferCompleted = AtomicInteger(0)
         val testDone = CountDownLatch(1)
         val config = createSyncConfig()
-        val realm = Realm.getInstance(config)
-        writeSampleData(realm) // Write first batch of sample data
-        val session: SyncSession = realm.syncSession
-        session.addUploadProgressListener(ProgressMode.INDEFINITELY) { progress ->
-            if (progress.isTransferComplete) {
-                when (transferCompleted.incrementAndGet()) {
-                    1 -> {
-                        val realm = Realm.getInstance(config)
-                        writeSampleData(realm)
-                        realm.close()
-                        throw RuntimeException("Crashing the changelistener")
+        Realm.getInstance(config).use { realm ->
+            val session: SyncSession = realm.syncSession
+            session.addUploadProgressListener(ProgressMode.INDEFINITELY) { progress ->
+                if (progress.isTransferComplete) {
+                    when (transferCompleted.incrementAndGet()) {
+                        1 -> {
+                            Realm.getInstance(config).use { realm ->
+                            writeSampleData(realm)
+                            }
+                            throw RuntimeException("Crashing the changelistener")
+                        }
+                        2 -> {
+                            assertTransferComplete(progress, true)
+                            testDone.countDown()
+                        }
+                        else -> fail("Unsupported number of transfers completed: " + transferCompleted.get())
                     }
-                    2 -> {
-                        assertTransferComplete(progress, true)
-                        testDone.countDown()
-                    }
-                    else -> fail("Unsupported number of transfers completed: " + transferCompleted.get())
                 }
             }
+            writeSampleData(realm) // Write first batch of sample data
+            TestHelper.awaitOrFail(testDone)
         }
-        TestHelper.awaitOrFail(testDone)
-        realm.close()
     }
 
     @Test
     fun uploadProgressListener_changesOnly() {
         val allChangeUploaded = CountDownLatch(1)
         val config = createSyncConfig()
-        val realm = Realm.getInstance(config)
-        writeSampleData(realm)
-        val session: SyncSession = realm.syncSession
-        assertEquals(SyncSession.State.ACTIVE, session.state)
-        session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES) { progress ->
-            RealmLog.error(progress.toString());
-            if (progress.isTransferComplete) {
-                assertTransferComplete(progress, true)
-                allChangeUploaded.countDown()
+        Realm.getInstance(config).use { realm ->
+            val session: SyncSession = realm.syncSession
+            assertEquals(SyncSession.State.ACTIVE, session.state)
+            writeSampleData(realm)
+            session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES) { progress ->
+                RealmLog.error(progress.toString());
+                if (progress.isTransferComplete) {
+                    assertTransferComplete(progress, true)
+                    allChangeUploaded.countDown()
+                }
             }
+            TestHelper.awaitOrFail(allChangeUploaded)
         }
-        TestHelper.awaitOrFail(allChangeUploaded)
-        realm.close()
     }
 
     @Test
@@ -202,67 +196,41 @@ class ProgressListenerTests {
         val transferCompleted = AtomicInteger(0)
         val testDone = CountDownLatch(1)
         val config = createSyncConfig()
-        val realm = Realm.getInstance(config)
-        writeSampleData(realm) // Write first batch of sample data
-        val session: SyncSession = realm.syncSession
-        session.addUploadProgressListener(ProgressMode.INDEFINITELY) { progress ->
-            if (progress.isTransferComplete) {
-                when (transferCompleted.incrementAndGet()) {
-                    1 -> {
-                        val realm = Realm.getInstance(config)
-                        writeSampleData(realm)
-                        realm.close()
+        Realm.getInstance(config).use { realm ->
+            val session: SyncSession = realm.syncSession
+            session.addUploadProgressListener(ProgressMode.INDEFINITELY) { progress ->
+                if (progress.isTransferComplete) {
+                    when (transferCompleted.incrementAndGet()) {
+                        1 -> {
+                            Realm.getInstance(config).use { realm ->
+                                writeSampleData(realm)
+                            }
+                        }
+                        2 -> {
+                            assertTransferComplete(progress, true)
+                            testDone.countDown()
+                        }
+                        else -> fail("Unsupported number of transfers completed: " + transferCompleted.get())
                     }
-                    2 -> {
-                        assertTransferComplete(progress, true)
-                        testDone.countDown()
-                    }
-                    else -> fail("Unsupported number of transfers completed: " + transferCompleted.get())
                 }
             }
+            writeSampleData(realm) // Write first batch of sample data
+            TestHelper.awaitOrFail(testDone)
         }
-        TestHelper.awaitOrFail(testDone)
-        realm.close()
     }
 
     @Test
     fun addListenerInsideCallback() {
         val allChangeUploaded = CountDownLatch(1)
         val config = createSyncConfig()
-        val realm = Realm.getInstance(config)
-        writeSampleData(realm)
-        val session: SyncSession = realm.syncSession
-        session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES) { progress ->
-            if (progress.isTransferComplete) {
-                val realm = Realm.getInstance(config)
-                writeSampleData(realm)
-                realm.close()
-                session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES) { progress ->
-                    if (progress.isTransferComplete) {
-                        allChangeUploaded.countDown()
+        Realm.getInstance(config).use { realm ->
+            val session: SyncSession = realm.syncSession
+            writeSampleData(realm)
+            session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES) { progress ->
+                if (progress.isTransferComplete) {
+                    Realm.getInstance(config).use { realm ->
+                        writeSampleData(realm)
                     }
-                }
-            }
-        }
-        TestHelper.awaitOrFail(allChangeUploaded)
-        realm.close()
-    }
-
-    @Test
-    fun addListenerInsideCallback_mixProgressModes() {
-        val allChangeUploaded = CountDownLatch(3)
-        val progressCompletedReported = AtomicBoolean(false)
-        val config = createSyncConfig()
-        val realm = Realm.getInstance(config)
-        writeSampleData(realm)
-        val session: SyncSession = realm.syncSession
-        session.addUploadProgressListener(ProgressMode.INDEFINITELY) { progress ->
-            if (progress.isTransferComplete) {
-                allChangeUploaded.countDown()
-                if (progressCompletedReported.compareAndSet(false, true)) {
-                    val realm = Realm.getInstance(config)
-                    writeSampleData(realm)
-                    realm.close()
                     session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES) { progress ->
                         if (progress.isTransferComplete) {
                             allChangeUploaded.countDown()
@@ -270,39 +238,65 @@ class ProgressListenerTests {
                     }
                 }
             }
+            TestHelper.awaitOrFail(allChangeUploaded)
         }
-        TestHelper.awaitOrFail(allChangeUploaded)
-        realm.close()
+    }
+
+    @Test
+    fun addListenerInsideCallback_mixProgressModes() {
+        val allChangeUploaded = CountDownLatch(3)
+        val progressCompletedReported = AtomicBoolean(false)
+        val config = createSyncConfig()
+        Realm.getInstance(config).use { realm ->
+            val session: SyncSession = realm.syncSession
+            session.addUploadProgressListener(ProgressMode.INDEFINITELY) { progress ->
+                if (progress.isTransferComplete) {
+                    allChangeUploaded.countDown()
+                    if (progressCompletedReported.compareAndSet(false, true)) {
+                        Realm.getInstance(config).use { realm ->
+                            writeSampleData(realm)
+                        }
+                        session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES) { progress ->
+                            if (progress.isTransferComplete) {
+                                allChangeUploaded.countDown()
+                            }
+                        }
+                    }
+                }
+            }
+            writeSampleData(realm)
+            TestHelper.awaitOrFail(allChangeUploaded)
+        }
     }
 
     @Test
     fun addProgressListener_triggerImmediatelyWhenRegistered() {
         val config = createSyncConfig()
-        val realm = Realm.getInstance(config)
-        val session: SyncSession = realm.syncSession
-        checkListener(session, ProgressMode.INDEFINITELY)
-        checkListener(session, ProgressMode.CURRENT_CHANGES)
-        realm.close()
+        Realm.getInstance(config).use { realm ->
+            val session: SyncSession = realm.syncSession
+            checkListener(session, ProgressMode.INDEFINITELY)
+            checkListener(session, ProgressMode.CURRENT_CHANGES)
+        }
     }
 
     @Test
     fun uploadListener_keepIncreasingInSize() {
         val config = createSyncConfig()
-        val realm = Realm.getInstance(config)
-        val session: SyncSession = realm.syncSession
-        for (i in 0..9) {
-            val changesUploaded = CountDownLatch(1)
-            writeSampleData(realm)
-            session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES) { progress ->
-                RealmLog.info("Test %s -> %s", Integer.toString(i), progress.toString())
-                if (progress.isTransferComplete) {
-                    assertTransferComplete(progress, true)
-                    changesUploaded.countDown()
+        Realm.getInstance(config).use { realm ->
+            val session: SyncSession = realm.syncSession
+            for (i in 0..9) {
+                val changesUploaded = CountDownLatch(1)
+                writeSampleData(realm)
+                session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES) { progress ->
+                    RealmLog.info("Test %s -> %s", Integer.toString(i), progress.toString())
+                    if (progress.isTransferComplete) {
+                        assertTransferComplete(progress, true)
+                        changesUploaded.countDown()
+                    }
                 }
+                TestHelper.awaitOrFail(changesUploaded)
             }
-            TestHelper.awaitOrFail(changesUploaded)
         }
-        realm.close()
     }
 
     private fun checkListener(session: SyncSession, progressMode: ProgressMode) {
@@ -312,13 +306,13 @@ class ProgressListenerTests {
     }
 
     private fun writeSampleData(realm: Realm, partitionValue: String = getTestPartitionValue()) {
-        realm.beginTransaction()
-        for (i in 0 until TEST_SIZE) {
-            val obj = SyncDog()
-            obj.name = "Object $i"
-            realm.insert(obj)
+        realm.executeTransaction {
+            for (i in 0 until TEST_SIZE) {
+                val obj = SyncDog()
+                obj.name = "Object $i"
+                realm.insert(obj)
+            }
         }
-        realm.commitTransaction()
     }
 
     private fun assertTransferComplete(progress: Progress, nonZeroChange: Boolean) {
@@ -332,27 +326,26 @@ class ProgressListenerTests {
 
     // Create remote data for a given user.
     private fun createRemoteData(config: SyncConfiguration) {
-        val realm = Realm.getInstance(config)
-        val changesUploaded = CountDownLatch(1)
-        writeSampleData(realm)
-        val session: SyncSession = realm.syncSession
-        session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, object : ProgressListener {
-            override fun onChange(progress: Progress) {
-                if (progress.isTransferComplete) {
-                    session.removeProgressListener(this)
-                    changesUploaded.countDown()
+        Realm.getInstance(config).use { realm ->
+            val changesUploaded = CountDownLatch(1)
+            val session: SyncSession = realm.syncSession
+            writeSampleData(realm)
+            session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES, object : ProgressListener {
+                override fun onChange(progress: Progress) {
+                    if (progress.isTransferComplete) {
+                        session.removeProgressListener(this)
+                        changesUploaded.countDown()
+                    }
                 }
-            }
-        })
-        TestHelper.awaitOrFail(changesUploaded)
-        realm.close()
+            })
+            TestHelper.awaitOrFail(changesUploaded)
+        }
     }
 
     private fun getStoreTestDataSize(config: RealmConfiguration): Long {
-        val realm: Realm = Realm.getInstance(config)
-        val objectCounts: Long = realm.where<SyncDog>().count()
-        realm.close()
-        return objectCounts
+        Realm.getInstance(config).use { realm ->
+            return realm.where<SyncDog>().count()
+        }
     }
 
     private fun createSyncConfig(user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456"), partitionValue: String = getTestPartitionValue()): SyncConfiguration {
