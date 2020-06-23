@@ -165,6 +165,8 @@ Note: Building from source with Realm Sync is not enabled yet. Only building the
 
 Note: If you want to build from source inside Android Studio, you need to update the Gradle parameters by going into the Realm projects settings `Settings > Build, Execution, Deployment > Compiler > Command-line options` and add `-PcoreSourcePath=<path>` to it.
 
+Note: If building on OSX you might like to prevent Gatekeeper to block all NDK executables by disabling it: `sudo spctl --master-disable`. Remember to enable it afterwards: `sudo spctl --master-enable`
+
 ### Other Commands
 
  * `./gradlew tasks` will show all the available tasks
