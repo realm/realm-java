@@ -23,6 +23,7 @@ import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
+import io.realm.mongodb.App
 import io.realm.mongodb.User
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
@@ -52,17 +53,15 @@ class ProgressListenerTests {
     private lateinit var partitionValue: String
 
     @get:Rule
-    var timeout: Timeout? = Timeout(180, TimeUnit.SECONDS)
+    var timeout: Timeout? = Timeout(300, TimeUnit.MILLISECONDS)
 
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         RealmLog.setLevel(LogLevel.TRACE)
         partitionValue = UUID.randomUUID().toString()
-        // Seems like tests aborted due to timeout does not close app (tearDown). Trying to do it explicitly
-        if (this::app.isInitialized) {
-            app.close()
-        }
+        // FIXME Seems like tests aborted due to timeout does not close app (tearDown).
+        App.CREATED = false
         app = TestApp()
     }
 
