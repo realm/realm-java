@@ -28,7 +28,6 @@ import io.realm.mongodb.User
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
 import io.realm.mongodb.sync.*
-import io.realm.rule.BlockingLooperThread
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -53,7 +52,7 @@ class ProgressListenerTests {
     private lateinit var partitionValue: String
 
     @get:Rule
-    var timeout: Timeout? = Timeout(300, TimeUnit.MILLISECONDS)
+    var timeout: Timeout? = Timeout(300, TimeUnit.SECONDS)
 
     @Before
     fun setUp() {
