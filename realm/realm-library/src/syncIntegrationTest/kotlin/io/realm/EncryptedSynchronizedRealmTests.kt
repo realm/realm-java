@@ -31,6 +31,7 @@ import org.bson.BsonObjectId
 import org.bson.types.ObjectId
 import org.junit.After
 import org.junit.Assert
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertFailsWith
@@ -46,7 +47,6 @@ class EncryptedSynchronizedRealmTests {
     @Before
     fun setup() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        RealmLog.setLevel(LogLevel.ALL)
         app = TestApp()
     }
 
@@ -55,7 +55,6 @@ class EncryptedSynchronizedRealmTests {
         if (this::app.isInitialized) {
             app.close()
         }
-        RealmLog.setLevel(LogLevel.WARN)
     }
 
     // Make sure the encryption is local, i.e after deleting a synced Realm
@@ -69,12 +68,12 @@ class EncryptedSynchronizedRealmTests {
         val configWithEncryption: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, BsonObjectId())
                 .testSchema(SyncStringOnly::class.java)
                 .waitForInitialRemoteData()
-                .errorHandler { session, error -> Assert.fail(error.getErrorMessage()) }
+                .errorHandler { session, error -> fail(error.getErrorMessage()) }
                 .encryptionKey(randomKey)
                 .build()
 
         Realm.getInstance(configWithEncryption).use { realm ->
-            Assert.assertTrue(realm.isEmpty)
+            assertTrue(realm.isEmpty)
             realm.executeTransaction {
                 realm.createObject(SyncStringOnly::class.java, ObjectId()).chars = "Hi Alice"
             }
@@ -92,13 +91,13 @@ class EncryptedSynchronizedRealmTests {
                 // .name("newName")
                 .testSchema(SyncStringOnly::class.java)
                 .waitForInitialRemoteData()
-                .errorHandler { session, error -> Assert.fail(error.getErrorMessage()) }
+                .errorHandler { session, error -> fail(error.getErrorMessage()) }
                 .build()
 
         Realm.getInstance(configWithoutEncryption).use { realm ->
             val all = realm.where(SyncStringOnly::class.java).findAll()
-            Assert.assertEquals(1, all.size.toLong())
-            Assert.assertEquals("Hi Alice", all[0]!!.chars)
+            assertEquals(1, all.size.toLong())
+            assertEquals("Hi Alice", all[0]!!.chars)
         }
         user.logOut()
     }
@@ -112,12 +111,12 @@ class EncryptedSynchronizedRealmTests {
         val configWithEncryption: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, BsonObjectId())
                 .testSchema(SyncStringOnly::class.java)
                 .waitForInitialRemoteData()
-                .errorHandler { session, error -> Assert.fail(error.getErrorMessage()) }
+                .errorHandler { session, error -> fail(error.getErrorMessage()) }
                 .encryptionKey(randomKey)
                 .build()
 
         Realm.getInstance(configWithEncryption).use { realm ->
-            Assert.assertTrue(realm!!.isEmpty)
+            assertTrue(realm.isEmpty)
             realm.executeTransaction {
                 realm.createObject(SyncStringOnly::class.java, ObjectId()).chars = "Hi Alice"
             }
@@ -130,7 +129,7 @@ class EncryptedSynchronizedRealmTests {
         val configWithoutEncryption: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, configWithEncryption.partitionValue)
                 .testSchema(SyncStringOnly::class.java)
                 .waitForInitialRemoteData()
-                .errorHandler { session, error -> Assert.fail(error.getErrorMessage()) }
+                .errorHandler { session, error -> fail(error.getErrorMessage()) }
                 .build()
 
         assertFailsWith<RealmFileException> {
@@ -147,12 +146,12 @@ class EncryptedSynchronizedRealmTests {
         val configWithEncryption: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, BsonObjectId())
                 .testSchema(SyncStringOnly::class.java)
                 .waitForInitialRemoteData()
-                .errorHandler { session, error -> Assert.fail(error.getErrorMessage()) }
+                .errorHandler { session, error -> fail(error.getErrorMessage()) }
                 .encryptionKey(randomKey)
                 .build()
 
         Realm.getInstance(configWithEncryption).use { realm ->
-            Assert.assertTrue(realm.isEmpty)
+            assertTrue(realm.isEmpty)
             realm.executeTransaction {
                 realm.createObject(SyncStringOnly::class.java, ObjectId()).chars = "Hi Alice"
             }
@@ -166,14 +165,14 @@ class EncryptedSynchronizedRealmTests {
         val configWithEncryption2: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user2, configWithEncryption.partitionValue)
                 .testSchema(SyncStringOnly::class.java)
                 .waitForInitialRemoteData()
-                .errorHandler { session, error -> Assert.fail(error.getErrorMessage()) }
+                .errorHandler { session, error -> fail(error.getErrorMessage()) }
                 .encryptionKey(key2)
                 .build()
 
         Realm.getInstance(configWithEncryption2).use { realm ->
             val all = realm.where(SyncStringOnly::class.java).findAll()
-            Assert.assertEquals(1, all.size.toLong())
-            Assert.assertEquals("Hi Alice", all[0]!!.chars)
+            assertEquals(1, all.size.toLong())
+            assertEquals("Hi Alice", all[0]!!.chars)
             realm.executeTransaction {
                 realm.createObject(SyncStringOnly::class.java, ObjectId()).chars = "Hi Bob"
             }
@@ -184,13 +183,13 @@ class EncryptedSynchronizedRealmTests {
         Realm.getInstance(configWithEncryption).use { realm ->
             realm.syncSession.downloadAllServerChanges() // force download latest commits from remote realm
             realm.refresh() // Not calling refresh will still point to the previous version of the Realm without the latest admin commit  "Hi Bob"
-            Assert.assertEquals(2, realm.where(SyncStringOnly::class.java).count())
+            assertEquals(2, realm.where(SyncStringOnly::class.java).count())
             val allSorted = realm.where(SyncStringOnly::class.java).sort(SyncStringOnly.FIELD_CHARS).findAll()
             val allSortedAdmin = realm.where(SyncStringOnly::class.java).sort(SyncStringOnly.FIELD_CHARS).findAll()
-            Assert.assertEquals("Hi Alice", allSorted[0]!!.chars)
-            Assert.assertEquals("Hi Bob", allSorted[1]!!.chars)
-            Assert.assertEquals("Hi Alice", allSortedAdmin[0]!!.chars)
-            Assert.assertEquals("Hi Bob", allSortedAdmin[1]!!.chars)
+            assertEquals("Hi Alice", allSorted[0]!!.chars)
+            assertEquals("Hi Bob", allSorted[1]!!.chars)
+            assertEquals("Hi Alice", allSortedAdmin[0]!!.chars)
+            assertEquals("Hi Bob", allSortedAdmin[1]!!.chars)
         }
 
         user.logOut()
