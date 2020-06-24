@@ -51,16 +51,11 @@ class ProgressListenerTests {
     private lateinit var app: TestApp
     private lateinit var partitionValue: String
 
-    @get:Rule
-    var timeout: Timeout? = Timeout(300, TimeUnit.SECONDS)
-
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         RealmLog.setLevel(LogLevel.TRACE)
         partitionValue = UUID.randomUUID().toString()
-        // FIXME Seems like tests aborted due to timeout does not close app (tearDown).
-        App.CREATED = false
         app = TestApp()
     }
 
