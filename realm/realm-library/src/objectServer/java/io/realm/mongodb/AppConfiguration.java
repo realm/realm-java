@@ -40,9 +40,11 @@ import javax.annotation.Nullable;
 import io.realm.Realm;
 import io.realm.annotations.Beta;
 import io.realm.internal.Util;
-import io.realm.internal.network.interceptor.LoggingInterceptor;
+import io.realm.HttpLogObfuscator;
 import io.realm.log.RealmLog;
 import io.realm.mongodb.sync.SyncSession;
+
+import static io.realm.mongodb.RegexObfuscatorPatternFactory.LOGIN_FEATURE;
 
 /**
  * A AppConfiguration is used to setup a MongoDB Realm application.
@@ -115,7 +117,8 @@ public class AppConfiguration {
     private final Map<String, String> customHeaders;
     private final File syncRootDir; // Root directory for storing Sync related files
     private final CodecRegistry codecRegistry;
-    private final LoggingInterceptor loggingInterceptor;
+    @Nullable
+    private final HttpLogObfuscator httpLogObfuscator;
 
     private AppConfiguration(String appId,
                              String appName,
@@ -128,7 +131,7 @@ public class AppConfiguration {
                              Map<String, String> customHeaders,
                              File syncRootdir,
                              CodecRegistry codecRegistry,
-                             LoggingInterceptor loggingInterceptor) {
+                             @Nullable HttpLogObfuscator httpLogObfuscator) {
         this.appId = appId;
         this.appName = appName;
         this.appVersion = appVersion;
@@ -140,7 +143,7 @@ public class AppConfiguration {
         this.customHeaders = Collections.unmodifiableMap(customHeaders);
         this.syncRootDir = syncRootdir;
         this.codecRegistry = codecRegistry;
-        this.loggingInterceptor = loggingInterceptor;
+        this.httpLogObfuscator = httpLogObfuscator;
     }
 
     /**
@@ -235,13 +238,13 @@ public class AppConfiguration {
     }
 
     /**
-     * Returns the {@link LoggingInterceptor} used in the app, which keeps sensitive information
-     * from being displayed in the logcat.
+     * Returns the {@link HttpLogObfuscator} used in the app, which keeps sensitive information in
+     * HTTP requests from being displayed in the logcat.
      *
-     * @return the logging interceptor.
+     * @return the HTTP log obfuscator.
      */
-    public LoggingInterceptor getLoggingInterceptor() {
-        return loggingInterceptor;
+    public HttpLogObfuscator getHttpLogObfuscator() {
+        return httpLogObfuscator;
     }
 
     /**
@@ -282,7 +285,9 @@ public class AppConfiguration {
         private Map<String, String> customHeaders = new HashMap<>();
         private File syncRootDir;
         private CodecRegistry codecRegistry = DEFAULT_BSON_CODEC_REGISTRY;
-        private LoggingInterceptor loggingInterceptor = LoggingInterceptor.interceptor(RegexObfuscatorPatternFactory.LOGIN_FEATURE);
+        @Nullable
+        private HttpLogObfuscator httpLogObfuscator =
+                new HttpLogObfuscator(LOGIN_FEATURE, RegexObfuscatorPatternFactory.getObfuscators(LOGIN_FEATURE));
 
         /**
          * Creates an instance of the Builder for the AppConfiguration.
@@ -486,14 +491,13 @@ public class AppConfiguration {
         }
 
         /**
-         * Sets the {@link LoggingInterceptor} used to keep sensitive data from being displayed in
-         * the logcat.
+         * Sets the {@link HttpLogObfuscator} used to keep sensitive information in HTTP requests
+         * from being displayed in the logcat.
          *
-         * @param loggingInterceptor The default login interceptor for the app.
+         * @param httpLogObfuscator the default HTTP log obfuscator for the app.
          */
-        public Builder loggingInterceptor(LoggingInterceptor loggingInterceptor) {
-            Util.checkNull(loggingInterceptor, "loggingInterceptor");
-            this.loggingInterceptor = loggingInterceptor;
+        public Builder httpLogObfuscator(@Nullable HttpLogObfuscator httpLogObfuscator) {
+            this.httpLogObfuscator = httpLogObfuscator;
             return this;
         }
 
@@ -514,7 +518,7 @@ public class AppConfiguration {
                     customHeaders,
                     syncRootDir,
                     codecRegistry,
-                    loggingInterceptor);
+                    httpLogObfuscator);
         }
     }
 }

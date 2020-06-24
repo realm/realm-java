@@ -16,16 +16,15 @@
 package io.realm.internal.network.interceptor
 
 import androidx.test.platform.app.InstrumentationRegistry
+import io.realm.HttpLogObfuscator
 import io.realm.Realm
 import io.realm.TestApp
 import io.realm.TestHelper
 import io.realm.admin.ServerAdmin
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
-import io.realm.mongodb.App
-import io.realm.mongodb.Credentials
-import io.realm.mongodb.RegexObfuscatorPatternFactory
-import io.realm.mongodb.close
+import io.realm.mongodb.*
+import io.realm.mongodb.RegexObfuscatorPatternFactory.LOGIN_FEATURE
 import org.bson.Document
 import org.junit.After
 import org.junit.Before
@@ -35,6 +34,7 @@ import kotlin.test.assertTrue
 class LoggingInterceptorTest {
 
     private lateinit var app: App
+    private lateinit var testLogger: TestHelper.TestLogger
 
     @Before
     fun setUp() {
@@ -46,12 +46,16 @@ class LoggingInterceptorTest {
         if (this::app.isInitialized) {
             app.close()
         }
+        if (this::testLogger.isInitialized) {
+            RealmLog.setLevel(LogLevel.WARN)
+            RealmLog.remove(testLogger)
+        }
     }
 
     @Test
     fun emailPasswordRegistrationAndLogin_noObfuscation() {
         app = TestApp()
-        val testLogger = getLogger()
+        testLogger = getLogger()
 
         val email = TestHelper.getRandomEmail()
         val password = "123456"
@@ -78,14 +82,14 @@ class LoggingInterceptorTest {
             "password":"$password"
         """.trimIndent())
         assertTrue(passwordLatestMessage || passwordPreviousMessage)
-
-        RealmLog.remove(testLogger)
     }
 
     @Test
     fun emailPasswordRegistrationAndLogin_obfuscation() {
-        app = TestApp(loggingInterceptor = LoggingInterceptor.interceptor(RegexObfuscatorPatternFactory.LOGIN_FEATURE))
-        val testLogger = getLogger()
+        app = TestApp { builder ->
+            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, RegexObfuscatorPatternFactory.getObfuscators(LOGIN_FEATURE)))
+        }
+        testLogger = getLogger()
 
         val email = TestHelper.getRandomEmail()
         val password = "123456"
@@ -112,14 +116,12 @@ class LoggingInterceptorTest {
             "password":"***"
         """.trimIndent())
         assertTrue(passwordLatestMessage || passwordPreviousMessage)
-
-        RealmLog.remove(testLogger)
     }
 
     @Test
     fun apiKeyLogin_noObfuscation() {
         app = TestApp()
-        val testLogger = getLogger()
+        testLogger = getLogger()
         val admin = ServerAdmin()
         val serverKey = admin.createServerApiKey()
 
@@ -135,8 +137,10 @@ class LoggingInterceptorTest {
 
     @Test
     fun apiKeyLogin_obfuscation() {
-        app = TestApp(loggingInterceptor = LoggingInterceptor.interceptor(RegexObfuscatorPatternFactory.LOGIN_FEATURE))
-        val testLogger = getLogger()
+        app = TestApp { builder ->
+            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, RegexObfuscatorPatternFactory.getObfuscators(LOGIN_FEATURE)))
+        }
+        testLogger = getLogger()
         val admin = ServerAdmin()
         val serverKey = admin.createServerApiKey()
 
@@ -153,7 +157,7 @@ class LoggingInterceptorTest {
     @Test
     fun customFunctionLogin_noObfuscation() {
         app = TestApp()
-        val testLogger = getLogger()
+        testLogger = getLogger()
 
         val key1 = "mail"
         val key2 = "id"
@@ -178,8 +182,10 @@ class LoggingInterceptorTest {
 
     @Test
     fun customFunctionLogin_obfuscation() {
-        app = TestApp(loggingInterceptor = LoggingInterceptor.interceptor(RegexObfuscatorPatternFactory.LOGIN_FEATURE))
-        val testLogger = getLogger()
+        app = TestApp { builder ->
+            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, RegexObfuscatorPatternFactory.getObfuscators(LOGIN_FEATURE)))
+        }
+        testLogger = getLogger()
 
         val key1 = "mail"
         val key2 = "id"
@@ -202,7 +208,137 @@ class LoggingInterceptorTest {
         assertTrue(customFunctionLatestMessage || customFunctionPreviousMessage)
     }
 
-    // FIXME: add tests for tokens
+    @Test
+    fun facebookTokenLogin_noObfuscation() {
+        app = TestApp()
+        testLogger = getLogger()
+        val token = "facebook-token"
+
+        try {
+            app.login(Credentials.facebook(token))
+        } catch (error: AppException) {
+            // It will fail as long as oauth2 tokens aren't supported
+        } finally {
+            val facebookTokenLatestMessage = testLogger.message.contains("""
+            "access_token":"$token"
+        """.trimIndent())
+            val facebookTokenPreviousMessage = testLogger.previousMessage.contains("""
+            "access_token":"$token"
+        """.trimIndent())
+            assertTrue(facebookTokenLatestMessage || facebookTokenPreviousMessage)
+        }
+    }
+
+    @Test
+    fun facebookTokenLogin_obfuscation() {
+        app = TestApp { builder ->
+            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, RegexObfuscatorPatternFactory.getObfuscators(LOGIN_FEATURE)))
+        }
+        testLogger = getLogger()
+        val token = "facebook-token"
+
+        try {
+            app.login(Credentials.facebook(token))
+        } catch (error: AppException) {
+            // It will fail as long as oauth2 tokens aren't supported
+        } finally {
+            val facebookTokenLatestMessage = testLogger.message.contains("""
+            "access_token":"***"
+        """.trimIndent())
+            val facebookTokenPreviousMessage = testLogger.previousMessage.contains("""
+            "access_token":"***"
+        """.trimIndent())
+            assertTrue(facebookTokenLatestMessage || facebookTokenPreviousMessage)
+        }
+    }
+
+    @Test
+    fun appleTokenLogin_noObfuscation() {
+        app = TestApp()
+        testLogger = getLogger()
+        val token = "apple-token"
+
+        try {
+            app.login(Credentials.apple(token))
+        } catch (error: AppException) {
+            // It will fail as long as oauth2 tokens aren't supported
+        } finally {
+            val facebookTokenLatestMessage = testLogger.message.contains("""
+            "id_token":"$token"
+        """.trimIndent())
+            val facebookTokenPreviousMessage = testLogger.previousMessage.contains("""
+            "id_token":"$token"
+        """.trimIndent())
+            assertTrue(facebookTokenLatestMessage || facebookTokenPreviousMessage)
+        }
+    }
+
+    @Test
+    fun appleTokenLogin_obfuscation() {
+        app = TestApp { builder ->
+            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, RegexObfuscatorPatternFactory.getObfuscators(LOGIN_FEATURE)))
+        }
+        testLogger = getLogger()
+        val token = "apple-token"
+
+        try {
+            app.login(Credentials.apple(token))
+        } catch (error: AppException) {
+            // It will fail as long as oauth2 tokens aren't supported
+        } finally {
+            val facebookTokenLatestMessage = testLogger.message.contains("""
+            "id_token":"***"
+        """.trimIndent())
+            val facebookTokenPreviousMessage = testLogger.previousMessage.contains("""
+            "id_token":"***"
+        """.trimIndent())
+            assertTrue(facebookTokenLatestMessage || facebookTokenPreviousMessage)
+        }
+    }
+
+    @Test
+    fun googleTokenLogin_noObfuscation() {
+        app = TestApp()
+        testLogger = getLogger()
+        val token = "google-token"
+
+        try {
+            app.login(Credentials.google(token))
+        } catch (error: AppException) {
+            // It will fail as long as oauth2 tokens aren't supported
+        } finally {
+            val facebookTokenLatestMessage = testLogger.message.contains("""
+            "authCode":"$token"
+        """.trimIndent())
+            val facebookTokenPreviousMessage = testLogger.previousMessage.contains("""
+            "authCode":"$token"
+        """.trimIndent())
+            assertTrue(facebookTokenLatestMessage || facebookTokenPreviousMessage)
+        }
+    }
+
+    @Test
+    fun googleTokenLogin_obfuscation() {
+        app = TestApp { builder ->
+            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, RegexObfuscatorPatternFactory.getObfuscators(LOGIN_FEATURE)))
+        }
+        testLogger = getLogger()
+        val token = "google-token"
+
+        try {
+            app.login(Credentials.google(token))
+        } catch (error: AppException) {
+            // It will fail as long as oauth2 tokens aren't supported
+        } finally {
+            val facebookTokenLatestMessage = testLogger.message.contains("""
+            "authCode":"***"
+        """.trimIndent())
+            val facebookTokenPreviousMessage = testLogger.previousMessage.contains("""
+            "authCode":"***"
+        """.trimIndent())
+            assertTrue(facebookTokenLatestMessage || facebookTokenPreviousMessage)
+        }
+    }
 
     private fun getLogger(): TestHelper.TestLogger =
             TestHelper.TestLogger().also {

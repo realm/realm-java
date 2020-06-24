@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
- * Obfuscator for token-related login requests.
+ * Obfuscator for oAuth2 token-related login requests.
  * <p>
  * It will replace the
  * <ul>

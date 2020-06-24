@@ -25,6 +25,10 @@ import io.realm.internal.obfuscator.EmailPasswordObfuscator;
 import io.realm.internal.obfuscator.RegexPatternObfuscator;
 import io.realm.internal.obfuscator.TokenObfuscator;
 
+/**
+ * The RegexObfuscatorPatternFactory provides the {@link RegexPatternObfuscator}s needed to
+ * obfuscate the HTTP requests being logged for a particular feature.
+ */
 public class RegexObfuscatorPatternFactory {
 
     public static final String LOGIN_FEATURE = "providers";

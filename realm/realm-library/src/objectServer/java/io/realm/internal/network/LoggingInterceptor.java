@@ -14,26 +14,23 @@
  * limitations under the License.
  */
 
-package io.realm.internal.network.interceptor;
+package io.realm.internal.network;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import io.realm.HttpLogObfuscator;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
-import io.realm.internal.obfuscator.HttpLogObfuscator;
-import io.realm.internal.obfuscator.RegexPatternObfuscator;
-import io.realm.mongodb.RegexObfuscatorPatternFactory;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
 import okio.Buffer;
 
 /**
- * The LoggingInterceptor prints information
+ * The LoggingInterceptor prints information on the HTTPS requests produced by a Realm app.
  */
 public class LoggingInterceptor implements Interceptor {
 
@@ -42,7 +39,7 @@ public class LoggingInterceptor implements Interceptor {
     @Nullable
     private HttpLogObfuscator httpLogObfuscator;
 
-    private LoggingInterceptor(@Nullable HttpLogObfuscator httpLogObfuscator) {
+    LoggingInterceptor(@Nullable HttpLogObfuscator httpLogObfuscator) {
         this.httpLogObfuscator = httpLogObfuscator;
     }
 
@@ -90,21 +87,5 @@ public class LoggingInterceptor implements Interceptor {
             return super.hashCode();
         }
         return httpLogObfuscator.hashCode() + 27;
-    }
-
-    /**
-     * Returns an initialized {@link Interceptor} for a specific feature, e.g. login would be
-     * {@code providers}.
-     *
-     * @param feature the feature to be intercepted or null if no obfuscation is to take place.
-     * @return the interceptor to be used for logging purposes.
-     */
-    public static LoggingInterceptor interceptor(@Nullable String feature) {
-        if (feature != null) {
-            Map<String, RegexPatternObfuscator> obfuscators = RegexObfuscatorPatternFactory.getObfuscators(RegexObfuscatorPatternFactory.LOGIN_FEATURE);
-            HttpLogObfuscator logObfuscator = HttpLogObfuscator.obfuscator(feature, obfuscators);
-            return new LoggingInterceptor(logObfuscator);
-        }
-        return new LoggingInterceptor(null);
     }
 }

@@ -15,6 +15,7 @@
  */
 package io.realm.internal.obfuscator
 
+import io.realm.HttpLogObfuscator
 import io.realm.mongodb.RegexObfuscatorPatternFactory
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -35,64 +36,50 @@ class HttpLogObfuscatorTest {
     private val loginObfuscators = RegexObfuscatorPatternFactory.getObfuscators(RegexObfuscatorPatternFactory.LOGIN_FEATURE)
 
     @Test
-    fun obfuscate_throwsNoFeature() {
-        assertFailsWith<IllegalArgumentException> {
-            HttpLogObfuscator.obfuscator(null, mapOf())
-        }
-    }
-
-    @Test
-    fun obfuscate_throwsNoPatterns() {
-        assertFailsWith<IllegalArgumentException> {
-            HttpLogObfuscator.obfuscator("blahblah", null)
-        }
-    }
-
-    @Test
     fun obfuscate_nothing() {
-        with(HttpLogObfuscator.obfuscator(FEATURE, mapOf())) {
+        with(HttpLogObfuscator(FEATURE, mapOf())) {
             assertEquals(IRRELEVANT_INPUT, obfuscate(listOf(), IRRELEVANT_INPUT))
         }
     }
 
     @Test
     fun obfuscate_apiKey() {
-        with(HttpLogObfuscator.obfuscator(FEATURE, loginObfuscators)) {
+        with(HttpLogObfuscator(FEATURE, loginObfuscators)) {
             assertEquals(API_KEY_OBFUSCATED_OUTPUT, obfuscate(apiKeyUrlSegments, API_KEY_ORIGINAL_INPUT))
         }
     }
 
     @Test
     fun obfuscate_customFunction() {
-        with(HttpLogObfuscator.obfuscator(FEATURE, loginObfuscators)) {
+        with(HttpLogObfuscator(FEATURE, loginObfuscators)) {
             assertEquals(CUSTOM_FUNCTION_OBFUSCATED_OUTPUT, obfuscate(customFunctionUrlSegments, CUSTOM_FUNCTION_ORIGINAL_INPUT))
         }
     }
 
     @Test
     fun obfuscate_emailPassword() {
-        with(HttpLogObfuscator.obfuscator(FEATURE, loginObfuscators)) {
+        with(HttpLogObfuscator(FEATURE, loginObfuscators)) {
             assertEquals(EMAIL_PASSWORD_OBFUSCATED_OUTPUT, obfuscate(emailPasswordUrlSegments, EMAIL_PASSWORD_ORIGINAL_INPUT))
         }
     }
 
     @Test
     fun obfuscate_tokenApple() {
-        with(HttpLogObfuscator.obfuscator(FEATURE, loginObfuscators)) {
+        with(HttpLogObfuscator(FEATURE, loginObfuscators)) {
             assertEquals(TOKEN_OBFUSCATED_OUTPUT_APPLE, obfuscate(tokenUrlSegmentsApple, TOKEN_ORIGINAL_INPUT_APPLE))
         }
     }
 
     @Test
     fun obfuscate_tokenFacebook() {
-        with(HttpLogObfuscator.obfuscator(FEATURE, loginObfuscators)) {
+        with(HttpLogObfuscator(FEATURE, loginObfuscators)) {
             assertEquals(TOKEN_OBFUSCATED_OUTPUT_FACEBOOK, obfuscate(tokenUrlSegmentsFacebook, TOKEN_ORIGINAL_INPUT_FACEBOOK))
         }
     }
 
     @Test
     fun obfuscate_tokenGoogle() {
-        with(HttpLogObfuscator.obfuscator(FEATURE, loginObfuscators)) {
+        with(HttpLogObfuscator(FEATURE, loginObfuscators)) {
             assertEquals(TOKEN_OBFUSCATED_OUTPUT_GOOGLE, obfuscate(tokenUrlSegmentsGoogle, TOKEN_ORIGINAL_INPUT_GOOGLE))
         }
     }

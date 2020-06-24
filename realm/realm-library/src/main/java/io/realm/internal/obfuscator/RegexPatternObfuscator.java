@@ -41,7 +41,13 @@ public abstract class RegexPatternObfuscator {
         this.patternReplacementMap = patternReplacementMap;
     }
 
-    protected String obfuscate(String input) {
+    /**
+     * Obfuscates a string according to the patterns and replacements an obfuscator has.
+     *
+     * @param input the string to obfuscate
+     * @return the obfuscate string
+     */
+    public String obfuscate(String input) {
         String obfuscatedString = input;
         Set<Map.Entry<Pattern, String>> entries = patternReplacementMap.entrySet();
         for (Map.Entry<Pattern, String> entry : entries) {

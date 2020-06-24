@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.internal.network.interceptor.LoggingInterceptor;
+import javax.annotation.Nullable;
+
+import io.realm.HttpLogObfuscator;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import okhttp3.Call;
 import okhttp3.ConnectionPool;
@@ -22,10 +24,11 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
 
     private volatile OkHttpClient client = null;
 
-    private LoggingInterceptor loggingInterceptor;
+    @Nullable
+    private final HttpLogObfuscator httpLogObfuscator;
 
-    public OkHttpNetworkTransport(LoggingInterceptor loggingInterceptor) {
-        this.loggingInterceptor = loggingInterceptor;
+    public OkHttpNetworkTransport(@Nullable HttpLogObfuscator httpLogObfuscator) {
+        this.httpLogObfuscator = httpLogObfuscator;
     }
 
     @Override
@@ -76,7 +79,7 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
             client = new OkHttpClient.Builder()
                     .callTimeout(timeoutMs, TimeUnit.MILLISECONDS)
                     .followRedirects(true)
-                    .addInterceptor(loggingInterceptor)
+                    .addInterceptor(new LoggingInterceptor(httpLogObfuscator))
                     // using custom Connection Pool to evict idle connection after 5 seconds rather than 5 minutes (which is the default)
                     // keeping idle connection on the pool will prevent the ROS to be stopped, since the HttpUtils#stopSyncServer query
                     // will not return before the tests timeout (ex 10 seconds for AuthTests)

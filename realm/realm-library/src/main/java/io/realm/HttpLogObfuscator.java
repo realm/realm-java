@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package io.realm.internal.obfuscator;
+package io.realm;
 
 import java.util.List;
 import java.util.Map;
 
 import io.realm.internal.Util;
+import io.realm.internal.obfuscator.RegexPatternObfuscator;
 
 /**
  * The HttpLogObfuscator keeps sensitive information from being displayed in the logcat.
@@ -29,7 +30,15 @@ public class HttpLogObfuscator {
     private String feature;
     private Map<String, RegexPatternObfuscator> patternObfuscatorMap;
 
-    private HttpLogObfuscator(String feature, Map<String, RegexPatternObfuscator> patternObfuscatorMap) {
+    /**
+     * Constructor for creating an HTTP log obfuscator.
+     *
+     * @param feature              the feature to obfuscate.
+     * @param patternObfuscatorMap {@link Map} of keys subject to being obfuscated and
+     *                             {@link RegexPatternObfuscator}s used to determine which
+     *                             obfuscator has to be used for the given feature.
+     */
+    public HttpLogObfuscator(String feature, Map<String, RegexPatternObfuscator> patternObfuscatorMap) {
         Util.checkNull(feature, "feature");
         this.feature = feature;
         Util.checkNull(patternObfuscatorMap, "patternObfuscatorMap");
@@ -67,20 +76,5 @@ public class HttpLogObfuscator {
     @Override
     public int hashCode() {
         return patternObfuscatorMap.hashCode() + 13;
-    }
-
-    /**
-     * Returns an initialized {@link HttpLogObfuscator} for a specific feature (e.g. login would be
-     * {@code providers}) and its corresponding {@link RegexPatternObfuscator}s.
-     *
-     * @param feature            the feature to obfuscate.
-     * @param patternObfuscators {@link Map} of keys subject to being obfuscated and
-     *                           {@link RegexPatternObfuscator}s used to determine which obfuscator has
-     *                           to be used for the given feature.
-     * @return the log obfuscator to be used.
-     */
-    public static HttpLogObfuscator obfuscator(String feature,
-                                               Map<String, RegexPatternObfuscator> patternObfuscators) {
-        return new HttpLogObfuscator(feature, patternObfuscators);
     }
 }
