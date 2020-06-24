@@ -16,6 +16,8 @@
 
 package io.realm.mongodb;
 
+import org.bson.Document;
+
 import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsAppCredentials;
@@ -48,12 +50,15 @@ import io.realm.mongodb.auth.EmailPasswordAuth;
  * }
  * }
  * </pre>
- * @see <a href="https://docs.mongodb.com/stitch/authentication/providers/">Authentication Providers</a>
+ *
+ * @see <a href="https://docs.mongodb.com/realm/authentication/providers/">Authentication Providers</a>
  */
 @Beta
 public class Credentials {
 
     OsAppCredentials osCredentials;
+
+    private final IdentityProvider identityProvider;
 
     /**
      * Creates credentials representing an anonymous user.
@@ -67,11 +72,11 @@ public class Credentials {
      * {@link App#loginAsync(Credentials, App.Callback)}.
      */
     public static Credentials anonymous() {
-        return new Credentials(OsAppCredentials.anonymous());
+        return new Credentials(OsAppCredentials.anonymous(), IdentityProvider.ANONYMOUS);
     }
 
     /**
-     * Creates credentials representing a login using an API key.
+     * Creates credentials representing a login using a user API key.
      * <p>
      * This provider must be enabled on MongoDB Realm to work.
      *
@@ -80,8 +85,22 @@ public class Credentials {
      * {@link App#loginAsync(Credentials, App.Callback)}.
      */
     public static Credentials apiKey(String key) {
-        Util.checkEmpty(key, "id");
-        return new Credentials(OsAppCredentials.apiKey(key));
+        Util.checkEmpty(key, "key");
+        return new Credentials(OsAppCredentials.apiKey(key), IdentityProvider.API_KEY);
+    }
+
+    /**
+     * Creates credentials representing a login using a server API key.
+     * <p>
+     * This provider must be enabled on MongoDB Realm to work.
+     *
+     * @param key the API key to use for login.
+     * @return a set of credentials that can be used to log into MongoDB Realm using
+     * {@link App#loginAsync(Credentials, App.Callback)}.
+     */
+    public static Credentials serverApiKey(String key) {
+        Util.checkEmpty(key, "key");
+        return new Credentials(OsAppCredentials.serverApiKey(key), IdentityProvider.SERVER_API_KEY);
     }
 
     /**
@@ -95,27 +114,30 @@ public class Credentials {
      */
     public static Credentials apple(String idToken) {
         Util.checkEmpty(idToken, "idToken");
-        return new Credentials(OsAppCredentials.apple(idToken));
+        return new Credentials(OsAppCredentials.apple(idToken), IdentityProvider.APPLE);
     }
 
     /**
-     * FIXME
+     * Creates credentials representing a remote function from MongoDB Realm using a
+     * {@link Document} which will be parsed as an argument to the remote function, so the keys must
+     * match the format and names the function expects.
      * <p>
      * This provider must be enabled on MongoDB Realm to work.
      *
+     * @param arguments document containing the function arguments.
      * @return a set of credentials that can be used to log into MongoDB Realm using
      * {@link App#loginAsync(Credentials, App.Callback)}.
      */
-    public static Credentials customFunction(String functionName, Object... arguments) {
-        // FIXME: How to check arguments?
-        Util.checkEmpty(functionName, "functionName");
-        return new Credentials(OsAppCredentials.customFunction(functionName, arguments));
+    public static Credentials customFunction(Document arguments) {
+        Util.checkNull(arguments, "arguments");
+        return new Credentials(OsAppCredentials.customFunction(arguments),
+                IdentityProvider.CUSTOM_FUNCTION);
     }
 
     /**
      * Creates credentials representing a login using email and password.
      *
-     * @param email email of the user logging in.
+     * @param email    email of the user logging in.
      * @param password password of the user logging in.
      * @return a set of credentials that can be used to log into MongoDB Realm using
      * {@link App#loginAsync(Credentials, App.Callback)}.
@@ -123,11 +145,12 @@ public class Credentials {
     public static Credentials emailPassword(String email, String password) {
         Util.checkEmpty(email, "email");
         Util.checkEmpty(password, "password");
-        return new Credentials(OsAppCredentials.emailPassword(email, password));
+        return new Credentials(OsAppCredentials.emailPassword(email, password),
+                IdentityProvider.EMAIL_PASSWORD);
     }
 
     /**
-     * Creates credentials representing a login using an Facebook access token.
+     * Creates credentials representing a login using a Facebook access token.
      * <p>
      * This provider must be enabled on MongoDB Realm to work.
      *
@@ -137,11 +160,11 @@ public class Credentials {
      */
     public static Credentials facebook(String accessToken) {
         Util.checkEmpty(accessToken, "accessToken");
-        return new Credentials(OsAppCredentials.facebook(accessToken));
+        return new Credentials(OsAppCredentials.facebook(accessToken), IdentityProvider.FACEBOOK);
     }
 
     /**
-     * Creates credentials representing a login using an Google access token.
+     * Creates credentials representing a login using a Google access token.
      * <p>
      * This provider must be enabled on MongoDB Realm to work.
      *
@@ -151,11 +174,11 @@ public class Credentials {
      */
     public static Credentials google(String googleToken) {
         Util.checkEmpty(googleToken, "googleToken");
-        return new Credentials(OsAppCredentials.google(googleToken));
+        return new Credentials(OsAppCredentials.google(googleToken), IdentityProvider.GOOGLE);
     }
 
     /**
-     * Creates credentials representing a login using an JWT Token. This token is normally generated
+     * Creates credentials representing a login using a JWT Token. This token is normally generated
      * after a custom OAuth2 login flow.
      * <p>
      * This provider must be enabled on MongoDB Realm to work.
@@ -166,16 +189,24 @@ public class Credentials {
      */
     public static Credentials jwt(String jwtToken) {
         Util.checkEmpty(jwtToken, "jwtToken");
-        return new Credentials(OsAppCredentials.jwt(jwtToken));
+        return new Credentials(OsAppCredentials.jwt(jwtToken), IdentityProvider.JWT);
     }
 
     /**
-     * Returns the id for the provider used to authenticate with.
+     * Returns the identity provider used to authenticate with.
      *
-     * @return the id identifying the chosen authentication provider.
+     * @return the provider identifying the chosen credentials.
      */
     public IdentityProvider getIdentityProvider() {
-        return IdentityProvider.fromId(osCredentials.getProvider());
+        String nativeProvider = osCredentials.getProvider();
+        String id = identityProvider.getId();
+
+        // Sanity check - ensure nothing changed in the OS
+        if (nativeProvider.equals(id)) {
+            return identityProvider;
+        } else {
+            throw new AssertionError("The provider from the Object Store differs from the one in Realm.");
+        }
     }
 
     /**
@@ -187,8 +218,9 @@ public class Credentials {
         return osCredentials.asJson();
     }
 
-    private Credentials(OsAppCredentials credentials) {
+    private Credentials(OsAppCredentials credentials, IdentityProvider identityProvider) {
         this.osCredentials = credentials;
+        this.identityProvider = identityProvider;
     }
 
     /**
@@ -200,9 +232,10 @@ public class Credentials {
      */
     public enum IdentityProvider {
         ANONYMOUS("anon-user"),
-        API_KEY(""), // FIXME
+        API_KEY("api-key"),
+        SERVER_API_KEY("api-key"),      // same value as API_KEY as per OS specifications
         APPLE("oauth2-apple"),
-        CUSTOM_FUNCTION(""), // FIXME
+        CUSTOM_FUNCTION("custom-function"),
         EMAIL_PASSWORD("local-userpass"),
         FACEBOOK("oauth2-facebook"),
         GOOGLE("oauth2-google"),

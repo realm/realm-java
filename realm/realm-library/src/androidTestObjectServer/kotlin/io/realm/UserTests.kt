@@ -21,13 +21,18 @@ import io.realm.admin.ServerAdmin
 import io.realm.mongodb.*
 import io.realm.mongodb.auth.ApiKeyAuth
 import io.realm.rule.BlockingLooperThread
+import io.realm.util.blockingGetResult
+import org.bson.Document
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.lang.IllegalArgumentException
+import kotlin.test.assertFailsWith
+
+val CUSTOM_USER_DATA_FIELD = "custom_field"
+val CUSTOM_USER_DATA_VALUE = "custom_data"
 
 @RunWith(AndroidJUnit4::class)
 class UserTests {
@@ -325,6 +330,90 @@ class UserTests {
         // Verify that two equal users also returns same hashCode
         assertFalse(user === sameUserNewLogin)
         assertEquals(user.hashCode(), sameUserNewLogin.hashCode())
+    }
+
+    @Test
+    @Ignore("Cannot automate custom user data cluster setup yet due to missing CLI support " +
+            "https://github.com/realm/realm-java/issues/6942")
+    fun customData_initiallyEmpty() {
+        val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        // Newly registered users do not have any custom data with current test server setup
+        assertEquals(Document(), user.customData)
+    }
+
+    @Test
+    @Ignore("Cannot automate custom user data cluster setup yet due to missing CLI support " +
+            "https://github.com/realm/realm-java/issues/6942")
+    fun customData_refresh() {
+        val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        // Newly registered users do not have any custom data with current test server setup
+        assertEquals(Document(), user.customData)
+
+        updateCustomData(user, Document(CUSTOM_USER_DATA_FIELD, CUSTOM_USER_DATA_VALUE))
+
+        val updatedCustomData = user.refreshCustomData()
+        assertEquals(CUSTOM_USER_DATA_VALUE, updatedCustomData[CUSTOM_USER_DATA_FIELD])
+        assertEquals(CUSTOM_USER_DATA_VALUE, user.customData[CUSTOM_USER_DATA_FIELD])
+    }
+
+    @Test
+    @Ignore("Cannot automate custom user data cluster setup yet due to missing CLI support " +
+            "https://github.com/realm/realm-java/issues/6942")
+    fun customData_refreshAsync() = looperThread.runBlocking {
+        val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        // Newly registered users do not have any custom data with current test server setup
+        assertEquals(Document(), user.customData)
+
+        updateCustomData(user, Document(CUSTOM_USER_DATA_FIELD, CUSTOM_USER_DATA_VALUE))
+
+        val updatedCustomData = user.refreshCustomData { result ->
+            val updatedCustomData = result.orThrow
+            assertEquals(CUSTOM_USER_DATA_VALUE, updatedCustomData[CUSTOM_USER_DATA_FIELD])
+            assertEquals(CUSTOM_USER_DATA_VALUE, user.customData[CUSTOM_USER_DATA_FIELD])
+            looperThread.testComplete()
+        }
+    }
+
+    @Test
+    @Ignore("Cannot automate custom user data cluster setup yet due to missing CLI support " +
+            "https://github.com/realm/realm-java/issues/6942")
+    fun customData_refreshByLogout() {
+        val password = "123456"
+        val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), password)
+        // Newly registered users do not have any custom data with current test server setup
+        assertEquals(Document(), user.customData)
+
+        updateCustomData(user, Document(CUSTOM_USER_DATA_FIELD, CUSTOM_USER_DATA_VALUE))
+
+        // But will be updated when authorization token is refreshed
+        user.logOut()
+        app.login(Credentials.emailPassword(user.email, password))
+        assertEquals(CUSTOM_USER_DATA_VALUE, user.customData.get(CUSTOM_USER_DATA_FIELD))
+    }
+
+    @Test
+    @Ignore("Cannot automate custom user data cluster setup yet due to missing CLI support " +
+            "https://github.com/realm/realm-java/issues/6942")
+    fun customData_refreshAsyncThrowsOnNonLooper() {
+        val password = "123456"
+        val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), password)
+
+        assertFailsWith<java.lang.IllegalStateException> {
+            user.refreshCustomData { }
+        }
+    }
+
+    private fun updateCustomData(user: User, data: Document) {
+        // Name of collection and property used for storing custom user data. Must match server config.json
+        val COLLECTION_NAME = "custom_user_data"
+        val USER_ID_FIELD = "userid"
+
+        val client = user.getMongoClient(SERVICE_NAME)
+        client.getDatabase(DATABASE_NAME).let {
+            it.getCollection(COLLECTION_NAME).also { collection ->
+                collection.insertOne(data.append(USER_ID_FIELD , user.id)).blockingGetResult()
+            }
+        }
     }
 
 }

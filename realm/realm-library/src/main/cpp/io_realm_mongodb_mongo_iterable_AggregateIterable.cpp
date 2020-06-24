@@ -25,15 +25,11 @@
 #include "object-store/src/util/bson/bson.hpp"
 
 #include <realm/util/optional.hpp>
-#include <sync/app.hpp>
-#include <sync/sync_user.hpp>
-#include <sync/remote_mongo_database.hpp>
 #include <sync/remote_mongo_collection.hpp>
 #include <jni_util/bson_util.hpp>
 #include <jni.h>
 
 using namespace realm;
-using namespace realm::app;
 using namespace realm::bson;
 using namespace realm::jni_util;
 using namespace realm::_impl;

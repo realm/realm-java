@@ -129,7 +129,7 @@ public abstract class Functions {
      * @param codecRegistry Codec registry to use for argument encoding and result decoding.
      * @param callback The callback that will receive the result or any errors from the request.
      * @param <T> The type that the response will be decoded as using the default codec registry.
-     * @return Result of the Realm function.
+     * @return The task representing the ongoing operation.
      *
      * @throws IllegalStateException if not called on a looper thread.
      *
@@ -159,7 +159,7 @@ public abstract class Functions {
      * @param resultClass  The type that the functions result should be converted to.
      * @param callback The callback that will receive the result or any errors from the request.
      * @param <T> The type that the response will be decoded as using the default codec registry.
-     * @return Result of the Realm function.
+     * @return The task representing the ongoing operation.
      *
      * @throws IllegalStateException if not called on a looper thread.
      *
@@ -181,7 +181,7 @@ public abstract class Functions {
      * @param resultDecoder The decoder used to decode the result.
      * @param callback The callback that will receive the result or any errors from the request.
      * @param <T> The type that the response will be decoded as using the {@code resultDecoder}
-     * @return Result of the Realm function.
+     * @return The task representing the ongoing operation.
      *
      * @throws IllegalStateException if not called on a looper thread.
      *
