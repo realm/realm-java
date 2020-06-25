@@ -13,27 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.internal.obfuscator
+package io.realm.mongodb.log.obfuscator
 
-import io.realm.HttpLogObfuscator
-import io.realm.mongodb.RegexObfuscatorPatternFactory
 import org.junit.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 
 const val IRRELEVANT_INPUT = """{"blahblahblah":"blehblehbleh"}"""
 const val FEATURE = "providers"
 
 class HttpLogObfuscatorTest {
 
-    private val apiKeyUrlSegments = listOf(RegexObfuscatorPatternFactory.LOGIN_FEATURE, "api-key")
-    private val customFunctionUrlSegments = listOf(RegexObfuscatorPatternFactory.LOGIN_FEATURE, "custom-function")
-    private val emailPasswordUrlSegments = listOf(RegexObfuscatorPatternFactory.LOGIN_FEATURE, "local-userpass")
-    private val tokenUrlSegmentsApple = listOf(RegexObfuscatorPatternFactory.LOGIN_FEATURE, "oauth2-apple")
-    private val tokenUrlSegmentsFacebook = listOf(RegexObfuscatorPatternFactory.LOGIN_FEATURE, "oauth2-facebook")
-    private val tokenUrlSegmentsGoogle = listOf(RegexObfuscatorPatternFactory.LOGIN_FEATURE, "oauth2-google")
+    private val apiKeyUrlSegments = listOf(RegexPatternObfuscatorFactory.LOGIN_FEATURE, "api-key")
+    private val customFunctionUrlSegments = listOf(RegexPatternObfuscatorFactory.LOGIN_FEATURE, "custom-function")
+    private val emailPasswordUrlSegments = listOf(RegexPatternObfuscatorFactory.LOGIN_FEATURE, "local-userpass")
+    private val tokenUrlSegmentsApple = listOf(RegexPatternObfuscatorFactory.LOGIN_FEATURE, "oauth2-apple")
+    private val tokenUrlSegmentsFacebook = listOf(RegexPatternObfuscatorFactory.LOGIN_FEATURE, "oauth2-facebook")
+    private val tokenUrlSegmentsGoogle = listOf(RegexPatternObfuscatorFactory.LOGIN_FEATURE, "oauth2-google")
 
-    private val loginObfuscators = RegexObfuscatorPatternFactory.getObfuscators(RegexObfuscatorPatternFactory.LOGIN_FEATURE)
+    private val loginObfuscators = RegexPatternObfuscatorFactory.getObfuscators(RegexPatternObfuscatorFactory.LOGIN_FEATURE)
 
     @Test
     fun obfuscate_nothing() {

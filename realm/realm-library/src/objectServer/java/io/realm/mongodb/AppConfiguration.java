@@ -40,11 +40,12 @@ import javax.annotation.Nullable;
 import io.realm.Realm;
 import io.realm.annotations.Beta;
 import io.realm.internal.Util;
-import io.realm.HttpLogObfuscator;
+import io.realm.mongodb.log.obfuscator.HttpLogObfuscator;
 import io.realm.log.RealmLog;
+import io.realm.mongodb.log.obfuscator.RegexPatternObfuscatorFactory;
 import io.realm.mongodb.sync.SyncSession;
 
-import static io.realm.mongodb.RegexObfuscatorPatternFactory.LOGIN_FEATURE;
+import static io.realm.mongodb.log.obfuscator.RegexPatternObfuscatorFactory.LOGIN_FEATURE;
 
 /**
  * A AppConfiguration is used to setup a MongoDB Realm application.
@@ -287,7 +288,7 @@ public class AppConfiguration {
         private CodecRegistry codecRegistry = DEFAULT_BSON_CODEC_REGISTRY;
         @Nullable
         private HttpLogObfuscator httpLogObfuscator =
-                new HttpLogObfuscator(LOGIN_FEATURE, RegexObfuscatorPatternFactory.getObfuscators(LOGIN_FEATURE));
+                new HttpLogObfuscator(LOGIN_FEATURE, RegexPatternObfuscatorFactory.getObfuscators(LOGIN_FEATURE));
 
         /**
          * Creates an instance of the Builder for the AppConfiguration.
@@ -493,6 +494,8 @@ public class AppConfiguration {
         /**
          * Sets the {@link HttpLogObfuscator} used to keep sensitive information in HTTP requests
          * from being displayed in the logcat.
+         * <p>
+         * If left unspecified, it will default to obfuscating HTTP login requests.
          *
          * @param httpLogObfuscator the default HTTP log obfuscator for the app.
          */

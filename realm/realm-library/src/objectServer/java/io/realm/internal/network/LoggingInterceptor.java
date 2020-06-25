@@ -21,16 +21,16 @@ import java.nio.charset.Charset;
 
 import javax.annotation.Nullable;
 
-import io.realm.HttpLogObfuscator;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
+import io.realm.mongodb.log.obfuscator.HttpLogObfuscator;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
 import okio.Buffer;
 
 /**
- * The LoggingInterceptor prints information on the HTTPS requests produced by a Realm app.
+ * The LoggingInterceptor prints information on the HTTP requests produced by a Realm app.
  */
 public class LoggingInterceptor implements Interceptor {
 

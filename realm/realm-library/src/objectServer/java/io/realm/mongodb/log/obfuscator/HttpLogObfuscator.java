@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package io.realm;
+package io.realm.mongodb.log.obfuscator;
 
 import java.util.List;
 import java.util.Map;
 
 import io.realm.internal.Util;
-import io.realm.internal.obfuscator.RegexPatternObfuscator;
 
 /**
  * The HttpLogObfuscator keeps sensitive information from being displayed in the logcat.

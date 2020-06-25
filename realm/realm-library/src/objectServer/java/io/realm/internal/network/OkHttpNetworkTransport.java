@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
-import io.realm.HttpLogObfuscator;
+import io.realm.mongodb.log.obfuscator.HttpLogObfuscator;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import okhttp3.Call;
 import okhttp3.ConnectionPool;

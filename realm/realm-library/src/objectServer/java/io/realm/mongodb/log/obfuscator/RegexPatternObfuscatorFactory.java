@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-package io.realm.mongodb;
+package io.realm.mongodb.log.obfuscator;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import io.realm.internal.obfuscator.ApiKeyObfuscator;
-import io.realm.internal.obfuscator.CustomFunctionObfuscator;
-import io.realm.internal.obfuscator.EmailPasswordObfuscator;
-import io.realm.internal.obfuscator.RegexPatternObfuscator;
-import io.realm.internal.obfuscator.TokenObfuscator;
+import io.realm.mongodb.Credentials;
 
 /**
- * The RegexObfuscatorPatternFactory provides the {@link RegexPatternObfuscator}s needed to
- * obfuscate the HTTP requests being logged for a particular feature.
+ * The RegexPatternObfuscatorFactory provides the {@link RegexPatternObfuscator}s needed to
+ * obfuscate HTTP requests being logged for a particular feature.
  */
-public class RegexObfuscatorPatternFactory {
+public class RegexPatternObfuscatorFactory {
 
     public static final String LOGIN_FEATURE = "providers";
 
@@ -46,8 +42,14 @@ public class RegexObfuscatorPatternFactory {
             }};
 
     /**
-     * Provides the {@link Map} of providers and {@link RegexPatternObfuscator}s corresponding to a
-     * concrete feature to be used in a {@link io.realm.mongodb.App}.
+     * Provides a {@link Map} of strings representing sensitive information that should be
+     * obfuscated and {@link RegexPatternObfuscator}s corresponding to a concrete feature to be used
+     * in a {@link io.realm.mongodb.App}.
+     * <p>
+     * For example, if we want to hide all sensitive information regarding login credentials, we
+     * have to pass a {@code providers} string as a feature. The factory will in turn provide a map
+     * of logcat entries susceptible to being obfuscated for that very feature and the obfuscators
+     * that will carry out the obfuscation itself.
      *
      * @param feature the feature to obfuscate.
      * @return the obfuscators that will be used in the app.

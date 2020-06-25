@@ -17,10 +17,10 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.internal.network.LoggingInterceptor
 import io.realm.mongodb.AppConfiguration
-import io.realm.mongodb.RegexObfuscatorPatternFactory
-import io.realm.mongodb.RegexObfuscatorPatternFactory.LOGIN_FEATURE
+import io.realm.mongodb.log.obfuscator.HttpLogObfuscator
+import io.realm.mongodb.log.obfuscator.RegexPatternObfuscatorFactory
+import io.realm.mongodb.log.obfuscator.RegexPatternObfuscatorFactory.LOGIN_FEATURE
 import org.bson.codecs.StringCodec
 import org.bson.codecs.configuration.CodecRegistries
 import org.junit.Assert.assertEquals
@@ -34,7 +34,6 @@ import org.junit.runner.RunWith
 import java.io.File
 import java.net.URL
 import kotlin.test.assertFailsWith
-import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 
 @RunWith(AndroidJUnit4::class)
@@ -284,7 +283,7 @@ class AppConfigurationTests {
         AppConfiguration.Builder("app-id")
                 .build()
                 .let {
-                    val defaultHttpLogObfuscator = HttpLogObfuscator(LOGIN_FEATURE, RegexObfuscatorPatternFactory.getObfuscators(LOGIN_FEATURE))
+                    val defaultHttpLogObfuscator = HttpLogObfuscator(LOGIN_FEATURE, RegexPatternObfuscatorFactory.getObfuscators(LOGIN_FEATURE))
                     assertEquals(defaultHttpLogObfuscator, it.httpLogObfuscator)
                 }
     }
