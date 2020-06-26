@@ -89,6 +89,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_mongodb_App_nativeCreate(JNIEnv* env, jobj
                                                             jstring j_app_name,
                                                             jstring j_app_version,
                                                             jlong j_request_timeout_ms,
+                                                            jbyteArray j_encryption_key,
                                                             jstring j_sync_base_dir,
                                                             jstring j_user_agent_binding_info,
                                                             jstring j_user_agent_application_info,
@@ -97,7 +98,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_mongodb_App_nativeCreate(JNIEnv* env, jobj
                                                             jstring j_sdk_version)
 {
     try {
-
         // App Config
         jobject java_app_obj = env->NewGlobalRef(obj); // FIXME: Leaking the app object
         std::function<std::unique_ptr<GenericNetworkTransport>()> transport_generator = [java_app_obj] {
@@ -114,6 +114,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_mongodb_App_nativeCreate(JNIEnv* env, jobj
         JStringAccessor platform(env, j_platform);
         JStringAccessor platform_version(env, j_platform_version);
         JStringAccessor sdk_version(env, j_sdk_version);
+        JByteArrayAccessor encryption_key(env, j_encryption_key);
+
         auto app_config = App::Config{
                 app_id,
                 transport_generator,
@@ -133,9 +135,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_mongodb_App_nativeCreate(JNIEnv* env, jobj
 
         SyncClientConfig client_config;
         client_config.base_file_path = base_file_path;
-        client_config.metadata_mode = SyncManager::MetadataMode::NoEncryption;
         client_config.user_agent_binding_info = user_agent_binding_info;
         client_config.user_agent_application_info = user_agent_application_info;
+
+        if(j_encryption_key == nullptr){
+            client_config.metadata_mode = SyncManager::MetadataMode::NoEncryption;
+        } else {
+            client_config.metadata_mode = SyncManager::MetadataMode::Encryption;
+            client_config.custom_encryption_key = encryption_key.transform<std::vector<char>>();
+        }
 
         // FIXME: SyncManager is still a singleton. Should be refactored to allow multiple
         SyncManager::shared().configure(client_config, app_config);

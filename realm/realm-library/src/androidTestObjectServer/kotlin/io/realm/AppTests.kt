@@ -18,6 +18,7 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
+import io.realm.exceptions.RealmFileException
 import io.realm.mongodb.*
 import io.realm.rule.BlockingLooperThread
 import org.bson.codecs.StringCodec
@@ -28,6 +29,7 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.File
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.assertFailsWith
 
@@ -265,4 +267,31 @@ class AppTests {
         assertEquals(registry, app.getFunctions(user, registry).defaultCodecRegistry)
     }
 
+    @Test()
+    fun encryption() {
+        // Remove the App instance created on setUp() because we need to create
+        // a custom one and only one App instance is allowed
+        tearDown()
+
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+
+        // Setup an App instance with a random encryption key
+        Realm.init(context)
+        app = TestApp(customizeConfig = {
+            it.encryptionKey(TestHelper.getRandomKey())
+        })
+
+        val metadataDir = File(context.filesDir, "realm-object-server/io.realm.object-server-utility/metadata/")
+        val config = RealmConfiguration.Builder()
+                .name("sync_metadata.realm")
+                .directory(metadataDir)
+                .build()
+
+        assertTrue(File(config.path).exists())
+
+        // Open the metadata realm file without a valid encryption key
+        assertFailsWith<RealmFileException> {
+            DynamicRealm.getInstance(config)
+        }
+    }
 }

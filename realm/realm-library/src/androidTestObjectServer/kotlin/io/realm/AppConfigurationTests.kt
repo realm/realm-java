@@ -20,8 +20,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.mongodb.AppConfiguration
 import org.bson.codecs.StringCodec
 import org.bson.codecs.configuration.CodecRegistries
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -218,15 +217,27 @@ class AppConfigurationTests {
     }
 
     @Test
-    @Ignore("FIXME")
     fun encryptionKey() {
-        TODO()
+        val key = TestHelper.getRandomKey()
+
+        val config = AppConfiguration.Builder("app-id")
+                .encryptionKey(key)
+                .build()
+
+        assertArrayEquals(key, config.encryptionKey)
     }
 
     @Test
-    @Ignore("FIXME")
     fun encryptionKey_invalidValuesThrows() {
-        TODO()
+        val builder = AppConfiguration.Builder("app-id")
+
+        assertFailsWith<IllegalArgumentException> {
+            builder.encryptionKey(TestHelper.getNull())
+        }
+
+        assertFailsWith<IllegalArgumentException> {
+            builder.encryptionKey(byteArrayOf(0,0,0,0))
+        }
     }
 
     @Test

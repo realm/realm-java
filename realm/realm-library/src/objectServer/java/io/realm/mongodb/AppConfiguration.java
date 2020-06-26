@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 import io.realm.Realm;
 import io.realm.annotations.Beta;
@@ -294,7 +295,7 @@ public class AppConfiguration {
          * @param key a 64 byte encryption key.
          * @throws IllegalArgumentException if the key is not 64 bytes long.
          */
-        public Builder encryptionKey(byte[] key) {
+        public Builder encryptionKey(@ParametersAreNonnullByDefault byte[] key) {
             Util.checkNull(key, "key");
             if (key.length != Realm.ENCRYPTION_KEY_LENGTH) {
                 throw new IllegalArgumentException(String.format(Locale.US,
