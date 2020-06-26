@@ -229,14 +229,14 @@ class AppConfigurationTests {
 
     @Test
     fun encryptionKey_invalidValuesThrows() {
+        val builder = AppConfiguration.Builder("app-id")
+
         assertFailsWith<IllegalArgumentException> {
-            AppConfiguration.Builder("app-id")
-                    .encryptionKey(null)
+            builder.encryptionKey(TestHelper.getNull())
         }
 
         assertFailsWith<IllegalArgumentException> {
-            AppConfiguration.Builder("app-id")
-                    .encryptionKey(byteArrayOf(0,0,0,0))
+            builder.encryptionKey(byteArrayOf(0,0,0,0))
         }
     }
 

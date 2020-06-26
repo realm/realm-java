@@ -269,10 +269,13 @@ class AppTests {
 
     @Test()
     fun encryption() {
+        // Remove the App instance created on setUp() because we need to create
+        // a custom one and only one App instance is allowed
         tearDown()
 
         val context = InstrumentationRegistry.getInstrumentation().targetContext
 
+        // Setup an App instance with a random encryption key
         Realm.init(context)
         app = TestApp(customizeConfig = {
             it.encryptionKey(TestHelper.getRandomKey())
@@ -284,6 +287,9 @@ class AppTests {
                 .directory(metadataDir)
                 .build()
 
+        assertTrue(File(config.path).exists())
+
+        // Open the metadata realm file without a valid encryption key
         assertFailsWith<RealmFileException> {
             DynamicRealm.getInstance(config)
         }
