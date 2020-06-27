@@ -64,6 +64,7 @@ class SyncedRealmTests {
 
     // Smoke test for Sync. Waiting for working Sync support.
     @Test
+    @Ignore("FIXME: https://github.com/realm/realm-java/issues/6972")
     fun connectWithInitialSchema() {
         val user: User = createNewUser()
         val config = createDefaultConfig(user)
