@@ -5,13 +5,14 @@ We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Clo
 The old Realm Cloud legacy APIs have undergone significant refactoring. The new APIs are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
 
 ### Breaking Changes
-* None.
+* [RealmApp] Realm files have changed location on disk, so Realms should upload all their data to the server before upgrading.
 
 ### Enhancements
 * None.
 
 ### Fixed
 * [RealmApp] Sync would not refresh the access token if started with an expired one. (Since 10.0.0-BETA.1) 
+* [RealmApp] The same user opening different Realms with different partion key values would crash with an IllegalArgumentException. (Issue [#6882](https://github.com/realm/realm-java/issues/6882), since 10.0.0-BETA.1)
 
 ### Compatibility
 * File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).

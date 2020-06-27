@@ -133,6 +133,18 @@ class SyncConfigurationTests {
     }
 
     @Test
+    @Ignore("FIXME: Waits for https://github.com/realm/realm-object-store/pull/1049")
+    fun name() {
+        TODO()
+    }
+
+    @Test
+    @Ignore("FIXME: Waits for https://github.com/realm/realm-object-store/pull/1049")
+    fun name_illegalValuesThrows() {
+        TODO()
+    }
+
+    @Test
     fun encryption() {
         val user: User = createTestUser(app)
         val config: SyncConfiguration = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
@@ -281,4 +293,26 @@ class SyncConfigurationTests {
         }
     }
 
+    // If the same user create two configurations with different partition values they must
+    // resolve to different paths on disk.
+    @Test
+    fun differentPartitionValuesAreDifferentRealms() {
+        val user: User = createTestUser(app)
+        val config1 = SyncConfiguration.defaultConfig(user, "realm1")
+        val config2 = SyncConfiguration.defaultConfig(user, "realm2")
+        assertNotEquals(config1.path, config2.path)
+
+        // Waiting for https://github.com/realm/realm-object-store/pull/1049 to be merged
+        // assertTrue(config1.path.endsWith("${app.configuration.appId}/${user.id}/realm1.realm"))
+        // assertTrue(config2.path.endsWith("${app.configuration.appId}/${user.id}/realm2.realm"))
+
+        // Check for https://github.com/realm/realm-java/issues/6882
+        val realm1 = Realm.getInstance(config1)
+        try {
+            val realm2 = Realm.getInstance(config2)
+            realm2.close()
+        } finally {
+            realm1.close()
+        }
+    }
 }

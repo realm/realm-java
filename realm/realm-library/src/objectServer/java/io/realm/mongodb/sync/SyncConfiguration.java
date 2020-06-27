@@ -95,11 +95,6 @@ import io.realm.rx.RxObservableFactory;
 @Beta
 public class SyncConfiguration extends RealmConfiguration {
 
-    // The FAT file system has limitations of length. Also, not all characters are permitted.
-    // https://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx
-    static final int MAX_FULL_PATH_LENGTH = 256;
-    static final int MAX_FILE_NAME_LENGTH = 255;
-    private static final char[] INVALID_CHARS = {'<', '>', ':', '"', '/', '\\', '|', '?', '*'};
     private final URI serverUrl;
     private final User user;
     private final SyncSession.ErrorHandler errorHandler;
@@ -111,9 +106,7 @@ public class SyncConfiguration extends RealmConfiguration {
     private final ClientResyncMode clientResyncMode;
     private final BsonValue partitionValue;
 
-    private SyncConfiguration(File directory,
-                              String filename,
-                              String canonicalPath,
+    private SyncConfiguration(File realmPath,
                               @Nullable String assetFilePath,
                               @Nullable byte[] key,
                               long schemaVersion,
@@ -136,9 +129,7 @@ public class SyncConfiguration extends RealmConfiguration {
                               @Nullable String syncUrlPrefix,
                               ClientResyncMode clientResyncMode,
                               BsonValue partitionValue) {
-        super(directory,
-                filename,
-                canonicalPath,
+        super(realmPath,
                 assetFilePath,
                 key,
                 schemaVersion,
@@ -455,8 +446,9 @@ public class SyncConfiguration extends RealmConfiguration {
         private RxObservableFactory rxFactory;
         @Nullable
         private Realm.Transaction initialDataTransaction;
+        @Nullable
+        private String fileName;
         private File defaultFolder;
-        private String defaultLocalFileName;
         private OsRealmConfig.Durability durability = OsRealmConfig.Durability.FULL;
         private final Pattern pattern = Pattern.compile("^[A-Za-z0-9_\\-\\.]+$"); // for checking serverUrl
         private boolean readOnly = false;
@@ -592,8 +584,21 @@ public class SyncConfiguration extends RealmConfiguration {
             } catch (URISyntaxException e) {
                 throw new IllegalArgumentException("Invalid URI: " + baseUrl, e);
             }
+        }
 
-            this.defaultLocalFileName = "default.realm";
+        /**
+         * FIXME: Make public once https://github.com/realm/realm-object-store/pull/1049 is merged.
+         *
+         * Sets the filename for the Realm file on this device.
+         */
+        Builder name(String filename) {
+            //noinspection ConstantConditions
+            if (filename == null || filename.isEmpty()) {
+                throw new IllegalArgumentException("A non-empty filename must be provided");
+            }
+
+            this.fileName = filename;
+            return this;
         }
 
         /**
@@ -1008,47 +1013,14 @@ public class SyncConfiguration extends RealmConfiguration {
                 rxFactory = new RealmObservableFactory(true);
             }
 
-            // FIXME: Figure out how to map to on-disk path. Partition key can be up to 16MB in size.
-            // Determine location on disk
-            // Use the serverUrl + user to create a unique filepath.
-            // The following types of paths can be generated
-            // <rootDir>/<userIdentifier>/default.realm
-            // <rootDir>/<userIdentifier>/<hashedPartionKey>/default.realm
-            URI resolvedServerUrl = serverUrl; // resolveServerUrl(serverUrl, user);
+            URI resolvedServerUrl = serverUrl;
             syncUrlPrefix = String.format("/api/client/v2.0/app/%s/realm-sync", user.getApp().getConfiguration().getAppId());
-            String realmPathFromRootDir = user.getId() + "/" + getServerPath(user, resolvedServerUrl);
-            File realmFileDirectory = new File(defaultFolder, realmPathFromRootDir);
-            String realmFileName = defaultLocalFileName;
-            String fullPathName = realmFileDirectory.getAbsolutePath() + File.pathSeparator + realmFileName;
 
-            // full path must not exceed 256 characters (on FAT)
-            if (fullPathName.length() > MAX_FULL_PATH_LENGTH) {
-                throw new IllegalStateException(String.format(Locale.US,
-                        "Full path name must not exceed %d characters: %s",
-                        MAX_FULL_PATH_LENGTH, fullPathName));
-            }
-
-            if (realmFileName.length() > MAX_FILE_NAME_LENGTH) {
-                throw new IllegalStateException(String.format(Locale.US,
-                        "File name exceed %d characters: %d", MAX_FILE_NAME_LENGTH,
-                        realmFileName.length()));
-            }
-
-            // substitute invalid characters
-            for (char c : INVALID_CHARS) {
-                realmFileName = realmFileName.replace(c, '_');
-            }
-
-            // Create the folder on disk (if needed)
-            if (!realmFileDirectory.exists() && !realmFileDirectory.mkdirs()) {
-                throw new IllegalStateException("Could not create directory for saving the Realm: " + realmFileDirectory);
-            }
+            String absolutePathForRealm = user.getApp().getSync().getAbsolutePathForRealm(user.getId(), partitionValue, fileName);
+            File realmFile = new File(absolutePathForRealm);
 
             return new SyncConfiguration(
-                    // Realm Configuration options
-                    realmFileDirectory,
-                    realmFileName,
-                    getCanonicalPath(new File(realmFileDirectory, realmFileName)),
+                    realmFile,
                     null, // assetFile not supported by Sync. See https://github.com/realm/realm-sync/issues/241
                     key,
                     schemaVersion,

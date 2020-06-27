@@ -109,9 +109,7 @@ public class RealmConfiguration {
 
     // We need to enumerate all parameters since SyncConfiguration and RealmConfiguration supports different
     // subsets of them.
-    protected RealmConfiguration(@Nullable File realmDirectory,
-            @Nullable String realmFileName,
-            String canonicalPath,
+    protected RealmConfiguration(File realmPath,
             @Nullable String assetFilePath,
             @Nullable byte[] key,
             long schemaVersion,
@@ -125,9 +123,9 @@ public class RealmConfiguration {
             @Nullable CompactOnLaunchCallback compactOnLaunch,
             boolean isRecoveryConfiguration,
             long maxNumberOfActiveVersions) {
-        this.realmDirectory = realmDirectory;
-        this.realmFileName = realmFileName;
-        this.canonicalPath = canonicalPath;
+        this.realmDirectory = realmPath.getParentFile();
+        this.realmFileName = realmPath.getName();
+        this.canonicalPath = realmPath.getAbsolutePath();
         this.assetFilePath = assetFilePath;
         this.key = key;
         this.schemaVersion = schemaVersion;
@@ -428,24 +426,13 @@ public class RealmConfiguration {
         return stringBuilder.toString();
     }
 
-    // Gets the canonical path for a given file.
-    protected static String getCanonicalPath(File realmFile) {
-        try {
-            return realmFile.getCanonicalPath();
-        } catch (IOException e) {
-            throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR,
-                    "Could not resolve the canonical path to the Realm file: " + realmFile.getAbsolutePath(),
-                    e);
-        }
-    }
-
     // Checks if this configuration is a SyncConfiguration instance.
     protected boolean isSyncConfiguration() {
         return false;
     }
 
     protected static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
-        return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true, Long.MAX_VALUE);
+        return new RealmConfiguration(new File(canonicalPath),null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true, Long.MAX_VALUE);
     }
 
     /**
@@ -837,9 +824,7 @@ public class RealmConfiguration {
                 rxFactory = new RealmObservableFactory(true);
             }
 
-            return new RealmConfiguration(directory,
-                    fileName,
-                    getCanonicalPath(new File(directory, fileName)),
+            return new RealmConfiguration(new File(directory, fileName),
                     assetFilePath,
                     key,
                     schemaVersion,
