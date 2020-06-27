@@ -37,37 +37,12 @@ class SyncTestUtils {
             RealmLog.setLevel(LogLevel.DEBUG)
         }
 
-        /**
-         * Tries to restore the environment as best as possible after a test.
-         */
-        fun restoreEnvironmentAfterTest() {
-            // Block until all users are logged out
-            UserFactory.logoutAllUsers()
-
-            // Reset log level
-            RealmLog.setLevel(originalLogLevel)
-            if (Realm.getApplicationContext() != null) {
-                // Realm was already initialized. Reset all internal state
-                // in order to be able to fully re-initialize.
-
-                // This will set the 'm_metadata_manager' in 'sync_manager.cpp' to be 'null'
-                // causing the User to remain in memory.
-                // They're actually not persisted into disk.
-                // move this call to 'tearDown' to clean in-memory & on-disk users
-                // once https://github.com/realm/realm-object-store/issues/207 is resolved
-                // SyncManager.reset(); // FIXME
-                RealmExt.testClearApplicationContext() // Required for Realm.init() to work
-            }
-            deleteRosFiles()
-            Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        }
-
         // Cleanup filesystem to make sure nothing lives for the next test.
         // Failing to do so might lead to DIVERGENT_HISTORY errors being thrown if Realms from
         // previous tests are being accessed.
-        private fun deleteRosFiles() {
-            val rosFiles = File(InstrumentationRegistry.getInstrumentation().context.filesDir, "realm-object-server")
-            deleteFile(rosFiles)
+        fun deleteSyncFiles() {
+            val syncFiles = File(InstrumentationRegistry.getInstrumentation().context.filesDir, "mongodb-realm")
+            deleteFile(syncFiles)
         }
 
         private fun deleteFile(file: File) {
