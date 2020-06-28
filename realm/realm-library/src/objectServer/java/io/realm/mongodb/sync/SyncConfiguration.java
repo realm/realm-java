@@ -448,9 +448,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private Realm.Transaction initialDataTransaction;
         @Nullable
         private String fileName;
-        private File defaultFolder;
         private OsRealmConfig.Durability durability = OsRealmConfig.Durability.FULL;
-        private final Pattern pattern = Pattern.compile("^[A-Za-z0-9_\\-\\.]+$"); // for checking serverUrl
         private boolean readOnly = false;
         private boolean waitForServerChanges = false;
         private long initialDataTimeoutMillis = Long.MAX_VALUE;
@@ -530,7 +528,6 @@ public class SyncConfiguration extends RealmConfiguration {
             validateAndSet(user);
             validateAndSet(user.getApp().getConfiguration().getBaseUrl());
             this.partitionValue = partitionValue;
-            this.defaultFolder = user.getApp().getConfiguration().getSyncRootDirectory();
             if (Realm.getDefaultModule() != null) {
                 this.modules.add(Realm.getDefaultModule());
             }
