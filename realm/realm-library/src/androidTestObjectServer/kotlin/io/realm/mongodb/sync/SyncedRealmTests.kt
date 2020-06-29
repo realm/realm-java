@@ -27,10 +27,7 @@ import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
-import io.realm.mongodb.App
-import io.realm.mongodb.Credentials
-import io.realm.mongodb.User
-import io.realm.mongodb.close
+import io.realm.mongodb.*
 import org.junit.*
 import org.junit.Assert.*
 import org.junit.runner.RunWith
@@ -67,6 +64,7 @@ class SyncedRealmTests {
 
     // Smoke test for Sync. Waiting for working Sync support.
     @Test
+    @Ignore("FIXME: https://github.com/realm/realm-java/issues/6972")
     fun connectWithInitialSchema() {
         val user: User = createNewUser()
         val config = createDefaultConfig(user)
@@ -148,6 +146,7 @@ class SyncedRealmTests {
         // User 1 creates an object an uploads it to MongoDB Realm
         val user1: User = createNewUser()
         val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
+        Realm.deleteRealm(config1)
         Realm.getInstance(config1).use { realm ->
             realm.executeTransaction {
                 val person = SyncPerson()
@@ -169,6 +168,7 @@ class SyncedRealmTests {
         // User 2 logs and using the same partition key should see the object
         val user2: User = createNewUser()
         val config2 = createDefaultConfig(user2, partitionValue)
+        Realm.deleteRealm(config2)
         Realm.getInstance(config2).use { realm ->
             realm.syncSession.downloadAllServerChanges()
             realm.refresh()

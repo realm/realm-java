@@ -138,8 +138,7 @@ public class RealmResultTaskImpl<T> implements RealmResultTask<T> {
     }
 
     /**
-     * The Executor class represent the portion of code the RealmResultTaskImpl will execute
-     * asynchronously.
+     * The Executor class represent the portion of code the RealmResultTaskImpl will execute.
      *
      * @param <T> the result type delivered by the task.
      */
@@ -148,7 +147,7 @@ public class RealmResultTaskImpl<T> implements RealmResultTask<T> {
         /**
          * Executes the code block.
          *
-         * @return the result of the task.
+         * @return the result yielded by the task.
          */
         public abstract T run();
     }
