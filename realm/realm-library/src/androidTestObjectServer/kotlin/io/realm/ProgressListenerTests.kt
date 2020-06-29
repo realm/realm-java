@@ -30,7 +30,6 @@ import io.realm.mongodb.sync.*
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
@@ -38,8 +37,6 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
-@Ignore("Uploads are sometimes stalling causing tests to fail, so ignoring for now. Issue " +
-        "is tracked in https://github.com/realm/realm-java/issues/6967")
 @RunWith(AndroidJUnit4::class)
 class ProgressListenerTests {
 
