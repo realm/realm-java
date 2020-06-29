@@ -30,6 +30,7 @@ import io.realm.mongodb.sync.*
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
@@ -273,6 +274,7 @@ class ProgressListenerTests {
     }
 
     @Test
+    @Ignore("Tracked by https://github.com/realm/realm-java/issues/6976")
     fun addProgressListener_triggerImmediatelyWhenRegistered_waitForInitialRemoteData() {
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val config = SyncConfiguration.Builder(user, getTestPartitionValue())
