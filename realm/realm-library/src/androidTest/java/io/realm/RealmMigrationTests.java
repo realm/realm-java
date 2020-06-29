@@ -1444,7 +1444,8 @@ public class RealmMigrationTests {
                 .schema(MigrationCore6PKStringIndexedByDefault.class)
                 .build());
         assertFalse(realm.isEmpty());
-        assertTrue(realm.getSchema().get("MigrationCore6PKStringIndexedByDefault").hasIndex("name"));
+        // Upgrading to Core 6 will strip all indexes on primary keys as they are no longer needed.
+        assertFalse(realm.getSchema().get("MigrationCore6PKStringIndexedByDefault").hasIndex("name"));
         MigrationCore6PKStringIndexedByDefault first = realm.where(MigrationCore6PKStringIndexedByDefault.class).findFirst();
         assertNotNull(first);
         assertEquals("Foo", first.name);
