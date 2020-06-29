@@ -7,6 +7,7 @@
 * Upgrading older Realm files with String indexes was very slow. (Issue [#6875](https://github.com/realm/realm-java/issues/6875), since 7.0.0)
 * Aborting upgrading a Realm file could result in the file getting corrupted. (Isse [#6866](https://github.com/realm/realm-java/issues/6866), since 7.0.0)
 * Automatic indexes on primary keys are now correctly stripped when upgrading the file as they are no longer needed. (Since 7.0.0)
+* "NoSuchTable" was thrown after comitting a transaction. (Issue [#6947](https://github.com/realm/realm-java/issues/6947))
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
