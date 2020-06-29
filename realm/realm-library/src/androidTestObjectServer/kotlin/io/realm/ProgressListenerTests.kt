@@ -274,7 +274,7 @@ class ProgressListenerTests {
     }
 
     @Test
-    @Ignore("Tracked by https://github.com/realm/realm-java/issues/6976")
+    @Ignore("FIXME: Tracked by https://github.com/realm/realm-java/issues/6976")
     fun addProgressListener_triggerImmediatelyWhenRegistered_waitForInitialRemoteData() {
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val config = SyncConfiguration.Builder(user, getTestPartitionValue())
