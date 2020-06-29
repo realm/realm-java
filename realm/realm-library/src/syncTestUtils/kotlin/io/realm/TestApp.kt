@@ -38,7 +38,7 @@ class TestApp(networkTransport: OsJavaNetworkTransport? = null, builder: (AppCon
     }
 
     companion object {
-        fun configurationBuilder(): AppConfiguration.Builder {
+        fun configurationBuilder(customizeConfig: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }): AppConfiguration.Builder {
             return AppConfiguration.Builder(initializeMongoDbRealm())
                     .baseUrl("http://127.0.0.1:9090")
                     .appName("MongoDB Realm Integration Tests")
@@ -55,7 +55,7 @@ class TestApp(networkTransport: OsJavaNetworkTransport? = null, builder: (AppCon
                     mapOf(),
                     ""
             )
-            return when(response.httpResponseCode) {
+            return when (response.httpResponseCode) {
                 200 -> response.body
                 else -> throw IllegalStateException(response.toString())
             }
