@@ -20,20 +20,21 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import io.realm.internal.RealmNotifier;
+import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.log.RealmLog;
 import io.realm.mongodb.App;
 import io.realm.mongodb.AppException;
 import io.realm.mongodb.ErrorCode;
-import io.realm.mongodb.RealmAsyncResultTask;
+import io.realm.mongodb.RealmResultTask;
 
 /**
- * FIXME - would RealmResultTask be a more suitable name given that it offers both blocking and async result-retrieval?
+ * Specific implementation of {@link RealmResultTask}.
  *
- * @param <T>
+ * @param <T> the result type delivered by this task.
  */
-public class RealmAsyncResultTaskImpl<T> implements RealmAsyncResultTask<T> {
+public class RealmResultTaskImpl<T> implements RealmResultTask<T> {
 
     private Future<?> pendingTask;
     private volatile boolean isCancelled = false;
@@ -42,13 +43,15 @@ public class RealmAsyncResultTaskImpl<T> implements RealmAsyncResultTask<T> {
     private Executor<T> executor;
 
     /**
-     * FIXME
+     * Constructor for RealmResultTaskImpl.
      *
-     * @param service
-     * @param executor
+     * @param service  pool thread service on which the task will be executed.
+     * @param executor the code block executed by the task.
      */
-    public RealmAsyncResultTaskImpl(ThreadPoolExecutor service, Executor<T> executor) {
+    public RealmResultTaskImpl(ThreadPoolExecutor service, Executor<T> executor) {
+        Util.checkNull(service, "service");
         this.service = service;
+        Util.checkNull(executor, "executor");
         this.executor = executor;
     }
 
@@ -83,12 +86,15 @@ public class RealmAsyncResultTaskImpl<T> implements RealmAsyncResultTask<T> {
     }
 
     @Override
-    public T blockingGet() {
+    public T get() {
         return executor.run();
     }
 
     @Override
-    public void get(App.Callback<T> callback) {
+    public void getAsync(App.Callback<T> callback) {
+        Util.checkNull(callback, "callback");
+        Util.checkLooperThread("RealmResultTaskImpl can only run on looper threads.");
+
         pendingTask = service.submit(new Runnable() {
             @Override
             public void run() {
@@ -132,11 +138,18 @@ public class RealmAsyncResultTaskImpl<T> implements RealmAsyncResultTask<T> {
     }
 
     /**
-     * FIXME
+     * The Executor class represent the portion of code the RealmResultTaskImpl will execute
+     * asynchronously.
      *
-     * @param <T>
+     * @param <T> the result type delivered by the task.
      */
     public abstract static class Executor<T> {
+
+        /**
+         * Executes the code block.
+         *
+         * @return the result of the task.
+         */
         public abstract T run();
     }
 }
