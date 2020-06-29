@@ -71,12 +71,11 @@ class ProgressListenerTests {
         val allChangesDownloaded = CountDownLatch(1)
         val user1: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val user1Config = createSyncConfig(user1)
+        createRemoteData(user1Config)
         val user2: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val user2Config = createSyncConfig(user2)
         Realm.getInstance(user2Config).use { realm ->
-            createRemoteData(user1Config)
             realm.syncSession.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES) { progress ->
-                RealmLog.error(progress.toString())
                 if (progress.isTransferComplete) {
                     assertTransferComplete(progress, true)
                     assertEquals(TEST_SIZE, getStoreTestDataSize(user2Config))
@@ -177,7 +176,6 @@ class ProgressListenerTests {
             assertEquals(SyncSession.State.ACTIVE, session.state)
             writeSampleData(realm)
             session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES) { progress ->
-                RealmLog.error(progress.toString());
                 if (progress.isTransferComplete) {
                     assertTransferComplete(progress, true)
                     allChangeUploaded.countDown()
@@ -284,7 +282,6 @@ class ProgressListenerTests {
                 val changesUploaded = CountDownLatch(1)
                 writeSampleData(realm)
                 session.addUploadProgressListener(ProgressMode.CURRENT_CHANGES) { progress ->
-                    RealmLog.info("Test %s -> %s", Integer.toString(i), progress.toString())
                     if (progress.isTransferComplete) {
                         assertTransferComplete(progress, true)
                         changesUploaded.countDown()
@@ -340,7 +337,6 @@ class ProgressListenerTests {
 
     private fun getStoreTestDataSize(config: RealmConfiguration): Long {
         Realm.getInstance(config).use { realm ->
-            realm.refresh()
             return realm.where<SyncDog>().count()
         }
     }
