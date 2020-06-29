@@ -268,8 +268,26 @@ class ProgressListenerTests {
         val config = createSyncConfig()
         Realm.getInstance(config).use { realm ->
             val session: SyncSession = realm.syncSession
-            checkListener(session, ProgressMode.INDEFINITELY)
-            checkListener(session, ProgressMode.CURRENT_CHANGES)
+            checkDownloadListener(session, ProgressMode.INDEFINITELY)
+            checkUploadListener(session, ProgressMode.INDEFINITELY)
+            checkDownloadListener(session, ProgressMode.CURRENT_CHANGES)
+            checkUploadListener(session, ProgressMode.CURRENT_CHANGES)
+        }
+    }
+
+    @Test
+    fun addProgressListener_triggerImmediatelyWhenRegistered_waitForInitialRemoteData() {
+        val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        val config = SyncConfiguration.Builder(user, getTestPartitionValue())
+                .waitForInitialRemoteData()
+                .modules(DefaultSyncSchema())
+                .build()
+        Realm.getInstance(config).use { realm ->
+            val session: SyncSession = realm.syncSession
+            checkDownloadListener(session, ProgressMode.INDEFINITELY)
+            checkUploadListener(session, ProgressMode.INDEFINITELY)
+            checkDownloadListener(session, ProgressMode.CURRENT_CHANGES)
+            checkUploadListener(session, ProgressMode.CURRENT_CHANGES)
         }
     }
 
@@ -292,11 +310,21 @@ class ProgressListenerTests {
         }
     }
 
-    private fun checkListener(session: SyncSession, progressMode: ProgressMode) {
+    private fun checkDownloadListener(session: SyncSession, progressMode: ProgressMode) {
         val listenerCalled = CountDownLatch(1)
-        session.addDownloadProgressListener(progressMode) { listenerCalled.countDown() }
-        TestHelper.awaitOrFail(listenerCalled)
+        session.addDownloadProgressListener(progressMode) { progress ->
+            listenerCalled.countDown()
+        }
+        TestHelper.awaitOrFail(listenerCalled, 30)
     }
+    private fun checkUploadListener(session: SyncSession, progressMode: ProgressMode) {
+        val listenerCalled = CountDownLatch(1)
+        session.addUploadProgressListener(progressMode) { progress ->
+            listenerCalled.countDown()
+        }
+        TestHelper.awaitOrFail(listenerCalled, 30)
+    }
+
 
     private fun writeSampleData(realm: Realm, partitionValue: String = getTestPartitionValue()) {
         realm.executeTransaction {
