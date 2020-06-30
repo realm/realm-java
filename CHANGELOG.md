@@ -15,8 +15,8 @@
 * APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
 
 ### Internal
-* Upgraded to Realm Sync 5.0.6.
-* Upgraded to Realm Core 6.0.7.
+* Upgraded to Realm Sync 5.0.7.
+* Upgraded to Realm Core 6.0.8.
 
 
 ## 7.0.0(2020-05-16)
