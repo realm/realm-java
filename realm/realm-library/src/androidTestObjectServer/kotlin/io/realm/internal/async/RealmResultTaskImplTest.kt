@@ -17,6 +17,7 @@
 package io.realm.internal.async
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.realm.TestHelper
 import io.realm.mongodb.App
 import io.realm.mongodb.AppException
 import io.realm.mongodb.RealmResultTask
@@ -38,7 +39,7 @@ class RealmResultTaskImplTest {
     @Test
     fun constructor_throwsOnNullArgs() {
         assertFailsWith<IllegalArgumentException> {
-            RealmResultTaskImpl<String>(null, object : RealmResultTaskImpl.Executor<String>() {
+            RealmResultTaskImpl<String>(TestHelper.getNull(), object : RealmResultTaskImpl.Executor<String>() {
                 override fun run(): String {
                     return "something"
                 }
@@ -46,7 +47,7 @@ class RealmResultTaskImplTest {
         }
 
         assertFailsWith<IllegalArgumentException> {
-            RealmResultTaskImpl<String>(service, null)
+            RealmResultTaskImpl<String>(service, TestHelper.getNull())
         }
     }
 

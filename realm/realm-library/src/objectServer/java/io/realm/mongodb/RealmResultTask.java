@@ -19,8 +19,8 @@ package io.realm.mongodb;
 import io.realm.RealmAsyncTask;
 
 /**
- * The RealmResultTask is a specific version of the {@link RealmAsyncTask} that provides a
- * mechanism to work with asynchronous operations carried out against the Object Server.
+ * The RealmResultTask is a specific version of {@link RealmAsyncTask} that provides a mechanism
+ * to work with asynchronous operations carried out against MongoDB Realm that yield a result.
  * <p>
  * This class offers both blocking ({@code get}) and non-blocking ({@code getAsync}) method calls.
  *
@@ -40,6 +40,8 @@ public interface RealmResultTask<T> extends RealmAsyncTask {
      * results and errors.
      *
      * @param callback the {@link App.Callback} designed to receive results.
+     * @throws IllegalStateException if called from a thread without a {@link android.os.Looper} or
+     *                               from an {@link android.app.IntentService} thread.
      */
     void getAsync(App.Callback<T> callback);
 }

@@ -30,7 +30,8 @@ import io.realm.mongodb.ErrorCode;
 import io.realm.mongodb.RealmResultTask;
 
 /**
- * Specific implementation of {@link RealmResultTask}.
+ * Implementation of RealmResultTask used internally by MongoDB Realm APIs. Implementation is
+ * separate from the interface so that we can hide the constructor from end users.
  *
  * @param <T> the result type delivered by this task.
  */
