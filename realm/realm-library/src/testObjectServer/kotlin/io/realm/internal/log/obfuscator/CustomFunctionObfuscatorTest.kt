@@ -13,49 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.mongodb.log.obfuscator
+package io.realm.internal.log.obfuscator
 
+import io.realm.ObfuscatorHelper
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-val EMAIL_PASSWORD_ORIGINAL_INPUT = """
-{
-  "blahblahblah":"blehblehbleh",
-  "username":"my_username",
-  "password":"123456",
-  "something":"random"
-}
-""".trimIndent()
-val EMAIL_PASSWORD_OBFUSCATED_OUTPUT = """
-{
-  "blahblahblah":"blehblehbleh",
-  "username":"***",
-  "password":"***",
-  "something":"random"
-}
-""".trimIndent()
-
-class EmailPasswordObfuscatorTest {
+class CustomFunctionObfuscatorTest {
 
     @Test
     fun obfuscate() {
-        EmailPasswordObfuscator.obfuscator()
-                .obfuscate(EMAIL_PASSWORD_ORIGINAL_INPUT)
-                .let { assertEquals(EMAIL_PASSWORD_OBFUSCATED_OUTPUT, it) }
+        CustomFunctionObfuscator.obfuscator()
+                .obfuscate(ObfuscatorHelper.CUSTOM_FUNCTION_ORIGINAL_INPUT)
+                .let { assertEquals(ObfuscatorHelper.CUSTOM_FUNCTION_OBFUSCATED_OUTPUT, it) }
     }
 
     @Test
     fun obfuscate_doesNothing() {
-        EmailPasswordObfuscator.obfuscator()
-                .obfuscate(IRRELEVANT_INPUT)
-                .let { assertEquals(IRRELEVANT_INPUT, it) }
+        CustomFunctionObfuscator.obfuscator()
+                .obfuscate(ObfuscatorHelper.IRRELEVANT_INPUT)
+                .let { assertEquals(ObfuscatorHelper.IRRELEVANT_INPUT, it) }
     }
 
     @Test
     fun obfuscate_fails() {
         assertFailsWith<NullPointerException> {
-            EmailPasswordObfuscator.obfuscator().obfuscate(null)
+            CustomFunctionObfuscator.obfuscator().obfuscate(null)
         }
     }
 }
+
+

@@ -20,17 +20,14 @@ import io.realm.Realm
 import io.realm.TestApp
 import io.realm.TestHelper
 import io.realm.admin.ServerAdmin
+import io.realm.internal.network.LoggingInterceptor.LOGIN_FEATURE
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
-import io.realm.mongodb.App
-import io.realm.mongodb.AppException
-import io.realm.mongodb.Credentials
-import io.realm.mongodb.close
+import io.realm.mongodb.*
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator
-import io.realm.mongodb.log.obfuscator.RegexPatternObfuscatorFactory
-import io.realm.mongodb.log.obfuscator.RegexPatternObfuscatorFactory.LOGIN_FEATURE
 import org.bson.Document
 import org.junit.After
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertTrue
@@ -73,7 +70,7 @@ class LoggingInterceptorTest {
     @Test
     fun emailPasswordRegistrationAndLogin_obfuscation() {
         app = TestApp { builder ->
-            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, RegexPatternObfuscatorFactory.getObfuscators(LOGIN_FEATURE)))
+            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, AppConfiguration.loginObfuscators))
         }
         testLogger = getLogger()
 
@@ -100,7 +97,7 @@ class LoggingInterceptorTest {
     @Test
     fun apiKeyLogin_obfuscation() {
         app = TestApp { builder ->
-            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, RegexPatternObfuscatorFactory.getObfuscators(LOGIN_FEATURE)))
+            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, AppConfiguration.loginObfuscators))
         }
         testLogger = getLogger()
         val admin = ServerAdmin()
@@ -133,7 +130,7 @@ class LoggingInterceptorTest {
     @Test
     fun customFunctionLogin_obfuscation() {
         app = TestApp { builder ->
-            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, RegexPatternObfuscatorFactory.getObfuscators(LOGIN_FEATURE)))
+            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, AppConfiguration.loginObfuscators))
         }
         testLogger = getLogger()
 
@@ -170,7 +167,7 @@ class LoggingInterceptorTest {
     @Test
     fun facebookTokenLogin_obfuscation() {
         app = TestApp { builder ->
-            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, RegexPatternObfuscatorFactory.getObfuscators(LOGIN_FEATURE)))
+            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, AppConfiguration.loginObfuscators))
         }
         testLogger = getLogger()
         val token = "facebook-token"
@@ -178,7 +175,7 @@ class LoggingInterceptorTest {
         try {
             app.login(Credentials.facebook(token))
         } catch (error: AppException) {
-            // It will fail as long as oauth2 tokens aren't supported
+            Assert.assertEquals(ErrorCode.INVALID_SESSION, error.errorCode)
         } finally {
             assertMessageExists(""""access_token":"***"""")
         }
@@ -193,7 +190,7 @@ class LoggingInterceptorTest {
         try {
             app.login(Credentials.apple(token))
         } catch (error: AppException) {
-            // It will fail as long as oauth2 tokens aren't supported
+            Assert.assertEquals(ErrorCode.INVALID_SESSION, error.errorCode)
         } finally {
             assertMessageExists(""""id_token":"$token"""")
         }
@@ -202,7 +199,7 @@ class LoggingInterceptorTest {
     @Test
     fun appleTokenLogin_obfuscation() {
         app = TestApp { builder ->
-            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, RegexPatternObfuscatorFactory.getObfuscators(LOGIN_FEATURE)))
+            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, AppConfiguration.loginObfuscators))
         }
         testLogger = getLogger()
         val token = "apple-token"
@@ -210,7 +207,7 @@ class LoggingInterceptorTest {
         try {
             app.login(Credentials.apple(token))
         } catch (error: AppException) {
-            // It will fail as long as oauth2 tokens aren't supported
+            Assert.assertEquals(ErrorCode.INVALID_SESSION, error.errorCode)
         } finally {
             assertMessageExists(""""id_token":"***"""")
         }
@@ -225,7 +222,7 @@ class LoggingInterceptorTest {
         try {
             app.login(Credentials.google(token))
         } catch (error: AppException) {
-            // It will fail as long as oauth2 tokens aren't supported
+            Assert.assertEquals(ErrorCode.INVALID_SESSION, error.errorCode)
         } finally {
             assertMessageExists(""""authCode":"$token"""")
         }
@@ -234,7 +231,7 @@ class LoggingInterceptorTest {
     @Test
     fun googleTokenLogin_obfuscation() {
         app = TestApp { builder ->
-            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, RegexPatternObfuscatorFactory.getObfuscators(LOGIN_FEATURE)))
+            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, AppConfiguration.loginObfuscators))
         }
         testLogger = getLogger()
         val token = "google-token"
@@ -242,7 +239,7 @@ class LoggingInterceptorTest {
         try {
             app.login(Credentials.google(token))
         } catch (error: AppException) {
-            // It will fail as long as oauth2 tokens aren't supported
+            Assert.assertEquals(ErrorCode.INVALID_SESSION, error.errorCode)
         } finally {
             assertMessageExists(""""authCode":"***"""")
         }

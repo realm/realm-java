@@ -259,13 +259,21 @@ public class SyncSession {
         return (sessionState == State.ACTIVE || sessionState == State.DYING) && connectionState == ConnectionState.CONNECTED;
     }
 
+    /**
+     * All progress listener events from native Sync are reported to this method.
+     */
+    @SuppressWarnings("unused")
     synchronized void notifyProgressListener(long listenerId, long transferredBytes, long transferableBytes) {
         Pair<ProgressListener, Progress> listener = listenerIdToProgressListenerMap.get(listenerId);
         if (listener != null) {
             Progress newProgressNotification = new Progress(transferredBytes, transferableBytes);
             if (!newProgressNotification.equals(listener.second)) {
                 listener.second = newProgressNotification;
-                listener.first.onChange(newProgressNotification);
+                try {
+                    listener.first.onChange(newProgressNotification);
+                } catch (Exception exception) {
+                    RealmLog.error(exception);
+                }
             }
         } else {
             RealmLog.debug("Trying unknown listener failed: " + listenerId);

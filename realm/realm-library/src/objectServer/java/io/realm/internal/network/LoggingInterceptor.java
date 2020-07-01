@@ -34,6 +34,8 @@ import okio.Buffer;
  */
 public class LoggingInterceptor implements Interceptor {
 
+    public static final String LOGIN_FEATURE = "providers";
+
     private static final Charset UTF8 = Charset.forName("UTF-8");
 
     @Nullable

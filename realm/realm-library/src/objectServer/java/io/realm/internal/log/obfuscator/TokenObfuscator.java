@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.mongodb.log.obfuscator;
+package io.realm.internal.log.obfuscator;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -36,16 +36,21 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 import io.realm.Realm;
 import io.realm.annotations.Beta;
 import io.realm.internal.Util;
-import io.realm.mongodb.log.obfuscator.HttpLogObfuscator;
+import io.realm.internal.log.obfuscator.ApiKeyObfuscator;
+import io.realm.internal.log.obfuscator.CustomFunctionObfuscator;
+import io.realm.internal.log.obfuscator.EmailPasswordObfuscator;
+import io.realm.internal.log.obfuscator.RegexPatternObfuscator;
+import io.realm.internal.log.obfuscator.TokenObfuscator;
 import io.realm.log.RealmLog;
-import io.realm.mongodb.log.obfuscator.RegexPatternObfuscatorFactory;
+import io.realm.mongodb.log.obfuscator.HttpLogObfuscator;
 import io.realm.mongodb.sync.SyncSession;
 
-import static io.realm.mongodb.log.obfuscator.RegexPatternObfuscatorFactory.LOGIN_FEATURE;
+import static io.realm.internal.network.LoggingInterceptor.LOGIN_FEATURE;
 
 /**
  * A AppConfiguration is used to setup a MongoDB Realm application.
@@ -105,6 +110,36 @@ public class AppConfiguration {
                     new MapCodecProvider()
             )
     );
+
+    /**
+     * Default obfuscators for login requests used in a MongoDB Realm app.
+     * <p>
+     * This map is needed to instantiate the default {@link HttpLogObfuscator}, which will keep all
+     * login-sensitive information from being shown in Logcat.
+     * <p>
+     * This map's keys represent the different login identity providers which can be used to
+     * authenticate against an app and the values are the concrete obfuscators used for that
+     * provider.
+     *
+     * @see Credentials.IdentityProvider
+     * @see RegexPatternObfuscator
+     * @see ApiKeyObfuscator
+     * @see TokenObfuscator
+     * @see CustomFunctionObfuscator
+     * @see EmailPasswordObfuscator
+     * @see HttpLogObfuscator
+     */
+    public static Map<String, RegexPatternObfuscator> loginObfuscators =
+            new HashMap<String, RegexPatternObfuscator>() {{
+                put(Credentials.IdentityProvider.API_KEY.getId(), ApiKeyObfuscator.obfuscator());
+                put(Credentials.IdentityProvider.SERVER_API_KEY.getId(), ApiKeyObfuscator.obfuscator());
+                put(Credentials.IdentityProvider.APPLE.getId(), TokenObfuscator.obfuscator());
+                put(Credentials.IdentityProvider.CUSTOM_FUNCTION.getId(), CustomFunctionObfuscator.obfuscator());
+                put(Credentials.IdentityProvider.EMAIL_PASSWORD.getId(), EmailPasswordObfuscator.obfuscator());
+                put(Credentials.IdentityProvider.FACEBOOK.getId(), TokenObfuscator.obfuscator());
+                put(Credentials.IdentityProvider.GOOGLE.getId(), TokenObfuscator.obfuscator());
+                put(Credentials.IdentityProvider.JWT.getId(), TokenObfuscator.obfuscator());
+            }};
 
     private final String appId;
     private final String appName;
@@ -244,6 +279,7 @@ public class AppConfiguration {
      *
      * @return the HTTP log obfuscator.
      */
+    @Nullable
     public HttpLogObfuscator getHttpLogObfuscator() {
         return httpLogObfuscator;
     }
@@ -287,8 +323,7 @@ public class AppConfiguration {
         private File syncRootDir;
         private CodecRegistry codecRegistry = DEFAULT_BSON_CODEC_REGISTRY;
         @Nullable
-        private HttpLogObfuscator httpLogObfuscator =
-                new HttpLogObfuscator(LOGIN_FEATURE, RegexPatternObfuscatorFactory.getObfuscators(LOGIN_FEATURE));
+        private HttpLogObfuscator httpLogObfuscator = new HttpLogObfuscator(LOGIN_FEATURE, loginObfuscators);
 
         /**
          * Creates an instance of the Builder for the AppConfiguration.
@@ -316,7 +351,7 @@ public class AppConfiguration {
          * @param key a 64 byte encryption key.
          * @throws IllegalArgumentException if the key is not 64 bytes long.
          */
-        public Builder encryptionKey(byte[] key) {
+        public Builder encryptionKey(@ParametersAreNonnullByDefault byte[] key) {
             Util.checkNull(key, "key");
             if (key.length != Realm.ENCRYPTION_KEY_LENGTH) {
                 throw new IllegalArgumentException(String.format(Locale.US,
@@ -400,7 +435,7 @@ public class AppConfiguration {
         /**
          * Adds an extra HTTP header to append to every request to a Realm Object Server.
          *
-         * @param headerName  the name of the header.
+         * @param headerName the name of the header.
          * @param headerValue the value of header.
          * @throws IllegalArgumentException if a non-empty {@code headerName} is provided or a null {@code headerValue}.
          */

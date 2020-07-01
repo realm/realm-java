@@ -20,9 +20,10 @@ import java.util.List;
 import java.util.Map;
 
 import io.realm.internal.Util;
+import io.realm.internal.log.obfuscator.RegexPatternObfuscator;
 
 /**
- * The HttpLogObfuscator keeps sensitive information from being displayed in the logcat.
+ * The HttpLogObfuscator keeps sensitive information from being displayed in Logcat.
  */
 public class HttpLogObfuscator {
 
@@ -32,7 +33,8 @@ public class HttpLogObfuscator {
     /**
      * Constructor for creating an HTTP log obfuscator.
      *
-     * @param feature              the feature to obfuscate.
+     * @param feature              the feature to obfuscate, e.g. "providers" for login requests -
+     *                             see {@link io.realm.internal.network.LoggingInterceptor}.
      * @param patternObfuscatorMap {@link Map} of keys subject to being obfuscated and
      *                             {@link RegexPatternObfuscator}s used to determine which
      *                             obfuscator has to be used for the given feature.
