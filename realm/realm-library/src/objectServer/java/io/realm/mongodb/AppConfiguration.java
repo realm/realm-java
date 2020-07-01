@@ -129,17 +129,7 @@ public class AppConfiguration {
      * @see EmailPasswordObfuscator
      * @see HttpLogObfuscator
      */
-    public static final Map<String, RegexPatternObfuscator> loginObfuscators =
-            new HashMap<String, RegexPatternObfuscator>() {{
-                put(Credentials.IdentityProvider.API_KEY.getId(), ApiKeyObfuscator.obfuscator());
-                put(Credentials.IdentityProvider.SERVER_API_KEY.getId(), ApiKeyObfuscator.obfuscator());
-                put(Credentials.IdentityProvider.APPLE.getId(), TokenObfuscator.obfuscator());
-                put(Credentials.IdentityProvider.CUSTOM_FUNCTION.getId(), CustomFunctionObfuscator.obfuscator());
-                put(Credentials.IdentityProvider.EMAIL_PASSWORD.getId(), EmailPasswordObfuscator.obfuscator());
-                put(Credentials.IdentityProvider.FACEBOOK.getId(), TokenObfuscator.obfuscator());
-                put(Credentials.IdentityProvider.GOOGLE.getId(), TokenObfuscator.obfuscator());
-                put(Credentials.IdentityProvider.JWT.getId(), TokenObfuscator.obfuscator());
-            }};
+    public static final Map<String, RegexPatternObfuscator> loginObfuscators = getLoginObfuscators();
 
     private final String appId;
     private final String appName;
@@ -282,6 +272,19 @@ public class AppConfiguration {
     @Nullable
     public HttpLogObfuscator getHttpLogObfuscator() {
         return httpLogObfuscator;
+    }
+
+    private static Map<String, RegexPatternObfuscator> getLoginObfuscators() {
+        final HashMap<String, RegexPatternObfuscator> obfuscators = new HashMap<>();
+        obfuscators.put(Credentials.IdentityProvider.API_KEY.getId(), ApiKeyObfuscator.obfuscator());
+        obfuscators.put(Credentials.IdentityProvider.SERVER_API_KEY.getId(), ApiKeyObfuscator.obfuscator());
+        obfuscators.put(Credentials.IdentityProvider.APPLE.getId(), TokenObfuscator.obfuscator());
+        obfuscators.put(Credentials.IdentityProvider.CUSTOM_FUNCTION.getId(), CustomFunctionObfuscator.obfuscator());
+        obfuscators.put(Credentials.IdentityProvider.EMAIL_PASSWORD.getId(), EmailPasswordObfuscator.obfuscator());
+        obfuscators.put(Credentials.IdentityProvider.FACEBOOK.getId(), TokenObfuscator.obfuscator());
+        obfuscators.put(Credentials.IdentityProvider.GOOGLE.getId(), TokenObfuscator.obfuscator());
+        obfuscators.put(Credentials.IdentityProvider.JWT.getId(), TokenObfuscator.obfuscator());
+        return obfuscators;
     }
 
     /**
