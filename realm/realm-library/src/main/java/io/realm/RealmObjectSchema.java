@@ -463,6 +463,20 @@ public abstract class RealmObjectSchema {
     }
 
     /**
+     * FIXME
+     *
+     * @return
+     */
+    public String getLinkType(String property) {
+        ColumnInfo.ColumnDetails columnDetails = columnInfo.getColumnDetails(property);
+        if (columnDetails == null) {
+            throw new IllegalStateException(String.format("Property %s not found.", property));
+        } else {
+            return columnDetails.linkedClassName;
+        }
+    }
+
+    /**
      * Get a parser for a field descriptor.
      *
      * @param fieldDescription fieldName or link path to a field name.

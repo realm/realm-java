@@ -19,7 +19,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.*
 import io.realm.entities.embedded.*
-import io.realm.kotlin.addChangeListener
 import io.realm.kotlin.createEmbeddedObject
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
@@ -121,6 +120,14 @@ class EmbeddedObjectsTest {
     }
 
     @Test
+    fun createEmbeddedObject_linkingTypesNotMatchingThrows() = realm.executeTransaction { realm ->
+        val parent = realm.createObject<EmbeddedSimpleParent>("parent")
+        assertFailsWith<IllegalStateException> {
+            realm.createEmbeddedObject<NonEmbeddedRealmModel>(parent, "child");
+        }
+    }
+
+    @Test
     fun createEmbeddedObject_simpleChildList() = realm.executeTransaction { realm ->
         // Using createEmbeddedObject() with a parent list, will append the object to the end
         // of the list
@@ -130,6 +137,16 @@ class EmbeddedObjectsTest {
         assertEquals(2, parent.children.size.toLong())
         assertEquals(child1, parent.children.first()!!)
         assertEquals(child2, parent.children.last()!!)
+    }
+
+    @Test
+    fun createEmbeddedObject_linkingTypesNotMatchingThrows_list() = realm.executeTransaction { realm ->
+        // Using createEmbeddedObject() with a parent list, will append the object to the end
+        // of the list
+        val parent = realm.createObject<EmbeddedSimpleListParent>(UUID.randomUUID().toString())
+        assertFailsWith<IllegalStateException> {
+            realm.createEmbeddedObject<NonEmbeddedRealmModel>(parent, "children")
+        }
     }
 
     @Test
