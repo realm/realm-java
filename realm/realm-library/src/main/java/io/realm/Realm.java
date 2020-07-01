@@ -1052,7 +1052,7 @@ public class Realm extends BaseRealm {
         RealmSchema schema = getSchema();
         RealmObjectSchema parentObjectSchema = schema.getSchemaForClass(parentObject.getClass());
         String className = schema.getSchemaForClass(clazz).getClassName();
-        String linkedType = parentObjectSchema.getLinkType(parentProperty);
+        String linkedType = parentObjectSchema.getPropertyType(parentProperty);
         Row embeddedObject;
 
         switch (parentPropertyType) {

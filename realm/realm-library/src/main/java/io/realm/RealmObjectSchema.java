@@ -463,11 +463,13 @@ public abstract class RealmObjectSchema {
     }
 
     /**
-     * FIXME
+     * Retrieves the type of a given property.
      *
-     * @return
+     * @param property the field for which we want to know the type.
+     * @return the name of the property.
+     * @throws IllegalStateException if the given property is not found in the schema.
      */
-    public String getLinkType(String property) {
+    public String getPropertyType(String property) {
         ColumnInfo.ColumnDetails columnDetails = columnInfo.getColumnDetails(property);
         if (columnDetails == null) {
             throw new IllegalStateException(String.format("Property %s not found.", property));
