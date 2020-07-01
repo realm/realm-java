@@ -129,7 +129,7 @@ public class AppConfiguration {
      * @see EmailPasswordObfuscator
      * @see HttpLogObfuscator
      */
-    public static Map<String, RegexPatternObfuscator> loginObfuscators =
+    public static final Map<String, RegexPatternObfuscator> loginObfuscators =
             new HashMap<String, RegexPatternObfuscator>() {{
                 put(Credentials.IdentityProvider.API_KEY.getId(), ApiKeyObfuscator.obfuscator());
                 put(Credentials.IdentityProvider.SERVER_API_KEY.getId(), ApiKeyObfuscator.obfuscator());
