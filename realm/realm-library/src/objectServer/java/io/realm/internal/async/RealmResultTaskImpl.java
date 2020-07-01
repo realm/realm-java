@@ -19,6 +19,8 @@ package io.realm.internal.async;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.RealmNotifier;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
@@ -40,7 +42,6 @@ public class RealmResultTaskImpl<T> implements RealmResultTask<T> {
     private Future<?> pendingTask;
     private volatile boolean isCancelled = false;
     private final ThreadPoolExecutor service;
-    private RealmNotifier handler = new AndroidRealmNotifier(null, new AndroidCapabilities());
     private Executor<T> executor;
 
     /**
@@ -96,46 +97,48 @@ public class RealmResultTaskImpl<T> implements RealmResultTask<T> {
         Util.checkNull(callback, "callback");
         Util.checkLooperThread("RealmResultTaskImpl can only run on looper threads.");
 
+        RealmNotifier handler = new AndroidRealmNotifier(null, new AndroidCapabilities());
+
         pendingTask = service.submit(new Runnable() {
             @Override
             public void run() {
                 try {
-                    postSuccess(executor.run(), callback);
+                    postSuccess(handler, executor.run(), callback);
                 } catch (AppException e) {
-                    postError(e, callback);
+                    postError(handler, e, callback);
                 } catch (Throwable e) {
-                    postError(new AppException(ErrorCode.UNKNOWN, "Unexpected error", e), callback);
+                    postError(handler, new AppException(ErrorCode.UNKNOWN, "Unexpected error", e), callback);
                 }
             }
         });
     }
 
-    private void postError(final AppException error, App.Callback<T> callback) {
-        boolean errorHandled = false;
-        if (callback != null) {
-            Runnable action = new Runnable() {
-                @Override
-                public void run() {
-                    callback.onResult(App.Result.withError(error));
-                }
-            };
-            errorHandled = handler.post(action);
-        }
+    private void postError(RealmNotifier handler,
+                           final AppException error,
+                           App.Callback<T> callback) {
+        boolean errorHandled;
+        Runnable action = new Runnable() {
+            @Override
+            public void run() {
+                callback.onResult(App.Result.withError(error));
+            }
+        };
+        errorHandled = handler.post(action);
 
         if (!errorHandled) {
             RealmLog.error(error, "An error was thrown, but could not be posted: \n" + error.toString());
         }
     }
 
-    private void postSuccess(final T result, App.Callback<T> callback) {
-        if (callback != null) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    callback.onResult((result == null) ? App.Result.success() : App.Result.withResult(result));
-                }
-            });
-        }
+    private void postSuccess(RealmNotifier handler,
+                             @Nullable final T result,
+                             App.Callback<T> callback) {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                callback.onResult((result == null) ? App.Result.success() : App.Result.withResult(result));
+            }
+        });
     }
 
     /**
@@ -150,6 +153,7 @@ public class RealmResultTaskImpl<T> implements RealmResultTask<T> {
          *
          * @return the result yielded by the task.
          */
+        @Nullable
         public abstract T run();
     }
 }

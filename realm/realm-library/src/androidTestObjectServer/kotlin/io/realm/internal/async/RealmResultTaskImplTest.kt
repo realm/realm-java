@@ -25,6 +25,7 @@ import io.realm.rule.BlockingLooperThread
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.*
 
 private const val OUTPUT = 42
@@ -52,7 +53,7 @@ class RealmResultTaskImplTest {
     }
 
     @Test
-    fun blockingGet() = RealmResultTaskImpl(
+    fun get() = RealmResultTaskImpl(
             service,
             object : RealmResultTaskImpl.Executor<Int>() {
                 override fun run(): Int {
@@ -62,7 +63,7 @@ class RealmResultTaskImplTest {
     ).let { task -> assertEquals(OUTPUT, task.get()) }
 
     @Test
-    fun blockingGet_fails() {
+    fun get_fails() {
         val task: RealmResultTask<String> = RealmResultTaskImpl(
                 service,
                 object : RealmResultTaskImpl.Executor<String>() {
@@ -79,9 +80,7 @@ class RealmResultTaskImplTest {
     }
 
     @Test
-    fun get_success() = looperThread.runBlocking {
-        // Create task inside blocking execution or else the handler won't initialize properly
-        // due to not having initialized the looper correctly
+    fun getAsync_success() = looperThread.runBlocking {
         val task: RealmResultTask<Int> = RealmResultTaskImpl(
                 service,
                 object : RealmResultTaskImpl.Executor<Int>() {
@@ -98,9 +97,7 @@ class RealmResultTaskImplTest {
     }
 
     @Test
-    fun get_returnsError() = looperThread.runBlocking {
-        // Create task inside blocking execution or else the handler won't initialize properly
-        // due to not having initialized the looper correctly
+    fun getAsync_returnsError() = looperThread.runBlocking {
         val task: RealmResultTask<String> = RealmResultTaskImpl(
                 service,
                 object : RealmResultTaskImpl.Executor<String>() {
@@ -123,19 +120,55 @@ class RealmResultTaskImplTest {
     }
 
     @Test
-    fun get_throwsDueToNoLooper() {
+    fun getAsync_throwsDueToNoLooper() {
         val task: RealmResultTask<String> = RealmResultTaskImpl(
                 service,
                 object : RealmResultTaskImpl.Executor<String>() {
                     override fun run(): String {
-                        fail("should fail before returning anything")
+                        fail("Should fail before returning anything")
                     }
                 }
         )
         assertFailsWith<IllegalStateException> {
             task.getAsync {
-                fail("should never reach this")
+                fail("Should never reach this callback")
             }
         }
+    }
+
+    @Test
+    fun cancel() {
+        val taskReference = AtomicReference<RealmResultTask<String>>()
+        val finishRunnable = Runnable {
+            looperThread.testComplete()
+        }
+        val task: RealmResultTask<String> = RealmResultTaskImpl(
+                service,
+                object : RealmResultTaskImpl.Executor<String>() {
+                    override fun run(): String? {
+                        // Ensure we cancel before returning a result
+                        BlockingLooperThread().runBlocking {
+                            taskReference.get().let {
+                                assertNotNull(it)
+                                assertFalse(it.isCancelled)
+
+                                it.cancel()
+
+                                looperThread.postRunnable(finishRunnable)
+                            }
+                        }
+                        fail("Should fail before returning anything")
+                    }
+                }
+        )
+        taskReference.set(task)
+
+        looperThread.runBlocking {
+            task.getAsync {
+                fail("Should never reach this callback")
+            }
+        }
+
+        assertTrue(task.isCancelled)
     }
 }
