@@ -120,7 +120,9 @@ public class RealmResultTaskImpl<T> implements RealmResultTask<T> {
         Runnable action = new Runnable() {
             @Override
             public void run() {
-                callback.onResult(App.Result.withError(error));
+                if (!isCancelled) {
+                    callback.onResult(App.Result.withError(error));
+                }
             }
         };
         errorHandled = handler.post(action);
@@ -136,7 +138,9 @@ public class RealmResultTaskImpl<T> implements RealmResultTask<T> {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                callback.onResult((result == null) ? App.Result.success() : App.Result.withResult(result));
+                if (!isCancelled) {
+                    callback.onResult((result == null) ? App.Result.success() : App.Result.withResult(result));
+                }
             }
         });
     }
