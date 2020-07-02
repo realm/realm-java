@@ -19,7 +19,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.*
 import io.realm.entities.embedded.*
-import io.realm.kotlin.addChangeListener
 import io.realm.kotlin.createEmbeddedObject
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
@@ -437,9 +436,39 @@ class EmbeddedObjectsTest {
     }
 
     @Test
-    @Ignore("Add in another PR")
-    fun createObjectFromJson() {
-        TODO("Placeholder for all tests regarding importing from JSON")
+    fun createEmbeddedObjectFromJson() {
+        realm.executeTransaction { realm ->
+            realm.createObjectFromJson(EmbeddedCircularParent::class.java, """
+                        { 
+                            "id": "uuid", 
+                            "singleChild": { 
+                                "id" : "childId", 
+                                "singleChild" : { 
+                                    "id": "embeddedChildId" 
+                                }
+                            }
+                        }
+                """.trimIndent() )
+        }
+        val circularParent
+                = realm.where(EmbeddedCircularParent::class.java).findFirst()!!
+        assertEquals("childId", circularParent.singleChild?.id)
+        assertEquals("embeddedChildId", circularParent.singleChild!!.singleChild!!.id)
+    }
+
+    @Test
+    @Ignore("FIXME Test not implemented yet")
+    fun createEmbeddedObjectListElementFromJson() {
+
+    }
+
+    @Test
+    fun createOrphanedEmbeddedObjectFromJsonThrows() {
+        assertFailsWith<IllegalArgumentException> {
+            realm.executeTransaction { realm ->
+                realm.createObjectFromJson(EmbeddedSimpleChild::class.java, """ {"id": "uuid" } """ )
+            }
+        }
     }
 
     @Test
