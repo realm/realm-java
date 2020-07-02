@@ -348,7 +348,6 @@ class UserTests {
     @Ignore("Not implemented yet")
     fun refreshToken() { }
 
-
     @Test
     fun revokedRefreshTokenIsNotSameAfterLogin() = looperThread.runBlocking {
         val password = "password"
@@ -358,15 +357,11 @@ class UserTests {
         app.addAuthenticationListener(object: AuthenticationListener {
             override fun loggedIn(user: User) { }
 
-            override fun loggedOut(user: User) {
-                app.loginAsync(Credentials.emailPassword(user.email, password)) {
-                    // FIXME Old API allowed verification of token identity
-                    // assertEquals(revokedRefreshToken.identity(), token.identity())
-
-                    // FIXME The below assertion does not hold. I guess the user is still the same
-                    //  but logged in again!?
-                    // assertNotEquals(user.refreshToken, it.orThrow.refreshToken)
-                    assertNotEquals(refreshToken, it.orThrow.refreshToken)
+            override fun loggedOut(loggerOutUser: User) {
+                app.loginAsync(Credentials.emailPassword(loggerOutUser.email, password)) {
+                    val loggedInUser = it.orThrow
+                    assertTrue(loggerOutUser !== loggedInUser)
+                    assertNotEquals(refreshToken, loggedInUser.refreshToken)
                     looperThread.testComplete()
                 }
             }
