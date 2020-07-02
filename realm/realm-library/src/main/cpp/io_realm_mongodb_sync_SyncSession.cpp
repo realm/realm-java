@@ -25,6 +25,7 @@
 #include "util.hpp"
 #include "java_class_global_def.hpp"
 #include "jni_util/java_global_ref.hpp"
+#include "jni_util/java_global_ref_copy.hpp"
 #include "jni_util/java_local_ref.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/java_class.hpp"
@@ -77,12 +78,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddProgress
         static JavaClass java_syncsession_class(env, "io/realm/mongodb/sync/SyncSession");
         static JavaMethod java_notify_progress_listener(env, java_syncsession_class, "notifyProgressListener", "(JJJ)V");
 
-        auto session_ref = env->NewGlobalRef(j_session_object); // This leaks. FIXME
-        std::function<SyncProgressNotifierCallback> callback = [session_ref, local_realm_path, listener_id](uint64_t transferred, uint64_t transferrable) {
+        auto callback = [session_ref = JavaGlobalRefCopy(env, j_session_object), local_realm_path, listener_id](uint64_t transferred, uint64_t transferrable) {
             JNIEnv* local_env = jni_util::JniUtils::get_env(true);
 
             JavaLocalRef<jstring> path(local_env, to_jstring(local_env, local_realm_path));
-            local_env->CallVoidMethod(session_ref,
+            local_env->CallVoidMethod(session_ref.get(),
                     java_notify_progress_listener,
                     listener_id,
                     static_cast<jlong>(transferred),

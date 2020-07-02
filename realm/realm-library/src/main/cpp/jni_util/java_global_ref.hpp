@@ -22,7 +22,8 @@
 namespace realm {
 namespace jni_util {
 
-// Manage the lifecycle of jobject's global ref.
+// Manage the lifecycle of jobject's global ref. via move constructors/operations.
+// Anytime we assign an instance we move the contents to the next one, this way we keep just one open reference
 class JavaGlobalRef {
 public:
     JavaGlobalRef()
