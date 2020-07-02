@@ -16,19 +16,20 @@
 
 package io.realm.mongodb.mongo;
 
-import com.google.android.gms.tasks.Task;
-
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.concurrent.ThreadPoolExecutor;
+
+import javax.annotation.Nullable;
 
 import io.realm.annotations.Beta;
-import io.realm.internal.common.TaskDispatcher;
+import io.realm.internal.async.RealmResultTaskImpl;
+import io.realm.internal.objectstore.OsMongoCollection;
+import io.realm.mongodb.RealmResultTask;
 import io.realm.mongodb.mongo.iterable.AggregateIterable;
 import io.realm.mongodb.mongo.iterable.FindIterable;
-import io.realm.internal.objectstore.OsMongoCollection;
 import io.realm.mongodb.mongo.options.CountOptions;
 import io.realm.mongodb.mongo.options.FindOneAndModifyOptions;
 import io.realm.mongodb.mongo.options.FindOptions;
@@ -54,14 +55,14 @@ public class MongoCollection<DocumentT> {
 
     private final MongoNamespace nameSpace;
     private final OsMongoCollection<DocumentT> osMongoCollection;
-    private final TaskDispatcher dispatcher;
+    private final ThreadPoolExecutor threadPoolExecutor;
 
     MongoCollection(final MongoNamespace nameSpace,
                     final OsMongoCollection<DocumentT> osMongoCollection,
-                    final TaskDispatcher dispatcher) {
+                    final ThreadPoolExecutor threadPoolExecutor) {
         this.nameSpace = nameSpace;
         this.osMongoCollection = osMongoCollection;
-        this.dispatcher = dispatcher;
+        this.threadPoolExecutor = threadPoolExecutor;
     }
 
     /**
@@ -108,7 +109,8 @@ public class MongoCollection<DocumentT> {
     public <NewDocumentT> MongoCollection<NewDocumentT> withDocumentClass(
             final Class<NewDocumentT> clazz) {
         return new MongoCollection<>(nameSpace,
-                osMongoCollection.withDocumentClass(clazz), dispatcher);
+                osMongoCollection.withDocumentClass(clazz),
+                threadPoolExecutor);
     }
 
     /**
@@ -120,7 +122,8 @@ public class MongoCollection<DocumentT> {
      */
     public MongoCollection<DocumentT> withCodecRegistry(final CodecRegistry codecRegistry) {
         return new MongoCollection<>(nameSpace,
-                osMongoCollection.withCodecRegistry(codecRegistry), dispatcher);
+                osMongoCollection.withCodecRegistry(codecRegistry),
+                threadPoolExecutor);
     }
 
     /**
@@ -128,10 +131,11 @@ public class MongoCollection<DocumentT> {
      *
      * @return a task containing the number of documents in the collection
      */
-    public Task<Long> count() {
-        return dispatcher.dispatchTask(new Callable<Long>() {
+    public RealmResultTask<Long> count() {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<Long>() {
+            @Nullable
             @Override
-            public Long call() throws Exception {
+            public Long run() {
                 return osMongoCollection.count();
             }
         });
@@ -143,14 +147,14 @@ public class MongoCollection<DocumentT> {
      * @param filter the query filter
      * @return a task containing the number of documents in the collection
      */
-    public Task<Long> count(final Bson filter) {
-        return dispatcher.dispatchTask(new Callable<Long>() {
-                                           @Override
-                                           public Long call() throws Exception {
-                                               return osMongoCollection.count(filter);
-                                           }
-                                       }
-        );
+    public RealmResultTask<Long> count(final Bson filter) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<Long>() {
+            @Nullable
+            @Override
+            public Long run() {
+                return osMongoCollection.count(filter);
+            }
+        });
     }
 
     /**
@@ -160,14 +164,14 @@ public class MongoCollection<DocumentT> {
      * @param options the options describing the count
      * @return a task containing the number of documents in the collection
      */
-    public Task<Long> count(final Bson filter, final CountOptions options) {
-        return dispatcher.dispatchTask(new Callable<Long>() {
-                                           @Override
-                                           public Long call() throws Exception {
-                                               return osMongoCollection.count(filter, options);
-                                           }
-                                       }
-        );
+    public RealmResultTask<Long> count(final Bson filter, final CountOptions options) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<Long>() {
+            @Nullable
+            @Override
+            public Long run() {
+                return osMongoCollection.count(filter, options);
+            }
+        });
     }
 
     /**
@@ -175,10 +179,11 @@ public class MongoCollection<DocumentT> {
      *
      * @return a task containing the result of the find one operation
      */
-    public Task<DocumentT> findOne() {
-        return dispatcher.dispatchTask(new Callable<DocumentT>() {
+    public RealmResultTask<DocumentT> findOne() {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<DocumentT>() {
+            @Nullable
             @Override
-            public DocumentT call() throws Exception {
+            public DocumentT run() {
                 return osMongoCollection.findOne();
             }
         });
@@ -191,14 +196,14 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type
      * @return a task containing the result of the find one operation
      */
-    public <ResultT> Task<ResultT> findOne(final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(new Callable<ResultT>() {
-                                           @Override
-                                           public ResultT call() throws Exception {
-                                               return osMongoCollection.findOne(resultClass);
-                                           }
-                                       }
-        );
+    public <ResultT> RealmResultTask<ResultT> findOne(final Class<ResultT> resultClass) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<ResultT>() {
+            @Nullable
+            @Override
+            public ResultT run() {
+                return osMongoCollection.findOne(resultClass);
+            }
+        });
     }
 
     /**
@@ -207,14 +212,14 @@ public class MongoCollection<DocumentT> {
      * @param filter the query filter
      * @return a task containing the result of the find one operation
      */
-    public Task<DocumentT> findOne(final Bson filter) {
-        return dispatcher.dispatchTask(new Callable<DocumentT>() {
-                                           @Override
-                                           public DocumentT call() throws Exception {
-                                               return osMongoCollection.findOne(filter);
-                                           }
-                                       }
-        );
+    public RealmResultTask<DocumentT> findOne(final Bson filter) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<DocumentT>() {
+            @Nullable
+            @Override
+            public DocumentT run() {
+                return osMongoCollection.findOne(filter);
+            }
+        });
     }
 
     /**
@@ -225,14 +230,14 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the result of the find one operation
      */
-    public <ResultT> Task<ResultT> findOne(final Bson filter, final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(new Callable<ResultT>() {
-                                           @Override
-                                           public ResultT call() throws Exception {
-                                               return osMongoCollection.findOne(filter, resultClass);
-                                           }
-                                       }
-        );
+    public <ResultT> RealmResultTask<ResultT> findOne(final Bson filter, final Class<ResultT> resultClass) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<ResultT>() {
+            @Nullable
+            @Override
+            public ResultT run() {
+                return osMongoCollection.findOne(filter, resultClass);
+            }
+        });
     }
 
     /**
@@ -242,14 +247,14 @@ public class MongoCollection<DocumentT> {
      * @param options a {@link FindOptions} struct
      * @return a task containing the result of the find one operation
      */
-    public Task<DocumentT> findOne(final Bson filter, final FindOptions options) {
-        return dispatcher.dispatchTask(new Callable<DocumentT>() {
-                                           @Override
-                                           public DocumentT call() throws Exception {
-                                               return osMongoCollection.findOne(filter, options);
-                                           }
-                                       }
-        );
+    public RealmResultTask<DocumentT> findOne(final Bson filter, final FindOptions options) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<DocumentT>() {
+            @Nullable
+            @Override
+            public DocumentT run() {
+                return osMongoCollection.findOne(filter, options);
+            }
+        });
     }
 
     /**
@@ -261,16 +266,16 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the result of the find one operation
      */
-    public <ResultT> Task<ResultT> findOne(final Bson filter,
-                                           final FindOptions options,
-                                           final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(new Callable<ResultT>() {
-                                           @Override
-                                           public ResultT call() throws Exception {
-                                               return osMongoCollection.findOne(filter, options, resultClass);
-                                           }
-                                       }
-        );
+    public <ResultT> RealmResultTask<ResultT> findOne(final Bson filter,
+                                                      final FindOptions options,
+                                                      final Class<ResultT> resultClass) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<ResultT>() {
+            @Nullable
+            @Override
+            public ResultT run() {
+                return osMongoCollection.findOne(filter, options, resultClass);
+            }
+        });
     }
 
     /**
@@ -320,7 +325,7 @@ public class MongoCollection<DocumentT> {
      * elements can be extracted.
      *
      * @param resultClass the class to decode each document into
-     * @param options a {@link FindOptions} struct for building the query
+     * @param options     a {@link FindOptions} struct for building the query
      * @param <ResultT>   the target document type of the iterable.
      * @return an iterable containing the result of the find operation
      */
@@ -349,7 +354,7 @@ public class MongoCollection<DocumentT> {
      * All documents will be delivered in the form of a {@link FindIterable} from which individual
      * elements can be extracted.
      *
-     * @param filter the query filter
+     * @param filter  the query filter
      * @param options a {@link FindOptions} struct
      * @return an iterable containing the result of the find operation
      */
@@ -429,14 +434,14 @@ public class MongoCollection<DocumentT> {
      * @param document the document to insert
      * @return a task containing the result of the insert one operation
      */
-    public Task<InsertOneResult> insertOne(final DocumentT document) {
-        return dispatcher.dispatchTask(new Callable<InsertOneResult>() {
-                                           @Override
-                                           public InsertOneResult call() throws Exception {
-                                               return osMongoCollection.insertOne(document);
-                                           }
-                                       }
-        );
+    public RealmResultTask<InsertOneResult> insertOne(final DocumentT document) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<InsertOneResult>() {
+            @Nullable
+            @Override
+            public InsertOneResult run() {
+                return osMongoCollection.insertOne(document);
+            }
+        });
     }
 
     /**
@@ -445,14 +450,14 @@ public class MongoCollection<DocumentT> {
      * @param documents the documents to insert
      * @return a task containing the result of the insert many operation
      */
-    public Task<InsertManyResult> insertMany(final List<? extends DocumentT> documents) {
-        return dispatcher.dispatchTask(new Callable<InsertManyResult>() {
-                                           @Override
-                                           public InsertManyResult call() throws Exception {
-                                               return osMongoCollection.insertMany(documents);
-                                           }
-                                       }
-        );
+    public RealmResultTask<InsertManyResult> insertMany(final List<? extends DocumentT> documents) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<InsertManyResult>() {
+            @Nullable
+            @Override
+            public InsertManyResult run() {
+                return osMongoCollection.insertMany(documents);
+            }
+        });
     }
 
     /**
@@ -463,14 +468,14 @@ public class MongoCollection<DocumentT> {
      * @param filter the query filter to apply the the delete operation
      * @return a task containing the result of the remove one operation
      */
-    public Task<DeleteResult> deleteOne(final Bson filter) {
-        return dispatcher.dispatchTask(new Callable<DeleteResult>() {
-                                           @Override
-                                           public DeleteResult call() throws Exception {
-                                               return osMongoCollection.deleteOne(filter);
-                                           }
-                                       }
-        );
+    public RealmResultTask<DeleteResult> deleteOne(final Bson filter) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<DeleteResult>() {
+            @Nullable
+            @Override
+            public DeleteResult run() {
+                return osMongoCollection.deleteOne(filter);
+            }
+        });
     }
 
     /**
@@ -480,14 +485,14 @@ public class MongoCollection<DocumentT> {
      * @param filter the query filter to apply the the delete operation
      * @return a task containing the result of the remove many operation
      */
-    public Task<DeleteResult> deleteMany(final Bson filter) {
-        return dispatcher.dispatchTask(new Callable<DeleteResult>() {
-                                           @Override
-                                           public DeleteResult call() throws Exception {
-                                               return osMongoCollection.deleteMany(filter);
-                                           }
-                                       }
-        );
+    public RealmResultTask<DeleteResult> deleteMany(final Bson filter) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<DeleteResult>() {
+            @Nullable
+            @Override
+            public DeleteResult run() {
+                return osMongoCollection.deleteMany(filter);
+            }
+        });
     }
 
     /**
@@ -498,14 +503,14 @@ public class MongoCollection<DocumentT> {
      *               apply must include only update operators.
      * @return a task containing the result of the update one operation
      */
-    public Task<UpdateResult> updateOne(final Bson filter, final Bson update) {
-        return dispatcher.dispatchTask(new Callable<UpdateResult>() {
-                                           @Override
-                                           public UpdateResult call() throws Exception {
-                                               return osMongoCollection.updateOne(filter, update);
-                                           }
-                                       }
-        );
+    public RealmResultTask<UpdateResult> updateOne(final Bson filter, final Bson update) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<UpdateResult>() {
+            @Nullable
+            @Override
+            public UpdateResult run() {
+                return osMongoCollection.updateOne(filter, update);
+            }
+        });
     }
 
     /**
@@ -517,17 +522,17 @@ public class MongoCollection<DocumentT> {
      * @param updateOptions the options to apply to the update operation
      * @return a task containing the result of the update one operation
      */
-    public Task<UpdateResult> updateOne(
+    public RealmResultTask<UpdateResult> updateOne(
             final Bson filter,
             final Bson update,
             final UpdateOptions updateOptions) {
-        return dispatcher.dispatchTask(new Callable<UpdateResult>() {
-                                           @Override
-                                           public UpdateResult call() throws Exception {
-                                               return osMongoCollection.updateOne(filter, update, updateOptions);
-                                           }
-                                       }
-        );
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<UpdateResult>() {
+            @Nullable
+            @Override
+            public UpdateResult run() {
+                return osMongoCollection.updateOne(filter, update, updateOptions);
+            }
+        });
     }
 
     /**
@@ -538,14 +543,14 @@ public class MongoCollection<DocumentT> {
      *               apply must include only update operators.
      * @return a task containing the result of the update many operation
      */
-    public Task<UpdateResult> updateMany(final Bson filter, final Bson update) {
-        return dispatcher.dispatchTask(new Callable<UpdateResult>() {
-                                           @Override
-                                           public UpdateResult call() throws Exception {
-                                               return osMongoCollection.updateMany(filter, update);
-                                           }
-                                       }
-        );
+    public RealmResultTask<UpdateResult> updateMany(final Bson filter, final Bson update) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<UpdateResult>() {
+            @Nullable
+            @Override
+            public UpdateResult run() {
+                return osMongoCollection.updateMany(filter, update);
+            }
+        });
     }
 
     /**
@@ -557,17 +562,17 @@ public class MongoCollection<DocumentT> {
      * @param updateOptions the options to apply to the update operation
      * @return a task containing the result of the update many operation
      */
-    public Task<UpdateResult> updateMany(
+    public RealmResultTask<UpdateResult> updateMany(
             final Bson filter,
             final Bson update,
             final UpdateOptions updateOptions) {
-        return dispatcher.dispatchTask(new Callable<UpdateResult>() {
-                                           @Override
-                                           public UpdateResult call() throws Exception {
-                                               return osMongoCollection.updateMany(filter, update, updateOptions);
-                                           }
-                                       }
-        );
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<UpdateResult>() {
+            @Nullable
+            @Override
+            public UpdateResult run() {
+                return osMongoCollection.updateMany(filter, update, updateOptions);
+            }
+        });
     }
 
     /**
@@ -577,14 +582,14 @@ public class MongoCollection<DocumentT> {
      * @param update the update document
      * @return a task containing the resulting document
      */
-    public Task<DocumentT> findOneAndUpdate(final Bson filter, final Bson update) {
-        return dispatcher.dispatchTask(new Callable<DocumentT>() {
-                                           @Override
-                                           public DocumentT call() throws Exception {
-                                               return osMongoCollection.findOneAndUpdate(filter, update);
-                                           }
-                                       }
-        );
+    public RealmResultTask<DocumentT> findOneAndUpdate(final Bson filter, final Bson update) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<DocumentT>() {
+            @Nullable
+            @Override
+            public DocumentT run() {
+                return osMongoCollection.findOneAndUpdate(filter, update);
+            }
+        });
     }
 
     /**
@@ -596,16 +601,16 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the resulting document
      */
-    public <ResultT> Task<ResultT> findOneAndUpdate(final Bson filter,
-                                                    final Bson update,
-                                                    final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(new Callable<ResultT>() {
-                                           @Override
-                                           public ResultT call() throws Exception {
-                                               return osMongoCollection.findOneAndUpdate(filter, update, resultClass);
-                                           }
-                                       }
-        );
+    public <ResultT> RealmResultTask<ResultT> findOneAndUpdate(final Bson filter,
+                                                               final Bson update,
+                                                               final Class<ResultT> resultClass) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<ResultT>() {
+            @Nullable
+            @Override
+            public ResultT run() {
+                return osMongoCollection.findOneAndUpdate(filter, update, resultClass);
+            }
+        });
     }
 
     /**
@@ -616,16 +621,16 @@ public class MongoCollection<DocumentT> {
      * @param options a {@link FindOneAndModifyOptions} struct
      * @return a task containing the resulting document
      */
-    public Task<DocumentT> findOneAndUpdate(final Bson filter,
-                                            final Bson update,
-                                            final FindOneAndModifyOptions options) {
-        return dispatcher.dispatchTask(new Callable<DocumentT>() {
-                                           @Override
-                                           public DocumentT call() throws Exception {
-                                               return osMongoCollection.findOneAndUpdate(filter, update, options);
-                                           }
-                                       }
-        );
+    public RealmResultTask<DocumentT> findOneAndUpdate(final Bson filter,
+                                                       final Bson update,
+                                                       final FindOneAndModifyOptions options) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<DocumentT>() {
+            @Nullable
+            @Override
+            public DocumentT run() {
+                return osMongoCollection.findOneAndUpdate(filter, update, options);
+            }
+        });
     }
 
     /**
@@ -638,17 +643,17 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the resulting document
      */
-    public <ResultT> Task<ResultT> findOneAndUpdate(final Bson filter,
-                                                    final Bson update,
-                                                    final FindOneAndModifyOptions options,
-                                                    final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(new Callable<ResultT>() {
-                                           @Override
-                                           public ResultT call() throws Exception {
-                                               return osMongoCollection.findOneAndUpdate(filter, update, options, resultClass);
-                                           }
-                                       }
-        );
+    public <ResultT> RealmResultTask<ResultT> findOneAndUpdate(final Bson filter,
+                                                               final Bson update,
+                                                               final FindOneAndModifyOptions options,
+                                                               final Class<ResultT> resultClass) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<ResultT>() {
+            @Nullable
+            @Override
+            public ResultT run() {
+                return osMongoCollection.findOneAndUpdate(filter, update, options, resultClass);
+            }
+        });
     }
 
     /**
@@ -658,14 +663,14 @@ public class MongoCollection<DocumentT> {
      * @param replacement the document to replace the matched document with
      * @return a task containing the resulting document
      */
-    public Task<DocumentT> findOneAndReplace(final Bson filter, final Bson replacement) {
-        return dispatcher.dispatchTask(new Callable<DocumentT>() {
-                                           @Override
-                                           public DocumentT call() throws Exception {
-                                               return osMongoCollection.findOneAndReplace(filter, replacement);
-                                           }
-                                       }
-        );
+    public RealmResultTask<DocumentT> findOneAndReplace(final Bson filter, final Bson replacement) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<DocumentT>() {
+            @Nullable
+            @Override
+            public DocumentT run() {
+                return osMongoCollection.findOneAndReplace(filter, replacement);
+            }
+        });
     }
 
     /**
@@ -677,16 +682,16 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the resulting document
      */
-    public <ResultT> Task<ResultT> findOneAndReplace(final Bson filter,
-                                                     final Bson replacement,
-                                                     final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(new Callable<ResultT>() {
-                                           @Override
-                                           public ResultT call() throws Exception {
-                                               return osMongoCollection.findOneAndReplace(filter, replacement, resultClass);
-                                           }
-                                       }
-        );
+    public <ResultT> RealmResultTask<ResultT> findOneAndReplace(final Bson filter,
+                                                                final Bson replacement,
+                                                                final Class<ResultT> resultClass) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<ResultT>() {
+            @Nullable
+            @Override
+            public ResultT run() {
+                return osMongoCollection.findOneAndReplace(filter, replacement, resultClass);
+            }
+        });
     }
 
     /**
@@ -697,16 +702,16 @@ public class MongoCollection<DocumentT> {
      * @param options     a {@link FindOneAndModifyOptions} struct
      * @return a task containing the resulting document
      */
-    public Task<DocumentT> findOneAndReplace(final Bson filter,
-                                             final Bson replacement,
-                                             final FindOneAndModifyOptions options) {
-        return dispatcher.dispatchTask(new Callable<DocumentT>() {
-                                           @Override
-                                           public DocumentT call() throws Exception {
-                                               return osMongoCollection.findOneAndReplace(filter, replacement, options);
-                                           }
-                                       }
-        );
+    public RealmResultTask<DocumentT> findOneAndReplace(final Bson filter,
+                                                        final Bson replacement,
+                                                        final FindOneAndModifyOptions options) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<DocumentT>() {
+            @Nullable
+            @Override
+            public DocumentT run() {
+                return osMongoCollection.findOneAndReplace(filter, replacement, options);
+            }
+        });
     }
 
     /**
@@ -719,17 +724,17 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the resulting document
      */
-    public <ResultT> Task<ResultT> findOneAndReplace(final Bson filter,
-                                                     final Bson replacement,
-                                                     final FindOneAndModifyOptions options,
-                                                     final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(new Callable<ResultT>() {
-                                           @Override
-                                           public ResultT call() throws Exception {
-                                               return osMongoCollection.findOneAndReplace(filter, replacement, options, resultClass);
-                                           }
-                                       }
-        );
+    public <ResultT> RealmResultTask<ResultT> findOneAndReplace(final Bson filter,
+                                                                final Bson replacement,
+                                                                final FindOneAndModifyOptions options,
+                                                                final Class<ResultT> resultClass) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<ResultT>() {
+            @Nullable
+            @Override
+            public ResultT run() {
+                return osMongoCollection.findOneAndReplace(filter, replacement, options, resultClass);
+            }
+        });
     }
 
     /**
@@ -738,14 +743,14 @@ public class MongoCollection<DocumentT> {
      * @param filter the query filter
      * @return a task containing the resulting document
      */
-    public Task<DocumentT> findOneAndDelete(final Bson filter) {
-        return dispatcher.dispatchTask(new Callable<DocumentT>() {
-                                           @Override
-                                           public DocumentT call() throws Exception {
-                                               return osMongoCollection.findOneAndDelete(filter);
-                                           }
-                                       }
-        );
+    public RealmResultTask<DocumentT> findOneAndDelete(final Bson filter) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<DocumentT>() {
+            @Nullable
+            @Override
+            public DocumentT run() {
+                return osMongoCollection.findOneAndDelete(filter);
+            }
+        });
     }
 
     /**
@@ -756,15 +761,15 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the resulting document
      */
-    public <ResultT> Task<ResultT> findOneAndDelete(final Bson filter,
-                                                    final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(new Callable<ResultT>() {
-                                           @Override
-                                           public ResultT call() throws Exception {
-                                               return osMongoCollection.findOneAndDelete(filter, resultClass);
-                                           }
-                                       }
-        );
+    public <ResultT> RealmResultTask<ResultT> findOneAndDelete(final Bson filter,
+                                                               final Class<ResultT> resultClass) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<ResultT>() {
+            @Nullable
+            @Override
+            public ResultT run() {
+                return osMongoCollection.findOneAndDelete(filter, resultClass);
+            }
+        });
     }
 
     /**
@@ -774,15 +779,15 @@ public class MongoCollection<DocumentT> {
      * @param options a {@link FindOneAndModifyOptions} struct
      * @return a task containing the resulting document
      */
-    public Task<DocumentT> findOneAndDelete(final Bson filter,
-                                            final FindOneAndModifyOptions options) {
-        return dispatcher.dispatchTask(new Callable<DocumentT>() {
-                                           @Override
-                                           public DocumentT call() throws Exception {
-                                               return osMongoCollection.findOneAndDelete(filter, options);
-                                           }
-                                       }
-        );
+    public RealmResultTask<DocumentT> findOneAndDelete(final Bson filter,
+                                                       final FindOneAndModifyOptions options) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<DocumentT>() {
+            @Nullable
+            @Override
+            public DocumentT run() {
+                return osMongoCollection.findOneAndDelete(filter, options);
+            }
+        });
     }
 
     /**
@@ -794,15 +799,15 @@ public class MongoCollection<DocumentT> {
      * @param <ResultT>   the target document type of the iterable.
      * @return a task containing the resulting document
      */
-    public <ResultT> Task<ResultT> findOneAndDelete(final Bson filter,
-                                                    final FindOneAndModifyOptions options,
-                                                    final Class<ResultT> resultClass) {
-        return dispatcher.dispatchTask(new Callable<ResultT>() {
-                                           @Override
-                                           public ResultT call() throws Exception {
-                                               return osMongoCollection.findOneAndDelete(filter, options, resultClass);
-                                           }
-                                       }
-        );
+    public <ResultT> RealmResultTask<ResultT> findOneAndDelete(final Bson filter,
+                                                               final FindOneAndModifyOptions options,
+                                                               final Class<ResultT> resultClass) {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<ResultT>() {
+            @Nullable
+            @Override
+            public ResultT run() {
+                return osMongoCollection.findOneAndDelete(filter, options, resultClass);
+            }
+        });
     }
 }

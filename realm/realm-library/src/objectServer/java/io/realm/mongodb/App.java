@@ -130,7 +130,7 @@ import io.realm.mongodb.functions.Functions;
  *     MongoClient client = user.getMongoClient(SERVICE_NAME)
  *     MongoDatabase database = client.getDatabase(DATABASE_NAME)
  *     MongoCollection&lt;DocumentT&gt; collection = database.getCollection(COLLECTION_NAME);
- *     Long count = collection.count().blockingGetResult()
+ *     Long count = collection.count().get()
  * </pre>
  * <p>
  *
@@ -138,7 +138,7 @@ import io.realm.mongodb.functions.Functions;
  * @see EmailPasswordAuth
  * @see io.realm.mongodb.sync.SyncConfiguration
  * @see User#getFunctions()
- * @see User#getMongoClient(String)
+ * @see User#getMongoClient(String, ThreadPoolExecutor)
  */
 @Beta
 public class App {

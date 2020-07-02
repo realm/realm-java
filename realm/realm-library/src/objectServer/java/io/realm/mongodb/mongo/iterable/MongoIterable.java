@@ -16,22 +16,23 @@
 
 package io.realm.mongodb.mongo.iterable;
 
-import com.google.android.gms.tasks.Task;
-
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.concurrent.Callable;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicReference;
 
-import io.realm.internal.common.TaskDispatcher;
+import javax.annotation.Nullable;
+
+import io.realm.internal.async.RealmResultTaskImpl;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.network.ResultHandler;
 import io.realm.internal.objectstore.OsMongoCollection;
 import io.realm.mongodb.AppException;
+import io.realm.mongodb.RealmResultTask;
 
 /**
  * The MongoIterable is the results from an operation, such as a {@code find()} or an
@@ -44,23 +45,23 @@ import io.realm.mongodb.AppException;
  */
 public abstract class MongoIterable<ResultT> {
 
-    final OsMongoCollection osMongoCollection;
-    final CodecRegistry codecRegistry;
+    protected final OsMongoCollection<?> osMongoCollection;
+    protected final CodecRegistry codecRegistry;
 
     private final Class<ResultT> resultClass;
-    private final TaskDispatcher dispatcher;
+    private final ThreadPoolExecutor threadPoolExecutor;
 
-    MongoIterable(final OsMongoCollection osMongoCollection,
+    MongoIterable(final ThreadPoolExecutor threadPoolExecutor,
+                  final OsMongoCollection<?> osMongoCollection,
                   final CodecRegistry codecRegistry,
-                  final Class<ResultT> resultClass,
-                  final TaskDispatcher dispatcher) {
+                  final Class<ResultT> resultClass) {
+        this.threadPoolExecutor = threadPoolExecutor;
         this.osMongoCollection = osMongoCollection;
         this.codecRegistry = codecRegistry;
         this.resultClass = resultClass;
-        this.dispatcher = dispatcher;
     }
 
-    abstract void callNative(final OsJNIResultCallback callback);
+    abstract void callNative(final OsJNIResultCallback<?> callback);
 
     /**
      * Returns a cursor of the operation represented by this iterable.
@@ -70,14 +71,14 @@ public abstract class MongoIterable<ResultT> {
      *
      * @return an asynchronous task with cursor of the operation represented by this iterable.
      */
-    public Task<MongoCursor<ResultT>> iterator() {
-        return dispatcher.dispatchTask(new Callable<MongoCursor<ResultT>>() {
-                                           @Override
-                                           public MongoCursor<ResultT> call() throws Exception {
-                                               return new MongoCursor<>(MongoIterable.this.getCollection().iterator());
-                                           }
-                                       }
-        );
+    public RealmResultTask<MongoCursor<ResultT>> iterator() {
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<MongoCursor<ResultT>>() {
+            @Nullable
+            @Override
+            public MongoCursor<ResultT> run() {
+                return new MongoCursor<>(MongoIterable.this.getCollection().iterator());
+            }
+        });
     }
 
     /**
@@ -88,7 +89,7 @@ public abstract class MongoIterable<ResultT> {
      *
      * @return a task containing the first item or null.
      */
-    public Task<ResultT> first() {
+    public RealmResultTask<ResultT> first() {
         final AtomicReference<ResultT> success = new AtomicReference<>(null);
         final AtomicReference<AppException> error = new AtomicReference<>(null);
         OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
@@ -102,13 +103,13 @@ public abstract class MongoIterable<ResultT> {
 
         callNative(callback);
 
-        return dispatcher.dispatchTask(new Callable<ResultT>() {
-                                           @Override
-                                           public ResultT call() throws Exception {
-                                               return ResultHandler.handleResult(success, error);
-                                           }
-                                       }
-        );
+        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<ResultT>() {
+            @Nullable
+            @Override
+            public ResultT run() {
+                return ResultHandler.handleResult(success, error);
+            }
+        });
     }
 
     private Collection<ResultT> getCollection() {
@@ -129,7 +130,7 @@ public abstract class MongoIterable<ResultT> {
     private Collection<ResultT> mapCollection(Object result) {
         Collection<?> collection = JniBsonProtocol.decode((String) result, Collection.class, codecRegistry);
         Collection<ResultT> decodedCollection = new ArrayList<>();
-        for (Object collectionElement: collection) {
+        for (Object collectionElement : collection) {
             String encodedElement = JniBsonProtocol.encode(collectionElement, codecRegistry);
             decodedCollection.add(JniBsonProtocol.decode(encodedElement, resultClass, codecRegistry));
         }

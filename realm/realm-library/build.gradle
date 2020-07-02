@@ -217,8 +217,6 @@ dependencies {
     implementation('io.reactivex.rxjava2:rxandroid:2.1.1') {
         exclude group: 'io.reactivex.rxjava2', module: 'rxjava'
     }
-    // FIXME: Attempt to find a way to remove this dependency
-    objectServerImplementation "com.google.android.gms:play-services-tasks:17.0.2"      // added to support mongo client's asynchronous nature without breaking Stitch's API
 
     // TODO: investigate why we can't use the latest multidex version
     // check baseDebugAndroidTestRuntimeClasspath and objectServerDebugAndroidTestRuntimeClasspath
