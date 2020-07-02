@@ -29,7 +29,7 @@ import io.realm.mongodb.AppConfiguration
 const val SERVICE_NAME = "BackingDB"    // it comes from the test server's BackingDB/config.json
 const val DATABASE_NAME = "test_data"   // same as above
 
-class TestApp(networkTransport: OsJavaNetworkTransport? = null, customizeConfig: (AppConfiguration.Builder) -> Unit = {}) : App(createConfiguration()) {
+class TestApp(networkTransport: OsJavaNetworkTransport? = null, customizeConfig: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }) : App(createConfiguration(customizeConfig)) {
 
     init {
         if (networkTransport != null) {
@@ -38,12 +38,15 @@ class TestApp(networkTransport: OsJavaNetworkTransport? = null, customizeConfig:
     }
 
     companion object {
-        fun createConfiguration(): AppConfiguration {
-            return AppConfiguration.Builder(initializeMongoDbRealm())
+        fun createConfiguration(customizeConfig: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }): AppConfiguration {
+            var builder = AppConfiguration.Builder(initializeMongoDbRealm())
                     .baseUrl("http://127.0.0.1:9090")
                     .appName("MongoDB Realm Integration Tests")
                     .appVersion("1.0.")
-                    .build()
+
+            builder = customizeConfig(builder)
+
+            return builder.build()
         }
 
         // Initializes MongoDB Realm. Clears all local state and fetches the application ID.
@@ -56,7 +59,7 @@ class TestApp(networkTransport: OsJavaNetworkTransport? = null, customizeConfig:
                     mapOf(),
                     ""
             )
-            return when(response.httpResponseCode) {
+            return when (response.httpResponseCode) {
                 200 -> response.body
                 else -> throw IllegalStateException(response.toString())
             }

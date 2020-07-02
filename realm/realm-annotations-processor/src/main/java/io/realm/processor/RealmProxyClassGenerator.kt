@@ -1063,7 +1063,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                 when {
                     Utils.isRealmModel(field) -> {
-                        // FIXME: How to support types from other compilation units?
                         val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
 
                         emitEmptyLine()
@@ -1086,7 +1085,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     }
                     Utils.isRealmModelList(field) -> {
                         val genericType = Utils.getGenericTypeQualifiedName(field)!!
-                        // FIXME: How to support types from other compilation units?
                         val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
 
                         emitEmptyLine()
@@ -1181,7 +1179,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         val getter = metadata.getInternalGetter(fieldName)
 
                         if (Utils.isRealmModel(field)) {
-                            // FIXME: How to support types from other compilation units?
                             val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
 
                             emitEmptyLine()
@@ -1203,7 +1200,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                         } else if (Utils.isRealmModelList(field)) {
                             val genericType = Utils.getGenericTypeQualifiedName(field)!!
-                            // FIXME: How to support types from other compilation units?
                             val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
 
                             emitEmptyLine()
@@ -1287,7 +1283,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 val getter = metadata.getInternalGetter(fieldName)
 
                 if (Utils.isRealmModel(field)) {
-                    // FIXME: How to support types from other compilation units?
                     val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
 
                     emitEmptyLine()
@@ -1312,7 +1307,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     endControlFlow()
                 } else if (Utils.isRealmModelList(field)) {
                     val genericType = Utils.getGenericTypeQualifiedName(field)!!
-                    // FIXME: How to support types from other compilation units?
                     val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
 
                     emitEmptyLine()
@@ -1429,7 +1423,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                         when {
                             Utils.isRealmModel(field) -> {
-                                // FIXME: How to support types from other compilation units?
                                 val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
 
                                 emitEmptyLine()
@@ -1455,7 +1448,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             }
                             Utils.isRealmModelList(field) -> {
                                 val genericType = Utils.getGenericTypeQualifiedName(field)!!
-                                // FIXME: How to support types from other compilation units?
                                 val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
 
                                 emitEmptyLine()
@@ -1656,7 +1648,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                     when {
                         Utils.isRealmModel(field) -> {
-                            // FIXME: How to support Embedded objects defined in another compilation unit?
                             val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
                             val fieldColKey: String = fieldColKeyVariableReference(field)
                             val linkedQualifiedClassName: QualifiedClassName = Utils.getFieldTypeQualifiedName(field)
@@ -1691,7 +1682,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitEmptyLine()
                         }
                         Utils.isRealmModelList(field) -> {
-                            // FIXME: How to support Embedded objects defined in another compilation unit?
                             val listElementType: QualifiedClassName = Utils.getRealmListType(field)!!
                             val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(listElementType)
                             val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
@@ -1837,7 +1827,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                     when {
                         Utils.isRealmModel(field) -> {
-                            // FIXME: How to support Embedded objects defined in another compilation unit?
                             val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
 
                             emitEmptyLine()
@@ -1876,7 +1865,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                         }
                         Utils.isRealmModelList(field) -> {
-                            // FIXME: How to support Embedded objects defined in another compilation unit?
                             val genericType: QualifiedClassName = Utils.getRealmListType(field)!!
                             val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
                             val proxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field)
