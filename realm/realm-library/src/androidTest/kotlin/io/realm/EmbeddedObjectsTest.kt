@@ -448,18 +448,32 @@ class EmbeddedObjectsTest {
                                 }
                             }
                         }
-                """.trimIndent() )
+                """)
         }
-        val circularParent
-                = realm.where(EmbeddedCircularParent::class.java).findFirst()!!
+        val circularParent = realm.where(EmbeddedCircularParent::class.java).findFirst()!!
         assertEquals("childId", circularParent.singleChild?.id)
         assertEquals("embeddedChildId", circularParent.singleChild!!.singleChild!!.id)
     }
 
     @Test
-    @Ignore("FIXME Test not implemented yet")
     fun createEmbeddedObjectListElementFromJson() {
-
+        realm.executeTransaction { realm ->
+            realm.createObjectFromJson(EmbeddedSimpleListParent::class.java, """
+                        { 
+                            "id": "uuid", 
+                            "children": [
+                                { "id" : "child1" },
+                                { "id" : "child2" },
+                                { "id" : "child3" }
+                            ]
+                        }
+                """)
+        }
+        val parent = realm.where(EmbeddedSimpleListParent::class.java).findFirst()!!
+        assertEquals(3, parent.children?.count())
+        assertEquals("child1", parent.children[0]!!.id)
+        assertEquals("child2", parent.children[1]!!.id)
+        assertEquals("child3", parent.children[2]!!.id)
     }
 
     @Test
