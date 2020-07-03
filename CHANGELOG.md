@@ -12,6 +12,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 
 ### Fixed
 * [RealmApp] Sync would not refresh the access token if started with an expired one. (Since 10.0.0-BETA.1) 
+* [RealmApp] Leaking objects when registering session listeners. (Issue [#6916](https://github.com/realm/realm-java/issues/6916)
 
 ### Compatibility
 * File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
