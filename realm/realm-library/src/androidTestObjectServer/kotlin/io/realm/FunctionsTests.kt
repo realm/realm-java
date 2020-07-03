@@ -84,16 +84,16 @@ class FunctionsTests {
     }
 
     // Custom codec that throws an exception when encoding/decoding integers
-    private val faultyIntegerCodec = object : Codec<Integer> {
-        override fun decode(reader: BsonReader, decoderContext: DecoderContext): Integer {
+    private val faultyIntegerCodec = object : Codec<Int> {
+        override fun decode(reader: BsonReader, decoderContext: DecoderContext): Int {
             throw RuntimeException("Simulated error")
         }
 
-        override fun getEncoderClass(): Class<Integer> {
-            return Integer::class.java
+        override fun getEncoderClass(): Class<Int> {
+            return Int::class.java
         }
 
-        override fun encode(writer: BsonWriter?, value: Integer?, encoderContext: EncoderContext?) {
+        override fun encode(writer: BsonWriter?, value: Int?, encoderContext: EncoderContext?) {
             throw RuntimeException("Simulated error")
         }
     }
@@ -130,8 +130,8 @@ class FunctionsTests {
         for (type in BsonType.values()) {
             when (type) {
                 BsonType.DOUBLE -> {
-                    assertEquals(1.4f, functions.callFunction(FIRST_ARG_FUNCTION, listOf(1.4f), java.lang.Float::class.java).toFloat())
-                    assertEquals(1.4, functions.callFunction(FIRST_ARG_FUNCTION, listOf(1.4f), java.lang.Double::class.java).toDouble())
+                    assertEquals(1.4f, functions.callFunction(FIRST_ARG_FUNCTION, listOf(1.4f), java.lang.Float::class.java).get().toFloat())
+                    assertEquals(1.4, functions.callFunction(FIRST_ARG_FUNCTION, listOf(1.4f), java.lang.Double::class.java).get().toDouble())
                     assertTypeOfFirstArgFunction(BsonDouble(1.4), BsonDouble::class.java)
                 }
                 BsonType.STRING -> {
@@ -140,17 +140,17 @@ class FunctionsTests {
                 }
                 BsonType.ARRAY -> {
                     val values1 = listOf<Any>(true, i32, i64)
-                    assertEquals(values1[0], functions.callFunction(FIRST_ARG_FUNCTION, values1, java.lang.Boolean::class.java))
+                    assertEquals(values1[0], functions.callFunction(FIRST_ARG_FUNCTION, values1, java.lang.Boolean::class.java).get())
 
                     // Previously failing in C++ parsing
                     val values2 = listOf(1, true, 3)
-                    assertEquals(values2, functions.callFunction(FIRST_ARG_FUNCTION, listOf(values2), List::class.java))
+                    assertEquals(values2, functions.callFunction(FIRST_ARG_FUNCTION, listOf(values2), List::class.java).get())
                     val values3 = listOf(2, "Realm", 3)
-                    assertEquals(values3, functions.callFunction(FIRST_ARG_FUNCTION, listOf(values3), List::class.java))
+                    assertEquals(values3, functions.callFunction(FIRST_ARG_FUNCTION, listOf(values3), List::class.java).get())
                 }
                 BsonType.BINARY -> {
                     val value = byteArrayOf(1, 2, 3)
-                    val actual = functions.callFunction(FIRST_ARG_FUNCTION, listOf(value), ByteArray::class.java)
+                    val actual = functions.callFunction(FIRST_ARG_FUNCTION, listOf(value), ByteArray::class.java).get()
                     assertEquals(value.toList(), actual.toList())
                     assertTypeOfFirstArgFunction(BsonBinary(byteArrayOf(1, 2, 3)), BsonBinary::class.java)
                 }
@@ -159,17 +159,17 @@ class FunctionsTests {
                     assertTypeOfFirstArgFunction(BsonObjectId(ObjectId()), BsonObjectId::class.java)
                 }
                 BsonType.BOOLEAN -> {
-                    assertTrue(functions.callFunction(FIRST_ARG_FUNCTION, listOf(true), java.lang.Boolean::class.java).booleanValue())
+                    assertTrue(functions.callFunction(FIRST_ARG_FUNCTION, listOf(true), java.lang.Boolean::class.java).get().booleanValue())
                     assertTypeOfFirstArgFunction(BsonBoolean(true), BsonBoolean::class.java)
                 }
                 BsonType.INT32 -> {
-                    assertEquals(32, functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), Integer::class.java).toInt())
-                    assertEquals(32, functions.callFunction(FIRST_ARG_FUNCTION, listOf(32L), Integer::class.java).toInt())
+                    assertEquals(32, functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), Integer::class.java).get().toInt())
+                    assertEquals(32, functions.callFunction(FIRST_ARG_FUNCTION, listOf(32L), Integer::class.java).get().toInt())
                     assertTypeOfFirstArgFunction(BsonInt32(32), BsonInt32::class.java)
                 }
                 BsonType.INT64 -> {
-                    assertEquals(32L, functions.callFunction(FIRST_ARG_FUNCTION, listOf(32L), java.lang.Long::class.java).toLong())
-                    assertEquals(32L, functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), java.lang.Long::class.java).toLong())
+                    assertEquals(32L, functions.callFunction(FIRST_ARG_FUNCTION, listOf(32L), java.lang.Long::class.java).get().toLong())
+                    assertEquals(32L, functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), java.lang.Long::class.java).get().toLong())
                     assertTypeOfFirstArgFunction(BsonInt64(32), BsonInt64::class.java)
                 }
                 BsonType.DECIMAL128 -> {
@@ -179,20 +179,20 @@ class FunctionsTests {
                 BsonType.DOCUMENT -> {
                     val map = mapOf("foo" to 5)
                     val document = Document(map)
-                    assertEquals(map, functions.callFunction(FIRST_ARG_FUNCTION, listOf(map), Map::class.java))
-                    assertEquals(map, functions.callFunction(FIRST_ARG_FUNCTION, listOf(document), Map::class.java))
-                    assertEquals(document, functions.callFunction(FIRST_ARG_FUNCTION, listOf(map), Document::class.java))
-                    assertEquals(document, functions.callFunction(FIRST_ARG_FUNCTION, listOf(document), Document::class.java))
+                    assertEquals(map, functions.callFunction(FIRST_ARG_FUNCTION, listOf(map), Map::class.java).get())
+                    assertEquals(map, functions.callFunction(FIRST_ARG_FUNCTION, listOf(document), Map::class.java).get())
+                    assertEquals(document, functions.callFunction(FIRST_ARG_FUNCTION, listOf(map), Document::class.java).get())
+                    assertEquals(document, functions.callFunction(FIRST_ARG_FUNCTION, listOf(document), Document::class.java).get())
 
                     // Previously failing in C++ parser
                     var documents = listOf(Document(), Document())
-                    assertEquals(documents[0], functions.callFunction(FIRST_ARG_FUNCTION, documents, Document::class.java))
+                    assertEquals(documents[0], functions.callFunction(FIRST_ARG_FUNCTION, documents, Document::class.java).get())
                     documents = listOf(Document("KEY", "VALUE"), Document("KEY", "VALUE"), Document("KEY", "VALUE"))
-                    assertEquals(documents[0], functions.callFunction(FIRST_ARG_FUNCTION, documents, Document::class.java))
+                    assertEquals(documents[0], functions.callFunction(FIRST_ARG_FUNCTION, documents, Document::class.java).get())
                 }
                 BsonType.DATE_TIME -> {
                     val now = Date(System.currentTimeMillis())
-                    assertEquals(now, functions.callFunction(FIRST_ARG_FUNCTION, listOf(now), Date::class.java))
+                    assertEquals(now, functions.callFunction(FIRST_ARG_FUNCTION, listOf(now), Date::class.java).get())
                 }
                 BsonType.UNDEFINED,
                 BsonType.NULL,
@@ -216,199 +216,207 @@ class FunctionsTests {
     }
 
     private fun <T : Any> assertTypeOfFirstArgFunction(value: T, returnClass: Class<T>): T {
-        val actual = functions.callFunction(FIRST_ARG_FUNCTION, listOf(value), returnClass)
+        val actual = functions.callFunction(FIRST_ARG_FUNCTION, listOf(value), returnClass).get()
         assertEquals(value, actual)
         return actual
     }
 
     @Test
     fun asyncCallFunction() = looperThread.runBlocking {
-        functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(32), Integer::class.java) { result ->
-            try {
-                assertEquals(32, result.orThrow.toInt())
-            } finally {
-                looperThread.testComplete()
-            }
-        }
+        functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), Integer::class.java)
+                .getAsync { result ->
+                    try {
+                        assertEquals(32, result.orThrow.toInt())
+                    } finally {
+                        looperThread.testComplete()
+                    }
+                }
     }
 
 
     @Test
     fun codecArgumentFailure() {
         assertFailsWithErrorCode(ErrorCode.BSON_CODEC_NOT_FOUND) {
-            functions.callFunction(FIRST_ARG_FUNCTION, listOf(Dog("PojoFido")), Dog::class.java)
+            functions.callFunction(FIRST_ARG_FUNCTION, listOf(Dog("PojoFido")), Dog::class.java).get()
         }
     }
 
     @Test
     fun asyncCodecArgumentFailure() = looperThread.runBlocking {
-        functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(Dog("PojoFido")), Integer::class.java) { result ->
-            try {
-                assertEquals(ErrorCode.BSON_CODEC_NOT_FOUND, result.error.errorCode)
-                assertTrue(result.error.exception is CodecConfigurationException)
-            } finally {
-                looperThread.testComplete()
-            }
-        }
+        functions.callFunction(FIRST_ARG_FUNCTION, listOf(Dog("PojoFido")), Integer::class.java)
+                .getAsync { result ->
+                    try {
+                        assertEquals(ErrorCode.BSON_CODEC_NOT_FOUND, result.error.errorCode)
+                        assertTrue(result.error.exception is CodecConfigurationException)
+                    } finally {
+                        looperThread.testComplete()
+                    }
+                }
     }
 
     @Test
     fun codecResponseFailure() {
         assertFailsWithErrorCode(ErrorCode.BSON_CODEC_NOT_FOUND) {
-            functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), Dog::class.java)
+            functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), Dog::class.java).get()
         }
     }
 
     @Test
     fun asyncCodecResponseFailure() = looperThread.runBlocking {
-        functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(Dog("PojoFido")), Integer::class.java) { result ->
-            try {
-                assertEquals(ErrorCode.BSON_CODEC_NOT_FOUND, result.error.errorCode)
-                assertTrue(result.error.exception is CodecConfigurationException)
-            } finally {
-                looperThread.testComplete()
-            }
-        }
+        functions.callFunction(FIRST_ARG_FUNCTION, listOf(Dog("PojoFido")), Integer::class.java)
+                .getAsync { result ->
+                    try {
+                        assertEquals(ErrorCode.BSON_CODEC_NOT_FOUND, result.error.errorCode)
+                        assertTrue(result.error.exception is CodecConfigurationException)
+                    } finally {
+                        looperThread.testComplete()
+                    }
+                }
     }
 
     @Test
     fun codecBsonEncodingFailure() {
         assertFailsWithErrorCode(ErrorCode.BSON_ENCODING) {
-            functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), String::class.java, faultyIntegerRegistry)
+            functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), String::class.java, faultyIntegerRegistry).get()
         }
     }
 
     @Test
     fun asyncCodecBsonEncodingFailure() = looperThread.runBlocking {
-        functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(32), String::class.java, faultyIntegerRegistry) { result ->
-            try {
-                assertEquals(ErrorCode.BSON_ENCODING, result.error.errorCode)
-            } finally {
-                looperThread.testComplete()
-            }
-        }
+        functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), String::class.java, faultyIntegerRegistry)
+                .getAsync { result ->
+                    try {
+                        assertEquals(ErrorCode.BSON_ENCODING, result.error.errorCode)
+                    } finally {
+                        looperThread.testComplete()
+                    }
+                }
     }
 
     @Test
     fun codecBsonDecodingFailure() {
         assertFailsWithErrorCode(ErrorCode.BSON_DECODING) {
-            functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), String::class.java)
+            functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), String::class.java).get()
         }
     }
 
     @Test
     fun asyncCodecBsonDecodingFailure() = looperThread.runBlocking {
-        functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(32), String::class.java) { result ->
-            try {
-                assertEquals(ErrorCode.BSON_DECODING, result.error.errorCode)
-                assertTrue(result.error.exception is BSONException)
-            } finally {
-                looperThread.testComplete()
-            }
-        }
+        functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), String::class.java)
+                .getAsync { result ->
+                    try {
+                        assertEquals(ErrorCode.BSON_DECODING, result.error.errorCode)
+                        assertTrue(result.error.exception is BSONException)
+                    } finally {
+                        looperThread.testComplete()
+                    }
+                }
     }
 
     @Test
     fun localCodecRegistry() {
         val input = Dog("PojoFido")
-        assertEquals(input, functions.callFunction(FIRST_ARG_FUNCTION, listOf(input), Dog::class.java, pojoRegistry))
+        assertEquals(input, functions.callFunction(FIRST_ARG_FUNCTION, listOf(input), Dog::class.java, pojoRegistry).get())
     }
 
     @Test
     fun asyncLocalCodecRegistry() = looperThread.runBlocking {
         val input = Dog("PojoFido")
-        functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(input), Dog::class.java, pojoRegistry) { result ->
-            try {
-                assertEquals(input, result.orThrow)
-            } finally {
-                looperThread.testComplete()
-            }
-        }
+        functions.callFunction(FIRST_ARG_FUNCTION, listOf(input), Dog::class.java, pojoRegistry)
+                .getAsync { result ->
+                    try {
+                        assertEquals(input, result.orThrow)
+                    } finally {
+                        looperThread.testComplete()
+                    }
+                }
     }
 
     @Test
     fun instanceCodecRegistry() {
         val input = Dog("PojoFido")
         val functionsWithCodecRegistry = anonUser.getFunctions(pojoRegistry)
-        assertEquals(input, functionsWithCodecRegistry.callFunction(FIRST_ARG_FUNCTION, listOf(input), Dog::class.java))
+        assertEquals(input, functionsWithCodecRegistry.callFunction(FIRST_ARG_FUNCTION, listOf(input), Dog::class.java).get())
     }
 
     @Test
     fun resultDecoder() {
         val input = "Realm"
         val output = "Custom Realm"
-        assertEquals(output, functions.callFunction(FIRST_ARG_FUNCTION, listOf(input), CustomStringDecoder(output)))
+        assertEquals(output, functions.callFunction(FIRST_ARG_FUNCTION, listOf(input), CustomStringDecoder(output)).get())
     }
 
     @Test
     fun asyncResultDecoder() = looperThread.runBlocking {
         val input = "Realm"
         val output = "Custom Realm"
-        functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(input), CustomStringDecoder(output), App.Callback<String> { result ->
+        functions.callFunction(FIRST_ARG_FUNCTION, listOf(input), CustomStringDecoder(output)).getAsync { result ->
             try {
                 assertEquals(output, result.orThrow)
             } finally {
                 looperThread.testComplete()
             }
-        })
+        }
     }
 
     @Test
     fun unknownFunction() {
         assertFailsWithErrorCode(ErrorCode.FUNCTION_NOT_FOUND) {
-            functions.callFunction("unknown", listOf(32), String::class.java)
+            functions.callFunction("unknown", listOf(32), String::class.java).get()
         }
     }
 
     @Test
     fun asyncUnknownFunction() = looperThread.runBlocking {
         val input = Dog("PojoFido")
-        functions.callFunctionAsync("unknown", listOf(input), Dog::class.java, pojoRegistry) { result ->
-            try {
-                assertEquals(ErrorCode.FUNCTION_NOT_FOUND, result.error.errorCode)
-            } finally {
-                looperThread.testComplete()
-            }
-        }
+        functions.callFunction("unknown", listOf(input), Dog::class.java, pojoRegistry)
+                .getAsync { result ->
+                    try {
+                        assertEquals(ErrorCode.FUNCTION_NOT_FOUND, result.error.errorCode)
+                    } finally {
+                        looperThread.testComplete()
+                    }
+                }
     }
 
     @Test
     fun asyncNonLoopers() {
         assertFailsWith<IllegalStateException> {
-            functions.callFunctionAsync(FIRST_ARG_FUNCTION, listOf(32), Integer::class.java, pojoRegistry) { result ->
-                fail()
-            }
+            functions.callFunction(FIRST_ARG_FUNCTION, listOf(32), Integer::class.java, pojoRegistry)
+                    .getAsync { result ->
+                        fail()
+                    }
         }
     }
 
     @Test
     fun callFunction_sum() {
         val numbers = listOf(1, 2, 3, 4)
-        assertEquals(10, functions.callFunction("sum", numbers, Integer::class.java).toInt())
+        assertEquals(10, functions.callFunction("sum", numbers, Integer::class.java).get().toInt())
     }
 
     @Test
     fun callFunction_remoteError() {
         assertFailsWithErrorCode(ErrorCode.FUNCTION_EXECUTION_ERROR) {
-            functions.callFunction("error", emptyList<Any>(), String::class.java)
+            functions.callFunction("error", emptyList<Any>(), String::class.java).get()
         }
     }
 
     @Test
     fun callFunction_null() {
-        assertTrue(functions.callFunction("null", emptyList<Any>(), BsonNull::class.java).isNull)
+        assertTrue(functions.callFunction("null", emptyList<Any>(), BsonNull::class.java).get().isNull)
     }
 
     @Test
     fun callFunction_void() {
-        assertEquals(BsonType.UNDEFINED, functions.callFunction("void", emptyList<Any>(), BsonUndefined::class.java).bsonType)
+        assertEquals(BsonType.UNDEFINED, functions.callFunction("void", emptyList<Any>(), BsonUndefined::class.java).get().bsonType)
     }
 
     @Test
     fun callFunction_afterLogout() {
         anonUser.logOut()
         assertFailsWithErrorCode(ErrorCode.SERVICE_UNKNOWN) {
-            functions.callFunction(FIRST_ARG_FUNCTION, listOf(1, 2, 3), Integer::class.java)
+            functions.callFunction(FIRST_ARG_FUNCTION, listOf(1, 2, 3), Integer::class.java).get()
         }
     }
 
@@ -417,11 +425,11 @@ class FunctionsTests {
     fun callFunction_authorizedOnly() {
         // Not allow for anonymous user
         assertFailsWithErrorCode(ErrorCode.FUNCTION_EXECUTION_ERROR) {
-            functions.callFunction("authorizedOnly", listOf(1, 2, 3), Document::class.java)
+            functions.callFunction("authorizedOnly", listOf(1, 2, 3), Document::class.java).get()
         }
         // User email must match "canevaluate" section of servers "functions/authorizedOnly/config.json"
         val authorizedUser = app.registerUserAndLogin("authorizeduser@example.org", "asdfasdf")
-        assertNotNull(authorizedUser.functions.callFunction("authorizedOnly", listOf(1, 2, 3), Document::class.java))
+        assertNotNull(authorizedUser.functions.callFunction("authorizedOnly", listOf(1, 2, 3), Document::class.java).get())
     }
 
     @Test
@@ -475,7 +483,7 @@ class FunctionsTests {
                 }
         )
         assertFailsWith<IllegalArgumentException> {
-            functions.callFunction(FIRST_ARG_FUNCTION, listOf("Realm"), String::class.java, faultyCodecRegistry)
+            functions.callFunction(FIRST_ARG_FUNCTION, listOf("Realm"), String::class.java, faultyCodecRegistry).get()
         }
     }
 
@@ -484,14 +492,14 @@ class FunctionsTests {
     fun roundtrip_arrayOfBinary() {
         val value = byteArrayOf(1, 2, 3)
         val listOf = listOf(value)
-        val actual = functions.callFunction(FIRST_ARG_FUNCTION, listOf, ByteArray::class.java)
+        val actual = functions.callFunction(FIRST_ARG_FUNCTION, listOf, ByteArray::class.java).get()
         assertEquals(value.toList(), actual.toList())
     }
 
     @Test
     fun roundtrip_arrayOfDocuments() {
         val map = mapOf("foo" to 5, "bar" to 7)
-        assertEquals(map, functions.callFunction(FIRST_ARG_FUNCTION, listOf(map), Map::class.java))
+        assertEquals(map, functions.callFunction(FIRST_ARG_FUNCTION, listOf(map), Map::class.java).get())
     }
 
     @Test
