@@ -2148,7 +2148,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
                             RealmJsonTypeHelper.emitFillRealmObjectWithJsonValue(
                                     "objProxy",
-                                    "obj", // Needs the RealmModel object to be able to use it as parent for embedded objects
                                     metadata.getInternalSetter(fieldName),
                                     fieldName,
                                     qualifiedFieldType,
@@ -2161,7 +2160,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
                             RealmJsonTypeHelper.emitFillRealmListWithJsonValue(
                                     "objProxy",
-                                    "obj", // Needs the RealmModel object to be able to use it as parent for embedded objects
                                     metadata.getInternalGetter(fieldName),
                                     metadata.getInternalSetter(fieldName),
                                     fieldName,
