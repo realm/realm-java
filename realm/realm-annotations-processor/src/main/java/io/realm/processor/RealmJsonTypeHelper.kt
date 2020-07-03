@@ -73,6 +73,7 @@ object RealmJsonTypeHelper {
 
     @Throws(IOException::class)
     fun emitFillRealmObjectWithJsonValue(varName: String,
+                                         varNameParent: String,
                                          setter: String,
                                          fieldName: String,
                                          qualifiedFieldType: QualifiedClassName,
@@ -88,8 +89,7 @@ object RealmJsonTypeHelper {
                         emitStatement("%s %sObj = %s.createOrUpdateUsingJsonObject(realm, json.getJSONObject(\"%s\"), update)", qualifiedFieldType, fieldName, proxyClass, fieldName)
                         emitStatement("%s.%s(%sObj)", varName, setter, fieldName)
                     } else {
-                        // FIXME Hardcoded 'obj' parent
-                        emitStatement("%s %sObj = %s.createOrUpdateUsingJsonObject(realm, obj, \"%2\$s\", json.getJSONObject(\"%s\"), update)", qualifiedFieldType, fieldName, proxyClass, fieldName)
+                        emitStatement("%s %sObj = %s.createOrUpdateUsingJsonObject(realm, %s, \"%s\", json.getJSONObject(\"%s\"), update)", qualifiedFieldType, fieldName, proxyClass, varNameParent, fieldName, fieldName)
                     }
                 endControlFlow()
             endControlFlow()
@@ -98,6 +98,7 @@ object RealmJsonTypeHelper {
 
     @Throws(IOException::class)
     fun emitFillRealmListWithJsonValue(varName: String,
+                                       varNameParent: String,
                                        getter: String,
                                        setter: String,
                                        fieldName: String,
@@ -117,8 +118,7 @@ object RealmJsonTypeHelper {
                             emitStatement("%s item = %s.createOrUpdateUsingJsonObject(realm, array.getJSONObject(i), update)", fieldTypeCanonicalName, proxyClass, fieldTypeCanonicalName)
                             emitStatement("%s.%s().add(item)", varName, getter)
                        } else {
-                            // FIXME Hardcoded 'obj' parent
-                            emitStatement("%s item = %s.createOrUpdateUsingJsonObject(realm, obj, \"%3\$s\", array.getJSONObject(i), update)", fieldTypeCanonicalName, proxyClass, fieldName)
+                            emitStatement("%s item = %s.createOrUpdateUsingJsonObject(realm, %s, \"%s\", array.getJSONObject(i), update)", fieldTypeCanonicalName, proxyClass, varNameParent, fieldName)
                         }
                     endControlFlow()
                 endControlFlow()

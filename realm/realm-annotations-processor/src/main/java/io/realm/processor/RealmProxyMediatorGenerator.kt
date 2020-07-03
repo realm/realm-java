@@ -426,7 +426,7 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
                     if (!embeddedClass[i]) {
                         emitStatement("return clazz.cast(%s.createOrUpdateUsingJsonObject(realm, json, update))", qualifiedProxyClasses[i])
                     } else {
-                        emitStatement("throw new IllegalArgumentException(\"Cannot import orphaned embedded class from json\")")
+                        emitStatement("throw new IllegalArgumentException(\"Importing embedded classes from JSON without a parent is not allowed\")")
                     }
                 })
             endMethod()

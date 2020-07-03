@@ -451,8 +451,9 @@ class EmbeddedObjectsTest {
                 """)
         }
         val circularParent = realm.where(EmbeddedCircularParent::class.java).findFirst()!!
-        assertEquals("childId", circularParent.singleChild?.id)
-        assertEquals("embeddedChildId", circularParent.singleChild!!.singleChild!!.id)
+        val singleChild = circularParent.singleChild!!
+        assertEquals("childId", singleChild.id)
+        assertEquals("embeddedChildId", singleChild.singleChild!!.id)
     }
 
     @Test
@@ -470,7 +471,7 @@ class EmbeddedObjectsTest {
                 """)
         }
         val parent = realm.where(EmbeddedSimpleListParent::class.java).findFirst()!!
-        assertEquals(3, parent.children?.count())
+        assertEquals(3, parent.children!!.count())
         assertEquals("child1", parent.children[0]!!.id)
         assertEquals("child2", parent.children[1]!!.id)
         assertEquals("child3", parent.children[2]!!.id)
@@ -484,6 +485,10 @@ class EmbeddedObjectsTest {
             }
         }
     }
+
+    @Test
+    @Ignore("FIXME Not implemented yet")
+    fun createEmbeddedObjectFromJson_streamBased() { }
 
     @Test
     @Ignore("Add in another PR")
