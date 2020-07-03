@@ -20,6 +20,7 @@ import org.bson.codecs.Decoder;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Nullable;
 
@@ -54,6 +55,8 @@ public abstract class Functions {
 
     private CodecRegistry defaultCodecRegistry;
 
+    private final ThreadPoolExecutor threadPoolExecutor = App.NETWORK_POOL_EXECUTOR;
+
     protected Functions(User user, CodecRegistry codecRegistry) {
         this.user = user;
         this.defaultCodecRegistry = codecRegistry;
@@ -78,7 +81,7 @@ public abstract class Functions {
                                                            List<?> args,
                                                            Class<ResultT> resultClass,
                                                            CodecRegistry codecRegistry) {
-        return new RealmResultTaskImpl<>(App.NETWORK_POOL_EXECUTOR,
+        return new RealmResultTaskImpl<>(threadPoolExecutor,
                 new RealmResultTaskImpl.Executor<ResultT>() {
                     @Nullable
                     @Override
@@ -129,7 +132,7 @@ public abstract class Functions {
     public <ResultT> RealmResultTask<ResultT> callFunction(String name,
                                                            List<?> args,
                                                            Decoder<ResultT> resultDecoder) {
-        return new RealmResultTaskImpl<>(App.NETWORK_POOL_EXECUTOR,
+        return new RealmResultTaskImpl<>(threadPoolExecutor,
                 new RealmResultTaskImpl.Executor<ResultT>() {
                     @Nullable
                     @Override

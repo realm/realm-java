@@ -18,8 +18,6 @@ package io.realm.mongodb.mongo;
 
 import org.bson.Document;
 
-import java.util.concurrent.ThreadPoolExecutor;
-
 import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsMongoDatabase;
@@ -32,14 +30,11 @@ public class MongoDatabase {
 
     private final OsMongoDatabase osMongoDatabase;
     private final String name;
-    private final ThreadPoolExecutor threadPoolExecutor;
 
     MongoDatabase(final OsMongoDatabase osMongoDatabase,
-                  final String name,
-                  final ThreadPoolExecutor threadPoolExecutor) {
+                  final String name) {
         this.osMongoDatabase = osMongoDatabase;
         this.name = name;
-        this.threadPoolExecutor = threadPoolExecutor;
     }
 
     /**
@@ -60,7 +55,7 @@ public class MongoDatabase {
     public MongoCollection<Document> getCollection(final String collectionName) {
         Util.checkEmpty(collectionName, "collectionName");
         return new MongoCollection<>(new MongoNamespace(name, collectionName),
-                osMongoDatabase.getCollection(collectionName), threadPoolExecutor);
+                osMongoDatabase.getCollection(collectionName));
     }
 
     /**
@@ -78,6 +73,6 @@ public class MongoDatabase {
         Util.checkEmpty(collectionName, "collectionName");
         Util.checkNull(documentClass, "documentClass");
         return new MongoCollection<>(new MongoNamespace(name, collectionName),
-                osMongoDatabase.getCollection(collectionName, documentClass), threadPoolExecutor);
+                osMongoDatabase.getCollection(collectionName, documentClass));
     }
 }

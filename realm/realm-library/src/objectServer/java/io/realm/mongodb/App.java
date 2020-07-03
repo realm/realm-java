@@ -138,7 +138,7 @@ import io.realm.mongodb.functions.Functions;
  * @see EmailPasswordAuth
  * @see io.realm.mongodb.sync.SyncConfiguration
  * @see User#getFunctions()
- * @see User#getMongoClient(String, ThreadPoolExecutor)
+ * @see User#getMongoClient(String)
  */
 @Beta
 public class App {

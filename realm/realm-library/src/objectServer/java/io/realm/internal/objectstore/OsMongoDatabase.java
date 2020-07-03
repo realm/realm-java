@@ -29,14 +29,11 @@ public class OsMongoDatabase implements NativeObject {
 
     private final long nativePtr;
     private final CodecRegistry codecRegistry;
-    private final ThreadPoolExecutor threadPoolExecutor;
 
     OsMongoDatabase(final long nativeDatabasePtr,
-                    final CodecRegistry codecRegistry,
-                    final ThreadPoolExecutor threadPoolExecutor) {
+                    final CodecRegistry codecRegistry) {
         this.nativePtr = nativeDatabasePtr;
         this.codecRegistry = codecRegistry;
-        this.threadPoolExecutor = threadPoolExecutor;
     }
 
     public OsMongoCollection<Document> getCollection(final String collectionName) {
@@ -46,7 +43,7 @@ public class OsMongoDatabase implements NativeObject {
     public <DocumentT> OsMongoCollection<DocumentT> getCollection(final String collectionName,
                                                                   final Class<DocumentT> documentClass) {
         long nativeCollectionPtr = nativeGetCollection(nativePtr, collectionName);
-        return new OsMongoCollection<>(nativeCollectionPtr, documentClass, codecRegistry, threadPoolExecutor);
+        return new OsMongoCollection<>(nativeCollectionPtr, documentClass, codecRegistry);
     }
 
     @Override

@@ -51,7 +51,7 @@ class MongoClientTest {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         app = TestApp()
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        client = user.getMongoClient(SERVICE_NAME, App.NETWORK_POOL_EXECUTOR)
+        client = user.getMongoClient(SERVICE_NAME)
     }
 
     @After

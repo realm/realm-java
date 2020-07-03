@@ -38,6 +38,7 @@ import io.realm.internal.Util;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.network.ResultHandler;
+import io.realm.mongodb.App;
 import io.realm.mongodb.AppException;
 import io.realm.mongodb.mongo.iterable.AggregateIterable;
 import io.realm.mongodb.mongo.iterable.FindIterable;
@@ -73,17 +74,15 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     private final Class<DocumentT> documentClass;
     private final CodecRegistry codecRegistry;
     private final String encodedEmptyDocument;
-    private final ThreadPoolExecutor threadPoolExecutor;
+    private final ThreadPoolExecutor threadPoolExecutor = App.NETWORK_POOL_EXECUTOR;
 
     OsMongoCollection(final long nativeCollectionPtr,
                       final Class<DocumentT> documentClass,
-                      final CodecRegistry codecRegistry,
-                      final ThreadPoolExecutor threadPoolExecutor) {
+                      final CodecRegistry codecRegistry) {
         this.nativePtr = nativeCollectionPtr;
         this.documentClass = documentClass;
         this.codecRegistry = codecRegistry;
         this.encodedEmptyDocument = JniBsonProtocol.encode(new Document(), codecRegistry);
-        this.threadPoolExecutor = threadPoolExecutor;
     }
 
     @Override
@@ -106,11 +105,11 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
     public <NewDocumentT> OsMongoCollection<NewDocumentT> withDocumentClass(
             final Class<NewDocumentT> clazz) {
-        return new OsMongoCollection<>(nativePtr, clazz, codecRegistry, threadPoolExecutor);
+        return new OsMongoCollection<>(nativePtr, clazz, codecRegistry);
     }
 
     public OsMongoCollection<DocumentT> withCodecRegistry(final CodecRegistry codecRegistry) {
-        return new OsMongoCollection<>(nativePtr, documentClass, codecRegistry, threadPoolExecutor);
+        return new OsMongoCollection<>(nativePtr, documentClass, codecRegistry);
     }
 
     public Long count() {

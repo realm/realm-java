@@ -407,7 +407,7 @@ class UserTests {
         val COLLECTION_NAME = "custom_user_data"
         val USER_ID_FIELD = "userid"
 
-        val client = user.getMongoClient(SERVICE_NAME, App.NETWORK_POOL_EXECUTOR)
+        val client = user.getMongoClient(SERVICE_NAME)
         client.getDatabase(DATABASE_NAME).let {
             it.getCollection(COLLECTION_NAME).also { collection ->
                 collection.insertOne(data.append(USER_ID_FIELD , user.id)).get()

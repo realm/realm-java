@@ -15,13 +15,12 @@
  */
 package io.realm.mongodb.push;
 
-import java.util.concurrent.ThreadPoolExecutor;
-
 import javax.annotation.Nullable;
 
 import io.realm.annotations.Beta;
 import io.realm.internal.async.RealmResultTaskImpl;
 import io.realm.internal.objectstore.OsPush;
+import io.realm.mongodb.App;
 import io.realm.mongodb.RealmResultTask;
 
 /**
@@ -31,11 +30,9 @@ import io.realm.mongodb.RealmResultTask;
 public abstract class Push {
 
     private final OsPush osPush;
-    private final ThreadPoolExecutor threadPoolExecutor;
 
-    protected Push(final OsPush osPush, final ThreadPoolExecutor threadPoolExecutor) {
+    protected Push(final OsPush osPush) {
         this.osPush = osPush;
-        this.threadPoolExecutor = threadPoolExecutor;
     }
 
     /**
@@ -46,7 +43,7 @@ public abstract class Push {
      * @return a {@link RealmResultTask} that carries out the registration.
      */
     public RealmResultTask<Void> registerDevice(String registrationToken) {
-        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<Void>() {
+        return new RealmResultTaskImpl<>(App.NETWORK_POOL_EXECUTOR, new RealmResultTaskImpl.Executor<Void>() {
             @Nullable
             @Override
             public Void run() {
@@ -63,7 +60,7 @@ public abstract class Push {
      * @return a {@link RealmResultTask} that carries out the deregistration.
      */
     public RealmResultTask<Void> deregisterDevice() {
-        return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<Void>() {
+        return new RealmResultTaskImpl<>(App.NETWORK_POOL_EXECUTOR, new RealmResultTaskImpl.Executor<Void>() {
             @Nullable
             @Override
             public Void run() {

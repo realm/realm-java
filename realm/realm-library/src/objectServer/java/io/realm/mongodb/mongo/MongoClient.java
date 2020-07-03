@@ -32,14 +32,11 @@ abstract public class MongoClient {
 
     private final OsMongoClient osMongoClient;
     private final CodecRegistry codecRegistry;
-    private final ThreadPoolExecutor threadPoolExecutor;
 
     protected MongoClient(final OsMongoClient osMongoClient,
-                          final CodecRegistry codecRegistry,
-                          final ThreadPoolExecutor threadPoolExecutor) {
+                          final CodecRegistry codecRegistry) {
         this.osMongoClient = osMongoClient;
         this.codecRegistry = codecRegistry;
-        this.threadPoolExecutor = threadPoolExecutor;
     }
 
     /**
@@ -51,6 +48,6 @@ abstract public class MongoClient {
     public MongoDatabase getDatabase(final String databaseName) {
         Util.checkEmpty(databaseName, "databaseName");
         return new MongoDatabase(osMongoClient.getDatabase(databaseName, codecRegistry),
-                databaseName, threadPoolExecutor);
+                databaseName);
     }
 }

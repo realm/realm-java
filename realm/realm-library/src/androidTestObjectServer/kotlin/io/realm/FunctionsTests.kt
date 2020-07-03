@@ -84,16 +84,16 @@ class FunctionsTests {
     }
 
     // Custom codec that throws an exception when encoding/decoding integers
-    private val faultyIntegerCodec = object : Codec<Int> {
-        override fun decode(reader: BsonReader, decoderContext: DecoderContext): Int {
+    private val faultyIntegerCodec = object : Codec<Integer> {
+        override fun decode(reader: BsonReader, decoderContext: DecoderContext): Integer {
             throw RuntimeException("Simulated error")
         }
 
-        override fun getEncoderClass(): Class<Int> {
-            return Int::class.java
+        override fun getEncoderClass(): Class<Integer> {
+            return Integer::class.java
         }
 
-        override fun encode(writer: BsonWriter?, value: Int?, encoderContext: EncoderContext?) {
+        override fun encode(writer: BsonWriter?, value: Integer?, encoderContext: EncoderContext?) {
             throw RuntimeException("Simulated error")
         }
     }

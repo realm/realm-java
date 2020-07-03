@@ -103,15 +103,14 @@ public class User {
 
     private static class MongoClientImpl extends MongoClient {
         protected MongoClientImpl(OsMongoClient osMongoClient,
-                                  CodecRegistry codecRegistry,
-                                  ThreadPoolExecutor threadPoolExecutor) {
-            super(osMongoClient, codecRegistry, threadPoolExecutor);
+                                  CodecRegistry codecRegistry) {
+            super(osMongoClient, codecRegistry);
         }
     }
 
     private static class PushImpl extends Push {
-        protected PushImpl(OsPush osPush, ThreadPoolExecutor threadPoolExecutor) {
-            super(osPush, threadPoolExecutor);
+        protected PushImpl(OsPush osPush) {
+            super(osPush);
         }
     }
 
@@ -561,13 +560,11 @@ public class User {
      * Returns the {@link Push} instance for managing push notification registrations.
      *
      * @param serviceName        the service name used to connect to the server.
-     * @param threadPoolExecutor a {@link ThreadPoolExecutor} on which to execute asynchronous
-     *                           tasks made against MongoDB Realm.
      */
-    public synchronized Push getPush(String serviceName, ThreadPoolExecutor threadPoolExecutor) {
+    public synchronized Push getPush(String serviceName) {
         if (push == null) {
             OsPush osPush = new OsPush(app.nativePtr, osUser, serviceName);
-            push = new PushImpl(osPush, threadPoolExecutor);
+            push = new PushImpl(osPush);
         }
         return push;
     }
@@ -576,14 +573,12 @@ public class User {
      * Returns a {@link MongoClient} instance for accessing documents in the database.
      *
      * @param serviceName        the service name used to connect to the server.
-     * @param threadPoolExecutor a {@link ThreadPoolExecutor} on which to execute asynchronous
-     *                           tasks made against MongoDB Realm.
      */
-    public synchronized MongoClient getMongoClient(String serviceName, ThreadPoolExecutor threadPoolExecutor) {
+    public synchronized MongoClient getMongoClient(String serviceName) {
         Util.checkEmpty(serviceName, "serviceName");
         if (mongoClient == null) {
-            OsMongoClient osMongoClient = new OsMongoClient(app.nativePtr, serviceName, threadPoolExecutor);
-            mongoClient = new MongoClientImpl(osMongoClient, app.getConfiguration().getDefaultCodecRegistry(), threadPoolExecutor);
+            OsMongoClient osMongoClient = new OsMongoClient(app.nativePtr, serviceName);
+            mongoClient = new MongoClientImpl(osMongoClient, app.getConfiguration().getDefaultCodecRegistry());
         }
         return mongoClient;
     }

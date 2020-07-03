@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 import io.realm.annotations.Beta;
 import io.realm.internal.async.RealmResultTaskImpl;
 import io.realm.internal.objectstore.OsMongoCollection;
+import io.realm.mongodb.App;
 import io.realm.mongodb.RealmResultTask;
 import io.realm.mongodb.mongo.iterable.AggregateIterable;
 import io.realm.mongodb.mongo.iterable.FindIterable;
@@ -55,14 +56,12 @@ public class MongoCollection<DocumentT> {
 
     private final MongoNamespace nameSpace;
     private final OsMongoCollection<DocumentT> osMongoCollection;
-    private final ThreadPoolExecutor threadPoolExecutor;
+    private final ThreadPoolExecutor threadPoolExecutor = App.NETWORK_POOL_EXECUTOR;
 
     MongoCollection(final MongoNamespace nameSpace,
-                    final OsMongoCollection<DocumentT> osMongoCollection,
-                    final ThreadPoolExecutor threadPoolExecutor) {
+                    final OsMongoCollection<DocumentT> osMongoCollection) {
         this.nameSpace = nameSpace;
         this.osMongoCollection = osMongoCollection;
-        this.threadPoolExecutor = threadPoolExecutor;
     }
 
     /**
@@ -108,9 +107,7 @@ public class MongoCollection<DocumentT> {
      */
     public <NewDocumentT> MongoCollection<NewDocumentT> withDocumentClass(
             final Class<NewDocumentT> clazz) {
-        return new MongoCollection<>(nameSpace,
-                osMongoCollection.withDocumentClass(clazz),
-                threadPoolExecutor);
+        return new MongoCollection<>(nameSpace, osMongoCollection.withDocumentClass(clazz));
     }
 
     /**
@@ -121,9 +118,7 @@ public class MongoCollection<DocumentT> {
      * @return a new MongoCollection instance with the different codec registry
      */
     public MongoCollection<DocumentT> withCodecRegistry(final CodecRegistry codecRegistry) {
-        return new MongoCollection<>(nameSpace,
-                osMongoCollection.withCodecRegistry(codecRegistry),
-                threadPoolExecutor);
+        return new MongoCollection<>(nameSpace, osMongoCollection.withCodecRegistry(codecRegistry));
     }
 
     /**

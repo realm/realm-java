@@ -21,7 +21,10 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.Realm
 import io.realm.TestApp
 import io.realm.TestHelper
-import io.realm.mongodb.*
+import io.realm.mongodb.ErrorCode
+import io.realm.mongodb.User
+import io.realm.mongodb.close
+import io.realm.mongodb.registerUserAndLogin
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.assertFailsWithErrorCode
 import org.junit.After
@@ -59,20 +62,20 @@ class PushTest {
 
     @Test
     fun registerDevice() {
-        user.getPush(SERVICE_NAME, App.NETWORK_POOL_EXECUTOR).registerDevice(SAMPLE_TOKEN).get()
+        user.getPush(SERVICE_NAME).registerDevice(SAMPLE_TOKEN).get()
     }
 
     @Test
     fun registerDevice_twice() {
         // the API allows registering/deregistering twice, just checking we don't get errors
-        user.getPush(SERVICE_NAME, App.NETWORK_POOL_EXECUTOR).registerDevice(SAMPLE_TOKEN).get()
-        user.getPush(SERVICE_NAME, App.NETWORK_POOL_EXECUTOR).registerDevice(SAMPLE_TOKEN).get()
+        user.getPush(SERVICE_NAME).registerDevice(SAMPLE_TOKEN).get()
+        user.getPush(SERVICE_NAME).registerDevice(SAMPLE_TOKEN).get()
     }
 
     @Test
     fun registerDevice_throwsBecauseOfUnknownService() {
         assertFailsWithErrorCode(ErrorCode.SERVICE_NOT_FOUND) {
-            user.getPush("asdf", App.NETWORK_POOL_EXECUTOR)
+            user.getPush("asdf")
                     .registerDevice(SAMPLE_TOKEN)
                     .get()
         }
@@ -82,7 +85,7 @@ class PushTest {
     fun registerDevice_throwsBecauseOfLoggedOutUser() {
         user.logOut()
         assertFailsWithErrorCode(ErrorCode.SERVICE_UNKNOWN) {
-            user.getPush(SERVICE_NAME, App.NETWORK_POOL_EXECUTOR)
+            user.getPush(SERVICE_NAME)
                     .registerDevice(SAMPLE_TOKEN)
                     .get()
         }
@@ -90,7 +93,7 @@ class PushTest {
 
     @Test
     fun registerDeviceAsync() = looperThread.runBlocking {
-        user.getPush(SERVICE_NAME, App.NETWORK_POOL_EXECUTOR)
+        user.getPush(SERVICE_NAME)
                 .registerDevice(SAMPLE_TOKEN)
                 .getAsync {
                     looperThread.testComplete()
@@ -100,7 +103,7 @@ class PushTest {
     @Test
     fun registerDeviceAsync_throwsBecauseOfWrongThread() {
         assertFailsWith(IllegalStateException::class) {
-            user.getPush(SERVICE_NAME, App.NETWORK_POOL_EXECUTOR)
+            user.getPush(SERVICE_NAME)
                     .registerDevice(SAMPLE_TOKEN)
                     .getAsync { /* do nothing */ }
         }
@@ -108,7 +111,7 @@ class PushTest {
 
     @Test
     fun registerDeviceAsync_throwsBecauseOfUnknownService() = looperThread.runBlocking {
-        user.getPush("asdf", App.NETWORK_POOL_EXECUTOR)
+        user.getPush("asdf")
                 .registerDevice(SAMPLE_TOKEN)
                 .getAsync {
                     assertEquals(ErrorCode.SERVICE_NOT_FOUND, it.error.errorCode)
@@ -118,20 +121,20 @@ class PushTest {
 
     @Test
     fun deregisterDevice() {
-        user.getPush(SERVICE_NAME, App.NETWORK_POOL_EXECUTOR).deregisterDevice().get()
+        user.getPush(SERVICE_NAME).deregisterDevice().get()
     }
 
     @Test
     fun deregisterDevice_twice() {
         // the API allows registering/deregistering twice, just checking we don't get errors
-        user.getPush(SERVICE_NAME, App.NETWORK_POOL_EXECUTOR).deregisterDevice().get()
-        user.getPush(SERVICE_NAME, App.NETWORK_POOL_EXECUTOR).deregisterDevice().get()
+        user.getPush(SERVICE_NAME).deregisterDevice().get()
+        user.getPush(SERVICE_NAME).deregisterDevice().get()
     }
 
     @Test
     fun deregisterDevice_throwsBecauseOfUnknownService() {
         assertFailsWithErrorCode(ErrorCode.SERVICE_NOT_FOUND) {
-            user.getPush("asdf", App.NETWORK_POOL_EXECUTOR)
+            user.getPush("asdf")
                     .deregisterDevice()
                     .get()
         }
@@ -141,7 +144,7 @@ class PushTest {
     fun deregisterDevice_throwsBecauseOfLoggedOutUser() {
         user.logOut()
         assertFailsWithErrorCode(ErrorCode.SERVICE_UNKNOWN) {
-            user.getPush(SERVICE_NAME, App.NETWORK_POOL_EXECUTOR)
+            user.getPush(SERVICE_NAME)
                     .deregisterDevice()
                     .get()
         }
@@ -149,7 +152,7 @@ class PushTest {
 
     @Test
     fun deregisterDeviceAsync() = looperThread.runBlocking {
-        user.getPush(SERVICE_NAME, App.NETWORK_POOL_EXECUTOR)
+        user.getPush(SERVICE_NAME)
                 .deregisterDevice()
                 .getAsync {
                     looperThread.testComplete()
@@ -159,7 +162,7 @@ class PushTest {
     @Test
     fun deregisterDeviceAsync_throwsBecauseOfWrongThread() {
         assertFailsWith(IllegalStateException::class) {
-            user.getPush(SERVICE_NAME, App.NETWORK_POOL_EXECUTOR)
+            user.getPush(SERVICE_NAME)
                     .deregisterDevice()
                     .getAsync { /* do nothing */ }
         }
@@ -167,7 +170,7 @@ class PushTest {
 
     @Test
     fun deregisterDeviceAsync_throwsBecauseOfUnknownService() = looperThread.runBlocking {
-        user.getPush("asdf", App.NETWORK_POOL_EXECUTOR)
+        user.getPush("asdf")
                 .deregisterDevice()
                 .getAsync {
                     assertEquals(ErrorCode.SERVICE_NOT_FOUND, it.error.errorCode)
