@@ -19,7 +19,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.*
 import io.realm.entities.embedded.*
-import io.realm.kotlin.addChangeListener
 import io.realm.kotlin.createEmbeddedObject
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
@@ -437,10 +436,59 @@ class EmbeddedObjectsTest {
     }
 
     @Test
-    @Ignore("Add in another PR")
-    fun createObjectFromJson() {
-        TODO("Placeholder for all tests regarding importing from JSON")
+    fun createEmbeddedObjectFromJson() {
+        realm.executeTransaction { realm ->
+            realm.createObjectFromJson(EmbeddedCircularParent::class.java, """
+                        { 
+                            "id": "uuid", 
+                            "singleChild": { 
+                                "id" : "childId", 
+                                "singleChild" : { 
+                                    "id": "embeddedChildId" 
+                                }
+                            }
+                        }
+                """)
+        }
+        val circularParent = realm.where(EmbeddedCircularParent::class.java).findFirst()!!
+        val singleChild = circularParent.singleChild!!
+        assertEquals("childId", singleChild.id)
+        assertEquals("embeddedChildId", singleChild.singleChild!!.id)
     }
+
+    @Test
+    fun createEmbeddedObjectListElementFromJson() {
+        realm.executeTransaction { realm ->
+            realm.createObjectFromJson(EmbeddedSimpleListParent::class.java, """
+                        { 
+                            "id": "uuid", 
+                            "children": [
+                                { "id" : "child1" },
+                                { "id" : "child2" },
+                                { "id" : "child3" }
+                            ]
+                        }
+                """)
+        }
+        val parent = realm.where(EmbeddedSimpleListParent::class.java).findFirst()!!
+        assertEquals(3, parent.children!!.count())
+        assertEquals("child1", parent.children[0]!!.id)
+        assertEquals("child2", parent.children[1]!!.id)
+        assertEquals("child3", parent.children[2]!!.id)
+    }
+
+    @Test
+    fun createOrphanedEmbeddedObjectFromJsonThrows() {
+        assertFailsWith<IllegalArgumentException> {
+            realm.executeTransaction { realm ->
+                realm.createObjectFromJson(EmbeddedSimpleChild::class.java, """ {"id": "uuid" } """ )
+            }
+        }
+    }
+
+    @Test
+    @Ignore("FIXME Not implemented yet")
+    fun createEmbeddedObjectFromJson_streamBased() { }
 
     @Test
     @Ignore("Add in another PR")
