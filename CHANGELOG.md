@@ -13,6 +13,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 
 ### Fixed
 * [RealmApp] Sync would not refresh the access token if started with an expired one. (Since 10.0.0-BETA.1)
+* Added support for Json-import of objects containing embedded objects. Only supported for String/Json based Json import APIs. Stream based Json import APIs is still failing. (Issue [#6896](https://github.com/realm/realm-java/issues/6896))
 
 ### Compatibility
 * File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
