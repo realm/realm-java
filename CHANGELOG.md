@@ -8,6 +8,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * None.
 
 ### Enhancements
+* Removed GMS Task framework and created RealmResultTask to provide with a mechanism to operate with asynchronous operations. MongoCollection has been updated to reflect this change.
 * Credentials information (e.g. username, password) displayed in Logcat is now obfuscated by default, even if [LogLevel] is set to DEBUG, TRACE or ALL.
 * RealmLists can now be marked final. (Issue [#6892](https://github.com/realm/realm-java/issues/6892))
 
