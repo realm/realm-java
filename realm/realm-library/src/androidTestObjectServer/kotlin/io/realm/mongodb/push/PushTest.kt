@@ -62,22 +62,20 @@ class PushTest {
 
     @Test
     fun registerDevice() {
-        user.getPush(SERVICE_NAME).registerDevice(SAMPLE_TOKEN).get()
+        user.getPush(SERVICE_NAME).registerDevice(SAMPLE_TOKEN)
     }
 
     @Test
     fun registerDevice_twice() {
         // the API allows registering/deregistering twice, just checking we don't get errors
-        user.getPush(SERVICE_NAME).registerDevice(SAMPLE_TOKEN).get()
-        user.getPush(SERVICE_NAME).registerDevice(SAMPLE_TOKEN).get()
+        user.getPush(SERVICE_NAME).registerDevice(SAMPLE_TOKEN)
+        user.getPush(SERVICE_NAME).registerDevice(SAMPLE_TOKEN)
     }
 
     @Test
     fun registerDevice_throwsBecauseOfUnknownService() {
         assertFailsWithErrorCode(ErrorCode.SERVICE_NOT_FOUND) {
-            user.getPush("asdf")
-                    .registerDevice(SAMPLE_TOKEN)
-                    .get()
+            user.getPush("asdf").registerDevice(SAMPLE_TOKEN)
         }
     }
 
@@ -85,58 +83,52 @@ class PushTest {
     fun registerDevice_throwsBecauseOfLoggedOutUser() {
         user.logOut()
         assertFailsWithErrorCode(ErrorCode.SERVICE_UNKNOWN) {
-            user.getPush(SERVICE_NAME)
-                    .registerDevice(SAMPLE_TOKEN)
-                    .get()
+            user.getPush(SERVICE_NAME).registerDevice(SAMPLE_TOKEN)
         }
     }
 
     @Test
-    fun registerDeviceAsync() = looperThread.runBlocking {
-        user.getPush(SERVICE_NAME)
-                .registerDevice(SAMPLE_TOKEN)
-                .getAsync {
-                    looperThread.testComplete()
-                }
+    fun registerDeviceAsync() {
+        looperThread.runBlocking {
+            user.getPush(SERVICE_NAME).registerDeviceAsync(SAMPLE_TOKEN) {
+                looperThread.testComplete()
+            }
+        }
     }
 
     @Test
     fun registerDeviceAsync_throwsBecauseOfWrongThread() {
         assertFailsWith(IllegalStateException::class) {
-            user.getPush(SERVICE_NAME)
-                    .registerDevice(SAMPLE_TOKEN)
-                    .getAsync { /* do nothing */ }
+            user.getPush(SERVICE_NAME).registerDeviceAsync(SAMPLE_TOKEN) { /* do nothing */ }
         }
     }
 
     @Test
-    fun registerDeviceAsync_throwsBecauseOfUnknownService() = looperThread.runBlocking {
-        user.getPush("asdf")
-                .registerDevice(SAMPLE_TOKEN)
-                .getAsync {
-                    assertEquals(ErrorCode.SERVICE_NOT_FOUND, it.error.errorCode)
-                    looperThread.testComplete()
-                }
+    fun registerDeviceAsync_throwsBecauseOfUnknownService() {
+        looperThread.runBlocking {
+            user.getPush("asdf").registerDeviceAsync(SAMPLE_TOKEN) {
+                assertEquals(ErrorCode.SERVICE_NOT_FOUND, it.error.errorCode)
+                looperThread.testComplete()
+            }
+        }
     }
 
     @Test
     fun deregisterDevice() {
-        user.getPush(SERVICE_NAME).deregisterDevice().get()
+        user.getPush(SERVICE_NAME).deregisterDevice()
     }
 
     @Test
     fun deregisterDevice_twice() {
         // the API allows registering/deregistering twice, just checking we don't get errors
-        user.getPush(SERVICE_NAME).deregisterDevice().get()
-        user.getPush(SERVICE_NAME).deregisterDevice().get()
+        user.getPush(SERVICE_NAME).deregisterDevice()
+        user.getPush(SERVICE_NAME).deregisterDevice()
     }
 
     @Test
     fun deregisterDevice_throwsBecauseOfUnknownService() {
         assertFailsWithErrorCode(ErrorCode.SERVICE_NOT_FOUND) {
-            user.getPush("asdf")
-                    .deregisterDevice()
-                    .get()
+            user.getPush("asdf").deregisterDevice()
         }
     }
 
@@ -144,37 +136,33 @@ class PushTest {
     fun deregisterDevice_throwsBecauseOfLoggedOutUser() {
         user.logOut()
         assertFailsWithErrorCode(ErrorCode.SERVICE_UNKNOWN) {
-            user.getPush(SERVICE_NAME)
-                    .deregisterDevice()
-                    .get()
+            user.getPush(SERVICE_NAME).deregisterDevice()
         }
     }
 
     @Test
-    fun deregisterDeviceAsync() = looperThread.runBlocking {
-        user.getPush(SERVICE_NAME)
-                .deregisterDevice()
-                .getAsync {
-                    looperThread.testComplete()
-                }
+    fun deregisterDeviceAsync() {
+        looperThread.runBlocking {
+            user.getPush(SERVICE_NAME).deregisterDeviceAsync() {
+                looperThread.testComplete()
+            }
+        }
     }
 
     @Test
     fun deregisterDeviceAsync_throwsBecauseOfWrongThread() {
         assertFailsWith(IllegalStateException::class) {
-            user.getPush(SERVICE_NAME)
-                    .deregisterDevice()
-                    .getAsync { /* do nothing */ }
+            user.getPush(SERVICE_NAME).deregisterDeviceAsync() { /* do nothing */ }
         }
     }
 
     @Test
-    fun deregisterDeviceAsync_throwsBecauseOfUnknownService() = looperThread.runBlocking {
-        user.getPush("asdf")
-                .deregisterDevice()
-                .getAsync {
-                    assertEquals(ErrorCode.SERVICE_NOT_FOUND, it.error.errorCode)
-                    looperThread.testComplete()
-                }
+    fun deregisterDeviceAsync_throwsBecauseOfUnknownService() {
+        looperThread.runBlocking {
+            user.getPush("asdf").deregisterDeviceAsync() {
+                assertEquals(ErrorCode.SERVICE_NOT_FOUND, it.error.errorCode)
+                looperThread.testComplete()
+            }
+        }
     }
 }
