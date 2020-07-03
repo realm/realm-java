@@ -29,6 +29,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.assertFailsWith
 
+
 @RunWith(AndroidJUnit4::class)
 class CredentialsTests {
 
@@ -50,7 +51,6 @@ class CredentialsTests {
             app.close()
         }
     }
-
 
     @Test
     fun anonymous() {
@@ -177,7 +177,6 @@ class CredentialsTests {
     fun loginUsingCredentials() {
         app = TestApp()
         admin = ServerAdmin()
-
         Credentials.IdentityProvider.values().forEach { provider ->
             when (provider) {
                 Credentials.IdentityProvider.ANONYMOUS -> {
