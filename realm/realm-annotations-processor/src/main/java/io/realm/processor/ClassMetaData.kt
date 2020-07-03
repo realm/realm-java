@@ -483,7 +483,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             if (!field.modifiers.contains(Modifier.FINAL)) {
                 continue
             }
-            if (Utils.isMutableRealmInteger(field)) {
+            if (Utils.isRealmList(field) || Utils.isMutableRealmInteger(field)) {
                 continue
             }
 

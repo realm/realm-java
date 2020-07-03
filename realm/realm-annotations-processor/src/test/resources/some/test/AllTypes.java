@@ -57,6 +57,7 @@ public class AllTypes extends RealmObject {
     private AllTypes columnObject;
 
     private RealmList<AllTypes> columnRealmList;
+    private final RealmList<AllTypes> columnRealmFinalList = new RealmList<AllTypes>();
 
     private RealmList<String> columnStringList;
     private RealmList<byte[]> columnBinaryList;
