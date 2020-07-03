@@ -108,17 +108,9 @@ task sourcesJar(type: Jar) {
 dokka {
     outputFormat = 'html'
     outputDirectory = "$buildDir/docs"
-    configuration {
-// FIXME:
-//        externalDocumentationLink {
-//            noJdkLink = true
-//            noStdlibLink = true
-//            noAndroidSdkLink = true
-//        }
-    }
 }
 
-task javadocJar(type: Jar/* FIXME: , dependsOn: dokka*/) {
+task javadocJar(type: Jar, dependsOn: dokka) {
     classifier = 'javadoc'
     from "$buildDir/dokka"
 }
