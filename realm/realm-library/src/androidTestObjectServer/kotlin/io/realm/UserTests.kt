@@ -21,7 +21,6 @@ import io.realm.admin.ServerAdmin
 import io.realm.mongodb.*
 import io.realm.mongodb.auth.ApiKeyAuth
 import io.realm.rule.BlockingLooperThread
-import io.realm.util.blockingGetResult
 import org.bson.Document
 import org.junit.After
 import org.junit.Assert.*
@@ -480,7 +479,7 @@ class UserTests {
         val client = user.getMongoClient(SERVICE_NAME)
         client.getDatabase(DATABASE_NAME).let {
             it.getCollection(COLLECTION_NAME).also { collection ->
-                collection.insertOne(data.append(USER_ID_FIELD , user.id)).blockingGetResult()
+                collection.insertOne(data.append(USER_ID_FIELD , user.id)).get()
             }
         }
     }

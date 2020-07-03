@@ -20,9 +20,10 @@ import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 
+import java.util.concurrent.ThreadPoolExecutor;
+
 import javax.annotation.Nullable;
 
-import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
@@ -44,18 +45,18 @@ public class FindIterable<ResultT> extends MongoIterable<ResultT> {
 
     private Bson filter;
 
-    public FindIterable(final OsMongoCollection osMongoCollection,
+    public FindIterable(final ThreadPoolExecutor threadPoolExecutor,
+                        final OsMongoCollection<?> osMongoCollection,
                         final CodecRegistry codecRegistry,
-                        final Class<ResultT> resultClass,
-                        final TaskDispatcher dispatcher) {
-        super(osMongoCollection, codecRegistry, resultClass, dispatcher);
+                        final Class<ResultT> resultClass) {
+        super(threadPoolExecutor, osMongoCollection, codecRegistry, resultClass);
         this.options = new FindOptions();
         this.filter = new Document();
         this.encodedEmptyDocument = JniBsonProtocol.encode(new Document(), codecRegistry);
     }
 
     @Override
-    void callNative(final OsJNIResultCallback callback) {
+    void callNative(final OsJNIResultCallback<?> callback) {
         String filterString = JniBsonProtocol.encode(filter, codecRegistry);
         String projectionString = encodedEmptyDocument;
         String sortString = encodedEmptyDocument;
