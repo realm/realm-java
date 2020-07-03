@@ -28,8 +28,7 @@ namespace jni_util {
 // any time the instance is moved or destroyed. Its principal use is on data structures that support move
 // operations, such as std::vector.
 //
-// Note that there is another flavor exists: JavaGlobalRefByCopy. It manages the reference lifecycle by copying
-// operations.
+// Note that there is another flavor available: JavaGlobalRefByCopy.
 //
 // JavaGlobalRefByCopy: multiple references will exist to the Java object, one on each instance.
 // JavaGlobalRefByMove: only one reference will only be available at last moved instance.

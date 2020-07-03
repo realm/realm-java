@@ -28,9 +28,7 @@ namespace realm {
         // any time the instance is copied or destroyed. Its principal use is on data structures that don't support
         // moving operations such as in std::function lambdas.
         //
-        // Note that there is another flavor exists: JavaGlobalRefByMove. It manages the reference lifecycle by moving
-        // operations.
-        // Manages the lifecycle of jobject's global ref via move constructors
+        // Note that there is another flavor available: JavaGlobalRefByMove.
         //
         // JavaGlobalRefByCopy: multiple references will exist to the Java object, one on each instance.
         // JavaGlobalRefByMove: only one reference will only be available at last moved instance.
