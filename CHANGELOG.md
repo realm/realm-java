@@ -8,7 +8,8 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * None.
 
 ### Enhancements
-* [Credentials] information (e.g. username, password) displayed in Logcat is now obfuscated by default, even if [LogLevel] is set to DEBUG, TRACE or ALL.
+* Credentials information (e.g. username, password) displayed in Logcat is now obfuscated by default, even if [LogLevel] is set to DEBUG, TRACE or ALL.
+* RealmLists can now be marked final. (Issue [#6892](https://github.com/realm/realm-java/issues/6892))
 
 ### Fixed
 * [RealmApp] Sync would not refresh the access token if started with an expired one. (Since 10.0.0-BETA.1)
