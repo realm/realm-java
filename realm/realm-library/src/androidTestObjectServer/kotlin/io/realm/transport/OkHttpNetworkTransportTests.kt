@@ -19,6 +19,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.Realm
 import io.realm.internal.network.OkHttpNetworkTransport
+import io.realm.internal.network.LoggingInterceptor
 import io.realm.internal.objectstore.OsJavaNetworkTransport
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -48,7 +49,7 @@ class OkHttpNetworkTransportTests {
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        transport = OkHttpNetworkTransport()
+        transport = OkHttpNetworkTransport(null)
     }
 
     @Test
