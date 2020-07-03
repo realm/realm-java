@@ -8,7 +8,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * None.
 
 ### Enhancements
-* None.
+* [RealmApp] RealmLists can now be marked final.
 
 ### Fixed
 * [RealmApp] Sync would not refresh the access token if started with an expired one. (Since 10.0.0-BETA.1) 
