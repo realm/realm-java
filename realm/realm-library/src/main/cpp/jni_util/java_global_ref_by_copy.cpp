@@ -14,31 +14,31 @@
  * limitations under the License.
  */
 
-#include "java_global_ref_copy.hpp"
+#include "java_global_ref_by_copy.hpp"
 #include "jni_utils.hpp"
 
 #include <memory>
 
 using namespace realm::jni_util;
 
-JavaGlobalRefCopy::JavaGlobalRefCopy() : m_ref(nullptr) {
+JavaGlobalRefByCopy::JavaGlobalRefByCopy() : m_ref(nullptr) {
 
 }
 
-JavaGlobalRefCopy::JavaGlobalRefCopy(JNIEnv *env, jobject obj)
+JavaGlobalRefByCopy::JavaGlobalRefByCopy(JNIEnv *env, jobject obj)
         : m_ref(obj ? env->NewGlobalRef(obj) : nullptr) {
 }
 
-JavaGlobalRefCopy::JavaGlobalRefCopy(const JavaGlobalRefCopy &rhs)
+JavaGlobalRefByCopy::JavaGlobalRefByCopy(const JavaGlobalRefByCopy &rhs)
         : m_ref(rhs.m_ref ? jni_util::JniUtils::get_env(true)->NewGlobalRef(rhs.m_ref) : nullptr) {
 }
 
-JavaGlobalRefCopy::~JavaGlobalRefCopy() {
+JavaGlobalRefByCopy::~JavaGlobalRefByCopy() {
     if (m_ref) {
         JniUtils::get_env()->DeleteGlobalRef(m_ref);
     }
 }
 
-jobject JavaGlobalRefCopy::get() const noexcept {
+jobject JavaGlobalRefByCopy::get() const noexcept {
     return m_ref;
 }

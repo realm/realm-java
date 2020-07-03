@@ -22,32 +22,42 @@
 namespace realm {
 namespace jni_util {
 
-// Manage the lifecycle of jobject's global ref. via move constructors/operations.
-// Anytime we assign an instance we move the contents to the next one, this way we keep just one open reference
-class JavaGlobalRef {
+// Manages the lifecycle of jobject's global ref via move constructors
+//
+// It prevents leaking global references by automatically referencing and unreferencing Java objects
+// any time the instance is moved or destroyed. Its principal use is on data structures that support move
+// operations, such as std::vector.
+//
+// Note that there is another flavor exists: JavaGlobalRefByCopy. It manages the reference lifecycle by copying
+// operations.
+//
+// JavaGlobalRefByCopy: multiple references will exist to the Java object, one on each instance.
+// JavaGlobalRefByMove: only one reference will only be available at last moved instance.
+
+class JavaGlobalRefByMove {
 public:
-    JavaGlobalRef()
+    JavaGlobalRefByMove()
         : m_ref(nullptr)
     {
     }
     // Acquire a global ref on the given jobject. The local ref will be released if given release_local_ref is true.
-    JavaGlobalRef(JNIEnv* env, jobject obj, bool release_local_ref = false)
+    JavaGlobalRefByMove(JNIEnv* env, jobject obj, bool release_local_ref = false)
         : m_ref(obj ? env->NewGlobalRef(obj) : nullptr)
     {
         if (release_local_ref) {
             env->DeleteLocalRef(obj);
         }
     }
-    JavaGlobalRef(JavaGlobalRef&& rhs)
+    JavaGlobalRefByMove(JavaGlobalRefByMove&& rhs)
         : m_ref(rhs.m_ref)
     {
         rhs.m_ref = nullptr;
     }
-    ~JavaGlobalRef();
+    ~JavaGlobalRefByMove();
 
-    JavaGlobalRef& operator=(JavaGlobalRef&& rhs);
-    JavaGlobalRef& operator=(JavaGlobalRef& rhs) = delete;
-    JavaGlobalRef(JavaGlobalRef&);
+    JavaGlobalRefByMove& operator=(JavaGlobalRefByMove&& rhs);
+    JavaGlobalRefByMove& operator=(JavaGlobalRefByMove& rhs) = delete;
+    JavaGlobalRefByMove(JavaGlobalRefByMove&);
 
     inline operator bool() const noexcept
     {

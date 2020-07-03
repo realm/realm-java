@@ -108,8 +108,7 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
     // Helper method for constructing callbacks for REST calls that must return an actual result to Java
     template<typename T>
     static std::function<void(T, util::Optional<app::AppError>)> create_result_callback(JNIEnv* env, jobject j_callback, const std::function<jobject (JNIEnv*, T)>& success_mapper) {
-        jobject callback = env->NewGlobalRef(j_callback);
-        return [callback, success_mapper](T result, util::Optional<app::AppError> error) {
+        return [callback = JavaGlobalRefByCopy(env, j_callback), success_mapper](T result, util::Optional<app::AppError> error) {
             JNIEnv* env = JniUtils::get_env(true);
 
             static JavaClass java_callback_class(env, "io/realm/internal/jni/OsJNIResultCallback");
@@ -119,23 +118,21 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
             if (error) {
                 auto err = error.value();
                 std::string error_category = err.error_code.category().name();
-                env->CallVoidMethod(callback,
+                env->CallVoidMethod(callback.get(),
                                     java_notify_onerror,
                                     to_jstring(env, error_category),
                                     err.error_code.value(),
                                     to_jstring(env, err.message));
             } else {
                 jobject success_obj = success_mapper(env, result);
-                env->CallVoidMethod(callback, java_notify_onsuccess, success_obj);
+                env->CallVoidMethod(callback.get(), java_notify_onsuccess, success_obj);
             }
-            env->DeleteGlobalRef(callback);
         };
     }
 
     // Helper method for constructing callbacks for REST calls that doesn't return any results to Java.
     static std::function<void(util::Optional<app::AppError>)> create_void_callback(JNIEnv* env, jobject j_callback) {
-        jobject callback = env->NewGlobalRef(j_callback);
-        return [callback](util::Optional<app::AppError> error) {
+        return [callback = JavaGlobalRefByCopy(env, j_callback)](util::Optional<app::AppError> error) {
             JNIEnv* env = JniUtils::get_env(true);
 
             static JavaClass java_callback_class(env, "io/realm/internal/jni/OsJNIVoidResultCallback");
@@ -145,15 +142,14 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
             if (error) {
                 auto err = error.value();
                 std::string error_category = err.error_code.category().name();
-                env->CallVoidMethod(callback,
+                env->CallVoidMethod(callback.get(),
                                     java_notify_onerror,
                                     to_jstring(env, error_category),
                                     err.error_code.value(),
                                     to_jstring(env, err.message));
             } else {
-                env->CallVoidMethod(callback, java_notify_onsuccess, NULL);
+                env->CallVoidMethod(callback.get(), java_notify_onsuccess, NULL);
             }
-            env->DeleteGlobalRef(callback);
         };
     }
 
