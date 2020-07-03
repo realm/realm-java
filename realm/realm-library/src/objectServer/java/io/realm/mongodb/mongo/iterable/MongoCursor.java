@@ -16,10 +16,7 @@
 
 package io.realm.mongodb.mongo.iterable;
 
-import com.google.android.gms.tasks.Task;
-
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.Iterator;
 
 /**

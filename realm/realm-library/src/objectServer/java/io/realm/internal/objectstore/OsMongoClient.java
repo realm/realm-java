@@ -18,27 +18,25 @@ package io.realm.internal.objectstore;
 
 import org.bson.codecs.configuration.CodecRegistry;
 
+import java.util.concurrent.ThreadPoolExecutor;
+
 import io.realm.internal.NativeObject;
-import io.realm.internal.common.TaskDispatcher;
 
 public class OsMongoClient implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
     private final long nativePtr;
-    private final TaskDispatcher dispatcher;
 
     public OsMongoClient(final long appNativePtr,
-                         final String serviceName,
-                         final TaskDispatcher dispatcher) {
+                         final String serviceName) {
         this.nativePtr = nativeCreate(appNativePtr, serviceName);
-        this.dispatcher = dispatcher;
     }
 
     public OsMongoDatabase getDatabase(final String databaseName,
                                        final CodecRegistry codecRegistry) {
         long nativeDatabasePtr = nativeCreateDatabase(nativePtr, databaseName);
-        return new OsMongoDatabase(nativeDatabasePtr, codecRegistry, dispatcher);
+        return new OsMongoDatabase(nativeDatabasePtr, codecRegistry);
     }
 
     @Override
