@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-#include "java_global_ref.hpp"
+#include "java_global_ref_by_move.hpp"
 #include "jni_utils.hpp"
 
 #include <memory>
 
 using namespace realm::jni_util;
 
-JavaGlobalRef::~JavaGlobalRef()
+JavaGlobalRefByMove::~JavaGlobalRefByMove()
 {
     if (m_ref) {
         JniUtils::get_env()->DeleteGlobalRef(m_ref);
     }
 }
 
-JavaGlobalRef& JavaGlobalRef::operator=(JavaGlobalRef&& rhs)
+JavaGlobalRefByMove& JavaGlobalRefByMove::operator=(JavaGlobalRefByMove&& rhs)
 {
-    this->~JavaGlobalRef();
-    new (this) JavaGlobalRef(std::move(rhs));
+    this->~JavaGlobalRefByMove();
+    new (this) JavaGlobalRefByMove(std::move(rhs));
     return *this;
 }
 
-JavaGlobalRef::JavaGlobalRef(JavaGlobalRef& rhs)
+JavaGlobalRefByMove::JavaGlobalRefByMove(JavaGlobalRefByMove& rhs)
         : m_ref(rhs.m_ref ? jni_util::JniUtils::get_env(true)->NewGlobalRef(rhs.m_ref) : nullptr)
 {
 }

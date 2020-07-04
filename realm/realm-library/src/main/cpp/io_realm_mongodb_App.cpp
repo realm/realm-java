@@ -99,11 +99,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_mongodb_App_nativeCreate(JNIEnv* env, jobj
 {
     try {
         // App Config
-        jobject java_app_obj = env->NewGlobalRef(obj); // FIXME: Leaking the app object
-        std::function<std::unique_ptr<GenericNetworkTransport>()> transport_generator = [java_app_obj] {
+        std::function<std::unique_ptr<GenericNetworkTransport>()> transport_generator = [java_app_ref = JavaGlobalRefByCopy(env, obj)] {
             JNIEnv* env = JniUtils::get_env(true);
-            static JavaMethod get_network_transport_method(env, java_app_obj, "getNetworkTransport", "()Lio/realm/internal/objectstore/OsJavaNetworkTransport;");
-            jobject network_transport_impl = env->CallObjectMethod(java_app_obj, get_network_transport_method);
+            static JavaMethod get_network_transport_method(env, java_app_ref.get(), "getNetworkTransport", "()Lio/realm/internal/objectstore/OsJavaNetworkTransport;");
+            jobject network_transport_impl = env->CallObjectMethod(java_app_ref.get(), get_network_transport_method);
             return std::unique_ptr<GenericNetworkTransport>(new JavaNetworkTransport(network_transport_impl));
         };
 

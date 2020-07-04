@@ -21,7 +21,8 @@
 
 #include <vector>
 
-#include "java_global_ref.hpp"
+#include "java_global_ref_by_move.hpp"
+#include "java_global_ref_by_copy.hpp"
 
 namespace realm {
 namespace jni_util {
@@ -44,7 +45,7 @@ public:
     // Failing to do so is a resource leak.
     static void detach_current_thread();
     // Keep the given global reference until JNI_OnUnload is called.
-    static void keep_global_ref(JavaGlobalRef& ref);
+    static void keep_global_ref(JavaGlobalRefByMove& ref);
 
 private:
     JniUtils(JavaVM* vm, jint vm_version) noexcept
@@ -55,7 +56,7 @@ private:
 
     JavaVM* m_vm;
     jint m_vm_version;
-    std::vector<JavaGlobalRef> m_global_refs;
+    std::vector<JavaGlobalRefByMove> m_global_refs;
 };
 
 } // namespace realm
