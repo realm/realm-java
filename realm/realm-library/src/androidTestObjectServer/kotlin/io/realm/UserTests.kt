@@ -28,6 +28,8 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.*
+import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
 
 val CUSTOM_USER_DATA_FIELD = "custom_field"
@@ -81,13 +83,10 @@ class UserTests {
 
     @Test
     fun logOut() {
-        anonUser.logOut(); // Remove user created for other tests
-
         // Anonymous users are removed upon log out
-        val user1: User = app.login(Credentials.anonymous())
-        assertEquals(user1, app.currentUser())
-        user1.logOut()
-        assertEquals(User.State.REMOVED, user1.state)
+        assertEquals(anonUser, app.currentUser())
+        anonUser.logOut()
+        assertEquals(User.State.REMOVED, anonUser.state)
         assertNull(app.currentUser())
 
         // Users registered with Email/Password will register as Logged Out
@@ -161,19 +160,16 @@ class UserTests {
 
     @Test
     fun logOutAsync_throwsOnNonLooperThread() {
-        val user: User = app.login(Credentials.anonymous())
         try {
-            user.logOutAsync { fail() }
+            anonUser.logOutAsync { fail() }
             fail()
         } catch (ignore: IllegalStateException) {
         }
     }
 
-    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
     @Test
     fun linkUser() {
         admin.setAutomaticConfirmation(enabled = false)
-        val anonUser: User = app.login(Credentials.anonymous())
         assertEquals(1, anonUser.identities.size)
 
         val email = TestHelper.getRandomEmail()
@@ -183,34 +179,34 @@ class UserTests {
         assertTrue(anonUser === linkedUser)
         assertEquals(2, linkedUser.identities.size)
         assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
-        admin.setAutomaticConfirmation(enabled = true)
 
         val otherEmail = TestHelper.getRandomEmail()
         val otherPassword = "123456"
         app.emailPasswordAuth.registerUser(otherEmail, otherPassword)
-        linkedUser = anonUser.linkCredentials(Credentials.emailPassword(email, password))
-        assertTrue(anonUser === linkedUser)
-        assertEquals(3, linkedUser.identities.size)
-        assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[2].provider)
+
+        val credentials = Credentials.emailPassword(otherEmail, otherPassword)
+
+        // Validate that we cannot link a second set of credentials
+        assertFails {
+            linkedUser = anonUser.linkCredentials(credentials)
+        }
+
         admin.setAutomaticConfirmation(enabled = true)
     }
 
-    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
     @Test
     fun linkUser_existingCredentialsThrows() {
         val email = TestHelper.getRandomEmail()
         val password = "123456"
         val emailUser: User = app.registerUserAndLogin(email, password)
-        val anonymousUser: User = app.login(Credentials.anonymous())
         try {
-            anonymousUser.linkCredentials(Credentials.emailPassword(email, password))
+            anonUser.linkCredentials(Credentials.emailPassword(email, password))
             fail()
         } catch (ex: AppException) {
-            assertEquals(ErrorCode.BAD_REQUEST, ex.errorCode)
+            assertEquals(ErrorCode.INVALID_SESSION, ex.errorCode)
         }
     }
 
-    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
     @Test
     fun linkUser_invalidArgsThrows() {
         try {
@@ -220,27 +216,26 @@ class UserTests {
         }
     }
 
-    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
     @Test
-    fun linkUserAsync() {
+    fun linkUserAsync() = looperThread.runBlocking {
         admin.setAutomaticConfirmation(enabled = false)
-        val user: User = app.login(Credentials.anonymous())
-        assertEquals(1, user.identities.size)
+
+        assertEquals(1, anonUser.identities.size)
         val email = TestHelper.getRandomEmail()
         val password = "123456"
         app.emailPasswordAuth.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
-        looperThread.runBlocking {
-            anonUser.linkCredentialsAsync(Credentials.emailPassword(email, password)) { result ->
-                val linkedUser: User = result.orThrow
-                assertTrue(user === linkedUser)
-                assertEquals(2, linkedUser.identities.size)
-                assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
-                admin.setAutomaticConfirmation(enabled = true)
-            }
+
+        anonUser.linkCredentialsAsync(Credentials.emailPassword(email, password)) { result ->
+            admin.setAutomaticConfirmation(enabled = true)
+
+            val linkedUser: User = result.orThrow
+            assertTrue(anonUser === linkedUser)
+            assertEquals(2, linkedUser.identities.size)
+            assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
+            looperThread.testComplete()
         }
     }
 
-    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
     @Test
     fun linkUserAsync_throwsOnNonLooperThread() {
         try {
@@ -374,8 +369,7 @@ class UserTests {
 
     @Test
     fun equals() {
-        // TODO Could be that we could use a fake user
-        val user: User = app.registerUserAndLogin("user1@example.com", "123456")
+        val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         assertEquals(user, user)
         assertNotEquals(user, app)
         user.logOut()
@@ -385,13 +379,13 @@ class UserTests {
         assertFalse(user === sameUserNewLogin)
         assertEquals(user, sameUserNewLogin)
 
-        val differentUser: User = app.registerUserAndLogin("user2@example.com", "123456")
+        val differentUser: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         assertNotEquals(user, differentUser)
     }
 
     @Test
     fun hashCode_user() {
-        val user: User = app.registerUserAndLogin("user1@example.com", "123456")
+        val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         user.logOut()
 
         val sameUserNewLogin = app.login(Credentials.emailPassword(user.email!!, "123456"))

@@ -108,7 +108,7 @@ public class OsSyncUser implements NativeObject {
         @SuppressWarnings("unchecked")
         Pair<String, String>[] identities = new Pair[identityData.length/2];
         for (int i = 0; i < identityData.length; i = i + 2) {
-            identities[i] = new Pair<>(identityData[i], identityData[i+1]);
+            identities[i/2] = new Pair<>(identityData[i], identityData[i+1]);
         }
         return identities;
     }
