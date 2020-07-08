@@ -224,8 +224,6 @@ class UserTests {
 
         val serverKey = admin.createServerApiKey()
 
-        anonUser = app.login(Credentials.anonymous())
-
         assertEquals(1, anonUser.identities.size)
 
         val linkedUser = anonUser.linkCredentials(Credentials.serverApiKey(serverKey)) //AUTH_ERROR(realm::app::ServiceError:47): invalid API key
@@ -233,6 +231,26 @@ class UserTests {
         assertTrue(anonUser === linkedUser)
         assertEquals(2, linkedUser.identities.size)
         assertEquals(Credentials.IdentityProvider.SERVER_API_KEY, linkedUser.identities[1].provider)
+
+        admin.setAutomaticConfirmation(enabled = true)
+    }
+
+    @Test
+    fun linkUser_customFunction() {
+        admin.setAutomaticConfirmation(enabled = false)
+
+        assertEquals(1, anonUser.identities.size)
+
+        val credentials = Credentials.customFunction(Document(mapOf(
+                "mail" to "myfakemail@mongodb.com",
+                "id" to 666
+        )))
+
+        val linkedUser = anonUser.linkCredentials(credentials)
+
+        assertTrue(anonUser === linkedUser)
+        assertEquals(2, linkedUser.identities.size)
+        assertEquals(Credentials.IdentityProvider.CUSTOM_FUNCTION, linkedUser.identities[1].provider)
 
         admin.setAutomaticConfirmation(enabled = true)
     }
