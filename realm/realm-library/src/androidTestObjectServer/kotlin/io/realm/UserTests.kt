@@ -20,6 +20,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
 import io.realm.mongodb.*
 import io.realm.mongodb.auth.ApiKeyAuth
+import io.realm.mongodb.auth.UserApiKey
 import io.realm.rule.BlockingLooperThread
 import org.bson.Document
 import org.junit.After
@@ -168,7 +169,7 @@ class UserTests {
     }
 
     @Test
-    fun linkUser() {
+    fun linkUser_emailPassword() {
         admin.setAutomaticConfirmation(enabled = false)
         assertEquals(1, anonUser.identities.size)
 
@@ -176,20 +177,62 @@ class UserTests {
         val password = "123456"
         app.emailPasswordAuth.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
         var linkedUser: User = anonUser.linkCredentials(Credentials.emailPassword(email, password))
+
         assertTrue(anonUser === linkedUser)
         assertEquals(2, linkedUser.identities.size)
         assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
 
+        // Validate that we cannot link a second set of credentials
         val otherEmail = TestHelper.getRandomEmail()
         val otherPassword = "123456"
         app.emailPasswordAuth.registerUser(otherEmail, otherPassword)
 
         val credentials = Credentials.emailPassword(otherEmail, otherPassword)
 
-        // Validate that we cannot link a second set of credentials
         assertFails {
             linkedUser = anonUser.linkCredentials(credentials)
         }
+
+        admin.setAutomaticConfirmation(enabled = true)
+    }
+
+    @Test
+    fun linkUser_userApiKey() {
+        admin.setAutomaticConfirmation(enabled = false)
+
+        // Generate API key
+        val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        val apiKey: UserApiKey = user.apiKeyAuth.createApiKey("my-key");
+        user.logOut()
+
+        anonUser = app.login(Credentials.anonymous())
+
+        assertEquals(1, anonUser.identities.size)
+
+        val linkedUser = anonUser.linkCredentials(Credentials.apiKey(apiKey.value)) //INVALID_PARAMETER(realm::app::ServiceError:6): invalid user link request
+
+        assertTrue(anonUser === linkedUser)
+        assertEquals(2, linkedUser.identities.size)
+        assertEquals(Credentials.IdentityProvider.API_KEY, linkedUser.identities[1].provider)
+
+        admin.setAutomaticConfirmation(enabled = true)
+    }
+
+    @Test
+    fun linkUser_serverApiKey() {
+        admin.setAutomaticConfirmation(enabled = false)
+
+        val serverKey = admin.createServerApiKey()
+
+        anonUser = app.login(Credentials.anonymous())
+
+        assertEquals(1, anonUser.identities.size)
+
+        val linkedUser = anonUser.linkCredentials(Credentials.serverApiKey(serverKey)) //AUTH_ERROR(realm::app::ServiceError:47): invalid API key
+
+        assertTrue(anonUser === linkedUser)
+        assertEquals(2, linkedUser.identities.size)
+        assertEquals(Credentials.IdentityProvider.SERVER_API_KEY, linkedUser.identities[1].provider)
 
         admin.setAutomaticConfirmation(enabled = true)
     }
@@ -332,15 +375,18 @@ class UserTests {
 
     // FIXME Test for all meta data
     @Ignore("Not implemented yet")
-    fun user_metaData() { }
+    fun user_metaData() {
+    }
 
     // FIXME
     @Ignore("Not implemented yet")
-    fun accessToken() { }
+    fun accessToken() {
+    }
 
     // FIXME
     @Ignore("Not implemented yet")
-    fun refreshToken() { }
+    fun refreshToken() {
+    }
 
     @Test
     fun revokedRefreshTokenIsNotSameAfterLogin() = looperThread.runBlocking {
@@ -348,8 +394,8 @@ class UserTests {
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), password)
         val refreshToken = user.refreshToken
 
-        app.addAuthenticationListener(object: AuthenticationListener {
-            override fun loggedIn(user: User) { }
+        app.addAuthenticationListener(object : AuthenticationListener {
+            override fun loggedIn(user: User) {}
 
             override fun loggedOut(loggerOutUser: User) {
                 app.loginAsync(Credentials.emailPassword(loggerOutUser.email, password)) {
@@ -365,7 +411,8 @@ class UserTests {
 
     // FIXME
     @Ignore("Not implemented yet")
-    fun isLoggedIn() { }
+    fun isLoggedIn() {
+    }
 
     @Test
     fun equals() {
@@ -473,7 +520,7 @@ class UserTests {
         val client = user.getMongoClient(SERVICE_NAME)
         client.getDatabase(DATABASE_NAME).let {
             it.getCollection(COLLECTION_NAME).also { collection ->
-                collection.insertOne(data.append(USER_ID_FIELD , user.id)).get()
+                collection.insertOne(data.append(USER_ID_FIELD, user.id)).get()
             }
         }
     }
