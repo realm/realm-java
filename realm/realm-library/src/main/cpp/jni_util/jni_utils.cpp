@@ -60,7 +60,7 @@ void JniUtils::detach_current_thread()
     s_instance->m_vm->DetachCurrentThread();
 }
 
-void JniUtils::keep_global_ref(JavaGlobalRef& ref)
+void JniUtils::keep_global_ref(JavaGlobalRefByMove& ref)
 {
     s_instance->m_global_refs.push_back(std::move(ref));
 }

@@ -13,15 +13,17 @@ import static org.truth0.Truth.ASSERT;
 public class RealmEmbeddedObjectsTest {
 
     @Test
-    public void compileEmbeddedObjectFile() {
+    public void compileAndCompareEmbeddedObjectFile() {
         ASSERT.about(javaSource())
                 .that(JavaFileObjects.forResource("some/test/EmbeddedClass.java"))
                 .processedWith(new RealmProcessor())
-                .compilesWithoutError();
+                .compilesWithoutError()
+                .and()
+                .generatesSources(JavaFileObjects.forResource("io/realm/some_test_EmbeddedClassRealmProxy.java"));
     }
 
     @Test
-    public void compileParentToEmbeddedObjectFile() {
+    public void compileAndCompareParentToEmbeddedObjectFile() {
         ASSERT.about(javaSources())
                 .that(Arrays.asList(
                         JavaFileObjects.forResource("some/test/EmbeddedClassSimpleParent.java"),

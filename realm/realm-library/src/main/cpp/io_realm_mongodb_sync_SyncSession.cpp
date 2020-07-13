@@ -24,7 +24,8 @@
 
 #include "util.hpp"
 #include "java_class_global_def.hpp"
-#include "jni_util/java_global_ref.hpp"
+#include "jni_util/java_global_ref_by_move.hpp"
+#include "jni_util/java_global_ref_by_copy.hpp"
 #include "jni_util/java_local_ref.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/java_class.hpp"
@@ -77,12 +78,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddProgress
         static JavaClass java_syncsession_class(env, "io/realm/mongodb/sync/SyncSession");
         static JavaMethod java_notify_progress_listener(env, java_syncsession_class, "notifyProgressListener", "(JJJ)V");
 
-        auto session_ref = env->NewGlobalRef(j_session_object); // This leaks. FIXME
-        std::function<SyncProgressNotifierCallback> callback = [session_ref, local_realm_path, listener_id](uint64_t transferred, uint64_t transferrable) {
+        auto callback = [session_ref = JavaGlobalRefByCopy(env, j_session_object), local_realm_path, listener_id](uint64_t transferred, uint64_t transferrable) {
             JNIEnv* local_env = jni_util::JniUtils::get_env(true);
 
             JavaLocalRef<jstring> path(local_env, to_jstring(local_env, local_realm_path));
-            local_env->CallVoidMethod(session_ref,
+            local_env->CallVoidMethod(session_ref.get(),
                     java_notify_progress_listener,
                     listener_id,
                     static_cast<jlong>(transferred),
@@ -132,8 +132,8 @@ JNIEXPORT jboolean JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeWaitForD
             static JavaClass java_sync_session_class(env, "io/realm/mongodb/sync/SyncSession");
             static JavaMethod java_notify_result_method(env, java_sync_session_class, "notifyAllChangesSent",
                                                         "(ILjava/lang/Long;Ljava/lang/String;)V");
-            auto obj = env->NewGlobalRef(session_object);
-            session->wait_for_download_completion([obj, callback_id](std::error_code error) {
+
+            session->wait_for_download_completion([session_ref = JavaGlobalRefByCopy(env, session_object), callback_id](std::error_code error) {
                 JNIEnv* env = JniUtils::get_env(true);
                 JavaLocalRef<jobject> java_error_code;
                 JavaLocalRef<jstring> java_error_message;
@@ -142,9 +142,8 @@ JNIEXPORT jboolean JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeWaitForD
                         JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env, error.value()));
                     java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(error.message().c_str()));
                 }
-                env->CallVoidMethod(obj, java_notify_result_method,
+                env->CallVoidMethod(session_ref.get(), java_notify_result_method,
                                     callback_id, java_error_code.get(), java_error_message.get());
-                env->DeleteGlobalRef(obj);
             });
             return to_jbool(JNI_TRUE);
         }
@@ -166,8 +165,8 @@ JNIEXPORT jboolean JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeWaitForU
             static JavaClass java_sync_session_class(env, "io/realm/mongodb/sync/SyncSession");
             static JavaMethod java_notify_result_method(env, java_sync_session_class, "notifyAllChangesSent",
                                                         "(ILjava/lang/Long;Ljava/lang/String;)V");
-            auto obj = env->NewGlobalRef(session_object);
-            session->wait_for_upload_completion([obj, callback_id] (std::error_code error) {
+
+            session->wait_for_upload_completion([session_ref = JavaGlobalRefByCopy(env, session_object), callback_id] (std::error_code error) {
                 JNIEnv* env = JniUtils::get_env(true);
                 JavaLocalRef<jobject> java_error_code;
                 JavaLocalRef<jstring> java_error_message;
@@ -175,9 +174,8 @@ JNIEXPORT jboolean JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeWaitForU
                     java_error_code = JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env, error.value()));
                     java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(error.message().c_str()));
                 }
-                env->CallVoidMethod(obj, java_notify_result_method,
+                env->CallVoidMethod(session_ref.get(), java_notify_result_method,
                                     callback_id, java_error_code.get(), java_error_message.get());
-                env->DeleteGlobalRef(obj);
             });
             return JNI_TRUE;
         }
@@ -255,14 +253,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddConnecti
         static JavaClass java_syncmanager_class(env, "io/realm/mongodb/sync/SyncSession");
         static JavaMethod java_notify_connection_listener(env, java_syncmanager_class, "notifyConnectionListeners", "(JJ)V");
 
-        auto session_ref = env->NewGlobalRef(j_session_object); // FIXME Leaking reference to session
-        std::function<SyncSession::ConnectionStateCallback > callback = [session_ref](SyncSession::ConnectionState old_state, SyncSession::ConnectionState new_state) {
+        std::function<SyncSession::ConnectionStateCallback > callback = [session_ref = JavaGlobalRefByCopy(env, j_session_object)](SyncSession::ConnectionState old_state, SyncSession::ConnectionState new_state) {
             JNIEnv* local_env = jni_util::JniUtils::get_env(true);
 
             jlong old_connection_value = get_connection_value(old_state);
             jlong new_connection_value = get_connection_value(new_state);
 
-            local_env->CallVoidMethod(session_ref, java_notify_connection_listener,
+            local_env->CallVoidMethod(session_ref.get(), java_notify_connection_listener,
                                         old_connection_value, new_connection_value);
 
             // All exceptions will be caught on the Java side of handlers, but Errors will still end
