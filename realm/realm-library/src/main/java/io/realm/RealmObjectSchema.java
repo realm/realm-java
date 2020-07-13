@@ -83,7 +83,7 @@ public abstract class RealmObjectSchema {
     final RealmSchema schema;
     final BaseRealm realm;
     final Table table;
-    private final ColumnInfo columnInfo;
+    final ColumnInfo columnInfo;
 
     /**
      * Creates a schema object for a given Realm class.
@@ -465,16 +465,40 @@ public abstract class RealmObjectSchema {
     /**
      * Retrieves the type of a given property.
      *
-     * @param property the field for which we want to know the type.
+     * @param linkingProperty the field for which we want to know the type.
+     * @param linkingPropertyType FIXME
      * @return the name of the property.
+     *
      * @throws IllegalStateException if the given property is not found in the schema.
      */
-    public String getPropertyType(String property) {
-        ColumnInfo.ColumnDetails columnDetails = columnInfo.getColumnDetails(property);
-        if (columnDetails == null) {
-            throw new IllegalStateException(String.format("Property %s not found.", property));
-        } else {
-            return columnDetails.linkedClassName;
+    public abstract String getLinkedType(String linkingProperty,
+                                         RealmFieldType linkingPropertyType);
+
+//    /**
+//     * Retrieves the type of a given property.
+//     *
+//     * @param linkingProperty the field for which we want to know the type.
+//     * @param linkingPropertyType FIXME
+//     * @return the name of the property.
+//     *
+//     * @throws IllegalStateException if the given property is not found in the schema or if the
+//     *                               property is not a valid link, i.e.
+//     *                               {@link RealmFieldType#OBJECT} or {@link RealmFieldType#LIST}.
+//     */
+//    public String getLinkedType(String linkingProperty, RealmFieldType linkingPropertyType) {
+//        assertValidLinkType(linkingPropertyType);
+//        ColumnInfo.ColumnDetails columnDetails = columnInfo.getColumnDetails(linkingProperty);
+//        if (columnDetails == null) {
+//            throw new IllegalStateException(String.format("Property '%s' not found.", linkingProperty));
+//        } else {
+//            return columnDetails.linkedClassName;
+//        }
+//    }
+
+    protected void assertValidLinkType(String linkingProperty, RealmFieldType linkType) {
+        if (linkType != RealmFieldType.OBJECT
+                && linkType != RealmFieldType.LIST) {
+            throw new IllegalArgumentException(String.format("Field '%s' does not contain a valid link", linkingProperty));
         }
     }
 

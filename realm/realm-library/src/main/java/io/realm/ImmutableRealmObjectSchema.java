@@ -106,6 +106,17 @@ class ImmutableRealmObjectSchema extends RealmObjectSchema {
         throw new UnsupportedOperationException(SCHEMA_IMMUTABLE_EXCEPTION_MSG);
     }
 
+    @Override
+    public String getLinkedType(String linkingProperty, RealmFieldType linkingPropertyType) {
+        assertValidLinkType(linkingProperty, linkingPropertyType);
+        ColumnInfo.ColumnDetails columnDetails = columnInfo.getColumnDetails(linkingProperty);
+        if (columnDetails == null) {
+            throw new IllegalStateException(String.format("Property '%s' not found.", linkingProperty));
+        } else {
+            return columnDetails.linkedClassName;
+        }
+    }
+
     /**
      * Returns a field descriptor based on Java field names found in model classes.
      *

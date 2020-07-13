@@ -23,3 +23,10 @@ import java.util.*
 open class EmbeddedSimpleParent(@PrimaryKey var id: String = UUID.randomUUID().toString()) : RealmObject() {
     var child: EmbeddedSimpleChild? = null
 }
+
+open class EmbeddedSimpleParent2(
+        @PrimaryKey var id: String = UUID.randomUUID().toString()
+) : RealmObject() {
+    var child: EmbeddedSimpleChild2? = null
+    var someString: String? = null
+}

@@ -91,7 +91,6 @@ class EmbeddedObjectsTest {
     }
 
     @Test
-    @Ignore("FIXME")
     fun createEmbeddedObject_wrongParentPropertyObjectTypeThrows() = realm.executeTransaction { realm ->
         val parent = realm.createObject<EmbeddedSimpleParent>("parent")
 
@@ -102,7 +101,6 @@ class EmbeddedObjectsTest {
     }
 
     @Test
-    @Ignore("FIXME")
     fun createEmbeddedObject_wrongParentPropertyListTypeThrows() = realm.executeTransaction { realm ->
         val parent = realm.createObject<EmbeddedSimpleListParent>("parent")
 
@@ -120,14 +118,6 @@ class EmbeddedObjectsTest {
     }
 
     @Test
-    fun createEmbeddedObject_linkingTypesNotMatchingThrows() = realm.executeTransaction { realm ->
-        val parent = realm.createObject<EmbeddedSimpleParent>("parent")
-        assertFailsWith<IllegalStateException> {
-            realm.createEmbeddedObject<NonEmbeddedRealmModel>(parent, "child");
-        }
-    }
-
-    @Test
     fun createEmbeddedObject_simpleChildList() = realm.executeTransaction { realm ->
         // Using createEmbeddedObject() with a parent list, will append the object to the end
         // of the list
@@ -140,20 +130,78 @@ class EmbeddedObjectsTest {
     }
 
     @Test
-    fun createEmbeddedObject_linkingTypesNotMatchingThrows_list() = realm.executeTransaction { realm ->
-        // Using createEmbeddedObject() with a parent list, will append the object to the end
-        // of the list
-        val parent = realm.createObject<EmbeddedSimpleListParent>(UUID.randomUUID().toString())
-        assertFailsWith<IllegalStateException> {
-            realm.createEmbeddedObject<NonEmbeddedRealmModel>(parent, "children")
+    fun dynamicRealm_createEmbeddedObject() =
+            DynamicRealm.getInstance(realm.configuration).use { realm ->
+                realm.executeTransaction {
+                    val parent = realm.createObject("EmbeddedSimpleParent", "PK_VALUE")
+                    val child = realm.createEmbeddedObject("EmbeddedSimpleChild", parent, "child")
+
+                    val idValue = "ID_VALUE"
+                    child.setString("id", idValue)
+
+                    val childInParent = parent.getObject("child")
+                    assertNotNull(childInParent)
+                    assertEquals(childInParent!!.getString("id"), idValue)
+                    assertEquals(child, childInParent)
+
+                    val linkingParent = child.linkingObjects("EmbeddedSimpleParent", "child")
+                            .first()
+                    assertNotNull(linkingParent)
+                    assertEquals(parent.getString("id"), linkingParent!!.getString("id"))
+                    assertEquals(parent.getObject("child"), linkingParent.getObject("child"))
+                }
+            }
+
+    @Test
+    fun dynamicRealm_createEmbeddedObject_simpleChildList() =
+            DynamicRealm.getInstance(realm.configuration).use { realm ->
+                realm.executeTransaction {
+                    val parent = realm.createObject("EmbeddedSimpleListParent", UUID.randomUUID().toString())
+                    val child1 = realm.createEmbeddedObject("EmbeddedSimpleChild", parent, "children")
+                    val child2 = realm.createEmbeddedObject("EmbeddedSimpleChild", parent, "children")
+                    assertEquals(2, parent.getList("children").size.toLong())
+                    assertEquals(child1, parent.getList("children").first()!!)
+                    assertEquals(child2, parent.getList("children").last()!!)
+                }
+            }
+
+    @Test
+    fun dynamicRealm_createEmbeddedObject_wrongParentPropertyTypeThrows() {
+        DynamicRealm.getInstance(realm.configuration).use { realm ->
+            realm.executeTransaction {
+                val parent = realm.createObject("EmbeddedSimpleParent", "parent")
+
+                // TODO: Smoke-test for wrong type. Figure out how to test all unsupported types.
+                assertFailsWith<IllegalArgumentException> { realm.createEmbeddedObject("EmbeddedSimpleChild", parent, "id") }
+            }
         }
     }
 
     @Test
-    @Ignore("Placeholder for all tests for DynamicRealm.createEmbeddedObject()")
-    fun dynamicRealm_createEmbeddedObject() {
-        TODO()
-    }
+    fun dynamicRealm_createEmbeddedObject_wrongParentPropertyObjectTypeThrows() =
+            DynamicRealm.getInstance(realm.configuration).use { realm ->
+                realm.executeTransaction {
+                    val parent = realm.createObject("EmbeddedSimpleParent", "parent")
+
+                    assertFailsWith<IllegalArgumentException> {
+                        // Embedded object is not of the type the parent object links to.
+                        realm.createEmbeddedObject("EmbeddedTreeLeaf", parent, "child")
+                    }
+                }
+            }
+
+    @Test
+    fun dynamicRealm_createEmbeddedObject_wrongParentPropertyListTypeThrows() =
+            DynamicRealm.getInstance(realm.configuration).use { realm ->
+                realm.executeTransaction {
+                    val parent = realm.createObject("EmbeddedSimpleListParent", "parent")
+
+                    assertFailsWith<IllegalArgumentException> {
+                        // Embedded object is not of the type the parent object links to.
+                        realm.createEmbeddedObject("EmbeddedTreeLeaf", parent, "children")
+                    }
+                }
+            }
 
     @Test
     fun settingParentFieldDeletesChild() = realm.executeTransaction { realm ->
@@ -166,6 +214,20 @@ class EmbeddedObjectsTest {
         assertFalse(managedChild.isValid)
         assertEquals(0, realm.where<EmbeddedSimpleChild>().count())
     }
+
+    @Test
+    fun dynamicRealm_settingParentFieldDeletesChild() =
+            DynamicRealm.getInstance(realm.configuration).use { realm ->
+                realm.executeTransaction {
+                    val parent = realm.createObject("EmbeddedSimpleParent", "parent")
+                    val child = realm.createEmbeddedObject("EmbeddedSimpleChild", parent, "child");
+
+                    assertEquals(1, realm.where("EmbeddedSimpleChild").count())
+                    parent.setObject("child", null)
+                    assertFalse(child.isValid)
+                    assertEquals(0, realm.where("EmbeddedSimpleChild").count())
+                }
+            }
 
     @Test
     fun objectAccessor_willAutomaticallyCopyUnmanaged() = realm.executeTransaction { realm ->
@@ -460,13 +522,6 @@ class EmbeddedObjectsTest {
     }
 
     @Test
-    @Ignore("Add in another PR")
-    fun dynamicRealmObject_createEmbeddedObject() {
-        TODO("Consider which kind of support there should be for embedded objets in DynamicRealm")
-    }
-
-
-    @Test
     fun realmObjectSchema_setEmbedded() {
         DynamicRealm.getInstance(realm.configuration).use { realm ->
             realm.executeTransaction {
@@ -528,6 +583,14 @@ class EmbeddedObjectsTest {
         assertFalse(realm.schema[AllTypes.CLASS_NAME]!!.isEmbedded)
     }
 
+    @Test
+    fun dynamicRealm_realmObjectSchema_isEmbedded() {
+        DynamicRealm.getInstance(realm.configuration).use { realm ->
+            assertTrue(realm.schema[EmbeddedSimpleChild.NAME]!!.isEmbedded)
+            assertFalse(realm.schema[AllTypes.CLASS_NAME]!!.isEmbedded)
+        }
+    }
+
     // Check that deleting a non-embedded parent deletes all embedded children
     @Test
     fun deleteParentObject_deletesEmbeddedChildren() = realm.executeTransaction {
@@ -543,6 +606,23 @@ class EmbeddedObjectsTest {
         assertEquals(0, realm.where<EmbeddedSimpleParent>().count())
         assertEquals(0, realm.where<EmbeddedSimpleChild>().count())
     }
+
+    @Test
+    fun dynamicRealm_deleteParentObject_deletesEmbeddedChildren() =
+            DynamicRealm.getInstance(realm.configuration).use { realm ->
+                realm.executeTransaction {
+                    val parent = realm.createObject("EmbeddedSimpleParent", "parent")
+                    assertEquals(0, realm.where("EmbeddedSimpleChild").count())
+
+                    val child = realm.createEmbeddedObject("EmbeddedSimpleChild", parent, "child");
+                    assertEquals(1, realm.where("EmbeddedSimpleChild").count())
+
+                    parent.deleteFromRealm()
+                    assertFalse(child.isValid)
+                    assertEquals(0, realm.where("EmbeddedSimpleParent").count())
+                    assertEquals(0, realm.where("EmbeddedSimpleChild").count())
+                }
+            }
 
     // Check that deleting a embedded parent deletes all embedded children
     @Test

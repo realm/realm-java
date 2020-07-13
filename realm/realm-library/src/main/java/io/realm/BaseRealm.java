@@ -40,6 +40,7 @@ import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.OsSharedRealm;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
@@ -506,6 +507,48 @@ abstract class BaseRealm implements Closeable {
         if (!isInTransaction()) {
             throw new IllegalStateException(NOT_IN_TRANSACTION_MESSAGE);
         }
+    }
+
+    /**
+     * Creates a row representing an embedded object - for internal use only.
+     *
+     * @param className the class name of the object to create.
+     * @param parentProxy The parent object which should hold a reference to the embedded object.
+     * @param parentProperty the property in the parent class which holds the reference.
+     * @param schema the Realm schema from which to obtain table information.
+     * @param parentObjectSchema the parent object schema from which to obtain property information.
+     * @return the row representing the newly created embedded object.
+     */
+    Row getEmbeddedObjectRow(String className,
+                             RealmObjectProxy parentProxy,
+                             String parentProperty,
+                             RealmSchema schema,
+                             RealmObjectSchema parentObjectSchema) {
+        long parentPropertyColKey = parentObjectSchema.getColumnKey(parentProperty);
+        RealmFieldType parentPropertyType = parentObjectSchema.getFieldType(parentProperty);
+        String linkedType = parentObjectSchema.getLinkedType(parentProperty, parentPropertyType);
+        Row embeddedObject;
+        switch (parentPropertyType) {
+            case OBJECT:
+                if (linkedType.equals(className)) {
+                    long objKey = parentProxy.realmGet$proxyState().getRow$realm().createEmbeddedObject(parentPropertyColKey);
+                    embeddedObject = schema.getTable(className).getCheckedRow(objKey);
+                } else {
+                    throw new IllegalArgumentException(String.format("Parent type %s expects that property '%s' be of type %s but was %s.", parentObjectSchema.getClassName(), parentProperty, linkedType, className));
+                }
+                break;
+            case LIST:
+                if (linkedType.equals(className)) {
+                    long objKey = parentProxy.realmGet$proxyState().getRow$realm().getModelList(parentPropertyColKey).createAndAddEmbeddedObject();
+                    embeddedObject = schema.getTable(className).getCheckedRow(objKey);
+                } else {
+                    throw new IllegalArgumentException(String.format("Parent type %s expects that property '%s' be of type %s but was %s.", parentObjectSchema.getClassName(), parentProperty, linkedType, className));
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Parent property is not a reference to embedded objects of the appropriate type: " + parentPropertyType);
+        }
+        return embeddedObject;
     }
 
     /**
