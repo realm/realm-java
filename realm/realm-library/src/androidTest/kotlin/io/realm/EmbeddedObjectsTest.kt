@@ -21,6 +21,7 @@ import io.realm.entities.*
 import io.realm.entities.embedded.*
 import io.realm.kotlin.createEmbeddedObject
 import io.realm.kotlin.createObject
+import io.realm.kotlin.isValid
 import io.realm.kotlin.where
 import io.realm.rule.BlockingLooperThread
 import io.realm.rule.TestRealmConfigurationFactory
@@ -690,6 +691,30 @@ class EmbeddedObjectsTest {
         assertEquals(0, realm.where<EmbeddedTreeNode>().count())
         assertEquals(0, realm.where<EmbeddedSimpleChild>().count())
     }
+
+    @Test
+    fun dynamic_deleteParentEmbeddedObject_deletesEmbeddedChildren() =
+            DynamicRealm.getInstance(realm.configuration).use { realm ->
+                realm.executeTransaction {
+                    val parent = realm.createObject("EmbeddedTreeParent", "parent1")
+                    val middleNode = realm.createEmbeddedObject("EmbeddedTreeNode", parent, "middleNode");
+                    middleNode.setString("id", "node1")
+                    val leaf1 = realm.createEmbeddedObject("EmbeddedTreeLeaf", middleNode, "leafNode");
+                    val leaf2 = realm.createEmbeddedObject("EmbeddedTreeLeaf", middleNode, "leafNodeList");
+                    val leaf3 = realm.createEmbeddedObject("EmbeddedTreeLeaf", middleNode, "leafNodeList");
+
+                    assertEquals(1, realm.where("EmbeddedTreeNode").count())
+                    assertEquals(3, realm.where("EmbeddedTreeLeaf").count())
+                    parent.deleteFromRealm()
+                    assertEquals(0, realm.where("EmbeddedTreeNode").count())
+                    assertEquals(0, realm.where("EmbeddedSimpleChild").count())
+                    assertFalse(parent.isValid)
+                    assertFalse(middleNode.isValid)
+                    assertFalse(leaf1.isValid)
+                    assertFalse(leaf2.isValid)
+                    assertFalse(leaf3.isValid)
+                }
+            }
 
     // Cascade deleting an embedded object will trigger its object listener.
     @Test
