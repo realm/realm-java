@@ -21,7 +21,6 @@ import io.realm.entities.*
 import io.realm.entities.embedded.*
 import io.realm.kotlin.createEmbeddedObject
 import io.realm.kotlin.createObject
-import io.realm.kotlin.isValid
 import io.realm.kotlin.where
 import io.realm.rule.BlockingLooperThread
 import io.realm.rule.TestRealmConfigurationFactory
@@ -29,7 +28,6 @@ import org.junit.*
 import org.junit.Assert.*
 import org.junit.runner.RunWith
 import java.util.*
-import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
 
 /**
