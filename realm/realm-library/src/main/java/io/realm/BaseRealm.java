@@ -35,7 +35,6 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
-import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.OsSchemaInfo;
@@ -518,28 +517,24 @@ abstract class BaseRealm implements Closeable {
      * @param schema the Realm schema from which to obtain table information.
      * @param parentObjectSchema the parent object schema from which to obtain property information.
      * @return the row representing the newly created embedded object.
+     * @throws IllegalArgumentException if any embedded object invariants are broken.
      */
-    Row getEmbeddedObjectRow(String className,
-                             RealmObjectProxy parentProxy,
-                             String parentProperty,
-                             RealmSchema schema,
-                             RealmObjectSchema parentObjectSchema) {
-        long parentPropertyColKey = parentObjectSchema.getColumnKey(parentProperty);
-        RealmFieldType parentPropertyType = parentObjectSchema.getFieldType(parentProperty);
-        String linkedType = parentObjectSchema.getLinkedType(parentProperty, parentPropertyType);
+    Row getEmbeddedObjectRow(final String className,
+                             final RealmObjectProxy parentProxy,
+                             final String parentProperty,
+                             final RealmSchema schema,
+                             final RealmObjectSchema parentObjectSchema) {
+        final long parentPropertyColKey = parentObjectSchema.getColumnKey(parentProperty);
+        final RealmFieldType parentPropertyType = parentObjectSchema.getFieldType(parentProperty);
+        final String linkedType = parentObjectSchema.getLinkedType(parentProperty, parentPropertyType);
+        final Row row = parentProxy.realmGet$proxyState().getRow$realm();
         Row embeddedObject;
+
         switch (parentPropertyType) {
             case OBJECT:
-                if (linkedType.equals(className)) {
-                    long objKey = parentProxy.realmGet$proxyState().getRow$realm().createEmbeddedObject(parentPropertyColKey);
-                    embeddedObject = schema.getTable(className).getCheckedRow(objKey);
-                } else {
-                    throw new IllegalArgumentException(String.format("Parent type %s expects that property '%s' be of type %s but was %s.", parentObjectSchema.getClassName(), parentProperty, linkedType, className));
-                }
-                break;
             case LIST:
                 if (linkedType.equals(className)) {
-                    long objKey = parentProxy.realmGet$proxyState().getRow$realm().getModelList(parentPropertyColKey).createAndAddEmbeddedObject();
+                    long objKey = row.createEmbeddedObject(parentPropertyColKey, parentPropertyType);
                     embeddedObject = schema.getTable(className).getCheckedRow(objKey);
                 } else {
                     throw new IllegalArgumentException(String.format("Parent type %s expects that property '%s' be of type %s but was %s.", parentObjectSchema.getClassName(), parentProperty, linkedType, className));
@@ -548,6 +543,7 @@ abstract class BaseRealm implements Closeable {
             default:
                 throw new IllegalArgumentException("Parent property is not a reference to embedded objects of the appropriate type: " + parentPropertyType);
         }
+
         return embeddedObject;
     }
 

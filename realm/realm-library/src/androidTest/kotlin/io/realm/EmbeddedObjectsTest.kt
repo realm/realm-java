@@ -762,7 +762,6 @@ class EmbeddedObjectsTest {
         realm.executeTransaction {
             val parent = realm.createObject("EmbeddedSimpleParent", "parent")
             realm.createEmbeddedObject("EmbeddedSimpleChild", parent, "child")
-                    .apply { setString("id", "child") }
         }
 
         val queriedChild = realm.where("EmbeddedSimpleParent")
@@ -822,9 +821,7 @@ class EmbeddedObjectsTest {
         realm.executeTransaction {
             val parent = realm.createObject("EmbeddedSimpleListParent", "parent")
             realm.createEmbeddedObject("EmbeddedSimpleChild", parent, "children")
-                    .apply { setString("id", "child1") }
             realm.createEmbeddedObject("EmbeddedSimpleChild", parent, "children")
-                    .apply { setString("id", "child2") }
         }
 
         realm.where("EmbeddedSimpleListParent")

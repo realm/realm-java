@@ -322,7 +322,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
 
         String childPropertyClassName = table.getLinkTarget(getColumnKey(linkingProperty)).getClassName();
         if (Util.isEmptyString(childPropertyClassName)) {
-            throw new IllegalStateException(String.format("Property '%s' not found.", linkingProperty));
+            throw new IllegalArgumentException(String.format("Property '%s' not found.", linkingProperty));
         }
 
         return childPropertyClassName;
