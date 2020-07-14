@@ -34,14 +34,3 @@ open class EmbeddedSimpleChild(var id: String = UUID.randomUUID().toString()) : 
         const val NAME = "EmbeddedSimpleChild"
     }
 }
-
-@RealmClass(embedded = true)
-open class EmbeddedSimpleChild2(
-        var id: String = UUID.randomUUID().toString()
-) : RealmObject() {
-
-    @LinkingObjects("child")
-    val parent = EmbeddedSimpleParent2()
-
-    var someString: String? = null
-}
