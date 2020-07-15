@@ -526,7 +526,7 @@ abstract class BaseRealm implements Closeable {
                              final RealmObjectSchema parentObjectSchema) {
         final long parentPropertyColKey = parentObjectSchema.getColumnKey(parentProperty);
         final RealmFieldType parentPropertyType = parentObjectSchema.getFieldType(parentProperty);
-        final String linkedType = parentObjectSchema.getLinkedType(parentProperty, parentPropertyType);
+        final String linkedType = parentObjectSchema.getLinkedType(parentProperty);
         final Row row = parentProxy.realmGet$proxyState().getRow$realm();
         Row embeddedObject;
 

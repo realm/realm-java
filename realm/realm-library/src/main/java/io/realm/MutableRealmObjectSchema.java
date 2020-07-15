@@ -317,8 +317,8 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     }
 
     @Override
-    public String getLinkedType(String linkingProperty, RealmFieldType linkingPropertyType) {
-        assertValidLinkType(linkingProperty, linkingPropertyType);
+    public String getLinkedType(String linkingProperty) {
+        assertValidLinkType(linkingProperty, getFieldType(linkingProperty));
 
         String childPropertyClassName = table.getLinkTarget(getColumnKey(linkingProperty)).getClassName();
         if (Util.isEmptyString(childPropertyClassName)) {

@@ -463,37 +463,16 @@ public abstract class RealmObjectSchema {
     }
 
     /**
-     * Retrieves the type of a given property.
+     * Checks whether a given class property can represent a valid embedded object
+     * {@code @LinkingObjects} backlink that points to a parent. Valid embedded object backlink
+     * typs are {@link RealmFieldType#OBJECT} and {@link RealmFieldType#LIST}.
      *
      * @param linkingProperty the field for which we want to know the type.
-     * @param linkingPropertyType FIXME
      * @return the name of the property.
-     *
-     * @throws IllegalStateException if the given property is not found in the schema.
+     * @throws IllegalStateException if the given property is not found in the schema or the
+     * backlink property is not a valid type.
      */
-    public abstract String getLinkedType(String linkingProperty,
-                                         RealmFieldType linkingPropertyType);
-
-//    /**
-//     * Retrieves the type of a given property.
-//     *
-//     * @param linkingProperty the field for which we want to know the type.
-//     * @param linkingPropertyType FIXME
-//     * @return the name of the property.
-//     *
-//     * @throws IllegalStateException if the given property is not found in the schema or if the
-//     *                               property is not a valid link, i.e.
-//     *                               {@link RealmFieldType#OBJECT} or {@link RealmFieldType#LIST}.
-//     */
-//    public String getLinkedType(String linkingProperty, RealmFieldType linkingPropertyType) {
-//        assertValidLinkType(linkingPropertyType);
-//        ColumnInfo.ColumnDetails columnDetails = columnInfo.getColumnDetails(linkingProperty);
-//        if (columnDetails == null) {
-//            throw new IllegalStateException(String.format("Property '%s' not found.", linkingProperty));
-//        } else {
-//            return columnDetails.linkedClassName;
-//        }
-//    }
+    public abstract String getLinkedType(String linkingProperty);
 
     protected void assertValidLinkType(String linkingProperty, RealmFieldType linkType) {
         if (linkType != RealmFieldType.OBJECT
