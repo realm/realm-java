@@ -1,0 +1,53 @@
+{
+    "id": "5edea20f0f99fe616bf40ade",
+    "database": "test_data",
+    "collection": "SyncPerson",
+    "relationships": {
+        "dogs": {
+            "ref": "#/stitch/BackingDB/test_data/SyncDog",
+            "source_key": "dogs",
+            "foreign_key": "_id",
+            "is_list": true
+        }
+    },
+    "roles": [
+        {
+            "name": "default",
+            "apply_when": {},
+            "insert": true,
+            "delete": true,
+            "additional_fields": {}
+        }
+    ],
+    "schema": {
+        "properties": {
+            "_id": {
+                "bsonType": "objectId"
+            },
+            "age": {
+                "bsonType": "int"
+            },
+            "dogs": {
+                "bsonType": "array",
+                "items": {
+                    "bsonType": "objectId"
+                }
+            },
+            "firstName": {
+                "bsonType": "string"
+            },
+            "lastName": {
+                "bsonType": "string"
+            },
+            "realm_id": {
+                "bsonType": "string"
+            }
+        },
+        "required": [
+            "firstName",
+            "lastName",
+            "age"
+        ],
+        "title": "SyncPerson"
+    }
+}

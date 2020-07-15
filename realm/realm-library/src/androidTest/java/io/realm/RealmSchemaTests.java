@@ -193,7 +193,9 @@ public class RealmSchemaTests {
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.STRING, objectSchema.getFieldType("pkField"));
             assertFalse(objectSchema.isNullable("pkField"));
-            assertTrue(objectSchema.hasIndex("pkField"));
+            // Search index is not added to primary key string columns. Will compute key directly from primary key value.
+            // since Core6.0.0-alpha.25
+            assertFalse(objectSchema.hasIndex("pkField"));
 
             realmSchema.remove(validClassName);
 
@@ -203,7 +205,7 @@ public class RealmSchemaTests {
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.STRING, objectSchema.getFieldType("pkField"));
             assertTrue(objectSchema.isNullable("pkField"));
-            assertTrue(objectSchema.hasIndex("pkField"));
+            assertFalse(objectSchema.hasIndex("pkField"));
         }
     }
 
@@ -229,7 +231,7 @@ public class RealmSchemaTests {
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
             assertFalse(objectSchema.isNullable("pkField"));
-            assertTrue(objectSchema.hasIndex("pkField"));
+            assertFalse(objectSchema.hasIndex("pkField"));
 
             realmSchema.remove(validClassName);
 
@@ -239,7 +241,7 @@ public class RealmSchemaTests {
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
             assertTrue(objectSchema.isNullable("pkField"));
-            assertTrue(objectSchema.hasIndex("pkField"));
+            assertFalse(objectSchema.hasIndex("pkField"));
         }
     }
 
@@ -265,7 +267,7 @@ public class RealmSchemaTests {
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
             assertFalse(objectSchema.isNullable("pkField"));
-            assertTrue(objectSchema.hasIndex("pkField"));
+            assertFalse(objectSchema.hasIndex("pkField"));
 
             realmSchema.remove(validClassName);
 
@@ -275,7 +277,7 @@ public class RealmSchemaTests {
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
             assertFalse(objectSchema.isNullable("pkField"));
-            assertTrue(objectSchema.hasIndex("pkField"));
+            assertFalse(objectSchema.hasIndex("pkField"));
         }
     }
 
@@ -290,7 +292,7 @@ public class RealmSchemaTests {
         assertEquals("pkField", objectSchema.getPrimaryKey());
         assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
         assertFalse(objectSchema.isNullable("pkField"));
-        assertTrue(objectSchema.hasIndex("pkField"));
+        assertFalse(objectSchema.hasIndex("pkField"));
     }
 
     @Test
@@ -304,7 +306,7 @@ public class RealmSchemaTests {
         assertEquals("pkField", objectSchema.getPrimaryKey());
         assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
         assertFalse(objectSchema.isNullable("pkField"));
-        assertTrue(objectSchema.hasIndex("pkField"));
+        assertFalse(objectSchema.hasIndex("pkField"));
     }
 
     @Test
@@ -541,7 +543,7 @@ public class RealmSchemaTests {
         assertNotSame(previousFoo, newFoo);
 
         try {
-            previousFoo.getClassName();
+            assertEquals("foo", previousFoo.getClassName());
             fail();
         } catch (IllegalStateException ignored) {
         }
@@ -578,6 +580,10 @@ public class RealmSchemaTests {
         fieldNameToType.put(NullTypes.FIELD_BOOLEAN_LIST_NOT_NULL, RealmFieldType.BOOLEAN_LIST);
         fieldNameToType.put(NullTypes.FIELD_DATE_LIST_NULL, RealmFieldType.DATE_LIST);
         fieldNameToType.put(NullTypes.FIELD_DATE_LIST_NOT_NULL, RealmFieldType.DATE_LIST);
+        fieldNameToType.put(NullTypes.FIELD_DECIMAL128_LIST_NULL, RealmFieldType.DECIMAL128_LIST);
+        fieldNameToType.put(NullTypes.FIELD_DECIMAL128_LIST_NOT_NULL, RealmFieldType.DECIMAL128_LIST);
+        fieldNameToType.put(NullTypes.FIELD_OBJECT_ID_LIST_NULL, RealmFieldType.OBJECT_ID_LIST);
+        fieldNameToType.put(NullTypes.FIELD_OBJECT_ID_LIST_NOT_NULL, RealmFieldType.OBJECT_ID_LIST);
         fieldNameToType.put(NullTypes.FIELD_DOUBLE_LIST_NULL, RealmFieldType.DOUBLE_LIST);
         fieldNameToType.put(NullTypes.FIELD_DOUBLE_LIST_NOT_NULL, RealmFieldType.DOUBLE_LIST);
         fieldNameToType.put(NullTypes.FIELD_FLOAT_LIST_NULL, RealmFieldType.FLOAT_LIST);

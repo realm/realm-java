@@ -17,9 +17,8 @@
 package io.realm;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
-import android.test.MoreAsserts;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -31,6 +30,7 @@ import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Set;
 
 import io.reactivex.Flowable;
@@ -58,6 +58,7 @@ import io.realm.rx.ObjectChange;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -86,7 +87,7 @@ public class RealmConfigurationTests {
 
     @Before
     public void setUp() {
-        context = InstrumentationRegistry.getTargetContext();
+        context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         defaultConfig = configFactory.createConfiguration();
     }
 
@@ -200,8 +201,8 @@ public class RealmConfigurationTests {
     public void constructBuilder_wrongKeyLengthThrows() {
         byte[][] wrongKeys = new byte[][] {
                 new byte[0],
-                new byte[RealmConfiguration.KEY_LENGTH - 1],
-                new byte[RealmConfiguration.KEY_LENGTH + 1]
+                new byte[Realm.ENCRYPTION_KEY_LENGTH - 1],
+                new byte[Realm.ENCRYPTION_KEY_LENGTH + 1]
         };
         for (byte[] key : wrongKeys) {
             try {
@@ -470,11 +471,11 @@ public class RealmConfigurationTests {
     public void hashCode_withDifferentRxObservableFactory() {
         RealmConfiguration config1 = configFactory.createConfigurationBuilder()
                 .directory(configFactory.getRoot())
-                .rxFactory(new RealmObservableFactory())
+                .rxFactory(new RealmObservableFactory(false))
                 .build();
         RealmConfiguration config2 = configFactory.createConfigurationBuilder()
                 .directory(configFactory.getRoot())
-                .rxFactory(new RealmObservableFactory() {
+                .rxFactory(new RealmObservableFactory(false) {
                     @Override
                     public int hashCode() {
                         return super.hashCode() + 1;
@@ -611,12 +612,12 @@ public class RealmConfigurationTests {
 
         // Generates a different key and assigns it to the same variable.
         byte[] newKey = TestHelper.getRandomKey(67890);
-        MoreAsserts.assertNotEqual(key, newKey);
+        assertFalse(Arrays.equals(key, newKey));
         key = newKey;
-        MoreAsserts.assertEquals(key, newKey);
+        assertArrayEquals(key, newKey);
 
         // Ensures that the stored key did not change.
-        MoreAsserts.assertEquals(oldKey, config.getEncryptionKey());
+        assertArrayEquals(oldKey, config.getEncryptionKey());
     }
 
     @Test
@@ -1092,6 +1093,28 @@ public class RealmConfigurationTests {
                     .build();
             fail();
         } catch (IllegalStateException ignored) {
+        }
+    }
+
+    @Test
+    public void maxNumberOfActiveVersions() {
+        RealmConfiguration config = new RealmConfiguration.Builder()
+                .maxNumberOfActiveVersions(42)
+                .build();
+        assertEquals(42, config.getMaxNumberOfActiveVersions());
+    }
+
+    @Test
+    public void maxNumberOfActiveVersions_throwsIfZeroOrNegative() {
+        RealmConfiguration.Builder builder = new RealmConfiguration.Builder();
+        try {
+            builder.maxNumberOfActiveVersions(0);
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        try {
+            builder.maxNumberOfActiveVersions(-1);
+        } catch (IllegalArgumentException ignore) {
         }
     }
 }

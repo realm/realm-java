@@ -17,6 +17,7 @@ package io.realm.buildtransformer.asm
 
 import io.realm.buildtransformer.ByteCodeMethodName
 import io.realm.buildtransformer.ByteCodeTypeDescriptor
+import io.realm.buildtransformer.FieldName
 import io.realm.buildtransformer.QualifiedName
 import io.realm.buildtransformer.asm.visitors.AnnotatedCodeStripVisitor
 import io.realm.buildtransformer.asm.visitors.AnnotationVisitor
@@ -44,15 +45,15 @@ class ClassPoolTransformer(annotationQualifiedName: QualifiedName, private val i
      * @return All input files, both those that have been modified and those that have not.
      */
     fun transform(): Set<File> {
-        val (markedClasses, markedMethods) = pass1()
-        return pass2(markedClasses, markedMethods)
+        val (markedClasses, markedMethods, markedFields) = pass1()
+        return pass2(markedClasses, markedMethods, markedFields)
     }
 
     /**
      * Pass 1: Collect all classes, interfaces and enums that contain the given annotation. This include both top-level
      * and inner types.
      */
-    private fun pass1(): Pair<Set<String>, Map<ByteCodeTypeDescriptor, Set<ByteCodeMethodName>>> {
+    private fun pass1(): Triple<Set<String>, Map<ByteCodeTypeDescriptor, Set<ByteCodeMethodName>>, Map<ByteCodeTypeDescriptor, Set<FieldName>>> {
         val metadataCollector = AnnotationVisitor(annotationDescriptor)
         inputClasses.forEach {
             it.inputStream().use {
@@ -60,7 +61,7 @@ class ClassPoolTransformer(annotationQualifiedName: QualifiedName, private val i
                 classReader.accept(metadataCollector, 0)
             }
         }
-        return Pair(metadataCollector.annotatedClasses, metadataCollector.annotatedMethods)
+        return Triple(metadataCollector.annotatedClasses, metadataCollector.annotatedMethods, metadataCollector.annotatedFields)
     }
 
     /**
@@ -68,13 +69,13 @@ class ClassPoolTransformer(annotationQualifiedName: QualifiedName, private val i
      * are instead marked for deletion as deleting the File is the responsibility of the
      * transform API.
      */
-    private fun pass2(markedClasses: Set<String>, markedMethods: Map<ByteCodeTypeDescriptor, Set<ByteCodeMethodName>>): Set<File> {
+    private fun pass2(markedClasses: Set<String>, markedMethods: Map<ByteCodeTypeDescriptor, Set<ByteCodeMethodName>>, markedFields: Map<ByteCodeTypeDescriptor, Set<FieldName>>): Set<File> {
         inputClasses.forEach { classFile ->
             var result = ByteArray(0)
             if (!classFile.shouldBeDeleted) { // Respect previously set delete flag, so avoid doing any work
                 classFile.inputStream().use { inputStream ->
                     val writer = ClassWriter(0) // We don't modify methods so no reason to re-calculate method frames
-                    val classRemover = AnnotatedCodeStripVisitor(annotationDescriptor, markedClasses, markedMethods, writer)
+                    val classRemover = AnnotatedCodeStripVisitor(annotationDescriptor, markedClasses, markedMethods, markedFields, writer)
                     val reader = ClassReader(inputStream)
                     reader.accept(classRemover, 0)
                     result = if (classRemover.deleteClass) ByteArray(0) else writer.toByteArray()

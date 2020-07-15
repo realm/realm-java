@@ -115,7 +115,7 @@ class ImmutableRealmObjectSchema extends RealmObjectSchema {
      * @throws IllegalArgumentException if a proper FieldDescriptor could not be created.
      */
     @Override
-    FieldDescriptor getColumnIndices(String publicJavaNameDescription, RealmFieldType... validColumnTypes) {
+    FieldDescriptor getFieldDescriptors(String publicJavaNameDescription, RealmFieldType... validColumnTypes) {
         return FieldDescriptor.createStandardFieldDescriptor(getSchemaConnector(), getTable(), publicJavaNameDescription, validColumnTypes);
     }
 }

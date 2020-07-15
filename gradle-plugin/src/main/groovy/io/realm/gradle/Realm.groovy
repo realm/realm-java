@@ -43,7 +43,7 @@ class Realm implements Plugin<Project> {
 
         def syncEnabledDefault = false
         def usesAptPlugin = project.plugins.findPlugin('com.neenbedankt.android-apt') != null
-        def isKotlinProject = project.plugins.findPlugin('kotlin-android') != null
+        def isKotlinProject = project.plugins.findPlugin('kotlin-android') != null || project.plugins.findPlugin("kotlin-multiplatform") != null
         def useKotlinExtensionsDefault = isKotlinProject
         def hasAnnotationProcessorConfiguration = project.getConfigurations().findByName('annotationProcessor') != null
         // TODO add a parameter in 'realm' block if this should be specified by users
@@ -72,7 +72,24 @@ class Realm implements Plugin<Project> {
 
         project.android.registerTransform(new RealmTransformer(project))
 
-        project.repositories.add(project.getRepositories().jcenter())
+        project.afterEvaluate {
+            // The Android Gradle Plugin automatically adds the local maven repository
+            // found in the Android SDK, so we need to filter that out.
+            if (project.repositories.findAll {
+                def url = (it.hasProperty("url")) ? it.url.toString() : ""
+                if (url.endsWith('/')) {
+                    url = url.substring(0, url.length() - 1)
+                }
+                return (!url.endsWith("extras/m2repository")
+                        && !url.endsWith("extras/android/m2repository")
+                        && !url.endsWith("extras/google/m2repository"))
+            }.isEmpty()) {
+                // If no repository was defined, we add jCenter
+                // Calling this automatically adds jCenter to the list of repositories
+                project.getRepositories().jcenter()
+            }
+        }
+
         project.dependencies.add(dependencyConfigurationName, "io.realm:realm-annotations:${Version.VERSION}")
         if (usesAptPlugin) {
             project.dependencies.add("apt", "io.realm:realm-annotations-processor:${Version.VERSION}")

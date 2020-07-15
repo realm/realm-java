@@ -15,11 +15,14 @@
  */
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 import io.realm.entities.AllJavaTypes;
@@ -152,6 +155,12 @@ public class LinkingObjectsQueryTests extends QueryTests {
         // 10 Date
         assertEquals(1, realm.where(NullTypes.class).isNull(
                 NullTypes.FIELD_LO_OBJECT + "." + NullTypes.FIELD_DATE_NULL).count());
+        // Decimal128
+        assertEquals(1, realm.where(NullTypes.class).isNull(
+                NullTypes.FIELD_LO_OBJECT + "." + NullTypes.FIELD_DECIMAL128_NULL).count());
+        // ObjectId
+        assertEquals(1, realm.where(NullTypes.class).isNull(
+                NullTypes.FIELD_LO_OBJECT + "." + NullTypes.FIELD_OBJECT_ID_NULL).count());
     }
 
     // Tests isNull on link's nullable field.
@@ -189,6 +198,12 @@ public class LinkingObjectsQueryTests extends QueryTests {
         // 10 Date
         assertEquals(1, realm.where(NullTypes.class).isNull(
                 NullTypes.FIELD_LO_LIST + "." + NullTypes.FIELD_DATE_NULL).count());
+        // 10 Decimal128
+        assertEquals(1, realm.where(NullTypes.class).isNull(
+                NullTypes.FIELD_LO_LIST + "." + NullTypes.FIELD_DECIMAL128_NULL).count());
+        // 10 ObjectId
+        assertEquals(1, realm.where(NullTypes.class).isNull(
+                NullTypes.FIELD_LO_LIST + "." + NullTypes.FIELD_OBJECT_ID_NULL).count());
     }
 
     @Test
@@ -266,6 +281,12 @@ public class LinkingObjectsQueryTests extends QueryTests {
         // 10 Date
         assertEquals(1, realm.where(NullTypes.class).isNotNull(
                 NullTypes.FIELD_LO_OBJECT + "." + NullTypes.FIELD_DATE_NULL).count());
+        // 11 Decimal128
+        assertEquals(1, realm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_LO_OBJECT + "." + NullTypes.FIELD_DECIMAL128_NULL).count());
+        // 12 ObjectId
+        assertEquals(1, realm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_LO_OBJECT + "." + NullTypes.FIELD_OBJECT_ID_NULL).count());
     }
 
     // Tests isNotNull on link's nullable field.
@@ -303,6 +324,13 @@ public class LinkingObjectsQueryTests extends QueryTests {
         // 10 Date
         assertEquals(1, realm.where(NullTypes.class).isNotNull(
                 NullTypes.FIELD_LO_LIST + "." + NullTypes.FIELD_DATE_NULL).count());
+        // 11 Decimal128
+        assertEquals(1, realm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_LO_LIST + "." + NullTypes.FIELD_DECIMAL128_NULL).count());
+        // 12 ObjectId
+        assertEquals(1, realm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_LO_LIST + "." + NullTypes.FIELD_OBJECT_ID_NULL).count());
+
     }
 
     @Test
@@ -584,6 +612,10 @@ public class LinkingObjectsQueryTests extends QueryTests {
         Date[] dates = {new Date(0), null, new Date(10000)};
         NullTypes[] nullTypesArray = new NullTypes[3];
 
+        Decimal128[] decimals = {new Decimal128(BigDecimal.TEN), null, new Decimal128(BigDecimal.ONE)};
+
+        ObjectId[] ids = {new ObjectId(TestHelper.generateObjectIdHexString(10)), null, new ObjectId(TestHelper.generateObjectIdHexString(1))};
+
         testRealm.beginTransaction();
         for (int i = 0; i < 3; i++) {
             NullTypes nullTypes = new NullTypes();
@@ -629,6 +661,10 @@ public class LinkingObjectsQueryTests extends QueryTests {
             if (dates[i] != null) {
                 nullTypes.setFieldDateNotNull(dates[i]);
             }
+
+            nullTypes.setFieldDecimal128Null(decimals[i]);
+
+            nullTypes.setFieldObjectIdNull(ids[i]);
 
             nullTypesArray[i] = testRealm.copyToRealm(nullTypes);
         }

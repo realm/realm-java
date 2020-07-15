@@ -21,20 +21,23 @@ import android.os.Build;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Locale;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
 import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
+import io.realm.internal.android.AndroidCapabilities;
 import io.realm.log.RealmLog;
 
 
 public class Util {
+
+    private static Boolean rxJavaAvailable;
 
     public static String getTablePrefix() {
         return nativeGetTablePrefix();
@@ -117,6 +120,9 @@ public class Util {
         final String management = ".management";
         File managementFolder = new File(realmFolder, realmFileName + management);
         File realmFile = new File(canonicalPath);
+        // This file is not always stored here, but if it is we want to delete it.
+        // If it isn't found it is placed in a temporary folder, so no reason to delete it.
+        File fifoFile = new File(canonicalPath + ".note");
 
         // Deletes files in management directory and the directory.
         // There is no subfolders in the management directory.
@@ -145,6 +151,73 @@ public class Util {
         } else {
             realmDeleted = true;
         }
+
+        if (fifoFile.exists() && !fifoFile.delete()) {
+            RealmLog.warn(String.format(Locale.ENGLISH,".note file at %s cannot be deleted",
+                        fifoFile.getAbsolutePath()));
+        }
+
         return realmDeleted;
     }
+
+    /**
+     * Converts a var arg argument list to a set ignoring any duplicates and null values.
+     */
+    public static <T> Set<T> toSet(T... items) {
+        //noinspection ConstantConditions
+        if (items == null) {
+            return Collections.emptySet();
+        } else {
+            Set<T> set = new LinkedHashSet<>();
+            for (int i = 0; i < items.length; i++) {
+                T item = items[i];
+                if (item != null) {
+                    set.add(item);
+                }
+            }
+            return set;
+        }
+    }
+
+    public static void checkEmpty(String argValue, String argName) {
+        if (isEmptyString(argValue)) {
+            throw new IllegalArgumentException("Non-empty '" + argName + "' required.");
+        }
+    }
+
+    public static void checkNull(@Nullable Object argValue, String argName) {
+        if (argValue == null) {
+            throw new IllegalArgumentException("Nonnull '" + argName + "' required.");
+        }
+    }
+
+    public static void checkLooperThread(String errorMessage) {
+        AndroidCapabilities capabilities = new AndroidCapabilities();
+        capabilities.checkCanDeliverNotification(errorMessage);
+    }
+
+    public static void checkNotOnMainThread(String errorMessage) {
+        if (new AndroidCapabilities().isMainThread()) {
+            throw new IllegalStateException(errorMessage);
+        }
+    }
+
+    /**
+     * Checks if RxJava is can be loaded.
+     *
+     * @return {@code true} if RxJava dependency exist, {@code false} otherwise.
+     */
+    @SuppressWarnings("LiteralClassName")
+    public static synchronized boolean isRxJavaAvailable() {
+        if (rxJavaAvailable == null) {
+            try {
+                Class.forName("io.reactivex.Flowable");
+                rxJavaAvailable = true;
+            } catch (ClassNotFoundException ignore) {
+                rxJavaAvailable = false;
+            }
+        }
+        return rxJavaAvailable;
+    }
+
 }

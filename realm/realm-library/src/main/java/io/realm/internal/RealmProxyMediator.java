@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.realm.ImportFlag;
 import io.realm.Realm;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
@@ -114,12 +115,13 @@ public abstract class RealmProxyMediator {
      * @param update {@code true} if object has a primary key and should try to update already existing data,
      * {@code false} otherwise.
      * @param cache the cache for mapping between unmanaged objects and their {@link RealmObjectProxy} representation.
+     * @param flags any special flags controlling the behaviour of the import.
      * @return the managed Realm object.
      */
-    public abstract <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache);
+    public abstract <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags);
 
     /**
-     * Inserts an unmanaged RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)}
+     * Inserts an unmanaged RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map, Set)}
      * since it doesn't return the inserted elements, and performs minimum allocations and checks.
      * After being inserted any changes to the original object will not be persisted.
      *
@@ -130,7 +132,7 @@ public abstract class RealmProxyMediator {
     public abstract void insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
 
     /**
-     * Inserts or updates a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)}
+     * Inserts or updates a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map, Set)}
      * since it doesn't return the inserted elements, and performs minimum allocations and checks.
      * After being inserted any changes to the original object will not be persisted.
      *
@@ -141,7 +143,7 @@ public abstract class RealmProxyMediator {
     public abstract void insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
 
     /**
-     * Inserts or updates a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)}
+     * Inserts or updates a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map, Set)}
      * since it doesn't return the inserted elements, and performs minimum allocations and checks.
      * After being inserted any changes to the original objects will not be persisted.
      *
@@ -151,7 +153,7 @@ public abstract class RealmProxyMediator {
     public abstract void insertOrUpdate(Realm realm, Collection<? extends RealmModel> objects);
 
     /**
-     * Inserts a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since
+     * Inserts a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map, Set)} since
      * it doesn't return the inserted elements, and performs minimum allocations and checks.
      * After being inserted any changes to the original objects will not be persisted.
      *
@@ -196,6 +198,23 @@ public abstract class RealmProxyMediator {
     public abstract <E extends RealmModel> E createDetachedCopy(E realmObject, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache);
 
     /**
+     * Returns whether or not this class is considered "embedded".
+     */
+    public abstract <E extends RealmModel> boolean isEmbedded(Class<E> clazz);
+
+
+    /**
+     * Updates an embedded object with the values from an unmanaged object.
+     *
+     * @param realm the reference to the {@link Realm} where the object will be copied.
+     * @param unmanagedObject the unmanaged objects whose values should be used to update the manged object
+     * @param managedObject the managed object that should be updated
+     * @param cache the cache for mapping between unmanaged objects and their {@link RealmObjectProxy} representation.
+     * @param flags any special flags controlling the behaviour of the import.
+     */
+    public abstract <E extends RealmModel> void updateEmbeddedObject(Realm realm, E unmanagedObject, E managedObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags);
+
+    /**
      * Returns whether Realm transformer has been applied or not. Subclasses of this class are
      * created by the annotation processor and the Realm transformer will add an override of
      * this method that always return {@code true} if the transform was successful.
@@ -235,5 +254,9 @@ public abstract class RealmProxyMediator {
     protected static RealmException getMissingProxyClassException(String className) {
         return new RealmException(
                 String.format("'%s' is not part of the schema for this Realm.", className));
+    }
+
+    protected static IllegalStateException getNotEmbeddedClassException(String className) {
+        return new IllegalStateException("This class is not marked embedded: " + className);
     }
 }

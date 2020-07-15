@@ -25,6 +25,8 @@ function(build_existing_realm_core core_source_path)
         add_compile_options(-DNDEBUG)
     endif()
 
+    # We mirror relevant flags from this script
+    # https://github.com/realm/realm-core/blob/master/tools/cross_compile.sh#L68
     ExternalProject_Add(realm-core
         SOURCE_DIR ${core_source_path}
         PREFIX ${core_source_path}/build-android-${ANDROID_ABI}-${CMAKE_BUILD_TYPE}
@@ -87,9 +89,11 @@ function(use_sync_release enable_sync sync_dist_path)
 
     # -latomic is not set by default for mips and armv5.
     # See https://code.google.com/p/android/issues/detail?id=182094
+    list(APPEND LIB_INCLUDE_DIRS "${sync_dist_path}/include")
+    list(APPEND LIB_INCLUDE_DIRS "${sync_dist_path}/include/realm")
     set_target_properties(lib_realm_core PROPERTIES IMPORTED_LOCATION ${core_lib_path}
         IMPORTED_LINK_INTERFACE_LIBRARIES atomic
-        INTERFACE_INCLUDE_DIRECTORIES "${sync_dist_path}/include")
+        INTERFACE_INCLUDE_DIRECTORIES "${LIB_INCLUDE_DIRS}")
 
     # Parser artifact
     set(parser_lib_path ${sync_dist_path}/librealm-parser-android-${ANDROID_ABI}${debug_lib_suffix}.a)
@@ -124,6 +128,7 @@ endfunction()
 # FIXME: Build from sync source is not supported yet.
 function(use_realm_core enable_sync sync_dist_path core_source_path)
     if (core_source_path)
+        message("Building Realm Core from local source in ${core_source_path}.")
         build_existing_realm_core(${core_source_path})
     else()
         use_sync_release(${enable_sync} ${sync_dist_path})

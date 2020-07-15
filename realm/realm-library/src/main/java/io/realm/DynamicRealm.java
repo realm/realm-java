@@ -19,7 +19,6 @@ package io.realm;
 import java.util.Locale;
 
 import io.reactivex.Flowable;
-import io.realm.annotations.Beta;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.CheckedRow;
@@ -27,10 +26,7 @@ import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
-import io.realm.internal.Util;
-import io.realm.internal.annotations.ObjectServer;
 import io.realm.log.RealmLog;
-import io.realm.sync.permissions.ClassPrivileges;
 
 /**
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
@@ -56,8 +52,8 @@ public class DynamicRealm extends BaseRealm {
 
     private final RealmSchema schema;
 
-    private DynamicRealm(final RealmCache cache) {
-        super(cache, null);
+    private DynamicRealm(final RealmCache cache, OsSharedRealm.VersionID version) {
+        super(cache, null, version);
         RealmCache.invokeWithGlobalRefCount(cache.getConfiguration(), new RealmCache.Callback() {
             @Override
             public void onResult(int count) {
@@ -195,7 +191,7 @@ public class DynamicRealm extends BaseRealm {
      * @see io.realm.RealmChangeListener
      * @see #removeChangeListener(RealmChangeListener)
      * @see #removeAllChangeListeners()
-     * @see #waitForChange()
+     * @see #refresh()
      */
     public void addChangeListener(RealmChangeListener<DynamicRealm> listener) {
         addListener(listener);
@@ -227,16 +223,12 @@ public class DynamicRealm extends BaseRealm {
      * Deletes all objects of the specified class from the Realm.
      *
      * @param className the class for which all objects should be removed.
-     * @throws IllegalStateException if the corresponding Realm is a partially synchronized Realm, is
-     * closed or called from an incorrect thread.
+     * @throws IllegalStateException if the Realm is closed or called from an incorrect thread.
      */
     public void delete(String className) {
         checkIfValid();
         checkIfInTransaction();
-        if (sharedRealm.isPartial()) {
-            throw new IllegalStateException(DELETE_NOT_SUPPORTED_UNDER_PARTIAL_SYNC);
-        }
-        schema.getTable(className).clear(sharedRealm.isPartial());
+        schema.getTable(className).clear();
     }
 
     /**
@@ -272,8 +264,8 @@ public class DynamicRealm extends BaseRealm {
      *
      * @return a {@link DynamicRealm} instance.
      */
-    static DynamicRealm createInstance(RealmCache cache) {
-        return new DynamicRealm(cache);
+    static DynamicRealm createInstance(RealmCache cache, OsSharedRealm.VersionID version) {
+        return new DynamicRealm(cache, version);
     }
 
     /**
@@ -304,86 +296,6 @@ public class DynamicRealm extends BaseRealm {
         return sharedRealm.isEmpty();
     }
 
-// FIXME: Depends on a typed schema. Find a work-around
-//    /**
-//     * {@inheritDoc}
-//     */
-//    @Beta
-//    @ObjectServer
-//    @Override
-//    public RealmPermissions getPermissions() {
-//        checkIfValid();
-//        Table table = sharedRealm.getTable("class___Realm");
-//        TableQuery query = table.where();
-//        OsResults result = OsResults.createFromQuery(sharedRealm, query);
-//        return new RealmResults<>(this, result, RealmPermissions.class).first();
-//    }
-
-
-// FIXME: Depends on a typed schema. Find a work-around
-//    /**
-//     * Returns all permissions associated with the given class. Attach a change listener
-//     * using {@link ClassPermissions#addChangeListener(RealmChangeListener)} to be notified about
-//     * any future changes.
-//     *
-//     * @param className class to receive permissions for.
-//     * @return the permissions for the given class or {@code null} if no permissions where found.
-//     * @throws RealmException if the class is not part of this Realms schema.
-//     */
-//    @Beta
-//    @ObjectServer
-//    public ClassPermissions getPermissions(String className) {
-//        checkIfValid();
-//        //noinspection ConstantConditions
-//        if (Util.isEmptyString(className)) {
-//            throw new IllegalArgumentException("Non-empty 'className' required.");
-//        }
-//        if (!schema.contains(className)) {
-//            throw new RealmException("Class '" + className + "' is not part of the schema for this Realm.");
-//        }
-//        Table table = sharedRealm.getTable("class___Class");
-//        TableQuery query = table.where()
-//                .equalTo(new long[]{table.getColumnIndex("name")}, new long[]{NativeObject.NULLPTR}, className);
-//        OsResults result = OsResults.createFromQuery(sharedRealm, query);
-//        return new RealmResults<>(this, result, ClassPermissions.class).first(null);
-//    }
-
-// FIXME: Depends on a typed schema. Find a work-around
-//    /**
-//     * {@inheritDoc}
-//     */
-//    @Beta
-//    @ObjectServer
-//    @Override
-//    public RealmResults<Role> getRoles() {
-//        checkIfValid();
-//        //noinspection ConstantConditions
-//        Table table = sharedRealm.getTable("class___Role");
-//        TableQuery query = table.where();
-//        OsResults result = OsResults.createFromQuery(sharedRealm, query);
-//        return new RealmResults<>(this, result, Role.class);
-//    }
-
-    /**
-     * Returns the privileges granted the current user for the given class.
-     *
-     * @param className class to get privileges for.
-     * @return the privileges granted the current user for the given class.
-     */
-    @Beta
-    @ObjectServer
-    public ClassPrivileges getPrivileges(String className) {
-        checkIfValid();
-        //noinspection ConstantConditions
-        if (Util.isEmptyString(className)) {
-            throw new IllegalArgumentException("Non-empty 'className' required.");
-        }
-        if (!schema.contains(className)) {
-            throw new RealmException("Class '" + className + "' is not part of the schema for this Realm");
-        }
-        return new ClassPrivileges(sharedRealm.getClassPrivileges(className));
-    }
-
     /**
      * Returns the mutable schema for this Realm.
      *
@@ -392,6 +304,24 @@ public class DynamicRealm extends BaseRealm {
     @Override
     public RealmSchema getSchema() {
         return schema;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public DynamicRealm freeze() {
+        // In some cases a Read transaction has not begun for the Realm, which means
+        // we cannot read the current version. In that case, do some work that will create the
+        // read transaction.
+        OsSharedRealm.VersionID version;
+        try {
+            version = sharedRealm.getVersionID();
+        } catch (IllegalStateException e) {
+            getVersion();
+            version = sharedRealm.getVersionID();
+        }
+        return RealmCache.createRealmOrGetFromCache(configuration, DynamicRealm.class, version);
     }
 
     /**

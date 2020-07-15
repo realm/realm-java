@@ -73,6 +73,8 @@ public abstract class QueryTests {
         list.remove(RealmFieldType.DOUBLE_LIST);
         list.remove(RealmFieldType.FLOAT_LIST);
         list.remove(RealmFieldType.DATE_LIST);
+        list.remove(RealmFieldType.DECIMAL128_LIST);
+        list.remove(RealmFieldType.OBJECT_ID_LIST);
 
         NOT_SUPPORTED_IS_EMPTY_TYPES = Collections.unmodifiableList(list);
         NOT_SUPPORTED_IS_NOT_EMPTY_TYPES = Collections.unmodifiableList(list);

@@ -66,11 +66,9 @@ import io.realm.rx.RxObservableFactory;
 public class RealmConfiguration {
 
     public static final String DEFAULT_REALM_NAME = "default.realm";
-    public static final int KEY_LENGTH = 64;
 
     private static final Object DEFAULT_MODULE;
     protected static final RealmProxyMediator DEFAULT_MODULE_MEDIATOR;
-    private static Boolean rxJavaAvailable;
 
     static {
         DEFAULT_MODULE = Realm.getDefaultModule();
@@ -101,6 +99,8 @@ public class RealmConfiguration {
     private final Realm.Transaction initialDataTransaction;
     private final boolean readOnly;
     private final CompactOnLaunchCallback compactOnLaunch;
+    private final long maxNumberOfActiveVersions;
+
     /**
      * Whether this RealmConfiguration is intended to open a
      * recovery Realm produced after an offline/online client reset.
@@ -123,7 +123,8 @@ public class RealmConfiguration {
             @Nullable Realm.Transaction initialDataTransaction,
             boolean readOnly,
             @Nullable CompactOnLaunchCallback compactOnLaunch,
-            boolean isRecoveryConfiguration) {
+            boolean isRecoveryConfiguration,
+            long maxNumberOfActiveVersions) {
         this.realmDirectory = realmDirectory;
         this.realmFileName = realmFileName;
         this.canonicalPath = canonicalPath;
@@ -139,6 +140,7 @@ public class RealmConfiguration {
         this.readOnly = readOnly;
         this.compactOnLaunch = compactOnLaunch;
         this.isRecoveryConfiguration = isRecoveryConfiguration;
+        this.maxNumberOfActiveVersions = maxNumberOfActiveVersions;
     }
 
     public File getRealmDirectory() {
@@ -184,7 +186,7 @@ public class RealmConfiguration {
      *
      * @return the initial data transaction.
      */
-    Realm.Transaction getInitialDataTransaction() {
+    protected Realm.Transaction getInitialDataTransaction() {
         return initialDataTransaction;
     }
 
@@ -281,6 +283,13 @@ public class RealmConfiguration {
         return isRecoveryConfiguration;
     }
 
+    /**
+     * @return the maximum number of active versions allowed before an exception is thrown.
+     */
+    public long getMaxNumberOfActiveVersions() {
+        return maxNumberOfActiveVersions;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) { return true; }
@@ -314,7 +323,10 @@ public class RealmConfiguration {
         if (initialDataTransaction != null ? !initialDataTransaction.equals(that.initialDataTransaction) : that.initialDataTransaction != null) {
             return false;
         }
-        return compactOnLaunch != null ? compactOnLaunch.equals(that.compactOnLaunch) : that.compactOnLaunch == null;
+        if (compactOnLaunch != null ? !compactOnLaunch.equals(that.compactOnLaunch) : that.compactOnLaunch != null) {
+            return false;
+        }
+        return maxNumberOfActiveVersions == that.maxNumberOfActiveVersions;
     }
 
     @Override
@@ -334,6 +346,7 @@ public class RealmConfiguration {
         result = 31 * result + (readOnly ? 1 : 0);
         result = 31 * result + (compactOnLaunch != null ? compactOnLaunch.hashCode() : 0);
         result = 31 * result + (isRecoveryConfiguration ? 1 : 0);
+        result = 31 * result + (int) (maxNumberOfActiveVersions ^ (maxNumberOfActiveVersions >>> 32));
         return result;
     }
 
@@ -394,7 +407,7 @@ public class RealmConfiguration {
         stringBuilder.append("\n");
         stringBuilder.append("canonicalPath: ").append(canonicalPath);
         stringBuilder.append("\n");
-        stringBuilder.append("key: ").append("[length: ").append(key == null ? 0 : KEY_LENGTH).append("]");
+        stringBuilder.append("key: ").append("[length: ").append(key == null ? 0 : Realm.ENCRYPTION_KEY_LENGTH).append("]");
         stringBuilder.append("\n");
         stringBuilder.append("schemaVersion: ").append(Long.toString(schemaVersion));
         stringBuilder.append("\n");
@@ -409,26 +422,10 @@ public class RealmConfiguration {
         stringBuilder.append("readOnly: ").append(readOnly);
         stringBuilder.append("\n");
         stringBuilder.append("compactOnLaunch: ").append(compactOnLaunch);
+        stringBuilder.append("\n");
+        stringBuilder.append("maxNumberOfActiveVersions: ").append(maxNumberOfActiveVersions);
 
         return stringBuilder.toString();
-    }
-
-    /**
-     * Checks if RxJava is can be loaded.
-     *
-     * @return {@code true} if RxJava dependency exist, {@code false} otherwise.
-     */
-    @SuppressWarnings("LiteralClassName")
-    static synchronized boolean isRxJavaAvailable() {
-        if (rxJavaAvailable == null) {
-            try {
-                Class.forName("io.reactivex.Flowable");
-                rxJavaAvailable = true;
-            } catch (ClassNotFoundException ignore) {
-                rxJavaAvailable = false;
-            }
-        }
-        return rxJavaAvailable;
     }
 
     // Gets the canonical path for a given file.
@@ -443,8 +440,12 @@ public class RealmConfiguration {
     }
 
     // Checks if this configuration is a SyncConfiguration instance.
-    boolean isSyncConfiguration() {
+    protected boolean isSyncConfiguration() {
         return false;
+    }
+
+    protected static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
+        return new RealmConfiguration(null,null, canonicalPath,null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true, Long.MAX_VALUE);
     }
 
     /**
@@ -466,6 +467,7 @@ public class RealmConfiguration {
         private Realm.Transaction initialDataTransaction;
         private boolean readOnly;
         private CompactOnLaunchCallback compactOnLaunch;
+        private long maxNumberOfActiveVersions = Long.MAX_VALUE;
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
@@ -543,17 +545,17 @@ public class RealmConfiguration {
 
         /**
          * Sets the 64 byte key used to encrypt and decrypt the Realm file.
-         * Sets the {@value io.realm.RealmConfiguration#KEY_LENGTH} bytes key used to encrypt and decrypt the Realm file.
+         * Sets the {@value io.realm.Realm#ENCRYPTION_KEY_LENGTH} bytes key used to encrypt and decrypt the Realm file.
          */
         public Builder encryptionKey(byte[] key) {
             //noinspection ConstantConditions
             if (key == null) {
                 throw new IllegalArgumentException("A non-null key must be provided");
             }
-            if (key.length != KEY_LENGTH) {
+            if (key.length != Realm.ENCRYPTION_KEY_LENGTH) {
                 throw new IllegalArgumentException(String.format(Locale.US,
                         "The provided key must be %s bytes. Yours was: %s",
-                        KEY_LENGTH, key.length));
+                        Realm.ENCRYPTION_KEY_LENGTH, key.length));
             }
             this.key = Arrays.copyOf(key, key.length);
             return this;
@@ -766,6 +768,28 @@ public class RealmConfiguration {
         }
 
         /**
+         * Sets the maximum number of live versions in the Realm file before an {@link IllegalStateException} is thrown when
+         * attempting to write more data.
+         * <p>
+         * Realm is capable of concurrently handling many different versions of Realm objects. This can e.g. happen if you
+         * have a Realm open on many different threads or are freezing objects while data is being written to the file.
+         * <p>
+         * Under normal circumstances this is not a problem, but if the number of active versions grow too large, it will
+         * have a negative effect on the filesize on disk. Setting this parameters can therefore be used to prevent uses of
+         * Realm that can result in very large Realms.
+         *
+         * @param number the maximum number of active versions before an exception is thrown.
+         * @see <a href="https://realm.io/docs/java/latest/#faq-large-realm-file-size">FAQ</a>
+         */
+        public Builder maxNumberOfActiveVersions(long number) {
+            if (number < 1) {
+                throw new IllegalArgumentException("Only positive numbers above 0 are allowed. Yours was: " + number);
+            }
+            this.maxNumberOfActiveVersions = number;
+            return this;
+        }
+
+        /**
          * DEBUG method. This restricts the Realm schema to only consist of the provided classes without having to
          * create a module. These classes must be available in the default module. Calling this will remove any
          * previously configured modules.
@@ -809,10 +833,9 @@ public class RealmConfiguration {
                 }
             }
 
-            if (rxFactory == null && isRxJavaAvailable()) {
-                rxFactory = new RealmObservableFactory();
+            if (rxFactory == null && Util.isRxJavaAvailable()) {
+                rxFactory = new RealmObservableFactory(true);
             }
-
 
             return new RealmConfiguration(directory,
                     fileName,
@@ -828,7 +851,8 @@ public class RealmConfiguration {
                     initialDataTransaction,
                     readOnly,
                     compactOnLaunch,
-                    false
+                    false,
+                    maxNumberOfActiveVersions
             );
         }
 

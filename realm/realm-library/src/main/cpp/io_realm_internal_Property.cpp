@@ -38,7 +38,6 @@ static_assert(io_realm_internal_Property_TYPE_ARRAY == static_cast<jint>(Propert
 
 static void finalize_property(jlong ptr)
 {
-    TR_ENTER_PTR(ptr);
     delete reinterpret_cast<Property*>(ptr);
 }
 
@@ -47,7 +46,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreatePersistedPro
                                                                                       jboolean is_primary,
                                                                                       jboolean is_indexed)
 {
-    TR_ENTER()
     try {
         JStringAccessor str(env, j_name_str);
         PropertyType p_type = static_cast<PropertyType>(static_cast<int>(type));
@@ -57,7 +55,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreatePersistedPro
             throw std::invalid_argument(
                 "This field cannot be indexed - Only String/byte/short/int/long/boolean/Date fields are supported.");
         }
-        if (to_bool(is_primary) && p_type != PropertyType::Int && p_type != PropertyType::String) {
+        if (to_bool(is_primary) && p_type != PropertyType::Int && p_type != PropertyType::String && p_type != PropertyType::ObjectId) {
             std::string typ = property->type_string();
             throw std::invalid_argument("Invalid primary key type: " + typ);
         }
@@ -72,7 +70,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreatePersistedLin
                                                                                           jint type,
                                                                                           jstring j_target_class_name)
 {
-    TR_ENTER()
     try {
         JStringAccessor name(env, j_name_str);
         JStringAccessor link_name(env, j_target_class_name);
@@ -88,7 +85,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreateComputedLink
                                                                                          jstring j_source_class_name,
                                                                                          jstring j_source_field_name)
 {
-    TR_ENTER()
     try {
         JStringAccessor name(env, j_name_str);
         JStringAccessor target_class_name(env, j_source_class_name);
@@ -103,28 +99,24 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreateComputedLink
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_property);
 }
 
 JNIEXPORT jint JNICALL Java_io_realm_internal_Property_nativeGetType(JNIEnv*, jclass, jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr);
     auto& property = *reinterpret_cast<Property*>(native_ptr);
     return static_cast<jint>(property.type);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeGetColumnIndex(JNIEnv*, jclass, jlong native_ptr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeGetColumnKey(JNIEnv*, jclass, jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr);
     auto& property = *reinterpret_cast<Property*>(native_ptr);
-    return static_cast<jlong>(property.table_column);
+    return static_cast<jlong>(property.column_key.value);
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Property_nativeGetLinkedObjectName(JNIEnv* env, jclass,
                                                                                     jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr);
     try {
         auto& property = *reinterpret_cast<Property*>(native_ptr);
         std::string name = property.object_type;

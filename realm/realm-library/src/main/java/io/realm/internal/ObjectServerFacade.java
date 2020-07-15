@@ -30,6 +30,8 @@ import io.realm.exceptions.RealmException;
  */
 public class ObjectServerFacade {
 
+    public final static int SYNC_CONFIG_OPTIONS = 13;
+
     private final static ObjectServerFacade nonSyncFacade = new ObjectServerFacade();
     private static ObjectServerFacade syncFacade = null;
 
@@ -54,10 +56,8 @@ public class ObjectServerFacade {
 
     /**
      * Initializes the Object Server library
-     *
-     * @param context
      */
-    public void init(Context context) {
+    public void initialize(Context context, String userAgent) {
     }
 
     /**
@@ -66,8 +66,8 @@ public class ObjectServerFacade {
     public void realmClosed(RealmConfiguration configuration) {
     }
 
-    public Object[] getUserAndServerUrl(RealmConfiguration config) {
-        return new Object[8];
+    public Object[] getSyncConfigurationOptions(RealmConfiguration config) {
+        return new Object[SYNC_CONFIG_OPTIONS];
     }
 
     public static ObjectServerFacade getFacade(boolean needSyncFacade) {
@@ -98,13 +98,15 @@ public class ObjectServerFacade {
     }
 
     /**
-     * Block until all latest changes have been downloaded from the server.
+     * Block until all latest changes have been downloaded from the server. This should only
+     * be called the first time a Realm file is created.
      *
      * @throws {@code DownloadingRealmInterruptedException} if the thread was interrupted while blocked waiting for
      * this to complete.
+     * @throws {@code ObjectServerException } In any other kind of error is reported.
      */
     @SuppressWarnings("JavaDoc")
-    public void downloadRemoteChanges(RealmConfiguration config) {
+    public void downloadInitialRemoteChanges(RealmConfiguration config) {
         // Do nothing
     }
 
@@ -115,16 +117,8 @@ public class ObjectServerFacade {
         return false;
     }
 
-    public boolean isPartialRealm(RealmConfiguration configuration) {
-        return false;
-    }
-
-    public void addSupportForObjectLevelPermissions(RealmConfiguration.Builder builder) {
+    public void createNativeSyncSession(RealmConfiguration configuration) {
         // Do nothing
-    }
-
-    public OsResults createSubscriptionAwareResults(OsSharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor, String name) {
-        throw new IllegalStateException("Should only be called by builds supporting Sync");
     }
 
 }

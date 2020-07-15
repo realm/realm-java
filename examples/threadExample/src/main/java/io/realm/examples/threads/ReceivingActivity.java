@@ -17,13 +17,13 @@
 package io.realm.examples.threads;
 
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
 import io.realm.Realm;
 import io.realm.examples.threads.model.Person;
 
-public class ReceivingActivity extends ActionBarActivity {
+public class ReceivingActivity extends AppCompatActivity {
 
     private Realm realm;
 

@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.realm.ImportFlag;
 import io.realm.Realm;
 import io.realm.RealmModel;
 import io.realm.exceptions.RealmException;
@@ -116,9 +117,9 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache) {
+    public <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
         RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(object.getClass()));
-        return mediator.copyOrUpdate(realm, object, update, cache);
+        return mediator.copyOrUpdate(realm, object, update, cache, flags);
     }
 
     @Override
@@ -161,6 +162,18 @@ public class CompositeMediator extends RealmProxyMediator {
     public <E extends RealmModel> E createDetachedCopy(E realmObject, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache) {
         RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(realmObject.getClass()));
         return mediator.createDetachedCopy(realmObject, maxDepth, cache);
+    }
+
+    @Override
+    public <E extends RealmModel> boolean isEmbedded(Class<E> clazz) {
+        RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(clazz));
+        return mediator.isEmbedded(clazz);
+    }
+
+    @Override
+    public <E extends RealmModel> void updateEmbeddedObject(Realm realm, E unmanagedObject, E managedObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
+        RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(managedObject.getClass()));
+        mediator.updateEmbeddedObject(realm, unmanagedObject, managedObject, cache, flags);
     }
 
     @Override

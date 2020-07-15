@@ -13,6 +13,7 @@ local.properties
 core
 core-*
 realm-sync-android-*
+!realm/realm-library/src/main/java/io/realm/internal/core/
 
 # Android Studio
 .idea
@@ -53,3 +54,4 @@ realm/realm-library/src/main/cpp/jni_include
 realm/realm-library/distribution
 # Cmake output
 realm/realm-library/.externalNativeBuild
+realm/realm-library/.cxx

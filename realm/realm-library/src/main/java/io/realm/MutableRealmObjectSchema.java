@@ -20,8 +20,11 @@ import java.util.Locale;
 
 import javax.annotation.Nonnull;
 
+import io.realm.internal.CheckedRow;
 import io.realm.internal.OsObjectStore;
+import io.realm.internal.OsResults;
 import io.realm.internal.Table;
+import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.fields.FieldDescriptor;
 
 /**
@@ -109,12 +112,12 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
             nullable = false;
         }
 
-        long columnIndex = table.addColumn(metadata.fieldType, fieldName, nullable);
+        long columnKey = table.addColumn(metadata.fieldType, fieldName, nullable);
         try {
             addModifiers(fieldName, attributes);
         } catch (Exception e) {
             // Modifiers have been removed by the addModifiers method()
-            table.removeColumn(columnIndex);
+            table.removeColumn(columnKey);
             throw e;
         }
         return this;
@@ -162,12 +165,12 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         if (!hasField(fieldName)) {
             throw new IllegalStateException(fieldName + " does not exist.");
         }
-        long columnIndex = getColumnIndex(fieldName);
+        long columnKey = getColumnKey(fieldName);
         String className = getClassName();
         if (fieldName.equals(OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, className))) {
             OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, className, fieldName);
         }
-        table.removeColumn(columnIndex);
+        table.removeColumn(columnKey);
         return this;
     }
 
@@ -178,10 +181,10 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         checkFieldExists(currentFieldName);
         checkLegalName(newFieldName);
         checkFieldNameIsAvailable(newFieldName);
-        long columnIndex = getColumnIndex(currentFieldName);
-        table.renameColumn(columnIndex, newFieldName);
+        long columnKey = getColumnKey(currentFieldName);
+        table.renameColumn(columnKey, newFieldName);
 
-        // ATTENTION: We don't need to re-set the PK table here since the column index won't be changed when renaming.
+        // ATTENTION: We don't need to re-set the PK table here since the column key won't be changed when renaming.
 
         return this;
     }
@@ -190,11 +193,11 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     public RealmObjectSchema addIndex(String fieldName) {
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
-        long columnIndex = getColumnIndex(fieldName);
-        if (table.hasSearchIndex(columnIndex)) {
+        long columnKey = getColumnKey(fieldName);
+        if (table.hasSearchIndex(columnKey)) {
             throw new IllegalStateException(fieldName + " already has an index.");
         }
-        table.addSearchIndex(columnIndex);
+        table.addSearchIndex(columnKey);
         return this;
     }
 
@@ -203,11 +206,11 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         realm.checkNotInSync(); // Destructive modifications are not permitted.
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
-        long columnIndex = getColumnIndex(fieldName);
-        if (!table.hasSearchIndex(columnIndex)) {
+        long columnKey = getColumnKey(fieldName);
+        if (!table.hasSearchIndex(columnKey)) {
             throw new IllegalStateException("Field is not indexed: " + fieldName);
         }
-        table.removeSearchIndex(columnIndex);
+        table.removeSearchIndex(columnKey);
         return this;
     }
 
@@ -222,10 +225,11 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
                     String.format(Locale.ENGLISH, "Field '%s' has been already defined as primary key.",
                             currentPKField));
         }
-        long columnIndex = getColumnIndex(fieldName);
-        if (!table.hasSearchIndex(columnIndex)) {
+        long columnKey = getColumnKey(fieldName);
+        final RealmFieldType fieldType = getFieldType(fieldName);
+        if (fieldType != RealmFieldType.STRING && !table.hasSearchIndex(columnKey)) {
             // No exception will be thrown since adding PrimaryKey implies the column has an index.
-            table.addSearchIndex(columnIndex);
+            table.addSearchIndex(columnKey);
         }
         OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, getClassName(), fieldName);
         return this;
@@ -238,9 +242,9 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         if (pkField == null) {
             throw new IllegalStateException(getClassName() + " doesn't have a primary key.");
         }
-        long columnIndex = table.getColumnIndex(pkField);
-        if (table.hasSearchIndex(columnIndex)) {
-            table.removeSearchIndex(columnIndex);
+        long columnKey = table.getColumnKey(pkField);
+        if (table.hasSearchIndex(columnKey)) {
+            table.removeSearchIndex(columnKey);
         }
         OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, getClassName(), null);
         return this;
@@ -248,9 +252,9 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
 
     @Override
     public RealmObjectSchema setRequired(String fieldName, boolean required) {
-        long columnIndex = table.getColumnIndex(fieldName);
+        long columnKey = table.getColumnKey(fieldName);
         boolean currentColumnRequired = isRequired(fieldName);
-        RealmFieldType type = table.getColumnType(columnIndex);
+        RealmFieldType type = table.getColumnType(columnKey);
 
         if (type == RealmFieldType.OBJECT) {
             throw new IllegalArgumentException("Cannot modify the required state for RealmObject references: " + fieldName);
@@ -266,9 +270,18 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         }
 
         if (required) {
-            table.convertColumnToNotNullable(columnIndex);
+            try {
+                table.convertColumnToNotNullable(columnKey);
+            } catch (IllegalArgumentException e) {
+                // Preserve old behaviour instead of throwing the rather non-descript Core error
+                if (e.getMessage().contains("Attempted to insert null into non-nullable column")) {
+                    throw new IllegalStateException(String.format("The primary key field '%s' has 'null' values stored.", fieldName));
+                } else {
+                    throw e;
+                }
+            }
         } else {
-            table.convertColumnToNullable(columnIndex);
+            table.convertColumnToNullable(columnKey);
         }
         return this;
     }
@@ -283,9 +296,19 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     public RealmObjectSchema transform(Function function) {
         //noinspection ConstantConditions
         if (function != null) {
-            long size = table.size();
-            for (long i = 0; i < size; i++) {
-                function.apply(new DynamicRealmObject(realm, table.getCheckedRow(i)));
+            // Users might delete object being transformed or accidentally delete other objects
+            // in the same table. E.g. cascading deletes if it is referenced by an object being deleted.
+            OsResults result = OsResults.createFromQuery(realm.sharedRealm, table.where(), new DescriptorOrdering()).createSnapshot();
+            long original_size = result.size();
+            if (original_size > Integer.MAX_VALUE) {
+                throw new UnsupportedOperationException("Too many results to iterate: " + original_size);
+            }
+            int size = (int) result.size();
+            for (int i = 0; i < size; i++) {
+                DynamicRealmObject obj = new DynamicRealmObject(realm, new CheckedRow(result.getUncheckedRow(i)));
+                if (obj.isValid()) {
+                    function.apply(obj);
+                }
             }
         }
 
@@ -301,7 +324,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
      * @throws IllegalArgumentException if a proper FieldDescriptor could not be created.
      */
     @Override
-    FieldDescriptor getColumnIndices(String internalColumnNameDescription, RealmFieldType... validColumnTypes) {
+    FieldDescriptor getFieldDescriptors(String internalColumnNameDescription, RealmFieldType... validColumnTypes) {
         return FieldDescriptor.createStandardFieldDescriptor(getSchemaConnector(), getTable(), internalColumnNameDescription, validColumnTypes);
     }
 
@@ -326,9 +349,9 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
             }
         } catch (Exception e) {
             // If something went wrong, revert all attributes.
-            long columnIndex = getColumnIndex(fieldName);
+            long columnKey = getColumnKey(fieldName);
             if (indexAdded) {
-                table.removeSearchIndex(columnIndex);
+                table.removeSearchIndex(columnKey);
             }
             throw (RuntimeException) e;
         }
@@ -353,7 +376,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     }
 
     private void checkFieldNameIsAvailable(String fieldName) {
-        if (table.getColumnIndex(fieldName) != Table.NO_MATCH) {
+        if (table.getColumnKey(fieldName) != Table.NO_MATCH) {
             throw new IllegalArgumentException("Field already exists in '" + getClassName() + "': " + fieldName);
         }
     }

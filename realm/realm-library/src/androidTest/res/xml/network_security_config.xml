@@ -2,8 +2,11 @@
 <network-security-config>
     <base-config>
         <trust-anchors>
-            <certificates src="@raw/android_test_certificate" />
             <certificates src="system" />
         </trust-anchors>
     </base-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+    </domain-config>
 </network-security-config>

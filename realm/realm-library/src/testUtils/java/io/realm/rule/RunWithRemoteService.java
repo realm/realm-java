@@ -17,6 +17,7 @@
 package io.realm.rule;
 
 import android.app.ActivityManager;
+import android.app.Instrumentation;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -29,6 +30,8 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 
+import androidx.test.platform.app.InstrumentationRegistry;
+
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -39,8 +42,6 @@ import java.util.concurrent.CountDownLatch;
 import io.realm.TestHelper;
 import io.realm.services.RemoteTestService;
 
-import static android.support.test.InstrumentationRegistry.getContext;
-import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
 /**
@@ -118,13 +119,14 @@ public class RunWithRemoteService implements TestRule {
     private void before(Class<?> serviceClass) throws Throwable {
         // Start the testing remote process.
         serviceStartLatch = new CountDownLatch(1);
-        Intent intent = new Intent(getContext(), serviceClass);
-        getContext().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        Intent intent = new Intent(instrumentation.getContext(), serviceClass);
+        instrumentation.getContext().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
         TestHelper.awaitOrFail(serviceStartLatch);
     }
 
     private void after() {
-        getContext().unbindService(serviceConnection);
+        InstrumentationRegistry.getInstrumentation().getContext().unbindService(serviceConnection);
 
         // Kill the remote process.
         ActivityManager.RunningAppProcessInfo info = getRemoteProcessInfo();
@@ -184,10 +186,11 @@ public class RunWithRemoteService implements TestRule {
 
     // Get the remote process info if it is alive.
     private ActivityManager.RunningAppProcessInfo getRemoteProcessInfo() {
-        ActivityManager manager = (ActivityManager)getContext().getSystemService(Context.ACTIVITY_SERVICE);
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        ActivityManager manager = (ActivityManager) instrumentation.getContext().getSystemService(Context.ACTIVITY_SERVICE);
         List<ActivityManager.RunningAppProcessInfo> processInfoList = manager.getRunningAppProcesses();
         for (ActivityManager.RunningAppProcessInfo info : processInfoList) {
-            if (info.processName.equals(getContext().getPackageName() + REMOTE_PROCESS_POSTFIX)) {
+            if (info.processName.equals(instrumentation.getContext().getPackageName() + REMOTE_PROCESS_POSTFIX)) {
                 return info;
             }
         }

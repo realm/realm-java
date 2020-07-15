@@ -35,15 +35,26 @@ import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertTrue
 import static org.junit.Assert.fail
 
+/**
+ * Comment about the order of repositories.
+ * The order of repositories do matter, and might need to change depending on the 
+ * version of the Build Tools being used. See e.g.:
+ * 
+ * https://stackoverflow.com/questions/55278227/android-gradle-build-error-artifacts-for-configuration-classpath/55278968#55278968
+ * https://stackoverflow.com/questions/52968576/could-not-find-aapt2-proto-jar-com-android-tools-buildaapt2-proto0-3-1
+ */
 class PluginTest {
 
     private Project project
     private String currentVersion
+    private Properties projectDependencies
 
     @Before
     void setUp() {
         project = ProjectBuilder.builder().build()
         currentVersion = new File("../version.txt").text.trim()
+        projectDependencies = new Properties()
+        projectDependencies.load(new FileInputStream("../dependencies.list"))
     }
 
     @Test
@@ -51,12 +62,12 @@ class PluginTest {
         project.buildscript {
             repositories {
                 mavenLocal()
+                mavenCentral()
                 google()
                 jcenter()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:3.1.0-alpha03'
-                classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
+                classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
             }
         }
 
@@ -88,10 +99,11 @@ class PluginTest {
         project.buildscript {
             repositories {
                 mavenLocal()
+                mavenCentral()
                 jcenter()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:3.1.0-alpha03'
+                classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
                 classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
             }
         }
@@ -103,6 +115,181 @@ class PluginTest {
             assertEquals(e.getCause().class, GradleException.class)
             assertTrue(e.getCause().getMessage().contains("'com.android.application' or 'com.android.library' plugin required."))
         }
+    }
+
+    @Test
+    void pluginAddsRightRepositories_noRepositorySet() {
+        project.buildscript {
+            repositories {
+                maven {
+                    url 'https://maven.google.com/'
+                }
+                mavenCentral()
+                jcenter()
+            }
+            dependencies {
+                classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
+            }
+        }
+
+        def manifest = project.file("src/main/AndroidManifest.xml")
+        manifest.parentFile.mkdirs()
+        manifest.text = '<manifest xmlns:android="http://schemas.android.com/apk/res/android"  package="com.realm.test"></manifest>'
+
+        project.apply plugin: 'com.android.application'
+        project.apply plugin: 'realm-android'
+
+        project.android {
+            compileSdkVersion 27
+
+            defaultConfig {
+                minSdkVersion 16
+                targetSdkVersion 27
+            }
+        }
+
+        project.evaluate()
+
+        assertEquals(3, project.buildscript.repositories.size())
+        assertEquals(1, project.repositories.size())
+        assertEquals('jcenter.bintray.com', project.repositories.last().url.host)
+    }
+
+    @Test
+    void pluginAddsRightRepositories_withRepositoriesSet() {
+        project.buildscript {
+            repositories {
+                mavenCentral()
+                jcenter()
+                maven {
+                    url 'https://maven.google.com/'
+                }
+            }
+            dependencies {
+                classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
+            }
+        }
+
+        project.repositories {
+            google()
+        }
+
+        def manifest = project.file("src/main/AndroidManifest.xml")
+        manifest.parentFile.mkdirs()
+        manifest.text = '<manifest xmlns:android="http://schemas.android.com/apk/res/android"  package="com.realm.test"></manifest>'
+
+        project.apply plugin: 'com.android.application'
+        project.apply plugin: 'realm-android'
+
+        project.android {
+            compileSdkVersion 27
+
+            defaultConfig {
+                minSdkVersion 16
+                targetSdkVersion 27
+            }
+        }
+
+        project.evaluate()
+
+        assertEquals(3, project.buildscript.repositories.size())
+        assertEquals('maven.google.com', project.buildscript.repositories.last().url.host)
+
+        assertEquals(1, project.repositories.size())
+        assertEquals('dl.google.com', project.repositories.last().url.host)
+    }
+
+    // Test for https://github.com/realm/realm-java/issues/6610
+    @Test
+    void pluginAddsRightRepositories_withFlatDirs() {
+        project.buildscript {
+            repositories {
+                jcenter()
+                maven {
+                    url 'https://maven.google.com/'
+                }
+                mavenCentral()
+            }
+            dependencies {
+                classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
+            }
+        }
+
+        project.repositories {
+            flatDir {
+                dirs 'libs'
+            }
+            google()
+        }
+
+        def manifest = project.file("src/main/AndroidManifest.xml")
+        manifest.parentFile.mkdirs()
+        manifest.text = '<manifest xmlns:android="http://schemas.android.com/apk/res/android"  package="com.realm.test"></manifest>'
+
+        project.apply plugin: 'com.android.application'
+        project.apply plugin: 'realm-android'
+
+        project.android {
+            compileSdkVersion 27
+
+            defaultConfig {
+                minSdkVersion 16
+                targetSdkVersion 27
+            }
+        }
+
+        project.evaluate()
+
+        assertEquals(3, project.buildscript.repositories.size())
+        assertEquals('repo.maven.apache.org', project.buildscript.repositories.last().url.host)
+
+        assertEquals(2, project.repositories.size())
+        assertEquals('dl.google.com', project.repositories.last().url.host)
+    }
+
+
+    @Test
+    void pluginAddsRightRepositories_withRepositoriesSetAfterPluginIsApplied() {
+        project.buildscript {
+            repositories {
+                maven {
+                    url 'https://maven.google.com/'
+                }
+                mavenCentral()
+                jcenter()
+            }
+            dependencies {
+                classpath "com.android.tools.build:gradle:${projectDependencies.get("GRADLE_BUILD_TOOLS")}"
+            }
+        }
+
+        def manifest = project.file("src/main/AndroidManifest.xml")
+        manifest.parentFile.mkdirs()
+        manifest.text = '<manifest xmlns:android="http://schemas.android.com/apk/res/android"  package="com.realm.test"></manifest>'
+
+        project.apply plugin: 'com.android.application'
+        project.apply plugin: 'realm-android'
+
+        project.repositories {
+            google()
+        }
+
+        project.android {
+            compileSdkVersion 27
+
+            defaultConfig {
+                minSdkVersion 16
+                targetSdkVersion 27
+            }
+        }
+
+        project.evaluate()
+
+        assertEquals(3, project.buildscript.repositories.size())
+        assertEquals('maven.google.com', project.buildscript.repositories.first().url.host)
+
+        assertEquals(1, project.repositories.size())
+        assertEquals('dl.google.com', project.repositories.last().url.host)
     }
 
     private static boolean containsUrl(RepositoryHandler repositories, String url) {

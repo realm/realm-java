@@ -17,7 +17,7 @@
 package io.realm.rule;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
@@ -35,7 +35,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.internal.ObjectServerFacade;
 
 import static org.junit.Assert.assertTrue;
 
@@ -74,8 +73,8 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
 
     @Override
     protected void before() throws Throwable {
+        Realm.init(InstrumentationRegistry.getInstrumentation().getTargetContext());
         super.before();
-        Realm.init(InstrumentationRegistry.getTargetContext());
     }
 
     @Override
@@ -131,7 +130,6 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     // You have to delete it yourself.
     public RealmConfiguration.Builder createConfigurationBuilder() {
         RealmConfiguration.Builder builder = new RealmConfiguration.Builder().directory(getRoot());
-        ObjectServerFacade.getSyncFacadeIfPossible().addSupportForObjectLevelPermissions(builder);
         return builder;
     }
 
@@ -171,8 +169,6 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
 
         if (module != null) {
             builder.modules(module);
-        } else {
-            ObjectServerFacade.getSyncFacadeIfPossible().addSupportForObjectLevelPermissions(builder);
         }
 
         if (key != null) {
@@ -199,13 +195,15 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
         if (new File(config.getPath()).exists()) {
             throw new IllegalStateException(String.format(Locale.ENGLISH, "%s exists!", config.getPath()));
         }
-
         File outFile = new File(config.getRealmDirectory(), config.getRealmFileName());
+        copyFileFromAssets(context, realmPath, outFile);
+    }
 
+    public void copyFileFromAssets(Context context, String assetPath, File outFile) throws IOException {
         InputStream is = null;
         FileOutputStream os = null;
         try {
-            is = context.getAssets().open(realmPath);
+            is = context.getAssets().open(assetPath);
             os = new FileOutputStream(outFile);
 
             byte[] buf = new byte[1024];

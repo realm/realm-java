@@ -16,8 +16,8 @@
 
 package io.realm;
 
-import android.support.test.annotation.UiThreadTest;
-import android.support.test.rule.UiThreadTestRule;
+import androidx.test.annotation.UiThreadTest;
+import androidx.test.rule.UiThreadTestRule;
 
 import org.junit.After;
 import org.junit.Before;
@@ -772,8 +772,11 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
                 case MAX_DATE:
                 case IS_VALID:
                 case IS_MANAGED:
+                case IS_FROZEN:
+                case FREEZE:
                     realm.cancelTransaction();
                     continue;
+
                 default:
                     fail("Unknown method: " + method);
             }
@@ -842,7 +845,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             }
         }).start();
         TestHelper.awaitOrFail(bgDone);
-        realm.waitForChange();
+        realm.refresh();
         try {
             it.next();
             assertEquals(TEST_SIZE, collection.size());

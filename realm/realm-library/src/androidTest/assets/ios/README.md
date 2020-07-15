@@ -6,8 +6,10 @@ Realm-Android. The databases are generated using the below iOS code.
 ### HOWTO
 
 1. Checkout realm-cocoa.
-2. Open ~/realm-cocoa/RealmExamples.xcodeproj in Xcode.
-3. Rename `/Simple/AppDelegate.m` to `/Simple/AppDelegate.mm` and replace the content with the below code.  
+2. `cd examples/ios/objc`
+3. `pod install`
+4. `open RealmExamples.xcworkspace` in XCode
+5. Rename `/Simple/AppDelegate.m` to `/Simple/AppDelegate.mm` and replace the content with the below code.  
 4. Run Simple project.
 5. Copy/paste output Realm files into Java unit tests asset directory.
 
@@ -22,24 +24,6 @@ Realm-Android. The databases are generated using the below iOS code.
 See the Log for where the output files are located.
 
 ```objective-c  
-////////////////////////////////////////////////////////////////////////////
-//
-// Copyright 2016 Realm Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-////////////////////////////////////////////////////////////////////////////
-
 #import "AppDelegate.h"
 #import <Realm/Realm.h>
 #include <limits>
@@ -90,7 +74,7 @@ RLM_ARRAY_TYPE(AllTypes)
 + (RLMRealm *)appDefaultRealm:(NSString *) realmName {
     NSString* allTypesRealm = [AppDelegate getRealmFilePath:realmName];
     [[NSFileManager defaultManager] removeItemAtPath:allTypesRealm error:nil];
-    RLMRealm *realm = [RLMRealm realmWithPath:allTypesRealm];
+    RLMRealm *realm = [RLMRealm realmWithURL:[NSURL fileURLWithPath:allTypesRealm]];
     return realm;
 }
 
@@ -102,7 +86,7 @@ RLM_ARRAY_TYPE(AllTypes)
 
     NSLog(@"Documents Directory: %@", [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject]);
 
-    const NSString *version = @"0.98.0";
+    const NSString *version = @"6.0.0-beta.2";
     const unsigned char no_bytes[] = {};
     const unsigned char bytes[] = {1,2,3};
 
@@ -196,7 +180,7 @@ RLM_ARRAY_TYPE(AllTypes)
     NSData *keyData = [[NSData alloc] initWithBytes:buffer length:sizeof(buffer)]; // Zerofilled byte array
     NSError *error;
     RLMRealmConfiguration *config = [RLMRealmConfiguration defaultConfiguration];
-    config.path = [AppDelegate getRealmFilePath:[NSString stringWithFormat:@"%@-alltypes-default-encrypted.realm", version]];
+    config.fileURL = [NSURL fileURLWithPath:[AppDelegate getRealmFilePath:[NSString stringWithFormat:@"%@-alltypes-default-encrypted.realm", version]]];
     config.encryptionKey = keyData;
     config.readOnly = NO;
     realm = [RLMRealm realmWithConfiguration:config error:&error];
@@ -212,4 +196,5 @@ RLM_ARRAY_TYPE(AllTypes)
     return YES;
 }
 @end
+
 ```

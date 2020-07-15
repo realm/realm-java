@@ -55,7 +55,7 @@ class CachedFieldDescriptor extends FieldDescriptor {
     @Override
     protected void compileFieldDescription(List<String> fields) {
         final int nFields = fields.size();
-        long[] columnIndices = new long[nFields];
+        long[] columnKeys = new long[nFields];
         long[] tableNativePointers = new long[nFields];
 
         String currentClassName = className;
@@ -86,12 +86,12 @@ class CachedFieldDescriptor extends FieldDescriptor {
                 verifyInternalColumnType(currentClassName, currentColumnName, currentColumnType);
                 currentClassName = details.linkedClassName;
             }
-            columnIndices[i] = details.columnIndex;
+            columnKeys[i] = details.columnKey;
             tableNativePointers[i] = (currentColumnType != RealmFieldType.LINKING_OBJECTS)
                     ? NativeObject.NULLPTR
                     : schema.getNativeTablePtr(details.linkedClassName);
         }
 
-        setCompilationResults(currentClassName, currentColumnName, currentColumnType, columnIndices, tableNativePointers);
+        setCompilationResults(currentClassName, currentColumnName, currentColumnType, columnKeys, tableNativePointers);
     }
 }

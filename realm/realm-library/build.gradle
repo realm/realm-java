@@ -4,10 +4,10 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'maven-publish'
 apply plugin: 'findbugs'
-apply plugin: 'pmd'
+// apply plugin: 'pmd' FIXME Disabled PMD after upgrading Gradle Plugin. It resulted in a ton of false positives. Review those later.
 apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
@@ -19,25 +19,23 @@ properties.load(new FileInputStream("${projectDir}/../../dependencies.list"))
 ext.coreVersion = properties.getProperty('REALM_SYNC_VERSION')
 // empty or comment out this to disable hash checking
 ext.coreSha256Hash = properties.getProperty('REALM_SYNC_SHA256')
-ext.forceDownloadCore =
-        project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
+ext.forceDownloadCore = project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
+
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
 // core source code.
-ext.coreSourcePath = project.hasProperty('coreSourcePath') ? project.getProperty('coreSourcePath') : null
-// The location of core archive.
+ext.coreSourcePath = project.hasProperty('coreSourcePath') ? file(project.getProperty('coreSourcePath')) : null
+// The location of pre-compiled Realm Core/Sync archive.
 ext.coreArchiveDir = System.getenv("REALM_CORE_DOWNLOAD_DIR")
 if (!ext.coreArchiveDir) {
     ext.coreArchiveDir = ".."
 }
 ext.coreArchiveFile = rootProject.file("${ext.coreArchiveDir}/realm-sync-android-${project.coreVersion}.tar.gz")
 ext.coreDistributionDir = file("${projectDir}/distribution/realm-core/")
-ext.coreDir = file(project.coreSourcePath ?
-        "${project.coreSourcePath}/android-lib" :
-        "${project.coreDistributionDir.getAbsolutePath()}/core-${project.coreVersion}")
+ext.coreDir = file("${project.coreDistributionDir.getAbsolutePath()}/core-${project.coreVersion}")
 ext.ccachePath = project.findProperty('ccachePath') ?: System.getenv('NDK_CCACHE')
 ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE')
 // Set to true to enable linking with debug core.
-ext.enableDebugCore = project.hasProperty('enableDebugCore') ? project.getProperty('enableDebugCore') : false //FIXME Use 'false' as default until https://github.com/realm/realm-java/issues/5354 is fixed
+ext.enableDebugCore = project.hasProperty('enableDebugCore') ? project.getProperty('enableDebugCore') : true
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -48,25 +46,20 @@ android {
         targetSdkVersion rootProject.compileSdkVersion
         versionName version
         project.archivesBaseName = "realm-android-library"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
         externalNativeBuild {
             cmake {
                 arguments "-DREALM_CORE_DIST_DIR:STRING=${project.coreDir.getAbsolutePath()}",
-                        // FIXME:
-                        // This is copied from https://dl.google.com/android/repository/cmake-3.4.2909474-linux-x86_64.zip
-                        // because of the android.toolchain.cmake shipped with Android SDK CMake 3.6 doesn't work with our
-                        // JNI build currently (lack of lto linking support).
-                        // This file should be removed and use the one from Android SDK cmake package when it supports lto.
-                        "-DCMAKE_TOOLCHAIN_FILE=${project.file('src/main/cpp/android.toolchain.cmake').path}",
                         "-DENABLE_DEBUG_CORE=$project.enableDebugCore"
                 if (project.ccachePath) arguments "-DNDK_CCACHE=$project.ccachePath"
                 if (project.lcachePath) arguments "-DNDK_LCACHE=$project.lcachePath"
-                if (project.coreSourcePath) arguments "-DCORE_SOURCE_PATH=$project.coreSourcePath"
+                if (project.coreSourcePath) arguments "-DCORE_SOURCE_PATH=${project.coreSourcePath.getAbsolutePath()}"
                 if (project.hasProperty('buildTargetABIs') && !project.getProperty('buildTargetABIs').trim().isEmpty()) {
                     abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
                 } else {
-                    // armeabi is not supported anymore.
-                    abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a', 'mips'
+                    // "armeabi" and "mips" are no longer supported by the NDK
+                    abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
                 }
             }
         }
@@ -81,6 +74,8 @@ android {
             }
         }
     }
+
+    ndkVersion = "21.0.6113669"
 
     externalNativeBuild {
         cmake {
@@ -102,11 +97,17 @@ android {
     }
 
     sourceSets {
+        testObjectServer {
+            java.srcDirs += ['src/testObjectServer/kotlin']
+        }
         androidTest {
-            java.srcDirs += ['src/androidTest/kotlin', 'src/testUtils/java']
+            java.srcDirs += ['src/androidTest/kotlin', 'src/testUtils/java', 'src/testUtils/kotlin']
         }
         androidTestObjectServer {
-            java.srcDirs += 'src/syncIntegrationTest/java'
+            java.srcDirs += [/* FIXME 'src/syncIntegrationTest/java', */
+                             'src/syncIntegrationTest/kotlin',
+                             'src/androidTestObjectServer/kotlin', 'src/syncTestUtils/java'
+            , 'src/syncTestUtils/kotlin']
             assets.srcDirs += ['src/syncIntegrationTest/assets/']
         }
     }
@@ -209,23 +210,38 @@ dependencies {
     compileOnly 'io.reactivex.rxjava2:rxjava:2.1.5'
     compileOnly 'com.google.code.findbugs:findbugs-annotations:3.0.1'
 
+    testImplementation 'junit:junit:4.12'
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+
     api "io.realm:realm-annotations:${version}"
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
-    implementation 'com.getkeepsafe.relinker:relinker:1.2.2'
+    implementation 'com.getkeepsafe.relinker:relinker:1.4.0'
+    implementation "org.mongodb:bson:${properties.getProperty('BSON_DEPENDENCY_VERSION')}"
+    implementation('io.reactivex.rxjava2:rxandroid:2.1.1') {
+        exclude group: 'io.reactivex.rxjava2', module: 'rxjava'
+    }
+
+    // TODO: investigate why we can't use the latest multidex version
+    // check baseDebugAndroidTestRuntimeClasspath and objectServerDebugAndroidTestRuntimeClasspath
+    // tasks as they introduce version 2.0.0 strictly, even when specifying 2.0.1 from here
+    androidTestImplementation "androidx.multidex:multidex:2.0.0"
 
     kapt project(':realm-annotations-processor') // See https://github.com/realm/realm-java/issues/5799
-    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
-
+    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.12.0' // Going above this requires minSDK 21
     kaptAndroidTest project(':realm-annotations-processor')
-    androidTestImplementation fileTree(dir: 'testLibs', include: ['*.jar'])
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
     androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test:rules:1.0.1'
+    androidTestImplementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test:rules:1.2.0'
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
     androidTestImplementation 'com.google.dexmaker:dexmaker-mockito:1.2'
     androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
     androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    androidTestImplementation "org.skyscreamer:jsonassert:1.5.0"
+    androidTestImplementation project(':kotlin-extensions')
 
     // specify error prone version to prevent sudden failure
     errorprone 'com.google.errorprone:error_prone_core:2.1.2'
@@ -258,6 +274,8 @@ task javadoc(type: Javadoc) {
 
         links "https://docs.oracle.com/javase/7/docs/api/"
         links "http://reactivex.io/RxJava/javadoc/"
+        // TODO We probably need to add the bson.jar to the classpath for these to work
+        links "https://www.javadoc.io/doc/org.mongodb/bson/${properties.getProperty('BSON_DEPENDENCY_VERSION')}/"
         linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
 
         tags = [betaTag]
@@ -286,7 +304,7 @@ task findbugs(type: FindBugs) {
     effort = "default"
     reportLevel = "medium"
     excludeFilter = file("${projectDir}/../config/findbugs/findbugs-filter.xml")
-    classes = files("${projectDir}/build/intermediates/classes")
+    classes = files("${projectDir}/build/intermediates/javac")
     source = fileTree('src/main/java/')
     classpath = files()
     reports {
@@ -301,17 +319,17 @@ task findbugs(type: FindBugs) {
     }
 }
 
-task pmd(type: Pmd) {
-    group = 'Verification'
-
-    source = fileTree('src/main/java')
-    ruleSetFiles = files("${projectDir}/../config/pmd/ruleset.xml")
-
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
-}
+//task pmd(type: Pmd) {
+//    group = 'Verification'
+//
+//    source = fileTree('src/main/java')
+//    ruleSetFiles = files("${projectDir}/../config/pmd/ruleset.xml")
+//
+//    reports {
+//        xml.enabled = false
+//        html.enabled = true
+//    }
+//}
 
 // Configure Checkstyle
 // Android sourceSets are not sourceSets, so we can't confgure this with the DSL.
@@ -478,6 +496,11 @@ task downloadCore() {
     }
 
     def shouldDownloadCore = {
+        if (coreSourcePath) {
+            println "shouldDownloadCore: skipping, using local Core at: ${coreSourcePath}."
+            return false
+        }
+
         if (!project.coreArchiveFile.exists()) {
             return true
         }
@@ -485,7 +508,7 @@ task downloadCore() {
             return true
         }
         if (!isHashCheckingEnabled()) {
-            println "Skipping hash check(empty \'coreSha256Hash\')."
+            println "shouldDownloadCore: skipping hash check(empty \'coreSha256Hash\')."
             return false
         }
 
@@ -572,6 +595,7 @@ if (project.hasProperty('dontCleanJniFiles')) {
 } else {
     task cleanExternalBuildFiles(type: Delete) {
         delete project.file('.externalNativeBuild')
+        delete project.file('.cxx')
         // Clean .so files that were created by old build script (realm/realm-jni/build.gradle).
         delete project.file('src/main/jniLibs')
     }
@@ -580,48 +604,24 @@ if (project.hasProperty('dontCleanJniFiles')) {
 
 project.afterEvaluate {
     android.libraryVariants.all { variant ->
-        variant.externalNativeBuildTasks[0].dependsOn(checkNdk)
         if (project.hasProperty('buildTargetABIs') && project.getProperty('buildTargetABIs').trim().isEmpty()) {
-            variant.externalNativeBuildTasks[0].enabled = false
+            variant.externalNativeBuildProviders[0].configure {
+                enabled = false
+            }
         }
 
         // all Java files must be compiled before native build
+        // See https://github.com/android/ndk-samples/issues/284
         android.libraryVariants.all { anotherVariant ->
             if (variant.flavorName == anotherVariant.flavorName) {
-                variant.externalNativeBuildTasks[0].dependsOn("compile${anotherVariant.name.capitalize()}JavaWithJavac")
+                variant.externalNativeBuildProviders[0].configure {
+                    dependsOn "compile${anotherVariant.name.capitalize()}JavaWithJavac"
+                }
             }
         }
         // as of android gradle plugin 3.0.0-alpha5, generateJsonModel* triggers native build. Java files must be compiled before them.
         android.buildTypes.all { buildType ->
             tasks["generateJsonModel${variant.name.capitalize()}"].dependsOn "compile${variant.flavorName.capitalize()}${buildType.name.capitalize()}JavaWithJavac"
-        }
-    }
-}
-
-task checkNdk() {
-    doLast {
-        def ndkPathInEnvVariable = System.env.ANDROID_NDK_HOME
-        if (!ndkPathInEnvVariable) {
-            throw new GradleException("The environment variable 'ANDROID_NDK_HOME' must be set.")
-        }
-        checkNdk(ndkPathInEnvVariable)
-
-        def localPropFile = rootProject.file('local.properties')
-        if (!localPropFile.exists()) {
-            // we can skip the checks since 'ANDROID_NDK_HOME' will be used instead.
-        } else {
-            def String ndkPathInLocalProperties = getValueFromPropertiesFile(localPropFile, 'ndk.dir')
-            if (!ndkPathInLocalProperties) {
-                throw new GradleException("'ndk.dir' must be set in ${localPropFile.getAbsolutePath()}.")
-            }
-            checkNdk(ndkPathInLocalProperties)
-            if (new File(ndkPathInLocalProperties).getCanonicalPath()
-                    != new File(ndkPathInEnvVariable).getCanonicalPath()) {
-                throw new GradleException(
-                        "The value of environment variable 'ANDROID_NDK_HOME' (${ndkPathInEnvVariable}) and"
-                                + " 'ndk.dir' in 'local.properties' (${ndkPathInLocalProperties}) "
-                                + ' must point the same directory.')
-            }
         }
     }
 }
@@ -756,11 +756,17 @@ android.productFlavors.all { flavor ->
     }
 }
 
-task bintrayUpload() {
-    android.productFlavors.all { flavor ->
-        dependsOn "bintray${flavor.name.capitalize()}"
-    }
+// Cannot override bintrayUpload in Gradle 4.9. Most likely due to a bug in
+// the gradle-bintray-plugin. So we use `bintrayUploadAll` instead that can
+// then depend on the original bintrayUpload task.
+task bintrayUploadAll() {
     group = 'Publishing'
+}
+
+project.afterEvaluate {
+    android.productFlavors.all { flavor ->
+        bintrayUploadAll.dependsOn "bintray${flavor.name.capitalize()}"
+    }
 }
 
 task ojoUpload() {
@@ -768,26 +774,6 @@ task ojoUpload() {
         dependsOn "ojo${flavor.name.capitalize()}"
     }
     group = 'Publishing'
-}
-
-def checkNdk(String ndkPath) {
-    def detectedNdkVersion
-    def releaseFile = new File(ndkPath, 'RELEASE.TXT')
-    def propertyFile = new File(ndkPath, 'source.properties')
-    if (releaseFile.isFile()) {
-        detectedNdkVersion = releaseFile.text.trim().split()[0].split('-')[0]
-    } else if (propertyFile.isFile()) {
-        detectedNdkVersion = getValueFromPropertiesFile(propertyFile, 'Pkg.Revision')
-        if (detectedNdkVersion == null) {
-            throw new GradleException("Failed to obtain the NDK version information from ${ndkPath}/source.properties")
-        }
-    } else {
-        throw new GradleException("Neither ${releaseFile.getAbsolutePath()} nor ${propertyFile.getAbsolutePath()} is a file.")
-    }
-    if (detectedNdkVersion != project.ndkVersion) {
-        throw new GradleException("Your NDK version: ${detectedNdkVersion}."
-                + " Realm JNI must be compiled with the version ${project.ndkVersion} of NDK.")
-    }
 }
 
 static def getValueFromPropertiesFile(File propFile, String key) {

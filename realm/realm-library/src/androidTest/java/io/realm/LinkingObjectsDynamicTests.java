@@ -16,7 +16,7 @@
 
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -202,6 +202,12 @@ public class LinkingObjectsDynamicTests {
                     case DOUBLE:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DOUBLE);
                         break;
+                    case DECIMAL128:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DECIMAL128);
+                        break;
+                    case OBJECT_ID:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_OBJECT_ID);
+                        break;
                     case INTEGER_LIST:
                         // FIXME zaki50 enable this once Primitive List is implemented
                         //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_INT_LIST);
@@ -234,6 +240,16 @@ public class LinkingObjectsDynamicTests {
                         throw new IllegalArgumentException("Unexpected field type");
                     case DOUBLE_LIST:
                         // FIXME zaki50 enable this once Primitive List is implemented
+                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DOUBLE_LIST);
+                        //break;
+                        throw new IllegalArgumentException("Unexpected field type");
+                    case DECIMAL128_LIST:
+                        // FIXME enable this once Primitive List is implemented
+                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DOUBLE_LIST);
+                        //break;
+                        throw new IllegalArgumentException("Unexpected field type");
+                    case OBJECT_ID_LIST:
+                        // FIXME enable this once Primitive List is implemented
                         //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DOUBLE_LIST);
                         //break;
                         throw new IllegalArgumentException("Unexpected field type");
@@ -290,6 +306,8 @@ public class LinkingObjectsDynamicTests {
                 target3.setId(3);
             }
         });
+
+        dynamicRealm.refresh();
 
         final DynamicRealmObject target1 = dynamicRealm.where(BacklinksTarget.CLASS_NAME).equalTo(BacklinksTarget.FIELD_ID, 1).findFirst();
         final RealmResults<DynamicRealmObject> target1Sources = target1.linkingObjects(BacklinksSource.CLASS_NAME, BacklinksSource.FIELD_CHILD);
@@ -350,6 +368,8 @@ public class LinkingObjectsDynamicTests {
             }
         });
 
+        dynamicRealm.refresh();
+
         final DynamicRealmObject cat1 = dynamicRealm.where(Cat.CLASS_NAME).equalTo(Cat.FIELD_NAME, "cat1").findFirst();
         final RealmResults<DynamicRealmObject> cat1Owners = cat1.linkingObjects(Owner.CLASS_NAME, Owner.FIELD_CAT);
         assertNotNull(cat1Owners);
@@ -401,6 +421,8 @@ public class LinkingObjectsDynamicTests {
                 source200.getFieldList().add(target2);
             }
         });
+
+        dynamicRealm.refresh();
 
         final DynamicRealmObject target1 = dynamicRealm.where(AllJavaTypes.CLASS_NAME).equalTo(AllJavaTypes.FIELD_ID, 1L).findFirst();
         final DynamicRealmObject target2 = dynamicRealm.where(AllJavaTypes.CLASS_NAME).equalTo(AllJavaTypes.FIELD_ID, 2L).findFirst();
@@ -475,17 +497,18 @@ public class LinkingObjectsDynamicTests {
         });
 
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
-        try {
-            final DynamicRealmObject targetAsync = dynamicRealm.where(BacklinksTarget.CLASS_NAME)
-                    .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirstAsync();
-            // precondition
-            assertFalse(targetAsync.isLoaded());
+        looperThread.closeAfterTest(dynamicRealm);
+        final DynamicRealmObject targetAsync = dynamicRealm.where(BacklinksTarget.CLASS_NAME)
+                .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirstAsync();
+        // precondition
+        assertFalse(targetAsync.isLoaded());
 
-            thrown.expect(IllegalStateException.class);
+        try {
             targetAsync.linkingObjects(BacklinksSource.CLASS_NAME, BacklinksSource.FIELD_CHILD);
-        } finally {
-            dynamicRealm.close();
+            fail();
+        } catch (IllegalStateException ignored) {
         }
+        looperThread.testComplete();
     }
 
     @Test
@@ -505,25 +528,26 @@ public class LinkingObjectsDynamicTests {
         });
 
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
+        looperThread.closeAfterTest(dynamicRealm);
+        final DynamicRealmObject target = dynamicRealm.where(BacklinksTarget.CLASS_NAME)
+                .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirst();
+
+        dynamicRealm.executeTransaction(new DynamicRealm.Transaction() {
+            @Override
+            public void execute(DynamicRealm realm) {
+                target.deleteFromRealm();
+            }
+        });
+
+        // precondition
+        assertFalse(target.isValid());
+
         try {
-            final DynamicRealmObject target = dynamicRealm.where(BacklinksTarget.CLASS_NAME)
-                    .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirst();
-
-            dynamicRealm.executeTransaction(new DynamicRealm.Transaction() {
-                @Override
-                public void execute(DynamicRealm realm) {
-                    target.deleteFromRealm();
-                }
-            });
-
-            // precondition
-            assertFalse(target.isValid());
-
-            thrown.expect(IllegalStateException.class);
             target.linkingObjects(BacklinksSource.CLASS_NAME, BacklinksSource.FIELD_CHILD);
-        } finally {
-            dynamicRealm.close();
+            fail();
+        } catch (IllegalStateException ignored) {
         }
+        looperThread.testComplete();
     }
 
     @Test

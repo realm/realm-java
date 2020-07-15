@@ -47,10 +47,11 @@ class MutableRealmSchema extends RealmSchema {
     @Override
     public Set<RealmObjectSchema> getAll() {
         // Return all tables prefixed with class__ in the Realm file
-        int tableCount = (int) realm.getSharedRealm().size();
+        String[] names = realm.getSharedRealm().getTablesNames();
+        int tableCount = names.length;
         Set<RealmObjectSchema> schemas = new LinkedHashSet<>(tableCount);
         for (int i = 0; i < tableCount; i++) {
-            RealmObjectSchema objectSchema = get(Table.getClassNameForTable(realm.getSharedRealm().getTableName(i)));
+            RealmObjectSchema objectSchema = get(Table.getClassNameForTable(names[i]));
             if (objectSchema != null) {
                 schemas.add(objectSchema);
             }
@@ -122,20 +123,8 @@ class MutableRealmSchema extends RealmSchema {
             throw new IllegalArgumentException(oldClassName + " cannot be renamed because the new class already exists: " + newClassName);
         }
 
-        // Checks if there is a primary key defined for the old class.
-        String pkField = OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, oldClassName);
-        if (pkField != null) {
-            OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, oldClassName, null);
-        }
-
         realm.getSharedRealm().renameTable(oldInternalName, newInternalName);
         Table table = realm.getSharedRealm().getTable(newInternalName);
-
-        // Sets the primary key for the new class if necessary.
-        if (pkField != null) {
-            OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, newClassName, pkField);
-        }
-
         RealmObjectSchema objectSchema = removeFromClassNameToSchemaMap(oldInternalName);
         if (objectSchema == null || !objectSchema.getTable().isValid() || !objectSchema.getClassName().equals(newClassName)) {
             objectSchema = new MutableRealmObjectSchema(realm, this, table);

@@ -2,8 +2,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'maven-publish'
 apply plugin: 'de.undercouch.download'
 apply plugin: 'org.jetbrains.dokka'
 
@@ -13,6 +13,9 @@ apply plugin: 'org.jetbrains.dokka'
 //apply plugin: 'checkstyle'
 //apply plugin: 'com.github.kt3k.coveralls'
 //apply plugin: 'net.ltgt.errorprone'
+
+def properties = new Properties()
+properties.load(new FileInputStream("${projectDir}/../../dependencies.list"))
 
 android.registerTransform(new io.realm.transformer.RealmTransformer(project))
 
@@ -25,7 +28,7 @@ android {
         versionName version
         project.archivesBaseName = "realm-kotlin-extensions"
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         debug {
@@ -54,7 +57,19 @@ android {
         main.java.srcDirs += 'src/main/kotlin'
         androidTest.java.srcDirs += ['src/androidTest/kotlin', '../realm-library/src/testUtils/java']
         objectServer.java.srcDirs += 'src/objectServer/kotlin'
-        androidTestObjectServer.java.srcDirs += 'src/androidTestObjectServer/kotlin'
+        androidTestObjectServer.java.srcDirs += [
+                'src/androidTestObjectServer/kotlin',
+                '../realm-library/src/testUtils/java',
+                '../realm-library/src/testUtils/kotlin',
+                '../realm-library/src/syncTestUtils/java',
+                '../realm-library/src/syncTestUtils/kotlin',
+        ]
+    }
+
+    // Required from Kotlin 1.1.2
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
     }
 }
 
@@ -62,10 +77,14 @@ dependencies {
     implementation project(':realm-library')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     androidTestImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test:rules:1.0.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test:rules:1.2.0'
+    androidTestImplementation "org.mongodb:bson:${properties.getProperty('BSON_DEPENDENCY_VERSION')}"
+    androidTestImplementation 'com.google.code.findbugs:jsr305:3.0.2'
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    androidTestObjectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
+    androidTestObjectServerImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
 }
 
 repositories {
@@ -87,10 +106,8 @@ task sourcesJar(type: Jar) {
 }
 
 dokka {
-    // TODO Filtering is currently not possible https://youtrack.jetbrains.com/issue/KT-21022
-    // This means we cannot filter R/BuildConfig files for the time being
     outputFormat = 'html'
-    outputDirectory = "$buildDir/dokka"
+    outputDirectory = "$buildDir/docs"
 }
 
 task javadocJar(type: Jar, dependsOn: dokka) {
@@ -209,7 +226,7 @@ artifactory {
             password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
         }
         defaults {
-             publications('basePublication', 'objectServerPublication')
+            publications('basePublication'/*, 'objectServerPublication'*/)
             publishPom = true
             publishIvy = false
         }
@@ -354,11 +371,17 @@ android.productFlavors.all { flavor ->
     }
 }
 
-task bintrayUpload() {
-    android.productFlavors.all { flavor ->
-        dependsOn "bintray${flavor.name.capitalize()}"
-    }
+// Cannot override bintrayUpload in Gradle 4.9. Most likely due to a bug in
+// the gradle-bintray-plugin. So we use `bintrayUploadAll` instead that can
+// then depend on the original bintrayUpload task.
+task bintrayUploadAll() {
     group = 'Publishing'
+}
+
+project.afterEvaluate {
+    android.productFlavors.all { flavor ->
+        bintrayUploadAll.dependsOn "bintray${flavor.name.capitalize()}"
+    }
 }
 
 task ojoUpload() {

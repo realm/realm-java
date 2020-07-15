@@ -17,10 +17,9 @@
 package io.realm;
 
 import android.os.SystemClock;
-import android.support.test.annotation.UiThreadTest;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.annotation.UiThreadTest;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,18 +27,21 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.OsRealmConfig;
+import io.realm.log.LogLevel;
+import io.realm.log.RealmLog;
+import io.realm.log.RealmLogger;
 import io.realm.objectserver.utils.Constants;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.util.SyncTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -59,7 +61,6 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
 
         SyncConfiguration config = user.createConfiguration(Constants.USER_REALM)
                 .schema(StringOnly.class)
-                .fullSynchronization()
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
                 .build();
 
@@ -74,8 +75,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
             assertTrue(Realm.deleteRealm(config));
         } catch (IllegalStateException e) {
             // FIXME: We don't have a way to ensure that the Realm instance on client thread has been
-            //        closed for now.
-            // https://github.com/realm/realm-java/issues/5416
+            // closed for now https://github.com/realm/realm-java/issues/5416
             if (e.getMessage().contains("It's not allowed to delete the file")) {
                 // retry after 1 second
                 SystemClock.sleep(1000);
@@ -85,7 +85,6 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
 
         user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
         SyncConfiguration config2 = user.createConfiguration(Constants.USER_REALM)
-                .fullSynchronization()
                 .schema(StringOnly.class)
                 .build();
 
@@ -102,7 +101,6 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
     public void waitForInitialRemoteData_mainThreadThrows() {
         final SyncUser user = SyncTestUtils.createTestUser(Constants.AUTH_URL);
         SyncConfiguration config = user.createConfiguration(Constants.USER_REALM)
-                .fullSynchronization()
                 .waitForInitialRemoteData()
                 .build();
 
@@ -110,9 +108,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         try {
             realm = Realm.getInstance(config);
             fail();
-        } catch (IllegalStateException expected) {
-            assertThat(expected.getMessage(), CoreMatchers.containsString(
-                    "downloadAllServerChanges() cannot be called from the main thread."));
+        } catch (IllegalStateException ignore) {
         } finally {
             if (realm != null) {
                 realm.close();
@@ -128,7 +124,6 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
 
         // 1. Copy a valid Realm to the server (and pray it does it within 10 seconds)
         final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
-                .fullSynchronization()
                 .schema(StringOnly.class)
                 .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
                 .build();
@@ -150,7 +145,6 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
         SyncConfiguration config = user.createConfiguration(Constants.USER_REALM)
                 .name("newRealm")
-                .fullSynchronization()
                 .schema(StringOnly.class)
                 .waitForInitialRemoteData()
                 .build();
@@ -250,7 +244,6 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
 
         // 1. Copy a valid Realm to the server (and pray it does it within 10 seconds)
         final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
-                .fullSynchronization()
                 .schema(StringOnly.class)
                 .build();
         Realm realm = Realm.getInstance(configOld);
@@ -271,7 +264,6 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, false), Constants.AUTH_URL);
         final SyncConfiguration configNew = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .name("newRealm")
-                .fullSynchronization()
                 .waitForInitialRemoteData()
                 .readOnly()
                 .schema(StringOnly.class)
@@ -283,7 +275,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         realm.close();
         user.logOut();
     }
-    
+
     @Test
     public void waitForInitialRemoteData_readOnlyTrue_throwsIfWrongServerSchema() {
         SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "password", true);
@@ -301,7 +293,7 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
             // schema.
             realm = Realm.getInstance(configNew);
             fail();
-        } catch (RealmMigrationNeededException ignored) {
+        } catch (RealmMigrationNeededException ignore) {
         } finally {
             if (realm != null) {
                 realm.close();
@@ -330,9 +322,10 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
         }
     }
 
+    @Ignore("FIXME: Re-enable this once we can test againt a proper Stitch server")
     @Test
     public void defaultRealm() throws InterruptedException {
-        SyncCredentials credentials = SyncCredentials.nickname("test", false);
+        SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "test", true);
         SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
         SyncConfiguration config = user.getDefaultConfiguration();
         Realm realm = Realm.getInstance(config);
@@ -345,5 +338,184 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
             realm.close();
             user.logOut();
         }
+    }
+
+    // Check that custom headers and auth header renames are correctly used for HTTP requests
+    // performed from Java.
+    @Test
+    @RunTestInLooperThread
+    public void javaRequestCustomHeaders() {
+        SyncManager.addCustomRequestHeader("Foo", "bar");
+        SyncManager.setAuthorizationHeaderName("RealmAuth");
+        runJavaRequestCustomHeadersTest();
+    }
+
+    // Check that custom headers and auth header renames are correctly used for HTTP requests
+    // performed from Java.
+    @Test
+    @RunTestInLooperThread
+    public void javaRequestCustomHeaders_specificHost() {
+        SyncManager.addCustomRequestHeader("Foo", "bar", Constants.HOST);
+        SyncManager.setAuthorizationHeaderName("RealmAuth", Constants.HOST);
+        runJavaRequestCustomHeadersTest();
+    }
+
+    private void runJavaRequestCustomHeadersTest() {
+        SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "test", true);
+
+        AtomicBoolean headerSet = new AtomicBoolean(false);
+        RealmLog.setLevel(LogLevel.ALL);
+        RealmLogger logger = (level, tag, throwable, message) -> {
+            if (level == LogLevel.TRACE
+                    && message.contains("Foo: bar")
+                    && message.contains("RealmAuth: ")) {
+                headerSet.set(true);
+            }
+        };
+        looperThread.runAfterTest(() -> {
+            RealmLog.remove(logger);
+        });
+        RealmLog.add(logger);
+
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
+        try {
+            user.changePassword("foo");
+        } catch (ObjectServerError e) {
+            if (e.getErrorCode() != ErrorCode.INVALID_CREDENTIALS) {
+                throw e;
+            }
+        }
+
+        assertTrue(headerSet.get());
+        looperThread.testComplete();
+    }
+
+    // Test that auth header renaming, custom headers and url prefix are all propagated correctly
+    // to Sync. There really isn't a way to create a proper integration test since ROS used for testing
+    // isn't configured to accept such requests. Instead we inspect the log from Sync which will
+    // output the headers in TRACE mode.
+    @Test
+    @RunTestInLooperThread
+    public void syncAuthHeaderAndUrlPrefix() {
+        SyncManager.setAuthorizationHeaderName("TestAuth");
+        SyncManager.addCustomRequestHeader("Test", "test");
+        runSyncAuthHeadersAndUrlPrefixTest();
+    }
+
+    // Test that auth header renaming, custom headers and url prefix are all propagated correctly
+    // to Sync. There really isn't a way to create a proper integration test since ROS used for testing
+    // isn't configured to accept such requests. Instead we inspect the log from Sync which will
+    // output the headers in TRACE mode.
+    @Test
+    @RunTestInLooperThread
+    public void syncAuthHeaderAndUrlPrefix_specificHost() {
+        SyncManager.setAuthorizationHeaderName("TestAuth", Constants.HOST);
+        SyncManager.addCustomRequestHeader("Test", "test", Constants.HOST);
+        runSyncAuthHeadersAndUrlPrefixTest();
+    }
+
+    private void runSyncAuthHeadersAndUrlPrefixTest() {
+        SyncCredentials credentials = SyncCredentials.usernamePassword(UUID.randomUUID().toString(), "test", true);
+        SyncUser user = SyncUser.logIn(credentials, Constants.AUTH_URL);
+        SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+                .urlPrefix("/foo")
+                .errorHandler(new SyncSession.ErrorHandler() {
+                    @Override
+                    public void onError(SyncSession session, ObjectServerError error) {
+                        RealmLog.error(error.toString());
+                    }
+                })
+                .build();
+
+        RealmLog.setLevel(LogLevel.ALL);
+        RealmLogger logger = (level, tag, throwable, message) -> {
+            if (tag.equals("REALM_SYNC")
+                    && message.contains("GET /foo/")
+                    && message.contains("TestAuth: Realm-Access-Token version=1")
+                    && message.contains("Test: test")) {
+                looperThread.testComplete();
+            }
+        };
+        looperThread.runAfterTest(() -> {
+            RealmLog.remove(logger);
+        });
+        RealmLog.add(logger);
+        Realm realm = Realm.getInstance(config);
+        looperThread.closeAfterTest(realm);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void progressListenersWorkWhenUsingWaitForInitialRemoteData() throws InterruptedException {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+        SyncUser user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+
+        // 1. Copy a valid Realm to the server (and pray it does it within 10 seconds)
+        final SyncConfiguration configOld = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+                .schema(StringOnly.class)
+                .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
+                .build();
+        Realm realm = Realm.getInstance(configOld);
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                for (int i = 0; i < 10; i++) {
+                    realm.createObject(StringOnly.class).setChars("Foo" + i);
+                }
+            }
+        });
+        SyncManager.getSession(configOld).uploadAllLocalChanges();
+        realm.close();
+        user.logOut();
+        assertTrue(SyncManager.getAllSessions(user).isEmpty());
+
+        // 2. Local state should now be completely reset. Open the same sync Realm but different local name again with
+        // a new configuration which should download the uploaded changes (pray it managed to do so within the time frame).
+        user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password), Constants.AUTH_URL);
+        SyncConfiguration config = user.createConfiguration(Constants.USER_REALM)
+                .name("newRealm")
+                .schema(StringOnly.class)
+                .waitForInitialRemoteData()
+                .build();
+        assertFalse(config.realmExists());
+        AtomicBoolean indefineteListenerComplete = new AtomicBoolean(false);
+        AtomicBoolean currentChangesListenerComplete = new AtomicBoolean(false);
+        RealmAsyncTask task = Realm.getInstanceAsync(config, new Realm.Callback() {
+
+            @Override
+            public void onSuccess(Realm realm) {
+                realm.close();
+                if (!indefineteListenerComplete.get()) {
+                    fail("Indefinete progress listener did not report complete.");
+                }
+                if (!currentChangesListenerComplete.get()) {
+                    fail("Current changes progress listener did not report complete.");
+                }
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(Throwable exception) {
+                fail(exception.toString());
+            }
+        });
+        looperThread.keepStrongReference(task);
+        SyncManager.getSession(config).addDownloadProgressListener(ProgressMode.INDEFINITELY, new ProgressListener() {
+            @Override
+            public void onChange(Progress progress) {
+                if (progress.isTransferComplete()) {
+                    indefineteListenerComplete.set(true);
+                }
+            }
+        });
+        SyncManager.getSession(config).addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, new ProgressListener() {
+            @Override
+            public void onChange(Progress progress) {
+                if (progress.isTransferComplete()) {
+                    currentChangesListenerComplete.set(true);
+                }
+            }
+        });
     }
 }

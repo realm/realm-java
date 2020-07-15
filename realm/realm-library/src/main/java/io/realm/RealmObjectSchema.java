@@ -26,10 +26,12 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import io.realm.annotations.RealmClass;
 import io.realm.annotations.Required;
+import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
-import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectStore;
+import io.realm.internal.OsResults;
 import io.realm.internal.Table;
 import io.realm.internal.fields.FieldDescriptor;
 
@@ -106,6 +108,7 @@ public abstract class RealmObjectSchema {
      * </ul>
      *
      * @return the name of the RealmObject class represented by this schema.
+     * @throws IllegalStateException if this schema defintion is no longer part of the Realm.
      */
     public String getClassName() {
         return table.getClassName();
@@ -117,7 +120,7 @@ public abstract class RealmObjectSchema {
      * @param className the new name for this class.
      * @throws IllegalArgumentException if className is {@code null} or an empty string, or its length exceeds 56
      * characters.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or from a synced Realm.
      * @see RealmSchema#rename(String, String)
      */
     public abstract RealmObjectSchema setClassName(String className);
@@ -137,7 +140,8 @@ public abstract class RealmObjectSchema {
      * @return the updated schema.
      * @throws IllegalArgumentException if the type isn't supported, field name is illegal or a field with that name
      * already exists.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or if adding a
+     * a field with {@link FieldAttribute#PRIMARY_KEY} attribute to a schema of a synced Realm.
      */
     public abstract RealmObjectSchema addField(String fieldName, Class<?> fieldType, FieldAttribute... attributes);
 
@@ -199,7 +203,7 @@ public abstract class RealmObjectSchema {
      * @param fieldName field name to remove.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or for a synced Realm.
      */
     public abstract RealmObjectSchema removeField(String fieldName);
 
@@ -210,7 +214,7 @@ public abstract class RealmObjectSchema {
      * @param newFieldName the new field name.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist or if the new field name already exists.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or for a synced Realm.
      */
     public abstract RealmObjectSchema renameField(String currentFieldName, String newFieldName);
 
@@ -221,7 +225,7 @@ public abstract class RealmObjectSchema {
      * @return {@code true} if the field exists, {@code false} otherwise.
      */
     public boolean hasField(String fieldName) {
-        return table.getColumnIndex(fieldName) != Table.NO_MATCH;
+        return table.getColumnKey(fieldName) != Table.NO_MATCH;
     }
 
     /**
@@ -247,7 +251,7 @@ public abstract class RealmObjectSchema {
     public boolean hasIndex(String fieldName) {
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
-        return table.hasSearchIndex(table.getColumnIndex(fieldName));
+        return table.hasSearchIndex(table.getColumnKey(fieldName));
     }
 
     /**
@@ -256,7 +260,7 @@ public abstract class RealmObjectSchema {
      * @param fieldName field to remove index from.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist or the field doesn't have an index.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or of a synced Realm.
      */
     public abstract RealmObjectSchema removeIndex(String fieldName);
 
@@ -269,7 +273,7 @@ public abstract class RealmObjectSchema {
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist, the field cannot be a primary key or it already
      * has a primary key defined.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or this method is called on a synced Realm.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or of a synced Realm.
      */
     public abstract RealmObjectSchema addPrimaryKey(String fieldName);
 
@@ -280,7 +284,7 @@ public abstract class RealmObjectSchema {
      *
      * @return the updated schema.
      * @throws IllegalArgumentException if the class doesn't have a primary key defined.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or of a synced Realm.
      */
     public abstract RealmObjectSchema removePrimaryKey();
 
@@ -325,7 +329,7 @@ public abstract class RealmObjectSchema {
      * @see #setRequired(String, boolean)
      */
     public boolean isRequired(String fieldName) {
-        long columnIndex = getColumnIndex(fieldName);
+        long columnIndex = getColumnKey(fieldName);
         return !table.isColumnNullable(columnIndex);
     }
 
@@ -338,7 +342,7 @@ public abstract class RealmObjectSchema {
      * @see #setNullable(String, boolean)
      */
     public boolean isNullable(String fieldName) {
-        long columnIndex = getColumnIndex(fieldName);
+        long columnIndex = getColumnKey(fieldName);
         return table.isColumnNullable(columnIndex);
     }
 
@@ -387,11 +391,8 @@ public abstract class RealmObjectSchema {
     public Set<String> getFieldNames() {
         int columnCount = (int) table.getColumnCount();
         Set<String> columnNames = new LinkedHashSet<>(columnCount);
-        for (int i = 0; i < columnCount; i++) {
-            String name = table.getColumnName(i);
-            if (!OsObject.isObjectIdColumn(name)) {
-                columnNames.add(name);
-            }
+        for (String column : table.getColumnNames()) {
+                columnNames.add(column);
         }
         return columnNames;
     }
@@ -399,6 +400,8 @@ public abstract class RealmObjectSchema {
     /**
      * Runs a transformation function on each RealmObject instance of the current class. The object will be represented
      * as a {@link DynamicRealmObject}.
+     * <p>
+     * There is no guarantees in which order the objects are returned.
      *
      * @param function transformation function.
      * @return this schema.
@@ -413,8 +416,50 @@ public abstract class RealmObjectSchema {
      * @return the underlying type used by Realm to represent this field.
      */
     public RealmFieldType getFieldType(String fieldName) {
-        long columnIndex = getColumnIndex(fieldName);
-        return table.getColumnType(columnIndex);
+        long columnKey = getColumnKey(fieldName);
+        return table.getColumnType(columnKey);
+    }
+
+    /**
+     * Returns {@code true} if objects of this type are considered "embedded".
+     * See {@link RealmClass#embedded()} for further details.
+     *
+     * @return {@code true} if objects of this type are embedded. {@code false} if not.
+     */
+    public boolean isEmbedded() {
+        return table.isEmbedded();
+    }
+
+    /**
+     * Converts the class to be embedded or not.
+     * <p>
+     * A class can only be marked as embedded if the following invariants are satisfied:
+     * <ul>
+     *     <li>
+     *         The class is not allowed to have a primary key defined.
+     *     </li>
+     *     <li>
+     *         All existing objects of this type, must have one and exactly one parent object
+     *         already pointing to it. If 0 or more than 1 object has a reference to an object
+     *         about to be marked embedded an {@link IllegalStateException} will be thrown.
+     *     </li>
+     * </ul>
+     *
+     * @throws IllegalStateException if the class could not be converted because it broke some of the Embedded Objects invariants.
+     * @see RealmClass#embedded()
+     */
+    public void setEmbedded(boolean embedded) {
+        if (hasPrimaryKey()) {
+            throw new IllegalStateException("Embedded classes cannot have primary keys. This class " +
+                    "has a primary key defined so cannot be marked as embedded: " + getClassName());
+        }
+        boolean setEmbedded = table.setEmbedded(embedded);
+        if (!setEmbedded && embedded) {
+            throw new IllegalStateException("The class could not be marked as embedded as some " +
+                    "objects of this type break some of the Embedded Objects invariants. In order to convert " +
+                    "all objects to be embedded, they must have one and exactly one parent object" +
+                    "pointing to them.");
+        }
     }
 
     /**
@@ -424,7 +469,7 @@ public abstract class RealmObjectSchema {
      * @param validColumnTypes valid field type for the last field in a linked field
      * @return a FieldDescriptor
      */
-    abstract FieldDescriptor getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes);
+    abstract FieldDescriptor getFieldDescriptors(String fieldDescription, RealmFieldType... validColumnTypes);
 
     RealmObjectSchema add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required) {
         long columnIndex = table.addColumn(type, name, (required) ? Table.NOT_NULLABLE : Table.NULLABLE);
@@ -446,12 +491,12 @@ public abstract class RealmObjectSchema {
         return this;
     }
 
-    long getAndCheckFieldIndex(String fieldName) {
-        long index = columnInfo.getColumnIndex(fieldName);
-        if (index < 0) {
+    long getAndCheckFieldColumnKey(String fieldName) {
+        long columnKey = columnInfo.getColumnKey(fieldName);
+        if (columnKey < 0) {
             throw new IllegalArgumentException("Field does not exist: " + fieldName);
         }
-        return index;
+        return columnKey;
     }
 
     Table getTable() {
@@ -483,8 +528,8 @@ public abstract class RealmObjectSchema {
      * @return column index or -1 if it doesn't exists.
      */
     //@VisibleForTesting(otherwise = VisibleForTesting.NONE)
-    long getFieldIndex(String fieldName) {
-        return columnInfo.getColumnIndex(fieldName);
+    long getFieldColumnKey(String fieldName) {
+        return columnInfo.getColumnKey(fieldName);
     }
 
     static void checkLegalName(String fieldName) {
@@ -501,21 +546,21 @@ public abstract class RealmObjectSchema {
     }
 
     void checkFieldExists(String fieldName) {
-        if (table.getColumnIndex(fieldName) == Table.NO_MATCH) {
+        if (table.getColumnKey(fieldName) == Table.NO_MATCH) {
             throw new IllegalArgumentException("Field name doesn't exist on object '" + getClassName() + "': " + fieldName);
         }
     }
 
-    long getColumnIndex(String fieldName) {
-        long columnIndex = table.getColumnIndex(fieldName);
-        if (columnIndex == -1) {
+    long getColumnKey(String fieldName) {
+        long columnKey = table.getColumnKey(fieldName);
+        if (columnKey == -1) {
             throw new IllegalArgumentException(
                     String.format(Locale.US,
                             "Field name '%s' does not exist on schema for '%s'",
                             fieldName, getClassName()
                     ));
         }
-        return columnIndex;
+        return columnKey;
     }
 
     static final class DynamicColumnIndices extends ColumnInfo {
@@ -527,8 +572,8 @@ public abstract class RealmObjectSchema {
         }
 
         @Override
-        public long getColumnIndex(String columnName) {
-            return table.getColumnIndex(columnName);
+        public long getColumnKey(String columnName) {
+            return table.getColumnKey(columnName);
         }
 
         @Override

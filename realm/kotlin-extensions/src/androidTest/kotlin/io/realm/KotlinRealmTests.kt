@@ -1,7 +1,6 @@
 package io.realm
 
-import android.support.test.InstrumentationRegistry
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.entities.PrimaryKeyClass
 import io.realm.entities.SimpleClass
 import io.realm.kotlin.createObject
@@ -19,14 +18,12 @@ import org.junit.runner.RunWith
 class KotlinRealmTests {
 
     @Suppress("MemberVisibilityCanPrivate")
-    @get:Rule
-    val configFactory = TestRealmConfigurationFactory()
+    @Rule @JvmField val configFactory = TestRealmConfigurationFactory()
 
     private lateinit var realm: Realm
 
     @Before
     fun setUp() {
-        Realm.init(InstrumentationRegistry.getTargetContext())
         realm = Realm.getInstance(configFactory.createConfiguration())
     }
 

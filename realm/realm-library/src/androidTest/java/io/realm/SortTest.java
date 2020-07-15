@@ -17,8 +17,8 @@
 package io.realm;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -585,7 +585,7 @@ public class SortTest {
         // (2, 1, "B")
         // (3, 1, "C")
         // Depending on the sorting, distinct should pick the first element encountered.
-        // The order of sort/distinct in the query should not matter
+        // The order of sort/distinct in the query matters
 
         // Case 1: Selecting highest numbers
         RealmResults<AnnotationIndexTypes> results1a = realm.where(AnnotationIndexTypes.class)
@@ -600,7 +600,7 @@ public class SortTest {
                 .sort(AnnotationIndexTypes.FIELD_INDEX_LONG, Sort.DESCENDING)
                 .findAll();
         assertEquals(1, results1b.size());
-        assertEquals(3, results1b.get(0).getIndexLong());
+        assertEquals(1, results1b.get(0).getIndexLong());
 
         // Case 1: Selecting lowest number numbers
         RealmResults<AnnotationIndexTypes> results2a = realm.where(AnnotationIndexTypes.class)
