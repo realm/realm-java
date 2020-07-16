@@ -315,7 +315,7 @@ public class UncheckedRow implements NativeObject, Row {
             case LIST:
                 return getModelList(columnKey).createAndAddEmbeddedObject();
             default:
-                throw new IllegalArgumentException("Wrong parentPropertyType, expected OBJECT or LIST bur received " + parentPropertyType);
+                throw new IllegalArgumentException("Wrong parentPropertyType, expected OBJECT or LIST but received " + parentPropertyType);
         }
     }
 

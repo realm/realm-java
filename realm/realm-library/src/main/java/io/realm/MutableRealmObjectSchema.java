@@ -317,15 +317,13 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     }
 
     @Override
-    public String getLinkedType(String linkingProperty) {
-        assertValidLinkType(linkingProperty, getFieldType(linkingProperty));
-
-        String childPropertyClassName = table.getLinkTarget(getColumnKey(linkingProperty)).getClassName();
-        if (Util.isEmptyString(childPropertyClassName)) {
-            throw new IllegalArgumentException(String.format("Property '%s' not found.", linkingProperty));
+    String getPropertyClassName(String propertyName) {
+        String linkedClassName = table.getLinkTarget(getColumnKey(propertyName)).getClassName();
+        if (Util.isEmptyString(linkedClassName)) {
+            throw new IllegalArgumentException(String.format("Property '%s' not found.", propertyName));
         }
 
-        return childPropertyClassName;
+        return linkedClassName;
     }
 
     /**

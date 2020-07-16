@@ -144,8 +144,7 @@ class EmbeddedObjectsTest {
                     assertEquals(childInParent!!.getString("id"), idValue)
                     assertEquals(child, childInParent)
 
-                    val linkingParent = child.linkingObjects("EmbeddedSimpleParent", "child")
-                            .first()
+                    val linkingParent = child.linkingObjects("EmbeddedSimpleParent", "child") .first()
                     assertNotNull(linkingParent)
                     assertEquals(parent.getString("id"), linkingParent!!.getString("id"))
                     assertEquals(parent.getObject("child"), linkingParent.getObject("child"))
@@ -170,8 +169,6 @@ class EmbeddedObjectsTest {
         DynamicRealm.getInstance(realm.configuration).use { realm ->
             realm.executeTransaction {
                 val parent = realm.createObject("EmbeddedSimpleParent", "parent")
-
-                // TODO: Smoke-test for wrong type. Figure out how to test all unsupported types.
                 assertFailsWith<IllegalArgumentException> { realm.createEmbeddedObject("EmbeddedSimpleChild", parent, "id") }
             }
         }
@@ -421,17 +418,6 @@ class EmbeddedObjectsTest {
             assertFailsWith<IllegalArgumentException> { realm.insert(child) }
         }
     }
-
-    @Test
-    fun dynamicRealm_createEmbeddedObjectWithUnmanagedParentThrows() =
-            DynamicRealm.getInstance(realm.configuration).use { realm ->
-                realm.executeTransaction {
-                    val parent = EmbeddedSimpleParent("parent")
-                    assertFailsWith<IllegalArgumentException> {
-                        it.createEmbeddedObject("EmbeddedSimpleChild", parent, "child")
-                    }
-                }
-            }
 
     @Test
     @Ignore("Add in another PR")

@@ -107,11 +107,10 @@ class ImmutableRealmObjectSchema extends RealmObjectSchema {
     }
 
     @Override
-    public String getLinkedType(String linkingProperty) {
-        assertValidLinkType(linkingProperty, getFieldType(linkingProperty));
-        ColumnInfo.ColumnDetails columnDetails = columnInfo.getColumnDetails(linkingProperty);
+    String getPropertyClassName(String propertyName) {
+        ColumnInfo.ColumnDetails columnDetails = columnInfo.getColumnDetails(propertyName);
         if (columnDetails == null) {
-            throw new IllegalArgumentException(String.format("Property '%s' not found.", linkingProperty));
+            throw new IllegalArgumentException(String.format("Property '%s' not found.", propertyName));
         } else {
             return columnDetails.linkedClassName;
         }

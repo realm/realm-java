@@ -83,7 +83,6 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     }
 
     // Abandon typing information, all ye who enter here
-//    static RealmResults<DynamicRealmObject> createDynamicBacklinkResults(DynamicRealm realm, CheckedRow row, Table srcTable, String srcFieldName) {
     static RealmResults<DynamicRealmObject> createDynamicBacklinkResults(DynamicRealm realm, UncheckedRow row, Table srcTable, String srcFieldName) {
         final String srcClassName = Table.getClassNameForTable(srcTable.getName());
         //noinspection ConstantConditions

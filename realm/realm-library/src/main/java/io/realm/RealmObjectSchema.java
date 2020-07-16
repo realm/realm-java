@@ -463,22 +463,28 @@ public abstract class RealmObjectSchema {
     }
 
     /**
-     * Checks whether a given class property can represent a valid embedded object
-     * {@code @LinkingObjects} backlink that points to a parent. Valid embedded object backlink
-     * typs are {@link RealmFieldType#OBJECT} and {@link RealmFieldType#LIST}.
-     *
-     * @param linkingProperty the field for which we want to know the type.
-     * @return the name of the property.
-     * @throws IllegalStateException if the given property is not found in the schema or the
-     * backlink property is not a valid type.
+     * Returns a string with the class name of a given property.
+     * @param propertyName the property for which we want to know the class name.
+     * @return the name of the class for the given property.
+     * @throws IllegalArgumentException if the given property is not found in the schema.
      */
-    public abstract String getLinkedType(String linkingProperty);
+    abstract String getPropertyClassName(String propertyName);
 
-    protected void assertValidLinkType(String linkingProperty, RealmFieldType linkType) {
-        if (linkType != RealmFieldType.OBJECT
-                && linkType != RealmFieldType.LIST) {
-            throw new IllegalArgumentException(String.format("Field '%s' does not contain a valid link", linkingProperty));
-        }
+    /**
+     * Checks whether a given property's {@code RealmFieldType} could host an acceptable embedded
+     * object reference in a parent - acceptable embedded object types are
+     * {@link RealmFieldType#OBJECT} and {@link RealmFieldType#LIST}, i.e. for the property to be
+     * acceptable it has to be either a subclass of {@code RealmModel} or a {@code RealmList}.
+     * <p>
+     * This method does not check the existence of a backlink between the child and the parent nor
+     * that the parent points at the correct child in their respective schemas nor that the object
+     * is a suitable parent/child.
+     * @param property the field type to be checked.
+     * @return whether the property could host an embedded object in a parent.
+     */
+    boolean isPropertyAcceptableForEmbeddedObject(RealmFieldType property) {
+        return property == RealmFieldType.OBJECT
+                || property == RealmFieldType.LIST;
     }
 
     /**

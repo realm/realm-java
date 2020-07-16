@@ -526,22 +526,20 @@ abstract class BaseRealm implements Closeable {
                              final RealmObjectSchema parentObjectSchema) {
         final long parentPropertyColKey = parentObjectSchema.getColumnKey(parentProperty);
         final RealmFieldType parentPropertyType = parentObjectSchema.getFieldType(parentProperty);
-        final String linkedType = parentObjectSchema.getLinkedType(parentProperty);
         final Row row = parentProxy.realmGet$proxyState().getRow$realm();
-        Row embeddedObject;
+        final String linkedType = parentObjectSchema.getPropertyClassName(parentProperty);
+        boolean propertyAcceptable = parentObjectSchema.isPropertyAcceptableForEmbeddedObject(parentObjectSchema.getFieldType(linkedType));
+        if (!propertyAcceptable) {
+            throw new IllegalArgumentException(String.format("Field '%s' does not contain a valid link", parentProperty));
+        }
 
-        switch (parentPropertyType) {
-            case OBJECT:
-            case LIST:
-                if (linkedType.equals(className)) {
-                    long objKey = row.createEmbeddedObject(parentPropertyColKey, parentPropertyType);
-                    embeddedObject = schema.getTable(className).getCheckedRow(objKey);
-                } else {
-                    throw new IllegalArgumentException(String.format("Parent type %s expects that property '%s' be of type %s but was %s.", parentObjectSchema.getClassName(), parentProperty, linkedType, className));
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Parent property is not a reference to embedded objects of the appropriate type: " + parentPropertyType);
+        // By now linkedType can only be either OBJECT or LIST, so no exhaustive check needed
+        Row embeddedObject;
+        if (linkedType.equals(className)) {
+            long objKey = row.createEmbeddedObject(parentPropertyColKey, parentPropertyType);
+            embeddedObject = schema.getTable(className).getCheckedRow(objKey);
+        } else {
+            throw new IllegalArgumentException(String.format("Parent type %s expects that property '%s' be of type %s but was %s.", parentObjectSchema.getClassName(), parentProperty, linkedType, className));
         }
 
         return embeddedObject;

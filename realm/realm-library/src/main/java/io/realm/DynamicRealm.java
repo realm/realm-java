@@ -180,7 +180,7 @@ public class DynamicRealm extends BaseRealm {
      * @see RealmClass#embedded()
      */
     public DynamicRealmObject createEmbeddedObject(String className,
-                                                   RealmModel parentObject,
+                                                   DynamicRealmObject parentObject,
                                                    String parentProperty) {
         checkIfValid();
         Util.checkNull(parentObject, "parentObject");
