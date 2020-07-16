@@ -527,11 +527,12 @@ abstract class BaseRealm implements Closeable {
         final long parentPropertyColKey = parentObjectSchema.getColumnKey(parentProperty);
         final RealmFieldType parentPropertyType = parentObjectSchema.getFieldType(parentProperty);
         final Row row = parentProxy.realmGet$proxyState().getRow$realm();
-        final String linkedType = parentObjectSchema.getPropertyClassName(parentProperty);
-        boolean propertyAcceptable = parentObjectSchema.isPropertyAcceptableForEmbeddedObject(parentObjectSchema.getFieldType(linkedType));
+        final RealmFieldType fieldType = parentObjectSchema.getFieldType(parentProperty);
+        boolean propertyAcceptable = parentObjectSchema.isPropertyAcceptableForEmbeddedObject(fieldType);
         if (!propertyAcceptable) {
             throw new IllegalArgumentException(String.format("Field '%s' does not contain a valid link", parentProperty));
         }
+        final String linkedType = parentObjectSchema.getPropertyClassName(parentProperty);
 
         // By now linkedType can only be either OBJECT or LIST, so no exhaustive check needed
         Row embeddedObject;
