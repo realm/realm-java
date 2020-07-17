@@ -204,7 +204,7 @@ public class DynamicRealm extends BaseRealm {
             throw new IllegalStateException(String.format("No schema found for '%s'.", parentClassName));
         }
 
-        Row embeddedObject = getEmbeddedObjectRow(className, (RealmObjectProxy) parentObject, parentProperty, schema, parentObjectSchema);
+        Row embeddedObject = getEmbeddedObjectRow(className, parentObject, parentProperty, schema, parentObjectSchema);
 
         return new DynamicRealmObject(this, embeddedObject);
     }
