@@ -197,7 +197,7 @@ public class DynamicRealm extends BaseRealm {
                     className, pkField));
         }
 
-        String parentClassName = ((DynamicRealmObject) parentObject).getType();
+        String parentClassName = parentObject.getType();
         RealmObjectSchema parentObjectSchema = schema.get(parentClassName);
 
         if (parentObjectSchema == null) {
