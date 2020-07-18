@@ -33,5 +33,4 @@ open class EmbeddedSimpleChild(var id: String = UUID.randomUUID().toString()) : 
     companion object {
         const val NAME = "EmbeddedSimpleChild"
     }
-
 }

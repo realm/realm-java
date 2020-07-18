@@ -1645,6 +1645,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     val fieldName: String = field.simpleName.toString()
                     val getter: String = metadata.getInternalGetter(fieldName)
                     val setter: String = metadata.getInternalSetter(fieldName)
+                    val parentPropertyType: Constants.RealmFieldType = getRealmType(field)
 
                     when {
                         Utils.isRealmModel(field) -> {
@@ -1663,7 +1664,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     beginControlFlow("if (cache%s != null)", fieldName)
                                         emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cache%s.toString()\")", fieldName)
                                     nextControlFlow("else")
-                                        emitStatement("long objKey = ((RealmObjectProxy) managedCopy).realmGet\$proxyState().getRow\$realm().createEmbeddedObject(%s)", fieldColKey)
+                                        emitStatement("long objKey = ((RealmObjectProxy) managedCopy).realmGet\$proxyState().getRow\$realm().createEmbeddedObject(%s, RealmFieldType.%s)", fieldColKey, parentPropertyType.name)
                                         emitStatement("Row linkedObjectRow = realm.getTable(%s.class).getUncheckedRow(objKey)", linkedQualifiedClassName)
                                         emitStatement("%s linkedObject = %s.newProxyInstance(realm, linkedObjectRow)", linkedQualifiedClassName, linkedProxyClass)
                                         emitStatement("cache.put(%sObj, (RealmObjectProxy) linkedObject)", fieldName)
@@ -1824,6 +1825,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     val fieldName = field.simpleName.toString()
                     val getter = metadata.getInternalGetter(fieldName)
                     val fieldColKey = fieldColKeyVariableReference(field)
+                    val parentPropertyType: Constants.RealmFieldType = getRealmType(field)
 
                     when {
                         Utils.isRealmModel(field) -> {
@@ -1846,7 +1848,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cache%s.toString()\")", fieldName)
                                 endControlFlow()
                                 emitEmptyLine()
-                                emitStatement("long objKey = ((RealmObjectProxy) realmObject).realmGet\$proxyState().getRow\$realm().createEmbeddedObject(%s)", fieldColKey)
+                                emitStatement("long objKey = ((RealmObjectProxy) realmObject).realmGet\$proxyState().getRow\$realm().createEmbeddedObject(%s, RealmFieldType.%s)", fieldColKey, parentPropertyType.name)
                                 emitStatement("Row row = realm.getTable(%s.class).getUncheckedRow(objKey)", Utils.getFieldTypeQualifiedName(field))
                                 emitStatement("%s proxyObject = %s.newProxyInstance(realm, row)", fieldType, Utils.getProxyClassSimpleName(field))
                                 emitStatement("cache.put(%sObj, (RealmObjectProxy) proxyObject)", fieldName)

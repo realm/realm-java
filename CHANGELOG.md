@@ -10,6 +10,8 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 ### Enhancements
 * Credentials information (e.g. username, password) displayed in Logcat is now obfuscated by default, even if [LogLevel] is set to DEBUG, TRACE or ALL.
 * RealmLists can now be marked final. (Issue [#6892](https://github.com/realm/realm-java/issues/6892))
+* It is now possible to create embedded objects using [DynamicRealm]s. (Issue [#6982](https://github.com/realm/realm-java/pull/6982))
+* Added extra validation and more meaningful error messages when creating embedded objects pointing to the wrong parent property. (See issue above)
 
 ### Fixed
 * [RealmApp] Sync would not refresh the access token if started with an expired one. (Since 10.0.0-BETA.1)
