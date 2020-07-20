@@ -17,22 +17,31 @@ package io.realm.mongodb.sync
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.Realm
-import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
-import io.realm.TestApp
-import io.realm.TestHelper
-import io.realm.TestSyncConfigurationFactory
+import io.realm.*
 import io.realm.entities.*
+import io.realm.entities.embedded.EmbeddedSimpleChild
+import io.realm.entities.embedded.EmbeddedSimpleListParent
+import io.realm.entities.embedded.EmbeddedSimpleParent
+import io.realm.kotlin.createEmbeddedObject
+import io.realm.kotlin.createObject
 import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
-import io.realm.mongodb.*
+import io.realm.mongodb.App
+import io.realm.mongodb.Credentials
+import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
+import io.realm.mongodb.User
+import io.realm.mongodb.close
 import org.junit.*
-import org.junit.Assert.*
 import org.junit.runner.RunWith
 import java.io.File
 import java.util.*
+import java.util.concurrent.TimeUnit
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
+import kotlin.test.fail
 
 /**
  * Testing sync specific methods on [Realm].
@@ -52,6 +61,7 @@ class SyncedRealmTests {
         RealmLog.setLevel(LogLevel.TRACE)
         app = TestApp()
         partitionValue = UUID.randomUUID().toString()
+//        partitionValue = "UUID.randomUUID().toString()"
     }
 
     @After
@@ -231,6 +241,216 @@ class SyncedRealmTests {
             assertTrue(originalSize!! > compactedSize)
         }
     }
+
+    @Test
+    fun embeddedObject_roundTrip() {
+        val user1: User = createNewUser()
+        val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
+        val primaryKeyValue = UUID.randomUUID().toString()
+        Realm.getInstance(config1).use { realm ->
+            assertTrue(realm.isEmpty)
+
+            realm.executeTransaction {
+                realm.createObject<EmbeddedSimpleParent>(primaryKeyValue).let { parent ->
+                    realm.createEmbeddedObject<EmbeddedSimpleChild>(parent, "child")
+                }
+            }
+            realm.syncSession.uploadAllLocalChanges()
+
+            assertEquals(1, realm.where<EmbeddedSimpleParent>().count())
+            assertEquals(1, realm.where<EmbeddedSimpleChild>().count())
+        }
+
+        val user2: User = createNewUser()
+        val config2: SyncConfiguration = createDefaultConfig(user2, partitionValue)
+        Realm.getInstance(config2).use { realm ->
+            assertEquals(0, realm.where<EmbeddedSimpleParent>().count())
+            assertEquals(0, realm.where<EmbeddedSimpleChild>().count())
+
+            realm.syncSession.downloadAllServerChanges(5, TimeUnit.SECONDS).let {
+                if (!it) fail()
+            }
+            realm.refresh()
+
+            val childResults = realm.where<EmbeddedSimpleChild>()
+            assertEquals(1, childResults.count())
+            val parentResults = realm.where<EmbeddedSimpleParent>()
+            assertEquals(1, parentResults.count())
+            val parent = parentResults.findFirst()!!
+            assertEquals(primaryKeyValue, parent._id)
+            assertEquals(parent._id, parent.child!!.parent._id)
+        }
+    }
+
+    @Test
+//    @Ignore("Flaky when asserting the parent results")
+    fun embeddedObject_copyUnmanaged_roundTrip() {
+        val user1: User = createNewUser()
+        val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
+//        val primaryKeyValue = UUID.randomUUID().toString()
+        val primaryKeyValue = "primaryKeyValue"
+        Realm.getInstance(config1).use { realm ->
+            assertTrue(realm.isEmpty)
+
+            realm.executeTransaction {
+                val parent = EmbeddedSimpleParent(primaryKeyValue)
+                val managedParent = it.copyToRealm(parent)
+                managedParent.child = EmbeddedSimpleChild() // Will copy the object to Realm
+                val akjhsdh = 0
+            }
+            realm.syncSession.uploadAllLocalChanges()
+
+            assertEquals(1, realm.where<EmbeddedSimpleParent>().count())
+            assertEquals(1, realm.where<EmbeddedSimpleChild>().count())
+        }
+
+        val user2: User = createNewUser()
+        val config2: SyncConfiguration = createDefaultConfig(user2, partitionValue)
+        Realm.getInstance(config2).use { realm ->
+            assertEquals(0, realm.where<EmbeddedSimpleParent>().count())
+            assertEquals(0, realm.where<EmbeddedSimpleChild>().count())
+
+            realm.syncSession.downloadAllServerChanges(5, TimeUnit.SECONDS).let {
+                if (!it) fail()
+            }
+            realm.refresh()
+
+            val childResults = realm.where<EmbeddedSimpleChild>()
+            assertEquals(1, childResults.count())
+            val parentResults = realm.where<EmbeddedSimpleParent>()
+            assertEquals(1, parentResults.count())
+            val parent = parentResults.findFirst()!!
+            assertEquals(primaryKeyValue, parent._id)
+            assertEquals(parent._id, parent.child!!.parent._id)
+        }
+    }
+
+    @Test
+    fun embeddedObject_realmList_roundTrip() {
+        val user1: User = createNewUser()
+        val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
+        val primaryKeyValue = UUID.randomUUID().toString()
+        Realm.getInstance(config1).use { realm ->
+            realm.executeTransaction {
+                realm.createObject(EmbeddedSimpleListParent::class.java, primaryKeyValue).let { parent ->
+                    realm.createEmbeddedObject(EmbeddedSimpleChild::class.java, parent, "children")
+                    realm.createEmbeddedObject(EmbeddedSimpleChild::class.java, parent, "children")
+                }
+            }
+            realm.syncSession.uploadAllLocalChanges()
+
+            assertEquals(1, realm.where<EmbeddedSimpleListParent>().count())
+            assertEquals(2, realm.where<EmbeddedSimpleChild>().count())
+        }
+
+        val user2: User = createNewUser()
+        val config2: SyncConfiguration = createDefaultConfig(user2, partitionValue)
+        Realm.getInstance(config2).use { realm ->
+            assertEquals(0, realm.where<EmbeddedSimpleListParent>().count())
+            assertEquals(0, realm.where<EmbeddedSimpleChild>().count())
+
+            realm.syncSession.downloadAllServerChanges(5, TimeUnit.SECONDS).let {
+                if (!it) fail()
+            }
+            realm.refresh()
+
+            val childResults = realm.where<EmbeddedSimpleChild>()
+            assertEquals(2, childResults.count())
+            val parentResults = realm.where<EmbeddedSimpleListParent>()
+            assertEquals(1, parentResults.count())
+            val parentFromResults = parentResults.findFirst()!!
+            assertEquals(primaryKeyValue, parentFromResults._id)
+        }
+    }
+
+    @Test
+    fun embeddedObject_realmList_copyUnmanaged_roundTrip() {
+        val user1: User = createNewUser()
+        val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
+        val primaryKeyValue = UUID.randomUUID().toString()
+        Realm.getInstance(config1).use { realm ->
+            realm.executeTransaction {
+                EmbeddedSimpleListParent(primaryKeyValue).apply {
+                    children = RealmList(EmbeddedSimpleChild("child1"), EmbeddedSimpleChild("child2"))
+                    it.insert(this)
+                }
+            }
+            realm.syncSession.uploadAllLocalChanges()
+
+            assertEquals(1, realm.where<EmbeddedSimpleListParent>().count())
+            assertEquals(2, realm.where<EmbeddedSimpleChild>().count())
+        }
+
+        val user2: User = createNewUser()
+        val config2: SyncConfiguration = createDefaultConfig(user2, partitionValue)
+        Realm.getInstance(config2).use { realm ->
+            assertEquals(0, realm.where<EmbeddedSimpleListParent>().count())
+            assertEquals(0, realm.where<EmbeddedSimpleChild>().count())
+
+            realm.syncSession.downloadAllServerChanges(5, TimeUnit.SECONDS).let {
+                if (!it) fail()
+            }
+            realm.refresh()
+
+            val childResults = realm.where<EmbeddedSimpleChild>()
+            assertEquals(2, childResults.count())
+            val parentResults = realm.where<EmbeddedSimpleListParent>()
+            assertEquals(1, parentResults.count())
+            val parentFromResults = parentResults.findFirst()!!
+            assertEquals(primaryKeyValue, parentFromResults._id)
+            assertEquals("child1", childResults.findAll()[0]!!._id)
+            assertEquals("child2", childResults.findAll()[1]!!._id)
+        }
+    }
+
+//    @Test
+//    fun copyToRealm_treeSchema() {
+//        val user1: User = createNewUser()
+//        val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
+//        Realm.getInstance(config1).use { realm ->
+//            realm.executeTransaction {
+//                val parent =
+//
+//                ("parent1")
+//
+//                val node1 = EmbeddedTreeNode("node1")
+//                node1.leafNode = EmbeddedTreeLeaf("leaf1")
+//                parent.middleNode = node1
+//                val node2 = EmbeddedTreeNode("node2")
+//                node2.leafNodeList.add(EmbeddedTreeLeaf("leaf2"))
+//                node2.leafNodeList.add(EmbeddedTreeLeaf("leaf3"))
+//                parent.middleNodeList.add(node2)
+//
+//                it.copyToRealm(parent)
+//            }
+//            realm.syncSession.uploadAllLocalChanges()
+//        }
+//
+//        val user2: User = createNewUser()
+//        val config2: SyncConfiguration = createDefaultConfig(user2, partitionValue)
+//        Realm.getInstance(config2).use { realm ->
+//            assertEquals(0, realm.where<EmbeddedTreeParent>().count())
+//            assertEquals(0, realm.where<EmbeddedTreeLeaf>().count())
+//            assertEquals(0, realm.where<EmbeddedTreeNode>().count())
+//
+//            realm.syncSession.downloadAllServerChanges()
+//            realm.refresh()
+//
+//            assertEquals(1, realm.where<EmbeddedTreeParent>().count())
+//            assertEquals("parent1", realm.where<EmbeddedTreeParent>().findFirst()!!._id)
+//
+//            assertEquals(2, realm.where<EmbeddedTreeNode>().count())
+//            val nodeResults = realm.where<EmbeddedTreeNode>().findAll()
+//            assertTrue(nodeResults.any { it._id == "node1" })
+//            assertTrue(nodeResults.any { it._id == "node2" })
+//
+//            assertEquals(3, realm.where<EmbeddedTreeLeaf>().count())
+//            val leafResults = realm.where<EmbeddedTreeLeaf>().findAll()
+//            assertTrue(leafResults.any { it._id == "leaf1" })
+//            assertTrue(leafResults.any { it._id == "leaf2" })
+//            assertTrue(leafResults.any { it._id == "leaf3" })
+//        }
+//    }
 
     @Test
     // FIXME Missing test, maybe fitting better in SyncSessionTest.kt...when migrated

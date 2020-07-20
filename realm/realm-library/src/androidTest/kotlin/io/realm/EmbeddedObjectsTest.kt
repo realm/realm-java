@@ -87,7 +87,7 @@ class EmbeddedObjectsTest {
         val parent = realm.createObject<EmbeddedSimpleParent>("parent")
 
         // TODO: Smoke-test for wrong type. Figure out how to test all unsupported types.
-        assertFailsWith<IllegalArgumentException> { realm.createEmbeddedObject<EmbeddedSimpleChild>(parent, "id") }
+        assertFailsWith<IllegalArgumentException> { realm.createEmbeddedObject<EmbeddedSimpleChild>(parent, "_id") }
     }
 
     @Test
@@ -113,7 +113,7 @@ class EmbeddedObjectsTest {
     @Test
     fun createEmbeddedObject_simpleSingleChild() = realm.executeTransaction { realm ->
         val parent = realm.createObject<EmbeddedSimpleParent>("parent")
-        val child = realm.createEmbeddedObject<EmbeddedSimpleChild>(parent, "child");
+        val child = realm.createEmbeddedObject<EmbeddedSimpleChild>(parent, "child")
         assertEquals(child.parent, parent)
     }
 
@@ -137,16 +137,16 @@ class EmbeddedObjectsTest {
                     val child = realm.createEmbeddedObject("EmbeddedSimpleChild", parent, "child")
 
                     val idValue = "ID_VALUE"
-                    child.setString("id", idValue)
+                    child.setString("_id", idValue)
 
                     val childInParent = parent.getObject("child")
                     assertNotNull(childInParent)
-                    assertEquals(childInParent!!.getString("id"), idValue)
+                    assertEquals(childInParent!!.getString("_id"), idValue)
                     assertEquals(child, childInParent)
 
                     val linkingParent = child.linkingObjects("EmbeddedSimpleParent", "child") .first()
                     assertNotNull(linkingParent)
-                    assertEquals(parent.getString("id"), linkingParent!!.getString("id"))
+                    assertEquals(parent.getString("_id"), linkingParent!!.getString("_id"))
                     assertEquals(parent.getObject("child"), linkingParent.getObject("child"))
                 }
             }
@@ -169,7 +169,7 @@ class EmbeddedObjectsTest {
         DynamicRealm.getInstance(realm.configuration).use { realm ->
             realm.executeTransaction {
                 val parent = realm.createObject("EmbeddedSimpleParent", "parent")
-                assertFailsWith<IllegalArgumentException> { realm.createEmbeddedObject("EmbeddedSimpleChild", parent, "id") }
+                assertFailsWith<IllegalArgumentException> { realm.createEmbeddedObject("EmbeddedSimpleChild", parent, "_id") }
             }
         }
     }
@@ -260,7 +260,7 @@ class EmbeddedObjectsTest {
     fun objectAccessor_willCopyUnderConstruction() = realm.executeTransaction { realm ->
         val unmanagedObj = EmbeddedWithConstructorArgs()
         val managedObj = realm.copyToRealm(unmanagedObj)
-        assertEquals(EmbeddedWithConstructorArgs.INNER_CHILD_ID, managedObj.child!!.id)
+        assertEquals(EmbeddedWithConstructorArgs.INNER_CHILD_ID, managedObj.child!!._id)
     }
 
     @Test
@@ -269,7 +269,7 @@ class EmbeddedObjectsTest {
         assertTrue(parent.children.add(EmbeddedSimpleChild("child")))
         val child = parent.children.first()!!
         assertTrue(child.isValid)
-        assertEquals("child", child.id)
+        assertEquals("child", child._id)
 
         // FIXME: How to handle DynamicRealmObject :(
     }
@@ -281,7 +281,7 @@ class EmbeddedObjectsTest {
         parent.children.add(0, EmbeddedSimpleChild("firstChild"))
         val child = parent.children.first()!!
         assertTrue(child.isValid)
-        assertEquals("firstChild", child.id)
+        assertEquals("firstChild", child._id)
 
         // FIXME: How to handle DynamicRealmObject :(
     }
@@ -294,7 +294,7 @@ class EmbeddedObjectsTest {
         assertTrue(parent.children.add(EmbeddedSimpleChild("child")))
         assertEquals(1, realm.where<EmbeddedSimpleChild>().count())
         parent.children[0] = EmbeddedSimpleChild("OtherChild")
-        assertEquals("OtherChild", parent.children.first()!!.id)
+        assertEquals("OtherChild", parent.children.first()!!._id)
         assertEquals(1, realm.where<EmbeddedSimpleChild>().count())
 
         // FIXME: How to handle DynamicRealmObject :(
@@ -355,18 +355,18 @@ class EmbeddedObjectsTest {
         }
 
         assertEquals(1, realm.where<EmbeddedTreeParent>().count())
-        assertEquals("parent1", realm.where<EmbeddedTreeParent>().findFirst()!!.id)
+        assertEquals("parent1", realm.where<EmbeddedTreeParent>().findFirst()!!._id)
 
         assertEquals(2, realm.where<EmbeddedTreeNode>().count())
         val nodeResults = realm.where<EmbeddedTreeNode>().findAll()
-        assertTrue(nodeResults.any { it.id == "node1" })
-        assertTrue(nodeResults.any { it.id == "node2" })
+        assertTrue(nodeResults.any { it._id == "node1" })
+        assertTrue(nodeResults.any { it._id == "node2" })
 
         assertEquals(3, realm.where<EmbeddedTreeLeaf>().count())
         val leafResults = realm.where<EmbeddedTreeLeaf>().findAll()
-        assertTrue(leafResults.any { it.id == "leaf1" })
-        assertTrue(leafResults.any { it.id == "leaf2" })
-        assertTrue(leafResults.any { it.id == "leaf3" })
+        assertTrue(leafResults.any { it._id == "leaf1" })
+        assertTrue(leafResults.any { it._id == "leaf2" })
+        assertTrue(leafResults.any { it._id == "leaf3" })
     }
 
     @Test
@@ -466,18 +466,18 @@ class EmbeddedObjectsTest {
         }
 
         assertEquals(1, realm.where<EmbeddedTreeParent>().count())
-        assertEquals("parent1", realm.where<EmbeddedTreeParent>().findFirst()!!.id)
+        assertEquals("parent1", realm.where<EmbeddedTreeParent>().findFirst()!!._id)
 
         assertEquals(2, realm.where<EmbeddedTreeNode>().count())
         val nodeResults = realm.where<EmbeddedTreeNode>().findAll()
-        assertTrue(nodeResults.any { it.id == "node1" })
-        assertTrue(nodeResults.any { it.id == "node2" })
+        assertTrue(nodeResults.any { it._id == "node1" })
+        assertTrue(nodeResults.any { it._id == "node2" })
 
         assertEquals(3, realm.where<EmbeddedTreeLeaf>().count())
         val leafResults = realm.where<EmbeddedTreeLeaf>().findAll()
-        assertTrue(leafResults.any { it.id == "leaf1" })
-        assertTrue(leafResults.any { it.id == "leaf2" })
-        assertTrue(leafResults.any { it.id == "leaf3" })
+        assertTrue(leafResults.any { it._id == "leaf1" })
+        assertTrue(leafResults.any { it._id == "leaf2" })
+        assertTrue(leafResults.any { it._id == "leaf3" })
     }
 
     @Test
@@ -518,11 +518,11 @@ class EmbeddedObjectsTest {
         realm.executeTransaction { realm ->
             realm.createObjectFromJson(EmbeddedCircularParent::class.java, """
                         { 
-                            "id": "uuid", 
+                            "_id": "uuid", 
                             "singleChild": { 
-                                "id" : "childId", 
+                                "_id" : "childId", 
                                 "singleChild" : { 
-                                    "id": "embeddedChildId" 
+                                    "_id": "embeddedChildId" 
                                 }
                             }
                         }
@@ -530,8 +530,8 @@ class EmbeddedObjectsTest {
         }
         val circularParent = realm.where(EmbeddedCircularParent::class.java).findFirst()!!
         val singleChild = circularParent.singleChild!!
-        assertEquals("childId", singleChild.id)
-        assertEquals("embeddedChildId", singleChild.singleChild!!.id)
+        assertEquals("childId", singleChild._id)
+        assertEquals("embeddedChildId", singleChild.singleChild!!._id)
     }
 
     @Test
@@ -539,27 +539,27 @@ class EmbeddedObjectsTest {
         realm.executeTransaction { realm ->
             realm.createObjectFromJson(EmbeddedSimpleListParent::class.java, """
                         { 
-                            "id": "uuid", 
+                            "_id": "uuid", 
                             "children": [
-                                { "id" : "child1" },
-                                { "id" : "child2" },
-                                { "id" : "child3" }
+                                { "_id" : "child1" },
+                                { "_id" : "child2" },
+                                { "_id" : "child3" }
                             ]
                         }
                 """)
         }
         val parent = realm.where(EmbeddedSimpleListParent::class.java).findFirst()!!
-        assertEquals(3, parent.children!!.count())
-        assertEquals("child1", parent.children[0]!!.id)
-        assertEquals("child2", parent.children[1]!!.id)
-        assertEquals("child3", parent.children[2]!!.id)
+        assertEquals(3, parent.children.count())
+        assertEquals("child1", parent.children[0]!!._id)
+        assertEquals("child2", parent.children[1]!!._id)
+        assertEquals("child3", parent.children[2]!!._id)
     }
 
     @Test
     fun createOrphanedEmbeddedObjectFromJsonThrows() {
         assertFailsWith<IllegalArgumentException> {
             realm.executeTransaction { realm ->
-                realm.createObjectFromJson(EmbeddedSimpleChild::class.java, """ {"id": "uuid" } """ )
+                realm.createObjectFromJson(EmbeddedSimpleChild::class.java, """ {"_id": "uuid" } """ )
             }
         }
     }
@@ -694,11 +694,11 @@ class EmbeddedObjectsTest {
             DynamicRealm.getInstance(realm.configuration).use { realm ->
                 realm.executeTransaction {
                     val parent = realm.createObject("EmbeddedTreeParent", "parent1")
-                    val middleNode = realm.createEmbeddedObject("EmbeddedTreeNode", parent, "middleNode");
-                    middleNode.setString("id", "node1")
-                    val leaf1 = realm.createEmbeddedObject("EmbeddedTreeLeaf", middleNode, "leafNode");
-                    val leaf2 = realm.createEmbeddedObject("EmbeddedTreeLeaf", middleNode, "leafNodeList");
-                    val leaf3 = realm.createEmbeddedObject("EmbeddedTreeLeaf", middleNode, "leafNodeList");
+                    val middleNode = realm.createEmbeddedObject("EmbeddedTreeNode", parent, "middleNode")
+                    middleNode.setString("_id", "node1")
+                    val leaf1 = realm.createEmbeddedObject("EmbeddedTreeLeaf", middleNode, "leafNode")
+                    val leaf2 = realm.createEmbeddedObject("EmbeddedTreeLeaf", middleNode, "leafNodeList")
+                    val leaf3 = realm.createEmbeddedObject("EmbeddedTreeLeaf", middleNode, "leafNodeList")
 
                     assertEquals(1, realm.where("EmbeddedTreeNode").count())
                     assertEquals(3, realm.where("EmbeddedTreeLeaf").count())
