@@ -27,16 +27,18 @@ public class OsMongoClient implements NativeObject {
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
     private final long nativePtr;
+    private final String serviceName;
 
     public OsMongoClient(final long appNativePtr,
                          final String serviceName) {
         this.nativePtr = nativeCreate(appNativePtr, serviceName);
+        this.serviceName = serviceName;
     }
 
     public OsMongoDatabase getDatabase(final String databaseName,
                                        final CodecRegistry codecRegistry) {
         long nativeDatabasePtr = nativeCreateDatabase(nativePtr, databaseName);
-        return new OsMongoDatabase(nativeDatabasePtr, codecRegistry);
+        return new OsMongoDatabase(nativeDatabasePtr, serviceName, codecRegistry);
     }
 
     @Override

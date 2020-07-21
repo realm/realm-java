@@ -15,9 +15,12 @@
  */
 package io.realm.internal.objectstore;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.realm.exceptions.NetworkException;
 import io.realm.internal.Keep;
 import io.realm.mongodb.AppConfiguration;
 
@@ -53,6 +56,8 @@ public abstract class OsJavaNetworkTransport {
      */
     protected abstract Response sendRequest(String method, String url, long timeoutMs, Map<String, String> headers, String body);
 
+    public abstract Response sendStreamingRequest(Request request) throws IOException;
+
     public void setAuthorizationHeaderName(String headerName) {
         authorizationHeaderName = headerName;
     }
@@ -78,29 +83,13 @@ public abstract class OsJavaNetworkTransport {
         customHeaders.clear();
     }
 
-    public static class Response {
+    public static abstract class Response implements Closeable {
         private final int httpResponseCode;
         private final int customResponseCode;
         private final Map<String, String> headers;
         private final String body;
 
-        public static Response unknownError(String stacktrace) {
-            return new Response(0, ERROR_UNKNOWN, new HashMap<>(), stacktrace);
-        }
-
-        public static Response ioError(String stackTrace) {
-            return new Response(0, ERROR_IO, new HashMap<>(), stackTrace);
-        }
-
-        public static Response interruptedError(String stackTrace) {
-            return new Response(0, ERROR_INTERRUPTED, new HashMap<>(), stackTrace);
-        }
-
-        public static Response httpResponse(int statusCode, Map<String, String> responseHeaders, String body) {
-            return new Response(statusCode, 0, responseHeaders, body);
-        }
-
-        private Response(int httpResponseCode, int customResponseCode, Map<String, String> headers, String body) {
+        protected Response(int httpResponseCode, int customResponseCode, Map<String, String> headers, String body) {
             this.httpResponseCode = httpResponseCode;
             this.customResponseCode = customResponseCode;
             this.headers = headers;
@@ -136,6 +125,10 @@ public abstract class OsJavaNetworkTransport {
             return body;
         }
 
+        public String readBodyLine() throws IOException {
+            return null;
+        }
+
         @Override
         public String toString() {
             return "Response{" +
@@ -144,6 +137,36 @@ public abstract class OsJavaNetworkTransport {
                     ", headers=" + headers +
                     ", body='" + body + '\'' +
                     '}';
+        }
+    }
+
+    public static class Request {
+        private String Method;
+        private String Url;
+        private Map<String, String> Headers;
+        private String Body;
+
+        public Request(String method, String url, Map<String, String> headers, String body) {
+            Method = method;
+            Url = url;
+            Headers = headers;
+            Body = body;
+        }
+
+        public String getMethod() {
+            return Method;
+        }
+
+        public String getUrl() {
+            return Url;
+        }
+
+        public Map<String, String> getHeaders() {
+            return Headers;
+        }
+
+        public String getBody() {
+            return Body;
         }
     }
 

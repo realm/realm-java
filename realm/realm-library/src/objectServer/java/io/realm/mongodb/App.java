@@ -20,6 +20,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 
+import org.bson.BsonArray;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.io.File;
@@ -37,7 +38,10 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.BuildConfig;
 import io.realm.Realm;
 import io.realm.annotations.Beta;
+import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.mongodb.Request;
+
+import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.mongodb.auth.EmailPasswordAuth;
 import io.realm.RealmAsyncTask;
 import io.realm.mongodb.sync.Sync;
@@ -510,6 +514,11 @@ public class App {
         return config;
     }
 
+    protected OsJavaNetworkTransport.Request makeStreamingRequest(OsSyncUser user, String functionName, BsonArray bsonArgs, String serviceName) {
+        final String encodedArguments = JniBsonProtocol.encode(bsonArgs, config.getDefaultCodecRegistry());
+        return nativeMakeStreamingRequest(nativePtr, user.getNativePtr(), functionName, encodedArguments, serviceName);
+    }
+
     /**
      * Exposed for testing.
      *
@@ -651,4 +660,5 @@ public class App {
     private static native Long nativeCurrentUser(long nativePtr);
     private static native long[] nativeGetAllUsers(long nativePtr);
     private static native void nativeSwitchUser(long nativeAppPtr, long nativeUserPtr);
+    private static native OsJavaNetworkTransport.Request nativeMakeStreamingRequest(long nativeAppPtr, long nativeUserPtr, String functionName, String bsonArgs, String serviceName);
 }

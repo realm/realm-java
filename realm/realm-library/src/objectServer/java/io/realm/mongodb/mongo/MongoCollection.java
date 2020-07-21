@@ -16,9 +16,18 @@
 
 package io.realm.mongodb.mongo;
 
+import org.bson.BsonArray;
+import org.bson.BsonDocument;
+import org.bson.BsonObjectId;
+import org.bson.BsonString;
+import org.bson.BsonValue;
+import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -26,9 +35,12 @@ import javax.annotation.Nullable;
 
 import io.realm.annotations.Beta;
 import io.realm.internal.async.RealmResultTaskImpl;
+import io.realm.internal.async.RealmStreamTaskImpl;
+import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsMongoCollection;
 import io.realm.mongodb.App;
 import io.realm.mongodb.RealmResultTask;
+import io.realm.mongodb.RealmStreamTask;
 import io.realm.mongodb.mongo.iterable.AggregateIterable;
 import io.realm.mongodb.mongo.iterable.FindIterable;
 import io.realm.mongodb.mongo.options.CountOptions;
@@ -57,10 +69,13 @@ public class MongoCollection<DocumentT> {
     private final MongoNamespace nameSpace;
     private final OsMongoCollection<DocumentT> osMongoCollection;
     private final ThreadPoolExecutor threadPoolExecutor = App.NETWORK_POOL_EXECUTOR;
+    private final StreamNetworkTransport streamNetworkTransport;
 
     MongoCollection(final MongoNamespace nameSpace,
+                    final StreamNetworkTransport streamNetworkTransport,
                     final OsMongoCollection<DocumentT> osMongoCollection) {
         this.nameSpace = nameSpace;
+        this.streamNetworkTransport = streamNetworkTransport;
         this.osMongoCollection = osMongoCollection;
     }
 
@@ -107,7 +122,7 @@ public class MongoCollection<DocumentT> {
      */
     public <NewDocumentT> MongoCollection<NewDocumentT> withDocumentClass(
             final Class<NewDocumentT> clazz) {
-        return new MongoCollection<>(nameSpace, osMongoCollection.withDocumentClass(clazz));
+        return new MongoCollection<>(nameSpace, streamNetworkTransport, osMongoCollection.withDocumentClass(clazz));
     }
 
     /**
@@ -118,7 +133,7 @@ public class MongoCollection<DocumentT> {
      * @return a new MongoCollection instance with the different codec registry
      */
     public MongoCollection<DocumentT> withCodecRegistry(final CodecRegistry codecRegistry) {
-        return new MongoCollection<>(nameSpace, osMongoCollection.withCodecRegistry(codecRegistry));
+        return new MongoCollection<>(nameSpace, streamNetworkTransport, osMongoCollection.withCodecRegistry(codecRegistry));
     }
 
     /**
@@ -804,5 +819,157 @@ public class MongoCollection<DocumentT> {
                 return osMongoCollection.findOneAndDelete(filter, options, resultClass);
             }
         });
+    }
+
+    /**
+     * Watches a collection. The resulting stream will be notified of all events on this collection
+     * that the active user is authorized to see based on the configured MongoDB rules.
+     *
+     * @return a task that provides access to the stream of change events.
+     */
+    public RealmStreamTask<DocumentT> watch(){
+        return new RealmStreamTaskImpl<>(new RealmStreamTaskImpl.Executor() {
+            @Nullable
+            @Override
+            public OsJavaNetworkTransport.Response sendRequest() throws IOException {
+                BsonArray args = new BsonArray();
+
+                BsonDocument arguments = new BsonDocument("database", new BsonString(nameSpace.getDatabaseName()));
+                arguments.put("collection", new BsonString(nameSpace.getCollectionName()));
+                args.add(arguments);
+
+                OsJavaNetworkTransport.Request request = streamNetworkTransport.makeStreamingRequest("watch", args, osMongoCollection.getServiceName());
+                return streamNetworkTransport.sendRequest(request);
+            }
+        }, getCodecRegistry(), getDocumentClass());
+    }
+
+    /**
+     * Watches specified IDs in a collection.
+     *
+     * @param ids the ids to watch.
+     * @return a task that provides access to the stream of change events.
+     */
+    public RealmStreamTask<DocumentT> watch(final BsonValue... ids){
+        return new RealmStreamTaskImpl<>(new RealmStreamTaskImpl.Executor() {
+            @Nullable
+            @Override
+            public OsJavaNetworkTransport.Response sendRequest() throws IOException {
+                BsonArray args = new BsonArray();
+
+                BsonDocument arguments = new BsonDocument("database", new BsonString(nameSpace.getDatabaseName()));
+                arguments.put("collection", new BsonString(nameSpace.getCollectionName()));
+
+                BsonArray bsonIds = new BsonArray();
+                bsonIds.addAll(Arrays.asList(ids));
+
+                arguments.put("ids", bsonIds);
+                args.add(arguments);
+
+                OsJavaNetworkTransport.Request request = streamNetworkTransport.makeStreamingRequest("watch", args, osMongoCollection.getServiceName());
+                return streamNetworkTransport.sendRequest(request);
+            }
+        }, getCodecRegistry(), getDocumentClass());
+    }
+
+    /**
+     * Watches specified IDs in a collection. This convenience overload supports the use case
+     * of non-{@link BsonValue} instances of {@link ObjectId} by wrapping them in
+     * {@link BsonObjectId} instances for the user.
+     *
+     * @param ids unique object identifiers of the IDs to watch.
+     * @return a task that provides access to the stream of change events.
+     */
+    public RealmStreamTask<DocumentT> watch(final ObjectId... ids){
+        return new RealmStreamTaskImpl<>(new RealmStreamTaskImpl.Executor() {
+            @Nullable
+            @Override
+            public OsJavaNetworkTransport.Response sendRequest() throws IOException {
+                BsonArray args = new BsonArray();
+
+                BsonDocument arguments = new BsonDocument("database", new BsonString(nameSpace.getDatabaseName()));
+                arguments.put("collection", new BsonString(nameSpace.getCollectionName()));
+
+                BsonArray bsonIds = new BsonArray();
+
+                for(ObjectId id: ids){
+                    bsonIds.add(new BsonObjectId(id));
+                }
+
+                arguments.put("ids", bsonIds);
+
+                args.add(arguments);
+
+                OsJavaNetworkTransport.Request request = streamNetworkTransport.makeStreamingRequest("watch", args, osMongoCollection.getServiceName());
+                return streamNetworkTransport.sendRequest(request);
+            }
+        }, getCodecRegistry(), getDocumentClass());
+    }
+
+    /**
+     * Watches a collection. The provided document will be used as a match expression filter on
+     * the change events coming from the stream. This convenience overload supports the use of
+     * non-{@link BsonDocument} instances for the user.
+     *
+     * See https://docs.mongodb.com/manual/reference/operator/aggregation/match/ for documentation
+     * around how to define a match filter.
+     *
+     * Defining the match expression to filter ChangeEvents is similar to defining the match
+     * expression for triggers: https://docs.mongodb.com/stitch/triggers/database-triggers/
+     *
+     * @param matchFilter the $match filter to apply to incoming change events
+     * @return a task that provides access to the stream of change events.
+     */
+    public RealmStreamTask<DocumentT> watchWithFilter(Document matchFilter){
+        return new RealmStreamTaskImpl<>(new RealmStreamTaskImpl.Executor() {
+            @Nullable
+            @Override
+            public OsJavaNetworkTransport.Response sendRequest() throws IOException {
+                BsonArray args = new BsonArray();
+
+                BsonDocument arguments = new BsonDocument("database", new BsonString(nameSpace.getDatabaseName()));
+
+                arguments.put("collection", new BsonString(nameSpace.getCollectionName()));
+                arguments.put("filter", matchFilter.toBsonDocument(getDocumentClass(), getCodecRegistry()));
+
+                args.add(arguments);
+
+                OsJavaNetworkTransport.Request request = streamNetworkTransport.makeStreamingRequest("watch", args, osMongoCollection.getServiceName());
+                return streamNetworkTransport.sendRequest(request);
+            }
+        }, getCodecRegistry(), getDocumentClass());
+    }
+
+    /**
+     * Watches a collection. The provided BSON document will be used as a match expression filter on
+     * the change events coming from the stream.
+     *
+     * See https://docs.mongodb.com/manual/reference/operator/aggregation/match/ for documentation
+     * around how to define a match filter.
+     *
+     * Defining the match expression to filter ChangeEvents is similar to defining the match
+     * expression for triggers: https://docs.mongodb.com/stitch/triggers/database-triggers/
+     *
+     * @param matchFilter the $match filter to apply to incoming change events
+     * @return a task that provides access to the stream of change events.
+     */
+    public RealmStreamTask<DocumentT> watchWithFilter(BsonDocument matchFilter){
+        return new RealmStreamTaskImpl<>(new RealmStreamTaskImpl.Executor() {
+            @Nullable
+            @Override
+            public OsJavaNetworkTransport.Response sendRequest() throws IOException {
+                BsonArray args = new BsonArray();
+
+                BsonDocument arguments = new BsonDocument("database", new BsonString(nameSpace.getDatabaseName()));
+
+                arguments.put("collection", new BsonString(nameSpace.getCollectionName()));
+                arguments.put("filter", matchFilter);
+
+                args.add(arguments);
+
+                OsJavaNetworkTransport.Request request = streamNetworkTransport.makeStreamingRequest("watch", args, osMongoCollection.getServiceName());
+                return streamNetworkTransport.sendRequest(request);
+            }
+        }, getCodecRegistry(), getDocumentClass());
     }
 }

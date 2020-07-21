@@ -31,6 +31,14 @@ function handleOkHttp(req, resp) {
     }
 }
 
+function handleWatcher(req, resp) {
+    resp.writeHead(200, {'Content-Type': 'text/event-stream'});
+
+    resp.write("hello world 1\n");
+    resp.write("hello world 2\n");
+    resp.write("hello world 3\n");
+}
+
 function handleApplicationId(req, resp) {
     switch(req.method) {
         case "GET":
@@ -63,6 +71,8 @@ var server = http.createServer(function(req, resp) {
             handleOkHttp(req, resp);
         } else if (req.url.includes('/application-id')) {
             handleApplicationId(req, resp);
+        } else if (req.url.includes('/watcher')) {
+            handleWatcher(req, resp);
         } else {
             handleUnknownEndPoint(req, resp);
         }

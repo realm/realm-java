@@ -18,8 +18,6 @@ package io.realm.mongodb.mongo;
 
 import org.bson.codecs.configuration.CodecRegistry;
 
-import java.util.concurrent.ThreadPoolExecutor;
-
 import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsMongoClient;
@@ -32,10 +30,13 @@ abstract public class MongoClient {
 
     private final OsMongoClient osMongoClient;
     private final CodecRegistry codecRegistry;
+    private final StreamNetworkTransport streamNetworkTransport;
 
     protected MongoClient(final OsMongoClient osMongoClient,
+                          final StreamNetworkTransport streamNetworkTransport,
                           final CodecRegistry codecRegistry) {
         this.osMongoClient = osMongoClient;
+        this.streamNetworkTransport = streamNetworkTransport;
         this.codecRegistry = codecRegistry;
     }
 
@@ -48,6 +49,7 @@ abstract public class MongoClient {
     public MongoDatabase getDatabase(final String databaseName) {
         Util.checkEmpty(databaseName, "databaseName");
         return new MongoDatabase(osMongoClient.getDatabase(databaseName, codecRegistry),
+                streamNetworkTransport,
                 databaseName);
     }
 }

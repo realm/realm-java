@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm
+package io.realm.mongodb
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.realm.*
 import io.realm.admin.ServerAdmin
-import io.realm.mongodb.*
 import io.realm.mongodb.auth.ApiKeyAuth
 import io.realm.rule.BlockingLooperThread
+import org.bson.BsonArray
 import org.bson.Document
 import org.junit.After
 import org.junit.Assert.*
@@ -440,6 +441,21 @@ class UserTests {
             assertEquals(CUSTOM_USER_DATA_VALUE, user.customData[CUSTOM_USER_DATA_FIELD])
             looperThread.testComplete()
         }
+    }
+
+    @Test
+    fun makeStreamRequest() = looperThread.runBlocking {
+        val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        val request = user.makeStreamingRequest("watch", BsonArray(), "service_name")
+
+        assertEquals(1, request.headers.size)
+        assertEquals("text/event-stream", request.headers["Accept"])
+
+        assertNotNull(request.body)
+        assertEquals(0, request.body.length)
+
+        assertNotNull(request.url)
+        assertNotEquals(0, request.url.length)
     }
 
     @Test

@@ -15,12 +15,13 @@
  */
 package io.realm.mongodb;
 
+import org.bson.BsonArray;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
@@ -41,6 +42,7 @@ import io.realm.internal.util.Pair;
 import io.realm.mongodb.auth.ApiKeyAuth;
 import io.realm.mongodb.functions.Functions;
 import io.realm.mongodb.mongo.MongoClient;
+import io.realm.mongodb.mongo.StreamNetworkTransport;
 import io.realm.mongodb.push.Push;
 
 /**
@@ -54,7 +56,7 @@ import io.realm.mongodb.push.Push;
  * @see io.realm.mongodb.sync.SyncConfiguration.Builder#Builder(User, String)
  */
 @Beta
-public class User {
+public class User extends StreamNetworkTransport {
 
     OsSyncUser osUser;
     private final App app;
@@ -103,8 +105,9 @@ public class User {
 
     private static class MongoClientImpl extends MongoClient {
         protected MongoClientImpl(OsMongoClient osMongoClient,
+                                  StreamNetworkTransport streamNetworkTransport,
                                   CodecRegistry codecRegistry) {
-            super(osMongoClient, codecRegistry);
+            super(osMongoClient, streamNetworkTransport, codecRegistry);
         }
     }
 
@@ -578,9 +581,19 @@ public class User {
         Util.checkEmpty(serviceName, "serviceName");
         if (mongoClient == null) {
             OsMongoClient osMongoClient = new OsMongoClient(app.nativePtr, serviceName);
-            mongoClient = new MongoClientImpl(osMongoClient, app.getConfiguration().getDefaultCodecRegistry());
+            mongoClient = new MongoClientImpl(osMongoClient, this, app.getConfiguration().getDefaultCodecRegistry());
         }
         return mongoClient;
+    }
+
+    @Override
+    protected OsJavaNetworkTransport.Request makeStreamingRequest(String functionName, BsonArray bsonArgs, String serviceName){
+        return app.makeStreamingRequest(osUser, functionName, bsonArgs, serviceName);
+    }
+
+    @Override
+    public OsJavaNetworkTransport.Response sendRequest(OsJavaNetworkTransport.Request request) throws IOException {
+        return app.networkTransport.sendStreamingRequest(request);
     }
 
     @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")

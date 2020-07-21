@@ -15,6 +15,7 @@
  */
 package io.realm.mongodb
 
+import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
@@ -25,8 +26,11 @@ import io.realm.mongodb.mongo.options.CountOptions
 import io.realm.mongodb.mongo.options.FindOneAndModifyOptions
 import io.realm.mongodb.mongo.options.FindOptions
 import io.realm.mongodb.mongo.options.UpdateOptions
+import io.realm.rule.BlockingLooperThread
 import io.realm.util.assertFailsWithErrorCode
 import io.realm.util.mongodb.CustomType
+import org.bson.BsonDocument
+import org.bson.BsonString
 import org.bson.Document
 import org.bson.codecs.configuration.CodecRegistries
 import org.bson.types.ObjectId
@@ -35,6 +39,8 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.IOException
+import kotlin.concurrent.thread
 import kotlin.test.*
 
 private const val COLLECTION_NAME = "mongo_data" // name of collection used by tests
@@ -45,6 +51,8 @@ class MongoClientTest {
     private lateinit var app: TestApp
     private lateinit var user: User
     private lateinit var client: MongoClient
+
+    private val looperThread = BlockingLooperThread()
 
     @Before
     fun setUp() {
@@ -875,6 +883,310 @@ class MongoClientTest {
             }
         }
     }
+
+    fun assertDocumentEquals(expected: Document, actual: Document){
+        assertEquals(expected.keys.size, actual.keys.size - 1)
+
+        for(key in expected.keys){
+            assertTrue(actual.keys.contains(key))
+            assertEquals(expected[key], actual[key])
+        }
+    }
+
+    @Test
+    fun watchStreamSynchronous(){
+        looperThread.runBlocking {
+            with(getCollectionInternal()) {
+
+                val insertedDocument = Document("watch", "1")
+                        .apply {
+                            this["num"] = 1
+                        }
+
+                val updatedDocument = Document("watch", "1")
+                        .apply {
+                            this["num"] = 2
+                        }
+
+
+                val watcher = this.watch()
+
+                thread {
+                    watcher.nextEvent.let {
+                        assertEquals("insert", it["operationType"])
+                        assertDocumentEquals(insertedDocument, it["fullDocument"] as Document)
+                    }
+
+                    watcher.nextEvent.let {
+                        assertEquals("replace", it["operationType"])
+                        assertDocumentEquals(updatedDocument, it["fullDocument"] as Document)
+                    }
+
+                    watcher.nextEvent.let {
+                        assertEquals("delete", it["operationType"])
+                        assertFalse(it.containsKey("fullDocument"))
+                    }
+
+                    looperThread.testComplete()
+                }
+
+                Thread.sleep(1000);
+                this.insertOne(insertedDocument).get()
+
+                val filter = Document("watch", "1")
+                this.updateOne(filter, updatedDocument).get()
+                this.deleteOne(filter).get()
+            }
+        }
+    }
+
+    @Test
+    fun watchStreamDocumentFilterSynchronous(){
+        looperThread.runBlocking {
+            with(getCollectionInternal()) {
+                val type1 = Document("type", "1")
+                        .apply {
+                            this["num"] = 1
+                        }
+
+                val type2 = Document("type", "2")
+                        .apply {
+                            this["num"] = 1
+                        }
+
+                val filter = Document("fullDocument.type", "1")
+                val watcher = this.watchWithFilter(filter)
+
+                thread {
+                    var eventCount = 0
+
+                    try {
+                        while(true){
+                            watcher.nextEvent.let {
+                                eventCount++
+
+                                assertEquals("insert", it["operationType"])
+                                assertEquals("1", (it["fullDocument"] as Document)["type"])
+                            }
+                        }
+                    } catch (ignore: IOException){
+                        Log.d("","ERROR")
+                    } finally {
+                        assertEquals(1, eventCount)
+                        looperThread.testComplete()
+                    }
+                }
+
+                Thread.sleep(1000)
+
+                this.insertOne(type1).get()
+                this.insertOne(type2).get()
+
+                Thread.sleep(1000)
+
+                watcher.cancel()
+            }
+        }
+    }
+
+    @Test
+    fun watchStreamBsonDocumentFilterSynchronous(){
+        looperThread.runBlocking {
+            with(getCollectionInternal()) {
+                val type1 = Document("type", "1")
+                        .apply {
+                            this["num"] = 1
+                        }
+
+                val type2 = Document("type", "2")
+                        .apply {
+                            this["num"] = 1
+                        }
+
+                val filter = BsonDocument("fullDocument.type", BsonString("1"))
+                val watcher = this.watchWithFilter(filter)
+
+                thread {
+                    var eventCount = 0
+
+                    try {
+                        while(true){
+                            watcher.nextEvent.let {
+                                eventCount++
+
+                                assertEquals("insert", it["operationType"])
+                                assertEquals("1", (it["fullDocument"] as Document)["type"])
+                            }
+                        }
+                    } catch (ignore: IOException){
+                        Log.d("","ERROR")
+                    } finally {
+                        assertEquals(1, eventCount)
+                        looperThread.testComplete()
+                    }
+                }
+
+                Thread.sleep(1000)
+
+                this.insertOne(type1).get()
+                this.insertOne(type2).get()
+
+                Thread.sleep(1000)
+
+                watcher.cancel()
+            }
+        }
+    }
+
+    @Test
+    fun watchStreamObjectIdsSynchronous(){
+        looperThread.runBlocking {
+            with(getCollectionInternal()) {
+                val doc1 = Document("document", "1")
+                        .apply {
+                            this["num"] = 1
+                        }
+
+                val doc2 = Document("document", "2")
+                        .apply {
+                            this["num"] = 1
+                        }
+
+                val doc1Id = this.insertOne(doc1).get()
+                val doc2Id = this.insertOne(doc2).get()
+
+                val watcherObjectId = this.watch(doc1Id.insertedId.asObjectId().value)
+
+                thread {
+                    var eventCount = 0
+
+                    try {
+                        while(true){
+                            watcherObjectId.nextEvent.let {
+                                eventCount++
+
+                                assertEquals("replace", it["operationType"])
+                                assertEquals("1", (it["fullDocument"] as Document)["document"])
+                            }
+                        }
+                    } catch (ignore: IOException){
+
+                    } finally {
+                        assertEquals(1, eventCount)
+                        looperThread.testComplete()
+                    }
+                }
+
+                Thread.sleep(1000)
+
+                doc1.apply {
+                    this["num"] = 2
+                }
+
+                doc2.apply {
+                    this["num"] = 2
+                }
+
+                val filter1 = Document("_id", doc1Id.insertedId)
+                val filter2 = Document("_id", doc2Id.insertedId)
+
+                this.updateOne(filter1, doc1).get()
+                this.updateOne(filter2, doc2).get()
+
+                Thread.sleep(1000)
+
+                watcherObjectId.cancel()
+            }
+        }
+    }
+
+    @Test
+    fun watchStreamIdsSynchronous(){
+        looperThread.runBlocking {
+            with(getCollectionInternal()) {
+                val doc1 = Document("document", "1")
+                        .apply {
+                            this["num"] = 1
+                        }
+
+                val doc2 = Document("document", "2")
+                        .apply {
+                            this["num"] = 1
+                        }
+
+                val doc1Id = this.insertOne(doc1).get()
+                val doc2Id = this.insertOne(doc2).get()
+
+                val watcherBsonValue = this.watch(doc1Id.insertedId)
+
+                thread {
+                    var eventCount = 0
+
+                    try {
+                        while(true){
+                            watcherBsonValue.nextEvent.let {
+                                eventCount++
+
+                                assertEquals("replace", it["operationType"])
+                                assertEquals("1", (it["fullDocument"] as Document)["document"])
+                            }
+                        }
+                    } catch (ignore: IOException){
+
+                    } finally {
+                        assertEquals(1, eventCount)
+                        looperThread.testComplete()
+                    }
+                }
+
+                Thread.sleep(1000)
+
+                doc1.apply {
+                    this["num"] = 2
+                }
+
+                doc2.apply {
+                    this["num"] = 2
+                }
+
+                val filter1 = Document("_id", doc1Id.insertedId)
+                val filter2 = Document("_id", doc2Id.insertedId)
+
+                this.updateOne(filter1, doc1).get()
+                this.updateOne(filter2, doc2).get()
+
+                Thread.sleep(1000)
+
+                watcherBsonValue.cancel()
+            }
+        }
+    }
+
+    @Test
+    fun watchStreamAsynchronous(){
+
+    }
+
+    @Test
+    fun watchStreamCancel(){
+        looperThread.runBlocking {
+            with(getCollectionInternal()) {
+                val watcher = this.watch()
+
+                thread {
+                    assertFailsWith<IOException>{
+                        watcher.nextEvent
+                    }
+
+                    looperThread.testComplete()
+                }
+
+                Thread.sleep(2000);
+                watcher.cancel()
+            }
+        }
+    }
+
 
     @Test
     fun findOneAndDelete() {

@@ -7,14 +7,13 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
-import io.realm.mongodb.log.obfuscator.HttpLogObfuscator;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
+import io.realm.mongodb.log.obfuscator.HttpLogObfuscator;
 import okhttp3.Call;
 import okhttp3.ConnectionPool;
 import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 
@@ -23,6 +22,7 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     private volatile OkHttpClient client = null;
+    private volatile OkHttpClient streamClient = null;
 
     @Nullable
     private final HttpLogObfuscator httpLogObfuscator;
@@ -34,10 +34,12 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
     @Override
     public Response sendRequest(String method, String url, long timeoutMs, Map<String, String> headers, String body) {
         try {
-            OkHttpClient client = getClient(timeoutMs);
             okhttp3.Response response = null;
+
+            boolean isStreamRequest = headers.containsKey("Accept") && "text/event-stream".equals(headers.get("Accept"));
+
             try {
-                Request.Builder builder = new Request.Builder().url(url);
+                okhttp3.Request.Builder builder = new okhttp3.Request.Builder().url(url);
                 switch(method) {
                     case "get": builder.get(); break;
                     case "delete": builder.delete(RequestBody.create(JSON, body)); break;
@@ -50,26 +52,60 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
                 for (Map.Entry<String, String> entry : headers.entrySet()) {
                     builder.addHeader(entry.getKey(), entry.getValue());
                 }
-                Call call = client.newCall(builder.build());
-                response = call.execute();
-                ResponseBody responseBody = response.body();
-                String result = "";
-                if (responseBody != null) {
-                    result = responseBody.string();
+
+                if(isStreamRequest){
+                    OkHttpClient client = getStreamClient();
+                    Call call = client.newCall(builder.build());
+                    response = call.execute();
+
+                    return OkHttpResponse.httpResponse(response.code(), parseHeaders(response.headers()), response);
+                } else {
+                    OkHttpClient client = getClient(timeoutMs);
+                    Call call = client.newCall(builder.build());
+                    response = call.execute();
+
+                    ResponseBody responseBody = response.body();
+                    String result = "";
+                    if (responseBody != null) {
+                        result = responseBody.string();
+                    }
+                    return OkHttpResponse.httpResponse(response.code(), parseHeaders(response.headers()), result);
                 }
-                return Response.httpResponse(response.code(), parseHeaders(response.headers()), result);
             } catch (IOException ex) {
-                return Response.ioError(ex.toString());
+                return OkHttpResponse.ioError(ex.toString());
             } catch (Exception ex) {
-                return Response.unknownError(ex.toString());
+                return OkHttpResponse.unknownError(ex.toString());
             } finally {
-                if (response != null) {
+                if ((response != null) && !isStreamRequest) {
                     response.close();
                 }
             }
         } catch (Exception e) {
-            return Response.unknownError(e.toString());
+            return OkHttpResponse.unknownError(e.toString());
         }
+    }
+
+    @Override
+    public Response sendStreamingRequest(Request request) throws IOException {
+        okhttp3.Request.Builder builder = new okhttp3.Request.Builder().url(request.getUrl());
+        switch(request.getMethod()) {
+            case "get": builder.get(); break;
+            case "delete": builder.delete(RequestBody.create(JSON, request.getBody())); break;
+            case "patch": builder.patch(RequestBody.create(JSON, request.getBody())); break;
+            case "post": builder.post(RequestBody.create(JSON, request.getBody())); break;
+            case "put": builder.put(RequestBody.create(JSON, request.getBody())); break;
+            default: throw new IllegalArgumentException("Unknown method type: "+ request.getMethod());
+        }
+
+        for (Map.Entry<String, String> entry : request.getHeaders().entrySet()) {
+            builder.addHeader(entry.getKey(), entry.getValue());
+        }
+
+        OkHttpClient client = getStreamClient();
+        Call call = client.newCall(builder.build());
+        okhttp3.Response response = call.execute();
+
+        return OkHttpResponse.httpResponse(response.code(), parseHeaders(response.headers()), response);
     }
 
     // Lazily creates the client if not already created
@@ -90,6 +126,18 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
         return client;
     }
 
+    private synchronized OkHttpClient getStreamClient() {
+        if (streamClient == null) {
+            streamClient = new OkHttpClient.Builder()
+                    .readTimeout(0, TimeUnit.MILLISECONDS)
+                    .followRedirects(true)
+                    .addInterceptor(new LoggingInterceptor(httpLogObfuscator))
+                    .build();
+        }
+
+        return streamClient;
+    }
+
     // Parse Headers output from OKHttp to the format expected by ObjectStore
     private Map<String, String> parseHeaders(Headers headers) {
         HashMap<String, String> osHeaders = new HashMap<>(headers.size()/2);
@@ -97,6 +145,55 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
             osHeaders.put(key, headers.get(key));
         }
         return osHeaders;
+    }
+
+    public static class OkHttpResponse extends OsJavaNetworkTransport.Response {
+        private okhttp3.Response originalResponse;
+
+        public static Response unknownError(String stacktrace) {
+            return new OkHttpResponse(0, ERROR_UNKNOWN, new HashMap<>(), stacktrace);
+        }
+
+        public static Response ioError(String stackTrace) {
+            return new OkHttpResponse(0, ERROR_IO, new HashMap<>(), stackTrace);
+        }
+
+        public static Response interruptedError(String stackTrace) {
+            return new OkHttpResponse(0, ERROR_INTERRUPTED, new HashMap<>(), stackTrace);
+        }
+
+        public static Response httpResponse(int statusCode, Map<String, String> responseHeaders, String body) {
+            return new OkHttpResponse(statusCode, 0, responseHeaders, body);
+        }
+
+        private OkHttpResponse(int httpResponseCode, int customResponseCode, Map<String, String> headers, String body){
+            super(httpResponseCode, customResponseCode, headers, body);
+        }
+
+        private OkHttpResponse(int httpResponseCode, Map<String, String> headers, okhttp3.Response originalResponse) {
+            super(httpResponseCode, 0, headers, "");
+
+            this.originalResponse = originalResponse;
+        }
+
+        public static Response httpResponse(int httpResponseCode, Map<String, String> headers, okhttp3.Response originalResponse) {
+            return new OkHttpResponse(httpResponseCode, headers, originalResponse);
+        }
+
+        @Override
+        public String readBodyLine() throws IOException {
+            if ((originalResponse == null) || (originalResponse.body() == null)) {
+                return null;
+            }
+
+            return originalResponse.body().source().readUtf8LineStrict();
+        }
+
+        @Override
+        public void close() {
+            if (originalResponse != null)
+                originalResponse.close();
+        }
     }
 
 }

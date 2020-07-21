@@ -115,6 +115,7 @@ if (build_SYNC)
         io.realm.internal.objectstore.OsJavaNetworkTransport
         io.realm.internal.objectstore.OsMongoClient
         io.realm.internal.objectstore.OsMongoCollection
+        io.realm.internal.objectstore.OsWatchStream
         io.realm.internal.objectstore.OsMongoDatabase
         io.realm.internal.objectstore.OsPush
         io.realm.internal.objectstore.OsSyncUser
@@ -213,6 +214,7 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsJavaNetworkTransport.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoClient.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoCollection.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsWatchStream.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoDatabase.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsPush.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsSyncUser.cpp

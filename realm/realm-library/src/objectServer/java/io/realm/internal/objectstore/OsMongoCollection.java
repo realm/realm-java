@@ -75,11 +75,14 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     private final CodecRegistry codecRegistry;
     private final String encodedEmptyDocument;
     private final ThreadPoolExecutor threadPoolExecutor = App.NETWORK_POOL_EXECUTOR;
+    private final String serviceName;
 
     OsMongoCollection(final long nativeCollectionPtr,
+                      final String serviceName,
                       final Class<DocumentT> documentClass,
                       final CodecRegistry codecRegistry) {
         this.nativePtr = nativeCollectionPtr;
+        this.serviceName = serviceName;
         this.documentClass = documentClass;
         this.codecRegistry = codecRegistry;
         this.encodedEmptyDocument = JniBsonProtocol.encode(new Document(), codecRegistry);
@@ -105,11 +108,11 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
     public <NewDocumentT> OsMongoCollection<NewDocumentT> withDocumentClass(
             final Class<NewDocumentT> clazz) {
-        return new OsMongoCollection<>(nativePtr, clazz, codecRegistry);
+        return new OsMongoCollection<>(nativePtr, serviceName, clazz, codecRegistry);
     }
 
     public OsMongoCollection<DocumentT> withCodecRegistry(final CodecRegistry codecRegistry) {
-        return new OsMongoCollection<>(nativePtr, documentClass, codecRegistry);
+        return new OsMongoCollection<>(nativePtr, serviceName, documentClass, codecRegistry);
     }
 
     public Long count() {
@@ -457,6 +460,10 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                                               final FindOneAndModifyOptions options,
                                               final Class<ResultT> resultClass) {
         return findOneAndModify(FIND_ONE_AND_DELETE_WITH_OPTIONS, filter, new Document(), options, resultClass);
+    }
+
+    public String getServiceName() {
+        return serviceName;
     }
 
     private <ResultT> ResultT findOneAndModify(final int type,
