@@ -823,7 +823,7 @@ public class MongoCollection<DocumentT> {
 
     /**
      * Watches a collection. The resulting stream will be notified of all events on this collection
-     * that the active user is authorized to see based on the configured MongoDB rules.
+     * that the active user is authorized to see based on the configured MongoDB Realm rules.
      *
      * @return a task that provides access to the stream of change events.
      */
