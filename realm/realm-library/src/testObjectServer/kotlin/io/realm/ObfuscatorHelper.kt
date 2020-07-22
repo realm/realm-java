@@ -53,9 +53,9 @@ object ObfuscatorHelper {
 
     val CUSTOM_FUNCTION_ORIGINAL_INPUT = """
 {
-  "mail":"${TestHelper.getRandomEmail()}",
+  "mail":"myfakemail@mongodb.com",
   "id":{
-    "{${'$'}}numberInt": "${666 + TestHelper.getRandomId()}"
+    "{${'$'}}numberInt": 666"
   },
   "options":{
     "device":{
