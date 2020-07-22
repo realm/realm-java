@@ -29,7 +29,6 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.*
 import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
 
@@ -209,11 +208,15 @@ class UserTests {
 
         assertEquals(1, anonUser.identities.size)
 
-        val linkedUser = anonUser.linkCredentials(Credentials.apiKey(apiKey.value)) //INVALID_PARAMETER(realm::app::ServiceError:6): invalid user link request
+        // Linking with another user's API key is not allowed and must raise an AppException
+        val exception = assertFailsWith<AppException>{
+            anonUser.linkCredentials(Credentials.apiKey(apiKey.value))
+        }
 
-        assertTrue(anonUser === linkedUser)
-        assertEquals(2, linkedUser.identities.size)
-        assertEquals(Credentials.IdentityProvider.API_KEY, linkedUser.identities[1].provider)
+        assertEquals("invalid user link request", exception.errorMessage);
+        assertEquals(ErrorCode.Category.FATAL, exception.errorCode.category);
+        assertEquals("realm::app::ServiceError", exception.errorCode.type);
+        assertEquals(6, exception.errorCode.intValue());
 
         admin.setAutomaticConfirmation(enabled = true)
     }
@@ -226,11 +229,15 @@ class UserTests {
 
         assertEquals(1, anonUser.identities.size)
 
-        val linkedUser = anonUser.linkCredentials(Credentials.serverApiKey(serverKey)) //AUTH_ERROR(realm::app::ServiceError:47): invalid API key
+        // Linking a server API key is not allowed
+        val exception = assertFailsWith<AppException>{
+            anonUser.linkCredentials(Credentials.serverApiKey(serverKey))
+        }
 
-        assertTrue(anonUser === linkedUser)
-        assertEquals(2, linkedUser.identities.size)
-        assertEquals(Credentials.IdentityProvider.SERVER_API_KEY, linkedUser.identities[1].provider)
+        assertEquals("invalid API key", exception.errorMessage);
+        assertEquals(ErrorCode.Category.FATAL, exception.errorCode.category);
+        assertEquals("realm::app::ServiceError", exception.errorCode.type);
+        assertEquals(47, exception.errorCode.intValue());
 
         admin.setAutomaticConfirmation(enabled = true)
     }
@@ -241,10 +248,12 @@ class UserTests {
 
         assertEquals(1, anonUser.identities.size)
 
-        val credentials = Credentials.customFunction(Document(mapOf(
-                "mail" to "myfakemail@mongodb.com",
-                "id" to 666
-        )))
+        val document = Document(mapOf(
+                "mail" to TestHelper.getRandomEmail(),
+                "id" to TestHelper.getRandomId() + 666
+        ))
+
+        val credentials = Credentials.customFunction(document)
 
         val linkedUser = anonUser.linkCredentials(credentials)
 

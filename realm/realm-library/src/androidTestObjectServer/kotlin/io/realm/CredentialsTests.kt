@@ -100,11 +100,11 @@ class CredentialsTests {
 
     @Test
     fun customFunction() {
-        val mail = "myfakemail@mongodb.com"
-        val id = 666
+        val mail = TestHelper.getRandomEmail()
+        val id = 666 + TestHelper.getRandomId()
         val creds = mapOf(
-                "mail" to "myfakemail@mongodb.com",
-                "id" to 666
+                "mail" to mail,
+                "id" to id
         ).let { Credentials.customFunction(Document(it)) }
         assertEquals(Credentials.IdentityProvider.CUSTOM_FUNCTION, creds.identityProvider)
         assertTrue(creds.asJson().contains(mail))
@@ -199,8 +199,8 @@ class CredentialsTests {
                 }
                 Credentials.IdentityProvider.CUSTOM_FUNCTION -> {
                     val customFunction = mapOf(
-                            "mail" to "myfakemail@mongodb.com",
-                            "id" to 666
+                            "mail" to TestHelper.getRandomEmail(),
+                            "id" to 666 + TestHelper.getRandomId()
                     ).let {
                         Credentials.customFunction(Document(it))
                     }

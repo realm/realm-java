@@ -114,8 +114,8 @@ class LoggingInterceptorTest {
 
         val key1 = "mail"
         val key2 = "id"
-        val value1 = "myfakemail@mongodb.com"
-        val value2 = 666
+        val value1 = TestHelper.getRandomEmail()
+        val value2 = 666 + TestHelper.getRandomId()
         val customFunction = mapOf(
                 key1 to value1,
                 key2 to value2
@@ -136,8 +136,8 @@ class LoggingInterceptorTest {
 
         val key1 = "mail"
         val key2 = "id"
-        val value1 = "myfakemail@mongodb.com"
-        val value2 = 666
+        val value1 = TestHelper.getRandomEmail()
+        val value2 = 666 + TestHelper.getRandomId()
         val customFunction = mapOf(
                 key1 to value1,
                 key2 to value2
