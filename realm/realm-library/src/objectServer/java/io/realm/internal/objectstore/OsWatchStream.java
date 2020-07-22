@@ -23,7 +23,7 @@ public class OsWatchStream<T> implements NativeObject {
 
     @Override
     public long getNativePtr() {
-        return 0;
+        return this.nativePtr;
     }
 
     @Override
