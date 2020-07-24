@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.realm.exceptions.NetworkException;
 import io.realm.internal.Keep;
 import io.realm.mongodb.AppConfiguration;
 

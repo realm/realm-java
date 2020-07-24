@@ -47,6 +47,8 @@ public enum ErrorCode {
     BSON_CODEC_NOT_FOUND(Type.JAVA, 1100),
     BSON_ENCODING(Type.JAVA, 1101),
     BSON_DECODING(Type.JAVA, 1102),
+    // Java errors
+    RUNTIME_EXCEPTION(Type.JAVA, 1200),
 
     // Custom Object Store errors
     CLIENT_RESET(Type.PROTOCOL, 7),                   // Client Reset required. Don't change this value without modifying io_realm_internal_OsSharedRealm.cpp

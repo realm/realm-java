@@ -16,10 +16,8 @@
 
 package io.realm.mongodb.mongo;
 
-import org.bson.BsonArray;
 import org.bson.BsonDocument;
 import org.bson.BsonObjectId;
-import org.bson.BsonString;
 import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -27,16 +25,15 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Nullable;
 
 import io.realm.annotations.Beta;
+import io.realm.internal.async.EventStream;
 import io.realm.internal.async.RealmResultTaskImpl;
-import io.realm.internal.async.RealmStreamTaskImpl;
-import io.realm.internal.objectstore.OsJavaNetworkTransport;
+import io.realm.internal.async.RealmEventStreamTaskImpl;
 import io.realm.internal.objectstore.OsMongoCollection;
 import io.realm.mongodb.App;
 import io.realm.mongodb.RealmResultTask;
@@ -67,15 +64,12 @@ import io.realm.mongodb.mongo.result.UpdateResult;
 public class MongoCollection<DocumentT> {
 
     private final MongoNamespace nameSpace;
-    private final OsMongoCollection<DocumentT> osMongoCollection;
+    final OsMongoCollection<DocumentT> osMongoCollection;
     private final ThreadPoolExecutor threadPoolExecutor = App.NETWORK_POOL_EXECUTOR;
-    private final StreamNetworkTransport streamNetworkTransport;
 
     MongoCollection(final MongoNamespace nameSpace,
-                    final StreamNetworkTransport streamNetworkTransport,
                     final OsMongoCollection<DocumentT> osMongoCollection) {
         this.nameSpace = nameSpace;
-        this.streamNetworkTransport = streamNetworkTransport;
         this.osMongoCollection = osMongoCollection;
     }
 
@@ -122,7 +116,7 @@ public class MongoCollection<DocumentT> {
      */
     public <NewDocumentT> MongoCollection<NewDocumentT> withDocumentClass(
             final Class<NewDocumentT> clazz) {
-        return new MongoCollection<>(nameSpace, streamNetworkTransport, osMongoCollection.withDocumentClass(clazz));
+        return new MongoCollection<>(nameSpace, osMongoCollection.withDocumentClass(clazz));
     }
 
     /**
@@ -133,7 +127,7 @@ public class MongoCollection<DocumentT> {
      * @return a new MongoCollection instance with the different codec registry
      */
     public MongoCollection<DocumentT> withCodecRegistry(final CodecRegistry codecRegistry) {
-        return new MongoCollection<>(nameSpace, streamNetworkTransport, osMongoCollection.withCodecRegistry(codecRegistry));
+        return new MongoCollection<>(nameSpace, osMongoCollection.withCodecRegistry(codecRegistry));
     }
 
     /**
@@ -828,20 +822,13 @@ public class MongoCollection<DocumentT> {
      * @return a task that provides access to the stream of change events.
      */
     public RealmStreamTask<DocumentT> watch(){
-        return new RealmStreamTaskImpl<>(new RealmStreamTaskImpl.Executor() {
+        return new RealmEventStreamTaskImpl<>(new RealmEventStreamTaskImpl.Executor<DocumentT>() {
             @Nullable
             @Override
-            public OsJavaNetworkTransport.Response sendRequest() throws IOException {
-                BsonArray args = new BsonArray();
-
-                BsonDocument arguments = new BsonDocument("database", new BsonString(nameSpace.getDatabaseName()));
-                arguments.put("collection", new BsonString(nameSpace.getCollectionName()));
-                args.add(arguments);
-
-                OsJavaNetworkTransport.Request request = streamNetworkTransport.makeStreamingRequest("watch", args, osMongoCollection.getServiceName());
-                return streamNetworkTransport.sendRequest(request);
+            public EventStream<DocumentT> run() throws IOException {
+                return osMongoCollection.watch();
             }
-        }, getCodecRegistry(), getDocumentClass());
+        });
     }
 
     /**
@@ -851,25 +838,13 @@ public class MongoCollection<DocumentT> {
      * @return a task that provides access to the stream of change events.
      */
     public RealmStreamTask<DocumentT> watch(final BsonValue... ids){
-        return new RealmStreamTaskImpl<>(new RealmStreamTaskImpl.Executor() {
+        return new RealmEventStreamTaskImpl<>(new RealmEventStreamTaskImpl.Executor<DocumentT>() {
             @Nullable
             @Override
-            public OsJavaNetworkTransport.Response sendRequest() throws IOException {
-                BsonArray args = new BsonArray();
-
-                BsonDocument arguments = new BsonDocument("database", new BsonString(nameSpace.getDatabaseName()));
-                arguments.put("collection", new BsonString(nameSpace.getCollectionName()));
-
-                BsonArray bsonIds = new BsonArray();
-                bsonIds.addAll(Arrays.asList(ids));
-
-                arguments.put("ids", bsonIds);
-                args.add(arguments);
-
-                OsJavaNetworkTransport.Request request = streamNetworkTransport.makeStreamingRequest("watch", args, osMongoCollection.getServiceName());
-                return streamNetworkTransport.sendRequest(request);
+            public EventStream<DocumentT> run() throws IOException {
+                return osMongoCollection.watch(ids);
             }
-        }, getCodecRegistry(), getDocumentClass());
+        });
     }
 
     /**
@@ -881,29 +856,13 @@ public class MongoCollection<DocumentT> {
      * @return a task that provides access to the stream of change events.
      */
     public RealmStreamTask<DocumentT> watch(final ObjectId... ids){
-        return new RealmStreamTaskImpl<>(new RealmStreamTaskImpl.Executor() {
+        return new RealmEventStreamTaskImpl<>(new RealmEventStreamTaskImpl.Executor<DocumentT>() {
             @Nullable
             @Override
-            public OsJavaNetworkTransport.Response sendRequest() throws IOException {
-                BsonArray args = new BsonArray();
-
-                BsonDocument arguments = new BsonDocument("database", new BsonString(nameSpace.getDatabaseName()));
-                arguments.put("collection", new BsonString(nameSpace.getCollectionName()));
-
-                BsonArray bsonIds = new BsonArray();
-
-                for(ObjectId id: ids){
-                    bsonIds.add(new BsonObjectId(id));
-                }
-
-                arguments.put("ids", bsonIds);
-
-                args.add(arguments);
-
-                OsJavaNetworkTransport.Request request = streamNetworkTransport.makeStreamingRequest("watch", args, osMongoCollection.getServiceName());
-                return streamNetworkTransport.sendRequest(request);
+            public EventStream<DocumentT> run() throws IOException {
+                return osMongoCollection.watch(ids);
             }
-        }, getCodecRegistry(), getDocumentClass());
+        });
     }
 
     /**
@@ -921,23 +880,13 @@ public class MongoCollection<DocumentT> {
      * @return a task that provides access to the stream of change events.
      */
     public RealmStreamTask<DocumentT> watchWithFilter(Document matchFilter){
-        return new RealmStreamTaskImpl<>(new RealmStreamTaskImpl.Executor() {
+        return new RealmEventStreamTaskImpl<>(new RealmEventStreamTaskImpl.Executor<DocumentT>() {
             @Nullable
             @Override
-            public OsJavaNetworkTransport.Response sendRequest() throws IOException {
-                BsonArray args = new BsonArray();
-
-                BsonDocument arguments = new BsonDocument("database", new BsonString(nameSpace.getDatabaseName()));
-
-                arguments.put("collection", new BsonString(nameSpace.getCollectionName()));
-                arguments.put("filter", matchFilter.toBsonDocument(getDocumentClass(), getCodecRegistry()));
-
-                args.add(arguments);
-
-                OsJavaNetworkTransport.Request request = streamNetworkTransport.makeStreamingRequest("watch", args, osMongoCollection.getServiceName());
-                return streamNetworkTransport.sendRequest(request);
+            public EventStream<DocumentT> run() throws IOException {
+                return osMongoCollection.watchWithFilter(matchFilter);
             }
-        }, getCodecRegistry(), getDocumentClass());
+        });
     }
 
     /**
@@ -954,22 +903,12 @@ public class MongoCollection<DocumentT> {
      * @return a task that provides access to the stream of change events.
      */
     public RealmStreamTask<DocumentT> watchWithFilter(BsonDocument matchFilter){
-        return new RealmStreamTaskImpl<>(new RealmStreamTaskImpl.Executor() {
+        return new RealmEventStreamTaskImpl<>(new RealmEventStreamTaskImpl.Executor<DocumentT>() {
             @Nullable
             @Override
-            public OsJavaNetworkTransport.Response sendRequest() throws IOException {
-                BsonArray args = new BsonArray();
-
-                BsonDocument arguments = new BsonDocument("database", new BsonString(nameSpace.getDatabaseName()));
-
-                arguments.put("collection", new BsonString(nameSpace.getCollectionName()));
-                arguments.put("filter", matchFilter);
-
-                args.add(arguments);
-
-                OsJavaNetworkTransport.Request request = streamNetworkTransport.makeStreamingRequest("watch", args, osMongoCollection.getServiceName());
-                return streamNetworkTransport.sendRequest(request);
+            public EventStream<DocumentT> run() throws IOException {
+                return osMongoCollection.watchWithFilter(matchFilter);
             }
-        }, getCodecRegistry(), getDocumentClass());
+        });
     }
 }

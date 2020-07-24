@@ -31,7 +31,11 @@ public class EventStream<T> {
         this.response = response;
         this.watchStream = new OsWatchStream<>(codecRegistry, documentClass);
     }
-
+    /**
+     * Fetch the next event from a given stream
+     * @return the next event
+     * @throws IOException any io exception that could occur
+     */
     public T getNextEvent() throws IOException {
         String line;
 
@@ -40,14 +44,19 @@ public class EventStream<T> {
 
             if(watchStream.getState().equals(OsWatchStream.HAVE_EVENT))
                 return watchStream.getNextEvent();
-            if(watchStream.getState().equals(OsWatchStream.HAVE_ERROR))
+            if(watchStream.getState().equals(OsWatchStream.HAVE_ERROR)){
                 throw new IllegalStateException("Watch stream has error");
+            }
         }
 
         return null;
     }
 
-    public void cancel() throws IOException {
+    /**
+     * Closes the current stream.
+     * @throws IOException can throw exception if internal buffer not closed properly
+     */
+    public void close() throws IOException {
         response.close();
     }
 }

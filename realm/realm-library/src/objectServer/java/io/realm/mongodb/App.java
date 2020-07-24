@@ -514,9 +514,9 @@ public class App {
         return config;
     }
 
-    protected OsJavaNetworkTransport.Request makeStreamingRequest(OsSyncUser user, String functionName, BsonArray bsonArgs, String serviceName) {
+    OsJavaNetworkTransport.Request makeStreamingRequest(User user, String functionName, BsonArray bsonArgs, String serviceName) {
         final String encodedArguments = JniBsonProtocol.encode(bsonArgs, config.getDefaultCodecRegistry());
-        return nativeMakeStreamingRequest(nativePtr, user.getNativePtr(), functionName, encodedArguments, serviceName);
+        return nativeMakeStreamingRequest(nativePtr, user.osUser.getNativePtr(), functionName, encodedArguments, serviceName);
     }
 
     /**

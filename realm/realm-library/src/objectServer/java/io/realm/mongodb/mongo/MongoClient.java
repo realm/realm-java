@@ -30,13 +30,10 @@ abstract public class MongoClient {
 
     private final OsMongoClient osMongoClient;
     private final CodecRegistry codecRegistry;
-    private final StreamNetworkTransport streamNetworkTransport;
 
     protected MongoClient(final OsMongoClient osMongoClient,
-                          final StreamNetworkTransport streamNetworkTransport,
                           final CodecRegistry codecRegistry) {
         this.osMongoClient = osMongoClient;
-        this.streamNetworkTransport = streamNetworkTransport;
         this.codecRegistry = codecRegistry;
     }
 
@@ -49,7 +46,6 @@ abstract public class MongoClient {
     public MongoDatabase getDatabase(final String databaseName) {
         Util.checkEmpty(databaseName, "databaseName");
         return new MongoDatabase(osMongoClient.getDatabase(databaseName, codecRegistry),
-                streamNetworkTransport,
                 databaseName);
     }
 }

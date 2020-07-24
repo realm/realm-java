@@ -191,8 +191,9 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
 
         @Override
         public void close() {
-            if (originalResponse != null)
+            if (originalResponse != null) {
                 originalResponse.close();
+            }
         }
     }
 

@@ -36,7 +36,7 @@ public interface RealmStreamTask<T> extends RealmAsyncTask {
      *
      * @return the result of the operation executed by this task.
      */
-    T getNextEvent() throws IOException;
+    T getNext() throws IOException;
 
     /**
      * Provides a way to subscribe to asynchronous operations via a callback, which handles both
@@ -46,8 +46,12 @@ public interface RealmStreamTask<T> extends RealmAsyncTask {
      * @throws IllegalStateException if called from a thread without a {@link android.os.Looper} or
      *                               from an {@link android.app.IntentService} thread.
      */
-    void getEventsAsync(App.Callback<T> callback);
+    void getAsync(App.Callback<T> callback);
 
+    /**
+     * Whether or not the stream is currently open.
+     * @return true if open, false if not
+     */
     boolean isOpen();
 }
 

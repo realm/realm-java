@@ -30,13 +30,10 @@ public class MongoDatabase {
 
     private final OsMongoDatabase osMongoDatabase;
     private final String name;
-    private final StreamNetworkTransport streamNetworkTransport;
 
     MongoDatabase(final OsMongoDatabase osMongoDatabase,
-                  final StreamNetworkTransport streamNetworkTransport,
                   final String name) {
         this.osMongoDatabase = osMongoDatabase;
-        this.streamNetworkTransport = streamNetworkTransport;
         this.name = name;
     }
 
@@ -57,9 +54,10 @@ public class MongoDatabase {
      */
     public MongoCollection<Document> getCollection(final String collectionName) {
         Util.checkEmpty(collectionName, "collectionName");
-        return new MongoCollection<>(new MongoNamespace(name, collectionName),
-                streamNetworkTransport,
-                osMongoDatabase.getCollection(collectionName));
+        MongoNamespace namespace = new MongoNamespace(name, collectionName);
+
+        return new MongoCollection<>(namespace,
+                osMongoDatabase.getCollection(collectionName, namespace));
     }
 
     /**
@@ -76,8 +74,8 @@ public class MongoDatabase {
     ) {
         Util.checkEmpty(collectionName, "collectionName");
         Util.checkNull(documentClass, "documentClass");
-        return new MongoCollection<>(new MongoNamespace(name, collectionName),
-                streamNetworkTransport,
-                osMongoDatabase.getCollection(collectionName, documentClass));
+        MongoNamespace namespace = new MongoNamespace(name, collectionName);
+        return new MongoCollection<>(namespace,
+                osMongoDatabase.getCollection(collectionName, namespace, documentClass));
     }
 }

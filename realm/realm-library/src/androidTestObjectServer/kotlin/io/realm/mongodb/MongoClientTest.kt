@@ -40,6 +40,7 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
+import java.net.SocketException
 import kotlin.concurrent.thread
 import kotlin.test.*
 
@@ -912,17 +913,17 @@ class MongoClientTest {
                 val watcher = this.watch()
 
                 thread {
-                    watcher.nextEvent.let {
+                    watcher.next.let {
                         assertEquals("insert", it["operationType"])
                         assertDocumentEquals(insertedDocument, it["fullDocument"] as Document)
                     }
 
-                    watcher.nextEvent.let {
+                    watcher.next.let {
                         assertEquals("replace", it["operationType"])
                         assertDocumentEquals(updatedDocument, it["fullDocument"] as Document)
                     }
 
-                    watcher.nextEvent.let {
+                    watcher.next.let {
                         assertEquals("delete", it["operationType"])
                         assertFalse(it.containsKey("fullDocument"))
                     }
@@ -962,7 +963,7 @@ class MongoClientTest {
 
                     try {
                         while(true){
-                            watcher.nextEvent.let {
+                            watcher.next.let {
                                 eventCount++
 
                                 assertEquals("insert", it["operationType"])
@@ -1011,7 +1012,7 @@ class MongoClientTest {
 
                     try {
                         while(true){
-                            watcher.nextEvent.let {
+                            watcher.next.let {
                                 eventCount++
 
                                 assertEquals("insert", it["operationType"])
@@ -1062,7 +1063,7 @@ class MongoClientTest {
 
                     try {
                         while(true){
-                            watcherObjectId.nextEvent.let {
+                            watcherObjectId.next.let {
                                 eventCount++
 
                                 assertEquals("replace", it["operationType"])
@@ -1124,7 +1125,7 @@ class MongoClientTest {
 
                     try {
                         while(true){
-                            watcherBsonValue.nextEvent.let {
+                            watcherBsonValue.next.let {
                                 eventCount++
 
                                 assertEquals("replace", it["operationType"])
@@ -1164,28 +1165,155 @@ class MongoClientTest {
 
     @Test
     fun watchStreamAsynchronous(){
+        looperThread.runBlocking {
+            with(getCollectionInternal()) {
+                val insertedDocument = Document("watch", "1")
+                        .apply {
+                            this["num"] = 1
+                        }
 
+                val updatedDocument = Document("watch", "1")
+                        .apply {
+                            this["num"] = 2
+                        }
+
+
+                val watcher = this.watch()
+
+                var eventCount = 0
+                watcher.getAsync { it ->
+                    if(it.isSuccess){
+                        it.get().let {
+                            when(eventCount){
+                                0 -> {
+                                    assertEquals("insert", it["operationType"])
+                                    assertDocumentEquals(insertedDocument, it["fullDocument"] as Document)
+                                }
+                                1 -> {
+                                    assertEquals("replace", it["operationType"])
+                                    assertDocumentEquals(updatedDocument, it["fullDocument"] as Document)
+                                }
+                                2 -> {
+                                    assertEquals("delete", it["operationType"])
+                                    assertFalse(it.containsKey("fullDocument"))
+                                }
+                            }
+                        }
+
+                        eventCount++
+                    } else {
+                        when(it.error.errorCode){
+                            ErrorCode.NETWORK_IO_EXCEPTION -> looperThread.testComplete()
+                            else -> fail()
+                        }
+                        looperThread.testComplete()
+                    }
+                }
+
+                Thread.sleep(1000);
+
+                this.insertOne(insertedDocument).get()
+
+                val filter = Document("watch", "1")
+                this.updateOne(filter, updatedDocument).get()
+                this.deleteOne(filter).get()
+
+                Thread.sleep(1000);
+                watcher.cancel()
+            }
+        }
     }
 
     @Test
-    fun watchStreamCancel(){
+    fun preventDoubleEventStreamAccess1(){
+        // Validates that we cannot access synchronously if we are already
+        // accessing the stream asynchronously.
+
+        with(getCollectionInternal()) {
+            val watcher = this.watch()
+
+            watcher.getAsync {}
+
+            Thread.sleep(1000)
+
+            val exception = assertFailsWith<RuntimeException> {
+                watcher.next
+            }
+
+            assertEquals("Resource already open", exception.message)
+
+            watcher.cancel()
+        }
+    }
+
+    @Test
+    fun preventDoubleEventStreamAccess2(){
+        // Validates that we cannot access asynchronously if we are already
+        // accessing the stream synchronously.
+        with(getCollectionInternal()) {
+            val watcher = this.watch()
+
+            thread {
+                Thread.sleep(1000)
+
+                watcher.getAsync {
+                    if(it.isSuccess){
+                        fail()
+                    } else {
+                        assertEquals(ErrorCode.RUNTIME_EXCEPTION, it.error.errorCode)
+                        watcher.cancel()
+                    }
+                }
+            }
+
+            assertFailsWith<IOException> {
+                watcher.next
+            }
+        }
+    }
+
+    @Test
+    fun watchStreamCancelSynchronous(){
         looperThread.runBlocking {
             with(getCollectionInternal()) {
                 val watcher = this.watch()
 
                 thread {
                     assertFailsWith<IOException>{
-                        watcher.nextEvent
+                        watcher.next
                     }
 
                     looperThread.testComplete()
                 }
 
-                Thread.sleep(2000);
+                Thread.sleep(1000);
                 watcher.cancel()
             }
         }
     }
+
+    @Test
+    fun watchStreamCancelAsynchronous(){
+        looperThread.runBlocking {
+            with(getCollectionInternal()) {
+                val watcher = this.watch()
+
+                watcher.getAsync {
+                    if(it.isSuccess){
+                        fail()
+                    } else {
+                        assertEquals(ErrorCode.NETWORK_IO_EXCEPTION, it.error.errorCode)
+                        watcher.cancel()
+                        looperThread.testComplete()
+                    }
+                }
+
+                Thread.sleep(1000);
+                watcher.cancel()
+            }
+        }
+    }
+
 
 
     @Test
