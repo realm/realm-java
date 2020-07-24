@@ -128,6 +128,11 @@ public abstract class OsJavaNetworkTransport {
             return null;
         }
 
+        public boolean isOpen() {
+            return false;
+        }
+
+
         @Override
         public String toString() {
             return "Response{" +
@@ -140,32 +145,32 @@ public abstract class OsJavaNetworkTransport {
     }
 
     public static class Request {
-        private String Method;
-        private String Url;
-        private Map<String, String> Headers;
-        private String Body;
+        private String method;
+        private String url;
+        private Map<String, String> headers;
+        private String body;
 
         public Request(String method, String url, Map<String, String> headers, String body) {
-            Method = method;
-            Url = url;
-            Headers = headers;
-            Body = body;
+            this.method = method;
+            this.url = url;
+            this.headers = headers;
+            this.body = body;
         }
 
         public String getMethod() {
-            return Method;
+            return method;
         }
 
         public String getUrl() {
-            return Url;
+            return url;
         }
 
         public Map<String, String> getHeaders() {
-            return Headers;
+            return headers;
         }
 
         public String getBody() {
-            return Body;
+            return body;
         }
     }
 

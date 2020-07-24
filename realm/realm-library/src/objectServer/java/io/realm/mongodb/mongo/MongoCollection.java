@@ -31,7 +31,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import javax.annotation.Nullable;
 
 import io.realm.annotations.Beta;
-import io.realm.internal.async.EventStream;
+import io.realm.internal.objectserver.EventStream;
 import io.realm.internal.async.RealmResultTaskImpl;
 import io.realm.internal.async.RealmEventStreamTaskImpl;
 import io.realm.internal.objectstore.OsMongoCollection;

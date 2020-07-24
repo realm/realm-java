@@ -39,7 +39,8 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.NativeObject;
 import io.realm.internal.Util;
-import io.realm.internal.async.EventStream;
+import io.realm.internal.network.NetworkEventStream;
+import io.realm.internal.objectserver.EventStream;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.network.ResultHandler;
@@ -568,7 +569,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         OsJavaNetworkTransport.Request request = streamNetworkTransport.makeStreamingRequest("watch", args, serviceName);
         OsJavaNetworkTransport.Response response = streamNetworkTransport.sendRequest(request);
 
-        return new EventStream<>(response, codecRegistry, documentClass);
+        return new NetworkEventStream<>(response, codecRegistry, documentClass);
     }
 
     public EventStream<DocumentT> watch() throws IOException {

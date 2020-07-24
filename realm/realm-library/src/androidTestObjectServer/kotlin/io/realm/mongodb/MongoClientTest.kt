@@ -40,6 +40,7 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
+import java.lang.IllegalStateException
 import java.net.SocketException
 import kotlin.concurrent.thread
 import kotlin.test.*
@@ -885,17 +886,17 @@ class MongoClientTest {
         }
     }
 
-    fun assertDocumentEquals(expected: Document, actual: Document){
+    fun assertDocumentEquals(expected: Document, actual: Document) {
         assertEquals(expected.keys.size, actual.keys.size - 1)
 
-        for(key in expected.keys){
+        for (key in expected.keys) {
             assertTrue(actual.keys.contains(key))
             assertEquals(expected[key], actual[key])
         }
     }
 
     @Test
-    fun watchStreamSynchronous(){
+    fun watchStreamSynchronous() {
         looperThread.runBlocking {
             with(getCollectionInternal()) {
 
@@ -942,7 +943,7 @@ class MongoClientTest {
     }
 
     @Test
-    fun watchStreamDocumentFilterSynchronous(){
+    fun watchStreamDocumentFilterSynchronous() {
         looperThread.runBlocking {
             with(getCollectionInternal()) {
                 val type1 = Document("type", "1")
@@ -962,7 +963,7 @@ class MongoClientTest {
                     var eventCount = 0
 
                     try {
-                        while(true){
+                        while (true) {
                             watcher.next.let {
                                 eventCount++
 
@@ -970,8 +971,8 @@ class MongoClientTest {
                                 assertEquals("1", (it["fullDocument"] as Document)["type"])
                             }
                         }
-                    } catch (ignore: IOException){
-                        Log.d("","ERROR")
+                    } catch (ignore: IOException) {
+                        Log.d("", "ERROR")
                     } finally {
                         assertEquals(1, eventCount)
                         looperThread.testComplete()
@@ -991,7 +992,7 @@ class MongoClientTest {
     }
 
     @Test
-    fun watchStreamBsonDocumentFilterSynchronous(){
+    fun watchStreamBsonDocumentFilterSynchronous() {
         looperThread.runBlocking {
             with(getCollectionInternal()) {
                 val type1 = Document("type", "1")
@@ -1011,7 +1012,7 @@ class MongoClientTest {
                     var eventCount = 0
 
                     try {
-                        while(true){
+                        while (true) {
                             watcher.next.let {
                                 eventCount++
 
@@ -1019,8 +1020,8 @@ class MongoClientTest {
                                 assertEquals("1", (it["fullDocument"] as Document)["type"])
                             }
                         }
-                    } catch (ignore: IOException){
-                        Log.d("","ERROR")
+                    } catch (ignore: IOException) {
+                        Log.d("", "ERROR")
                     } finally {
                         assertEquals(1, eventCount)
                         looperThread.testComplete()
@@ -1040,7 +1041,7 @@ class MongoClientTest {
     }
 
     @Test
-    fun watchStreamObjectIdsSynchronous(){
+    fun watchStreamObjectIdsSynchronous() {
         looperThread.runBlocking {
             with(getCollectionInternal()) {
                 val doc1 = Document("document", "1")
@@ -1062,7 +1063,7 @@ class MongoClientTest {
                     var eventCount = 0
 
                     try {
-                        while(true){
+                        while (true) {
                             watcherObjectId.next.let {
                                 eventCount++
 
@@ -1070,7 +1071,7 @@ class MongoClientTest {
                                 assertEquals("1", (it["fullDocument"] as Document)["document"])
                             }
                         }
-                    } catch (ignore: IOException){
+                    } catch (ignore: IOException) {
 
                     } finally {
                         assertEquals(1, eventCount)
@@ -1102,7 +1103,7 @@ class MongoClientTest {
     }
 
     @Test
-    fun watchStreamIdsSynchronous(){
+    fun watchStreamIdsSynchronous() {
         looperThread.runBlocking {
             with(getCollectionInternal()) {
                 val doc1 = Document("document", "1")
@@ -1124,7 +1125,7 @@ class MongoClientTest {
                     var eventCount = 0
 
                     try {
-                        while(true){
+                        while (true) {
                             watcherBsonValue.next.let {
                                 eventCount++
 
@@ -1132,7 +1133,7 @@ class MongoClientTest {
                                 assertEquals("1", (it["fullDocument"] as Document)["document"])
                             }
                         }
-                    } catch (ignore: IOException){
+                    } catch (ignore: IOException) {
 
                     } finally {
                         assertEquals(1, eventCount)
@@ -1164,7 +1165,7 @@ class MongoClientTest {
     }
 
     @Test
-    fun watchStreamAsynchronous(){
+    fun watchStreamAsynchronous() {
         looperThread.runBlocking {
             with(getCollectionInternal()) {
                 val insertedDocument = Document("watch", "1")
@@ -1182,9 +1183,9 @@ class MongoClientTest {
 
                 var eventCount = 0
                 watcher.getAsync { it ->
-                    if(it.isSuccess){
+                    if (it.isSuccess) {
                         it.get().let {
-                            when(eventCount){
+                            when (eventCount) {
                                 0 -> {
                                     assertEquals("insert", it["operationType"])
                                     assertDocumentEquals(insertedDocument, it["fullDocument"] as Document)
@@ -1202,7 +1203,7 @@ class MongoClientTest {
 
                         eventCount++
                     } else {
-                        when(it.error.errorCode){
+                        when (it.error.errorCode) {
                             ErrorCode.NETWORK_IO_EXCEPTION -> looperThread.testComplete()
                             else -> fail()
                         }
@@ -1225,63 +1226,18 @@ class MongoClientTest {
     }
 
     @Test
-    fun preventDoubleEventStreamAccess1(){
-        // Validates that we cannot access synchronously if we are already
-        // accessing the stream asynchronously.
-
-        with(getCollectionInternal()) {
-            val watcher = this.watch()
-
-            watcher.getAsync {}
-
-            Thread.sleep(1000)
-
-            val exception = assertFailsWith<RuntimeException> {
-                watcher.next
-            }
-
-            assertEquals("Resource already open", exception.message)
-
-            watcher.cancel()
-        }
-    }
-
-    @Test
-    fun preventDoubleEventStreamAccess2(){
-        // Validates that we cannot access asynchronously if we are already
-        // accessing the stream synchronously.
-        with(getCollectionInternal()) {
-            val watcher = this.watch()
-
-            thread {
-                Thread.sleep(1000)
-
-                watcher.getAsync {
-                    if(it.isSuccess){
-                        fail()
-                    } else {
-                        assertEquals(ErrorCode.RUNTIME_EXCEPTION, it.error.errorCode)
-                        watcher.cancel()
-                    }
-                }
-            }
-
-            assertFailsWith<IOException> {
-                watcher.next
-            }
-        }
-    }
-
-    @Test
-    fun watchStreamCancelSynchronous(){
+    fun watchStreamCancelSynchronous() {
         looperThread.runBlocking {
             with(getCollectionInternal()) {
                 val watcher = this.watch()
 
                 thread {
-                    assertFailsWith<IOException>{
+                    assertFailsWith<IOException> {
                         watcher.next
                     }
+
+                    assertEquals(false, watcher.isOpen)
+                    assertEquals(true, watcher.isCancelled)
 
                     looperThread.testComplete()
                 }
@@ -1293,17 +1249,20 @@ class MongoClientTest {
     }
 
     @Test
-    fun watchStreamCancelAsynchronous(){
+    fun watchStreamCancelAsynchronous() {
         looperThread.runBlocking {
             with(getCollectionInternal()) {
                 val watcher = this.watch()
 
                 watcher.getAsync {
-                    if(it.isSuccess){
+                    if (it.isSuccess) {
                         fail()
                     } else {
                         assertEquals(ErrorCode.NETWORK_IO_EXCEPTION, it.error.errorCode)
                         watcher.cancel()
+
+                        assertEquals(false, watcher.isOpen)
+                        assertEquals(true, watcher.isCancelled)
                         looperThread.testComplete()
                     }
                 }
@@ -1314,7 +1273,20 @@ class MongoClientTest {
         }
     }
 
+    @Test
+    fun watchError() {
+        with(getCollectionInternal()) {
+            val watcher = this.watch()
 
+            val exception = assertFailsWith<IllegalStateException>{
+                watcher.next
+            }
+
+            assertEquals("Watch stream has error", exception.message)
+            assertEquals(false, watcher.isOpen)
+            assertEquals(false, watcher.isCancelled)
+        }
+    }
 
     @Test
     fun findOneAndDelete() {

@@ -19,9 +19,9 @@ package io.realm.internal.async;
 import java.io.IOException;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.annotation.Nullable;
-
+import io.reactivex.annotations.NonNull;
 import io.realm.internal.Util;
+import io.realm.internal.objectserver.EventStream;
 import io.realm.mongodb.App;
 import io.realm.mongodb.AppException;
 import io.realm.mongodb.ErrorCode;
@@ -32,10 +32,11 @@ public class RealmEventStreamTaskImpl<T> implements RealmStreamTask<T> {
     private final Executor<T> executor;
     private volatile EventStream<T> eventStream;
     volatile boolean isCancelled;
-    private ReentrantLock lock;
+    private final ReentrantLock lock;
 
     public RealmEventStreamTaskImpl(Executor<T> executor) {
         Util.checkNull(executor, "executor");
+
         this.lock = new ReentrantLock();
         this.executor = executor;
     }
@@ -80,7 +81,6 @@ public class RealmEventStreamTaskImpl<T> implements RealmStreamTask<T> {
                 } catch (IllegalStateException exception) {
                     callback.onResult(App.Result.withError(new AppException(ErrorCode.FUNCTION_EXECUTION_ERROR, exception)));
                 } finally {
-                    isCancelled = true;
                     lock.unlock();
                 }
             } else {
@@ -93,14 +93,13 @@ public class RealmEventStreamTaskImpl<T> implements RealmStreamTask<T> {
 
     @Override
     public boolean isOpen() {
-        return !isCancelled && (eventStream != null);
+        return (eventStream != null) && eventStream.isOpen();
     }
 
     @Override
     public void cancel() {
-        isCancelled = true;
-
         if (eventStream != null) {
+            isCancelled = true;
             try {
                 eventStream.close();
             } catch (IOException ignored) {
@@ -120,7 +119,7 @@ public class RealmEventStreamTaskImpl<T> implements RealmStreamTask<T> {
          *
          * @return the result yielded by the task.
          */
-        @Nullable
+        @NonNull
         public abstract EventStream<T> run() throws IOException;
     }
 }
