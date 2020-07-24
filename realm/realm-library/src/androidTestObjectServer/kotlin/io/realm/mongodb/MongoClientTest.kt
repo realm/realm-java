@@ -26,6 +26,7 @@ import io.realm.mongodb.mongo.options.CountOptions
 import io.realm.mongodb.mongo.options.FindOneAndModifyOptions
 import io.realm.mongodb.mongo.options.FindOptions
 import io.realm.mongodb.mongo.options.UpdateOptions
+import io.realm.mongodb.mongo.remote.OperationType
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.assertFailsWithErrorCode
 import io.realm.util.mongodb.CustomType
@@ -41,7 +42,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
 import java.lang.IllegalStateException
-import java.net.SocketException
 import kotlin.concurrent.thread
 import kotlin.test.*
 
@@ -914,19 +914,19 @@ class MongoClientTest {
                 val watcher = this.watch()
 
                 thread {
-                    watcher.next.let {
-                        assertEquals("insert", it["operationType"])
-                        assertDocumentEquals(insertedDocument, it["fullDocument"] as Document)
+                    watcher.next.let { changeEvent ->
+                        assertEquals(OperationType.INSERT, changeEvent.operationType)
+                        assertDocumentEquals(insertedDocument, changeEvent.fullDocument!!)
                     }
 
-                    watcher.next.let {
-                        assertEquals("replace", it["operationType"])
-                        assertDocumentEquals(updatedDocument, it["fullDocument"] as Document)
+                    watcher.next.let { changeEvent ->
+                        assertEquals(OperationType.REPLACE, changeEvent.operationType)
+                        assertDocumentEquals(updatedDocument, changeEvent.fullDocument!!)
                     }
 
-                    watcher.next.let {
-                        assertEquals("delete", it["operationType"])
-                        assertFalse(it.containsKey("fullDocument"))
+                    watcher.next.let { changeEvent ->
+                        assertEquals(OperationType.DELETE, changeEvent.operationType)
+                        assertNull(changeEvent.fullDocument)
                     }
 
                     looperThread.testComplete()
@@ -964,11 +964,11 @@ class MongoClientTest {
 
                     try {
                         while (true) {
-                            watcher.next.let {
+                            watcher.next.let { changeEvent ->
                                 eventCount++
 
-                                assertEquals("insert", it["operationType"])
-                                assertEquals("1", (it["fullDocument"] as Document)["type"])
+                                assertEquals(OperationType.INSERT, changeEvent.operationType)
+                                assertEquals("1", changeEvent.fullDocument!!["type"])
                             }
                         }
                     } catch (ignore: IOException) {
@@ -1013,11 +1013,11 @@ class MongoClientTest {
 
                     try {
                         while (true) {
-                            watcher.next.let {
+                            watcher.next.let { changeEvent ->
                                 eventCount++
 
-                                assertEquals("insert", it["operationType"])
-                                assertEquals("1", (it["fullDocument"] as Document)["type"])
+                                assertEquals(OperationType.INSERT, changeEvent.operationType)
+                                assertEquals("1", changeEvent.fullDocument!!["type"])
                             }
                         }
                     } catch (ignore: IOException) {
@@ -1064,11 +1064,11 @@ class MongoClientTest {
 
                     try {
                         while (true) {
-                            watcherObjectId.next.let {
+                            watcherObjectId.next.let { changeEvent ->
                                 eventCount++
 
-                                assertEquals("replace", it["operationType"])
-                                assertEquals("1", (it["fullDocument"] as Document)["document"])
+                                assertEquals(OperationType.REPLACE, changeEvent.operationType)
+                                assertEquals("1", changeEvent.fullDocument!!["document"])
                             }
                         }
                     } catch (ignore: IOException) {
@@ -1126,11 +1126,11 @@ class MongoClientTest {
 
                     try {
                         while (true) {
-                            watcherBsonValue.next.let {
+                            watcherBsonValue.next.let { changeEvent ->
                                 eventCount++
 
-                                assertEquals("replace", it["operationType"])
-                                assertEquals("1", (it["fullDocument"] as Document)["document"])
+                                assertEquals(OperationType.REPLACE, changeEvent.operationType)
+                                assertEquals("1", changeEvent.fullDocument!!["document"])
                             }
                         }
                     } catch (ignore: IOException) {
@@ -1184,19 +1184,19 @@ class MongoClientTest {
                 var eventCount = 0
                 watcher.getAsync { it ->
                     if (it.isSuccess) {
-                        it.get().let {
+                        it.get().let { changeEvent ->
                             when (eventCount) {
                                 0 -> {
-                                    assertEquals("insert", it["operationType"])
-                                    assertDocumentEquals(insertedDocument, it["fullDocument"] as Document)
+                                    assertEquals(OperationType.INSERT, changeEvent.operationType)
+                                    assertDocumentEquals(insertedDocument, changeEvent.fullDocument!!)
                                 }
                                 1 -> {
-                                    assertEquals("replace", it["operationType"])
-                                    assertDocumentEquals(updatedDocument, it["fullDocument"] as Document)
+                                    assertEquals(OperationType.REPLACE, changeEvent.operationType)
+                                    assertDocumentEquals(updatedDocument, changeEvent.fullDocument!!)
                                 }
                                 2 -> {
-                                    assertEquals("delete", it["operationType"])
-                                    assertFalse(it.containsKey("fullDocument"))
+                                    assertEquals(OperationType.DELETE, changeEvent.operationType)
+                                    assertNull(changeEvent.fullDocument)
                                 }
                             }
                         }
@@ -1278,7 +1278,7 @@ class MongoClientTest {
         with(getCollectionInternal()) {
             val watcher = this.watch()
 
-            val exception = assertFailsWith<IllegalStateException>{
+            val exception = assertFailsWith<IllegalStateException> {
                 watcher.next
             }
 

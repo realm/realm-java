@@ -16,6 +16,8 @@
 
 package io.realm.internal.objectserver;
 
+import org.bson.BsonDocument;
+
 import java.io.IOException;
 
 public interface EventStream<T> {
@@ -25,7 +27,7 @@ public interface EventStream<T> {
      * @return the next event
      * @throws IOException any io exception that could occur
      */
-    T getNextEvent() throws IOException;
+    BsonDocument getNextEvent() throws IOException;
 
     /**
      * Closes the current stream.

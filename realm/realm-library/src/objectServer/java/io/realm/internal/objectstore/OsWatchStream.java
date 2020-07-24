@@ -1,5 +1,6 @@
 package io.realm.internal.objectstore;
 
+import org.bson.BsonDocument;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import io.realm.internal.NativeObject;
@@ -12,12 +13,10 @@ public class OsWatchStream<T> implements NativeObject {
 
     private final long nativePtr;
     private final CodecRegistry codecRegistry;
-    private final Class<T> documentClass;
 
-    public OsWatchStream(CodecRegistry codecRegistry, Class<T> documentClass)
+    public OsWatchStream(CodecRegistry codecRegistry)
     {
         this.codecRegistry = codecRegistry;
-        this.documentClass = documentClass;
         this.nativePtr = nativeCreateWatchStream();
     }
 
@@ -31,9 +30,9 @@ public class OsWatchStream<T> implements NativeObject {
         return 0;
     }
 
-    public T getNextEvent() {
+    public BsonDocument getNextEvent() {
         String bsonEvent = nativeGetNextEvent(nativePtr);
-        return JniBsonProtocol.decode(bsonEvent, documentClass, codecRegistry);
+        return JniBsonProtocol.decode(bsonEvent, codecRegistry.get(BsonDocument.class));
     }
 
     public String getState() {

@@ -1,5 +1,6 @@
 package io.realm.internal.network;
 
+import org.bson.BsonDocument;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.io.IOException;
@@ -14,7 +15,7 @@ public class NetworkEventStream<T> implements EventStream<T> {
 
     public NetworkEventStream(OsJavaNetworkTransport.Response response, CodecRegistry codecRegistry, Class<T> documentClass) {
         this.response = response;
-        this.watchStream = new OsWatchStream<>(codecRegistry, documentClass);
+        this.watchStream = new OsWatchStream<>(codecRegistry);
     }
 
     /**
@@ -24,7 +25,7 @@ public class NetworkEventStream<T> implements EventStream<T> {
      * @throws IOException any io exception that could occur
      */
     @Override
-    public T getNextEvent() throws IOException {
+    public BsonDocument getNextEvent() throws IOException {
         String line;
 
         while ((line = response.readBodyLine()) != null) {

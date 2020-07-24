@@ -25,20 +25,26 @@ import io.realm.internal.objectserver.EventStream;
 import io.realm.mongodb.App;
 import io.realm.mongodb.AppException;
 import io.realm.mongodb.ErrorCode;
-import io.realm.mongodb.RealmStreamTask;
+import io.realm.mongodb.RealmEventStreamTask;
+import io.realm.mongodb.mongo.remote.ChangeEvent;
+import io.realm.mongodb.mongo.remote.EventDecoder;
 
 
-public class RealmEventStreamTaskImpl<T> implements RealmStreamTask<T> {
+public class RealmEventStreamTaskImpl<T> implements RealmEventStreamTask<T> {
     private final Executor<T> executor;
+    private final EventDecoder<T> decoder;
     private volatile EventStream<T> eventStream;
     volatile boolean isCancelled;
     private final ReentrantLock lock;
 
-    public RealmEventStreamTaskImpl(Executor<T> executor) {
+    public RealmEventStreamTaskImpl(final Executor<T> executor, EventDecoder<T> eventDecoder) {
         Util.checkNull(executor, "executor");
+        Util.checkNull(executor, "documentClass");
+        Util.checkNull(executor, "codecRegistry");
 
         this.lock = new ReentrantLock();
         this.executor = executor;
+        this.decoder = eventDecoder;
     }
 
     private synchronized EventStream<T> getEventStream() throws IOException {
@@ -50,11 +56,11 @@ public class RealmEventStreamTaskImpl<T> implements RealmStreamTask<T> {
     }
 
     @Override
-    public T getNext() throws IOException {
+    public ChangeEvent<T> getNext() throws IOException {
         if (lock.tryLock()) {
             try {
                 eventStream = getEventStream();
-                return eventStream.getNextEvent();
+                return decoder.transform(eventStream.getNextEvent());
             } finally {
                 lock.unlock();
             }
@@ -64,7 +70,7 @@ public class RealmEventStreamTaskImpl<T> implements RealmStreamTask<T> {
     }
 
     @Override
-    public void getAsync(App.Callback<T> callback) {
+    public void getAsync(App.Callback<ChangeEvent<T>> callback) {
         Util.checkNull(callback, "callback");
 
         new Thread(() -> {
@@ -73,7 +79,8 @@ public class RealmEventStreamTaskImpl<T> implements RealmStreamTask<T> {
                     eventStream = getEventStream();
 
                     while (true) {
-                        T nextEvent = eventStream.getNextEvent();
+                        ChangeEvent<T> nextEvent = decoder.transform(eventStream.getNextEvent());
+
                         callback.onResult(App.Result.withResult(nextEvent));
                     }
                 } catch (IOException exception) {

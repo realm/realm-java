@@ -37,7 +37,7 @@ import io.realm.internal.async.RealmEventStreamTaskImpl;
 import io.realm.internal.objectstore.OsMongoCollection;
 import io.realm.mongodb.App;
 import io.realm.mongodb.RealmResultTask;
-import io.realm.mongodb.RealmStreamTask;
+import io.realm.mongodb.RealmEventStreamTask;
 import io.realm.mongodb.mongo.iterable.AggregateIterable;
 import io.realm.mongodb.mongo.iterable.FindIterable;
 import io.realm.mongodb.mongo.options.CountOptions;
@@ -45,6 +45,7 @@ import io.realm.mongodb.mongo.options.FindOneAndModifyOptions;
 import io.realm.mongodb.mongo.options.FindOptions;
 import io.realm.mongodb.mongo.options.InsertManyResult;
 import io.realm.mongodb.mongo.options.UpdateOptions;
+import io.realm.mongodb.mongo.remote.EventDecoderImpl;
 import io.realm.mongodb.mongo.result.DeleteResult;
 import io.realm.mongodb.mongo.result.InsertOneResult;
 import io.realm.mongodb.mongo.result.UpdateResult;
@@ -821,14 +822,14 @@ public class MongoCollection<DocumentT> {
      *
      * @return a task that provides access to the stream of change events.
      */
-    public RealmStreamTask<DocumentT> watch(){
+    public RealmEventStreamTask<DocumentT> watch() {
         return new RealmEventStreamTaskImpl<>(new RealmEventStreamTaskImpl.Executor<DocumentT>() {
             @Nullable
             @Override
             public EventStream<DocumentT> run() throws IOException {
                 return osMongoCollection.watch();
             }
-        });
+        }, new EventDecoderImpl<>(getDocumentClass(), getCodecRegistry()));
     }
 
     /**
@@ -837,14 +838,14 @@ public class MongoCollection<DocumentT> {
      * @param ids the ids to watch.
      * @return a task that provides access to the stream of change events.
      */
-    public RealmStreamTask<DocumentT> watch(final BsonValue... ids){
+    public RealmEventStreamTask<DocumentT> watch(final BsonValue... ids) {
         return new RealmEventStreamTaskImpl<>(new RealmEventStreamTaskImpl.Executor<DocumentT>() {
             @Nullable
             @Override
             public EventStream<DocumentT> run() throws IOException {
                 return osMongoCollection.watch(ids);
             }
-        });
+        }, new EventDecoderImpl<>(getDocumentClass(), getCodecRegistry()));
     }
 
     /**
@@ -855,60 +856,60 @@ public class MongoCollection<DocumentT> {
      * @param ids unique object identifiers of the IDs to watch.
      * @return a task that provides access to the stream of change events.
      */
-    public RealmStreamTask<DocumentT> watch(final ObjectId... ids){
+    public RealmEventStreamTask<DocumentT> watch(final ObjectId... ids) {
         return new RealmEventStreamTaskImpl<>(new RealmEventStreamTaskImpl.Executor<DocumentT>() {
             @Nullable
             @Override
             public EventStream<DocumentT> run() throws IOException {
                 return osMongoCollection.watch(ids);
             }
-        });
+        }, new EventDecoderImpl<>(getDocumentClass(), getCodecRegistry()));
     }
 
     /**
      * Watches a collection. The provided document will be used as a match expression filter on
      * the change events coming from the stream. This convenience overload supports the use of
      * non-{@link BsonDocument} instances for the user.
-     *
+     * <p>
      * See https://docs.mongodb.com/manual/reference/operator/aggregation/match/ for documentation
      * around how to define a match filter.
-     *
+     * <p>
      * Defining the match expression to filter ChangeEvents is similar to defining the match
      * expression for triggers: https://docs.mongodb.com/stitch/triggers/database-triggers/
      *
      * @param matchFilter the $match filter to apply to incoming change events
      * @return a task that provides access to the stream of change events.
      */
-    public RealmStreamTask<DocumentT> watchWithFilter(Document matchFilter){
+    public RealmEventStreamTask<DocumentT> watchWithFilter(Document matchFilter) {
         return new RealmEventStreamTaskImpl<>(new RealmEventStreamTaskImpl.Executor<DocumentT>() {
             @Nullable
             @Override
             public EventStream<DocumentT> run() throws IOException {
                 return osMongoCollection.watchWithFilter(matchFilter);
             }
-        });
+        }, new EventDecoderImpl<>(getDocumentClass(), getCodecRegistry()));
     }
 
     /**
      * Watches a collection. The provided BSON document will be used as a match expression filter on
      * the change events coming from the stream.
-     *
+     * <p>
      * See https://docs.mongodb.com/manual/reference/operator/aggregation/match/ for documentation
      * around how to define a match filter.
-     *
+     * <p>
      * Defining the match expression to filter ChangeEvents is similar to defining the match
      * expression for triggers: https://docs.mongodb.com/stitch/triggers/database-triggers/
      *
      * @param matchFilter the $match filter to apply to incoming change events
      * @return a task that provides access to the stream of change events.
      */
-    public RealmStreamTask<DocumentT> watchWithFilter(BsonDocument matchFilter){
+    public RealmEventStreamTask<DocumentT> watchWithFilter(BsonDocument matchFilter) {
         return new RealmEventStreamTaskImpl<>(new RealmEventStreamTaskImpl.Executor<DocumentT>() {
             @Nullable
             @Override
             public EventStream<DocumentT> run() throws IOException {
                 return osMongoCollection.watchWithFilter(matchFilter);
             }
-        });
+        }, new EventDecoderImpl<>(getDocumentClass(), getCodecRegistry()));
     }
 }

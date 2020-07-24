@@ -24,6 +24,7 @@ import java.io.StringWriter;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -220,4 +221,16 @@ public class Util {
         return rxJavaAvailable;
     }
 
+    /**
+     * Throw IllegalStateException if key is not present in map.
+     * @param key the key to expect.
+     * @param map the map to search.
+     * @throws IllegalArgumentException if key is not in map.
+     */
+    public static void keyPresent(final String key, final Map<String, ?> map) {
+        if (!map.containsKey(key)) {
+            throw new IllegalStateException(
+                    String.format("expected %s to be present", key));
+        }
+    }
 }
