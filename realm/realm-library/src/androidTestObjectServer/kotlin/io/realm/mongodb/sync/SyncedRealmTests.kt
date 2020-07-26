@@ -283,20 +283,37 @@ class SyncedRealmTests {
     }
 
     @Test
-//    @Ignore("Flaky when asserting the parent results")
     fun embeddedObject_copyUnmanaged_roundTrip() {
         val user1: User = createNewUser()
         val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
-//        val primaryKeyValue = UUID.randomUUID().toString()
-        val primaryKeyValue = "primaryKeyValue"
+        val primaryKeyValue = UUID.randomUUID().toString()
+//        val primaryKeyValue = "primaryKeyValue"
+
+        // FIXME: the following fails in sync:
+        //  - run this test once and without restarting the server continue this series
+        //  - keep the primary key value constant across runs
+        //  - second and successive runs will fail due to a fail in sync
+        //    - "MongoDB error: E11000 duplicate key error collection: test_data.EmbeddedSimpleParent index: _id_ dup key: { _id: \"primaryKeyValue\" }",
+        //  The problem is the local Realm works just fine when calling *OrUpdate operations,
+        //  but sync explodes when receiving such request, and seems it deletes the parent due to a
+        //  PK violation leaving an orphan child.
+        //
+        // FIXME:
+        //  - Is this expected behaviour?
+        //  - What if we wanted to update the parent object so that it contains a different child?
+
         Realm.getInstance(config1).use { realm ->
             assertTrue(realm.isEmpty)
 
             realm.executeTransaction {
                 val parent = EmbeddedSimpleParent(primaryKeyValue)
-                val managedParent = it.copyToRealm(parent)
-                managedParent.child = EmbeddedSimpleChild() // Will copy the object to Realm
-                val akjhsdh = 0
+
+                parent.child = EmbeddedSimpleChild()
+                it.copyToRealmOrUpdate(parent).let { managedParent ->
+                    // FIXME: instantiating the child in managedParent yields this from sync:
+                    //  "MongoDB error: Updating the path 'child.childID' would create a conflict at 'child'"
+//                    managedParent.child = EmbeddedSimpleChild() // Will copy the object to Realm
+                }
             }
             realm.syncSession.uploadAllLocalChanges()
 
@@ -398,8 +415,8 @@ class SyncedRealmTests {
             assertEquals(1, parentResults.count())
             val parentFromResults = parentResults.findFirst()!!
             assertEquals(primaryKeyValue, parentFromResults._id)
-            assertEquals("child1", childResults.findAll()[0]!!._id)
-            assertEquals("child2", childResults.findAll()[1]!!._id)
+            assertEquals("child1", childResults.findAll()[0]!!.childId)
+            assertEquals("child2", childResults.findAll()[1]!!.childId)
         }
     }
 
