@@ -224,10 +224,6 @@ class UserTests {
         val exception = assertFailsWith<AppException>{
             anonUser.linkCredentials(Credentials.serverApiKey(serverKey))
         }
-
-        assertEquals(ErrorCode.Category.FATAL, exception.errorCode.category);
-        assertEquals("realm::app::ServiceError", exception.errorCode.type);
-        assertEquals(47, exception.errorCode.intValue());
     }
 
     @Test
