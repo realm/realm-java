@@ -225,7 +225,6 @@ class UserTests {
             anonUser.linkCredentials(Credentials.serverApiKey(serverKey))
         }
 
-        assertEquals("invalid API key", exception.errorMessage);
         assertEquals(ErrorCode.Category.FATAL, exception.errorCode.category);
         assertEquals("realm::app::ServiceError", exception.errorCode.type);
         assertEquals(47, exception.errorCode.intValue());
