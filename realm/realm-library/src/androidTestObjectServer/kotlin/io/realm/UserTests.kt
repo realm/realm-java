@@ -169,7 +169,6 @@ class UserTests {
 
     @Test
     fun linkUser_emailPassword() {
-        admin.setAutomaticConfirmation(enabled = false)
         assertEquals(1, anonUser.identities.size)
 
         val email = TestHelper.getRandomEmail()
@@ -191,14 +190,10 @@ class UserTests {
         assertFails {
             linkedUser = anonUser.linkCredentials(credentials)
         }
-
-        admin.setAutomaticConfirmation(enabled = true)
     }
 
     @Test
     fun linkUser_userApiKey() {
-        admin.setAutomaticConfirmation(enabled = false)
-
         // Generate API key
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val apiKey: UserApiKey = user.apiKeyAuth.createApiKey("my-key");
@@ -217,14 +212,10 @@ class UserTests {
         assertEquals(ErrorCode.Category.FATAL, exception.errorCode.category);
         assertEquals("realm::app::ServiceError", exception.errorCode.type);
         assertEquals(6, exception.errorCode.intValue());
-
-        admin.setAutomaticConfirmation(enabled = true)
     }
 
     @Test
     fun linkUser_serverApiKey() {
-        admin.setAutomaticConfirmation(enabled = false)
-
         val serverKey = admin.createServerApiKey()
 
         assertEquals(1, anonUser.identities.size)
@@ -238,14 +229,10 @@ class UserTests {
         assertEquals(ErrorCode.Category.FATAL, exception.errorCode.category);
         assertEquals("realm::app::ServiceError", exception.errorCode.type);
         assertEquals(47, exception.errorCode.intValue());
-
-        admin.setAutomaticConfirmation(enabled = true)
     }
 
     @Test
     fun linkUser_customFunction() {
-        admin.setAutomaticConfirmation(enabled = false)
-
         assertEquals(1, anonUser.identities.size)
 
         val document = Document(mapOf(
@@ -260,8 +247,6 @@ class UserTests {
         assertTrue(anonUser === linkedUser)
         assertEquals(2, linkedUser.identities.size)
         assertEquals(Credentials.IdentityProvider.CUSTOM_FUNCTION, linkedUser.identities[1].provider)
-
-        admin.setAutomaticConfirmation(enabled = true)
     }
 
     @Test
@@ -288,16 +273,12 @@ class UserTests {
 
     @Test
     fun linkUserAsync() = looperThread.runBlocking {
-        admin.setAutomaticConfirmation(enabled = false)
-
         assertEquals(1, anonUser.identities.size)
         val email = TestHelper.getRandomEmail()
         val password = "123456"
         app.emailPasswordAuth.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
 
         anonUser.linkCredentialsAsync(Credentials.emailPassword(email, password)) { result ->
-            admin.setAutomaticConfirmation(enabled = true)
-
             val linkedUser: User = result.orThrow
             assertTrue(anonUser === linkedUser)
             assertEquals(2, linkedUser.identities.size)
