@@ -8,6 +8,8 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
+import io.realm.mongodb.AppException;
+import io.realm.mongodb.ErrorCode;
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator;
 import okhttp3.Call;
 import okhttp3.ConnectionPool;
@@ -115,6 +117,10 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
         Call call = client.newCall(builder.build());
         okhttp3.Response response = call.execute();
 
+        if((response.code() >= 300) || ((response.code() < 200) && (response.code() != 0))) {
+            throw new AppException(ErrorCode.fromNativeError(ErrorCode.Type.HTTP, response.code()), "http error code considered fatal");
+        }
+
         return OkHttpResponse.httpResponse(response.code(), parseHeaders(response.headers()), response.body().source());
     }
 
@@ -180,10 +186,10 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
             super(httpResponseCode, customResponseCode, headers, body);
         }
 
-        private OkHttpResponse(int httpResponseCode, Map<String, String> headers, BufferedSource originalResponse) {
+        private OkHttpResponse(int httpResponseCode, Map<String, String> headers, BufferedSource bufferedSource) {
             super(httpResponseCode, 0, headers, "");
 
-            this.bufferedSource = originalResponse;
+            this.bufferedSource = bufferedSource;
         }
 
         public static Response httpResponse(int httpResponseCode, Map<String, String> headers, BufferedSource originalResponse) {
