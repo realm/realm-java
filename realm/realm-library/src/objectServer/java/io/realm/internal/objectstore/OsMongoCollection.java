@@ -558,6 +558,8 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         watchArgs.put("collection", new BsonString(namespace.getCollectionName()));
 
         switch (type) {
+            case WATCH:
+                break;
             case WATCH_IDS:
                 watchArgs.put("ids", ids);
                 break;
