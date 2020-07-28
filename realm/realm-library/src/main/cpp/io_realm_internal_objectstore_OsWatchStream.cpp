@@ -35,7 +35,7 @@ Java_io_realm_internal_objectstore_OsWatchStream_nativeCreateWatchStream(JNIEnv 
     }
     CATCH_STD()
 
-    return NULL;
+    return 0;
 }
 
 JNIEXPORT void JNICALL
