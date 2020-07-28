@@ -550,7 +550,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         }
     }
 
-    private EventStream<DocumentT> internalWatch(int type, @Nullable BsonArray ids, @Nullable BsonDocument matchFilter) throws IOException {
+    private EventStream<DocumentT> watchInternal(int type, @Nullable BsonArray ids, @Nullable BsonDocument matchFilter) throws IOException {
         BsonArray args = new BsonArray();
         BsonDocument watchArgs = new BsonDocument("database", new BsonString(namespace.getDatabaseName()));
         args.add(watchArgs);
@@ -564,6 +564,8 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
             case WATCH_WITH_FILTER:
                 watchArgs.put("filter", matchFilter);
                 break;
+            default:
+                throw new IllegalArgumentException("Invalid watch type: " + type);
         }
 
         OsJavaNetworkTransport.Request request = streamNetworkTransport.makeStreamingRequest("watch", args, serviceName);
@@ -573,11 +575,11 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     }
 
     public EventStream<DocumentT> watch() throws IOException {
-        return internalWatch(WATCH, null, null);
+        return watchInternal(WATCH, null, null);
     }
 
     public EventStream<DocumentT> watch(final BsonValue... ids) throws IOException {
-        return internalWatch(WATCH_IDS, new BsonArray(Arrays.asList(ids)), null);
+        return watchInternal(WATCH_IDS, new BsonArray(Arrays.asList(ids)), null);
     }
 
     public EventStream<DocumentT> watch(final ObjectId... ids) throws IOException {
@@ -587,15 +589,15 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
             bsonIds.add(new BsonObjectId(id));
         }
 
-        return internalWatch(WATCH_IDS, bsonIds, null);
+        return watchInternal(WATCH_IDS, bsonIds, null);
     }
 
     public EventStream<DocumentT> watchWithFilter(Document matchFilter) throws IOException {
-        return internalWatch(WATCH_WITH_FILTER, null, matchFilter.toBsonDocument(getDocumentClass(), getCodecRegistry()));
+        return watchInternal(WATCH_WITH_FILTER, null, matchFilter.toBsonDocument(getDocumentClass(), getCodecRegistry()));
     }
 
     public EventStream<DocumentT> watchWithFilter(BsonDocument matchFilter) throws IOException {
-        return internalWatch(WATCH_WITH_FILTER, null, matchFilter);
+        return watchInternal(WATCH_WITH_FILTER, null, matchFilter);
     }
 
     private static native long nativeGetFinalizerMethodPtr();
