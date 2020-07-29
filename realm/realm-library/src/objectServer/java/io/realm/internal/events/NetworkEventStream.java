@@ -1,6 +1,5 @@
-package io.realm.internal.network;
+package io.realm.internal.events;
 
-import org.bson.BsonDocument;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.io.IOException;
@@ -8,14 +7,19 @@ import java.io.IOException;
 import io.realm.internal.objectserver.EventStream;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsWatchStream;
+import io.realm.mongodb.mongo.events.BaseChangeEvent;
 
 public class NetworkEventStream<T> implements EventStream<T> {
     private final OsJavaNetworkTransport.Response response;
     private final OsWatchStream<T> watchStream;
+    private final CodecRegistry codecRegistry;
+    private final Class<T> documentClass;
 
     public NetworkEventStream(OsJavaNetworkTransport.Response response, CodecRegistry codecRegistry, Class<T> documentClass) {
         this.response = response;
         this.watchStream = new OsWatchStream<>(codecRegistry);
+        this.codecRegistry = codecRegistry;
+        this.documentClass = documentClass;
     }
 
     /**
@@ -25,14 +29,14 @@ public class NetworkEventStream<T> implements EventStream<T> {
      * @throws IOException any io exception that could occur
      */
     @Override
-    public BsonDocument getNextEvent() throws IOException {
+    public BaseChangeEvent<T> getNextEvent() throws IOException {
         String line;
 
         while ((line = response.readBodyLine()) != null) {
             watchStream.feedLine(line);
 
             if (watchStream.getState().equals(OsWatchStream.HAVE_EVENT))
-                return watchStream.getNextEvent();
+                return ChangeEvent.fromBsonDocument(watchStream.getNextEvent(), documentClass, codecRegistry);
             if (watchStream.getState().equals(OsWatchStream.HAVE_ERROR)) {
                 response.close();
                 throw new IllegalStateException("Watch stream has error");

@@ -46,7 +46,6 @@ import io.realm.mongodb.mongo.options.FindOneAndModifyOptions;
 import io.realm.mongodb.mongo.options.FindOptions;
 import io.realm.mongodb.mongo.options.InsertManyResult;
 import io.realm.mongodb.mongo.options.UpdateOptions;
-import io.realm.mongodb.mongo.events.EventDecoderImpl;
 import io.realm.mongodb.mongo.result.DeleteResult;
 import io.realm.mongodb.mongo.result.InsertOneResult;
 import io.realm.mongodb.mongo.result.UpdateResult;
@@ -830,7 +829,7 @@ public class MongoCollection<DocumentT> {
             public EventStream<DocumentT> run() throws IOException {
                 return osMongoCollection.watch();
             }
-        }, new EventDecoderImpl<>(getDocumentClass(), getCodecRegistry()));
+        });
     }
 
     /**
@@ -846,7 +845,7 @@ public class MongoCollection<DocumentT> {
             public EventStream<DocumentT> run() throws IOException {
                 return osMongoCollection.watch(ids);
             }
-        }, new EventDecoderImpl<>(getDocumentClass(), getCodecRegistry()));
+        });
     }
 
     /**
@@ -864,7 +863,7 @@ public class MongoCollection<DocumentT> {
             public EventStream<DocumentT> run() throws IOException {
                 return osMongoCollection.watch(ids);
             }
-        }, new EventDecoderImpl<>(getDocumentClass(), getCodecRegistry()));
+        });
     }
 
     /**
@@ -888,7 +887,7 @@ public class MongoCollection<DocumentT> {
             public EventStream<DocumentT> run() throws IOException {
                 return osMongoCollection.watchWithFilter(matchFilter);
             }
-        }, new EventDecoderImpl<>(getDocumentClass(), getCodecRegistry()));
+        });
     }
 
     /**
@@ -911,6 +910,6 @@ public class MongoCollection<DocumentT> {
             public EventStream<DocumentT> run() throws IOException {
                 return osMongoCollection.watchWithFilter(matchFilter);
             }
-        }, new EventDecoderImpl<>(getDocumentClass(), getCodecRegistry()));
+        });
     }
 }

@@ -39,7 +39,7 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.NativeObject;
 import io.realm.internal.Util;
-import io.realm.internal.network.NetworkEventStream;
+import io.realm.internal.events.NetworkEventStream;
 import io.realm.internal.objectserver.EventStream;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;

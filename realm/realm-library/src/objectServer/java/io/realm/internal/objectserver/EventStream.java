@@ -16,9 +16,9 @@
 
 package io.realm.internal.objectserver;
 
-import org.bson.BsonDocument;
-
 import java.io.IOException;
+
+import io.realm.mongodb.mongo.events.BaseChangeEvent;
 
 public interface EventStream<T> {
     /**
@@ -27,7 +27,7 @@ public interface EventStream<T> {
      * @return the next event
      * @throws IOException any io exception that could occur
      */
-    BsonDocument getNextEvent() throws IOException;
+    BaseChangeEvent<T> getNextEvent() throws IOException;
 
     /**
      * Closes the current stream.

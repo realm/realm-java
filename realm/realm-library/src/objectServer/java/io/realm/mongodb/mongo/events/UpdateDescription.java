@@ -46,10 +46,11 @@ public final class UpdateDescription {
 
     /**
      * Creates an update description with the specified updated fields and removed field names.
+     *
      * @param updatedFields Nested key-value pair representation of updated fields.
      * @param removedFields Collection of removed field names.
      */
-    public UpdateDescription(
+    UpdateDescription(
             final BsonDocument updatedFields,
             final Collection<String> removedFields
     ) {
@@ -146,6 +147,7 @@ public final class UpdateDescription {
 
     /**
      * Unilaterally merge an update description into this update description.
+     *
      * @param otherDescription the update description to merge into this
      * @return this merged update description
      */

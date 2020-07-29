@@ -18,15 +18,16 @@ package io.realm.internal.async
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.internal.objectserver.EventStream
-import io.realm.mongodb.mongo.events.EventDecoder
+import io.realm.mongodb.mongo.events.BaseChangeEvent
 import io.realm.rule.BlockingLooperThread
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.fail
-import org.bson.BsonDocument
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
+
+
 
 @RunWith(AndroidJUnit4::class)
 class RealmStreamTaskImplTest {
@@ -48,7 +49,7 @@ class RealmStreamTaskImplTest {
                     return object : EventStream<String> {
                         var opened: Boolean = true
 
-                        override fun getNextEvent(): BsonDocument {
+                        override fun getNextEvent(): BaseChangeEvent<String>? {
                             lock.lock()
 
                             syncLoadedCondition.signal()
@@ -56,7 +57,7 @@ class RealmStreamTaskImplTest {
 
                             lock.unlock()
 
-                            return BsonDocument()
+                            return null
                         }
 
                         override fun close() {
@@ -68,7 +69,7 @@ class RealmStreamTaskImplTest {
                         }
                     }
                 }
-            }, EventDecoder { null })
+            })
 
             lock.lock()
 
@@ -111,8 +112,8 @@ class RealmStreamTaskImplTest {
                     return object : EventStream<String> {
                         var opened: Boolean = true
 
-                        override fun getNextEvent(): BsonDocument {
-                            return BsonDocument()
+                        override fun getNextEvent(): BaseChangeEvent<String>? {
+                            return null
                         }
 
                         override fun close() {
@@ -124,7 +125,7 @@ class RealmStreamTaskImplTest {
                         }
                     }
                 }
-            }, EventDecoder { null })
+            })
 
             lock.lock()
 
@@ -159,9 +160,9 @@ class RealmStreamTaskImplTest {
                 return object : EventStream<String> {
                     var opened: Boolean = false
 
-                    override fun getNextEvent(): BsonDocument {
+                    override fun getNextEvent(): BaseChangeEvent<String>? {
                         opened = true
-                        return BsonDocument()
+                        return null
                     }
 
                     override fun close() {
@@ -173,7 +174,7 @@ class RealmStreamTaskImplTest {
                     }
                 }
             }
-        }, EventDecoder { null })
+        })
 
         assertEquals(false, task.isOpen)
         assertEquals(false, task.isCancelled)

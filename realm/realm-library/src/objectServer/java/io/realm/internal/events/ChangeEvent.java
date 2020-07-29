@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.mongodb.mongo.events;
+package io.realm.internal.events;
 
 import org.bson.BsonBoolean;
 import org.bson.BsonDocument;
@@ -24,8 +24,15 @@ import org.bson.codecs.DecoderContext;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import io.realm.mongodb.mongo.MongoNamespace;
+import io.realm.mongodb.mongo.events.BaseChangeEvent;
+import io.realm.mongodb.mongo.events.UpdateDescription;
 
 import static io.realm.internal.Util.keyPresent;
+import static io.realm.mongodb.mongo.events.BaseChangeEvent.OperationType.DELETE;
+import static io.realm.mongodb.mongo.events.BaseChangeEvent.OperationType.INSERT;
+import static io.realm.mongodb.mongo.events.BaseChangeEvent.OperationType.REPLACE;
+import static io.realm.mongodb.mongo.events.BaseChangeEvent.OperationType.UNKNOWN;
+import static io.realm.mongodb.mongo.events.BaseChangeEvent.OperationType.UPDATE;
 
 public class ChangeEvent<DocumentT> extends BaseChangeEvent<DocumentT> {
     private final BsonDocument id; // Metadata related to the operation (the resumeToken).
@@ -42,7 +49,7 @@ public class ChangeEvent<DocumentT> extends BaseChangeEvent<DocumentT> {
      * @param updateDescription The description of what has changed (for updates only).
      * @param hasUncommittedWrites Whether this represents a local uncommitted write.
      */
-    public ChangeEvent(
+    private ChangeEvent(
             final BsonDocument id,
             final OperationType operationType,
             final DocumentT fullDocument,
@@ -99,7 +106,7 @@ public class ChangeEvent<DocumentT> extends BaseChangeEvent<DocumentT> {
         final BsonDocument asDoc = new BsonDocument();
         asDoc.put(Fields.ID_FIELD, id);
 
-        asDoc.put(Fields.OPERATION_TYPE_FIELD, new BsonString(getOperationType().toRemote()));
+        asDoc.put(Fields.OPERATION_TYPE_FIELD, new BsonString(toRemote(getOperationType())));
 
         final BsonDocument nsDoc = new BsonDocument();
         nsDoc.put(Fields.NS_DB_FIELD, new BsonString(ns.getDatabaseName()));
@@ -126,7 +133,7 @@ public class ChangeEvent<DocumentT> extends BaseChangeEvent<DocumentT> {
      * @param document the serialized document
      * @return the deserialized change event
      */
-    public static <T> ChangeEvent<T> fromBsonDocument(final BsonDocument document, final Class<T> documentClass, CodecRegistry codecRegistry) {
+    static <T> ChangeEvent<T> fromBsonDocument(final BsonDocument document, final Class<T> documentClass, CodecRegistry codecRegistry) {
         keyPresent(Fields.ID_FIELD, document);
         keyPresent(Fields.OPERATION_TYPE_FIELD, document);
         keyPresent(Fields.NS_FIELD, document);
@@ -158,7 +165,7 @@ public class ChangeEvent<DocumentT> extends BaseChangeEvent<DocumentT> {
 
         return new ChangeEvent<>(
                 document.getDocument(Fields.ID_FIELD),
-                OperationType.fromRemote(document.getString(Fields.OPERATION_TYPE_FIELD).getValue()),
+                fromRemote(document.getString(Fields.OPERATION_TYPE_FIELD).getValue()),
                 fullDocument,
                 new MongoNamespace(
                         nsDoc.getString(Fields.NS_DB_FIELD).getValue(),
@@ -180,5 +187,48 @@ public class ChangeEvent<DocumentT> extends BaseChangeEvent<DocumentT> {
 
         static final String UPDATE_DESCRIPTION_FIELD = "updateDescription";
         static final String WRITE_PENDING_FIELD = "writePending";
+    }
+
+    /**
+     * Returns the appropriate local operation type enum value based on the remote operation type
+     * string from a change stream event.
+     *
+     * @param type the string description of the operation type.
+     * @return the operation type.
+     */
+    private static OperationType fromRemote(final String type) {
+        switch (type) {
+            case "insert":
+                return INSERT;
+            case "delete":
+                return DELETE;
+            case "replace":
+                return REPLACE;
+            case "update":
+                return UPDATE;
+            default:
+                return UNKNOWN;
+        }
+    }
+
+    /**
+     * Converts this operation to the remote string representation of the operation as
+     * represented in a {@link ChangeEvent} from a remote cluster.
+     *
+     * @return the remote representation of the update operation.
+     */
+    private String toRemote(OperationType operationType) {
+        switch (operationType) {
+            case INSERT:
+                return "insert";
+            case DELETE:
+                return "delete";
+            case REPLACE:
+                return "replace";
+            case UPDATE:
+                return "update";
+            default:
+                return "unknown";
+        }
     }
 }

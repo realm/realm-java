@@ -26,8 +26,10 @@ public abstract class BaseChangeEvent<DocumentT> {
     private final OperationType operationType;
     @Nullable
     private final DocumentT fullDocument;
-    @Nonnull private final BsonDocument documentKey;
-    @Nullable private final UpdateDescription updateDescription;
+    @Nonnull
+    private final BsonDocument documentKey;
+    @Nullable
+    private final UpdateDescription updateDescription;
 
     private final boolean hasUncommittedWrites;
 
@@ -81,7 +83,7 @@ public abstract class BaseChangeEvent<DocumentT> {
         return hasUncommittedWrites;
     }
 
-    BaseChangeEvent(
+    protected BaseChangeEvent(
             @Nonnull final OperationType operationType,
             @Nullable final DocumentT fullDocument,
             @Nonnull final BsonDocument documentKey,
@@ -91,7 +93,7 @@ public abstract class BaseChangeEvent<DocumentT> {
         this.operationType = operationType;
         this.fullDocument = fullDocument;
         this.documentKey = documentKey;
-        this.updateDescription = updateDescription == null
+        this.updateDescription = (updateDescription == null)
                 ? new UpdateDescription(null, null) : updateDescription;
         this.hasUncommittedWrites = hasUncommittedWrites;
     }
@@ -103,4 +105,8 @@ public abstract class BaseChangeEvent<DocumentT> {
      * @return The BSON document representation of the change event.
      */
     public abstract BsonDocument toBsonDocument();
+
+    public enum OperationType {
+        INSERT, DELETE, REPLACE, UPDATE, UNKNOWN;
+    }
 }

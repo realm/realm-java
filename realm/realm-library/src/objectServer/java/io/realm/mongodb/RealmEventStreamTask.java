@@ -19,7 +19,7 @@ package io.realm.mongodb;
 import java.io.IOException;
 
 import io.realm.RealmAsyncTask;
-import io.realm.mongodb.mongo.events.ChangeEvent;
+import io.realm.mongodb.mongo.events.BaseChangeEvent;
 
 
 /**
@@ -37,7 +37,7 @@ public interface RealmEventStreamTask<T> extends RealmAsyncTask {
      *
      * @return the result of the operation executed by this task.
      */
-    ChangeEvent<T> getNext() throws IOException;
+    BaseChangeEvent<T> getNext() throws IOException;
 
     /**
      * Provides a way to subscribe to asynchronous operations via a callback, which handles both
@@ -47,7 +47,7 @@ public interface RealmEventStreamTask<T> extends RealmAsyncTask {
      * @throws IllegalStateException if called from a thread without a {@link android.os.Looper} or
      *                               from an {@link android.app.IntentService} thread.
      */
-    void getAsync(App.Callback<ChangeEvent<T>> callback);
+    void getAsync(App.Callback<BaseChangeEvent<T>> callback);
 
     /**
      * Whether or not the stream is currently open.
