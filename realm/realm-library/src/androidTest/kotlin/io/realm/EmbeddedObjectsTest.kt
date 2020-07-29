@@ -141,7 +141,7 @@ class EmbeddedObjectsTest {
 
                     val childInParent = parent.getObject("child")
                     assertNotNull(childInParent)
-                    assertEquals(childInParent!!.getString("id"), idValue)
+                    assertEquals(childInParent!!.getString("childId"), idValue)
                     assertEquals(child, childInParent)
 
                     val linkingParent = child.linkingObjects("EmbeddedSimpleParent", "child") .first()
