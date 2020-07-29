@@ -25,7 +25,7 @@ import io.realm.mongodb.mongo.options.CountOptions
 import io.realm.mongodb.mongo.options.FindOneAndModifyOptions
 import io.realm.mongodb.mongo.options.FindOptions
 import io.realm.mongodb.mongo.options.UpdateOptions
-import io.realm.mongodb.mongo.remote.OperationType
+import io.realm.mongodb.mongo.events.OperationType
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.assertFailsWithErrorCode
 import io.realm.util.mongodb.CustomType

@@ -26,8 +26,8 @@ import io.realm.mongodb.App;
 import io.realm.mongodb.AppException;
 import io.realm.mongodb.ErrorCode;
 import io.realm.mongodb.RealmEventStreamTask;
-import io.realm.mongodb.mongo.remote.ChangeEvent;
-import io.realm.mongodb.mongo.remote.EventDecoder;
+import io.realm.mongodb.mongo.events.ChangeEvent;
+import io.realm.mongodb.mongo.events.EventDecoder;
 
 
 public class RealmEventStreamTaskImpl<T> implements RealmEventStreamTask<T> {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.mongodb.mongo.remote;
+package io.realm.mongodb.mongo.events;
 
 import org.bson.BsonDocument;
 import org.bson.codecs.configuration.CodecRegistry;

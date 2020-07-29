@@ -19,7 +19,7 @@ package io.realm.mongodb;
 import java.io.IOException;
 
 import io.realm.RealmAsyncTask;
-import io.realm.mongodb.mongo.remote.ChangeEvent;
+import io.realm.mongodb.mongo.events.ChangeEvent;
 
 
 /**

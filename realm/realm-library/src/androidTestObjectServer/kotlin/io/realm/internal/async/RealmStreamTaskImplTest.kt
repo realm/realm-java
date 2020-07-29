@@ -18,7 +18,7 @@ package io.realm.internal.async
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.internal.objectserver.EventStream
-import io.realm.mongodb.mongo.remote.EventDecoder
+import io.realm.mongodb.mongo.events.EventDecoder
 import io.realm.rule.BlockingLooperThread
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.fail

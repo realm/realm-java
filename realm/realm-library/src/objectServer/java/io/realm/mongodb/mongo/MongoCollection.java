@@ -46,7 +46,7 @@ import io.realm.mongodb.mongo.options.FindOneAndModifyOptions;
 import io.realm.mongodb.mongo.options.FindOptions;
 import io.realm.mongodb.mongo.options.InsertManyResult;
 import io.realm.mongodb.mongo.options.UpdateOptions;
-import io.realm.mongodb.mongo.remote.EventDecoderImpl;
+import io.realm.mongodb.mongo.events.EventDecoderImpl;
 import io.realm.mongodb.mongo.result.DeleteResult;
 import io.realm.mongodb.mongo.result.InsertOneResult;
 import io.realm.mongodb.mongo.result.UpdateResult;
