@@ -335,6 +335,10 @@ public class TestHelper {
         return key;
     }
 
+    public static int getRandomId() {
+        return Math.abs(RANDOM.nextInt());
+    }
+
     public static String getRandomEmail() {
         StringBuilder sb = new StringBuilder(UUID.randomUUID().toString().toLowerCase());
         sb.append('@');
