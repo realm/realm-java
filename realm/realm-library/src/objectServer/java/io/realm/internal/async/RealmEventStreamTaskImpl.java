@@ -32,10 +32,10 @@ import io.realm.mongodb.mongo.remote.EventDecoder;
 
 public class RealmEventStreamTaskImpl<T> implements RealmEventStreamTask<T> {
     private final Executor<T> executor;
-    private final EventDecoder<T> decoder;
-    private volatile EventStream<T> eventStream;
+    final EventDecoder<T> decoder;
+    volatile EventStream<T> eventStream;
     volatile boolean isCancelled;
-    private final ReentrantLock lock;
+    final ReentrantLock lock;
 
     public RealmEventStreamTaskImpl(final Executor<T> executor, EventDecoder<T> eventDecoder) {
         Util.checkNull(executor, "executor");
@@ -47,7 +47,7 @@ public class RealmEventStreamTaskImpl<T> implements RealmEventStreamTask<T> {
         this.decoder = eventDecoder;
     }
 
-    private synchronized EventStream<T> getEventStream() throws IOException {
+    synchronized EventStream<T> getEventStream() throws IOException {
         if (eventStream == null) {
             eventStream = executor.run();
         }
@@ -73,27 +73,29 @@ public class RealmEventStreamTaskImpl<T> implements RealmEventStreamTask<T> {
     public void getAsync(App.Callback<ChangeEvent<T>> callback) {
         Util.checkNull(callback, "callback");
 
-        new Thread(() -> {
-            if (lock.tryLock()) {
-                try {
-                    eventStream = getEventStream();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (lock.tryLock()) {
+                    try {
+                        eventStream = getEventStream();
 
-                    while (true) {
-                        ChangeEvent<T> nextEvent = decoder.transform(eventStream.getNextEvent());
+                        while (true) {
+                            ChangeEvent<T> nextEvent = decoder.transform(eventStream.getNextEvent());
 
-                        callback.onResult(App.Result.withResult(nextEvent));
+                            callback.onResult(App.Result.withResult(nextEvent));
+                        }
+                    } catch (IllegalStateException exception) {
+                        callback.onResult(App.Result.withError(new AppException(ErrorCode.FUNCTION_EXECUTION_ERROR, exception)));
+                    } catch (IOException | RuntimeException exception) {
+                        callback.onResult(App.Result.withError(new AppException(ErrorCode.NETWORK_IO_EXCEPTION, exception)));
+                    } finally {
+                        lock.unlock();
                     }
-                } catch (IOException exception) {
-                    callback.onResult(App.Result.withError(new AppException(ErrorCode.NETWORK_IO_EXCEPTION, exception)));
-                } catch (IllegalStateException exception) {
-                    callback.onResult(App.Result.withError(new AppException(ErrorCode.FUNCTION_EXECUTION_ERROR, exception)));
-                } finally {
-                    lock.unlock();
+                } else {
+                    callback.onResult(App.Result.withError(new AppException(ErrorCode.RUNTIME_EXCEPTION, new RuntimeException("Resource already open"))));
                 }
-            } else {
-                callback.onResult(App.Result.withError(new AppException(ErrorCode.RUNTIME_EXCEPTION, new RuntimeException("Resource already open"))));
             }
-
         }, "RealmStreamTaskThread")
                 .start();
     }

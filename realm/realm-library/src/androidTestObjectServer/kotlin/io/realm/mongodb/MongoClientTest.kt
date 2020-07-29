@@ -15,7 +15,6 @@
  */
 package io.realm.mongodb
 
-import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
@@ -40,7 +39,6 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.IOException
 import java.lang.IllegalStateException
 import kotlin.concurrent.thread
 import kotlin.test.*
@@ -932,7 +930,9 @@ class MongoClientTest {
                     looperThread.testComplete()
                 }
 
-                Thread.sleep(1000);
+                while (!watcher.isOpen) {
+                }
+
                 this.insertOne(insertedDocument).get()
 
                 val filter = Document("watch", "1")
@@ -943,7 +943,7 @@ class MongoClientTest {
     }
 
     @Test
-    fun watchStreamDocumentFilterSynchronous() {
+    fun watchStreamDocumentsFilterSynchronous() {
         looperThread.runBlocking {
             with(getCollectionInternal()) {
                 val type1 = Document("type", "1")
@@ -960,33 +960,20 @@ class MongoClientTest {
                 val watcher = this.watchWithFilter(filter)
 
                 thread {
-                    var eventCount = 0
-
-                    try {
-                        while (true) {
-                            watcher.next.let { changeEvent ->
-                                eventCount++
-
-                                assertEquals(OperationType.INSERT, changeEvent.operationType)
-                                assertEquals("1", changeEvent.fullDocument!!["type"])
-                            }
-                        }
-                    } catch (ignore: IOException) {
-                        Log.d("", "ERROR")
-                    } finally {
-                        assertEquals(1, eventCount)
-                        looperThread.testComplete()
+                    watcher.next.let { changeEvent ->
+                        assertEquals(OperationType.INSERT, changeEvent.operationType)
+                        assertEquals("1", changeEvent.fullDocument!!["type"])
                     }
+
+                    watcher.cancel()
+                    looperThread.testComplete()
                 }
 
-                Thread.sleep(1000)
+                while (!watcher.isOpen) {
+                }
 
-                this.insertOne(type1).get()
                 this.insertOne(type2).get()
-
-                Thread.sleep(1000)
-
-                watcher.cancel()
+                this.insertOne(type1).get()
             }
         }
     }
@@ -1009,33 +996,21 @@ class MongoClientTest {
                 val watcher = this.watchWithFilter(filter)
 
                 thread {
-                    var eventCount = 0
-
-                    try {
-                        while (true) {
-                            watcher.next.let { changeEvent ->
-                                eventCount++
-
-                                assertEquals(OperationType.INSERT, changeEvent.operationType)
-                                assertEquals("1", changeEvent.fullDocument!!["type"])
-                            }
-                        }
-                    } catch (ignore: IOException) {
-                        Log.d("", "ERROR")
-                    } finally {
-                        assertEquals(1, eventCount)
-                        looperThread.testComplete()
+                    watcher.next.let { changeEvent ->
+                        assertEquals(OperationType.INSERT, changeEvent.operationType)
+                        assertEquals("1", changeEvent.fullDocument!!["type"])
                     }
+
+                    watcher.cancel()
+                    looperThread.testComplete()
+
                 }
 
-                Thread.sleep(1000)
+                while (!watcher.isOpen) {
+                }
 
-                this.insertOne(type1).get()
                 this.insertOne(type2).get()
-
-                Thread.sleep(1000)
-
-                watcher.cancel()
+                this.insertOne(type1).get()
             }
         }
     }
@@ -1060,26 +1035,16 @@ class MongoClientTest {
                 val watcherObjectId = this.watch(doc1Id.insertedId.asObjectId().value)
 
                 thread {
-                    var eventCount = 0
-
-                    try {
-                        while (true) {
-                            watcherObjectId.next.let { changeEvent ->
-                                eventCount++
-
-                                assertEquals(OperationType.REPLACE, changeEvent.operationType)
-                                assertEquals("1", changeEvent.fullDocument!!["document"])
-                            }
-                        }
-                    } catch (ignore: IOException) {
-
-                    } finally {
-                        assertEquals(1, eventCount)
-                        looperThread.testComplete()
+                    watcherObjectId.next.let { changeEvent ->
+                        assertEquals(OperationType.REPLACE, changeEvent.operationType)
+                        assertEquals("1", changeEvent.fullDocument!!["document"])
                     }
+                    watcherObjectId.cancel()
+                    looperThread.testComplete()
                 }
 
-                Thread.sleep(1000)
+                while (!watcherObjectId.isOpen) {
+                }
 
                 doc1.apply {
                     this["num"] = 2
@@ -1092,12 +1057,8 @@ class MongoClientTest {
                 val filter1 = Document("_id", doc1Id.insertedId)
                 val filter2 = Document("_id", doc2Id.insertedId)
 
-                this.updateOne(filter1, doc1).get()
                 this.updateOne(filter2, doc2).get()
-
-                Thread.sleep(1000)
-
-                watcherObjectId.cancel()
+                this.updateOne(filter1, doc1).get()
             }
         }
     }
@@ -1122,26 +1083,17 @@ class MongoClientTest {
                 val watcherBsonValue = this.watch(doc1Id.insertedId)
 
                 thread {
-                    var eventCount = 0
-
-                    try {
-                        while (true) {
-                            watcherBsonValue.next.let { changeEvent ->
-                                eventCount++
-
-                                assertEquals(OperationType.REPLACE, changeEvent.operationType)
-                                assertEquals("1", changeEvent.fullDocument!!["document"])
-                            }
-                        }
-                    } catch (ignore: IOException) {
-
-                    } finally {
-                        assertEquals(1, eventCount)
-                        looperThread.testComplete()
+                    watcherBsonValue.next.let { changeEvent ->
+                        assertEquals(OperationType.REPLACE, changeEvent.operationType)
+                        assertEquals("1", changeEvent.fullDocument!!["document"])
                     }
+
+                    watcherBsonValue.cancel()
+                    looperThread.testComplete()
                 }
 
-                Thread.sleep(1000)
+                while (!watcherBsonValue.isOpen) {
+                }
 
                 doc1.apply {
                     this["num"] = 2
@@ -1154,12 +1106,8 @@ class MongoClientTest {
                 val filter1 = Document("_id", doc1Id.insertedId)
                 val filter2 = Document("_id", doc2Id.insertedId)
 
-                this.updateOne(filter1, doc1).get()
                 this.updateOne(filter2, doc2).get()
-
-                Thread.sleep(1000)
-
-                watcherBsonValue.cancel()
+                this.updateOne(filter1, doc1).get()
             }
         }
     }
@@ -1197,6 +1145,8 @@ class MongoClientTest {
                                 2 -> {
                                     assertEquals(OperationType.DELETE, changeEvent.operationType)
                                     assertNull(changeEvent.fullDocument)
+
+                                    watcher.cancel()
                                 }
                             }
                         }
@@ -1204,23 +1154,21 @@ class MongoClientTest {
                         eventCount++
                     } else {
                         when (it.error.errorCode) {
-                            ErrorCode.NETWORK_IO_EXCEPTION -> looperThread.testComplete()
+                            ErrorCode.FUNCTION_EXECUTION_ERROR -> looperThread.testComplete()
                             else -> fail()
                         }
                         looperThread.testComplete()
                     }
                 }
 
-                Thread.sleep(1000);
+                while (!watcher.isOpen) {
+                }
 
                 this.insertOne(insertedDocument).get()
 
                 val filter = Document("watch", "1")
                 this.updateOne(filter, updatedDocument).get()
                 this.deleteOne(filter).get()
-
-                Thread.sleep(1000);
-                watcher.cancel()
             }
         }
     }
@@ -1232,7 +1180,7 @@ class MongoClientTest {
                 val watcher = this.watch()
 
                 thread {
-                    assertFailsWith<IOException> {
+                    assertFailsWith<IllegalStateException> {
                         watcher.next
                     }
 
@@ -1242,7 +1190,10 @@ class MongoClientTest {
                     looperThread.testComplete()
                 }
 
-                Thread.sleep(1000);
+
+                while (!watcher.isOpen) {
+                }
+
                 watcher.cancel()
             }
         }
@@ -1258,16 +1209,18 @@ class MongoClientTest {
                     if (it.isSuccess) {
                         fail()
                     } else {
-                        assertEquals(ErrorCode.NETWORK_IO_EXCEPTION, it.error.errorCode)
-                        watcher.cancel()
+                        assertEquals(ErrorCode.FUNCTION_EXECUTION_ERROR, it.error.errorCode)
 
                         assertEquals(false, watcher.isOpen)
                         assertEquals(true, watcher.isCancelled)
+
                         looperThread.testComplete()
                     }
                 }
 
-                Thread.sleep(1000);
+                while (!watcher.isOpen) {
+                }
+
                 watcher.cancel()
             }
         }
