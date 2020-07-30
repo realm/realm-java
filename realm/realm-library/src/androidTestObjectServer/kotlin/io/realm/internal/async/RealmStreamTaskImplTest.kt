@@ -44,7 +44,7 @@ class RealmStreamTaskImplTest {
             val syncLoadedCondition = lock.newCondition()
             val asyncLoadedCondition = lock.newCondition()
 
-            val task = RealmEventStreamTaskImpl(object : RealmEventStreamTaskImpl.Executor<String>() {
+            val task = RealmEventStreamTaskImpl("test", object : RealmEventStreamTaskImpl.Executor<String>() {
                 override fun run(): EventStream<String> {
                     return object : EventStream<String> {
                         var opened: Boolean = true
@@ -107,7 +107,7 @@ class RealmStreamTaskImplTest {
             val syncLoadedCondition = lock.newCondition()
             val asyncLoadedCondition = lock.newCondition()
 
-            val task = RealmEventStreamTaskImpl(object : RealmEventStreamTaskImpl.Executor<String>() {
+            val task = RealmEventStreamTaskImpl("test", object : RealmEventStreamTaskImpl.Executor<String>() {
                 override fun run(): EventStream<String> {
                     return object : EventStream<String> {
                         var opened: Boolean = true
@@ -155,7 +155,7 @@ class RealmStreamTaskImplTest {
 
     @Test
     fun openClose() {
-        val task = RealmEventStreamTaskImpl(object : RealmEventStreamTaskImpl.Executor<String>() {
+        val task = RealmEventStreamTaskImpl("test", object : RealmEventStreamTaskImpl.Executor<String>() {
             override fun run(): EventStream<String> {
                 return object : EventStream<String> {
                     var opened: Boolean = false

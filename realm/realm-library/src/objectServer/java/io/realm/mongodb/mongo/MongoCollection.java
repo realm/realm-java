@@ -823,13 +823,14 @@ public class MongoCollection<DocumentT> {
      * @return a task that provides access to the stream of change events.
      */
     public RealmEventStreamTask<DocumentT> watch() {
-        return new RealmEventStreamTaskImpl<>(new RealmEventStreamTaskImpl.Executor<DocumentT>() {
-            @NonNull
-            @Override
-            public EventStream<DocumentT> run() throws IOException {
-                return osMongoCollection.watch();
-            }
-        });
+        return new RealmEventStreamTaskImpl<>(getNamespace().getFullName(),
+                new RealmEventStreamTaskImpl.Executor<DocumentT>() {
+                    @NonNull
+                    @Override
+                    public EventStream<DocumentT> run() throws IOException {
+                        return osMongoCollection.watch();
+                    }
+                });
     }
 
     /**
@@ -839,13 +840,14 @@ public class MongoCollection<DocumentT> {
      * @return a task that provides access to the stream of change events.
      */
     public RealmEventStreamTask<DocumentT> watch(final BsonValue... ids) {
-        return new RealmEventStreamTaskImpl<>(new RealmEventStreamTaskImpl.Executor<DocumentT>() {
-            @NonNull
-            @Override
-            public EventStream<DocumentT> run() throws IOException {
-                return osMongoCollection.watch(ids);
-            }
-        });
+        return new RealmEventStreamTaskImpl<>(getNamespace().getFullName(),
+                new RealmEventStreamTaskImpl.Executor<DocumentT>() {
+                    @NonNull
+                    @Override
+                    public EventStream<DocumentT> run() throws IOException {
+                        return osMongoCollection.watch(ids);
+                    }
+                });
     }
 
     /**
@@ -857,13 +859,14 @@ public class MongoCollection<DocumentT> {
      * @return a task that provides access to the stream of change events.
      */
     public RealmEventStreamTask<DocumentT> watch(final ObjectId... ids) {
-        return new RealmEventStreamTaskImpl<>(new RealmEventStreamTaskImpl.Executor<DocumentT>() {
-            @NonNull
-            @Override
-            public EventStream<DocumentT> run() throws IOException {
-                return osMongoCollection.watch(ids);
-            }
-        });
+        return new RealmEventStreamTaskImpl<>(getNamespace().getFullName(),
+                new RealmEventStreamTaskImpl.Executor<DocumentT>() {
+                    @NonNull
+                    @Override
+                    public EventStream<DocumentT> run() throws IOException {
+                        return osMongoCollection.watch(ids);
+                    }
+                });
     }
 
     /**
@@ -881,13 +884,14 @@ public class MongoCollection<DocumentT> {
      * @return a task that provides access to the stream of change events.
      */
     public RealmEventStreamTask<DocumentT> watchWithFilter(Document matchFilter) {
-        return new RealmEventStreamTaskImpl<>(new RealmEventStreamTaskImpl.Executor<DocumentT>() {
-            @NonNull
-            @Override
-            public EventStream<DocumentT> run() throws IOException {
-                return osMongoCollection.watchWithFilter(matchFilter);
-            }
-        });
+        return new RealmEventStreamTaskImpl<>(getNamespace().getFullName(),
+                new RealmEventStreamTaskImpl.Executor<DocumentT>() {
+                    @NonNull
+                    @Override
+                    public EventStream<DocumentT> run() throws IOException {
+                        return osMongoCollection.watchWithFilter(matchFilter);
+                    }
+                });
     }
 
     /**
@@ -904,12 +908,13 @@ public class MongoCollection<DocumentT> {
      * @return a task that provides access to the stream of change events.
      */
     public RealmEventStreamTask<DocumentT> watchWithFilter(BsonDocument matchFilter) {
-        return new RealmEventStreamTaskImpl<>(new RealmEventStreamTaskImpl.Executor<DocumentT>() {
-            @NonNull
-            @Override
-            public EventStream<DocumentT> run() throws IOException {
-                return osMongoCollection.watchWithFilter(matchFilter);
-            }
-        });
+        return new RealmEventStreamTaskImpl<>(getNamespace().getFullName(),
+                new RealmEventStreamTaskImpl.Executor<DocumentT>() {
+                    @NonNull
+                    @Override
+                    public EventStream<DocumentT> run() throws IOException {
+                        return osMongoCollection.watchWithFilter(matchFilter);
+                    }
+                });
     }
 }

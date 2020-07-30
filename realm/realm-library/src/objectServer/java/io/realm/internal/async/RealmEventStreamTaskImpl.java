@@ -29,18 +29,20 @@ import io.realm.mongodb.RealmEventStreamTask;
 import io.realm.mongodb.mongo.events.BaseChangeEvent;
 
 public class RealmEventStreamTaskImpl<T> implements RealmEventStreamTask<T> {
+    private final String name;
     private final Executor<T> executor;
     volatile EventStream<T> eventStream;
     volatile boolean isCancelled;
     final ReentrantLock lock;
 
-    public RealmEventStreamTaskImpl(final Executor<T> executor) {
+    public RealmEventStreamTaskImpl(final String name, final Executor<T> executor) {
         Util.checkNull(executor, "executor");
         Util.checkNull(executor, "documentClass");
         Util.checkNull(executor, "codecRegistry");
 
         this.lock = new ReentrantLock();
         this.executor = executor;
+        this.name = name;
     }
 
     synchronized EventStream<T> getEventStream() throws IOException {
@@ -92,7 +94,7 @@ public class RealmEventStreamTaskImpl<T> implements RealmEventStreamTask<T> {
                     callback.onResult(App.Result.withError(new AppException(ErrorCode.RUNTIME_EXCEPTION, new RuntimeException("Resource already open"))));
                 }
             }
-        }, "RealmStreamTaskThread")
+        }, String.format("RealmStreamTask|%s", name))
                 .start();
     }
 
