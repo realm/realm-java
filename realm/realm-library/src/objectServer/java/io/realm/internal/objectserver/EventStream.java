@@ -34,7 +34,7 @@ public interface EventStream<T> {
      *
      * @throws IOException can throw exception if internal buffer not closed properly
      */
-    void close() throws IOException;
+    void close();
 
     /**
      * Indicates whether or not the change stream is currently open.

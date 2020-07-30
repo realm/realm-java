@@ -94,7 +94,7 @@ public abstract class OsJavaNetworkTransport {
         customHeaders.clear();
     }
 
-    public static abstract class Response implements Closeable {
+    public static abstract class Response {
         private final int httpResponseCode;
         private final int customResponseCode;
         private final Map<String, String> headers;
@@ -154,6 +154,16 @@ public abstract class OsJavaNetworkTransport {
                     ", body='" + body + '\'' +
                     '}';
         }
+
+        /**
+         * Closes the current stream.
+         *
+         * Note: we use a close flag because the underlaying input stream might not be thread safe.
+         * @see <a href="http://google.com">https://github.com/square/okio/issues/163#issuecomment-127052956</a>
+         *
+         * @throws IOException can throw exception if internal buffer not closed properly
+         */
+        public abstract void close();
     }
 
     public static class Request {

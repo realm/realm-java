@@ -32,27 +32,29 @@ public class NetworkEventStream<T> implements EventStream<T> {
     public BaseChangeEvent<T> getNextEvent() throws IOException {
         String line;
 
-        while ((line = response.readBodyLine()) != null) {
+        while ((((line = response.readBodyLine())) != null)) {
             watchStream.feedLine(line);
 
             if (watchStream.getState().equals(OsWatchStream.HAVE_EVENT))
                 return ChangeEvent.fromBsonDocument(watchStream.getNextEvent(), documentClass, codecRegistry);
             if (watchStream.getState().equals(OsWatchStream.HAVE_ERROR)) {
                 response.close();
-                throw new IllegalStateException("Watch stream has error");
+                throw new IOException("Watch stream has error");
             }
         }
 
-        return null;
+        throw new IOException("Stream closed");
     }
 
     /**
      * Closes the current stream.
+     * <p>
+     * Note: we use a close flag because the underlaying input stream might not be thread safe.
      *
-     * @throws IOException can throw exception if internal buffer not closed properly
+     * @see <a href="http://google.com">https://github.com/square/okio/issues/163#issuecomment-127052956</a>
      */
     @Override
-    public void close() throws IOException {
+    public void close() {
         response.close();
     }
 

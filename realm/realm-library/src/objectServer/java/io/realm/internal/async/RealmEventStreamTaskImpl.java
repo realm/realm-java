@@ -83,9 +83,7 @@ public class RealmEventStreamTaskImpl<T> implements RealmEventStreamTask<T> {
 
                             callback.onResult(App.Result.withResult(nextEvent));
                         }
-                    } catch (IllegalStateException exception) {
-                        callback.onResult(App.Result.withError(new AppException(ErrorCode.FUNCTION_EXECUTION_ERROR, exception)));
-                    } catch (IOException | RuntimeException exception) {
+                    } catch (IOException exception) {
                         callback.onResult(App.Result.withError(new AppException(ErrorCode.NETWORK_IO_EXCEPTION, exception)));
                     } finally {
                         lock.unlock();
@@ -107,10 +105,7 @@ public class RealmEventStreamTaskImpl<T> implements RealmEventStreamTask<T> {
     public void cancel() {
         if (eventStream != null) {
             isCancelled = true;
-            try {
-                eventStream.close();
-            } catch (IOException ignored) {
-            }
+            eventStream.close();
         }
     }
 

@@ -39,6 +39,7 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.IOException
 import java.lang.IllegalStateException
 import kotlin.concurrent.thread
 import kotlin.test.*
@@ -1169,7 +1170,7 @@ class MongoClientTest {
                         eventCount++
                     } else {
                         when (it.error.errorCode) {
-                            ErrorCode.FUNCTION_EXECUTION_ERROR -> looperThread.testComplete()
+                            ErrorCode.NETWORK_IO_EXCEPTION -> looperThread.testComplete()
                             else -> fail()
                         }
                         looperThread.testComplete()
@@ -1198,7 +1199,7 @@ class MongoClientTest {
                 val watcher = this.watch()
 
                 thread {
-                    assertFailsWith<IllegalStateException> {
+                    assertFailsWith<IOException> {
                         watcher.next
                     }
 
@@ -1229,7 +1230,7 @@ class MongoClientTest {
                     if (it.isSuccess) {
                         fail()
                     } else {
-                        assertEquals(ErrorCode.FUNCTION_EXECUTION_ERROR, it.error.errorCode)
+                        assertEquals(ErrorCode.NETWORK_IO_EXCEPTION, it.error.errorCode)
 
                         assertEquals(false, watcher.isOpen)
                         assertEquals(true, watcher.isCancelled)
@@ -1254,7 +1255,7 @@ class MongoClientTest {
         with(getCollectionInternal()) {
             val watcher = this.watch()
 
-            val exception = assertFailsWith<IllegalStateException> {
+            val exception = assertFailsWith<IOException> {
                 watcher.next
             }
 

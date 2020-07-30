@@ -16,7 +16,6 @@ import okhttp3.ConnectionPool;
 import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import okio.BufferedSource;
@@ -152,6 +151,7 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
 
     public static class OkHttpResponse extends OsJavaNetworkTransport.Response {
         private BufferedSource bufferedSource;
+        private volatile boolean closed;
 
         public static Response unknownError(String stacktrace) {
             return new OkHttpResponse(0, ERROR_UNKNOWN, new HashMap<>(), stacktrace);
@@ -185,17 +185,28 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
 
         @Override
         public String readBodyLine() throws IOException {
-            return bufferedSource.readUtf8LineStrict();
+            if(!closed){
+                return bufferedSource.readUtf8LineStrict();
+            } else{
+                bufferedSource.close();
+                throw new IOException("Stream closed");
+            }
+        }
+
+        /**
+         * Closes the current stream.
+         *
+         * Note: we use a close flag because okio buffers are not thread safe:
+         * @see <a href="http://google.com">https://github.com/square/okio/issues/163#issuecomment-127052956</a>
+         */
+        @Override
+        public void close() {
+            closed = true;
         }
 
         @Override
-        public void close() throws IOException {
-            bufferedSource.close();
-        }
-        
-        @Override
         public boolean isOpen() {
-            return bufferedSource.isOpen();
+            return !closed && bufferedSource.isOpen();
         }
     }
 
