@@ -22,9 +22,33 @@ import java.io.IOException;
 
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 
+/**
+ * StreamNetworkTransport provides an interface to the Realm remote streaming functions.
+ * Such functions are package protected and this class offers a portable way to access them.
+ *
+ * @see io.realm.mongodb.StreamNetworkTransportImpl
+ */
 public abstract class StreamNetworkTransport {
-    public abstract OsJavaNetworkTransport.Request makeStreamingRequest(String functionName, BsonArray bsonArgs, String serviceName);
+    /**
+     * Creates a request for a streaming function
+     *
+     * @param functionName name of the function
+     * @param bsonArgs     function arguments as a {@link BsonArray}
+     * @param serviceName  service that will handle the function
+     * @return {@link io.realm.internal.objectstore.OsJavaNetworkTransport.Request}
+     */
+    public abstract OsJavaNetworkTransport.Request makeStreamingRequest(String functionName,
+                                                                        BsonArray bsonArgs,
+                                                                        String serviceName);
 
-    public abstract OsJavaNetworkTransport.Response sendRequest(OsJavaNetworkTransport.Request request) throws IOException;
+    /**
+     * Executes a given request
+     *
+     * @param request to execute
+     * @return {@link io.realm.internal.objectstore.OsJavaNetworkTransport.Response}
+     * @throws IOException
+     */
+    public abstract OsJavaNetworkTransport.Response
+    sendRequest(OsJavaNetworkTransport.Request request) throws IOException;
 
 }

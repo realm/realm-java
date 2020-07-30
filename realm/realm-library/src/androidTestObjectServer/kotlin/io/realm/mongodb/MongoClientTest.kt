@@ -930,6 +930,9 @@ class MongoClientTest {
                     looperThread.testComplete()
                 }
 
+                // Busy wait till watcher is ready to receive updates.
+                // It syncs the event producer thread (current thread) with
+                // the event consumer thread.
                 while (!watcher.isOpen) {
                 }
 
@@ -969,6 +972,9 @@ class MongoClientTest {
                     looperThread.testComplete()
                 }
 
+                // Busy wait till watcher is ready to receive updates.
+                // It syncs the event producer thread (current thread) with
+                // the event consumer thread.
                 while (!watcher.isOpen) {
                 }
 
@@ -1006,6 +1012,9 @@ class MongoClientTest {
 
                 }
 
+                // Busy wait till watcher is ready to receive updates.
+                // It syncs the event producer thread (current thread) with
+                // the event consumer thread.
                 while (!watcher.isOpen) {
                 }
 
@@ -1043,6 +1052,9 @@ class MongoClientTest {
                     looperThread.testComplete()
                 }
 
+                // Busy wait till watcher is ready to receive updates.
+                // It syncs the event producer thread (current thread) with
+                // the event consumer thread.
                 while (!watcherObjectId.isOpen) {
                 }
 
@@ -1092,6 +1104,9 @@ class MongoClientTest {
                     looperThread.testComplete()
                 }
 
+                // Busy wait till watcher is ready to receive updates.
+                // It syncs the event producer thread (current thread) with
+                // the event consumer thread.
                 while (!watcherBsonValue.isOpen) {
                 }
 
@@ -1161,6 +1176,9 @@ class MongoClientTest {
                     }
                 }
 
+                // Busy wait till watcher is ready to receive updates.
+                // It syncs the event producer thread (current thread) with
+                // the event consumer thread.
                 while (!watcher.isOpen) {
                 }
 
@@ -1190,7 +1208,9 @@ class MongoClientTest {
                     looperThread.testComplete()
                 }
 
-
+                // Busy wait till watcher is ready to receive updates.
+                // It syncs the event producer thread (current thread) with
+                // the event consumer thread.
                 while (!watcher.isOpen) {
                 }
 
@@ -1218,6 +1238,9 @@ class MongoClientTest {
                     }
                 }
 
+                // Busy wait till watcher is ready to receive updates.
+                // It syncs the event producer thread (current thread) with
+                // the event consumer thread.
                 while (!watcher.isOpen) {
                 }
 

@@ -38,7 +38,7 @@ public class StreamNetworkTransportImpl extends StreamNetworkTransport {
     }
 
     @Override
-    public OsJavaNetworkTransport.Response sendRequest(OsJavaNetworkTransport.Request request) throws IOException {
+    public OsJavaNetworkTransport.Response sendRequest(OsJavaNetworkTransport.Request request) throws IOException, AppException {
         return app.networkTransport.sendStreamingRequest(request);
     }
 }

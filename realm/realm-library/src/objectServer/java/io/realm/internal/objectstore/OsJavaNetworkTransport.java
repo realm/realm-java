@@ -22,6 +22,7 @@ import java.util.Map;
 
 import io.realm.internal.Keep;
 import io.realm.mongodb.AppConfiguration;
+import io.realm.mongodb.AppException;
 
 /**
  * Java implementation of the transport layer exposed by ObjectStore when communicating with
@@ -55,7 +56,18 @@ public abstract class OsJavaNetworkTransport {
      */
     protected abstract Response sendRequest(String method, String url, long timeoutMs, Map<String, String> headers, String body);
 
-    public abstract Response sendStreamingRequest(Request request) throws IOException;
+    /**
+     * This method is being called from Java when executing streaming requests.
+     * It returns a {@link Response} which body can be access line by line.
+     *
+     * Warning: this method and the returning {@link Response} throws exceptions
+     *
+     * @param request streaming request
+     * @return Result of the request.
+     * @throws IOException if the request fails to execute
+     * @throws AppException on an http error
+     */
+    public abstract Response sendStreamingRequest(Request request) throws IOException, AppException;
 
     public void setAuthorizationHeaderName(String headerName) {
         authorizationHeaderName = headerName;

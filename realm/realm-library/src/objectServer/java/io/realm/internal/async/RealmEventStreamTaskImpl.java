@@ -31,9 +31,9 @@ import io.realm.mongodb.mongo.events.BaseChangeEvent;
 public class RealmEventStreamTaskImpl<T> implements RealmEventStreamTask<T> {
     private final String name;
     private final Executor<T> executor;
-    volatile EventStream<T> eventStream;
-    volatile boolean isCancelled;
-    final ReentrantLock lock;
+    private volatile EventStream<T> eventStream;
+    private volatile boolean isCancelled;
+    private final ReentrantLock lock;
 
     public RealmEventStreamTaskImpl(final String name, final Executor<T> executor) {
         Util.checkNull(executor, "executor");

@@ -57,7 +57,7 @@ import io.realm.mongodb.functions.Functions;
 
 /**
  * An <i>App</i> is the main client-side entry point for interacting with a <i>MongoDB Realm App</i>.
- *
+ * <p>
  * The <i>App</i> can be used to:
  * <ul>
  *   <li>Register uses and perform various user-related operations through authentication providers
@@ -97,7 +97,7 @@ import io.realm.mongodb.functions.Functions;
  * show the synchronized APIs which cannot be used from the main thread. For the equivalent
  * asynchronous counterparts. The example project in please see
  * https://github.com/realm/realm-java/tree/v10/examples/mongoDbRealmExample.
- *
+ * <p>
  * To register a new user and/or login with an existing user do as shown below:
  * <pre>
  *     // Register new user
@@ -188,7 +188,6 @@ public class App {
      * Constructor for creating an <i>App</i> according to the given <i>AppConfiguration</i>.
      *
      * @param config The configuration to use for this <i>App</i> instance.
-     *
      * @see AppConfiguration.Builder
      */
     public App(AppConfiguration config) {
@@ -419,11 +418,11 @@ public class App {
      * {@link #switchUser(User)}.
      *
      * @param credentials the credentials representing the type of login.
-     * @param callback callback when logging in has completed or failed. The callback will always
-     * happen on the same thread as this method is called on.
+     * @param callback    callback when logging in has completed or failed. The callback will always
+     *                    happen on the same thread as this method is called on.
      * @throws IllegalStateException if not called on a looper thread.
      */
-     public RealmAsyncTask loginAsync(Credentials credentials, Callback<User> callback) {
+    public RealmAsyncTask loginAsync(Credentials credentials, Callback<User> callback) {
         Util.checkLooperThread("Asynchronous log in is only possible from looper threads.");
         return new Request<User>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
@@ -440,8 +439,8 @@ public class App {
      * @return wrapper for interacting with the {@link Credentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
      */
     public EmailPasswordAuth getEmailPasswordAuth() {
-         return emailAuthProvider;
-     }
+        return emailAuthProvider;
+    }
 
     /**
      * Sets a global authentication listener that will be notified about User events like
@@ -514,14 +513,26 @@ public class App {
         return config;
     }
 
-    OsJavaNetworkTransport.Request makeStreamingRequest(User user, String functionName, BsonArray bsonArgs, String serviceName) {
+    /**
+     * Creates a request for a streaming function
+     *
+     * @param user         that requests the execution
+     * @param functionName name of the function
+     * @param bsonArgs     function arguments as a {@link BsonArray}
+     * @param serviceName  service that will handle the function
+     * @return {@link io.realm.internal.objectstore.OsJavaNetworkTransport.Request}
+     */
+    OsJavaNetworkTransport.Request makeStreamingRequest(User user,
+                                                        String functionName,
+                                                        BsonArray bsonArgs,
+                                                        String serviceName) {
         final String encodedArguments = JniBsonProtocol.encode(bsonArgs, config.getDefaultCodecRegistry());
         return nativeMakeStreamingRequest(nativePtr, user.osUser.getNativePtr(), functionName, encodedArguments, serviceName);
     }
 
     /**
      * Exposed for testing.
-     *
+     * <p>
      * Swap the currently configured network transport with the provided one.
      * This should only be done if no network requests are currently running.
      */
@@ -529,7 +540,8 @@ public class App {
         networkTransport = transport;
     }
 
-    @KeepMember // Called from JNI
+    @KeepMember
+        // Called from JNI
     OsJavaNetworkTransport getNetworkTransport() {
         return networkTransport;
     }
@@ -655,10 +667,15 @@ public class App {
                                      String platform,
                                      String platformVersion,
                                      String sdkVersion);
+
     private static native void nativeLogin(long nativeAppPtr, long nativeCredentialsPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+
     @Nullable
     private static native Long nativeCurrentUser(long nativePtr);
+
     private static native long[] nativeGetAllUsers(long nativePtr);
+
     private static native void nativeSwitchUser(long nativeAppPtr, long nativeUserPtr);
+
     private static native OsJavaNetworkTransport.Request nativeMakeStreamingRequest(long nativeAppPtr, long nativeUserPtr, String functionName, String bsonArgs, String serviceName);
 }

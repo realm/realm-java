@@ -16,6 +16,7 @@ import okhttp3.ConnectionPool;
 import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import okio.BufferedSource;
@@ -34,37 +35,45 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
         this.httpLogObfuscator = httpLogObfuscator;
     }
 
+    private okhttp3.Request makeRequest(String method, String url, Map<String, String> headers, String body){
+        okhttp3.Request.Builder builder = new okhttp3.Request.Builder().url(url);
+        switch (method) {
+            case "get":
+                builder.get();
+                break;
+            case "delete":
+                builder.delete(RequestBody.create(JSON, body));
+                break;
+            case "patch":
+                builder.patch(RequestBody.create(JSON, body));
+                break;
+            case "post":
+                builder.post(RequestBody.create(JSON, body));
+                break;
+            case "put":
+                builder.put(RequestBody.create(JSON, body));
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown method type: " + method);
+        }
+
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            builder.addHeader(entry.getKey(), entry.getValue());
+        }
+
+        return builder.build();
+    }
+
     @Override
     public Response sendRequest(String method, String url, long timeoutMs, Map<String, String> headers, String body) {
         try {
             OkHttpClient client = getClient(timeoutMs);
+
             okhttp3.Response response = null;
             try {
-                okhttp3.Request.Builder builder = new okhttp3.Request.Builder().url(url);
-                switch (method) {
-                    case "get":
-                        builder.get();
-                        break;
-                    case "delete":
-                        builder.delete(RequestBody.create(JSON, body));
-                        break;
-                    case "patch":
-                        builder.patch(RequestBody.create(JSON, body));
-                        break;
-                    case "post":
-                        builder.post(RequestBody.create(JSON, body));
-                        break;
-                    case "put":
-                        builder.put(RequestBody.create(JSON, body));
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Unknown method type: " + method);
-                }
+                okhttp3.Request request = makeRequest(method, url, headers, body);
 
-                for (Map.Entry<String, String> entry : headers.entrySet()) {
-                    builder.addHeader(entry.getKey(), entry.getValue());
-                }
-                Call call = client.newCall(builder.build());
+                Call call = client.newCall(request);
                 response = call.execute();
                 ResponseBody responseBody = response.body();
                 String result = "";
@@ -87,34 +96,12 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
     }
 
     @Override
-    public Response sendStreamingRequest(Request request) throws IOException {
-        okhttp3.Request.Builder builder = new okhttp3.Request.Builder().url(request.getUrl());
-        switch (request.getMethod()) {
-            case "get":
-                builder.get();
-                break;
-            case "delete":
-                builder.delete(RequestBody.create(JSON, request.getBody()));
-                break;
-            case "patch":
-                builder.patch(RequestBody.create(JSON, request.getBody()));
-                break;
-            case "post":
-                builder.post(RequestBody.create(JSON, request.getBody()));
-                break;
-            case "put":
-                builder.put(RequestBody.create(JSON, request.getBody()));
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown method type: " + request.getMethod());
-        }
-
-        for (Map.Entry<String, String> entry : request.getHeaders().entrySet()) {
-            builder.addHeader(entry.getKey(), entry.getValue());
-        }
-
+    public Response sendStreamingRequest(Request request) throws IOException, AppException {
         OkHttpClient client = getStreamClient();
-        Call call = client.newCall(builder.build());
+
+        okhttp3.Request okRequest = makeRequest(request.getMethod(), request.getUrl(), request.getHeaders(), request.getBody());
+
+        Call call = client.newCall(okRequest);
         okhttp3.Response response = call.execute();
 
         if((response.code() >= 300) || ((response.code() < 200) && (response.code() != 0))) {
