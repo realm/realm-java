@@ -875,7 +875,7 @@ public class MongoCollection<DocumentT> {
      * around how to define a match filter.
      * <p>
      * Defining the match expression to filter ChangeEvents is similar to defining the match
-     * expression for triggers: https://docs.mongodb.com/stitch/triggers/database-triggers/
+     * expression for triggers: https://docs.mongodb.com/realm/triggers/database-triggers/
      *
      * @param matchFilter the $match filter to apply to incoming change events
      * @return a task that provides access to the stream of change events.
@@ -898,7 +898,7 @@ public class MongoCollection<DocumentT> {
      * around how to define a match filter.
      * <p>
      * Defining the match expression to filter ChangeEvents is similar to defining the match
-     * expression for triggers: https://docs.mongodb.com/stitch/triggers/database-triggers/
+     * expression for triggers: https://docs.mongodb.com/realm/triggers/database-triggers/
      *
      * @param matchFilter the $match filter to apply to incoming change events
      * @return a task that provides access to the stream of change events.

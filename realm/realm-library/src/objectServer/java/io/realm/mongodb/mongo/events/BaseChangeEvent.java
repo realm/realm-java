@@ -21,6 +21,12 @@ import org.bson.BsonDocument;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * Represents the set of properties that exist on all MongoDB realm change events produced
+ * by watch streams in this SDK. Other change event types inherit from this type.
+ *
+ * @param <DocumentT> The type of the full document in the change event.
+ */
 public abstract class BaseChangeEvent<DocumentT> {
     @Nonnull
     private final OperationType operationType;
@@ -99,13 +105,16 @@ public abstract class BaseChangeEvent<DocumentT> {
     }
 
     /**
-     * Converts the change event to a BSON representation, as it would look on a MongoDB change
-     * stream, or a Stitch compact watch stream.
+     * Converts the change event to a BSON representation, as it would look on a MongoDB realm change
+     * stream, or a Realm compact watch stream.
      *
      * @return The BSON document representation of the change event.
      */
     public abstract BsonDocument toBsonDocument();
 
+    /**
+     * Represents the different MongoDB operations that can occur.
+     */
     public enum OperationType {
         INSERT, DELETE, REPLACE, UPDATE, UNKNOWN;
     }
