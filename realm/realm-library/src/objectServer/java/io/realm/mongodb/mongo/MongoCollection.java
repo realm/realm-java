@@ -30,7 +30,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Nullable;
 
-import io.reactivex.annotations.NonNull;
 import io.realm.annotations.Beta;
 import io.realm.internal.objectserver.EventStream;
 import io.realm.internal.async.RealmResultTaskImpl;
@@ -65,7 +64,7 @@ import io.realm.mongodb.mongo.result.UpdateResult;
 public class MongoCollection<DocumentT> {
 
     private final MongoNamespace nameSpace;
-    final OsMongoCollection<DocumentT> osMongoCollection;
+    private final OsMongoCollection<DocumentT> osMongoCollection;
     private final ThreadPoolExecutor threadPoolExecutor = App.NETWORK_POOL_EXECUTOR;
 
     MongoCollection(final MongoNamespace nameSpace,
@@ -825,7 +824,6 @@ public class MongoCollection<DocumentT> {
     public RealmEventStreamTask<DocumentT> watch() {
         return new RealmEventStreamTaskImpl<>(getNamespace().getFullName(),
                 new RealmEventStreamTaskImpl.Executor<DocumentT>() {
-                    @NonNull
                     @Override
                     public EventStream<DocumentT> run() throws IOException {
                         return osMongoCollection.watch();
@@ -842,7 +840,6 @@ public class MongoCollection<DocumentT> {
     public RealmEventStreamTask<DocumentT> watch(final BsonValue... ids) {
         return new RealmEventStreamTaskImpl<>(getNamespace().getFullName(),
                 new RealmEventStreamTaskImpl.Executor<DocumentT>() {
-                    @NonNull
                     @Override
                     public EventStream<DocumentT> run() throws IOException {
                         return osMongoCollection.watch(ids);
@@ -861,7 +858,6 @@ public class MongoCollection<DocumentT> {
     public RealmEventStreamTask<DocumentT> watch(final ObjectId... ids) {
         return new RealmEventStreamTaskImpl<>(getNamespace().getFullName(),
                 new RealmEventStreamTaskImpl.Executor<DocumentT>() {
-                    @NonNull
                     @Override
                     public EventStream<DocumentT> run() throws IOException {
                         return osMongoCollection.watch(ids);
@@ -886,7 +882,6 @@ public class MongoCollection<DocumentT> {
     public RealmEventStreamTask<DocumentT> watchWithFilter(Document matchFilter) {
         return new RealmEventStreamTaskImpl<>(getNamespace().getFullName(),
                 new RealmEventStreamTaskImpl.Executor<DocumentT>() {
-                    @NonNull
                     @Override
                     public EventStream<DocumentT> run() throws IOException {
                         return osMongoCollection.watchWithFilter(matchFilter);
@@ -910,7 +905,6 @@ public class MongoCollection<DocumentT> {
     public RealmEventStreamTask<DocumentT> watchWithFilter(BsonDocument matchFilter) {
         return new RealmEventStreamTaskImpl<>(getNamespace().getFullName(),
                 new RealmEventStreamTaskImpl.Executor<DocumentT>() {
-                    @NonNull
                     @Override
                     public EventStream<DocumentT> run() throws IOException {
                         return osMongoCollection.watchWithFilter(matchFilter);

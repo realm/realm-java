@@ -27,7 +27,7 @@ public class StreamNetworkTransportImpl extends StreamNetworkTransport {
     private final App app;
     private final User user;
 
-    public StreamNetworkTransportImpl(App app, User user) {
+    StreamNetworkTransportImpl(App app, User user) {
         this.app = app;
         this.user = user;
     }

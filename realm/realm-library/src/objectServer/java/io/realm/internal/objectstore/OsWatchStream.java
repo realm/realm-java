@@ -27,7 +27,7 @@ public class OsWatchStream<T> implements NativeObject {
 
     @Override
     public long getNativeFinalizerPtr() {
-        return 0;
+        return nativeGetFinalizerMethodPtr();
     }
 
     public BsonDocument getNextEvent() {
@@ -43,6 +43,7 @@ public class OsWatchStream<T> implements NativeObject {
         nativeFeedLine(nativePtr, line);
     }
 
+    private static native long nativeGetFinalizerMethodPtr();
     private static native long nativeCreateWatchStream();
     private static native void nativeFeedLine(long nativePtr, String line);
     private static native String nativeGetState(long nativePtr);

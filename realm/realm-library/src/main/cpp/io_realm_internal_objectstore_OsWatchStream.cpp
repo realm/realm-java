@@ -27,6 +27,14 @@ using namespace realm::bson;
 using namespace realm::jni_util;
 using namespace realm::_impl;
 
+static void finalize_watchstream(jlong ptr) {
+    delete reinterpret_cast<WatchStream*>(ptr);
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_objectstore_OsWatchStream_nativeGetFinalizerMethodPtr(JNIEnv*, jclass) {
+    return reinterpret_cast<jlong>(&finalize_watchstream);
+}
 
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_objectstore_OsWatchStream_nativeCreateWatchStream(JNIEnv *env, jclass) {

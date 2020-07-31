@@ -27,8 +27,6 @@ import org.junit.runner.RunWith
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 
-
-
 @RunWith(AndroidJUnit4::class)
 class RealmStreamTaskImplTest {
     private val looperThread = BlockingLooperThread()

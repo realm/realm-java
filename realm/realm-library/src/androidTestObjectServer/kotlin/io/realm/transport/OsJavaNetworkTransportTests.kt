@@ -110,7 +110,7 @@ class OsJavaNetworkTransportTests {
             }
 
             override fun sendStreamingRequest(request: Request): Response {
-                TODO("Not yet implemented")
+                throw IllegalAccessError()
             }
         })
 
@@ -136,7 +136,7 @@ class OsJavaNetworkTransportTests {
             }
 
             override fun sendStreamingRequest(request: Request): Response {
-                TODO("Not yet implemented")
+                throw IllegalAccessError()
             }
         })
 
@@ -160,7 +160,7 @@ class OsJavaNetworkTransportTests {
             }
 
             override fun sendStreamingRequest(request: Request): Response {
-                TODO("Not yet implemented")
+                throw IllegalAccessError()
             }
         })
 
@@ -183,7 +183,7 @@ class OsJavaNetworkTransportTests {
             }
 
             override fun sendStreamingRequest(request: Request): Response {
-                TODO("Not yet implemented")
+                throw IllegalAccessError()
             }
         })
 
@@ -208,7 +208,7 @@ class OsJavaNetworkTransportTests {
             }
 
             override fun sendStreamingRequest(request: Request): Response {
-                TODO("Not yet implemented")
+                throw IllegalAccessError()
             }
         })
 
@@ -230,7 +230,7 @@ class OsJavaNetworkTransportTests {
             }
 
             override fun sendStreamingRequest(request: Request): Response {
-                TODO("Not yet implemented")
+                throw IllegalAccessError()
             }
         })
 

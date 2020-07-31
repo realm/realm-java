@@ -443,21 +443,6 @@ class UserTests {
         }
     }
 
-//    @Test
-//    fun makeStreamRequest() = looperThread.runBlocking {
-//        val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-//        val request = user.makeStreamingRequest("watch", BsonArray(), "service_name")
-//
-//        assertEquals(1, request.headers.size)
-//        assertEquals("text/event-stream", request.headers["Accept"])
-//
-//        assertNotNull(request.body)
-//        assertEquals(0, request.body.length)
-//
-//        assertNotNull(request.url)
-//        assertNotEquals(0, request.url.length)
-//    }
-
     @Test
     @Ignore("Cannot automate custom user data cluster setup yet due to missing CLI support " +
             "https://github.com/realm/realm-java/issues/6942")

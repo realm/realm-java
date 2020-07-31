@@ -19,7 +19,6 @@ package io.realm.internal.async;
 import java.io.IOException;
 import java.util.concurrent.locks.ReentrantLock;
 
-import io.reactivex.annotations.NonNull;
 import io.realm.internal.Util;
 import io.realm.internal.objectserver.EventStream;
 import io.realm.mongodb.App;
@@ -36,9 +35,8 @@ public class RealmEventStreamTaskImpl<T> implements RealmEventStreamTask<T> {
     private final ReentrantLock lock;
 
     public RealmEventStreamTaskImpl(final String name, final Executor<T> executor) {
+        Util.checkNull(executor, "name");
         Util.checkNull(executor, "executor");
-        Util.checkNull(executor, "documentClass");
-        Util.checkNull(executor, "codecRegistry");
 
         this.lock = new ReentrantLock();
         this.executor = executor;
@@ -121,7 +119,6 @@ public class RealmEventStreamTaskImpl<T> implements RealmEventStreamTask<T> {
          *
          * @return the result yielded by the task.
          */
-        @NonNull
         public abstract EventStream<T> run() throws IOException;
     }
 }

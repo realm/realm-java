@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import static io.realm.internal.Util.keyPresent;
@@ -188,8 +187,8 @@ public final class UpdateDescription {
      * @return a description of the updated fields and removed keys between the documents
      */
     private static UpdateDescription diff(
-            final @Nonnull BsonDocument beforeDocument,
-            final @Nonnull BsonDocument afterDocument,
+            final BsonDocument beforeDocument,
+            final BsonDocument afterDocument,
             final @Nullable String onKey,
             final BsonDocument updatedFields,
             final Set<String> removedFields) {

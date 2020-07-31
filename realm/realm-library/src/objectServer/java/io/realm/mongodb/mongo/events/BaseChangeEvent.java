@@ -18,7 +18,6 @@ package io.realm.mongodb.mongo.events;
 
 import org.bson.BsonDocument;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -28,11 +27,9 @@ import javax.annotation.Nullable;
  * @param <DocumentT> The type of the full document in the change event.
  */
 public abstract class BaseChangeEvent<DocumentT> {
-    @Nonnull
     private final OperationType operationType;
     @Nullable
     private final DocumentT fullDocument;
-    @Nonnull
     private final BsonDocument documentKey;
     @Nullable
     private final UpdateDescription updateDescription;
@@ -44,7 +41,6 @@ public abstract class BaseChangeEvent<DocumentT> {
      *
      * @return the operation type of this change event.
      */
-    @Nonnull
     public OperationType getOperationType() {
         return operationType;
     }
@@ -64,7 +60,6 @@ public abstract class BaseChangeEvent<DocumentT> {
      *
      * @return the document key.
      */
-    @Nonnull
     public BsonDocument getDocumentKey() {
         return documentKey;
     }
@@ -90,9 +85,9 @@ public abstract class BaseChangeEvent<DocumentT> {
     }
 
     protected BaseChangeEvent(
-            @Nonnull final OperationType operationType,
+            final OperationType operationType,
             @Nullable final DocumentT fullDocument,
-            @Nonnull final BsonDocument documentKey,
+            final BsonDocument documentKey,
             @Nullable final UpdateDescription updateDescription,
             final boolean hasUncommittedWrites
     ) {
