@@ -442,7 +442,7 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
             if (cachechild != null) {
                 throw new IllegalArgumentException("Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cachechild.toString()");
             } else {
-                long objKey = ((RealmObjectProxy) managedCopy).realmGet$proxyState().getRow$realm().createEmbeddedObject(columnInfo.childColKey);
+                long objKey = ((RealmObjectProxy) managedCopy).realmGet$proxyState().getRow$realm().createEmbeddedObject(columnInfo.childColKey, RealmFieldType.OBJECT);
                 Row linkedObjectRow = realm.getTable(some.test.EmbeddedClass.class).getUncheckedRow(objKey);
                 some.test.EmbeddedClass linkedObject = some_test_EmbeddedClassRealmProxy.newProxyInstance(realm, linkedObjectRow);
                 cache.put(childObj, (RealmObjectProxy) linkedObject);
@@ -765,7 +765,7 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
                 throw new IllegalArgumentException("Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cachechild.toString()");
             }
 
-            long objKey = ((RealmObjectProxy) realmObject).realmGet$proxyState().getRow$realm().createEmbeddedObject(columnInfo.childColKey);
+            long objKey = ((RealmObjectProxy) realmObject).realmGet$proxyState().getRow$realm().createEmbeddedObject(columnInfo.childColKey, RealmFieldType.OBJECT);
             Row row = realm.getTable(some.test.EmbeddedClass.class).getUncheckedRow(objKey);
             some.test.EmbeddedClass proxyObject = some_test_EmbeddedClassRealmProxy.newProxyInstance(realm, row);
             cache.put(childObj, (RealmObjectProxy) proxyObject);

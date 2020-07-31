@@ -193,7 +193,7 @@ public enum InvalidRow implements Row {
     }
 
     @Override
-    public long createEmbeddedObject(long columnKey) {
+    public long createEmbeddedObject(long columnKey, RealmFieldType parentPropertyType) {
         throw getStubException();
     }
 

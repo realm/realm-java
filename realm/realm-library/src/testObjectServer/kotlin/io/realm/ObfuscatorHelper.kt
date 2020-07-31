@@ -55,7 +55,7 @@ object ObfuscatorHelper {
 {
   "mail":"myfakemail@mongodb.com",
   "id":{
-    "{${'$'}}numberInt": "666"
+    "{${'$'}}numberInt": 666"
   },
   "options":{
     "device":{
