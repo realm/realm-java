@@ -19,6 +19,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.*
 import io.realm.entities.embedded.*
+import io.realm.exceptions.RealmPrimaryKeyConstraintException
 import io.realm.kotlin.createEmbeddedObject
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
@@ -144,7 +145,7 @@ class EmbeddedObjectsTest {
                     assertEquals(childInParent!!.getString("childId"), idValue)
                     assertEquals(child, childInParent)
 
-                    val linkingParent = child.linkingObjects("EmbeddedSimpleParent", "child") .first()
+                    val linkingParent = child.linkingObjects("EmbeddedSimpleParent", "child").first()
                     assertNotNull(linkingParent)
                     assertEquals(parent.getString("_id"), linkingParent!!.getString("_id"))
                     assertEquals(parent.getObject("child"), linkingParent.getObject("child"))
@@ -496,21 +497,158 @@ class EmbeddedObjectsTest {
     }
 
     @Test
-    @Ignore("Add in another PR")
     fun insertOrUpdate_deletesOldEmbeddedObject() {
-        TODO()
+        realm.executeTransaction { realm ->
+            val parent = EmbeddedSimpleParent("parent")
+            val originalChild = EmbeddedSimpleChild("originalChild")
+            parent.child = originalChild
+            realm.insert(parent)
+
+            assertEquals(1, realm.where<EmbeddedSimpleChild>().count())
+            val managedChild = realm.where<EmbeddedSimpleChild>()
+                    .equalTo("childId", "originalChild")
+                    .findFirst()
+            assertTrue(managedChild!!.isValid)
+
+            val newChild = EmbeddedSimpleChild("newChild")
+            parent.child = newChild
+            realm.insertOrUpdate(parent)
+            assertTrue(!managedChild.isValid)
+
+            assertEquals(1, realm.where<EmbeddedSimpleChild>().count())
+            val managedNewChild = realm.where<EmbeddedSimpleChild>()
+                    .equalTo("childId", "newChild")
+                    .findFirst()
+            assertEquals(managedNewChild!!.childId, "newChild")
+            realm.where<EmbeddedSimpleChild>()
+                    .equalTo("childId", "originalChild")
+                    .findAll()
+                    .size
+                    .also { oldChildCount ->
+                        assertEquals(0, oldChildCount)
+                    }
+        }
     }
 
     @Test
-    @Ignore("Add in another PR")
     fun insert_listWithEmbeddedObjects() {
-        TODO()
+        realm.executeTransaction { realm ->
+            val list = listOf<EmbeddedSimpleParent>()
+                    .plus(EmbeddedSimpleParent("parent1").apply { child = EmbeddedSimpleChild("child1") })
+                    .plus(EmbeddedSimpleParent("parent2").apply { child = EmbeddedSimpleChild("child2") })
+                    .plus(EmbeddedSimpleParent("parent3").apply { child = EmbeddedSimpleChild("child3") })
+                    .also { realm.insert(it) }
+
+            realm.where<EmbeddedSimpleParent>()
+                    .findAll()
+                    .sort("_id")
+                    .also {
+                        assertEquals(3, it.count())
+                        assertEquals(list[0]._id, it[0]!!._id)
+                        assertEquals(list[1]._id, it[1]!!._id)
+                        assertEquals(list[2]._id, it[2]!!._id)
+                        assertEquals(list[0].child!!.childId, it[0]!!.child!!.childId)
+                        assertEquals(list[1].child!!.childId, it[1]!!.child!!.childId)
+                        assertEquals(list[2].child!!.childId, it[2]!!.child!!.childId)
+                    }
+
+            realm.where<EmbeddedSimpleChild>()
+                    .findAll()
+                    .sort("childId")
+                    .also {
+                        assertEquals(3, it.count())
+                        assertEquals(list[0].child!!.childId, it[0]!!.childId)
+                        assertEquals(list[1].child!!.childId, it[1]!!.childId)
+                        assertEquals(list[2].child!!.childId, it[2]!!.childId)
+                        assertEquals(list[0]._id, it[0]!!.parent._id)
+                        assertEquals(list[1]._id, it[1]!!.parent._id)
+                        assertEquals(list[2]._id, it[2]!!.parent._id)
+                    }
+        }
     }
 
     @Test
-    @Ignore("Add in another PR")
+    fun insert_listWithEmbeddedObjects_duplicatePrimaryKeyThrows() {
+        realm.executeTransaction { realm ->
+            val list = listOf<EmbeddedSimpleParent>()
+                    .plus(EmbeddedSimpleParent("parent1").apply { child = EmbeddedSimpleChild("child1") })
+                    .plus(EmbeddedSimpleParent("parent2").apply { child = EmbeddedSimpleChild("child2") })
+                    .plus(EmbeddedSimpleParent("parent3").apply { child = EmbeddedSimpleChild("child3") })
+                    .also { realm.insert(it) }
+
+            assertFailsWith<RealmPrimaryKeyConstraintException> {
+                realm.insert(list)
+            }
+        }
+    }
+
+    @Test
+    fun insert_listWithEmbeddedObjects_insertingChildrenDirectlyThrows() {
+        realm.executeTransaction { realm ->
+            listOf<EmbeddedSimpleChild>()
+                    .plus(EmbeddedSimpleChild("child1"))
+                    .plus(EmbeddedSimpleChild("child2"))
+                    .plus(EmbeddedSimpleChild("child3"))
+                    .also {
+                        assertFailsWith<IllegalArgumentException> {
+                            realm.insert(it)
+                        }
+                    }
+        }
+    }
+
+    @Test
     fun insertOrUpdate_listWithEmbeddedObjects() {
-        TODO()
+        realm.executeTransaction { realm ->
+            val list = listOf<EmbeddedSimpleParent>()
+                    .plus(EmbeddedSimpleParent("parent1").apply { child = EmbeddedSimpleChild("child1") })
+                    .plus(EmbeddedSimpleParent("parent2").apply { child = EmbeddedSimpleChild("child2") })
+                    .plus(EmbeddedSimpleParent("parent3").apply { child = EmbeddedSimpleChild("child3") })
+                    .also { realm.insert(it) }
+            val managedChildren = realm.where<EmbeddedSimpleChild>().findAll()
+
+            val newList = listOf<EmbeddedSimpleParent>()
+                    .plus(EmbeddedSimpleParent("parent1").apply { child = EmbeddedSimpleChild("newChild1") })
+                    .plus(EmbeddedSimpleParent("parent2").apply { child = EmbeddedSimpleChild("newChild2") })
+                    .plus(EmbeddedSimpleParent("parent3").apply { child = EmbeddedSimpleChild("newChild3") })
+                    .also { realm.insertOrUpdate(it) }
+
+            assertNull(realm.where<EmbeddedSimpleChild>().equalTo("childId", list[0].child!!.childId).findFirst())
+            assertNull(realm.where<EmbeddedSimpleChild>().equalTo("childId", list[1].child!!.childId).findFirst())
+            assertNull(realm.where<EmbeddedSimpleChild>().equalTo("childId", list[2].child!!.childId).findFirst())
+            assertNotNull(realm.where<EmbeddedSimpleChild>().equalTo("childId", newList[0].child!!.childId).findFirst())
+            assertNotNull(realm.where<EmbeddedSimpleChild>().equalTo("childId", newList[1].child!!.childId).findFirst())
+            assertNotNull(realm.where<EmbeddedSimpleChild>().equalTo("childId", newList[2].child!!.childId).findFirst())
+
+            // FIXME: managedChildren are still valid despite not being part of any parent anymore
+//            assertFalse(managedChildren.isValid)
+
+            val query = realm.where<EmbeddedSimpleParent>()
+            assertEquals(3, query.count())
+            query.findAll()
+                    .sort("_id")
+                    .also {
+                        assertEquals(newList[0]._id, it[0]!!._id)
+                        assertEquals(newList[1]._id, it[1]!!._id)
+                        assertEquals(newList[2]._id, it[2]!!._id)
+                        assertEquals(newList[0].child!!.childId, it[0]!!.child!!.childId)
+                        assertEquals(newList[1].child!!.childId, it[1]!!.child!!.childId)
+                        assertEquals(newList[2].child!!.childId, it[2]!!.child!!.childId)
+                    }
+
+            realm.where<EmbeddedSimpleParent>()
+                    .also { assertEquals(3, it.count()) }
+                    .findAll()
+                    .sort("_id")
+                    .also {
+                        assertEquals(newList[0]._id, it[0]!!._id)
+                        assertEquals(newList[1]._id, it[1]!!._id)
+                        assertEquals(newList[2]._id, it[2]!!._id)
+                        assertEquals(newList[0].child!!.childId, it[0]!!.child!!.childId)
+                        assertEquals(newList[1].child!!.childId, it[1]!!.child!!.childId)
+                        assertEquals(newList[2].child!!.childId, it[2]!!.child!!.childId)
+                    }
+        }
     }
 
     @Test
@@ -559,14 +697,15 @@ class EmbeddedObjectsTest {
     fun createOrphanedEmbeddedObjectFromJsonThrows() {
         assertFailsWith<IllegalArgumentException> {
             realm.executeTransaction { realm ->
-                realm.createObjectFromJson(EmbeddedSimpleChild::class.java, """ {"childId": "uuid" } """ )
+                realm.createObjectFromJson(EmbeddedSimpleChild::class.java, """ {"childId": "uuid" } """)
             }
         }
     }
 
     @Test
     @Ignore("FIXME Not implemented yet")
-    fun createEmbeddedObjectFromJson_streamBased() { }
+    fun createEmbeddedObjectFromJson_streamBased() {
+    }
 
     @Test
     fun realmObjectSchema_setEmbedded() {
