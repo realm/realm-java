@@ -2073,7 +2073,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             if (!embedded) {
                 beginMethod(qualifiedJavaClassName, "createOrUpdateUsingJsonObject", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), Arrays.asList("Realm", "realm", "JSONObject", "json", "boolean", "update"), listOf("JSONException"))
             } else {
-                beginMethod(qualifiedJavaClassName, "createOrUpdateUsingJsonObject", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), Arrays.asList("Realm", "realm", "RealmModel", "parent", "String", "parentProperty", "JSONObject", "json", "boolean", "update"), listOf("JSONException"))
+                beginMethod(qualifiedJavaClassName, "createOrUpdateEmbeddedUsingJsonObject", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), Arrays.asList("Realm", "realm", "RealmModel", "parent", "String", "parentProperty", "JSONObject", "json", "boolean", "update"), listOf("JSONException"))
             }
                 val modelOrListCount = countModelOrListFields(metadata.fields)
                 if (modelOrListCount == 0) {
