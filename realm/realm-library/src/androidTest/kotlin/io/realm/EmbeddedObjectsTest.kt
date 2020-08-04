@@ -584,8 +584,10 @@ class EmbeddedObjectsTest {
 
     @Test
     fun createObjectFromJson_stream_embeddedObject() {
+        val clz = EmbeddedCircularParent::class.java
         realm.executeTransaction { realm ->
-            realm.createObjectFromJson(EmbeddedCircularParent::class.java, stream(circularParentData))
+            assertTrue(realm.schema.getSchemaForClass(clz).hasPrimaryKey())
+            realm.createObjectFromJson(clz, stream(circularParentData))
         }
         val circularParent = realm.where(EmbeddedCircularParent::class.java).findFirst()!!
         val singleChild = circularParent.singleChild!!
@@ -597,8 +599,10 @@ class EmbeddedObjectsTest {
     // primary key, so add specific tests for that path.
     @Test
     fun createObjectFromJson_stream_embeddedObjectWithNoPrimaryKeyParent() {
+        val clz = EmbeddedCircularParentWithoutPrimaryKey::class.java
         realm.executeTransaction { realm ->
-            realm.createObjectFromJson(EmbeddedCircularParentWithoutPrimaryKey::class.java, stream(circularParentData))
+            assertFalse(realm.schema.getSchemaForClass(clz).hasPrimaryKey())
+            realm.createObjectFromJson(clz, stream(circularParentData))
         }
         val all = realm.where(EmbeddedCircularParentWithoutPrimaryKey::class.java).findAll()
         assertEquals(1, all.count())
@@ -609,8 +613,10 @@ class EmbeddedObjectsTest {
 
     @Test
     fun createObjectFromJson_stream_embeddedObjectList() {
+        val clz = EmbeddedSimpleListParent::class.java
         realm.executeTransaction { realm ->
-            realm.createObjectFromJson(EmbeddedSimpleListParent::class.java, stream(simpleListParentData))
+            assertTrue(realm.schema.getSchemaForClass(clz).hasPrimaryKey())
+            realm.createObjectFromJson(clz, stream(simpleListParentData))
         }
         val all = realm.where(EmbeddedSimpleListParent::class.java).findAll()
         assertEquals(1, all.count())
@@ -624,8 +630,10 @@ class EmbeddedObjectsTest {
     // Stream based import implementation is differentiated depending on whether the class has a primary key
     @Test
     fun createObjectFromJson_stream_embeddedObjectListWithNoPrimaryKeyParent() {
+        val clz = EmbeddedSimpleListParentWithoutPrimaryKey::class.java
         realm.executeTransaction { realm ->
-            realm.createObjectFromJson(EmbeddedSimpleListParentWithoutPrimaryKey::class.java, stream(simpleListParentData))
+            assertFalse(realm.schema.getSchemaForClass(clz).hasPrimaryKey())
+            realm.createObjectFromJson(clz, stream(simpleListParentData))
         }
         val all = realm.where(EmbeddedSimpleListParentWithoutPrimaryKey::class.java).findAll()
         assertEquals(1, all.count())
