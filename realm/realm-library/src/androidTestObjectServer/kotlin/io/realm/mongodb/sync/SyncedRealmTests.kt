@@ -61,7 +61,6 @@ class SyncedRealmTests {
         RealmLog.setLevel(LogLevel.TRACE)
         app = TestApp()
         partitionValue = UUID.randomUUID().toString()
-//        partitionValue = "UUID.randomUUID().toString()"
     }
 
     @After
@@ -282,25 +281,13 @@ class SyncedRealmTests {
         }
     }
 
+    // FIXME: remove ignore when sync issue fixed
     @Test
+    @Ignore("ignored until https://jira.mongodb.org/browse/REALMC-6541 is fixed")
     fun embeddedObject_copyUnmanaged_roundTrip() {
         val user1: User = createNewUser()
         val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
         val primaryKeyValue = UUID.randomUUID().toString()
-//        val primaryKeyValue = "primaryKeyValue"
-
-        // FIXME: the following fails in sync:
-        //  - run this test once and without restarting the server continue this series
-        //  - keep the primary key value constant across runs
-        //  - second and successive runs will fail due to a fail in sync
-        //    - "MongoDB error: E11000 duplicate key error collection: test_data.EmbeddedSimpleParent index: _id_ dup key: { _id: \"primaryKeyValue\" }",
-        //  The problem is the local Realm works just fine when calling *OrUpdate operations,
-        //  but sync explodes when receiving such request, and seems it deletes the parent due to a
-        //  PK violation leaving an orphan child.
-        //
-        // FIXME:
-        //  - Is this expected behaviour?
-        //  - What if we wanted to update the parent object so that it contains a different child?
 
         Realm.getInstance(config1).use { realm ->
             assertTrue(realm.isEmpty)
@@ -308,12 +295,11 @@ class SyncedRealmTests {
             realm.executeTransaction {
                 val parent = EmbeddedSimpleParent(primaryKeyValue)
 
-                parent.child = EmbeddedSimpleChild()
-                it.copyToRealmOrUpdate(parent).let { managedParent ->
-                    // FIXME: instantiating the child in managedParent yields this from sync:
-                    //  "MongoDB error: Updating the path 'child.childID' would create a conflict at 'child'"
-//                    managedParent.child = EmbeddedSimpleChild() // Will copy the object to Realm
-                }
+//                parent.child = EmbeddedSimpleChild()
+                val managedParent = it.copyToRealmOrUpdate(parent)
+                // FIXME: instantiating the child in managedParent yields this from sync:
+                //  "MongoDB error: Updating the path 'child.childID' would create a conflict at 'child'"
+                managedParent.child = EmbeddedSimpleChild() // Will copy the object to Realm
             }
             realm.syncSession.uploadAllLocalChanges()
 
@@ -419,55 +405,6 @@ class SyncedRealmTests {
             assertEquals("child2", childResults.findAll()[1]!!.childId)
         }
     }
-
-//    @Test
-//    fun copyToRealm_treeSchema() {
-//        val user1: User = createNewUser()
-//        val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
-//        Realm.getInstance(config1).use { realm ->
-//            realm.executeTransaction {
-//                val parent =
-//
-//                ("parent1")
-//
-//                val node1 = EmbeddedTreeNode("node1")
-//                node1.leafNode = EmbeddedTreeLeaf("leaf1")
-//                parent.middleNode = node1
-//                val node2 = EmbeddedTreeNode("node2")
-//                node2.leafNodeList.add(EmbeddedTreeLeaf("leaf2"))
-//                node2.leafNodeList.add(EmbeddedTreeLeaf("leaf3"))
-//                parent.middleNodeList.add(node2)
-//
-//                it.copyToRealm(parent)
-//            }
-//            realm.syncSession.uploadAllLocalChanges()
-//        }
-//
-//        val user2: User = createNewUser()
-//        val config2: SyncConfiguration = createDefaultConfig(user2, partitionValue)
-//        Realm.getInstance(config2).use { realm ->
-//            assertEquals(0, realm.where<EmbeddedTreeParent>().count())
-//            assertEquals(0, realm.where<EmbeddedTreeLeaf>().count())
-//            assertEquals(0, realm.where<EmbeddedTreeNode>().count())
-//
-//            realm.syncSession.downloadAllServerChanges()
-//            realm.refresh()
-//
-//            assertEquals(1, realm.where<EmbeddedTreeParent>().count())
-//            assertEquals("parent1", realm.where<EmbeddedTreeParent>().findFirst()!!._id)
-//
-//            assertEquals(2, realm.where<EmbeddedTreeNode>().count())
-//            val nodeResults = realm.where<EmbeddedTreeNode>().findAll()
-//            assertTrue(nodeResults.any { it._id == "node1" })
-//            assertTrue(nodeResults.any { it._id == "node2" })
-//
-//            assertEquals(3, realm.where<EmbeddedTreeLeaf>().count())
-//            val leafResults = realm.where<EmbeddedTreeLeaf>().findAll()
-//            assertTrue(leafResults.any { it._id == "leaf1" })
-//            assertTrue(leafResults.any { it._id == "leaf2" })
-//            assertTrue(leafResults.any { it._id == "leaf3" })
-//        }
-//    }
 
     @Test
     // FIXME Missing test, maybe fitting better in SyncSessionTest.kt...when migrated
