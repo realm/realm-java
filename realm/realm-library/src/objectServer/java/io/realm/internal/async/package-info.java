@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Realm Inc.
+ * Copyright 2017 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,5 @@
  * limitations under the License.
  */
 
-package io.realm.internal.common;
-
-import javax.annotation.Nonnull;
-
-public interface Callback<T, U> {
-    void onComplete(@Nonnull OperationResult<T, U> result);
-}
+@javax.annotation.ParametersAreNonnullByDefault
+package io.realm.internal.async;

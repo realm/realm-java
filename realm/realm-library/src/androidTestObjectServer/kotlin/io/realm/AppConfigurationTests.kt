@@ -17,6 +17,9 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.realm.internal.network.LoggingInterceptor.LOGIN_FEATURE
+import io.realm.mongodb.AppConfiguration
+import io.realm.mongodb.log.obfuscator.HttpLogObfuscator
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.log.RealmLogger
@@ -30,12 +33,12 @@ import org.junit.Assert.*
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.io.File
-import java.lang.IllegalArgumentException
 import java.net.URL
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.collections.LinkedHashMap
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 private const val CUSTOM_HEADER_NAME = "Foo"
 private const val CUSTOM_HEADER_VALUE = "bar"
@@ -88,9 +91,9 @@ class AppConfigurationTests {
     @Test
     fun addCustomRequestHeader() {
         val config = AppConfiguration.Builder("app-id")
-            .addCustomRequestHeader("header1", "val1")
-            .addCustomRequestHeader("header2", "val2")
-            .build()
+                .addCustomRequestHeader("header1", "val1")
+                .addCustomRequestHeader("header2", "val2")
+                .build()
         val headers: Map<String, String> = config.customRequestHeaders
         assertEquals(2, headers.size.toLong())
         assertTrue(headers.any { it.key == "header1" && it.value == "val1" })
@@ -107,9 +110,9 @@ class AppConfigurationTests {
         inputHeaders["header1"] = "value1"
         inputHeaders["header2"] = "value2"
         val config = AppConfiguration.Builder("app-id")
-            .addCustomRequestHeaders(TestHelper.getNull())
-            .addCustomRequestHeaders(inputHeaders)
-            .build()
+                .addCustomRequestHeaders(TestHelper.getNull())
+                .addCustomRequestHeaders(inputHeaders)
+                .build()
         val outputHeaders: Map<String, String> = config.customRequestHeaders
         assertEquals(2, outputHeaders.size.toLong())
         assertTrue(outputHeaders.any { it.key == "header1" && it.value == "value1" })
@@ -207,6 +210,7 @@ class AppConfigurationTests {
         val config = AppConfiguration.Builder("foo").build()
         assertEquals(URL(url), config.baseUrl)
     }
+
     @Test
     fun baseUrl_invalidValuesThrows() {
         val configBuilder = AppConfiguration.Builder("foo")
@@ -286,6 +290,25 @@ class AppConfigurationTests {
         assertEquals(configCodecRegistry, config.defaultCodecRegistry)
     }
 
+    @Test
+    fun httpLogObfuscator_null() {
+        AppConfiguration.Builder("app-id")
+                .httpLogObfuscator(null)
+                .build()
+                .let {
+                    assertNull(it.httpLogObfuscator)
+                }
+    }
+
+    @Test
+    fun defaultLoginInfoObfuscator() {
+        AppConfiguration.Builder("app-id")
+                .build()
+                .let {
+                    val defaultHttpLogObfuscator = HttpLogObfuscator(LOGIN_FEATURE, AppConfiguration.loginObfuscators)
+                    assertEquals(defaultHttpLogObfuscator, it.httpLogObfuscator)
+                }
+    }
     // Check that custom headers and auth header renames are correctly used for HTTP requests
     // performed from Java.
     @Test

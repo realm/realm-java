@@ -130,7 +130,7 @@ import io.realm.mongodb.functions.Functions;
  *     MongoClient client = user.getMongoClient(SERVICE_NAME)
  *     MongoDatabase database = client.getDatabase(DATABASE_NAME)
  *     MongoCollection&lt;DocumentT&gt; collection = database.getCollection(COLLECTION_NAME);
- *     Long count = collection.count().blockingGetResult()
+ *     Long count = collection.count().get()
  * </pre>
  * <p>
  *
@@ -189,7 +189,7 @@ public class App {
      */
     public App(AppConfiguration config) {
         this.config = config;
-        this.networkTransport = new OkHttpNetworkTransport();
+        this.networkTransport = new OkHttpNetworkTransport(config.getHttpLogObfuscator());
         networkTransport.setAuthorizationHeaderName(config.getAuthorizationHeaderName());
         for (Map.Entry<String, String> entry : config.getCustomRequestHeaders().entrySet()) {
             networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());

@@ -24,6 +24,7 @@ import io.realm.internal.CheckedRow;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsResults;
 import io.realm.internal.Table;
+import io.realm.internal.Util;
 import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.fields.FieldDescriptor;
 
@@ -313,6 +314,16 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         }
 
         return this;
+    }
+
+    @Override
+    String getPropertyClassName(String propertyName) {
+        String linkedClassName = table.getLinkTarget(getColumnKey(propertyName)).getClassName();
+        if (Util.isEmptyString(linkedClassName)) {
+            throw new IllegalArgumentException(String.format("Property '%s' not found.", propertyName));
+        }
+
+        return linkedClassName;
     }
 
     /**

@@ -222,7 +222,7 @@ public class PendingRow implements Row {
     }
 
     @Override
-    public long createEmbeddedObject(long columnKey) {
+    public long createEmbeddedObject(long columnKey, RealmFieldType parentPropertyType) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 

@@ -5,6 +5,7 @@ import android.os.HandlerThread
 import android.os.SystemClock
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.realm.admin.ServerAdmin
 import io.realm.entities.*
 import io.realm.exceptions.DownloadingRealmInterruptedException
 import io.realm.internal.OsRealmConfig
@@ -27,6 +28,7 @@ import org.junit.*
 import org.junit.Assert.*
 import org.junit.runner.RunWith
 import java.io.Closeable
+import java.lang.IllegalStateException
 import java.lang.Thread
 import java.util.*
 import java.util.concurrent.CountDownLatch
@@ -48,6 +50,7 @@ class SyncSessionTests {
     private lateinit var app: App
     private lateinit var user: User
     private lateinit var syncConfiguration: SyncConfiguration
+    private lateinit var admin: ServerAdmin
 
     private val configFactory: TestSyncConfigurationFactory = TestSyncConfigurationFactory()
 
@@ -92,6 +95,8 @@ class SyncSessionTests {
     fun setup() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         RealmLog.setLevel(LogLevel.ALL)
+
+        admin = ServerAdmin()
         app = TestApp()
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
         syncConfiguration = configFactory
@@ -225,6 +230,14 @@ class SyncSessionTests {
             val session = realm.syncSession
             user.logOut();
             assertEquals(SyncSession.State.INACTIVE, session.state);
+        }
+    }
+
+    @Test
+    fun session_throwOnLogoutUser() {
+        user.logOut()
+        assertFailsWith<IllegalStateException> {
+            Realm.getInstance(syncConfiguration).use { realm -> }
         }
     }
 
@@ -737,6 +750,36 @@ class SyncSessionTests {
             })
         }
         looperThread.testComplete()
+    }
+
+    @Test
+    fun cachedInstanceShouldNotThrowIfUserTokenIsInvalid() {
+        val configuration: RealmConfiguration = configFactory.createSyncConfigurationBuilder(user)
+                .errorHandler { session, error ->
+                    RealmLog.debug("error", error)
+                }
+                .build()
+
+        Realm.getInstance(configuration).close()
+
+        admin.disableUser(user)
+
+        // It should be possible to open a cached Realm with expired token
+        Realm.getInstance(configuration).close()
+
+        // It should also be possible to open a Realm with an expired token from a different thread
+        looperThread.runBlocking {
+            val instance = Realm.getInstance(configuration)
+            instance.close()
+            looperThread.testComplete()
+        }
+
+        // TODO We cannot currently easily verify that token is actually invalid and triggering
+        //  refresh. If OS includes support for reacting on this we should verify that it is
+        //  refreshed.
+        //Realm.getInstance(configuration).use { realm ->
+        //     realm.syncSession.downloadAllServerChanges()
+        //}
     }
 
 }

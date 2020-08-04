@@ -29,7 +29,10 @@ import io.realm.mongodb.AppConfiguration
 const val SERVICE_NAME = "BackingDB"    // it comes from the test server's BackingDB/config.json
 const val DATABASE_NAME = "test_data"   // same as above
 
-class TestApp(networkTransport: OsJavaNetworkTransport? = null, builder: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }) : App(builder(configurationBuilder()).build()) {
+class TestApp(
+        networkTransport: OsJavaNetworkTransport? = null,
+        builder: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }
+) : App(builder(configurationBuilder()).build()) {
 
     init {
         if (networkTransport != null) {
@@ -38,16 +41,18 @@ class TestApp(networkTransport: OsJavaNetworkTransport? = null, builder: (AppCon
     }
 
     companion object {
+
         fun configurationBuilder(customizeConfig: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }): AppConfiguration.Builder {
             return AppConfiguration.Builder(initializeMongoDbRealm())
                     .baseUrl("http://127.0.0.1:9090")
                     .appName("MongoDB Realm Integration Tests")
                     .appVersion("1.0.")
+                    .httpLogObfuscator(null)
         }
 
         // Initializes MongoDB Realm. Clears all local state and fetches the application ID.
         private fun initializeMongoDbRealm(): String {
-            val transport = OkHttpNetworkTransport()
+            val transport = OkHttpNetworkTransport(null)
             val response = transport.sendRequest(
                     "get",
                     "http://127.0.0.1:8888/application-id",
@@ -62,4 +67,3 @@ class TestApp(networkTransport: OsJavaNetworkTransport? = null, builder: (AppCon
         }
     }
 }
-

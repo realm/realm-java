@@ -307,9 +307,16 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
-    public long createEmbeddedObject(long columnKey) {
-        parent.checkImmutable();
-        return nativeCreateEmbeddedObject(nativePtr, columnKey);
+    public long createEmbeddedObject(long columnKey, RealmFieldType parentPropertyType) {
+        switch (parentPropertyType) {
+            case OBJECT:
+                parent.checkImmutable();
+                return nativeCreateEmbeddedObject(nativePtr, columnKey);
+            case LIST:
+                return getModelList(columnKey).createAndAddEmbeddedObject();
+            default:
+                throw new IllegalArgumentException("Wrong parentPropertyType, expected OBJECT or LIST but received " + parentPropertyType);
+        }
     }
 
     /**

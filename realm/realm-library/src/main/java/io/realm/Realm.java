@@ -1027,10 +1027,10 @@ public class Realm extends BaseRealm {
     /**
      * Instantiates and adds a new embedded object to the Realm.
      * <p>
-     * This method should only be used to created objects of types marked as embedded.
+     * This method should only be used to create objects of types marked as embedded.
      *
      * @param clazz the Class of the object to create. It must be marked with {@code \@RealmClass(embedded = true)}.
-     * @param parentObject The parent object which should a reference to the embedded object. If the parent property is a list
+     * @param parentObject The parent object which should hold a reference to the embedded object. If the parent property is a list
      * the embedded object will be added to the end of that list.
      * @param parentProperty the property in the parent class which holds the reference.
      * @return the newly created embedded object.
@@ -1045,26 +1045,12 @@ public class Realm extends BaseRealm {
         if (!RealmObject.isManaged(parentObject) || !RealmObject.isValid(parentObject)) {
             throw new IllegalArgumentException("Only valid, managed objects can be a parent to an embedded object.");
         }
-        RealmObjectProxy proxy = (RealmObjectProxy) parentObject;
-        long parentPropertyColKey = schema.getSchemaForClass(parentObject.getClass()).getColumnKey(parentProperty);
-        RealmFieldType parentPropertyType = schema.getSchemaForClass(parentObject.getClass()).getFieldType(parentProperty);
-        Row embeddedObject;
-        switch(parentPropertyType) {
-            case OBJECT: {
-                // FIXME: Check type of link
-                long objKey = proxy.realmGet$proxyState().getRow$realm().createEmbeddedObject(parentPropertyColKey);
-                embeddedObject = getTable(clazz).getUncheckedRow(objKey);
-                break;
-            }
-            case LIST: {
-                // FIXME: Check type of link
-                long objKey = proxy.realmGet$proxyState().getRow$realm().getModelList(parentPropertyColKey).createAndAddEmbeddedObject();
-                embeddedObject = getTable(clazz).getUncheckedRow(objKey);
-                break;
-            }
-            default:
-                throw new IllegalArgumentException("Parent property is not a reference to embedded objects of the appropriate type: " + parentPropertyType);
-        }
+
+        String className = schema.getSchemaForClass(clazz).getClassName();
+        Class<? extends RealmModel> parentClassName = parentObject.getClass();
+        RealmObjectSchema parentObjectSchema = schema.getSchemaForClass(parentClassName);
+
+        Row embeddedObject = getEmbeddedObjectRow(className, (RealmObjectProxy) parentObject, parentProperty, schema, parentObjectSchema);
 
         //noinspection unchecked
         return (E) configuration.getSchemaMediator().newInstance(clazz,

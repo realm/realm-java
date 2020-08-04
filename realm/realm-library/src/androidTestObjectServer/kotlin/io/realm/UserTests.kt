@@ -20,8 +20,8 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
 import io.realm.mongodb.*
 import io.realm.mongodb.auth.ApiKeyAuth
+import io.realm.mongodb.auth.UserApiKey
 import io.realm.rule.BlockingLooperThread
-import io.realm.util.blockingGetResult
 import org.bson.Document
 import org.junit.After
 import org.junit.Assert.*
@@ -29,6 +29,7 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
 
 val CUSTOM_USER_DATA_FIELD = "custom_field"
@@ -82,20 +83,21 @@ class UserTests {
 
     @Test
     fun logOut() {
-        anonUser.logOut(); // Remove user created for other tests
-
         // Anonymous users are removed upon log out
-        val user1: User = app.login(Credentials.anonymous())
-        assertEquals(user1, app.currentUser())
-        user1.logOut()
-        assertEquals(User.State.REMOVED, user1.state)
+        assertEquals(anonUser, app.currentUser())
+        anonUser.logOut()
+        assertEquals(User.State.REMOVED, anonUser.state)
         assertNull(app.currentUser())
 
         // Users registered with Email/Password will register as Logged Out
         val user2: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertEquals(user2, app.currentUser())
+        val current: User = app.currentUser()!!
+        assertEquals(user2, current)
         user2.logOut()
         assertEquals(User.State.LOGGED_OUT, user2.state)
+        // Same effect on all instances
+        assertEquals(User.State.LOGGED_OUT, current.state)
+        // And no current user anymore
         assertNull(app.currentUser())
     }
 
@@ -113,57 +115,148 @@ class UserTests {
     }
 
     @Test
+    fun logOutUserInstanceImpactsCurrentUser() {
+        val currentUser = app.currentUser()!!
+        assertEquals(User.State.LOGGED_IN, currentUser.state)
+        assertEquals(User.State.LOGGED_IN, anonUser.state)
+        assertEquals(currentUser, anonUser)
+
+        anonUser!!.logOut()
+
+        assertNotEquals(User.State.LOGGED_OUT, currentUser.state)
+        assertNotEquals(User.State.LOGGED_OUT, anonUser.state)
+        assertNull(app.currentUser())
+    }
+
+    @Test
+    fun logOutCurrentUserImpactsOtherInstances() {
+        val currentUser = app.currentUser()!!
+        assertEquals(User.State.LOGGED_IN, currentUser.state)
+        assertEquals(User.State.LOGGED_IN, anonUser.state)
+        assertEquals(currentUser, anonUser)
+
+        currentUser!!.logOut()
+
+        assertNotEquals(User.State.LOGGED_OUT, currentUser.state)
+        assertNotEquals(User.State.LOGGED_OUT, anonUser.state)
+        assertNull(app.currentUser())
+    }
+
+    @Test
+    fun repeatedLogInAndOut() {
+        val password = "123456"
+        val initialUser = app.registerUserAndLogin(TestHelper.getRandomEmail(), password)
+        assertEquals(User.State.LOGGED_IN, initialUser.state)
+        initialUser.logOut()
+        assertEquals(User.State.LOGGED_OUT, initialUser.state)
+
+        repeat(3) {
+            val user = app.login(Credentials.emailPassword(initialUser.email, password))
+            assertEquals(User.State.LOGGED_IN, user.state)
+            user.logOut()
+            assertEquals(User.State.LOGGED_OUT, user.state)
+        }
+    }
+
+    @Test
     fun logOutAsync_throwsOnNonLooperThread() {
-        val user: User = app.login(Credentials.anonymous())
         try {
-            user.logOutAsync { fail() }
+            anonUser.logOutAsync { fail() }
             fail()
         } catch (ignore: IllegalStateException) {
         }
     }
 
-    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
     @Test
-    fun linkUser() {
-        admin.setAutomaticConfirmation(enabled = false)
-        val anonUser: User = app.login(Credentials.anonymous())
+    fun linkUser_emailPassword() {
         assertEquals(1, anonUser.identities.size)
 
         val email = TestHelper.getRandomEmail()
         val password = "123456"
         app.emailPasswordAuth.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
         var linkedUser: User = anonUser.linkCredentials(Credentials.emailPassword(email, password))
+
         assertTrue(anonUser === linkedUser)
         assertEquals(2, linkedUser.identities.size)
         assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
-        admin.setAutomaticConfirmation(enabled = true)
 
+        // Validate that we cannot link a second set of credentials
         val otherEmail = TestHelper.getRandomEmail()
         val otherPassword = "123456"
         app.emailPasswordAuth.registerUser(otherEmail, otherPassword)
-        linkedUser = anonUser.linkCredentials(Credentials.emailPassword(email, password))
-        assertTrue(anonUser === linkedUser)
-        assertEquals(3, linkedUser.identities.size)
-        assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[2].provider)
-        admin.setAutomaticConfirmation(enabled = true)
+
+        val credentials = Credentials.emailPassword(otherEmail, otherPassword)
+
+        assertFails {
+            linkedUser = anonUser.linkCredentials(credentials)
+        }
     }
 
-    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
+    @Test
+    fun linkUser_userApiKey() {
+        // Generate API key
+        val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        val apiKey: UserApiKey = user.apiKeyAuth.createApiKey("my-key");
+        user.logOut()
+
+        anonUser = app.login(Credentials.anonymous())
+
+        assertEquals(1, anonUser.identities.size)
+
+        // Linking with another user's API key is not allowed and must raise an AppException
+        val exception = assertFailsWith<AppException>{
+            anonUser.linkCredentials(Credentials.apiKey(apiKey.value))
+        }
+
+        assertEquals("invalid user link request", exception.errorMessage);
+        assertEquals(ErrorCode.Category.FATAL, exception.errorCode.category);
+        assertEquals("realm::app::ServiceError", exception.errorCode.type);
+        assertEquals(6, exception.errorCode.intValue());
+    }
+
+    @Test
+    fun linkUser_serverApiKey() {
+        val serverKey = admin.createServerApiKey()
+
+        assertEquals(1, anonUser.identities.size)
+
+        // Linking a server API key is not allowed
+        val exception = assertFailsWith<AppException>{
+            anonUser.linkCredentials(Credentials.serverApiKey(serverKey))
+        }
+    }
+
+    @Test
+    fun linkUser_customFunction() {
+        assertEquals(1, anonUser.identities.size)
+
+        val document = Document(mapOf(
+                "mail" to TestHelper.getRandomEmail(),
+                "id" to TestHelper.getRandomId() + 666
+        ))
+
+        val credentials = Credentials.customFunction(document)
+
+        val linkedUser = anonUser.linkCredentials(credentials)
+
+        assertTrue(anonUser === linkedUser)
+        assertEquals(2, linkedUser.identities.size)
+        assertEquals(Credentials.IdentityProvider.CUSTOM_FUNCTION, linkedUser.identities[1].provider)
+    }
+
     @Test
     fun linkUser_existingCredentialsThrows() {
         val email = TestHelper.getRandomEmail()
         val password = "123456"
         val emailUser: User = app.registerUserAndLogin(email, password)
-        val anonymousUser: User = app.login(Credentials.anonymous())
         try {
-            anonymousUser.linkCredentials(Credentials.emailPassword(email, password))
+            anonUser.linkCredentials(Credentials.emailPassword(email, password))
             fail()
         } catch (ex: AppException) {
-            assertEquals(ErrorCode.BAD_REQUEST, ex.errorCode)
+            assertEquals(ErrorCode.INVALID_SESSION, ex.errorCode)
         }
     }
 
-    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
     @Test
     fun linkUser_invalidArgsThrows() {
         try {
@@ -173,27 +266,22 @@ class UserTests {
         }
     }
 
-    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
     @Test
-    fun linkUserAsync() {
-        admin.setAutomaticConfirmation(enabled = false)
-        val user: User = app.login(Credentials.anonymous())
-        assertEquals(1, user.identities.size)
+    fun linkUserAsync() = looperThread.runBlocking {
+        assertEquals(1, anonUser.identities.size)
         val email = TestHelper.getRandomEmail()
         val password = "123456"
         app.emailPasswordAuth.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
-        looperThread.runBlocking {
-            anonUser.linkCredentialsAsync(Credentials.emailPassword(email, password)) { result ->
-                val linkedUser: User = result.orThrow
-                assertTrue(user === linkedUser)
-                assertEquals(2, linkedUser.identities.size)
-                assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
-                admin.setAutomaticConfirmation(enabled = true)
-            }
+
+        anonUser.linkCredentialsAsync(Credentials.emailPassword(email, password)) { result ->
+            val linkedUser: User = result.orThrow
+            assertTrue(anonUser === linkedUser)
+            assertEquals(2, linkedUser.identities.size)
+            assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
+            looperThread.testComplete()
         }
     }
 
-    @Ignore("FIXME: Wait for linkUser support in ObjectStore")
     @Test
     fun linkUserAsync_throwsOnNonLooperThread() {
         try {
@@ -290,24 +378,48 @@ class UserTests {
 
     // FIXME Test for all meta data
     @Ignore("Not implemented yet")
-    fun user_metaData() { }
+    fun user_metaData() {
+    }
 
     // FIXME
     @Ignore("Not implemented yet")
-    fun accessToken() { }
+    fun accessToken() {
+    }
 
     // FIXME
     @Ignore("Not implemented yet")
-    fun refreshToken() { }
+    fun refreshToken() {
+    }
+
+    @Test
+    fun revokedRefreshTokenIsNotSameAfterLogin() = looperThread.runBlocking {
+        val password = "password"
+        val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), password)
+        val refreshToken = user.refreshToken
+
+        app.addAuthenticationListener(object : AuthenticationListener {
+            override fun loggedIn(user: User) {}
+
+            override fun loggedOut(loggerOutUser: User) {
+                app.loginAsync(Credentials.emailPassword(loggerOutUser.email, password)) {
+                    val loggedInUser = it.orThrow
+                    assertTrue(loggerOutUser !== loggedInUser)
+                    assertNotEquals(refreshToken, loggedInUser.refreshToken)
+                    looperThread.testComplete()
+                }
+            }
+        })
+        user.logOut()
+    }
 
     // FIXME
     @Ignore("Not implemented yet")
-    fun isLoggedIn() { }
+    fun isLoggedIn() {
+    }
 
     @Test
     fun equals() {
-        // TODO Could be that we could use a fake user
-        val user: User = app.registerUserAndLogin("user1@example.com", "123456")
+        val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         assertEquals(user, user)
         assertNotEquals(user, app)
         user.logOut()
@@ -317,13 +429,13 @@ class UserTests {
         assertFalse(user === sameUserNewLogin)
         assertEquals(user, sameUserNewLogin)
 
-        val differentUser: User = app.registerUserAndLogin("user2@example.com", "123456")
+        val differentUser: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         assertNotEquals(user, differentUser)
     }
 
     @Test
     fun hashCode_user() {
-        val user: User = app.registerUserAndLogin("user1@example.com", "123456")
+        val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         user.logOut()
 
         val sameUserNewLogin = app.login(Credentials.emailPassword(user.email!!, "123456"))
@@ -411,7 +523,7 @@ class UserTests {
         val client = user.getMongoClient(SERVICE_NAME)
         client.getDatabase(DATABASE_NAME).let {
             it.getCollection(COLLECTION_NAME).also { collection ->
-                collection.insertOne(data.append(USER_ID_FIELD , user.id)).blockingGetResult()
+                collection.insertOne(data.append(USER_ID_FIELD, user.id)).get()
             }
         }
     }

@@ -40,9 +40,17 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 import io.realm.Realm;
 import io.realm.annotations.Beta;
-import io.realm.mongodb.sync.SyncSession;
 import io.realm.internal.Util;
+import io.realm.internal.log.obfuscator.ApiKeyObfuscator;
+import io.realm.internal.log.obfuscator.CustomFunctionObfuscator;
+import io.realm.internal.log.obfuscator.EmailPasswordObfuscator;
+import io.realm.internal.log.obfuscator.RegexPatternObfuscator;
+import io.realm.internal.log.obfuscator.TokenObfuscator;
 import io.realm.log.RealmLog;
+import io.realm.mongodb.log.obfuscator.HttpLogObfuscator;
+import io.realm.mongodb.sync.SyncSession;
+
+import static io.realm.internal.network.LoggingInterceptor.LOGIN_FEATURE;
 
 /**
  * A AppConfiguration is used to setup a MongoDB Realm application.
@@ -103,30 +111,53 @@ public class AppConfiguration {
             )
     );
 
+    /**
+     * Default obfuscators for login requests used in a MongoDB Realm app.
+     * <p>
+     * This map is needed to instantiate the default {@link HttpLogObfuscator}, which will keep all
+     * login-sensitive information from being shown in Logcat.
+     * <p>
+     * This map's keys represent the different login identity providers which can be used to
+     * authenticate against an app and the values are the concrete obfuscators used for that
+     * provider.
+     *
+     * @see Credentials.IdentityProvider
+     * @see RegexPatternObfuscator
+     * @see ApiKeyObfuscator
+     * @see TokenObfuscator
+     * @see CustomFunctionObfuscator
+     * @see EmailPasswordObfuscator
+     * @see HttpLogObfuscator
+     */
+    public static final Map<String, RegexPatternObfuscator> loginObfuscators = getLoginObfuscators();
+
     private final String appId;
     private final String appName;
     private final String appVersion;
     private final URL baseUrl;
     private final SyncSession.ErrorHandler defaultErrorHandler;
-    @Nullable private final byte[] encryptionKey;
+    @Nullable
+    private final byte[] encryptionKey;
     private final long requestTimeoutMs;
     private final String authorizationHeaderName;
     private final Map<String, String> customHeaders;
     private final File syncRootDir; // Root directory for storing Sync related files
     private final CodecRegistry codecRegistry;
+    @Nullable
+    private final HttpLogObfuscator httpLogObfuscator;
 
     private AppConfiguration(String appId,
                              String appName,
                              String appVersion,
                              URL baseUrl,
-                                 SyncSession.ErrorHandler defaultErrorHandler,
-                                 @Nullable byte[] encryptionKey,
+                             SyncSession.ErrorHandler defaultErrorHandler,
+                             @Nullable byte[] encryptionKey,
                              long requestTimeoutMs,
                              String authorizationHeaderName,
                              Map<String, String> customHeaders,
                              File syncRootdir,
-                             CodecRegistry codecRegistry) {
-
+                             CodecRegistry codecRegistry,
+                             @Nullable HttpLogObfuscator httpLogObfuscator) {
         this.appId = appId;
         this.appName = appName;
         this.appVersion = appVersion;
@@ -138,6 +169,7 @@ public class AppConfiguration {
         this.customHeaders = Collections.unmodifiableMap(customHeaders);
         this.syncRootDir = syncRootdir;
         this.codecRegistry = codecRegistry;
+        this.httpLogObfuscator = httpLogObfuscator;
     }
 
     /**
@@ -224,11 +256,36 @@ public class AppConfiguration {
      * {@link io.realm.mongodb.mongo.MongoDatabase}.
      *
      * @return The default codec registry for the App.
-     *
      * @see #DEFAULT_BSON_CODEC_REGISTRY
      * @see Builder#getDefaultCodecRegistry()
      */
-    public CodecRegistry getDefaultCodecRegistry() { return codecRegistry; }
+    public CodecRegistry getDefaultCodecRegistry() {
+        return codecRegistry;
+    }
+
+    /**
+     * Returns the {@link HttpLogObfuscator} used in the app, which keeps sensitive information in
+     * HTTP requests from being displayed in the logcat.
+     *
+     * @return the HTTP log obfuscator.
+     */
+    @Nullable
+    public HttpLogObfuscator getHttpLogObfuscator() {
+        return httpLogObfuscator;
+    }
+
+    private static Map<String, RegexPatternObfuscator> getLoginObfuscators() {
+        final HashMap<String, RegexPatternObfuscator> obfuscators = new HashMap<>();
+        obfuscators.put(Credentials.IdentityProvider.API_KEY.getId(), ApiKeyObfuscator.obfuscator());
+        obfuscators.put(Credentials.IdentityProvider.SERVER_API_KEY.getId(), ApiKeyObfuscator.obfuscator());
+        obfuscators.put(Credentials.IdentityProvider.APPLE.getId(), TokenObfuscator.obfuscator());
+        obfuscators.put(Credentials.IdentityProvider.CUSTOM_FUNCTION.getId(), CustomFunctionObfuscator.obfuscator());
+        obfuscators.put(Credentials.IdentityProvider.EMAIL_PASSWORD.getId(), EmailPasswordObfuscator.obfuscator());
+        obfuscators.put(Credentials.IdentityProvider.FACEBOOK.getId(), TokenObfuscator.obfuscator());
+        obfuscators.put(Credentials.IdentityProvider.GOOGLE.getId(), TokenObfuscator.obfuscator());
+        obfuscators.put(Credentials.IdentityProvider.JWT.getId(), TokenObfuscator.obfuscator());
+        return obfuscators;
+    }
 
     /**
      * Builder used to construct instances of a {@link AppConfiguration} in a fluent manner.
@@ -268,6 +325,8 @@ public class AppConfiguration {
         private Map<String, String> customHeaders = new HashMap<>();
         private File syncRootDir;
         private CodecRegistry codecRegistry = DEFAULT_BSON_CODEC_REGISTRY;
+        @Nullable
+        private HttpLogObfuscator httpLogObfuscator = new HttpLogObfuscator(LOGIN_FEATURE, loginObfuscators);
 
         /**
          * Creates an instance of the Builder for the AppConfiguration.
@@ -424,7 +483,7 @@ public class AppConfiguration {
          * between the device and MongoDB Realm.
          * <p>
          * The default root dir is {@code Context.getFilesDir()/mongodb-realm}.
-         * </p>
+         *
          * @param rootDir where to store sync related files.
          */
         public Builder syncRootDirectory(File rootDir) {
@@ -461,13 +520,25 @@ public class AppConfiguration {
          * Will default to {@link #DEFAULT_BSON_CODEC_REGISTRY} if not specified.
          *
          * @param codecRegistry The default codec registry for the App.
-         *
          * @see #DEFAULT_BSON_CODEC_REGISTRY
          * @see Builder#getDefaultCodecRegistry()
          */
         public Builder codecRegistry(CodecRegistry codecRegistry) {
             Util.checkNull(codecRegistry, "codecRegistry");
             this.codecRegistry = codecRegistry;
+            return this;
+        }
+
+        /**
+         * Sets the {@link HttpLogObfuscator} used to keep sensitive information in HTTP requests
+         * from being displayed in the logcat.
+         * <p>
+         * If left unspecified, it will default to obfuscating HTTP login requests.
+         *
+         * @param httpLogObfuscator the default HTTP log obfuscator for the app.
+         */
+        public Builder httpLogObfuscator(@Nullable HttpLogObfuscator httpLogObfuscator) {
+            this.httpLogObfuscator = httpLogObfuscator;
             return this;
         }
 
@@ -487,7 +558,8 @@ public class AppConfiguration {
                     authorizationHeaderName,
                     customHeaders,
                     syncRootDir,
-                    codecRegistry);
+                    codecRegistry,
+                    httpLogObfuscator);
         }
     }
 }

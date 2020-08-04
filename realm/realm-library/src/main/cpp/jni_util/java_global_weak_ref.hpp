@@ -43,7 +43,7 @@ public:
         return m_weak != nullptr;
     }
 
-    JavaGlobalRef global_ref(JNIEnv* env = nullptr) const;
+    JavaGlobalRefByMove global_ref(JNIEnv* env = nullptr) const;
 
     using Callback = void(JNIEnv* env, jobject obj);
 

@@ -35,11 +35,11 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
-import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.OsSharedRealm;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
@@ -506,6 +506,44 @@ abstract class BaseRealm implements Closeable {
         if (!isInTransaction()) {
             throw new IllegalStateException(NOT_IN_TRANSACTION_MESSAGE);
         }
+    }
+
+    /**
+     * Creates a row representing an embedded object - for internal use only.
+     *
+     * @param className the class name of the object to create.
+     * @param parentProxy The parent object which should hold a reference to the embedded object.
+     * @param parentProperty the property in the parent class which holds the reference.
+     * @param schema the Realm schema from which to obtain table information.
+     * @param parentObjectSchema the parent object schema from which to obtain property information.
+     * @return the row representing the newly created embedded object.
+     * @throws IllegalArgumentException if any embedded object invariants are broken.
+     */
+    Row getEmbeddedObjectRow(final String className,
+                             final RealmObjectProxy parentProxy,
+                             final String parentProperty,
+                             final RealmSchema schema,
+                             final RealmObjectSchema parentObjectSchema) {
+        final long parentPropertyColKey = parentObjectSchema.getColumnKey(parentProperty);
+        final RealmFieldType parentPropertyType = parentObjectSchema.getFieldType(parentProperty);
+        final Row row = parentProxy.realmGet$proxyState().getRow$realm();
+        final RealmFieldType fieldType = parentObjectSchema.getFieldType(parentProperty);
+        boolean propertyAcceptable = parentObjectSchema.isPropertyAcceptableForEmbeddedObject(fieldType);
+        if (!propertyAcceptable) {
+            throw new IllegalArgumentException(String.format("Field '%s' does not contain a valid link", parentProperty));
+        }
+        final String linkedType = parentObjectSchema.getPropertyClassName(parentProperty);
+
+        // By now linkedType can only be either OBJECT or LIST, so no exhaustive check needed
+        Row embeddedObject;
+        if (linkedType.equals(className)) {
+            long objKey = row.createEmbeddedObject(parentPropertyColKey, parentPropertyType);
+            embeddedObject = schema.getTable(className).getCheckedRow(objKey);
+        } else {
+            throw new IllegalArgumentException(String.format("Parent type %s expects that property '%s' be of type %s but was %s.", parentObjectSchema.getClassName(), parentProperty, linkedType, className));
+        }
+
+        return embeddedObject;
     }
 
     /**

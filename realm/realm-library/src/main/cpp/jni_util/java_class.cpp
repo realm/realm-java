@@ -44,11 +44,11 @@ JavaClass::JavaClass(JavaClass&& rhs)
     rhs.m_class = nullptr;
 }
 
-JavaGlobalRef JavaClass::get_jclass(JNIEnv* env, const char* class_name)
+JavaGlobalRefByMove JavaClass::get_jclass(JNIEnv* env, const char* class_name)
 {
     jclass cls = env->FindClass(class_name);
     REALM_ASSERT_RELEASE_EX(cls, class_name);
 
-    JavaGlobalRef cls_ref(env, cls, true);
+    JavaGlobalRefByMove cls_ref(env, cls, true);
     return cls_ref;
 }

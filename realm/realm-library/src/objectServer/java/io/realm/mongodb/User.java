@@ -20,6 +20,7 @@ import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
@@ -28,8 +29,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmAsyncTask;
 import io.realm.annotations.Beta;
 import io.realm.internal.Util;
-import io.realm.internal.common.TaskDispatcher;
-import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.mongodb.Request;
@@ -63,7 +62,6 @@ public class User {
     private MongoClient mongoClient = null;
     private Functions functions = null;
     private Push push = null;
-    private TaskDispatcher dispatcher = null;
 
     /**
      * The different types of users.
@@ -105,9 +103,8 @@ public class User {
 
     private static class MongoClientImpl extends MongoClient {
         protected MongoClientImpl(OsMongoClient osMongoClient,
-                                  CodecRegistry codecRegistry,
-                                  TaskDispatcher dispatcher) {
-            super(osMongoClient, codecRegistry, dispatcher);
+                                  CodecRegistry codecRegistry) {
+            super(osMongoClient, codecRegistry);
         }
     }
 
@@ -561,6 +558,8 @@ public class User {
 
     /**
      * Returns the {@link Push} instance for managing push notification registrations.
+     *
+     * @param serviceName        the service name used to connect to the server.
      */
     public synchronized Push getPush(String serviceName) {
         if (push == null) {
@@ -572,16 +571,14 @@ public class User {
 
     /**
      * Returns a {@link MongoClient} instance for accessing documents in the database.
-     * @param serviceName the service name used to connect to the server
+     *
+     * @param serviceName        the service name used to connect to the server.
      */
     public synchronized MongoClient getMongoClient(String serviceName) {
         Util.checkEmpty(serviceName, "serviceName");
         if (mongoClient == null) {
-            if (dispatcher == null) {
-                dispatcher = new TaskDispatcher();
-            }
-            OsMongoClient osMongoClient = new OsMongoClient(app.nativePtr, serviceName, dispatcher);
-            mongoClient = new MongoClientImpl(osMongoClient, app.getConfiguration().getDefaultCodecRegistry(), dispatcher);
+            OsMongoClient osMongoClient = new OsMongoClient(app.nativePtr, serviceName);
+            mongoClient = new MongoClientImpl(osMongoClient, app.getConfiguration().getDefaultCodecRegistry());
         }
         return mongoClient;
     }
