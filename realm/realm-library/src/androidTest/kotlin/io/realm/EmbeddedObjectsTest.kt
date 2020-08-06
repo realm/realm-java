@@ -646,6 +646,69 @@ class EmbeddedObjectsTest {
     }
 
     @Test
+    fun createOrUpdateFromJson_json_ignoreUnsetProperties() {
+        // Create initial instance
+        realm.executeTransaction { realm ->
+            realm.createOrUpdateObjectFromJson(EmbeddedCircularParent::class.java, json(circularParentData))
+        }
+        val circularParent = realm.where(EmbeddedCircularParent::class.java).findFirst()!!
+        val singleChild = circularParent.singleChild!!
+        assertEquals(childId, singleChild.id)
+        assertEquals(embeddedChildId, singleChild.singleChild!!.id)
+
+        // Update existing objects, but without overwriting any properties
+        realm.executeTransaction { realm ->
+            val circularParentData = mapOf(
+                    "id" to parentId
+            )
+            realm.createOrUpdateObjectFromJson(EmbeddedCircularParent::class.java, json(circularParentData))
+        }
+        val allParents = realm.where(EmbeddedCircularParent::class.java).findAll()
+        assertEquals(1, allParents.count())
+        val allChildren = realm.where(EmbeddedCircularChild::class.java).findAll()
+        assertEquals(2, allChildren.count())
+        val updatedCircularParent = allParents.first()!!
+        val updatedSingleChild = circularParent.singleChild!!
+        assertEquals(parentId, updatedCircularParent.id)
+        assertEquals(childId, updatedSingleChild.id)
+        assertEquals(embeddedChildId, updatedSingleChild.singleChild!!.id)
+    }
+
+    @Test
+    fun createOrUpdateFromJson_stream_embeddedObject() {
+        // Create initial instance
+        realm.executeTransaction { realm ->
+            realm.createOrUpdateObjectFromJson(EmbeddedCircularParent::class.java, stream(circularParentData))
+        }
+        val circularParent = realm.where(EmbeddedCircularParent::class.java).findFirst()!!
+        val singleChild = circularParent.singleChild!!
+        assertEquals(childId, singleChild.id)
+        assertEquals(embeddedChildId, singleChild.singleChild!!.id)
+
+        // Update existing objects, updating to new embedded object
+        realm.executeTransaction { realm ->
+            val circularParentData = mapOf(
+                    "id" to parentId,
+                    "singleChild" to mapOf(
+                            "id" to childId
+                    )
+            )
+            realm.createOrUpdateObjectFromJson(EmbeddedCircularParent::class.java, stream(circularParentData))
+        }
+        val allParents = realm.where(EmbeddedCircularParent::class.java).findAll()
+        assertEquals(1, allParents.count())
+        val allChildren = realm.where(EmbeddedCircularChild::class.java).findAll()
+        assertEquals(1, allChildren.count())
+        val updatedCircularParent = allParents.first()!!
+        val updatedSingleChild = circularParent.singleChild!!
+        assertEquals(parentId, updatedCircularParent.id)
+        assertEquals(childId, updatedSingleChild.id)
+        // Sub child will have been deleted as embedded object does not have primary key and is
+        // comletely replaced
+        assertNull(updatedSingleChild.singleChild)
+    }
+
+    @Test
     fun createObjectFromJson_orphanedEmbeddedObjectThrows() {
         throws { realm.createObjectFromJson(EmbeddedSimpleChild::class.java, json(simpleListParentData)) }
         throws { realm.createObjectFromJson(EmbeddedSimpleChild::class.java, string(simpleListParentData)) }
