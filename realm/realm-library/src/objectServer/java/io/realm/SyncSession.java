@@ -44,6 +44,7 @@ import io.realm.internal.SyncObjectServerFacade;
 import io.realm.internal.Util;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.async.RealmAsyncTaskImpl;
+import io.realm.internal.async.ResetableRealmAsyncTask;
 import io.realm.internal.network.AuthenticateResponse;
 import io.realm.internal.network.RealmObjectServer;
 import io.realm.internal.network.ExponentialBackoffTask;
@@ -81,9 +82,9 @@ public class SyncSession {
 
     private final SyncConfiguration configuration;
     private final ErrorHandler errorHandler;
-    private RealmAsyncTask networkRequest;
+    private ResetableRealmAsyncTask networkRequest; //
     private RealmAsyncTask refreshTokenTask;
-    private RealmAsyncTask refreshTokenNetworkRequest;
+    private ResetableRealmAsyncTask refreshTokenNetworkRequest;
     private AtomicBoolean onGoingAccessTokenQuery = new AtomicBoolean(false);
     private volatile boolean isClosed = false;
     private final AtomicReference<WaitForSessionWrapper> waitingForServerChanges = new AtomicReference<>(null);
@@ -774,8 +775,9 @@ public class SyncSession {
         clearScheduledAccessTokenRefresh();
 
         onGoingAccessTokenQuery.set(true);
+        final String taskName = "Session[" + configuration.getPath() + "][AuthenticateRealm]";
         // Authenticate in a background thread. This allows incremental backoff and retries in a safe manner.
-        Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new ExponentialBackoffTask<AuthenticateResponse>() {
+        networkRequest = new ResetableRealmAsyncTask(new ExponentialBackoffTask<AuthenticateResponse>() {
             @Override
             protected AuthenticateResponse execute() {
                 if (!isClosed && !Thread.currentThread().isInterrupted()) {
@@ -802,6 +804,7 @@ public class SyncSession {
                         onGoingAccessTokenQuery.set(false);
                     }
                 }
+                networkRequest = null;
             }
 
             @Override
@@ -817,9 +820,14 @@ public class SyncSession {
                         && !(response.getError().getException() instanceof InterruptedIOException)) {
                     errorHandler.onError(SyncSession.this, response.getError());
                 }
+                networkRequest = null;
             }
-        });
-        networkRequest = new RealmAsyncTaskImpl(task, SyncManager.NETWORK_POOL_EXECUTOR);
+
+            @Override
+            protected String getName() {
+                return taskName;
+            }
+        }, SyncManager.NETWORK_POOL_EXECUTOR);
     }
 
     private void scheduleRefreshAccessToken(final RealmObjectServer authServer, long expireDateInMs) {
@@ -830,7 +838,7 @@ public class SyncSession {
         long refreshAfter =  expireDateInMs - System.currentTimeMillis() - REFRESH_MARGIN_DELAY;
         if (refreshAfter < 0) {
             // Token already expired
-            RealmLog.debug("Expires time already reached for the access token, refresh as soon as possible");
+            RealmLog.debug("Session[%s]: Expires time already reached for the access token, refresh as soon as possible", configuration.getPath());
             // we avoid refreshing directly to avoid an edge case where the client clock is ahead
             // of the server, causing all access_token received from the server to be always
             // expired, we will flood the server with refresh token requests then, so adding
@@ -838,7 +846,7 @@ public class SyncSession {
             refreshAfter = REFRESH_MARGIN_DELAY;
         }
 
-        RealmLog.debug("Scheduling an access_token refresh in " + (refreshAfter) + " milliseconds");
+        RealmLog.debug("Session[%s]: Schedule refresh of access token in %s sec.", configuration.getPath(), TimeUnit.SECONDS.convert(refreshAfter, TimeUnit.MILLISECONDS));
 
         if (refreshTokenTask != null) {
             refreshTokenTask.cancel();
@@ -859,8 +867,8 @@ public class SyncSession {
     private void refreshAccessToken(final RealmObjectServer authServer) {
         // Authenticate in a background thread. This allows incremental backoff and retries in a safe manner.
         clearScheduledAccessTokenRefresh();
-
-        Future<?> task = SyncManager.NETWORK_POOL_EXECUTOR.submit(new ExponentialBackoffTask<AuthenticateResponse>() {
+        final String taskName = "Session[" + configuration.getPath() + "][RefreshAccessToken]";
+        refreshTokenNetworkRequest = new ResetableRealmAsyncTask(new ExponentialBackoffTask<AuthenticateResponse>() {
             @Override
             protected AuthenticateResponse execute() {
                 if (!isClosed && !Thread.currentThread().isInterrupted()) {
@@ -873,7 +881,7 @@ public class SyncSession {
             protected void onSuccess(AuthenticateResponse response) {
                 synchronized (SyncSession.this) {
                     if (!isClosed && !Thread.currentThread().isInterrupted() && !refreshTokenNetworkRequest.isCancelled()) {
-                        RealmLog.debug("Access Token refreshed successfully, Sync URL: " + configuration.getServerUrl());
+                        RealmLog.debug("Session[%s]: Access Token refreshed successfully.", configuration.getPath());
 
                         SyncWorker syncWorker = response.getSyncWorker();
                         if (syncWorker != null) {
@@ -888,6 +896,7 @@ public class SyncSession {
                             scheduleRefreshAccessToken(authServer, response.getAccessToken().expiresMs());
                         }
                     }
+                    refreshTokenNetworkRequest = null;
                 }
             }
 
@@ -895,19 +904,35 @@ public class SyncSession {
             protected void onError(AuthenticateResponse response) {
                 if (!isClosed && !Thread.currentThread().isInterrupted()) {
                     onGoingAccessTokenQuery.set(false);
-                    RealmLog.error("Unrecoverable error, while refreshing the access Token (" + response.getError().toString() + ") reschedule will not happen");
+                    RealmLog.debug("Session[%s]: Unrecoverable error, while refreshing the access Token. Reschedule will not happen. %s", configuration.getPath(), response.getError());
                 }
+                refreshTokenNetworkRequest = null;
             }
-        });
-        refreshTokenNetworkRequest = new RealmAsyncTaskImpl(task, SyncManager.NETWORK_POOL_EXECUTOR);
+
+            @Override
+            protected String getName() {
+                return taskName;
+            }
+        }, SyncManager.NETWORK_POOL_EXECUTOR);
+    }
+
+    void refreshConnection() {
+        if (networkRequest != null) {
+            networkRequest.resetTask();
+        }
+        if (refreshTokenNetworkRequest != null) {
+            refreshTokenNetworkRequest.resetTask();
+        }
     }
 
     void clearScheduledAccessTokenRefresh() {
         if (refreshTokenTask != null) {
             refreshTokenTask.cancel();
+            refreshTokenTask = null;
         }
         if (refreshTokenNetworkRequest != null) {
             refreshTokenNetworkRequest.cancel();
+            refreshTokenNetworkRequest = null;
         }
         onGoingAccessTokenQuery.set(false);
     }

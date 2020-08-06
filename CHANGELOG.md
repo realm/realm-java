@@ -1,3 +1,20 @@
+## 7.0.2(YYYY-MM-DD)
+
+### Enhancements
+* None.
+
+### Fixes
+* [ObjectServer] Calling `SyncManager.refreshConnections()` did not correctly refresh connections in all cases, which could delay reconnects up to 5 minutes. (Issue [#7003](https://github.com/realm/realm-java/issues/7003))
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* None.
+
+
 ## 7.0.1(2020-07-01)
 
 ### Enhancements
