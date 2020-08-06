@@ -24,9 +24,12 @@ import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import io.realm.rule.BlockingLooperThread
 import io.realm.rule.TestRealmConfigurationFactory
+import org.json.JSONObject
 import org.junit.*
 import org.junit.Assert.*
 import org.junit.runner.RunWith
+import java.io.ByteArrayInputStream
+import java.nio.charset.Charset
 import java.util.*
 import kotlin.test.assertFailsWith
 
@@ -34,6 +37,34 @@ import kotlin.test.assertFailsWith
  * Class testing the Embedded Objects feature.
  */
 // FIXME: Move all of these tests out from here. We try to tests by Class, not Feature.
+
+private val UTF_8 = Charset.forName("UTF-8");
+
+private const val parentId = "uuid"
+private const val childId = "childId"
+private const val embeddedChildId = "embeddedChildId"
+private const val childId1 = "childId1"
+private const val childId2 = "childId2"
+private const val childId3 = "childId3"
+
+private val circularParentData = mapOf(
+        "id" to parentId,
+        "singleChild" to mapOf(
+                "id" to childId,
+                "singleChild" to mapOf(
+                        "id" to embeddedChildId
+                )
+        )
+)
+private val simpleListParentData = mapOf(
+        "id" to parentId,
+        "children" to listOf(
+                mapOf("id" to childId1),
+                mapOf("id" to childId2),
+                mapOf("id" to childId3)
+        )
+)
+
 @RunWith(AndroidJUnit4::class)
 class EmbeddedObjectsTest {
 
@@ -513,60 +544,185 @@ class EmbeddedObjectsTest {
         TODO()
     }
 
+    // TODO Move all json import tests to RealmJsonTests when RealmJsonTests have been
+    //  converted to Kotlin
+    // Sanity check of string based variants. Implementation dispatches to json variant covered
+    // below, so not covering all cases for the string-variants.
     @Test
-    fun createEmbeddedObjectFromJson() {
+    fun createObjectFromJson_string_embeddedObject() {
         realm.executeTransaction { realm ->
-            realm.createObjectFromJson(EmbeddedCircularParent::class.java, """
-                        { 
-                            "id": "uuid", 
-                            "singleChild": { 
-                                "id" : "childId", 
-                                "singleChild" : { 
-                                    "id": "embeddedChildId" 
-                                }
-                            }
-                        }
-                """)
+            realm.createObjectFromJson(EmbeddedCircularParent::class.java, JSONObject(circularParentData).toString())
         }
         val circularParent = realm.where(EmbeddedCircularParent::class.java).findFirst()!!
         val singleChild = circularParent.singleChild!!
-        assertEquals("childId", singleChild.id)
+        assertEquals(childId, singleChild.id)
         assertEquals("embeddedChildId", singleChild.singleChild!!.id)
     }
 
     @Test
-    fun createEmbeddedObjectListElementFromJson() {
+    fun createObjectFromJson_json_embeddedObject() {
         realm.executeTransaction { realm ->
-            realm.createObjectFromJson(EmbeddedSimpleListParent::class.java, """
-                        { 
-                            "id": "uuid", 
-                            "children": [
-                                { "id" : "child1" },
-                                { "id" : "child2" },
-                                { "id" : "child3" }
-                            ]
-                        }
-                """)
+            realm.createObjectFromJson(EmbeddedCircularParent::class.java, JSONObject(circularParentData).toString())
         }
-        val parent = realm.where(EmbeddedSimpleListParent::class.java).findFirst()!!
-        assertEquals(3, parent.children!!.count())
-        assertEquals("child1", parent.children[0]!!.id)
-        assertEquals("child2", parent.children[1]!!.id)
-        assertEquals("child3", parent.children[2]!!.id)
+        val circularParent = realm.where(EmbeddedCircularParent::class.java).findFirst()!!
+        val singleChild = circularParent.singleChild!!
+        assertEquals(childId, singleChild.id)
+        assertEquals(embeddedChildId, singleChild.singleChild!!.id)
     }
 
     @Test
-    fun createOrphanedEmbeddedObjectFromJsonThrows() {
+    fun createObjectFromJson_json_embeddedObjectList() {
+        realm.executeTransaction { realm ->
+            realm.createObjectFromJson(EmbeddedSimpleListParent::class.java, json(simpleListParentData))
+        }
+        val parent = realm.where(EmbeddedSimpleListParent::class.java).findFirst()!!
+        assertEquals(3, parent.children!!.count())
+        assertEquals(childId1, parent.children[0]!!.id)
+        assertEquals(childId2, parent.children[1]!!.id)
+        assertEquals(childId3, parent.children[2]!!.id)
+    }
+
+    @Test
+    fun createObjectFromJson_stream_embeddedObject() {
+        val clz = EmbeddedCircularParent::class.java
+        realm.executeTransaction { realm ->
+            assertTrue(realm.schema.getSchemaForClass(clz).hasPrimaryKey())
+            realm.createObjectFromJson(clz, stream(circularParentData))
+        }
+        val circularParent = realm.where(EmbeddedCircularParent::class.java).findFirst()!!
+        val singleChild = circularParent.singleChild!!
+        assertEquals(childId, singleChild.id)
+        assertEquals(embeddedChildId, singleChild.singleChild!!.id)
+    }
+
+    // Stream based import implementation is differentiated depending on whether the class has a
+    // primary key, so add specific tests for that path.
+    @Test
+    fun createObjectFromJson_stream_embeddedObjectWithNoPrimaryKeyParent() {
+        val clz = EmbeddedCircularParentWithoutPrimaryKey::class.java
+        realm.executeTransaction { realm ->
+            assertFalse(realm.schema.getSchemaForClass(clz).hasPrimaryKey())
+            realm.createObjectFromJson(clz, stream(circularParentData))
+        }
+        val all = realm.where(EmbeddedCircularParentWithoutPrimaryKey::class.java).findAll()
+        assertEquals(1, all.count())
+        val parent = all.first()!!
+        val child = parent.singleChild!!
+        assertEquals(childId, child.id)
+    }
+
+    @Test
+    fun createObjectFromJson_stream_embeddedObjectList() {
+        val clz = EmbeddedSimpleListParent::class.java
+        realm.executeTransaction { realm ->
+            assertTrue(realm.schema.getSchemaForClass(clz).hasPrimaryKey())
+            realm.createObjectFromJson(clz, stream(simpleListParentData))
+        }
+        val all = realm.where(EmbeddedSimpleListParent::class.java).findAll()
+        assertEquals(1, all.count())
+        val parent = all.first()!!
+        assertEquals(3, parent.children!!.count())
+        assertEquals(childId1, parent.children[0]!!.id)
+        assertEquals(childId2, parent.children[1]!!.id)
+        assertEquals(childId3, parent.children[2]!!.id)
+    }
+
+    // Stream based import implementation is differentiated depending on whether the class has a primary key
+    @Test
+    fun createObjectFromJson_stream_embeddedObjectListWithNoPrimaryKeyParent() {
+        val clz = EmbeddedSimpleListParentWithoutPrimaryKey::class.java
+        realm.executeTransaction { realm ->
+            assertFalse(realm.schema.getSchemaForClass(clz).hasPrimaryKey())
+            realm.createObjectFromJson(clz, stream(simpleListParentData))
+        }
+        val all = realm.where(EmbeddedSimpleListParentWithoutPrimaryKey::class.java).findAll()
+        assertEquals(1, all.count())
+        val parent = all.first()!!
+        assertEquals(parentId, parent.id)
+        assertEquals(3, parent.children!!.count())
+        assertEquals(childId1, parent.children[0]!!.id)
+        assertEquals(childId2, parent.children[1]!!.id)
+        assertEquals(childId3, parent.children[2]!!.id)
+    }
+
+    @Test
+    fun createOrUpdateFromJson_json_ignoreUnsetProperties() {
+        // Create initial instance
+        realm.executeTransaction { realm ->
+            realm.createOrUpdateObjectFromJson(EmbeddedCircularParent::class.java, json(circularParentData))
+        }
+        val circularParent = realm.where(EmbeddedCircularParent::class.java).findFirst()!!
+        val singleChild = circularParent.singleChild!!
+        assertEquals(childId, singleChild.id)
+        assertEquals(embeddedChildId, singleChild.singleChild!!.id)
+
+        // Update existing objects, but without overwriting any properties
+        realm.executeTransaction { realm ->
+            val circularParentData = mapOf(
+                    "id" to parentId
+            )
+            realm.createOrUpdateObjectFromJson(EmbeddedCircularParent::class.java, json(circularParentData))
+        }
+        val allParents = realm.where(EmbeddedCircularParent::class.java).findAll()
+        assertEquals(1, allParents.count())
+        val allChildren = realm.where(EmbeddedCircularChild::class.java).findAll()
+        assertEquals(2, allChildren.count())
+        val updatedCircularParent = allParents.first()!!
+        val updatedSingleChild = circularParent.singleChild!!
+        assertEquals(parentId, updatedCircularParent.id)
+        assertEquals(childId, updatedSingleChild.id)
+        assertEquals(embeddedChildId, updatedSingleChild.singleChild!!.id)
+    }
+
+    @Test
+    fun createOrUpdateFromJson_stream_embeddedObject() {
+        // Create initial instance
+        realm.executeTransaction { realm ->
+            realm.createOrUpdateObjectFromJson(EmbeddedCircularParent::class.java, stream(circularParentData))
+        }
+        val circularParent = realm.where(EmbeddedCircularParent::class.java).findFirst()!!
+        val singleChild = circularParent.singleChild!!
+        assertEquals(childId, singleChild.id)
+        assertEquals(embeddedChildId, singleChild.singleChild!!.id)
+
+        // Update existing objects, updating to new embedded object
+        realm.executeTransaction { realm ->
+            val circularParentData = mapOf(
+                    "id" to parentId,
+                    "singleChild" to mapOf(
+                            "id" to childId
+                    )
+            )
+            realm.createOrUpdateObjectFromJson(EmbeddedCircularParent::class.java, stream(circularParentData))
+        }
+        val allParents = realm.where(EmbeddedCircularParent::class.java).findAll()
+        assertEquals(1, allParents.count())
+        val allChildren = realm.where(EmbeddedCircularChild::class.java).findAll()
+        assertEquals(1, allChildren.count())
+        val updatedCircularParent = allParents.first()!!
+        val updatedSingleChild = circularParent.singleChild!!
+        assertEquals(parentId, updatedCircularParent.id)
+        assertEquals(childId, updatedSingleChild.id)
+        // Sub child will have been deleted as embedded object does not have primary key and is
+        // comletely replaced
+        assertNull(updatedSingleChild.singleChild)
+    }
+
+    @Test
+    fun createObjectFromJson_orphanedEmbeddedObjectThrows() {
+        throws { realm.createObjectFromJson(EmbeddedSimpleChild::class.java, json(simpleListParentData)) }
+        throws { realm.createObjectFromJson(EmbeddedSimpleChild::class.java, string(simpleListParentData)) }
+        throws { realm.createObjectFromJson(EmbeddedSimpleChild::class.java, stream(simpleListParentData)) }
+    }
+
+    private fun throws(block: () -> Unit) {
         assertFailsWith<IllegalArgumentException> {
             realm.executeTransaction { realm ->
-                realm.createObjectFromJson(EmbeddedSimpleChild::class.java, """ {"id": "uuid" } """ )
+                block()
             }
         }
     }
 
-    @Test
-    @Ignore("FIXME Not implemented yet")
-    fun createEmbeddedObjectFromJson_streamBased() { }
 
     @Test
     fun realmObjectSchema_setEmbedded() {
@@ -833,4 +989,11 @@ class EmbeddedObjectsTest {
         // objects here?
         TODO()
     }
+
+    // Convenience methods to create json in various forms from a map
+    private fun json(data: Map<String, Any>) = JSONObject(data)
+    private fun string(data: Map<String, Any>) = json(data).toString()
+    private fun stream(data: Map<String, Any>) =
+            ByteArrayInputStream(JSONObject(data).toString().toByteArray(UTF_8))
+
 }
