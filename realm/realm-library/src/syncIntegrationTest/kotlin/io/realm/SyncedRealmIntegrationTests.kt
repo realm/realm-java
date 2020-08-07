@@ -262,11 +262,11 @@ class SyncedRealmIntegrationTests {
 
     @Test
     // FIXME
-    @Ignore("Not really sure how to do this test with new sync, but isn't it covered by the " +
-            "SyncedRealmMigrationTests?")
+    @Ignore("Not really sure how to do this test with new sync")
     fun waitForInitialRemoteData_readOnlyTrue_throwsIfWrongServerSchema() {
         val configNew: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, user.id)
                 .waitForInitialRemoteData()
+                .readOnly()
                 .testSchema(SyncStringOnly::class.java)
                 .build()
         assertFalse(configNew.testRealmExists())
