@@ -45,7 +45,7 @@ try {
         def deviceSerial = ""
         if (!releaseBranches.contains(currentBranch)) {
           useEmulator = true
-          emulatorImage = "system-images;android-29;default;x86"
+          emulatorImage = "system-images;android-28;default;x86"
           abiFilter = "-PbuildTargetABIs=x86"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           deviceSerial = "emulator-5554"
