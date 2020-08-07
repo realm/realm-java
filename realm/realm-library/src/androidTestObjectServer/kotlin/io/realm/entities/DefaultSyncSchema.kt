@@ -29,6 +29,9 @@ const val defaultPartitionValue = "default"
     SyncAllTypes::class,
     EmbeddedSimpleParent::class,
     EmbeddedSimpleChild::class,
-    EmbeddedSimpleListParent::class
+    EmbeddedSimpleListParent::class,
+    EmbeddedTreeParent::class,
+    EmbeddedTreeNode::class,
+    EmbeddedTreeLeaf::class
 ])
 class DefaultSyncSchema

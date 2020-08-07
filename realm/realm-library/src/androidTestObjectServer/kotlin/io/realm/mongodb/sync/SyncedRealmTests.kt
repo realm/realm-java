@@ -19,9 +19,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.entities.*
-import io.realm.entities.embedded.EmbeddedSimpleChild
-import io.realm.entities.embedded.EmbeddedSimpleListParent
-import io.realm.entities.embedded.EmbeddedSimpleParent
+import io.realm.entities.embedded.*
 import io.realm.kotlin.createEmbeddedObject
 import io.realm.kotlin.createObject
 import io.realm.kotlin.syncSession
@@ -390,7 +388,7 @@ class SyncedRealmTests {
             assertEquals(0, realm.where<EmbeddedSimpleListParent>().count())
             assertEquals(0, realm.where<EmbeddedSimpleChild>().count())
 
-            realm.syncSession.downloadAllServerChanges(5, TimeUnit.SECONDS).let {
+            realm.syncSession.downloadAllServerChanges(1, TimeUnit.SECONDS).let {
                 if (!it) fail()
             }
             realm.refresh()
@@ -403,6 +401,57 @@ class SyncedRealmTests {
             assertEquals(primaryKeyValue, parentFromResults._id)
             assertEquals("child1", childResults.findAll()[0]!!.childId)
             assertEquals("child2", childResults.findAll()[1]!!.childId)
+        }
+    }
+
+    @Test
+    @Ignore("Enable when a bug server-side is fixed")
+    fun copyToRealm_treeSchema() {
+        val user1: User = createNewUser()
+        val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
+        val primaryKeyValue = UUID.randomUUID().toString()
+
+        Realm.getInstance(config1).use { realm ->
+            realm.executeTransaction {
+                val parent = EmbeddedTreeParent("parent1")
+
+                val node1 = EmbeddedTreeNode("node1")
+                node1.leafNode = EmbeddedTreeLeaf("leaf1")
+                parent.middleNode = node1
+                val node2 = EmbeddedTreeNode("node2")
+                node2.leafNodeList.add(EmbeddedTreeLeaf("leaf2"))
+                node2.leafNodeList.add(EmbeddedTreeLeaf("leaf3"))
+                parent.middleNodeList.add(node2)
+
+                it.copyToRealm(parent)
+            }
+            realm.syncSession.uploadAllLocalChanges()
+        }
+
+        val user2: User = createNewUser()
+        val config2: SyncConfiguration = createDefaultConfig(user2, partitionValue)
+        Realm.getInstance(config2).use { realm ->
+            assertEquals(0, realm.where<EmbeddedSimpleListParent>().count())
+            assertEquals(0, realm.where<EmbeddedSimpleChild>().count())
+
+            realm.syncSession.downloadAllServerChanges(1, TimeUnit.SECONDS).let {
+                if (!it) fail()
+            }
+            realm.refresh()
+
+            Assert.assertEquals(1, realm.where<EmbeddedTreeParent>().count())
+            Assert.assertEquals("parent1", realm.where<EmbeddedTreeParent>().findFirst()!!._id)
+
+            Assert.assertEquals(2, realm.where<EmbeddedTreeNode>().count())
+            val nodeResults = realm.where<EmbeddedTreeNode>().findAll()
+            Assert.assertTrue(nodeResults.any { it.treeNodeId == "node1" })
+            Assert.assertTrue(nodeResults.any { it.treeNodeId == "node2" })
+
+            Assert.assertEquals(3, realm.where<EmbeddedTreeLeaf>().count())
+            val leafResults = realm.where<EmbeddedTreeLeaf>().findAll()
+            Assert.assertTrue(leafResults.any { it.treeLeafId == "leaf1" })
+            Assert.assertTrue(leafResults.any { it.treeLeafId == "leaf2" })
+            Assert.assertTrue(leafResults.any { it.treeLeafId == "leaf3" })
         }
     }
 
