@@ -261,9 +261,6 @@ class SyncedRealmTests {
         val user2: User = createNewUser()
         val config2: SyncConfiguration = createDefaultConfig(user2, partitionValue)
         Realm.getInstance(config2).use { realm ->
-            assertEquals(0, realm.where<EmbeddedSimpleParent>().count())
-            assertEquals(0, realm.where<EmbeddedSimpleChild>().count())
-
             realm.syncSession.downloadAllServerChanges(5, TimeUnit.SECONDS).let {
                 if (!it) fail()
             }
@@ -308,9 +305,6 @@ class SyncedRealmTests {
         val user2: User = createNewUser()
         val config2: SyncConfiguration = createDefaultConfig(user2, partitionValue)
         Realm.getInstance(config2).use { realm ->
-            assertEquals(0, realm.where<EmbeddedSimpleParent>().count())
-            assertEquals(0, realm.where<EmbeddedSimpleChild>().count())
-
             realm.syncSession.downloadAllServerChanges(5, TimeUnit.SECONDS).let {
                 if (!it) fail()
             }
@@ -361,6 +355,13 @@ class SyncedRealmTests {
             assertEquals(1, parentResults.count())
             val parentFromResults = parentResults.findFirst()!!
             assertEquals(primaryKeyValue, parentFromResults._id)
+
+            parentFromResults.children.also { childrenInParent ->
+                val childrenFromResults = childResults.findAll()
+                childrenInParent.forEach { childInParent ->
+                    assertTrue(childrenFromResults.contains(childInParent))
+                }
+            }
         }
     }
 
@@ -371,10 +372,9 @@ class SyncedRealmTests {
         val primaryKeyValue = UUID.randomUUID().toString()
         Realm.getInstance(config1).use { realm ->
             realm.executeTransaction {
-                EmbeddedSimpleListParent(primaryKeyValue).apply {
-                    children = RealmList(EmbeddedSimpleChild("child1"), EmbeddedSimpleChild("child2"))
-                    it.insert(this)
-                }
+                val parent = EmbeddedSimpleListParent(primaryKeyValue)
+                parent.children = RealmList(EmbeddedSimpleChild("child1"), EmbeddedSimpleChild("child2"))
+                realm.insert(parent)
             }
             realm.syncSession.uploadAllLocalChanges()
 
@@ -404,8 +404,9 @@ class SyncedRealmTests {
         }
     }
 
+    // FIXME: remember to add tree structure classes to DefaultSyncSchema.kt
     @Test
-    @Ignore("Enable when a bug server-side is fixed")
+    @Ignore("Enable when https://jira.mongodb.org/projects/HELP/queues/issue/HELP-17759 is fixed")
     fun copyToRealm_treeSchema() {
         val user1: User = createNewUser()
         val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)

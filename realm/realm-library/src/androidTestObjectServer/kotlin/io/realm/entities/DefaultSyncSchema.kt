@@ -29,9 +29,10 @@ const val defaultPartitionValue = "default"
     SyncAllTypes::class,
     EmbeddedSimpleParent::class,
     EmbeddedSimpleChild::class,
-    EmbeddedSimpleListParent::class,
-    EmbeddedTreeParent::class,
-    EmbeddedTreeNode::class,
-    EmbeddedTreeLeaf::class
+    EmbeddedSimpleListParent::class
+    // FIXME: add these to schema once https://jira.mongodb.org/projects/HELP/queues/issue/HELP-17759 is fixed
+//    EmbeddedTreeParent::class,
+//    EmbeddedTreeNode::class,
+//    EmbeddedTreeLeaf::class
 ])
 class DefaultSyncSchema
