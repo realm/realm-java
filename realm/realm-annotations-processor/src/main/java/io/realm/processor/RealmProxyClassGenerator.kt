@@ -2073,7 +2073,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             if (!embedded) {
                 beginMethod(qualifiedJavaClassName, "createOrUpdateUsingJsonObject", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), Arrays.asList("Realm", "realm", "JSONObject", "json", "boolean", "update"), listOf("JSONException"))
             } else {
-                beginMethod(qualifiedJavaClassName, "createOrUpdateUsingJsonObject", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), Arrays.asList("Realm", "realm", "RealmModel", "parent", "String", "parentProperty", "JSONObject", "json", "boolean", "update"), listOf("JSONException"))
+                beginMethod(qualifiedJavaClassName, "createOrUpdateEmbeddedUsingJsonObject", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), Arrays.asList("Realm", "realm", "RealmModel", "parent", "String", "parentProperty", "JSONObject", "json", "boolean", "update"), listOf("JSONException"))
             }
                 val modelOrListCount = countModelOrListFields(metadata.fields)
                 if (modelOrListCount == 0) {
@@ -2281,7 +2281,13 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement(Constants.STATEMENT_EXCEPTION_NO_PRIMARY_KEY_IN_JSON, metadata.primaryKey)
                 endControlFlow()
             }
-            emitStatement("return realm.copyToRealm(obj)")
+            if (!metadata.embedded) {
+                emitStatement("return realm.copyToRealm(obj)")
+            } else {
+                // Embedded objects are left unmanaged and assumed to be added by their parent. This
+                // is safe as json import is blocked for embedded objects without a parent.
+                emitStatement("return obj")
+            }
             endMethod()
             emitEmptyLine()            
         }

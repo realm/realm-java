@@ -446,7 +446,11 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
                     Arrays.asList("java.io.IOException")
             )
                 emitMediatorShortCircuitSwitch(writer, emitStatement = { i: Int ->
-                    emitStatement("return clazz.cast(%s.createUsingJsonStream(realm, reader))", qualifiedProxyClasses[i])
+                    if (!embeddedClass[i]) {
+                        emitStatement("return clazz.cast(%s.createUsingJsonStream(realm, reader))", qualifiedProxyClasses[i])
+                    } else {
+                        emitStatement("throw new IllegalArgumentException(\"Importing embedded classes from JSON without a parent is not allowed\")")
+                    }
                 })
             endMethod()
             emitEmptyLine()
