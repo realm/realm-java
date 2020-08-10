@@ -17,34 +17,6 @@
 
     <!-- Generated code -->
     <Match>
-        <Class name="io.realm.io_realm_internal_permissions_PermissionChangeRealmProxy"/>
+        <Class name="~.*RealmProxy$"/>
     </Match>
-    <Match>
-        <Class name="io.realm.io_realm_permissions_PermissionOfferRealmProxy"/>
-    </Match>
-    <Match>
-        <Class name="io.realm.io_realm_internal_permissions_PermissionOfferResponseRealmProxy"/>
-    </Match>
-    <Match>
-        <Class name="io.realm.io_realm_permissions_PermissionRealmProxy"/>
-    </Match>
-    <Match>
-        <Class name="io.realm.io_realm_sync_permissions_ClassPermissionsRealmProxy"/>
-    </Match>
-    <Match>
-        <Class name="io.realm.io_realm_sync_permissions_RealmPermissionsRealmProxy"/>
-    </Match>
-    <Match>
-        <Class name="io.realm.io_realm_sync_permissions_PermissionRealmProxy"/>
-    </Match>
-    <Match>
-        <Class name="io.realm.io_realm_sync_permissions_RoleRealmProxy"/>
-    </Match>
-    <Match>
-        <Class name="io.realm.io_realm_sync_permissions_PermissionUserRealmProxy"/>
-    </Match>
-    <Match>
-        <Class name="io.realm.io_realm_sync_SubscriptionRealmProxy"/>
-    </Match>
-
 </FindBugsFilter>
