@@ -4,12 +4,16 @@
     In code, please prefer annotations as a way of ignoring Findbugs issues
     -->
 
-    <!-- Unit tests
-        As of Jan 6, 2017, there are ~1000 Findbugs issues in the unit tests.
-        This shall not pass.
-        Clean the build directory and build only the product code:
-            ./gradlew clean findbugs
-    -->
+    <!-- Exclude test classes -->
+    <Match>
+        <Class name="~.*Test$"/>
+    </Match>
+    <Match>
+        <Class name="~.*Tests$"/>
+    </Match>
+    <Match>
+        <Package name="~test\..*"/>
+    </Match>
 
     <!-- Generated code -->
     <Match>
