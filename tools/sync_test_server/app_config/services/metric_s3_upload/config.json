@@ -1,0 +1,12 @@
+{
+    "id": "5f31340d9c73feb9bbb286e5",
+    "name": "metric_s3_upload",
+    "type": "aws",
+    "config": {
+        "accessKeyId": "AKIA4M2GNKG42J2H2NEU"
+    },
+    "secret_config": {
+        "secretAccessKey": "s3_access_key"
+    },
+    "version": 1
+}

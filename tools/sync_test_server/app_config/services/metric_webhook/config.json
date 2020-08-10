@@ -1,0 +1,7 @@
+{
+    "id": "5f3134519c73feb9bbb2870b",
+    "name": "metric_webhook",
+    "type": "http",
+    "config": {},
+    "version": 1
+}

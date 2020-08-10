@@ -1,0 +1,7 @@
+{
+    "id": "5f3134229c73feb9bbb286f9",
+    "name": "metric_s3_upload",
+    "actions": [
+        "s3:PutObject"
+    ]
+}

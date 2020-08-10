@@ -53,8 +53,10 @@ public class RealmAnalytics {
     private static RealmAnalytics instance;
     private static final int READ_TIMEOUT = 2000;
     private static final int CONNECT_TIMEOUT = 4000;
-    private static final String ADDRESS_PREFIX = "https://api.mixpanel.com/track/?data=";
-    private static final String ADDRESS_SUFFIX = "&ip=1";
+    // FIXME Settle on actual URL:
+    //  - Need to hide app name, as it is updated on subsequent imports
+    private static final String ADDRESS_PREFIX = "http://localhost:9090/api/client/v2.0/app/realm-sdk-integration-tests-uzzps/service/metric_webhook/incoming_webhook/metric?data=";
+    private static final String ADDRESS_SUFFIX = "";
     private static final String TOKEN = "ce0fac19508f6c8f20066d345d360fd0";
     private static final String EVENT_NAME = "Run";
     private static final String JSON_TEMPLATE
