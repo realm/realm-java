@@ -286,8 +286,8 @@ JNIEXPORT jobject JNICALL Java_io_realm_mongodb_App_nativeMakeStreamingRequest(J
         jobject j_headers = JniUtils::to_hashmap(env, request.headers);
         jstring j_body = env->NewStringUTF(request.body.c_str());
 
-        jclass request_class = env->FindClass("io/realm/internal/objectstore/OsJavaNetworkTransport$Request");
-        jmethodID request_constructor = env->GetMethodID(request_class, "<init>","(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;)V");
+        static JavaClass request_class(env, "io/realm/internal/objectstore/OsJavaNetworkTransport$Request");
+        static JavaMethod request_constructor(env, request_class, "<init>","(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;)V");
         jobject j_request = env->NewObject(request_class, request_constructor, j_method, j_url, j_headers, j_body);
 
         return j_request;

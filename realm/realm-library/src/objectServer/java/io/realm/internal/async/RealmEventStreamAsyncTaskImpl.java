@@ -20,16 +20,20 @@ import java.io.IOException;
 
 import io.realm.internal.Util;
 import io.realm.internal.objectserver.EventStream;
-import io.realm.mongodb.RealmEventStreamTask;
+import io.realm.mongodb.App;
+import io.realm.mongodb.AppException;
+import io.realm.mongodb.ErrorCode;
+import io.realm.mongodb.RealmEventStreamAsyncTask;
 import io.realm.mongodb.mongo.events.BaseChangeEvent;
 
-public class RealmEventStreamTaskImpl<T> implements RealmEventStreamTask<T> {
+public class RealmEventStreamAsyncTaskImpl<T> implements RealmEventStreamAsyncTask<T> {
     private final String name;
     private final Executor<T> executor;
     private volatile EventStream<T> eventStream;
     private volatile boolean isCancelled;
+    private Thread thread;
 
-    public RealmEventStreamTaskImpl(final String name, final Executor<T> executor) {
+    public RealmEventStreamAsyncTaskImpl(final String name, final Executor<T> executor) {
         Util.checkNull(executor, "name");
         Util.checkNull(executor, "executor");
 
@@ -37,18 +41,32 @@ public class RealmEventStreamTaskImpl<T> implements RealmEventStreamTask<T> {
         this.name = name;
     }
 
-    private EventStream<T> getEventStream() throws IOException {
-        if (eventStream == null) {
-            eventStream = executor.run();
-        }
-
-        return this.eventStream;
-    }
-
     @Override
-    public synchronized BaseChangeEvent<T> getNext() throws IOException {
-        eventStream = getEventStream();
-        return eventStream.getNextEvent();
+    public synchronized void get(App.Callback<BaseChangeEvent<T>> callback) throws IllegalStateException {
+        Util.checkNull(callback, "callback");
+
+        if (thread != null) {
+            throw new IllegalStateException("Resource already open");
+        } else {
+            thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        eventStream = executor.run();
+
+                        while (true) {
+                            BaseChangeEvent<T> nextEvent = eventStream.getNextEvent();
+
+                            callback.onResult(App.Result.withResult(nextEvent));
+                        }
+                    } catch (IOException exception) {
+                        callback.onResult(App.Result.withError(new AppException(ErrorCode.NETWORK_IO_EXCEPTION, exception)));
+                    }
+                }
+            }, String.format("RealmStreamTask|%s", name));
+
+            thread.start();
+        }
     }
 
     @Override

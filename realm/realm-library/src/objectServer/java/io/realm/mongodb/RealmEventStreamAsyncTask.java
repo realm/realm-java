@@ -16,33 +16,30 @@
 
 package io.realm.mongodb;
 
-import java.io.IOException;
-
 import io.realm.RealmAsyncTask;
 import io.realm.mongodb.mongo.events.BaseChangeEvent;
 
 
 /**
- * The RealmStreamTask is a specific version of {@link RealmAsyncTask} that provides a mechanism
+ * The RealmStreamAsyncTask is a specific version of {@link RealmAsyncTask} that provides a mechanism
  * to work with asynchronous operations carried out against MongoDB Realm that yield stream results.
  * <p>
  * This class offers both blocking ({@code get}) and non-blocking ({@code getAsync}) method calls.
  *
  * @param <T> the result type delivered by this task.
  */
-public interface RealmEventStreamTask<T> extends RealmAsyncTask {
-
+public interface RealmEventStreamAsyncTask<T> extends RealmAsyncTask {
     /**
-     * Blocks the thread on which the call is made until the result of the operation arrives.
+     * Provides a way to subscribe to asynchronous operations via a callback, which handles both
+     * results and errors.
      *
-     * @return the next event in the stream.
-     * @throws IllegalStateException if the event stream contains an error.
+     * @param callback the {@link App.Callback} designed to receive event results.
+     * @throws IllegalStateException if the stream is already open.
      */
-    BaseChangeEvent<T> getNext() throws IOException;
+    void get(App.Callback<BaseChangeEvent<T>> callback) throws IllegalStateException;
 
     /**
      * Whether or not the stream is currently open.
-     *
      * @return true if open, false if not.
      */
     boolean isOpen();
