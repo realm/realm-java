@@ -13,7 +13,7 @@ buildscript {
 
     dependencies {
         classpath "com.android.tools.build:gradle:${projectDependencies.get('GRADLE_BUILD_TOOLS')}"
-        classpath 'de.undercouch:gradle-download-task:3.3.0'
+        classpath 'de.undercouch:gradle-download-task:4.0.2'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
         classpath 'com.novoda:gradle-android-command-plugin:1.7.1'
         classpath 'com.github.skhatri:gradle-s3-plugin:1.0.4'
@@ -35,7 +35,7 @@ allprojects {
         project.ext.set(key, val)
     }
     project.ext.minSdkVersion = 16
-    project.ext.compileSdkVersion = 28
+    project.ext.compileSdkVersion = 29
     project.ext.buildToolsVersion = projectDependencies.get("ANDROID_BUILD_TOOLS")
     group = 'io.realm'
     version = file("${rootDir}/../version.txt").text.trim()
@@ -43,5 +43,14 @@ allprojects {
         mavenLocal()
         google()
         jcenter()
+    }
+}
+
+// Disable JavaDoc strict mode: https://blog.joda.org/2014/02/turning-off-doclint-in-jdk-8-javadoc.html
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:-missing', '-quiet')
+        }
     }
 }

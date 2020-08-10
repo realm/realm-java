@@ -68,14 +68,14 @@ RUN yes | sdkmanager --licenses
 # The `yes` is for accepting all non-standard tool licenses.
 # Please keep all sections in descending order!
 RUN yes | sdkmanager \
-    'build-tools;28.0.3' \
+    'build-tools;29.0.3' \
     'cmake;3.6.4111459' \
     'emulator' \
     'extras;android;m2repository' \
-    'platforms;android-28' \
+    'platforms;android-29' \
     'platform-tools' \
     'ndk;21.0.6113669' \
-    'system-images;android-28;default;x86'
+    'system-images;android-29;default;x86'
 
 # Make the SDK universally writable
 RUN chmod -R a+rwX ${ANDROID_HOME}
