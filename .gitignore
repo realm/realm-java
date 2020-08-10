@@ -54,3 +54,4 @@ realm/realm-library/src/main/cpp/jni_include
 realm/realm-library/distribution
 # Cmake output
 realm/realm-library/.externalNativeBuild
+realm/realm-library/.cxx

@@ -17,6 +17,18 @@
 ###########################################################################
 cmake_minimum_required(VERSION 3.6.0)
 
+# loading dependencies properties
+file(STRINGS "${CMAKE_SOURCE_DIR}/../../../../../dependencies.list" DEPENDENCIES)
+foreach(LINE IN LISTS DEPENDENCIES)
+    string(REGEX MATCHALL "([^=]+)" KEY_VALUE "${LINE}")
+    list(LENGTH KEY_VALUE matches_count)
+    if(matches_count STREQUAL 2)
+        list(GET KEY_VALUE 0 KEY)
+        list(GET KEY_VALUE 1 VALUE)
+        set(DEP_${KEY} ${VALUE})
+    endif()
+endforeach()
+
 FUNCTION(capitalizeFirstLetter var value)
     string(SUBSTRING ${value} 0 1 firstLetter)
     string(TOUPPER ${firstLetter} firstLetter)
@@ -95,7 +107,7 @@ if (build_SYNC)
 endif()
 create_javah(TARGET jni_headers
     CLASSES ${classes_LIST}
-    CLASSPATH ${classes_PATH}
+    CLASSPATH ${classes_PATH} $ENV{ANDROID_HOME}/platforms/android-29/android.jar
     OUTPUT_DIR ${jni_headers_PATH}
     DEPENDS ${classes_PATH}
 )

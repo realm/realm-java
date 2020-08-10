@@ -89,9 +89,11 @@ function(use_sync_release enable_sync sync_dist_path)
 
     # -latomic is not set by default for mips and armv5.
     # See https://code.google.com/p/android/issues/detail?id=182094
+    list(APPEND LIB_INCLUDE_DIRS "${sync_dist_path}/include")
+    list(APPEND LIB_INCLUDE_DIRS "${sync_dist_path}/include/realm")
     set_target_properties(lib_realm_core PROPERTIES IMPORTED_LOCATION ${core_lib_path}
         IMPORTED_LINK_INTERFACE_LIBRARIES atomic
-        INTERFACE_INCLUDE_DIRECTORIES "${sync_dist_path}/include")
+        INTERFACE_INCLUDE_DIRECTORIES "${LIB_INCLUDE_DIRS}")
 
     if (enable_sync)
         # Sync static library
