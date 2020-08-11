@@ -205,7 +205,7 @@ class UserTests {
         assertEquals(1, anonUser.identities.size)
 
         // Linking with another user's API key is not allowed and must raise an AppException
-        val exception = assertFailsWith<AppException>{
+        val exception = assertFailsWith<AppException> {
             anonUser.linkCredentials(Credentials.apiKey(apiKey.value))
         }
 
@@ -222,7 +222,7 @@ class UserTests {
         assertEquals(1, anonUser.identities.size)
 
         // Linking a server API key is not allowed
-        val exception = assertFailsWith<AppException>{
+        val exception = assertFailsWith<AppException> {
             anonUser.linkCredentials(Credentials.serverApiKey(serverKey))
         }
     }
@@ -371,28 +371,6 @@ class UserTests {
     }
 
     @Test
-    fun getDeviceId() {
-        // TODO No reason to integration test this. Use a stubbed response instead.
-        val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertTrue(user.deviceId.isNotEmpty() && user.deviceId.length == 24) // Server returns a UUID
-    }
-
-    // FIXME Test for all meta data
-    @Ignore("Not implemented yet")
-    fun user_metaData() {
-    }
-
-    // FIXME
-    @Ignore("Not implemented yet")
-    fun accessToken() {
-    }
-
-    // FIXME
-    @Ignore("Not implemented yet")
-    fun refreshToken() {
-    }
-
-    @Test
     fun revokedRefreshTokenIsNotSameAfterLogin() = looperThread.runBlocking {
         val password = "password"
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), password)
@@ -413,9 +391,20 @@ class UserTests {
         user.logOut()
     }
 
-    // FIXME
-    @Ignore("Not implemented yet")
+    @Test
     fun isLoggedIn() {
+        var anonUser = app.login(Credentials.anonymous())
+        val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+
+        assertTrue(anonUser.isLoggedIn)
+        assertTrue(user.isLoggedIn)
+
+        anonUser.logOut()
+        assertFalse(anonUser.isLoggedIn)
+        assertTrue(user.isLoggedIn)
+
+        user.logOut()
+        assertFalse(user.isLoggedIn)
     }
 
     @Test

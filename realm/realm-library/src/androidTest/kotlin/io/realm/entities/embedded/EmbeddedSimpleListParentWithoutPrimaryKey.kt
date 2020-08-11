@@ -15,11 +15,13 @@
  */
 package io.realm.entities.embedded
 
+import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
 import java.util.*
 
-// Top-level object describing a simple embedded objects structure consisting of only an object reference.
-open class EmbeddedSimpleParent(@PrimaryKey var _id: String = UUID.randomUUID().toString()) : RealmObject() {
-    var child: EmbeddedSimpleChild? = null
+// Top-level object describing a simple embedded objects structure consisting of only a
+// list of embedded objects.
+open class EmbeddedSimpleListParentWithoutPrimaryKey(var _id: String = UUID.randomUUID().toString()) : RealmObject() {
+    var children: RealmList<EmbeddedSimpleChild> = RealmList()
 }

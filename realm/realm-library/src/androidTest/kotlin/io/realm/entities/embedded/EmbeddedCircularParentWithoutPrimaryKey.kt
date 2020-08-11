@@ -19,7 +19,8 @@ import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
 import java.util.*
 
-// Top-level object describing a simple embedded objects structure consisting of only an object reference.
-open class EmbeddedSimpleParent(@PrimaryKey var _id: String = UUID.randomUUID().toString()) : RealmObject() {
-    var child: EmbeddedSimpleChild? = null
+// Parent pointing to an embedded object that has a circular schema, i.e. objects can point
+// to themselves. Note, this isn't actually allowed at runtime. Only at schema validation time.
+open class EmbeddedCircularParentWithoutPrimaryKey(var _id: String = UUID.randomUUID().toString()) : RealmObject() {
+    var singleChild: EmbeddedCircularChild? = null
 }

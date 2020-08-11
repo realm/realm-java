@@ -16,12 +16,23 @@
 package io.realm.entities
 
 import io.realm.annotations.RealmModule
+import io.realm.entities.embedded.*
 
 const val defaultPartitionValue = "default"
 
 /**
  * The set of classes initially supported by MongoDB Realm.
  */
-@RealmModule(classes = [SyncDog::class, SyncPerson::class, SyncAllTypes::class])
-class DefaultSyncSchema {
-}
+@RealmModule(classes = [
+    SyncDog::class,
+    SyncPerson::class,
+    SyncAllTypes::class,
+    EmbeddedSimpleParent::class,
+    EmbeddedSimpleChild::class,
+    EmbeddedSimpleListParent::class
+    // FIXME: add these to schema once https://jira.mongodb.org/projects/HELP/queues/issue/HELP-17759 is fixed
+//    EmbeddedTreeParent::class,
+//    EmbeddedTreeNode::class,
+//    EmbeddedTreeLeaf::class
+])
+class DefaultSyncSchema

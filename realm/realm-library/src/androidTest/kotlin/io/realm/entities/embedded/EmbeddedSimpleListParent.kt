@@ -22,6 +22,6 @@ import java.util.*
 
 // Top-level object describing a simple embedded objects structure consisting of only a
 // list of embedded objects.
-open class EmbeddedSimpleListParent(@PrimaryKey var id: String = UUID.randomUUID().toString()) : RealmObject() {
+open class EmbeddedSimpleListParent(@PrimaryKey var _id: String = UUID.randomUUID().toString()) : RealmObject() {
     var children: RealmList<EmbeddedSimpleChild> = RealmList()
 }
