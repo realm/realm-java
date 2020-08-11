@@ -17,7 +17,6 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.admin.ServerAdmin
 import io.realm.internal.objectstore.OsJavaNetworkTransport
 import io.realm.mongodb.*
 import io.realm.rule.BlockingLooperThread
@@ -34,7 +33,6 @@ class UserMetadataTests {
     val looperThread = BlockingLooperThread()
 
     private lateinit var app: App
-    private lateinit var admin: ServerAdmin
 
     @Before
     fun setUp() {
@@ -104,8 +102,6 @@ class UserMetadataTests {
                 return Response.httpResponse(200, successHeaders, result)
             }
         })
-
-        admin = ServerAdmin()
     }
 
     @After
