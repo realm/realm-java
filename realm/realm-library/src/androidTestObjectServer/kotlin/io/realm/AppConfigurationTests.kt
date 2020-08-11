@@ -62,10 +62,6 @@ class AppConfigurationTests {
                 .authorizationHeaderName("CustomAuth")
                 .build()
         assertEquals("CustomAuth", config2.authorizationHeaderName)
-
-        // FIXME Add network check
-
-        // FIXME Add sync session check
     }
 
     @Test
@@ -74,7 +70,6 @@ class AppConfigurationTests {
         assertFailsWith<IllegalArgumentException> { builder.addCustomRequestHeader("", "val") }
         assertFailsWith<IllegalArgumentException> { builder.addCustomRequestHeader(TestHelper.getNull(), "val") }
         assertFailsWith<IllegalArgumentException> { builder.addCustomRequestHeader("header", TestHelper.getNull()) }
-        // FIXME: Add tests for illegally formatted headers. Figure out what legal headers look like.
     }
 
     @Test
@@ -87,10 +82,6 @@ class AppConfigurationTests {
         assertEquals(2, headers.size.toLong())
         assertTrue(headers.any { it.key == "header1" && it.value == "val1" })
         assertTrue(headers.any { it.key == "header2" && it.value == "val2" })
-
-        // FIXME Add network check
-
-        // FIXME Add sync session check
     }
 
     @Test
@@ -125,8 +116,6 @@ class AppConfigurationTests {
         val config = AppConfiguration.Builder("app-id").build()
         val expectedDefaultRoot = File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "mongodb-realm")
         assertEquals(expectedDefaultRoot, config.syncRootDirectory)
-
-        // FIXME Add check when opening Realm
     }
 
     @Test
@@ -137,8 +126,6 @@ class AppConfigurationTests {
                 .syncRootDirectory(expectedRoot)
                 .build()
         assertEquals(expectedRoot, config.syncRootDirectory)
-
-        // FIXME Add check when opening Realm
     }
 
     @Test
