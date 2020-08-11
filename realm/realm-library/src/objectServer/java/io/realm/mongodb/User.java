@@ -368,6 +368,7 @@ public class User {
      *
      * @param credentials the credentials to link with the current user.
      * @return the {@link User} the credentials were linked to.
+     *
      * @throws IllegalStateException if no user is currently logged in.
      */
     public User linkCredentials(Credentials credentials) {
