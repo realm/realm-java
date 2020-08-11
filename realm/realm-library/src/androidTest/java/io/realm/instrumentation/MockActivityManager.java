@@ -22,6 +22,7 @@ import java.lang.ref.WeakReference;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmConfiguration;
 
 public class MockActivityManager {
@@ -69,6 +70,7 @@ public class MockActivityManager {
         instance.onStop();
     }
 
+    @SuppressFBWarnings("DM_GC")
     private void triggerGC () {
         // From the AOSP FinalizationTest:
         // https://android.googlesource.com/platform/libcore/+/master/support/src/test/java/libcore/

@@ -648,7 +648,7 @@ public class RealmMigrationTests {
                             public void apply(DynamicRealmObject obj) {
                                 String fieldValue = obj.getString(MigrationPrimaryKey.FIELD_PRIMARY);
                                 if (fieldValue != null && fieldValue.length() != 0) {
-                                    obj.setInt(TEMP_FIELD_ID, Integer.valueOf(fieldValue).intValue());
+                                    obj.setInt(TEMP_FIELD_ID, Integer.parseInt(fieldValue));
                                 } else {
                                     // Since this cannot be accepted as proper pk value, we'll delete it.
                                     // *You can modify with some other value such as 0, but that's not
@@ -695,7 +695,7 @@ public class RealmMigrationTests {
                             public void apply(DynamicRealmObject obj) {
                                 String fieldValue = obj.getString(MigrationPrimaryKey.FIELD_PRIMARY);
                                 if (fieldValue != null && fieldValue.length() != 0) {
-                                    obj.setInt(TEMP_FIELD_ID, Integer.valueOf(fieldValue));
+                                    obj.setInt(TEMP_FIELD_ID, Integer.parseInt(fieldValue));
                                 } else {
                                     obj.setNull(TEMP_FIELD_ID);
                                 }

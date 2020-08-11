@@ -12,10 +12,41 @@
         <Class name="~.*Tests$"/>
     </Match>
     <Match>
+        <Class name="~.*Test\$[0-9]*"/> <!-- Lamdas inside Tests -->
+    </Match>
+    <Match>
+        <Class name="~.*Tests\$[0-9]*"/> <!-- Lamdas inside Tests -->
+    </Match>
+    <Match>
         <Package name="~test\..*"/>
     </Match>
     <Match>
+        <Class name="io.realm.TestHelper"/>
+    </Match>
+    <Match>
         <Package name="~io.realm.entities.*"/>
+    </Match>
+    <Match>
+        <Class name="io.realm.SyncManager$Debug" />
+    </Match>
+    <Match>
+        <Class name="io.realm.rule.RunInLooperThread" />
+        <Method name="after" />
+        <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
+    </Match>
+    <Match>
+        <Class name="io.realm.rule.RunInLooperThread$RunInLooperThreadStatement" />
+        <Method name="runTest" />
+        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
+    </Match>
+    <Match>
+        <Class name="io.realm.rule.RunInLooperThread$RunInLooperThreadStatement" />
+        <Method name="evaluate" />
+        <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
+    </Match>
+    <Match>
+        <Class name="io.realm.objectserver.utils.RemoteIntegrationTestService" />
+        <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
     </Match>
 
     <!-- Generated code -->

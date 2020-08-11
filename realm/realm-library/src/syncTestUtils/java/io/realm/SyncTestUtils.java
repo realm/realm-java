@@ -94,8 +94,11 @@ public class SyncTestUtils {
 
     private static void deleteFile(File file) throws IOException {
         if (file.isDirectory()) {
-            for (File c : file.listFiles()) {
-                deleteFile(c);
+            File[] files = file.listFiles();
+            if (files != null) {
+                for (File c : files) {
+                    deleteFile(c);
+                }
             }
         }
         if (!file.delete()) {
