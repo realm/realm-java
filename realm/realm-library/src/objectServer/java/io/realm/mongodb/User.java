@@ -577,7 +577,7 @@ public class User {
     public synchronized MongoClient getMongoClient(String serviceName) {
         Util.checkEmpty(serviceName, "serviceName");
         if (mongoClient == null) {
-            StreamNetworkTransport streamNetworkTransport = new StreamNetworkTransportImpl(app, this);
+            StreamNetworkTransport streamNetworkTransport = new StreamNetworkTransport(app.osApp, this.osUser, app.networkTransport);
 
             OsMongoClient osMongoClient = new OsMongoClient(app.nativePtr, serviceName, streamNetworkTransport);
             mongoClient = new MongoClientImpl(osMongoClient, app.getConfiguration().getDefaultCodecRegistry());

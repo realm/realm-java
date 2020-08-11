@@ -20,15 +20,27 @@ import org.bson.BsonArray;
 
 import java.io.IOException;
 
+import io.realm.internal.objectstore.OsApp;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
+import io.realm.internal.objectstore.OsSyncUser;
+import io.realm.mongodb.App;
+import io.realm.mongodb.User;
 
 /**
  * StreamNetworkTransport provides an interface to the Realm remote streaming functions.
  * Such functions are package protected and this class offers a portable way to access them.
- *
- * @see io.realm.mongodb.StreamNetworkTransportImpl
  */
-public abstract class StreamNetworkTransport {
+public class StreamNetworkTransport {
+    private final OsApp app;
+    private final OsSyncUser user;
+    private final OsJavaNetworkTransport networkTransport;
+
+    public StreamNetworkTransport(OsApp app, OsSyncUser user, OsJavaNetworkTransport networkTransport) {
+        this.app = app;
+        this.user = user;
+        this.networkTransport = networkTransport;
+    }
+
     /**
      * Creates a request for a streaming function
      *
@@ -37,9 +49,11 @@ public abstract class StreamNetworkTransport {
      * @param serviceName  service that will handle the function
      * @return {@link io.realm.internal.objectstore.OsJavaNetworkTransport.Request}
      */
-    public abstract OsJavaNetworkTransport.Request makeStreamingRequest(String functionName,
+    public OsJavaNetworkTransport.Request makeStreamingRequest(String functionName,
                                                                         BsonArray bsonArgs,
-                                                                        String serviceName);
+                                                                        String serviceName){
+        return app.makeStreamingRequest(user, functionName, bsonArgs, serviceName);
+    }
 
     /**
      * Executes a given request
@@ -48,7 +62,8 @@ public abstract class StreamNetworkTransport {
      * @return {@link io.realm.internal.objectstore.OsJavaNetworkTransport.Response}
      * @throws IOException
      */
-    public abstract OsJavaNetworkTransport.Response
-    sendRequest(OsJavaNetworkTransport.Request request) throws IOException;
-
+    public OsJavaNetworkTransport.Response
+    sendRequest(OsJavaNetworkTransport.Request request) throws IOException{
+        return networkTransport.sendStreamingRequest(request);
+    }
 }

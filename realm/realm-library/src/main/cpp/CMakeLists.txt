@@ -110,6 +110,7 @@ if (build_SYNC)
         io.realm.mongodb.sync.Sync
         io.realm.mongodb.sync.SyncSession
         io.realm.mongodb.User
+        io.realm.internal.objectstore.OsApp
         io.realm.internal.objectstore.OsAppCredentials
         io.realm.internal.objectstore.OsAsyncOpenTask
         io.realm.internal.objectstore.OsJavaNetworkTransport
@@ -209,6 +210,7 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_sync_ClientResetRequiredError.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_sync_Sync.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_sync_SyncSession.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsApp.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAsyncOpenTask.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAppCredentials.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsJavaNetworkTransport.cpp

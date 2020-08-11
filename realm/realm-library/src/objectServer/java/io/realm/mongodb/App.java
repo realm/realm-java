@@ -41,6 +41,7 @@ import io.realm.annotations.Beta;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.mongodb.Request;
 
+import io.realm.internal.objectstore.OsApp;
 import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.mongodb.auth.EmailPasswordAuth;
 import io.realm.RealmAsyncTask;
@@ -147,6 +148,8 @@ import io.realm.mongodb.functions.Functions;
 @Beta
 public class App {
 
+    final OsApp osApp;
+
     static final class SyncImpl extends Sync {
         protected SyncImpl(App app) {
             super(app);
@@ -199,6 +202,7 @@ public class App {
         }
         this.syncManager = new SyncImpl(this);
         this.nativePtr = init(config);
+        this.osApp = new OsApp(nativePtr, config);
 
         // FIXME: Right now we only support one App. This class will throw a
         // exception if you try to create it twice. This is a really hacky way to do this
@@ -514,23 +518,6 @@ public class App {
     }
 
     /**
-     * Creates a request for a streaming function
-     *
-     * @param user         that requests the execution
-     * @param functionName name of the function
-     * @param bsonArgs     function arguments as a {@link BsonArray}
-     * @param serviceName  service that will handle the function
-     * @return {@link io.realm.internal.objectstore.OsJavaNetworkTransport.Request}
-     */
-    OsJavaNetworkTransport.Request makeStreamingRequest(User user,
-                                                        String functionName,
-                                                        BsonArray bsonArgs,
-                                                        String serviceName) {
-        final String encodedArguments = JniBsonProtocol.encode(bsonArgs, config.getDefaultCodecRegistry());
-        return nativeMakeStreamingRequest(nativePtr, user.osUser.getNativePtr(), functionName, encodedArguments, serviceName);
-    }
-
-    /**
      * Exposed for testing.
      * <p>
      * Swap the currently configured network transport with the provided one.
@@ -676,6 +663,4 @@ public class App {
     private static native long[] nativeGetAllUsers(long nativePtr);
 
     private static native void nativeSwitchUser(long nativeAppPtr, long nativeUserPtr);
-
-    private static native OsJavaNetworkTransport.Request nativeMakeStreamingRequest(long nativeAppPtr, long nativeUserPtr, String functionName, String bsonArgs, String serviceName);
 }
