@@ -400,6 +400,7 @@ class UserTests {
 
         anonUser.logOut()
         assertFalse(anonUser.isLoggedIn)
+        assertTrue(user.isLoggedIn)
 
         user.logOut()
         assertFalse(user.isLoggedIn)
