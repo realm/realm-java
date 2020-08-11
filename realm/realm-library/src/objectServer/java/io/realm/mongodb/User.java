@@ -132,6 +132,7 @@ public class User {
      *
      * @return the name of the user.
      */
+    @Nullable
     public String getName() {
         return osUser.nativeGetName();
     }
@@ -240,8 +241,8 @@ public class User {
      *
      * @return the provider type of the user
      */
-    public String getProviderType() {
-        return osUser.getProviderType();
+    public Credentials.IdentityProvider getProviderType() {
+        return Credentials.IdentityProvider.fromId(osUser.getProviderType());
     }
 
     /**

@@ -393,14 +393,13 @@ class UserTests {
     @Test
     fun isLoggedIn() {
         var anonUser = app.login(Credentials.anonymous())
+        val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+
         assertTrue(anonUser.isLoggedIn)
+        assertTrue(user.isLoggedIn)
 
         anonUser.logOut()
         assertFalse(anonUser.isLoggedIn)
-
-
-        val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertTrue(user.isLoggedIn)
 
         user.logOut()
         assertFalse(user.isLoggedIn)
