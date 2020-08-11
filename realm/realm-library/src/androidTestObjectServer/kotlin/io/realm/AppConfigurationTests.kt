@@ -20,17 +20,18 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.internal.network.LoggingInterceptor.LOGIN_FEATURE
 import io.realm.mongodb.AppConfiguration
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator
+import io.realm.mongodb.sync.SyncSession
 import org.bson.codecs.StringCodec
 import org.bson.codecs.configuration.CodecRegistries
 import org.junit.Assert.*
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.io.File
 import java.net.URL
+import java.util.concurrent.TimeUnit
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 
@@ -162,27 +163,39 @@ class AppConfigurationTests {
     }
 
     @Test
-    @Ignore("FIXME")
     fun appName() {
-        TODO("FIXME: When support has been added in ObjectStore")
+        AppConfiguration.Builder("app-id")
+                .appName("app-name")
+                .build()
+                .let { config ->
+                    assertEquals("app-name", config.appName)
+                }
     }
 
     @Test
-    @Ignore("FIXME")
     fun appName_invalidValuesThrows() {
-        TODO()
+        val builder = AppConfiguration.Builder("app-id")
+
+        assertFailsWith<java.lang.IllegalArgumentException> { builder.appName(TestHelper.getNull()) }
+        assertFailsWith<java.lang.IllegalArgumentException> { builder.appName("") }
     }
 
     @Test
-    @Ignore("FIXME")
     fun appVersion() {
-        TODO("FIXME: When support has been added in ObjectStore")
+        AppConfiguration.Builder("app-id")
+                .appVersion("app-version")
+                .build()
+                .let { config ->
+                    assertEquals("app-version", config.appVersion)
+                }
     }
 
     @Test
-    @Ignore("FIXME")
     fun appVersion_invalidValuesThrows() {
-        TODO()
+        val builder = AppConfiguration.Builder("app-id")
+
+        assertFailsWith<java.lang.IllegalArgumentException> { builder.appVersion(TestHelper.getNull()) }
+        assertFailsWith<java.lang.IllegalArgumentException> { builder.appVersion("") }
     }
 
     @Test
@@ -208,15 +221,24 @@ class AppConfigurationTests {
     }
 
     @Test
-    @Ignore("FIXME")
     fun defaultSyncErrorHandler() {
-        TODO()
+        val errorHandler = SyncSession.ErrorHandler { _, _ -> }
+
+        AppConfiguration.Builder("app-id")
+                .defaultSyncErrorHandler(errorHandler)
+                .build()
+                .let { config ->
+                    assertEquals(config.defaultErrorHandler, errorHandler)
+                }
     }
 
     @Test
-    @Ignore("FIXME")
     fun defaultSyncErrorHandler_invalidValuesThrows() {
-        TODO()
+        assertFailsWith<IllegalArgumentException> {
+            AppConfiguration.Builder("app-id")
+                    .defaultSyncErrorHandler(TestHelper.getNull())
+        }
+
     }
 
     @Test
@@ -239,20 +261,26 @@ class AppConfigurationTests {
         }
 
         assertFailsWith<IllegalArgumentException> {
-            builder.encryptionKey(byteArrayOf(0,0,0,0))
+            builder.encryptionKey(byteArrayOf(0, 0, 0, 0))
         }
     }
 
     @Test
-    @Ignore("FIXME")
     fun requestTimeout() {
-        TODO()
+        AppConfiguration.Builder("app-id")
+                .requestTimeout(1, TimeUnit.MILLISECONDS)
+                .build()
+                .let {
+                    assertEquals(1000L, it.requestTimeoutMs)
+                }
     }
 
     @Test
-    @Ignore("FIXME")
     fun requestTimeout_invalidValuesThrows() {
-        TODO()
+        val builder = AppConfiguration.Builder("app-id")
+
+        assertFailsWith<IllegalArgumentException> { builder.requestTimeout(-1, TimeUnit.MILLISECONDS) }
+        assertFailsWith<IllegalArgumentException> { builder.requestTimeout(1, TestHelper.getNull()) }
     }
 
     @Test
@@ -281,7 +309,7 @@ class AppConfigurationTests {
     @Test
     fun httpLogObfuscator_null() {
         AppConfiguration.Builder("app-id")
-                .httpLogObfuscator(null)
+                .httpLogObfuscator(TestHelper.getNull())
                 .build()
                 .let {
                     assertNull(it.httpLogObfuscator)
