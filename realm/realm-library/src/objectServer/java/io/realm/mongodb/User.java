@@ -407,6 +407,7 @@ public class User {
      * @param credentials the credentials to link with the current user.
      * @param callback    callback when user identities has been linked or it failed. The callback will
      *                    always happen on the same thread as this method is called on.
+     *
      * @throws IllegalStateException if called from a non-looper thread.
      */
     public RealmAsyncTask linkCredentialsAsync(Credentials credentials, App.Callback<User> callback) {
