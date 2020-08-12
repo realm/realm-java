@@ -310,9 +310,8 @@ class SyncConfigurationTests {
         val config2 = SyncConfiguration.defaultConfig(user, "realm2")
         assertNotEquals(config1.path, config2.path)
 
-        // Waiting for https://github.com/realm/realm-object-store/pull/1049 to be merged
-        // assertTrue(config1.path.endsWith("${app.configuration.appId}/${user.id}/realm1.realm"))
-        // assertTrue(config2.path.endsWith("${app.configuration.appId}/${user.id}/realm2.realm"))
+         assertTrue(config1.path.endsWith("${app.configuration.appId}/${user.localId}/s_realm1.realm"))
+         assertTrue(config2.path.endsWith("${app.configuration.appId}/${user..localId}/s_realm2.realm"))
 
         // Check for https://github.com/realm/realm-java/issues/6882
         val realm1 = Realm.getInstance(config1)
