@@ -151,12 +151,10 @@ class AppConfigurationTests {
 
     @Test
     fun appName() {
-        AppConfiguration.Builder("app-id")
+        val config = AppConfiguration.Builder("app-id")
                 .appName("app-name")
                 .build()
-                .let { config ->
-                    assertEquals("app-name", config.appName)
-                }
+        assertEquals("app-name", config.appName)
     }
 
     @Test
@@ -169,12 +167,10 @@ class AppConfigurationTests {
 
     @Test
     fun appVersion() {
-        AppConfiguration.Builder("app-id")
+        val config = AppConfiguration.Builder("app-id")
                 .appVersion("app-version")
                 .build()
-                .let { config ->
-                    assertEquals("app-version", config.appVersion)
-                }
+        assertEquals("app-version", config.appVersion)
     }
 
     @Test
@@ -211,12 +207,10 @@ class AppConfigurationTests {
     fun defaultSyncErrorHandler() {
         val errorHandler = SyncSession.ErrorHandler { _, _ -> }
 
-        AppConfiguration.Builder("app-id")
+        val config = AppConfiguration.Builder("app-id")
                 .defaultSyncErrorHandler(errorHandler)
                 .build()
-                .let { config ->
-                    assertEquals(config.defaultErrorHandler, errorHandler)
-                }
+        assertEquals(config.defaultErrorHandler, errorHandler)
     }
 
     @Test
@@ -254,12 +248,10 @@ class AppConfigurationTests {
 
     @Test
     fun requestTimeout() {
-        AppConfiguration.Builder("app-id")
+        val config = AppConfiguration.Builder("app-id")
                 .requestTimeout(1, TimeUnit.MILLISECONDS)
                 .build()
-                .let {
-                    assertEquals(1000L, it.requestTimeoutMs)
-                }
+        assertEquals(1000L, config.requestTimeoutMs)
     }
 
     @Test
@@ -295,21 +287,17 @@ class AppConfigurationTests {
 
     @Test
     fun httpLogObfuscator_null() {
-        AppConfiguration.Builder("app-id")
+        val config = AppConfiguration.Builder("app-id")
                 .httpLogObfuscator(TestHelper.getNull())
                 .build()
-                .let {
-                    assertNull(it.httpLogObfuscator)
-                }
+        assertNull(config.httpLogObfuscator)
     }
 
     @Test
     fun defaultLoginInfoObfuscator() {
-        AppConfiguration.Builder("app-id")
-                .build()
-                .let {
-                    val defaultHttpLogObfuscator = HttpLogObfuscator(LOGIN_FEATURE, AppConfiguration.loginObfuscators)
-                    assertEquals(defaultHttpLogObfuscator, it.httpLogObfuscator)
-                }
+        val config = AppConfiguration.Builder("app-id").build()
+
+        val defaultHttpLogObfuscator = HttpLogObfuscator(LOGIN_FEATURE, AppConfiguration.loginObfuscators)
+        assertEquals(defaultHttpLogObfuscator, config.httpLogObfuscator)
     }
 }

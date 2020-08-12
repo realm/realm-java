@@ -175,7 +175,7 @@ public class AppConfiguration {
     /**
      * Returns the unique app id that identities the Realm application.
      *
-     * @return the app unique identifier
+     * @return the app unique identifier.
      */
     public String getAppId() {
         return appId;
@@ -185,7 +185,7 @@ public class AppConfiguration {
      * Returns the name used to describe the Realm application. This is only used as debug
      * information.
      *
-     * @return the app name
+     * @return the app name.
      */
     public String getAppName() {
         return appName;
@@ -194,7 +194,7 @@ public class AppConfiguration {
     /**
      * Returns the version of this Realm application. This is only used as debug information.
      *
-     * @return the app version
+     * @return the app version.
      */
     public String getAppVersion() {
         return appVersion;
@@ -203,7 +203,7 @@ public class AppConfiguration {
     /**
      * Returns the base url for this Realm application.
      *
-     * @return the app base url
+     * @return the app base url.
      */
     public URL getBaseUrl() {
         return baseUrl;
@@ -213,7 +213,7 @@ public class AppConfiguration {
      * Returns the encryption key, if any, that is used to encrypt Realm users meta data on this
      * device. If no key is returned, the data is not encrypted.
      *
-     * @return the encryption key if exists, or {@code null} otherwise
+     * @return the encryption key if exists, or {@code null} otherwise.
      */
     @Nullable
     public byte[] getEncryptionKey() {
@@ -224,7 +224,7 @@ public class AppConfiguration {
      * Returns the default timeout for network requests against the Realm application in
      * milliseconds.
      *
-     * @return the default timeout for network requests in milliseconds
+     * @return the default timeout for network requests in milliseconds.
      */
     public long getRequestTimeoutMs() {
         return requestTimeoutMs;
@@ -234,7 +234,7 @@ public class AppConfiguration {
      * Returns the name of the header used to carry authentication data when making network
      * requests towards MongoDB Realm.
      *
-     * @return the authentication header name
+     * @return the authentication header name.
      */
     public String getAuthorizationHeaderName() {
         return authorizationHeaderName;
@@ -244,7 +244,7 @@ public class AppConfiguration {
      * Returns any custom configured headers that will be sent alongside other headers when
      * making network requests towards MongoDB Realm.
      *
-     * @return a {@code Map} of custom configured headers
+     * @return a {@code Map} of custom configured headers.
      */
     public Map<String, String> getCustomRequestHeaders() {
         return customHeaders;
@@ -254,7 +254,7 @@ public class AppConfiguration {
      * Returns the default error handler used by synced Realms if there are problems with their
      * {@link SyncSession}.
      *
-     * @return the app default error handler
+     * @return the app default error handler.
      */
     public SyncSession.ErrorHandler getDefaultErrorHandler() {
         return defaultErrorHandler;
@@ -264,7 +264,7 @@ public class AppConfiguration {
      * Returns the root folder containing all files and Realms used when synchronizing data
      * between the device and MongoDB Realm.
      *
-     * @return the sync root directory
+     * @return the sync root directory.
      */
     public File getSyncRootDirectory() {
         return syncRootDir;
