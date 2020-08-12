@@ -222,15 +222,14 @@ public class Util {
     }
 
     /**
-     * Throw IllegalStateException if key is not present in map.
+     * Throw IllegalStateException if map doesn't contain a mapping for the key
      * @param key the key to expect.
      * @param map the map to search.
-     * @throws IllegalArgumentException if key is not in map.
+     * @throws IllegalStateException if key is not mapped.
      */
     public static void keyPresent(final String key, final Map<String, ?> map) {
         if (!map.containsKey(key)) {
-            throw new IllegalStateException(
-                    String.format("expected %s to be present", key));
+            throw new IllegalStateException(String.format("Unknown key: %s", key));
         }
     }
 }

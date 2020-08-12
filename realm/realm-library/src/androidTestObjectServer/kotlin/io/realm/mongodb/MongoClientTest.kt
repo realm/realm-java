@@ -21,11 +21,11 @@ import io.realm.*
 import io.realm.mongodb.mongo.MongoClient
 import io.realm.mongodb.mongo.MongoCollection
 import io.realm.mongodb.mongo.MongoNamespace
+import io.realm.mongodb.mongo.events.BaseChangeEvent.OperationType
 import io.realm.mongodb.mongo.options.CountOptions
 import io.realm.mongodb.mongo.options.FindOneAndModifyOptions
 import io.realm.mongodb.mongo.options.FindOptions
 import io.realm.mongodb.mongo.options.UpdateOptions
-import io.realm.mongodb.mongo.events.BaseChangeEvent.OperationType
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.assertFailsWithErrorCode
 import io.realm.util.mongodb.CustomType
@@ -46,7 +46,6 @@ private const val COLLECTION_NAME = "mongo_data" // name of collection used by t
 
 @RunWith(AndroidJUnit4::class)
 class MongoClientTest {
-
     private lateinit var app: TestApp
     private lateinit var user: User
     private lateinit var client: MongoClient

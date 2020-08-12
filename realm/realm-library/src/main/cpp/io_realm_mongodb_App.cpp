@@ -24,7 +24,6 @@
 #include <binding_callback_thread_observer.hpp>
 #include <sync/app.hpp>
 #include <sync/sync_manager.hpp>
-#include <jni_util/bson_util.hpp>
 
 using namespace realm;
 using namespace realm::app;

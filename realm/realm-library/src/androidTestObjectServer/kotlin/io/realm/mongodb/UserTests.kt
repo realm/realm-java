@@ -22,7 +22,6 @@ import io.realm.admin.ServerAdmin
 import io.realm.mongodb.auth.ApiKeyAuth
 import io.realm.mongodb.auth.UserApiKey
 import io.realm.rule.BlockingLooperThread
-import org.bson.BsonArray
 import org.bson.Document
 import org.junit.After
 import org.junit.Assert.*
