@@ -28,16 +28,17 @@ import org.bson.types.ObjectId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
 import io.realm.internal.NativeObject;
 import io.realm.internal.Util;
-import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.network.ResultHandler;
+import io.realm.mongodb.App;
 import io.realm.mongodb.AppException;
 import io.realm.mongodb.mongo.iterable.AggregateIterable;
 import io.realm.mongodb.mongo.iterable.FindIterable;
@@ -73,16 +74,14 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     private final Class<DocumentT> documentClass;
     private final CodecRegistry codecRegistry;
     private final String encodedEmptyDocument;
-    private final TaskDispatcher dispatcher;
+    private final ThreadPoolExecutor threadPoolExecutor = App.NETWORK_POOL_EXECUTOR;
 
     OsMongoCollection(final long nativeCollectionPtr,
                       final Class<DocumentT> documentClass,
-                      final CodecRegistry codecRegistry,
-                      final TaskDispatcher dispatcher) {
+                      final CodecRegistry codecRegistry) {
         this.nativePtr = nativeCollectionPtr;
         this.documentClass = documentClass;
         this.codecRegistry = codecRegistry;
-        this.dispatcher = dispatcher;
         this.encodedEmptyDocument = JniBsonProtocol.encode(new Document(), codecRegistry);
     }
 
@@ -106,11 +105,11 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
     public <NewDocumentT> OsMongoCollection<NewDocumentT> withDocumentClass(
             final Class<NewDocumentT> clazz) {
-        return new OsMongoCollection<>(nativePtr, clazz, codecRegistry, dispatcher);
+        return new OsMongoCollection<>(nativePtr, clazz, codecRegistry);
     }
 
     public OsMongoCollection<DocumentT> withCodecRegistry(final CodecRegistry codecRegistry) {
-        return new OsMongoCollection<>(nativePtr, documentClass, codecRegistry, dispatcher);
+        return new OsMongoCollection<>(nativePtr, documentClass, codecRegistry);
     }
 
     public Long count() {
@@ -182,7 +181,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                                                          final Class<ResultT> resultClass,
                                                          @Nullable final FindOptions options) {
         FindIterable<ResultT> findIterable =
-                new FindIterable<>(this, codecRegistry, resultClass, dispatcher);
+                new FindIterable<>(threadPoolExecutor, this, codecRegistry, resultClass);
         findIterable.filter(filter);
 
         if (options != null) {
@@ -198,7 +197,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
     public <ResultT> AggregateIterable<ResultT> aggregate(final List<? extends Bson> pipeline,
                                                           final Class<ResultT> resultClass) {
-        return new AggregateIterable<>(this, codecRegistry, dispatcher, resultClass, pipeline);
+        return new AggregateIterable<>(threadPoolExecutor, this, codecRegistry, resultClass, pipeline);
     }
 
     public DocumentT findOne() {

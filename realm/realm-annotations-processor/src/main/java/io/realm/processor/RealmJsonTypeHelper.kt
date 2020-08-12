@@ -77,14 +77,19 @@ object RealmJsonTypeHelper {
                                          fieldName: String,
                                          qualifiedFieldType: QualifiedClassName,
                                          proxyClass: SimpleClassName,
+                                         embedded: Boolean,
                                          writer: JavaWriter) {
         writer.apply {
             beginControlFlow("if (json.has(\"%s\"))", fieldName)
                 beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
                     emitStatement("%s.%s(null)", varName, setter)
                 nextControlFlow("else")
-                    emitStatement("%s %sObj = %s.createOrUpdateUsingJsonObject(realm, json.getJSONObject(\"%s\"), update)", qualifiedFieldType, fieldName, proxyClass, fieldName)
-                    emitStatement("%s.%s(%sObj)", varName, setter, fieldName)
+                    if (!embedded) {
+                        emitStatement("%s %sObj = %s.createOrUpdateUsingJsonObject(realm, json.getJSONObject(\"%s\"), update)", qualifiedFieldType, fieldName, proxyClass, fieldName)
+                        emitStatement("%s.%s(%sObj)", varName, setter, fieldName)
+                    } else {
+                        emitStatement("%s.createOrUpdateEmbeddedUsingJsonObject(realm, (RealmModel)%s, \"%s\", json.getJSONObject(\"%s\"), update)", proxyClass, varName, fieldName, fieldName)
+                    }
                 endControlFlow()
             endControlFlow()
         }
@@ -97,6 +102,7 @@ object RealmJsonTypeHelper {
                                        fieldName: String,
                                        fieldTypeCanonicalName: String,
                                        proxyClass: SimpleClassName,
+                                       embedded: Boolean,
                                        writer: JavaWriter) {
         writer.apply {
             beginControlFlow("if (json.has(\"%s\"))", fieldName)
@@ -106,8 +112,12 @@ object RealmJsonTypeHelper {
                     emitStatement("%s.%s().clear()", varName, getter)
                     emitStatement("JSONArray array = json.getJSONArray(\"%s\")", fieldName)
                     beginControlFlow("for (int i = 0; i < array.length(); i++)")
-                        emitStatement("%s item = %s.createOrUpdateUsingJsonObject(realm, array.getJSONObject(i), update)", fieldTypeCanonicalName, proxyClass, fieldTypeCanonicalName)
-                        emitStatement("%s.%s().add(item)", varName, getter)
+                        if (!embedded) {
+                            emitStatement("%s item = %s.createOrUpdateUsingJsonObject(realm, array.getJSONObject(i), update)", fieldTypeCanonicalName, proxyClass, fieldTypeCanonicalName)
+                            emitStatement("%s.%s().add(item)", varName, getter)
+                       } else {
+                            emitStatement("%s.createOrUpdateEmbeddedUsingJsonObject(realm, (RealmModel)%s, \"%s\", array.getJSONObject(i), update)", proxyClass, varName, fieldName)
+                        }
                     endControlFlow()
                 endControlFlow()
             endControlFlow()

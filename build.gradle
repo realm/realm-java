@@ -195,6 +195,24 @@ task javadoc(type:GradleBuild) {
     configure copyProperties
 }
 
+task javadocPackage(type: Zip) {
+    description = 'Generate a Zip file with all SDK docs'
+    dependsOn javadoc
+
+    group = 'Artifact'
+    archiveName = "realm-java-${currentVersion}-docs.zip"
+    destinationDir = file("${buildDir}/outputs/docs")
+
+    from('realm/realm-library/build/docs/javadoc') {
+        include '**/*'
+        into 'javadoc'
+    }
+    from('realm/kotlin-extensions/build/docs') {
+        include '**/*'
+        into 'kotlindocs'
+    }
+}
+
 task sourcesJar(type:GradleBuild) {
     description = 'Generate the sources Jar for the Realm project'
     group = 'Docs'

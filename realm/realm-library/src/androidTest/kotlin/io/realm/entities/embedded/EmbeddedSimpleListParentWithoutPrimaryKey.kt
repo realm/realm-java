@@ -13,8 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.realm.entities.embedded
 
-package io.realm.internal.common;
+import io.realm.RealmList
+import io.realm.RealmObject
+import io.realm.annotations.PrimaryKey
+import java.util.*
 
-public interface CallbackAsyncAdapter<T, U, V> extends Callback<T, U>, AsyncAdapter<V> {
+// Top-level object describing a simple embedded objects structure consisting of only a
+// list of embedded objects.
+open class EmbeddedSimpleListParentWithoutPrimaryKey(var _id: String = UUID.randomUUID().toString()) : RealmObject() {
+    var children: RealmList<EmbeddedSimpleChild> = RealmList()
 }

@@ -2,6 +2,7 @@ package io.realm.admin
 
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
+import io.realm.mongodb.User
 import okhttp3.*
 import okio.Buffer
 import org.json.JSONArray
@@ -103,6 +104,15 @@ class ServerAdmin {
                 .url("$baseUrl/groups/$groupId/apps/$appId/auth_providers/$providerId")
                 .patch(RequestBody.create(json, authProviderConfig.toString()))
         executeRequest(request)
+    }
+
+    val JSON = MediaType.parse("application/json; charset=utf-8")
+
+    fun disableUser(user: User) {
+        var request = Request.Builder()
+                .url("$baseUrl/groups/$groupId/apps/$appId/users/${user.id}/disable")
+                .put(RequestBody.create(json, ""))
+        executeRequest(request, true)
     }
 
     /**

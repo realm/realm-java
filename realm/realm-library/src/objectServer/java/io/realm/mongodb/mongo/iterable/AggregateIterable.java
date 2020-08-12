@@ -20,8 +20,8 @@ import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
-import io.realm.internal.common.TaskDispatcher;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
@@ -36,17 +36,17 @@ public class AggregateIterable<ResultT> extends MongoIterable<ResultT> {
 
     private List<? extends Bson> pipeline;
 
-    public AggregateIterable(final OsMongoCollection osMongoCollection,
+    public AggregateIterable(final ThreadPoolExecutor threadPoolExecutor,
+                             final OsMongoCollection<?> osMongoCollection,
                              final CodecRegistry codecRegistry,
-                             final TaskDispatcher dispatcher,
                              final Class<ResultT> resultClass,
                              final List<? extends Bson> pipeline) {
-        super(osMongoCollection, codecRegistry, resultClass, dispatcher);
+        super(threadPoolExecutor, osMongoCollection, codecRegistry, resultClass);
         this.pipeline = pipeline;
     }
 
     @Override
-    void callNative(final OsJNIResultCallback callback) {
+    void callNative(final OsJNIResultCallback<?> callback) {
         String pipelineString = JniBsonProtocol.encode(pipeline, codecRegistry);
         nativeAggregate(osMongoCollection.getNativePtr(), pipelineString, callback);
     }

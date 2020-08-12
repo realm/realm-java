@@ -28,6 +28,7 @@ import io.realm.mongodb.User
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
 import org.bson.BsonString
+import org.bson.types.ObjectId
 import org.junit.*
 import org.junit.runner.RunWith
 import kotlin.test.*
@@ -322,4 +323,17 @@ class SyncConfigurationTests {
             realm1.close()
         }
     }
+
+    @Test
+    fun loggedOutUsersThrows() {
+        val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        user.logOut()
+        assertFailsWith<java.lang.IllegalArgumentException> {
+            SyncConfiguration.defaultConfig(user, ObjectId())
+        }
+        assertFailsWith<java.lang.IllegalArgumentException> {
+            SyncConfiguration.defaultConfig(app.currentUser(), ObjectId())
+        }
+    }
+
 }

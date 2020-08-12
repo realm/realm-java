@@ -25,7 +25,7 @@ import java.util.*
  * [EmbeddedSimpleParent] and [EmbeddedSimpleListParent].
  */
 @RealmClass(embedded = true)
-open class EmbeddedSimpleChild(var id: String = UUID.randomUUID().toString()) : RealmObject() {
+open class EmbeddedSimpleChild(var childId: String = UUID.randomUUID().toString()) : RealmObject() {
 
     @LinkingObjects("child")
     val parent = EmbeddedSimpleParent()
@@ -33,5 +33,4 @@ open class EmbeddedSimpleChild(var id: String = UUID.randomUUID().toString()) : 
     companion object {
         const val NAME = "EmbeddedSimpleChild"
     }
-
 }

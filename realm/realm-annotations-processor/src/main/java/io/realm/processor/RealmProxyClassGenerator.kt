@@ -1063,7 +1063,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                 when {
                     Utils.isRealmModel(field) -> {
-                        // FIXME: How to support types from other compilation units?
                         val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
 
                         emitEmptyLine()
@@ -1086,7 +1085,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     }
                     Utils.isRealmModelList(field) -> {
                         val genericType = Utils.getGenericTypeQualifiedName(field)!!
-                        // FIXME: How to support types from other compilation units?
                         val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
 
                         emitEmptyLine()
@@ -1181,7 +1179,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         val getter = metadata.getInternalGetter(fieldName)
 
                         if (Utils.isRealmModel(field)) {
-                            // FIXME: How to support types from other compilation units?
                             val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
 
                             emitEmptyLine()
@@ -1203,7 +1200,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                         } else if (Utils.isRealmModelList(field)) {
                             val genericType = Utils.getGenericTypeQualifiedName(field)!!
-                            // FIXME: How to support types from other compilation units?
                             val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
 
                             emitEmptyLine()
@@ -1287,7 +1283,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 val getter = metadata.getInternalGetter(fieldName)
 
                 if (Utils.isRealmModel(field)) {
-                    // FIXME: How to support types from other compilation units?
                     val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
 
                     emitEmptyLine()
@@ -1312,7 +1307,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     endControlFlow()
                 } else if (Utils.isRealmModelList(field)) {
                     val genericType = Utils.getGenericTypeQualifiedName(field)!!
-                    // FIXME: How to support types from other compilation units?
                     val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
 
                     emitEmptyLine()
@@ -1429,7 +1423,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                         when {
                             Utils.isRealmModel(field) -> {
-                                // FIXME: How to support types from other compilation units?
                                 val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
 
                                 emitEmptyLine()
@@ -1455,7 +1448,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             }
                             Utils.isRealmModelList(field) -> {
                                 val genericType = Utils.getGenericTypeQualifiedName(field)!!
-                                // FIXME: How to support types from other compilation units?
                                 val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
 
                                 emitEmptyLine()
@@ -1653,10 +1645,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     val fieldName: String = field.simpleName.toString()
                     val getter: String = metadata.getInternalGetter(fieldName)
                     val setter: String = metadata.getInternalSetter(fieldName)
+                    val parentPropertyType: Constants.RealmFieldType = getRealmType(field)
 
                     when {
                         Utils.isRealmModel(field) -> {
-                            // FIXME: How to support Embedded objects defined in another compilation unit?
                             val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
                             val fieldColKey: String = fieldColKeyVariableReference(field)
                             val linkedQualifiedClassName: QualifiedClassName = Utils.getFieldTypeQualifiedName(field)
@@ -1672,7 +1664,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     beginControlFlow("if (cache%s != null)", fieldName)
                                         emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cache%s.toString()\")", fieldName)
                                     nextControlFlow("else")
-                                        emitStatement("long objKey = ((RealmObjectProxy) managedCopy).realmGet\$proxyState().getRow\$realm().createEmbeddedObject(%s)", fieldColKey)
+                                        emitStatement("long objKey = ((RealmObjectProxy) managedCopy).realmGet\$proxyState().getRow\$realm().createEmbeddedObject(%s, RealmFieldType.%s)", fieldColKey, parentPropertyType.name)
                                         emitStatement("Row linkedObjectRow = realm.getTable(%s.class).getUncheckedRow(objKey)", linkedQualifiedClassName)
                                         emitStatement("%s linkedObject = %s.newProxyInstance(realm, linkedObjectRow)", linkedQualifiedClassName, linkedProxyClass)
                                         emitStatement("cache.put(%sObj, (RealmObjectProxy) linkedObject)", fieldName)
@@ -1691,7 +1683,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitEmptyLine()
                         }
                         Utils.isRealmModelList(field) -> {
-                            // FIXME: How to support Embedded objects defined in another compilation unit?
                             val listElementType: QualifiedClassName = Utils.getRealmListType(field)!!
                             val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(listElementType)
                             val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
@@ -1834,10 +1825,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     val fieldName = field.simpleName.toString()
                     val getter = metadata.getInternalGetter(fieldName)
                     val fieldColKey = fieldColKeyVariableReference(field)
+                    val parentPropertyType: Constants.RealmFieldType = getRealmType(field)
 
                     when {
                         Utils.isRealmModel(field) -> {
-                            // FIXME: How to support Embedded objects defined in another compilation unit?
                             val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
 
                             emitEmptyLine()
@@ -1857,7 +1848,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cache%s.toString()\")", fieldName)
                                 endControlFlow()
                                 emitEmptyLine()
-                                emitStatement("long objKey = ((RealmObjectProxy) realmObject).realmGet\$proxyState().getRow\$realm().createEmbeddedObject(%s)", fieldColKey)
+                                emitStatement("long objKey = ((RealmObjectProxy) realmObject).realmGet\$proxyState().getRow\$realm().createEmbeddedObject(%s, RealmFieldType.%s)", fieldColKey, parentPropertyType.name)
                                 emitStatement("Row row = realm.getTable(%s.class).getUncheckedRow(objKey)", Utils.getFieldTypeQualifiedName(field))
                                 emitStatement("%s proxyObject = %s.newProxyInstance(realm, row)", fieldType, Utils.getProxyClassSimpleName(field))
                                 emitStatement("cache.put(%sObj, (RealmObjectProxy) proxyObject)", fieldName)
@@ -1876,7 +1867,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                         }
                         Utils.isRealmModelList(field) -> {
-                            // FIXME: How to support Embedded objects defined in another compilation unit?
                             val genericType: QualifiedClassName = Utils.getRealmListType(field)!!
                             val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
                             val proxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field)
@@ -2078,107 +2068,126 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     @Throws(IOException::class)
     private fun emitCreateOrUpdateUsingJsonObject(writer: JavaWriter) {
         writer.apply {
+            val embedded = metadata.embedded
             emitAnnotation("SuppressWarnings", "\"cast\"")
-            beginMethod(qualifiedJavaClassName,"createOrUpdateUsingJsonObject", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), Arrays.asList("Realm", "realm", "JSONObject", "json", "boolean", "update"), listOf("JSONException"))
-            val modelOrListCount = countModelOrListFields(metadata.fields)
-            if (modelOrListCount == 0) {
-                emitStatement("final List<String> excludeFields = Collections.<String> emptyList()")
+            if (!embedded) {
+                beginMethod(qualifiedJavaClassName, "createOrUpdateUsingJsonObject", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), Arrays.asList("Realm", "realm", "JSONObject", "json", "boolean", "update"), listOf("JSONException"))
             } else {
-                emitStatement("final List<String> excludeFields = new ArrayList<String>(%1\$d)", modelOrListCount)
+                beginMethod(qualifiedJavaClassName, "createOrUpdateEmbeddedUsingJsonObject", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), Arrays.asList("Realm", "realm", "RealmModel", "parent", "String", "parentProperty", "JSONObject", "json", "boolean", "update"), listOf("JSONException"))
             }
-
-            if (!metadata.hasPrimaryKey()) {
-                buildExcludeFieldsList(writer, metadata.fields)
-                emitStatement("%s obj = realm.createObjectInternal(%s.class, true, excludeFields)", qualifiedJavaClassName, qualifiedJavaClassName)
-            } else {
-                var pkType = "Long"
-                var jsonAccessorMethodSuffix = "Long"
-                var findFirstCast = ""
-                if (Utils.isString(metadata.primaryKey)) {
-                    pkType = "String"
-                    jsonAccessorMethodSuffix=  "String"
-                } else if (Utils.isObjectId(metadata.primaryKey)) {
-                    pkType = "ObjectId"
-                    findFirstCast = "(org.bson.types.ObjectId)"
-                    jsonAccessorMethodSuffix = ""
+                val modelOrListCount = countModelOrListFields(metadata.fields)
+                if (modelOrListCount == 0) {
+                    emitStatement("final List<String> excludeFields = Collections.<String> emptyList()")
+                } else {
+                    emitStatement("final List<String> excludeFields = new ArrayList<String>(%1\$d)", modelOrListCount)
                 }
-                emitStatement("%s obj = null", qualifiedJavaClassName)
-                beginControlFlow("if (update)")
-                    emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
-                    emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)", columnInfoClassName(), columnInfoClassName(), qualifiedJavaClassName)
-                    emitStatement("long pkColumnKey = %s", fieldColKeyVariableReference(metadata.primaryKey))
-                    emitStatement("long objKey = Table.NO_MATCH")
-                    if (metadata.isNullable(metadata.primaryKey!!)) {
-                        beginControlFlow("if (json.isNull(\"%s\"))", metadata.primaryKey!!.simpleName)
-                            emitStatement("objKey = table.findFirstNull(pkColumnKey)")
-                        nextControlFlow("else")
-                            emitStatement("objKey = table.findFirst%s(pkColumnKey, %sjson.get%s(\"%s\"))", pkType, findFirstCast, jsonAccessorMethodSuffix, metadata.primaryKey!!.simpleName)
-                        endControlFlow()
+
+                if (!metadata.hasPrimaryKey()) {
+                    buildExcludeFieldsList(writer, metadata.fields)
+                    if (!embedded) {
+                        emitStatement("%s obj = realm.createObjectInternal(%s.class, true, excludeFields)", qualifiedJavaClassName, qualifiedJavaClassName)
                     } else {
-                        beginControlFlow("if (!json.isNull(\"%s\"))", metadata.primaryKey!!.simpleName)
-                            emitStatement("objKey = table.findFirst%s(pkColumnKey, %sjson.get%s(\"%s\"))", pkType, findFirstCast, jsonAccessorMethodSuffix, metadata.primaryKey!!.simpleName)
-                        endControlFlow()
+                        emitStatement("%s obj = realm.createEmbeddedObject(%s.class, parent, parentProperty)", qualifiedJavaClassName, qualifiedJavaClassName)
                     }
-                    beginControlFlow("if (objKey != Table.NO_MATCH)")
-                        emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()")
-                        beginControlFlow("try")
-                            emitStatement("objectContext.set(realm, table.getUncheckedRow(objKey), realm.getSchema().getColumnInfo(%s.class), false, Collections.<String> emptyList())", qualifiedJavaClassName)
-                            emitStatement("obj = new %s()", generatedClassName)
-                        nextControlFlow("finally")
-                            emitStatement("objectContext.clear()")
+                } else {
+                    var pkType = "Long"
+                    var jsonAccessorMethodSuffix = "Long"
+                    var findFirstCast = ""
+                    if (Utils.isString(metadata.primaryKey)) {
+                        pkType = "String"
+                        jsonAccessorMethodSuffix=  "String"
+                    } else if (Utils.isObjectId(metadata.primaryKey)) {
+                        pkType = "ObjectId"
+                        findFirstCast = "(org.bson.types.ObjectId)"
+                        jsonAccessorMethodSuffix = ""
+                    }
+                    emitStatement("%s obj = null", qualifiedJavaClassName)
+                    beginControlFlow("if (update)")
+                        emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
+                        emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)", columnInfoClassName(), columnInfoClassName(), qualifiedJavaClassName)
+                        emitStatement("long pkColumnKey = %s", fieldColKeyVariableReference(metadata.primaryKey))
+                        emitStatement("long objKey = Table.NO_MATCH")
+                        if (metadata.isNullable(metadata.primaryKey!!)) {
+                            beginControlFlow("if (json.isNull(\"%s\"))", metadata.primaryKey!!.simpleName)
+                                emitStatement("objKey = table.findFirstNull(pkColumnKey)")
+                            nextControlFlow("else")
+                                emitStatement("objKey = table.findFirst%s(pkColumnKey, %sjson.get%s(\"%s\"))", pkType, findFirstCast, jsonAccessorMethodSuffix, metadata.primaryKey!!.simpleName)
+                            endControlFlow()
+                        } else {
+                            beginControlFlow("if (!json.isNull(\"%s\"))", metadata.primaryKey!!.simpleName)
+                                emitStatement("objKey = table.findFirst%s(pkColumnKey, %sjson.get%s(\"%s\"))", pkType, findFirstCast, jsonAccessorMethodSuffix, metadata.primaryKey!!.simpleName)
+                            endControlFlow()
+                        }
+                        beginControlFlow("if (objKey != Table.NO_MATCH)")
+                            emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()")
+                            beginControlFlow("try")
+                                emitStatement("objectContext.set(realm, table.getUncheckedRow(objKey), realm.getSchema().getColumnInfo(%s.class), false, Collections.<String> emptyList())", qualifiedJavaClassName)
+                                emitStatement("obj = new %s()", generatedClassName)
+                            nextControlFlow("finally")
+                                emitStatement("objectContext.clear()")
+                            endControlFlow()
                         endControlFlow()
                     endControlFlow()
-                endControlFlow()
 
-                beginControlFlow("if (obj == null)")
-                    buildExcludeFieldsList(writer, metadata.fields)
-                    val primaryKeyFieldType = QualifiedClassName(metadata.primaryKey!!.asType().toString())
-                    val primaryKeyFieldName = metadata.primaryKey!!.simpleName.toString()
-                    RealmJsonTypeHelper.emitCreateObjectWithPrimaryKeyValue(qualifiedJavaClassName, generatedClassName, primaryKeyFieldType, primaryKeyFieldName, writer)
-                endControlFlow()
-            }
-            emitEmptyLine()
-            emitStatement("final %1\$s objProxy = (%1\$s) obj", interfaceName)
-            for (field in metadata.fields) {
-                val fieldName = field.simpleName.toString()
-                val qualifiedFieldType = QualifiedClassName(field.asType().toString())
-                if (metadata.isPrimaryKey(field)) {
-                    continue  // Primary key has already been set when adding new row or finding the existing row.
+                    beginControlFlow("if (obj == null)")
+                        buildExcludeFieldsList(writer, metadata.fields)
+                        val primaryKeyFieldType = QualifiedClassName(metadata.primaryKey!!.asType().toString())
+                        val primaryKeyFieldName = metadata.primaryKey!!.simpleName.toString()
+                        RealmJsonTypeHelper.emitCreateObjectWithPrimaryKeyValue(qualifiedJavaClassName, generatedClassName, primaryKeyFieldType, primaryKeyFieldName, writer)
+                    endControlFlow()
                 }
-                when {
-                    Utils.isRealmModel(field) -> RealmJsonTypeHelper.emitFillRealmObjectWithJsonValue(
-                            "objProxy",
-                            metadata.getInternalSetter(fieldName),
-                            fieldName,
-                            qualifiedFieldType,
-                            Utils.getProxyClassSimpleName(field),
-                            writer)
-                    Utils.isRealmModelList(field) -> RealmJsonTypeHelper.emitFillRealmListWithJsonValue(
-                            "objProxy",
-                            metadata.getInternalGetter(fieldName),
-                            metadata.getInternalSetter(fieldName),
-                            fieldName,
-                            (field.asType() as DeclaredType).typeArguments[0].toString(),
-                            Utils.getProxyClassSimpleName(field),
-                            writer)
-                    Utils.isRealmValueList(field) -> emitStatement("ProxyUtils.setRealmListWithJsonObject(objProxy.%1\$s(), json, \"%2\$s\")", metadata.getInternalGetter(fieldName), fieldName)
-                    Utils.isMutableRealmInteger(field) -> RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
-                            "objProxy",
-                            metadata.getInternalGetter(fieldName),
-                            fieldName,
-                            qualifiedFieldType,
-                            writer)
-                    else -> RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
-                            "objProxy",
-                            metadata.getInternalSetter(fieldName),
-                            fieldName,
-                            qualifiedFieldType,
-                            writer)
+                emitEmptyLine()
+                emitStatement("final %1\$s objProxy = (%1\$s) obj", interfaceName)
+                for (field in metadata.fields) {
+                    val fieldName = field.simpleName.toString()
+                    val qualifiedFieldType = QualifiedClassName(field.asType().toString())
+                    if (metadata.isPrimaryKey(field)) {
+                        continue  // Primary key has already been set when adding new row or finding the existing row.
+                    }
+                    when {
+                        Utils.isRealmModel(field) -> {
+                            val fieldType = QualifiedClassName(field.asType())
+                            val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
+                            RealmJsonTypeHelper.emitFillRealmObjectWithJsonValue(
+                                    "objProxy",
+                                    metadata.getInternalSetter(fieldName),
+                                    fieldName,
+                                    qualifiedFieldType,
+                                    Utils.getProxyClassSimpleName(field),
+                                    fieldTypeMetaData.embedded,
+                                    writer)
+                        }
+                        Utils.isRealmModelList(field) -> {
+                            val fieldType = QualifiedClassName((field.asType() as DeclaredType).typeArguments[0])
+                            val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
+                            RealmJsonTypeHelper.emitFillRealmListWithJsonValue(
+                                    "objProxy",
+                                    metadata.getInternalGetter(fieldName),
+                                    metadata.getInternalSetter(fieldName),
+                                    fieldName,
+                                    (field.asType() as DeclaredType).typeArguments[0].toString(),
+                                    Utils.getProxyClassSimpleName(field),
+                                    fieldTypeMetaData.embedded,
+                                    writer)
+                        }
+                        Utils.isRealmValueList(field) -> emitStatement("ProxyUtils.setRealmListWithJsonObject(objProxy.%1\$s(), json, \"%2\$s\")", metadata.getInternalGetter(fieldName), fieldName)
+                        Utils.isMutableRealmInteger(field) -> RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
+                                "objProxy",
+                                metadata.getInternalGetter(fieldName),
+                                fieldName,
+                                qualifiedFieldType,
+                                writer)
+                        else -> RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
+                                "objProxy",
+                                metadata.getInternalSetter(fieldName),
+                                fieldName,
+                                qualifiedFieldType,
+                                writer)
+                    }
                 }
-            }
-            emitStatement("return obj")
-            endMethod()
-            emitEmptyLine()
+                emitStatement("return obj")
+                endMethod()
+                emitEmptyLine()
         }
     }
 
@@ -2272,7 +2281,13 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement(Constants.STATEMENT_EXCEPTION_NO_PRIMARY_KEY_IN_JSON, metadata.primaryKey)
                 endControlFlow()
             }
-            emitStatement("return realm.copyToRealm(obj)")
+            if (!metadata.embedded) {
+                emitStatement("return realm.copyToRealm(obj)")
+            } else {
+                // Embedded objects are left unmanaged and assumed to be added by their parent. This
+                // is safe as json import is blocked for embedded objects without a parent.
+                emitStatement("return obj")
+            }
             endMethod()
             emitEmptyLine()            
         }

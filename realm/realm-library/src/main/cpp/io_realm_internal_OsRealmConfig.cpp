@@ -147,7 +147,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetSchemaConfi
                 JNIEnv* env = JniUtils::get_env(false);
                 // Java needs a new pointer for the OsSharedRealm life control.
                 SharedRealm* new_shared_realm_ptr = new SharedRealm(realm);
-                JavaGlobalRef config_global = j_config_weak.global_ref(env);
+                JavaGlobalRefByMove config_global = j_config_weak.global_ref(env);
                 if (!config_global) {
                     return;
                 }
@@ -216,7 +216,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeSetInitializat
                 JNIEnv* env = JniUtils::get_env(false);
                 // Java needs a new pointer for the OsSharedRealm life control.
                 SharedRealm* new_shared_realm_ptr = new SharedRealm(realm);
-                JavaGlobalRef config_global_ref = j_config_weak.global_ref(env);
+                JavaGlobalRefByMove config_global_ref = j_config_weak.global_ref(env);
                 if (!config_global_ref) {
                     return;
                 }
@@ -262,8 +262,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                                                      "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;)V");
 
         // error handler will be called form the sync client thread
-        auto sync_service_object = env->NewGlobalRef(j_java_sync_service); // FIXME: This object is leaking
-        auto error_handler = [sync_service_object](std::shared_ptr<SyncSession> session, SyncError error) {
+        auto error_handler = [sync_service_object = JavaGlobalRefByCopy(env, j_java_sync_service)](std::shared_ptr<SyncSession> session, SyncError error) {
             auto error_category = error.error_code.category().name();
             auto error_message = error.message;
             auto error_code = error.error_code.value();
@@ -311,7 +310,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             jstring jerror_category = to_jstring(env, error_category);
             jstring jerror_message = to_jstring(env, error_message);
             jstring jsession_path = to_jstring(env, session.get()->path());
-            env->CallVoidMethod(sync_service_object, java_error_callback_method, jerror_category, error_code, jerror_message,
+            env->CallVoidMethod(sync_service_object.get(), java_error_callback_method, jerror_category, error_code, jerror_message,
                                       jsession_path);
             env->DeleteLocalRef(jerror_category);
             env->DeleteLocalRef(jerror_message);
