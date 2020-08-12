@@ -188,7 +188,6 @@ class SyncConfigurationTests {
                     }
                 })
                 .build()
-        config
         assertNotNull(config.initialDataTransaction)
 
         // open the first time - initialData must be triggered
@@ -312,7 +311,7 @@ class SyncConfigurationTests {
         assertNotEquals(config1.path, config2.path)
 
          assertTrue(config1.path.endsWith("${app.configuration.appId}/${user.localId}/s_realm1.realm"))
-         assertTrue(config2.path.endsWith("${app.configuration.appId}/${user..localId}/s_realm2.realm"))
+         assertTrue(config2.path.endsWith("${app.configuration.appId}/${user.localId}/s_realm2.realm"))
 
         // Check for https://github.com/realm/realm-java/issues/6882
         val realm1 = Realm.getInstance(config1)
