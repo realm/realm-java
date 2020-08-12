@@ -100,8 +100,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_mongodb_sync_Sync_nativeGetPathForRealm(
             JStringAccessor override_file_name(env, j_override_filename);
             file_name = std::string(override_file_name);
         }
-        (void) file_name; // FIXME: Waiting for https://github.com/realm/realm-object-store/pull/1049
-        return to_jstring(env, SyncManager::shared().path_for_realm(config));
+        return to_jstring(env, SyncManager::shared().path_for_realm(config, file_name));
     }
     CATCH_STD()
     return nullptr;

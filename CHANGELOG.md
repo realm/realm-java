@@ -5,7 +5,7 @@ We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Clo
 The old Realm Cloud legacy APIs have undergone significant refactoring. The new APIs are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
 
 ### Breaking Changes
-* [RealmApp] Realm files have changed location on disk, so Realms should upload all their data to the server before upgrading.
+* None.
 
 ### Enhancements
 * None.
@@ -20,7 +20,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * Realm Studio 10.0.0 and above is required to open Realms created by this version.
 
 ### Internal
-* Upgraded to Object Store commit: 709e69580f480051da8be8b444df400c64c652f8.
+* Upgraded to Object Store commit: 5b5fb8a90192cb4ee6799e7465745cd2067f939b.
 
 
 ## 10.0.0-BETA.5 (2020-06-19)

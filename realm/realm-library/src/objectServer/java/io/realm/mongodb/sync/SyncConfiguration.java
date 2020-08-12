@@ -37,7 +37,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
@@ -447,7 +446,7 @@ public class SyncConfiguration extends RealmConfiguration {
         @Nullable
         private Realm.Transaction initialDataTransaction;
         @Nullable
-        private String fileName;
+        private String filename;
         private OsRealmConfig.Durability durability = OsRealmConfig.Durability.FULL;
         private boolean readOnly = false;
         private boolean waitForServerChanges = false;
@@ -594,7 +593,16 @@ public class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalArgumentException("A non-empty filename must be provided");
             }
 
-            this.fileName = filename;
+            // Strip `.realm` suffix as it will be appended by Object Store later
+            if (filename.endsWith(".realm")) {
+                if (filename.length() == 6) {
+                    throw new IllegalArgumentException("'.realm' is not a valid filename");
+                } else {
+                    filename = filename.substring(0, filename.length() - 6);
+                }
+            }
+
+            this.filename = filename;
             return this;
         }
 
@@ -1013,7 +1021,7 @@ public class SyncConfiguration extends RealmConfiguration {
             URI resolvedServerUrl = serverUrl;
             syncUrlPrefix = String.format("/api/client/v2.0/app/%s/realm-sync", user.getApp().getConfiguration().getAppId());
 
-            String absolutePathForRealm = user.getApp().getSync().getAbsolutePathForRealm(user.getId(), partitionValue, fileName);
+            String absolutePathForRealm = user.getApp().getSync().getAbsolutePathForRealm(user.getId(), partitionValue, filename);
             File realmFile = new File(absolutePathForRealm);
 
             return new SyncConfiguration(

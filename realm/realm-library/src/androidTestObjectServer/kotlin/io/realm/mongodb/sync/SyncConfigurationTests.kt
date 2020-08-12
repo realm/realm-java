@@ -133,15 +133,23 @@ class SyncConfigurationTests {
     }
 
     @Test
-    @Ignore("FIXME: Waits for https://github.com/realm/realm-object-store/pull/1049")
     fun name() {
-        TODO()
+        val user: User = createTestUser(app)
+        val filename = "my-file-name.realm"
+        val config: SyncConfiguration = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
+                .name(filename)
+                .build()
+        val suffix = "/mongodb-realm/${user.app.configuration.appId}/${user.localId}/$filename"
+        assertTrue(config.path.endsWith(suffix))
     }
 
     @Test
-    @Ignore("FIXME: Waits for https://github.com/realm/realm-object-store/pull/1049")
     fun name_illegalValuesThrows() {
-        TODO()
+        val user: User = createTestUser(app)
+        val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
+
+        assertFailsWith<IllegalArgumentException> { builder.name(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { builder.name(".realm") }
     }
 
     @Test

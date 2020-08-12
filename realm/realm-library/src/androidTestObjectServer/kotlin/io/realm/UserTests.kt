@@ -288,6 +288,12 @@ class UserTests {
         assertTrue(user.deviceId.isNotEmpty() && user.deviceId.length == 24) // Server returns a UUID
     }
 
+    @Test
+    fun getLocalId() {
+        val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        assertNotNull(user.localId)
+    }
+
     // FIXME Test for all meta data
     @Ignore("Not implemented yet")
     fun user_metaData() { }
