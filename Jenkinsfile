@@ -6,7 +6,6 @@ import groovy.json.JsonOutput
 
 buildSuccess = false
 rosContainer = null
-emulatorContainer = null
 dockerNetworkId = UUID.randomUUID().toString()
 // Branches from which we release SNAPSHOT's. Only release branches need to run on actual hardware.
 releaseBranches = ['master', 'next-major', 'v10']
@@ -251,7 +250,7 @@ def stopLogCatCollector(String backgroundPid) {
 }
 
 def archiveServerLogs(String rosContainerId) {
-  sh "docker cp ${id}:/tmp/integration-test-command-server.log ./ros.log"
+  sh "docker cp ${rosContainerId}:/tmp/integration-test-command-server.log ./ros.log"
   zip([
       'zipFile': 'roslog.zip',
       'archive': true,
