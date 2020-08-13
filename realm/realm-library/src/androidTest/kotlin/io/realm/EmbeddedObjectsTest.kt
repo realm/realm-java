@@ -551,49 +551,50 @@ class EmbeddedObjectsTest {
                     .equalTo("childId", "newChild")
                     .findFirst()
             assertEquals(managedNewChild!!.childId, "newChild")
-            realm.where<EmbeddedSimpleChild>()
-                    .equalTo("childId", "originalChild")
-                    .findAll()
-                    .size
-                    .also { oldChildCount ->
-                        assertEquals(0, oldChildCount)
-                    }
+            assertEquals(
+                    0,
+                    realm.where<EmbeddedSimpleChild>()
+                            .equalTo("childId", "originalChild")
+                            .findAll()
+                            .size
+            )
         }
     }
 
     @Test
     fun insert_listWithEmbeddedObjects() {
         realm.executeTransaction { realm ->
-            val list = listOf<EmbeddedSimpleParent>()
-                    .plus(EmbeddedSimpleParent("parent1").apply { child = EmbeddedSimpleChild("child1") })
-                    .plus(EmbeddedSimpleParent("parent2").apply { child = EmbeddedSimpleChild("child2") })
-                    .plus(EmbeddedSimpleParent("parent3").apply { child = EmbeddedSimpleChild("child3") })
-                    .also { realm.insert(it) }
+            val list = listOf<EmbeddedSimpleParent>(
+                    EmbeddedSimpleParent("parent1").apply { child = EmbeddedSimpleChild("child1") },
+                    EmbeddedSimpleParent("parent2").apply { child = EmbeddedSimpleChild("child2") },
+                    EmbeddedSimpleParent("parent3").apply { child = EmbeddedSimpleChild("child3") }
+            )
+            realm.insert(list)
 
             realm.where<EmbeddedSimpleParent>()
                     .findAll()
                     .sort("_id")
-                    .also {
-                        assertEquals(3, it.count())
-                        assertEquals(list[0]._id, it[0]!!._id)
-                        assertEquals(list[1]._id, it[1]!!._id)
-                        assertEquals(list[2]._id, it[2]!!._id)
-                        assertEquals(list[0].child!!.childId, it[0]!!.child!!.childId)
-                        assertEquals(list[1].child!!.childId, it[1]!!.child!!.childId)
-                        assertEquals(list[2].child!!.childId, it[2]!!.child!!.childId)
+                    .also { results ->
+                        assertEquals(3, results.count())
+                        assertEquals(list[0]._id, results[0]!!._id)
+                        assertEquals(list[1]._id, results[1]!!._id)
+                        assertEquals(list[2]._id, results[2]!!._id)
+                        assertEquals(list[0].child!!.childId, results[0]!!.child!!.childId)
+                        assertEquals(list[1].child!!.childId, results[1]!!.child!!.childId)
+                        assertEquals(list[2].child!!.childId, results[2]!!.child!!.childId)
                     }
 
             realm.where<EmbeddedSimpleChild>()
                     .findAll()
                     .sort("childId")
-                    .also {
-                        assertEquals(3, it.count())
-                        assertEquals(list[0].child!!.childId, it[0]!!.childId)
-                        assertEquals(list[1].child!!.childId, it[1]!!.childId)
-                        assertEquals(list[2].child!!.childId, it[2]!!.childId)
-                        assertEquals(list[0]._id, it[0]!!.parent._id)
-                        assertEquals(list[1]._id, it[1]!!.parent._id)
-                        assertEquals(list[2]._id, it[2]!!.parent._id)
+                    .also { results ->
+                        assertEquals(3, results.count())
+                        assertEquals(list[0].child!!.childId, results[0]!!.childId)
+                        assertEquals(list[1].child!!.childId, results[1]!!.childId)
+                        assertEquals(list[2].child!!.childId, results[2]!!.childId)
+                        assertEquals(list[0]._id, results[0]!!.parent._id)
+                        assertEquals(list[1]._id, results[1]!!.parent._id)
+                        assertEquals(list[2]._id, results[2]!!.parent._id)
                     }
         }
     }
@@ -601,11 +602,12 @@ class EmbeddedObjectsTest {
     @Test
     fun insert_listWithEmbeddedObjects_duplicatePrimaryKeyThrows() {
         realm.executeTransaction { realm ->
-            val list = listOf<EmbeddedSimpleParent>()
-                    .plus(EmbeddedSimpleParent("parent1").apply { child = EmbeddedSimpleChild("child1") })
-                    .plus(EmbeddedSimpleParent("parent2").apply { child = EmbeddedSimpleChild("child2") })
-                    .plus(EmbeddedSimpleParent("parent3").apply { child = EmbeddedSimpleChild("child3") })
-                    .also { realm.insert(it) }
+            val list = listOf<EmbeddedSimpleParent>(
+                    EmbeddedSimpleParent("parent1").apply { child = EmbeddedSimpleChild("child1") },
+                    EmbeddedSimpleParent("parent2").apply { child = EmbeddedSimpleChild("child2") },
+                    EmbeddedSimpleParent("parent3").apply { child = EmbeddedSimpleChild("child3") }
+            )
+            realm.insert(list)
 
             assertFailsWith<RealmPrimaryKeyConstraintException> {
                 realm.insert(list)
@@ -615,34 +617,35 @@ class EmbeddedObjectsTest {
 
     @Test
     fun insert_listWithEmbeddedObjects_insertingChildrenDirectlyThrows() {
+        val list = listOf<EmbeddedSimpleChild>(
+                EmbeddedSimpleChild("child1"),
+                EmbeddedSimpleChild("child2"),
+                EmbeddedSimpleChild("child3")
+        )
+
         realm.executeTransaction { realm ->
-            listOf<EmbeddedSimpleChild>()
-                    .plus(EmbeddedSimpleChild("child1"))
-                    .plus(EmbeddedSimpleChild("child2"))
-                    .plus(EmbeddedSimpleChild("child3"))
-                    .also {
-                        assertFailsWith<IllegalArgumentException> {
-                            realm.insert(it)
-                        }
-                    }
+            assertFailsWith<IllegalArgumentException> {
+                realm.insert(list);
+            }
         }
     }
 
     @Test
     fun insertOrUpdate_listWithEmbeddedObjects() {
         realm.executeTransaction { realm ->
-            val list = listOf<EmbeddedSimpleParent>()
-                    .plus(EmbeddedSimpleParent("parent1").apply { child = EmbeddedSimpleChild("child1") })
-                    .plus(EmbeddedSimpleParent("parent2").apply { child = EmbeddedSimpleChild("child2") })
-                    .plus(EmbeddedSimpleParent("parent3").apply { child = EmbeddedSimpleChild("child3") })
-                    .also { realm.insert(it) }
-            val managedChildren = realm.where<EmbeddedSimpleChild>().findAll()
+            val list = listOf<EmbeddedSimpleParent>(
+                    EmbeddedSimpleParent("parent1").apply { child = EmbeddedSimpleChild("child1") },
+                    EmbeddedSimpleParent("parent2").apply { child = EmbeddedSimpleChild("child2") },
+                    EmbeddedSimpleParent("parent3").apply { child = EmbeddedSimpleChild("child3") }
+            )
+            realm.insert(list)
 
-            val newList = listOf<EmbeddedSimpleParent>()
-                    .plus(EmbeddedSimpleParent("parent1").apply { child = EmbeddedSimpleChild("newChild1") })
-                    .plus(EmbeddedSimpleParent("parent2").apply { child = EmbeddedSimpleChild("newChild2") })
-                    .plus(EmbeddedSimpleParent("parent3").apply { child = EmbeddedSimpleChild("newChild3") })
-                    .also { realm.insertOrUpdate(it) }
+            val newList = listOf<EmbeddedSimpleParent>(
+                    EmbeddedSimpleParent("parent1").apply { child = EmbeddedSimpleChild("newChild1") },
+                    EmbeddedSimpleParent("parent2").apply { child = EmbeddedSimpleChild("newChild2") },
+                    EmbeddedSimpleParent("parent3").apply { child = EmbeddedSimpleChild("newChild3") }
+            )
+            realm.insertOrUpdate(newList)
 
             assertNull(realm.where<EmbeddedSimpleChild>().equalTo("childId", list[0].child!!.childId).findFirst())
             assertNull(realm.where<EmbeddedSimpleChild>().equalTo("childId", list[1].child!!.childId).findFirst())
@@ -655,26 +658,26 @@ class EmbeddedObjectsTest {
             assertEquals(3, query.count())
             query.findAll()
                     .sort("_id")
-                    .also {
-                        assertEquals(newList[0]._id, it[0]!!._id)
-                        assertEquals(newList[1]._id, it[1]!!._id)
-                        assertEquals(newList[2]._id, it[2]!!._id)
-                        assertEquals(newList[0].child!!.childId, it[0]!!.child!!.childId)
-                        assertEquals(newList[1].child!!.childId, it[1]!!.child!!.childId)
-                        assertEquals(newList[2].child!!.childId, it[2]!!.child!!.childId)
+                    .also { results ->
+                        assertEquals(newList[0]._id, results[0]!!._id)
+                        assertEquals(newList[1]._id, results[1]!!._id)
+                        assertEquals(newList[2]._id, results[2]!!._id)
+                        assertEquals(newList[0].child!!.childId, results[0]!!.child!!.childId)
+                        assertEquals(newList[1].child!!.childId, results[1]!!.child!!.childId)
+                        assertEquals(newList[2].child!!.childId, results[2]!!.child!!.childId)
                     }
 
             realm.where<EmbeddedSimpleParent>()
                     .also { assertEquals(3, it.count()) }
                     .findAll()
                     .sort("_id")
-                    .also {
-                        assertEquals(newList[0]._id, it[0]!!._id)
-                        assertEquals(newList[1]._id, it[1]!!._id)
-                        assertEquals(newList[2]._id, it[2]!!._id)
-                        assertEquals(newList[0].child!!.childId, it[0]!!.child!!.childId)
-                        assertEquals(newList[1].child!!.childId, it[1]!!.child!!.childId)
-                        assertEquals(newList[2].child!!.childId, it[2]!!.child!!.childId)
+                    .also { results ->
+                        assertEquals(newList[0]._id, results[0]!!._id)
+                        assertEquals(newList[1]._id, results[1]!!._id)
+                        assertEquals(newList[2]._id, results[2]!!._id)
+                        assertEquals(newList[0].child!!.childId, results[0]!!.child!!.childId)
+                        assertEquals(newList[1].child!!.childId, results[1]!!.child!!.childId)
+                        assertEquals(newList[2].child!!.childId, results[2]!!.child!!.childId)
                     }
         }
     }
