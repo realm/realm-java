@@ -391,9 +391,15 @@ class UserTests {
     }
 
     @Test
+    fun getLocalId() {
+        val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+        assertNotNull(user.localId)
+    }
+
     fun isLoggedIn() {
         var anonUser = app.login(Credentials.anonymous())
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
+
 
         assertTrue(anonUser.isLoggedIn)
         assertTrue(user.isLoggedIn)

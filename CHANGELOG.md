@@ -5,18 +5,20 @@ We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Clo
 The old Realm Cloud legacy APIs have undergone significant refactoring. The new APIs are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
 
 ### Breaking Changes
-* Removed GMS Task framework and added RealmResultTask to provide with a mechanism to operate with asynchronous operations. MongoCollection has been updated to reflect this change.
+* [RealmApp] Realm files have changed location on disk, so Realms should upload all their data to the server before upgrading.
+* [RealmApp] Removed GMS Task framework and added RealmResultTask to provide with a mechanism to operate with asynchronous operations. MongoCollection has been updated to reflect this change.
 
 ### Enhancements
-* Credentials information (e.g. username, password) displayed in Logcat is now obfuscated by default, even if [LogLevel] is set to DEBUG, TRACE or ALL.
+* [RealmApp] Credentials information (e.g. username, password) displayed in Logcat is now obfuscated by default, even if [LogLevel] is set to DEBUG, TRACE or ALL.
 * RealmLists can now be marked final. (Issue [#6892](https://github.com/realm/realm-java/issues/6892))
 * It is now possible to create embedded objects using [DynamicRealm]s. (Issue [#6982](https://github.com/realm/realm-java/pull/6982))
 * Added extra validation and more meaningful error messages when creating embedded objects pointing to the wrong parent property. (See issue above)
 
 ### Fixed
+* [RealmApp] The same user opening different Realms with different partion key values would crash with an IllegalArgumentException. (Issue [#6882](https://github.com/realm/realm-java/issues/6882), since 10.0.0-BETA.1)
 * [RealmApp] Sync would not refresh the access token if started with an expired one. (Since 10.0.0-BETA.1)
-* Added support for Json-import of objects containing embedded objects. (Issue [#6896](https://github.com/realm/realm-java/issues/6896))
 * [RealmApp] Leaking objects when registering session listeners. (Issue [#6916](https://github.com/realm/realm-java/issues/6916))
+* Added support for Json-import of objects containing embedded objects. (Issue [#6896](https://github.com/realm/realm-java/issues/6896))
 
 ### Compatibility
 * File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
@@ -24,7 +26,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * Realm Studio 10.0.0 and above is required to open Realms created by this version.
 
 ### Internal
-* Upgraded to Object Store commit: 709e69580f480051da8be8b444df400c64c652f8.
+* Upgraded to Object Store commit: 5b5fb8a90192cb4ee6799e7465745cd2067f939b.
 
 
 ## 10.0.0-BETA.5 (2020-06-19)
