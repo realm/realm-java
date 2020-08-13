@@ -1,6 +1,6 @@
 def projectDependencies = new Properties()
 projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
-project.ext.sdkVersion = 27
+project.ext.sdkVersion = 29
 project.ext.minSdkVersion = 16
 project.ext.buildTools = projectDependencies.get("ANDROID_BUILD_TOOLS")
 

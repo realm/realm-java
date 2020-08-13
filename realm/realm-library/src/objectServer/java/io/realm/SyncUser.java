@@ -356,6 +356,7 @@ public class SyncUser {
             final Token refreshTokenToBeRevoked = refreshToken;
 
             ThreadPoolExecutor networkPoolExecutor = SyncManager.NETWORK_POOL_EXECUTOR;
+            String taskName = "LogOutUser[" + identity + "]";
             networkPoolExecutor.submit(new ExponentialBackoffTask<LogoutResponse>(3) {
 
                 @Override
@@ -371,6 +372,11 @@ public class SyncUser {
                 @Override
                 protected void onError(LogoutResponse response) {
                     RealmLog.error("Failed to log user out.\n" + response.getError().toString());
+                }
+
+                @Override
+                protected String getName() {
+                    return taskName;
                 }
             });
         }
