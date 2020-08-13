@@ -177,7 +177,7 @@ class LoggingInterceptorTest {
         } catch (error: AppException) {
             Assert.assertEquals(ErrorCode.INVALID_SESSION, error.errorCode)
         } finally {
-            assertMessageExists(""""access_token":"***"""")
+            assertMessageExists(""""accessToken":"***"""")
         }
     }
 
