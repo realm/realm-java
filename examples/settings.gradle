@@ -15,3 +15,4 @@ include 'threadExample'
 // FIXME include 'unitTestExample' Disable project because fixing it requires AndroidX
 include 'mongoDbRealmExample'
 include 'multiprocessExample'
+include 'compatibilityExample'
