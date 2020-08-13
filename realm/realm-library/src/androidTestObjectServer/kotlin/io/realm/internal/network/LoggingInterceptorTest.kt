@@ -160,7 +160,7 @@ class LoggingInterceptorTest {
         } catch (error: AppException) {
             // It will fail as long as oauth2 tokens aren't supported
         } finally {
-            assertMessageExists(""""access_token":"$token"""")
+            assertMessageExists("""accessToken":"$token"""")
         }
     }
 
