@@ -44,7 +44,7 @@ public class TokenObfuscator extends RegexPatternObfuscator {
     public static final String AUTHCODE_KEY = "authCode";
     public static final String ID_TOKEN_KEY = "id_token";
     public static final String TOKEN_KEY = "token";
-    public static final String ACCESS_TOKEN_KEY = "access_token";
+    public static final String ACCESS_TOKEN_KEY = "accessToken";
 
     private TokenObfuscator(Map<Pattern, String> patternReplacementMap) {
         super(patternReplacementMap);

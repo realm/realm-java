@@ -22,6 +22,7 @@
 #include <binding_callback_thread_observer.hpp>
 
 #include "util.hpp"
+#include <jni_util/bson_util.hpp>
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/jni_utils.hpp"
@@ -72,4 +73,35 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeCreateSession(JNIEn
         _impl::RealmCoordinator::get_coordinator(config)->create_session(config);
     }
     CATCH_STD()
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_mongodb_sync_Sync_nativeGetPathForRealm(JNIEnv* env,
+                                                                                jclass,
+                                                                                jstring j_user_id,
+                                                                                jstring j_encoded_partition_value,
+                                                                                jstring j_override_filename)
+{
+    try {
+        // This is a little bit of a hack. Normally Realm Java doesn't generate the C++ SyncConfig
+        // until the Realm is opened, but the Sync API for creating the Realm path require that
+        // it is created up front. So we cheat and create a SyncConfig with the minimal values
+        // needed for the path to be calculated.
+        JStringAccessor user_id(env, j_user_id);
+        std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(user_id);
+        if (!user) {
+            throw std::logic_error("User is not logged in");
+        }
+        Bson bson(JniBsonProtocol::jstring_to_bson(env, j_encoded_partition_value));
+        std::stringstream buffer;
+        buffer << bson;
+        SyncConfig config{user, buffer.str()};
+        util::Optional<std::string> file_name = util::none;
+        if (j_override_filename != nullptr) {
+            JStringAccessor override_file_name(env, j_override_filename);
+            file_name = std::string(override_file_name);
+        }
+        return to_jstring(env, SyncManager::shared().path_for_realm(config, file_name));
+    }
+    CATCH_STD()
+    return nullptr;
 }
