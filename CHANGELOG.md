@@ -5,6 +5,7 @@ We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Clo
 The old Realm Cloud legacy APIs have undergone significant refactoring. The new APIs are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
 
 ### Breaking Changes
+* [RealmApp] Realm files have changed location on disk, so Realms should upload all their data to the server before upgrading.
 * [RealmApp] Removed GMS Task framework and added RealmResultTask to provide with a mechanism to operate with asynchronous operations. MongoCollection has been updated to reflect this change.
 
 ### Enhancements
