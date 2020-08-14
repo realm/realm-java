@@ -26,6 +26,8 @@ import io.realm.log.RealmLog;
  */
 public abstract class ExponentialBackoffTask<T extends AuthServerResponse> implements Runnable {
     private final int maxRetries;
+    private final Object sleepLock = new Object(); // Used to block the thread but still allow other thread to resume it.
+    private int attempt = 0; // Number of failed attempts previously made by this task.
 
     public ExponentialBackoffTask(int maxRetries) {
         this.maxRetries = maxRetries;
@@ -62,17 +64,33 @@ public abstract class ExponentialBackoffTask<T extends AuthServerResponse> imple
     // Callback when task has failed
     protected abstract void onError(T response);
 
+    // Returns the name of this task
+    protected abstract String getName();
+
+    /**
+     * Resets any exponential delays and retry the task immediately.
+     */
+    public void resetDelay() {
+        synchronized (sleepLock) {
+            RealmLog.debug(getName() + " Reset delay for task.");
+            attempt = 0;
+            sleepLock.notify();
+        }
+    }
+
     @Override
     public void run() {
-        int attempt = 0;
         while (!Thread.interrupted()) {
             attempt++;
             long sleep = calculateExponentialDelay(attempt - 1, TimeUnit.MINUTES.toMillis(5));
             if (sleep > 0) {
+                RealmLog.debug(getName() + " Delaying for " + TimeUnit.SECONDS.convert(sleep, TimeUnit.MILLISECONDS) + " sec.");
                 try {
-                    Thread.sleep(sleep);
+                    synchronized (sleepLock) {
+                        sleepLock.wait(sleep);
+                    }
                 } catch (InterruptedException e) {
-                    RealmLog.debug("Incremental backoff was interrupted.");
+                    RealmLog.debug(getName() + " Incremental backoff was interrupted.");
                     return; // Abort if interrupted
                 }
             }
@@ -93,23 +111,23 @@ public abstract class ExponentialBackoffTask<T extends AuthServerResponse> imple
     private static long calculateExponentialDelay(int failedAttempts, long maxDelayInMs) {
         // https://en.wikipedia.org/wiki/Exponential_backoff
         //Attempt = FailedAttempts + 1
-        //Attempt 1     0s     0s
-        //Attempt 2     2s     2s
-        //Attempt 3     4s     4s
-        //Attempt 4     8s     8s
-        //Attempt 5     16s    16s
-        //Attempt 6     32s    32s
-        //Attempt 7     64s    1m 4s
-        //Attempt 8     128s   2m 8s
-        //Attempt 9     256s   4m 16s
-        //Attempt 10    512    8m 32s
-        //Attempt 11    1024   17m 4s
-        //Attempt 12    2048   34m 8s
-        //Attempt 13    4096   1h 8m 16s
-        //Attempt 14    8192   2h 16m 32s
-        //Attempt 15    16384  4h 33m 4s
+        //Attempt 1     0      0s
+        //Attempt 2     1      1s
+        //Attempt 3     3      3s
+        //Attempt 4     7      7s
+        //Attempt 5     15     15s
+        //Attempt 6     31     31s
+        //Attempt 7     63     1m 3s
+        //Attempt 8     127    2m 7s
+        //Attempt 9     255    4m 15s
+        //Attempt 10    511    8m 31s
+        //Attempt 11    1023   17m 3s
+        //Attempt 12    2047   34m 7s
+        //Attempt 13    4095   1h 8m 15s
+        //Attempt 14    8191   2h 16m 31s
+        //Attempt 15    16383  4h 33m 3s
         double SCALE = 1.0D; // Scale the exponential backoff
-        double delayInMs = ((Math.pow(2.0D, failedAttempts) - 1d) / 2.0D) * 1000 * SCALE;
+        double delayInMs = (Math.pow(2.0D, failedAttempts) - 1.0D) * 1000.D * SCALE;
 
         // Just use maximum back-off value. We are not afraid of many threads using this value
         // to trigger at once.

@@ -554,4 +554,29 @@ public class SyncedRealmIntegrationTests extends StandardIntegrationTest {
             }
         });
     }
+
+    // Smoke test to check that `refreshConnections` doesn't crash.
+    // Testing that it actually works is not feasible in a unit test.
+    @Test
+    @RunTestInLooperThread
+    public void refreshConnections() {
+        RealmLog.setLevel(LogLevel.DEBUG);
+        SyncManager.refreshConnections(); // No Realms
+
+        // A single active Realm
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+        SyncUser user = SyncUser.logIn(SyncCredentials.usernamePassword(username, password, true), Constants.AUTH_URL);
+        final SyncConfiguration config = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+                .fullSynchronization()
+                .schema(StringOnly.class)
+                .build();
+        Realm realm = Realm.getInstance(config);
+        SyncManager.refreshConnections();
+
+        // A single logged out Realm
+        realm.close();
+        SyncManager.refreshConnections();
+        looperThread.testComplete();
+    }
 }
