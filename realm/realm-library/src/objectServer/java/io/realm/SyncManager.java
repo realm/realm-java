@@ -535,6 +535,9 @@ public class SyncManager {
 
     private static synchronized void notifyNetworkIsBack() {
         try {
+            for (SyncSession session : sessions.values()) {
+                session.refreshConnection();
+            }
             nativeReconnect();
         } catch (Exception exception) {
             RealmLog.error(exception);
