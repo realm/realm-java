@@ -1,4 +1,4 @@
-## 6.1.1(YYYY-MM-DD)
+## 6.1.1(2020-08-14)
 
 ### Enhancements 
 * None.
