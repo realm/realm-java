@@ -95,6 +95,10 @@ public class OsSyncUser implements NativeObject {
         return nativeGetIdentity(nativePtr);
     }
 
+    public String getLocalIdentity() {
+        return nativeGetLocalIdentity(nativePtr);
+    }
+
     public String getAccessToken() {
         return nativeGetAccessToken(nativePtr);
     }
@@ -108,7 +112,7 @@ public class OsSyncUser implements NativeObject {
         @SuppressWarnings("unchecked")
         Pair<String, String>[] identities = new Pair[identityData.length/2];
         for (int i = 0; i < identityData.length; i = i + 2) {
-            identities[i] = new Pair<>(identityData[i], identityData[i+1]);
+            identities[i/2] = new Pair<>(identityData[i], identityData[i+1]);
         }
         return identities;
     }
@@ -169,6 +173,7 @@ public class OsSyncUser implements NativeObject {
     private static native String nativeGetMinAge(long nativePtr);
     private static native String nativeGetMaxAge(long nativePtr);
     private static native String nativeGetIdentity(long nativePtr);
+    private static native String nativeGetLocalIdentity(long nativePtr);
     private static native String nativeGetAccessToken(long nativePtr);
     private static native String nativeGetRefreshToken(long nativePtr);
     private static native String[] nativeGetIdentities(long nativePtr); // Returns pairs of {id, provider}

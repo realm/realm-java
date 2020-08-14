@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Realm Inc.
+ * Copyright 2020 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.realm.entities.embedded
 
-package io.realm.examples.securetokenandroidkeystore;
+import io.realm.RealmObject
+import io.realm.annotations.PrimaryKey
+import java.util.*
 
-import android.app.Application;
-
-import io.realm.Realm;
-
-public class MyApplication extends Application {
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        // Initialize Realm. Should only be done once when the application starts.
-        Realm.init(this);
-    }
+// Parent pointing to an embedded object that has a circular schema, i.e. objects can point
+// to themselves. Note, this isn't actually allowed at runtime. Only at schema validation time.
+open class EmbeddedCircularParentWithoutPrimaryKey(var _id: String = UUID.randomUUID().toString()) : RealmObject() {
+    var singleChild: EmbeddedCircularChild? = null
 }

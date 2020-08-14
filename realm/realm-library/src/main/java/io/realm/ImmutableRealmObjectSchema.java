@@ -106,6 +106,16 @@ class ImmutableRealmObjectSchema extends RealmObjectSchema {
         throw new UnsupportedOperationException(SCHEMA_IMMUTABLE_EXCEPTION_MSG);
     }
 
+    @Override
+    String getPropertyClassName(String propertyName) {
+        ColumnInfo.ColumnDetails columnDetails = columnInfo.getColumnDetails(propertyName);
+        if (columnDetails == null) {
+            throw new IllegalArgumentException(String.format("Property '%s' not found.", propertyName));
+        } else {
+            return columnDetails.linkedClassName;
+        }
+    }
+
     /**
      * Returns a field descriptor based on Java field names found in model classes.
      *

@@ -123,7 +123,7 @@ public interface Row {
     // Creates a new Embedded object in the given property.
     // This will replace any existing object which will be
     // deleted. The Obj pointer for the new object is returned.
-    long createEmbeddedObject(long columnKey);
+    long createEmbeddedObject(long columnKey, RealmFieldType parentPropertyType);
 
     /**
      * Checks if the row is still valid.

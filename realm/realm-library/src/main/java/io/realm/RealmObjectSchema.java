@@ -83,7 +83,7 @@ public abstract class RealmObjectSchema {
     final RealmSchema schema;
     final BaseRealm realm;
     final Table table;
-    private final ColumnInfo columnInfo;
+    final ColumnInfo columnInfo;
 
     /**
      * Creates a schema object for a given Realm class.
@@ -460,6 +460,31 @@ public abstract class RealmObjectSchema {
                     "all objects to be embedded, they must have one and exactly one parent object" +
                     "pointing to them.");
         }
+    }
+
+    /**
+     * Returns a string with the class name of a given property.
+     * @param propertyName the property for which we want to know the class name.
+     * @return the name of the class for the given property.
+     * @throws IllegalArgumentException if the given property is not found in the schema.
+     */
+    abstract String getPropertyClassName(String propertyName);
+
+    /**
+     * Checks whether a given property's {@code RealmFieldType} could host an acceptable embedded
+     * object reference in a parent - acceptable embedded object types are
+     * {@link RealmFieldType#OBJECT} and {@link RealmFieldType#LIST}, i.e. for the property to be
+     * acceptable it has to be either a subclass of {@code RealmModel} or a {@code RealmList}.
+     * <p>
+     * This method does not check the existence of a backlink between the child and the parent nor
+     * that the parent points at the correct child in their respective schemas nor that the object
+     * is a suitable parent/child.
+     * @param property the field type to be checked.
+     * @return whether the property could host an embedded object in a parent.
+     */
+    boolean isPropertyAcceptableForEmbeddedObject(RealmFieldType property) {
+        return property == RealmFieldType.OBJECT
+                || property == RealmFieldType.LIST;
     }
 
     /**

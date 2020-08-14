@@ -19,13 +19,17 @@ package io.realm;
 import java.util.Locale;
 
 import io.reactivex.Flowable;
+import io.realm.annotations.RealmClass;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsSharedRealm;
+import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.Row;
 import io.realm.internal.Table;
+import io.realm.internal.Util;
 import io.realm.log.RealmLog;
 
 /**
@@ -158,6 +162,51 @@ public class DynamicRealm extends BaseRealm {
         Table table = schema.getTable(className);
         return new DynamicRealmObject(this,
                 CheckedRow.getFromRow(OsObject.createWithPrimaryKey(table, primaryKeyValue)));
+    }
+
+    /**
+     * Instantiates and adds a new embedded object to the Realm.
+     * <p>
+     * This method should only be used to create objects of types marked as embedded.
+     *
+     * @param className the class name of the object to create.
+     * @param parentObject The parent object which should hold a reference to the embedded object.
+     *                     If the parent property is a list the embedded object will be added to the
+     *                     end of that list.
+     * @param parentProperty the property in the parent class which holds the reference.
+     * @return the newly created embedded object.
+     * @throws IllegalArgumentException if {@code clazz} is not an embedded class or if the property
+     * in the parent class cannot hold objects of the appropriate type.
+     * @see RealmClass#embedded()
+     */
+    public DynamicRealmObject createEmbeddedObject(String className,
+                                                   DynamicRealmObject parentObject,
+                                                   String parentProperty) {
+        checkIfValid();
+        Util.checkNull(parentObject, "parentObject");
+        Util.checkEmpty(parentProperty, "parentProperty");
+        if (!RealmObject.isManaged(parentObject) || !RealmObject.isValid(parentObject)) {
+            throw new IllegalArgumentException("Only valid, managed objects can be a parent to an embedded object.");
+        }
+
+        String pkField = OsObjectStore.getPrimaryKeyForObject(sharedRealm, className);
+        // Check and throw the exception earlier for a better exception message.
+        if (pkField != null) {
+            throw new RealmException(String.format(Locale.US,
+                    "'%s' has a primary key field '%s', embedded objects cannot have primary keys.",
+                    className, pkField));
+        }
+
+        String parentClassName = parentObject.getType();
+        RealmObjectSchema parentObjectSchema = schema.get(parentClassName);
+
+        if (parentObjectSchema == null) {
+            throw new IllegalStateException(String.format("No schema found for '%s'.", parentClassName));
+        }
+
+        Row embeddedObject = getEmbeddedObjectRow(className, parentObject, parentProperty, schema, parentObjectSchema);
+
+        return new DynamicRealmObject(this, embeddedObject);
     }
 
     /**

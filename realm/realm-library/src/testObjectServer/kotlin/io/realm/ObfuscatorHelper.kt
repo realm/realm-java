@@ -55,7 +55,7 @@ object ObfuscatorHelper {
 {
   "mail":"myfakemail@mongodb.com",
   "id":{
-    "{${'$'}}numberInt": "666"
+    "{${'$'}}numberInt": 666"
   },
   "options":{
     "device":{
@@ -100,7 +100,7 @@ object ObfuscatorHelper {
     val TOKEN_ORIGINAL_INPUT_FACEBOOK = """
 {
   "blahblahblah":"blehblehbleh",
-  "access_token":"my_access_token",
+  "accessToken":"my_access_token",
   "something":"random"
 }
 """.trimIndent()
@@ -128,7 +128,7 @@ object ObfuscatorHelper {
     val TOKEN_OBFUSCATED_OUTPUT_FACEBOOK = """
 {
   "blahblahblah":"blehblehbleh",
-  "access_token":"***",
+  "accessToken":"***",
   "something":"random"
 }
 """.trimIndent()

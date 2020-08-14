@@ -20,7 +20,6 @@ import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
@@ -120,12 +119,21 @@ public class User {
     }
 
     /**
-     * Returns the id of the user.
+     * Returns the server id of the user.
      *
-     * @return the id of the user.
+     * @return the server id of the user.
      */
     public String getId() {
         return osUser.getIdentity();
+    }
+
+    /**
+     * Returns the local id for this user. It is only guaranteed to be unique on this device.
+     *
+     * @return the local id of the user
+     */
+    public String getLocalId() {
+        return osUser.getLocalIdentity();
     }
 
     /**
@@ -133,6 +141,7 @@ public class User {
      *
      * @return the name of the user.
      */
+    @Nullable
     public String getName() {
         return osUser.nativeGetName();
     }
@@ -224,7 +233,6 @@ public class User {
      * Returns a new list of the user's identities.
      *
      * @return the list of identities.
-     *
      * @see UserIdentity
      */
     public List<UserIdentity> getIdentities() {
@@ -235,6 +243,15 @@ public class User {
             identities.add(new UserIdentity(data.first, data.second));
         }
         return identities;
+    }
+
+    /**
+     * Returns the provider type used to log the user
+     *
+     * @return the provider type of the user
+     */
+    public Credentials.IdentityProvider getProviderType() {
+        return Credentials.IdentityProvider.fromId(osUser.getProviderType());
     }
 
     /**
@@ -318,7 +335,6 @@ public class User {
      *
      * @param callback The callback that will receive the result or any errors from the request.
      * @return The task representing the ongoing operation.
-     *
      * @throws IllegalStateException if not called on a looper thread.
      */
     public RealmAsyncTask refreshCustomData(App.Callback<Document> callback) {
@@ -336,7 +352,6 @@ public class User {
      * Returns true if the user is currently logged in.
      * Returns whether or not this user is still logged into the MongoDB Realm App.
      *
-     * @return {@code true} if the user is logged in. {@code false} otherwise.
      * @return {@code true} if still logged in, {@code false} if not.
      */
     public boolean isLoggedIn() {
@@ -362,8 +377,9 @@ public class User {
      * must not have been used by another user.
      *
      * @param credentials the credentials to link with the current user.
-     * @throws IllegalStateException if no user is currently logged in.
      * @return the {@link User} the credentials were linked to.
+     *
+     * @throws IllegalStateException if no user is currently logged in.
      */
     public User linkCredentials(Credentials credentials) {
         Util.checkNull(credentials, "credentials");
@@ -399,8 +415,9 @@ public class User {
      * must not have been used by another user.
      *
      * @param credentials the credentials to link with the current user.
-     * @param callback callback when user identities has been linked or it failed. The callback will
-     * always happen on the same thread as this method is called on.
+     * @param callback    callback when user identities has been linked or it failed. The callback will
+     *                    always happen on the same thread as this method is called on.
+     *
      * @throws IllegalStateException if called from a non-looper thread.
      */
     public RealmAsyncTask linkCredentialsAsync(Credentials credentials, App.Callback<User> callback) {
@@ -420,7 +437,7 @@ public class User {
      *
      * @return user that was removed.
      * @throws AppException if called from the UI thread or if the user was logged in, but
-     * could not be logged out.
+     *                      could not be logged out.
      */
     public User remove() throws AppException {
         boolean loggedIn = isLoggedIn();
@@ -445,7 +462,7 @@ public class User {
      * affect the user state on the server.
      *
      * @param callback callback when removing the user has completed or failed. The callback will always
-     * happen on the same thread as this method is called on.
+     *                 happen on the same thread as this method is called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
     public RealmAsyncTask removeAsync(App.Callback<User> callback) {
@@ -473,7 +490,7 @@ public class User {
      * {@link #remove()}.
      *
      * @throws AppException if an error occurred while trying to log the user out of the Realm
-     * App.
+     *                      App.
      */
     public void logOut() throws AppException {
         boolean loggedIn = isLoggedIn();
@@ -500,7 +517,7 @@ public class User {
      * {@link #remove()}.
      *
      * @param callback callback when logging out has completed or failed. The callback will always
-     * happen on the same thread as this method is called on.
+     *                 happen on the same thread as this method is called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
     public RealmAsyncTask logOutAsync(App.Callback<User> callback) {
@@ -559,7 +576,7 @@ public class User {
     /**
      * Returns the {@link Push} instance for managing push notification registrations.
      *
-     * @param serviceName        the service name used to connect to the server.
+     * @param serviceName the service name used to connect to the server.
      */
     public synchronized Push getPush(String serviceName) {
         if (push == null) {
@@ -572,7 +589,7 @@ public class User {
     /**
      * Returns a {@link MongoClient} instance for accessing documents in the database.
      *
-     * @param serviceName        the service name used to connect to the server.
+     * @param serviceName the service name used to connect to the server.
      */
     public synchronized MongoClient getMongoClient(String serviceName) {
         Util.checkEmpty(serviceName, "serviceName");
@@ -609,6 +626,8 @@ public class User {
     }
 
     private static native void nativeRemoveUser(long nativeAppPtr, long nativeUserPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+
     private static native void nativeLinkUser(long nativeAppPtr, long nativeUserPtr, long nativeCredentialsPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+
     private static native void nativeLogOut(long appNativePtr, long userNativePtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }

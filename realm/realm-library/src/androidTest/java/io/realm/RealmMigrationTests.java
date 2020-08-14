@@ -898,7 +898,7 @@ public class RealmMigrationTests {
             Realm.getInstance(configFactory.createConfiguration());
             fail();
         } catch (RealmMigrationNeededException expected) {
-            assertEquals(expected.getPath(), realm.getCanonicalPath());
+            assertEquals(expected.getPath(), realm.getAbsolutePath());
         }
     }
 
