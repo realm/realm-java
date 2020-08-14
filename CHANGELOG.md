@@ -1,3 +1,23 @@
+## 7.0.2(2020-08-14)
+
+### Enhancements
+* None.
+
+### Fixes
+* [ObjectServer] Calling `SyncManager.refreshConnections()` did not correctly refresh connections in all cases, which could delay reconnects up to 5 minutes. (Issue [#7003](https://github.com/realm/realm-java/issues/7003))
+* Upgrading the file format result did in some cases not work correctly. This could result in a number of crashes, e.g. `FORMAT_UPGRADE_REQUIRED`. (Issue [#6889](https://github.com/realm/realm-java/issues/6889), since 7.0.0)  
+* Bug in memory mapping management. This bug could result in multiple different asserts as well as segfaults. In many cases stack backtraces would include members of the EncyptedFileMapping near the top - even if encryption was not used at all. In other cases asserts or crashes would be in methods reading an array header or array element. In all cases the application would terminate immediately. (Issue [#3838](https://github.com/realm/realm-core/pull/3838), since 7.0.0)
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Realm Sync 5.0.15.
+* Upgraded to Realm Core 6.0.17.
+
+
 ## 7.0.1(2020-07-01)
 
 ### Enhancements

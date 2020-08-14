@@ -47,6 +47,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.BacklinksSource;
@@ -146,12 +149,7 @@ public class TestHelper {
             colTypes[i] = colType;
             if (!colType.isValid(value)) {
                 // String representation of the provided value type.
-                String providedType;
-                if (value == null) {
-                    providedType = "null";
-                } else {
-                    providedType = value.getClass().toString();
-                }
+                String providedType = value.getClass().toString();
 
                 throw new IllegalArgumentException("Invalid argument no " + (i + 1) +
                         ". Expected a value compatible with column type " + colType + ", but got " + providedType + ".");
@@ -275,7 +273,7 @@ public class TestHelper {
         void execute(Table table);
     }
 
-    public static Table createTable(OsSharedRealm sharedRealm, String name, AdditionalTableSetup additionalSetup) {
+    public static Table createTable(OsSharedRealm sharedRealm, String name, @Nullable AdditionalTableSetup additionalSetup) {
         boolean wasInTransaction = sharedRealm.isInTransaction();
         if (!wasInTransaction) {
             sharedRealm.beginTransaction();
@@ -465,7 +463,7 @@ public class TestHelper {
      * @deprecated Use {@link TestRealmConfigurationFactory#createConfiguration(String, byte[])} instead.
      */
     @Deprecated
-    public static RealmConfiguration createConfiguration(Context context, String name, byte[] key) {
+    public static RealmConfiguration createConfiguration(Context context, String name, @Nullable byte[] key) {
         return createConfiguration(context.getFilesDir(), name, key);
     }
 
@@ -473,7 +471,7 @@ public class TestHelper {
      * @deprecated Use {@link TestRealmConfigurationFactory#createConfiguration(String, byte[])} instead.
      */
     @Deprecated
-    public static RealmConfiguration createConfiguration(File dir, String name, byte[] key) {
+    public static RealmConfiguration createConfiguration(File dir, String name, @Nullable byte[] key) {
         RealmConfiguration.Builder config = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
                 .directory(dir)
                 .name(name);
@@ -1177,9 +1175,13 @@ public class TestHelper {
         if (!file.exists()) {
             return;
         }
+
         if (file.isDirectory()) {
-            for (File f : file.listFiles()) {
-                deleteRecursively(f);
+            File[] files = file.listFiles();
+            for (File f : files) {
+                if (f != null) {
+                    deleteRecursively(f);
+                }
             }
         }
 
@@ -1202,7 +1204,12 @@ public class TestHelper {
                 final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), UTF_8));
                 //noinspection TryFinallyCanBeTryWithResources
                 try {
-                    return reader.readLine().toLowerCase(Locale.ENGLISH).equals("enforcing");
+                    String line = reader.readLine();
+                    if (line != null) {
+                        return line.toLowerCase(Locale.ENGLISH).equals("enforcing");
+                    } else {
+                        return false;
+                    }
                 } finally {
                     try {
                         reader.close();
@@ -1297,6 +1304,12 @@ public class TestHelper {
         } catch (IllegalAccessException e) {
             throw new AssertionError(Util.getStackTrace(e));
         }
+    }
+
+    // Workaround to cheat Kotlins type system when testing interop with Java
+    @SuppressWarnings("TypeParameterUnusedInFormals")
+    public static <T> T getNull() {
+        return null;
     }
 
 }

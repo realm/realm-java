@@ -12,6 +12,6 @@ include 'newsreaderExample'
 include 'rxJavaExample'
 include 'secureTokenAndroidKeyStore'
 include 'threadExample'
-include 'unitTestExample'
+// include 'unitTestExample' FIXME: https://github.com/realm/realm-java/issues/6834
 include 'objectServerExample'
 include 'multiprocessExample'

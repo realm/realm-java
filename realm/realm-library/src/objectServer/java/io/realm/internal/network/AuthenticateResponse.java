@@ -147,7 +147,7 @@ public class AuthenticateResponse extends AuthServerResponse {
             error = new ObjectServerError(ErrorCode.JSON_EXCEPTION, exceptionMessage, ex);
             debugMessage = String.format(Locale.US, "Error %s", error.getErrorMessage());
         }
-        RealmLog.debug("AuthenticateResponse. " + debugMessage);
+        RealmLog.debug("AuthenticateResponse: %s", debugMessage);
         setError(error);
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
