@@ -19,6 +19,8 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * [RealmApp] Sync would not refresh the access token if started with an expired one. (Since 10.0.0-BETA.1)
 * [RealmApp] Leaking objects when registering session listeners. (Issue [#6916](https://github.com/realm/realm-java/issues/6916))
 * Added support for Json-import of objects containing embedded objects. (Issue [#6896](https://github.com/realm/realm-java/issues/6896))
+* Upgrading the file format result did in some cases not work correctly. This could result in a number of crashes, e.g. `FORMAT_UPGRADE_REQUIRED`. (Issue [#6889](https://github.com/realm/realm-java/issues/6889), since 7.0.0)  
+* Bug in memory mapping management. This bug could result in multiple different asserts as well as segfaults. In many cases stack backtraces would include members of the EncyptedFileMapping near the top - even if encryption was not used at all. In other cases asserts or crashes would be in methods reading an array header or array element. In all cases the application would terminate immediately. (Issue [#3838](https://github.com/realm/realm-core/pull/3838), since 7.0.0)
 
 ### Compatibility
 * File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
@@ -27,6 +29,8 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 
 ### Internal
 * Upgraded to Object Store commit: 5b5fb8a90192cb4ee6799e7465745cd2067f939b.
+* Upgraded to Realm Sync 10.0.0-beta.6.
+* Upgraded to Realm Core 10.0.0-beta.4.
 
 
 ## 10.0.0-BETA.5 (2020-06-19)
