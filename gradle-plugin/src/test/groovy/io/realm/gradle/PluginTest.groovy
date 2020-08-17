@@ -39,7 +39,7 @@ import static org.junit.Assert.fail
  * Comment about the order of repositories.
  * The order of repositories do matter, and might need to change depending on the 
  * version of the Build Tools being used. See e.g.:
- * 
+ *
  * https://stackoverflow.com/questions/55278227/android-gradle-build-error-artifacts-for-configuration-classpath/55278968#55278968
  * https://stackoverflow.com/questions/52968576/could-not-find-aapt2-proto-jar-com-android-tools-buildaapt2-proto0-3-1
  */
