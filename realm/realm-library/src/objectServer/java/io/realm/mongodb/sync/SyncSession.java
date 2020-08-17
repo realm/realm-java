@@ -405,7 +405,7 @@ public class SyncSession {
         }
     }
 
-    void close() {
+    synchronized void close() {
         isClosed = true;
     }
 

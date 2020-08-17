@@ -9,10 +9,9 @@ MONGODB_REALM_SERVER_VERSION=2020-06-29
 
 # Common Android settings across projects
 GRADLE_BUILD_TOOLS=3.6.1
-ANDROID_BUILD_TOOLS=29.0.2
+ANDROID_BUILD_TOOLS=29.0.3
 
 # Common classpath dependencies
-# Gradle 5 is not supported yet: https://issuetracker.google.com/issues/126433059
 gradleVersion=5.6.4
 ndkVersion=21.0.6113669
 BUILD_INFO_EXTRACTOR_GRADLE=4.7.5
