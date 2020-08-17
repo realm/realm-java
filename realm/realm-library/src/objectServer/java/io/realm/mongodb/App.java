@@ -29,7 +29,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
@@ -38,15 +37,12 @@ import io.realm.BuildConfig;
 import io.realm.Realm;
 import io.realm.RealmAsyncTask;
 import io.realm.annotations.Beta;
-import io.realm.internal.KeepMember;
 import io.realm.internal.Util;
 import io.realm.internal.async.RealmThreadPoolExecutor;
-import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.mongodb.Request;
-import io.realm.internal.network.OkHttpNetworkTransport;
-import io.realm.internal.network.ResultHandler;
 import io.realm.internal.objectstore.OsApp;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
+import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.log.RealmLog;
 import io.realm.mongodb.auth.EmailPasswordAuth;
 import io.realm.mongodb.functions.Functions;
@@ -172,9 +168,7 @@ public class App {
     public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = RealmThreadPoolExecutor.newDefaultExecutor();
 
     private final AppConfiguration config;
-    protected OsJavaNetworkTransport networkTransport;
     final Sync syncManager;
-    final long nativePtr;
     private final EmailPasswordAuth emailAuthProvider = new EmailPasswordAuthImpl(this);
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<>();
     private Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -191,14 +185,8 @@ public class App {
      */
     public App(AppConfiguration config) {
         this.config = config;
-        this.networkTransport = new OkHttpNetworkTransport(config.getHttpLogObfuscator());
-        networkTransport.setAuthorizationHeaderName(config.getAuthorizationHeaderName());
-        for (Map.Entry<String, String> entry : config.getCustomRequestHeaders().entrySet()) {
-            networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());
-        }
         this.syncManager = new SyncImpl(this);
-        this.nativePtr = init(config);
-        this.osApp = new OsApp(nativePtr);
+        this.osApp = init(config);
 
         // FIXME: Right now we only support one App. This class will throw a
         // exception if you try to create it twice. This is a really hacky way to do this
@@ -213,23 +201,12 @@ public class App {
         }
     }
 
-    private long init(AppConfiguration config) {
+    private OsApp init(AppConfiguration config) {
         String userAgentBindingInfo = getBindingInfo();
         String appDefinedUserAgent = getAppInfo(config);
         String syncDir = getSyncBaseDirectory();
-        return nativeCreate(
-                config.getAppId(),
-                config.getBaseUrl().toString(),
-                config.getAppName(),
-                config.getAppVersion(),
-                config.getRequestTimeoutMs(),
-                config.getEncryptionKey(),
-                syncDir,
-                userAgentBindingInfo,
-                appDefinedUserAgent,
-                "android",
-                android.os.Build.VERSION.RELEASE,
-                io.realm.BuildConfig.VERSION_NAME);
+
+        return new OsApp(config, userAgentBindingInfo, appDefinedUserAgent, syncDir);
     }
 
     private String getSyncBaseDirectory() {
@@ -315,8 +292,8 @@ public class App {
      */
     @Nullable
     public User currentUser() {
-        Long userPtr = nativeCurrentUser(nativePtr);
-        return (userPtr != null) ? new User(userPtr, this) : null;
+        OsSyncUser osSyncUser = osApp.currentUser();
+        return (osSyncUser != null) ? new User(osSyncUser, this) : null;
     }
 
     /**
@@ -328,10 +305,11 @@ public class App {
      * @return a map of user identifiers and users known locally.
      */
     public Map<String, User> allUsers() {
-        long[] nativeUsers = nativeGetAllUsers(nativePtr);
-        HashMap<String, User> users = new HashMap<>(nativeUsers.length);
-        for (int i = 0; i < nativeUsers.length; i++) {
-            User user = new User(nativeUsers[i], this);
+        OsSyncUser[] allUsers = osApp.allUsers();
+
+        HashMap<String, User> users = new HashMap<>(allUsers.length);
+        for (int i = 0; i < allUsers.length; i++) {
+            User user = new User(allUsers[i], this);
             users.put(user.getId(), user);
         }
         return users;
@@ -347,7 +325,8 @@ public class App {
      */
     public User switchUser(User user) {
         Util.checkNull(user, "user");
-        nativeSwitchUser(nativePtr, user.osUser.getNativePtr());
+        osApp.switchUser(user.osUser);
+
         return user;
     }
 
@@ -369,16 +348,10 @@ public class App {
      */
     public User login(Credentials credentials) throws AppException {
         Util.checkNull(credentials, "credentials");
-        AtomicReference<User> success = new AtomicReference<>(null);
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        nativeLogin(nativePtr, credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<User>(success, error) {
-            @Override
-            protected User mapSuccess(Object result) {
-                Long nativePtr = (Long) result;
-                return new User(nativePtr, App.this);
-            }
-        });
-        User user = ResultHandler.handleResult(success, error);
+
+        OsSyncUser osSyncUser = osApp.login(credentials.osCredentials);
+        User user = new User(osSyncUser, this);
+
         notifyUserLoggedIn(user);
         return user;
     }
@@ -519,14 +492,8 @@ public class App {
      * Swap the currently configured network transport with the provided one.
      * This should only be done if no network requests are currently running.
      */
-    void setNetworkTransport(OsJavaNetworkTransport transport) {
-        networkTransport = transport;
-    }
-
-    @KeepMember
-        // Called from JNI
-    OsJavaNetworkTransport getNetworkTransport() {
-        return networkTransport;
+    public void setNetworkTransport(OsJavaNetworkTransport transport) {
+        osApp.setNetworkTransport(transport);
     }
 
     /**
@@ -637,26 +604,4 @@ public class App {
          */
         void onResult(Result<T> result);
     }
-
-    private native long nativeCreate(String appId,
-                                     String baseUrl,
-                                     String appName,
-                                     String appVersion,
-                                     long requestTimeoutMs,
-                                     byte[] encryptionKey,
-                                     String syncDirPath,
-                                     String bindingUserInfo,
-                                     String appUserInfo,
-                                     String platform,
-                                     String platformVersion,
-                                     String sdkVersion);
-
-    private static native void nativeLogin(long nativeAppPtr, long nativeCredentialsPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-
-    @Nullable
-    private static native Long nativeCurrentUser(long nativePtr);
-
-    private static native long[] nativeGetAllUsers(long nativePtr);
-
-    private static native void nativeSwitchUser(long nativeAppPtr, long nativeUserPtr);
 }

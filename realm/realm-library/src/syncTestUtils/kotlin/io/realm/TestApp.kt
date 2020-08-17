@@ -36,7 +36,7 @@ class TestApp(
 
     init {
         if (networkTransport != null) {
-            this.networkTransport = networkTransport;
+            this.setNetworkTransport(networkTransport)
         }
     }
 

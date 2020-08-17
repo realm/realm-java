@@ -202,7 +202,6 @@ file(GLOB jni_SRC
 # Those source file are only needed for sync.
 if (NOT build_SYNC)
     list(REMOVE_ITEM jni_SRC
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_App.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_User.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_FunctionsImpl.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_EmailPasswordAuthImpl.cpp

@@ -32,8 +32,8 @@ public class OsPush implements NativeObject {
     private final OsSyncUser osSyncUser;
     private final String serviceName;
 
-    public OsPush(final long appNativePtr, final OsSyncUser osSyncUser, final String serviceName) {
-        this.nativePtr = nativeCreate(appNativePtr, serviceName);
+    public OsPush(final OsApp osApp, final OsSyncUser osSyncUser, final String serviceName) {
+        this.nativePtr = nativeCreate(osApp.getNativePtr(), serviceName);
         this.osSyncUser = osSyncUser;
         this.serviceName = serviceName;
     }

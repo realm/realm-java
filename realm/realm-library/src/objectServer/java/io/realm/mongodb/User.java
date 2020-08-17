@@ -119,6 +119,11 @@ public class User {
         this.app = app;
     }
 
+    User(OsSyncUser osUser, App app) {
+        this.osUser = osUser;
+        this.app = app;
+    }
+
     /**
      * Returns the server id of the user.
      *
@@ -387,7 +392,7 @@ public class User {
         checkLoggedIn();
         AtomicReference<User> success = new AtomicReference<>(null);
         AtomicReference<AppException> error = new AtomicReference<>(null);
-        nativeLinkUser(app.nativePtr, osUser.getNativePtr(), credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<User>(success, error) {
+        nativeLinkUser(app.osApp.getNativePtr(), osUser.getNativePtr(), credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<User>(success, error) {
             @Override
             protected User mapSuccess(Object result) {
                 osUser = new OsSyncUser((long) result); // OS returns the updated user as a new one.
@@ -444,7 +449,7 @@ public class User {
         boolean loggedIn = isLoggedIn();
         AtomicReference<User> success = new AtomicReference<>(null);
         AtomicReference<AppException> error = new AtomicReference<>(null);
-        nativeRemoveUser(app.nativePtr, osUser.getNativePtr(), new OsJNIResultCallback<User>(success, error) {
+        nativeRemoveUser(app.osApp.getNativePtr(), osUser.getNativePtr(), new OsJNIResultCallback<User>(success, error) {
             @Override
             protected User mapSuccess(Object result) {
                 return User.this;
@@ -496,7 +501,7 @@ public class User {
     public void logOut() throws AppException {
         boolean loggedIn = isLoggedIn();
         AtomicReference<AppException> error = new AtomicReference<>(null);
-        nativeLogOut(app.nativePtr, osUser.getNativePtr(), new OsJNIVoidResultCallback(error));
+        nativeLogOut(app.osApp.getNativePtr(), osUser.getNativePtr(), new OsJNIVoidResultCallback(error));
         ResultHandler.handleResult(null, error);
         if (loggedIn) {
             app.notifyUserLoggedOut(this);
@@ -581,7 +586,7 @@ public class User {
      */
     public synchronized Push getPush(String serviceName) {
         if (push == null) {
-            OsPush osPush = new OsPush(app.nativePtr, osUser, serviceName);
+            OsPush osPush = new OsPush(app.osApp, osUser, serviceName);
             push = new PushImpl(osPush);
         }
         return push;
@@ -595,9 +600,9 @@ public class User {
     public synchronized MongoClient getMongoClient(String serviceName) {
         Util.checkEmpty(serviceName, "serviceName");
         if (mongoClient == null) {
-            StreamNetworkTransport streamNetworkTransport = new StreamNetworkTransport(app.osApp, this.osUser, app.networkTransport);
+            StreamNetworkTransport streamNetworkTransport = new StreamNetworkTransport(app.osApp, this.osUser);
 
-            OsMongoClient osMongoClient = new OsMongoClient(app.nativePtr, serviceName, streamNetworkTransport);
+            OsMongoClient osMongoClient = new OsMongoClient(app.osApp, serviceName, streamNetworkTransport);
             mongoClient = new MongoClientImpl(osMongoClient, app.getConfiguration().getDefaultCodecRegistry());
         }
         return mongoClient;
