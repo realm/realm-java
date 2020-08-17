@@ -96,8 +96,8 @@ class SyncSessionTests {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         RealmLog.setLevel(LogLevel.ALL)
 
-        admin = ServerAdmin()
         app = TestApp()
+        admin = ServerAdmin(app)
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
         syncConfiguration = configFactory
                 // TODO We generate new partition value for each test to avoid overlaps in data. We

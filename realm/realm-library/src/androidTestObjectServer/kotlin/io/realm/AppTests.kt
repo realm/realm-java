@@ -44,7 +44,7 @@ class AppTests {
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         app = TestApp()
-        admin = ServerAdmin()
+        admin = ServerAdmin(app)
     }
 
     @After

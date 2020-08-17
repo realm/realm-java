@@ -27,7 +27,7 @@ import io.realm.testClearApplicationContext
  * behavior.
  */
 fun App.close() {
-    ServerAdmin().deleteAllUsers()
+    ServerAdmin(this).deleteAllUsers()
     this.syncManager.testReset()
     this.networkTransport.resetHeaders()
     App.CREATED = false
