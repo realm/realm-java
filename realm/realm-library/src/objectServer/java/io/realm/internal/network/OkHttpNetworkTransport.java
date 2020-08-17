@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import okhttp3.Call;
@@ -31,6 +32,7 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
         this.httpLogObfuscator = httpLogObfuscator;
     }
 
+    @SuppressFBWarnings("REC_CATCH_EXCEPTION")
     @Override
     public Response sendRequest(String method, String url, long timeoutMs, Map<String, String> headers, String body) {
         try {
