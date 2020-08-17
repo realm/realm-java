@@ -896,13 +896,9 @@ class EmbeddedObjectsTest {
                 // Create object with no parents
                 realm.createObject(Dog.CLASS_NAME)
                 val dogSchema = realm.schema[Dog.CLASS_NAME]!!
-                // Succeed by mistake right now.
-                // See https://github.com/realm/realm-core/issues/3729
-                // The correct check is just below
-                dogSchema.isEmbedded = true
-                // assertFailsWith<IllegalStateException> {
-                //    dogSchema.isEmbedded = true
-                // }
+                 assertFailsWith<IllegalStateException> {
+                    dogSchema.isEmbedded = true
+                 }
 
                 // Create object with two parents
                 val cat: DynamicRealmObject = realm.createObject(Cat.CLASS_NAME)
