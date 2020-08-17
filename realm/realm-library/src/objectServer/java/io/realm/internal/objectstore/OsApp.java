@@ -1,20 +1,14 @@
 package io.realm.internal.objectstore;
 
-import org.bson.BsonArray;
-
 import io.realm.internal.NativeObject;
-import io.realm.internal.jni.JniBsonProtocol;
-import io.realm.mongodb.AppConfiguration;
 
 public class OsApp implements NativeObject {
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
     private final long nativePtr;
-    private final AppConfiguration config;
 
-    public OsApp(long nativePtr, AppConfiguration config) {
+    public OsApp(long nativePtr) {
         this.nativePtr = nativePtr;
-        this.config = config;
     }
 
     @Override
@@ -32,16 +26,15 @@ public class OsApp implements NativeObject {
      *
      * @param user         that requests the execution
      * @param functionName name of the function
-     * @param bsonArgs     function arguments as a {@link BsonArray}
+     * @param arguments    function arguments encoded as a {@link String}
      * @param serviceName  service that will handle the function
      * @return {@link io.realm.internal.objectstore.OsJavaNetworkTransport.Request}
      */
     public OsJavaNetworkTransport.Request makeStreamingRequest(OsSyncUser user,
                                                                String functionName,
-                                                               BsonArray bsonArgs,
+                                                               String arguments,
                                                                String serviceName) {
-        final String encodedArguments = JniBsonProtocol.encode(bsonArgs, config.getDefaultCodecRegistry());
-        return nativeMakeStreamingRequest(nativePtr, user.getNativePtr(), functionName, encodedArguments, serviceName);
+        return nativeMakeStreamingRequest(nativePtr, user.getNativePtr(), functionName, arguments, serviceName);
     }
 
     private static native long nativeGetFinalizerMethodPtr();

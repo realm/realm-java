@@ -7,17 +7,18 @@ import java.io.IOException;
 import io.realm.internal.objectserver.EventStream;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsWatchStream;
+import io.realm.mongodb.AppException;
 import io.realm.mongodb.mongo.events.BaseChangeEvent;
 
 public class NetworkEventStream<T> implements EventStream<T> {
     private final OsJavaNetworkTransport.Response response;
-    private final OsWatchStream<T> watchStream;
+    private final OsWatchStream watchStream;
     private final CodecRegistry codecRegistry;
     private final Class<T> documentClass;
 
     public NetworkEventStream(OsJavaNetworkTransport.Response response, CodecRegistry codecRegistry, Class<T> documentClass) {
         this.response = response;
-        this.watchStream = new OsWatchStream<>(codecRegistry);
+        this.watchStream = new OsWatchStream(codecRegistry);
         this.codecRegistry = codecRegistry;
         this.documentClass = documentClass;
     }
@@ -26,24 +27,22 @@ public class NetworkEventStream<T> implements EventStream<T> {
      * Fetch the next event from a given stream
      *
      * @return the next event
-     * @throws IOException any io exception that could occur
+     * @throws AppException on a stream error
      */
     @Override
-    public BaseChangeEvent<T> getNextEvent() throws IOException {
-        String line;
+    public BaseChangeEvent<T> getNextEvent() throws AppException, IOException {
+        while (true) {
+            watchStream.feedLine(response.readBodyLine());
+            String watchStreamState = watchStream.getState();
 
-        while ((((line = response.readBodyLine())) != null)) {
-            watchStream.feedLine(line);
-
-            if (watchStream.getState().equals(OsWatchStream.HAVE_EVENT))
+            if (watchStreamState.equals(OsWatchStream.HAVE_EVENT)) {
                 return ChangeEvent.fromBsonDocument(watchStream.getNextEvent(), documentClass, codecRegistry);
-            if (watchStream.getState().equals(OsWatchStream.HAVE_ERROR)) {
+            }
+            if (watchStreamState.equals(OsWatchStream.HAVE_ERROR)) {
                 response.close();
-                throw new IOException("Watch stream has error");
+                throw watchStream.getError();
             }
         }
-
-        throw new IOException("Stream closed");
     }
 
     /**

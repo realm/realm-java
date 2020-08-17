@@ -18,6 +18,7 @@ package io.realm.internal.objectserver;
 
 import java.io.IOException;
 
+import io.realm.mongodb.AppException;
 import io.realm.mongodb.mongo.events.BaseChangeEvent;
 
 public interface EventStream<T> {
@@ -27,7 +28,7 @@ public interface EventStream<T> {
      * @return the next event
      * @throws IOException any io exception that could occur
      */
-    BaseChangeEvent<T> getNextEvent() throws IOException;
+    BaseChangeEvent<T> getNextEvent() throws AppException, IOException;
 
     /**
      * Closes the current stream.

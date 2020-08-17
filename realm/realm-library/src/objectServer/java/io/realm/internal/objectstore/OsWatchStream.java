@@ -5,8 +5,9 @@ import org.bson.codecs.configuration.CodecRegistry;
 
 import io.realm.internal.NativeObject;
 import io.realm.internal.jni.JniBsonProtocol;
+import io.realm.mongodb.AppException;
 
-public class OsWatchStream<T> implements NativeObject {
+public class OsWatchStream implements NativeObject {
     public static final String NEED_DATA = "NEED_DATA";
     public static final String HAVE_EVENT = "HAVE_EVENT";
     public static final String HAVE_ERROR = "HAVE_ERROR";
@@ -14,8 +15,7 @@ public class OsWatchStream<T> implements NativeObject {
     private final long nativePtr;
     private final CodecRegistry codecRegistry;
 
-    public OsWatchStream(CodecRegistry codecRegistry)
-    {
+    public OsWatchStream(CodecRegistry codecRegistry) {
         this.codecRegistry = codecRegistry;
         this.nativePtr = nativeCreateWatchStream();
     }
@@ -39,6 +39,10 @@ public class OsWatchStream<T> implements NativeObject {
         return nativeGetState(nativePtr);
     }
 
+    public AppException getError() {
+        return nativeGetError(nativePtr);
+    }
+
     public void feedLine(String line) {
         nativeFeedLine(nativePtr, line);
     }
@@ -48,5 +52,5 @@ public class OsWatchStream<T> implements NativeObject {
     private static native void nativeFeedLine(long nativePtr, String line);
     private static native String nativeGetState(long nativePtr);
     private static native String nativeGetNextEvent(long nativePtr);
-
+    private static native AppException nativeGetError(long nativePtr);
 }

@@ -28,11 +28,11 @@ using namespace realm::jni_util;
 using namespace realm::_impl;
 
 static void finalize_watchstream(jlong ptr) {
-    delete reinterpret_cast<WatchStream*>(ptr);
+    delete reinterpret_cast<WatchStream *>(ptr);
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_objectstore_OsWatchStream_nativeGetFinalizerMethodPtr(JNIEnv*, jclass) {
+Java_io_realm_internal_objectstore_OsWatchStream_nativeGetFinalizerMethodPtr(JNIEnv *, jclass) {
     return reinterpret_cast<jlong>(&finalize_watchstream);
 }
 
@@ -51,7 +51,7 @@ Java_io_realm_internal_objectstore_OsWatchStream_nativeFeedLine(JNIEnv *env, jcl
                                                                 jlong j_watch_stream_ptr,
                                                                 jstring j_line) {
     try {
-        WatchStream* watch_stream = reinterpret_cast<WatchStream*>(j_watch_stream_ptr);
+        WatchStream *watch_stream = reinterpret_cast<WatchStream *>(j_watch_stream_ptr);
         JStringAccessor line(env, j_line);
 
         watch_stream->feed_line(std::string(line));
@@ -63,9 +63,9 @@ JNIEXPORT jstring JNICALL
 Java_io_realm_internal_objectstore_OsWatchStream_nativeGetState(JNIEnv *env, jclass,
                                                                 jlong j_watch_stream_ptr) {
     try {
-        WatchStream* watch_stream = reinterpret_cast<WatchStream*>(j_watch_stream_ptr);
+        WatchStream *watch_stream = reinterpret_cast<WatchStream *>(j_watch_stream_ptr);
 
-        switch (watch_stream->state()){
+        switch (watch_stream->state()) {
             case WatchStream::NEED_DATA:
                 return env->NewStringUTF("NEED_DATA");
             case WatchStream::HAVE_EVENT:
@@ -83,8 +83,43 @@ JNIEXPORT jstring JNICALL
 Java_io_realm_internal_objectstore_OsWatchStream_nativeGetNextEvent(JNIEnv *env, jclass,
                                                                     jlong j_watch_stream_ptr) {
     try {
-        WatchStream* watch_stream = reinterpret_cast<WatchStream*>(j_watch_stream_ptr);
+        WatchStream *watch_stream = reinterpret_cast<WatchStream *>(j_watch_stream_ptr);
         return JniBsonProtocol::bson_to_jstring(env, watch_stream->next_event());
+    }
+    CATCH_STD()
+
+    return nullptr;
+}
+
+
+JNIEXPORT jthrowable JNICALL
+Java_io_realm_internal_objectstore_OsWatchStream_nativeGetError(JNIEnv *env, jclass,
+                                                                jlong j_watch_stream_ptr) {
+    try {
+        WatchStream *watch_stream = reinterpret_cast<WatchStream *>(j_watch_stream_ptr);
+
+        auto app_error = watch_stream->error();
+
+        jstring error_code_category = env->NewStringUTF(app_error.error_code.category().name());
+        jstring error_code_message = env->NewStringUTF(app_error.error_code.message().c_str());
+
+        jstring app_error_message = env->NewStringUTF(app_error.message.c_str());
+
+        static JavaClass app_exception_class(env, "io/realm/mongodb/AppException");
+        static JavaMethod app_exception_constructor(env, app_exception_class, "<init>",
+                                                    "(Lio/realm/mongodb/ErrorCode;Ljava/lang/String;)V");
+
+        static JavaClass error_code_class(env, "io/realm/mongodb/ErrorCode");
+        static JavaMethod error_code_constructor(env, error_code_class, "fromNativeError",
+                                                 "(Ljava/lang/String;I)Lio/realm/mongodb/ErrorCode;",
+                                                 true);
+
+        jobject j_error_code = env->CallStaticObjectMethod(error_code_class, error_code_constructor,
+                                                           error_code_category, error_code_message);
+        jobject j_app_error = env->NewObject(app_exception_class, app_exception_constructor,
+                                             j_error_code, app_error_message);
+
+        return static_cast<jthrowable>(j_app_error);
     }
     CATCH_STD()
 

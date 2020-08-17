@@ -16,15 +16,11 @@
 
 package io.realm.internal.network;
 
-import org.bson.BsonArray;
-
 import java.io.IOException;
 
 import io.realm.internal.objectstore.OsApp;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsSyncUser;
-import io.realm.mongodb.App;
-import io.realm.mongodb.User;
 
 /**
  * StreamNetworkTransport provides an interface to the Realm remote streaming functions.
@@ -45,14 +41,14 @@ public class StreamNetworkTransport {
      * Creates a request for a streaming function
      *
      * @param functionName name of the function
-     * @param bsonArgs     function arguments as a {@link BsonArray}
+     * @param arguments     function arguments encoded as a {@link String}
      * @param serviceName  service that will handle the function
      * @return {@link io.realm.internal.objectstore.OsJavaNetworkTransport.Request}
      */
     public OsJavaNetworkTransport.Request makeStreamingRequest(String functionName,
-                                                                        BsonArray bsonArgs,
+                                                                        String arguments,
                                                                         String serviceName){
-        return app.makeStreamingRequest(user, functionName, bsonArgs, serviceName);
+        return app.makeStreamingRequest(user, functionName, arguments, serviceName);
     }
 
     /**

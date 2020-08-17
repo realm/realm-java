@@ -20,7 +20,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 
-import org.bson.BsonArray;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.io.File;
@@ -37,24 +36,21 @@ import javax.annotation.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.BuildConfig;
 import io.realm.Realm;
-import io.realm.annotations.Beta;
-import io.realm.internal.jni.JniBsonProtocol;
-import io.realm.internal.mongodb.Request;
-
-import io.realm.internal.objectstore.OsApp;
-import io.realm.internal.objectstore.OsSyncUser;
-import io.realm.mongodb.auth.EmailPasswordAuth;
 import io.realm.RealmAsyncTask;
-import io.realm.mongodb.sync.Sync;
+import io.realm.annotations.Beta;
 import io.realm.internal.KeepMember;
-import io.realm.internal.network.ResultHandler;
 import io.realm.internal.Util;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.jni.OsJNIResultCallback;
+import io.realm.internal.mongodb.Request;
 import io.realm.internal.network.OkHttpNetworkTransport;
+import io.realm.internal.network.ResultHandler;
+import io.realm.internal.objectstore.OsApp;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.log.RealmLog;
+import io.realm.mongodb.auth.EmailPasswordAuth;
 import io.realm.mongodb.functions.Functions;
+import io.realm.mongodb.sync.Sync;
 
 /**
  * An <i>App</i> is the main client-side entry point for interacting with a <i>MongoDB Realm App</i>.
@@ -202,7 +198,7 @@ public class App {
         }
         this.syncManager = new SyncImpl(this);
         this.nativePtr = init(config);
-        this.osApp = new OsApp(nativePtr, config);
+        this.osApp = new OsApp(nativePtr);
 
         // FIXME: Right now we only support one App. This class will throw a
         // exception if you try to create it twice. This is a really hacky way to do this

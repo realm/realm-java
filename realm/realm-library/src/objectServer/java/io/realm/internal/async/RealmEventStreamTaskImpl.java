@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import io.realm.internal.Util;
 import io.realm.internal.objectserver.EventStream;
+import io.realm.mongodb.AppException;
 import io.realm.mongodb.RealmEventStreamTask;
 import io.realm.mongodb.mongo.events.BaseChangeEvent;
 
@@ -46,7 +47,7 @@ public class RealmEventStreamTaskImpl<T> implements RealmEventStreamTask<T> {
     }
 
     @Override
-    public synchronized BaseChangeEvent<T> getNext() throws IOException {
+    public synchronized BaseChangeEvent<T> getNext() throws AppException, IOException {
         eventStream = getEventStream();
         return eventStream.getNextEvent();
     }

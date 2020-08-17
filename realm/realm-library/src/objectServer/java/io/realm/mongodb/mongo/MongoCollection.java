@@ -25,6 +25,7 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -844,7 +845,7 @@ public class MongoCollection<DocumentT> {
                 new RealmEventStreamTaskImpl.Executor<DocumentT>() {
                     @Override
                     public EventStream<DocumentT> run() throws IOException {
-                        return osMongoCollection.watch(ids);
+                        return osMongoCollection.watch(Arrays.asList(ids));
                     }
                 });
     }
@@ -862,7 +863,7 @@ public class MongoCollection<DocumentT> {
                 new RealmEventStreamTaskImpl.Executor<DocumentT>() {
                     @Override
                     public EventStream<DocumentT> run() throws IOException {
-                        return osMongoCollection.watch(ids);
+                        return osMongoCollection.watch(Arrays.asList(ids));
                     }
                 });
     }
@@ -939,7 +940,7 @@ public class MongoCollection<DocumentT> {
                 new RealmEventStreamAsyncTaskImpl.Executor<DocumentT>() {
                     @Override
                     public EventStream<DocumentT> run() throws IOException {
-                        return osMongoCollection.watch(ids);
+                        return osMongoCollection.watch(Arrays.asList(ids));
                     }
                 });
     }
@@ -957,7 +958,7 @@ public class MongoCollection<DocumentT> {
                 new RealmEventStreamAsyncTaskImpl.Executor<DocumentT>() {
                     @Override
                     public EventStream<DocumentT> run() throws IOException {
-                        return osMongoCollection.watch(ids);
+                        return osMongoCollection.watch(Arrays.asList(ids));
                     }
                 });
     }

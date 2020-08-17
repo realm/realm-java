@@ -36,9 +36,10 @@ public interface RealmEventStreamTask<T> extends RealmAsyncTask {
      * Blocks the thread on which the call is made until the result of the operation arrives.
      *
      * @return the next event in the stream.
-     * @throws IllegalStateException if the event stream contains an error.
+     * @throws AppException if the server raises an error
+     * @throws IOException if something is wrong with the input stream
      */
-    BaseChangeEvent<T> getNext() throws IOException;
+    BaseChangeEvent<T> getNext() throws AppException, IOException;
 
     /**
      * Whether or not the stream is currently open.

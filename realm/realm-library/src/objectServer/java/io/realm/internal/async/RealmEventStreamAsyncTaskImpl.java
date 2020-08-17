@@ -20,7 +20,6 @@ import java.io.IOException;
 
 import io.realm.internal.Util;
 import io.realm.internal.objectserver.EventStream;
-import io.realm.log.RealmLog;
 import io.realm.mongodb.App;
 import io.realm.mongodb.AppException;
 import io.realm.mongodb.ErrorCode;
@@ -57,15 +56,13 @@ public class RealmEventStreamAsyncTaskImpl<T> implements RealmEventStreamAsyncTa
 
                         while (true) {
                             BaseChangeEvent<T> nextEvent = eventStream.getNextEvent();
-
                             callback.onResult(App.Result.withResult(nextEvent));
                         }
+                    } catch (AppException exception) {
+                        callback.onResult(App.Result.withError(exception));
                     } catch (IOException exception) {
-                        callback.onResult(App.Result.withError(new AppException(ErrorCode.NETWORK_IO_EXCEPTION, exception)));
-                    } catch (RuntimeException exception){
-                        RealmLog.error(exception);
-
-                        callback.onResult(App.Result.withError(new AppException(ErrorCode.RUNTIME_EXCEPTION, exception)));
+                        AppException appException = new AppException(ErrorCode.NETWORK_IO_EXCEPTION, exception);
+                        callback.onResult(App.Result.withError(appException));
                     }
                 }
             }, String.format("RealmStreamTask|%s", name));

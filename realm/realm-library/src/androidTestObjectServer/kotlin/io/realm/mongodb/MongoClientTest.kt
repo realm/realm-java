@@ -1258,11 +1258,10 @@ class MongoClientTest {
         with(getCollectionInternal()) {
             val watcher = this.watch()
 
-            val exception = assertFailsWith<IOException> {
+            assertFailsWith<AppException> {
                 watcher.next
             }
 
-            assertEquals("Watch stream has error", exception.message)
             assertEquals(false, watcher.isOpen)
             assertEquals(false, watcher.isCancelled)
         }

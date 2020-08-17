@@ -20,7 +20,6 @@ import org.bson.BsonArray;
 import org.bson.BsonDocument;
 import org.bson.BsonNull;
 import org.bson.BsonObjectId;
-import org.bson.BsonString;
 import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -28,7 +27,7 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,11 +39,11 @@ import javax.annotation.Nullable;
 import io.realm.internal.NativeObject;
 import io.realm.internal.Util;
 import io.realm.internal.events.NetworkEventStream;
-import io.realm.internal.objectserver.EventStream;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.network.ResultHandler;
 import io.realm.internal.network.StreamNetworkTransport;
+import io.realm.internal.objectserver.EventStream;
 import io.realm.mongodb.App;
 import io.realm.mongodb.AppException;
 import io.realm.mongodb.mongo.MongoNamespace;
@@ -550,12 +549,11 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         }
     }
 
-    private EventStream<DocumentT> watchInternal(int type, @Nullable BsonArray ids, @Nullable BsonDocument matchFilter) throws IOException {
-        BsonArray args = new BsonArray();
-        BsonDocument watchArgs = new BsonDocument("database", new BsonString(namespace.getDatabaseName()));
-        args.add(watchArgs);
+    private EventStream<DocumentT> watchInternal(int type, @Nullable List<?> ids, @Nullable BsonDocument matchFilter) throws IOException {
+        List<Document> args = new ArrayList<>();
 
-        watchArgs.put("collection", new BsonString(namespace.getCollectionName()));
+        Document watchArgs = new Document("database", namespace.getDatabaseName());
+        watchArgs.put("collection", namespace.getCollectionName());
 
         switch (type) {
             case WATCH:
@@ -570,7 +568,11 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                 throw new IllegalArgumentException("Invalid watch type: " + type);
         }
 
-        OsJavaNetworkTransport.Request request = streamNetworkTransport.makeStreamingRequest("watch", args, serviceName);
+        args.add(watchArgs);
+
+        String encodedArguments = JniBsonProtocol.encode(args, codecRegistry);
+
+        OsJavaNetworkTransport.Request request = streamNetworkTransport.makeStreamingRequest("watch", encodedArguments, serviceName);
         OsJavaNetworkTransport.Response response = streamNetworkTransport.sendRequest(request);
 
         return new NetworkEventStream<>(response, codecRegistry, documentClass);
@@ -580,18 +582,8 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return watchInternal(WATCH, null, null);
     }
 
-    public EventStream<DocumentT> watch(final BsonValue... ids) throws IOException {
-        return watchInternal(WATCH_IDS, new BsonArray(Arrays.asList(ids)), null);
-    }
-
-    public EventStream<DocumentT> watch(final ObjectId... ids) throws IOException {
-        BsonArray bsonIds = new BsonArray();
-
-        for (ObjectId id : ids) {
-            bsonIds.add(new BsonObjectId(id));
-        }
-
-        return watchInternal(WATCH_IDS, bsonIds, null);
+    public EventStream<DocumentT> watch(final List<?> ids) throws IOException {
+        return watchInternal(WATCH_IDS, ids, null);
     }
 
     public EventStream<DocumentT> watchWithFilter(Document matchFilter) throws IOException {
