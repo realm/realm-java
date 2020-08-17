@@ -48,7 +48,7 @@ class UserTests {
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         app = TestApp()
-        admin = ServerAdmin()
+        admin = ServerAdmin(app)
         anonUser = app.login(Credentials.anonymous())
     }
 
