@@ -1,4 +1,4 @@
-## 10.0.0-BETA.6 (YYYY-MM-DD)
+## 10.0.0-BETA.6 (2020-08-17)
 
 We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
 
@@ -21,6 +21,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * Added support for Json-import of objects containing embedded objects. (Issue [#6896](https://github.com/realm/realm-java/issues/6896))
 * Upgrading the file format result did in some cases not work correctly. This could result in a number of crashes, e.g. `FORMAT_UPGRADE_REQUIRED`. (Issue [#6889](https://github.com/realm/realm-java/issues/6889), since 7.0.0)  
 * Bug in memory mapping management. This bug could result in multiple different asserts as well as segfaults. In many cases stack backtraces would include members of the EncyptedFileMapping near the top - even if encryption was not used at all. In other cases asserts or crashes would be in methods reading an array header or array element. In all cases the application would terminate immediately. (Realm Core PR [#3838](https://github.com/realm/realm-core/pull/3838), since 7.0.0)
+* It was possible to use `RealmObjectSchema` to mark a Class as embedded even if some of the objects broke the constraints for being embedded.
 
 ### Compatibility
 * File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
