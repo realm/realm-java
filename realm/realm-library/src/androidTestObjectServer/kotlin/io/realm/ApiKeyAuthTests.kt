@@ -70,8 +70,8 @@ class ApiKeyAuthTests {
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        admin = ServerAdmin()
         app = TestApp()
+        admin = ServerAdmin(app)
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         provider = user.apiKeyAuth
     }

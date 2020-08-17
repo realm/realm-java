@@ -120,12 +120,21 @@ public class User {
     }
 
     /**
-     * Returns the id of the user.
+     * Returns the server id of the user.
      *
-     * @return the id of the user.
+     * @return the server id of the user.
      */
     public String getId() {
         return osUser.getIdentity();
+    }
+
+    /**
+     * Returns the local id for this user. It is only guaranteed to be unique on this device.
+     *
+     * @return the local id of the user
+     */
+    public String getLocalId() {
+        return osUser.getLocalIdentity();
     }
 
     /**
