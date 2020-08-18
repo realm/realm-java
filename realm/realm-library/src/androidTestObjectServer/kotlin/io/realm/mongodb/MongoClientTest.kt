@@ -18,8 +18,6 @@ package io.realm.mongodb
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
-import io.realm.log.LogLevel
-import io.realm.log.RealmLog
 import io.realm.mongodb.mongo.MongoClient
 import io.realm.mongodb.mongo.MongoCollection
 import io.realm.mongodb.mongo.MongoNamespace
@@ -53,8 +51,6 @@ class MongoClientTest {
         app = TestApp()
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         client = user.getMongoClient(SERVICE_NAME)
-
-        RealmLog.setLevel(LogLevel.DEBUG)
     }
 
     @After
