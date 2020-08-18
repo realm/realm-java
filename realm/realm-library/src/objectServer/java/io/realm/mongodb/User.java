@@ -114,11 +114,6 @@ public class User {
         }
     }
 
-    User(long nativePtr, App app) {
-        this.osUser = new OsSyncUser(nativePtr);
-        this.app = app;
-    }
-
     User(OsSyncUser osUser, App app) {
         this.osUser = osUser;
         this.app = app;

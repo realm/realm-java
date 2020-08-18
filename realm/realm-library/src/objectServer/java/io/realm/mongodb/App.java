@@ -492,7 +492,7 @@ public class App {
      * Swap the currently configured network transport with the provided one.
      * This should only be done if no network requests are currently running.
      */
-    public void setNetworkTransport(OsJavaNetworkTransport transport) {
+    protected void setNetworkTransport(OsJavaNetworkTransport transport) {
         osApp.setNetworkTransport(transport);
     }
 
