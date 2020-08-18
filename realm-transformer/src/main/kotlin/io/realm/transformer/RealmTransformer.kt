@@ -133,19 +133,14 @@ class RealmTransformer(val project: Project) : Transform() {
             }
 
             var containsKotlin = false
-
+            // Should be safe to iterate the configurations as we are way beyond the configuration
+            // phase
             outer@
-            for(input: TransformInput in inputs) {
-                for (di: DirectoryInput in input.directoryInputs) {
-                    val path: String = di.file.absolutePath
-                    val index: Int = path.indexOf("build${File.separator}intermediates${File.separator}classes")
-                    if (index != -1) {
-                        val projectPath: String = path.substring(0, index)
-                        val buildFile = File(projectPath + "build.gradle")
-                        if (buildFile.exists() && buildFile.readText().contains("kotlin")) {
-                            containsKotlin = true
-                            break@outer
-                        }
+            for (configuration in project.configurations) {
+                for (dependency in configuration.dependencies) {
+                    if (dependency.name.startsWith("kotlin-stdlib")) {
+                        containsKotlin = true
+                        break@outer
                     }
                 }
             }
@@ -154,7 +149,8 @@ class RealmTransformer(val project: Project) : Transform() {
             val targetSdk: String? = project.getTargetSdk()
             val minSdk: String?  = project.getMinSdk()
             val sync: Boolean = Utils.isSyncEnabled(project)
-            val analytics = RealmAnalytics(packages, containsKotlin, sync, targetSdk, minSdk)
+            val app = project.plugins.findPlugin("com.android.application") != null
+            val analytics = RealmAnalytics(packages, containsKotlin, sync, targetSdk, minSdk, app)
             analytics.execute()
         } catch (e: Exception) {
             // Analytics failing for any reason should not crash the build

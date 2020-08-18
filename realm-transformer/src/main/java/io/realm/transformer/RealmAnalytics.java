@@ -66,6 +66,7 @@ public class RealmAnalytics {
             + "      \"Anonymized MAC Address\": \"%USER_ID%\",\n"
             + "      \"Anonymized Bundle ID\": \"%APP_ID%\",\n"
             + "      \"Binding\": \"java\",\n"
+            + "      \"Target\": \"%TARGET%\",\n"
             + "      \"Language\": \"%LANGUAGE%\",\n"
             + "      \"Sync Version\": %SYNC_VERSION%,\n"
             + "      \"Realm Version\": \"%REALM_VERSION%\",\n"
@@ -84,13 +85,15 @@ public class RealmAnalytics {
     private boolean usesSync;
     private String targetSdk;
     private String minSdk;
+    private boolean app;
 
-    public RealmAnalytics(Set<String> packages, boolean usesKotlin, boolean usesSync, String targetSdk, String minSdk) {
+    public RealmAnalytics(Set<String> packages, boolean usesKotlin, boolean usesSync, String targetSdk, String minSdk, boolean app) {
         this.packages = packages;
         this.usesKotlin = usesKotlin;
         this.usesSync = usesSync;
         this.targetSdk = targetSdk;
         this.minSdk = minSdk;
+        this.app = app;
     }
 
     private void send() {
@@ -135,6 +138,7 @@ public class RealmAnalytics {
                 .replaceAll("%TOKEN%", TOKEN)
                 .replaceAll("%USER_ID%", ComputerIdentifierGenerator.get())
                 .replaceAll("%APP_ID%", getAnonymousAppId())
+                .replaceAll("%TARGET%", app ? "app" : "library")
                 .replaceAll("%LANGUAGE%", usesKotlin ? "kotlin" : "java")
                 .replaceAll("%SYNC_VERSION%", usesSync ? "\"" + Version.SYNC_VERSION + "\"": "null")
                 .replaceAll("%REALM_VERSION%", Version.VERSION)
