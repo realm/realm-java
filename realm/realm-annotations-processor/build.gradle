@@ -13,7 +13,7 @@ properties.load(new FileInputStream("${projectDir}/../../dependencies.list"))
 dependencies {
     implementation "com.squareup:javawriter:2.5.1"
     implementation "io.realm:realm-annotations:${version}"
-    implementation "org.mongodb:bson:${properties.getProperty('BSON_DEPENDENCY_VERSION')}"
+    implementation "org.mongodb:bson:${properties.getProperty('BSON_DEPENDENCY')}"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     testImplementation files('../realm-library/build/intermediates/aar_main_jar/baseRelease/classes.jar') // Java projects cannot depend on AAR files
     testImplementation files("${System.properties['java.home']}/../lib/tools.jar") // This is needed otherwise compile-testing won't be able to find it

@@ -60,8 +60,8 @@ try {
             // TODO Figure out why caching the image doesn't work.
             buildEnv = buildDockerEnv("realm-java-ci:v10", push: currentBranch == 'v10')
             def props = readProperties file: 'dependencies.list'
-            echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER_VERSION}"
-            def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER_VERSION}")
+            echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER}"
+            def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER}")
             docker.withRegistry('https://docker.pkg.github.com', 'github-packages-token') {
               mdbRealmImage.pull()
             }
