@@ -12,7 +12,7 @@ dockerNetworkId = UUID.randomUUID().toString()
 // Branches from which we release SNAPSHOT's. Only release branches need to run on actual hardware.
 releaseBranches = ['master', 'next-major', 'v10']
 // Branches that are "important", so if they do not compile they will generate a Slack notification
-slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
+slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10', 'cm/slack-notifications' ]
 currentBranch = env.CHANGE_BRANCH
 // 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen.
 nodeSelector = (releaseBranches.contains(currentBranch)) ? 'android' : 'docker-cph-03' // Switch to `brix` when all CPH nodes work: https://jira.mongodb.org/browse/RCI-14
@@ -138,18 +138,22 @@ try {
   buildSuccess = false
   throw e
 } finally {
-  if (slackNotificationBranches.contains(currentBranch) && !buildSuccess) {
+  if (slackNotificationBranches.contains(currentBranch)) {
     node {
-      withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
-        def payload = JsonOutput.toJson([
-                username: 'Mr. Jenkins',
-                icon_emoji: ':jenkins:',
-                attachments: [[
-                  'title': "The ${currentBranch} branch is broken!",
-                  'text': "<${env.BUILD_URL}|Click here> to check the build.",
-                  'color': "danger"
-                ]]
-        ])
+      withCredentials([[$class: 'StringBinding', credentialsId: 'slack-webhook-java-ci-channel', variable: 'SLACK_URL']]) {
+        def payload = null
+        if (!buildSuccess) {
+          payload = JsonOutput.toJson([
+                  text: "*The ${currentBranch} branch is broken!*\n<${env.BUILD_URL}|Click here> to check the build."
+          ])
+        }
+
+        if (currentBuild.getPreviousBuild() && currentBuild.getPreviousBuild().getResult().toString() != "SUCCESS" && buildSuccess) {
+          payload = JsonOutput.toJson([
+                  text: "*${currentBranch} is back to normal!*\n<${env.BUILD_URL}|Click here> to check the build."
+          ])
+        }
+
         sh "curl -X POST --data-urlencode \'payload=${payload}\' ${env.SLACK_URL}"
       }
     }
