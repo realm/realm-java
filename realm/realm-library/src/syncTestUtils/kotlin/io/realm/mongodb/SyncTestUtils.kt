@@ -17,15 +17,12 @@ package io.realm.mongodb
 
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.Realm
-import io.realm.RealmExt
 import io.realm.TestHelper
 import io.realm.internal.network.OkHttpNetworkTransport
 import io.realm.internal.objectstore.OsJavaNetworkTransport
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.sync.SyncConfiguration
-import io.realm.objectserver.utils.UserFactory
-import io.realm.testClearApplicationContext
 import java.io.File
 import java.util.*
 
@@ -58,8 +55,8 @@ class SyncTestUtils {
         @JvmStatic
         @JvmOverloads
         fun createTestUser(app: App, userIdentifier: String = UUID.randomUUID().toString()): User {
-            val transportBackup = app.networkTransport
-            app.networkTransport = object : OsJavaNetworkTransport() {
+            val transportBackup = app.osApp.networkTransport
+            app.osApp.networkTransport = object : OsJavaNetworkTransport() {
                 override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: Map<String, String>, body: String): Response {
                     if (url.endsWith("/login")) {
                         return OkHttpNetworkTransport.OkHttpResponse.httpResponse(200, mapOf(), """
@@ -115,7 +112,7 @@ class SyncTestUtils {
                 }
             }
             val user = app.login(Credentials.emailPassword(TestHelper.getRandomEmail(), "123456"))
-            app.networkTransport = transportBackup
+            app.osApp.networkTransport = transportBackup
             return user
         }
 

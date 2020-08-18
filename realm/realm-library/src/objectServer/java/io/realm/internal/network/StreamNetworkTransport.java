@@ -29,12 +29,10 @@ import io.realm.internal.objectstore.OsSyncUser;
 public class StreamNetworkTransport {
     private final OsApp app;
     private final OsSyncUser user;
-    private final OsJavaNetworkTransport networkTransport;
 
-    public StreamNetworkTransport(OsApp app, OsSyncUser user, OsJavaNetworkTransport networkTransport) {
+    public StreamNetworkTransport(OsApp app, OsSyncUser user) {
         this.app = app;
         this.user = user;
-        this.networkTransport = networkTransport;
     }
 
     /**
@@ -60,6 +58,6 @@ public class StreamNetworkTransport {
      */
     public OsJavaNetworkTransport.Response
     sendRequest(OsJavaNetworkTransport.Request request) throws IOException{
-        return networkTransport.sendStreamingRequest(request);
+        return app.getNetworkTransport().sendStreamingRequest(request);
     }
 }

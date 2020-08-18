@@ -31,10 +31,10 @@ public class OsMongoClient implements NativeObject {
     private final String serviceName;
     private final StreamNetworkTransport streamNetworkTransport;
 
-    public OsMongoClient(final long appNativePtr,
+    public OsMongoClient(final OsApp osApp,
                          final String serviceName,
                          final StreamNetworkTransport streamNetworkTransport) {
-        this.nativePtr = nativeCreate(appNativePtr, serviceName);
+        this.nativePtr = nativeCreate(osApp.getNativePtr(), serviceName);
         this.serviceName = serviceName;
         this.streamNetworkTransport = streamNetworkTransport;
     }
