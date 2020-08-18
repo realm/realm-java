@@ -17,19 +17,23 @@
 package io.realm.transformer
 
 import com.android.build.api.transform.*
+import io.realm.transformer.build.BuildTemplate
 import io.realm.transformer.build.FullBuild
 import io.realm.transformer.build.IncrementalBuild
-import io.realm.transformer.build.BuildTemplate
 import io.realm.transformer.ext.getMinSdk
 import io.realm.transformer.ext.getTargetSdk
 import javassist.CtClass
 import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.io.File
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 // Package level logger
 val logger: Logger = LoggerFactory.getLogger("realm-logger")
+
+val CONNECT_TIMEOUT = 4000L;
+val READ_TIMEOUT = 2000L;
 
 /**
  * This class implements the Transform API provided by the Android Gradle plugin.
@@ -151,7 +155,15 @@ class RealmTransformer(val project: Project) : Transform() {
             val sync: Boolean = Utils.isSyncEnabled(project)
             val app = project.plugins.findPlugin("com.android.application") != null
             val analytics = RealmAnalytics(packages, containsKotlin, sync, targetSdk, minSdk, app)
-            analytics.execute()
+
+            val pool = Executors.newFixedThreadPool(2);
+            try {
+                pool.execute { UrlEncodedAnalytics.MixPanel().execute(analytics) }
+                pool.execute { UrlEncodedAnalytics.Segment().execute(analytics) }
+                pool.awaitTermination(CONNECT_TIMEOUT + READ_TIMEOUT, TimeUnit.MILLISECONDS);
+            } catch (e: InterruptedException) {
+                pool.shutdownNow()
+            }
         } catch (e: Exception) {
             // Analytics failing for any reason should not crash the build
             logger.debug("Could not send analytics: $e")
