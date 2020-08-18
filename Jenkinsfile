@@ -12,7 +12,7 @@ dockerNetworkId = UUID.randomUUID().toString()
 // Branches from which we release SNAPSHOT's. Only release branches need to run on actual hardware.
 releaseBranches = ['master', 'next-major', 'v10']
 // Branches that are "important", so if they do not compile they will generate a Slack notification
-slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10', 'cm/slack-notifications' ]
+slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
 currentBranch = env.CHANGE_BRANCH
 // 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen.
 nodeSelector = (releaseBranches.contains(currentBranch)) ? 'android' : 'docker-cph-03' // Switch to `brix` when all CPH nodes work: https://jira.mongodb.org/browse/RCI-14
