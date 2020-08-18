@@ -58,7 +58,7 @@ try {
           stage('Prepare Docker Images') {
             // TODO Should be renamed to 'master' when merged there.
             // TODO Figure out why caching the image doesn't work.
-            buildEnv = buildDockerEnv("realm-java-ci:v10", push: currentBranch == 'v10')
+            buildEnv = dockerBuild("ci/realm-java:v10", push: currentBranch == 'v10')
             def props = readProperties file: 'dependencies.list'
             echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER_VERSION}"
             def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER_VERSION}")
@@ -349,4 +349,37 @@ def gradle(String commands) {
 
 def gradle(String relativePath, String commands) {
   sh "cd ${relativePath} && chmod +x gradlew && ./gradlew ${commands} --stacktrace"
+}
+
+def dockerBuild(Map args=[:], String name) {
+  def extra_args = args.get('extra_args', '')
+  def directory = args.get('directory', '.')
+  def imageName = args.get('name', name)
+  def push = args.get('push', false)
+
+  def getImageId = { i ->
+    return sh(script: "docker images -q ${i}", returnStdout: true, label: 'Lookup Docker image ID')
+  }
+
+  def image = null
+
+  docker.withRegistry("https://${env.DOCKER_REGISTRY}", "ecr:eu-west-1:aws-ci-user") {
+    def remoteName = "${env.DOCKER_REGISTRY}/${imageName}"
+    echo "RemoteName: ${remoteName}"
+    try {
+      docker.image(remoteName).pull()
+      extra_args += " --cache-from \"${remoteName}\""
+    } catch(e) {}
+    echo "extraArgs: ${extra_args}"
+    def oldId = getImageId(imageName)
+    echo "oldId: ${oldId}"
+
+    def buildArgs = "--cache-from \"${imageName}\" ${extra_args} ${directory}"
+    echo "buildArgs: ${buildArgs}"
+    image = docker.build(imageName, buildArgs)
+    if (push && getImageId(image.imageName()) != oldId) {
+      image.push(remoteName)
+    }
+  }
+  return image
 }
