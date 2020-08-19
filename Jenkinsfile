@@ -138,18 +138,22 @@ try {
   buildSuccess = false
   throw e
 } finally {
-  if (slackNotificationBranches.contains(currentBranch) && !buildSuccess) {
+  if (slackNotificationBranches.contains(currentBranch)) {
     node {
-      withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
-        def payload = JsonOutput.toJson([
-                username: 'Mr. Jenkins',
-                icon_emoji: ':jenkins:',
-                attachments: [[
-                  'title': "The ${currentBranch} branch is broken!",
-                  'text': "<${env.BUILD_URL}|Click here> to check the build.",
-                  'color': "danger"
-                ]]
-        ])
+      withCredentials([[$class: 'StringBinding', credentialsId: 'slack-webhook-java-ci-channel', variable: 'SLACK_URL']]) {
+        def payload = null
+        if (!buildSuccess) {
+          payload = JsonOutput.toJson([
+                  text: "*The ${currentBranch} branch is broken!*\n<${env.BUILD_URL}|Click here> to check the build."
+          ])
+        }
+
+        if (currentBuild.getPreviousBuild() && currentBuild.getPreviousBuild().getResult().toString() != "SUCCESS" && buildSuccess) {
+          payload = JsonOutput.toJson([
+                  text: "*${currentBranch} is back to normal!*\n<${env.BUILD_URL}|Click here> to check the build."
+          ])
+        }
+
         sh "curl -X POST --data-urlencode \'payload=${payload}\' ${env.SLACK_URL}"
       }
     }
