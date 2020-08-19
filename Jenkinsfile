@@ -57,8 +57,9 @@ try {
           def buildEnv = null
           stage('Prepare Docker Images') {
             // TODO Should be renamed to 'master' when merged there.
-            // TODO Figure out why caching the image doesn't work.
-            buildEnv = buildDockerEnv("ci/realm-java:v10", push: currentBranch == 'v10')
+            // TODO Caching is currently disabled (with -do-not-cache suffix) due to the upload speed
+            //  in Copenhagen being too slow. So the upload times out.
+            buildEnv = buildDockerEnv("ci/realm-java:v10", push: currentBranch == 'v10-do-not-cache')
             def props = readProperties file: 'dependencies.list'
             echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER_VERSION}"
             def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER_VERSION}")
