@@ -43,13 +43,12 @@ try {
         def emulatorImage = ""
         def abiFilter = ""
         def instrumentationTestTarget = "connectedAndroidTest"
-        def deviceSerial = ""
+        def deviceSerial = "emulator-5554" // FIXME: Always used the emulator until we can enable more reliable devices
         if (!releaseBranches.contains(currentBranch)) {
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
           abiFilter = "-PbuildTargetABIs=x86"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
-          deviceSerial = "emulator-5554"
         }
 
         try {
