@@ -80,15 +80,15 @@ public class RealmAnalytics {
     private boolean usesSync;
     private String targetSdk;
     private String minSdk;
-    private boolean app;
+    private String target;;
 
-    public RealmAnalytics(Set<String> packages, boolean usesKotlin, boolean usesSync, String targetSdk, String minSdk, boolean app) {
+    public RealmAnalytics(Set<String> packages, boolean usesKotlin, boolean usesSync, String targetSdk, String minSdk, String target) {
         this.packages = packages;
         this.usesKotlin = usesKotlin;
         this.usesSync = usesSync;
         this.targetSdk = targetSdk;
         this.minSdk = minSdk;
-        this.app = app;
+        this.target = target;
     }
 
     public String generateJson() throws SocketException, NoSuchAlgorithmException {
@@ -97,7 +97,7 @@ public class RealmAnalytics {
                 .replaceAll("%TOKEN%", TOKEN)
                 .replaceAll("%USER_ID%", ComputerIdentifierGenerator.get())
                 .replaceAll("%APP_ID%", getAnonymousAppId())
-                .replaceAll("%TARGET%", app ? "app" : "library")
+                .replaceAll("%TARGET%", target)
                 .replaceAll("%LANGUAGE%", usesKotlin ? "kotlin" : "java")
                 .replaceAll("%SYNC_VERSION%", usesSync ? "\"" + Version.SYNC_VERSION + "\"": "null")
                 .replaceAll("%REALM_VERSION%", Version.VERSION)

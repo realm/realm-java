@@ -14,8 +14,6 @@ import java.security.NoSuchAlgorithmException;
 
 public class UrlEncodedAnalytics {
 
-    private Logger logger = LoggerFactory.getLogger("realm-logger");
-
     private String prefix;
     private String suffix;
 
@@ -28,16 +26,11 @@ public class UrlEncodedAnalytics {
         try {
             URL url = getUrl(analytics);
 
-            logger.debug("submitting: " + url);
-
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();
-            logger.debug("submitted: " +  connection.getResponseCode() + " " + url);
             connection.getResponseCode();
         } catch (Exception ignored) {
-            logger.debug("ignoring: ", ignored);
-            // We ignore this exception on purpose not to break the build system if this class fails
         }
     }
 

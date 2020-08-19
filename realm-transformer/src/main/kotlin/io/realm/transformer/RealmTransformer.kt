@@ -153,8 +153,16 @@ class RealmTransformer(val project: Project) : Transform() {
             val targetSdk: String? = project.getTargetSdk()
             val minSdk: String?  = project.getMinSdk()
             val sync: Boolean = Utils.isSyncEnabled(project)
-            val app = project.plugins.findPlugin("com.android.application") != null
-            val analytics = RealmAnalytics(packages, containsKotlin, sync, targetSdk, minSdk, app)
+            val target =
+                    if (project.plugins.findPlugin("com.android.application") != null) {
+                        "app"
+                    } else if (project.plugins.findPlugin("com.android.library") != null) {
+                        "library"
+                    } else {
+                        "unknown"
+                    }
+
+            val analytics = RealmAnalytics(packages, containsKotlin, sync, targetSdk, minSdk, target)
 
             val pool = Executors.newFixedThreadPool(2);
             try {
