@@ -4,47 +4,66 @@
     In code, please prefer annotations as a way of ignoring Findbugs issues
     -->
 
-    <!-- Unit tests
-        As of Jan 6, 2017, there are ~1000 Findbugs issues in the unit tests.
-        This shall not pass.
-        Clean the build directory and build only the product code:
-            ./gradlew clean findbugs
-    -->
-
-    <!-- Generated code -->
+    <!-- Exclude test classes -->
     <Match>
-        <Class name="io.realm.io_realm_internal_permissions_PermissionChangeRealmProxy"/>
+        <Class name="~.*Test$"/>
     </Match>
     <Match>
-        <Class name="io.realm.io_realm_permissions_PermissionOfferRealmProxy"/>
+        <Class name="~.*Tests$"/>
     </Match>
     <Match>
-        <Class name="io.realm.io_realm_internal_permissions_PermissionOfferResponseRealmProxy"/>
+        <Class name="~.*Test\$[0-9]*"/> <!-- Lamdas inside Tests -->
     </Match>
     <Match>
-        <Class name="io.realm.io_realm_permissions_PermissionRealmProxy"/>
+        <Class name="~.*Tests\$[0-9]*"/> <!-- Lamdas inside Tests -->
     </Match>
     <Match>
-        <Class name="io.realm.io_realm_sync_permissions_ClassPermissionsRealmProxy"/>
+        <Package name="~test\..*"/>
     </Match>
     <Match>
-        <Class name="io.realm.io_realm_sync_permissions_RealmPermissionsRealmProxy"/>
+        <Class name="io.realm.TestHelper"/>
     </Match>
     <Match>
-        <Class name="io.realm.io_realm_sync_permissions_PermissionRealmProxy"/>
+        <Package name="~io.realm.entities.*"/>
     </Match>
     <Match>
-        <Class name="io.realm.io_realm_sync_permissions_RoleRealmProxy"/>
+        <Class name="io.realm.SyncManager$Debug" />
     </Match>
     <Match>
-        <Class name="io.realm.io_realm_sync_permissions_PermissionUserRealmProxy"/>
+        <Class name="io.realm.rule.RunInLooperThread" />
+        <Method name="after" />
+        <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
     </Match>
     <Match>
-        <Class name="io.realm.io_realm_sync_SubscriptionRealmProxy"/>
+        <Class name="io.realm.rule.RunInLooperThread$RunInLooperThreadStatement" />
+        <Method name="runTest" />
+        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
+    </Match>
+    <Match>
+        <Class name="io.realm.rule.RunInLooperThread$RunInLooperThreadStatement" />
+        <Method name="evaluate" />
+        <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
+    </Match>
+    <Match>
+        <Class name="io.realm.objectserver.utils.RemoteIntegrationTestService" />
+        <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
     </Match>
     <Match>
         <Class name="io.realm.internal.common.ThreadDispatcher" />
         <Bug pattern="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE" />
     </Match>
+    <Match>
+        <Class name="io.realm.TestHelper$TestLogger" />
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
+    </Match>
+    <Match>
+        <Class name="io.realm.rule.RunWithRemoteService" />
+        <Field name="afterRunnable" />
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
+    </Match>
 
+    <!-- Generated code -->
+    <Match>
+        <Class name="~.*RealmProxy$"/>
+    </Match>
 </FindBugsFilter>

@@ -68,7 +68,7 @@ RUN yes | sdkmanager --licenses
 # The `yes` is for accepting all non-standard tool licenses.
 # Please keep all sections in descending order!
 RUN yes | sdkmanager \
-    'build-tools;29.0.2' \
+    'build-tools;29.0.3' \
     'cmake;3.6.4111459' \
     'emulator' \
     'extras;android;m2repository' \
