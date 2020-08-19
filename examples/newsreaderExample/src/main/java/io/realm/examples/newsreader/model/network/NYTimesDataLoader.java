@@ -51,7 +51,7 @@ public class NYTimesDataLoader {
         Retrofit retrofit = new Retrofit.Builder()
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(JacksonConverterFactory.create())
-                .baseUrl("http://api.nytimes.com/")
+                .baseUrl("https://api.nytimes.com/")
                 .build();
         nyTimesService = retrofit.create(NYTimesService.class);
     }
