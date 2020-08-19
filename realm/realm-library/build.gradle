@@ -6,7 +6,7 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'maven-publish'
-apply plugin: 'com.github.spotbugs'
+apply plugin: 'com.github.spotbugs-base'
 // apply plugin: 'pmd' FIXME Disabled PMD after upgrading Gradle Plugin. It resulted in a ton of false positives. Review those later.
 apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
@@ -164,12 +164,6 @@ android {
     }
 }
 
-// Configures SpotBug: https://stackoverflow.com/questions/52643805/minimal-working-spotbugs-setup-for-android-studio
-sourceSets {
-    main {
-        java.srcDirs = []
-    }
-}
 
 project.afterEvaluate {
     tasks.withType(JavaCompile) {
@@ -303,6 +297,14 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
 }
 
+
+// Configures SpotBug: https://stackoverflow.com/questions/52643805/minimal-working-spotbugs-setup-for-android-studio
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/']
+    }
+}
+
 // See https://spotbugs-gradle-plugin.netlify.app/com/github/spotbugs/snom/spotbugsextension
 spotbugs {
     toolVersion = '4.1.1'
@@ -313,16 +315,14 @@ spotbugs {
 }
 
 // See https://spotbugs.readthedocs.io/en/latest/migration.html#findbugs-gradle-plugin
-tasks.withType(com.github.spotbugs.snom.SpotBugsTask) {
+task spotbugsMain(type: com.github.spotbugs.snom.SpotBugsTask) {
+    dependsOn 'assemble'
+    group = "verification"
+    classes = fileTree("build/intermediates/javac/")
+
     reports {
         xml.enabled = false
         html.enabled = true
-        xml {
-            destination file("$project.buildDir/findbugs/findbugs-output.xml")
-        }
-        html {
-            destination file("$project.buildDir/findbugs/findbugs-output.html")
-        }
     }
 }
 
