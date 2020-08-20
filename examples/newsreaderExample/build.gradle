@@ -48,7 +48,7 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-jackson:2.3.0'
     implementation 'com.squareup.retrofit2:retrofit:2.3.0'
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
-    implementation 'io.reactivex.rxjava2:rxjava:${properties.getProperty('BSON_DEPENDENCY')}'
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.13'
     implementation 'me.zhanghai.android.materialprogressbar:library:1.1.4'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1' //TODO:Can be refactored with Native Android Data Binding
 }
