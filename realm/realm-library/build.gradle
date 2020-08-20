@@ -297,14 +297,6 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
 }
 
-
-// Configures SpotBug: https://stackoverflow.com/questions/52643805/minimal-working-spotbugs-setup-for-android-studio
-sourceSets {
-    main {
-        java.srcDirs = ['src/main/']
-    }
-}
-
 // See https://spotbugs-gradle-plugin.netlify.app/com/github/spotbugs/snom/spotbugsextension
 spotbugs {
     toolVersion = '4.1.1'
