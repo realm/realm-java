@@ -19,21 +19,20 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.SyncStringOnly
 import io.realm.exceptions.RealmFileException
 import io.realm.kotlin.syncSession
-import io.realm.log.LogLevel
-import io.realm.log.RealmLog
 import io.realm.mongodb.App
 import io.realm.mongodb.Credentials
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
 import io.realm.mongodb.sync.SyncConfiguration
 import io.realm.mongodb.sync.testSchema
-import org.bson.BsonObjectId
+import org.bson.BsonString
 import org.bson.types.ObjectId
 import org.junit.After
-import org.junit.Assert
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
+import java.util.*
 import kotlin.test.assertFailsWith
 
 private val SECRET_PASSWORD = "123456"
@@ -63,9 +62,9 @@ class EncryptedSynchronizedRealmTests {
     fun setEncryptionKey_canReOpenRealmWithoutKey() {
 
         // STEP 1: open a synced Realm using a local encryption key
-        var user = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
+        val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
         val randomKey = TestHelper.getRandomKey()
-        val configWithEncryption: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, BsonObjectId())
+        val configWithEncryption: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, BsonString(UUID.randomUUID().toString()))
                 .testSchema(SyncStringOnly::class.java)
                 .waitForInitialRemoteData()
                 .errorHandler { session, error -> fail(error.getErrorMessage()) }
@@ -85,7 +84,7 @@ class EncryptedSynchronizedRealmTests {
 
         // STEP 3: try to open again the same sync Realm but different local name without the encryption key should not
         // fail
-        var user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
+        val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
         val configWithoutEncryption: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user2, configWithEncryption.partitionValue)
                 // Using different user with same partition value to trigger a different path instead of
                 // .name("newName")
@@ -102,13 +101,15 @@ class EncryptedSynchronizedRealmTests {
         user.logOut()
     }
 
+    // FIXME: ignore until https://github.com/realm/realm-java/issues/7028 is fixed
     // If an encrypted synced Realm is re-opened with the wrong key, throw an exception.
     @Test
+    @Ignore("Crashes at random - https://github.com/realm/realm-java/issues/7028")
     fun setEncryptionKey_shouldCrashIfKeyNotProvided() {
         // STEP 1: open a synced Realm using a local encryption key
         var user = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
         val randomKey = TestHelper.getRandomKey()
-        val configWithEncryption: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, BsonObjectId())
+        val configWithEncryption: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, BsonString(UUID.randomUUID().toString()))
                 .testSchema(SyncStringOnly::class.java)
                 .waitForInitialRemoteData()
                 .errorHandler { session, error -> fail(error.getErrorMessage()) }
@@ -141,9 +142,9 @@ class EncryptedSynchronizedRealmTests {
     @Test
     fun setEncryptionKey_differentClientsWithDifferentKeys() {
         // STEP 1: prepare a synced Realm for client A
-        var user = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
+        val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
         val randomKey = TestHelper.getRandomKey()
-        val configWithEncryption: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, BsonObjectId())
+        val configWithEncryption: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, BsonString(UUID.randomUUID().toString()))
                 .testSchema(SyncStringOnly::class.java)
                 .waitForInitialRemoteData()
                 .errorHandler { session, error -> fail(error.getErrorMessage()) }
@@ -160,7 +161,7 @@ class EncryptedSynchronizedRealmTests {
         }
 
         // STEP 3: prepare a synced Realm for client B
-        var user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
+        val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
         val key2 = TestHelper.getRandomKey()
         val configWithEncryption2: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user2, configWithEncryption.partitionValue)
                 .testSchema(SyncStringOnly::class.java)

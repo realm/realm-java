@@ -36,7 +36,6 @@ import org.bson.codecs.configuration.CodecRegistries
 import org.bson.types.ObjectId
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
@@ -719,35 +718,42 @@ class MongoClientTest {
         }
     }
 
-    // FIXME: projections and sorts aren't currently working due to a bug in Stitch: https://jira.mongodb.org/browse/REALMC-5787
     @Test
-    @Ignore("Projections and sorts don't work")
     fun findOneAndUpdate_withProjectionAndSort() {
         with(getCollectionInternal()) {
-            val sampleUpdate = Document("\$set", Document("hello", "hellothere")).apply {
-                this["\$inc"] = Document("num", 1)
-            }
-            sampleUpdate.remove("\$set")        // FIXME
-            val sampleProject = Document("hello", 1)
-            sampleProject["_id"] = 0
+            insertMany(listOf(
+                    Document(mapOf(Pair("team", "Fearful Mallards"), Pair("score", 25000))),
+                    Document(mapOf(Pair("team", "Tactful Mooses"), Pair("score", 23500))),
+                    Document(mapOf(Pair("team", "Aquatic Ponies"), Pair("score", 19250))),
+                    Document(mapOf(Pair("team", "Cuddly Zebras"), Pair("score", 15235))),
+                    Document(mapOf(Pair("team", "Garrulous Bears"), Pair("score", 18000)))
+            )).get()
 
-            var options = FindOneAndModifyOptions()
-                    .projection(sampleProject)
-                    .sort(Document("num", 1))
-            assertEquals(Document("hello", "world1"),
-                    findOneAndUpdate(Document(), sampleUpdate, options)
-                            .get()!!
-                            .withoutId())
-            assertEquals(3, count().get())
+            assertEquals(5, count().get())
+            assertNotNull(findOne(Document("team", "Cuddly Zebras")))
 
-            options = FindOneAndModifyOptions()
-                    .projection(sampleProject)
-                    .sort(Document("num", -1))
-            assertEquals(Document("hello", "world3"),
-                    findOneAndUpdate(Document(), sampleUpdate, options)
-                            .get()!!
-                            .withoutId())
-            assertEquals(3, count().get())
+            // Project: team, hide _id; Sort: score ascending
+            val project = Document(mapOf(Pair("_id", 0), Pair("team", 1), Pair("score", 1)))
+            val sort = Document("score", 1)
+
+            // This results in the update of Cuddly Zebras
+            val updatedDocument = findOneAndUpdate(
+                    Document("score", Document("\$lt", 22250)),
+                    Document("\$inc", Document("score", 1)),
+                    FindOneAndModifyOptions()
+                            .projection(project)
+                            .sort(sort)
+            ).get()
+
+            assertEquals(5, count().get())
+            assertEquals(
+                    Document(mapOf(Pair("team", "Cuddly Zebras"), Pair("score", 15235))),
+                    updatedDocument
+            )
+            assertEquals(
+                    Document(mapOf(Pair("team", "Cuddly Zebras"), Pair("score", 15235 + 1))),
+                    findOne(Document("team", "Cuddly Zebras")).get().withoutId()
+            )
         }
     }
 
@@ -844,28 +850,46 @@ class MongoClientTest {
         }
     }
 
-    // FIXME: projections and sorts aren't currently working due to a bug in Stitch: https://jira.mongodb.org/browse/REALMC-5787
     @Test
-    @Ignore("Projections and sorts don't work")
     fun findOneAndReplace_withProjectionAndSort() {
         with(getCollectionInternal()) {
-            val sampleProject = Document("hello", 1)
-            sampleProject["_id"] = 0
+            insertMany(listOf(
+                    Document(mapOf(Pair("team", "Fearful Mallards"), Pair("score", 25000))),
+                    Document(mapOf(Pair("team", "Tactful Mooses"), Pair("score", 23500))),
+                    Document(mapOf(Pair("team", "Aquatic Ponies"), Pair("score", 19250))),
+                    Document(mapOf(Pair("team", "Cuddly Zebras"), Pair("score", 15235))),
+                    Document(mapOf(Pair("team", "Garrulous Bears"), Pair("score", 18000)))
+            )).get()
 
-            val sampleUpdate = Document("hello", "world0")
-            sampleUpdate["num"] = 0
+            assertEquals(5, count().get())
+            assertNotNull(findOne(Document("team", "Cuddly Zebras")))
 
-            var options = FindOneAndModifyOptions().projection(sampleProject).sort(Document("num", 1))
-            val result = findOneAndReplace(Document(), sampleUpdate, options).get()
-            assertEquals(Document("hello", "world4"), result!!.withoutId())
-            assertEquals(3, count().get())
+            // Project: team, hide _id; Sort: score ascending
+            val project = Document(mapOf(Pair("_id", 0), Pair("team", 1)))
+            val sort = Document("score", 1)
 
-            options = FindOneAndModifyOptions()
-                    .projection(sampleProject)
-                    .sort(Document("num", -1))
-            assertEquals(Document("hello", "world6"),
-                    findOneAndReplace(Document(), sampleUpdate, options).get()!!.withoutId())
-            assertEquals(3, count().get())
+            // This results in the replacement of Cuddly Zebras
+            val replacedDocument = findOneAndReplace(
+                    Document("score", Document("\$lt", 22250)),
+                    Document(mapOf(Pair("team", "Therapeutic Hamsters"), Pair("score", 22250))),
+                    FindOneAndModifyOptions()
+                            .projection(project)
+                            .sort(sort)
+            ).get()
+
+            assertEquals(5, count().get())
+            assertEquals(Document("team", "Cuddly Zebras"), replacedDocument)
+            assertNull(findOne(Document("team", "Cuddly Zebras")).get())
+            assertNotNull(findOne(Document("team", "Therapeutic Hamsters")).get())
+
+            // Check returnNewDocument
+            val newDocument = findOneAndReplace(
+                    Document("score", 22250),
+                    Document(mapOf(Pair("team", "New Therapeutic Hamsters"), Pair("score", 30000))),
+                    FindOneAndModifyOptions().returnNewDocument(true)
+            ).get()
+
+            assertEquals(Document(mapOf(Pair("team", "New Therapeutic Hamsters"), Pair("score", 30000))), newDocument.withoutId())
         }
     }
 
@@ -1315,32 +1339,35 @@ class MongoClientTest {
         }
     }
 
-    // FIXME: projections and sorts aren't currently working due to a bug in Stitch: https://jira.mongodb.org/browse/REALMC-5787
     @Test
-    @Ignore("find_one_and_delete function is wrongly implemented in OS and projections and sorts don't work")
     fun findOneAndDelete_withProjectionAndSort() {
         with(getCollectionInternal()) {
-            val doc2 = Document("hello", "world2").apply { this["num"] = 2 }
-            val doc3 = Document("hello", "world3").apply { this["num"] = 3 }
+            insertMany(listOf(
+                    Document(mapOf(Pair("team", "Fearful Mallards"), Pair("score", 25000))),
+                    Document(mapOf(Pair("team", "Tactful Mooses"), Pair("score", 23500))),
+                    Document(mapOf(Pair("team", "Aquatic Ponies"), Pair("score", 19250))),
+                    Document(mapOf(Pair("team", "Cuddly Zebras"), Pair("score", 15235))),
+                    Document(mapOf(Pair("team", "Garrulous Bears"), Pair("score", 18000)))
+            )).get()
 
-            insertMany(listOf(doc2, doc3)).get()
+            assertEquals(5, count().get())
+            assertNotNull(findOne(Document("team", "Cuddly Zebras")))
 
-            // Return "hello", hide "_id"
-            val sampleProject = Document("hello", 1).apply { this["_id"] = 0 }
+            // Project: team, hide _id; Sort: score ascending
+            val project = Document(mapOf(Pair("_id", 0), Pair("team", 1)))
+            val sort = Document("score", 1)
 
-            var options = FindOneAndModifyOptions()
-                    .projection(sampleProject)
-                    .sort(Document("num", -1))
-            assertEquals(Document("hello", "world3"),
-                    findOneAndDelete(Document(), options).get()!!.withoutId())
-            assertEquals(2, count().get())
+            // This results in the deletion of Cuddly Zebras
+            val deletedDocument = findOneAndDelete(
+                    Document("score", Document("\$lt", 22250)),
+                    FindOneAndModifyOptions()
+                            .projection(project)
+                            .sort(sort)
+            ).get()
 
-            options = FindOneAndModifyOptions()
-                    .projection(sampleProject)
-                    .sort(Document("num", 1))
-            assertEquals(Document("hello", "world1"),
-                    findOneAndDelete(Document(), options).get()!!.withoutId())
-            assertEquals(1, count().get())
+            assertEquals(4, count().get())
+            assertEquals(Document("team", "Cuddly Zebras"), deletedDocument.withoutId())
+            assertNull(findOne(Document("team", "Cuddly Zebras")).get())
         }
     }
 
