@@ -208,7 +208,7 @@ repositories {
 
 dependencies {
 
-    compileOnly 'io.reactivex.rxjava2:rxjava:2.1.5'
+    compileOnly "io.reactivex.rxjava2:rxjava:${properties.getProperty('RXJAVA_DEPENDENCY')}"
     compileOnly 'com.google.code.findbugs:findbugs-annotations:3.0.1'
 
     testImplementation 'junit:junit:4.12'
@@ -219,7 +219,7 @@ dependencies {
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation 'com.getkeepsafe.relinker:relinker:1.4.0'
     implementation "org.mongodb:bson:${properties.getProperty('BSON_DEPENDENCY')}"
-    implementation('io.reactivex.rxjava2:rxandroid:2.1.1') {
+    implementation("io.reactivex.rxjava2:rxandroid:${properties.getProperty('RXANDROID_DEPENDENCY')}") {
         exclude group: 'io.reactivex.rxjava2', module: 'rxjava'
     }
 
@@ -232,8 +232,8 @@ dependencies {
     objectServerImplementation 'com.squareup.okhttp3:okhttp:3.12.0' // Going above this requires minSDK 21
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
-    androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
-    androidTestImplementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    androidTestImplementation "io.reactivex.rxjava2:rxjava:${properties.getProperty('RXJAVA_DEPENDENCY')}"
+    androidTestImplementation "io.reactivex.rxjava2:rxandroid:${properties.getProperty('RXANDROID_DEPENDENCY')}"
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test:rules:1.2.0'
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'

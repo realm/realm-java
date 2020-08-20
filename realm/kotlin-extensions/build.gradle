@@ -84,7 +84,7 @@ dependencies {
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     androidTestObjectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
-    androidTestObjectServerImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
+    androidTestObjectServerImplementation "io.reactivex.rxjava2:rxjava:${properties.getProperty('RXJAVA_DEPENDENCY')}"
 }
 
 repositories {

@@ -20,3 +20,7 @@ GRADLE_BINTRAY_PLUGIN=1.8.5
 
 # Bson dependency version
 BSON_DEPENDENCY=3.12.1
+
+# RxJava dependency version
+RXJAVA_DEPENDENCY=2.1.5
+RXANDROID_DEPENDENCY=2.1.1
