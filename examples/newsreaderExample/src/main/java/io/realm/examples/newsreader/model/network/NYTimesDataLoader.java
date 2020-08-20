@@ -71,7 +71,8 @@ public class NYTimesDataLoader {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(response -> {
                     Timber.d("Success - Data received: %s", sectionKey);
-                    processAndAddData(realm, response.section, response.results);
+                    // response.section is different from sectionKey
+                    processAndAddData(realm, sectionKey, response.results);
                     networkInUse.onNext(false);
                 }, throwable -> {
                     networkInUse.onNext(false);
