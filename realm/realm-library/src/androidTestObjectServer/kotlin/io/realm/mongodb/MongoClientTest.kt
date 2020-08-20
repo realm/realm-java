@@ -882,7 +882,7 @@ class MongoClientTest {
         }
     }
 
-    fun assertDocumentEquals(expected: Document, actual: Document) {
+    private fun assertDocumentEquals(expected: Document, actual: Document) {
         // Accounts for the missing _id field in the expected document
         assertTrue {
             actual.remove("_id") != null
