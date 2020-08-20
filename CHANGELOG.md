@@ -1,3 +1,24 @@
+## 10.0.0-BETA.7 (YYYY-MM-DD)
+We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
+
+The old Realm Cloud legacy APIs have undergone significant refactoring. The new APIs are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
+
+### Breaking Changes 
+* None
+
+### Enhancements
+* Add support for watching change streams to MongoCollection (Issue [#6912](https://github.com/realm/realm-java/issues/6912))
+
+### Fixed
+* None
+
+### Compatibility
+* None
+
+### Internal
+* None
+
+
 ## 10.0.0-BETA.6 (2020-08-17)
 
 We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
@@ -13,7 +34,6 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * RealmLists can now be marked final. (Issue [#6892](https://github.com/realm/realm-java/issues/6892))
 * It is now possible to create embedded objects using [DynamicRealm]s. (Issue [#6982](https://github.com/realm/realm-java/pull/6982))
 * Added extra validation and more meaningful error messages when creating embedded objects pointing to the wrong parent property. (See issue above)
-* Add support for watching change streams to MongoCollection (Issue [#6912](https://github.com/realm/realm-java/issues/6912))
 
 ### Fixed
 * [RealmApp] The same user opening different Realms with different partion key values would crash with an IllegalArgumentException. (Issue [#6882](https://github.com/realm/realm-java/issues/6882), since 10.0.0-BETA.1)
