@@ -223,10 +223,7 @@ dependencies {
         exclude group: 'io.reactivex.rxjava2', module: 'rxjava'
     }
 
-    // TODO: investigate why we can't use the latest multidex version
-    // check baseDebugAndroidTestRuntimeClasspath and objectServerDebugAndroidTestRuntimeClasspath
-    // tasks as they introduce version 2.0.0 strictly, even when specifying 2.0.1 from here
-    androidTestImplementation "androidx.multidex:multidex:2.0.0"
+    androidTestImplementation "androidx.multidex:multidex:2.0.1"
 
     kapt project(':realm-annotations-processor') // See https://github.com/realm/realm-java/issues/5799
     objectServerImplementation 'com.squareup.okhttp3:okhttp:3.12.0' // Going above this requires minSDK 21
