@@ -26,8 +26,12 @@ import io.realm.Sort
 import io.realm.examples.kotlin.model.Cat
 import io.realm.examples.kotlin.model.Dog
 import io.realm.examples.kotlin.model.Person
+import io.realm.kotlin.asFlow
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
+import io.realm.log.RealmLog
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 
@@ -61,6 +65,7 @@ class KotlinExampleActivity : Activity() {
         basicCRUD(realm)
         basicQuery(realm)
         basicLinkQuery(realm)
+        basicFlows(realm)
 
         // More complex operations can be executed on another thread, for example using
         // Anko's doAsync extension method.
@@ -78,6 +83,16 @@ class KotlinExampleActivity : Activity() {
             }
             uiThread {
                 showStatus(info)
+            }
+        }
+    }
+
+    private fun basicFlows(realm: Realm) {
+        GlobalScope.launch {
+            withContext(Dispatchers.Main) {
+                realm.where<Person>().findAllAsync().asFlow().collect {
+                    showStatus("Hello from flow: ${it.size}, Frozen: ${it.isFrozen}, Loaded: ${it.isLoaded}");
+                }
             }
         }
     }

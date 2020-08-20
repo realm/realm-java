@@ -15,10 +15,15 @@
  */
 package io.realm.kotlin
 
-import io.realm.Realm
-import io.realm.RealmModel
-import io.realm.RealmQuery
+import android.os.Handler
+import android.os.Looper
+import io.realm.*
 import io.realm.exceptions.RealmException
+import kotlinx.coroutines.*
+import kotlinx.coroutines.android.asCoroutineDispatcher
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 /**
  * Returns a typed RealmQuery, which can be used to query for specific objects of this type
@@ -73,6 +78,25 @@ inline fun <reified T : RealmModel> Realm.createObject(): T {
 inline fun <reified T : RealmModel> Realm.createObject(primaryKeyValue: Any?): T {
     return this.createObject(T::class.java, primaryKeyValue)
 }
+
+@ExperimentalCoroutinesApi
+suspend fun Realm.executeTransactionAwait(transaction: (realm: Realm) -> Unit) {
+    val realm = this
+    withContext(getCurrentLooperThreadDispatcher(this)) {
+        suspendCancellableCoroutine<Unit> { cont ->
+            val task = realm.executeTransactionAsync(transaction,
+                    { cont.resume(Unit) },
+                    { error -> cont.resumeWithException(error)})
+            cont.invokeOnCancellation { task.cancel() }
+        }
+    }
+}
+
+private fun getCurrentLooperThreadDispatcher(realm: Realm): CoroutineContext {
+    val handler = Handler(Looper.myLooper())
+    return handler.asCoroutineDispatcher("RealmResultsContext[${System.identityHashCode(realm)}]")
+}
+
 
 /**
 TODO: Figure out if we should include this is or not. Using this makes it possible to do
