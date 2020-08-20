@@ -209,7 +209,7 @@ repositories {
 dependencies {
 
     compileOnly "io.reactivex.rxjava2:rxjava:${properties.getProperty('RXJAVA_DEPENDENCY')}"
-    compileOnly 'com.google.code.findbugs:findbugs-annotations:3.0.1'
+    compileOnly 'com.github.spotbugs:spotbugs-annotations:4.1.2'
 
     testImplementation 'junit:junit:4.12'
     testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
