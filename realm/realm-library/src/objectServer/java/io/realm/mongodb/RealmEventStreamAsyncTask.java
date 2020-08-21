@@ -21,10 +21,8 @@ import io.realm.mongodb.mongo.events.BaseChangeEvent;
 
 
 /**
- * The RealmStreamAsyncTask is a specific version of {@link RealmAsyncTask} that provides a mechanism
+ * The RealmEventStreamAsyncTask is a specific version of {@link RealmAsyncTask} that provides a non-blocking mechanism
  * to work with asynchronous operations carried out against MongoDB Realm that yield stream results.
- * <p>
- * This class offers both blocking ({@code get}) and non-blocking ({@code getAsync}) method calls.
  *
  * @param <T> the result type delivered by this task.
  */
