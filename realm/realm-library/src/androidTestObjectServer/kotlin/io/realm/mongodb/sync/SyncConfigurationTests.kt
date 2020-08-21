@@ -324,6 +324,26 @@ class SyncConfigurationTests {
     }
 
     @Test
+    fun nullPartitionValue() {
+        val user: User = createTestUser(app)
+
+        val configs = listOf<SyncConfiguration>(
+            SyncConfiguration.defaultConfig(user, null as String?),
+            SyncConfiguration.defaultConfig(user, null as Int?),
+            SyncConfiguration.defaultConfig(user, null as Long?),
+            SyncConfiguration.defaultConfig(user, null as ObjectId?),
+            SyncConfiguration.Builder(user, null as String?).build(),
+            SyncConfiguration.Builder(user, null as Int?).build(),
+            SyncConfiguration.Builder(user, null as Long?).build(),
+            SyncConfiguration.Builder(user, null as ObjectId?).build()
+        )
+
+        configs.forEach { config ->
+            assertTrue(config.path.endsWith("/null.realm"))
+        }
+    }
+
+    @Test
     fun loggedOutUsersThrows() {
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         user.logOut()
