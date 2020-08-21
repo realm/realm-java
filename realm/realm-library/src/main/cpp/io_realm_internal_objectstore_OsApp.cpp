@@ -293,7 +293,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_objectstore_OsApp_nativeMakeStr
         }
 
         jstring j_url = env->NewStringUTF(request.url.c_str());
-        jobject j_headers = JniUtils::to_hashmap(env, request.headers);
+        jobject j_headers = JniUtils::to_hash_map(env, request.headers);
         jstring j_body = env->NewStringUTF(request.body.c_str());
 
         static JavaClass request_class(env, "io/realm/internal/objectstore/OsJavaNetworkTransport$Request");
