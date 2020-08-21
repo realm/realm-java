@@ -8,7 +8,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * None
 
 ### Enhancements
-* Add support for watching change streams to MongoCollection (Issue [#6912](https://github.com/realm/realm-java/issues/6912))
+* Support for watching MongoCollection change streams (Issue [#6912](https://github.com/realm/realm-java/issues/6912))
 
 ### Fixed
 * None
