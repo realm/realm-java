@@ -122,7 +122,6 @@ public class RealmResultTaskImpl<T> implements RealmResultTask<T> {
             public void run() {
                 if (!isCancelled) {
                     callback.onResult(App.Result.withError(error));
-                    isCancelled = true;
                 }
             }
         };

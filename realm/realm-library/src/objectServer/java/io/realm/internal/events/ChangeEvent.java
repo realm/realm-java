@@ -23,6 +23,8 @@ import org.bson.BsonValue;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.configuration.CodecRegistry;
 
+import io.realm.mongodb.AppException;
+import io.realm.mongodb.ErrorCode;
 import io.realm.mongodb.mongo.MongoNamespace;
 import io.realm.mongodb.mongo.events.BaseChangeEvent;
 import io.realm.mongodb.mongo.events.UpdateDescription;
@@ -115,14 +117,15 @@ public class ChangeEvent<DocumentT> extends BaseChangeEvent<DocumentT> {
         asDoc.put(Fields.NS_FIELD, nsDoc);
 
         asDoc.put(Fields.DOCUMENT_KEY_FIELD, getDocumentKey());
+        DocumentT fullDocument = getFullDocument();
 
-        if (getFullDocument() != null && (getFullDocument() instanceof BsonValue)
-                && ((BsonValue) getFullDocument()).isDocument()) {
-            asDoc.put(Fields.FULL_DOCUMENT_FIELD, (BsonValue) getFullDocument());
+        if ((fullDocument instanceof BsonValue) && ((BsonValue) fullDocument).isDocument()) {
+            asDoc.put(Fields.FULL_DOCUMENT_FIELD, (BsonValue) fullDocument);
         }
 
-        if (getUpdateDescription() != null) {
-            asDoc.put(Fields.UPDATE_DESCRIPTION_FIELD, getUpdateDescription().toBsonDocument());
+        UpdateDescription updateDescription = getUpdateDescription();
+        if (updateDescription != null) {
+            asDoc.put(Fields.UPDATE_DESCRIPTION_FIELD, updateDescription.toBsonDocument());
         }
 
         asDoc.put(Fields.WRITE_PENDING_FIELD, new BsonBoolean(hasUncommittedWrites()));
@@ -135,10 +138,14 @@ public class ChangeEvent<DocumentT> extends BaseChangeEvent<DocumentT> {
      * @return the deserialized change event
      */
     static <T> ChangeEvent<T> fromBsonDocument(final BsonDocument document, final Class<T> documentClass, CodecRegistry codecRegistry) {
-        checkContainsKey(Fields.ID_FIELD, document, "document");
-        checkContainsKey(Fields.OPERATION_TYPE_FIELD, document, "document");
-        checkContainsKey(Fields.NS_FIELD, document, "document");
-        checkContainsKey(Fields.DOCUMENT_KEY_FIELD, document, "document");
+        try {
+            checkContainsKey(Fields.ID_FIELD, document, "document");
+            checkContainsKey(Fields.OPERATION_TYPE_FIELD, document, "document");
+            checkContainsKey(Fields.NS_FIELD, document, "document");
+            checkContainsKey(Fields.DOCUMENT_KEY_FIELD, document, "document");
+        } catch (IllegalArgumentException exception){
+            throw new AppException(ErrorCode.EVENT_DESERIALIZING, exception);
+        }
 
         final BsonDocument nsDoc = document.getDocument(Fields.NS_FIELD);
 

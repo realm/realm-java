@@ -32,6 +32,9 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import io.realm.mongodb.AppException;
+import io.realm.mongodb.ErrorCode;
+
 import static io.realm.internal.Util.checkContainsKey;
 
 /**
@@ -131,8 +134,12 @@ public final class UpdateDescription {
      * @return the converted UpdateDescription
      */
     public static UpdateDescription fromBsonDocument(final BsonDocument document) {
-        checkContainsKey(Fields.UPDATED_FIELDS_FIELD, document, "document");
-        checkContainsKey(Fields.REMOVED_FIELDS_FIELD, document, "document");
+        try {
+            checkContainsKey(Fields.UPDATED_FIELDS_FIELD, document, "document");
+            checkContainsKey(Fields.REMOVED_FIELDS_FIELD, document, "document");
+        } catch (IllegalArgumentException exception) {
+            throw new AppException(ErrorCode.EVENT_DESERIALIZING, exception);
+        }
 
         final BsonArray removedFieldsArr =
                 document.getArray(Fields.REMOVED_FIELDS_FIELD);
