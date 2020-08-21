@@ -31,6 +31,7 @@ import io.realm.mongodb.Credentials
 import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
 import io.realm.mongodb.User
 import io.realm.mongodb.close
+import org.bson.BsonNull
 import org.junit.*
 import org.junit.runner.RunWith
 import java.io.File
@@ -191,6 +192,15 @@ class SyncedRealmTests {
             assertNotNull(realm.syncSession)
             assertEquals(SyncSession.State.ACTIVE, realm.syncSession.state)
             assertEquals(user, realm.syncSession.user)
+        }
+    }
+
+    @Test
+    fun nullPartition() {
+        val config = configFactory.createSyncConfigurationBuilder(createNewUser(), BsonNull()).build()
+        assertTrue(config.path.endsWith("null.realm"))
+        Realm.getInstance(config).use { realm ->
+            realm.syncSession.uploadAllLocalChanges() // Ensures that we can actually connect
         }
     }
 
