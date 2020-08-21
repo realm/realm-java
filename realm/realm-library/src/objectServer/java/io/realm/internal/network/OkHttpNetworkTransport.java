@@ -104,7 +104,7 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
         okhttp3.Response response = call.execute();
 
         if((response.code() >= 300) || ((response.code() < 200) && (response.code() != 0))) {
-            throw new AppException(ErrorCode.fromNativeError(ErrorCode.Type.HTTP, response.code()), "http error code considered fatal");
+            throw new AppException(ErrorCode.fromNativeError(ErrorCode.Type.HTTP, response.code()), response.message());
         }
 
         return OkHttpResponse.httpResponse(response.code(), parseHeaders(response.headers()), response.body().source());
