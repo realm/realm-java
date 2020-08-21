@@ -2099,12 +2099,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetFinalizerPtr(
 JNIEXPORT void JNICALL
 Java_io_realm_internal_TableQuery_nativePredicate(JNIEnv *env, jobject, jlong nativeQueryPtr, jstring j_filter)
 {
-    TR_ENTER_PTR(nativeQueryPtr);
     try {
         Query* query = reinterpret_cast<Query *>(nativeQueryPtr);
         JStringAccessor filter(env, j_filter); // throws
         query_builder::NoArguments no_args;
-        parser::ParserResult parser_result = realm::parser::parse(filter);
+        parser::ParserResult parser_result = realm::parser::parse(static_cast<std::string>(filter));
         query_builder::apply_predicate(*query, parser_result.predicate, no_args);
 
         // TODO What about ordering. What does this mean?
