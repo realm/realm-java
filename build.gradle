@@ -195,21 +195,53 @@ task javadoc(type:GradleBuild) {
     configure copyProperties
 }
 
-task javadocPackage(type: Zip) {
-    description = 'Generate a Zip file with all SDK docs'
+// Find property in either System environment or Gradle properties.
+// If set in both places, Gradle properties win.
+def getPropertyValueOrThrow(String propertyName) {
+    def value = System.getenv(propertyName)
+    if (project.hasProperty(propertyName)) {
+        value = project.getProperty(propertyName)
+    }
+    if (value == null || value.trim().isEmpty()) {
+        throw new GradleException("Could not find '$propertyName'. " +
+                "Most be provided as either environment variable or " +
+                "a Gradle property.")
+    }
+    return value
+}
+
+task uploadJavadoc {
+    group = 'Release'
+    description = 'Upload the distribution package to S3'
     dependsOn javadoc
 
-    group = 'Artifact'
-    archiveName = "realm-java-${currentVersion}-docs.zip"
-    destinationDir = file("${buildDir}/outputs/docs")
+    doLast {
+        def awsAccessKey = getPropertyValueOrThrow("SDK_DOCS_AWS_ACCESS_KEY")
+        def awsSecretKey = getPropertyValueOrThrow("SDK_DOCS_AWS_SECRET_KEY")
 
-    from('realm/realm-library/build/docs/javadoc') {
-        include '**/*'
-        into 'javadoc'
-    }
-    from('realm/kotlin-extensions/build/docs') {
-        include '**/*'
-        into 'kotlindocs'
+        // Upload the versioned folder of the docs
+        exec {
+            commandLine 's3cmd', 'put', '--recursive', '--acl-public', "--access_key=${awsAccessKey}", "--secret_key=${awsSecretKey}", 'realm/realm-library/build/docs/javadoc/', "s3://realm-sdks/realm-sdks/java/${currentVersion}/"
+        }
+        exec {
+            commandLine 's3cmd', 'put', '--recursive', '--acl-public', "--access_key=${awsAccessKey}", "--secret_key=${awsSecretKey}", 'realm/kotlin-extensions/build/docs/', "s3://realm-sdks/realm-sdks/kotlin/${currentVersion}/"
+        }
+
+        // /latest should always contain a copy of the latest docs.
+        // We delete the /latest folder first to avoid risk having old subsections around,
+        // then copy all content from the versioned folder
+        exec {
+            commandLine 's3cmd', 'del', '-r', "--access_key=${awsAccessKey}", "--secret_key=${awsSecretKey}", 's3://realm-sdks/realm-sdks/java/latest'
+        }
+        exec {
+            commandLine 's3cmd', 'cp', '-r', "--access_key=${awsAccessKey}", "--secret_key=${awsSecretKey}", "s3://realm-sdks/realm-sdks/java/${currentVersion}/", "s3://realm-sdks/realm-sdks/java/latest/"
+        }
+        exec {
+            commandLine 's3cmd', 'del', '-r', "--access_key=${awsAccessKey}", "--secret_key=${awsSecretKey}", 's3://realm-sdks/realm-sdks/kotlin/latest'
+        }
+        exec {
+            commandLine 's3cmd', 'cp', '-r', "--access_key=${awsAccessKey}", "--secret_key=${awsSecretKey}", "s3://realm-sdks/realm-sdks/kotlin/${currentVersion}/", "s3://realm-sdks/realm-sdks/kotlin/latest/"
+        }
     }
 }
 
