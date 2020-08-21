@@ -23,7 +23,7 @@ import io.realm.mongodb.mongo.events.BaseChangeEvent;
 
 public interface EventStream<T> {
     /**
-     * Fetch the next event from a given stream
+     * Fetch the next event from a given stream.
      *
      * @return the next event
      * @throws IOException any io exception that could occur

@@ -99,6 +99,7 @@ public class ChangeEvent<DocumentT> extends BaseChangeEvent<DocumentT> {
 
     /**
      * Serializes this change event into a {@link BsonDocument}.
+     *
      * @return the serialized document.
      */
     @Override
