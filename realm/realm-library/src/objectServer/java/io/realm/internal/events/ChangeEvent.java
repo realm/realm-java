@@ -27,7 +27,7 @@ import io.realm.mongodb.mongo.MongoNamespace;
 import io.realm.mongodb.mongo.events.BaseChangeEvent;
 import io.realm.mongodb.mongo.events.UpdateDescription;
 
-import static io.realm.internal.Util.keyPresent;
+import static io.realm.internal.Util.checkContainsKey;
 import static io.realm.mongodb.mongo.events.BaseChangeEvent.OperationType.DELETE;
 import static io.realm.mongodb.mongo.events.BaseChangeEvent.OperationType.INSERT;
 import static io.realm.mongodb.mongo.events.BaseChangeEvent.OperationType.REPLACE;
@@ -134,10 +134,10 @@ public class ChangeEvent<DocumentT> extends BaseChangeEvent<DocumentT> {
      * @return the deserialized change event
      */
     static <T> ChangeEvent<T> fromBsonDocument(final BsonDocument document, final Class<T> documentClass, CodecRegistry codecRegistry) {
-        keyPresent(Fields.ID_FIELD, document);
-        keyPresent(Fields.OPERATION_TYPE_FIELD, document);
-        keyPresent(Fields.NS_FIELD, document);
-        keyPresent(Fields.DOCUMENT_KEY_FIELD, document);
+        checkContainsKey(Fields.ID_FIELD, document, "document");
+        checkContainsKey(Fields.OPERATION_TYPE_FIELD, document, "document");
+        checkContainsKey(Fields.NS_FIELD, document, "document");
+        checkContainsKey(Fields.DOCUMENT_KEY_FIELD, document, "document");
 
         final BsonDocument nsDoc = document.getDocument(Fields.NS_FIELD);
 

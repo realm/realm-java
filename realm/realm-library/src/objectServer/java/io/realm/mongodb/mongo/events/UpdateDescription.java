@@ -32,7 +32,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import static io.realm.internal.Util.keyPresent;
+import static io.realm.internal.Util.checkContainsKey;
 
 /**
  * Indicates which fields have been modified in a given update operation.
@@ -131,8 +131,8 @@ public final class UpdateDescription {
      * @return the converted UpdateDescription
      */
     public static UpdateDescription fromBsonDocument(final BsonDocument document) {
-        keyPresent(Fields.UPDATED_FIELDS_FIELD, document);
-        keyPresent(Fields.REMOVED_FIELDS_FIELD, document);
+        checkContainsKey(Fields.UPDATED_FIELDS_FIELD, document, "document");
+        checkContainsKey(Fields.REMOVED_FIELDS_FIELD, document, "document");
 
         final BsonArray removedFieldsArr =
                 document.getArray(Fields.REMOVED_FIELDS_FIELD);
