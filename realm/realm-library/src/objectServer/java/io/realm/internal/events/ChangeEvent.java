@@ -36,19 +36,27 @@ import static io.realm.mongodb.mongo.events.BaseChangeEvent.OperationType.REPLAC
 import static io.realm.mongodb.mongo.events.BaseChangeEvent.OperationType.UNKNOWN;
 import static io.realm.mongodb.mongo.events.BaseChangeEvent.OperationType.UPDATE;
 
+/**
+ * The representation of a MongoDB Realm change event
+ *
+ * @param <DocumentT> the full document type
+ * @see <a href="https://docs.mongodb.com/realm/triggers/database-triggers/index.html#database-change-events">Realm - Database change events</a>
+ */
+
 public class ChangeEvent<DocumentT> extends BaseChangeEvent<DocumentT> {
+    
     private final BsonDocument id; // Metadata related to the operation (the resumeToken).
     private final MongoNamespace ns;
 
     /**
      * Constructs a change event.
      *
-     * @param id The id of the change event.
-     * @param operationType The operation type represented by the change event.
-     * @param fullDocument The full document at some point after the change is applied.
-     * @param ns The namespace (database and collection) of the document.
-     * @param documentKey The id if the underlying document that changed.
-     * @param updateDescription The description of what has changed (for updates only).
+     * @param id                   The id of the change event.
+     * @param operationType        The operation type represented by the change event.
+     * @param fullDocument         The full document at some point after the change is applied.
+     * @param ns                   The namespace (database and collection) of the document.
+     * @param documentKey          The id if the underlying document that changed.
+     * @param updateDescription    The description of what has changed (for updates only).
      * @param hasUncommittedWrites Whether this represents a local uncommitted write.
      */
     private ChangeEvent(
@@ -134,6 +142,7 @@ public class ChangeEvent<DocumentT> extends BaseChangeEvent<DocumentT> {
 
     /**
      * Deserializes a {@link BsonDocument} into an instance of change event.
+     *
      * @param document the serialized document
      * @return the deserialized change event
      */
@@ -143,7 +152,7 @@ public class ChangeEvent<DocumentT> extends BaseChangeEvent<DocumentT> {
             checkContainsKey(Fields.OPERATION_TYPE_FIELD, document, "document");
             checkContainsKey(Fields.NS_FIELD, document, "document");
             checkContainsKey(Fields.DOCUMENT_KEY_FIELD, document, "document");
-        } catch (IllegalArgumentException exception){
+        } catch (IllegalArgumentException exception) {
             throw new AppException(ErrorCode.EVENT_DESERIALIZING, exception);
         }
 
