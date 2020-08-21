@@ -967,7 +967,7 @@ class MongoClientTest {
             this.updateOne(filter, updatedDocument).get()
             this.deleteOne(filter).get()
 
-            condition?.await()
+            condition.await()
         }
     }
 
@@ -1006,7 +1006,7 @@ class MongoClientTest {
             this.insertOne(type2).get()
             this.insertOne(type1).get()
 
-            condition?.await()
+            condition.await()
         }
     }
 
@@ -1046,7 +1046,7 @@ class MongoClientTest {
             this.insertOne(type2).get()
             this.insertOne(type1).get()
 
-            condition?.await()
+            condition.await()
         }
     }
 
@@ -1098,7 +1098,7 @@ class MongoClientTest {
             this.updateOne(filter2, doc2).get()
             this.updateOne(filter1, doc1).get()
 
-            condition?.await()
+            condition.await()
         }
     }
 
@@ -1150,7 +1150,7 @@ class MongoClientTest {
             this.updateOne(filter2, doc2).get()
             this.updateOne(filter1, doc1).get()
 
-            condition?.await()
+            condition.await()
         }
 
     }
@@ -1243,7 +1243,7 @@ class MongoClientTest {
 
             watcher.cancel()
 
-            condition?.await()
+            condition.await()
         }
     }
 
