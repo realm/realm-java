@@ -96,7 +96,7 @@ class OsJavaNetworkTransportTests {
                         }
                     """.trimIndent()
                 } else if (url.endsWith("/location")) {
-                    return OkHttpNetworkTransport.OkHttpResponse.httpResponse(200, mapOf(), """
+                    return OkHttpNetworkTransport.Response.httpResponse(200, mapOf(), """
                         { "deployment_model" : "GLOBAL",
                           "location": "US-VA", 
                           "hostname": "http://localhost:9090",
@@ -106,7 +106,7 @@ class OsJavaNetworkTransportTests {
                 } else {
                     fail("Unexpected request url: $url")
                 }
-                return OkHttpNetworkTransport.OkHttpResponse.httpResponse(200, successHeaders, result)
+                return OkHttpNetworkTransport.Response.httpResponse(200, successHeaders, result)
             }
 
             override fun sendStreamingRequest(request: Request): Response {
@@ -132,7 +132,7 @@ class OsJavaNetworkTransportTests {
                         "link": "http://localhost:9090/some_link"
                     }                
                     """.trimIndent()
-                return OkHttpNetworkTransport.OkHttpResponse.httpResponse(200, successHeaders, result)
+                return OkHttpNetworkTransport.Response.httpResponse(200, successHeaders, result)
             }
 
             override fun sendStreamingRequest(request: Request): Response {
@@ -156,7 +156,7 @@ class OsJavaNetworkTransportTests {
     fun requestFailWithHttpError() {
         app = TestApp(object: OsJavaNetworkTransport() {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
-                return OkHttpNetworkTransport.OkHttpResponse.httpResponse(500, mapOf(), "Boom!")
+                return OkHttpNetworkTransport.Response.httpResponse(500, mapOf(), "Boom!")
             }
 
             override fun sendStreamingRequest(request: Request): Response {
@@ -179,7 +179,7 @@ class OsJavaNetworkTransportTests {
     fun requestFailWithCustomError() {
         app = TestApp(object: OsJavaNetworkTransport() {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
-                return OkHttpNetworkTransport.OkHttpResponse.ioError("Boom!")
+                return OkHttpNetworkTransport.Response.ioError("Boom!")
             }
 
             override fun sendStreamingRequest(request: Request): Response {

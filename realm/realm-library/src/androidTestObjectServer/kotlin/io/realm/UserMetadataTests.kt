@@ -117,7 +117,7 @@ class UserMetadataTests {
                         }
                     """.trimIndent()
                 } else if (url.endsWith("/location")) {
-                    return OkHttpNetworkTransport.OkHttpResponse.httpResponse(200, mapOf(), """
+                    return OkHttpNetworkTransport.Response.httpResponse(200, mapOf(), """
                         { "deployment_model" : "GLOBAL",
                           "location": "US-VA", 
                           "hostname": "http://localhost:9090",
@@ -129,7 +129,7 @@ class UserMetadataTests {
                 } else {
                     fail("Unexpected request url: $url")
                 }
-                return OkHttpNetworkTransport.OkHttpResponse.httpResponse(200, mapOf(Pair("Content-Type", "application/json")), result)
+                return OkHttpNetworkTransport.Response.httpResponse(200, mapOf(Pair("Content-Type", "application/json")), result)
             }
 
             override fun sendStreamingRequest(request: Request): Response? {

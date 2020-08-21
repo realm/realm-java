@@ -64,7 +64,7 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
     }
 
     @Override
-    public Response sendRequest(String method, String url, long timeoutMs, Map<String, String> headers, String body) {
+    public OsJavaNetworkTransport.Response sendRequest(String method, String url, long timeoutMs, Map<String, String> headers, String body) {
         try {
             OkHttpClient client = getClient(timeoutMs);
 
@@ -79,23 +79,23 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
                 if (responseBody != null) {
                     result = responseBody.string();
                 }
-                return OkHttpResponse.httpResponse(response.code(), parseHeaders(response.headers()), result);
+                return Response.httpResponse(response.code(), parseHeaders(response.headers()), result);
             } catch (IOException ex) {
-                return OkHttpResponse.ioError(ex.toString());
+                return Response.ioError(ex.toString());
             } catch (Exception ex) {
-                return OkHttpResponse.unknownError(ex.toString());
+                return Response.unknownError(ex.toString());
             } finally {
                 if (response != null) {
                     response.close();
                 }
             }
         } catch (Exception e) {
-            return OkHttpResponse.unknownError(e.toString());
+            return Response.unknownError(e.toString());
         }
     }
 
     @Override
-    public Response sendStreamingRequest(Request request) throws IOException, AppException {
+    public OsJavaNetworkTransport.Response sendStreamingRequest(Request request) throws IOException, AppException {
         OkHttpClient client = getStreamClient();
 
         okhttp3.Request okRequest = makeRequest(request.getMethod(), request.getUrl(), request.getHeaders(), request.getBody());
@@ -107,7 +107,7 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
             throw new AppException(ErrorCode.fromNativeError(ErrorCode.Type.HTTP, response.code()), response.message());
         }
 
-        return OkHttpResponse.httpResponse(response.code(), parseHeaders(response.headers()), response.body().source());
+        return Response.httpResponse(response.code(), parseHeaders(response.headers()), response.body().source());
     }
 
     // Lazily creates the client if not already created
@@ -149,38 +149,38 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
         return osHeaders;
     }
 
-    public static class OkHttpResponse extends OsJavaNetworkTransport.Response {
+    public static class Response extends OsJavaNetworkTransport.Response {
         private BufferedSource bufferedSource;
         private volatile boolean closed;
 
-        public static Response unknownError(String stacktrace) {
-            return new OkHttpResponse(0, ERROR_UNKNOWN, new HashMap<>(), stacktrace);
+        public static OsJavaNetworkTransport.Response unknownError(String stacktrace) {
+            return new Response(0, ERROR_UNKNOWN, new HashMap<>(), stacktrace);
         }
 
-        public static Response ioError(String stackTrace) {
-            return new OkHttpResponse(0, ERROR_IO, new HashMap<>(), stackTrace);
+        public static OsJavaNetworkTransport.Response ioError(String stackTrace) {
+            return new Response(0, ERROR_IO, new HashMap<>(), stackTrace);
         }
 
-        public static Response interruptedError(String stackTrace) {
-            return new OkHttpResponse(0, ERROR_INTERRUPTED, new HashMap<>(), stackTrace);
+        public static OsJavaNetworkTransport.Response interruptedError(String stackTrace) {
+            return new Response(0, ERROR_INTERRUPTED, new HashMap<>(), stackTrace);
         }
 
-        public static Response httpResponse(int statusCode, Map<String, String> responseHeaders, String body) {
-            return new OkHttpResponse(statusCode, 0, responseHeaders, body);
+        public static OsJavaNetworkTransport.Response httpResponse(int statusCode, Map<String, String> responseHeaders, String body) {
+            return new Response(statusCode, 0, responseHeaders, body);
         }
 
-        private OkHttpResponse(int httpResponseCode, int customResponseCode, Map<String, String> headers, String body) {
+        private Response(int httpResponseCode, int customResponseCode, Map<String, String> headers, String body) {
             super(httpResponseCode, customResponseCode, headers, body);
         }
 
-        private OkHttpResponse(int httpResponseCode, Map<String, String> headers, BufferedSource bufferedSource) {
+        private Response(int httpResponseCode, Map<String, String> headers, BufferedSource bufferedSource) {
             super(httpResponseCode, 0, headers, "");
 
             this.bufferedSource = bufferedSource;
         }
 
-        public static Response httpResponse(int httpResponseCode, Map<String, String> headers, BufferedSource originalResponse) {
-            return new OkHttpResponse(httpResponseCode, headers, originalResponse);
+        public static OsJavaNetworkTransport.Response httpResponse(int httpResponseCode, Map<String, String> headers, BufferedSource originalResponse) {
+            return new Response(httpResponseCode, headers, originalResponse);
         }
 
         @Override
