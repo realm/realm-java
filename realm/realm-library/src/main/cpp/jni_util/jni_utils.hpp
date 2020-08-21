@@ -47,7 +47,7 @@ public:
     static void detach_current_thread();
     // Keep the given global reference until JNI_OnUnload is called.
     static void keep_global_ref(JavaGlobalRefByMove& ref);
-    // Transforms a string map into a string hashmap
+    // Transforms a string map into a Java String HashMap
     static jobject to_hash_map(JNIEnv* env, std::map<std::string, std::string> map);
 
 private:
