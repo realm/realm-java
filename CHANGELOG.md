@@ -9,6 +9,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 
 ### Enhancements
 * [RealmApp] Support for using `null` as a partition value.
+* [RealmApp] Improve errors exception messages from `SyncSession.downloadAllServerChanges()` an `SyncSession.uploadAllLocalChanges()`.
 
 ### Fixed
 * None.
@@ -19,7 +20,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * Realm Studio 10.0.0 and above is required to open Realms created by this version.
 
 ### Internal
-* None.
+* Updated to Object Store commit: 39e20006761e77014ceb19a2bd8f43018cc96f5a.
 
 
 ## 10.0.0-BETA.6 (2020-08-17)
