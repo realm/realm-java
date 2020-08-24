@@ -239,7 +239,7 @@ task createKotlinRootRedirectFile(type: Copy) {
 
 task uploadJavadoc {
     group = 'Release'
-    description = 'Upload the distribution package to S3'
+    description = 'Upload Java and Kotlin docs to S3'
     dependsOn javadoc
     dependsOn createLatestJavadocRedirectFile
     dependsOn createLatestKotlindocRedirectFile
