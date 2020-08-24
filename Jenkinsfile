@@ -175,7 +175,11 @@ try {
 def runBuild(abiFilter, instrumentationTestTarget) {
 
   stage('Build') {
-    sh "chmod +x gradlew && ./gradlew assemble ${abiFilter} --stacktrace && ./gradlew javadoc ${abiFilter} --stacktrace"
+    sh "chmod +x gradlew && ./gradlew assemble ${abiFilter} --stacktrace"
+  }
+
+  stage('JavaDoc') {
+    sh "chmod +x gradlew && ./gradlew javadoc ${abiFilter} --stacktrace"
   }
 
   stage('Tests') {
