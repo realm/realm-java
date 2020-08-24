@@ -1,7 +1,7 @@
 buildscript {
     def properties = new Properties()
     properties.load(new FileInputStream("${rootDir}/../dependencies.list"))
-
+    ext.kotlin_version = properties.get('KOTLIN')
     repositories {
         mavenLocal()
         google()

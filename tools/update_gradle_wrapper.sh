@@ -10,10 +10,15 @@ HERE=`pwd`
 
 cd "$(dirname $0)/.."
 
+GRADLE=`grep gradle dependencies.list | cut -d = -f2`
+echo "==> Update gradle to version: $GRADLE <=="
+echo
+read -n1 -r -p "Press any key to continue..." key
+
 for i in $(find $(pwd) -type f -name gradlew); do
     cd $(dirname $i)
     pwd
-    ./gradlew wrapper
+    ./gradlew wrapper --gradle-version=$GRADLE
 done
 
 cd $HERE
