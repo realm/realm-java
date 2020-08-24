@@ -4560,6 +4560,38 @@ public class RealmTests {
         }
     }
 
+    @Test
+    public void numberOfVersionsDecreasedOnClose() {
+        RealmConfiguration config = configFactory.createConfigurationBuilder()
+                .name("versions-test.realm")
+                .maxNumberOfActiveVersions(2)
+                .build();
+
+        // Read only instance
+        Realm realm = Realm.getInstance(config);
+
+        // Background write instances
+        for (int i = 0; i<5; i++) {
+            Thread t = new Thread() {
+                @Override
+                public void run() {
+                    Realm realm = Realm.getInstance(config);
+                    realm.executeTransaction(bgRealm -> {
+                    });
+                    realm.close();
+                }
+            };
+            t.start();
+            try {
+                t.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        realm.close();
+    }
+
+
     // Test for https://github.com/realm/realm-java/issues/6152
     @Test
     @RunTestInLooperThread
