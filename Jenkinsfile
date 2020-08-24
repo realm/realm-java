@@ -202,7 +202,7 @@ def runBuild(abiFilter, instrumentationTestTarget) {
     },
     'Static code analysis' : {
       try {
-        gradle('realm', "spotbugsMain ${abiFilter}") // FIXME Renable pmd and checkstyle
+        gradle('realm', "spotbugsMain ${abiFilter}")
       } finally {
         publishHTML(target: [
           allowMissing: false, 
@@ -210,16 +210,25 @@ def runBuild(abiFilter, instrumentationTestTarget) {
           keepAll: true, 
           reportDir: 'realm/realm-library/build/reports/spotbugs', 
           reportFiles: 'main.html', 
-          reportName: 'Spotbugs issues'
-          ])
-  //                  publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
-  //                  step([$class: 'CheckStylePublisher',
-  //                        canComputeNew: false,
-  //                        defaultEncoding: '',
-  //                        healthy: '',
-  //                        pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
-  //                        unHealthy: ''
-  //                  ])
+          reportName: 'Spotbugs report'
+        ])
+
+        publishHTML(target: [
+          allowMissing: false, 
+          alwaysLinkToLastBuild: false, 
+          keepAll: true, 
+          reportDir: 'realm/realm-library/build/reports/pmd', 
+          reportFiles: 'pmd.html', 
+          reportName: 'PMD report'
+        ])
+        
+        step([$class: 'CheckStylePublisher',
+              canComputeNew: false,
+              defaultEncoding: '',
+              healthy: '',
+              pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
+              unHealthy: ''
+        ])
       }
     },
     'Instrumentation' : {

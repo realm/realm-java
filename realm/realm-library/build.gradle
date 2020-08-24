@@ -7,7 +7,7 @@ apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'maven-publish'
 apply plugin: 'com.github.spotbugs-base'
-// apply plugin: 'pmd' FIXME Disabled PMD after upgrading Gradle Plugin. It resulted in a ton of false positives. Review those later.
+apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
@@ -306,7 +306,7 @@ spotbugs {
 // See https://spotbugs.readthedocs.io/en/latest/migration.html#findbugs-gradle-plugin
 task spotbugsMain(type: com.github.spotbugs.snom.SpotBugsTask) {
     dependsOn 'assemble'
-    group = "verification"
+    group = 'verification'
     classes = fileTree("build/intermediates/javac/")
 
     reports {
@@ -315,22 +315,23 @@ task spotbugsMain(type: com.github.spotbugs.snom.SpotBugsTask) {
     }
 }
 
-//task pmd(type: Pmd) {
-//    group = 'Verification'
-//
-//    source = fileTree('src/main/java')
-//    ruleSetFiles = files("${projectDir}/../config/pmd/ruleset.xml")
-//
-//    reports {
-//        xml.enabled = false
-//        html.enabled = true
-//    }
-//}
+task pmd(type: Pmd) {
+    group = 'verification'
+
+    source = fileTree('src/main/java')
+    ruleSetFiles = files("${projectDir}/../config/pmd/ruleset.xml")
+    ruleSets = []
+
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
 
 // Configure Checkstyle
 // Android sourceSets are not sourceSets, so we can't confgure this with the DSL.
 task checkstyle(type: Checkstyle) {
-    group = 'Verification'
+    group = 'verification'
 
     source 'src'
     include '*/java/**/*.java'
