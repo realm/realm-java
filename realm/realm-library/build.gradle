@@ -318,8 +318,9 @@ task spotbugsMain(type: com.github.spotbugs.snom.SpotBugsTask) {
 task pmd(type: Pmd) {
     group = 'verification'
 
-    source = fileTree('src/main/java')
+    source = fileTree('src/main/java') + fileTree('src/objectServer/java')
     ruleSetFiles = files("${projectDir}/../config/pmd/ruleset.xml")
+
     ruleSets = []
 
     reports {
@@ -332,27 +333,20 @@ task pmd(type: Pmd) {
 // Android sourceSets are not sourceSets, so we can't confgure this with the DSL.
 task checkstyle(type: Checkstyle) {
     group = 'verification'
+    configFile file("${projectDir}/../config/checkstyle/checkstyle.xml")
 
-    source 'src'
-    include '*/java/**/*.java'
-    // Ignore tests for now.
-    exclude '*Test*/**'
+    source fileTree('src/main/java') + fileTree('src/objectServer/java')
+    include '**/*.java'
+    exclude '**/gen/**'
 
     // empty classpath
     classpath = files()
+
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
 }
-
-checkstyle {
-    toolVersion ="7.6"
-
-    configFile = file("${projectDir}/../config/checkstyle/checkstyle.xml")
-
-    def configProps = ['proj.module.dir': projectDir.absolutePath]
-    configProperties configProps
-
-    ignoreFailures = true
-}
-check.dependsOn tasks.checkstyle
 
 install {
     repositories.mavenInstaller {

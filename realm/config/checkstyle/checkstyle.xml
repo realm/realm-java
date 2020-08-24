@@ -8,7 +8,7 @@
     <property name="charset" value="UTF-8"/>
     <!-- Files to ignore -->
     <module name="SuppressionFilter">
-        <property name="file" value="${proj.module.dir}/../config/checkstyle/checkstyle-suppressions.xml"/>
+        <property name="file" value="${config_loc}/checkstyle-suppressions.xml"/>
     </module>
 
     <module name="NewlineAtEndOfFile">
@@ -38,7 +38,6 @@
     </module>
 
     <module name="TreeWalker">
-        <property name="cacheFile" value="bin/cachefile"/>
         <!-- Checks for Javadoc comments.                     -->
         <!-- See http://checkstyle.sf.net/config_javadoc.html -->
         <!--module name="JavadocMethod"/-->
