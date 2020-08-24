@@ -1,0 +1,8 @@
+<!DOCTYPE HTML>
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content="0; url=${url}">
+<script>
+  window.location.href = "${url}"
+</script>
+<title>${title}</title>
+If you are not redirected automatically, follow the <a href="${url}">link to the documentation.</a>
