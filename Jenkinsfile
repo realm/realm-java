@@ -202,7 +202,7 @@ def runBuild(abiFilter, instrumentationTestTarget) {
     },
     'Static code analysis' : {
       try {
-        gradle('realm', "spotbugsMain ${abiFilter}")
+        gradle('realm', "spotbugsMain pmd ${abiFilter}")
       } finally {
         publishHTML(target: [
           allowMissing: false, 
