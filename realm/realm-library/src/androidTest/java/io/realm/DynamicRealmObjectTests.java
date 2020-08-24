@@ -1629,4 +1629,23 @@ public class DynamicRealmObjectTests {
         thread.start();
         TestHelper.awaitOrFail(threadFinished);
     }
+
+    @Test
+    public void getNullableBoolean() {
+        realm.executeTransaction(realm -> {
+            AllJavaTypes object = realm.createObject(AllJavaTypes.class, 1000L);
+            object.setFieldBoolean(null);
+
+            assertNull(object.isFieldBoolean());
+        });
+        realm.close();
+
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.configuration);
+        dynamicRealm.refresh();
+        DynamicRealmObject object = dynamicRealm.where("AllJavaTypes").isNull("fieldBoolean").findFirst();
+
+        assertNull(object.get("fieldBoolean"));
+
+        dynamicRealm.close();
+    }
 }

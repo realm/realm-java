@@ -83,7 +83,7 @@ public class AllJavaTypes extends RealmObject {
     private byte fieldByte;
     private float fieldFloat;
     private double fieldDouble;
-    private boolean fieldBoolean;
+    private Boolean fieldBoolean;
     private Date fieldDate;
     private byte[] fieldBinary;
     private AllJavaTypes fieldObject;
@@ -186,11 +186,11 @@ public class AllJavaTypes extends RealmObject {
         this.fieldDouble = fieldDouble;
     }
 
-    public boolean isFieldBoolean() {
+    public Boolean isFieldBoolean() {
         return fieldBoolean;
     }
 
-    public void setFieldBoolean(boolean fieldBoolean) {
+    public void setFieldBoolean(Boolean fieldBoolean) {
         this.fieldBoolean = fieldBoolean;
     }
 
