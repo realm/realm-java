@@ -194,7 +194,7 @@ class CredentialsTests {
                 Credentials.IdentityProvider.EMAIL_PASSWORD -> {
                     val email = TestHelper.getRandomEmail()
                     val password = "123456"
-                    app.emailPasswordAuth.registerUser(email, password)
+                    app.emailPassword.registerUser(email, password)
                     val user = app.login(Credentials.emailPassword(email, password))
                     assertNotNull(user)
                 }

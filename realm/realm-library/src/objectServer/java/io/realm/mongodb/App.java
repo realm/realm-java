@@ -425,7 +425,7 @@ public class App {
      *
      * @return wrapper for interacting with the {@link Credentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
      */
-    public EmailPasswordAuth getEmailPasswordAuth() {
+    public EmailPasswordAuth getEmailPassword() {
         return emailAuthProvider;
     }
 

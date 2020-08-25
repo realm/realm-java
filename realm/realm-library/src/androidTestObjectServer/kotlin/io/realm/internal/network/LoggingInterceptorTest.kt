@@ -59,7 +59,7 @@ class LoggingInterceptorTest {
 
         val email = TestHelper.getRandomEmail()
         val password = "123456"
-        app.emailPasswordAuth.registerUser(email, password)
+        app.emailPassword.registerUser(email, password)
         assertMessageExists(""""email":"$email"""", """"password":"$password"""")
 
         app.login(Credentials.emailPassword(email, password))
@@ -75,7 +75,7 @@ class LoggingInterceptorTest {
 
         val email = TestHelper.getRandomEmail()
         val password = "123456"
-        app.emailPasswordAuth.registerUser(email, password)
+        app.emailPassword.registerUser(email, password)
         assertMessageExists(""""email":"***"""", """"password":"***"""")
 
         app.login(Credentials.emailPassword(email, password))

@@ -576,7 +576,7 @@ class SyncSessionTests {
     @Ignore("Does not terminate")
     fun downloadChangesWhenRealmOutOfScope() {
         val uniqueName = UUID.randomUUID().toString()
-        app.emailPasswordAuth.registerUser(uniqueName, "password")
+        app.emailPassword.registerUser(uniqueName, "password")
         val config1 = configFactory
                 .createSyncConfigurationBuilder(user)
                 .modules(SyncStringOnlyModule())

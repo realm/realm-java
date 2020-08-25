@@ -173,7 +173,7 @@ class UserTests {
 
         val email = TestHelper.getRandomEmail()
         val password = "123456"
-        app.emailPasswordAuth.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
+        app.emailPassword.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
         var linkedUser: User = anonUser.linkCredentials(Credentials.emailPassword(email, password))
 
         assertTrue(anonUser === linkedUser)
@@ -183,7 +183,7 @@ class UserTests {
         // Validate that we cannot link a second set of credentials
         val otherEmail = TestHelper.getRandomEmail()
         val otherPassword = "123456"
-        app.emailPasswordAuth.registerUser(otherEmail, otherPassword)
+        app.emailPassword.registerUser(otherEmail, otherPassword)
 
         val credentials = Credentials.emailPassword(otherEmail, otherPassword)
 
@@ -259,7 +259,7 @@ class UserTests {
         assertEquals(1, anonUser.identities.size)
         val email = TestHelper.getRandomEmail()
         val password = "123456"
-        app.emailPasswordAuth.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
+        app.emailPassword.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
 
         anonUser.linkCredentialsAsync(Credentials.emailPassword(email, password)) { result ->
             val linkedUser: User = result.orThrow
