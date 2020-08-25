@@ -431,16 +431,7 @@ public class User {
         }.start();
     }
 
-    /**
-     * Removes a users credentials from this device. If the user was currently logged in, they
-     * will be logged out as part of the process. This is only a local change and does not
-     * affect the user state on the server.
-     *
-     * @return user that was removed.
-     * @throws AppException if called from the UI thread or if the user was logged in, but
-     *                      could not be logged out.
-     */
-    public User remove() throws AppException {
+    User remove() throws AppException {
         boolean loggedIn = isLoggedIn();
         AtomicReference<User> success = new AtomicReference<>(null);
         AtomicReference<AppException> error = new AtomicReference<>(null);
@@ -488,7 +479,7 @@ public class User {
      * Logging out anonymous users will remove them immediately instead of marking them as
      * {@link User.State#LOGGED_OUT}. All other users will be marked as {@link User.State#LOGGED_OUT}
      * and will still be returned by {@link App#allUsers()}. They can be removed completely by calling
-     * {@link #remove()}.
+     * {@link App#removeUser(User} ()}.
      *
      * @throws AppException if an error occurred while trying to log the user out of the Realm
      *                      App.
@@ -515,7 +506,7 @@ public class User {
      * Logging out anonymous users will remove them immediately instead of marking them as
      * {@link User.State#LOGGED_OUT}. All other users will be marked as {@link User.State#LOGGED_OUT}
      * and will still be returned by {@link App#allUsers()}. They can be removed completely by calling
-     * {@link #remove()}.
+     * {@link App#removeUser(User)} ()}.
      *
      * @param callback callback when logging out has completed or failed. The callback will always
      *                 happen on the same thread as this method is called on.

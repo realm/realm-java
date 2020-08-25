@@ -331,6 +331,20 @@ public class App {
     }
 
     /**
+     * Removes a users credentials from this device. If the user was currently logged in, they
+     * will be logged out as part of the process. This is only a local change and does not
+     * affect the user state on the server.
+     *
+     * @param user to remove
+     * @return user that was removed.
+     * @throws AppException if called from the UI thread or if the user was logged in, but
+     *                      could not be logged out.
+     */
+    public User removeUser(User user) throws AppException {
+        return user.remove();
+    }
+
+    /**
      * Logs in as a user with the given credentials associated with an authentication provider.
      * <p>
      * The user who logs in becomes the current user. Other App functionality acts on behalf of

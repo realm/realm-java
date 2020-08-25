@@ -77,7 +77,7 @@ class UserTests {
         assertEquals(User.State.LOGGED_IN, emailUser.state)
         emailUser.logOut()
         assertEquals(User.State.LOGGED_OUT, emailUser.state)
-        emailUser.remove()
+        app.removeUser(emailUser)
         assertEquals(User.State.REMOVED, emailUser.state)
     }
 
@@ -299,7 +299,7 @@ class UserTests {
         val user1 = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         assertEquals(user1, app.currentUser())
         assertEquals(1, app.allUsers().size)
-        user1.remove()
+        app.removeUser(user1)
         assertEquals(User.State.REMOVED, user1.state)
         assertNull(app.currentUser())
         assertEquals(0, app.allUsers().size)
@@ -309,7 +309,7 @@ class UserTests {
         user2.logOut()
         assertNull(app.currentUser())
         assertEquals(1, app.allUsers().size)
-        user2.remove()
+        app.removeUser(user2)
         assertEquals(User.State.REMOVED, user2.state)
         assertEquals(0, app.allUsers().size)
     }
