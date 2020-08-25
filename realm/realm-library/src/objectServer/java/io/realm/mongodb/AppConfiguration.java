@@ -70,14 +70,14 @@ public class AppConfiguration {
      *
      * @see Builder#baseUrl(String)
      */
-    public final static String DEFAULT_BASE_URL = "https://realm.mongodb.com";
+    public static final String DEFAULT_BASE_URL = "https://realm.mongodb.com";
 
     /**
      * The default request timeout for network requests towards MongoDB Realm in seconds.
      *
      * @see Builder#requestTimeout(long, TimeUnit)
      */
-    public final static long DEFAULT_REQUEST_TIMEOUT = 60;
+    public static final long DEFAULT_REQUEST_TIMEOUT = 60;
 
     /**
      * The default header name used to carry authorization data when making network requests

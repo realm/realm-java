@@ -34,7 +34,7 @@ import io.realm.internal.fields.FieldDescriptor;
 class SchemaConnector implements FieldDescriptor.SchemaProxy {
     private final RealmSchema schema;
 
-    public SchemaConnector(RealmSchema schema) {
+    SchemaConnector(RealmSchema schema) {
         this.schema = schema;
     }
 

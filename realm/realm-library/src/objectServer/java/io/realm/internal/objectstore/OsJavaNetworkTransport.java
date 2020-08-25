@@ -94,7 +94,7 @@ public abstract class OsJavaNetworkTransport {
         customHeaders.clear();
     }
 
-    public static abstract class Response {
+    public abstract static class Response {
         private final int httpResponseCode;
         private final int customResponseCode;
         private final Map<String, String> headers;
@@ -204,7 +204,7 @@ public abstract class OsJavaNetworkTransport {
      */
     // Abstract because these methods needs to be called from JNI and we cannot look up interface methods.
     @Keep
-    public static abstract class NetworkTransportJNIResultCallback {
+    public abstract static class NetworkTransportJNIResultCallback {
         public void onSuccess(Object result) {}
         public void onError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {}
     }

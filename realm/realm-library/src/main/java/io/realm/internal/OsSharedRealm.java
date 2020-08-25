@@ -154,7 +154,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     // SharedRealm which means the SharedRealm won't be closed automatically if there is any exception throws during
     // construction. GC will clear them later, but that would be too late. So we are tracking the temp OsSharedRealm
     // during the construction stage and manually close them if exception throws.
-    private final static List<OsSharedRealm> sharedRealmsUnderConstruction = new CopyOnWriteArrayList<OsSharedRealm>();
+    private static final List<OsSharedRealm> sharedRealmsUnderConstruction = new CopyOnWriteArrayList<OsSharedRealm>();
     private final List<OsSharedRealm> tempSharedRealmsForCallback = new ArrayList<OsSharedRealm>();
 
     private final List<WeakReference<PendingRow>> pendingRows = new CopyOnWriteArrayList<>();
@@ -172,7 +172,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
             this.nativePtr = nativeGetSharedRealm(osRealmConfig.getNativePtr(), version.version, version.index, realmNotifier);
         } catch (Throwable t) {
             // The SharedRealm instances have to be closed before throw.
-            for (OsSharedRealm sharedRealm: tempSharedRealmsForCallback) {
+            for (OsSharedRealm sharedRealm : tempSharedRealmsForCallback) {
                 if (!sharedRealm.isClosed()) {
                     sharedRealm.close();
                 }

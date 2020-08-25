@@ -26,7 +26,7 @@ import io.realm.internal.objectstore.OsMongoClient;
  * The remote MongoClient used for working with data in MongoDB remotely via Realm.
  */
 @Beta
-abstract public class MongoClient {
+public abstract class MongoClient {
 
     private final OsMongoClient osMongoClient;
     private final CodecRegistry codecRegistry;
