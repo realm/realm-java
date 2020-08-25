@@ -71,8 +71,8 @@ try {
             //  in Copenhagen being too slow. So the upload times out.
             buildEnv = buildDockerEnv("ci/realm-java:v10", push: currentBranch == 'v10-do-not-cache')
             def props = readProperties file: 'dependencies.list'
-            echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER_VERSION}"
-            def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER_VERSION}")
+            echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER}"
+            def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER}")
             docker.withRegistry('https://docker.pkg.github.com', 'github-packages-token') {
               mdbRealmImage.pull()
             }
@@ -175,7 +175,11 @@ try {
 def runBuild(abiFilter, instrumentationTestTarget) {
 
   stage('Build') {
-    sh "chmod +x gradlew && ./gradlew assemble javadoc ${abiFilter} --stacktrace"
+    sh "chmod +x gradlew && ./gradlew assemble ${abiFilter} --stacktrace"
+  }
+
+  stage('JavaDoc') {
+    sh "chmod +x gradlew && ./gradlew javadoc ${abiFilter} --stacktrace"
   }
 
   stage('Tests') {
@@ -198,17 +202,34 @@ def runBuild(abiFilter, instrumentationTestTarget) {
     },
     'Static code analysis' : {
       try {
-        gradle('realm', "findbugs ${abiFilter}") // FIXME Renable pmd and checkstyle
+        gradle('realm', "spotbugsMain pmd checkstyle ${abiFilter}")
       } finally {
-        publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
-  //                  publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
-  //                  step([$class: 'CheckStylePublisher',
-  //                        canComputeNew: false,
-  //                        defaultEncoding: '',
-  //                        healthy: '',
-  //                        pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
-  //                        unHealthy: ''
-  //                  ])
+        publishHTML(target: [
+          allowMissing: false, 
+          alwaysLinkToLastBuild: false, 
+          keepAll: true, 
+          reportDir: 'realm/realm-library/build/reports/spotbugs', 
+          reportFiles: 'main.html', 
+          reportName: 'Spotbugs report'
+        ])
+
+        publishHTML(target: [
+          allowMissing: false, 
+          alwaysLinkToLastBuild: false, 
+          keepAll: true, 
+          reportDir: 'realm/realm-library/build/reports/pmd', 
+          reportFiles: 'pmd.html', 
+          reportName: 'PMD report'
+        ])
+        
+        publishHTML(target: [
+          allowMissing: false, 
+          alwaysLinkToLastBuild: false, 
+          keepAll: true, 
+          reportDir: 'realm/realm-library/build/reports/checkstyle', 
+          reportFiles: 'checkstyle.html', 
+          reportName: 'Checkstyle report'
+        ])
       }
     },
     'Instrumentation' : {

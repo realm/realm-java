@@ -7,6 +7,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.mongodb.log.obfuscator.HttpLogObfuscator;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.mongodb.AppException;
 import io.realm.mongodb.ErrorCode;
@@ -63,6 +65,8 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
         return builder.build();
     }
 
+
+    @SuppressFBWarnings("REC_CATCH_EXCEPTION")
     @Override
     public OsJavaNetworkTransport.Response sendRequest(String method, String url, long timeoutMs, Map<String, String> headers, String body) {
         try {

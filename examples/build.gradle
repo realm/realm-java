@@ -3,6 +3,7 @@ projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
 project.ext.sdkVersion = 29
 project.ext.minSdkVersion = 16
 project.ext.buildTools = projectDependencies.get("ANDROID_BUILD_TOOLS")
+project.ext.kotlinVersion = projectDependencies.get('KOTLIN')
 
 // Don't cache SNAPSHOT (changing) dependencies.
 configurations.all {

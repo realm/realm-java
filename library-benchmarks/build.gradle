@@ -1,8 +1,7 @@
 buildscript {
-    ext.kotlin_version = '1.3.50'
     def properties = new Properties()
     properties.load(new FileInputStream("${rootDir}/../dependencies.list"))
-
+    ext.kotlin_version = properties.get('KOTLIN')
     repositories {
         mavenLocal()
         google()
@@ -12,7 +11,7 @@ buildscript {
         classpath "androidx.benchmark:benchmark-gradle-plugin:1.0.0-rc01"
         classpath "com.android.tools.build:gradle:${properties.get("GRADLE_BUILD_TOOLS")}"
         classpath "io.realm:realm-gradle-plugin:${file("${rootDir}/../version.txt").text.trim()}"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${properties.get("KOTLIN")}"
     }
 }
 
