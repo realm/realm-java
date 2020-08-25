@@ -19,7 +19,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
 import io.realm.mongodb.*
-import io.realm.mongodb.auth.UserApiKey
+import io.realm.mongodb.auth.ApiKey
 import org.bson.Document
 import org.junit.After
 import org.junit.Assert.*
@@ -186,7 +186,7 @@ class CredentialsTests {
                 Credentials.IdentityProvider.API_KEY -> {
                     // Log in, create an API key, log out, log in with the key, compare users
                     val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-                    val key: UserApiKey = user.apiKeyAuth.createApiKey("my-key");
+                    val key: ApiKey = user.apiKeys.create("my-key");
                     user.logOut()
                     val apiKeyUser = app.login(Credentials.apiKey(key.value!!))
                     assertEquals(user.id, apiKeyUser.id)

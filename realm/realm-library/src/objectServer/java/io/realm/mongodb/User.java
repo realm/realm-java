@@ -529,7 +529,7 @@ public class User {
      * @return wrapper for managing API keys controlled by the current user.
      * @throws IllegalStateException if no user is currently logged in.
      */
-    public synchronized ApiKeyAuth getApiKeyAuth() {
+    public synchronized ApiKeyAuth getApiKeys() {
         checkLoggedIn();
         if (apiKeyAuthProvider == null) {
             apiKeyAuthProvider = new ApiKeyAuthImpl(this);

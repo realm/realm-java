@@ -84,19 +84,19 @@ public abstract class ApiKeyAuth {
      * <p>
      * The value of the key must be persisted at this time as this is the only time it is visible.
      * <p>
-     * The key is enabled when created. It can be disabled by calling {@link #disableApiKey(ObjectId)}.
+     * The key is enabled when created. It can be disabled by calling {@link #disable(ObjectId)}.
      *
      * @param name the name of the key
      * @throws AppException if the server failed to create the API key.
      * @return the new API key for the user.
      */
-    public UserApiKey createApiKey(String name) throws AppException {
+    public ApiKey create(String name) throws AppException {
         Util.checkEmpty(name, "name");
-        AtomicReference<UserApiKey> success = new AtomicReference<>(null);
+        AtomicReference<ApiKey> success = new AtomicReference<>(null);
         AtomicReference<AppException> error = new AtomicReference<>(null);
-        OsJNIResultCallback<UserApiKey> callback = new OsJNIResultCallback<UserApiKey>(success, error) {
+        OsJNIResultCallback<ApiKey> callback = new OsJNIResultCallback<ApiKey>(success, error) {
             @Override
-            protected UserApiKey mapSuccess(Object result) {
+            protected ApiKey mapSuccess(Object result) {
                 return createKeyFromNative((Object[]) result);
             }
         };
@@ -109,19 +109,19 @@ public abstract class ApiKeyAuth {
      * <p>
      * The value of the key must be persisted at this time as this is the only time it is visible.
      * <p>
-     * The key is enabled when created. It can be disabled by calling {@link #disableApiKey(ObjectId)}.
+     * The key is enabled when created. It can be disabled by calling {@link #disable(ObjectId)}.
      *
      * @param name the name of the key
      * @param callback callback when key creation has completed or failed. The callback will always
      * happen on the same thread as this method is called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask createApiKeyAsync(String name, App.Callback<UserApiKey> callback) {
+    public RealmAsyncTask createAsync(String name, App.Callback<ApiKey> callback) {
         Util.checkLooperThread("Asynchronous creation of api keys are only possible from looper threads.");
-        return new Request<UserApiKey>(NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<ApiKey>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public UserApiKey run() throws AppException {
-                return createApiKey(name);
+            public ApiKey run() throws AppException {
+                return create(name);
             }
         }.start();
     }
@@ -132,13 +132,13 @@ public abstract class ApiKeyAuth {
      * @param id the id of the key to fetch.
      * @throws AppException if the server failed to fetch the API key.
      */
-    public UserApiKey fetchApiKey(ObjectId id) throws AppException {
+    public ApiKey fetch(ObjectId id) throws AppException {
         Util.checkNull(id, "id");
-        AtomicReference<UserApiKey> success = new AtomicReference<>(null);
+        AtomicReference<ApiKey> success = new AtomicReference<>(null);
         AtomicReference<AppException> error = new AtomicReference<>(null);
-        call(TYPE_FETCH_SINGLE, id.toHexString(), new OsJNIResultCallback<UserApiKey>(success, error) {
+        call(TYPE_FETCH_SINGLE, id.toHexString(), new OsJNIResultCallback<ApiKey>(success, error) {
             @Override
-            protected UserApiKey mapSuccess(Object result) {
+            protected ApiKey mapSuccess(Object result) {
                 return createKeyFromNative((Object[]) result);
             }
         });
@@ -153,12 +153,12 @@ public abstract class ApiKeyAuth {
      * will always happen on the same thread as this method was called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask fetchApiKeyAsync(ObjectId id, App.Callback<UserApiKey> callback) {
+    public RealmAsyncTask fetchAsync(ObjectId id, App.Callback<ApiKey> callback) {
         Util.checkLooperThread("Asynchronous fetching an api key is only possible from looper threads.");
-        return new Request<UserApiKey>(NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<ApiKey>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public UserApiKey run() throws AppException {
-                return fetchApiKey(id);
+            public ApiKey run() throws AppException {
+                return fetch(id);
             }
         }.start();
     }
@@ -168,14 +168,14 @@ public abstract class ApiKeyAuth {
      *
      * @throws AppException if the server failed to fetch the API keys.
      */
-    public List<UserApiKey> fetchAllApiKeys() throws AppException {
-        AtomicReference<List<UserApiKey>> success = new AtomicReference<>(null);
+    public List<ApiKey> fetchAll() throws AppException {
+        AtomicReference<List<ApiKey>> success = new AtomicReference<>(null);
         AtomicReference<AppException> error = new AtomicReference<>(null);
-        call(TYPE_FETCH_ALL, null, new OsJNIResultCallback<List<UserApiKey>>(success, error) {
+        call(TYPE_FETCH_ALL, null, new OsJNIResultCallback<List<ApiKey>>(success, error) {
             @Override
-            protected List<UserApiKey> mapSuccess(Object result) {
+            protected List<ApiKey> mapSuccess(Object result) {
                 Object[] keyData = (Object[]) result;
-                List<UserApiKey> list = new ArrayList<>();
+                List<ApiKey> list = new ArrayList<>();
                 for (int i = 0; i < keyData.length; i++) {
                     list.add(createKeyFromNative((Object[]) keyData[i]));
                 }
@@ -193,12 +193,12 @@ public abstract class ApiKeyAuth {
      * will always happen on the same thread as this method was called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask fetchAllApiKeys(App.Callback<List<UserApiKey>> callback) {
+    public RealmAsyncTask fetchAll(App.Callback<List<ApiKey>> callback) {
         Util.checkLooperThread("Asynchronous fetching an api key is only possible from looper threads.");
-        return new Request<List<UserApiKey>>(NETWORK_POOL_EXECUTOR, callback) {
+        return new Request<List<ApiKey>>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
-            public List<UserApiKey> run() throws AppException {
-                return fetchAllApiKeys();
+            public List<ApiKey> run() throws AppException {
+                return fetchAll();
             }
         }.start();
     }
@@ -209,7 +209,7 @@ public abstract class ApiKeyAuth {
      * @param id the id of the key to delete.
      * @throws AppException if the server failed to delete the API key.
      */
-    public void deleteApiKey(ObjectId id) throws AppException {
+    public void delete(ObjectId id) throws AppException {
         Util.checkNull(id, "id");
         AtomicReference<AppException> error = new AtomicReference<>(null);
         call(TYPE_DELETE, id.toHexString(), new OsJNIVoidResultCallback(error));
@@ -224,12 +224,12 @@ public abstract class ApiKeyAuth {
      * will always happen on the same thread as this method was called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask deleteApiKeyAsync(ObjectId id, App.Callback<Void> callback) {
+    public RealmAsyncTask deleteAsync(ObjectId id, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous deleting an api key is only possible from looper threads.");
         return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws AppException {
-                deleteApiKey(id);
+                delete(id);
                 return null;
             }
         }.start();
@@ -241,7 +241,7 @@ public abstract class ApiKeyAuth {
      * @param id the id of the key to disable.
      * @throws AppException if the server failed to disable the API key.
      */
-    public void disableApiKey(ObjectId id) throws AppException {
+    public void disable(ObjectId id) throws AppException {
         Util.checkNull(id, "id");
         AtomicReference<AppException> error = new AtomicReference<>(null);
         call(TYPE_DISABLE, id.toHexString(), new OsJNIVoidResultCallback(error));
@@ -256,12 +256,12 @@ public abstract class ApiKeyAuth {
      * will always happen on the same thread as this method was called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask disableApiKeyAsync(ObjectId id, App.Callback<Void> callback) {
+    public RealmAsyncTask disableAsync(ObjectId id, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous disabling an api key is only possible from looper threads.");
         return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws AppException {
-                disableApiKey(id);
+                disable(id);
                 return null;
             }
         }.start();
@@ -273,7 +273,7 @@ public abstract class ApiKeyAuth {
      * @param id the id of the key to enable.
      * @throws AppException if the server failed to enable the API key.
      */
-    public void enableApiKey(ObjectId id) throws AppException {
+    public void enable(ObjectId id) throws AppException {
         Util.checkNull(id, "id");
         AtomicReference<AppException> error = new AtomicReference<>(null);
         call(TYPE_ENABLE, id.toHexString(), new OsJNIVoidResultCallback(error));
@@ -288,19 +288,19 @@ public abstract class ApiKeyAuth {
      * will always happen on the same thread as this method was called on.
      * @throws IllegalStateException if called from a non-looper thread.
      */
-    public RealmAsyncTask enableApiKeyAsync(ObjectId id, App.Callback<Void> callback) {
+    public RealmAsyncTask enableAsync(ObjectId id, App.Callback<Void> callback) {
         Util.checkLooperThread("Asynchronous enabling an api key is only possible from looper threads.");
         return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
             public Void run() throws AppException {
-                enableApiKey(id);
+                enable(id);
                 return null;
             }
         }.start();
     }
 
-    private UserApiKey createKeyFromNative(Object[] keyData) {
-        return new UserApiKey(new ObjectId((String) keyData[0]),
+    private ApiKey createKeyFromNative(Object[] keyData) {
+        return new ApiKey(new ObjectId((String) keyData[0]),
                 (String) keyData[1],
                 (String) keyData[2],
                 !(Boolean) keyData[3]); // Server returns disabled state instead of enabled

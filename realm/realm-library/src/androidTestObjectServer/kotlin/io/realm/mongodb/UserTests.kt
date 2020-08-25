@@ -20,7 +20,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.admin.ServerAdmin
 import io.realm.mongodb.auth.ApiKeyAuth
-import io.realm.mongodb.auth.UserApiKey
+import io.realm.mongodb.auth.ApiKey
 import io.realm.rule.BlockingLooperThread
 import org.bson.Document
 import org.junit.After
@@ -196,7 +196,7 @@ class UserTests {
     fun linkUser_userApiKey() {
         // Generate API key
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        val apiKey: UserApiKey = user.apiKeyAuth.createApiKey("my-key");
+        val apiKey: ApiKey = user.apiKeys.create("my-key");
         user.logOut()
 
         anonUser = app.login(Credentials.anonymous())
@@ -357,13 +357,13 @@ class UserTests {
     @Test
     fun getApiKeyAuthProvider() {
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        val provider1: ApiKeyAuth = user.apiKeyAuth
+        val provider1: ApiKeyAuth = user.apiKeys
         assertEquals(user, provider1.user)
 
         user.logOut()
 
         try {
-            user.apiKeyAuth
+            user.apiKeys
             fail()
         } catch (ex: IllegalStateException) {
         }
