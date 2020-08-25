@@ -502,5 +502,13 @@ class SessionTests {
     fun getOrCreateSession() {
         assertNotNull(app.sync.getOrCreateSession(configuration))
     }
+
+    @Test
+    fun getAllSessions(){
+        val sessions = app.sync.allSessions
+
+        assertNotNull(sessions)
+        assertNotEquals(0, sessions.size)
+    }
     
 }
