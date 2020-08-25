@@ -297,7 +297,6 @@ public class AppConfiguration {
     private static Map<String, RegexPatternObfuscator> getLoginObfuscators() {
         final HashMap<String, RegexPatternObfuscator> obfuscators = new HashMap<>();
         obfuscators.put(Credentials.Provider.API_KEY.getId(), ApiKeyObfuscator.obfuscator());
-        obfuscators.put(Credentials.Provider.SERVER_API_KEY.getId(), ApiKeyObfuscator.obfuscator());
         obfuscators.put(Credentials.Provider.APPLE.getId(), TokenObfuscator.obfuscator());
         obfuscators.put(Credentials.Provider.CUSTOM_FUNCTION.getId(), CustomFunctionObfuscator.obfuscator());
         obfuscators.put(Credentials.Provider.EMAIL_PASSWORD.getId(), EmailPasswordObfuscator.obfuscator());
