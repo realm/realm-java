@@ -26,11 +26,10 @@ import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
-import io.realm.mongodb.App
-import io.realm.mongodb.Credentials
+import io.realm.mongodb.*
 import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
-import io.realm.mongodb.User
-import io.realm.mongodb.close
+import io.realm.util.assertFailsWithErrorCode
+import org.bson.BsonNull
 import org.junit.*
 import org.junit.runner.RunWith
 import java.io.File
@@ -191,6 +190,19 @@ class SyncedRealmTests {
             assertNotNull(realm.syncSession)
             assertEquals(SyncSession.State.ACTIVE, realm.syncSession.state)
             assertEquals(user, realm.syncSession.user)
+        }
+    }
+
+    @Test
+    fun nullPartition() {
+        val config = configFactory.createSyncConfigurationBuilder(createNewUser(), BsonNull()).build()
+        assertTrue(config.path.endsWith("null.realm"))
+        Realm.getInstance(config).use { realm ->
+            // FIXME: This currently fails because the server does not yet support the Null partition
+            //  Remove the catch once it is supported, after which uploading changes should work.
+            assertFailsWithErrorCode(ErrorCode.ILLEGAL_REALM_PATH) {
+                realm.syncSession.uploadAllLocalChanges() // Ensures that we can actually connect
+            }
         }
     }
 

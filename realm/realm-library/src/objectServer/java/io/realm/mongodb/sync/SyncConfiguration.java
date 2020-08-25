@@ -20,6 +20,7 @@ import android.content.Context;
 
 import org.bson.BsonInt32;
 import org.bson.BsonInt64;
+import org.bson.BsonNull;
 import org.bson.BsonObjectId;
 import org.bson.BsonString;
 import org.bson.BsonValue;
@@ -197,7 +198,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * @return the default configuration for the given user and partition value.
      */
     @Beta
-    public static SyncConfiguration defaultConfig(User user, String partitionValue) {
+    public static SyncConfiguration defaultConfig(User user, @Nullable String partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
@@ -209,7 +210,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * @return the default configuration for the given user and partition value.
      */
     @Beta
-    public static SyncConfiguration defaultConfig(User user, long partitionValue) {
+    public static SyncConfiguration defaultConfig(User user, @Nullable Long partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
@@ -221,7 +222,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * @return the default configuration for the given user and partition value.
      */
     @Beta
-    public static SyncConfiguration defaultConfig(User user, int partitionValue) {
+    public static SyncConfiguration defaultConfig(User user, @Nullable Integer partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
@@ -233,7 +234,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * @return the default configuration for the given user and partition value.
      */
     @Beta
-    public static SyncConfiguration defaultConfig(User user, ObjectId partitionValue) {
+    public static SyncConfiguration defaultConfig(User user, @Nullable ObjectId partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
@@ -471,8 +472,8 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
          */
-        public Builder(User user, String partitionValue) {
-            this(user, new BsonString(partitionValue));
+        public Builder(User user, @Nullable String partitionValue) {
+            this(user, (partitionValue == null? new BsonNull() : new BsonString(partitionValue)));
         }
 
         /**
@@ -482,8 +483,8 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
          */
-        public Builder(User user, ObjectId partitionValue) {
-            this(user, new BsonObjectId(partitionValue));
+        public Builder(User user, @Nullable ObjectId partitionValue) {
+            this(user, (partitionValue == null? new BsonNull() : new BsonObjectId(partitionValue)));
         }
 
         /**
@@ -493,8 +494,8 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
          */
-        public Builder(User user, int partitionValue) {
-            this(user, new BsonInt32(partitionValue));
+        public Builder(User user, @Nullable Integer partitionValue) {
+            this(user, (partitionValue == null? new BsonNull() : new BsonInt32(partitionValue)));
         }
 
         /**
@@ -504,8 +505,8 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
          */
-        public Builder(User user, long partitionValue) {
-            this(user, new BsonInt64(partitionValue));
+        public Builder(User user, @Nullable Long partitionValue) {
+            this(user, (partitionValue == null? new BsonNull() : new BsonInt64(partitionValue)));
         }
 
         /**

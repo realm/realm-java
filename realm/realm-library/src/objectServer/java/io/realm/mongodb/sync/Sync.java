@@ -184,6 +184,7 @@ public abstract class Sync {
             case OBJECT_ID:
             case INT32:
             case INT64:
+            case NULL:
                 encodedPartitionValue = JniBsonProtocol.encode(partitionValue, AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY);
                 break;
             default:
