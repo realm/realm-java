@@ -400,7 +400,7 @@ public class DynamicRealm extends BaseRealm {
     /**
      * {@inheritDoc}
      */
-    public static abstract class Callback extends InstanceCallback<DynamicRealm> {
+    public abstract static class Callback extends InstanceCallback<DynamicRealm> {
         /**
          * {@inheritDoc}
          */

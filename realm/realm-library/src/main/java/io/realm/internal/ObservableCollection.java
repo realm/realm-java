@@ -10,7 +10,7 @@ import io.realm.RealmChangeListener;
 @Keep
 interface ObservableCollection {
     class CollectionObserverPair<T> extends ObserverPairList.ObserverPair<T, Object> {
-        public CollectionObserverPair(T observer, Object listener) {
+        CollectionObserverPair(T observer, Object listener) {
             super(observer, listener);
         }
 

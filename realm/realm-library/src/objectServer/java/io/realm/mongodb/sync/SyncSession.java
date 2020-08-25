@@ -62,8 +62,8 @@ import io.realm.mongodb.User;
 @Keep
 @Beta
 public class SyncSession {
-    private final static int DIRECTION_DOWNLOAD = 1;
-    private final static int DIRECTION_UPLOAD = 2;
+    private static final int DIRECTION_DOWNLOAD = 1;
+    private static final int DIRECTION_UPLOAD = 2;
 
     private final SyncConfiguration configuration;
     private final ErrorHandler errorHandler;

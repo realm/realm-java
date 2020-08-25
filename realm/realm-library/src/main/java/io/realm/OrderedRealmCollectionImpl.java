@@ -22,7 +22,7 @@ import io.realm.internal.UncheckedRow;
  * General implementation for {@link OrderedRealmCollection} which is based on the {@code Collection}.
  */
 abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements OrderedRealmCollection<E> {
-    private final static String NOT_SUPPORTED_MESSAGE = "This method is not supported by 'RealmResults' or" +
+    private static final String NOT_SUPPORTED_MESSAGE = "This method is not supported by 'RealmResults' or" +
             " 'OrderedRealmCollectionSnapshot'.";
 
     final BaseRealm realm;
@@ -311,7 +311,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      * {@inheritDoc}
      */
     @Override
-    public RealmResults<E> sort(String fieldNames[], Sort sortOrders[]) {
+    public RealmResults<E> sort(String[] fieldNames, Sort[] sortOrders) {
         QueryDescriptor sortDescriptor =
                 QueryDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldNames, sortOrders);
 

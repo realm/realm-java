@@ -14,7 +14,11 @@
     <module name="NewlineAtEndOfFile">
         <property name="lineSeparator" value="lf"/>
     </module>
-    <module name="FileLength"/>
+
+    <module name="FileLength">
+        <property name="id" value="checkstyle:filelength"/>
+    </module>
+
     <module name="FileTabCharacter"/>
 
     <!-- Trailing spaces -->
@@ -31,7 +35,12 @@
         <property name="message" value="Space needed around ':' character."/>
     </module>
 
+    <!-- Filter out Checkstyle warnings that have been suppressed with the @SuppressWarnings annotation -->
+    <module name="SuppressWarningsFilter" />
+
     <module name="TreeWalker">
+        <!-- Make the @SuppressWarnings annotations available to Checkstyle -->
+        <module name="SuppressWarningsHolder" />
         <!-- Checks for Javadoc comments.                     -->
         <!-- See http://checkstyle.sf.net/config_javadoc.html -->
 
