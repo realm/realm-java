@@ -72,6 +72,12 @@ class MongoClientTest {
     }
 
     @Test
+    fun serviceName() {
+        assertNotNull(client.serviceName)
+        assertEquals(SERVICE_NAME, client.serviceName)
+    }
+
+    @Test
     fun count() {
         with(getCollectionInternal()) {
             assertEquals(0, count().get())
