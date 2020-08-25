@@ -734,7 +734,7 @@ public class SyncSession {
          */
         public void throwExceptionIfNeeded() {
             if (resultReceived && errorCode != null) {
-                // Core report errors with int64, so we need to check some extra checks
+                // Core report errors with int64, so we need to add some extra checks
                 // to make sure the value is within a range of known errors we can map to,
                 // which are all inside Integer range
                 long longErrorCode = errorCode;
