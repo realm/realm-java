@@ -338,7 +338,7 @@ task checkstyle(type: Checkstyle) {
     source fileTree('src/main/java') + fileTree('src/objectServer/java')
     include '**/*.java'
     exclude '**/gen/**'
-
+    ignoreFailures true
     // empty classpath
     classpath = files()
 
