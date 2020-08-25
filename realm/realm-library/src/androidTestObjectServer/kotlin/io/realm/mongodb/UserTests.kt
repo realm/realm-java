@@ -19,8 +19,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.admin.ServerAdmin
-import io.realm.mongodb.auth.ApiKeyAuth
 import io.realm.mongodb.auth.ApiKey
+import io.realm.mongodb.auth.ApiKeyAuth
 import io.realm.rule.BlockingLooperThread
 import org.bson.Document
 import org.junit.After
@@ -151,7 +151,7 @@ class UserTests {
         assertEquals(User.State.LOGGED_OUT, initialUser.state)
 
         repeat(3) {
-            val user = app.login(Credentials.emailPassword(initialUser.email, password))
+            val user = app.login(Credentials.emailPassword(initialUser.profile.email, password))
             assertEquals(User.State.LOGGED_IN, user.state)
             user.logOut()
             assertEquals(User.State.LOGGED_OUT, user.state)
@@ -367,7 +367,7 @@ class UserTests {
             override fun loggedIn(user: User) {}
 
             override fun loggedOut(loggerOutUser: User) {
-                app.loginAsync(Credentials.emailPassword(loggerOutUser.email, password)) {
+                app.loginAsync(Credentials.emailPassword(loggerOutUser.profile.email, password)) {
                     val loggedInUser = it.orThrow
                     assertTrue(loggerOutUser !== loggedInUser)
                     assertNotEquals(refreshToken, loggedInUser.refreshToken)
@@ -407,7 +407,7 @@ class UserTests {
         assertNotEquals(user, app)
         user.logOut()
 
-        val sameUserNewLogin = app.login(Credentials.emailPassword(user.email!!, "123456"))
+        val sameUserNewLogin = app.login(Credentials.emailPassword(user.profile.email!!, "123456"))
         // Verify that it is not same object but uses underlying OSSyncUser equality on identity
         assertFalse(user === sameUserNewLogin)
         assertEquals(user, sameUserNewLogin)
@@ -421,7 +421,7 @@ class UserTests {
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         user.logOut()
 
-        val sameUserNewLogin = app.login(Credentials.emailPassword(user.email!!, "123456"))
+        val sameUserNewLogin = app.login(Credentials.emailPassword(user.profile.email!!, "123456"))
         // Verify that two equal users also returns same hashCode
         assertFalse(user === sameUserNewLogin)
         assertEquals(user.hashCode(), sameUserNewLogin.hashCode())
@@ -482,7 +482,7 @@ class UserTests {
 
         // But will be updated when authorization token is refreshed
         user.logOut()
-        app.login(Credentials.emailPassword(user.email, password))
+        app.login(Credentials.emailPassword(user.profile.email, password))
         assertEquals(CUSTOM_USER_DATA_VALUE, user.customData.get(CUSTOM_USER_DATA_FIELD))
     }
 

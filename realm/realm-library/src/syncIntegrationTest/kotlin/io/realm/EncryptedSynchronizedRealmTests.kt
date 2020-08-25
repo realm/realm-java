@@ -126,7 +126,7 @@ class EncryptedSynchronizedRealmTests {
         user.logOut()
 
         // STEP 3: try to open again the Realm without the encryption key should fail
-        user = app.login(Credentials.emailPassword(user.email, SECRET_PASSWORD))
+        user = app.login(Credentials.emailPassword(user.profile.email, SECRET_PASSWORD))
         val configWithoutEncryption: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, configWithEncryption.partitionValue)
                 .testSchema(SyncStringOnly::class.java)
                 .waitForInitialRemoteData()
