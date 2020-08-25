@@ -215,18 +215,6 @@ class UserTests {
     }
 
     @Test
-    fun linkUser_serverApiKey() {
-        val serverKey = admin.createServerApiKey()
-
-        assertEquals(1, anonUser.identities.size)
-
-        // Linking a server API key is not allowed
-        val exception = assertFailsWith<AppException> {
-            anonUser.linkCredentials(Credentials.serverApiKey(serverKey))
-        }
-    }
-
-    @Test
     fun linkUser_customFunction() {
         assertEquals(1, anonUser.identities.size)
 

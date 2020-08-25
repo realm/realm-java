@@ -67,22 +67,9 @@ class CredentialsTests {
     }
 
     @Test
-    fun serverApiKey() {
-        val creds = Credentials.serverApiKey("token")
-        assertEquals(Credentials.IdentityProvider.SERVER_API_KEY, creds.identityProvider)
-        assertTrue(creds.asJson().contains("token")) // Treat the JSON as an opaque value.
-    }
-
-    @Test
     fun apiKey_invalidInput() {
         assertFailsWith<IllegalArgumentException> { Credentials.apiKey("") }
         assertFailsWith<IllegalArgumentException> { Credentials.apiKey(TestHelper.getNull()) }
-    }
-
-    @Test
-    fun serverApiKey_invalidInput() {
-        assertFailsWith<IllegalArgumentException> { Credentials.serverApiKey("") }
-        assertFailsWith<IllegalArgumentException> { Credentials.serverApiKey(TestHelper.getNull()) }
     }
 
     @Test
@@ -190,12 +177,6 @@ class CredentialsTests {
                     user.logOut()
                     val apiKeyUser = app.login(Credentials.apiKey(key.value!!))
                     assertEquals(user.id, apiKeyUser.id)
-                }
-                Credentials.IdentityProvider.SERVER_API_KEY -> {
-                    // Create key using the admin API and then log in
-                    val serverKey = admin.createServerApiKey()
-                    val serverKeyUser = app.login(Credentials.serverApiKey(serverKey))
-                    assertNotNull(serverKeyUser)
                 }
                 Credentials.IdentityProvider.CUSTOM_FUNCTION -> {
                     val customFunction = mapOf(

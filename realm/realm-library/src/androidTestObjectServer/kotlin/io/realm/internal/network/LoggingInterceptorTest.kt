@@ -19,7 +19,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.Realm
 import io.realm.TestApp
 import io.realm.TestHelper
-import io.realm.admin.ServerAdmin
 import io.realm.internal.network.LoggingInterceptor.LOGIN_FEATURE
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
@@ -81,30 +80,6 @@ class LoggingInterceptorTest {
 
         app.login(Credentials.emailPassword(email, password))
         assertMessageExists(""""username":"***"""", """"password":"***"""")
-    }
-
-    @Test
-    fun apiKeyLogin_noObfuscation() {
-        app = TestApp()
-        testLogger = getLogger()
-        val admin = ServerAdmin(app)
-        val serverKey = admin.createServerApiKey()
-
-        app.login(Credentials.serverApiKey(serverKey))
-        assertMessageExists(""""key":"$serverKey"""")
-    }
-
-    @Test
-    fun apiKeyLogin_obfuscation() {
-        app = TestApp { builder ->
-            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, AppConfiguration.loginObfuscators))
-        }
-        testLogger = getLogger()
-        val admin = ServerAdmin(app)
-        val serverKey = admin.createServerApiKey()
-
-        app.login(Credentials.serverApiKey(serverKey))
-        assertMessageExists(""""key":"***"""")
     }
 
     @Test

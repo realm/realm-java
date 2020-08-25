@@ -90,20 +90,6 @@ public class Credentials {
     }
 
     /**
-     * Creates credentials representing a login using a server API key.
-     * <p>
-     * This provider must be enabled on MongoDB Realm to work.
-     *
-     * @param key the API key to use for login.
-     * @return a set of credentials that can be used to log into MongoDB Realm using
-     * {@link App#loginAsync(Credentials, App.Callback)}.
-     */
-    public static Credentials serverApiKey(String key) {
-        Util.checkEmpty(key, "key");
-        return new Credentials(OsAppCredentials.serverApiKey(key), IdentityProvider.SERVER_API_KEY);
-    }
-
-    /**
      * Creates credentials representing a login using an Apple ID token.
      * <p>
      * This provider must be enabled on MongoDB Realm to work.
