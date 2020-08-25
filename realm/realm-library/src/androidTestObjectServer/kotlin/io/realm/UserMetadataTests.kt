@@ -17,6 +17,7 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.realm.internal.network.OkHttpNetworkTransport
 import io.realm.internal.objectstore.OsJavaNetworkTransport
 import io.realm.mongodb.*
 import org.junit.After
@@ -116,7 +117,7 @@ class UserMetadataTests {
                         }
                     """.trimIndent()
                 } else if (url.endsWith("/location")) {
-                    return Response.httpResponse(200, mapOf(), """
+                    return OkHttpNetworkTransport.Response.httpResponse(200, mapOf(), """
                         { "deployment_model" : "GLOBAL",
                           "location": "US-VA", 
                           "hostname": "http://localhost:9090",
@@ -128,7 +129,11 @@ class UserMetadataTests {
                 } else {
                     fail("Unexpected request url: $url")
                 }
-                return Response.httpResponse(200, mapOf(Pair("Content-Type", "application/json")), result)
+                return OkHttpNetworkTransport.Response.httpResponse(200, mapOf(Pair("Content-Type", "application/json")), result)
+            }
+
+            override fun sendStreamingRequest(request: Request): Response? {
+                return null
             }
         })
     }

@@ -228,7 +228,7 @@ public class Credentials {
      * All of these except {@link #EMAIL_PASSWORD} must be enabled manually on MongoDB Realm to
      * work.
      *
-     * @see <a href="https://docs.mongodb.com/stitch/authentication/providers/">Authentication Providers</a>
+     * @see <a href="https://docs.mongodb.com/realm/authentication/providers/">Authentication Providers</a>
      */
     public enum IdentityProvider {
         ANONYMOUS("anon-user"),

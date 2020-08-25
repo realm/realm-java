@@ -10,6 +10,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 ### Enhancements
 * [RealmApp] Support for using `null` as a partition value.
 * [RealmApp] Improve errors exception messages from `SyncSession.downloadAllServerChanges()` and `SyncSession.uploadAllLocalChanges()`.
+* Support for watching MongoCollection change streams (Issue [#6912](https://github.com/realm/realm-java/issues/6912))
 
 ### Fixed
 * None.

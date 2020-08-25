@@ -16,18 +16,30 @@
 
 package io.realm.mongodb.mongo;
 
+import org.bson.BsonDocument;
+import org.bson.BsonObjectId;
+import org.bson.BsonValue;
+import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Nullable;
 
 import io.realm.annotations.Beta;
+import io.realm.internal.async.RealmEventStreamAsyncTaskImpl;
+import io.realm.internal.async.RealmEventStreamTaskImpl;
 import io.realm.internal.async.RealmResultTaskImpl;
+import io.realm.internal.objectserver.EventStream;
 import io.realm.internal.objectstore.OsMongoCollection;
 import io.realm.mongodb.App;
+import io.realm.mongodb.RealmEventStreamAsyncTask;
+import io.realm.mongodb.RealmEventStreamTask;
 import io.realm.mongodb.RealmResultTask;
 import io.realm.mongodb.mongo.iterable.AggregateIterable;
 import io.realm.mongodb.mongo.iterable.FindIterable;
@@ -804,5 +816,195 @@ public class MongoCollection<DocumentT> {
                 return osMongoCollection.findOneAndDelete(filter, options, resultClass);
             }
         });
+    }
+
+    /**
+     * Watches a collection. The resulting stream will be notified of all events on this collection
+     * that the active user is authorized to see based on the configured MongoDB Realm rules.
+     *
+     * @return a task that provides access to the stream of change events.
+     */
+    public RealmEventStreamTask<DocumentT> watch() {
+        return new RealmEventStreamTaskImpl<>(getNamespace().getFullName(),
+                new RealmEventStreamTaskImpl.Executor<DocumentT>() {
+                    @Override
+                    public EventStream<DocumentT> run() throws IOException {
+                        return osMongoCollection.watch();
+                    }
+                });
+    }
+
+    /**
+     * Watches specified IDs in a collection.
+     *
+     * @param ids the ids to watch.
+     * @return a task that provides access to the stream of change events.
+     */
+    public RealmEventStreamTask<DocumentT> watch(final BsonValue... ids) {
+        return new RealmEventStreamTaskImpl<>(getNamespace().getFullName(),
+                new RealmEventStreamTaskImpl.Executor<DocumentT>() {
+                    @Override
+                    public EventStream<DocumentT> run() throws IOException {
+                        return osMongoCollection.watch(Arrays.asList(ids));
+                    }
+                });
+    }
+
+    /**
+     * Watches specified IDs in a collection. This convenience overload supports the use case
+     * of non-{@link BsonValue} instances of {@link ObjectId} by wrapping them in
+     * {@link BsonObjectId} instances for the user.
+     *
+     * @param ids unique object identifiers of the IDs to watch.
+     * @return a task that provides access to the stream of change events.
+     */
+    public RealmEventStreamTask<DocumentT> watch(final ObjectId... ids) {
+        return new RealmEventStreamTaskImpl<>(getNamespace().getFullName(),
+                new RealmEventStreamTaskImpl.Executor<DocumentT>() {
+                    @Override
+                    public EventStream<DocumentT> run() throws IOException {
+                        return osMongoCollection.watch(Arrays.asList(ids));
+                    }
+                });
+    }
+
+    /**
+     * Watches a collection. The provided document will be used as a match expression filter on
+     * the change events coming from the stream. This convenience overload supports the use of
+     * non-{@link BsonDocument} instances for the user.
+     * <p>
+     * See <a href="https://docs.mongodb.com/manual/reference/operator/aggregation/match/" target="_blank">how to define a match filter</a>.
+     * <p>
+     * Defining the match expression to filter ChangeEvents is similar to
+     * <a href="https://docs.mongodb.com/realm/triggers/database-triggers/" target="_blank">how to define the match expression for triggers</a>
+     *
+     * @param matchFilter the $match filter to apply to incoming change events
+     * @return a task that provides access to the stream of change events.
+     */
+    public RealmEventStreamTask<DocumentT> watchWithFilter(Document matchFilter) {
+        return new RealmEventStreamTaskImpl<>(getNamespace().getFullName(),
+                new RealmEventStreamTaskImpl.Executor<DocumentT>() {
+                    @Override
+                    public EventStream<DocumentT> run() throws IOException {
+                        return osMongoCollection.watchWithFilter(matchFilter);
+                    }
+                });
+    }
+
+    /**
+     * Watches a collection. The provided BSON document will be used as a match expression filter on
+     * the change events coming from the stream.
+     * <p>
+     * See <a href="https://docs.mongodb.com/manual/reference/operator/aggregation/match/" target="_blank">how to define a match filter</a>.
+     * <p>
+     * Defining the match expression to filter ChangeEvents is similar to
+     * <a href="https://docs.mongodb.com/realm/triggers/database-triggers/" target="_blank">how to define the match expression for triggers</a>
+     *
+     * @param matchFilter the $match filter to apply to incoming change events
+     * @return a task that provides access to the stream of change events.
+     */
+    public RealmEventStreamTask<DocumentT> watchWithFilter(BsonDocument matchFilter) {
+        return new RealmEventStreamTaskImpl<>(getNamespace().getFullName(),
+                new RealmEventStreamTaskImpl.Executor<DocumentT>() {
+                    @Override
+                    public EventStream<DocumentT> run() throws IOException {
+                        return osMongoCollection.watchWithFilter(matchFilter);
+                    }
+                });
+    }
+
+    /**
+     * Watches a collection asynchronously. The resulting stream will be notified of all events on this collection
+     * that the active user is authorized to see based on the configured MongoDB Realm rules.
+     *
+     * @return a task that provides access to the stream of change events.
+     */
+    public RealmEventStreamAsyncTask<DocumentT> watchAsync() {
+        return new RealmEventStreamAsyncTaskImpl<>(getNamespace().getFullName(),
+                new RealmEventStreamAsyncTaskImpl.Executor<DocumentT>() {
+                    @Override
+                    public EventStream<DocumentT> run() throws IOException {
+                        return osMongoCollection.watch();
+                    }
+                });
+    }
+
+    /**
+     * Watches specified IDs in a collection asynchronously.
+     *
+     * @param ids the ids to watch.
+     * @return a task that provides access to the stream of change events.
+     */
+    public RealmEventStreamAsyncTask<DocumentT> watchAsync(final BsonValue... ids) {
+        return new RealmEventStreamAsyncTaskImpl<>(getNamespace().getFullName(),
+                new RealmEventStreamAsyncTaskImpl.Executor<DocumentT>() {
+                    @Override
+                    public EventStream<DocumentT> run() throws IOException {
+                        return osMongoCollection.watch(Arrays.asList(ids));
+                    }
+                });
+    }
+
+    /**
+     * Watches specified IDs in a collection asynchronously. This convenience overload supports the use case
+     * of non-{@link BsonValue} instances of {@link ObjectId} by wrapping them in
+     * {@link BsonObjectId} instances for the user.
+     *
+     * @param ids unique object identifiers of the IDs to watch.
+     * @return a task that provides access to the stream of change events.
+     */
+    public RealmEventStreamAsyncTask<DocumentT> watchAsync(final ObjectId... ids) {
+        return new RealmEventStreamAsyncTaskImpl<>(getNamespace().getFullName(),
+                new RealmEventStreamAsyncTaskImpl.Executor<DocumentT>() {
+                    @Override
+                    public EventStream<DocumentT> run() throws IOException {
+                        return osMongoCollection.watch(Arrays.asList(ids));
+                    }
+                });
+    }
+
+    /**
+     * Watches a collection asynchronously. The provided document will be used as a match expression filter on
+     * the change events coming from the stream. This convenience overload supports the use of
+     * non-{@link BsonDocument} instances for the user.
+     * <p>
+     * See <a href="https://docs.mongodb.com/manual/reference/operator/aggregation/match/" target="_blank">how to define a match filter</a>.
+     * <p>
+     * Defining the match expression to filter ChangeEvents is similar to
+     * <a href="https://docs.mongodb.com/realm/triggers/database-triggers/" target="_blank">how to define the match expression for triggers</a>
+     *
+     * @param matchFilter the $match filter to apply to incoming change events
+     * @return a task that provides access to the stream of change events.
+     */
+    public RealmEventStreamAsyncTask<DocumentT> watchWithFilterAsync(Document matchFilter) {
+        return new RealmEventStreamAsyncTaskImpl<>(getNamespace().getFullName(),
+                new RealmEventStreamAsyncTaskImpl.Executor<DocumentT>() {
+                    @Override
+                    public EventStream<DocumentT> run() throws IOException {
+                        return osMongoCollection.watchWithFilter(matchFilter);
+                    }
+                });
+    }
+
+    /**
+     * Watches a collection asynchronously. The provided BSON document will be used as a match expression filter on
+     * the change events coming from the stream.
+     * <p>
+     * See <a href="https://docs.mongodb.com/manual/reference/operator/aggregation/match/" target="_blank">how to define a match filter</a>.
+     * <p>
+     * Defining the match expression to filter ChangeEvents is similar to
+     * <a href="https://docs.mongodb.com/realm/triggers/database-triggers/" target="_blank">how to define the match expression for triggers</a>
+     *
+     * @param matchFilter the $match filter to apply to incoming change events
+     * @return a task that provides access to the stream of change events.
+     */
+    public RealmEventStreamAsyncTask<DocumentT> watchWithFilterAsync(BsonDocument matchFilter) {
+        return new RealmEventStreamAsyncTaskImpl<>(getNamespace().getFullName(),
+                new RealmEventStreamAsyncTaskImpl.Executor<DocumentT>() {
+                    @Override
+                    public EventStream<DocumentT> run() throws IOException {
+                        return osMongoCollection.watchWithFilter(matchFilter);
+                    }
+                });
     }
 }

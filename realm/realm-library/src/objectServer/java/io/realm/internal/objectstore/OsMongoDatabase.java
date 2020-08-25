@@ -22,28 +22,37 @@ import org.bson.codecs.configuration.CodecRegistry;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import io.realm.internal.NativeObject;
+import io.realm.internal.network.StreamNetworkTransport;
+import io.realm.mongodb.mongo.MongoNamespace;
 
 public class OsMongoDatabase implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
     private final long nativePtr;
+    private final String serviceName;
     private final CodecRegistry codecRegistry;
+    private final StreamNetworkTransport streamNetworkTransport;
 
     OsMongoDatabase(final long nativeDatabasePtr,
-                    final CodecRegistry codecRegistry) {
+                    final String serviceName,
+                    final CodecRegistry codecRegistry,
+                    final StreamNetworkTransport streamNetworkTransport) {
         this.nativePtr = nativeDatabasePtr;
+        this.serviceName = serviceName;
         this.codecRegistry = codecRegistry;
+        this.streamNetworkTransport = streamNetworkTransport;
     }
 
-    public OsMongoCollection<Document> getCollection(final String collectionName) {
-        return getCollection(collectionName, Document.class);
+    public OsMongoCollection<Document> getCollection(final String collectionName, final MongoNamespace namespace) {
+        return getCollection(collectionName, namespace, Document.class);
     }
 
     public <DocumentT> OsMongoCollection<DocumentT> getCollection(final String collectionName,
+                                                                  final MongoNamespace namespace,
                                                                   final Class<DocumentT> documentClass) {
         long nativeCollectionPtr = nativeGetCollection(nativePtr, collectionName);
-        return new OsMongoCollection<>(nativeCollectionPtr, documentClass, codecRegistry);
+        return new OsMongoCollection<>(nativeCollectionPtr, namespace, serviceName, documentClass, codecRegistry, streamNetworkTransport);
     }
 
     @Override

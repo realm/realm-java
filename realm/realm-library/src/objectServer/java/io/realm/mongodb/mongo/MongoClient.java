@@ -18,8 +18,6 @@ package io.realm.mongodb.mongo;
 
 import org.bson.codecs.configuration.CodecRegistry;
 
-import java.util.concurrent.ThreadPoolExecutor;
-
 import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsMongoClient;
