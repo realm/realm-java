@@ -58,6 +58,7 @@ public class User {
 
     OsSyncUser osUser;
     private final App app;
+    private final Profile profile;
     private ApiKeyAuth apiKeyAuthProvider = null;
     private MongoClient mongoClient = null;
     private Functions functions = null;
@@ -117,6 +118,7 @@ public class User {
     User(OsSyncUser osUser, App app) {
         this.osUser = osUser;
         this.app = app;
+        this.profile = new Profile(osUser);
     }
 
     /**
@@ -138,96 +140,12 @@ public class User {
     }
 
     /**
-     * Returns the name of the user.
+     * Returns the profile for this user.
      *
-     * @return the name of the user.
+     * @return the profile for this user
      */
-    @Nullable
-    public String getName() {
-        return osUser.nativeGetName();
-    }
-
-    /**
-     * Returns the email address of the user.
-     *
-     * @return the email address of the user or null if there is no email address associated with the user.
-     * address.
-     */
-    @Nullable
-    public String getEmail() {
-        return osUser.getEmail();
-    }
-
-    /**
-     * Returns the picture URL of the user.
-     *
-     * @return the picture URL of the user or null if there is no picture URL associated with the user.
-     */
-    @Nullable
-    public String getPictureUrl() {
-        return osUser.getPictureUrl();
-    }
-
-    /**
-     * Return the first name of the user.
-     *
-     * @return the first name of the user or null if there is no first name associated with the user.
-     */
-    @Nullable
-    public String getFirstName() {
-        return osUser.getFirstName();
-    }
-
-    /**
-     * Return the last name of the user.
-     *
-     * @return the last name of the user or null if there is no last name associated with the user.
-     */
-    @Nullable
-    public String getLastName() {
-        return osUser.getLastName();
-    }
-
-    /**
-     * Returns the gender of the user.
-     *
-     * @return the gender of the user or null if there is no gender associated with the user.
-     */
-    @Nullable
-    public String getGender() {
-        return osUser.getGender();
-    }
-
-    /**
-     * Returns the birthday of the user.
-     *
-     * @return the birthday of the user or null if there is no birthday associated with the user.
-     */
-    @Nullable
-    public String getBirthday() {
-        return osUser.getBirthday();
-    }
-
-    /**
-     * Returns the minimum age of the user.
-     *
-     * @return the minimum age of the user or null if there is no minimum age associated with the user.
-     */
-    @Nullable
-    public Long getMinAge() {
-        String minAge = osUser.getMinAge();
-        return (minAge == null) ? null : Long.parseLong(minAge);
-    }
-
-    /**
-     * Returns the maximum age of the user.
-     *
-     * @return the maximum age of the user or null if there is no maximum age associated with the user.
-     */
-    @Nullable
-    public Long getMaxAge() {
-        String maxAge = osUser.getMaxAge();
-        return (maxAge == null) ? null : Long.parseLong(maxAge);
+    public Profile getProfile(){
+        return profile;
     }
 
     /**

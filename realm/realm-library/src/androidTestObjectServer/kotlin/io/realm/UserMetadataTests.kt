@@ -47,9 +47,9 @@ class UserMetadataTests {
     }
 
     private lateinit var app: App
-    lateinit var profileBody : String
+    lateinit var profileBody: String
 
-    private fun setDefaultProfile(){
+    private fun setDefaultProfile() {
         profileBody = """
                             {
                                 "name": "$NAME",
@@ -65,7 +65,7 @@ class UserMetadataTests {
         """.trimIndent()
     }
 
-    private fun setNullProfile(){
+    private fun setNullProfile() {
         profileBody = """
                             {
 
@@ -172,55 +172,64 @@ class UserMetadataTests {
     @Test
     fun getName() {
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertEquals(NAME, user.name)
+        val profile = user.profile
+        assertEquals(NAME, profile.name)
     }
 
     @Test
     fun getEmail() {
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertEquals(EMAIL, user.email)
+        val profile = user.profile
+        assertEquals(EMAIL, profile.email)
     }
 
     @Test
     fun getFirstName() {
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertEquals(FIRST_NAME, user.firstName)
+        val profile = user.profile
+        assertEquals(FIRST_NAME, profile.firstName)
     }
 
     @Test
     fun getLastName() {
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertEquals(LAST_NAME, user.lastName)
+        val profile = user.profile
+        assertEquals(LAST_NAME, profile.lastName)
     }
 
     @Test
     fun getBirthday() {
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertEquals(BIRTHDAY, user.birthday)
+        val profile = user.profile
+        assertEquals(BIRTHDAY, profile.birthday)
     }
 
     @Test
     fun getGender() {
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertEquals(GENDER, user.gender)
+        val profile = user.profile
+        assertEquals(GENDER, profile.gender)
     }
 
     @Test
     fun getMinAge() {
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertEquals(MIN_AGE, user.minAge)
+        val profile = user.profile
+        assertEquals(MIN_AGE, profile.minAge)
     }
 
     @Test
     fun getMaxAge() {
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertEquals(MAX_AGE, user.maxAge)
+        val profile = user.profile
+        assertEquals(MAX_AGE, profile.maxAge)
     }
 
     @Test
     fun getPictureUrl() {
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertEquals(PICTURE_URL, user.pictureUrl)
+        val profile = user.profile
+        assertEquals(PICTURE_URL, profile.pictureUrl)
     }
 
     @Test
@@ -228,7 +237,8 @@ class UserMetadataTests {
         setNullProfile()
 
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertNull(user.name)
+        val profile = user.profile
+        assertNull(profile.name)
     }
 
     @Test
@@ -236,7 +246,8 @@ class UserMetadataTests {
         setNullProfile()
 
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertNull(user.email)
+        val profile = user.profile
+        assertNull(profile.email)
     }
 
     @Test
@@ -244,7 +255,8 @@ class UserMetadataTests {
         setNullProfile()
 
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertNull(user.firstName)
+        val profile = user.profile
+        assertNull(profile.firstName)
     }
 
     @Test
@@ -252,7 +264,8 @@ class UserMetadataTests {
         setNullProfile()
 
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertNull(user.lastName)
+        val profile = user.profile
+        assertNull(profile.lastName)
     }
 
     @Test
@@ -260,7 +273,8 @@ class UserMetadataTests {
         setNullProfile()
 
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertNull(user.birthday)
+        val profile = user.profile
+        assertNull(profile.birthday)
     }
 
     @Test
@@ -268,7 +282,8 @@ class UserMetadataTests {
         setNullProfile()
 
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertNull(user.gender)
+        val profile = user.profile
+        assertNull(profile.gender)
     }
 
     @Test
@@ -276,7 +291,8 @@ class UserMetadataTests {
         setNullProfile()
 
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertNull(user.minAge)
+        val profile = user.profile
+        assertNull(profile.minAge)
     }
 
     @Test
@@ -284,7 +300,8 @@ class UserMetadataTests {
         setNullProfile()
 
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertNull(user.maxAge)
+        val profile = user.profile
+        assertNull(profile.maxAge)
     }
 
     @Test
@@ -292,7 +309,8 @@ class UserMetadataTests {
         setNullProfile()
 
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertNull(user.pictureUrl)
+        val profile = user.profile
+        assertNull(profile.pictureUrl)
     }
 
     @Test
