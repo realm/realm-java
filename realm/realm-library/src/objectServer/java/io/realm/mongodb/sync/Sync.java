@@ -290,7 +290,7 @@ public abstract class Sync {
      * sessions to attempt to reconnect immediately and reset any timers they are using for
      * incremental backoff.
      */
-    public static void refreshConnections() {
+    public static void reconnect() {
         notifyNetworkIsBack();
     }
 
