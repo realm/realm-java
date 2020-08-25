@@ -19,7 +19,7 @@ import io.realm.annotations.Beta;
 
 /**
  * Each User is represented by 1 or more identities each defined by an
- * {@link Credentials.IdentityProvider}.
+ * {@link Credentials.Provider}.
  *
  * This class represents the identity defined by a specific provider.
  */
@@ -28,12 +28,12 @@ public class UserIdentity {
 
     private final String userId;
     private final String providerId;
-    private final Credentials.IdentityProvider provider;
+    private final Credentials.Provider provider;
 
     UserIdentity(String id, String providerId) {
         this.userId = id;
         this.providerId = providerId;
-        this.provider = Credentials.IdentityProvider.fromId(providerId);
+        this.provider = Credentials.Provider.fromId(providerId);
     }
 
     /**
@@ -50,7 +50,7 @@ public class UserIdentity {
      *
      * @return
      */
-    public Credentials.IdentityProvider getProvider() {
+    public Credentials.Provider getProvider() {
         return provider;
     }
 

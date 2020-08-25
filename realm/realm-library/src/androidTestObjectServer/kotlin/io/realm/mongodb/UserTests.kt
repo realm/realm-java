@@ -178,7 +178,7 @@ class UserTests {
 
         assertTrue(anonUser === linkedUser)
         assertEquals(2, linkedUser.identities.size)
-        assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
+        assertEquals(Credentials.Provider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
 
         // Validate that we cannot link a second set of credentials
         val otherEmail = TestHelper.getRandomEmail()
@@ -229,7 +229,7 @@ class UserTests {
 
         assertTrue(anonUser === linkedUser)
         assertEquals(2, linkedUser.identities.size)
-        assertEquals(Credentials.IdentityProvider.CUSTOM_FUNCTION, linkedUser.identities[1].provider)
+        assertEquals(Credentials.Provider.CUSTOM_FUNCTION, linkedUser.identities[1].provider)
     }
 
     @Test
@@ -265,7 +265,7 @@ class UserTests {
             val linkedUser: User = result.orThrow
             assertTrue(anonUser === linkedUser)
             assertEquals(2, linkedUser.identities.size)
-            assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
+            assertEquals(Credentials.Provider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
             looperThread.testComplete()
         }
     }

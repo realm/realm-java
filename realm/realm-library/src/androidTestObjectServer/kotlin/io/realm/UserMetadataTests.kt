@@ -82,7 +82,7 @@ class UserMetadataTests {
         app = TestApp(object : OsJavaNetworkTransport() {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
                 var result = ""
-                if (url.endsWith("/providers/${Credentials.IdentityProvider.EMAIL_PASSWORD.id}/login")) {
+                if (url.endsWith("/providers/${Credentials.Provider.EMAIL_PASSWORD.id}/login")) {
                     result = """
                         {
                             "access_token": "$ACCESS_TOKEN",
@@ -124,7 +124,7 @@ class UserMetadataTests {
                           "ws_hostname": "ws://localhost:9090"
                         }
                         """.trimIndent())
-                } else if (url.endsWith("/providers/${Credentials.IdentityProvider.EMAIL_PASSWORD.id}/register")) {
+                } else if (url.endsWith("/providers/${Credentials.Provider.EMAIL_PASSWORD.id}/register")) {
                     result = ""
                 } else {
                     fail("Unexpected request url: $url")
@@ -316,6 +316,6 @@ class UserMetadataTests {
     @Test
     fun getProviderType() {
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD, user.providerType)
+        assertEquals(Credentials.Provider.EMAIL_PASSWORD, user.providerType)
     }
 }

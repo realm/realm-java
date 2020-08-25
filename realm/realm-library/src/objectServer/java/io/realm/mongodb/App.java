@@ -421,9 +421,9 @@ public class App {
 
     /**
      * Returns a wrapper for interacting with functionality related to users either being created or
-     * logged in using the {@link Credentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
+     * logged in using the {@link Credentials.Provider#EMAIL_PASSWORD} identity provider.
      *
-     * @return wrapper for interacting with the {@link Credentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
+     * @return wrapper for interacting with the {@link Credentials.Provider#EMAIL_PASSWORD} identity provider.
      */
     public EmailPasswordAuth getEmailPassword() {
         return emailAuthProvider;

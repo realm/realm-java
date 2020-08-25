@@ -169,8 +169,8 @@ public class User {
      *
      * @return the provider type of the user
      */
-    public Credentials.IdentityProvider getProviderType() {
-        return Credentials.IdentityProvider.fromId(osUser.getProviderType());
+    public Credentials.Provider getProviderType() {
+        return Credentials.Provider.fromId(osUser.getProviderType());
     }
 
     /**
