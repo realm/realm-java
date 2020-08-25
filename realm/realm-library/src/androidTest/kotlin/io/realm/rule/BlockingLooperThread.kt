@@ -20,12 +20,12 @@ import android.os.Looper
 import io.realm.TestHelper
 import io.realm.TestHelper.LooperTest
 import io.realm.internal.android.AndroidCapabilities
-import io.realm.rule.RunTestInLooperThread
 import org.junit.runners.model.MultipleFailureException
 import java.io.Closeable
 import java.io.PrintStream
 import java.util.*
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
@@ -89,6 +89,13 @@ class BlockingLooperThread {
      */
     fun runBlocking(threadName: String = "TestLooperThread", emulateMainThread: Boolean = false, test: () -> Unit) {
         RunInLooperThreadStatement(threadName, emulateMainThread, test).evaluate()
+    }
+
+    /**
+     * Runs the test on a Looper thread. Returns an object that can be used to wait for the test to complete
+     */
+    fun runDetached(threadName: String = "TestLooperThread", emulateMainThread: Boolean = false, test: () -> Unit): Condition {
+        return RunInLooperThreadStatement(threadName, emulateMainThread, test).evaluateDetached()
     }
 
     /**
@@ -166,7 +173,7 @@ class BlockingLooperThread {
         synchronized(lock) {
             while (backgroundHandler == null) {
                 try {
-                    condition.await(5*1000, TimeUnit.MILLISECONDS)
+                    condition.await(5 * 1000, TimeUnit.MILLISECONDS)
                 } catch (e: InterruptedException) {
                     throw AssertionError("Could not acquire the test handler.", e)
                 }
@@ -215,9 +222,9 @@ class BlockingLooperThread {
         }
     }
 
-    private inner class RunInLooperThreadStatement(private val threadName: String,
-                                                   private val emulateMainThread: Boolean,
-                                                   private val test: () -> Unit) {
+    inner class RunInLooperThreadStatement(private val threadName: String,
+                                           private val emulateMainThread: Boolean,
+                                           private val test: () -> Unit) {
 
         fun evaluate() {
             before()
@@ -226,8 +233,16 @@ class BlockingLooperThread {
             after()
         }
 
+        fun evaluateDetached(): Condition {
+            before()
+            AndroidCapabilities.EMULATE_MAIN_THREAD = emulateMainThread
+
+            return runTestDetached(threadName)
+        }
+
         private fun runTest(threadName: String) {
             var failure: Throwable? = null
+
             try {
                 val executorService = Executors.newSingleThreadExecutor { runnable -> Thread(runnable, threadName) }
                 val test = TestThread(test)
@@ -240,12 +255,21 @@ class BlockingLooperThread {
                 // Tries as hard as possible to close down gracefully, while still keeping all exceptions intact.
                 failure = cleanUp(failure)
             }
+
             if (failure != null) {
                 throw failure
             }
         }
 
-        private fun cleanUp(testfailure: Throwable?): Throwable? {
+        private fun runTestDetached(threadName: String): Condition {
+            val executorService = Executors.newSingleThreadExecutor { runnable -> Thread(runnable, threadName) }
+            val test = TestThread(test)
+            executorService.submit(test)
+
+            return Condition(this, executorService, signalTestCompleted, test)
+        }
+
+        fun cleanUp(testfailure: Throwable?): Throwable? {
             return try {
                 after()
                 testfailure
@@ -268,7 +292,33 @@ class BlockingLooperThread {
         }
     }
 
-    private inner class TestThread internal constructor(private val test: () -> Unit) : Runnable, TestHelper.LooperTest {
+    inner class Condition(private val threadStatement: RunInLooperThreadStatement,
+                          private val executorService: ExecutorService,
+                          private val signalTestCompleted: CountDownLatch,
+                          private val test: LooperTest) {
+
+        fun await() {
+            var failure: Throwable? = null
+
+            try {
+                TestHelper.exitOrThrow(executorService, signalTestCompleted, test)
+            } catch (testFailure: Throwable) {
+                // These exceptions should only come from TestHelper.awaitOrFail()
+                failure = testFailure
+            } finally {
+                // Tries as hard as possible to close down gracefully, while still keeping all exceptions intact.
+                failure = threadStatement.cleanUp(failure)
+            }
+
+            if (failure != null) {
+                throw failure
+            }
+            TestHelper.exitOrThrow(executorService, signalTestCompleted, test)
+            after()
+        }
+    }
+
+    private inner class TestThread(private val test: () -> Unit) : Runnable, LooperTest {
         private var threadAssertionError: Throwable? = null
         private var looper: Looper? = null
 

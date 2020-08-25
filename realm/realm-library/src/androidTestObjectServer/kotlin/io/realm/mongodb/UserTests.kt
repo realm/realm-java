@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm
+package io.realm.mongodb
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.realm.*
 import io.realm.admin.ServerAdmin
-import io.realm.mongodb.*
 import io.realm.mongodb.auth.ApiKeyAuth
 import io.realm.mongodb.auth.UserApiKey
 import io.realm.rule.BlockingLooperThread

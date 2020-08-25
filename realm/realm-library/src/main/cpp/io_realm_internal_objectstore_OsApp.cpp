@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_mongodb_App.h"
+#include "io_realm_internal_objectstore_OsApp.h"
 
 #include "java_network_transport.hpp"
 #include "util.hpp"
@@ -24,6 +24,8 @@
 #include <binding_callback_thread_observer.hpp>
 #include <sync/app.hpp>
 #include <sync/sync_manager.hpp>
+
+#include <jni_util/bson_util.hpp>
 
 using namespace realm;
 using namespace realm::app;
@@ -83,19 +85,28 @@ struct AndroidSyncLoggerFactory : public realm::SyncLoggerFactory {
     }
 } s_sync_logger_factory;
 
-JNIEXPORT jlong JNICALL Java_io_realm_mongodb_App_nativeCreate(JNIEnv* env, jobject obj,
-                                                            jstring j_app_id,
-                                                            jstring j_base_url,
-                                                            jstring j_app_name,
-                                                            jstring j_app_version,
-                                                            jlong j_request_timeout_ms,
-                                                            jbyteArray j_encryption_key,
-                                                            jstring j_sync_base_dir,
-                                                            jstring j_user_agent_binding_info,
-                                                            jstring j_user_agent_application_info,
-                                                            jstring j_platform,
-                                                            jstring j_platform_version,
-                                                            jstring j_sdk_version)
+static void finalize_client(jlong ptr) {
+    delete reinterpret_cast<App*>(ptr);
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_objectstore_OsApp_nativeGetFinalizerMethodPtr(JNIEnv*, jclass) {
+    return reinterpret_cast<jlong>(&finalize_client);
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JNIEnv* env, jobject obj,
+                                                               jstring j_app_id,
+                                                               jstring j_base_url,
+                                                               jstring j_app_name,
+                                                               jstring j_app_version,
+                                                               jlong j_request_timeout_ms,
+                                                               jbyteArray j_encryption_key,
+                                                               jstring j_sync_base_dir,
+                                                               jstring j_user_agent_binding_info,
+                                                               jstring j_user_agent_application_info,
+                                                               jstring j_platform,
+                                                               jstring j_platform_version,
+                                                               jstring j_sdk_version)
 {
     try {
         // App Config
@@ -159,7 +170,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_mongodb_App_nativeCreate(JNIEnv* env, jobj
 }
 
 
-JNIEXPORT void JNICALL Java_io_realm_mongodb_App_nativeLogin(JNIEnv* env, jclass, jlong j_app_ptr, jlong j_credentials_ptr, jobject j_callback)
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsApp_nativeLogin(JNIEnv* env, jclass, jlong j_app_ptr, jlong j_credentials_ptr, jobject j_callback)
 {
     try {
         auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
@@ -174,7 +185,7 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_App_nativeLogin(JNIEnv* env, jclass
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_mongodb_App_nativeLogOut(JNIEnv* env, jclass, jlong j_app_ptr, jlong j_user_ptr, jobject j_callback)
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsApp_nativeLogOut(JNIEnv* env, jclass, jlong j_app_ptr, jlong j_user_ptr, jobject j_callback)
 {
     try {
         auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
@@ -184,7 +195,7 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_App_nativeLogOut(JNIEnv* env, jclas
     CATCH_STD()
 }
 
-JNIEXPORT jobject JNICALL Java_io_realm_mongodb_App_nativeCurrentUser(JNIEnv* env, jclass, jlong j_app_ptr)
+JNIEXPORT jobject JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCurrentUser(JNIEnv* env, jclass, jlong j_app_ptr)
 {
     try {
         auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
@@ -201,7 +212,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_mongodb_App_nativeCurrentUser(JNIEnv* en
     return NULL;
 }
 
-JNIEXPORT jlongArray JNICALL Java_io_realm_mongodb_App_nativeGetAllUsers(JNIEnv* env, jclass, jlong j_app_ptr)
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_objectstore_OsApp_nativeGetAllUsers(JNIEnv* env, jclass, jlong j_app_ptr)
 {
     try {
         auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
@@ -228,10 +239,10 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_mongodb_App_nativeGetAllUsers(JNIEnv*
     return nullptr;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_mongodb_App_nativeSwitchUser(JNIEnv* env,
-                                                               jclass,
-                                                               jlong j_app_ptr,
-                                                               jlong j_user_ptr)
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsApp_nativeSwitchUser(JNIEnv* env,
+                                                                  jclass,
+                                                                  jlong j_app_ptr,
+                                                                  jlong j_user_ptr)
 {
     try {
         auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
@@ -239,5 +250,60 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_App_nativeSwitchUser(JNIEnv* env,
         app->switch_user(user);
     }
     CATCH_STD()
+}
+
+JNIEXPORT jobject JNICALL Java_io_realm_internal_objectstore_OsApp_nativeMakeStreamingRequest(JNIEnv* env,
+                                                                               jclass,
+                                                                               jlong j_app_ptr,
+                                                                               jlong j_user_ptr,
+                                                                               jstring j_function_name,
+                                                                               jstring j_bson_args,
+                                                                               jstring j_service_name)
+{
+    try {
+        auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
+
+        JStringAccessor function_name(env, j_function_name);
+        JStringAccessor service_name(env, j_service_name);
+
+        bson::BsonArray filter(JniBsonProtocol::parse_checked(env, j_bson_args, Bson::Type::Array, "BSON filter must be an Array"));
+
+        const Request &request = app->make_streaming_request(user, function_name, filter,
+                                                             std::string(service_name));
+
+        jstring j_method;
+
+        switch (request.method){
+            case HttpMethod::get:
+                j_method = env->NewStringUTF("get");
+                break;
+            case HttpMethod::post:
+                j_method = env->NewStringUTF("post");
+                break;
+            case HttpMethod::patch:
+                j_method = env->NewStringUTF("patch");
+                break;
+            case HttpMethod::put:
+                j_method = env->NewStringUTF("put");
+                break;
+            case HttpMethod::del:
+                j_method = env->NewStringUTF("del");
+                break;
+        }
+
+        jstring j_url = env->NewStringUTF(request.url.c_str());
+        jobject j_headers = JniUtils::to_hash_map(env, request.headers);
+        jstring j_body = env->NewStringUTF(request.body.c_str());
+
+        static JavaClass request_class(env, "io/realm/internal/objectstore/OsJavaNetworkTransport$Request");
+        static JavaMethod request_constructor(env, request_class, "<init>","(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;)V");
+        jobject j_request = env->NewObject(request_class, request_constructor, j_method, j_url, j_headers, j_body);
+
+        return j_request;
+    }
+    CATCH_STD()
+
+    return nullptr;
 }
 
