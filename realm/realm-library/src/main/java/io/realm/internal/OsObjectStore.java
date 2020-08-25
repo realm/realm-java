@@ -25,7 +25,7 @@ import io.realm.RealmConfiguration;
  */
 public class OsObjectStore {
 
-    public final static long SCHEMA_NOT_VERSIONED = -1;
+    public static final long SCHEMA_NOT_VERSIONED = -1;
 
     /**
      * Sets the primary key field for the given class.
@@ -86,16 +86,16 @@ public class OsObjectStore {
         return nativeCallWithLock(configuration.getPath(), runnable);
     }
 
-    private native static void nativeSetPrimaryKeyForObject(long sharedRealmPtr, String className,
+    private static native void nativeSetPrimaryKeyForObject(long sharedRealmPtr, String className,
                                                              @Nullable String primaryKeyFieldName);
 
-    private native static @Nullable String nativeGetPrimaryKeyForObject(long sharedRealmPtr, String className);
+    private static native @Nullable String nativeGetPrimaryKeyForObject(long sharedRealmPtr, String className);
 
-    private native static void nativeSetSchemaVersion(long sharedRealmPtr, long schemaVersion);
+    private static native void nativeSetSchemaVersion(long sharedRealmPtr, long schemaVersion);
 
-    private native static long nativeGetSchemaVersion(long sharedRealmPtr);
+    private static native long nativeGetSchemaVersion(long sharedRealmPtr);
 
-    private native static boolean nativeDeleteTableForObject(long sharedRealmPtr, String className);
+    private static native boolean nativeDeleteTableForObject(long sharedRealmPtr, String className);
 
-    private native static boolean nativeCallWithLock(String realmPath, Runnable runnable);
+    private static native boolean nativeCallWithLock(String realmPath, Runnable runnable);
 }

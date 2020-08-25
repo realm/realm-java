@@ -61,7 +61,7 @@ public abstract class MongoIterable<ResultT> {
         this.resultClass = resultClass;
     }
 
-    abstract void callNative(final OsJNIResultCallback<?> callback);
+    abstract void callNative(OsJNIResultCallback<?> callback);
 
     /**
      * Returns a cursor of the operation represented by this iterable.

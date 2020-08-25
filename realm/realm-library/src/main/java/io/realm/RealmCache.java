@@ -66,7 +66,7 @@ final class RealmCache {
         void onCall();
     }
 
-    private static abstract class ReferenceCounter {
+    private abstract static class ReferenceCounter {
 
         // How many references to this Realm instance in this thread.
         protected final ThreadLocal<Integer> localCount = new ThreadLocal<>();

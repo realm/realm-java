@@ -107,7 +107,7 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
         Call call = client.newCall(okRequest);
         okhttp3.Response response = call.execute();
 
-        if((response.code() >= 300) || ((response.code() < 200) && (response.code() != 0))) {
+        if ((response.code() >= 300) || ((response.code() < 200) && (response.code() != 0))) {
             throw new AppException(ErrorCode.fromNativeError(ErrorCode.Type.HTTP, response.code()), response.message());
         }
 
@@ -189,7 +189,7 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
 
         @Override
         public String readBodyLine() throws IOException {
-            if(!closed){
+            if (!closed){
                 return bufferedSource.readUtf8LineStrict();
             } else{
                 bufferedSource.close();
