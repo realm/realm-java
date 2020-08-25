@@ -9,7 +9,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 
 ### Enhancements
 * [RealmApp] Support for using `null` as a partition value.
-* [RealmApp] Improve errors exception messages from `SyncSession.downloadAllServerChanges()` an `SyncSession.uploadAllLocalChanges()`.
+* [RealmApp] Improve errors exception messages from `SyncSession.downloadAllServerChanges()` and `SyncSession.uploadAllLocalChanges()`.
 
 ### Fixed
 * None.
