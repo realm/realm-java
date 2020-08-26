@@ -4561,33 +4561,53 @@ public class RealmTests {
     }
 
     @Test
+    @RunTestInLooperThread
+    // FIXME Maybe a bit convoluted, consider deleting it again.
     public void numberOfVersionsDecreasedOnClose() {
+        int count = 50;
+        final CountDownLatch bgThreadDoneLatch = new CountDownLatch(count);
+
         RealmConfiguration config = configFactory.createConfigurationBuilder()
+                // The multiple embedded threads seems to cause trouble with factory's directory setting
+                .directory(context.getFilesDir())
                 .name("versions-test.realm")
-                .maxNumberOfActiveVersions(2)
+                .maxNumberOfActiveVersions(5)
                 .build();
 
         // Read only instance
-        Realm realm = Realm.getInstance(config);
+        looperThread.postRunnable(() -> {
+            Realm realm = Realm.getInstance(config);
+            realm.addChangeListener(realm1 -> {
+                // FIXME Seems like versions are not deprecated if we do queries here
+                //int objectCount = realm.where(AllJavaTypes.class).findAll().size();
+                RealmLog.warn("Open versions: " + realm.sharedRealm.getNumberOfVersions());
+                bgThreadDoneLatch.countDown();
+                if (bgThreadDoneLatch.getCount() == 0) {
+                    looperThread.testComplete();
+                }
+            });
+        });
 
         // Background write instances
-        for (int i = 0; i<5; i++) {
-            Thread t = new Thread() {
-                @Override
-                public void run() {
-                    Realm realm = Realm.getInstance(config);
-                    realm.executeTransaction(bgRealm -> {
-                    });
-                    realm.close();
+        new Thread(() -> {
+            for (int i = 0; i < count; i++) {
+                Thread t = new Thread() {
+                    @Override
+                    public void run() {
+                        Realm realm = Realm.getInstance(config);
+                        realm.executeTransaction(bgRealm -> { });
+                        realm.close();
+                    }
+                };
+                t.start();
+                try {
+                    t.join();
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
-            };
-            t.start();
-            try {
-                t.join();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
             }
-        }
+        }).start();
         realm.close();
     }
 
