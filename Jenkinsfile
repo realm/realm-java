@@ -175,11 +175,8 @@ try {
 def runBuild(abiFilter, instrumentationTestTarget) {
 
   stage('Build') {
-    sh "chmod +x gradlew && ./gradlew assemble ${abiFilter} --stacktrace"
-  }
-
-  stage('JavaDoc') {
-    sh "chmod +x gradlew && ./gradlew javadoc ${abiFilter} --stacktrace"
+    sh "chmod +x gradlew"
+    sh "./gradlew assemble ${abiFilter} --stacktrace"
   }
 
   stage('Tests') {
@@ -250,6 +247,9 @@ def runBuild(abiFilter, instrumentationTestTarget) {
       } finally {
         storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
       }
+    },
+    'JavaDoc': {
+      sh "./gradlew javadoc ${abiFilter} --stacktrace"
     }
   }
 
@@ -264,7 +264,7 @@ def runBuild(abiFilter, instrumentationTestTarget) {
   if (releaseBranches.contains(currentBranch)) {
     stage('Publish to OJO') {
       withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
-        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
+        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} ojoUpload --stacktrace"
       }
     }
   }
