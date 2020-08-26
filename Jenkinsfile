@@ -10,7 +10,7 @@ mongoDbRealmCommandServerContainer = null
 emulatorContainer = null
 dockerNetworkId = UUID.randomUUID().toString()
 // Branches from which we release SNAPSHOT's. Only release branches need to run on actual hardware.
-releaseBranches = ['master', 'next-major', 'v10', 'ct/fix-ci-ojo']
+releaseBranches = ['master', 'next-major', 'v10']
 // Branches that are "important", so if they do not compile they will generate a Slack notification
 slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
 currentBranch = env.CHANGE_BRANCH
