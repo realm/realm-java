@@ -131,15 +131,6 @@ public class User {
     }
 
     /**
-     * Returns the local id for this user. It is only guaranteed to be unique on this device.
-     *
-     * @return the local id of the user
-     */
-    public String getLocalId() {
-        return osUser.getLocalIdentity();
-    }
-
-    /**
      * Returns the profile for this user.
      *
      * @return the profile for this user
