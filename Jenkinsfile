@@ -180,8 +180,7 @@ def runBuild(abiFilter, instrumentationTestTarget) {
   }
 
   stage('Tests') {
-    parallel 
-    'JVM' : {
+    parallel 'JVM' : {
       try {
         sh "chmod +x gradlew && ./gradlew check ${abiFilter} --stacktrace"
       } finally {
