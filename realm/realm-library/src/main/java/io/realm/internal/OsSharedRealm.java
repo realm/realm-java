@@ -422,6 +422,10 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         return osRealmConfig.getRealmConfiguration();
     }
 
+    public long getNumberOfVersions() {
+        return nativeNumberOfVersions(nativePtr);
+    }
+
     @Override
     public void close() {
         if (realmNotifier != null) {
@@ -647,5 +651,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     private static native boolean nativeIsFrozen(long nativePtr);
 
     private static native long nativeFreeze(long nativePtr);
+
+    private static native long nativeNumberOfVersions(long nativePtr);
 
 }
