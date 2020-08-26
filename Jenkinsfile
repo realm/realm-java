@@ -178,84 +178,81 @@ def runBuild(abiFilter, instrumentationTestTarget) {
     sh "chmod +x gradlew"
     sh "./gradlew assemble ${abiFilter} --stacktrace"
   }
-  
-  parallel {
-    stage('JavaDoc') {
+
+  stage('Tests') {
+    parallel 
+    'JVM' : {
+      try {
+        sh "chmod +x gradlew && ./gradlew check ${abiFilter} --stacktrace"
+      } finally {
+        storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
+        storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
+        storeJunitResults 'realm/realm-library/build/test-results/**/TEST-*.xml'
+        step([$class: 'LintPublisher'])
+      }
+    }, 
+    'Realm Transformer' : {
+      try {
+        gradle('realm-transformer', 'check')
+      } finally {
+        storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
+      }
+    },
+    'Static code analysis' : {
+      try {
+        gradle('realm', "spotbugsMain pmd checkstyle ${abiFilter}")
+      } finally {
+        publishHTML(target: [
+          allowMissing: false, 
+          alwaysLinkToLastBuild: false, 
+          keepAll: true, 
+          reportDir: 'realm/realm-library/build/reports/spotbugs', 
+          reportFiles: 'main.html', 
+          reportName: 'Spotbugs report'
+        ])
+
+        publishHTML(target: [
+          allowMissing: false, 
+          alwaysLinkToLastBuild: false, 
+          keepAll: true, 
+          reportDir: 'realm/realm-library/build/reports/pmd', 
+          reportFiles: 'pmd.html', 
+          reportName: 'PMD report'
+        ])
+        
+        publishHTML(target: [
+          allowMissing: false, 
+          alwaysLinkToLastBuild: false, 
+          keepAll: true, 
+          reportDir: 'realm/realm-library/build/reports/checkstyle', 
+          reportFiles: 'checkstyle.html', 
+          reportName: 'Checkstyle report'
+        ])
+      }
+    },
+    'Instrumentation' : {
+      String backgroundPid
+      try {
+        backgroundPid = startLogCatCollector()
+        forwardAdbPorts()
+        gradle('realm', "${instrumentationTestTarget} ${abiFilter}")
+      } finally {
+        stopLogCatCollector(backgroundPid)
+        storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+        storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+      }
+    },
+    'Gradle Plugin' : {
+      try {
+        gradle('gradle-plugin', 'check --debug')
+      } finally {
+        storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
+      }
+    },
+    'JavaDoc': {
       sh "./gradlew javadoc ${abiFilter} --stacktrace"
     }
-
-    stage('Tests') {
-      parallel 'JVM' : {
-        try {
-          sh "chmod +x gradlew && ./gradlew check ${abiFilter} --stacktrace"
-        } finally {
-          storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
-          storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
-          storeJunitResults 'realm/realm-library/build/test-results/**/TEST-*.xml'
-          step([$class: 'LintPublisher'])
-        }
-      }, 
-      'Realm Transformer' : {
-        try {
-          gradle('realm-transformer', 'check')
-        } finally {
-          storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
-        }
-      },
-      'Static code analysis' : {
-        try {
-          gradle('realm', "spotbugsMain pmd checkstyle ${abiFilter}")
-        } finally {
-          publishHTML(target: [
-            allowMissing: false, 
-            alwaysLinkToLastBuild: false, 
-            keepAll: true, 
-            reportDir: 'realm/realm-library/build/reports/spotbugs', 
-            reportFiles: 'main.html', 
-            reportName: 'Spotbugs report'
-          ])
-
-          publishHTML(target: [
-            allowMissing: false, 
-            alwaysLinkToLastBuild: false, 
-            keepAll: true, 
-            reportDir: 'realm/realm-library/build/reports/pmd', 
-            reportFiles: 'pmd.html', 
-            reportName: 'PMD report'
-          ])
-          
-          publishHTML(target: [
-            allowMissing: false, 
-            alwaysLinkToLastBuild: false, 
-            keepAll: true, 
-            reportDir: 'realm/realm-library/build/reports/checkstyle', 
-            reportFiles: 'checkstyle.html', 
-            reportName: 'Checkstyle report'
-          ])
-        }
-      },
-      'Instrumentation' : {
-        String backgroundPid
-        try {
-          backgroundPid = startLogCatCollector()
-          forwardAdbPorts()
-          gradle('realm', "${instrumentationTestTarget} ${abiFilter}")
-        } finally {
-          stopLogCatCollector(backgroundPid)
-          storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
-          storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
-        }
-      },
-      'Gradle Plugin' : {
-        try {
-          gradle('gradle-plugin', 'check --debug')
-        } finally {
-          storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
-        }
-      }
-    }
   }
-
 
   // TODO: add support for running monkey on the example apps
 
