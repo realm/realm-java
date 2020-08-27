@@ -21,6 +21,6 @@
 
 -dontnote rx.Observable
 
-# Referenced on JNI
+# Referenced from JNI
 -keep class org.bson.types.Decimal128
 -keep class org.bson.types.ObjectId
