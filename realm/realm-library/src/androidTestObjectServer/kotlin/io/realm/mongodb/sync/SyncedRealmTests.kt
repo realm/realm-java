@@ -195,14 +195,12 @@ class SyncedRealmTests {
 
     @Test
     fun nullPartition() {
-        val config = configFactory.createSyncConfigurationBuilder(createNewUser(), BsonNull()).build()
+        val config = configFactory.createSyncConfigurationBuilder(createNewUser(), BsonNull())
+                .modules(DefaultSyncSchema())
+                .build()
         assertTrue(config.path.endsWith("null.realm"))
         Realm.getInstance(config).use { realm ->
-            // FIXME: This currently fails because the server does not yet support the Null partition
-            //  Remove the catch once it is supported, after which uploading changes should work.
-            assertFailsWithErrorCode(ErrorCode.ILLEGAL_REALM_PATH) {
-                realm.syncSession.uploadAllLocalChanges() // Ensures that we can actually connect
-            }
+            realm.syncSession.uploadAllLocalChanges() // Ensures that we can actually connect
         }
     }
 
