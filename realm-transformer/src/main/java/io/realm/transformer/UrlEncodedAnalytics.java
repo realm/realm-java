@@ -52,8 +52,8 @@ public class UrlEncodedAnalytics {
     }
 
     public static class Segment extends UrlEncodedAnalytics {
-        // FIXME
-        private static final String ADDRESS_PREFIX = "http://localhost:9091/api/client/v2.0/app/realm-sdk-integration-tests-dluxo/service/metric_webhook/incoming_webhook/metric?data=";
+        private static final String ADDRESS_PREFIX =
+                "https://webhooks.mongodb-realm.com/api/client/v2.0/app/realmsdkmetrics-zmhtm/service/metric_webhook/incoming_webhook/metric?data=";
         private static final String ADDRESS_SUFFIX = "";
 
         public Segment() {
