@@ -18,6 +18,9 @@ package io.realm.internal.jni;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.internal.Keep;
+
+@Keep
 public class OsJNIVoidResultCallback extends OsJNIResultCallback {
 
     public OsJNIVoidResultCallback(AtomicReference error) {
