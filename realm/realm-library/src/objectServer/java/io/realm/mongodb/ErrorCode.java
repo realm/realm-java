@@ -20,6 +20,7 @@ package io.realm.mongodb;
 import java.util.Locale;
 
 import io.realm.annotations.Beta;
+import io.realm.internal.Keep;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.log.RealmLog;
 import io.realm.mongodb.sync.SyncConfiguration;
@@ -28,6 +29,7 @@ import io.realm.mongodb.sync.SyncConfiguration;
  * This class enumerate all potential errors related to using the Object Server or synchronizing data.
  */
 @Beta
+@Keep
 public enum ErrorCode {
 
     // See Client::Error in https://github.com/realm/realm-sync/blob/master/src/realm/sync/client.hpp#L1230
