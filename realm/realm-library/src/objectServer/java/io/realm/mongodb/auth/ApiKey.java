@@ -109,7 +109,7 @@ public class ApiKey {
 
     @Override
     public String toString() {
-        return "UserApiKey{" +
+        return "ApiKey{" +
                 "id=" + id +
                 ", value='" + value + '\'' +
                 ", name='" + name + '\'' +
