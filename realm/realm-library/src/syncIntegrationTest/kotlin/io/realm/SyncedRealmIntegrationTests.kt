@@ -186,15 +186,16 @@ class SyncedRealmIntegrationTests {
                 }
                 // TODO: We don't have a way to ensure that the Realm instance on client thread has been
                 //  closed for now https://github.com/realm/realm-java/issues/5416
+                app.sync.getSession(config).testShutdownAndWait()
                 try {
                     Realm.deleteRealm(config)
                 } catch (e: IllegalStateException) {
-                if (e.message!!.contains("It's not allowed to delete the file")) {
-                    // retry after 1 second
-                    SystemClock.sleep(1000)
-                    assertTrue(Realm.deleteRealm(config))
+                    if (e.message!!.contains("It's not allowed to delete the file")) {
+                        // retry after 1 second
+                        SystemClock.sleep(1000)
+                        assertTrue(Realm.deleteRealm(config))
+                    }
                 }
-            }
             })
             t.start()
             t.join()

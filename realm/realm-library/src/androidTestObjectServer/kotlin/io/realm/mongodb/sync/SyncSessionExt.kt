@@ -20,3 +20,7 @@ package io.realm.mongodb.sync
 fun SyncSession.testClose() {
     this.close()
 }
+
+fun SyncSession.testShutdownAndWait() {
+    this.shutdownAndWait()
+}
