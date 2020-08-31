@@ -4579,20 +4579,18 @@ public class RealmTests {
         // Synchronizes between change listener and Background writes so they operate in lockstep.
         AtomicReference<CountDownLatch> guard = new AtomicReference<>(new CountDownLatch(1));
 
-        looperThread.postRunnable(() -> {
-            Realm realm = Realm.getInstance(config);
-            looperThread.closeAfterTest(realm);
-            realm.addChangeListener(callbackRealm -> {
-                // This test catches a bug that caused ObjectStore to pin Realm versions
-                // if a TableView was created inside a change notification and no elements
-                // in the TableView was accessed.
-                RealmResults<AllJavaTypes> query = realm.where(AllJavaTypes.class).findAll();
-                guard.get().countDown();
-                bgThreadDoneLatch.countDown();
-                if (bgThreadDoneLatch.getCount() == 0) {
-                    looperThread.testComplete();
-                }
-            });
+        Realm realm = Realm.getInstance(config);
+        looperThread.closeAfterTest(realm);
+        realm.addChangeListener(callbackRealm -> {
+            // This test catches a bug that caused ObjectStore to pin Realm versions
+            // if a TableView was created inside a change notification and no elements
+            // in the TableView was accessed.
+            RealmResults<AllJavaTypes> query = realm.where(AllJavaTypes.class).findAll();
+            guard.get().countDown();
+            bgThreadDoneLatch.countDown();
+            if (bgThreadDoneLatch.getCount() == 0) {
+                looperThread.testComplete();
+            }
         });
 
         // Write a number of transactions in the background in a serial manner
