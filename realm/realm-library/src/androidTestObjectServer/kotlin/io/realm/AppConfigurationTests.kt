@@ -18,9 +18,14 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.internal.network.LoggingInterceptor.LOGIN_FEATURE
-import io.realm.mongodb.AppConfiguration
+import io.realm.log.LogLevel
+import io.realm.log.RealmLog
+import io.realm.log.RealmLogger
+import io.realm.mongodb.*
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator
 import io.realm.mongodb.sync.SyncSession
+import io.realm.rule.BlockingLooperThread
+import io.realm.util.assertFailsWithErrorCode
 import org.bson.codecs.StringCodec
 import org.bson.codecs.configuration.CodecRegistries
 import org.junit.Assert.*
@@ -31,7 +36,10 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.io.File
 import java.net.URL
+import java.util.*
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.collections.LinkedHashMap
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 
