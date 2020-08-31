@@ -1,7 +1,7 @@
 ## 7.0.3 (YYYY-MM-DD)
 
 ### Enhancements
-* Addded `Realm.getNumberOfActiveVersions()`, which give back the current number of active versions maintained by the Realm file.
+* Added `Realm.getNumberOfActiveVersions()`, which returns the current number of active versions maintained by the Realm file.
 
 ### Fixes
 * Creating a query inside a change listener could in some cases result in the version being pinned, which would either drastically increase filesize or cause `RealmConfiguration.maxNumberOfActiveVersions()` to trigger. (Issue [#6977](https://github.com/realm/realm-java/issues/6977), since 7.0.0)
