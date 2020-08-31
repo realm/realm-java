@@ -506,14 +506,12 @@ class SessionTests {
     @Test
     fun getAllSessions(){
         val realm = Realm.getInstance(configuration)
-        val session = realm.syncSession
         val sessions = app.sync.allSessions
 
         assertNotNull(sessions)
         assertEquals(1, sessions.size)
 
         realm.close()
-        session.stop()
     }
     
 }

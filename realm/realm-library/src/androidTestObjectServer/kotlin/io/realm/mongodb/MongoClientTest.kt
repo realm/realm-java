@@ -1430,6 +1430,20 @@ class MongoClientTest {
         }
     }
 
+    @Test
+    fun getMongoClientServiceName() {
+        assertNotNull(client.serviceName)
+        assertEquals(SERVICE_NAME, client.serviceName)
+    }
+
+    @Test
+    fun getCollectionName() {
+        with(getCollectionInternal()) {
+            assertNotNull(this)
+            assertEquals(COLLECTION_NAME, this.name)
+        }
+    }
+
     private fun getCollectionInternal(): MongoCollection<Document> {
         return client.getDatabase(DATABASE_NAME).let {
             assertEquals(it.name, DATABASE_NAME)

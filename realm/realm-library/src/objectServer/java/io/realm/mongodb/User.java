@@ -118,7 +118,7 @@ public class User {
     User(OsSyncUser osUser, App app) {
         this.osUser = osUser;
         this.app = app;
-        this.profile = new Profile(osUser);
+        this.profile = new Profile(this);
     }
 
     /**
@@ -357,16 +357,7 @@ public class User {
         return this;
     }
 
-    /**
-     * Removes a user's credentials from this device. If the user was currently logged in, they
-     * will be logged out as part of the process. This is only a local change and does not
-     * affect the user state on the server.
-     *
-     * @param callback callback when removing the user has completed or failed. The callback will always
-     *                 happen on the same thread as this method is called on.
-     * @throws IllegalStateException if called from a non-looper thread.
-     */
-    public RealmAsyncTask removeAsync(App.Callback<User> callback) {
+    RealmAsyncTask removeAsync(App.Callback<User> callback) {
         Util.checkLooperThread("Asynchronous removal of users is only possible from looper threads.");
         return new Request<User>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override

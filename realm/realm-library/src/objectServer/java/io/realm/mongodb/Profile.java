@@ -18,13 +18,13 @@ package io.realm.mongodb;
 
 import javax.annotation.Nullable;
 
-import io.realm.internal.objectstore.OsSyncUser;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public class Profile {
-    private final OsSyncUser osUser;
+    private final User user;
 
-    public Profile(OsSyncUser osUser) {
-        this.osUser = osUser;
+    Profile(User user) {
+        this.user = user;
     }
 
     /**
@@ -34,7 +34,7 @@ public class Profile {
      */
     @Nullable
     public String getName() {
-        return osUser.nativeGetName();
+        return user.osUser.nativeGetName();
     }
 
     /**
@@ -45,7 +45,7 @@ public class Profile {
      */
     @Nullable
     public String getEmail() {
-        return osUser.getEmail();
+        return user.osUser.getEmail();
     }
 
     /**
@@ -55,7 +55,7 @@ public class Profile {
      */
     @Nullable
     public String getPictureUrl() {
-        return osUser.getPictureUrl();
+        return user.osUser.getPictureUrl();
     }
 
     /**
@@ -65,7 +65,7 @@ public class Profile {
      */
     @Nullable
     public String getFirstName() {
-        return osUser.getFirstName();
+        return user.osUser.getFirstName();
     }
 
     /**
@@ -75,7 +75,7 @@ public class Profile {
      */
     @Nullable
     public String getLastName() {
-        return osUser.getLastName();
+        return user.osUser.getLastName();
     }
 
     /**
@@ -85,7 +85,7 @@ public class Profile {
      */
     @Nullable
     public String getGender() {
-        return osUser.getGender();
+        return user.osUser.getGender();
     }
 
     /**
@@ -95,7 +95,7 @@ public class Profile {
      */
     @Nullable
     public String getBirthday() {
-        return osUser.getBirthday();
+        return user.osUser.getBirthday();
     }
 
     /**
@@ -105,7 +105,7 @@ public class Profile {
      */
     @Nullable
     public Long getMinAge() {
-        String minAge = osUser.getMinAge();
+        String minAge = user.osUser.getMinAge();
         return (minAge == null) ? null : Long.parseLong(minAge);
     }
 
@@ -116,7 +116,47 @@ public class Profile {
      */
     @Nullable
     public Long getMaxAge() {
-        String maxAge = osUser.getMaxAge();
+        String maxAge = user.osUser.getMaxAge();
         return (maxAge == null) ? null : Long.parseLong(maxAge);
+    }
+
+    /**
+     * Returns the {@link User} that this instance in associated with.
+     *
+     * @return The {@link User} that this instance in associated with.
+     */
+    public User getUser() {
+        return user;
+    }
+
+    @Override
+    public String toString() {
+        return "Profile{" +
+                "name='" + getName() + '\'' +
+                ", email='" + getEmail() + '\'' +
+                ", pictureUrl='" + getPictureUrl() + '\'' +
+                ", firstName='" + getFirstName() + '\'' +
+                ", lastName='" + getLastName() + '\'' +
+                ", gender='" + getGender() + '\'' +
+                ", birthday='" + getBirthday() + '\'' +
+                ", minAge=" + getMinAge() +
+                ", maxAge=" + getMaxAge() +
+                '}';
+    }
+
+    @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Profile profile = (Profile) o;
+
+        return user.equals(profile.user);
+    }
+
+    @Override
+    public int hashCode() {
+        return user.hashCode();
     }
 }

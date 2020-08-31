@@ -345,6 +345,20 @@ public class App {
     }
 
     /**
+     * Removes a user's credentials from this device. If the user was currently logged in, they
+     * will be logged out as part of the process. This is only a local change and does not
+     * affect the user state on the server.
+     *
+     * @param user to remove
+     * @param callback callback when removing the user has completed or failed. The callback will always
+     *                 happen on the same thread as this method is called on.
+     * @throws IllegalStateException if called from a non-looper thread.
+     */
+    RealmAsyncTask removeAsync(User user, App.Callback<User> callback) {
+        return user.removeAsync(callback);
+    }
+
+    /**
      * Logs in as a user with the given credentials associated with an authentication provider.
      * <p>
      * The user who logs in becomes the current user. Other App functionality acts on behalf of
