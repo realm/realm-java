@@ -191,28 +191,6 @@ class SyncSessionTests {
         }
     }
 
-    @Test
-    // FIXME Differentiate path for Realms with different partition values
-    @Ignore("Partition value does not generate different paths")
-    fun differentPathsForDifferentPartitionValues() {
-        val syncConfiguration1 = configFactory
-                .createSyncConfigurationBuilder(user, BsonString("partitionvalue1"))
-                .modules(DefaultSyncSchema())
-
-                .build()
-        val syncConfiguration2 = configFactory
-                .createSyncConfigurationBuilder(user, BsonString("partitionvalue2"))
-                .modules(DefaultSyncSchema())
-
-                .build()
-        Realm.getInstance(syncConfiguration1).use { realm1 ->
-            Realm.getInstance(syncConfiguration2).use { realm2 ->
-                assertNotEquals(realm1, realm2)
-                assertNotEquals(realm1.path, realm2.path)
-            }
-        }
-    }
-
     @Test(timeout = 3000)
     fun getState_active() {
         Realm.getInstance(syncConfiguration).use { realm ->
@@ -401,8 +379,6 @@ class SyncSessionTests {
     // check that logging out a SyncUser used by different Realm will
     // affect all associated sessions.
     @Test(timeout = 5000)
-    // FIXME Differentiate path for Realms with different partition values, see differentPathsForDifferentPartitionValues
-    @Ignore("Partition value does not generate different paths")
     fun logout_sameSyncUserMultipleSessions() {
         Realm.getInstance(syncConfiguration).use { realm1 ->
             // New partitionValue to differentiate sync session
@@ -435,7 +411,6 @@ class SyncSessionTests {
                 app.login(Credentials.emailPassword(user.email!!, SECRET_PASSWORD))
 
                 // reviving the sessions. The state could be changed concurrently.
-                // FIXME Reavaluate with new sync states
                 assertTrue(
                         //session1.state == SyncSession.State.WAITING_FOR_ACCESS_TOKEN ||
                         session1.state == SyncSession.State.ACTIVE)

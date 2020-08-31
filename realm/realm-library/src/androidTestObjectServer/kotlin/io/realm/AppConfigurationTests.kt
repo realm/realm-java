@@ -350,8 +350,6 @@ class AppConfigurationTests {
         assertFailsWithErrorCode(ErrorCode.SERVICE_UNKNOWN) {
             app.registerUserAndLogin(username, password)
         }
-        // FIXME Guess it would be better to reset logger on Realm.init, but not sure of impact
-        //  ...or is the logger intentionally shared to enable full trace of a full test run?
         RealmLog.remove(logger)
         RealmLog.setLevel(level)
 

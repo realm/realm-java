@@ -21,6 +21,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.DefaultSyncSchema
 import io.realm.entities.StringOnly
+import io.realm.entities.SyncSchemeMigration
 import io.realm.entities.SyncStringOnly
 import io.realm.exceptions.DownloadingRealmInterruptedException
 import io.realm.exceptions.RealmMigrationNeededException
@@ -100,7 +101,7 @@ class SyncedRealmIntegrationTests {
         try {
             assertTrue(Realm.deleteRealm(config))
         } catch (e: IllegalStateException) {
-            // FIXME: We don't have a way to ensure that the Realm instance on client thread has been
+            // TODO: We don't have a way to ensure that the Realm instance on client thread has been
             //  closed for now https://github.com/realm/realm-java/issues/5416
             if (e.message!!.contains("It's not allowed to delete the file")) {
                 // retry after 1 second
@@ -109,7 +110,6 @@ class SyncedRealmIntegrationTests {
             }
         }
 
-        // FIXME Is this sufficient to test "loginLogoutResumeSynching"-case
         user = app.login(Credentials.emailPassword(user.email, SECRET_PASSWORD))
         val config2: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, user.id)
                 .testSchema(SyncStringOnly::class.java)
@@ -173,8 +173,6 @@ class SyncedRealmIntegrationTests {
     // We cannot do much better since we cannot control the order of events internally in Realm which would be
     // needed to correctly test all error paths.
     @Test
-    @Ignore("Sync somehow keeps a Realm alive, causing the Realm.deleteRealm to throw " +
-            " https://github.com/realm/realm-java/issues/5416")
     fun waitForInitialData_resilientInCaseOfRetries() {
         val config: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, user.id)
                 .waitForInitialRemoteData()
@@ -186,12 +184,17 @@ class SyncedRealmIntegrationTests {
                     Thread.currentThread().interrupt()
                     Realm.getInstance(config).close()
                 }
-                // FIXME Seems like the file is actually created before interrupted. Is this check
-                //  correct?
-                 assertFalse(File(config.getPath()).exists())
-                // FIXME This can throw IllegalStateException as the realm is maybe not closed
-                //  properly due to https://github.com/realm/realm-java/issues/5416
-                Realm.deleteRealm(config)
+                // TODO: We don't have a way to ensure that the Realm instance on client thread has been
+                //  closed for now https://github.com/realm/realm-java/issues/5416
+                try {
+                    Realm.deleteRealm(config)
+                } catch (e: IllegalStateException) {
+                if (e.message!!.contains("It's not allowed to delete the file")) {
+                    // retry after 1 second
+                    SystemClock.sleep(1000)
+                    assertTrue(Realm.deleteRealm(config))
+                }
+            }
             })
             t.start()
             t.join()
@@ -202,9 +205,6 @@ class SyncedRealmIntegrationTests {
     // We cannot do much better since we cannot control the order of events internally in Realm which would be
     // needed to correctly test all error paths.
     @Test
-    // FIXME This does not throw anymore as described in issue. But do the test still make sense
-    //  with new sync?
-    //@Ignore("See https://github.com/realm/realm-java/issues/5373")
     fun waitForInitialData_resilientInCaseOfRetriesAsync() = looperThread.runBlocking {
         val config: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, user.id)
                 .testSessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
@@ -259,20 +259,19 @@ class SyncedRealmIntegrationTests {
     }
 
     @Test
-    // FIXME
-    @Ignore("Not really sure how to do this test with new sync")
     fun waitForInitialRemoteData_readOnlyTrue_throwsIfWrongServerSchema() {
         val configNew: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, user.id)
                 .waitForInitialRemoteData()
                 .readOnly()
-                .testSchema(SyncStringOnly::class.java)
+                .testSchema(SyncSchemeMigration::class.java)
                 .build()
         assertFalse(configNew.testRealmExists())
         assertFailsWith<RealmMigrationNeededException> {
-            // This will fail, because the server Realm is completely empty and the Client is not allowed to write the
-            // schema.
-            // FIXME Does not throw. How to test schema migration with new sync when server is in dev mode
-            Realm.getInstance(configNew).close()
+            Realm.getInstance(configNew).use { realm ->
+                realm.executeTransaction {
+                    it.createObject(SyncSchemeMigration::class.java, ObjectId())
+                }
+            }
         }
         user.logOut()
     }
@@ -306,14 +305,14 @@ class SyncedRealmIntegrationTests {
     // Smoke test to check that `refreshConnections` doesn't crash.
     // Testing that it actually works is not feasible in a unit test.
     @Test
-    fun refreshConnections() {
+    fun refreshConnections() = looperThread.runBlocking {
         RealmLog.setLevel(LogLevel.DEBUG)
         Sync.refreshConnections() // No Realms
 
         // A single active Realm
         val username = UUID.randomUUID().toString()
         val password = "password"
-        val user: User = app.login(Credentials.emailPassword(username, password))
+        val user: User = app.registerUserAndLogin(username, password)
         val config: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
                 .testSchema(StringOnly::class.java)
                 .build()

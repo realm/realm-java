@@ -284,8 +284,6 @@ class ProgressListenerTests {
     }
 
     @Test
-    // For some reason this does not work, even though the following
-    // progressListenersWorkWhenUsingWaitForInitialRemoteData works
     @Ignore("FIXME: Tracked by https://github.com/realm/realm-java/issues/6976")
     fun addProgressListener_triggerImmediatelyWhenRegistered_waitForInitialRemoteData() {
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
@@ -303,6 +301,7 @@ class ProgressListenerTests {
     }
 
     @Test
+    @Ignore("FIXME: Flacky: Tracked by https://github.com/realm/realm-java/issues/6976")
     fun progressListenersWorkWhenUsingWaitForInitialRemoteData() = looperThread.runBlocking {
         val username = UUID.randomUUID().toString()
         val password = "password"
