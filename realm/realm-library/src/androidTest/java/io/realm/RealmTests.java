@@ -4564,6 +4564,7 @@ public class RealmTests {
     @Test
     @RunTestInLooperThread
     public void numberOfVersionsDecreasedOnClose() {
+        realm.close();
         int count = 50;
         final CountDownLatch bgThreadDoneLatch = new CountDownLatch(count);
 
@@ -4580,6 +4581,7 @@ public class RealmTests {
 
         looperThread.postRunnable(() -> {
             Realm realm = Realm.getInstance(config);
+            looperThread.closeAfterTest(realm);
             realm.addChangeListener(callbackRealm -> {
                 // This test catches a bug that caused ObjectStore to pin Realm versions
                 // if a TableView was created inside a change notification and no elements
@@ -4616,7 +4618,6 @@ public class RealmTests {
                 }
             }
         }).start();
-        realm.close();
     }
 
     // Test for https://github.com/realm/realm-java/issues/6152
