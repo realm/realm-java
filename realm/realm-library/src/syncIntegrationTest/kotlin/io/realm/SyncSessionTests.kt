@@ -423,12 +423,9 @@ class SyncSessionTests {
 
     // A Realm that was opened before a user logged out should be able to resume uploading if the user logs back in.
     @Test
-    // FIXME Investigate further
-    // FIXME Rewrite to use BlockingLooperThread
-    @Ignore("Re-logging in does not authorize")
     fun logBackResumeUpload() {
         val config1 = configFactory
-                .createSyncConfigurationBuilder(user)
+                .createSyncConfigurationBuilder(user, UUID.randomUUID().toString())
                 .modules(SyncStringOnlyModule())
                 .waitForInitialRemoteData()
                 .build()
@@ -448,11 +445,9 @@ class SyncSessionTests {
             val allResults = AtomicReference<RealmResults<SyncStringOnly>>() // notifier could be GC'ed before it get a chance to trigger the second commit, so declaring it outside the Runnable
             handler.post { // access the Realm from an different path on the device (using admin user), then monitor
                 // when the offline commits get synchronized
-                // FIXME Do we somehow need to extract the refreshtoken...and could it be the reason for app.login not working later on
                 val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
                 val config2: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user2, config1.partitionValue)
                         .modules(SyncStringOnlyModule())
-                        .waitForInitialRemoteData()
                         .build()
                 val realm2 = Realm.getInstance(config2)
 
@@ -489,15 +484,13 @@ class SyncSessionTests {
     // A Realm that was opened before a user logged out should be able to resume uploading if the user logs back in.
     // this test validate the behaviour of SyncSessionStopPolicy::AfterChangesUploaded
     @Test
-    // FIXME Investigate why it does not terminate...probably rewrite to BlockingLooperThread
-    @Ignore("Does not terminate")
-    fun uploadChangesWhenRealmOutOfScope() {
+    fun uploadChangesWhenRealmOutOfScope() = looperThread.runBlocking {
         val strongRefs: MutableList<Any> = ArrayList()
         val chars = CharArray(1000000) // 2MB
         Arrays.fill(chars, '.')
         val twoMBString = String(chars)
         val config1 = configFactory
-                .createSyncConfigurationBuilder(user)
+                .createSyncConfigurationBuilder(user, UUID.randomUUID().toString())
                 .testSessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED)
                 .modules(SyncStringOnlyModule())
                 .build()
@@ -520,40 +513,37 @@ class SyncSessionTests {
             val config2: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user2, config1.partitionValue)
                     .modules(SyncStringOnlyModule())
                     .build()
-            Realm.getInstance(config2).use { realm2 ->
-                val all = realm2.where(SyncStringOnly::class.java).findAll()
-                if (all.size == 5) {
-                    realm2.close()
-                    testCompleted.countDown()
-                    handlerThread.quit()
-                } else {
-                    strongRefs.add(all)
-                    val realmChangeListener = OrderedRealmCollectionChangeListener { results: RealmResults<SyncStringOnly?>, changeSet: OrderedCollectionChangeSet? ->
-                        if (results.size == 5) {
-                            realm2.close()
-                            testCompleted.countDown()
-                            handlerThread.quit()
-                        }
+            val realm2 = Realm.getInstance(config2)
+            val all = realm2.where(SyncStringOnly::class.java).findAll()
+            if (all.size == 5) {
+                realm2.close()
+                testCompleted.countDown()
+                handlerThread.quit()
+            } else {
+                strongRefs.add(all)
+                val realmChangeListener = OrderedRealmCollectionChangeListener { results: RealmResults<SyncStringOnly?>, changeSet: OrderedCollectionChangeSet? ->
+                    if (results.size == 5) {
+                        realm2.close()
+                        testCompleted.countDown()
+                        handlerThread.quit()
                     }
-                    all.addChangeListener(realmChangeListener)
                 }
+                all.addChangeListener(realmChangeListener)
             }
-            handlerThread.quit()
         }
         TestHelper.awaitOrFail(testCompleted, TestHelper.STANDARD_WAIT_SECS)
         handlerThread.join()
         user.logOut()
+        looperThread.testComplete()
     }
 
     // A Realm that was opened before a user logged out should be able to resume downloading if the user logs back in.
     @Test
-    // FIXME Investigate why it does not terminate...probably rewrite to BlockingLooperThread
-    @Ignore("Does not terminate")
     fun downloadChangesWhenRealmOutOfScope() {
         val uniqueName = UUID.randomUUID().toString()
         app.emailPasswordAuth.registerUser(uniqueName, "password")
         val config1 = configFactory
-                .createSyncConfigurationBuilder(user)
+                .createSyncConfigurationBuilder(user, UUID.randomUUID().toString())
                 .modules(SyncStringOnlyModule())
                 .build()
         Realm.getInstance(config1).use { realm ->
@@ -570,13 +560,13 @@ class SyncSessionTests {
             val credentials = Credentials.emailPassword(user.email!!, SECRET_PASSWORD)
             app.login(credentials)
 
-            // now let the admin upload some commits
+            // Write updates from a different user
             val backgroundUpload = CountDownLatch(1)
             val handlerThread = HandlerThread("HandlerThread")
             handlerThread.start()
             val looper = handlerThread.looper
             val handler = Handler(looper)
-            handler.post { // using an admin user to open the Realm on different path on the device then some commits
+            handler.post { // Using a different user to open the Realm on different path on the device then some commits
                 val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
                 val config2: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user2, config1.partitionValue)
                         .modules(SyncStringOnlyModule())
