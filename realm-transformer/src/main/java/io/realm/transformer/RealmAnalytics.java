@@ -50,11 +50,6 @@ import java.util.Set;
 // - What OS you are running on
 // - An anonymized MAC address and bundle ID to aggregate the other information on.
 public class RealmAnalytics {
-    private static RealmAnalytics instance;
-    private static final int READ_TIMEOUT = 2000;
-    private static final int CONNECT_TIMEOUT = 4000;
-    private static final String ADDRESS_PREFIX = "https://api.mixpanel.com/track/?data=";
-    private static final String ADDRESS_SUFFIX = "&ip=1";
     private static final String TOKEN = "ce0fac19508f6c8f20066d345d360fd0";
     private static final String EVENT_NAME = "Run";
     private static final String JSON_TEMPLATE
@@ -66,6 +61,7 @@ public class RealmAnalytics {
             + "      \"Anonymized MAC Address\": \"%USER_ID%\",\n"
             + "      \"Anonymized Bundle ID\": \"%APP_ID%\",\n"
             + "      \"Binding\": \"java\",\n"
+            + "      \"Target\": \"%TARGET%\",\n"
             + "      \"Language\": \"%LANGUAGE%\",\n"
             + "      \"Sync Version\": %SYNC_VERSION%,\n"
             + "      \"Realm Version\": \"%REALM_VERSION%\",\n"
@@ -84,49 +80,15 @@ public class RealmAnalytics {
     private boolean usesSync;
     private String targetSdk;
     private String minSdk;
+    private String target;;
 
-    public RealmAnalytics(Set<String> packages, boolean usesKotlin, boolean usesSync, String targetSdk, String minSdk) {
+    public RealmAnalytics(Set<String> packages, boolean usesKotlin, boolean usesSync, String targetSdk, String minSdk, String target) {
         this.packages = packages;
         this.usesKotlin = usesKotlin;
         this.usesSync = usesSync;
         this.targetSdk = targetSdk;
         this.minSdk = minSdk;
-    }
-
-    private void send() {
-        try {
-            URL url = getUrl();
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.connect();
-            connection.getResponseCode();
-        } catch (Exception ignored) {
-        }
-    }
-
-    public void execute() {
-        Thread backgroundThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                send();
-            }
-        });
-        backgroundThread.start();
-        try {
-            backgroundThread.join(CONNECT_TIMEOUT + READ_TIMEOUT);
-        } catch (InterruptedException ignored) {
-            // We ignore this exception on purpose not to break the build system if this class fails
-        } catch (IllegalArgumentException ignored) {
-            // We ignore this exception on purpose not to break the build system if this class fails
-        }
-    }
-
-    public URL getUrl() throws
-            MalformedURLException,
-            SocketException,
-            NoSuchAlgorithmException,
-            UnsupportedEncodingException {
-        return new URL(ADDRESS_PREFIX + Utils.base64Encode(generateJson()) + ADDRESS_SUFFIX);
+        this.target = target;
     }
 
     public String generateJson() throws SocketException, NoSuchAlgorithmException {
@@ -135,6 +97,7 @@ public class RealmAnalytics {
                 .replaceAll("%TOKEN%", TOKEN)
                 .replaceAll("%USER_ID%", ComputerIdentifierGenerator.get())
                 .replaceAll("%APP_ID%", getAnonymousAppId())
+                .replaceAll("%TARGET%", target)
                 .replaceAll("%LANGUAGE%", usesKotlin ? "kotlin" : "java")
                 .replaceAll("%SYNC_VERSION%", usesSync ? "\"" + Version.SYNC_VERSION + "\"": "null")
                 .replaceAll("%REALM_VERSION%", Version.VERSION)
