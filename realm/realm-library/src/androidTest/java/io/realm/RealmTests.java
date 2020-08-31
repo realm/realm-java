@@ -4560,9 +4560,9 @@ public class RealmTests {
         }
     }
 
+    // Test for https://github.com/realm/realm-java/issues/6977
     @Test
     @RunTestInLooperThread
-    // FIXME Maybe a bit convoluted, consider deleting it again.
     public void numberOfVersionsDecreasedOnClose() {
         int count = 50;
         final CountDownLatch bgThreadDoneLatch = new CountDownLatch(count);
@@ -4573,14 +4573,19 @@ public class RealmTests {
                 .name("versions-test.realm")
                 .maxNumberOfActiveVersions(5)
                 .build();
+        Realm.deleteRealm(config);
 
-        // Read only instance
+        // Synchronizes between change listener and Background writes so they operate in lockstep.
+        AtomicReference<CountDownLatch> guard = new AtomicReference<>(new CountDownLatch(1));
+
         looperThread.postRunnable(() -> {
             Realm realm = Realm.getInstance(config);
-            realm.addChangeListener(realm1 -> {
-                // FIXME Seems like versions are not deprecated if we do queries here
-                //int objectCount = realm.where(AllJavaTypes.class).findAll().size();
-                RealmLog.warn("Open versions: " + realm.sharedRealm.getNumberOfVersions());
+            realm.addChangeListener(callbackRealm -> {
+                // This test catches a bug that caused ObjectStore to pin Realm versions
+                // if a TableView was created inside a change notification and no elements
+                // in the TableView was accessed.
+                RealmResults<AllJavaTypes> query = realm.where(AllJavaTypes.class).findAll();
+                guard.get().countDown();
                 bgThreadDoneLatch.countDown();
                 if (bgThreadDoneLatch.getCount() == 0) {
                     looperThread.testComplete();
@@ -4588,7 +4593,9 @@ public class RealmTests {
             });
         });
 
-        // Background write instances
+        // Write a number of transactions in the background in a serial manner
+        // in order to create a number of different versions. Done in serial
+        // to allow the LooperThread to catch up.
         new Thread(() -> {
             for (int i = 0; i < count; i++) {
                 Thread t = new Thread() {
@@ -4602,7 +4609,8 @@ public class RealmTests {
                 t.start();
                 try {
                     t.join();
-                    Thread.sleep(100);
+                    TestHelper.awaitOrFail(guard.get());
+                    guard.set(new CountDownLatch(1));
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -4610,7 +4618,6 @@ public class RealmTests {
         }).start();
         realm.close();
     }
-
 
     // Test for https://github.com/realm/realm-java/issues/6152
     @Test
@@ -4666,5 +4673,39 @@ public class RealmTests {
                 }
             }
         });
+    }
+
+    @Test
+    public void getNumberOfActiveVersions() throws InterruptedException {
+        CountDownLatch bgWritesCompleted = new CountDownLatch(1);
+        CountDownLatch closeBgRealm = new CountDownLatch(1);
+        // TODO: Why 2 instead of 1?
+        assertEquals(2, realm.getNumberOfActiveVersions());
+        Thread t = new Thread(() -> {
+            Realm bgRealm = Realm.getInstance(realmConfig);
+            assertEquals(2, bgRealm.getNumberOfActiveVersions());
+            for (int i = 0; i < 5; i++) {
+                bgRealm.executeTransaction(r -> { /* empty */ });
+            }
+            assertEquals(6, bgRealm.getNumberOfActiveVersions());
+            bgWritesCompleted.countDown();
+            TestHelper.awaitOrFail(closeBgRealm);
+            bgRealm.close();
+        });
+        t.start();
+        TestHelper.awaitOrFail(bgWritesCompleted);
+        assertEquals(6, realm.getNumberOfActiveVersions());
+        closeBgRealm.countDown();
+        t.join();
+        // TODO realm.refresh() does not work. But closing and reopening the Realm brings it correctly down?
+        realm.close();
+        realm = Realm.getInstance(realmConfig);
+        assertEquals(1, realm.getNumberOfActiveVersions());
+        realm.close();
+        try {
+            realm.getNumberOfActiveVersions();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
     }
 }

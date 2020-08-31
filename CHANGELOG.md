@@ -1,4 +1,21 @@
-## 7.0.2(2020-08-14)
+## 7.0.3 (YYYY-MM-DD)
+
+### Enhancements
+* Addded `Realm.getNumberOfActiveVersions()`, which give back the current number of active versions maintained by the Realm file.
+
+### Fixes
+* Creating a query inside a change listener could in some cases result in the version being pinned, which would either drastically increase filesize or cause `RealmConfiguration.maxNumberOfActiveVersions()` to trigger. (Issue [#6977](https://github.com/realm/realm-java/issues/6977), since 7.0.0)
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Object Store commit: fec731c09fed54e20e18eead586ce23a3071bcd0.
+
+
+## 7.0.2 (2020-08-14)
 
 ### Enhancements
 * None.
@@ -18,7 +35,7 @@
 * Upgraded to Realm Core 6.0.17.
 
 
-## 7.0.1(2020-07-01)
+## 7.0.1 (2020-07-01)
 
 ### Enhancements
 * None.
@@ -39,7 +56,7 @@
 * Upgraded to Realm Core 6.0.8.
 
 
-## 7.0.0(2020-05-16)
+## 7.0.0 (2020-05-16)
 
 NOTE: This version bumps the Realm file format to version 10. Files created with previous versions of Realm will be automatically upgraded. It is not possible to downgrade to version 9 or earlier. 
 
