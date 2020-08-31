@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Grays -->
+    <color name="charcoal">#1C233F</color>
+    <color name="elephant">#9A9BA5</color>
+    <color name="elephant_half">#b1b3bf</color>
+    <color name="dove">#EBEBF2</color>
+
+    <!-- Orb colors -->
+    <color name="ultramarine">#39477F</color>
+    <color name="indigo">#59569E</color>
+    <color name="grape_jelly">#9A59A5</color>
+    <color name="mulberry">#D34CA3</color>
+    <color name="flamingo">#F25192</color>
+    <color name="sexy_salmon">#F77C88</color>
+    <color name="peach">#FC9F95</color>
+    <color name="melon">#FCC397</color>
+
+    <!-- Material adjustments -->
+    <color name="flamingo_darker">#d64881</color>
+    <color name="touch_area_pressed">#dadada</color>
+
+    <!-- Progress bar colors -->
+    <color name="progress_upload">#EF5350</color>
+    <color name="progress_download">#9CCC65</color>
+    <color name="progress_both">#FFA726</color>
+
+</resources>

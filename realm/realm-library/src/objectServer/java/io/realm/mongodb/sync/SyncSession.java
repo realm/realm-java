@@ -62,8 +62,8 @@ import io.realm.mongodb.User;
 @Keep
 @Beta
 public class SyncSession {
-    private final static int DIRECTION_DOWNLOAD = 1;
-    private final static int DIRECTION_UPLOAD = 2;
+    private static final int DIRECTION_DOWNLOAD = 1;
+    private static final int DIRECTION_UPLOAD = 2;
 
     private final SyncConfiguration configuration;
     private final ErrorHandler errorHandler;
@@ -405,7 +405,7 @@ public class SyncSession {
         }
     }
 
-    void close() {
+    synchronized void close() {
         isClosed = true;
     }
 
@@ -417,7 +417,7 @@ public class SyncSession {
     // If the native listener was successfully registered, Object Store guarantees that this method will be called at
     // least once, even if the session is closed.
     @SuppressWarnings("unused")
-    private void notifyAllChangesSent(int callbackId, Long errorcode, String errorMessage) {
+    private void notifyAllChangesSent(int callbackId, String errorCategory, Long errorCode, String errorMessage) {
         WaitForSessionWrapper wrapper = waitingForServerChanges.get();
         if (wrapper != null) {
             // Only react to callback if the callback is "active"
@@ -427,7 +427,7 @@ public class SyncSession {
             // 3. Call `uploadAllLocalChanges()` ( callback = 2)
             // 4. Sync notifies session that callback:1 is done. It should be ignored.
             if (waitCounter.get() == callbackId) {
-                wrapper.handleResult(errorcode, errorMessage);
+                wrapper.handleResult(errorCategory, errorCode, errorMessage);
             }
         }
     }
@@ -695,6 +695,7 @@ public class SyncSession {
 
         private final CountDownLatch waiter = new CountDownLatch(1);
         private volatile boolean resultReceived = false;
+        private String errorCategory;
         private Long errorCode = null;
         private String errorMessage;
 
@@ -715,7 +716,8 @@ public class SyncSession {
          * @param errorCode error code if an error occurred, {@code null} if changes were successfully downloaded.
          * @param errorMessage error message (if any).
          */
-        public void handleResult(Long errorCode, String errorMessage) {
+        public void handleResult(String errorCategory, Long errorCode, String errorMessage) {
+            this.errorCategory = errorCategory;
             this.errorCode = errorCode;
             this.errorMessage = errorMessage;
             this.resultReceived = true;
@@ -732,8 +734,16 @@ public class SyncSession {
          */
         public void throwExceptionIfNeeded() {
             if (resultReceived && errorCode != null) {
-                throw new AppException(ErrorCode.UNKNOWN,
-                        String.format(Locale.US, "Internal error (%d): %s", errorCode, errorMessage));
+                // Core report errors with int64, so we need to add some extra checks
+                // to make sure the value is within a range of known errors we can map to,
+                // which are all inside Integer range
+                long longErrorCode = errorCode;
+                ErrorCode mappedError = ErrorCode.fromNativeError(errorCategory, (int) longErrorCode);
+                if (longErrorCode >= Integer.MIN_VALUE && longErrorCode <= Integer.MAX_VALUE && mappedError != ErrorCode.UNKNOWN) {
+                    throw new AppException(mappedError, errorMessage);
+                } else {
+                    throw new AppException(mappedError, String.format(Locale.US, "Internal error (%d): %s", errorCode, errorMessage));
+                }
             }
         }
     }

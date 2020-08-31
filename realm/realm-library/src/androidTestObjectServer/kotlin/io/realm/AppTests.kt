@@ -44,7 +44,7 @@ class AppTests {
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         app = TestApp()
-        admin = ServerAdmin()
+        admin = ServerAdmin(app)
     }
 
     @After
@@ -281,7 +281,7 @@ class AppTests {
             it.encryptionKey(TestHelper.getRandomKey())
         })
 
-        val metadataDir = File(context.filesDir, "realm-object-server/io.realm.object-server-utility/metadata/")
+        val metadataDir = File(context.filesDir, "mongodb-realm/server-utility/metadata/")
         val config = RealmConfiguration.Builder()
                 .name("sync_metadata.realm")
                 .directory(metadataDir)

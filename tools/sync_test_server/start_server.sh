@@ -12,19 +12,19 @@
 
 # Verify that Github username and tokens are available as environment vars
 if [[ -z "${GITHUB_DOCKER_USER}" ]]; then
-  echo "Could not find \$GITHUB_DOCKER_USER as an environment variabel"
+  echo "Could not find \$GITHUB_DOCKER_USER as an environment variable"
   exit 1
 fi
 
 if [[ -z "${GITHUB_DOCKER_TOKEN}" ]]; then
-  echo "Could not find \$GITHUB_DOCKER_TOKEN as an environment variabel. This is used to download Docker Registry packages."
+  echo "Could not find \$GITHUB_DOCKER_TOKEN as an environment variable. This is used to download Docker Registry packages."
   exit 1
 fi
 
 # Get the script dir which contains the Dockerfile
 DOCKERFILE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-MONGODB_REALM_VERSION=$(grep MONGODB_REALM_SERVER_VERSION $DOCKERFILE_DIR/../../dependencies.list | cut -d'=' -f2)
+MONGODB_REALM_VERSION=$(grep MONGODB_REALM_SERVER $DOCKERFILE_DIR/../../dependencies.list | cut -d'=' -f2)
 
 adb reverse tcp:9443 tcp:9443 && \
 adb reverse tcp:9080 tcp:9080 && \
@@ -43,4 +43,3 @@ docker run --rm -i -t -d --network container:$ID -v$TMP_DIR:/tmp --name mongodb-
 docker cp "$DOCKERFILE_DIR"/app_config mongodb-realm:/tmp/app_config
 docker cp "$DOCKERFILE_DIR"/setup_mongodb_realm.sh mongodb-realm:/tmp/
 docker exec -it mongodb-realm sh /tmp/setup_mongodb_realm.sh
-

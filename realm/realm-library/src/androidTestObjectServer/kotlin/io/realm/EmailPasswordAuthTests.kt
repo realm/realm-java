@@ -66,7 +66,7 @@ class EmailPasswordAuthTests {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         app = TestApp()
         RealmLog.setLevel(LogLevel.DEBUG)
-        admin = ServerAdmin()
+        admin = ServerAdmin(app)
         admin.deleteAllUsers()
     }
 

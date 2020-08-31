@@ -108,7 +108,7 @@ class FunctionsTests {
     fun setup() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         app = TestApp()
-        admin = ServerAdmin()
+        admin = ServerAdmin(app)
         anonUser = app.login(Credentials.anonymous())
         functions = anonUser.functions
     }

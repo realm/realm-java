@@ -81,8 +81,8 @@ capitalizeFirstLetter(buildTypeCap "${CMAKE_BUILD_TYPE}")
 # Generate JNI header files. Each build has its own JNI header in its build_dir/jni_include.
 # WARNING: The classes_PATH is not part the public API offered by the Android Gradle Plugin
 # so it might change without warning when upgrading the plugin.
-file(DOWNLOAD "https://repo1.maven.org/maven2/org/mongodb/bson/${DEP_BSON_DEPENDENCY_VERSION}/bson-${DEP_BSON_DEPENDENCY_VERSION}.jar" "${PROJECT_BINARY_DIR}/bson-${DEP_BSON_DEPENDENCY_VERSION}.jar")
-set(bsonlib_PATH ${PROJECT_BINARY_DIR}/bson-${DEP_BSON_DEPENDENCY_VERSION}.jar)
+file(DOWNLOAD "https://repo1.maven.org/maven2/org/mongodb/bson/${DEP_BSON_DEPENDENCY}/bson-${DEP_BSON_DEPENDENCY}.jar" "${PROJECT_BINARY_DIR}/bson-${DEP_BSON_DEPENDENCY}.jar")
+set(bsonlib_PATH ${PROJECT_BINARY_DIR}/bson-${DEP_BSON_DEPENDENCY}.jar)
 set(classes_PATH ${CMAKE_SOURCE_DIR}/../../../build/intermediates/javac/${REALM_FLAVOR}${buildTypeCap}/classes/)
 set(classes_LIST
     io.realm.RealmQuery
@@ -110,11 +110,13 @@ if (build_SYNC)
         io.realm.mongodb.sync.Sync
         io.realm.mongodb.sync.SyncSession
         io.realm.mongodb.User
+        io.realm.internal.objectstore.OsApp
         io.realm.internal.objectstore.OsAppCredentials
         io.realm.internal.objectstore.OsAsyncOpenTask
         io.realm.internal.objectstore.OsJavaNetworkTransport
         io.realm.internal.objectstore.OsMongoClient
         io.realm.internal.objectstore.OsMongoCollection
+        io.realm.internal.objectstore.OsWatchStream
         io.realm.internal.objectstore.OsMongoDatabase
         io.realm.internal.objectstore.OsPush
         io.realm.internal.objectstore.OsSyncUser
@@ -200,7 +202,6 @@ file(GLOB jni_SRC
 # Those source file are only needed for sync.
 if (NOT build_SYNC)
     list(REMOVE_ITEM jni_SRC
-        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_App.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_User.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_FunctionsImpl.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_EmailPasswordAuthImpl.cpp
@@ -208,11 +209,13 @@ if (NOT build_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_sync_ClientResetRequiredError.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_sync_Sync.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_sync_SyncSession.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsApp.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAsyncOpenTask.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsAppCredentials.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsJavaNetworkTransport.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoClient.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoCollection.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsWatchStream.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoDatabase.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsPush.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsSyncUser.cpp

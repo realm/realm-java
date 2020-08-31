@@ -2,6 +2,7 @@ package io.realm.admin
 
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
+import io.realm.mongodb.App
 import io.realm.mongodb.User
 import okhttp3.*
 import okio.Buffer
@@ -13,7 +14,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Wrapper around MongoDB Realm Server Admin functions needed for tests.
  */
-class ServerAdmin {
+class ServerAdmin(private val app: App) {
 
     private lateinit var accessToken: String
     private lateinit var groupId: String
@@ -80,10 +81,18 @@ class ServerAdmin {
         result = JSONObject(executeRequest(builder))
         groupId = (result.getJSONArray("roles")[0] as JSONObject).getString("group_id")
 
-        // Get Internal App Id
+        // Get Internal App Id of the requested app
+        val appId = this.app.configuration.appId
         builder = Request.Builder().url("$baseUrl/groups/$groupId/apps").get()
-        result = JSONArray(executeRequest(builder))[0] as JSONObject
-        appId = result.getString("_id")
+        val response = JSONArray(executeRequest(builder))
+        for (i in 0 until response.length()) {
+            val appObject = response[i] as JSONObject
+            if (appObject.getString("client_app_id") == appId) {
+                this.appId = appObject.getString("_id")
+                return
+            }
+        }
+        throw IllegalArgumentException("Could not find app: $")
     }
 
     /**

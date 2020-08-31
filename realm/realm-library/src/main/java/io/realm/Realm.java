@@ -1970,7 +1970,7 @@ public class Realm extends BaseRealm {
     /**
      * {@inheritDoc}
      */
-    public static abstract class Callback extends InstanceCallback<Realm> {
+    public abstract static class Callback extends InstanceCallback<Realm> {
         /**
          * {@inheritDoc}
          */

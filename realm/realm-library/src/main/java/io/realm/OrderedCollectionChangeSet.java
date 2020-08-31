@@ -34,7 +34,7 @@ public interface OrderedCollectionChangeSet {
     /**
      * State describing the nature of the changeset.
      */
-    public enum State {
+    enum State {
         /**
          * This state is used first time the callback is invoked. The query will have completed and
          * data is ready for the UI.

@@ -185,6 +185,17 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGe
     return nullptr;
 }
 
+JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetLocalIdentity(JNIEnv* env, jclass, jlong j_native_ptr)
+{
+    try {
+        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
+        return to_jstring(env, user->local_identity());
+    }
+    CATCH_STD();
+    return nullptr;
+}
+
+
 JNIEXPORT jbyte JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetState(JNIEnv* env, jclass, jlong j_native_ptr)
 {
     try {

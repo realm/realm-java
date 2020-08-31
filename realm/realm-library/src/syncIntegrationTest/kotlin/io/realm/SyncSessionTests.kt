@@ -20,7 +20,6 @@ import io.realm.util.assertFailsWithErrorCode
 import io.realm.util.assertFailsWithMessage
 import org.bson.BsonInt32
 import org.bson.BsonInt64
-import org.bson.BsonObjectId
 import org.bson.BsonString
 import org.bson.types.ObjectId
 import org.hamcrest.CoreMatchers
@@ -28,7 +27,6 @@ import org.junit.*
 import org.junit.Assert.*
 import org.junit.runner.RunWith
 import java.io.Closeable
-import java.lang.IllegalStateException
 import java.lang.Thread
 import java.util.*
 import java.util.concurrent.CountDownLatch
@@ -96,14 +94,14 @@ class SyncSessionTests {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         RealmLog.setLevel(LogLevel.ALL)
 
-        admin = ServerAdmin()
         app = TestApp()
+        admin = ServerAdmin(app)
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
         syncConfiguration = configFactory
                 // TODO We generate new partition value for each test to avoid overlaps in data. We
                 //  could make test booting with a cleaner state by somehow flushing data between
                 //  tests.
-                .createSyncConfigurationBuilder(user, BsonObjectId(ObjectId()))
+                .createSyncConfigurationBuilder(user, BsonString(UUID.randomUUID().toString()))
                 .modules(DefaultSyncSchema())
                 .build()
     }
@@ -132,40 +130,57 @@ class SyncSessionTests {
     }
 
     @Test
-    fun partitionValue_int32() {
+    fun partitionValue_int32_failsWhenServerConfiguredWithStringPartition() {
         val int = 123536462
         val syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, BsonInt32(int))
                 .modules(DefaultSyncSchema())
                 .build()
-        Realm.getInstance(syncConfiguration).use { realm ->
-            realm.executeTransaction {
-                realm.createObject(SyncDog::class.java, ObjectId())
+
+        looperThread.runBlocking {
+            Realm.getInstance(syncConfiguration).use { realm ->
+                realm.executeTransaction {
+                    realm.createObject(SyncDog::class.java, ObjectId())
+                }
+
+                assertFailsWith<AppException> {
+                    // This throws as the server has NOT been configured to have int partitions!
+                    realm.syncSession.uploadAllLocalChanges()
+                }.also {
+                    looperThread.testComplete()
+                }
             }
-            realm.syncSession.uploadAllLocalChanges()
         }
     }
 
     @Test
-    fun partitionValue_int64() {
+    fun partitionValue_int64_failsWhenServerConfiguredWithStringPartition() {
         val long = 1243513244L
         val syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user, BsonInt64(long))
                 .modules(DefaultSyncSchema())
                 .build()
-        Realm.getInstance(syncConfiguration).use { realm ->
-            realm.executeTransaction {
-                realm.createObject(SyncDog::class.java, ObjectId())
+
+        looperThread.runBlocking {
+            Realm.getInstance(syncConfiguration).use { realm ->
+                realm.executeTransaction {
+                    realm.createObject(SyncDog::class.java, ObjectId())
+                }
+
+                assertFailsWith<AppException> {
+                    // This throws as the server has NOT been configured to have long partitions!
+                    realm.syncSession.uploadAllLocalChanges()
+                }.also {
+                    looperThread.testComplete()
+                }
             }
-            realm.syncSession.uploadAllLocalChanges()
         }
     }
 
     @Test
     fun partitionValue_objectId() {
-        val objectId = ObjectId("5ecf72df02aa3c32ab6b4ce0")
         val syncConfiguration = configFactory
-                .createSyncConfigurationBuilder(user, BsonObjectId(objectId))
+                .createSyncConfigurationBuilder(user, BsonString(UUID.randomUUID().toString()))
                 .modules(DefaultSyncSchema())
                 .build()
         Realm.getInstance(syncConfiguration).use { realm ->
@@ -228,8 +243,8 @@ class SyncSessionTests {
     fun getState_loggedOut() {
         Realm.getInstance(syncConfiguration).use { realm ->
             val session = realm.syncSession
-            user.logOut();
-            assertEquals(SyncSession.State.INACTIVE, session.state);
+            user.logOut()
+            assertEquals(SyncSession.State.INACTIVE, session.state)
         }
     }
 
@@ -237,7 +252,7 @@ class SyncSessionTests {
     fun session_throwOnLogoutUser() {
         user.logOut()
         assertFailsWith<IllegalStateException> {
-            Realm.getInstance(syncConfiguration).use { realm -> }
+            Realm.getInstance(syncConfiguration).use { }
         }
     }
 
@@ -278,7 +293,7 @@ class SyncSessionTests {
             realm.executeTransaction {
                 realm.createObject(SyncAllTypesWithFloat::class.java, ObjectId())
             }
-            assertFailsWithErrorCode(ErrorCode.UNKNOWN) {
+            assertFailsWithErrorCode(ErrorCode.INVALID_SCHEMA_CHANGE) {
                 realm.syncSession.uploadAllLocalChanges()
             }
         }
@@ -296,7 +311,7 @@ class SyncSessionTests {
         // New user and different partition value
         val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
         val config2 = configFactory
-                .createSyncConfigurationBuilder(user2, BsonObjectId(ObjectId()))
+                .createSyncConfigurationBuilder(user2, BsonString(UUID.randomUUID().toString()))
                 .modules(DefaultSyncSchema())
                 .build()
 
@@ -320,7 +335,7 @@ class SyncSessionTests {
         // New user and different partition value
         val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
         val config2 = configFactory
-                .createSyncConfigurationBuilder(user2, BsonObjectId(ObjectId()))
+                .createSyncConfigurationBuilder(user2, BsonString(UUID.randomUUID().toString()))
                 .modules(DefaultSyncSchema())
                 .build()
 
@@ -392,7 +407,7 @@ class SyncSessionTests {
         Realm.getInstance(syncConfiguration).use { realm1 ->
             // New partitionValue to differentiate sync session
             val syncConfiguration2 = configFactory
-                    .createSyncConfigurationBuilder(user, BsonObjectId(ObjectId()))
+                    .createSyncConfigurationBuilder(user, BsonString(UUID.randomUUID().toString()))
                     .modules(DefaultSyncSchema())
                     .build()
 
@@ -561,7 +576,7 @@ class SyncSessionTests {
     @Ignore("Does not terminate")
     fun downloadChangesWhenRealmOutOfScope() {
         val uniqueName = UUID.randomUUID().toString()
-        var credentials = app.emailPasswordAuth.registerUser(uniqueName, "password")
+        app.emailPasswordAuth.registerUser(uniqueName, "password")
         val config1 = configFactory
                 .createSyncConfigurationBuilder(user)
                 .modules(SyncStringOnlyModule())
@@ -670,11 +685,9 @@ class SyncSessionTests {
                     fail("Listener should have been removed")
                 }
             }
-            var listener2 = object : ConnectionListener {
-                override fun onChange(oldState: ConnectionState, newState: ConnectionState) {
-                    if (newState == ConnectionState.DISCONNECTED) {
-                        looperThread.testComplete()
-                    }
+            val listener2 = ConnectionListener { oldState, newState ->
+                if (newState == ConnectionState.DISCONNECTED) {
+                    looperThread.testComplete()
                 }
             }
             session.addConnectionChangeListener(listener1)

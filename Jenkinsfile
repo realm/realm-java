@@ -14,8 +14,10 @@ releaseBranches = ['master', 'next-major', 'v10']
 // Branches that are "important", so if they do not compile they will generate a Slack notification
 slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
 currentBranch = env.CHANGE_BRANCH
+// FIXME: Always used the emulator until we can enable more reliable devices
 // 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen.
-nodeSelector = (releaseBranches.contains(currentBranch)) ? 'android' : 'docker-cph-03' // Switch to `brix` when all CPH nodes work: https://jira.mongodb.org/browse/RCI-14
+// nodeSelector = (releaseBranches.contains(currentBranch)) ? 'android' : 'docker-cph-03' // Switch to `brix` when all CPH nodes work: https://jira.mongodb.org/browse/RCI-14
+nodeSelector = 'docker-cph-03'
 try {
   node(nodeSelector) {
     timeout(time: 90, unit: 'MINUTES') {
@@ -45,10 +47,18 @@ try {
         def instrumentationTestTarget = "connectedAndroidTest"
         def deviceSerial = ""
         if (!releaseBranches.contains(currentBranch)) {
+          // Bui
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
           abiFilter = "-PbuildTargetABIs=x86"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
+          deviceSerial = "emulator-5554"
+        } else {
+          // FIXME: Use emulator until we can get reliable devices on CI.
+          //  But still build all ABI's and run all types of tests. 
+          useEmulator = true
+          emulatorImage = "system-images;android-29;default;x86"
+          instrumentationTestTarget = "connectedAndroidTest"
           deviceSerial = "emulator-5554"
         }
 
@@ -57,11 +67,12 @@ try {
           def buildEnv = null
           stage('Prepare Docker Images') {
             // TODO Should be renamed to 'master' when merged there.
-            // TODO Figure out why caching the image doesn't work.
-            buildEnv = buildDockerEnv("realm-java-ci:v10", push: currentBranch == 'v10')
+            // TODO Caching is currently disabled (with -do-not-cache suffix) due to the upload speed
+            //  in Copenhagen being too slow. So the upload times out.
+            buildEnv = buildDockerEnv("ci/realm-java:v10", push: currentBranch == 'v10-do-not-cache')
             def props = readProperties file: 'dependencies.list'
-            echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER_VERSION}"
-            def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER_VERSION}")
+            echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER}"
+            def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER}")
             docker.withRegistry('https://docker.pkg.github.com', 'github-packages-token') {
               mdbRealmImage.pull()
             }
@@ -138,18 +149,22 @@ try {
   buildSuccess = false
   throw e
 } finally {
-  if (slackNotificationBranches.contains(currentBranch) && !buildSuccess) {
+  if (slackNotificationBranches.contains(currentBranch)) {
     node {
-      withCredentials([[$class: 'StringBinding', credentialsId: 'slack-java-url', variable: 'SLACK_URL']]) {
-        def payload = JsonOutput.toJson([
-                username: 'Mr. Jenkins',
-                icon_emoji: ':jenkins:',
-                attachments: [[
-                  'title': "The ${currentBranch} branch is broken!",
-                  'text': "<${env.BUILD_URL}|Click here> to check the build.",
-                  'color': "danger"
-                ]]
-        ])
+      withCredentials([[$class: 'StringBinding', credentialsId: 'slack-webhook-java-ci-channel', variable: 'SLACK_URL']]) {
+        def payload = null
+        if (!buildSuccess) {
+          payload = JsonOutput.toJson([
+                  text: "*The ${currentBranch} branch is broken!*\n<${env.BUILD_URL}|Click here> to check the build."
+          ])
+        }
+
+        if (currentBuild.getPreviousBuild() && currentBuild.getPreviousBuild().getResult().toString() != "SUCCESS" && buildSuccess) {
+          payload = JsonOutput.toJson([
+                  text: "*${currentBranch} is back to normal!*\n<${env.BUILD_URL}|Click here> to check the build."
+          ])
+        }
+
         sh "curl -X POST --data-urlencode \'payload=${payload}\' ${env.SLACK_URL}"
       }
     }
@@ -160,7 +175,8 @@ try {
 def runBuild(abiFilter, instrumentationTestTarget) {
 
   stage('Build') {
-    sh "chmod +x gradlew && ./gradlew assemble javadoc ${abiFilter} --stacktrace"
+    sh "chmod +x gradlew"
+    sh "./gradlew assemble ${abiFilter} --stacktrace"
   }
 
   stage('Tests') {
@@ -183,17 +199,34 @@ def runBuild(abiFilter, instrumentationTestTarget) {
     },
     'Static code analysis' : {
       try {
-        gradle('realm', "findbugs ${abiFilter}") // FIXME Renable pmd and checkstyle
+        gradle('realm', "spotbugsMain pmd checkstyle ${abiFilter}")
       } finally {
-        publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
-  //                  publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
-  //                  step([$class: 'CheckStylePublisher',
-  //                        canComputeNew: false,
-  //                        defaultEncoding: '',
-  //                        healthy: '',
-  //                        pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
-  //                        unHealthy: ''
-  //                  ])
+        publishHTML(target: [
+          allowMissing: false, 
+          alwaysLinkToLastBuild: false, 
+          keepAll: true, 
+          reportDir: 'realm/realm-library/build/reports/spotbugs', 
+          reportFiles: 'main.html', 
+          reportName: 'Spotbugs report'
+        ])
+
+        publishHTML(target: [
+          allowMissing: false, 
+          alwaysLinkToLastBuild: false, 
+          keepAll: true, 
+          reportDir: 'realm/realm-library/build/reports/pmd', 
+          reportFiles: 'pmd.html', 
+          reportName: 'PMD report'
+        ])
+        
+        publishHTML(target: [
+          allowMissing: false, 
+          alwaysLinkToLastBuild: false, 
+          keepAll: true, 
+          reportDir: 'realm/realm-library/build/reports/checkstyle', 
+          reportFiles: 'checkstyle.html', 
+          reportName: 'Checkstyle report'
+        ])
       }
     },
     'Instrumentation' : {
@@ -214,6 +247,9 @@ def runBuild(abiFilter, instrumentationTestTarget) {
       } finally {
         storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
       }
+    },
+    'JavaDoc': {
+      sh "./gradlew javadoc ${abiFilter} --stacktrace"
     }
   }
 
@@ -228,7 +264,7 @@ def runBuild(abiFilter, instrumentationTestTarget) {
   if (releaseBranches.contains(currentBranch)) {
     stage('Publish to OJO') {
       withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
-        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
+        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} ojoUpload --stacktrace"
       }
     }
   }

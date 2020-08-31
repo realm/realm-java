@@ -292,7 +292,7 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
             if (json.isNull("child")) {
                 objProxy.realmSet$child(null);
             } else {
-                some.test.EmbeddedClass childObj = some_test_EmbeddedClassRealmProxy.createOrUpdateUsingJsonObject(realm, (RealmModel)objProxy, "child", json.getJSONObject("child"), update);
+                some_test_EmbeddedClassRealmProxy.createOrUpdateEmbeddedUsingJsonObject(realm, (RealmModel)objProxy, "child", json.getJSONObject("child"), update);
             }
         }
         if (json.has("children")) {
@@ -302,7 +302,7 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
                 objProxy.realmGet$children().clear();
                 JSONArray array = json.getJSONArray("children");
                 for (int i = 0; i < array.length(); i++) {
-                    some.test.EmbeddedClass item = some_test_EmbeddedClassRealmProxy.createOrUpdateUsingJsonObject(realm, (RealmModel)objProxy, "children", array.getJSONObject(i), update);
+                    some_test_EmbeddedClassRealmProxy.createOrUpdateEmbeddedUsingJsonObject(realm, (RealmModel)objProxy, "children", array.getJSONObject(i), update);
                 }
             }
         }

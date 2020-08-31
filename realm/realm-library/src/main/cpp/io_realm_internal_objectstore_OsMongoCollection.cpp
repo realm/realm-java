@@ -74,7 +74,7 @@ static std::function<jobject(JNIEnv*, RemoteMongoCollection::RemoteUpdateResult)
     Bson modified_count(result.modified_count);
     Bson upserted_value;
     if (result.upserted_id) {
-        upserted_value = new Bson(result.upserted_id.value());
+        upserted_value = Bson(result.upserted_id.value());
     }
     // FIXME: maybe not the most efficient way. Suggestions?
     std::vector<Bson> bson_vector = { matched_count, modified_count, upserted_value };

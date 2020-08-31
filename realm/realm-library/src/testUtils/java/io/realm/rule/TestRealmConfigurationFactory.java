@@ -98,8 +98,12 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     public void create() throws IOException {
         super.create();
         tempFolder = new File(super.getRoot(), testName);
-        tempFolder.delete();
-        tempFolder.mkdir();
+        if (tempFolder.exists() && !tempFolder.delete()) {
+            throw new IllegalStateException("Could not delete folder: " + tempFolder.getAbsolutePath());
+        }
+        if (!tempFolder.mkdir()) {
+            throw new IllegalStateException("Could not create folder: " + tempFolder.getAbsolutePath());
+        }
     }
 
     @Override

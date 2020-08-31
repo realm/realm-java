@@ -16,8 +16,12 @@
 
 package io.realm.mongodb.sync;
 
+import org.bson.BsonValue;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,6 +29,9 @@ import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.annotations.Beta;
+import io.realm.internal.jni.JniBsonProtocol;
+import io.realm.internal.objectstore.OsSyncUser;
+import io.realm.mongodb.AppConfiguration;
 import io.realm.mongodb.ErrorCode;
 import io.realm.internal.Keep;
 import io.realm.internal.OsRealmConfig;
@@ -167,21 +174,24 @@ public abstract class Sync {
         return session;
     }
 
-    List<SyncSession> getAllSyncSessions(User user) {
-        //noinspection ConstantConditions
-        if (user == null) {
-            throw new IllegalArgumentException("A non-empty 'syncUser' is required.");
+    /**
+     * Returns the absolute path for the location of the Realm file on disk
+     */
+    String getAbsolutePathForRealm(String userId, BsonValue partitionValue, @Nullable String overrideFileName) {
+        String encodedPartitionValue;
+        switch (partitionValue.getBsonType()) {
+            case STRING:
+            case OBJECT_ID:
+            case INT32:
+            case INT64:
+            case NULL:
+                encodedPartitionValue = JniBsonProtocol.encode(partitionValue, AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported type: " + partitionValue);
         }
-        ArrayList<SyncSession> allSessions = new ArrayList<SyncSession>();
-        for (SyncSession syncSession : sessions.values()) {
-            if (syncSession.getUser().equals(user)) {
-                allSessions.add(syncSession);
-            }
-        }
-        return allSessions;
+        return nativeGetPathForRealm(userId, encodedPartitionValue, overrideFileName);
     }
-
-
 
     /**
      * Remove the wrapped Java session.
@@ -304,4 +314,5 @@ public abstract class Sync {
     private static native void nativeSimulateSyncError(String realmPath, int errorCode, String errorMessage, boolean isFatal);
     private static native void nativeReconnect();
     private static native void nativeCreateSession(long nativeConfigPtr);
+    private static native String nativeGetPathForRealm(String userId, String partitionValue, @Nullable String overrideFileName);
 }

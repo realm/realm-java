@@ -648,7 +648,7 @@ public class RealmMigrationTests {
                             public void apply(DynamicRealmObject obj) {
                                 String fieldValue = obj.getString(MigrationPrimaryKey.FIELD_PRIMARY);
                                 if (fieldValue != null && fieldValue.length() != 0) {
-                                    obj.setInt(TEMP_FIELD_ID, Integer.valueOf(fieldValue).intValue());
+                                    obj.setInt(TEMP_FIELD_ID, Integer.parseInt(fieldValue));
                                 } else {
                                     // Since this cannot be accepted as proper pk value, we'll delete it.
                                     // *You can modify with some other value such as 0, but that's not
@@ -695,7 +695,7 @@ public class RealmMigrationTests {
                             public void apply(DynamicRealmObject obj) {
                                 String fieldValue = obj.getString(MigrationPrimaryKey.FIELD_PRIMARY);
                                 if (fieldValue != null && fieldValue.length() != 0) {
-                                    obj.setInt(TEMP_FIELD_ID, Integer.valueOf(fieldValue));
+                                    obj.setInt(TEMP_FIELD_ID, Integer.parseInt(fieldValue));
                                 } else {
                                     obj.setNull(TEMP_FIELD_ID);
                                 }
@@ -898,7 +898,7 @@ public class RealmMigrationTests {
             Realm.getInstance(configFactory.createConfiguration());
             fail();
         } catch (RealmMigrationNeededException expected) {
-            assertEquals(expected.getPath(), realm.getCanonicalPath());
+            assertEquals(expected.getPath(), realm.getAbsolutePath());
         }
     }
 
@@ -1433,8 +1433,9 @@ public class RealmMigrationTests {
         }
     }
 
-    // File format 9 (up to Core5) added an index automatically to the primary key, in Core6 (File format 10) string based PK are not
-    // indexed because the search index is derived from the ObjectKey.
+    // File format 9 (up to Core5) added an index automatically to the primary key, in Core6
+    // (File format 10) string based PK are not indexed because the search index is derived from
+    // the ObjectKey. In this case the Core 5 index is now automatically removed.
     @Test
     public void core5AutomaticIndexOnStringPKShouldOpenInCore6() throws IOException {
         configFactory.copyRealmFromAssets(context,
@@ -1444,7 +1445,8 @@ public class RealmMigrationTests {
                 .schema(MigrationCore6PKStringIndexedByDefault.class)
                 .build());
         assertFalse(realm.isEmpty());
-        assertTrue(realm.getSchema().get("MigrationCore6PKStringIndexedByDefault").hasIndex("name"));
+        // Upgrading to Core 6 will strip all indexes on primary keys as they are no longer needed.
+        assertFalse(realm.getSchema().get("MigrationCore6PKStringIndexedByDefault").hasIndex("name"));
         MigrationCore6PKStringIndexedByDefault first = realm.where(MigrationCore6PKStringIndexedByDefault.class).findFirst();
         assertNotNull(first);
         assertEquals("Foo", first.name);

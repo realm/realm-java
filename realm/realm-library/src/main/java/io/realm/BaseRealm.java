@@ -174,7 +174,7 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Refreshes the Realm instance and all the RealmResults and RealmObjects instances coming from it.
-     * It also calls any listeners associated with the Realm if neeeded.
+     * It also calls any listeners associated with the Realm if needed.
      * <p>
      * WARNING: Calling this on a thread with async queries will turn those queries into synchronous queries.
      * In most cases it is better to use {@link RealmChangeListener}s to be notified about changes to the
@@ -634,7 +634,7 @@ abstract class BaseRealm implements Closeable {
      *
      * @return {@code true} if empty, @{code false} otherwise.
      */
-    abstract public boolean isEmpty();
+    public abstract boolean isEmpty();
 
     /**
      * Returns the schema for this Realm.

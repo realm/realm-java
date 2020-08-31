@@ -20,23 +20,18 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.internal.network.LoggingInterceptor.LOGIN_FEATURE
 import io.realm.mongodb.AppConfiguration
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator
-import io.realm.log.LogLevel
-import io.realm.log.RealmLog
-import io.realm.log.RealmLogger
-import io.realm.mongodb.*
-import io.realm.rule.BlockingLooperThread
-import io.realm.util.assertFailsWithErrorCode
+import io.realm.mongodb.sync.SyncSession
 import org.bson.codecs.StringCodec
 import org.bson.codecs.configuration.CodecRegistries
-import org.junit.*
 import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.io.File
 import java.net.URL
-import java.util.*
-import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.collections.LinkedHashMap
+import java.util.concurrent.TimeUnit
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 
@@ -73,10 +68,6 @@ class AppConfigurationTests {
                 .authorizationHeaderName("CustomAuth")
                 .build()
         assertEquals("CustomAuth", config2.authorizationHeaderName)
-
-        // FIXME Add network check
-
-        // FIXME Add sync session check
     }
 
     @Test
@@ -85,7 +76,6 @@ class AppConfigurationTests {
         assertFailsWith<IllegalArgumentException> { builder.addCustomRequestHeader("", "val") }
         assertFailsWith<IllegalArgumentException> { builder.addCustomRequestHeader(TestHelper.getNull(), "val") }
         assertFailsWith<IllegalArgumentException> { builder.addCustomRequestHeader("header", TestHelper.getNull()) }
-        // FIXME: Add tests for illegally formatted headers. Figure out what legal headers look like.
     }
 
     @Test
@@ -98,10 +88,6 @@ class AppConfigurationTests {
         assertEquals(2, headers.size.toLong())
         assertTrue(headers.any { it.key == "header1" && it.value == "val1" })
         assertTrue(headers.any { it.key == "header2" && it.value == "val2" })
-
-        // FIXME Add network check
-
-        // FIXME Add sync session check
     }
 
     @Test
@@ -136,8 +122,6 @@ class AppConfigurationTests {
         val config = AppConfiguration.Builder("app-id").build()
         val expectedDefaultRoot = File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "mongodb-realm")
         assertEquals(expectedDefaultRoot, config.syncRootDirectory)
-
-        // FIXME Add check when opening Realm
     }
 
     @Test
@@ -148,8 +132,6 @@ class AppConfigurationTests {
                 .syncRootDirectory(expectedRoot)
                 .build()
         assertEquals(expectedRoot, config.syncRootDirectory)
-
-        // FIXME Add check when opening Realm
     }
 
     @Test
@@ -174,27 +156,35 @@ class AppConfigurationTests {
     }
 
     @Test
-    @Ignore("FIXME")
     fun appName() {
-        TODO("FIXME: When support has been added in ObjectStore")
+        val config = AppConfiguration.Builder("app-id")
+                .appName("app-name")
+                .build()
+        assertEquals("app-name", config.appName)
     }
 
     @Test
-    @Ignore("FIXME")
     fun appName_invalidValuesThrows() {
-        TODO()
+        val builder = AppConfiguration.Builder("app-id")
+
+        assertFailsWith<java.lang.IllegalArgumentException> { builder.appName(TestHelper.getNull()) }
+        assertFailsWith<java.lang.IllegalArgumentException> { builder.appName("") }
     }
 
     @Test
-    @Ignore("FIXME")
     fun appVersion() {
-        TODO("FIXME: When support has been added in ObjectStore")
+        val config = AppConfiguration.Builder("app-id")
+                .appVersion("app-version")
+                .build()
+        assertEquals("app-version", config.appVersion)
     }
 
     @Test
-    @Ignore("FIXME")
     fun appVersion_invalidValuesThrows() {
-        TODO()
+        val builder = AppConfiguration.Builder("app-id")
+
+        assertFailsWith<java.lang.IllegalArgumentException> { builder.appVersion(TestHelper.getNull()) }
+        assertFailsWith<java.lang.IllegalArgumentException> { builder.appVersion("") }
     }
 
     @Test
@@ -220,15 +210,22 @@ class AppConfigurationTests {
     }
 
     @Test
-    @Ignore("FIXME")
     fun defaultSyncErrorHandler() {
-        TODO()
+        val errorHandler = SyncSession.ErrorHandler { _, _ -> }
+
+        val config = AppConfiguration.Builder("app-id")
+                .defaultSyncErrorHandler(errorHandler)
+                .build()
+        assertEquals(config.defaultErrorHandler, errorHandler)
     }
 
     @Test
-    @Ignore("FIXME")
     fun defaultSyncErrorHandler_invalidValuesThrows() {
-        TODO()
+        assertFailsWith<IllegalArgumentException> {
+            AppConfiguration.Builder("app-id")
+                    .defaultSyncErrorHandler(TestHelper.getNull())
+        }
+
     }
 
     @Test
@@ -251,20 +248,24 @@ class AppConfigurationTests {
         }
 
         assertFailsWith<IllegalArgumentException> {
-            builder.encryptionKey(byteArrayOf(0,0,0,0))
+            builder.encryptionKey(byteArrayOf(0, 0, 0, 0))
         }
     }
 
     @Test
-    @Ignore("FIXME")
     fun requestTimeout() {
-        TODO()
+        val config = AppConfiguration.Builder("app-id")
+                .requestTimeout(1, TimeUnit.MILLISECONDS)
+                .build()
+        assertEquals(1000L, config.requestTimeoutMs)
     }
 
     @Test
-    @Ignore("FIXME")
     fun requestTimeout_invalidValuesThrows() {
-        TODO()
+        val builder = AppConfiguration.Builder("app-id")
+
+        assertFailsWith<IllegalArgumentException> { builder.requestTimeout(-1, TimeUnit.MILLISECONDS) }
+        assertFailsWith<IllegalArgumentException> { builder.requestTimeout(1, TestHelper.getNull()) }
     }
 
     @Test
@@ -292,22 +293,18 @@ class AppConfigurationTests {
 
     @Test
     fun httpLogObfuscator_null() {
-        AppConfiguration.Builder("app-id")
-                .httpLogObfuscator(null)
+        val config = AppConfiguration.Builder("app-id")
+                .httpLogObfuscator(TestHelper.getNull())
                 .build()
-                .let {
-                    assertNull(it.httpLogObfuscator)
-                }
+        assertNull(config.httpLogObfuscator)
     }
 
     @Test
     fun defaultLoginInfoObfuscator() {
-        AppConfiguration.Builder("app-id")
-                .build()
-                .let {
-                    val defaultHttpLogObfuscator = HttpLogObfuscator(LOGIN_FEATURE, AppConfiguration.loginObfuscators)
-                    assertEquals(defaultHttpLogObfuscator, it.httpLogObfuscator)
-                }
+        val config = AppConfiguration.Builder("app-id").build()
+
+        val defaultHttpLogObfuscator = HttpLogObfuscator(LOGIN_FEATURE, AppConfiguration.loginObfuscators)
+        assertEquals(defaultHttpLogObfuscator, config.httpLogObfuscator)
     }
     // Check that custom headers and auth header renames are correctly used for HTTP requests
     // performed from Java.
@@ -326,17 +323,6 @@ class AppConfigurationTests {
             app?.close()
         }
     }
-
-    // FIXME Seems to be outdated...cannot find an option for setting headers for a specific host
-//    // Check that custom headers and auth header renames are correctly used for HTTP requests
-//    // performed from Java.
-//    @Test
-//    @RunTestInLooperThread
-//    fun javaRequestCustomHeaders_specificHost() {
-//        SyncManager.addCustomRequestHeader("Foo", "bar", Constants.HOST)
-//        SyncManager.setAuthorizationHeaderName("RealmAuth", Constants.HOST)
-//        runJavaRequestCustomHeadersTest()
-//    }
 
     private fun runJavaRequestCustomHeadersTest(app: App) {
         val username = UUID.randomUUID().toString()

@@ -166,7 +166,7 @@ public class some_test_EmbeddedClassRealmProxy extends some.test.EmbeddedClass
     }
 
     @SuppressWarnings("cast")
-    public static some.test.EmbeddedClass createOrUpdateUsingJsonObject(Realm realm, RealmModel parent, String parentProperty, JSONObject json, boolean update)
+    public static some.test.EmbeddedClass createOrUpdateEmbeddedUsingJsonObject(Realm realm, RealmModel parent, String parentProperty, JSONObject json, boolean update)
             throws JSONException {
         final List<String> excludeFields = Collections.<String> emptyList();
         some.test.EmbeddedClass obj = realm.createEmbeddedObject(some.test.EmbeddedClass.class, parent, parentProperty);
@@ -218,7 +218,7 @@ public class some_test_EmbeddedClassRealmProxy extends some.test.EmbeddedClass
             }
         }
         reader.endObject();
-        return realm.copyToRealm(obj);
+        return obj;
     }
 
     static some_test_EmbeddedClassRealmProxy newProxyInstance(BaseRealm realm, Row row) {

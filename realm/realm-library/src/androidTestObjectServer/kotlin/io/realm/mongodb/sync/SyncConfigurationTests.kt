@@ -134,6 +134,26 @@ class SyncConfigurationTests {
     }
 
     @Test
+    fun name() {
+        val user: User = createTestUser(app)
+        val filename = "my-file-name.realm"
+        val config: SyncConfiguration = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
+                .name(filename)
+                .build()
+        val suffix = "/mongodb-realm/${user.app.configuration.appId}/${user.localId}/$filename"
+        assertTrue(config.path.endsWith(suffix))
+    }
+
+    @Test
+    fun name_illegalValuesThrows() {
+        val user: User = createTestUser(app)
+        val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
+
+        assertFailsWith<IllegalArgumentException> { builder.name(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { builder.name(".realm") }
+    }
+
+    @Test
     fun encryption() {
         val user: User = createTestUser(app)
         val config: SyncConfiguration = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
@@ -168,7 +188,6 @@ class SyncConfigurationTests {
                     }
                 })
                 .build()
-        config
         assertNotNull(config.initialDataTransaction)
 
         // open the first time - initialData must be triggered
@@ -279,6 +298,48 @@ class SyncConfigurationTests {
             config.clientResyncMode(TestHelper.getNull())
             fail()
         } catch (ignore: IllegalArgumentException) {
+        }
+    }
+
+    // If the same user create two configurations with different partition values they must
+    // resolve to different paths on disk.
+    @Test
+    fun differentPartitionValuesAreDifferentRealms() {
+        val user: User = createTestUser(app)
+        val config1 = SyncConfiguration.defaultConfig(user, "realm1")
+        val config2 = SyncConfiguration.defaultConfig(user, "realm2")
+        assertNotEquals(config1.path, config2.path)
+
+         assertTrue(config1.path.endsWith("${app.configuration.appId}/${user.localId}/s_realm1.realm"))
+         assertTrue(config2.path.endsWith("${app.configuration.appId}/${user.localId}/s_realm2.realm"))
+
+        // Check for https://github.com/realm/realm-java/issues/6882
+        val realm1 = Realm.getInstance(config1)
+        try {
+            val realm2 = Realm.getInstance(config2)
+            realm2.close()
+        } finally {
+            realm1.close()
+        }
+    }
+
+    @Test
+    fun nullPartitionValue() {
+        val user: User = createTestUser(app)
+
+        val configs = listOf<SyncConfiguration>(
+            SyncConfiguration.defaultConfig(user, null as String?),
+            SyncConfiguration.defaultConfig(user, null as Int?),
+            SyncConfiguration.defaultConfig(user, null as Long?),
+            SyncConfiguration.defaultConfig(user, null as ObjectId?),
+            SyncConfiguration.Builder(user, null as String?).build(),
+            SyncConfiguration.Builder(user, null as Int?).build(),
+            SyncConfiguration.Builder(user, null as Long?).build(),
+            SyncConfiguration.Builder(user, null as ObjectId?).build()
+        )
+
+        configs.forEach { config ->
+            assertTrue(config.path.endsWith("/null.realm"))
         }
     }
 

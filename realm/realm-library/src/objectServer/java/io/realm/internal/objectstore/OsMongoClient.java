@@ -21,22 +21,28 @@ import org.bson.codecs.configuration.CodecRegistry;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import io.realm.internal.NativeObject;
+import io.realm.internal.network.StreamNetworkTransport;
 
 public class OsMongoClient implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
     private final long nativePtr;
+    private final String serviceName;
+    private final StreamNetworkTransport streamNetworkTransport;
 
-    public OsMongoClient(final long appNativePtr,
-                         final String serviceName) {
-        this.nativePtr = nativeCreate(appNativePtr, serviceName);
+    public OsMongoClient(final OsApp osApp,
+                         final String serviceName,
+                         final StreamNetworkTransport streamNetworkTransport) {
+        this.nativePtr = nativeCreate(osApp.getNativePtr(), serviceName);
+        this.serviceName = serviceName;
+        this.streamNetworkTransport = streamNetworkTransport;
     }
 
     public OsMongoDatabase getDatabase(final String databaseName,
                                        final CodecRegistry codecRegistry) {
         long nativeDatabasePtr = nativeCreateDatabase(nativePtr, databaseName);
-        return new OsMongoDatabase(nativeDatabasePtr, codecRegistry);
+        return new OsMongoDatabase(nativeDatabasePtr, serviceName, codecRegistry, streamNetworkTransport);
     }
 
     @Override

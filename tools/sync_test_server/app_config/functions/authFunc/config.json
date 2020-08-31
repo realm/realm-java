@@ -1,6 +1,6 @@
 {
-    "id": "5edea20f0f99fe616bf40ae0",
+    "can_evaluate": {},
+    "id": "5f47673420f7388c73e86913",
     "name": "authFunc",
-    "private": false,
-    "can_evaluate": {}
+    "private": false
 }

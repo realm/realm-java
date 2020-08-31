@@ -27,7 +27,7 @@ import java.util.*
 // - 1 or more TreeNode's. I.e. a TreeNode can be the child of another TreeNode.
 // - 1 or more TreeLeaf objects. TreeLeaf objects are always at the bottom of tree.
 @RealmClass(embedded = true)
-open class EmbeddedTreeLeaf(var id: String = UUID.randomUUID().toString()) : RealmObject() {
+open class EmbeddedTreeLeaf(var treeLeafId: String = UUID.randomUUID().toString()) : RealmObject() {
 
     @LinkingObjects("leafNode")
     val parentRef: EmbeddedTreeNode? = null

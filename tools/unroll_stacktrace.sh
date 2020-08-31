@@ -15,9 +15,9 @@ IFS=$'\n\t'
 usage() {
 cat <<EOF
 Usage: $0 <flavor> <version> <abi> <stacktrace>
+ - flavor: base, objectServer
  - version: version number on Bintray
  - abi: armeabi, armeabi-v7a, arm64-v8a, x86, x86_64, mips
- - flavor: base, objectServer
  - stacktrace: absolute or relative path to file with dump information
 
 Example: $0 base 5.0.0 armeabi-v7a ./dump.txt

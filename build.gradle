@@ -195,21 +195,81 @@ task javadoc(type:GradleBuild) {
     configure copyProperties
 }
 
-task javadocPackage(type: Zip) {
-    description = 'Generate a Zip file with all SDK docs'
-    dependsOn javadoc
-
-    group = 'Artifact'
-    archiveName = "realm-java-${currentVersion}-docs.zip"
-    destinationDir = file("${buildDir}/outputs/docs")
-
-    from('realm/realm-library/build/docs/javadoc') {
-        include '**/*'
-        into 'javadoc'
+// Find property in either System environment or Gradle properties.
+// If set in both places, Gradle properties win.
+def getPropertyValueOrThrow(String propertyName) {
+    def value = System.getenv(propertyName)
+    if (project.hasProperty(propertyName)) {
+        value = project.getProperty(propertyName)
     }
-    from('realm/kotlin-extensions/build/docs') {
-        include '**/*'
-        into 'kotlindocs'
+    if (value == null || value.trim().isEmpty()) {
+        throw new GradleException("Could not find '$propertyName'. " +
+                "Most be provided as either environment variable or " +
+                "a Gradle property.")
+    }
+    return value
+}
+
+task createLatestJavadocRedirectFile(type: Copy) {
+    description = 'Redirects from /java/latest/ to correct version'
+    from 'realm/templates'
+    into "$buildDir/outputs/doc_redirects/java_latest"
+    include 'redirect.html.template'
+    rename { file -> 'index.html' }
+    expand(title: "Realm Java ${currentVersion}", url: "../${currentVersion}/index.html")
+}
+
+task createLatestKotlindocRedirectFile(type: Copy) {
+    description = 'Redirects from /kotlin/latest/ to correct version'
+    from 'realm/templates'
+    into "$buildDir/outputs/doc_redirects/kotlin_latest"
+    include 'redirect.html.template'
+    rename { file -> 'index.html' }
+    expand(title: "Kotlin Extensions ${currentVersion}", url: "../${currentVersion}/index.html")
+}
+
+task createKotlinRootRedirectFile(type: Copy) {
+    description = 'Redirects from /kotlin/<version>/ to /kotlin/<version>/kotlin-extensions, which is the real root folder'
+    from 'realm/templates'
+    into "$buildDir/outputs/doc_redirects/kotlin_root"
+    include 'redirect.html.template'
+    rename { file -> 'index.html' }
+    expand(title: "Kotlin Extensions ${currentVersion}", url: "./kotlin-extensions/index.html")
+}
+
+task uploadJavadoc {
+    group = 'Release'
+    description = 'Upload Java and Kotlin docs to S3'
+    dependsOn javadoc
+    dependsOn createLatestJavadocRedirectFile
+    dependsOn createLatestKotlindocRedirectFile
+    dependsOn createKotlinRootRedirectFile
+
+    doLast {
+        def awsAccessKey = getPropertyValueOrThrow("SDK_DOCS_AWS_ACCESS_KEY")
+        def awsSecretKey = getPropertyValueOrThrow("SDK_DOCS_AWS_SECRET_KEY")
+
+        // Upload the versioned folder of the docs
+        exec {
+            commandLine 's3cmd', 'put', '--recursive', '--acl-public', "--access_key=${awsAccessKey}", "--secret_key=${awsSecretKey}", 'realm/realm-library/build/docs/javadoc/', "s3://realm-sdks/realm-sdks/java/${currentVersion}/"
+        }
+        exec {
+            commandLine 's3cmd', 'put', '--recursive', '--acl-public', "--access_key=${awsAccessKey}", "--secret_key=${awsSecretKey}", 'realm/kotlin-extensions/build/docs/', "s3://realm-sdks/realm-sdks/kotlin/${currentVersion}/"
+        }
+
+        // Upload automatic redirect for Kotlin extensions, since the directory structure created
+        // by Dokka only have a style.css in the root dir.
+        exec {
+            commandLine 's3cmd', 'put', '--acl-public', "--access_key=${awsAccessKey}", "--secret_key=${awsSecretKey}", "$buildDir/outputs/doc_redirects/kotlin_root/index.html", "s3://realm-sdks/realm-sdks/kotlin/${currentVersion}/index.html"
+        }
+
+        // Upload redirects to /latest end point so it points to the just uploaded version
+        exec {
+            commandLine 's3cmd', 'put', '--acl-public', "--access_key=${awsAccessKey}", "--secret_key=${awsSecretKey}", "$buildDir/outputs/doc_redirects/java_latest/index.html", "s3://realm-sdks/realm-sdks/java/latest/index.html"
+        }
+        exec {
+            commandLine 's3cmd', 'put', '--acl-public', "--access_key=${awsAccessKey}", "--secret_key=${awsSecretKey}", "$buildDir/outputs/doc_redirects/kotlin_latest/index.html", "s3://realm-sdks/realm-sdks/kotlin/latest/index.html"
+        }
     }
 }
 

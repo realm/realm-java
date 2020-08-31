@@ -20,6 +20,7 @@ import android.content.Context;
 
 import org.bson.BsonInt32;
 import org.bson.BsonInt64;
+import org.bson.BsonNull;
 import org.bson.BsonObjectId;
 import org.bson.BsonString;
 import org.bson.BsonValue;
@@ -37,7 +38,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
@@ -95,11 +95,6 @@ import io.realm.rx.RxObservableFactory;
 @Beta
 public class SyncConfiguration extends RealmConfiguration {
 
-    // The FAT file system has limitations of length. Also, not all characters are permitted.
-    // https://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx
-    static final int MAX_FULL_PATH_LENGTH = 256;
-    static final int MAX_FILE_NAME_LENGTH = 255;
-    private static final char[] INVALID_CHARS = {'<', '>', ':', '"', '/', '\\', '|', '?', '*'};
     private final URI serverUrl;
     private final User user;
     private final SyncSession.ErrorHandler errorHandler;
@@ -111,9 +106,7 @@ public class SyncConfiguration extends RealmConfiguration {
     private final ClientResyncMode clientResyncMode;
     private final BsonValue partitionValue;
 
-    private SyncConfiguration(File directory,
-                              String filename,
-                              String canonicalPath,
+    private SyncConfiguration(File realmPath,
                               @Nullable String assetFilePath,
                               @Nullable byte[] key,
                               long schemaVersion,
@@ -136,9 +129,7 @@ public class SyncConfiguration extends RealmConfiguration {
                               @Nullable String syncUrlPrefix,
                               ClientResyncMode clientResyncMode,
                               BsonValue partitionValue) {
-        super(directory,
-                filename,
-                canonicalPath,
+        super(realmPath,
                 assetFilePath,
                 key,
                 schemaVersion,
@@ -207,7 +198,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * @return the default configuration for the given user and partition value.
      */
     @Beta
-    public static SyncConfiguration defaultConfig(User user, String partitionValue) {
+    public static SyncConfiguration defaultConfig(User user, @Nullable String partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
@@ -219,7 +210,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * @return the default configuration for the given user and partition value.
      */
     @Beta
-    public static SyncConfiguration defaultConfig(User user, long partitionValue) {
+    public static SyncConfiguration defaultConfig(User user, @Nullable Long partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
@@ -231,7 +222,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * @return the default configuration for the given user and partition value.
      */
     @Beta
-    public static SyncConfiguration defaultConfig(User user, int partitionValue) {
+    public static SyncConfiguration defaultConfig(User user, @Nullable Integer partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
@@ -243,7 +234,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * @return the default configuration for the given user and partition value.
      */
     @Beta
-    public static SyncConfiguration defaultConfig(User user, ObjectId partitionValue) {
+    public static SyncConfiguration defaultConfig(User user, @Nullable ObjectId partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
@@ -460,10 +451,9 @@ public class SyncConfiguration extends RealmConfiguration {
         private RxObservableFactory rxFactory;
         @Nullable
         private Realm.Transaction initialDataTransaction;
-        private File defaultFolder;
-        private String defaultLocalFileName;
+        @Nullable
+        private String filename;
         private OsRealmConfig.Durability durability = OsRealmConfig.Durability.FULL;
-        private final Pattern pattern = Pattern.compile("^[A-Za-z0-9_\\-\\.]+$"); // for checking serverUrl
         private boolean readOnly = false;
         private boolean waitForServerChanges = false;
         private long initialDataTimeoutMillis = Long.MAX_VALUE;
@@ -487,8 +477,8 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
          */
-        public Builder(User user, String partitionValue) {
-            this(user, new BsonString(partitionValue));
+        public Builder(User user, @Nullable String partitionValue) {
+            this(user, (partitionValue == null? new BsonNull() : new BsonString(partitionValue)));
         }
 
         /**
@@ -498,8 +488,8 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
          */
-        public Builder(User user, ObjectId partitionValue) {
-            this(user, new BsonObjectId(partitionValue));
+        public Builder(User user, @Nullable ObjectId partitionValue) {
+            this(user, (partitionValue == null? new BsonNull() : new BsonObjectId(partitionValue)));
         }
 
         /**
@@ -509,8 +499,8 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
          */
-        public Builder(User user, int partitionValue) {
-            this(user, new BsonInt32(partitionValue));
+        public Builder(User user, @Nullable Integer partitionValue) {
+            this(user, (partitionValue == null? new BsonNull() : new BsonInt32(partitionValue)));
         }
 
         /**
@@ -520,8 +510,8 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
          */
-        public Builder(User user, long partitionValue) {
-            this(user, new BsonInt64(partitionValue));
+        public Builder(User user, @Nullable Long partitionValue) {
+            this(user, (partitionValue == null? new BsonNull() : new BsonInt64(partitionValue)));
         }
 
         /**
@@ -543,7 +533,6 @@ public class SyncConfiguration extends RealmConfiguration {
             validateAndSet(user);
             validateAndSet(user.getApp().getConfiguration().getBaseUrl());
             this.partitionValue = partitionValue;
-            this.defaultFolder = user.getApp().getConfiguration().getSyncRootDirectory();
             if (Realm.getDefaultModule() != null) {
                 this.modules.add(Realm.getDefaultModule());
             }
@@ -597,8 +586,30 @@ public class SyncConfiguration extends RealmConfiguration {
             } catch (URISyntaxException e) {
                 throw new IllegalArgumentException("Invalid URI: " + baseUrl, e);
             }
+        }
 
-            this.defaultLocalFileName = "default.realm";
+        /**
+         * FIXME: Make public once https://github.com/realm/realm-object-store/pull/1049 is merged.
+         *
+         * Sets the filename for the Realm file on this device.
+         */
+        Builder name(String filename) {
+            //noinspection ConstantConditions
+            if (filename == null || filename.isEmpty()) {
+                throw new IllegalArgumentException("A non-empty filename must be provided");
+            }
+
+            // Strip `.realm` suffix as it will be appended by Object Store later
+            if (filename.endsWith(".realm")) {
+                if (filename.length() == 6) {
+                    throw new IllegalArgumentException("'.realm' is not a valid filename");
+                } else {
+                    filename = filename.substring(0, filename.length() - 6);
+                }
+            }
+
+            this.filename = filename;
+            return this;
         }
 
         /**
@@ -1013,47 +1024,14 @@ public class SyncConfiguration extends RealmConfiguration {
                 rxFactory = new RealmObservableFactory(true);
             }
 
-            // FIXME: Figure out how to map to on-disk path. Partition key can be up to 16MB in size.
-            // Determine location on disk
-            // Use the serverUrl + user to create a unique filepath.
-            // The following types of paths can be generated
-            // <rootDir>/<userIdentifier>/default.realm
-            // <rootDir>/<userIdentifier>/<hashedPartionKey>/default.realm
-            URI resolvedServerUrl = serverUrl; // resolveServerUrl(serverUrl, user);
+            URI resolvedServerUrl = serverUrl;
             syncUrlPrefix = String.format("/api/client/v2.0/app/%s/realm-sync", user.getApp().getConfiguration().getAppId());
-            String realmPathFromRootDir = user.getId() + "/" + getServerPath(user, resolvedServerUrl);
-            File realmFileDirectory = new File(defaultFolder, realmPathFromRootDir);
-            String realmFileName = defaultLocalFileName;
-            String fullPathName = realmFileDirectory.getAbsolutePath() + File.pathSeparator + realmFileName;
 
-            // full path must not exceed 256 characters (on FAT)
-            if (fullPathName.length() > MAX_FULL_PATH_LENGTH) {
-                throw new IllegalStateException(String.format(Locale.US,
-                        "Full path name must not exceed %d characters: %s",
-                        MAX_FULL_PATH_LENGTH, fullPathName));
-            }
-
-            if (realmFileName.length() > MAX_FILE_NAME_LENGTH) {
-                throw new IllegalStateException(String.format(Locale.US,
-                        "File name exceed %d characters: %d", MAX_FILE_NAME_LENGTH,
-                        realmFileName.length()));
-            }
-
-            // substitute invalid characters
-            for (char c : INVALID_CHARS) {
-                realmFileName = realmFileName.replace(c, '_');
-            }
-
-            // Create the folder on disk (if needed)
-            if (!realmFileDirectory.exists() && !realmFileDirectory.mkdirs()) {
-                throw new IllegalStateException("Could not create directory for saving the Realm: " + realmFileDirectory);
-            }
+            String absolutePathForRealm = user.getApp().getSync().getAbsolutePathForRealm(user.getId(), partitionValue, filename);
+            File realmFile = new File(absolutePathForRealm);
 
             return new SyncConfiguration(
-                    // Realm Configuration options
-                    realmFileDirectory,
-                    realmFileName,
-                    getCanonicalPath(new File(realmFileDirectory, realmFileName)),
+                    realmFile,
                     null, // assetFile not supported by Sync. See https://github.com/realm/realm-sync/issues/241
                     key,
                     schemaVersion,

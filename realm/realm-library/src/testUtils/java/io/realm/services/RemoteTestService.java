@@ -43,9 +43,9 @@ import io.realm.log.RealmLog;
 public abstract class RemoteTestService extends Service {
     // There is no easy way to dynamically ensure step IDs have same value for different processes. So, use the stupid
     // way.
-    private static int BASE_MSG_ID = 0;
-    protected static int BASE_SIMPLE_COMMIT = BASE_MSG_ID;
-    protected static int BASE_A_LOT_COMMITS  = BASE_SIMPLE_COMMIT + 100;
+    private static final int BASE_MSG_ID = 0;
+    protected static final int BASE_SIMPLE_COMMIT = BASE_MSG_ID;
+    protected static final int BASE_A_LOT_COMMITS  = BASE_SIMPLE_COMMIT + 100;
 
     public static abstract class Step {
         public final int message;
@@ -81,7 +81,7 @@ public abstract class RemoteTestService extends Service {
     public static final String BUNDLE_KEY_ERROR = "error";
     @SuppressLint("UseSparseArrays")
     private static Map<Integer, Step> stepMap = new HashMap<Integer, Step>();
-    public static RemoteTestService thiz;
+    static RemoteTestService thiz;
     private final Messenger messenger = new Messenger(new IncomingHandler());
     private Messenger client;
     private File rootFolder;
@@ -104,10 +104,12 @@ public abstract class RemoteTestService extends Service {
         } catch (IOException e) {
             RealmLog.error(e);
         }
-        //noinspection ResultOfMethodCallIgnored
-        rootFolder.delete();
-        //noinspection ResultOfMethodCallIgnored
-        rootFolder.mkdir();
+        if (rootFolder.exists() && !rootFolder.delete()) {
+            throw new IllegalStateException("Could not delete folder: " + rootFolder.getAbsolutePath());
+        }
+        if (!rootFolder.mkdir()) {
+            throw new IllegalStateException("Could not create folder: " + rootFolder.getAbsolutePath());
+        }
 
         Realm.init(getApplicationContext());
     }
@@ -167,8 +169,10 @@ public abstract class RemoteTestService extends Service {
                 recursiveDelete(each);
             }
         }
-        //noinspection ResultOfMethodCallIgnored
-        file.delete();
+
+        if (!file.delete()) {
+            throw new IllegalStateException("Could not delete file: " + file.getAbsolutePath());
+        }
     }
 
     public Realm getRealm() {

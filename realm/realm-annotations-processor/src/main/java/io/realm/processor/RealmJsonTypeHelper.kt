@@ -88,7 +88,7 @@ object RealmJsonTypeHelper {
                         emitStatement("%s %sObj = %s.createOrUpdateUsingJsonObject(realm, json.getJSONObject(\"%s\"), update)", qualifiedFieldType, fieldName, proxyClass, fieldName)
                         emitStatement("%s.%s(%sObj)", varName, setter, fieldName)
                     } else {
-                        emitStatement("%s %sObj = %s.createOrUpdateUsingJsonObject(realm, (RealmModel)%s, \"%s\", json.getJSONObject(\"%s\"), update)", qualifiedFieldType, fieldName, proxyClass, varName, fieldName, fieldName)
+                        emitStatement("%s.createOrUpdateEmbeddedUsingJsonObject(realm, (RealmModel)%s, \"%s\", json.getJSONObject(\"%s\"), update)", proxyClass, varName, fieldName, fieldName)
                     }
                 endControlFlow()
             endControlFlow()
@@ -116,7 +116,7 @@ object RealmJsonTypeHelper {
                             emitStatement("%s item = %s.createOrUpdateUsingJsonObject(realm, array.getJSONObject(i), update)", fieldTypeCanonicalName, proxyClass, fieldTypeCanonicalName)
                             emitStatement("%s.%s().add(item)", varName, getter)
                        } else {
-                            emitStatement("%s item = %s.createOrUpdateUsingJsonObject(realm, (RealmModel)%s, \"%s\", array.getJSONObject(i), update)", fieldTypeCanonicalName, proxyClass, varName, fieldName)
+                            emitStatement("%s.createOrUpdateEmbeddedUsingJsonObject(realm, (RealmModel)%s, \"%s\", array.getJSONObject(i), update)", proxyClass, varName, fieldName)
                         }
                     endControlFlow()
                 endControlFlow()

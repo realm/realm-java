@@ -176,7 +176,7 @@ class CredentialsTests {
     @Test
     fun loginUsingCredentials() {
         app = TestApp()
-        admin = ServerAdmin()
+        admin = ServerAdmin(app)
         Credentials.IdentityProvider.values().forEach { provider ->
             when (provider) {
                 Credentials.IdentityProvider.ANONYMOUS -> {

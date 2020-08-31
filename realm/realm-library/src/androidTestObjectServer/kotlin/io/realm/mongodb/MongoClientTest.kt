@@ -21,30 +21,35 @@ import io.realm.*
 import io.realm.mongodb.mongo.MongoClient
 import io.realm.mongodb.mongo.MongoCollection
 import io.realm.mongodb.mongo.MongoNamespace
+import io.realm.mongodb.mongo.events.BaseChangeEvent.OperationType
 import io.realm.mongodb.mongo.options.CountOptions
 import io.realm.mongodb.mongo.options.FindOneAndModifyOptions
 import io.realm.mongodb.mongo.options.FindOptions
 import io.realm.mongodb.mongo.options.UpdateOptions
+import io.realm.rule.BlockingLooperThread
 import io.realm.util.assertFailsWithErrorCode
 import io.realm.util.mongodb.CustomType
+import org.bson.BsonDocument
+import org.bson.BsonString
 import org.bson.Document
 import org.bson.codecs.configuration.CodecRegistries
 import org.bson.types.ObjectId
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.IOException
 import kotlin.test.*
 
 private const val COLLECTION_NAME = "mongo_data" // name of collection used by tests
 
 @RunWith(AndroidJUnit4::class)
 class MongoClientTest {
-
     private lateinit var app: TestApp
     private lateinit var user: User
     private lateinit var client: MongoClient
+
+    private val looperThread = BlockingLooperThread()
 
     @Before
     fun setUp() {
@@ -713,35 +718,42 @@ class MongoClientTest {
         }
     }
 
-    // FIXME: projections and sorts aren't currently working due to a bug in Stitch: https://jira.mongodb.org/browse/REALMC-5787
     @Test
-    @Ignore("Projections and sorts don't work")
     fun findOneAndUpdate_withProjectionAndSort() {
         with(getCollectionInternal()) {
-            val sampleUpdate = Document("\$set", Document("hello", "hellothere")).apply {
-                this["\$inc"] = Document("num", 1)
-            }
-            sampleUpdate.remove("\$set")        // FIXME
-            val sampleProject = Document("hello", 1)
-            sampleProject["_id"] = 0
+            insertMany(listOf(
+                    Document(mapOf(Pair("team", "Fearful Mallards"), Pair("score", 25000))),
+                    Document(mapOf(Pair("team", "Tactful Mooses"), Pair("score", 23500))),
+                    Document(mapOf(Pair("team", "Aquatic Ponies"), Pair("score", 19250))),
+                    Document(mapOf(Pair("team", "Cuddly Zebras"), Pair("score", 15235))),
+                    Document(mapOf(Pair("team", "Garrulous Bears"), Pair("score", 18000)))
+            )).get()
 
-            var options = FindOneAndModifyOptions()
-                    .projection(sampleProject)
-                    .sort(Document("num", 1))
-            assertEquals(Document("hello", "world1"),
-                    findOneAndUpdate(Document(), sampleUpdate, options)
-                            .get()!!
-                            .withoutId())
-            assertEquals(3, count().get())
+            assertEquals(5, count().get())
+            assertNotNull(findOne(Document("team", "Cuddly Zebras")))
 
-            options = FindOneAndModifyOptions()
-                    .projection(sampleProject)
-                    .sort(Document("num", -1))
-            assertEquals(Document("hello", "world3"),
-                    findOneAndUpdate(Document(), sampleUpdate, options)
-                            .get()!!
-                            .withoutId())
-            assertEquals(3, count().get())
+            // Project: team, hide _id; Sort: score ascending
+            val project = Document(mapOf(Pair("_id", 0), Pair("team", 1), Pair("score", 1)))
+            val sort = Document("score", 1)
+
+            // This results in the update of Cuddly Zebras
+            val updatedDocument = findOneAndUpdate(
+                    Document("score", Document("\$lt", 22250)),
+                    Document("\$inc", Document("score", 1)),
+                    FindOneAndModifyOptions()
+                            .projection(project)
+                            .sort(sort)
+            ).get()
+
+            assertEquals(5, count().get())
+            assertEquals(
+                    Document(mapOf(Pair("team", "Cuddly Zebras"), Pair("score", 15235))),
+                    updatedDocument
+            )
+            assertEquals(
+                    Document(mapOf(Pair("team", "Cuddly Zebras"), Pair("score", 15235 + 1))),
+                    findOne(Document("team", "Cuddly Zebras")).get().withoutId()
+            )
         }
     }
 
@@ -838,28 +850,46 @@ class MongoClientTest {
         }
     }
 
-    // FIXME: projections and sorts aren't currently working due to a bug in Stitch: https://jira.mongodb.org/browse/REALMC-5787
     @Test
-    @Ignore("Projections and sorts don't work")
     fun findOneAndReplace_withProjectionAndSort() {
         with(getCollectionInternal()) {
-            val sampleProject = Document("hello", 1)
-            sampleProject["_id"] = 0
+            insertMany(listOf(
+                    Document(mapOf(Pair("team", "Fearful Mallards"), Pair("score", 25000))),
+                    Document(mapOf(Pair("team", "Tactful Mooses"), Pair("score", 23500))),
+                    Document(mapOf(Pair("team", "Aquatic Ponies"), Pair("score", 19250))),
+                    Document(mapOf(Pair("team", "Cuddly Zebras"), Pair("score", 15235))),
+                    Document(mapOf(Pair("team", "Garrulous Bears"), Pair("score", 18000)))
+            )).get()
 
-            val sampleUpdate = Document("hello", "world0")
-            sampleUpdate["num"] = 0
+            assertEquals(5, count().get())
+            assertNotNull(findOne(Document("team", "Cuddly Zebras")))
 
-            var options = FindOneAndModifyOptions().projection(sampleProject).sort(Document("num", 1))
-            val result = findOneAndReplace(Document(), sampleUpdate, options).get()
-            assertEquals(Document("hello", "world4"), result!!.withoutId())
-            assertEquals(3, count().get())
+            // Project: team, hide _id; Sort: score ascending
+            val project = Document(mapOf(Pair("_id", 0), Pair("team", 1)))
+            val sort = Document("score", 1)
 
-            options = FindOneAndModifyOptions()
-                    .projection(sampleProject)
-                    .sort(Document("num", -1))
-            assertEquals(Document("hello", "world6"),
-                    findOneAndReplace(Document(), sampleUpdate, options).get()!!.withoutId())
-            assertEquals(3, count().get())
+            // This results in the replacement of Cuddly Zebras
+            val replacedDocument = findOneAndReplace(
+                    Document("score", Document("\$lt", 22250)),
+                    Document(mapOf(Pair("team", "Therapeutic Hamsters"), Pair("score", 22250))),
+                    FindOneAndModifyOptions()
+                            .projection(project)
+                            .sort(sort)
+            ).get()
+
+            assertEquals(5, count().get())
+            assertEquals(Document("team", "Cuddly Zebras"), replacedDocument)
+            assertNull(findOne(Document("team", "Cuddly Zebras")).get())
+            assertNotNull(findOne(Document("team", "Therapeutic Hamsters")).get())
+
+            // Check returnNewDocument
+            val newDocument = findOneAndReplace(
+                    Document("score", 22250),
+                    Document(mapOf(Pair("team", "New Therapeutic Hamsters"), Pair("score", 30000))),
+                    FindOneAndModifyOptions().returnNewDocument(true)
+            ).get()
+
+            assertEquals(Document(mapOf(Pair("team", "New Therapeutic Hamsters"), Pair("score", 30000))), newDocument.withoutId())
         }
     }
 
@@ -873,6 +903,391 @@ class MongoClientTest {
             assertFailsWithErrorCode(ErrorCode.INVALID_PARAMETER) {
                 findOneAndReplace(Document(), Document("\$who", 1), FindOneAndModifyOptions().upsert(true)).get()
             }
+        }
+    }
+
+    private fun assertDocumentEquals(expected: Document, actual: Document) {
+        // Accounts for the missing _id field in the expected document
+        assertTrue {
+            actual.remove("_id") != null
+        }
+
+        assertEquals(expected.keys.size, actual.keys.size)
+
+        for (key in expected.keys) {
+            assertTrue(actual.keys.contains(key))
+            assertEquals(expected[key], actual[key])
+        }
+    }
+
+    @Test
+    fun watchStreamSynchronous() {
+        with(getCollectionInternal()) {
+            val insertedDocument = Document("watch", "1")
+                    .apply {
+                        this["num"] = 1
+                    }
+
+            val updatedDocument = Document("watch", "1")
+                    .apply {
+                        this["num"] = 2
+                    }
+
+
+            val watcher = this.watch()
+
+            val condition = looperThread.runDetached {
+                watcher.next.let { changeEvent ->
+                    assertEquals(OperationType.INSERT, changeEvent.operationType)
+                    assertDocumentEquals(insertedDocument, changeEvent.fullDocument!!)
+                }
+
+                watcher.next.let { changeEvent ->
+                    assertEquals(OperationType.REPLACE, changeEvent.operationType)
+                    assertDocumentEquals(updatedDocument, changeEvent.fullDocument!!)
+                }
+
+                watcher.next.let { changeEvent ->
+                    assertEquals(OperationType.DELETE, changeEvent.operationType)
+                    assertNull(changeEvent.fullDocument)
+                }
+
+                looperThread.testComplete()
+            }
+
+            // Busy wait till watcher is ready to receive updates.
+            // It syncs the event producer thread (current thread) with
+            // the event consumer thread.
+            while (!watcher.isOpen) {
+            }
+
+            this.insertOne(insertedDocument).get()
+
+            val filter = Document("watch", "1")
+            this.updateOne(filter, updatedDocument).get()
+            this.deleteOne(filter).get()
+
+            condition.await()
+        }
+    }
+
+    @Test
+    fun watchStreamDocumentsFilterSynchronous() {
+        with(getCollectionInternal()) {
+            val type1 = Document("type", "1")
+                    .apply {
+                        this["num"] = 1
+                    }
+
+            val type2 = Document("type", "2")
+                    .apply {
+                        this["num"] = 1
+                    }
+
+            val filter = Document("fullDocument.type", "1")
+            val watcher = this.watchWithFilter(filter)
+
+            val condition = looperThread.runDetached {
+                watcher.next.let { changeEvent ->
+                    assertEquals(OperationType.INSERT, changeEvent.operationType)
+                    assertEquals("1", changeEvent.fullDocument!!["type"])
+                }
+
+                watcher.cancel()
+                looperThread.testComplete()
+            }
+
+            // Busy wait till watcher is ready to receive updates.
+            // It syncs the event producer thread (current thread) with
+            // the event consumer thread.
+            while (!watcher.isOpen) {
+            }
+
+            this.insertOne(type2).get()
+            this.insertOne(type1).get()
+
+            condition.await()
+        }
+    }
+
+    @Test
+    fun watchStreamBsonDocumentFilterSynchronous() {
+        with(getCollectionInternal()) {
+            val type1 = Document("type", "1")
+                    .apply {
+                        this["num"] = 1
+                    }
+
+            val type2 = Document("type", "2")
+                    .apply {
+                        this["num"] = 1
+                    }
+
+            val filter = BsonDocument("fullDocument.type", BsonString("1"))
+            val watcher = this.watchWithFilter(filter)
+
+            val condition = looperThread.runDetached {
+                watcher.next.let { changeEvent ->
+                    assertEquals(OperationType.INSERT, changeEvent.operationType)
+                    assertEquals("1", changeEvent.fullDocument!!["type"])
+                }
+
+                watcher.cancel()
+                looperThread.testComplete()
+
+            }
+
+            // Busy wait till watcher is ready to receive updates.
+            // It syncs the event producer thread (current thread) with
+            // the event consumer thread.
+            while (!watcher.isOpen) {
+            }
+
+            this.insertOne(type2).get()
+            this.insertOne(type1).get()
+
+            condition.await()
+        }
+    }
+
+    @Test
+    fun watchStreamObjectIdsSynchronous() {
+        with(getCollectionInternal()) {
+            val doc1 = Document("document", "1")
+                    .apply {
+                        this["num"] = 1
+                    }
+
+            val doc2 = Document("document", "2")
+                    .apply {
+                        this["num"] = 1
+                    }
+
+            val doc1Id = this.insertOne(doc1).get()
+            val doc2Id = this.insertOne(doc2).get()
+
+            val watcherObjectId = this.watch(doc1Id.insertedId.asObjectId().value)
+
+            val condition = looperThread.runDetached {
+                watcherObjectId.next.let { changeEvent ->
+                    assertEquals(OperationType.REPLACE, changeEvent.operationType)
+                    assertEquals("1", changeEvent.fullDocument!!["document"])
+                }
+                watcherObjectId.cancel()
+
+                looperThread.testComplete()
+            }
+
+            // Busy wait till watcher is ready to receive updates.
+            // It syncs the event producer thread (current thread) with
+            // the event consumer thread.
+            while (!watcherObjectId.isOpen) {
+            }
+
+            doc1.apply {
+                this["num"] = 2
+            }
+
+            doc2.apply {
+                this["num"] = 2
+            }
+
+            val filter1 = Document("_id", doc1Id.insertedId)
+            val filter2 = Document("_id", doc2Id.insertedId)
+
+            this.updateOne(filter2, doc2).get()
+            this.updateOne(filter1, doc1).get()
+
+            condition.await()
+        }
+    }
+
+    @Test
+    fun watchStreamIdsSynchronous() {
+        with(getCollectionInternal()) {
+            val doc1 = Document("document", "1")
+                    .apply {
+                        this["num"] = 1
+                    }
+
+            val doc2 = Document("document", "2")
+                    .apply {
+                        this["num"] = 1
+                    }
+
+            val doc1Id = this.insertOne(doc1).get()
+            val doc2Id = this.insertOne(doc2).get()
+
+            val watcherBsonValue = this.watch(doc1Id.insertedId)
+
+            val condition = looperThread.runDetached {
+                watcherBsonValue.next.let { changeEvent ->
+                    assertEquals(OperationType.REPLACE, changeEvent.operationType)
+                    assertEquals("1", changeEvent.fullDocument!!["document"])
+                }
+
+                watcherBsonValue.cancel()
+                looperThread.testComplete()
+            }
+
+            // Busy wait till watcher is ready to receive updates.
+            // It syncs the event producer thread (current thread) with
+            // the event consumer thread.
+            while (!watcherBsonValue.isOpen) {
+            }
+
+            doc1.apply {
+                this["num"] = 2
+            }
+
+            doc2.apply {
+                this["num"] = 2
+            }
+
+            val filter1 = Document("_id", doc1Id.insertedId)
+            val filter2 = Document("_id", doc2Id.insertedId)
+
+            this.updateOne(filter2, doc2).get()
+            this.updateOne(filter1, doc1).get()
+
+            condition.await()
+        }
+
+    }
+
+    @Test
+    fun watchStreamAsynchronous() {
+        looperThread.runBlocking {
+            with(getCollectionInternal()) {
+                val insertedDocument = Document("watch", "1")
+                        .apply {
+                            this["num"] = 1
+                        }
+
+                val updatedDocument = Document("watch", "1")
+                        .apply {
+                            this["num"] = 2
+                        }
+
+
+                val watcher = this.watchAsync()
+
+                var eventCount = 0
+                watcher.get { it ->
+                    if (it.isSuccess) {
+                        it.get().let { changeEvent ->
+                            when (eventCount) {
+                                0 -> {
+                                    assertEquals(OperationType.INSERT, changeEvent.operationType)
+                                    assertDocumentEquals(insertedDocument, changeEvent.fullDocument!!)
+                                }
+                                1 -> {
+                                    assertEquals(OperationType.REPLACE, changeEvent.operationType)
+                                    assertDocumentEquals(updatedDocument, changeEvent.fullDocument!!)
+                                }
+                                2 -> {
+                                    assertEquals(OperationType.DELETE, changeEvent.operationType)
+                                    assertNull(changeEvent.fullDocument)
+
+                                    watcher.cancel()
+                                }
+                            }
+                        }
+
+                        eventCount++
+                    } else {
+                        when (it.error.errorCode) {
+                            ErrorCode.NETWORK_IO_EXCEPTION -> looperThread.testComplete()
+                            else -> fail()
+                        }
+                        looperThread.testComplete()
+                    }
+                }
+
+                // Busy wait till watcher is ready to receive updates.
+                // It syncs the event producer thread (current thread) with
+                // the event consumer thread.
+                while (!watcher.isOpen) {
+                }
+
+                this.insertOne(insertedDocument).get()
+
+                val filter = Document("watch", "1")
+                this.updateOne(filter, updatedDocument).get()
+                this.deleteOne(filter).get()
+            }
+        }
+    }
+
+    @Test
+    fun watchStreamCancelSynchronous() {
+        with(getCollectionInternal()) {
+            val watcher = this.watch()
+
+            val condition = looperThread.runDetached {
+                assertFailsWith<IOException> {
+                    watcher.next
+                }
+
+                assertEquals(false, watcher.isOpen)
+                assertEquals(true, watcher.isCancelled)
+
+                looperThread.testComplete()
+            }
+
+            // Busy wait till watcher is ready to receive updates.
+            // It syncs the event producer thread (current thread) with
+            // the event consumer thread.
+            while (!watcher.isOpen) {
+            }
+
+            watcher.cancel()
+
+            condition.await()
+        }
+    }
+
+    @Test
+    fun watchStreamCancelAsynchronous() {
+        looperThread.runBlocking {
+            with(getCollectionInternal()) {
+                val watcher = this.watchAsync()
+
+                watcher.get {
+                    if (it.isSuccess) {
+                        fail()
+                    } else {
+                        assertEquals(ErrorCode.NETWORK_IO_EXCEPTION, it.error.errorCode)
+
+                        assertEquals(false, watcher.isOpen)
+                        assertEquals(true, watcher.isCancelled)
+
+                        looperThread.testComplete()
+                    }
+                }
+
+                // Busy wait till watcher is ready to receive updates.
+                // It syncs the event producer thread (current thread) with
+                // the event consumer thread.
+                while (!watcher.isOpen) {
+                }
+
+                watcher.cancel()
+            }
+        }
+    }
+
+    @Test
+    fun watchError() {
+        with(getCollectionInternal()) {
+            val watcher = this.watch()
+
+            assertFailsWith<AppException> {
+                watcher.next
+            }
+
+            assertEquals(false, watcher.isOpen)
+            assertEquals(false, watcher.isCancelled)
         }
     }
 
@@ -924,32 +1339,35 @@ class MongoClientTest {
         }
     }
 
-    // FIXME: projections and sorts aren't currently working due to a bug in Stitch: https://jira.mongodb.org/browse/REALMC-5787
     @Test
-    @Ignore("find_one_and_delete function is wrongly implemented in OS and projections and sorts don't work")
     fun findOneAndDelete_withProjectionAndSort() {
         with(getCollectionInternal()) {
-            val doc2 = Document("hello", "world2").apply { this["num"] = 2 }
-            val doc3 = Document("hello", "world3").apply { this["num"] = 3 }
+            insertMany(listOf(
+                    Document(mapOf(Pair("team", "Fearful Mallards"), Pair("score", 25000))),
+                    Document(mapOf(Pair("team", "Tactful Mooses"), Pair("score", 23500))),
+                    Document(mapOf(Pair("team", "Aquatic Ponies"), Pair("score", 19250))),
+                    Document(mapOf(Pair("team", "Cuddly Zebras"), Pair("score", 15235))),
+                    Document(mapOf(Pair("team", "Garrulous Bears"), Pair("score", 18000)))
+            )).get()
 
-            insertMany(listOf(doc2, doc3)).get()
+            assertEquals(5, count().get())
+            assertNotNull(findOne(Document("team", "Cuddly Zebras")))
 
-            // Return "hello", hide "_id"
-            val sampleProject = Document("hello", 1).apply { this["_id"] = 0 }
+            // Project: team, hide _id; Sort: score ascending
+            val project = Document(mapOf(Pair("_id", 0), Pair("team", 1)))
+            val sort = Document("score", 1)
 
-            var options = FindOneAndModifyOptions()
-                    .projection(sampleProject)
-                    .sort(Document("num", -1))
-            assertEquals(Document("hello", "world3"),
-                    findOneAndDelete(Document(), options).get()!!.withoutId())
-            assertEquals(2, count().get())
+            // This results in the deletion of Cuddly Zebras
+            val deletedDocument = findOneAndDelete(
+                    Document("score", Document("\$lt", 22250)),
+                    FindOneAndModifyOptions()
+                            .projection(project)
+                            .sort(sort)
+            ).get()
 
-            options = FindOneAndModifyOptions()
-                    .projection(sampleProject)
-                    .sort(Document("num", 1))
-            assertEquals(Document("hello", "world1"),
-                    findOneAndDelete(Document(), options).get()!!.withoutId())
-            assertEquals(1, count().get())
+            assertEquals(4, count().get())
+            assertEquals(Document("team", "Cuddly Zebras"), deletedDocument.withoutId())
+            assertNull(findOne(Document("team", "Cuddly Zebras")).get())
         }
     }
 

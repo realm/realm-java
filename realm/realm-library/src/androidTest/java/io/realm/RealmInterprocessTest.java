@@ -126,7 +126,7 @@ public class RealmInterprocessTest {
     private class InterprocessHandler extends Handler {
         // Timeout Watchdog. In case the service crashed or expected response is not returned.
         // It is very important to feed the dog after the expected message arrived.
-        private final int timeout = 5000;
+        private final static int timeout = 5000;
         private volatile boolean isTimeout = true;
         private Runnable timeoutRunnable = new Runnable() {
             @Override

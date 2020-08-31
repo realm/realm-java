@@ -16,12 +16,11 @@
 package io.realm
 
 import android.os.SystemClock
-import android.util.Log
 import androidx.test.annotation.UiThreadTest
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.DefaultSyncSchema
-import io.realm.entities.SyncDog
+import io.realm.entities.StringOnly
 import io.realm.entities.SyncStringOnly
 import io.realm.exceptions.DownloadingRealmInterruptedException
 import io.realm.exceptions.RealmMigrationNeededException
@@ -29,21 +28,20 @@ import io.realm.internal.OsRealmConfig
 import io.realm.kotlin.syncSession
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
-import io.realm.log.RealmLogger
 import io.realm.mongodb.*
 import io.realm.mongodb.sync.*
+import io.realm.objectserver.utils.Constants
 import io.realm.rule.BlockingLooperThread
-import io.realm.util.assertFailsWithErrorCode
 import org.bson.BsonObjectId
 import org.bson.types.ObjectId
-import org.junit.*
+import org.junit.After
 import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Ignore
+import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 import java.util.*
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
@@ -304,5 +302,28 @@ class SyncedRealmIntegrationTests {
         user.logOut()
     }
 
+
+    // Smoke test to check that `refreshConnections` doesn't crash.
+    // Testing that it actually works is not feasible in a unit test.
+    @Test
+    fun refreshConnections() {
+        RealmLog.setLevel(LogLevel.DEBUG)
+        Sync.refreshConnections() // No Realms
+
+        // A single active Realm
+        val username = UUID.randomUUID().toString()
+        val password = "password"
+        val user: User = app.login(Credentials.emailPassword(username, password))
+        val config: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
+                .testSchema(StringOnly::class.java)
+                .build()
+        val realm = Realm.getInstance(config)
+        Sync.refreshConnections()
+
+        // A single logged out Realm
+        realm.close()
+        Sync.refreshConnections()
+        looperThread.testComplete()
+    }
 
 }

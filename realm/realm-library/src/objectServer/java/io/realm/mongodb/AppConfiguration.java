@@ -70,14 +70,14 @@ public class AppConfiguration {
      *
      * @see Builder#baseUrl(String)
      */
-    public final static String DEFAULT_BASE_URL = "https://realm.mongodb.com";
+    public static final String DEFAULT_BASE_URL = "https://realm.mongodb.com";
 
     /**
      * The default request timeout for network requests towards MongoDB Realm in seconds.
      *
      * @see Builder#requestTimeout(long, TimeUnit)
      */
-    public final static long DEFAULT_REQUEST_TIMEOUT = 60;
+    public static final long DEFAULT_REQUEST_TIMEOUT = 60;
 
     /**
      * The default header name used to carry authorization data when making network requests
@@ -174,6 +174,8 @@ public class AppConfiguration {
 
     /**
      * Returns the unique app id that identities the Realm application.
+     *
+     * @return the app unique identifier.
      */
     public String getAppId() {
         return appId;
@@ -182,6 +184,8 @@ public class AppConfiguration {
     /**
      * Returns the name used to describe the Realm application. This is only used as debug
      * information.
+     *
+     * @return the app name.
      */
     public String getAppName() {
         return appName;
@@ -189,6 +193,8 @@ public class AppConfiguration {
 
     /**
      * Returns the version of this Realm application. This is only used as debug information.
+     *
+     * @return the app version.
      */
     public String getAppVersion() {
         return appVersion;
@@ -196,6 +202,8 @@ public class AppConfiguration {
 
     /**
      * Returns the base url for this Realm application.
+     *
+     * @return the app base url.
      */
     public URL getBaseUrl() {
         return baseUrl;
@@ -204,6 +212,8 @@ public class AppConfiguration {
     /**
      * Returns the encryption key, if any, that is used to encrypt Realm users meta data on this
      * device. If no key is returned, the data is not encrypted.
+     *
+     * @return the encryption key if exists, or {@code null} otherwise.
      */
     @Nullable
     public byte[] getEncryptionKey() {
@@ -213,6 +223,8 @@ public class AppConfiguration {
     /**
      * Returns the default timeout for network requests against the Realm application in
      * milliseconds.
+     *
+     * @return the default timeout for network requests in milliseconds.
      */
     public long getRequestTimeoutMs() {
         return requestTimeoutMs;
@@ -221,6 +233,8 @@ public class AppConfiguration {
     /**
      * Returns the name of the header used to carry authentication data when making network
      * requests towards MongoDB Realm.
+     *
+     * @return the authentication header name.
      */
     public String getAuthorizationHeaderName() {
         return authorizationHeaderName;
@@ -229,6 +243,8 @@ public class AppConfiguration {
     /**
      * Returns any custom configured headers that will be sent alongside other headers when
      * making network requests towards MongoDB Realm.
+     *
+     * @return a {@code Map} of custom configured headers.
      */
     public Map<String, String> getCustomRequestHeaders() {
         return customHeaders;
@@ -237,6 +253,8 @@ public class AppConfiguration {
     /**
      * Returns the default error handler used by synced Realms if there are problems with their
      * {@link SyncSession}.
+     *
+     * @return the app default error handler.
      */
     public SyncSession.ErrorHandler getDefaultErrorHandler() {
         return defaultErrorHandler;
@@ -245,6 +263,8 @@ public class AppConfiguration {
     /**
      * Returns the root folder containing all files and Realms used when synchronizing data
      * between the device and MongoDB Realm.
+     *
+     * @return the sync root directory.
      */
     public File getSyncRootDirectory() {
         return syncRootDir;
@@ -411,7 +431,7 @@ public class AppConfiguration {
          */
         public Builder requestTimeout(long time, TimeUnit unit) {
             if (time < 1) {
-                throw new IllegalStateException("A timeout above 0 is required: " + time);
+                throw new IllegalArgumentException("A timeout above 0 is required: " + time);
             }
             Util.checkNull(unit, "unit");
             this.requestTimeoutMs = TimeUnit.MICROSECONDS.convert(time, unit);

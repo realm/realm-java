@@ -29,7 +29,7 @@ class EmailPasswordAuthImpl extends EmailPasswordAuth {
 
     @Override
     protected void call(int functionType, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback, String... args) {
-        nativeCallFunction(functionType, app.nativePtr, callback, args);
+        nativeCallFunction(functionType, app.osApp.getNativePtr(), callback, args);
     }
 
     private static native void nativeCallFunction(int functionType,

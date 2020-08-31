@@ -521,7 +521,7 @@ public class SortTest {
             @Override
             public void onChange(RealmResults<AllTypes> element) {
                 assertEquals(TEST_SIZE + 1, element.size());
-                int i = 0;
+                long i = 0;
                 for (AllTypes allTypes : element) {
                     assertEquals(new Date(i), allTypes.getColumnDate());
                     i++;
@@ -537,7 +537,7 @@ public class SortTest {
             @Override
             public void onChange(RealmResults<AllTypes> element) {
                 assertEquals(TEST_SIZE + 1, element.size());
-                int i = element.size() - 1;
+                long i = ((long) element.size()) - 1;
                 for (AllTypes allTypes : element) {
                     assertEquals(new Date(i), allTypes.getColumnDate());
                     i--;

@@ -659,8 +659,8 @@ public class Table implements NativeObject {
         stringBuilder.append(" columns: ");
 
         boolean isFirst = true;
-        for (String column: getColumnNames()) {
-            if(!isFirst) {
+        for (String column : getColumnNames()) {
+            if (!isFirst) {
                 stringBuilder.append(", ");
             }
             isFirst = false;

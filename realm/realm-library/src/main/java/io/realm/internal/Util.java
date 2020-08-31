@@ -24,6 +24,7 @@ import java.io.StringWriter;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -220,4 +221,17 @@ public class Util {
         return rxJavaAvailable;
     }
 
+    /**
+     * Validates that a key is present in a given map
+     *
+     * @param key the key to expect.
+     * @param map the map to search.
+     * @param argName the map argument name
+     * @throws IllegalArgumentException if key is not present.
+     */
+    public static void checkContainsKey(final String key, final Map<String, ?> map, final String argName) {
+        if (!map.containsKey(key)) {
+            throw new IllegalArgumentException("Key '" + key + "' required in '"+ argName +"'.");
+        }
+    }
 }

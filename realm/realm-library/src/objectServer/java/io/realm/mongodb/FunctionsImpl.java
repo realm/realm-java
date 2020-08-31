@@ -60,7 +60,7 @@ class FunctionsImpl extends Functions {
                 return (String) result;
             }
         };
-        nativeCallFunction(user.getApp().nativePtr, user.osUser.getNativePtr(), name, encodedArgs, callback);
+        nativeCallFunction(user.getApp().osApp.getNativePtr(), user.osUser.getNativePtr(), name, encodedArgs, callback);
         String encodedResponse = ResultHandler.handleResult(success, error);
         return JniBsonProtocol.decode(encodedResponse, resultDecoder);
     }

@@ -87,7 +87,7 @@ class LoggingInterceptorTest {
     fun apiKeyLogin_noObfuscation() {
         app = TestApp()
         testLogger = getLogger()
-        val admin = ServerAdmin()
+        val admin = ServerAdmin(app)
         val serverKey = admin.createServerApiKey()
 
         app.login(Credentials.serverApiKey(serverKey))
@@ -100,7 +100,7 @@ class LoggingInterceptorTest {
             builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, AppConfiguration.loginObfuscators))
         }
         testLogger = getLogger()
-        val admin = ServerAdmin()
+        val admin = ServerAdmin(app)
         val serverKey = admin.createServerApiKey()
 
         app.login(Credentials.serverApiKey(serverKey))
@@ -160,7 +160,7 @@ class LoggingInterceptorTest {
         } catch (error: AppException) {
             // It will fail as long as oauth2 tokens aren't supported
         } finally {
-            assertMessageExists(""""access_token":"$token"""")
+            assertMessageExists("""accessToken":"$token"""")
         }
     }
 
@@ -177,7 +177,7 @@ class LoggingInterceptorTest {
         } catch (error: AppException) {
             Assert.assertEquals(ErrorCode.INVALID_SESSION, error.errorCode)
         } finally {
-            assertMessageExists(""""access_token":"***"""")
+            assertMessageExists(""""accessToken":"***"""")
         }
     }
 

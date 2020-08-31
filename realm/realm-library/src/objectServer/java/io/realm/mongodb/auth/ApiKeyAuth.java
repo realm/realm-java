@@ -328,6 +328,6 @@ public abstract class ApiKeyAuth {
                 '}';
     }
 
-    abstract protected void call(int functionType, @Nullable String arg, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    protected abstract void call(int functionType, @Nullable String arg, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 
 }
