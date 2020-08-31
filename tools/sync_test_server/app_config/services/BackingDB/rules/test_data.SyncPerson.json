@@ -1,10 +1,10 @@
 {
-    "id": "5edea20f0f99fe616bf40ade",
-    "database": "test_data",
     "collection": "SyncPerson",
+    "database": "test_data",
+    "id": "5f47673420f7388c73e8690f",
     "relationships": {
         "dogs": {
-            "ref": "#/stitch/BackingDB/test_data/SyncDog",
+            "ref": "#/relationship/BackingDB/test_data/SyncDog",
             "source_key": "dogs",
             "foreign_key": "_id",
             "is_list": true
