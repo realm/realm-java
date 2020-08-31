@@ -4679,7 +4679,6 @@ public class RealmTests {
     public void getNumberOfActiveVersions() throws InterruptedException {
         CountDownLatch bgWritesCompleted = new CountDownLatch(1);
         CountDownLatch closeBgRealm = new CountDownLatch(1);
-        // TODO: Why 2 instead of 1?
         assertEquals(2, realm.getNumberOfActiveVersions());
         Thread t = new Thread(() -> {
             Realm bgRealm = Realm.getInstance(realmConfig);
@@ -4697,10 +4696,10 @@ public class RealmTests {
         assertEquals(6, realm.getNumberOfActiveVersions());
         closeBgRealm.countDown();
         t.join();
-        // TODO realm.refresh() does not work. But closing and reopening the Realm brings it correctly down?
-        realm.close();
-        realm = Realm.getInstance(realmConfig);
-        assertEquals(1, realm.getNumberOfActiveVersions());
+        realm.refresh(); // Release old versions for GC
+        realm.beginTransaction();
+        realm.commitTransaction(); // Actually release the versions
+        assertEquals(2, realm.getNumberOfActiveVersions());
         realm.close();
         try {
             realm.getNumberOfActiveVersions();
