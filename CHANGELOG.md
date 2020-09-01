@@ -1,4 +1,26 @@
-## 7.0.2(2020-08-14)
+## 7.0.3 (2020-09-01)
+
+### Enhancements
+* Added `Realm.getNumberOfActiveVersions()`, which returns the current number of active versions maintained by the Realm file.
+
+### Fixes
+* Creating a query inside a change listener could in some cases result in the version being pinned, which would either drastically increase filesize or cause `RealmConfiguration.maxNumberOfActiveVersions()` to trigger. (Issue [#6977](https://github.com/realm/realm-java/issues/6977), since 7.0.0)
+* If you upgrade a Realm file where you have "" elements in a list of non-nullable strings, the upgrade would crash.
+* If an attempt to upgrade a Realm file has ended with a crash with "migrate_links" in the call stack, the Realm ended in a corrupt state where further upgrade was not possible. A remedy for this situation is now provided.
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Object Store commit: eef80f42e6ede2294eb60f048228012d9b7bc627.
+* Upgraded to Realm Sync: 5.0.19.
+* Upgraded to Realm Core: 6.0.22.
+* The upgrade logic for upgrading fileformats has changed so that progress is now recorded explicitly in a table. This makes the logic simpler and reduces the chance of errors. It will also make it easier to detect if a file has only been partially upgraded.
+
+
+## 7.0.2 (2020-08-14)
 
 ### Enhancements
 * None.
@@ -18,7 +40,7 @@
 * Upgraded to Realm Core 6.0.17.
 
 
-## 7.0.1(2020-07-01)
+## 7.0.1 (2020-07-01)
 
 ### Enhancements
 * None.
@@ -39,7 +61,7 @@
 * Upgraded to Realm Core 6.0.8.
 
 
-## 7.0.0(2020-05-16)
+## 7.0.0 (2020-05-16)
 
 NOTE: This version bumps the Realm file format to version 10. Files created with previous versions of Realm will be automatically upgraded. It is not possible to downgrade to version 9 or earlier. Only [Studio 3.11](https://github.com/realm/realm-studio/releases/tag/v3.11.0) or later will be able to open the new file format. 
 

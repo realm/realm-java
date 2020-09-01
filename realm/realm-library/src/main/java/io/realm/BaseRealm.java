@@ -485,6 +485,21 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
+     * Returns the current number of active versions currently being held by this Realm.
+     * <p>
+     * Having a large number of active versions have a negative impact on the size of the
+     * Realm file. See <a href="https://realm.io/docs/java/latest/#faq-large-realm-file-size">the FAQ</a>
+     * for more information.
+     *
+     * @return number of active versions currently being held by the Realm.
+     * @see RealmConfiguration.Builder#maxNumberOfActiveVersions(long)
+     */
+    public long getNumberOfActiveVersions() {
+        checkIfValid();
+        return getSharedRealm().getNumberOfVersions();
+    }
+
+    /**
      * Checks if a Realm's underlying resources are still available or not getting accessed from the wrong thread.
      */
     protected void checkIfValid() {
