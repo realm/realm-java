@@ -1,4 +1,4 @@
-## 7.0.3 (YYYY-MM-DD)
+## 7.0.3 (2020-09-01)
 
 ### Enhancements
 * Added `Realm.getNumberOfActiveVersions()`, which returns the current number of active versions maintained by the Realm file.
