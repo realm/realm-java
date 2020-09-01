@@ -5,6 +5,8 @@
 
 ### Fixes
 * Creating a query inside a change listener could in some cases result in the version being pinned, which would either drastically increase filesize or cause `RealmConfiguration.maxNumberOfActiveVersions()` to trigger. (Issue [#6977](https://github.com/realm/realm-java/issues/6977), since 7.0.0)
+* If you upgrade a Realm file where you have "" elements in a list of non-nullable strings, the upgrade would crash.
+* If an attempt to upgrade a Realm file has ended with a crash with "migrate_links" in the call stack, the Realm ended in a corrupt state where further upgrade was not possible. A remedy for this situation is now provided.
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
@@ -12,7 +14,10 @@
 * APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
 
 ### Internal
-* Upgraded to Object Store commit: fec731c09fed54e20e18eead586ce23a3071bcd0.
+* Upgraded to Object Store commit: eef80f42e6ede2294eb60f048228012d9b7bc627.
+* Upgraded to Realm Sync: 5.0.19.
+* Upgraded to Realm Core: 6.0.22.
+* The upgrade logic for upgrading fileformats has changed so that progress is now recorded explicitly in a table. This makes the logic simpler and reduces the chance of errors. It will also make it easier to detect if a file has only been partially upgraded.
 
 
 ## 7.0.2 (2020-08-14)
