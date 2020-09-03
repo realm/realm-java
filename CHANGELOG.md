@@ -27,8 +27,8 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * Support for watching MongoCollection change streams (Issue [#6912](https://github.com/realm/realm-java/issues/6912))
 * [RealmApp] Support for getting all app sessions via `Sync.getAllSessions()`.
 * [RealmApp] Support to retrieve the MongoClient service name using `MongoClient.getServiceName()`
-* [RealmApp] Support to retrieve the MongoDatabase name with `MongoDatabase.getName()`
-* [RealmApp] Support to retrieve the MongoCollection name with `MongoCollection.getName()`
+* [RealmApp] Support to retrieve the MongoDatabase name using `MongoDatabase.getName()`
+* [RealmApp] Support to retrieve the MongoCollection name using `MongoCollection.getName()`
 
 ### Fixed
 * None.
