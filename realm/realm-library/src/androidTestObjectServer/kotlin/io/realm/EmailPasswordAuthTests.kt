@@ -210,7 +210,7 @@ class EmailPasswordAuthTests {
     }
 
     @Test
-    fun retryCustomConfirmation() {
+    fun callCustomConfirmationFunction() {
         val email = "test@10gen.com"
         admin.setAutomaticConfirmation(false)
         try {

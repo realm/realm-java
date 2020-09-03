@@ -46,7 +46,7 @@ public abstract class EmailPasswordAuth {
     private static final int TYPE_SEND_RESET_PASSWORD_EMAIL = 4;
     private static final int TYPE_CALL_RESET_PASSWORD_FUNCTION = 5;
     private static final int TYPE_RESET_PASSWORD = 6;
-    private static final int TYPE_RETRY_CUSTOM_CONFIRMATION = 7;
+    private static final int TYPE_CALL_CUSTOM_CONFIRMATION_FUNCTION = 7;
 
     protected final App app;
 
@@ -155,7 +155,7 @@ public abstract class EmailPasswordAuth {
     public void retryCustomConfirmation(String email) throws AppException {
         Util.checkEmpty(email, "email");
         AtomicReference<AppException> error = new AtomicReference<>(null);
-        call(TYPE_RETRY_CUSTOM_CONFIRMATION, new OsJNIVoidResultCallback(error), email);
+        call(TYPE_CALL_CUSTOM_CONFIRMATION_FUNCTION, new OsJNIVoidResultCallback(error), email);
         ResultHandler.handleResult(null, error);
     }
 
