@@ -31,7 +31,6 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.lang.IllegalStateException
 import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
@@ -205,6 +204,19 @@ class EmailPasswordAuthTests {
             val provider = app.emailPasswordAuth
             provider.registerUser(email, "123456")
             provider.resendConfirmationEmail(email)
+        } finally {
+            admin.setAutomaticConfirmation(true)
+        }
+    }
+
+    @Test
+    fun retryCustomConfirmation() {
+        val email = "test@10gen.com"
+        admin.setAutomaticConfirmation(false)
+        try {
+            val provider = app.emailPasswordAuth
+            provider.registerUser(email, "123456")
+            provider.retryCustomConfirmation(email)
         } finally {
             admin.setAutomaticConfirmation(true)
         }
