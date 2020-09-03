@@ -20,10 +20,10 @@ import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-public class Profile {
+public class ProfileInfo {
     private final User user;
 
-    Profile(User user) {
+    ProfileInfo(User user) {
         this.user = user;
     }
 
@@ -150,9 +150,9 @@ public class Profile {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Profile profile = (Profile) o;
+        ProfileInfo profileInfo = (ProfileInfo) o;
 
-        return user.equals(profile.user);
+        return user.equals(profileInfo.user);
     }
 
     @Override

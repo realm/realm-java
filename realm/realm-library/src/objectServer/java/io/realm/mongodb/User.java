@@ -58,7 +58,7 @@ public class User {
 
     OsSyncUser osUser;
     private final App app;
-    private final Profile profile;
+    private final ProfileInfo profileInfo;
     private ApiKeyAuth apiKeyAuthProvider = null;
     private MongoClient mongoClient = null;
     private Functions functions = null;
@@ -118,7 +118,7 @@ public class User {
     User(OsSyncUser osUser, App app) {
         this.osUser = osUser;
         this.app = app;
-        this.profile = new Profile(this);
+        this.profileInfo = new ProfileInfo(this);
     }
 
     /**
@@ -135,8 +135,8 @@ public class User {
      *
      * @return the profile for this user
      */
-    public Profile getProfile(){
-        return profile;
+    public ProfileInfo getProfile(){
+        return profileInfo;
     }
 
     /**
