@@ -57,6 +57,7 @@ class EmailPasswordAuthTests {
         RESEND_CONFIRMATION_EMAIL,
         SEND_RESET_PASSWORD_EMAIL,
         CALL_RESET_PASSWORD_FUNCTION,
+        CALL_CUSTOM_CONFIRMATION_FUNCTION,
         RESET_PASSWORD
     }
 
@@ -354,7 +355,7 @@ class EmailPasswordAuthTests {
         val provider: EmailPasswordAuth = app.emailPasswordAuth
         assertFailsWith<IllegalArgumentException> { provider.callCustomConfirmationFunction(TestHelper.getNull()) }
         looperThread.runBlocking {
-            provider.resendConfirmationEmailAsync(TestHelper.getNull(), checkNullArgCallback)
+            provider.callCustomConfirmationFunctionAsync(TestHelper.getNull(), checkNullArgCallback)
         }
     }
 
@@ -577,6 +578,7 @@ class EmailPasswordAuthTests {
                     Method.RESEND_CONFIRMATION_EMAIL -> provider.resendConfirmationEmail(email)
                     Method.SEND_RESET_PASSWORD_EMAIL -> provider.sendResetPasswordEmail(email)
                     Method.CALL_RESET_PASSWORD_FUNCTION -> provider.callResetPasswordFunction(email, "123456")
+                    Method.CALL_CUSTOM_CONFIRMATION_FUNCTION -> provider.callCustomConfirmationFunction(email)
                     Method.RESET_PASSWORD -> provider.resetPassword("token", "token-id", "password")
                 }
                 fail("$method should have thrown an exception")
@@ -599,6 +601,7 @@ class EmailPasswordAuthTests {
                     Method.RESEND_CONFIRMATION_EMAIL -> provider.resendConfirmationEmailAsync(email, callback)
                     Method.SEND_RESET_PASSWORD_EMAIL -> provider.sendResetPasswordEmailAsync(email, callback)
                     Method.CALL_RESET_PASSWORD_FUNCTION -> provider.callResetPasswordFunctionAsync(email, "123456", arrayOf(), callback)
+                    Method.CALL_CUSTOM_CONFIRMATION_FUNCTION -> provider.callCustomConfirmationFunctionAsync(email, callback)
                     Method.RESET_PASSWORD -> provider.resetPasswordAsync("token", "token-id", "password", callback)
                 }
                 fail("$method should have thrown an exception")
