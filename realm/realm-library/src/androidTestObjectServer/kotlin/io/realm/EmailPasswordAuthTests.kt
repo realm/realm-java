@@ -210,19 +210,6 @@ class EmailPasswordAuthTests {
     }
 
     @Test
-    fun callCustomConfirmationFunction() {
-        val email = "test@10gen.com"
-        admin.setAutomaticConfirmation(false)
-        try {
-            val provider = app.emailPasswordAuth
-            provider.registerUser(email, "123456")
-            provider.retryCustomConfirmation(email)
-        } finally {
-            admin.setAutomaticConfirmation(true)
-        }
-    }
-
-    @Test
     fun resendConfirmationEmailAsync() {
         // We only test that the server successfully accepts the request. We have no way of knowing
         // if the Email was actually sent.
@@ -233,7 +220,7 @@ class EmailPasswordAuthTests {
                 val provider = app.emailPasswordAuth
                 provider.registerUser(email, "123456")
                 provider.resendConfirmationEmailAsync(email) { result ->
-                    when(result.isSuccess) {
+                    when (result.isSuccess) {
                         true -> looperThread.testComplete()
                         false -> fail(result.error.toString())
                     }
@@ -292,6 +279,86 @@ class EmailPasswordAuthTests {
     }
 
     @Test
+    fun callCustomConfirmationFunction() {
+        val email = "test@10gen.com"
+        admin.setAutomaticConfirmation(false)
+        try {
+            val provider = app.emailPasswordAuth
+            provider.registerUser(email, "123456")
+            provider.callCustomConfirmationFunction(email)
+        } finally {
+            admin.setAutomaticConfirmation(true)
+        }
+    }
+
+    @Test
+    fun callCustomConfirmationFunctionAsync() {
+        val email = "test@10gen.com"
+        admin.setAutomaticConfirmation(false)
+        try {
+            looperThread.runBlocking {
+                val provider = app.emailPasswordAuth
+                provider.registerUser(email, "123456")
+                provider.callCustomConfirmationFunctionAsync(email) { result ->
+                    when (result.isSuccess) {
+                        true -> looperThread.testComplete()
+                        false -> fail(result.error.toString())
+                    }
+                }
+            }
+        } finally {
+            admin.setAutomaticConfirmation(true)
+        }
+    }
+
+    @Test
+    fun callCustomConfirmationFunction_invalidServerArgsThrows() {
+        val email = "test@10gen.com"
+        admin.setAutomaticConfirmation(false)
+        val provider = app.emailPasswordAuth
+        provider.registerUser(email, "123456")
+        try {
+            provider.callCustomConfirmationFunction("foo")
+            fail()
+        } catch (error: AppException) {
+            assertEquals(ErrorCode.USER_NOT_FOUND, error.errorCode)
+        } finally {
+            admin.setAutomaticConfirmation(true)
+        }
+    }
+
+    @Test
+    fun callCustomConfirmationFunctionAsync_invalidServerArgsThrows() {
+        val email = "test@10gen.com"
+        admin.setAutomaticConfirmation(false)
+        val provider = app.emailPasswordAuth
+        provider.registerUser(email, "123456")
+        try {
+            looperThread.runBlocking {
+                provider.callCustomConfirmationFunctionAsync("foo") { result ->
+                    if (result.isSuccess) {
+                        fail()
+                    } else {
+                        assertEquals(ErrorCode.USER_NOT_FOUND, result.error.errorCode)
+                        looperThread.testComplete()
+                    }
+                }
+            }
+        } finally {
+            admin.setAutomaticConfirmation(true)
+        }
+    }
+
+    @Test
+    fun callCustomConfirmationFunction_invalidArgumentsThrows() {
+        val provider: EmailPasswordAuth = app.emailPasswordAuth
+        assertFailsWith<IllegalArgumentException> { provider.callCustomConfirmationFunction(TestHelper.getNull()) }
+        looperThread.runBlocking {
+            provider.resendConfirmationEmailAsync(TestHelper.getNull(), checkNullArgCallback)
+        }
+    }
+
+    @Test
     fun sendResetPasswordEmail() {
         val provider = app.emailPasswordAuth
         val email: String = "test@10gen.com" // Must be a valid email, otherwise the server will fail
@@ -306,7 +373,7 @@ class EmailPasswordAuthTests {
         provider.registerUser(email, "123456")
         looperThread.runBlocking {
             provider.sendResetPasswordEmailAsync(email) { result ->
-                when(result.isSuccess) {
+                when (result.isSuccess) {
                     true -> looperThread.testComplete()
                     false -> fail(result.error.toString())
                 }
@@ -493,7 +560,7 @@ class EmailPasswordAuthTests {
             provider.resetPasswordAsync("token", TestHelper.getNull(), "password", checkNullArgCallback)
         }
         looperThread.runBlocking {
-            provider.resetPasswordAsync("token","token-id", TestHelper.getNull(), checkNullArgCallback)
+            provider.resetPasswordAsync("token", "token-id", TestHelper.getNull(), checkNullArgCallback)
         }
     }
 
@@ -504,7 +571,7 @@ class EmailPasswordAuthTests {
         val email: String = TestHelper.getRandomEmail()
         for (method in Method.values()) {
             try {
-                when(method) {
+                when (method) {
                     Method.REGISTER_USER -> provider.registerUser(email, "123456")
                     Method.CONFIRM_USER -> provider.confirmUser("token", "tokenId")
                     Method.RESEND_CONFIRMATION_EMAIL -> provider.resendConfirmationEmail(email)
@@ -526,7 +593,7 @@ class EmailPasswordAuthTests {
         val callback = App.Callback<Void> { fail() }
         for (method in Method.values()) {
             try {
-                when(method) {
+                when (method) {
                     Method.REGISTER_USER -> provider.registerUserAsync(email, "123456", callback)
                     Method.CONFIRM_USER -> provider.confirmUserAsync("token", "tokenId", callback)
                     Method.RESEND_CONFIRMATION_EMAIL -> provider.resendConfirmationEmailAsync(email, callback)

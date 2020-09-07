@@ -147,19 +147,6 @@ public abstract class EmailPasswordAuth {
     }
 
     /**
-     * Retries the custom confirmation function on a user for a given email.
-     *
-     * @param email the email of the user.
-     * @throws AppException if the server failed to confirm the user.
-     */
-    public void retryCustomConfirmation(String email) throws AppException {
-        Util.checkEmpty(email, "email");
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        call(TYPE_CALL_CUSTOM_CONFIRMATION_FUNCTION, new OsJNIVoidResultCallback(error), email);
-        ResultHandler.handleResult(null, error);
-    }
-
-    /**
      * Resend the confirmation for a user to the given email.
      *
      * @param email the email of the user.
@@ -173,6 +160,38 @@ public abstract class EmailPasswordAuth {
             @Override
             public Void run() throws AppException {
                 resendConfirmationEmail(email);
+                return null;
+            }
+        }.start();
+    }
+
+    /**
+     * Calls the custom confirmation function on a user for a given email.
+     *
+     * @param email the email of the user.
+     * @throws AppException if the server failed to confirm the user.
+     */
+    public void callCustomConfirmationFunction(String email) throws AppException {
+        Util.checkEmpty(email, "email");
+        AtomicReference<AppException> error = new AtomicReference<>(null);
+        call(TYPE_CALL_CUSTOM_CONFIRMATION_FUNCTION, new OsJNIVoidResultCallback(error), email);
+        ResultHandler.handleResult(null, error);
+    }
+
+    /**
+     * Calls the custom confirmation function on a user for a given email.
+     *
+     * @param email the email of the user.
+     * @param callback callback when calling the custom confirmation function has completed or failed. The callback will
+     * always happen on the same thread as this method is called on.
+     * @throws IllegalStateException if called from a non-looper thread.
+     */
+    public RealmAsyncTask callCustomConfirmationFunctionAsync(String email, App.Callback<Void> callback) {
+        Util.checkLooperThread("Asynchronous calling custom confirmation function is only possible from looper threads.");
+        return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public Void run() throws AppException {
+                callCustomConfirmationFunction(email);
                 return null;
             }
         }.start();
