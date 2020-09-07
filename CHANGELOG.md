@@ -16,7 +16,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * [RealmApp] Renamed `UserApiKey` class to `ApiKey`.
 * [RealmApp] Removed support for `Credentials.serverApiKey()`.
 * [RealmApp] Renamed `App.getEmailPasswordAuth()` to `App.getEmailPassword()`.
-* [RealmApp] User profile methods `getName()`, `getEmail()`, `getPictureUrl()`, `getFirstName()`, `getLastName()`, `getGender()`, `getBirthday()`, `getMinAge()` and `getMaxAge()` are now available under a new class ProfileInfo. It can be accessed using `User.getProfile()`.
+* [RealmApp] User profile methods `getName()`, `getEmail()`, `getPictureUrl()`, `getFirstName()`, `getLastName()`, `getGender()`, `getBirthday()`, `getMinAge()` and `getMaxAge()` are now available under a new class `UserProfile`. It can be accessed using `User.getProfile()`.
 * [RealmApp] Renamed `Sync.refreshConnections()` to `Sync.reconnect()`.
 * [RealmApp] Renamed `Credentials.IdentityProvider` to `Credentials.Provider`.
 * [RealmApp] Removed support for `User.getLocalId()`.
