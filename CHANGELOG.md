@@ -1,3 +1,24 @@
+## 7.0.4 (YYYY-MM-DD)
+
+### Enhancements
+* None.
+
+### Fixes
+* In some cases a frozen Realm of the wrong version could be returned.
+* Upgrading files with string primary keys would result in a file where it was not possible to find the objects by primary key. ([Core issue #3893](https://github.com/realm/realm-core/pull/3893), since 7.0.0)
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Object Store commit: S286d7cb2f10c41f89a2efb43b22938610ccad4cf.
+* Upgraded to Realm Sync: 5.0.21.
+* Upgraded to Realm Core: 6.0.24.
+* Fileformat has been bumped from 10 to 11.
+
+
 ## 7.0.3 (2020-09-01)
 
 ### Enhancements
