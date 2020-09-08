@@ -175,12 +175,13 @@ class SyncedRealmIntegrationTests {
     @Test
     @Ignore("Sync somehow keeps a Realm alive, causing the Realm.deleteRealm to throw " +
             " https://github.com/realm/realm-java/issues/5416")
-    fun waitForInitialData_resilientInCaseOfRetries() {
+    fun waitForInitialData_resilientInCaseOfRetries() = looperThread.runBlocking {
         val config: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, user.id)
                 .waitForInitialRemoteData()
                 .build()
         for (i in 0..9) {
-            val t = Thread(Runnable {
+            val blockingLooperThread = BlockingLooperThread()
+            blockingLooperThread.runDetached {
                 var realm: Realm? = null
                 assertFailsWith<DownloadingRealmInterruptedException> {
                     Thread.currentThread().interrupt()
@@ -198,10 +199,10 @@ class SyncedRealmIntegrationTests {
                         assertTrue(Realm.deleteRealm(config))
                     }
                 }
-            })
-            t.start()
-            t.join()
+                blockingLooperThread.testComplete()
+            }.await()
         }
+        looperThread.testComplete()
     }
 
     // This tests will start and cancel getting a Realm 10 times. The Realm should be resilient towards that
