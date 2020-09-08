@@ -1433,8 +1433,10 @@ public class RealmMigrationTests {
         }
     }
 
-    // File format 9 (up to Core5) added an index automatically to the primary key, in Core6 (File format 10) string based PK are not
-    // indexed because the search index is derived from the ObjectKey.
+    // File format 9 (up to Core5) added an index automatically to the primary key, in Core6
+    // (File format 10) string based PK are not indexed because the search index is derived from
+    // the ObjectKey. So the Index was stripped if found. However, this turned out to cause other bugs: https://github.com/realm/realm-core/pull/3893
+    // In file format 11, the index is thus re-added for String primary keys.
     @Test
     public void core5AutomaticIndexOnStringPKShouldOpenInCore6() throws IOException {
         configFactory.copyRealmFromAssets(context,
@@ -1445,7 +1447,7 @@ public class RealmMigrationTests {
                 .build());
         assertFalse(realm.isEmpty());
         // Upgrading to Core 6 will strip all indexes on primary keys as they are no longer needed.
-        assertFalse(realm.getSchema().get("MigrationCore6PKStringIndexedByDefault").hasIndex("name"));
+        assertTrue(realm.getSchema().get("MigrationCore6PKStringIndexedByDefault").hasIndex("name"));
         MigrationCore6PKStringIndexedByDefault first = realm.where(MigrationCore6PKStringIndexedByDefault.class).findFirst();
         assertNotNull(first);
         assertEquals("Foo", first.name);
