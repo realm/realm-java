@@ -16,8 +16,8 @@
 
 package io.realm.examples.rxjava.gotchas;
 
-import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
@@ -49,7 +49,7 @@ import io.realm.examples.rxjava.model.Person;
  * - https://github.com/realm/realm-java/issues/1208
  * - https://github.com/realm/realm-java/issues/931
  */
-public class GotchasActivity extends Activity {
+public class GotchasActivity extends AppCompatActivity {
     private Realm realm;
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private ViewGroup container;

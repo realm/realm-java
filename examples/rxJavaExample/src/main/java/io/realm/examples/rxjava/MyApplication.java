@@ -16,7 +16,7 @@
 
 package io.realm.examples.rxjava;
 
-import androidx.multidex.MultiDexApplication;
+import android.app.Application;
 
 import java.util.Map;
 import java.util.Random;
@@ -26,7 +26,7 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.examples.rxjava.model.Person;
 
-public class MyApplication extends MultiDexApplication {
+public class MyApplication extends Application {
 
     private static final TreeMap<String, String> testPersons = new TreeMap<>();
     static {

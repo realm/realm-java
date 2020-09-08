@@ -73,6 +73,7 @@ abstract class BaseRealm implements Closeable {
 
     static volatile Context applicationContext;
 
+    // FIXME: document this
     // Thread pool for all async operations (Query & transaction)
     public static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
 

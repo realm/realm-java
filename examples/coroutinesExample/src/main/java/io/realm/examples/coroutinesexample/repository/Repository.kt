@@ -19,7 +19,7 @@ class RealmRepository : Repository {
         Realm.getDefaultInstance().use { defaultRealm ->
             defaultRealm.executeTransactionAwait { realm ->
                 Log.e("--->", "---> ${Thread.currentThread().name} - BEFORE  transaction")
-                for (i in 1..10) {
+                for (i in 1..10000000) {
                     realm.insertOrUpdate(Doggo().apply {
                         name = "Fluffy $i"
                         age = 1

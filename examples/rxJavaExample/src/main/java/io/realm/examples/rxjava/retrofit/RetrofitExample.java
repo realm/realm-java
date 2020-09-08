@@ -16,8 +16,8 @@
 
 package io.realm.examples.rxjava.retrofit;
 
-import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
@@ -39,7 +39,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 import static android.text.TextUtils.isEmpty;
 import static java.lang.String.format;
 
-public class RetrofitExample extends Activity {
+public class RetrofitExample extends AppCompatActivity {
 
     private Realm realm;
     private Disposable disposable;
