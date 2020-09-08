@@ -173,8 +173,6 @@ class SyncedRealmIntegrationTests {
     // We cannot do much better since we cannot control the order of events internally in Realm which would be
     // needed to correctly test all error paths.
     @Test
-    @Ignore("Sync somehow keeps a Realm alive, causing the Realm.deleteRealm to throw " +
-            " https://github.com/realm/realm-java/issues/5416")
     fun waitForInitialData_resilientInCaseOfRetries() = looperThread.runBlocking {
         val config: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, user.id)
                 .waitForInitialRemoteData()
