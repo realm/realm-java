@@ -68,5 +68,84 @@ dependencies {
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
 }
 
-if ((project.findProperty("android.useAndroidX") ?: false).toBoolean())
-    throw new RuntimeException("Compatibility project should run without AndroidX")
+//if ((project.findProperty("android.useAndroidX") ?: false).toBoolean())
+//    throw new RuntimeException("Compatibility project should run without AndroidX")
+
+
+
+
+
+
+//buildscript {
+//    ext.kotlin_version = rootProject.kotlinVersion
+//    repositories {
+//        google()
+//        jcenter()
+//        mavenCentral()
+//    }
+//    dependencies {
+//        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+//    }
+//}
+//
+//apply plugin: 'com.android.application'
+//apply plugin: 'kotlin-android'
+//apply plugin: 'kotlin-kapt'
+//apply plugin: 'kotlin-android-extensions'
+//apply plugin: 'realm-android'
+//
+//android {
+//    compileSdkVersion rootProject.sdkVersion
+//    buildToolsVersion rootProject.buildTools
+//
+//    defaultConfig {
+//        applicationId 'io.realm.examples.compatibility'
+//        targetSdkVersion rootProject.sdkVersion
+//        minSdkVersion rootProject.minSdkVersion
+//        versionCode 1
+//        versionName "1.0"
+//    }
+//
+//    buildTypes {
+//        // Configure server and App Id.
+//        // The default server is https://realm-dev.mongodb.com/ . Go to that and copy the MongoDB
+//        // Realm App Id.
+//        //
+//        // If you are running a local version of MongoDB Realm, modify endpoint accordingly. Most
+//        // likely it is "http://localhost:9090"
+//        def mongodbRealmUrl = "https://realm-dev.mongodb.com"
+//        def appId = "my-app-id"
+//        debug {
+//            buildConfigField "String", "MONGODB_REALM_URL", "\"${mongodbRealmUrl}\""
+//            buildConfigField "String", "MONGODB_REALM_APP_ID", "\"${appId}\""
+//        }
+//        release {
+//            buildConfigField "String", "MONGODB_REALM_URL", "\"${mongodbRealmUrl}\""
+//            buildConfigField "String", "MONGODB_REALM_APP_ID", "\"${appId}\""
+//            minifyEnabled true
+//            signingConfig signingConfigs.debug
+//        }
+//    }
+//
+//    // Ensure that we can compile an app without Java 8 features
+//    compileOptions {
+//        sourceCompatibility 1.7
+//        targetCompatibility 1.7
+//    }
+//}
+//
+//realm {
+//    syncEnabled = true
+//}
+//
+//dependencies {
+////    implementation 'com.android.support:appcompat-v7:27.1.1'
+//    implementation 'androidx.appcompat:appcompat:1.2.0'
+//    implementation 'com.google.android.material:material:1.2.0'
+//    implementation 'me.zhanghai.android.materialprogressbar:library:1.3.0'
+//    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+//    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+//}
+//
+////if ((project.findProperty("android.useAndroidX") ?: false).toBoolean())
+////    throw new RuntimeException("Compatibility project should run without AndroidX")

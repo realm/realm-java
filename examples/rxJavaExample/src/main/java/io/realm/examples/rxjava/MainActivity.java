@@ -19,7 +19,6 @@ package io.realm.examples.rxjava;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.ViewGroup;
 import android.widget.Button;
 
@@ -27,15 +26,17 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import io.realm.examples.rxjava.animation.AnimationActivity;
+import io.realm.examples.rxjava.animation.AnimationActivityKt;
 import io.realm.examples.rxjava.gotchas.GotchasActivity;
 import io.realm.examples.rxjava.retrofit.RetrofitExample;
 import io.realm.examples.rxjava.throttle.ThrottleSearchActivity;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     private ViewGroup container;
     private final TreeMap<String, Class<? extends Activity>> buttons = new TreeMap<String, Class<? extends Activity>>() {{
-        put("Animation", AnimationActivity.class);
+//        put("Animation", AnimationActivity.class);
+        put("Animation", AnimationActivityKt.class);
         put("Throttle search", ThrottleSearchActivity.class);
         put("Network", RetrofitExample.class);
         put("Working with Realm", GotchasActivity.class);

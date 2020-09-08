@@ -1,23 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="io.realm.examples.rxjava" >
+    xmlns:tools="http://schemas.android.com/tools"
+    package="io.realm.examples.rxjava">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
+        android:name=".MyApplication"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:name=".MyApplication"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme"
+        tools:replace="android:name">
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity android:name=".animation.AnimationActivity" />
+        <activity android:name=".animation.AnimationActivityKt" />
         <activity android:name=".retrofit.RetrofitExample" />
         <activity android:name=".throttle.ThrottleSearchActivity" />
         <activity android:name=".gotchas.GotchasActivity" />

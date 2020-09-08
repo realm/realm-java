@@ -15,10 +15,19 @@
  */
 package io.realm.kotlin
 
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import io.realm.Realm
 import io.realm.RealmModel
 import io.realm.RealmQuery
 import io.realm.exceptions.RealmException
+import kotlinx.coroutines.*
+import kotlinx.coroutines.android.asCoroutineDispatcher
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 /**
  * Returns a typed RealmQuery, which can be used to query for specific objects of this type
@@ -92,14 +101,36 @@ inline fun <reified T : RealmModel> Realm.createEmbeddedObject(parentObject: Rea
 }
 
 /**
+ * FIXME
+ *
+ * @param context FIXME
+ * @param transaction FIXME
+ */
+suspend fun Realm.executeTransactionAwait(
+        context: CoroutineContext = Realm.asyncTaskExecutor.asCoroutineDispatcher(),
+        transaction: (realm: Realm) -> Unit
+) {
+    // Default to our own thread pool executor (as dispatcher)
+    withContext(context) {
+        // Get a new coroutine-confined Realm instance from the original Realm's configuration
+        Realm.getInstance(configuration).use { coroutineRealm ->
+            coroutineRealm.executeTransaction(transaction)
+        }
+    }
+
+    // force refresh because we risk fetching stale data from other realms
+    refresh()
+}
+
+/**
 TODO: Figure out if we should include this is or not. Using this makes it possible to do
 
 inline fun <T> Realm.callTransaction(crossinline action: Realm.() -> T): T {
-    val ref = AtomicReference<T>()
-    executeTransaction {
-        ref.set(action(it))
-    }
-    return ref.get()
+val ref = AtomicReference<T>()
+executeTransaction {
+ref.set(action(it))
+}
+return ref.get()
 }
 
 Missing functions. Consider these for inclusion later:
@@ -116,4 +147,4 @@ Missing functions. Consider these for inclusion later:
 - createOrUpdateObjectFromJson(Class<E> clazz, org.json.JSONObject json)
 - createOrUpdateObjectFromJson(Class<E> clazz, String json)
 - createOrUpdateObjectFromJson(Class<E> clazz, String json)
-*/
+ */

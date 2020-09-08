@@ -16,8 +16,8 @@
 
 package io.realm.examples.rxjava.throttle;
 
+import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -33,7 +33,7 @@ import io.realm.Realm;
 import io.realm.examples.rxjava.R;
 import io.realm.examples.rxjava.model.Person;
 
-public class ThrottleSearchActivity extends AppCompatActivity {
+public class ThrottleSearchActivity extends Activity {
 
     private Realm realm;
     private Disposable disposable;

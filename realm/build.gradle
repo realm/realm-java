@@ -2,6 +2,7 @@ buildscript {
     def projectDependencies = new Properties()
     projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
     ext.kotlin_version = projectDependencies.get('KOTLIN')
+    ext.coroutines_android_version = '1.3.9'
     ext.dokka_version = '0.10.1'
     repositories {
         mavenLocal()

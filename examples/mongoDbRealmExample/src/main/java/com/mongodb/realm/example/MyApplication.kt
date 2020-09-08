@@ -17,6 +17,7 @@
 package com.mongodb.realm.example
 
 import android.app.Application
+import androidx.multidex.MultiDexApplication
 
 import io.realm.Realm
 import io.realm.log.LogLevel

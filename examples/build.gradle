@@ -29,6 +29,9 @@ allprojects {
     }
 
     buildscript {
+        ext {
+            kotlin_version = '1.3.72'
+        }
         repositories {
             google()
             mavenLocal()
@@ -39,6 +42,7 @@ allprojects {
             classpath "com.android.tools.build:gradle:${props.get("GRADLE_BUILD_TOOLS")}"
             classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${props.get('GRADLE_BINTRAY_PLUGIN')}"
             classpath "io.realm:realm-gradle-plugin:${currentVersion}"
+            classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         }
     }
 
