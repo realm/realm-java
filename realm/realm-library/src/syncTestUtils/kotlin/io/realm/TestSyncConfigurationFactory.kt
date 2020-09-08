@@ -30,8 +30,6 @@ import io.realm.rule.TestRealmConfigurationFactory
  * test ends.
  */
 class TestSyncConfigurationFactory : TestRealmConfigurationFactory() {
-
-    // FIXME Wouldn't it make more sense to default to user.id or something like that
     fun createSyncConfigurationBuilder(user: User?): SyncConfiguration.Builder {
         return SyncConfiguration.Builder(user, "default")
                 .testSessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
