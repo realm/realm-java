@@ -29,6 +29,7 @@
 * [ObjectServer] Calling `SyncManager.refreshConnections()` did not correctly refresh connections in all cases, which could delay reconnects up to 5 minutes. (Issue [#7003](https://github.com/realm/realm-java/issues/7003))
 * Upgrading the file format result did in some cases not work correctly. This could result in a number of crashes, e.g. `FORMAT_UPGRADE_REQUIRED`. (Issue [#6889](https://github.com/realm/realm-java/issues/6889), since 7.0.0)  
 * Bug in memory mapping management. This bug could result in multiple different asserts as well as segfaults. In many cases stack backtraces would include members of the EncyptedFileMapping near the top - even if encryption was not used at all. In other cases asserts or crashes would be in methods reading an array header or array element. In all cases the application would terminate immediately. (Issue [#3838](https://github.com/realm/realm-core/pull/3838), since 7.0.0)
+* Crash when retrieving `null` valued primitive fields from dynamic realm. (Issue [#7025](https://github.com/realm/realm-java/issues/7025))
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.

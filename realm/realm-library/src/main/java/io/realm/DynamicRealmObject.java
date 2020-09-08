@@ -94,6 +94,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         proxyState.getRealm$realm().checkIfValid();
 
         long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        if (proxyState.getRow$realm().isNull(columnKey)) {
+            return null;
+        }
         RealmFieldType type = proxyState.getRow$realm().getColumnType(columnKey);
         switch (type) {
             case BOOLEAN:
