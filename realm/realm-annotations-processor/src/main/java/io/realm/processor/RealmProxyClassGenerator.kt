@@ -1630,7 +1630,11 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitStatement("stringBuilder.append(%s().get())", metadata.getInternalGetter(fieldName))
                         }
                         Utils.isByteArray(field) -> {
-                            emitStatement("stringBuilder.append(\"binary(\" + %s().length + \")\")", metadata.getInternalGetter(fieldName))
+                            if (metadata.isNullable(field)) {
+                                emitStatement("stringBuilder.append((%1\$s() == null) ? \"null\" : \"binary(\" + %1\$s().length + \")\")", metadata.getInternalGetter(fieldName))
+                            } else {
+                                emitStatement("stringBuilder.append(\"binary(\" + %1\$s().length + \")\")", metadata.getInternalGetter(fieldName))
+                            }
                         }
                         else -> {
                             if (metadata.isNullable(field)) {
