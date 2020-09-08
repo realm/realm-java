@@ -86,6 +86,15 @@ public class MongoCollection<DocumentT> {
     }
 
     /**
+     * Gets the name of this collection
+     *
+     * @return the name
+     */
+    public String getName() {
+        return nameSpace.getCollectionName();
+    }
+
+    /**
      * Gets the class of documents stored in this collection.
      * <p>
      * If you used the simple {@link MongoDatabase#getCollection(String)} to get this collection,

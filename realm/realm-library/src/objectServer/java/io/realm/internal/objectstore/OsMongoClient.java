@@ -45,6 +45,10 @@ public class OsMongoClient implements NativeObject {
         return new OsMongoDatabase(nativeDatabasePtr, serviceName, codecRegistry, streamNetworkTransport);
     }
 
+    public String getServiceName() {
+        return serviceName;
+    }
+
     @Override
     public long getNativePtr() {
         return nativePtr;
@@ -56,6 +60,8 @@ public class OsMongoClient implements NativeObject {
     }
 
     private static native long nativeCreate(long nativeAppPtr, String serviceName);
+
     private static native long nativeCreateDatabase(long nativeAppPtr, String databaseName);
+
     private static native long nativeGetFinalizerMethodPtr();
 }

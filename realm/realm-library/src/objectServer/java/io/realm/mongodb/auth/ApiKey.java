@@ -20,27 +20,26 @@ import org.bson.types.ObjectId;
 import javax.annotation.Nullable;
 
 import io.realm.annotations.Beta;
-import io.realm.mongodb.App;
 import io.realm.mongodb.User;
 
 /**
  * Class representing an API key for a {@link User}. An API can be used to represent the
  * user when logging instead of using email and password.
  * <p>
- * These keys are created or fetched through {@link ApiKeyAuth#createApiKey(String)} or the various
+ * These keys are created or fetched through {@link ApiKeyAuth#create(String)} or the various
  * {@code fetch}-methods.
  * <p>
  * Note that a keys {@link #value} is only available when the key is created, after that it is not
  * visible. So anyone creating an API key is responsible for storing it safely after that.
  */
 @Beta
-public class UserApiKey {
+public class ApiKey {
     private final ObjectId id;
     private final String value;
     private final String name;
     private final boolean enabled;
 
-    UserApiKey(ObjectId id, @Nullable String value, String name, boolean enabled) {
+    ApiKey(ObjectId id, @Nullable String value, String name, boolean enabled) {
         this.id = id;
         this.value = value;
         this.name = name;
@@ -91,7 +90,7 @@ public class UserApiKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        UserApiKey that = (UserApiKey) o;
+        ApiKey that = (ApiKey) o;
 
         if (enabled != that.enabled) return false;
         if (!id.equals(that.id)) return false;
@@ -110,7 +109,7 @@ public class UserApiKey {
 
     @Override
     public String toString() {
-        return "UserApiKey{" +
+        return "ApiKey{" +
                 "id=" + id +
                 ", value='" + value + '\'' +
                 ", name='" + name + '\'' +

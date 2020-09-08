@@ -121,7 +121,7 @@ public class AppConfiguration {
      * authenticate against an app and the values are the concrete obfuscators used for that
      * provider.
      *
-     * @see Credentials.IdentityProvider
+     * @see Credentials.Provider
      * @see RegexPatternObfuscator
      * @see ApiKeyObfuscator
      * @see TokenObfuscator
@@ -296,14 +296,13 @@ public class AppConfiguration {
 
     private static Map<String, RegexPatternObfuscator> getLoginObfuscators() {
         final HashMap<String, RegexPatternObfuscator> obfuscators = new HashMap<>();
-        obfuscators.put(Credentials.IdentityProvider.API_KEY.getId(), ApiKeyObfuscator.obfuscator());
-        obfuscators.put(Credentials.IdentityProvider.SERVER_API_KEY.getId(), ApiKeyObfuscator.obfuscator());
-        obfuscators.put(Credentials.IdentityProvider.APPLE.getId(), TokenObfuscator.obfuscator());
-        obfuscators.put(Credentials.IdentityProvider.CUSTOM_FUNCTION.getId(), CustomFunctionObfuscator.obfuscator());
-        obfuscators.put(Credentials.IdentityProvider.EMAIL_PASSWORD.getId(), EmailPasswordObfuscator.obfuscator());
-        obfuscators.put(Credentials.IdentityProvider.FACEBOOK.getId(), TokenObfuscator.obfuscator());
-        obfuscators.put(Credentials.IdentityProvider.GOOGLE.getId(), TokenObfuscator.obfuscator());
-        obfuscators.put(Credentials.IdentityProvider.JWT.getId(), TokenObfuscator.obfuscator());
+        obfuscators.put(Credentials.Provider.API_KEY.getId(), ApiKeyObfuscator.obfuscator());
+        obfuscators.put(Credentials.Provider.APPLE.getId(), TokenObfuscator.obfuscator());
+        obfuscators.put(Credentials.Provider.CUSTOM_FUNCTION.getId(), CustomFunctionObfuscator.obfuscator());
+        obfuscators.put(Credentials.Provider.EMAIL_PASSWORD.getId(), EmailPasswordObfuscator.obfuscator());
+        obfuscators.put(Credentials.Provider.FACEBOOK.getId(), TokenObfuscator.obfuscator());
+        obfuscators.put(Credentials.Provider.GOOGLE.getId(), TokenObfuscator.obfuscator());
+        obfuscators.put(Credentials.Provider.JWT.getId(), TokenObfuscator.obfuscator());
         return obfuscators;
     }
 

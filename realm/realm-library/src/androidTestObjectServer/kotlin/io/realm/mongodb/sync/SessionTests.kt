@@ -502,5 +502,16 @@ class SessionTests {
     fun getOrCreateSession() {
         assertNotNull(app.sync.getOrCreateSession(configuration))
     }
+
+    @Test
+    fun getAllSessions(){
+        val realm = Realm.getInstance(configuration)
+        val sessions = app.sync.allSessions
+
+        assertNotNull(sessions)
+        assertEquals(1, sessions.size)
+
+        realm.close()
+    }
     
 }

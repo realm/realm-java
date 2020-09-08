@@ -432,7 +432,7 @@ class SyncSessionTests {
                 assertEquals(SyncSession.State.INACTIVE, session2.state)
 
                 // Login again
-                app.login(Credentials.emailPassword(user.email!!, SECRET_PASSWORD))
+                app.login(Credentials.emailPassword(user.profile.email!!, SECRET_PASSWORD))
 
                 // reviving the sessions. The state could be changed concurrently.
                 // FIXME Reavaluate with new sync states
@@ -501,7 +501,7 @@ class SyncSessionTests {
                 allResults.get().addChangeListener(realmChangeListener)
 
                 // login again to re-activate the user
-                val credentials = Credentials.emailPassword(user.email!!, SECRET_PASSWORD)
+                val credentials = Credentials.emailPassword(user.profile.email!!, SECRET_PASSWORD)
                 // this login will re-activate the logged out user, and resume all it's pending sessions
                 // the OS will trigger bindSessionWithConfig with the new refresh_token, in order to obtain
                 // a new access_token.
@@ -576,7 +576,7 @@ class SyncSessionTests {
     @Ignore("Does not terminate")
     fun downloadChangesWhenRealmOutOfScope() {
         val uniqueName = UUID.randomUUID().toString()
-        app.emailPasswordAuth.registerUser(uniqueName, "password")
+        app.emailPassword.registerUser(uniqueName, "password")
         val config1 = configFactory
                 .createSyncConfigurationBuilder(user)
                 .modules(SyncStringOnlyModule())
@@ -592,7 +592,7 @@ class SyncSessionTests {
             user.logOut()
 
             // Log the user back in.
-            val credentials = Credentials.emailPassword(user.email!!, SECRET_PASSWORD)
+            val credentials = Credentials.emailPassword(user.profile.email!!, SECRET_PASSWORD)
             app.login(credentials)
 
             // now let the admin upload some commits

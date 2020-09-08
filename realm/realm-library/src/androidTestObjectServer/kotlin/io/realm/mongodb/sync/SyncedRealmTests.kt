@@ -487,7 +487,7 @@ class SyncedRealmTests {
     private fun createNewUser(): User {
         val email = TestHelper.getRandomEmail()
         val password = "123456"
-        app.emailPasswordAuth.registerUser(email, password)
+        app.emailPassword.registerUser(email, password)
         return app.login(Credentials.emailPassword(email, password))
     }
 
