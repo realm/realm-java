@@ -1,10 +1,10 @@
-## 7.0.4 (YYYY-MM-DD)
+## 7.0.4 (2020-09-08)
 
 ### Enhancements
 * None.
 
 ### Fixes
-* In some cases a frozen Realm of the wrong version could be returned.
+* In some cases a frozen Realm of the wrong version could be returned. ([ObjectStore issue #1078](https://github.com/realm/realm-object-store/pull/1078))
 * Upgrading files with string primary keys would result in a file where it was not possible to find the objects by primary key. ([Core issue #3893](https://github.com/realm/realm-core/pull/3893), since 7.0.0)
 * NullPointerException when calling `toString` on RealmObjects with a binary field containing `null`. (Issue [#7084](https://github.com/realm/realm-java/issues/7084), since 7.0.0)
 
