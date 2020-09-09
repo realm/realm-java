@@ -1,3 +1,44 @@
+## 7.0.5 (2020-09-09)
+
+### Enhancements
+* None.
+
+### Fixes
+* If you have a Realm file growing towards 2Gb and have a model class with more than 16 properties, then you may get a "Key not found" exception when updating an object. (Realm JS issue [#3194](https://github.com/realm/realm-js/issues/3194), since v7.0.0)
+* In cases where you have more than 32 properties in a model class, you may get a currrupted file resulting in various crashes (Issue [#7057](https://github.com/realm/realm-java/issues/7057), since v7.0.0)
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Realm Sync: 5.0.22.
+* Upgraded to Realm Core: 6.0.25.
+
+
+## 7.0.4 (2020-09-08)
+
+Note: Fileformat has been bumped from 10 to 11. This means that downgrading to an earlier version of Realm is not possible and the latest version of Realm Studio must be used to view Realm files.
+
+### Enhancements
+* None.
+
+### Fixes
+* In some cases a frozen Realm of the wrong version could be returned. ([ObjectStore issue #1078](https://github.com/realm/realm-object-store/pull/1078))
+* Upgrading files with string primary keys would result in a file where it was not possible to find the objects by primary key. ([Core issue #3893](https://github.com/realm/realm-core/pull/3893), since 7.0.0)
+* NullPointerException when calling `toString` on RealmObjects with a binary field containing `null`. (Issue [#7084](https://github.com/realm/realm-java/issues/7084), since 7.0.0)
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Object Store commit: 286d7cb2f10c41f89a2efb43b22938610ccad4cf.
+* Upgraded to Realm Sync: 5.0.21.
+* Upgraded to Realm Core: 6.0.24.
+
 ## 7.0.3 (2020-09-01)
 
 ### Enhancements
@@ -29,6 +70,7 @@
 * [ObjectServer] Calling `SyncManager.refreshConnections()` did not correctly refresh connections in all cases, which could delay reconnects up to 5 minutes. (Issue [#7003](https://github.com/realm/realm-java/issues/7003))
 * Upgrading the file format result did in some cases not work correctly. This could result in a number of crashes, e.g. `FORMAT_UPGRADE_REQUIRED`. (Issue [#6889](https://github.com/realm/realm-java/issues/6889), since 7.0.0)  
 * Bug in memory mapping management. This bug could result in multiple different asserts as well as segfaults. In many cases stack backtraces would include members of the EncyptedFileMapping near the top - even if encryption was not used at all. In other cases asserts or crashes would be in methods reading an array header or array element. In all cases the application would terminate immediately. (Issue [#3838](https://github.com/realm/realm-core/pull/3838), since 7.0.0)
+* Crash when retrieving `null` valued primitive fields from dynamic realm. (Issue [#7025](https://github.com/realm/realm-java/issues/7025))
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
