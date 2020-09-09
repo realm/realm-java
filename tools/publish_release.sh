@@ -21,11 +21,11 @@ IFS=$'\n\t'
 
 usage() {
 cat <<EOF
-Usage: $0 <slack-webhook-releases-url> <slack-webhook-java-ci-url>
+Usage: $0 <bintray_user> <bintray_key> <realm_s3_access_key> <realm_s3_secret_key> <docs_s3_access_key> <docs_s3_secret_key> <slack-webhook-releases-url> <slack-webhook-java-ci-url>
 EOF
 }
 
-if [ "$#" -lt 2 ] || [ "$#" -gt 3 ] ; then
+if [ "$#" -ne 8 ]; then
     usage
     exit 1
 fi
@@ -37,8 +37,19 @@ fi
 HERE="$(pwd)"
 REALM_JAVA_PATH="$(pwd)/.."
 RELEASE_VERSION=""
-SLACK_WEBHOOK_RELEASES_URL="$1"
-SLACK_WEBHOOK_JAVA_CI_URL="$2"
+BINTRAY_USER="$1"
+BINTRAY_KEY="$2"
+REALM_S3_ACCESS_KEY="$3"
+REALM_S3_SECRET_KEY="$4"
+DOCS_S3_ACCESS_KEY="$5"
+DOCS_S3_SECRET_KEY="$6"
+SLACK_WEBHOOK_RELEASES_URL="$7"
+SLACK_WEBHOOK_JAVA_CI_URL="$8"
+
+abort_release() {
+  # Reporting failures to #realm-java-team-ci is done from Jenkins
+  exit 1
+}
 
 check_env() {
     echo "Checking environment..."
@@ -47,7 +58,7 @@ check_env() {
     path_to_s3cmd=$(which s3cmd)
     if [[ ! -x "$path_to_s3cmd" ]] ; then
         echo "Cannot find executable file 's3cmd'. Aborting."
-        abort_release()
+        abort_release
         exit -1
     fi
 
@@ -55,7 +66,7 @@ check_env() {
     path_to_git=$(which git)
     if [[ ! -x "$path_to_git" ]] ; then
         echo "Cannot find executable file 'git'. Aborting."
-        abort_release()
+        abort_release
         exit -1
     fi
 
@@ -63,7 +74,7 @@ check_env() {
     path_to_pcregrep=$(which pcregrep)
     if [[ ! -x "$path_to_pcregrep" ]] ; then
         echo "Cannot find executable file 'pcregrep'. Aborting."
-        abort_release()
+        abort_release
         exit -1
     fi
 
@@ -80,7 +91,7 @@ verify_release_preconditions() {
 	    echo "Git tag and version.txt matches: $version. Continue releasing."
 	else
 	    echo "Version in version.txt was '$version' while the branch was tagged with '$gitTag'. Aborting release."
-      abort_release()
+      abort_release
 	    exit -1
 	fi
 }
@@ -91,7 +102,7 @@ verify_changelog() {
 
 	if [[ `eval $query` -ne 1 ]]; then
 		echo "Changelog does not appear to be correct. First line should match the version being released and the date should be set. Aborting."
-    abort_release()
+    abort_release
 		exit -1
 	else 
 		echo "CHANGELOG date and version is correctly set."
@@ -115,21 +126,21 @@ create_native_debug_symbols_package() {
 upload_to_bintray() {
 	echo "Releasing on Bintray..."
 	cd $REALM_JAVA_PATH
-	./gradlew bintrayUpload
+	./gradlew bintrayUpload -PbintrayUser=$BINTRAY_USER -PbintrayKey=$BINTRAY_KEY
 	cd $HERE
 }
 
 upload_debug_symbols() {
 	echo "Uploading native debug symbols..."
 	cd $REALM_JAVA_PATH
-	./gradlew distribute
+	./gradlew distribute -PREALM_S3_ACCESS_KEY=$REALM_S3_ACCESS_KEY -PREALM_S3_ACCESS_KEY=$REALM_S3_SECRET_KEY
 	cd $HERE
 }
 
 upload_javadoc() {
 	echo "Uploading docs..."
 	cd $REALM_JAVA_PATH
-	./gradlew uploadJavadoc
+	./gradlew uploadJavadoc -PSDK_DOCS_AWS_ACCESS_KEY=$DOCS_S3_ACCESS_KEY -PSDK_DOCS_AWS_SECRET_KEY=$DOCS_S3_SECRET_KEY
 	cd $HERE
 }
 
@@ -140,12 +151,12 @@ notify_slack_channels() {
 	tag=`grep '$RELEASE_VERSION' $REALM_JAVA_PATH/CHANGELOG.md | cut -c 4- | sed 's/[.)(]//g' | sed 's/ /-/g'`
 	if [ -z "$tag" ]; then
       echo "\$tag did not resolve correctly. Aborting."
-      abort_release()
+      abort_release
 	fi
  	current_branch=`git rev-parse --abbrev-ref HEAD`
 	if [ -z "$current_branch" ]; then
       echo "Could not find current branch. Aborting."
-      abort_release()
+      abort_release
 	fi
 
 	link_to_changelog="https://github.com/realm/realm-java/blob/$current_branch/CHANGELOG.md#$tag"
@@ -155,11 +166,6 @@ notify_slack_channels() {
 	curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_RELEASES_URL} 
   echo "Pinging #realm-java-team-ci"
 	curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_JAVA_CI_URL} 
-}
-
-abort_release() {
-  # Reporting failures to #realm-java-team-ci is done from Jenkins
-  exit 1
 }
 
 ######################################

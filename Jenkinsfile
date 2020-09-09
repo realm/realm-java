@@ -299,10 +299,22 @@ def runBuild(abiFilter, instrumentationTestTarget) {
 
 def runRelease() {
   stage('Publish Release') {
-    withCredentials([[$class: 'StringBinding', credentialsId: 'slack-webhook-java-ci-channel', variable: 'SLACK_URL_CI']]) {
+    withCredentials([[ $class: 'StringBinding', credentialsId: 'slack-webhook-java-ci-channel', variable: 'SLACK_URL_CI']]) {
       withCredentials([[$class: 'StringBinding', credentialsId: 'slack-webhook-releases-channel', variable: 'SLACK_URL_RELEASE']]) {
-        sh "tools/publish_release.sh ${env.SLACK_URL_RELEASE} ${env.SLACK_URL_CI}"
-
+        withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
+          withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'DOCS_S3_ACCESS_KEY', credentialsId: 'mongodb-realm-docs-s3', secretKeyVariable: 'DOCS_S3_SECRET_ACCESS']]) {
+            withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'REALM_S3_ACCESS_KEY', credentialsId: 'realm-s3', secretKeyVariable: 'REALM_S3_SECRET_ACCESS']]) {
+              sh '''
+                set +x  
+                tools/publish_release.sh "$BINTRAY_USER" "$BINTRAY_KEY" \
+                "$REALM_S3_ACCESS_KEY" "$REALM_S3_SECRET_KEY" \
+                "$DOCS_S3_ACCESS_KEY" "$DOCS_S3_SECRET_KEY" \
+                "$SLACK_URL_RELEASE" \
+                "SLACK_URL_CI"
+              '''
+            }
+          }
+        }
       }
     }
 }
