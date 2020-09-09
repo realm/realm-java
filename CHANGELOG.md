@@ -1,3 +1,23 @@
+## 7.0.5 (2020-09-09)
+
+### Enhancements
+* None.
+
+### Fixes
+* If you have a Realm file growing towards 2Gb and have a model class with more than 16 properties, then you may get a "Key not found" exception when updating an object. (Realm JS issue [#3194](https://github.com/realm/realm-js/issues/3194), since v7.0.0)
+* In cases where you have more than 32 properties in a model class, you may get a currrupted file resulting in various crashes (Issue [#7057](https://github.com/realm/realm-java/issues/7057), since v7.0.0)
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Object Store commit: S286d7cb2f10c41f89a2efb43b22938610ccad4cf.
+* Upgraded to Realm Sync: 5.0.22.
+* Upgraded to Realm Core: 6.0.25.
+
+
 ## 7.0.4 (2020-09-08)
 
 ### Enhancements
@@ -18,7 +38,6 @@
 * Upgraded to Realm Sync: 5.0.21.
 * Upgraded to Realm Core: 6.0.24.
 * Fileformat has been bumped from 10 to 11.
-
 
 ## 7.0.3 (2020-09-01)
 
