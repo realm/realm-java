@@ -362,11 +362,29 @@ static string string_to_hex(const string& message, StringData& str, const char* 
     return ret.str();
 }
 
+static string error_code_to_message(size_t error_code){
+    switch (error_code){
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+            return "Not enough output buffer space";
+        case 5:
+            return "Invalid first half of surrogate pair";
+        case 6:
+            return "Incomplete surrogate pair";
+        case 7:
+            return "Invalid second half of surrogate pair";
+        default:
+            return "Unknown";
+    }
+}
+
 static string string_to_hex(const string& message, const jchar* str, size_t size, size_t error_code)
 {
     ostringstream ret;
 
-    ret << message << "; ";
+    ret << message << ": " << error_code_to_message(error_code) << "; ";
     ret << "error_code = " << error_code << "; ";
     for (size_t i = 0; i < size; ++i) {
         ret << " 0x" << std::hex << std::setfill('0') << std::setw(4) << (int) str[i];
