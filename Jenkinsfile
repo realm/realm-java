@@ -5,6 +5,7 @@
 import groovy.json.JsonOutput
 
 buildSuccess = false
+releaseBuild = false
 mongoDbRealmContainer = null
 mongoDbRealmCommandServerContainer = null
 emulatorContainer = null
@@ -36,6 +37,26 @@ try {
           ])
         }
 
+        // Check type of Build. We are treating this as a release build if we are building
+        // the exact Git SHA that was tagged.
+        gitTag = readGitTag()
+        echo "Git tag: ${gitTag ?: 'none'}"
+        if (!gitTag) {
+          gitSha = sh(returnStdout: true, script: 'git rev-parse HEAD').trim().take(8)
+          echo "Building non-release: ${gitSha}"
+          setBuildName(gitSha)
+          buildRelease = false
+        } else {
+          def version = readFile('version.txt').trim()
+          if (gitTag != "v${version}") {
+            error "Git tag '${gitTag}' does not match v${version}"
+          } else {
+            echo "Building release: '${gitTag}'"
+            setBuildName("Tag ${gitTag}")
+            buildRelease = true
+          }
+        }
+
         // Toggles for PR vs. Master builds.
         // - For PR's, we favor speed > absolute correctness. So we just build for x86, use an
         //   emulator and run unit tests for the ObjectServer variant.
@@ -47,13 +68,14 @@ try {
         def instrumentationTestTarget = "connectedAndroidTest"
         def deviceSerial = ""
         if (!releaseBranches.contains(currentBranch)) {
-          // Bui
+          // Build development branch
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
           abiFilter = "-PbuildTargetABIs=x86"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           deviceSerial = "emulator-5554"
         } else {
+          // Build main/release branch
           // FIXME: Use emulator until we can get reliable devices on CI.
           //  But still build all ABI's and run all types of tests. 
           useEmulator = true
@@ -125,6 +147,11 @@ try {
               } else {
                 runBuild(abiFilter, instrumentationTestTarget)
               }
+            }
+
+            // Release the library if needed
+            if (releaseBuild) {
+              runRelease()
             }
           }
         } finally {
@@ -270,6 +297,16 @@ def runBuild(abiFilter, instrumentationTestTarget) {
   }
 }
 
+def runRelease() {
+  stage('Publish Release') {
+    withCredentials([[$class: 'StringBinding', credentialsId: 'slack-webhook-java-ci-channel', variable: 'SLACK_URL_CI']]) {
+      withCredentials([[$class: 'StringBinding', credentialsId: 'slack-webhook-releases-channel', variable: 'SLACK_URL_RELEASE']]) {
+        sh "tools/publish_release.sh ${env.SLACK_URL_RELEASE} ${env.SLACK_URL_CI}"
+
+      }
+    }
+}
+
 def forwardAdbPorts() {
   sh """ adb reverse tcp:9080 tcp:9080 && adb reverse tcp:9443 tcp:9443 &&
       adb reverse tcp:8888 tcp:8888 && adb reverse tcp:9090 tcp:9090
@@ -385,4 +422,13 @@ def gradle(String commands) {
 
 def gradle(String relativePath, String commands) {
   sh "cd ${relativePath} && chmod +x gradlew && ./gradlew ${commands} --stacktrace"
+}
+
+def readGitTag() {
+  def command = 'git describe --exact-match --tags HEAD'
+  def returnStatus = sh(returnStatus: true, script: command)
+  if (returnStatus != 0) {
+    return null
+  }
+  return sh(returnStdout: true, script: command).trim()
 }
