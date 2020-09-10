@@ -57,7 +57,7 @@ class EmailPasswordAuthTests {
         RESEND_CONFIRMATION_EMAIL,
         SEND_RESET_PASSWORD_EMAIL,
         CALL_RESET_PASSWORD_FUNCTION,
-        CALL_CUSTOM_CONFIRMATION_FUNCTION,
+        RETRY_CUSTOM_CONFIRMATION,
         RESET_PASSWORD
     }
 
@@ -280,27 +280,27 @@ class EmailPasswordAuthTests {
     }
 
     @Test
-    fun callCustomConfirmationFunction() {
+    fun retryCustomConfirmation() {
         val email = "test@10gen.com"
         admin.setAutomaticConfirmation(false)
         try {
             val provider = app.emailPasswordAuth
             provider.registerUser(email, "123456")
-            provider.callCustomConfirmationFunction(email)
+            provider.retryCustomConfirmation(email)
         } finally {
             admin.setAutomaticConfirmation(true)
         }
     }
 
     @Test
-    fun callCustomConfirmationFunctionAsync() {
+    fun retryCustomConfirmationAsync() {
         val email = "test@10gen.com"
         admin.setAutomaticConfirmation(false)
         try {
             looperThread.runBlocking {
                 val provider = app.emailPasswordAuth
                 provider.registerUser(email, "123456")
-                provider.callCustomConfirmationFunctionAsync(email) { result ->
+                provider.retryCustomConfirmationAsync(email) { result ->
                     when (result.isSuccess) {
                         true -> looperThread.testComplete()
                         false -> fail(result.error.toString())
@@ -313,13 +313,13 @@ class EmailPasswordAuthTests {
     }
 
     @Test
-    fun callCustomConfirmationFunction_invalidServerArgsThrows() {
+    fun retryCustomConfirmation_invalidServerArgsThrows() {
         val email = "test@10gen.com"
         admin.setAutomaticConfirmation(false)
         val provider = app.emailPasswordAuth
         provider.registerUser(email, "123456")
         try {
-            provider.callCustomConfirmationFunction("foo")
+            provider.retryCustomConfirmation("foo")
             fail()
         } catch (error: AppException) {
             assertEquals(ErrorCode.USER_NOT_FOUND, error.errorCode)
@@ -329,14 +329,14 @@ class EmailPasswordAuthTests {
     }
 
     @Test
-    fun callCustomConfirmationFunctionAsync_invalidServerArgsThrows() {
+    fun retryCustomConfirmationAsync_invalidServerArgsThrows() {
         val email = "test@10gen.com"
         admin.setAutomaticConfirmation(false)
         val provider = app.emailPasswordAuth
         provider.registerUser(email, "123456")
         try {
             looperThread.runBlocking {
-                provider.callCustomConfirmationFunctionAsync("foo") { result ->
+                provider.retryCustomConfirmationAsync("foo") { result ->
                     if (result.isSuccess) {
                         fail()
                     } else {
@@ -351,11 +351,11 @@ class EmailPasswordAuthTests {
     }
 
     @Test
-    fun callCustomConfirmationFunction_invalidArgumentsThrows() {
+    fun retryCustomConfirmation_invalidArgumentsThrows() {
         val provider: EmailPasswordAuth = app.emailPasswordAuth
-        assertFailsWith<IllegalArgumentException> { provider.callCustomConfirmationFunction(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { provider.retryCustomConfirmation(TestHelper.getNull()) }
         looperThread.runBlocking {
-            provider.callCustomConfirmationFunctionAsync(TestHelper.getNull(), checkNullArgCallback)
+            provider.retryCustomConfirmationAsync(TestHelper.getNull(), checkNullArgCallback)
         }
     }
 
@@ -578,7 +578,7 @@ class EmailPasswordAuthTests {
                     Method.RESEND_CONFIRMATION_EMAIL -> provider.resendConfirmationEmail(email)
                     Method.SEND_RESET_PASSWORD_EMAIL -> provider.sendResetPasswordEmail(email)
                     Method.CALL_RESET_PASSWORD_FUNCTION -> provider.callResetPasswordFunction(email, "123456")
-                    Method.CALL_CUSTOM_CONFIRMATION_FUNCTION -> provider.callCustomConfirmationFunction(email)
+                    Method.RETRY_CUSTOM_CONFIRMATION -> provider.retryCustomConfirmation(email)
                     Method.RESET_PASSWORD -> provider.resetPassword("token", "token-id", "password")
                 }
                 fail("$method should have thrown an exception")
@@ -601,7 +601,7 @@ class EmailPasswordAuthTests {
                     Method.RESEND_CONFIRMATION_EMAIL -> provider.resendConfirmationEmailAsync(email, callback)
                     Method.SEND_RESET_PASSWORD_EMAIL -> provider.sendResetPasswordEmailAsync(email, callback)
                     Method.CALL_RESET_PASSWORD_FUNCTION -> provider.callResetPasswordFunctionAsync(email, "123456", arrayOf(), callback)
-                    Method.CALL_CUSTOM_CONFIRMATION_FUNCTION -> provider.callCustomConfirmationFunctionAsync(email, callback)
+                    Method.RETRY_CUSTOM_CONFIRMATION -> provider.retryCustomConfirmationAsync(email, callback)
                     Method.RESET_PASSWORD -> provider.resetPasswordAsync("token", "token-id", "password", callback)
                 }
                 fail("$method should have thrown an exception")
