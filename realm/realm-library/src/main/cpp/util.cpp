@@ -362,7 +362,7 @@ static string string_to_hex(const string& message, StringData& str, const char* 
     return ret.str();
 }
 
-static string error_code_to_message(size_t error_code){
+static string str_to_hex_error_code_to_message(size_t error_code){
     switch (error_code){
         case 1:
         case 2:
@@ -384,7 +384,7 @@ static string string_to_hex(const string& message, const jchar* str, size_t size
 {
     ostringstream ret;
 
-    ret << message << ": " << error_code_to_message(error_code) << "; ";
+    ret << message << ": " << str_to_hex_error_code_to_message(error_code) << "; ";
     ret << "error_code = " << error_code << "; ";
     for (size_t i = 0; i < size; ++i) {
         ret << " 0x" << std::hex << std::setfill('0') << std::setw(4) << (int) str[i];
