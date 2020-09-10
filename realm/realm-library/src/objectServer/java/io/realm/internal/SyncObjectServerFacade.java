@@ -23,11 +23,13 @@ import android.net.ConnectivityManager;
 
 import org.bson.BsonValue;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import io.realm.internal.objectstore.OsApp;
 import io.realm.mongodb.App;
 import io.realm.RealmConfiguration;
 import io.realm.mongodb.AppConfiguration;
@@ -88,6 +90,18 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String urlPrefix = syncConfig.getUrlPrefix();
             String customAuthorizationHeaderName = app.getConfiguration().getAuthorizationHeaderName();
             Map<String, String> customHeaders = app.getConfiguration().getCustomRequestHeaders();
+            long appNativePointer;
+
+            // We cannot get the app native pointer without exposing it in the public API due to
+            // how our packages are structured. Instead of polluting the API we
+            try {
+                Field osAppField = App.class.getDeclaredField("osApp");
+                osAppField.setAccessible(true);
+                OsApp osApp = (OsApp) osAppField.get(app);
+                appNativePointer = osApp.getNativePtr();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
 
             // TODO Simplify. org.bson serialization only allows writing full documents, so the partition
             //  key is embedded in a document with key 'value' and unwrapped in JNI.
@@ -120,6 +134,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             configObj[i++] = OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL;
             configObj[i++] = encodedPartitionValue;
             configObj[i++] = app.getSync();
+            configObj[i++] = appNativePointer;
             return configObj;
         } else {
             return new Object[SYNC_CONFIG_OPTIONS];

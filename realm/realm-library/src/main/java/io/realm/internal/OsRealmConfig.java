@@ -222,6 +222,7 @@ public class OsRealmConfig implements NativeObject {
         Byte clientResyncMode = (Byte) syncConfigurationOptions[j++];
         String encodedPartitionValue = (String) syncConfigurationOptions[j++];
         Object syncService = syncConfigurationOptions[j++];
+        long appPtr = (long) syncConfigurationOptions[j++];
 
         // Convert the headers into a String array to make it easier to send through JNI
         // [key1, value1, key2, value2, ...]
@@ -279,6 +280,7 @@ public class OsRealmConfig implements NativeObject {
         // Set sync config
         if (syncRealmUrl != null) {
             String resolvedSyncRealmUrl = nativeCreateAndSetSyncConfig(
+                    appPtr,
                     nativePtr,
                     syncRealmUrl,
                     syncRealmAuthUrl,
@@ -384,7 +386,7 @@ public class OsRealmConfig implements NativeObject {
 
     private static native void nativeEnableChangeNotification(long nativePtr, boolean enableNotification);
 
-    private static native String nativeCreateAndSetSyncConfig(long nativePtr, String syncRealmUrl, String authUrl,
+    private static native String nativeCreateAndSetSyncConfig(long appPtr, long configPtr, String syncRealmUrl, String authUrl,
                                                               String userId, String refreshToken, String accessToken,
                                                               String deviceId, byte sessionStopPolicy, String urlPrefix,
                                                               String customAuthorizationHeaderName,

@@ -22,6 +22,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * [RealmApp] Removed support for `User.getLocalId()`.
 
 ### Enhancements
+* [RealmApp] It is now possible to create App instances with different app id's.
 * [RealmApp] Support for using `null` as a partition value.
 * [RealmApp] Improve errors exception messages from `SyncSession.downloadAllServerChanges()` and `SyncSession.uploadAllLocalChanges()`.
 * Support for watching MongoCollection change streams (Issue [#6912](https://github.com/realm/realm-java/issues/6912))

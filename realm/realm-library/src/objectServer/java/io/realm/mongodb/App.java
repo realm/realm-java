@@ -37,6 +37,7 @@ import io.realm.BuildConfig;
 import io.realm.Realm;
 import io.realm.RealmAsyncTask;
 import io.realm.annotations.Beta;
+import io.realm.internal.KeepMember;
 import io.realm.internal.Util;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.mongodb.Request;
@@ -140,23 +141,14 @@ import io.realm.mongodb.sync.Sync;
 @Beta
 public class App {
 
+    @KeepMember
     final OsApp osApp;
 
     static final class SyncImpl extends Sync {
         protected SyncImpl(App app) {
-            super(app);
+            super(app, app.osApp.getNativePtr());
         }
     }
-
-    // Implementation notes:
-    // The public API's currently only allow for one App, however this is a restriction
-    // we might want to lift in the future. So any implementation details so ideally be made
-    // with that in mind, i.e. keep static state to minimum.
-
-    // Currently we only allow one instance of App (due to restrictions in ObjectStore that
-    // only allows one underlying SyncClient).
-    // FIXME: Lift this restriction so it is possible to create multiple app instances.
-    public static volatile boolean CREATED = false;
 
     /**
      * Thread pool used when doing network requests against MongoDB Realm.
@@ -187,18 +179,6 @@ public class App {
         this.config = config;
         this.syncManager = new SyncImpl(this);
         this.osApp = init(config);
-
-        // FIXME: Right now we only support one App. This class will throw a
-        // exception if you try to create it twice. This is a really hacky way to do this
-        // Figure out a better API that is always forward compatible
-        synchronized (Sync.class) {
-            if (CREATED) {
-                throw new IllegalStateException("Only one App is currently supported. " +
-                        "This restriction will be lifted soon. Instead, store the App" +
-                        "instance in a shared global variable.");
-            }
-            CREATED = true;
-        }
     }
 
     private OsApp init(AppConfiguration config) {
