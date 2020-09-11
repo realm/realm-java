@@ -281,25 +281,50 @@ class EmailPasswordAuthTests {
 
     @Test
     fun retryCustomConfirmation() {
+        val email = "test_realm_tests_do_autoverify@10gen.com"
+        admin.setAutomaticConfirmation(false)
+        try {
+            val provider = app.emailPasswordAuth
+            provider.registerUser(email, "123456")
+            admin.setCustomConfirmation(true)
+
+            provider.retryCustomConfirmation(email)
+        } finally {
+            admin.setCustomConfirmation(false)
+        }
+    }
+
+    @Test
+    fun retryCustomConfirmation_failConfirmation() {
+        // Only emails containing realm_tests_do_autoverify will be confirmed
         val email = "test@10gen.com"
         admin.setAutomaticConfirmation(false)
         try {
             val provider = app.emailPasswordAuth
             provider.registerUser(email, "123456")
-            provider.retryCustomConfirmation(email)
+            admin.setCustomConfirmation(true)
+
+            val exception = assertFailsWith<AppException> {
+                provider.retryCustomConfirmation(email)
+            }
+
+            assertEquals("failed to confirm user test@10gen.com", exception.errorMessage)
+
         } finally {
-            admin.setAutomaticConfirmation(true)
+            admin.setCustomConfirmation(false)
         }
     }
 
     @Test
     fun retryCustomConfirmationAsync() {
-        val email = "test@10gen.com"
+        val email = "test_realm_tests_do_autoverify@10gen.com"
         admin.setAutomaticConfirmation(false)
         try {
             looperThread.runBlocking {
                 val provider = app.emailPasswordAuth
                 provider.registerUser(email, "123456")
+                admin.setCustomConfirmation(true)
+
                 provider.retryCustomConfirmationAsync(email) { result ->
                     when (result.isSuccess) {
                         true -> looperThread.testComplete()
@@ -308,7 +333,7 @@ class EmailPasswordAuthTests {
                 }
             }
         } finally {
-            admin.setAutomaticConfirmation(true)
+            admin.setCustomConfirmation(false)
         }
     }
 
@@ -318,13 +343,15 @@ class EmailPasswordAuthTests {
         admin.setAutomaticConfirmation(false)
         val provider = app.emailPasswordAuth
         provider.registerUser(email, "123456")
+        admin.setCustomConfirmation(true)
+
         try {
             provider.retryCustomConfirmation("foo")
             fail()
         } catch (error: AppException) {
             assertEquals(ErrorCode.USER_NOT_FOUND, error.errorCode)
         } finally {
-            admin.setAutomaticConfirmation(true)
+            admin.setCustomConfirmation(false)
         }
     }
 
@@ -334,6 +361,7 @@ class EmailPasswordAuthTests {
         admin.setAutomaticConfirmation(false)
         val provider = app.emailPasswordAuth
         provider.registerUser(email, "123456")
+        admin.setCustomConfirmation(true)
         try {
             looperThread.runBlocking {
                 provider.retryCustomConfirmationAsync("foo") { result ->
@@ -346,7 +374,7 @@ class EmailPasswordAuthTests {
                 }
             }
         } finally {
-            admin.setAutomaticConfirmation(true)
+            admin.setCustomConfirmation(false)
         }
     }
 
