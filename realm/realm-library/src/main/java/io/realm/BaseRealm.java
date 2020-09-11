@@ -55,7 +55,8 @@ import io.realm.log.RealmLog;
  * @see io.realm.DynamicRealm
  */
 @SuppressWarnings("WeakerAccess")
-abstract class BaseRealm implements Closeable {
+// FIXME: remove public
+public abstract class BaseRealm implements Closeable {
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE =
             "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     static final String INCORRECT_THREAD_MESSAGE =
@@ -71,7 +72,8 @@ abstract class BaseRealm implements Closeable {
             "synchronized Realms. Either unsubscribe using 'Realm.unsubscribeAsync()' or " +
             "delete the objects using a query and 'RealmResults.deleteAllFromRealm()'";
 
-    static volatile Context applicationContext;
+    // FIXME: remove public
+    public static volatile Context applicationContext;
 
     // Thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();

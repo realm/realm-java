@@ -67,8 +67,10 @@ public class RealmConfiguration {
 
     public static final String DEFAULT_REALM_NAME = "default.realm";
 
-    private static final Object DEFAULT_MODULE;
-    protected static final RealmProxyMediator DEFAULT_MODULE_MEDIATOR;
+    // FIXME: remove public
+    public static final Object DEFAULT_MODULE;
+    // FIXME: remove public
+    public static final RealmProxyMediator DEFAULT_MODULE_MEDIATOR;
 
     static {
         DEFAULT_MODULE = Realm.getDefaultModule();
@@ -109,7 +111,8 @@ public class RealmConfiguration {
 
     // We need to enumerate all parameters since SyncConfiguration and RealmConfiguration supports different
     // subsets of them.
-    protected RealmConfiguration(File realmPath,
+    // FIXME: remove public
+    public RealmConfiguration(File realmPath,
             @Nullable String assetFilePath,
             @Nullable byte[] key,
             long schemaVersion,
@@ -349,7 +352,8 @@ public class RealmConfiguration {
     }
 
     // Creates the mediator that defines the current schema.
-    protected static RealmProxyMediator createSchemaMediator(Set<Object> modules,
+    // FIXME: remove public
+    public static RealmProxyMediator createSchemaMediator(Set<Object> modules,
             Set<Class<? extends RealmModel>> debugSchema) {
 
         // If using debug schema, uses special mediator.
