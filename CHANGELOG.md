@@ -1,3 +1,18 @@
+## 7.0.6 (yyyy-mm-dd)
+
+### Enhancements
+* None.
+
+### Fixes
+* Fixes concurrent modification exceptions when refreshing a Realm (Issue [#6876](https://github.com/realm/realm-java/issues/6876))
+
+### Compatibility
+* None.
+
+### Internal
+* None.
+
+
 ## 7.0.5 (2020-09-09)
 
 ### Enhancements
