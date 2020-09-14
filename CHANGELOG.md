@@ -20,6 +20,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * [RealmApp] Renamed `Sync.refreshConnections()` to `Sync.reconnect()`.
 * [RealmApp] Renamed `Credentials.IdentityProvider` to `Credentials.Provider`.
 * [RealmApp] Removed support for `User.getLocalId()`.
+* [RealmApp] Client Resets are now handled through a custom `SyncConfiguration.Builder.clientResetHandler()` instead of through the default session error handler `SyncConfiguration.Builder.errorHandler()`
 
 ### Enhancements
 * [RealmApp] Support for using `null` as a partition value.
