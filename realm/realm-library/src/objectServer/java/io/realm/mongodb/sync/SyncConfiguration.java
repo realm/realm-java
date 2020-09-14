@@ -98,6 +98,7 @@ public class SyncConfiguration extends RealmConfiguration {
     private final URI serverUrl;
     private final User user;
     private final SyncSession.ErrorHandler errorHandler;
+    private final SyncSession.ClientResetHandler clientResetHandler;
     private final boolean deleteRealmOnLogout;
     private final boolean waitForInitialData;
     private final long initialDataTimeoutMillis;
@@ -121,6 +122,7 @@ public class SyncConfiguration extends RealmConfiguration {
                               User user,
                               URI serverUrl,
                               SyncSession.ErrorHandler errorHandler,
+                              SyncSession.ClientResetHandler clientResetHandler,
                               boolean deleteRealmOnLogout,
                               boolean waitForInitialData,
                               long initialDataTimeoutMillis,
@@ -148,6 +150,7 @@ public class SyncConfiguration extends RealmConfiguration {
         this.user = user;
         this.serverUrl = serverUrl;
         this.errorHandler = errorHandler;
+        this.clientResetHandler = clientResetHandler;
         this.deleteRealmOnLogout = deleteRealmOnLogout;
         this.waitForInitialData = waitForInitialData;
         this.initialDataTimeoutMillis = initialDataTimeoutMillis;
@@ -357,6 +360,15 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
+     * Returns the Client Reset handler for this <i>SyncConfiguration</i>.
+     *
+     * @return the Client Reset handler.
+     */
+    public SyncSession.ClientResetHandler getClientResetHandler() {
+        return clientResetHandler;
+    }
+
+    /**
      * Returns {@code true} if the Realm file must be deleted once the {@link User} owning it logs out.
      *
      * @return {@code true} if the Realm file must be deleted if the {@link User} logs out. {@code false} if the file
@@ -457,6 +469,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private URI serverUrl;
         private User user = null;
         private SyncSession.ErrorHandler errorHandler;
+        private SyncSession.ClientResetHandler clientResetHandler;
         private OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy = OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED;
         private CompactOnLaunchCallback compactOnLaunch;
         private String syncUrlPrefix = null;
@@ -808,6 +821,21 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
+         * Sets the handler for when a Client Reset occurs. If no handler is set, and error is
+         * logged when a Client Reset occurs.
+         *
+         * @param handler custom handler in case of a Client Reset.
+         */
+        public Builder clientResetHandler(SyncSession.ClientResetHandler handler) {
+            //noinspection ConstantConditions
+            if (handler == null) {
+                throw new IllegalArgumentException("Non-null 'handler' required.");
+            }
+            this.clientResetHandler = handler;
+            return this;
+        }
+
+        /**
          * Setting this will cause the Realm to download all known changes from the server the first time a Realm is
          * opened. The Realm will not open until all the data has been downloaded. This means that if a device is
          * offline the Realm will not open.
@@ -1043,6 +1071,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     user,
                     resolvedServerUrl,
                     errorHandler,
+                    clientResetHandler,
                     deleteRealmOnLogout,
                     waitForServerChanges,
                     initialDataTimeoutMillis,

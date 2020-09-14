@@ -69,7 +69,7 @@ class SyncConfigurationTests {
     }
 
     @Test
-    fun errorHandler_fromSyncManager() {
+    fun errorHandler_fromAppConfiguration() {
         val user: User = createTestUser(app)
         val config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
         assertEquals(app.configuration.defaultErrorHandler, config.errorHandler)
@@ -80,6 +80,30 @@ class SyncConfigurationTests {
         val user: User = createTestUser(app)
         val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
         assertFailsWith<IllegalArgumentException> { builder.errorHandler(TestHelper.getNull())  }
+    }
+
+    @Test
+    fun clientResetHandler() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val handler = object : SyncSession.ClientResetHandler {
+            override fun onClientReset(session: SyncSession, error: ClientResetRequiredError) {}
+        }
+        val config = builder.clientResetHandler(handler).build()
+        assertEquals(handler, config.clientResetHandler)
+    }
+
+    @Test
+    fun clientResetHandler_fromAppConfiguration() {
+        val user: User = createTestUser(app)
+        val config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
+        assertEquals(app.configuration.defaultClientResetHandler, config.clientResetHandler)
+    }
+
+    @Test
+    fun clientResetHandler_nullThrows() {
+        val user: User = createTestUser(app)
+        val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
+        assertFailsWith<IllegalArgumentException> { builder.clientResetHandler(TestHelper.getNull())  }
     }
 
     @Test

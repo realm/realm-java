@@ -223,6 +223,24 @@ class AppConfigurationTests {
     }
 
     @Test
+    fun defaultClientResetHandler() {
+        val handler = SyncSession.ClientResetHandler { _, _ -> }
+
+        val config = AppConfiguration.Builder("app-id")
+                .defaultClientResetHandler(handler)
+                .build()
+        assertEquals(config.defaultClientResetHandler, handler)
+    }
+
+    @Test
+    fun defaultClientResetHandler_invalidValuesThrows() {
+        val builder = AppConfiguration.Builder("app-id")
+        assertFailsWith<IllegalArgumentException> {
+            builder.defaultClientResetHandler(TestHelper.getNull())
+        }
+    }
+
+    @Test
     fun encryptionKey() {
         val key = TestHelper.getRandomKey()
 
