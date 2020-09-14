@@ -222,7 +222,7 @@ public class OsRealmConfig implements NativeObject {
         Byte clientResyncMode = (Byte) syncConfigurationOptions[j++];
         String encodedPartitionValue = (String) syncConfigurationOptions[j++];
         Object syncService = syncConfigurationOptions[j++];
-        long appPtr = (long) syncConfigurationOptions[j++];
+        Long appPtr = (Long) syncConfigurationOptions[j++];
 
         // Convert the headers into a String array to make it easier to send through JNI
         // [key1, value1, key2, value2, ...]

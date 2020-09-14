@@ -31,8 +31,9 @@ const val DATABASE_NAME = "test_data"   // same as above
 
 class TestApp(
         networkTransport: OsJavaNetworkTransport? = null,
+        appName: String = "testapp1",
         customizeConfig: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }
-) : App(createConfiguration(customizeConfig)) {
+) : App(createConfiguration(appName, customizeConfig)) {
 
     init {
         if (networkTransport != null) {
@@ -42,8 +43,8 @@ class TestApp(
 
     companion object {
 
-        fun createConfiguration(customizeConfig: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }): AppConfiguration {
-            var builder = AppConfiguration.Builder(initializeMongoDbRealm())
+        fun createConfiguration(appName: String, customizeConfig: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }): AppConfiguration {
+            var builder = AppConfiguration.Builder(initializeMongoDbRealm(appName))
                     .baseUrl("http://127.0.0.1:9090")
                     .appName("MongoDB Realm Integration Tests")
                     .appVersion("1.0.")
@@ -55,11 +56,11 @@ class TestApp(
         }
 
         // Initializes MongoDB Realm. Clears all local state and fetches the application ID.
-        private fun initializeMongoDbRealm(): String {
+        private fun initializeMongoDbRealm(appName: String): String {
             val transport = OkHttpNetworkTransport(null)
             val response = transport.sendRequest(
                     "get",
-                    "http://127.0.0.1:8888/application-id",
+                    "http://127.0.0.1:8888/$appName",
                     5000,
                     mapOf(),
                     ""

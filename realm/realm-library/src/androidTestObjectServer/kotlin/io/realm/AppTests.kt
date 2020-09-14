@@ -269,29 +269,33 @@ class AppTests {
 
     @Test()
     fun encryption() {
-        // Remove the App instance created on setUp() because we need to create
-        // a custom one and only one App instance is allowed
-        tearDown()
-
         val context = InstrumentationRegistry.getInstrumentation().targetContext
 
-        // Setup an App instance with a random encryption key
+        // Close default test app
+        app.close()
         Realm.init(context)
+
+        // Create new test app with a random encryption key
         app = TestApp(customizeConfig = {
             it.encryptionKey(TestHelper.getRandomKey())
         })
 
-        val metadataDir = File(context.filesDir, "mongodb-realm/server-utility/metadata/")
+        // Create a configuration pointing to the metadata Realm for that app
+        val metadataDir = File(context.filesDir, "mongodb-realm/${app.configuration.appId}/server-utility/metadata/")
         val config = RealmConfiguration.Builder()
                 .name("sync_metadata.realm")
                 .directory(metadataDir)
                 .build()
-
         assertTrue(File(config.path).exists())
 
         // Open the metadata realm file without a valid encryption key
         assertFailsWith<RealmFileException> {
             DynamicRealm.getInstance(config)
         }
+    }
+
+    @Test
+    fun multipleInstancesSameApp() {
+        // TODO()
     }
 }

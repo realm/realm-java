@@ -177,8 +177,8 @@ public class App {
      */
     public App(AppConfiguration config) {
         this.config = config;
-        this.syncManager = new SyncImpl(this);
         this.osApp = init(config);
+        this.syncManager = new SyncImpl(this);
     }
 
     private OsApp init(AppConfiguration config) {
