@@ -111,7 +111,8 @@ public class RealmConfiguration {
 
     // We need to enumerate all parameters since SyncConfiguration and RealmConfiguration supports different
     // subsets of them.
-    // FIXME: remove public
+    // FIXME: remove public and supress
+    @SuppressWarnings("EI_EXPOSE_REP2")
     public RealmConfiguration(File realmPath,
             @Nullable String assetFilePath,
             @Nullable byte[] key,
