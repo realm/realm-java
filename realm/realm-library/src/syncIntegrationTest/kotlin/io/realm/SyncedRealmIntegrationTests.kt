@@ -110,7 +110,7 @@ class SyncedRealmIntegrationTests {
             }
         }
 
-        user = app.login(Credentials.emailPassword(user.email, SECRET_PASSWORD))
+        user = app.login(Credentials.emailPassword(user.profile.email, SECRET_PASSWORD))
         val config2: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, user.id)
                 .testSchema(SyncStringOnly::class.java)
                 .build()
@@ -312,7 +312,7 @@ class SyncedRealmIntegrationTests {
     @Test
     fun refreshConnections() = looperThread.runBlocking {
         RealmLog.setLevel(LogLevel.DEBUG)
-        Sync.refreshConnections() // No Realms
+        Sync.reconnect() // No Realms
 
         // A single active Realm
         val username = UUID.randomUUID().toString()
@@ -322,11 +322,11 @@ class SyncedRealmIntegrationTests {
                 .testSchema(StringOnly::class.java)
                 .build()
         val realm = Realm.getInstance(config)
-        Sync.refreshConnections()
+        Sync.reconnect()
 
         // A single logged out Realm
         realm.close()
-        Sync.refreshConnections()
+        Sync.reconnect()
         looperThread.testComplete()
     }
 
