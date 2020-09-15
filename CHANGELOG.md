@@ -1,3 +1,18 @@
+## 7.0.6 (yyyy-mm-dd)
+
+### Enhancements
+* Better exception messaging for UTF encoding errors. ([Issue #7093](https://github.com/realm/realm-java/pull/7093))
+
+### Fixes
+* None.
+
+### Compatibility
+* None.
+
+### Internal
+* None.
+
+
 ## 7.0.5 (2020-09-09)
 
 ### Enhancements
