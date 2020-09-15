@@ -277,7 +277,7 @@ class AppTests {
 
         // Setup an App instance with a random encryption key
         Realm.init(context)
-        app = TestApp(customizeConfig = {
+        app = TestApp(builder = {
             it.encryptionKey(TestHelper.getRandomKey())
         })
 

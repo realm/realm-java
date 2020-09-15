@@ -18,9 +18,14 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.internal.network.LoggingInterceptor.LOGIN_FEATURE
-import io.realm.mongodb.AppConfiguration
+import io.realm.log.LogLevel
+import io.realm.log.RealmLog
+import io.realm.log.RealmLogger
+import io.realm.mongodb.*
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator
 import io.realm.mongodb.sync.SyncSession
+import io.realm.rule.BlockingLooperThread
+import io.realm.util.assertFailsWithErrorCode
 import org.bson.codecs.StringCodec
 import org.bson.codecs.configuration.CodecRegistries
 import org.junit.Assert.*
@@ -31,12 +36,21 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.io.File
 import java.net.URL
+import java.util.*
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.collections.LinkedHashMap
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 
+private const val CUSTOM_HEADER_NAME = "Foo"
+private const val CUSTOM_HEADER_VALUE = "bar"
+private const val AUTH_HEADER_NAME = "RealmAuth"
+
 @RunWith(AndroidJUnit4::class)
 class AppConfigurationTests {
+
+    val looperThread = BlockingLooperThread()
 
     @get:Rule
     val tempFolder = TemporaryFolder()
@@ -300,4 +314,48 @@ class AppConfigurationTests {
         val defaultHttpLogObfuscator = HttpLogObfuscator(LOGIN_FEATURE, AppConfiguration.loginObfuscators)
         assertEquals(defaultHttpLogObfuscator, config.httpLogObfuscator)
     }
+    // Check that custom headers and auth header renames are correctly used for HTTP requests
+    // performed from Java.
+    @Test
+    fun javaRequestCustomHeaders() {
+        var app: App? = null
+        try {
+            looperThread.runBlocking {
+                app = TestApp(builder = { builder ->
+                    builder.addCustomRequestHeader(CUSTOM_HEADER_NAME, CUSTOM_HEADER_VALUE)
+                    builder.authorizationHeaderName(AUTH_HEADER_NAME)
+                })
+                runJavaRequestCustomHeadersTest(app!!)
+            }
+        } finally {
+            app?.close()
+        }
+    }
+
+    private fun runJavaRequestCustomHeadersTest(app: App) {
+        val username = UUID.randomUUID().toString()
+        val password = "password"
+        val headerSet = AtomicBoolean(false)
+
+        // Setup logger to inspect that we get a log message with the custom headers
+        val level = RealmLog.getLevel()
+        RealmLog.setLevel(LogLevel.ALL)
+        val logger = RealmLogger { level: Int, tag: String?, throwable: Throwable?, message: String? ->
+            if (level > LogLevel.TRACE && message!!.contains(CUSTOM_HEADER_NAME) && message.contains(CUSTOM_HEADER_VALUE)
+                    && message.contains("RealmAuth: ")) {
+                headerSet.set(true)
+            }
+        }
+        RealmLog.add(logger)
+        assertFailsWithErrorCode(ErrorCode.SERVICE_UNKNOWN) {
+            app.registerUserAndLogin(username, password)
+        }
+        RealmLog.remove(logger)
+        RealmLog.setLevel(level)
+
+        assertTrue(headerSet.get())
+        looperThread.testComplete()
+    }
+
+
 }
