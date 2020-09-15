@@ -34,6 +34,7 @@ import io.realm.mongodb.close
 import org.bson.BsonNull
 import org.bson.BsonString
 import org.junit.*
+import org.junit.Assert.assertNotEquals
 import org.junit.runner.RunWith
 import java.io.File
 import java.util.*
@@ -478,7 +479,7 @@ class SyncedRealmTests {
             // Login users on both Realms
             val app1User = app.login(Credentials.anonymous())
             val app2User = app2.login(Credentials.anonymous())
-            Assert.assertNotEquals(app1User, app2User)
+            assertNotEquals(app1User, app2User)
 
             // Create one Realm against each app
             val config1 = configFactory.createSyncConfigurationBuilder(app1User, BsonString("foo"))
@@ -489,8 +490,8 @@ class SyncedRealmTests {
                     .build()
 
             // Make sure we can synchronize changes
-            val realm1 = Realm.getInstance(config1)
-            val realm2 = Realm.getInstance(config2)
+            realm1 = Realm.getInstance(config1)
+            realm2 = Realm.getInstance(config2)
             realm1.syncSession.downloadAllServerChanges()
             realm2.syncSession.downloadAllServerChanges()
             Assert.assertTrue(realm1.isEmpty)
