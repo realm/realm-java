@@ -15,19 +15,13 @@
  */
 package io.realm.kotlin
 
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
 import io.realm.Realm
 import io.realm.RealmModel
 import io.realm.RealmQuery
 import io.realm.exceptions.RealmException
-import kotlinx.coroutines.*
-import kotlinx.coroutines.android.asCoroutineDispatcher
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 /**
  * Returns a typed RealmQuery, which can be used to query for specific objects of this type
@@ -123,16 +117,6 @@ suspend fun Realm.executeTransactionAwait(
 }
 
 /**
-TODO: Figure out if we should include this is or not. Using this makes it possible to do
-
-inline fun <T> Realm.callTransaction(crossinline action: Realm.() -> T): T {
-val ref = AtomicReference<T>()
-executeTransaction {
-ref.set(action(it))
-}
-return ref.get()
-}
-
 Missing functions. Consider these for inclusion later:
 - createAllFromJson(Class<E> clazz, InputStream inputStream)
 - createAllFromJson(Class<E> clazz, org.json.JSONArray json)

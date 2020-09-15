@@ -15,10 +15,7 @@
  */
 package io.realm.kotlin
 
-import io.realm.Realm
-import io.realm.RealmChangeListener
-import io.realm.RealmModel
-import io.realm.RealmResults
+import io.realm.*
 import io.realm.annotations.Beta
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -29,7 +26,7 @@ import kotlinx.coroutines.flow.flowOf
  * FIXME
  */
 @Beta
-fun <T : RealmModel> RealmResults<T>.toFlow(): Flow<RealmResults<T>> {
+fun <T : RealmObject> T.toFlow(): Flow<T> {
     // Return "as is" if frozen, there will be no listening for changes
     if (realm.isFrozen) {
         flowOf(this)
@@ -37,7 +34,7 @@ fun <T : RealmModel> RealmResults<T>.toFlow(): Flow<RealmResults<T>> {
 
     val config = realm.configuration
 
-    return callbackFlow {
+    return callbackFlow<T> {
         // Emit current (frozen) value immediately
         offer(freeze())
 
@@ -48,7 +45,7 @@ fun <T : RealmModel> RealmResults<T>.toFlow(): Flow<RealmResults<T>> {
 
         // Get instance to ensure the Realm is open for as long we are listening
         val flowRealm = Realm.getInstance(config)
-        val listener = RealmChangeListener<RealmResults<T>> { listenerResults ->
+        val listener = RealmChangeListener<T> { listenerResults ->
             offer(listenerResults.freeze())
         }
 

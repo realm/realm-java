@@ -8,6 +8,17 @@
     tools:context="io.realm.examples.coroutinesexample.MainActivity">
 
     <Button
+        android:id="@+id/buttonHeavyTransaction"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="EXECUTE HEAVY TRANSACTION"
+        app:layout_constraintBottom_toTopOf="@id/buttonTransaction"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
         android:id="@+id/buttonTransaction"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -16,7 +27,7 @@
         app:layout_constraintBottom_toTopOf="@id/buttonCount"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/buttonTransaction" />
 
     <Button
         android:id="@+id/buttonCount"
@@ -35,8 +46,19 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="DELETE ALL"
+        app:layout_constraintBottom_toTopOf="@id/buttonCancelCoroutine"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/buttonCount" />
+
+    <Button
+        android:id="@+id/buttonCancelCoroutine"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="CANCEL COROUTINE"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/buttonDelete" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

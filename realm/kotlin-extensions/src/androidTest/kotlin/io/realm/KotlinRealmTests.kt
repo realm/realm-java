@@ -5,7 +5,6 @@ import io.realm.entities.PrimaryKeyClass
 import io.realm.entities.SimpleClass
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
-import io.realm.rule.BlockingLooperThread
 import io.realm.rule.TestRealmConfigurationFactory
 import org.junit.After
 import org.junit.Before
@@ -25,8 +24,6 @@ class KotlinRealmTests {
 
     private lateinit var realm: Realm
 
-    private val looperThread = BlockingLooperThread()
-
     @Before
     fun setUp() {
         realm = Realm.getInstance(configFactory.createConfiguration())
@@ -36,11 +33,6 @@ class KotlinRealmTests {
     fun tearDown() {
         realm.executeTransaction { it.deleteAll() }
         realm.close()
-
-        with(Realm.getDefaultInstance()) {
-            executeTransaction { it.deleteAll() }
-            close()
-        }
     }
 
     @Test
