@@ -11,7 +11,7 @@ import io.realm.rx.RealmObservableFactory
 import io.realm.rx.RxObservableFactory
 import java.io.File
 
-class ImmutableNamedParametersRealmConfigBuilder(
+class ImmutableNamedParametersRealmConfigBuilder @JvmOverloads constructor(
         private val context: Context,
         private val directory: File = context.filesDir,
         private val fileName: String = Realm.DEFAULT_REALM_NAME,

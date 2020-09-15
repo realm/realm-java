@@ -122,6 +122,34 @@ class TestImmutableNamedParametersRealmConfigurationFactory : TemporaryFolder() 
         )
     }
 
+    fun createConfigurationBuilderWithDirectory(directory: File): ImmutableNamedParametersRealmConfigBuilder {
+        return ImmutableNamedParametersRealmConfigBuilder(
+                context = context,
+                directory = directory
+        )
+    }
+
+    fun createConfigurationBuilderWithEncryptionKey(key: ByteArray): ImmutableNamedParametersRealmConfigBuilder {
+        return ImmutableNamedParametersRealmConfigBuilder(
+                context = context,
+                key = key
+        )
+    }
+
+    fun createConfigurationBuilderWithSchemaVersion(schemaVersion: Long): ImmutableNamedParametersRealmConfigBuilder {
+        return ImmutableNamedParametersRealmConfigBuilder(
+                context = context,
+                schemaVersion = schemaVersion
+        )
+    }
+
+    fun createConfigurationBuilder(name: String): ImmutableNamedParametersRealmConfigBuilder {
+        return ImmutableNamedParametersRealmConfigBuilder(
+                context = context,
+                fileName = name
+        )
+    }
+
     fun createConfiguration(): RealmConfiguration {
         return ImmutableNamedParametersRealmConfigBuilder(
                 context = context

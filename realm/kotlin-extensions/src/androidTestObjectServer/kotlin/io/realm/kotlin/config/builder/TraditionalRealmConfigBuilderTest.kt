@@ -1,6 +1,7 @@
 package io.realm.kotlin.config.builder
 
 import android.content.Context
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.Realm
 import io.realm.RealmConfiguration
@@ -14,10 +15,12 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 import java.io.File
 import java.security.SecureRandom
 import kotlin.test.*
 
+@RunWith(AndroidJUnit4::class)
 class TraditionalRealmConfigBuilderTest {
 
     @get:Rule
