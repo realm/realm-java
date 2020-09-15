@@ -6,9 +6,6 @@
 ### Fixes
 * Fixes concurrent modification exceptions in the schema when refreshing a Realm (Issue [#6876](https://github.com/realm/realm-java/issues/6876))
 
-### Fixes
-* None.
-
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
 * File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
