@@ -35,7 +35,7 @@ import static io.realm.mongodb.App.NETWORK_POOL_EXECUTOR;
 
 /**
  * Class encapsulating functionality provided when {@link User}'s are logged in through the
- * {@link Credentials.IdentityProvider#EMAIL_PASSWORD} provider.
+ * {@link Credentials.Provider#EMAIL_PASSWORD} provider.
  */
 @Beta
 public abstract class EmailPasswordAuth {
@@ -198,7 +198,7 @@ public abstract class EmailPasswordAuth {
 
     /**
      * Call the reset password function configured to the
-     * {@link Credentials.IdentityProvider#EMAIL_PASSWORD} provider.
+     * {@link Credentials.Provider#EMAIL_PASSWORD} provider.
      *
      * @param email the email of the user.
      * @param newPassword the new password of the user.
@@ -217,7 +217,7 @@ public abstract class EmailPasswordAuth {
 
     /**
      * Call the reset password function configured to the
-     * {@link Credentials.IdentityProvider#EMAIL_PASSWORD} provider.
+     * {@link Credentials.Provider#EMAIL_PASSWORD} provider.
      *
      * @param email the email of the user.
      * @param newPassword the new password of the user.

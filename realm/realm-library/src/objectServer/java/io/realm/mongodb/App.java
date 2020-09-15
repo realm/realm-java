@@ -331,6 +331,34 @@ public class App {
     }
 
     /**
+     * Removes a users credentials from this device. If the user was currently logged in, they
+     * will be logged out as part of the process. This is only a local change and does not
+     * affect the user state on the server.
+     *
+     * @param user to remove
+     * @return user that was removed.
+     * @throws AppException if called from the UI thread or if the user was logged in, but
+     *                      could not be logged out.
+     */
+    public User removeUser(User user) throws AppException {
+        return user.remove();
+    }
+
+    /**
+     * Removes a user's credentials from this device. If the user was currently logged in, they
+     * will be logged out as part of the process. This is only a local change and does not
+     * affect the user state on the server.
+     *
+     * @param user to remove
+     * @param callback callback when removing the user has completed or failed. The callback will always
+     *                 happen on the same thread as this method is called on.
+     * @throws IllegalStateException if called from a non-looper thread.
+     */
+    RealmAsyncTask removeAsync(User user, App.Callback<User> callback) {
+        return user.removeAsync(callback);
+    }
+
+    /**
      * Logs in as a user with the given credentials associated with an authentication provider.
      * <p>
      * The user who logs in becomes the current user. Other App functionality acts on behalf of
@@ -407,11 +435,11 @@ public class App {
 
     /**
      * Returns a wrapper for interacting with functionality related to users either being created or
-     * logged in using the {@link Credentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
+     * logged in using the {@link Credentials.Provider#EMAIL_PASSWORD} identity provider.
      *
-     * @return wrapper for interacting with the {@link Credentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
+     * @return wrapper for interacting with the {@link Credentials.Provider#EMAIL_PASSWORD} identity provider.
      */
-    public EmailPasswordAuth getEmailPasswordAuth() {
+    public EmailPasswordAuth getEmailPassword() {
         return emailAuthProvider;
     }
 

@@ -58,6 +58,7 @@ public class User {
 
     OsSyncUser osUser;
     private final App app;
+    private final UserProfile profile;
     private ApiKeyAuth apiKeyAuthProvider = null;
     private MongoClient mongoClient = null;
     private Functions functions = null;
@@ -117,6 +118,7 @@ public class User {
     User(OsSyncUser osUser, App app) {
         this.osUser = osUser;
         this.app = app;
+        this.profile = new UserProfile(this);
     }
 
     /**
@@ -129,105 +131,12 @@ public class User {
     }
 
     /**
-     * Returns the local id for this user. It is only guaranteed to be unique on this device.
+     * Returns the profile for this user.
      *
-     * @return the local id of the user
+     * @return the profile for this user
      */
-    public String getLocalId() {
-        return osUser.getLocalIdentity();
-    }
-
-    /**
-     * Returns the name of the user.
-     *
-     * @return the name of the user.
-     */
-    @Nullable
-    public String getName() {
-        return osUser.nativeGetName();
-    }
-
-    /**
-     * Returns the email address of the user.
-     *
-     * @return the email address of the user or null if there is no email address associated with the user.
-     * address.
-     */
-    @Nullable
-    public String getEmail() {
-        return osUser.getEmail();
-    }
-
-    /**
-     * Returns the picture URL of the user.
-     *
-     * @return the picture URL of the user or null if there is no picture URL associated with the user.
-     */
-    @Nullable
-    public String getPictureUrl() {
-        return osUser.getPictureUrl();
-    }
-
-    /**
-     * Return the first name of the user.
-     *
-     * @return the first name of the user or null if there is no first name associated with the user.
-     */
-    @Nullable
-    public String getFirstName() {
-        return osUser.getFirstName();
-    }
-
-    /**
-     * Return the last name of the user.
-     *
-     * @return the last name of the user or null if there is no last name associated with the user.
-     */
-    @Nullable
-    public String getLastName() {
-        return osUser.getLastName();
-    }
-
-    /**
-     * Returns the gender of the user.
-     *
-     * @return the gender of the user or null if there is no gender associated with the user.
-     */
-    @Nullable
-    public String getGender() {
-        return osUser.getGender();
-    }
-
-    /**
-     * Returns the birthday of the user.
-     *
-     * @return the birthday of the user or null if there is no birthday associated with the user.
-     */
-    @Nullable
-    public String getBirthday() {
-        return osUser.getBirthday();
-    }
-
-    /**
-     * Returns the minimum age of the user.
-     *
-     * @return the minimum age of the user or null if there is no minimum age associated with the user.
-     */
-    @Nullable
-    public Long getMinAge() {
-        String minAge = osUser.getMinAge();
-        return (minAge == null) ? null : Long.parseLong(minAge);
-    }
-
-    /**
-     * Returns the maximum age of the user.
-     *
-     * @return the maximum age of the user or null if there is no maximum age associated with the user.
-     */
-    @Nullable
-    public Long getMaxAge() {
-        String maxAge = osUser.getMaxAge();
-        return (maxAge == null) ? null : Long.parseLong(maxAge);
+    public UserProfile getProfile(){
+        return profile;
     }
 
     /**
@@ -251,8 +160,8 @@ public class User {
      *
      * @return the provider type of the user
      */
-    public Credentials.IdentityProvider getProviderType() {
-        return Credentials.IdentityProvider.fromId(osUser.getProviderType());
+    public Credentials.Provider getProviderType() {
+        return Credentials.Provider.fromId(osUser.getProviderType());
     }
 
     /**
@@ -431,16 +340,7 @@ public class User {
         }.start();
     }
 
-    /**
-     * Removes a users credentials from this device. If the user was currently logged in, they
-     * will be logged out as part of the process. This is only a local change and does not
-     * affect the user state on the server.
-     *
-     * @return user that was removed.
-     * @throws AppException if called from the UI thread or if the user was logged in, but
-     *                      could not be logged out.
-     */
-    public User remove() throws AppException {
+    User remove() throws AppException {
         boolean loggedIn = isLoggedIn();
         AtomicReference<User> success = new AtomicReference<>(null);
         AtomicReference<AppException> error = new AtomicReference<>(null);
@@ -457,16 +357,7 @@ public class User {
         return this;
     }
 
-    /**
-     * Removes a user's credentials from this device. If the user was currently logged in, they
-     * will be logged out as part of the process. This is only a local change and does not
-     * affect the user state on the server.
-     *
-     * @param callback callback when removing the user has completed or failed. The callback will always
-     *                 happen on the same thread as this method is called on.
-     * @throws IllegalStateException if called from a non-looper thread.
-     */
-    public RealmAsyncTask removeAsync(App.Callback<User> callback) {
+    RealmAsyncTask removeAsync(App.Callback<User> callback) {
         Util.checkLooperThread("Asynchronous removal of users is only possible from looper threads.");
         return new Request<User>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
@@ -488,7 +379,7 @@ public class User {
      * Logging out anonymous users will remove them immediately instead of marking them as
      * {@link User.State#LOGGED_OUT}. All other users will be marked as {@link User.State#LOGGED_OUT}
      * and will still be returned by {@link App#allUsers()}. They can be removed completely by calling
-     * {@link #remove()}.
+     * {@link App#removeUser(User} ()}.
      *
      * @throws AppException if an error occurred while trying to log the user out of the Realm
      *                      App.
@@ -515,7 +406,7 @@ public class User {
      * Logging out anonymous users will remove them immediately instead of marking them as
      * {@link User.State#LOGGED_OUT}. All other users will be marked as {@link User.State#LOGGED_OUT}
      * and will still be returned by {@link App#allUsers()}. They can be removed completely by calling
-     * {@link #remove()}.
+     * {@link App#removeUser(User)} ()}.
      *
      * @param callback callback when logging out has completed or failed. The callback will always
      *                 happen on the same thread as this method is called on.
@@ -538,7 +429,7 @@ public class User {
      * @return wrapper for managing API keys controlled by the current user.
      * @throws IllegalStateException if no user is currently logged in.
      */
-    public synchronized ApiKeyAuth getApiKeyAuth() {
+    public synchronized ApiKeyAuth getApiKeys() {
         checkLoggedIn();
         if (apiKeyAuthProvider == null) {
             apiKeyAuthProvider = new ApiKeyAuthImpl(this);

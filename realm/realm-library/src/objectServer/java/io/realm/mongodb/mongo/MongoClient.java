@@ -48,4 +48,13 @@ public abstract class MongoClient {
         return new MongoDatabase(osMongoClient.getDatabase(databaseName, codecRegistry),
                 databaseName);
     }
+
+    /**
+     * Returns the service name for this client.
+     *
+     * @return the service name.
+     */
+    public String getServiceName() {
+        return osMongoClient.getServiceName();
+    }
 }

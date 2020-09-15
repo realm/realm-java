@@ -26,9 +26,11 @@ import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
-import io.realm.mongodb.*
+import io.realm.mongodb.App
+import io.realm.mongodb.Credentials
 import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
-import io.realm.util.assertFailsWithErrorCode
+import io.realm.mongodb.User
+import io.realm.mongodb.close
 import org.bson.BsonNull
 import org.junit.*
 import org.junit.runner.RunWith
@@ -70,7 +72,6 @@ class SyncedRealmTests {
 
     // Smoke test for Sync. Waiting for working Sync support.
     @Test
-    @Ignore("FIXME: https://github.com/realm/realm-java/issues/6972")
     fun connectWithInitialSchema() {
         val user: User = createNewUser()
         val config = createDefaultConfig(user)
@@ -486,7 +487,7 @@ class SyncedRealmTests {
     private fun createNewUser(): User {
         val email = TestHelper.getRandomEmail()
         val password = "123456"
-        app.emailPasswordAuth.registerUser(email, password)
+        app.emailPassword.registerUser(email, password)
         return app.login(Credentials.emailPassword(email, password))
     }
 
