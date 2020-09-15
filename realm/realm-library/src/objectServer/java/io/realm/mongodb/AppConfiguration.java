@@ -323,7 +323,7 @@ public class AppConfiguration {
         int result = appId.hashCode();
         result = 31 * result + (appName != null ? appName.hashCode() : 0);
         result = 31 * result + (appVersion != null ? appVersion.hashCode() : 0);
-        result = 31 * result + baseUrl.hashCode();
+        result = 31 * result + baseUrl.toString().hashCode();
         result = 31 * result + defaultErrorHandler.hashCode();
         result = 31 * result + Arrays.hashCode(encryptionKey);
         result = 31 * result + (int) (requestTimeoutMs ^ (requestTimeoutMs >>> 32));
