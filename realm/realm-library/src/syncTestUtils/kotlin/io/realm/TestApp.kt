@@ -33,9 +33,9 @@ const val TEST_APP_2 = "testapp2"       // ID for the 2nd test app, which is a d
 
 class TestApp(
         networkTransport: OsJavaNetworkTransport? = null,
-		appName: String = "testapp1",
+		appName: String = TEST_APP_1,
         builder: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }
-) : App(builder(configurationBuilder()).build()) {
+) : App(builder(configurationBuilder(appName)).build()) {
 
     init {
         if (networkTransport != null) {
@@ -45,7 +45,7 @@ class TestApp(
 
     companion object {
 
-        fun configurationBuilder(customizeConfig: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }): AppConfiguration.Builder {
+        fun configurationBuilder(appName: String): AppConfiguration.Builder {
             return AppConfiguration.Builder(initializeMongoDbRealm(appName))
                     .baseUrl("http://127.0.0.1:9090")
                     .appName("MongoDB Realm Integration Tests")
