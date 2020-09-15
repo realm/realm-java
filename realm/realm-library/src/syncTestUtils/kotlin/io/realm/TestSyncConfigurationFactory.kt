@@ -35,6 +35,11 @@ class TestSyncConfigurationFactory : TestRealmConfigurationFactory() {
                 .testSessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
     }
 
+    fun createSyncConfigurationBuilder(user: User, partitionValue: String): SyncConfiguration.Builder {
+        return SyncConfiguration.Builder(user, partitionValue)
+                .testSessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
+    }
+
     fun createSyncConfigurationBuilder(user: User, partitionValue: BsonValue): SyncConfiguration.Builder {
         return SyncConfigurationExt.Builder(user, partitionValue)
                 .testSessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY);

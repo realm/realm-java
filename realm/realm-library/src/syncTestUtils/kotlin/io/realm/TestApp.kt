@@ -33,9 +33,9 @@ const val TEST_APP_2 = "testapp2"       // ID for the 2nd test app, which is a d
 
 class TestApp(
         networkTransport: OsJavaNetworkTransport? = null,
-        appName: String = "testapp1",
-        customizeConfig: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }
-) : App(createConfiguration(appName, customizeConfig)) {
+		appName: String = "testapp1",
+        builder: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }
+) : App(builder(configurationBuilder()).build()) {
 
     init {
         if (networkTransport != null) {
@@ -45,16 +45,12 @@ class TestApp(
 
     companion object {
 
-        fun createConfiguration(appName: String, customizeConfig: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }): AppConfiguration {
-            var builder = AppConfiguration.Builder(initializeMongoDbRealm(appName))
+        fun configurationBuilder(customizeConfig: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }): AppConfiguration.Builder {
+            return AppConfiguration.Builder(initializeMongoDbRealm(appName))
                     .baseUrl("http://127.0.0.1:9090")
                     .appName("MongoDB Realm Integration Tests")
                     .appVersion("1.0.")
                     .httpLogObfuscator(null)
-
-            builder = customizeConfig(builder)
-
-            return builder.build()
         }
 
         // Initializes MongoDB Realm. Clears all local state and fetches the application ID.

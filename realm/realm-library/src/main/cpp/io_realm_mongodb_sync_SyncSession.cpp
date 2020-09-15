@@ -338,3 +338,15 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeStop(JNIEnv*
     }
     CATCH_STD()
 }
+
+JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeShutdownAndWait (JNIEnv* env, jclass, jlong j_app_ptr, jstring j_local_realm_path) {
+    try {
+        auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
+        JStringAccessor local_realm_path(env, j_local_realm_path);
+        auto session = app->sync_manager()->get_existing_session(local_realm_path);
+        if (session) {
+            session->shutdown_and_wait();
+        }
+    }
+    CATCH_STD()
+}

@@ -637,6 +637,10 @@ public class SyncSession {
         }
     }
 
+    void shutdownAndWait() {
+        nativeShutdownAndWait(appNativePointer, configuration.getPath());
+    }
+
     /**
      * Interface used to report any session errors.
      *
@@ -760,4 +764,5 @@ public class SyncSession {
     private static native byte nativeGetConnectionState(long appNativePointer, String localRealmPath);
     private static native void nativeStart(long appNativePointer, String localRealmPath);
     private static native void nativeStop(long appNativePointer, String localRealmPath);
+	private static native void nativeShutdownAndWait(long appNativePointer, String localRealmPath);
 }
