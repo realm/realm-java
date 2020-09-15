@@ -4,10 +4,12 @@
 * Better exception messaging for UTF encoding errors. ([Issue #7093](https://github.com/realm/realm-java/pull/7093))
 
 ### Fixes
-* None.
+* Fixes concurrent modification exceptions in the schema when refreshing a Realm (Issue [#6876](https://github.com/realm/realm-java/issues/6876))
 
 ### Compatibility
-* None.
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
 
 ### Internal
 * None.
