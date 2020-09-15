@@ -282,7 +282,7 @@ class AppTests {
 
         try {
             // Create Realm in order to create the sync metadata Realm
-            var user = app.login(Credentials.anonymous())
+            var user = testApp.login(Credentials.anonymous())
             val syncConfig = SyncConfiguration.defaultConfig(user, "foo")
             Realm.getInstance(syncConfig).close()
 
