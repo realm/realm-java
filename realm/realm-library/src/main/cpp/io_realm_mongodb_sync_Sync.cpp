@@ -37,6 +37,7 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeReset(JNIEnv* env, 
     try {
         auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
         app->sync_manager()->reset_for_testing();
+        app::App::clear_cached_apps();
     }
     CATCH_STD()
 }

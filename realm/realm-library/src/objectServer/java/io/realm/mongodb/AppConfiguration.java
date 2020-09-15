@@ -308,7 +308,7 @@ public class AppConfiguration {
         if (appName != null ? !appName.equals(that.appName) : that.appName != null) return false;
         if (appVersion != null ? !appVersion.equals(that.appVersion) : that.appVersion != null)
             return false;
-        if (!baseUrl.equals(that.baseUrl)) return false;
+        if (!baseUrl.toString().equals(that.baseUrl.toString())) return false;
         if (!defaultErrorHandler.equals(that.defaultErrorHandler)) return false;
         if (!Arrays.equals(encryptionKey, that.encryptionKey)) return false;
         if (!authorizationHeaderName.equals(that.authorizationHeaderName)) return false;

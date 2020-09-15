@@ -24,8 +24,9 @@
 
 using namespace realm;
 
-JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_ClientResetRequiredError_nativeExecuteClientReset(JNIEnv* env, jlong j_app_ptr, jobject,
-                                                                               jstring localRealmPath)
+JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_ClientResetRequiredError_nativeExecuteClientReset(JNIEnv* env, jobject,
+                                                                                                    jlong j_app_ptr,
+                                                                                                    jstring localRealmPath)
 {
     try {
         auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
