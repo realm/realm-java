@@ -32,6 +32,7 @@ import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
 import io.realm.mongodb.User
 import io.realm.mongodb.close
 import org.bson.BsonNull
+import org.bson.BsonString
 import org.junit.*
 import org.junit.runner.RunWith
 import java.io.File
@@ -464,6 +465,40 @@ class SyncedRealmTests {
             Assert.assertTrue(leafResults.any { it.treeLeafId == "leaf1" })
             Assert.assertTrue(leafResults.any { it.treeLeafId == "leaf2" })
             Assert.assertTrue(leafResults.any { it.treeLeafId == "leaf3" })
+        }
+    }
+
+    // Check that we can create multiple apps that synchronize with each other
+    @Test
+    fun multipleAppsCanSync() {
+        val app2 = TestApp(appName = TEST_APP_2)
+        var realm1: Realm? = null
+        var realm2: Realm? = null
+        try {
+            // Login users on both Realms
+            val app1User = app.login(Credentials.anonymous())
+            val app2User = app2.login(Credentials.anonymous())
+            Assert.assertNotEquals(app1User, app2User)
+
+            // Create one Realm against each app
+            val config1 = configFactory.createSyncConfigurationBuilder(app1User, BsonString("foo"))
+                    .modules(DefaultSyncSchema())
+                    .build()
+            val config2 = configFactory.createSyncConfigurationBuilder(app2User, BsonString("foo"))
+                    .modules(DefaultSyncSchema())
+                    .build()
+
+            // Make sure we can synchronize changes
+            val realm1 = Realm.getInstance(config1)
+            val realm2 = Realm.getInstance(config2)
+            realm1.syncSession.downloadAllServerChanges()
+            realm2.syncSession.downloadAllServerChanges()
+            Assert.assertTrue(realm1.isEmpty)
+            Assert.assertTrue(realm2.isEmpty)
+        } finally {
+            realm1?.close()
+            realm2?.close()
+            app2.close()
         }
     }
 

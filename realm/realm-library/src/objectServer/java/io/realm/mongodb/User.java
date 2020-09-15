@@ -502,8 +502,8 @@ public class User {
 
         User user = (User) o;
 
-        if (!osUser.equals(user.osUser)) return false;
-        return app.equals(user.app);
+        if (!osUser.getIdentity().equals(user.osUser.getIdentity())) return false;
+        return app.getConfiguration().getAppId().equals(user.app.getConfiguration().getAppId());
     }
 
     @Override

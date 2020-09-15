@@ -57,10 +57,11 @@ static_assert(SyncSession::ConnectionState::Connected ==
               static_cast<SyncSession::ConnectionState>(io_realm_mongodb_sync_SyncSession_CONNECTION_VALUE_CONNECTED),
               "");
 
-JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddProgressListener(JNIEnv* env, jlong j_app_ptr, jobject j_session_object,
-                                                                            jstring j_local_realm_path,
-                                                                            jlong listener_id, jint direction,
-                                                                            jboolean is_streaming)
+JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddProgressListener(JNIEnv* env, jobject j_session_object,
+                                                                                         jlong j_app_ptr,
+                                                                                         jstring j_local_realm_path,
+                                                                                         jlong listener_id, jint direction,
+                                                                                         jboolean is_streaming)
 {
     try {
         auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
@@ -124,8 +125,8 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeRemoveProgre
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeWaitForDownloadCompletion(JNIEnv* env,
-                                                                                     jlong j_app_ptr,
                                                                                      jobject session_object,
+                                                                                     jlong j_app_ptr,
                                                                                      jint callback_id,
                                                                                      jstring j_local_realm_path)
 {
@@ -160,8 +161,8 @@ JNIEXPORT jboolean JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeWaitForD
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeWaitForUploadCompletion(JNIEnv* env,
-                                                                                   jlong j_app_ptr,
                                                                                    jobject session_object,
+                                                                                   jlong j_app_ptr,
                                                                                    jint callback_id,
                                                                                    jstring j_local_realm_path)
 {

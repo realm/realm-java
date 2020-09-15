@@ -504,6 +504,24 @@ public class App {
         osApp.setNetworkTransport(transport);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        App app = (App) o;
+
+        if (!osApp.equals(app.osApp)) return false;
+        return config.equals(app.config);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = osApp.hashCode();
+        result = 31 * result + config.hashCode();
+        return result;
+    }
+
     /**
      * Result class representing the result of an async request from this app towards MongoDB Realm.
      *

@@ -28,6 +28,8 @@ import io.realm.mongodb.AppConfiguration
  */
 const val SERVICE_NAME = "BackingDB"    // it comes from the test server's BackingDB/config.json
 const val DATABASE_NAME = "test_data"   // same as above
+const val TEST_APP_1 = "testapp1"       // Id for the default test app
+const val TEST_APP_2 = "testapp2"       // ID for the 2nd test app, which is a direct copy of the default test app.
 
 class TestApp(
         networkTransport: OsJavaNetworkTransport? = null,
