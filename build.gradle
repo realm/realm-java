@@ -372,8 +372,8 @@ task uploadDistributionPackage {
     group = 'Release'
     description = 'Upload the distribution package to S3'
     dependsOn distributionJniUnstrippedPackage
-    def s3AccessKey = "${getPropertyValueOrThrow('REALM_S3_ACCESS_KEY')}"
-    def s3SecretKey = "${getPropertyValueOrThrow('REALM_S3_SECRET_KEY')}"
+    def s3AccessKey = "${ -> getPropertyValueOrThrow('REALM_S3_ACCESS_KEY')}"
+    def s3SecretKey = "${ -> getPropertyValueOrThrow('REALM_S3_SECRET_KEY')}"
     doLast {
         exec {
             workingDir "${buildDir}/outputs/distribution/"
@@ -385,8 +385,8 @@ task uploadDistributionPackage {
 task uploadUpdateVersion(type: Exec) {
     group = 'Release'
     description = 'Update the file on S3 containing the latest version'
-    def s3AccessKey = "${getPropertyValueOrThrow('REALM_S3_ACCESS_KEY')}"
-    def s3SecretKey = "${getPropertyValueOrThrow('REALM_S3_SECRET_KEY')}"
+    def s3AccessKey = "${ -> getPropertyValueOrThrow('REALM_S3_ACCESS_KEY')}"
+    def s3SecretKey = "${ -> getPropertyValueOrThrow('REALM_S3_SECRET_KEY')}"
     commandLine 's3cmd', "--access_key=${s3AccessKey}", "--secret_key=${s3SecretKey}", 'put', "${rootDir}/version.txt", 's3://static.realm.io/update/java'
 }
 
