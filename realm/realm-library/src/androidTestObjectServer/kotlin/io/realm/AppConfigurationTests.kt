@@ -172,6 +172,12 @@ class AppConfigurationTests {
     }
 
     @Test
+    fun appName_defaultValue() {
+        val config = AppConfiguration.Builder("app-id").build()
+        assertEquals(null, config.appName)
+    }
+
+    @Test
     fun appName_invalidValuesThrows() {
         val builder = AppConfiguration.Builder("app-id")
 
@@ -185,6 +191,12 @@ class AppConfigurationTests {
                 .appVersion("app-version")
                 .build()
         assertEquals("app-version", config.appVersion)
+    }
+
+    @Test
+    fun appVersion_defaultValue() {
+        val config = AppConfiguration.Builder("app-id").build()
+        assertEquals(null, config.appVersion)
     }
 
     @Test

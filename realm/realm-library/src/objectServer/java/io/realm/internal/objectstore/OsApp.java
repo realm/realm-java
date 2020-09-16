@@ -30,19 +30,21 @@ public class OsApp implements NativeObject {
     }
 
     public OsApp(AppConfiguration config, String userAgentBindingInfo, String appDefinedUserAgent, String syncDir) {
-        nativePtr = nativeCreate(
-                config.getAppId(),
-                config.getBaseUrl().toString(),
-                config.getAppName(),
-                config.getAppVersion(),
-                config.getRequestTimeoutMs(),
-                config.getEncryptionKey(),
-                syncDir,
-                userAgentBindingInfo,
-                appDefinedUserAgent,
-                "android",
-                android.os.Build.VERSION.RELEASE,
-                io.realm.BuildConfig.VERSION_NAME);
+        synchronized (OsApp.class) { // We need to synchronize access as OS caches the App instance
+            nativePtr = nativeCreate(
+                    config.getAppId(),
+                    config.getBaseUrl().toString(),
+                    config.getAppName(),
+                    config.getAppVersion(),
+                    config.getRequestTimeoutMs(),
+                    config.getEncryptionKey(),
+                    syncDir,
+                    userAgentBindingInfo,
+                    appDefinedUserAgent,
+                    "android",
+                    android.os.Build.VERSION.RELEASE,
+                    io.realm.BuildConfig.VERSION_NAME);
+        }
 
         this.networkTransport = new OkHttpNetworkTransport(config.getHttpLogObfuscator());
         networkTransport.setAuthorizationHeaderName(config.getAuthorizationHeaderName());

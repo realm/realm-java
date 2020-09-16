@@ -19,8 +19,9 @@
 
 #include "io_realm_mongodb_sync_SyncSession.h"
 
-#include "object-store/src/sync/sync_manager.hpp"
-#include "object-store/src/sync/sync_session.hpp"
+#include "sync/app.hpp"
+#include "sync/sync_manager.hpp"
+#include "sync/sync_session.hpp"
 
 #include "util.hpp"
 #include "java_class_global_def.hpp"
@@ -57,14 +58,16 @@ static_assert(SyncSession::ConnectionState::Connected ==
               "");
 
 JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddProgressListener(JNIEnv* env, jobject j_session_object,
-                                                                            jstring j_local_realm_path,
-                                                                            jlong listener_id, jint direction,
-                                                                            jboolean is_streaming)
+                                                                                         jlong j_app_ptr,
+                                                                                         jstring j_local_realm_path,
+                                                                                         jlong listener_id, jint direction,
+                                                                                         jboolean is_streaming)
 {
     try {
+        auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
         // JNIEnv is thread confined, so we need a deep copy in order to capture the string in the lambda
         std::string local_realm_path(JStringAccessor(env, j_local_realm_path));
-        std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_session(local_realm_path);
+        std::shared_ptr<SyncSession> session = app->sync_manager()->get_existing_session(local_realm_path);
         if (!session) {
             // FIXME: We should lift this restriction
             ThrowException(env, IllegalState,
@@ -106,12 +109,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddProgress
 }
 
 JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeRemoveProgressListener(JNIEnv* env, jclass,
+                                                                              jlong j_app_ptr,
                                                                               jstring j_local_realm_path,
                                                                               jlong listener_token)
 {
     try {
+        auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
         JStringAccessor local_realm_path(env, j_local_realm_path);
-        std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_session(local_realm_path);
+        std::shared_ptr<SyncSession> session = app->sync_manager()->get_existing_session(local_realm_path);
         if (session) {
             session->unregister_progress_notifier(static_cast<uint64_t>(listener_token));
         }
@@ -121,12 +126,14 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeRemoveProgre
 
 JNIEXPORT jboolean JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeWaitForDownloadCompletion(JNIEnv* env,
                                                                                      jobject session_object,
+                                                                                     jlong j_app_ptr,
                                                                                      jint callback_id,
                                                                                      jstring j_local_realm_path)
 {
     try {
+        auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
         JStringAccessor local_realm_path(env, j_local_realm_path);
-        auto session = SyncManager::shared().get_existing_session(local_realm_path);
+        auto session = app->sync_manager()->get_existing_session(local_realm_path);
 
         if (session) {
             static JavaClass java_sync_session_class(env, "io/realm/mongodb/sync/SyncSession");
@@ -155,12 +162,14 @@ JNIEXPORT jboolean JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeWaitForD
 
 JNIEXPORT jboolean JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeWaitForUploadCompletion(JNIEnv* env,
                                                                                    jobject session_object,
+                                                                                   jlong j_app_ptr,
                                                                                    jint callback_id,
                                                                                    jstring j_local_realm_path)
 {
     try {
+        auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
         JStringAccessor local_realm_path(env, j_local_realm_path);
-        auto session = SyncManager::shared().get_existing_session(local_realm_path);
+        auto session = app->sync_manager()->get_existing_session(local_realm_path);
 
         if (session) {
             static JavaClass java_sync_session_class(env, "io/realm/mongodb/sync/SyncSession");
@@ -188,11 +197,12 @@ JNIEXPORT jboolean JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeWaitForU
 }
 
 
-JNIEXPORT jbyte JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeGetState(JNIEnv* env, jclass, jstring j_local_realm_path)
+JNIEXPORT jbyte JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeGetState(JNIEnv* env, jclass, jlong j_app_ptr, jstring j_local_realm_path)
 {
     try {
+        auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
         JStringAccessor local_realm_path(env, j_local_realm_path);
-        auto session = SyncManager::shared().get_existing_session(local_realm_path);
+        auto session = app->sync_manager()->get_existing_session(local_realm_path);
 
         if (session) {
             switch (session->state()) {
@@ -209,11 +219,12 @@ JNIEXPORT jbyte JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeGetState(JN
     return -1;
 }
 
-JNIEXPORT jbyte JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeGetConnectionState(JNIEnv* env, jclass, jstring j_local_realm_path)
+JNIEXPORT jbyte JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeGetConnectionState(JNIEnv* env, jclass, jlong j_app_ptr, jstring j_local_realm_path)
 {
     try {
+        auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
         JStringAccessor local_realm_path(env, j_local_realm_path);
-        auto session = SyncManager::shared().get_existing_session(local_realm_path);
+        auto session = app->sync_manager()->get_existing_session(local_realm_path);
 
         if (session) {
             switch (session->connection_state()) {
@@ -239,12 +250,13 @@ static jlong get_connection_value(SyncSession::ConnectionState state) {
     return static_cast<jlong>(-1);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddConnectionListener(JNIEnv* env, jobject j_session_object, jstring j_local_realm_path)
+JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddConnectionListener(JNIEnv* env, jobject j_session_object, jlong j_app_ptr, jstring j_local_realm_path)
 {
     try {
+        auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
         // JNIEnv is thread confined, so we need a deep copy in order to capture the string in the lambda
         std::string local_realm_path(JStringAccessor(env, j_local_realm_path));
-        std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_session(local_realm_path);
+        std::shared_ptr<SyncSession> session = app->sync_manager()->get_existing_session(local_realm_path);
         if (!session) {
             // FIXME: We should lift this restriction
             ThrowException(env, IllegalState,
@@ -282,12 +294,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddConnecti
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeRemoveConnectionListener(JNIEnv* env, jclass, jlong listener_id, jstring j_local_realm_path)
+JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeRemoveConnectionListener(JNIEnv* env, jclass, jlong j_app_ptr, jlong listener_id, jstring j_local_realm_path)
 {
     try {
+        auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
         // JNIEnv is thread confined, so we need a deep copy in order to capture the string in the lambda
         std::string local_realm_path(JStringAccessor(env, j_local_realm_path));
-        std::shared_ptr<SyncSession> session = SyncManager::shared().get_existing_session(local_realm_path);
+        std::shared_ptr<SyncSession> session = app->sync_manager()->get_existing_session(local_realm_path);
         if (session) {
             session->unregister_connection_change_callback(static_cast<uint64_t>(listener_id));
         }
@@ -295,11 +308,12 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeRemoveConnec
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeStart(JNIEnv* env, jclass, jstring j_local_realm_path)
+JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeStart(JNIEnv* env, jclass, jlong j_app_ptr, jstring j_local_realm_path)
 {
     try {
+        auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
         JStringAccessor local_realm_path(env, j_local_realm_path);
-        auto session = SyncManager::shared().get_existing_session(local_realm_path);
+        auto session = app->sync_manager()->get_existing_session(local_realm_path);
         if (!session) {
             // FIXME: We should lift this restriction
             ThrowException(env, IllegalState,
@@ -312,11 +326,12 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeStart(JNIEnv
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeStop(JNIEnv* env, jclass, jstring j_local_realm_path)
+JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeStop(JNIEnv* env, jclass, jlong j_app_ptr, jstring j_local_realm_path)
 {
     try {
+        auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
         JStringAccessor local_realm_path(env, j_local_realm_path);
-        auto session = SyncManager::shared().get_existing_session(local_realm_path);
+        auto session = app->sync_manager()->get_existing_session(local_realm_path);
         if (session) {
             session->log_out();
         }
@@ -324,10 +339,11 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeStop(JNIEnv*
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeShutdownAndWait (JNIEnv* env, jclass, jstring j_local_realm_path) {
+JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeShutdownAndWait (JNIEnv* env, jclass, jlong j_app_ptr, jstring j_local_realm_path) {
     try {
+        auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
         JStringAccessor local_realm_path(env, j_local_realm_path);
-        auto session = SyncManager::shared().get_existing_session(local_realm_path);
+        auto session = app->sync_manager()->get_existing_session(local_realm_path);
         if (session) {
             session->shutdown_and_wait();
         }

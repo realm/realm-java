@@ -65,6 +65,7 @@ public class SyncSession {
     private static final int DIRECTION_DOWNLOAD = 1;
     private static final int DIRECTION_UPLOAD = 2;
 
+    private final long appNativePointer;
     private final SyncConfiguration configuration;
     private final ErrorHandler errorHandler;
     private volatile boolean isClosed = false;
@@ -154,9 +155,10 @@ public class SyncSession {
         }
     }
 
-    SyncSession(SyncConfiguration configuration) {
+    SyncSession(SyncConfiguration configuration, long appNativePointer) {
         this.configuration = configuration;
         this.errorHandler = configuration.getErrorHandler();
+        this.appNativePointer = appNativePointer;
     }
 
     /**
@@ -196,7 +198,7 @@ public class SyncSession {
         if (errCode == ErrorCode.CLIENT_RESET) {
             // errorMessage contains the path to the backed up file
             RealmConfiguration backupRealmConfiguration = configuration.forErrorRecovery(errorMessage);
-            errorHandler.onError(this, new ClientResetRequiredError(errCode, "A Client Reset is required. " +
+            errorHandler.onError(this, new ClientResetRequiredError(appNativePointer, errCode, "A Client Reset is required. " +
                     "Read more here: https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup.",
                     configuration, backupRealmConfiguration));
         } else {
@@ -219,7 +221,7 @@ public class SyncSession {
      * @see SyncSession.State
      */
     public State getState() {
-        byte state = nativeGetState(configuration.getPath());
+        byte state = nativeGetState(appNativePointer, configuration.getPath());
         if (state == -1) {
             // session was not found, probably the Realm was closed
             throw new IllegalStateException("Could not find session, Realm was probably closed");
@@ -234,7 +236,7 @@ public class SyncSession {
      * @see ConnectionState
      */
     public ConnectionState getConnectionState() {
-        byte state = nativeGetConnectionState(configuration.getPath());
+        byte state = nativeGetConnectionState(appNativePointer, configuration.getPath());
         if (state == -1) {
             // session was not found, probably the Realm was closed
             throw new IllegalStateException("Could not find session, Realm was probably closed");
@@ -254,7 +256,7 @@ public class SyncSession {
      * if not or if it is in the process of connecting.
      */
     public boolean isConnected() {
-        ConnectionState connectionState = ConnectionState.fromNativeValue(nativeGetConnectionState(configuration.getPath()));
+        ConnectionState connectionState = ConnectionState.fromNativeValue(nativeGetConnectionState(appNativePointer, configuration.getPath()));
         State sessionState = getState();
         return (sessionState == State.ACTIVE || sessionState == State.DYING) && connectionState == ConnectionState.CONNECTED;
     }
@@ -345,7 +347,7 @@ public class SyncSession {
                     break;
                 }
             }
-            nativeRemoveProgressListener(configuration.getPath(), token);
+            nativeRemoveProgressListener(appNativePointer, configuration.getPath(), token);
         }
     }
 
@@ -357,7 +359,7 @@ public class SyncSession {
         // A listener might be triggered immediately as part of `nativeAddProgressListener`, so
         // we need to make sure it can be found by SyncManager.notifyProgressListener()
         listenerIdToProgressListenerMap.put(listenerId, new Pair<ProgressListener, Progress>(listener, null));
-        long listenerToken = nativeAddProgressListener(configuration.getPath(), listenerId , direction, isStreaming);
+        long listenerToken = nativeAddProgressListener(appNativePointer, configuration.getPath(), listenerId , direction, isStreaming);
         if (listenerToken == 0) {
             // ObjectStore did not register the listener. This can happen if a
             // listener is registered with ProgressMode.CURRENT_CHANGES and no changes actually
@@ -386,7 +388,7 @@ public class SyncSession {
     public synchronized void addConnectionChangeListener(ConnectionListener listener) {
         Util.checkNull(listener, "listener");
         if (connectionListeners.isEmpty()) {
-            nativeConnectionListenerToken = nativeAddConnectionListener(configuration.getPath());
+            nativeConnectionListenerToken = nativeAddConnectionListener(appNativePointer, configuration.getPath());
         }
         connectionListeners.add(listener);
     }
@@ -401,7 +403,7 @@ public class SyncSession {
         Util.checkNull(listener, "listener");
         connectionListeners.remove(listener);
         if (connectionListeners.isEmpty()) {
-            nativeRemoveConnectionListener(nativeConnectionListenerToken, configuration.getPath());
+            nativeRemoveConnectionListener(appNativePointer, nativeConnectionListenerToken, configuration.getPath());
         }
     }
 
@@ -554,7 +556,7 @@ public class SyncSession {
      * @see #stop()
      */
     public synchronized void start() {
-        nativeStart(configuration.getPath());
+        nativeStart(appNativePointer, configuration.getPath());
     }
 
     /**
@@ -567,7 +569,7 @@ public class SyncSession {
      */
     public synchronized void stop() {
         close();
-        nativeStop(configuration.getPath());
+        nativeStop(appNativePointer, configuration.getPath());
     }
 
     /**
@@ -590,8 +592,8 @@ public class SyncSession {
             waitingForServerChanges.set(wrapper);
             int callbackId = waitCounter.incrementAndGet();
             boolean listenerRegistered = (direction == DIRECTION_DOWNLOAD)
-                    ? nativeWaitForDownloadCompletion(callbackId, realmPath)
-                    : nativeWaitForUploadCompletion(callbackId, realmPath);
+                    ? nativeWaitForDownloadCompletion(appNativePointer, callbackId, realmPath)
+                    : nativeWaitForUploadCompletion(appNativePointer, callbackId, realmPath);
             if (!listenerRegistered) {
                 waitingForServerChanges.set(null);
                 String errorMsg;
@@ -636,7 +638,7 @@ public class SyncSession {
     }
 
     void shutdownAndWait() {
-        nativeShutdownAndWait(configuration.getPath());
+        nativeShutdownAndWait(appNativePointer, configuration.getPath());
     }
 
     /**
@@ -752,15 +754,15 @@ public class SyncSession {
         }
     }
 
-    private native long nativeAddConnectionListener(String localRealmPath);
-    private static native void nativeRemoveConnectionListener(long listenerId, String localRealmPath);
-    private native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
-    private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
-    private native boolean nativeWaitForDownloadCompletion(int callbackId, String localRealmPath);
-    private native boolean nativeWaitForUploadCompletion(int callbackId, String localRealmPath);
-    private static native byte nativeGetState(String localRealmPath);
-    private static native byte nativeGetConnectionState(String localRealmPath);
-    private static native void nativeStart(String localRealmPath);
-    private static native void nativeStop(String localRealmPath);
-    private static native void nativeShutdownAndWait(String localRealmPath);
+    private native long nativeAddConnectionListener(long appNativePointer, String localRealmPath);
+    private static native void nativeRemoveConnectionListener(long appNativePointer, long listenerId, String localRealmPath);
+    private native long nativeAddProgressListener(long appNativePointer, String localRealmPath, long listenerId, int direction, boolean isStreaming);
+    private static native void nativeRemoveProgressListener(long appNativePointer, String localRealmPath, long listenerToken);
+    private native boolean nativeWaitForDownloadCompletion(long appNativePointer, int callbackId, String localRealmPath);
+    private native boolean nativeWaitForUploadCompletion(long appNativePointer, int callbackId, String localRealmPath);
+    private static native byte nativeGetState(long appNativePointer, String localRealmPath);
+    private static native byte nativeGetConnectionState(long appNativePointer, String localRealmPath);
+    private static native void nativeStart(long appNativePointer, String localRealmPath);
+    private static native void nativeStop(long appNativePointer, String localRealmPath);
+    private static native void nativeShutdownAndWait(long appNativePointer, String localRealmPath);
 }
