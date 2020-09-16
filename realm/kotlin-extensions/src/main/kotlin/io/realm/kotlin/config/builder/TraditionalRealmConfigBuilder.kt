@@ -11,10 +11,7 @@ import io.realm.rx.RealmObservableFactory
 import io.realm.rx.RxObservableFactory
 import java.io.File
 
-class TraditionalRealmConfigBuilder(
-        context: Context
-) {
-
+class TraditionalRealmConfigBuilder(context: Context) {
     private var directory: File = context.filesDir
     private var fileName: String = Realm.DEFAULT_REALM_NAME
     private var assetFilePath: String? = null
@@ -174,10 +171,6 @@ class TraditionalRealmConfigBuilder(
                 maxNumberOfActiveVersions
         )
     }
-
-    //-----------------------------------------------------------------------------------------------------
-    //-----------------------------------------------------------------------------------------------------
-    //-----------------------------------------------------------------------------------------------------
 
     private fun addModule(module: Any): TraditionalRealmConfigBuilder {
         checkModule(module)

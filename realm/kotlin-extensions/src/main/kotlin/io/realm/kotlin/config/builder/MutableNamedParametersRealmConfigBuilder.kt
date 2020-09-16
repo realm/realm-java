@@ -151,11 +151,6 @@ class MutableNamedParametersRealmConfigBuilder private constructor(
     fun schema(block: () -> List<Class<out RealmModel>>) { schema = block() }
     fun providedModules(block: () -> List<Any>) { providedModules = block() }
 
-
-    //-----------------------------------------------------------------------------------------------------
-    //-----------------------------------------------------------------------------------------------------
-    //-----------------------------------------------------------------------------------------------------
-
     private fun checkModule(module: Any) {
         require(module.javaClass.isAnnotationPresent(RealmModule::class.java)) {
             "${module.javaClass.canonicalName} is not a RealmModule. Add @RealmModule to the class definition."

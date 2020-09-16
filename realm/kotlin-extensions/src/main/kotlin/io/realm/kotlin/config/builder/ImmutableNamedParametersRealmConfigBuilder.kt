@@ -134,10 +134,6 @@ class ImmutableNamedParametersRealmConfigBuilder @JvmOverloads constructor(
         )
     }
 
-    //-----------------------------------------------------------------------------------------------------
-    //-----------------------------------------------------------------------------------------------------
-    //-----------------------------------------------------------------------------------------------------
-
     private fun checkModule(module: Any) {
         require(module.javaClass.isAnnotationPresent(RealmModule::class.java)) {
             "${module.javaClass.canonicalName} is not a RealmModule. Add @RealmModule to the class definition."

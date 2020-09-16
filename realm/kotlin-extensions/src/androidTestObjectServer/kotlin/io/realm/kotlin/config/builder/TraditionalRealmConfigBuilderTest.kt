@@ -7,6 +7,7 @@ import io.realm.Realm
 import io.realm.RealmConfiguration
 import io.realm.RealmMigration
 import io.realm.TestHelper
+import io.realm.kotlin.config.builder.MutableNamedParametersRealmConfigBuilder.Companion.mutableRealmConfigBuilder
 import io.realm.kotlin.config.builder.factory.TestTraditionalRealmConfigurationFactory
 import io.realm.kotlin.module.AnimalModule
 import io.realm.kotlin.module.HumanModule
@@ -154,6 +155,13 @@ class TraditionalRealmConfigBuilderTest {
     fun equals_respectReadOnly() {
         val config1 = TraditionalRealmConfigBuilder(context).assetFile("foo").build()
         val config2 = TraditionalRealmConfigBuilder(context).assetFile("foo").readOnly().build()
+
+        val builder = mutableRealmConfigBuilder(context) {
+            assetFilePath { "foo" }
+            readOnly { true }
+            deleteRealmIfMigrationNeeded { true }
+        }
+
         assertNotEquals(config1, config2)
     }
 
