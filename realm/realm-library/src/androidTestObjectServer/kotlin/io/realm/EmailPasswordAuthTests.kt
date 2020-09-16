@@ -284,7 +284,7 @@ class EmailPasswordAuthTests {
         val email = "test_realm_tests_do_autoverify@10gen.com"
         admin.setAutomaticConfirmation(false)
         try {
-            val provider = app.emailPasswordAuth
+            val provider = app.emailPassword
             provider.registerUser(email, "123456")
             admin.setCustomConfirmation(true)
 
@@ -300,7 +300,7 @@ class EmailPasswordAuthTests {
         val email = "test@10gen.com"
         admin.setAutomaticConfirmation(false)
         try {
-            val provider = app.emailPasswordAuth
+            val provider = app.emailPassword
             provider.registerUser(email, "123456")
             admin.setCustomConfirmation(true)
 
@@ -321,7 +321,7 @@ class EmailPasswordAuthTests {
         admin.setAutomaticConfirmation(false)
         try {
             looperThread.runBlocking {
-                val provider = app.emailPasswordAuth
+                val provider = app.emailPassword
                 provider.registerUser(email, "123456")
                 admin.setCustomConfirmation(true)
 
@@ -341,7 +341,7 @@ class EmailPasswordAuthTests {
     fun retryCustomConfirmation_invalidServerArgsThrows() {
         val email = "test@10gen.com"
         admin.setAutomaticConfirmation(false)
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         provider.registerUser(email, "123456")
         admin.setCustomConfirmation(true)
 
@@ -359,7 +359,7 @@ class EmailPasswordAuthTests {
     fun retryCustomConfirmationAsync_invalidServerArgsThrows() {
         val email = "test@10gen.com"
         admin.setAutomaticConfirmation(false)
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         provider.registerUser(email, "123456")
         admin.setCustomConfirmation(true)
         try {
@@ -380,7 +380,7 @@ class EmailPasswordAuthTests {
 
     @Test
     fun retryCustomConfirmation_invalidArgumentsThrows() {
-        val provider: EmailPasswordAuth = app.emailPasswordAuth
+        val provider: EmailPasswordAuth = app.emailPassword
         assertFailsWith<IllegalArgumentException> { provider.retryCustomConfirmation(TestHelper.getNull()) }
         looperThread.runBlocking {
             provider.retryCustomConfirmationAsync(TestHelper.getNull(), checkNullArgCallback)
