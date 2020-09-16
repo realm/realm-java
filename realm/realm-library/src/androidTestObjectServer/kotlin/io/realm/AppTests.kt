@@ -303,7 +303,7 @@ class AppTests {
         }
     }
 
-    // Check that it is possible how have two Java instances of an App class, but they will
+    // Check that it is possible to have two Java instances of an App class, but they will
     // share the underlying App state.
     @Test
     fun multipleInstancesSameApp() {

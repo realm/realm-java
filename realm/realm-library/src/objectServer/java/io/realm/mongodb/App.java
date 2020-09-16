@@ -67,7 +67,7 @@ import io.realm.mongodb.sync.Sync;
  * <pre>
  *    class MyApplication extends Application {
  *
- *         App APP;
+ *         App APP; // The App instance should be a global singleton
  *
  *         \@Override
  *         public void onCreate() {
@@ -95,10 +95,10 @@ import io.realm.mongodb.sync.Sync;
  * To register a new user and/or login with an existing user do as shown below:
  * <pre>
  *     // Register new user
- *     User user = APP.getEmailPasswordAuth().registerUser(username, password);
+ *     APP.getEmailPassword().registerUser(username, password);
  *
  *     // Login with existing user
- *     APP.login(Credentials.emailPassword(username, password))
+ *     User user = APP.login(Credentials.emailPassword(username, password))
  * </pre>
  * <p>
  * With an authorized user you can synchronize data between the local device and the remote Realm
@@ -504,6 +504,10 @@ public class App {
         osApp.setNetworkTransport(transport);
     }
 
+    /**
+     * Two Apps are considered equal and will share their underlying state if they both refer
+     * to the same {@link AppConfiguration#getAppId()}.
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

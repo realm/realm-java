@@ -52,6 +52,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     @SuppressLint("StaticFieldLeak") //
     private static Context applicationContext;
     private static volatile Method removeSessionMethod;
+    private static volatile Field osAppField;
 
     @Override
     public void initialize(Context context, String userAgent) {
@@ -93,10 +94,18 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             long appNativePointer;
 
             // We cannot get the app native pointer without exposing it in the public API due to
-            // how our packages are structured. Instead of polluting the API we
+            // how our packages are structured. Instead of polluting the API we use reflection to
+            // access it.
             try {
-                Field osAppField = App.class.getDeclaredField("osApp");
-                osAppField.setAccessible(true);
+                if (osAppField == null) {
+                    synchronized (SyncObjectServerFacade.class) {
+                        if (osAppField == null) {
+                            Field field = App.class.getDeclaredField("osApp");
+                            field.setAccessible(true);
+                            osAppField = field;
+                        }
+                    }
+                }
                 OsApp osApp = (OsApp) osAppField.get(app);
                 appNativePointer = osApp.getNativePtr();
             } catch (Exception e) {
