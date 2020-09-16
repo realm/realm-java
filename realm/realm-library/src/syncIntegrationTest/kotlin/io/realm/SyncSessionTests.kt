@@ -603,16 +603,15 @@ class SyncSessionTests {
                 // .clientResyncMode(ClientResyncMode.MANUAL)
                 // FIXME Is this critical for the test
                 //.directory(looperThread.getRoot())
-                .errorHandler { session, error ->
-                    val handler = error as ClientResetRequiredError
+                .clientResetHandler { session, error ->
                     // Execute Client Reset
                     resources.close()
-                    handler.executeClientReset()
+                    error.executeClientReset()
 
                     // Try to re-open Realm and download it again
                     looperThread.postRunnable(Runnable { // Validate that files have been moved
-                        assertFalse(handler.originalFile.exists())
-                        assertTrue(handler.backupFile.exists())
+                        assertFalse(error.originalFile.exists())
+                        assertTrue(error.backupFile.exists())
                         val config = configRef.get()
                         Realm.getInstance(config!!).use { realm ->
                             realm.syncSession.downloadAllServerChanges()
