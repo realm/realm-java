@@ -444,6 +444,11 @@ public class SyncConfiguration extends RealmConfiguration {
         return partitionValue;
     }
 
+    @Override
+    protected boolean realmExists() {
+        return super.realmExists();
+    }
+
     /**
      * Builder used to construct instances of a SyncConfiguration in a fluent manner.
      */

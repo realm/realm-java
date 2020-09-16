@@ -23,6 +23,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * [RealmApp] Client Resets are now handled through a custom `SyncConfiguration.Builder.clientResetHandler()` instead of through the default session error handler `SyncConfiguration.Builder.errorHandler()`
 
 ### Enhancements
+* [RealmApp] It is now possible to create App instances with different app id's.
 * [RealmApp] Support for using `null` as a partition value.
 * [RealmApp] Improve errors exception messages from `SyncSession.downloadAllServerChanges()` and `SyncSession.uploadAllLocalChanges()`.
 * Support for watching MongoCollection change streams (Issue [#6912](https://github.com/realm/realm-java/issues/6912))
@@ -40,7 +41,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * Realm Studio 10.0.0 and above is required to open Realms created by this version.
 
 ### Internal
-* Updated to Object Store commit: ffda21e28d7dd47793ad2d36394de0328676ca30.
+* Updated to Object Store commit: 6ab48d3b4b1e0865f68b84d5993bb2aad910320b.
 
 
 ## 10.0.0-BETA.6 (2020-08-17)

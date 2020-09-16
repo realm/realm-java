@@ -39,11 +39,11 @@ function handleWatcher(req, resp) {
     resp.write("hello world 3\n");
 }
 
-function handleApplicationId(req, resp) {
+function handleApplicationId(appName, req, resp) {
     switch(req.method) {
         case "GET":
             resp.writeHead(200, {'Content-Type': 'text/plain'});
-            resp.end(applicationId);
+            resp.end(applicationIds[appName]);
             break;
         case "PUT":
             var body = [];
@@ -51,7 +51,7 @@ function handleApplicationId(req, resp) {
                 body.push(chunk);
             }).on('end', () => {
                 body = Buffer.concat(body).toString();
-                applicationId = body.split("=")[1];
+                applicationIds[appName] = body.split("=")[1];
                 resp.writeHead(201, {'Content-Location': '/application-id'});
                 resp.end();
             });
@@ -63,14 +63,16 @@ function handleApplicationId(req, resp) {
 
 //Create and start the Http server
 const PORT = 8888;
-var applicationId = "unknown" // Should be updated by the Docker setup script before any tests are run.
+var applicationIds = {}  // Should be updated by the Docker setup script before any tests are run.
 var server = http.createServer(function(req, resp) {
     try {
         winston.info('command-server: ' + req.method + " " + req.url);
         if (req.url.includes("/okhttp")) {
             handleOkHttp(req, resp);
-        } else if (req.url.includes('/application-id')) {
-            handleApplicationId(req, resp);
+        } else if (req.url.includes('/testapp1')) {
+            handleApplicationId('testapp1', req, resp);
+        } else if (req.url.includes('/testapp2')) {
+            handleApplicationId('testapp2', req, resp);
         } else if (req.url.includes('/watcher')) {
             handleWatcher(req, resp);
         } else {

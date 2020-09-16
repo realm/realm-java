@@ -18,16 +18,17 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
+import io.realm.entities.DefaultSyncSchema
 import io.realm.exceptions.RealmFileException
+import io.realm.kotlin.syncSession
 import io.realm.mongodb.*
+import io.realm.mongodb.sync.SyncConfiguration
 import io.realm.rule.BlockingLooperThread
+import org.bson.BsonString
 import org.bson.codecs.StringCodec
 import org.bson.codecs.configuration.CodecRegistries
-import org.junit.After
+import org.junit.*
 import org.junit.Assert.*
-import org.junit.Before
-import org.junit.Ignore
-import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 import java.util.concurrent.atomic.AtomicReference
@@ -35,6 +36,9 @@ import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
 class AppTests {
+
+    @get:Rule
+    val configFactory = TestSyncConfigurationFactory()
 
     private val looperThread = BlockingLooperThread()
     private lateinit var app: TestApp
@@ -269,29 +273,55 @@ class AppTests {
 
     @Test()
     fun encryption() {
-        // Remove the App instance created on setUp() because we need to create
-        // a custom one and only one App instance is allowed
-        tearDown()
-
         val context = InstrumentationRegistry.getInstrumentation().targetContext
 
-        // Setup an App instance with a random encryption key
-        Realm.init(context)
-        app = TestApp(customizeConfig = {
+        // Create new test app with a random encryption key
+        val testApp = TestApp(appName = TEST_APP_2, builder = {
             it.encryptionKey(TestHelper.getRandomKey())
         })
 
-        val metadataDir = File(context.filesDir, "mongodb-realm/server-utility/metadata/")
-        val config = RealmConfiguration.Builder()
-                .name("sync_metadata.realm")
-                .directory(metadataDir)
-                .build()
+        try {
+            // Create Realm in order to create the sync metadata Realm
+            var user = testApp.login(Credentials.anonymous())
+            val syncConfig = SyncConfiguration.defaultConfig(user, "foo")
+            Realm.getInstance(syncConfig).close()
 
-        assertTrue(File(config.path).exists())
+            // Create a configuration pointing to the metadata Realm for that app
+            val metadataDir = File(context.filesDir, "mongodb-realm/${testApp.configuration.appId}/server-utility/metadata/")
+            val config = RealmConfiguration.Builder()
+                    .name("sync_metadata.realm")
+                    .directory(metadataDir)
+                    .build()
+            assertTrue(File(config.path).exists())
 
-        // Open the metadata realm file without a valid encryption key
-        assertFailsWith<RealmFileException> {
-            DynamicRealm.getInstance(config)
+            // Open the metadata realm file without a valid encryption key
+            assertFailsWith<RealmFileException> {
+                DynamicRealm.getInstance(config)
+            }
+        } finally {
+            testApp.close()
+        }
+    }
+
+    // Check that it is possible to have two Java instances of an App class, but they will
+    // share the underlying App state.
+    @Test
+    fun multipleInstancesSameApp() {
+        // Create a second copy of the test app
+        val app2 = TestApp()
+        try {
+            // User handling are shared between each app
+            val user = app.login(Credentials.anonymous());
+            assertEquals(user, app2.currentUser())
+            assertEquals(user, app.allUsers().values.first())
+            assertEquals(user, app2.allUsers().values.first())
+
+            user.logOut();
+
+            assertNull(app.currentUser())
+            assertNull(app2.currentUser())
+        } finally {
+            app2.close()
         }
     }
 }

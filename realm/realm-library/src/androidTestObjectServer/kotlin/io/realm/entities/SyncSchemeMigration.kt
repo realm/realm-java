@@ -13,14 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.realm.entities
 
-package io.realm.mongodb.sync
+import io.realm.RealmObject
+import io.realm.annotations.PrimaryKey
+import io.realm.annotations.RealmField
+import org.bson.types.ObjectId
 
-// Helper to expose package protected methods for testing purpose
-fun SyncSession.testClose() {
-    this.close()
-}
+open class SyncSchemeMigration : RealmObject() {
 
-fun SyncSession.testShutdownAndWait() {
-    this.shutdownAndWait()
+    companion object {
+        const val CLASS_NAME = "SyncSchemeMigration"
+    }
+
+    @PrimaryKey
+    @RealmField(name = "_id")
+    var id = ObjectId()
+
 }
