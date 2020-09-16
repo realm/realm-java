@@ -817,10 +817,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * @throws IllegalArgumentException if {@code null} is given as an error handler.
          */
         public Builder errorHandler(SyncSession.ErrorHandler errorHandler) {
-            //noinspection ConstantConditions
-            if (errorHandler == null) {
-                throw new IllegalArgumentException("Non-null 'errorHandler' required.");
-            }
+            Util.checkNull(errorHandler, "handler");
             this.errorHandler = errorHandler;
             return this;
         }
@@ -832,10 +829,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param handler custom handler in case of a Client Reset.
          */
         public Builder clientResetHandler(SyncSession.ClientResetHandler handler) {
-            //noinspection ConstantConditions
-            if (handler == null) {
-                throw new IllegalArgumentException("Non-null 'handler' required.");
-            }
+            Util.checkNull(handler, "handler");
             this.clientResetHandler = handler;
             return this;
         }
