@@ -550,6 +550,7 @@ public class SyncConfiguration extends RealmConfiguration {
                 this.modules.add(Realm.getDefaultModule());
             }
             this.errorHandler = user.getApp().getConfiguration().getDefaultErrorHandler();
+            this.clientResetHandler = user.getApp().getConfiguration().getDefaultClientResetHandler();
         }
 
         private void validateAndSet(User user) {
