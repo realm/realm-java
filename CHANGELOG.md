@@ -4,6 +4,9 @@ We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Clo
 
 The old Realm Cloud legacy APIs have undergone significant refactoring. The new APIs are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
 
+WARNING: This release upgrades the fileformat to 20. Non-sync Realms will be upgraded automatically. Synced Realms can only be automatically upgraded if created with Realm Java 10.0.0-BETA.1 and above.
+
+
 ### Breaking Changes
 * [RealmApp] Moved `User.remove()` to `App.removeUser()`.
 * [RealmApp] Renamed `ApiKeyAuth.createApiKey()` to `ApiKeyAuth.create()` and `ApiKeyAuth.createApiKeyAsync()` to `ApiKeyAuth.createAsync()`.
@@ -37,7 +40,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * None.
 
 ### Compatibility
-* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java 10.0.0-BETA.1.
 * APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
 * Realm Studio 10.0.0 and above is required to open Realms created by this version.
 
