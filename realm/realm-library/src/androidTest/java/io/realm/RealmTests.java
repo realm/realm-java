@@ -4609,7 +4609,6 @@ public class RealmTests {
     }
 
     // Test for https://github.com/realm/realm-java/issues/6152
-    @Ignore("FIXME: https://github.com/realm/realm-java/issues/6792")
     @Test
     @RunTestInLooperThread
     public void encryption_stressTest() {

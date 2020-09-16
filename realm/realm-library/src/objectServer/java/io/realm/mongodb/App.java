@@ -37,6 +37,7 @@ import io.realm.BuildConfig;
 import io.realm.Realm;
 import io.realm.RealmAsyncTask;
 import io.realm.annotations.Beta;
+import io.realm.internal.KeepMember;
 import io.realm.internal.Util;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.mongodb.Request;
@@ -66,7 +67,7 @@ import io.realm.mongodb.sync.Sync;
  * <pre>
  *    class MyApplication extends Application {
  *
- *         App APP;
+ *         App APP; // The App instance should be a global singleton
  *
  *         \@Override
  *         public void onCreate() {
@@ -94,10 +95,10 @@ import io.realm.mongodb.sync.Sync;
  * To register a new user and/or login with an existing user do as shown below:
  * <pre>
  *     // Register new user
- *     User user = APP.getEmailPasswordAuth().registerUser(username, password);
+ *     APP.getEmailPassword().registerUser(username, password);
  *
  *     // Login with existing user
- *     APP.login(Credentials.emailPassword(username, password))
+ *     User user = APP.login(Credentials.emailPassword(username, password))
  * </pre>
  * <p>
  * With an authorized user you can synchronize data between the local device and the remote Realm
@@ -140,23 +141,14 @@ import io.realm.mongodb.sync.Sync;
 @Beta
 public class App {
 
+    @KeepMember
     final OsApp osApp;
 
     static final class SyncImpl extends Sync {
         protected SyncImpl(App app) {
-            super(app);
+            super(app, app.osApp.getNativePtr());
         }
     }
-
-    // Implementation notes:
-    // The public API's currently only allow for one App, however this is a restriction
-    // we might want to lift in the future. So any implementation details so ideally be made
-    // with that in mind, i.e. keep static state to minimum.
-
-    // Currently we only allow one instance of App (due to restrictions in ObjectStore that
-    // only allows one underlying SyncClient).
-    // FIXME: Lift this restriction so it is possible to create multiple app instances.
-    public static volatile boolean CREATED = false;
 
     /**
      * Thread pool used when doing network requests against MongoDB Realm.
@@ -185,20 +177,8 @@ public class App {
      */
     public App(AppConfiguration config) {
         this.config = config;
-        this.syncManager = new SyncImpl(this);
         this.osApp = init(config);
-
-        // FIXME: Right now we only support one App. This class will throw a
-        // exception if you try to create it twice. This is a really hacky way to do this
-        // Figure out a better API that is always forward compatible
-        synchronized (Sync.class) {
-            if (CREATED) {
-                throw new IllegalStateException("Only one App is currently supported. " +
-                        "This restriction will be lifted soon. Instead, store the App" +
-                        "instance in a shared global variable.");
-            }
-            CREATED = true;
-        }
+        this.syncManager = new SyncImpl(this);
     }
 
     private OsApp init(AppConfiguration config) {
@@ -331,6 +311,34 @@ public class App {
     }
 
     /**
+     * Removes a users credentials from this device. If the user was currently logged in, they
+     * will be logged out as part of the process. This is only a local change and does not
+     * affect the user state on the server.
+     *
+     * @param user to remove
+     * @return user that was removed.
+     * @throws AppException if called from the UI thread or if the user was logged in, but
+     *                      could not be logged out.
+     */
+    public User removeUser(User user) throws AppException {
+        return user.remove();
+    }
+
+    /**
+     * Removes a user's credentials from this device. If the user was currently logged in, they
+     * will be logged out as part of the process. This is only a local change and does not
+     * affect the user state on the server.
+     *
+     * @param user to remove
+     * @param callback callback when removing the user has completed or failed. The callback will always
+     *                 happen on the same thread as this method is called on.
+     * @throws IllegalStateException if called from a non-looper thread.
+     */
+    RealmAsyncTask removeAsync(User user, App.Callback<User> callback) {
+        return user.removeAsync(callback);
+    }
+
+    /**
      * Logs in as a user with the given credentials associated with an authentication provider.
      * <p>
      * The user who logs in becomes the current user. Other App functionality acts on behalf of
@@ -407,11 +415,11 @@ public class App {
 
     /**
      * Returns a wrapper for interacting with functionality related to users either being created or
-     * logged in using the {@link Credentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
+     * logged in using the {@link Credentials.Provider#EMAIL_PASSWORD} identity provider.
      *
-     * @return wrapper for interacting with the {@link Credentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
+     * @return wrapper for interacting with the {@link Credentials.Provider#EMAIL_PASSWORD} identity provider.
      */
-    public EmailPasswordAuth getEmailPasswordAuth() {
+    public EmailPasswordAuth getEmailPassword() {
         return emailAuthProvider;
     }
 
@@ -494,6 +502,28 @@ public class App {
      */
     protected void setNetworkTransport(OsJavaNetworkTransport transport) {
         osApp.setNetworkTransport(transport);
+    }
+
+    /**
+     * Two Apps are considered equal and will share their underlying state if they both refer
+     * to the same {@link AppConfiguration#getAppId()}.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        App app = (App) o;
+
+        if (!osApp.equals(app.osApp)) return false;
+        return config.equals(app.config);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = osApp.hashCode();
+        result = 31 * result + config.hashCode();
+        return result;
     }
 
     /**

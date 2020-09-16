@@ -72,6 +72,12 @@ class MongoClientTest {
     }
 
     @Test
+    fun serviceName() {
+        assertNotNull(client.serviceName)
+        assertEquals(SERVICE_NAME, client.serviceName)
+    }
+
+    @Test
     fun count() {
         with(getCollectionInternal()) {
             assertEquals(0, count().get())
@@ -1421,6 +1427,20 @@ class MongoClientTest {
             val iter = aggregate(listOf(Document("\$match", Document())), CustomType::class.java)
             assertTrue(iter.iterator().get()!!.hasNext())
             assertEquals(expected, iter.iterator().get()!!.next())
+        }
+    }
+
+    @Test
+    fun getMongoClientServiceName() {
+        assertNotNull(client.serviceName)
+        assertEquals(SERVICE_NAME, client.serviceName)
+    }
+
+    @Test
+    fun getCollectionName() {
+        with(getCollectionInternal()) {
+            assertNotNull(this)
+            assertEquals(COLLECTION_NAME, this.name)
         }
     }
 

@@ -5,13 +5,32 @@ We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Clo
 The old Realm Cloud legacy APIs have undergone significant refactoring. The new APIs are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
 
 ### Breaking Changes
-*  None.
+* [RealmApp] Moved `User.remove()` to `App.removeUser()`.
+* [RealmApp] Renamed `ApiKeyAuth.createApiKey()` to `ApiKeyAuth.create()` and `ApiKeyAuth.createApiKeyAsync()` to `ApiKeyAuth.createAsync()`.
+* [RealmApp] Renamed `ApiKeyAuth.fetchApiKey()` to `ApiKeyAuth.fetch()` and `ApiKeyAuth.fetchApiKeyAsync()` to `ApiKeyAuth.fetchAsync()`.
+* [RealmApp] Renamed `ApiKeyAuth.fetchAllApiKeys()` to `ApiKeyAuth.fetchAll()` and `ApiKeyAuth.fetchAllApiKeysAsync()` to `ApiKeyAuth.fetchAllAsync()`.
+* [RealmApp] Renamed `ApiKeyAuth.deleteApiKey()` to `ApiKeyAuth.delete()` and `ApiKeyAuth.deleteApiKeyAsync()` to `ApiKeyAuth.deleteAsync()`.
+* [RealmApp] Renamed `ApiKeyAuth.enableApiKey()` to `ApiKeyAuth.enable()` and `ApiKeyAuth.enableApiKeyAsync()` to `ApiKeyAuth.enableAsync()`.
+* [RealmApp] Renamed `ApiKeyAuth.disableApiKey()` to `ApiKeyAuth.disable()` and `ApiKeyAuth.disableApiKeyAsync()` to `ApiKeyAuth.disableAsync()`.
+* [RealmApp] Renamed `User.getApiKeysAuth()` to `User.getApiKeys()`.
+* [RealmApp] Renamed `UserApiKey` class to `ApiKey`.
+* [RealmApp] Removed support for `Credentials.serverApiKey()`.
+* [RealmApp] Renamed `App.getEmailPasswordAuth()` to `App.getEmailPassword()`.
+* [RealmApp] User profile methods `getName()`, `getEmail()`, `getPictureUrl()`, `getFirstName()`, `getLastName()`, `getGender()`, `getBirthday()`, `getMinAge()` and `getMaxAge()` are now available under a new class `UserProfile`. It can be accessed using `User.getProfile()`.
+* [RealmApp] Renamed `Sync.refreshConnections()` to `Sync.reconnect()`.
+* [RealmApp] Renamed `Credentials.IdentityProvider` to `Credentials.Provider`.
+* [RealmApp] Removed support for `User.getLocalId()`.
 
 ### Enhancements
+* [RealmApp] It is now possible to create App instances with different app id's.
 * [RealmApp] Support for using `null` as a partition value.
 * [RealmApp] Improve errors exception messages from `SyncSession.downloadAllServerChanges()` and `SyncSession.uploadAllLocalChanges()`.
-* Support for watching MongoCollection change streams (Issue [#6912](https://github.com/realm/realm-java/issues/6912))
-* Support for retrying a custom confirmation function on an User for a given email (Issue [#7079](https://github.com/realm/realm-java/pull/7079))
+* [RealmApp] Support for watching MongoCollection change streams (Issue [#6912](https://github.com/realm/realm-java/issues/6912))
+* [RealmApp] Support for retrying a custom confirmation function on an User for a given email (Issue [#7079](https://github.com/realm/realm-java/pull/7079))
+* [RealmApp] Support for getting all app sessions via `Sync.getAllSessions()`.
+* [RealmApp] Support to retrieve the MongoClient service name using `MongoClient.getServiceName()`
+* [RealmApp] Support to retrieve the MongoDatabase name using `MongoDatabase.getName()`
+* [RealmApp] Support to retrieve the MongoCollection name using `MongoCollection.getName()`
 
 ### Fixed
 * None.
@@ -22,7 +41,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * Realm Studio 10.0.0 and above is required to open Realms created by this version.
 
 ### Internal
-* Updated to Object Store commit: 39e20006761e77014ceb19a2bd8f43018cc96f5a.
+* Updated to Object Store commit: 6ab48d3b4b1e0865f68b84d5993bb2aad910320b.
 
 
 ## 10.0.0-BETA.6 (2020-08-17)

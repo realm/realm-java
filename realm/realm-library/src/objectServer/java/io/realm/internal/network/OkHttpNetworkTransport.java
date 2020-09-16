@@ -8,8 +8,8 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.realm.mongodb.log.obfuscator.HttpLogObfuscator;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
+import io.realm.mongodb.AppConfiguration;
 import io.realm.mongodb.AppException;
 import io.realm.mongodb.ErrorCode;
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator;
@@ -38,6 +38,22 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
 
     private okhttp3.Request makeRequest(String method, String url, Map<String, String> headers, String body){
         okhttp3.Request.Builder builder = new okhttp3.Request.Builder().url(url);
+        // TODO Ensure that we have correct custom headers until OS handles it
+        //  first of all add all custom headers
+        for (Map.Entry<String, String> entry : getCustomRequestHeaders().entrySet()) {
+            builder.addHeader(entry.getKey(), entry.getValue());
+        }
+        //  and then replace default authorization header with custom one if present
+        String authorizationHeaderValue = headers.get(AppConfiguration.DEFAULT_AUTHORIZATION_HEADER_NAME);
+        String authorizationHeaderName = getAuthorizationHeaderName();
+        if (authorizationHeaderValue != null && !AppConfiguration.DEFAULT_AUTHORIZATION_HEADER_NAME.equals(authorizationHeaderName)) {
+            headers.remove(AppConfiguration.DEFAULT_AUTHORIZATION_HEADER_NAME);
+            headers.put(authorizationHeaderName, authorizationHeaderValue);
+        }
+
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            builder.addHeader(entry.getKey(), entry.getValue());
+        }
         switch (method) {
             case "get":
                 builder.get();

@@ -33,17 +33,19 @@ import io.realm.RealmConfiguration;
 @Beta
 public class ClientResetRequiredError extends AppException {
 
+    private final long appNativePointer;
     private final SyncConfiguration originalConfiguration;
     private final RealmConfiguration backupConfiguration;
     private final File backupFile;
     private final File originalFile;
 
-    ClientResetRequiredError(ErrorCode errorCode, String errorMessage, SyncConfiguration originalConfiguration, RealmConfiguration backupConfiguration) {
+    ClientResetRequiredError(long appNativePointer, ErrorCode errorCode, String errorMessage, SyncConfiguration originalConfiguration, RealmConfiguration backupConfiguration) {
         super(errorCode, errorMessage);
         this.originalConfiguration = originalConfiguration;
         this.backupConfiguration = backupConfiguration;
         this.backupFile = new File(backupConfiguration.getPath());
         this.originalFile = new File(originalConfiguration.getPath());
+        this.appNativePointer = appNativePointer;
     }
 
     /**
@@ -63,7 +65,7 @@ public class ClientResetRequiredError extends AppException {
                 throw new IllegalStateException("Realm has not been fully closed. Client Reset cannot run before all " +
                         "instances have been closed.");
             }
-            nativeExecuteClientReset(originalConfiguration.getPath());
+            nativeExecuteClientReset(appNativePointer, originalConfiguration.getPath());
         }
     }
 
@@ -97,5 +99,5 @@ public class ClientResetRequiredError extends AppException {
     }
 
     // PRECONDITION: All Realm instances for this path must have been closed.
-    private native void nativeExecuteClientReset(String originalPath);
+    private native void nativeExecuteClientReset(long appNativePointer, String originalPath);
 }

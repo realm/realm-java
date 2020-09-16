@@ -20,6 +20,7 @@ import org.bson.BsonValue;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -71,11 +72,13 @@ import io.realm.mongodb.User;
 public abstract class Sync {
 
     private final App app;
+    private final long appNativePointer;
     // keeps track of SyncSession, using 'realm_path'. Java interface with the ObjectStore using the 'realm_path'
     private Map<String, SyncSession> sessions = new ConcurrentHashMap<>();
 
-    protected Sync(App app) {
+    protected Sync(App app, long appNativePointer) {
         this.app = app;
+        this.appNativePointer = appNativePointer;
     }
 
     /**
@@ -95,15 +98,15 @@ public abstract class Sync {
         public static boolean separatedDirForSyncManager = false;
     }
 
-    private static NetworkStateReceiver.ConnectionListener networkListener = new NetworkStateReceiver.ConnectionListener() {
+    private NetworkStateReceiver.ConnectionListener networkListener = new NetworkStateReceiver.ConnectionListener() {
         @Override
         public void onChange(boolean connectionAvailable) {
             if (connectionAvailable) {
-                RealmLog.debug("NetworkListener: Connection available");
+                RealmLog.debug("[App(%s)] NetworkListener: Connection available", app.getConfiguration().getAppId());
                 // notify all sessions
                 notifyNetworkIsBack();
             } else {
-                RealmLog.debug("NetworkListener: Connection lost");
+                RealmLog.debug("[App(%s)] NetworkListener: Connection lost", app.getConfiguration().getAppId());
             }
         }
     };
@@ -134,6 +137,15 @@ public abstract class Sync {
     }
 
     /**
+     * Gets a collection of all the cached {@link SyncSession}.
+     *
+     * @return a collection of {@link SyncSession}.
+     */
+    public synchronized Collection<SyncSession> getAllSessions(){
+        return this.sessions.values();
+    }
+
+    /**
      * Gets any cached {@link SyncSession} for the given {@link SyncConfiguration} or create a new one if
      * no one exists.
      *
@@ -157,7 +169,7 @@ public abstract class Sync {
         SyncSession session = sessions.get(syncConfiguration.getPath());
         if (session == null) {
             RealmLog.debug("Creating session for: %s", syncConfiguration.getPath());
-            session = new SyncSession(syncConfiguration);
+            session = new SyncSession(syncConfiguration, appNativePointer);
             sessions.put(syncConfiguration.getPath(), session);
             if (sessions.size() == 1) {
                 RealmLog.debug("First session created. Adding network listener.");
@@ -190,7 +202,7 @@ public abstract class Sync {
             default:
                 throw new IllegalArgumentException("Unsupported type: " + partitionValue);
         }
-        return nativeGetPathForRealm(userId, encodedPartitionValue, overrideFileName);
+        return nativeGetPathForRealm(appNativePointer, userId, encodedPartitionValue, overrideFileName);
     }
 
     /**
@@ -243,9 +255,9 @@ public abstract class Sync {
         }
     }
 
-    private static synchronized void notifyNetworkIsBack() {
+    private synchronized void notifyNetworkIsBack() {
         try {
-            nativeReconnect();
+            nativeReconnect(appNativePointer);
         } catch (Exception exception) {
             RealmLog.error(exception);
         }
@@ -280,7 +292,7 @@ public abstract class Sync {
      * sessions to attempt to reconnect immediately and reset any timers they are using for
      * incremental backoff.
      */
-    public static void refreshConnections() {
+    public void reconnect() {
         notifyNetworkIsBack();
     }
 
@@ -291,7 +303,7 @@ public abstract class Sync {
      * Only call this method when testing.
      */
     synchronized void reset() {
-        nativeReset();
+        nativeReset(appNativePointer);
         sessions.clear();
     }
 
@@ -304,15 +316,15 @@ public abstract class Sync {
      * @param session Session to trigger Client Reset for.
      */
     void simulateClientReset(SyncSession session) {
-        nativeSimulateSyncError(session.getConfiguration().getPath(),
+        nativeSimulateSyncError(appNativePointer, session.getConfiguration().getPath(),
                 ErrorCode.DIVERGING_HISTORIES.intValue(),
                 "Simulate Client Reset",
                 true);
     }
 
-    private static native void nativeReset();
-    private static native void nativeSimulateSyncError(String realmPath, int errorCode, String errorMessage, boolean isFatal);
-    private static native void nativeReconnect();
+    private static native void nativeReset(long appNativePointer);
+    private static native void nativeSimulateSyncError(long appNativePointer, String realmPath, int errorCode, String errorMessage, boolean isFatal);
+    private static native void nativeReconnect(long appNativePointer);
     private static native void nativeCreateSession(long nativeConfigPtr);
-    private static native String nativeGetPathForRealm(String userId, String partitionValue, @Nullable String overrideFileName);
+    private static native String nativeGetPathForRealm(long appNativePointer, String userId, String partitionValue, @Nullable String overrideFileName);
 }

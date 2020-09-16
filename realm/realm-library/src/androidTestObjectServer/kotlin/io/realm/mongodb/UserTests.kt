@@ -19,8 +19,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.admin.ServerAdmin
+import io.realm.mongodb.auth.ApiKey
 import io.realm.mongodb.auth.ApiKeyAuth
-import io.realm.mongodb.auth.UserApiKey
 import io.realm.rule.BlockingLooperThread
 import org.bson.Document
 import org.junit.After
@@ -77,7 +77,7 @@ class UserTests {
         assertEquals(User.State.LOGGED_IN, emailUser.state)
         emailUser.logOut()
         assertEquals(User.State.LOGGED_OUT, emailUser.state)
-        emailUser.remove()
+        app.removeUser(emailUser)
         assertEquals(User.State.REMOVED, emailUser.state)
     }
 
@@ -151,7 +151,7 @@ class UserTests {
         assertEquals(User.State.LOGGED_OUT, initialUser.state)
 
         repeat(3) {
-            val user = app.login(Credentials.emailPassword(initialUser.email, password))
+            val user = app.login(Credentials.emailPassword(initialUser.profile.email, password))
             assertEquals(User.State.LOGGED_IN, user.state)
             user.logOut()
             assertEquals(User.State.LOGGED_OUT, user.state)
@@ -173,17 +173,17 @@ class UserTests {
 
         val email = TestHelper.getRandomEmail()
         val password = "123456"
-        app.emailPasswordAuth.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
+        app.emailPassword.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
         var linkedUser: User = anonUser.linkCredentials(Credentials.emailPassword(email, password))
 
         assertTrue(anonUser === linkedUser)
         assertEquals(2, linkedUser.identities.size)
-        assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
+        assertEquals(Credentials.Provider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
 
         // Validate that we cannot link a second set of credentials
         val otherEmail = TestHelper.getRandomEmail()
         val otherPassword = "123456"
-        app.emailPasswordAuth.registerUser(otherEmail, otherPassword)
+        app.emailPassword.registerUser(otherEmail, otherPassword)
 
         val credentials = Credentials.emailPassword(otherEmail, otherPassword)
 
@@ -196,7 +196,7 @@ class UserTests {
     fun linkUser_userApiKey() {
         // Generate API key
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        val apiKey: UserApiKey = user.apiKeyAuth.createApiKey("my-key");
+        val apiKey: ApiKey = user.apiKeys.create("my-key");
         user.logOut()
 
         anonUser = app.login(Credentials.anonymous())
@@ -215,18 +215,6 @@ class UserTests {
     }
 
     @Test
-    fun linkUser_serverApiKey() {
-        val serverKey = admin.createServerApiKey()
-
-        assertEquals(1, anonUser.identities.size)
-
-        // Linking a server API key is not allowed
-        val exception = assertFailsWith<AppException> {
-            anonUser.linkCredentials(Credentials.serverApiKey(serverKey))
-        }
-    }
-
-    @Test
     fun linkUser_customFunction() {
         assertEquals(1, anonUser.identities.size)
 
@@ -241,7 +229,7 @@ class UserTests {
 
         assertTrue(anonUser === linkedUser)
         assertEquals(2, linkedUser.identities.size)
-        assertEquals(Credentials.IdentityProvider.CUSTOM_FUNCTION, linkedUser.identities[1].provider)
+        assertEquals(Credentials.Provider.CUSTOM_FUNCTION, linkedUser.identities[1].provider)
     }
 
     @Test
@@ -271,13 +259,13 @@ class UserTests {
         assertEquals(1, anonUser.identities.size)
         val email = TestHelper.getRandomEmail()
         val password = "123456"
-        app.emailPasswordAuth.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
+        app.emailPassword.registerUser(email, password) // TODO: Test what happens if auto-confirm is enabled
 
         anonUser.linkCredentialsAsync(Credentials.emailPassword(email, password)) { result ->
             val linkedUser: User = result.orThrow
             assertTrue(anonUser === linkedUser)
             assertEquals(2, linkedUser.identities.size)
-            assertEquals(Credentials.IdentityProvider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
+            assertEquals(Credentials.Provider.EMAIL_PASSWORD, linkedUser.identities[1].provider)
             looperThread.testComplete()
         }
     }
@@ -299,7 +287,7 @@ class UserTests {
         val user1 = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         assertEquals(user1, app.currentUser())
         assertEquals(1, app.allUsers().size)
-        user1.remove()
+        app.removeUser(user1)
         assertEquals(User.State.REMOVED, user1.state)
         assertNull(app.currentUser())
         assertEquals(0, app.allUsers().size)
@@ -309,7 +297,7 @@ class UserTests {
         user2.logOut()
         assertNull(app.currentUser())
         assertEquals(1, app.allUsers().size)
-        user2.remove()
+        app.removeUser(user2)
         assertEquals(User.State.REMOVED, user2.state)
         assertEquals(0, app.allUsers().size)
     }
@@ -357,13 +345,13 @@ class UserTests {
     @Test
     fun getApiKeyAuthProvider() {
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        val provider1: ApiKeyAuth = user.apiKeyAuth
+        val provider1: ApiKeyAuth = user.apiKeys
         assertEquals(user, provider1.user)
 
         user.logOut()
 
         try {
-            user.apiKeyAuth
+            user.apiKeys
             fail()
         } catch (ex: IllegalStateException) {
         }
@@ -379,7 +367,7 @@ class UserTests {
             override fun loggedIn(user: User) {}
 
             override fun loggedOut(loggerOutUser: User) {
-                app.loginAsync(Credentials.emailPassword(loggerOutUser.email, password)) {
+                app.loginAsync(Credentials.emailPassword(loggerOutUser.profile.email, password)) {
                     val loggedInUser = it.orThrow
                     assertTrue(loggerOutUser !== loggedInUser)
                     assertNotEquals(refreshToken, loggedInUser.refreshToken)
@@ -388,12 +376,6 @@ class UserTests {
             }
         })
         user.logOut()
-    }
-
-    @Test
-    fun getLocalId() {
-        val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        assertNotNull(user.localId)
     }
 
     fun isLoggedIn() {
@@ -419,7 +401,7 @@ class UserTests {
         assertNotEquals(user, app)
         user.logOut()
 
-        val sameUserNewLogin = app.login(Credentials.emailPassword(user.email!!, "123456"))
+        val sameUserNewLogin = app.login(Credentials.emailPassword(user.profile.email!!, "123456"))
         // Verify that it is not same object but uses underlying OSSyncUser equality on identity
         assertFalse(user === sameUserNewLogin)
         assertEquals(user, sameUserNewLogin)
@@ -433,7 +415,7 @@ class UserTests {
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         user.logOut()
 
-        val sameUserNewLogin = app.login(Credentials.emailPassword(user.email!!, "123456"))
+        val sameUserNewLogin = app.login(Credentials.emailPassword(user.profile.email!!, "123456"))
         // Verify that two equal users also returns same hashCode
         assertFalse(user === sameUserNewLogin)
         assertEquals(user.hashCode(), sameUserNewLogin.hashCode())
@@ -486,7 +468,7 @@ class UserTests {
 
         // But will be updated when authorization token is refreshed
         user.logOut()
-        app.login(Credentials.emailPassword(user.email, password))
+        app.login(Credentials.emailPassword(user.profile.email, password))
         assertEquals(CUSTOM_USER_DATA_VALUE, user.customData.get(CUSTOM_USER_DATA_FIELD))
     }
 

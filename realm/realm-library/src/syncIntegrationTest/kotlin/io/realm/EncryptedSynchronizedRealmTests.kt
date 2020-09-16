@@ -67,7 +67,7 @@ class EncryptedSynchronizedRealmTests {
         val configWithEncryption: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, BsonString(UUID.randomUUID().toString()))
                 .testSchema(SyncStringOnly::class.java)
                 .waitForInitialRemoteData()
-                .errorHandler { session, error -> fail(error.getErrorMessage()) }
+                .errorHandler { _, error -> fail(error.errorMessage) }
                 .encryptionKey(randomKey)
                 .build()
 
@@ -90,7 +90,7 @@ class EncryptedSynchronizedRealmTests {
                 // .name("newName")
                 .testSchema(SyncStringOnly::class.java)
                 .waitForInitialRemoteData()
-                .errorHandler { session, error -> fail(error.getErrorMessage()) }
+                .errorHandler { _, error -> fail(error.errorMessage) }
                 .build()
 
         Realm.getInstance(configWithoutEncryption).use { realm ->
@@ -126,7 +126,7 @@ class EncryptedSynchronizedRealmTests {
         user.logOut()
 
         // STEP 3: try to open again the Realm without the encryption key should fail
-        user = app.login(Credentials.emailPassword(user.email, SECRET_PASSWORD))
+        user = app.login(Credentials.emailPassword(user.profile.email, SECRET_PASSWORD))
         val configWithoutEncryption: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, configWithEncryption.partitionValue)
                 .testSchema(SyncStringOnly::class.java)
                 .waitForInitialRemoteData()

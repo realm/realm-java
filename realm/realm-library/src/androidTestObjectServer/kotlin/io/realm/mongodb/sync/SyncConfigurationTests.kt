@@ -18,12 +18,12 @@ package io.realm.mongodb.sync
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
-import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
 import io.realm.entities.StringOnly
 import io.realm.entities.StringOnlyModule
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import io.realm.mongodb.AppException
+import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
 import io.realm.mongodb.User
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
@@ -140,7 +140,7 @@ class SyncConfigurationTests {
         val config: SyncConfiguration = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
                 .name(filename)
                 .build()
-        val suffix = "/mongodb-realm/${user.app.configuration.appId}/${user.localId}/$filename"
+        val suffix = "/mongodb-realm/${user.app.configuration.appId}/${user.id}/$filename"
         assertTrue(config.path.endsWith(suffix))
     }
 
@@ -310,8 +310,8 @@ class SyncConfigurationTests {
         val config2 = SyncConfiguration.defaultConfig(user, "realm2")
         assertNotEquals(config1.path, config2.path)
 
-         assertTrue(config1.path.endsWith("${app.configuration.appId}/${user.localId}/s_realm1.realm"))
-         assertTrue(config2.path.endsWith("${app.configuration.appId}/${user.localId}/s_realm2.realm"))
+         assertTrue(config1.path.endsWith("${app.configuration.appId}/${user.id}/s_realm1.realm"))
+         assertTrue(config2.path.endsWith("${app.configuration.appId}/${user.id}/s_realm2.realm"))
 
         // Check for https://github.com/realm/realm-java/issues/6882
         val realm1 = Realm.getInstance(config1)

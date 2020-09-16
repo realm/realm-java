@@ -121,7 +121,7 @@ public class AppConfiguration {
      * authenticate against an app and the values are the concrete obfuscators used for that
      * provider.
      *
-     * @see Credentials.IdentityProvider
+     * @see Credentials.Provider
      * @see RegexPatternObfuscator
      * @see ApiKeyObfuscator
      * @see TokenObfuscator
@@ -187,6 +187,7 @@ public class AppConfiguration {
      *
      * @return the app name.
      */
+    @Nullable
     public String getAppName() {
         return appName;
     }
@@ -196,6 +197,7 @@ public class AppConfiguration {
      *
      * @return the app version.
      */
+    @Nullable
     public String getAppVersion() {
         return appVersion;
     }
@@ -294,16 +296,54 @@ public class AppConfiguration {
         return httpLogObfuscator;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AppConfiguration that = (AppConfiguration) o;
+
+        if (requestTimeoutMs != that.requestTimeoutMs) return false;
+        if (!appId.equals(that.appId)) return false;
+        if (appName != null ? !appName.equals(that.appName) : that.appName != null) return false;
+        if (appVersion != null ? !appVersion.equals(that.appVersion) : that.appVersion != null)
+            return false;
+        if (!baseUrl.toString().equals(that.baseUrl.toString())) return false;
+        if (!defaultErrorHandler.equals(that.defaultErrorHandler)) return false;
+        if (!Arrays.equals(encryptionKey, that.encryptionKey)) return false;
+        if (!authorizationHeaderName.equals(that.authorizationHeaderName)) return false;
+        if (!customHeaders.equals(that.customHeaders)) return false;
+        if (!syncRootDir.equals(that.syncRootDir)) return false;
+        if (!codecRegistry.equals(that.codecRegistry)) return false;
+        return httpLogObfuscator != null ? httpLogObfuscator.equals(that.httpLogObfuscator) : that.httpLogObfuscator == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = appId.hashCode();
+        result = 31 * result + (appName != null ? appName.hashCode() : 0);
+        result = 31 * result + (appVersion != null ? appVersion.hashCode() : 0);
+        result = 31 * result + baseUrl.toString().hashCode();
+        result = 31 * result + defaultErrorHandler.hashCode();
+        result = 31 * result + Arrays.hashCode(encryptionKey);
+        result = 31 * result + (int) (requestTimeoutMs ^ (requestTimeoutMs >>> 32));
+        result = 31 * result + authorizationHeaderName.hashCode();
+        result = 31 * result + customHeaders.hashCode();
+        result = 31 * result + syncRootDir.hashCode();
+        result = 31 * result + codecRegistry.hashCode();
+        result = 31 * result + (httpLogObfuscator != null ? httpLogObfuscator.hashCode() : 0);
+        return result;
+    }
+
     private static Map<String, RegexPatternObfuscator> getLoginObfuscators() {
         final HashMap<String, RegexPatternObfuscator> obfuscators = new HashMap<>();
-        obfuscators.put(Credentials.IdentityProvider.API_KEY.getId(), ApiKeyObfuscator.obfuscator());
-        obfuscators.put(Credentials.IdentityProvider.SERVER_API_KEY.getId(), ApiKeyObfuscator.obfuscator());
-        obfuscators.put(Credentials.IdentityProvider.APPLE.getId(), TokenObfuscator.obfuscator());
-        obfuscators.put(Credentials.IdentityProvider.CUSTOM_FUNCTION.getId(), CustomFunctionObfuscator.obfuscator());
-        obfuscators.put(Credentials.IdentityProvider.EMAIL_PASSWORD.getId(), EmailPasswordObfuscator.obfuscator());
-        obfuscators.put(Credentials.IdentityProvider.FACEBOOK.getId(), TokenObfuscator.obfuscator());
-        obfuscators.put(Credentials.IdentityProvider.GOOGLE.getId(), TokenObfuscator.obfuscator());
-        obfuscators.put(Credentials.IdentityProvider.JWT.getId(), TokenObfuscator.obfuscator());
+        obfuscators.put(Credentials.Provider.API_KEY.getId(), ApiKeyObfuscator.obfuscator());
+        obfuscators.put(Credentials.Provider.APPLE.getId(), TokenObfuscator.obfuscator());
+        obfuscators.put(Credentials.Provider.CUSTOM_FUNCTION.getId(), CustomFunctionObfuscator.obfuscator());
+        obfuscators.put(Credentials.Provider.EMAIL_PASSWORD.getId(), EmailPasswordObfuscator.obfuscator());
+        obfuscators.put(Credentials.Provider.FACEBOOK.getId(), TokenObfuscator.obfuscator());
+        obfuscators.put(Credentials.Provider.GOOGLE.getId(), TokenObfuscator.obfuscator());
+        obfuscators.put(Credentials.Provider.JWT.getId(), TokenObfuscator.obfuscator());
         return obfuscators;
     }
 

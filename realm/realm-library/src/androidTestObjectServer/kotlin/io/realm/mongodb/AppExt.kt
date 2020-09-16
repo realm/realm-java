@@ -30,7 +30,6 @@ fun App.close() {
     ServerAdmin(this).deleteAllUsers()
     this.syncManager.testReset()
     this.osApp.networkTransport.resetHeaders()
-    App.CREATED = false
     RealmExt.testClearApplicationContext()
 }
 
@@ -39,6 +38,6 @@ fun App.close() {
  * This only works if users in the Realm Application are configured to be automatically confirmed.
  */
 fun App.registerUserAndLogin(email: String, password: String): User {
-    emailPasswordAuth.registerUser(email, password)
+    emailPassword.registerUser(email, password)
     return login(Credentials.emailPassword(email, password))
 }

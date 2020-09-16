@@ -109,6 +109,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
                                                                jstring j_sdk_version)
 {
     try {
+
+        JStringAccessor app_id(env, j_app_id);
+
+        // Check if we already have a cached instance, if yes, return that instead. The Java GC
+        // will only cleanup the shared pointer, but leave the cached instance alone. This also
+        // means that no App is never fully closed. This should be safe as App doesn't implement
+        // Closable in Java, so it doesn't have a a visible lifecycle.
+        auto cached_app = App::get_cached_app(app_id);
+        if (cached_app) {
+            return reinterpret_cast<jlong>(new std::shared_ptr<App>(cached_app));
+        }
+
         // App Config
         std::function<std::unique_ptr<GenericNetworkTransport>()> transport_generator = [java_app_ref = JavaGlobalRefByCopy(env, obj)] {
             JNIEnv* env = JniUtils::get_env(true);
@@ -117,7 +129,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
             return std::unique_ptr<GenericNetworkTransport>(new JavaNetworkTransport(network_transport_impl));
         };
 
-        JStringAccessor app_id(env, j_app_id);
         JStringAccessor base_url(env, j_base_url);
         JStringAccessor app_name(env, j_app_name);
         JStringAccessor app_version(env, j_app_version);
@@ -155,15 +166,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
             client_config.custom_encryption_key = encryption_key.transform<std::vector<char>>();
         }
 
-        // FIXME: SyncManager is still a singleton. Should be refactored to allow multiple
-        SyncManager::shared().configure(client_config, app_config);
+        SharedApp app = App::get_shared_app(app_config, client_config);
         // Init logger. Must be called after .configure()
-        SyncManager::shared().set_logger_factory(s_sync_logger_factory);
+        app->sync_manager()->set_logger_factory(s_sync_logger_factory);
         // Register Sync Client thread start/stop callback. Must be called after .configure()
         static AndroidClientListener client_thread_listener(env);
         g_binding_callback_thread_observer = &client_thread_listener;
 
-        return reinterpret_cast<jlong>(new std::shared_ptr<App>(SyncManager::shared().app()));
+        return reinterpret_cast<jlong>(new std::shared_ptr<App>(app));
     }
     CATCH_STD()
     return 0;
