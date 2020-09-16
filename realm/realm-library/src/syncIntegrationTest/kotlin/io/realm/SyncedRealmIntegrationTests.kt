@@ -312,7 +312,7 @@ class SyncedRealmIntegrationTests {
     @Test
     fun refreshConnections() = looperThread.runBlocking {
         RealmLog.setLevel(LogLevel.DEBUG)
-        Sync.reconnect() // No Realms
+        app.sync.reconnect() // No Realms
 
         // A single active Realm
         val username = UUID.randomUUID().toString()
@@ -322,11 +322,11 @@ class SyncedRealmIntegrationTests {
                 .testSchema(StringOnly::class.java)
                 .build()
         val realm = Realm.getInstance(config)
-        Sync.reconnect()
+        app.sync.reconnect()
 
         // A single logged out Realm
         realm.close()
-        Sync.reconnect()
+        app.sync.reconnect()
         looperThread.testComplete()
     }
 

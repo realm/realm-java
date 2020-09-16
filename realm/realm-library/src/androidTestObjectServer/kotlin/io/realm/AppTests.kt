@@ -276,7 +276,7 @@ class AppTests {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
 
         // Create new test app with a random encryption key
-        val testApp = TestApp(appName = TEST_APP_2, customizeConfig = {
+        val testApp = TestApp(appName = TEST_APP_2, builder = {
             it.encryptionKey(TestHelper.getRandomKey())
         })
 
