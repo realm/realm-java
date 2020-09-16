@@ -1,7 +1,7 @@
 # Realm Sync release used by Realm Java (This includes Realm Core)
 # https://github.com/realm/realm-sync/releases
-REALM_SYNC=10.0.0-beta.6
-REALM_SYNC_SHA256=824192a67e7ded59d33707265f78c8d5546b1fef473e9ee5ecff8a5bc9f8506e
+REALM_SYNC=10.0.0-beta.11
+REALM_SYNC_SHA256=da27012959fdd7e35b9b0f3274a1dd7ad391e027217527cf8897020a4c1562d6
 
 # Version of MongoDB Realm used by integration tests
 # See https://github.com/realm/ci/packages/147854 for available versions
