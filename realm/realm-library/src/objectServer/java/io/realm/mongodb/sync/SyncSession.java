@@ -68,6 +68,7 @@ public class SyncSession {
     private final long appNativePointer;
     private final SyncConfiguration configuration;
     private final ErrorHandler errorHandler;
+    private final ClientResetHandler clientResetHandler;
     private volatile boolean isClosed = false;
     private final AtomicReference<WaitForSessionWrapper> waitingForServerChanges = new AtomicReference<>(null);
 
@@ -158,6 +159,7 @@ public class SyncSession {
     SyncSession(SyncConfiguration configuration, long appNativePointer) {
         this.configuration = configuration;
         this.errorHandler = configuration.getErrorHandler();
+        this.clientResetHandler = configuration.getClientResetHandler();
         this.appNativePointer = appNativePointer;
     }
 
@@ -198,8 +200,8 @@ public class SyncSession {
         if (errCode == ErrorCode.CLIENT_RESET) {
             // errorMessage contains the path to the backed up file
             RealmConfiguration backupRealmConfiguration = configuration.forErrorRecovery(errorMessage);
-            errorHandler.onError(this, new ClientResetRequiredError(appNativePointer, errCode, "A Client Reset is required. " +
-                    "Read more here: https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup.",
+            clientResetHandler.onClientReset(this, new ClientResetRequiredError(appNativePointer, errCode, "A Client Reset is required. " +
+                    "Read more here: https://docs.realm.io/sync/using-synced-realms/errors#client-reset.",
                     configuration, backupRealmConfiguration));
         } else {
             AppException wrappedError;
@@ -653,46 +655,60 @@ public class SyncSession {
          * When an exception is thrown in the error handler, the occurrence will be logged and the exception
          * will be ignored.
          *
-         * <p>
-         * When the {@code error.getErrorCode()} returns {@link ErrorCode#CLIENT_RESET}, it indicates the Realm
-         * needs to be reset and the {@code error} can be cast to {@link ClientResetRequiredError}.
-         * <p>
-         * A synced Realm may need to be reset because the Realm Object Server encountered an error and had
-         * to be restored from a backup. If the backup copy of the remote Realm is of an earlier version
-         * than the local copy of the Realm, the server will ask the client to reset the Realm.
-         * <p>
-         * The reset process is as follows: the local copy of the Realm is copied into a recovery directory
-         * for safekeeping, and then deleted from the original location. The next time the Realm for that
-         * URL is opened, the Realm will automatically be re-downloaded from the Realm Object Server, and
-         * can be used as normal.
-         * <p>
-         * Data written to the Realm after the local copy of the Realm diverged from the backup remote copy
-         * will be present in the local recovery copy of the Realm file. The re-downloaded Realm will
-         * initially contain only the data present at the time the Realm was backed up on the server.
-         * <p>
-         * The client reset process can be initiated in one of two ways:
-         * <ol>
-         *     <li>
-         *         Run {@link ClientResetRequiredError#executeClientReset()} manually. All Realm instances must be
-         *         closed before this method is called.
-         *     </li>
-         *     <li>
-         *         If Client Reset isn't executed manually, it will automatically be carried out the next time all
-         *         Realm instances have been closed and re-opened. This will most likely be
-         *         when the app is restarted.
-         *     </li>
-         * </ol>
-         *
-         * <b>WARNING:</b>
-         * Any writes to the Realm file between this callback and Client Reset has been executed, will not be
-         * synchronized to the Object Server. Those changes will only be present in the backed up file. It is therefore
-         * recommended to close all open Realm instances as soon as possible.
-         *
-         *
          * @param session {@link SyncSession} this error happened on.
          * @param error type of error.
          */
         void onError(SyncSession session, AppException error);
+    }
+
+    /**
+     * Callback for the specific error event known as a Client Reset, determined by the error code
+     * {@link ErrorCode#CLIENT_RESET}.
+     * <p>
+     * A synced Realm may need to be reset because the MongoDB Realm Server encountered an error and had
+     * to be restored from a backup or because it has been too long since the client connected to the
+     * server so the server has rotated the logs.
+     * <p>
+     * The Client Reset thus occurs because the server does not have the full information required to
+     * bring the Client fully up to date.
+     * <p>
+     * The reset process is as follows: the local copy of the Realm is copied into a recovery directory
+     * for safekeeping, and then deleted from the original location. The next time the Realm for that
+     * URL is opened, the Realm will automatically be re-downloaded from MongoDB Realm, and
+     * can be used as normal.
+     * <p>
+     * Data written to the Realm after the local copy of the Realm diverged from the backup remote copy
+     * will be present in the local recovery copy of the Realm file. The re-downloaded Realm will
+     * initially contain only the data present at the time the Realm was backed up on the server.
+     * <p>
+     * The client reset process can be initiated in one of two ways:
+     * <ol>
+     *     <li>
+     *         Run {@link ClientResetRequiredError#executeClientReset()} manually. All Realm instances must be
+     *         closed before this method is called.
+     *     </li>
+     *     <li>
+     *         If Client Reset isn't executed manually, it will automatically be carried out the next time all
+     *         Realm instances have been closed and re-opened. This will most likely be
+     *         when the app is restarted.
+     *     </li>
+     * </ol>
+     *
+     * <b>WARNING:</b>
+     * Any writes to the Realm file between this callback and Client Reset has been executed, will not be
+     * synchronized to MongoDB Realm. Those changes will only be present in the backed up file. It is therefore
+     * recommended to close all open Realm instances as soon as possible.
+     */
+    public interface ClientResetHandler {
+        /**
+         * Callback that indicates a Client Reset has happened. This should be handled as quickly as
+         * possible as any further changes to the Realm will not be synchronized with the server and
+         * must be moved manually from the backup Realm to the new one.
+         * 
+         * @param session {@link SyncSession} this error happened on.
+         * @param error {@link ClientResetRequiredError} the specific Client Reset error.
+         */
+        void onClientReset(SyncSession session, ClientResetRequiredError error);
     }
 
     // Wrapper class for handling the async operations of the underlying SyncSession calling

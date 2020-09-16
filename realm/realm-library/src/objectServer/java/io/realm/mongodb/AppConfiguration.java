@@ -48,6 +48,7 @@ import io.realm.internal.log.obfuscator.RegexPatternObfuscator;
 import io.realm.internal.log.obfuscator.TokenObfuscator;
 import io.realm.log.RealmLog;
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator;
+import io.realm.mongodb.sync.ClientResetRequiredError;
 import io.realm.mongodb.sync.SyncSession;
 
 import static io.realm.internal.network.LoggingInterceptor.LOGIN_FEATURE;
@@ -136,6 +137,7 @@ public class AppConfiguration {
     private final String appVersion;
     private final URL baseUrl;
     private final SyncSession.ErrorHandler defaultErrorHandler;
+    private final SyncSession.ClientResetHandler defaultClientResetHandler;
     @Nullable
     private final byte[] encryptionKey;
     private final long requestTimeoutMs;
@@ -151,6 +153,7 @@ public class AppConfiguration {
                              String appVersion,
                              URL baseUrl,
                              SyncSession.ErrorHandler defaultErrorHandler,
+                             SyncSession.ClientResetHandler defaultClientResetHandler,
                              @Nullable byte[] encryptionKey,
                              long requestTimeoutMs,
                              String authorizationHeaderName,
@@ -163,6 +166,7 @@ public class AppConfiguration {
         this.appVersion = appVersion;
         this.baseUrl = baseUrl;
         this.defaultErrorHandler = defaultErrorHandler;
+        this.defaultClientResetHandler = defaultClientResetHandler;
         this.encryptionKey = (encryptionKey == null) ? null : Arrays.copyOf(encryptionKey, encryptionKey.length);
         this.requestTimeoutMs = requestTimeoutMs;
         this.authorizationHeaderName = (!Util.isEmptyString(authorizationHeaderName)) ? authorizationHeaderName : "Authorization";
@@ -263,6 +267,16 @@ public class AppConfiguration {
     }
 
     /**
+     * Returns the default Client Reset handler used by synced Realms if there are problems with their
+     * {@link SyncSession}.
+     *
+     * @return the app default error handler.
+     */
+    public SyncSession.ClientResetHandler getDefaultClientResetHandler() {
+        return defaultClientResetHandler;
+    }
+
+    /**
      * Returns the root folder containing all files and Realms used when synchronizing data
      * between the device and MongoDB Realm.
      *
@@ -359,11 +373,6 @@ public class AppConfiguration {
         private SyncSession.ErrorHandler defaultErrorHandler = new SyncSession.ErrorHandler() {
             @Override
             public void onError(SyncSession session, AppException error) {
-                if (error.getErrorCode() == ErrorCode.CLIENT_RESET) {
-                    RealmLog.error("Client Reset required for: " + session.getConfiguration().getServerUrl());
-                    return;
-                }
-
                 String errorMsg = String.format(Locale.US, "Session Error[%s]: %s",
                         session.getConfiguration().getServerUrl(),
                         error.toString());
@@ -377,6 +386,12 @@ public class AppConfiguration {
                     default:
                         throw new IllegalArgumentException("Unsupported error category: " + error.getErrorCode().getCategory());
                 }
+            }
+        };
+        private SyncSession.ClientResetHandler defaultClientResetHandler = new SyncSession.ClientResetHandler() {
+            @Override
+            public void onClientReset(SyncSession session, ClientResetRequiredError error) {
+                RealmLog.error("Client Reset required for: " + session.getConfiguration().getServerUrl());
             }
         };
         private byte[] encryptionKey;
@@ -539,6 +554,22 @@ public class AppConfiguration {
         }
 
         /**
+         * Sets the default Client Reset handler used by Synced Realms when they report a Client Reset.
+         * session.
+         * <p>
+         * This default can be overridden by calling
+         * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#clientResetHandler(SyncSession.ClientResetHandler)} when creating
+         * the {@link io.realm.mongodb.sync.SyncConfiguration}.
+         *
+         * @param handler the default Client Reset handler.
+         */
+        public Builder defaultClientResetHandler(SyncSession.ClientResetHandler handler) {
+            Util.checkNull(handler, "handler");
+            defaultClientResetHandler = handler;
+            return this;
+        }
+
+        /**
          * Configures the root folder containing all files and Realms used when synchronizing data
          * between the device and MongoDB Realm.
          * <p>
@@ -613,6 +644,7 @@ public class AppConfiguration {
                     appVersion,
                     baseUrl,
                     defaultErrorHandler,
+                    defaultClientResetHandler,
                     encryptionKey,
                     requestTimeoutMs,
                     authorizationHeaderName,
