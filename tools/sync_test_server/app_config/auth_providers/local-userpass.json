@@ -8,6 +8,7 @@
         "resetFunctionName": "resetFunc",
         "resetPasswordSubject": "Reset Password",
         "resetPasswordUrl": "http://realm.io/reset-password",
+        "confirmationFunctionName": "confirmFunc",
         "runConfirmationFunction": false,
         "runResetFunction": false
     },

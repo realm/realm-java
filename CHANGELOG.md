@@ -25,7 +25,8 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * [RealmApp] It is now possible to create App instances with different app id's.
 * [RealmApp] Support for using `null` as a partition value.
 * [RealmApp] Improve errors exception messages from `SyncSession.downloadAllServerChanges()` and `SyncSession.uploadAllLocalChanges()`.
-* Support for watching MongoCollection change streams (Issue [#6912](https://github.com/realm/realm-java/issues/6912))
+* [RealmApp] Support for watching MongoCollection change streams (Issue [#6912](https://github.com/realm/realm-java/issues/6912))
+* [RealmApp] Support for retrying a custom confirmation function on an User for a given email (Issue [#7079](https://github.com/realm/realm-java/pull/7079))
 * [RealmApp] Support for getting all app sessions via `Sync.getAllSessions()`.
 * [RealmApp] Support to retrieve the MongoClient service name using `MongoClient.getServiceName()`
 * [RealmApp] Support to retrieve the MongoDatabase name using `MongoDatabase.getName()`

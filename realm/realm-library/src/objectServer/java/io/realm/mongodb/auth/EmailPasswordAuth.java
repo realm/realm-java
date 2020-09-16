@@ -46,6 +46,7 @@ public abstract class EmailPasswordAuth {
     private static final int TYPE_SEND_RESET_PASSWORD_EMAIL = 4;
     private static final int TYPE_CALL_RESET_PASSWORD_FUNCTION = 5;
     private static final int TYPE_RESET_PASSWORD = 6;
+    private static final int TYPE_RETRY_CUSTOM_CONFIRMATION = 7;
 
     protected final App app;
 
@@ -159,6 +160,38 @@ public abstract class EmailPasswordAuth {
             @Override
             public Void run() throws AppException {
                 resendConfirmationEmail(email);
+                return null;
+            }
+        }.start();
+    }
+
+    /**
+     * Retries the custom confirmation on a user for a given email.
+     *
+     * @param email the email of the user.
+     * @throws AppException if the server failed to confirm the user.
+     */
+    public void retryCustomConfirmation(String email) throws AppException {
+        Util.checkEmpty(email, "email");
+        AtomicReference<AppException> error = new AtomicReference<>(null);
+        call(TYPE_RETRY_CUSTOM_CONFIRMATION, new OsJNIVoidResultCallback(error), email);
+        ResultHandler.handleResult(null, error);
+    }
+
+    /**
+     * Retries the custom confirmation on a user for a given email.
+     *
+     * @param email the email of the user.
+     * @param callback callback when retrying the custom confirmation has completed or failed. The callback will
+     * always happen on the same thread as this method is called on.
+     * @throws IllegalStateException if called from a non-looper thread.
+     */
+    public RealmAsyncTask retryCustomConfirmationAsync(String email, App.Callback<Void> callback) {
+        Util.checkLooperThread("Asynchronous retry custom confirmation is only possible from looper threads.");
+        return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public Void run() throws AppException {
+                retryCustomConfirmation(email);
                 return null;
             }
         }.start();
