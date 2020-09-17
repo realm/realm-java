@@ -99,9 +99,9 @@ verify_changelog() {
 
 create_javadoc() {
 	echo "Creating JavaDoc..."
-#	cd $REALM_JAVA_PATH
-#	./gradlew javadoc
-#	cd $HERE
+	cd $REALM_JAVA_PATH
+	./gradlew javadoc
+	cd $HERE
 }
 
 create_native_debug_symbols_package() {

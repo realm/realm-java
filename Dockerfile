@@ -25,7 +25,8 @@ ENV CCACHE_CPP2 yes
 RUN DEBIAN_FRONTEND=noninteractive \
     && apt-get update -qq \
     && apt-get install -y tzdata \
-    && apt-get install -y bsdmainutils \
+    && apt-get install -y bash \
+                          bsdmainutils \
                           bridge-utils \
                           build-essential \
                           ccache \

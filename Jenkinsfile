@@ -164,11 +164,11 @@ try {
                }
              }
 
+             runPublish()
            }
 
            // Release the library if needed
 //           if (publishBuild) {
-             runPublish()
 //           }
 
 
