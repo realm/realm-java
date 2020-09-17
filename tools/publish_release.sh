@@ -56,14 +56,14 @@ check_env() {
 
     # Try to find s3cmd
     path_to_s3cmd=$(which s3cmd)
-    if [[ ! -x "$path_to_s3cmd" ]] ; then
+    if ( -x "$path_to_s3cmd" ) then
         echo "Cannot find executable file 's3cmd'. Aborting."
         abort_release
     fi
 
     # Try to find git
     path_to_git=$(which git)
-    if [[ ! -x "$path_to_git" ]] ; then
+    if ( -x "$path_to_git" ) then
         echo "Cannot find executable file 'git'. Aborting."
         abort_release
     fi
@@ -76,7 +76,8 @@ verify_release_preconditions() {
 	gitTag=`git describe --tags | tr -d '[:space:]'`
 	version=`cat $HERE/../version.txt | tr -d '[:space:]'`
 
-	if [[ "v$version" == "$gitTag" ]]; then
+	if [ "v$version" == "$gitTag" ]
+	then
 		RELEASE_VERSION=$version
 	    echo "Git tag and version.txt matches: $version. Continue releasing."
 	else
@@ -89,7 +90,8 @@ verify_changelog() {
 	echo "Checking CHANGELOG.md..."
 	query="grep -c '^## $RELEASE_VERSION ([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9])' $HERE/../CHANGELOG.md"
 
-	if [[ `eval $query` -ne 1 ]]; then
+	if [ `eval $query` -ne 1 ]
+	then
 		echo "Changelog does not appear to be correct. First line should match the version being released and the date should be set. Aborting."
 #    abort_release
 	else
@@ -137,12 +139,14 @@ notify_slack_channels() {
 
 	# Read first . Link is the value with ".",")","(" and space removed.
 	tag=`grep '$RELEASE_VERSION' $REALM_JAVA_PATH/CHANGELOG.md | cut -c 4- | sed 's/[.)(]//g' | sed 's/ /-/g'`
-	if [ -z "$tag" ]; then
+	if [ -z "$tag" ]
+	then
       echo "\$tag did not resolve correctly. Aborting."
       abort_release
 	fi
  	current_branch=`git rev-parse --abbrev-ref HEAD`
-	if [ -z "$current_branch" ]; then
+	if [ -z "$current_branch" ]
+	then
       echo "Could not find current branch. Aborting."
       abort_release
 	fi
