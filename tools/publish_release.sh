@@ -91,7 +91,7 @@ verify_changelog() {
 
 	if [[ `eval $query` -ne 1 ]]; then
 		echo "Changelog does not appear to be correct. First line should match the version being released and the date should be set. Aborting."
-    abort_release
+#    abort_release
 	else
 		echo "CHANGELOG date and version is correctly set."
 	fi
@@ -150,10 +150,10 @@ notify_slack_channels() {
 	link_to_changelog="https://github.com/realm/realm-java/blob/$current_branch/CHANGELOG.md#$tag"
 	payload="{ \"username\": \"Realm CI\", \"icon_emoji\": \":realm_new:\", \"text\": \"<$link_to_changelog|*Realm Java $RELEASE_VERSION has been released*>\\nSee the Release Notes for more details.\" }"
 
-#  echo "Pinging #realm-releases"
+  echo "Pinging #realm-releases"
 #	curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_RELEASES_URL}
   echo "Pinging #realm-java-team-ci"
-	curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_JAVA_CI_URL} 
+#	curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_JAVA_CI_URL}
 }
 
 ######################################
