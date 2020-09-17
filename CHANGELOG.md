@@ -37,7 +37,8 @@ WARNING: This release upgrades the fileformat to 20. Non-sync Realms will be upg
 * [RealmApp] Support to retrieve the MongoCollection name using `MongoCollection.getName()`
 
 ### Fixed
-* None.
+* If you have a realm file growing towards 2Gb and have a table with more than 16 columns, then you may get a "Key not found" exception when updating an object. If asserts are enabled at the sdk level, you may get an "assert(m_has_refs)" instead. ([#3194](https://github.com/realm/realm-js/issues/3194), since v7.0.0)
+* In cases where you have more than 32 columns in a table, you may get a currrupted file resulting in various crashes ([#7057](https://github.com/realm/realm-java/issues/7057), since v7.0.0)
 
 ### Compatibility
 * File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java 10.0.0-BETA.1.

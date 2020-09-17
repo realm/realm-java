@@ -12,7 +12,6 @@
 # 6. Upload native debug symobols and update latest version number on S3.
 # 7. Upload Javadoc to MongoDB Realm S3 bucket.
 # 8. Notify #realm-releases and #realm-java-team-ci about the new release.
-
 IFS=$'\n\t'
 
 ######################################
@@ -34,8 +33,8 @@ fi
 # Define Release steps
 ######################################
 
-HERE="$(pwd)"
-REALM_JAVA_PATH="$(pwd)/.."
+HERE="$(dirname $0)"
+REALM_JAVA_PATH="$HERE/.."
 RELEASE_VERSION=""
 BINTRAY_USER="$1"
 BINTRAY_KEY="$2"
@@ -66,14 +65,6 @@ check_env() {
     path_to_git=$(which git)
     if [[ ! -x "$path_to_git" ]] ; then
         echo "Cannot find executable file 'git'. Aborting."
-        abort_release
-        exit -1
-    fi
-
-    # Try to find pcregrep
-    path_to_pcregrep=$(which pcregrep)
-    if [[ ! -x "$path_to_pcregrep" ]] ; then
-        echo "Cannot find executable file 'pcregrep'. Aborting."
         abort_release
         exit -1
     fi

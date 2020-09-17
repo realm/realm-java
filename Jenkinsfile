@@ -309,7 +309,7 @@ def runPublish() {
     ]) {
       sh '''
         set +x  
-        tools/publish_release.sh "$BINTRAY_USER" "$BINTRAY_KEY" \
+        sh tools/publish_release.sh "$BINTRAY_USER" "$BINTRAY_KEY" \
         "$REALM_S3_ACCESS_KEY" "$REALM_S3_SECRET_KEY" \
         "$DOCS_S3_ACCESS_KEY" "$DOCS_S3_SECRET_KEY" \
         "$SLACK_URL_RELEASE" \
