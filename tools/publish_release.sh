@@ -33,7 +33,7 @@ fi
 ######################################
 # Define Release steps
 ######################################
-echo $0
+echo "$0"
 echo `realpath $0`
 echo $(dirname `realpath $0`)
 HERE=$(dirname `realpath $0`)
