@@ -4,16 +4,27 @@
 
 import groovy.json.JsonOutput
 
-buildSuccess = false
-publishBuild = false // True if this build is a full release that should be availble on Bintray
-mongoDbRealmContainer = null
-mongoDbRealmCommandServerContainer = null
-emulatorContainer = null
-dockerNetworkId = UUID.randomUUID().toString()
+// CONSTANTS
+
 // Branches from which we release SNAPSHOT's. Only release branches need to run on actual hardware.
 releaseBranches = ['master', 'next-major', 'v10']
 // Branches that are "important", so if they do not compile they will generate a Slack notification
 slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
+// WARNING: Only set to `false` as an absolute last resort. Doing this will disable all integration
+// tests.
+enableIntegrationTests = true
+
+// RUNTIME PROPERTIES
+
+// Will store whether or not this build was successful.
+buildSuccess = false
+// Will be set to `true` if this build is a full release that should be available on Bintray.
+// This is determined by comparing the current git tag to the version number of the build.
+publishBuild = false
+mongoDbRealmContainer = null
+mongoDbRealmCommandServerContainer = null
+emulatorContainer = null
+dockerNetworkId = UUID.randomUUID().toString()
 currentBranch = env.CHANGE_BRANCH
 // FIXME: Always used the emulator until we can enable more reliable devices
 // 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen.
@@ -183,17 +194,21 @@ try {
         def payload = null
         if (!buildSuccess) {
           payload = JsonOutput.toJson([
+                  username: "Realm CI",
+                  icon_emoji: ":realm_new:",
                   text: "*The ${currentBranch} branch is broken!*\n<${env.BUILD_URL}|Click here> to check the build."
           ])
-        }
-
-        if (currentBuild.getPreviousBuild() && currentBuild.getPreviousBuild().getResult().toString() != "SUCCESS" && buildSuccess) {
+        } else if (currentBuild.getPreviousBuild() && currentBuild.getPreviousBuild().getResult().toString() != "SUCCESS" && buildSuccess) {
           payload = JsonOutput.toJson([
+                  username: "Realm CI",
+                  icon_emoji: ":realm_new:",
                   text: "*${currentBranch} is back to normal!*\n<${env.BUILD_URL}|Click here> to check the build."
           ])
         }
 
-        sh "curl -X POST --data-urlencode \'payload=${payload}\' ${env.SLACK_URL}"
+        if (payload != null) {
+          sh "curl -X POST --data-urlencode \'payload=${payload}\' ${env.SLACK_URL}"
+        }
       }
     }
   }
@@ -258,15 +273,19 @@ def runBuild(abiFilter, instrumentationTestTarget) {
       }
     },
     'Instrumentation' : {
-      String backgroundPid
-      try {
-        backgroundPid = startLogCatCollector()
-        forwardAdbPorts()
-        gradle('realm', "${instrumentationTestTarget} ${abiFilter}")
-      } finally {
-        stopLogCatCollector(backgroundPid)
-        storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
-        storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+      if (enableIntegrationTests) {
+        String backgroundPid
+        try {
+          backgroundPid = startLogCatCollector()
+          forwardAdbPorts()
+          gradle('realm', "${instrumentationTestTarget} ${abiFilter}")
+        } finally {
+          stopLogCatCollector(backgroundPid)
+          storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+          storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+        }
+      } else {
+        echo "Instrumentation tests were disabled."
       }
     },
     'Gradle Plugin' : {
