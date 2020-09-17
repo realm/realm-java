@@ -34,7 +34,7 @@ fi
 # Define Release steps
 ######################################
 
-HERE="$(dirname $0)"
+HERE=$(dirname `realpath $0`)
 REALM_JAVA_PATH="$HERE/.."
 RELEASE_VERSION=""
 BINTRAY_USER="$1"
