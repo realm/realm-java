@@ -13,7 +13,6 @@
 # 7. Upload Javadoc to MongoDB Realm S3 bucket.
 # 8. Notify #realm-releases and #realm-java-team-ci about the new release.
 set -e
-IFS=$'\n\t'
 
 ######################################
 # Input Validation
