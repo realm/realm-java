@@ -76,7 +76,7 @@ check_env() {
 verify_release_preconditions() {
 	echo "Checking release branch..."
 	gitTag=`git describe --tags | tr -d '[:space:]'`
-	version=`cat $HERE/../version.txt | tr -d '[:space:]'`
+	version=`cat $REALM_JAVA_PATH/version.txt | tr -d '[:space:]'`
 
 	if [ "v$version" == "$gitTag" ]
 	then
@@ -90,7 +90,7 @@ verify_release_preconditions() {
 
 verify_changelog() {
 	echo "Checking CHANGELOG.md..."
-	query="grep -c '^## $RELEASE_VERSION ([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9])' $HERE/../CHANGELOG.md"
+	query="grep -c '^## $RELEASE_VERSION ([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9])' $REALM_JAVA_PATH/../CHANGELOG.md"
 
 	if [ `eval $query` -ne 1 ]
 	then
