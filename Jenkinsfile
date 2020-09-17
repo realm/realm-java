@@ -71,24 +71,7 @@ try {
       // Attempt to figure out what is going on
 
 
-        stage('Publish Release') {
-          withCredentials([
-                  [$class: 'StringBinding', credentialsId: 'slack-webhook-java-ci-channel', variable: 'SLACK_URL_CI'],
-                  [$class: 'StringBinding', credentialsId: 'slack-webhook-releases-channel', variable: 'SLACK_URL_RELEASE'],
-                  [$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER'],
-                  [$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'DOCS_S3_ACCESS_KEY', credentialsId: 'mongodb-realm-docs-s3', secretKeyVariable: 'DOCS_S3_SECRET_KEY'],
-                  [$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'REALM_S3_ACCESS_KEY', credentialsId: 'realm-s3', secretKeyVariable: 'REALM_S3_SECRET_KEY']
-          ]) {
-
-            def var1="foo"
-            sh """
-        set -x  
-        sh tools/publish_release.sh \"${var1}\" \"$var1\" \"${var1}\" \"${var1}\" \"${var1}\" \"${var1}\" \"${var1}\" \"${var1}\"
-      """
-          }
-        }
-
-
+      runPublish()
 
 
 
