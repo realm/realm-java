@@ -115,6 +115,27 @@ class ServerAdmin(private val app: App) {
         executeRequest(request)
     }
 
+    /**
+     * Toggle whether or not custom confirmation functions are enabled.
+     */
+    fun setCustomConfirmation(enabled: Boolean) {
+        val providerId: String = getLocalUserPassProviderId()
+        var request = Request.Builder()
+                .url("$baseUrl/groups/$groupId/apps/$appId/auth_providers/$providerId")
+                .get()
+        val authProviderConfig = JSONObject(executeRequest(request, true))
+
+        authProviderConfig.getJSONObject("config").apply {
+            put("autoConfirm", !enabled)
+            put("runConfirmationFunction", enabled)
+        }
+        // Change autoConfirm and update the provider
+        request = Request.Builder()
+                .url("$baseUrl/groups/$groupId/apps/$appId/auth_providers/$providerId")
+                .patch(RequestBody.create(json, authProviderConfig.toString()))
+        executeRequest(request)
+    }
+
     val JSON = MediaType.parse("application/json; charset=utf-8")
 
     fun disableUser(user: User) {

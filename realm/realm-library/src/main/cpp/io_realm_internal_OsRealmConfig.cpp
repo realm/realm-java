@@ -245,12 +245,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeEnableChangeNo
 
 #if REALM_ENABLE_SYNC
 JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSyncConfig(
-    JNIEnv* env, jclass, jlong native_ptr, jstring j_sync_realm_url, jstring j_auth_url, jstring j_user_id,
+    JNIEnv* env, jclass, jlong j_app_ptr, jlong j_config_ptr, jstring j_sync_realm_url, jstring j_auth_url, jstring j_user_id,
     jstring j_refresh_token, jstring j_access_token, jstring j_device_id, jbyte j_session_stop_policy, jstring j_url_prefix,
     jstring j_custom_auth_header_name, jobjectArray j_custom_headers_array, jbyte j_client_reset_mode,
     jstring j_partion_key_value, jobject j_java_sync_service)
 {
-    auto& config = *reinterpret_cast<Realm::Config*>(native_ptr);
+    auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
+    auto& config = *reinterpret_cast<Realm::Config*>(j_config_ptr);
     // sync_config should only be initialized once!
     REALM_ASSERT(!config.sync_config);
 
@@ -320,13 +321,13 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         // Get logged in user
         JStringAccessor user_id(env, j_user_id);
         JStringAccessor auth_url(env, j_auth_url);
-        std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(user_id);
+        std::shared_ptr<SyncUser> user = app->sync_manager()->get_existing_logged_in_user(user_id);
         if (!user) {
             JStringAccessor realm_auth_url(env, j_auth_url);
             JStringAccessor refresh_token(env, j_refresh_token);
             JStringAccessor access_token(env, j_access_token);
             JStringAccessor device_id(env, j_device_id);
-            user = SyncManager::shared().get_user(user_id, auth_url, refresh_token, access_token, device_id);
+            user = app->sync_manager()->get_user(user_id, auth_url, refresh_token, access_token, device_id);
         }
 
         SyncSessionStopPolicy session_stop_policy = static_cast<SyncSessionStopPolicy>(j_session_stop_policy);

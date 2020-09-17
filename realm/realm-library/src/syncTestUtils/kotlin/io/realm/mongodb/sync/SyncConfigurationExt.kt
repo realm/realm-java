@@ -25,6 +25,10 @@ class SyncConfigurationExt {
     companion object
 }
 
+fun SyncConfiguration.testRealmExists(): Boolean{
+    return this.realmExists()
+}
+
 // Added to expose Builder(User, BsonValue) outside io.realm.mongodb.sync package for test
 fun SyncConfigurationExt.Companion.Builder(user: User, partitionValue: BsonValue): SyncConfiguration.Builder {
     return SyncConfiguration.Builder(user, partitionValue)

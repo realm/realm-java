@@ -48,6 +48,7 @@ import io.realm.internal.log.obfuscator.RegexPatternObfuscator;
 import io.realm.internal.log.obfuscator.TokenObfuscator;
 import io.realm.log.RealmLog;
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator;
+import io.realm.mongodb.sync.ClientResetRequiredError;
 import io.realm.mongodb.sync.SyncSession;
 
 import static io.realm.internal.network.LoggingInterceptor.LOGIN_FEATURE;
@@ -136,6 +137,7 @@ public class AppConfiguration {
     private final String appVersion;
     private final URL baseUrl;
     private final SyncSession.ErrorHandler defaultErrorHandler;
+    private final SyncSession.ClientResetHandler defaultClientResetHandler;
     @Nullable
     private final byte[] encryptionKey;
     private final long requestTimeoutMs;
@@ -151,6 +153,7 @@ public class AppConfiguration {
                              String appVersion,
                              URL baseUrl,
                              SyncSession.ErrorHandler defaultErrorHandler,
+                             SyncSession.ClientResetHandler defaultClientResetHandler,
                              @Nullable byte[] encryptionKey,
                              long requestTimeoutMs,
                              String authorizationHeaderName,
@@ -163,6 +166,7 @@ public class AppConfiguration {
         this.appVersion = appVersion;
         this.baseUrl = baseUrl;
         this.defaultErrorHandler = defaultErrorHandler;
+        this.defaultClientResetHandler = defaultClientResetHandler;
         this.encryptionKey = (encryptionKey == null) ? null : Arrays.copyOf(encryptionKey, encryptionKey.length);
         this.requestTimeoutMs = requestTimeoutMs;
         this.authorizationHeaderName = (!Util.isEmptyString(authorizationHeaderName)) ? authorizationHeaderName : "Authorization";
@@ -187,6 +191,7 @@ public class AppConfiguration {
      *
      * @return the app name.
      */
+    @Nullable
     public String getAppName() {
         return appName;
     }
@@ -196,6 +201,7 @@ public class AppConfiguration {
      *
      * @return the app version.
      */
+    @Nullable
     public String getAppVersion() {
         return appVersion;
     }
@@ -261,6 +267,16 @@ public class AppConfiguration {
     }
 
     /**
+     * Returns the default Client Reset handler used by synced Realms if there are problems with their
+     * {@link SyncSession}.
+     *
+     * @return the app default error handler.
+     */
+    public SyncSession.ClientResetHandler getDefaultClientResetHandler() {
+        return defaultClientResetHandler;
+    }
+
+    /**
      * Returns the root folder containing all files and Realms used when synchronizing data
      * between the device and MongoDB Realm.
      *
@@ -294,6 +310,45 @@ public class AppConfiguration {
         return httpLogObfuscator;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AppConfiguration that = (AppConfiguration) o;
+
+        if (requestTimeoutMs != that.requestTimeoutMs) return false;
+        if (!appId.equals(that.appId)) return false;
+        if (appName != null ? !appName.equals(that.appName) : that.appName != null) return false;
+        if (appVersion != null ? !appVersion.equals(that.appVersion) : that.appVersion != null)
+            return false;
+        if (!baseUrl.toString().equals(that.baseUrl.toString())) return false;
+        if (!defaultErrorHandler.equals(that.defaultErrorHandler)) return false;
+        if (!Arrays.equals(encryptionKey, that.encryptionKey)) return false;
+        if (!authorizationHeaderName.equals(that.authorizationHeaderName)) return false;
+        if (!customHeaders.equals(that.customHeaders)) return false;
+        if (!syncRootDir.equals(that.syncRootDir)) return false;
+        if (!codecRegistry.equals(that.codecRegistry)) return false;
+        return httpLogObfuscator != null ? httpLogObfuscator.equals(that.httpLogObfuscator) : that.httpLogObfuscator == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = appId.hashCode();
+        result = 31 * result + (appName != null ? appName.hashCode() : 0);
+        result = 31 * result + (appVersion != null ? appVersion.hashCode() : 0);
+        result = 31 * result + baseUrl.toString().hashCode();
+        result = 31 * result + defaultErrorHandler.hashCode();
+        result = 31 * result + Arrays.hashCode(encryptionKey);
+        result = 31 * result + (int) (requestTimeoutMs ^ (requestTimeoutMs >>> 32));
+        result = 31 * result + authorizationHeaderName.hashCode();
+        result = 31 * result + customHeaders.hashCode();
+        result = 31 * result + syncRootDir.hashCode();
+        result = 31 * result + codecRegistry.hashCode();
+        result = 31 * result + (httpLogObfuscator != null ? httpLogObfuscator.hashCode() : 0);
+        return result;
+    }
+
     private static Map<String, RegexPatternObfuscator> getLoginObfuscators() {
         final HashMap<String, RegexPatternObfuscator> obfuscators = new HashMap<>();
         obfuscators.put(Credentials.Provider.API_KEY.getId(), ApiKeyObfuscator.obfuscator());
@@ -318,11 +373,6 @@ public class AppConfiguration {
         private SyncSession.ErrorHandler defaultErrorHandler = new SyncSession.ErrorHandler() {
             @Override
             public void onError(SyncSession session, AppException error) {
-                if (error.getErrorCode() == ErrorCode.CLIENT_RESET) {
-                    RealmLog.error("Client Reset required for: " + session.getConfiguration().getServerUrl());
-                    return;
-                }
-
                 String errorMsg = String.format(Locale.US, "Session Error[%s]: %s",
                         session.getConfiguration().getServerUrl(),
                         error.toString());
@@ -336,6 +386,12 @@ public class AppConfiguration {
                     default:
                         throw new IllegalArgumentException("Unsupported error category: " + error.getErrorCode().getCategory());
                 }
+            }
+        };
+        private SyncSession.ClientResetHandler defaultClientResetHandler = new SyncSession.ClientResetHandler() {
+            @Override
+            public void onClientReset(SyncSession session, ClientResetRequiredError error) {
+                RealmLog.error("Client Reset required for: " + session.getConfiguration().getServerUrl());
             }
         };
         private byte[] encryptionKey;
@@ -498,6 +554,22 @@ public class AppConfiguration {
         }
 
         /**
+         * Sets the default Client Reset handler used by Synced Realms when they report a Client Reset.
+         * session.
+         * <p>
+         * This default can be overridden by calling
+         * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#clientResetHandler(SyncSession.ClientResetHandler)} when creating
+         * the {@link io.realm.mongodb.sync.SyncConfiguration}.
+         *
+         * @param handler the default Client Reset handler.
+         */
+        public Builder defaultClientResetHandler(SyncSession.ClientResetHandler handler) {
+            Util.checkNull(handler, "handler");
+            defaultClientResetHandler = handler;
+            return this;
+        }
+
+        /**
          * Configures the root folder containing all files and Realms used when synchronizing data
          * between the device and MongoDB Realm.
          * <p>
@@ -572,6 +644,7 @@ public class AppConfiguration {
                     appVersion,
                     baseUrl,
                     defaultErrorHandler,
+                    defaultClientResetHandler,
                     encryptionKey,
                     requestTimeoutMs,
                     authorizationHeaderName,

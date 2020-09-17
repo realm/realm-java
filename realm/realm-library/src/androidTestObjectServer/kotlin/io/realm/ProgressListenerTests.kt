@@ -19,6 +19,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.DefaultSyncSchema
 import io.realm.entities.SyncDog
+import io.realm.entities.SyncStringOnly
+import io.realm.internal.OsRealmConfig
 import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.LogLevel
@@ -27,16 +29,21 @@ import io.realm.mongodb.User
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
 import io.realm.mongodb.sync.*
+import io.realm.rule.BlockingLooperThread
+import org.bson.types.ObjectId
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.lang.IllegalStateException
 import java.util.*
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
 class ProgressListenerTests {
@@ -44,6 +51,9 @@ class ProgressListenerTests {
     companion object {
         private const val TEST_SIZE: Long = 10
     }
+
+    private val looperThread = BlockingLooperThread()
+    private val configurationFactory = TestSyncConfigurationFactory()
 
     private lateinit var app: TestApp
     private lateinit var partitionValue: String
@@ -288,6 +298,83 @@ class ProgressListenerTests {
             checkDownloadListener(session, ProgressMode.CURRENT_CHANGES)
             checkUploadListener(session, ProgressMode.CURRENT_CHANGES)
         }
+    }
+
+    @Test
+    @Ignore("FIXME: Flacky: Tracked by https://github.com/realm/realm-java/issues/6976")
+    fun progressListenersWorkWhenUsingWaitForInitialRemoteData() = looperThread.runBlocking {
+        val username = UUID.randomUUID().toString()
+        val password = "password"
+        var user: User = app.registerUserAndLogin(username, password)
+
+        // 1. Copy a valid Realm to the server (and pray it does it within 10 seconds)
+        val configOld: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, user.id)
+                .testSchema(SyncStringOnly::class.java)
+                .testSessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
+                .build()
+        Realm.getInstance(configOld).use { realm ->
+            realm.executeTransaction { realm ->
+                for (i in 0..9) {
+                    realm.createObject(SyncStringOnly::class.java, ObjectId()).chars = "Foo$i"
+                }
+            }
+            realm.syncSession.uploadAllLocalChanges()
+        }
+        user.logOut()
+
+        assertFailsWith<IllegalStateException> {
+            app.sync.getSession(configOld)
+        }
+
+        // 2. Local state should now be completely reset. Open the same sync Realm but different local name again with
+        // a new configuration which should download the uploaded changes (pray it managed to do so within the time frame).
+        // Use different user to trigger different path
+        val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), password)
+        val config: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user2, user.id)
+                .testSchema(SyncStringOnly::class.java)
+                .waitForInitialRemoteData()
+                .build()
+
+        assertFalse(config.testRealmExists())
+
+        val countDownLatch = CountDownLatch(2)
+
+        val indefiniteListenerComplete = AtomicBoolean(false)
+        val currentChangesListenerComplete = AtomicBoolean(false)
+        val task = Realm.getInstanceAsync(config, object : Realm.Callback() {
+            override fun onSuccess(realm: Realm) {
+                realm.syncSession.addDownloadProgressListener(ProgressMode.INDEFINITELY, object : ProgressListener {
+                    override fun onChange(progress: Progress) {
+                        if (progress.isTransferComplete()) {
+                            indefiniteListenerComplete.set(true)
+                            countDownLatch.countDown()
+                        }
+                    }
+                })
+                realm.syncSession.addDownloadProgressListener(ProgressMode.CURRENT_CHANGES, object : ProgressListener {
+                    override fun onChange(progress: Progress) {
+                        if (progress.isTransferComplete()) {
+                            currentChangesListenerComplete.set(true)
+                            countDownLatch.countDown()
+                        }
+                    }
+                })
+                countDownLatch.await(100, TimeUnit.SECONDS)
+                realm.close()
+                if (!indefiniteListenerComplete.get()) {
+                    fail("Indefinite progress listener did not report complete.")
+                }
+                if (!currentChangesListenerComplete.get()) {
+                    fail("Current changes progress listener did not report complete.")
+                }
+                looperThread.testComplete()
+            }
+
+            override fun onError(exception: Throwable) {
+                fail(exception.toString())
+            }
+        })
+        looperThread.keepStrongReference(task)
     }
 
     @Test

@@ -494,6 +494,10 @@ public class User {
         return mongoClient;
     }
 
+    /**
+     * Two Users are considered equal if they have the same user identity and are associated
+     * with the same app.
+     */
     @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
     @Override
     public boolean equals(@Nullable Object o) {
@@ -502,8 +506,8 @@ public class User {
 
         User user = (User) o;
 
-        if (!osUser.equals(user.osUser)) return false;
-        return app.equals(user.app);
+        if (!osUser.getIdentity().equals(user.osUser.getIdentity())) return false;
+        return app.getConfiguration().getAppId().equals(user.app.getConfiguration().getAppId());
     }
 
     @Override

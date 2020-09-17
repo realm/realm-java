@@ -37,45 +37,57 @@ yes | stitch-cli login --config-path=/tmp/stitch-config \
                  --username=unique_user@domain.com \
                  --password=password
 
-# 2. Attempt to import project. It will fail because of lacking secret, but create the App ID
-#    which we need to extract from the commandline output
-IMPORT_RESPONSE=$(stitch-cli import \
-                  --config-path=/tmp/stitch-config \
-                  --base-url=http://localhost:9090 \
-                  --path=/tmp/app_config \
-                  --app-name realm-sdk-integration-tests \
-                  --project-id "$GROUP_ID" \
-                  --strategy replace \
-                  -y)
-APP_ID_SUFFIX=$(echo "$IMPORT_RESPONSE" | grep "New app created:" | cut -d ':' -f 2 | cut -d '-' -f 5)
-echo "App ID Suffix: $APP_ID_SUFFIX"
 
-# 3. Create the secret(s) needed to start the Stitch app:
-#    - a) MongoDB Service: Requires an URI.
-stitch-cli secrets add \
-                  --name="BackingDB_uri" \
-                  --value="mongodb://localhost:26000" \
-                  --app-id="realm-sdk-integration-tests-$APP_ID_SUFFIX" \
-                  --base-url=http://localhost:9090 \
-                  --config-path=/tmp/stitch-config
+# 2. Import two identical app projects
+APPS=( "testapp1" "testapp2" )
 
-#    - b) GCM (Firebase Cloud Messaging): Requires a server key - add your key here to test actual push notifications.
-stitch-cli secrets add \
-                  --name="gcm" \
-                  --value="gcm" \
-                  --app-id="realm-sdk-integration-tests-$APP_ID_SUFFIX" \
-                  --base-url=http://localhost:9090 \
-                  --config-path=/tmp/stitch-config
+for APP_NAME in "${APPS[@]}"
+do
 
-# 4. Now we can correctly import the Stitch app
-stitch-cli import \
-                  --config-path=/tmp/stitch-config \
-                  --base-url=http://localhost:9090 \
-                  --path=/tmp/app_config \
-                  --app-name realm-sdk-integration-tests \
-                  --project-id "$GROUP_ID" \
-                  --strategy replace \
-                  -y
+  echo "importing $APP_NAME"
+  sed -i "s/\"app_id\": \"[a-z\-]*\"/\"app_id\": \"$APP_NAME-xxxxx\"/g" "/tmp/app_config-$APP_NAME/stitch.json"
 
-# 5. Store the application id in the Command Server so it can be accessed by Integration Tests on the device
-curl -X PUT -d id="realm-sdk-integration-tests-$APP_ID_SUFFIX" http://localhost:8888/application-id
+  # 3. Attempt to import project. It will fail because of lacking secret, but create the App ID
+  #    which we need to extract from the commandline output
+  IMPORT_RESPONSE=$(stitch-cli import \
+                    --config-path=/tmp/stitch-config \
+                    --base-url=http://localhost:9090 \
+                    --path="/tmp/app_config-$APP_NAME" \
+                    --app-name "$APP_NAME" \
+                    --project-id "$GROUP_ID" \
+                    --strategy replace \
+                    -y)
+
+  APP_ID_SUFFIX=$(echo "$IMPORT_RESPONSE" | grep "New app created:" | cut -d':' -f 2 | cut -d '-' -f 2)
+  echo "App ID Suffix: $APP_ID_SUFFIX"
+
+  # 4. Create the secret(s) needed to start the Stitch app:
+  #    - a) MongoDB Service: Requires an URI.
+  stitch-cli secrets add \
+                    --name="BackingDB_uri" \
+                    --value="mongodb://localhost:26000" \
+                    --app-id="$APP_NAME-$APP_ID_SUFFIX" \
+                    --base-url=http://localhost:9090 \
+                    --config-path=/tmp/stitch-config
+
+  #    - b) GCM (Firebase Cloud Messaging): Requires a server key - add your key here to test actual push notifications.
+  stitch-cli secrets add \
+                    --name="gcm" \
+                    --value="gcm" \
+                    --app-id="$APP_NAME-$APP_ID_SUFFIX" \
+                    --base-url=http://localhost:9090 \
+                    --config-path=/tmp/stitch-config
+
+  # 5. Now we can correctly import the Stitch app
+  stitch-cli import \
+                    --config-path=/tmp/stitch-config \
+                    --base-url=http://localhost:9090 \
+                    --path="/tmp/app_config-$APP_NAME" \
+                    --app-name "$APP_NAME" \
+                    --project-id "$GROUP_ID" \
+                    --strategy replace \
+                    -y
+
+  # 6. Store the application id in the Command Server so it can be accessed by Integration Tests on the device
+  curl -X PUT -d id="$APP_NAME-$APP_ID_SUFFIX" "http://localhost:8888/$APP_NAME"
+done
