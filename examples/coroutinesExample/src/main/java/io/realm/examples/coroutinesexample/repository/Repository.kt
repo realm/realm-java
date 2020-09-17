@@ -23,11 +23,7 @@ import io.realm.examples.coroutinesexample.model.Dog
 import io.realm.kotlin.executeTransactionAwait
 import io.realm.kotlin.toFlow
 import io.realm.kotlin.where
-import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.suspendAtomicCancellableCoroutine
-import kotlinx.coroutines.withContext
-import kotlin.coroutines.CoroutineContext
 
 interface Repository {
     suspend fun insertDogs(number: Int)
@@ -39,7 +35,7 @@ interface Repository {
 class RealmRepository(private val realm: Realm) : Repository {
 
     override suspend fun insertDogs(number: Int) {
-        realm.myExecuteTransactionAwait { transactionRealm ->
+        realm.executeTransactionAwait { transactionRealm ->
             Log.d(TAG, "--- BEFORE")
             for (i in 1..number) {
                 transactionRealm.insertOrUpdate(Dog().apply {
