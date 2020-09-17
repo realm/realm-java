@@ -76,6 +76,8 @@ check_env() {
 verify_release_preconditions() {
 	echo "Checking release branch..."
 	gitTag=`git describe --tags | tr -d '[:space:]'`
+	echo "$REALM_JAVA_PATH"
+	cat "$REALM_JAVA_PATH/version.txt"
 	version=`cat $REALM_JAVA_PATH/version.txt | tr -d '[:space:]'`
 
 	if [ "v$version" == "$gitTag" ]
