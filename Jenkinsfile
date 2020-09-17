@@ -5,7 +5,7 @@
 import groovy.json.JsonOutput
 
 buildSuccess = false
-releaseBuild = false
+publishBuild = false // True if this build is a full release that should be availble on Bintray
 mongoDbRealmContainer = null
 mongoDbRealmCommandServerContainer = null
 emulatorContainer = null
@@ -45,7 +45,7 @@ try {
           gitSha = sh(returnStdout: true, script: 'git rev-parse HEAD').trim().take(8)
           echo "Building non-release: ${gitSha}"
           setBuildName(gitSha)
-          buildRelease = false
+          publishBuild = false
         } else {
           def version = readFile('version.txt').trim()
           if (gitTag != "v${version}") {
@@ -53,7 +53,7 @@ try {
           } else {
             echo "Building release: '${gitTag}'"
             setBuildName("Tag ${gitTag}")
-            buildRelease = true
+            publishBuild = true
           }
         }
 
@@ -151,8 +151,8 @@ try {
             }
 
             // Release the library if needed
-            if (releaseBuild) {
-              runRelease()
+            if (publishBuild) {
+              runPublish()
             }
           }
         } finally {
@@ -289,7 +289,7 @@ def runBuild(abiFilter, instrumentationTestTarget) {
     }
   }
 
-  if (releaseBranches.contains(currentBranch)) {
+  if (releaseBranches.contains(currentBranch) && !publishBuild) {
     stage('Publish to OJO') {
       withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
         sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} ojoUpload --stacktrace"
@@ -298,7 +298,7 @@ def runBuild(abiFilter, instrumentationTestTarget) {
   }
 }
 
-def runRelease() {
+def runPublish() {
   stage('Publish Release') {
     withCredentials([
       [$class: 'StringBinding', credentialsId: 'slack-webhook-java-ci-channel', variable: 'SLACK_URL_CI'],
