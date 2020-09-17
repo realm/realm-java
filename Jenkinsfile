@@ -167,9 +167,9 @@ try {
            }
 
            // Release the library if needed
-           if (publishBuild) {
+//           if (publishBuild) {
              runPublish()
-           }
+//           }
 
 
          } finally {
