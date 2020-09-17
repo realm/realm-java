@@ -124,7 +124,7 @@ upload_to_bintray() {
 upload_debug_symbols() {
 	echo "Uploading native debug symbols..."
 	cd $REALM_JAVA_PATH
-	./gradlew distribute -PREALM_S3_ACCESS_KEY=$REALM_S3_ACCESS_KEY -PREALM_S3_ACCESS_KEY=$REALM_S3_SECRET_KEY
+	./gradlew distribute -PREALM_S3_ACCESS_KEY=$REALM_S3_ACCESS_KEY -PREALM_S3_SECRET_KEY=$REALM_S3_SECRET_KEY
 	cd $HERE
 }
 
