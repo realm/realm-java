@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # Script that make sure release build is correctly published in the appropriate channels.
 #
