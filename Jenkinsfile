@@ -5,6 +5,7 @@
 import groovy.json.JsonOutput
 
 buildSuccess = false
+publishBuild = false // True if this build is a full release that should be availble on Bintray
 mongoDbRealmContainer = null
 mongoDbRealmCommandServerContainer = null
 emulatorContainer = null
@@ -36,6 +37,26 @@ try {
           ])
         }
 
+        // Check type of Build. We are treating this as a release build if we are building
+        // the exact Git SHA that was tagged.
+        gitTag = readGitTag()
+        echo "Git tag: ${gitTag ?: 'none'}"
+        if (!gitTag) {
+          gitSha = sh(returnStdout: true, script: 'git rev-parse HEAD').trim().take(8)
+          echo "Building non-release: ${gitSha}"
+          setBuildName(gitSha)
+          publishBuild = false
+        } else {
+          def version = readFile('version.txt').trim()
+          if (gitTag != "v${version}") {
+            error "Git tag '${gitTag}' does not match v${version}"
+          } else {
+            echo "Building release: '${gitTag}'"
+            setBuildName("Tag ${gitTag}")
+            publishBuild = true
+          }
+        }
+
         // Toggles for PR vs. Master builds.
         // - For PR's, we favor speed > absolute correctness. So we just build for x86, use an
         //   emulator and run unit tests for the ObjectServer variant.
@@ -47,13 +68,14 @@ try {
         def instrumentationTestTarget = "connectedAndroidTest"
         def deviceSerial = ""
         if (!releaseBranches.contains(currentBranch)) {
-          // Bui
+          // Build development branch
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
           abiFilter = "-PbuildTargetABIs=x86"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           deviceSerial = "emulator-5554"
         } else {
+          // Build main/release branch
           // FIXME: Use emulator until we can get reliable devices on CI.
           //  But still build all ABI's and run all types of tests. 
           useEmulator = true
@@ -83,7 +105,8 @@ try {
             sh "docker network create ${dockerNetworkId}"
             mongoDbRealmContainer = mdbRealmImage.run("--network ${dockerNetworkId}")
             mongoDbRealmCommandServerContainer = commandServerEnv.run("--network container:${mongoDbRealmContainer.id}")
-            sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config"
+            sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config-testapp1"
+            sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config-testapp2"
             sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmContainer.id}:/tmp/"
             sh "docker exec -i ${mongoDbRealmContainer.id} sh /tmp/setup_mongodb_realm.sh"
           }
@@ -125,6 +148,11 @@ try {
               } else {
                 runBuild(abiFilter, instrumentationTestTarget)
               }
+            }
+
+            // Release the library if needed
+            if (publishBuild) {
+              runPublish()
             }
           }
         } finally {
@@ -261,11 +289,32 @@ def runBuild(abiFilter, instrumentationTestTarget) {
     }
   }
 
-  if (releaseBranches.contains(currentBranch)) {
+  if (releaseBranches.contains(currentBranch) && !publishBuild) {
     stage('Publish to OJO') {
       withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
         sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} ojoUpload --stacktrace"
       }
+    }
+  }
+}
+
+def runPublish() {
+  stage('Publish Release') {
+    withCredentials([
+      [$class: 'StringBinding', credentialsId: 'slack-webhook-java-ci-channel', variable: 'SLACK_URL_CI'],
+      [$class: 'StringBinding', credentialsId: 'slack-webhook-releases-channel', variable: 'SLACK_URL_RELEASE'],
+      [$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER'],
+      [$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'DOCS_S3_ACCESS_KEY', credentialsId: 'mongodb-realm-docs-s3', secretKeyVariable: 'DOCS_S3_SECRET_ACCESS'],
+      [$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'REALM_S3_ACCESS_KEY', credentialsId: 'realm-s3', secretKeyVariable: 'REALM_S3_SECRET_ACCESS']
+    ]) {
+      sh '''
+        set +x  
+        sh tools/publish_release.sh "$BINTRAY_USER" "$BINTRAY_KEY" \
+        "$REALM_S3_ACCESS_KEY" "$REALM_S3_SECRET_KEY" \
+        "$DOCS_S3_ACCESS_KEY" "$DOCS_S3_SECRET_KEY" \
+        "$SLACK_URL_RELEASE" \
+        "SLACK_URL_CI"
+      '''
     }
   }
 }
@@ -385,4 +434,13 @@ def gradle(String commands) {
 
 def gradle(String relativePath, String commands) {
   sh "cd ${relativePath} && chmod +x gradlew && ./gradlew ${commands} --stacktrace"
+}
+
+def readGitTag() {
+  def command = 'git describe --exact-match --tags HEAD'
+  def returnStatus = sh(returnStatus: true, script: command)
+  if (returnStatus != 0) {
+    return null
+  }
+  return sh(returnStdout: true, script: command).trim()
 }

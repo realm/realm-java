@@ -28,11 +28,14 @@ import io.realm.mongodb.AppConfiguration
  */
 const val SERVICE_NAME = "BackingDB"    // it comes from the test server's BackingDB/config.json
 const val DATABASE_NAME = "test_data"   // same as above
+const val TEST_APP_1 = "testapp1"       // Id for the default test app
+const val TEST_APP_2 = "testapp2"       // ID for the 2nd test app, which is a direct copy of the default test app.
 
 class TestApp(
         networkTransport: OsJavaNetworkTransport? = null,
-        customizeConfig: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }
-) : App(createConfiguration(customizeConfig)) {
+		appName: String = TEST_APP_1,
+        builder: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }
+) : App(builder(configurationBuilder(appName)).build()) {
 
     init {
         if (networkTransport != null) {
@@ -42,24 +45,20 @@ class TestApp(
 
     companion object {
 
-        fun createConfiguration(customizeConfig: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }): AppConfiguration {
-            var builder = AppConfiguration.Builder(initializeMongoDbRealm())
+        fun configurationBuilder(appName: String): AppConfiguration.Builder {
+            return AppConfiguration.Builder(initializeMongoDbRealm(appName))
                     .baseUrl("http://127.0.0.1:9090")
                     .appName("MongoDB Realm Integration Tests")
                     .appVersion("1.0.")
                     .httpLogObfuscator(null)
-
-            builder = customizeConfig(builder)
-
-            return builder.build()
         }
 
         // Initializes MongoDB Realm. Clears all local state and fetches the application ID.
-        private fun initializeMongoDbRealm(): String {
+        private fun initializeMongoDbRealm(appName: String): String {
             val transport = OkHttpNetworkTransport(null)
             val response = transport.sendRequest(
                     "get",
-                    "http://127.0.0.1:8888/application-id",
+                    "http://127.0.0.1:8888/$appName",
                     5000,
                     mapOf(),
                     ""

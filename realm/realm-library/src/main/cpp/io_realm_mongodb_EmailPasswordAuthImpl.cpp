@@ -61,6 +61,9 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_EmailPasswordAuthImpl_nativeCallFun
             case io_realm_mongodb_EmailPasswordAuthImpl_TYPE_RESET_PASSWORD:
                 client.reset_password(args[0], args[1], args[2], JavaNetworkTransport::create_void_callback(env, j_callback));
                 break;
+            case io_realm_mongodb_EmailPasswordAuthImpl_TYPE_RETRY_CUSTOM_CONFIRMATION:
+                client.retry_custom_confirmation(args[0], JavaNetworkTransport::create_void_callback(env, j_callback));
+                break;
             default:
                 throw std::logic_error(util::format("Unknown function: %1", j_function_type));
         }

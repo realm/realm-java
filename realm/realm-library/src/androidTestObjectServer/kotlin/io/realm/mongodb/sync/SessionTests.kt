@@ -126,18 +126,12 @@ class SessionTests {
     @Test
     fun errorHandler_clientResetReported() = looperThread.runBlocking {
         val config = configFactory.createSyncConfigurationBuilder(user)
-                .clientResyncMode(ClientResyncMode.MANUAL)
-                .errorHandler { session: SyncSession, error: AppException ->
-                    if (error.errorCode != ErrorCode.CLIENT_RESET) {
-                        fail("Wrong error $error")
-                        return@errorHandler
-                    }
-                    val handler = error as ClientResetRequiredError
-                    val filePathFromError = handler.originalFile.absolutePath
+                .clientResetHandler { session: SyncSession, error: ClientResetRequiredError ->
+                    val filePathFromError = error.originalFile.absolutePath
                     val filePathFromConfig = session.configuration.path
                     assertEquals(filePathFromError, filePathFromConfig)
-                    assertFalse(handler.backupFile.exists())
-                    assertTrue(handler.originalFile.exists())
+                    assertFalse(error.backupFile.exists())
+                    assertTrue(error.originalFile.exists())
                     looperThread.testComplete()
                 }
                 .build()
@@ -156,25 +150,20 @@ class SessionTests {
 
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
-                .errorHandler { session: SyncSession?, error: AppException ->
-                    if (error.errorCode != ErrorCode.CLIENT_RESET) {
-                        fail("Wrong error $error")
-                        return@errorHandler
-                    }
-                    val handler = error as ClientResetRequiredError
+                .clientResetHandler { _: SyncSession, error: ClientResetRequiredError ->
                     try {
-                        handler.executeClientReset()
+                        error.executeClientReset()
                         fail("All Realms should be closed before executing Client Reset can be allowed")
                     } catch (ignored: IllegalStateException) {
                     }
 
                     // Execute Client Reset
                     resources.close()
-                    handler.executeClientReset()
+                    error.executeClientReset()
 
                     // Validate that files have been moved
-                    assertFalse(handler.originalFile.exists())
-                    assertTrue(handler.backupFile.exists())
+                    assertFalse(error.originalFile.exists())
+                    assertTrue(error.backupFile.exists())
                     looperThread.testComplete()
                 }
                 .build()
@@ -192,20 +181,15 @@ class SessionTests {
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .schema(StringOnly::class.java)
-                .errorHandler { session: SyncSession?, error: AppException ->
-                    if (error.errorCode != ErrorCode.CLIENT_RESET) {
-                        fail("Wrong error $error")
-                        return@errorHandler
-                    }
-                    val handler = error as ClientResetRequiredError
+                .clientResetHandler { _: SyncSession?, error: ClientResetRequiredError ->
                     // Execute Client Reset
                     resources.close()
-                    handler.executeClientReset()
+                    error.executeClientReset()
 
                     // Validate that files have been moved
-                    assertFalse(handler.originalFile.exists())
-                    assertTrue(handler.backupFile.exists())
-                    val backupRealmConfiguration = handler.backupRealmConfiguration
+                    assertFalse(error.originalFile.exists())
+                    assertTrue(error.backupFile.exists())
+                    val backupRealmConfiguration = error.backupRealmConfiguration
                     assertNotNull(backupRealmConfiguration)
                     assertFalse(backupRealmConfiguration is SyncConfiguration)
                     assertTrue(backupRealmConfiguration.isRecoveryConfiguration)
@@ -244,20 +228,15 @@ class SessionTests {
         val resources = ResourceContainer()
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
-                .errorHandler { session: SyncSession?, error: AppException ->
-                    if (error.errorCode != ErrorCode.CLIENT_RESET) {
-                        fail("Wrong error $error")
-                        return@errorHandler
-                    }
-                    val handler = error as ClientResetRequiredError
+                .clientResetHandler { session: SyncSession?, error: ClientResetRequiredError ->
                     // Execute Client Reset
                     resources.close()
-                    handler.executeClientReset()
+                    error.executeClientReset()
 
                     // Validate that files have been moved
-                    assertFalse(handler.originalFile.exists())
-                    assertTrue(handler.backupFile.exists())
-                    val backupFile = handler.backupFile.absolutePath
+                    assertFalse(error.originalFile.exists())
+                    assertTrue(error.backupFile.exists())
+                    val backupFile = error.backupFile.absolutePath
 
                     // this SyncConf doesn't specify any module, it will throw a migration required
                     // exception since the backup Realm contain only StringOnly table
@@ -315,16 +294,11 @@ class SessionTests {
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .encryptionKey(randomKey)
                 .modules(StringOnlyModule())
-                .errorHandler { session: SyncSession?, error: AppException ->
-                    if (error.errorCode != ErrorCode.CLIENT_RESET) {
-                        fail("Wrong error $error")
-                        return@errorHandler
-                    }
-                    val handler = error as ClientResetRequiredError
+                .clientResetHandler { session: SyncSession?, error: ClientResetRequiredError ->
                     // Execute Client Reset
                     resources.close()
-                    handler.executeClientReset()
-                    var backupRealmConfiguration = handler.backupRealmConfiguration
+                    error.executeClientReset()
+                    var backupRealmConfiguration = error.backupRealmConfiguration
 
                     // can open encrypted backup Realm
                     Realm.getInstance(backupRealmConfiguration).use { backupEncryptedRealm ->
@@ -332,7 +306,7 @@ class SessionTests {
                         val allSorted = backupEncryptedRealm.where(StringOnly::class.java).findAll()
                         assertEquals("Foo", allSorted[0]!!.chars)
                     }
-                    val backupFile = handler.backupFile.absolutePath
+                    val backupFile = error.backupFile.absolutePath
 
                     // build a conf to open a DynamicRealm
                     backupRealmConfiguration = SyncConfiguration.forRecovery(backupFile, randomKey, StringOnlyModule())

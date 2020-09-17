@@ -1,8 +1,11 @@
-## 10.0.0-BETA.7 (YYYY-MM-DD)
+## 10.0.0-BETA.7 (2020-09-16)
 
 We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
 
 The old Realm Cloud legacy APIs have undergone significant refactoring. The new APIs are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
+
+WARNING: This release upgrades the fileformat to 20. Non-sync Realms will be upgraded automatically. Synced Realms can only be automatically upgraded if created with Realm Java 10.0.0-BETA.1 and above.
+
 
 ### Breaking Changes
 * [RealmApp] Moved `User.remove()` to `App.removeUser()`.
@@ -20,26 +23,32 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * [RealmApp] Renamed `Sync.refreshConnections()` to `Sync.reconnect()`.
 * [RealmApp] Renamed `Credentials.IdentityProvider` to `Credentials.Provider`.
 * [RealmApp] Removed support for `User.getLocalId()`.
+* [RealmApp] Client Resets are now handled through a custom `SyncConfiguration.Builder.clientResetHandler()` instead of through the default session error handler `SyncConfiguration.Builder.errorHandler()`
 
 ### Enhancements
+* [RealmApp] It is now possible to create App instances with different app id's.
 * [RealmApp] Support for using `null` as a partition value.
 * [RealmApp] Improve errors exception messages from `SyncSession.downloadAllServerChanges()` and `SyncSession.uploadAllLocalChanges()`.
-* Support for watching MongoCollection change streams (Issue [#6912](https://github.com/realm/realm-java/issues/6912))
+* [RealmApp] Support for watching MongoCollection change streams (Issue [#6912](https://github.com/realm/realm-java/issues/6912))
+* [RealmApp] Support for retrying a custom confirmation function on an User for a given email (Issue [#7079](https://github.com/realm/realm-java/pull/7079))
 * [RealmApp] Support for getting all app sessions via `Sync.getAllSessions()`.
 * [RealmApp] Support to retrieve the MongoClient service name using `MongoClient.getServiceName()`
 * [RealmApp] Support to retrieve the MongoDatabase name using `MongoDatabase.getName()`
 * [RealmApp] Support to retrieve the MongoCollection name using `MongoCollection.getName()`
 
 ### Fixed
-* None.
+* If you have a realm file growing towards 2Gb and have a table with more than 16 columns, then you may get a "Key not found" exception when updating an object. If asserts are enabled at the sdk level, you may get an "assert(m_has_refs)" instead. ([#3194](https://github.com/realm/realm-js/issues/3194), since v7.0.0)
+* In cases where you have more than 32 columns in a table, you may get a currrupted file resulting in various crashes ([#7057](https://github.com/realm/realm-java/issues/7057), since v7.0.0)
 
 ### Compatibility
-* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java 10.0.0-BETA.1.
 * APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
 * Realm Studio 10.0.0 and above is required to open Realms created by this version.
 
 ### Internal
-* Updated to Object Store commit: ffda21e28d7dd47793ad2d36394de0328676ca30.
+* Updated to Object Store commit: 6ab48d3b4b1e0865f68b84d5993bb2aad910320b.
+* Updated to Realm Sync 10.0.0-beta.11.
+* Updated to Realm Core 10.0.0-beta.7.
 
 
 ## 10.0.0-BETA.6 (2020-08-17)
