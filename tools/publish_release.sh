@@ -55,15 +55,17 @@ check_env() {
     echo "Checking environment..."
 
     # Try to find s3cmd
-    path_to_s3cmd=$(which s3cmd)
-    if ( -x "$path_to_s3cmd" ) then
+    path_to_s3cmd=$(type s3cmd)
+    if [ -x "$path_to_s3cmd" ]
+    then
         echo "Cannot find executable file 's3cmd'. Aborting."
         abort_release
     fi
 
     # Try to find git
-    path_to_git=$(which git)
-    if ( -x "$path_to_git" ) then
+    path_to_git=$(type git)
+    if [ -x "$path_to_git" ]
+    then
         echo "Cannot find executable file 'git'. Aborting."
         abort_release
     fi
