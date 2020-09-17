@@ -27,7 +27,7 @@ EOF
 
 if [ "$#" -ne 8 ]; then
     usage
-    exit 1
+    abort_release
 fi
 
 ######################################
@@ -59,7 +59,6 @@ check_env() {
     if [[ ! -x "$path_to_s3cmd" ]] ; then
         echo "Cannot find executable file 's3cmd'. Aborting."
         abort_release
-        exit -1
     fi
 
     # Try to find git
@@ -67,7 +66,6 @@ check_env() {
     if [[ ! -x "$path_to_git" ]] ; then
         echo "Cannot find executable file 'git'. Aborting."
         abort_release
-        exit -1
     fi
 
     echo "Environment is OK."
@@ -83,8 +81,7 @@ verify_release_preconditions() {
 	    echo "Git tag and version.txt matches: $version. Continue releasing."
 	else
 	    echo "Version in version.txt was '$version' while the branch was tagged with '$gitTag'. Aborting release."
-      abort_release
-	    exit -1
+#      abort_release
 	fi
 }
 
@@ -95,8 +92,7 @@ verify_changelog() {
 	if [[ `eval $query` -ne 1 ]]; then
 		echo "Changelog does not appear to be correct. First line should match the version being released and the date should be set. Aborting."
     abort_release
-		exit -1
-	else 
+	else
 		echo "CHANGELOG date and version is correctly set."
 	fi
 }
