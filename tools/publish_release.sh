@@ -32,9 +32,6 @@ fi
 ######################################
 # Define Release steps
 ######################################
-echo "$0"
-echo `realpath "$0"`
-echo $(dirname `realpath "$0"`)
 HERE=$(dirname `realpath "$0"`)
 REALM_JAVA_PATH="$HERE/.."
 RELEASE_VERSION=""
@@ -77,23 +74,21 @@ check_env() {
 verify_release_preconditions() {
 	echo "Checking release branch..."
 	gitTag=`git describe --tags | tr -d '[:space:]'`
-	echo "$REALM_JAVA_PATH"
-	cat "$REALM_JAVA_PATH/version.txt"
 	version=`cat $REALM_JAVA_PATH/version.txt | tr -d '[:space:]'`
 
 	if [ "v$version" == "$gitTag" ]
 	then
-		RELEASE_VERSION=$version
-	    echo "Git tag and version.txt matches: $version. Continue releasing."
+    RELEASE_VERSION=$version
+    echo "Git tag and version.txt matches: $version. Continue releasing."
 	else
-	    echo "Version in version.txt was '$version' while the branch was tagged with '$gitTag'. Aborting release."
+    echo "Version in version.txt was '$version' while the branch was tagged with '$gitTag'. Aborting release."
 #      abort_release
 	fi
 }
 
 verify_changelog() {
 	echo "Checking CHANGELOG.md..."
-	query="grep -c '^## $RELEASE_VERSION ([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9])' $REALM_JAVA_PATH/../CHANGELOG.md"
+	query="grep -c '^## $RELEASE_VERSION ([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9])' $REALM_JAVA_PATH/CHANGELOG.md"
 
 	if [ `eval $query` -ne 1 ]
 	then
