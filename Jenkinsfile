@@ -70,8 +70,6 @@ try {
 
       // Attempt to figure out what is going on
       def var1="foo"
-      def var2="bar"
-      def var2="baz"
 
       sh """
         set -x  
