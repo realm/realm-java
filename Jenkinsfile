@@ -83,7 +83,7 @@ try {
             def var1="foo"
             sh """
         set -x  
-        sh tools/publish_release.sh '${var1}' '$var1' '${var1}' '${var1}' '${var1}' '${var1}' '${var1}' '${var1}'
+        sh tools/publish_release.sh \"${var1}\" \"$var1\" \"${var1}\" \"${var1}\" \"${var1}\" \"${var1}\" \"${var1}\" \"${var1}\"
       """
           }
         }
