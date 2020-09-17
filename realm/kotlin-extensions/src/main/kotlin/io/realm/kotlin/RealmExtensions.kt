@@ -95,13 +95,17 @@ inline fun <reified T : RealmModel> Realm.createEmbeddedObject(parentObject: Rea
 }
 
 /**
- * FIXME
+ * Executes a given transaction on the Realm. [Realm.beginTransaction] and [Realm.commitTransaction]
+ * will be called automatically. If any exception is thrown during the transaction
+ * [Realm.cancelTransaction] will be called instead of [Realm.commitTransaction].
  *
  * @param context FIXME
- * @param transaction FIXME
+ * @param transaction the [Realm.Transaction] to execute.
+ * @throws IllegalArgumentException if the `transaction` is `null`.
+ * @throws RealmMigrationNeededException if the latest version contains incompatible schema changes.
  */
 suspend fun Realm.executeTransactionAwait(
-        context: CoroutineContext = Realm.asyncTaskExecutor.asCoroutineDispatcher(),
+        context: CoroutineContext = Realm.writeExecutor.asCoroutineDispatcher(),
         transaction: (realm: Realm) -> Unit
 ) {
     // Default to our own thread pool executor (as dispatcher)

@@ -68,8 +68,7 @@ class MainFragment : Fragment() {
             viewModel.countDogs()
         }
         view.findViewById<Button>(R.id.buttonDelete).setOnClickListener {
-            // Calling this while bulk-inserting will freeze the UI as executeTransactionAsync
-            // and deleteAll run on Realm's thread pool executor
+            // Calling this while bulk-inserting will not freeze the UI
             viewModel.deleteAll()
         }
         view.findViewById<Button>(R.id.buttonCancelCoroutine).setOnClickListener {

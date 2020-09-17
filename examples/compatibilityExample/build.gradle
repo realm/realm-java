@@ -68,6 +68,5 @@ dependencies {
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
 }
 
-// FIXME should we still have this example given how extended jetpack already is?
-//if ((project.findProperty("android.useAndroidX") ?: false).toBoolean())
-//    throw new RuntimeException("Compatibility project should run without AndroidX")
+if ((project.findProperty("android.useAndroidX") ?: false).toBoolean())
+    throw new RuntimeException("Compatibility project should run without AndroidX")

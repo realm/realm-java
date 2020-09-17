@@ -1,5 +1,1 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="io.realm.kotlin">
-
-    <application android:name="androidx.multidex.MultiDexApplication" />
-</manifest>
+<manifest package="io.realm.kotlin" />

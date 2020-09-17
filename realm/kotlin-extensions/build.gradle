@@ -88,8 +88,6 @@ dependencies {
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_android_version"
     androidTestImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
 
-//    implementation "androidx.multidex:multidex:2.0.0"
-
     androidTestImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test:rules:1.2.0'

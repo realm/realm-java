@@ -46,7 +46,7 @@ fun <T : RealmModel> RealmResults<T>.toFlow(): Flow<RealmResults<T>> {
         // Do nothing if the results are invalid
         if (!results.isValid) return@callbackFlow
 
-        // Get instance to ensure the Realm is open for as long we are listening
+        // Get instance to ensure the Realm is open for as long as we are listening
         val flowRealm = Realm.getInstance(config)
         val listener = RealmChangeListener<RealmResults<T>> { listenerResults ->
             offer(listenerResults.freeze())

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 # Script that make sure release build is correctly published in the appropriate channels.
 #
@@ -12,6 +12,7 @@
 # 6. Upload native debug symobols and update latest version number on S3.
 # 7. Upload Javadoc to MongoDB Realm S3 bucket.
 # 8. Notify #realm-releases and #realm-java-team-ci about the new release.
+set -e
 IFS=$'\n\t'
 
 ######################################
