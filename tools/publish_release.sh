@@ -76,7 +76,7 @@ verify_release_preconditions() {
 	gitTag=`git describe --tags | tr -d '[:space:]'`
 	version=`cat $REALM_JAVA_PATH/version.txt | tr -d '[:space:]'`
 
-	if [ "v$version" == "$gitTag" ]
+	if [ "v$version" = "$gitTag" ]
 	then
     RELEASE_VERSION=$version
     echo "Git tag and version.txt matches: $version. Continue releasing."
