@@ -103,37 +103,37 @@ verify_changelog() {
 
 create_javadoc() {
 	echo "Creating JavaDoc..."
-	cd $REALM_JAVA_PATH
-	./gradlew javadoc
-	cd $HERE
+#	cd $REALM_JAVA_PATH
+#	./gradlew javadoc
+#	cd $HERE
 }
 
 create_native_debug_symbols_package() {
 	echo "Creating zip file with native debug symbols.."
-	cd $REALM_JAVA_PATH
-	./gradlew distributionPackage
-	cd $HERE
+#	cd $REALM_JAVA_PATH
+#	./gradlew distributionPackage
+#	cd $HERE
 }
 
 upload_to_bintray() {
 	echo "Releasing on Bintray..."
-	cd $REALM_JAVA_PATH
-	./gradlew bintrayUpload -PbintrayUser=$BINTRAY_USER -PbintrayKey=$BINTRAY_KEY
-	cd $HERE
+#	cd $REALM_JAVA_PATH
+#	./gradlew bintrayUpload -PbintrayUser=$BINTRAY_USER -PbintrayKey=$BINTRAY_KEY
+#	cd $HERE
 }
 
 upload_debug_symbols() {
 	echo "Uploading native debug symbols..."
-	cd $REALM_JAVA_PATH
-	./gradlew distribute -PREALM_S3_ACCESS_KEY=$REALM_S3_ACCESS_KEY -PREALM_S3_ACCESS_KEY=$REALM_S3_SECRET_KEY
-	cd $HERE
+#	cd $REALM_JAVA_PATH
+#	./gradlew distribute -PREALM_S3_ACCESS_KEY=$REALM_S3_ACCESS_KEY -PREALM_S3_ACCESS_KEY=$REALM_S3_SECRET_KEY
+#	cd $HERE
 }
 
 upload_javadoc() {
 	echo "Uploading docs..."
-	cd $REALM_JAVA_PATH
-	./gradlew uploadJavadoc -PSDK_DOCS_AWS_ACCESS_KEY=$DOCS_S3_ACCESS_KEY -PSDK_DOCS_AWS_SECRET_KEY=$DOCS_S3_SECRET_KEY
-	cd $HERE
+#	cd $REALM_JAVA_PATH
+#	./gradlew uploadJavadoc -PSDK_DOCS_AWS_ACCESS_KEY=$DOCS_S3_ACCESS_KEY -PSDK_DOCS_AWS_SECRET_KEY=$DOCS_S3_SECRET_KEY
+#	cd $HERE
 }
 
 notify_slack_channels() {
@@ -154,8 +154,8 @@ notify_slack_channels() {
 	link_to_changelog="https://github.com/realm/realm-java/blob/$current_branch/CHANGELOG.md#$tag"
 	payload="{ \"username\": \"Realm CI\", \"icon_emoji\": \":realm_new:\", \"text\": \"<$link_to_changelog|*Realm Java $RELEASE_VERSION has been released*>\\nSee the Release Notes for more details.\" }"
 
-  echo "Pinging #realm-releases"
-	curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_RELEASES_URL} 
+#  echo "Pinging #realm-releases"
+#	curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_RELEASES_URL}
   echo "Pinging #realm-java-team-ci"
 	curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_JAVA_CI_URL} 
 }
