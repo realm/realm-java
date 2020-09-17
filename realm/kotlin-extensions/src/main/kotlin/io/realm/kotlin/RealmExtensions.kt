@@ -95,11 +95,9 @@ inline fun <reified T : RealmModel> Realm.createEmbeddedObject(parentObject: Rea
 }
 
 /**
- * Executes a given transaction on the Realm. [Realm.beginTransaction] and [Realm.commitTransaction]
- * will be called automatically. If any exception is thrown during the transaction
- * [Realm.cancelTransaction] will be called instead of [Realm.commitTransaction].
+ * Suspend version of [Realm.beginTransaction] to use within coroutines.
  *
- * @param context FIXME
+ * @param context optional [CoroutineContext] in which this coroutine will run.
  * @param transaction the [Realm.Transaction] to execute.
  * @throws IllegalArgumentException if the `transaction` is `null`.
  * @throws RealmMigrationNeededException if the latest version contains incompatible schema changes.
