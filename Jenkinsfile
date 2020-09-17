@@ -69,9 +69,13 @@ try {
         }
 
       // Attempt to figure out what is going on
+      def var1="foo"
+      def var2="bar"
+      def var2="baz"
+
       sh """
         set -x  
-        sh tools/publish_release.sh 1 2 3 4 5 6 7 8
+        sh tools/publish_release.sh '$var1' '$var1' '$var1' '$var1' '$var1' '$var1' '$var1' '$var1'
       """
 
 
