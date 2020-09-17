@@ -13,7 +13,6 @@
 # 7. Upload Javadoc to MongoDB Realm S3 bucket.
 # 8. Notify #realm-releases and #realm-java-team-ci about the new release.
 set -e
-IFS=$'\n\t'
 
 ######################################
 # Input Validation
@@ -34,7 +33,7 @@ fi
 # Define Release steps
 ######################################
 
-HERE="$(dirname $0)"
+HERE=$(dirname `realpath "$0"`)
 REALM_JAVA_PATH="$HERE/.."
 RELEASE_VERSION=""
 BINTRAY_USER="$1"
@@ -55,19 +54,19 @@ check_env() {
     echo "Checking environment..."
 
     # Try to find s3cmd
-    path_to_s3cmd=$(which s3cmd)
-    if [[ ! -x "$path_to_s3cmd" ]] ; then
+    path_to_s3cmd=$(type s3cmd)
+    if [ -x "$path_to_s3cmd" ]
+    then
         echo "Cannot find executable file 's3cmd'. Aborting."
         abort_release
-        exit -1
     fi
 
     # Try to find git
-    path_to_git=$(which git)
-    if [[ ! -x "$path_to_git" ]] ; then
+    path_to_git=$(type git)
+    if [ -x "$path_to_git" ]
+    then
         echo "Cannot find executable file 'git'. Aborting."
         abort_release
-        exit -1
     fi
 
     echo "Environment is OK."
@@ -76,26 +75,26 @@ check_env() {
 verify_release_preconditions() {
 	echo "Checking release branch..."
 	gitTag=`git describe --tags | tr -d '[:space:]'`
-	version=`cat $HERE/../version.txt | tr -d '[:space:]'`
-
-	if [[ "v$version" == "$gitTag" ]]; then
-		RELEASE_VERSION=$version
-	    echo "Git tag and version.txt matches: $version. Continue releasing."
+	version=`cat $REALM_JAVA_PATH/version.txt | tr -d '[:space:]'`
+	
+	if [ "v$version" = "$gitTag" ]
+	then
+	    RELEASE_VERSION=$version
+    	echo "Git tag and version.txt matches: $version. Continue releasing."
 	else
 	    echo "Version in version.txt was '$version' while the branch was tagged with '$gitTag'. Aborting release."
-      abort_release
-	    exit -1
+      	abort_release
 	fi
 }
 
 verify_changelog() {
 	echo "Checking CHANGELOG.md..."
-	query="grep -c '^## $RELEASE_VERSION ([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9])' $HERE/../CHANGELOG.md"
+	query="grep -c '^## $RELEASE_VERSION ([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9])' $REALM_JAVA_PATH/CHANGELOG.md"
 
-	if [[ `eval $query` -ne 1 ]]; then
+	if [ `eval $query` -ne 1 ]
+	then
 		echo "Changelog does not appear to be correct. First line should match the version being released and the date should be set. Aborting."
-    abort_release
-		exit -1
+    	abort_release
 	else 
 		echo "CHANGELOG date and version is correctly set."
 	fi
@@ -141,12 +140,14 @@ notify_slack_channels() {
 
 	# Read first . Link is the value with ".",")","(" and space removed.
 	tag=`grep '$RELEASE_VERSION' $REALM_JAVA_PATH/CHANGELOG.md | cut -c 4- | sed 's/[.)(]//g' | sed 's/ /-/g'`
-	if [ -z "$tag" ]; then
+	if [ -z "$tag" ]
+	then
       echo "\$tag did not resolve correctly. Aborting."
       abort_release
 	fi
  	current_branch=`git rev-parse --abbrev-ref HEAD`
-	if [ -z "$current_branch" ]; then
+	if [ -z "$current_branch" ]
+	then
       echo "Could not find current branch. Aborting."
       abort_release
 	fi
@@ -154,9 +155,9 @@ notify_slack_channels() {
 	link_to_changelog="https://github.com/realm/realm-java/blob/$current_branch/CHANGELOG.md#$tag"
 	payload="{ \"username\": \"Realm CI\", \"icon_emoji\": \":realm_new:\", \"text\": \"<$link_to_changelog|*Realm Java $RELEASE_VERSION has been released*>\\nSee the Release Notes for more details.\" }"
 
-  echo "Pinging #realm-releases"
+  	echo "Pinging #realm-releases"
 	curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_RELEASES_URL} 
-  echo "Pinging #realm-java-team-ci"
+  	echo "Pinging #realm-java-team-ci"
 	curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_JAVA_CI_URL} 
 }
 

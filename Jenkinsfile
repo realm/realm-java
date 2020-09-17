@@ -159,14 +159,13 @@ try {
               } else {
                 runBuild(abiFilter, instrumentationTestTarget)
               }
+
+              // Release the library if needed
+              if (publishBuild) {
+                runPublish()
+              }
             }
           }
-
-          // Release the library if needed
-          if (publishBuild) {
-            runPublish()
-          }
-          
         } finally {
           // We assume that creating these containers and the docker network can be considered an atomic operation.
           if (mongoDbRealmContainer != null && mongoDbRealmCommandServerContainer != null) {
