@@ -71,122 +71,119 @@ try {
       // Attempt to figure out what is going on
 
 
-      runPublish()
+         // Toggles for PR vs. Master builds.
+         // - For PR's, we favor speed > absolute correctness. So we just build for x86, use an
+         //   emulator and run unit tests for the ObjectServer variant.
+         // - For branches from which we make releases, we build all architectures and run tests
+         //   on an actual device.
+         def useEmulator = false
+         def emulatorImage = ""
+         def abiFilter = ""
+         def instrumentationTestTarget = "connectedAndroidTest"
+         def deviceSerial = ""
+         if (!releaseBranches.contains(currentBranch)) {
+           // Build development branch
+           useEmulator = true
+           emulatorImage = "system-images;android-29;default;x86"
+           abiFilter = "-PbuildTargetABIs=x86"
+           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
+           deviceSerial = "emulator-5554"
+         } else {
+           // Build main/release branch
+           // FIXME: Use emulator until we can get reliable devices on CI.
+           //  But still build all ABI's and run all types of tests.
+           useEmulator = true
+           emulatorImage = "system-images;android-29;default;x86"
+           instrumentationTestTarget = "connectedAndroidTest"
+           deviceSerial = "emulator-5554"
+         }
+
+         try {
+
+           def buildEnv = null
+           stage('Prepare Docker Images') {
+             // TODO Should be renamed to 'master' when merged there.
+             // TODO Caching is currently disabled (with -do-not-cache suffix) due to the upload speed
+             //  in Copenhagen being too slow. So the upload times out.
+             buildEnv = buildDockerEnv("ci/realm-java:v10", push: currentBranch == 'v10-do-not-cache')
+             def props = readProperties file: 'dependencies.list'
+             echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER}"
+             def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER}")
+             docker.withRegistry('https://docker.pkg.github.com', 'github-packages-token') {
+               mdbRealmImage.pull()
+             }
+             def commandServerEnv = docker.build 'mongodb-realm-command-server', "tools/sync_test_server"
+
+             // Prepare Docker containers used by Instrumentation tests
+             // TODO: How much of this logic can be moved to start_server.sh for shared logic with local testing.
+             sh "docker network create ${dockerNetworkId}"
+             mongoDbRealmContainer = mdbRealmImage.run("--network ${dockerNetworkId}")
+             mongoDbRealmCommandServerContainer = commandServerEnv.run("--network container:${mongoDbRealmContainer.id}")
+             sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config-testapp1"
+             sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config-testapp2"
+             sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmContainer.id}:/tmp/"
+             sh "docker exec -i ${mongoDbRealmContainer.id} sh /tmp/setup_mongodb_realm.sh"
+           }
+
+           // There is a chance that real devices are attached to the host, so if the emulator is
+           // running we need to make sure that ADB and tests targets the correct device.
+           String restrictDevice = ""
+           if (deviceSerial != null) {
+             restrictDevice = "-e ANDROID_SERIAL=${deviceSerial} "
+           }
+
+           buildEnv.inside("-e HOME=/tmp " +
+                   "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
+                   "--privileged " +
+                   "-v /dev/kvm:/dev/kvm " +
+                   "-v /dev/bus/usb:/dev/bus/usb " +
+                   "-v ${env.HOME}/gradle-cache:/tmp/.gradle " +
+                   "-v ${env.HOME}/.android:/tmp/.android " +
+                   "-v ${env.HOME}/ccache:/tmp/.ccache " +
+                   restrictDevice +
+                   "-e REALM_CORE_DOWNLOAD_DIR=/tmp/.gradle " +
+                   "--network container:${mongoDbRealmContainer.id} ") {
+
+             // Lock required around all usages of Gradle as it isn't
+             // able to share its cache between builds.
+             lock("${env.NODE_NAME}-android") {
+               if (useEmulator) {
+                 // TODO: We should wait until the emulator is online. For now assume it starts fast enough
+                 //  before the tests will run, since the library needs to build first.
+                 sh """yes '\n' | avdmanager create avd -n CIEmulator -k '${emulatorImage}' --force"""
+                 sh "adb start-server" // https://stackoverflow.com/questions/56198290/problems-with-adb-exe
+                 // Need to go to ANDROID_HOME due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
+                 sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-boot-anim -no-window -wipe-data -noaudio -partition-size 4098 &"
+                 try {
+//                   runBuild(abiFilter, instrumentationTestTarget)
+                 } finally {
+                   sh "adb emu kill"
+                 }
+               } else {
+//                 runBuild(abiFilter, instrumentationTestTarget)
+               }
+             }
+
+           }
+
+           // Release the library if needed
+           if (publishBuild) {
+             runPublish()
+           }
 
 
-
-
-
-        // // Toggles for PR vs. Master builds.
-        // // - For PR's, we favor speed > absolute correctness. So we just build for x86, use an
-        // //   emulator and run unit tests for the ObjectServer variant.
-        // // - For branches from which we make releases, we build all architectures and run tests
-        // //   on an actual device.
-        // def useEmulator = false
-        // def emulatorImage = ""
-        // def abiFilter = ""
-        // def instrumentationTestTarget = "connectedAndroidTest"
-        // def deviceSerial = ""
-        // if (!releaseBranches.contains(currentBranch)) {
-        //   // Build development branch
-        //   useEmulator = true
-        //   emulatorImage = "system-images;android-29;default;x86"
-        //   abiFilter = "-PbuildTargetABIs=x86"
-        //   instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
-        //   deviceSerial = "emulator-5554"
-        // } else {
-        //   // Build main/release branch
-        //   // FIXME: Use emulator until we can get reliable devices on CI.
-        //   //  But still build all ABI's and run all types of tests. 
-        //   useEmulator = true
-        //   emulatorImage = "system-images;android-29;default;x86"
-        //   instrumentationTestTarget = "connectedAndroidTest"
-        //   deviceSerial = "emulator-5554"
-        // }
-
-        // try {
-
-        //   def buildEnv = null
-        //   stage('Prepare Docker Images') {
-        //     // TODO Should be renamed to 'master' when merged there.
-        //     // TODO Caching is currently disabled (with -do-not-cache suffix) due to the upload speed
-        //     //  in Copenhagen being too slow. So the upload times out.
-        //     buildEnv = buildDockerEnv("ci/realm-java:v10", push: currentBranch == 'v10-do-not-cache')
-        //     def props = readProperties file: 'dependencies.list'
-        //     echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER}"
-        //     def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER}")
-        //     docker.withRegistry('https://docker.pkg.github.com', 'github-packages-token') {
-        //       mdbRealmImage.pull()
-        //     }
-        //     def commandServerEnv = docker.build 'mongodb-realm-command-server', "tools/sync_test_server"
-
-        //     // Prepare Docker containers used by Instrumentation tests
-        //     // TODO: How much of this logic can be moved to start_server.sh for shared logic with local testing.
-        //     sh "docker network create ${dockerNetworkId}"
-        //     mongoDbRealmContainer = mdbRealmImage.run("--network ${dockerNetworkId}")
-        //     mongoDbRealmCommandServerContainer = commandServerEnv.run("--network container:${mongoDbRealmContainer.id}")
-        //     sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config-testapp1"
-        //     sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config-testapp2"
-        //     sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmContainer.id}:/tmp/"
-        //     sh "docker exec -i ${mongoDbRealmContainer.id} sh /tmp/setup_mongodb_realm.sh"
-        //   }
-
-        //   // There is a chance that real devices are attached to the host, so if the emulator is
-        //   // running we need to make sure that ADB and tests targets the correct device.
-        //   String restrictDevice = ""
-        //   if (deviceSerial != null) {
-        //     restrictDevice = "-e ANDROID_SERIAL=${deviceSerial} "
-        //   }
-
-        //   buildEnv.inside("-e HOME=/tmp " +
-        //           "-e _JAVA_OPTIONS=-Duser.home=/tmp " +
-        //           "--privileged " +
-        //           "-v /dev/kvm:/dev/kvm " +
-        //           "-v /dev/bus/usb:/dev/bus/usb " +
-        //           "-v ${env.HOME}/gradle-cache:/tmp/.gradle " +
-        //           "-v ${env.HOME}/.android:/tmp/.android " +
-        //           "-v ${env.HOME}/ccache:/tmp/.ccache " +
-        //           restrictDevice +
-        //           "-e REALM_CORE_DOWNLOAD_DIR=/tmp/.gradle " +
-        //           "--network container:${mongoDbRealmContainer.id} ") {
-
-        //     // Lock required around all usages of Gradle as it isn't
-        //     // able to share its cache between builds.
-        //     lock("${env.NODE_NAME}-android") {
-        //       if (useEmulator) {
-        //         // TODO: We should wait until the emulator is online. For now assume it starts fast enough
-        //         //  before the tests will run, since the library needs to build first.
-        //         sh """yes '\n' | avdmanager create avd -n CIEmulator -k '${emulatorImage}' --force"""
-        //         sh "adb start-server" // https://stackoverflow.com/questions/56198290/problems-with-adb-exe
-        //         // Need to go to ANDROID_HOME due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
-        //         sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-boot-anim -no-window -wipe-data -noaudio -partition-size 4098 &"
-        //         try {
-        //           runBuild(abiFilter, instrumentationTestTarget)
-        //         } finally {
-        //           sh "adb emu kill"
-        //         }
-        //       } else {
-        //         runBuild(abiFilter, instrumentationTestTarget)
-        //       }
-        //     }
-
-        //     // Release the library if needed
-        //     if (publishBuild) {
-        //       runPublish()
-        //     }
-        //   }
-        // } finally {
-        //   // We assume that creating these containers and the docker network can be considered an atomic operation.
-        //   if (mongoDbRealmContainer != null && mongoDbRealmCommandServerContainer != null) {
-        //     archiveServerLogs(mongoDbRealmContainer.id, mongoDbRealmCommandServerContainer.id)
-        //     mongoDbRealmContainer.stop()
-        //     mongoDbRealmCommandServerContainer.stop()
-        //     sh "docker network rm ${dockerNetworkId}"
-        //   }
-        //   if (emulatorContainer != null) {
-        //     emulatorContainer.stop()
-        //   }
-        // }
+         } finally {
+           // We assume that creating these containers and the docker network can be considered an atomic operation.
+           if (mongoDbRealmContainer != null && mongoDbRealmCommandServerContainer != null) {
+             archiveServerLogs(mongoDbRealmContainer.id, mongoDbRealmCommandServerContainer.id)
+             mongoDbRealmContainer.stop()
+             mongoDbRealmCommandServerContainer.stop()
+             sh "docker network rm ${dockerNetworkId}"
+           }
+           if (emulatorContainer != null) {
+             emulatorContainer.stop()
+           }
+         }
       }
     }
     currentBuild.rawBuild.setResult(Result.SUCCESS)
