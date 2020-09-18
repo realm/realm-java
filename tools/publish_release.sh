@@ -25,8 +25,8 @@ EOF
 }
 
 if [ "$#" -ne 8 ]; then
-    usage
-    exit 1
+  usage
+  exit 1
 fi
 
 ######################################
@@ -51,25 +51,25 @@ abort_release() {
 }
 
 check_env() {
-    echo "Checking environment..."
+  echo "Checking environment..."
 
-    # Try to find s3cmd
-    path_to_s3cmd=$(type s3cmd)
-    if [ -x "$path_to_s3cmd" ]
-    then
-        echo "Cannot find executable file 's3cmd'. Aborting."
-        abort_release
-    fi
+  # Try to find s3cmd
+  path_to_s3cmd=$(type s3cmd)
+  if [ -x "$path_to_s3cmd" ]
+  then
+      echo "Cannot find executable file 's3cmd'. Aborting."
+      abort_release
+  fi
 
-    # Try to find git
-    path_to_git=$(type git)
-    if [ -x "$path_to_git" ]
-    then
-        echo "Cannot find executable file 'git'. Aborting."
-        abort_release
-    fi
+  # Try to find git
+  path_to_git=$(type git)
+  if [ -x "$path_to_git" ]
+  then
+      echo "Cannot find executable file 'git'. Aborting."
+      abort_release
+  fi
 
-    echo "Environment is OK."
+  echo "Environment is OK."
 }
 
 verify_release_preconditions() {
@@ -139,7 +139,8 @@ notify_slack_channels() {
 	echo "Notifying Slack channels..."
 
 	# Read first . Link is the value with ".",")","(" and space removed.
-	tag=`grep '$RELEASE_VERSION' $REALM_JAVA_PATH/CHANGELOG.md | cut -c 4- | sed 's/[.)(]//g' | sed 's/ /-/g'`
+	command="grep '$RELEASE_VERSION' $REALM_JAVA_PATH/CHANGELOG.md | cut -c 4- | sed -e 's/[.)(]//g' | sed -e 's/ /-/g'"
+	tag=`eval $command`
 	if [ -z "$tag" ]
 	then
       echo "\$tag did not resolve correctly. Aborting."
@@ -154,11 +155,11 @@ notify_slack_channels() {
 
 	link_to_changelog="https://github.com/realm/realm-java/blob/$current_branch/CHANGELOG.md#$tag"
 	payload="{ \"username\": \"Realm CI\", \"icon_emoji\": \":realm_new:\", \"text\": \"<$link_to_changelog|*Realm Java $RELEASE_VERSION has been released*>\\nSee the Release Notes for more details.\" }"
-
-  	echo "Pinging #realm-releases"
-	curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_RELEASES_URL} 
-  	echo "Pinging #realm-java-team-ci"
-	curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_JAVA_CI_URL} 
+  echo $link_to_changelog
+  echo "Pinging #realm-releases"
+	curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_RELEASES_URL}
+  echo "Pinging #realm-java-team-ci"
+	curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_JAVA_CI_URL}
 }
 
 ######################################
