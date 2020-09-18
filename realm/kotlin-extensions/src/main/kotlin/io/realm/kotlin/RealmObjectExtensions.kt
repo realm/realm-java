@@ -16,45 +16,162 @@
 package io.realm.kotlin
 
 import io.realm.*
+import io.realm.RealmObject.freeze
 import io.realm.annotations.Beta
+import io.realm.internal.RealmObjectProxy
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOf
 
 /**
- * FIXME
+ * Returns a [Flow] that monitors changes to this RealmObject. It will emit the current
+ * RealmObject when subscribed to. Object updates will continually be emitted as the RealmObject is
+ * updated - `onCompletion` will never be called.
+ *
+ * Items emitted from Realm flows are frozen - see [RealmObject.freeze]. This means that they are
+ * immutable and can be read from any thread.
+ *
+ * Realm flows always emit items from the thread holding the live RealmObject. This means that if
+ * you need to do further processing, it is recommended to collect the values on a computation
+ * dispatcher:
+ *
+ * ```
+ * object.toFlow()
+ *   .map { obj -> doExpensiveWork(obj) }
+ *   .flowOn(Dispatchers.IO)
+ *   .onEach { flowObject ->
+ *     // ...
+ *   }.launchIn(Dispatchers.Main)
+ * ```
+ *
+ * If your would like `toFlow()` to stop emitting items you can instruct the flow to only emit the
+ * first item by calling [kotlinx.coroutines.flow.first]:
+ * ```
+ * val foo = object.toFlow()
+ *   .flowOn(context)
+ *   .first()
+ * ```
+ *
+ * @return Kotlin [Flow] on which calls to `onEach` or `collect` can be made.
  */
 @Beta
 fun <T : RealmObject> T.toFlow(): Flow<T> {
     // Return "as is" if frozen, there will be no listening for changes
     if (realm.isFrozen) {
-        flowOf(this)
+        return flowOf(this)
     }
 
     val config = realm.configuration
 
     return callbackFlow<T> {
-        // Emit current (frozen) value immediately
-        offer(freeze())
+        val obj = this@toFlow
 
-        val results = this@toFlow
-
-        // Do nothing if the results are invalid
-        if (!results.isValid) return@callbackFlow
-
-        // Get instance to ensure the Realm is open for as long we are listening
-        val flowRealm = Realm.getInstance(config)
-        val listener = RealmChangeListener<T> { listenerResults ->
-            offer(listenerResults.freeze())
+        // Do nothing if the object is invalid
+        if (!obj.isValid) {
+            return@callbackFlow
         }
 
-        results.addChangeListener(listener)
+        // Get instance to ensure the Realm is open for as long as we are listening
+        val flowRealm = Realm.getInstance(config)
+        val listener = RealmChangeListener<T> { listenerObj ->
+            offer(listenerObj.freeze())
+        }
+
+        obj.addChangeListener(listener)
+
+        // Emit current (frozen) value
+        offer(freeze())
 
         awaitClose {
             // Remove listener and cleanup
             if (!flowRealm.isClosed) {
-                results.removeChangeListener(listener)
+                obj.removeChangeListener(listener)
+                flowRealm.close()
+            }
+        }
+    }
+}
+
+fun <T : RealmModel> toFlow(obj: T): Flow<T> {
+    return if (obj is RealmObjectProxy) {
+        val proxy = obj as RealmObjectProxy
+        val realm = proxy.`realmGet$proxyState`().`realm$realm`
+
+        when (realm) {
+            is Realm -> toFlowFromRealm<T>(realm, obj)
+//            is DynamicRealm -> toFlowFromDynamicRealm<T>(realm, obj)
+            else -> throw UnsupportedOperationException("${realm.javaClass} does not support RxJava. See https://realm.io/docs/java/latest/#rxjava for more details.")
+        }
+    } else {
+        throw IllegalArgumentException("Cannot create Flows from unmanaged RealmObjects")
+    }
+}
+
+private fun <T : RealmModel> toFlowFromRealm(realm: Realm, obj: T): Flow<T> {
+    // Return "as is" if frozen, there will be no listening for changes
+    if (realm.isFrozen) {
+        return flowOf(obj)
+    }
+
+    val config = realm.configuration
+
+    return callbackFlow<T> {
+        // Do nothing if the object is invalid
+        if (!obj.isValid()) {
+            return@callbackFlow
+        }
+
+        // Get instance to ensure the Realm is open for as long as we are listening
+        val flowRealm = Realm.getInstance(config)
+        val listener = RealmChangeListener<RealmModel> { listenerObj ->
+            offer(listenerObj.freeze())
+        }
+
+        obj.addChangeListener(listener)
+
+        // Emit current (frozen) value
+        offer(freeze(obj))
+
+        awaitClose {
+            // Remove listener and cleanup
+            if (!flowRealm.isClosed) {
+                obj.removeChangeListener(listener)
+                flowRealm.close()
+            }
+        }
+    }
+}
+
+private fun toFlowFromDynamicRealm(realm: DynamicRealm, obj: DynamicRealmObject): Flow<DynamicRealmObject> {
+    // Return "as is" if frozen, there will be no listening for changes
+    if (realm.isFrozen) {
+        return flowOf(obj)
+    }
+
+    val config = realm.configuration
+
+    return callbackFlow<DynamicRealmObject> {
+        // Do nothing if the object is invalid
+        if (!obj.isValid) {
+            return@callbackFlow
+        }
+
+        // Get instance to ensure the Realm is open for as long as we are listening
+        val flowRealm = Realm.getInstance(config)
+        val listener = RealmChangeListener<DynamicRealmObject> { listenerObj ->
+            offer(listenerObj.freeze())
+        }
+
+        obj.addChangeListener(listener)
+
+        // Emit current (frozen) value
+        offer(freeze(obj))
+
+        awaitClose {
+            // Remove listener and cleanup
+            if (!flowRealm.isClosed) {
+                obj.removeChangeListener(listener)
                 flowRealm.close()
             }
         }

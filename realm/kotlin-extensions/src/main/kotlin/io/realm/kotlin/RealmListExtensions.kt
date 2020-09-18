@@ -15,10 +15,7 @@
  */
 package io.realm.kotlin
 
-import io.realm.Realm
-import io.realm.RealmChangeListener
-import io.realm.RealmList
-import io.realm.RealmObject
+import io.realm.*
 import io.realm.annotations.Beta
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -26,33 +23,63 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOf
 
 /**
- * FIXME
+ * Returns a [Flow] that monitors changes to this RealmList. It will emit the current
+ * RealmResults when subscribed to. RealmList updates will continually be emitted as the RealmList
+ * is updated - `onCompletion` will never be called.
+ *
+ * Items emitted from Realm flows are frozen - see [RealmList.freeze]. This means that they are
+ * immutable and can be read from any thread.
+ *
+ * Realm flows always emit items from the thread holding the live RealmList. This means that if you
+ * need to do further processing, it is recommended to collect the values on a computation
+ * dispatcher:
+ *
+ * ```
+ * list.toFlow()
+ *   .map { list -> doExpensiveWork(list) }
+ *   .flowOn(Dispatchers.IO)
+ *   .onEach { flowList ->
+ *     // ...
+ *   }.launchIn(Dispatchers.Main)
+ * ```
+ *
+ * If your would like `toFlow()` to stop emitting items you can instruct the flow to only emit the
+ * first item by calling [kotlinx.coroutines.flow.first]:
+ * ```
+ * val foo = list.toFlow()
+ *   .flowOn(context)
+ *   .first()
+ * ```
+ *
+ * @return Kotlin [Flow] on which calls to `onEach` or `collect` can be made.
  */
 @Beta
 fun <T : RealmObject> RealmList<T>.toFlow(): Flow<RealmList<T>> {
     // Return "as is" if frozen, there will be no listening for changes
     if (realm.isFrozen) {
-        flowOf(this)
+        return flowOf(this)
     }
 
     val config = realm.configuration
 
-    return callbackFlow<RealmList<T>> {
-        // Emit current (frozen) value immediately
-        offer(freeze())
-
+    return callbackFlow {
         val results = this@toFlow
 
         // Do nothing if the results are invalid
-        if (!results.isValid) return@callbackFlow
+        if (!results.isValid) {
+            return@callbackFlow
+        }
 
-        // Get instance to ensure the Realm is open for as long we are listening
+        // Get instance to ensure the Realm is open for as long as we are listening
         val flowRealm = Realm.getInstance(config)
         val listener = RealmChangeListener<RealmList<T>> { listenerResults ->
             offer(listenerResults.freeze())
         }
 
         results.addChangeListener(listener)
+
+        // Emit current (frozen) value
+        offer(freeze())
 
         awaitClose {
             // Remove listener and cleanup

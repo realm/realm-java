@@ -43,6 +43,10 @@ fun RealmModel.isValid(): Boolean {
     return RealmObject.isValid(this)
 }
 
+fun <T: RealmModel> RealmModel.freeze(): T {
+    return RealmObject.freeze(this) as T
+}
+
 /**
  * Checks if this object is managed by Realm. A managed object is just a wrapper around the data in the underlying
  * Realm file. On Looper threads, a managed object will be live-updated so it always points to the latest data. It
@@ -210,4 +214,3 @@ fun  <E : RealmModel> E.removeChangeListener(listener: RealmObjectChangeListener
 fun RealmModel.removeAllChangeListeners() {
     return RealmObject.removeAllChangeListeners(this)
 }
-
