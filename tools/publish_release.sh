@@ -57,109 +57,108 @@ check_env() {
   path_to_s3cmd=$(type s3cmd)
   if [ -x "$path_to_s3cmd" ]
   then
-      echo "Cannot find executable file 's3cmd'. Aborting."
-      abort_release
+    echo "Cannot find executable file 's3cmd'. Aborting."
+    abort_release
   fi
 
   # Try to find git
   path_to_git=$(type git)
   if [ -x "$path_to_git" ]
   then
-      echo "Cannot find executable file 'git'. Aborting."
-      abort_release
+    echo "Cannot find executable file 'git'. Aborting."
+    abort_release
   fi
 
   echo "Environment is OK."
 }
 
 verify_release_preconditions() {
-	echo "Checking release branch..."
-	gitTag=`git describe --tags | tr -d '[:space:]'`
-	version=`cat $REALM_JAVA_PATH/version.txt | tr -d '[:space:]'`
-	
-	if [ "v$version" = "$gitTag" ]
-	then
-	    RELEASE_VERSION=$version
-    	echo "Git tag and version.txt matches: $version. Continue releasing."
-	else
-	    echo "Version in version.txt was '$version' while the branch was tagged with '$gitTag'. Aborting release."
-      	abort_release
-	fi
+  echo "Checking release branch..."
+  gitTag=`git describe --tags | tr -d '[:space:]'`
+  version=`cat $REALM_JAVA_PATH/version.txt | tr -d '[:space:]'`
+
+  if [ "v$version" = "$gitTag" ]
+  then
+    RELEASE_VERSION=$version
+    echo "Git tag and version.txt matches: $version. Continue releasing."
+  else
+      echo "Version in version.txt was '$version' while the branch was tagged with '$gitTag'. Aborting release."
+        abort_release
+  fi
 }
 
 verify_changelog() {
-	echo "Checking CHANGELOG.md..."
-	query="grep -c '^## $RELEASE_VERSION ([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9])' $REALM_JAVA_PATH/CHANGELOG.md"
+  echo "Checking CHANGELOG.md..."
+  query="grep -c '^## $RELEASE_VERSION ([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9])' $REALM_JAVA_PATH/CHANGELOG.md"
 
-	if [ `eval $query` -ne 1 ]
-	then
-		echo "Changelog does not appear to be correct. First line should match the version being released and the date should be set. Aborting."
-    	abort_release
-	else 
-		echo "CHANGELOG date and version is correctly set."
-	fi
+  if [ `eval $query` -ne 1 ]
+  then
+    echo "Changelog does not appear to be correct. First line should match the version being released and the date should be set. Aborting."
+    abort_release
+  else
+    echo "CHANGELOG date and version is correctly set."
+  fi
 }
 
 create_javadoc() {
-	echo "Creating JavaDoc..."
-	cd $REALM_JAVA_PATH
-	./gradlew javadoc
-	cd $HERE
+  echo "Creating JavaDoc..."
+  cd $REALM_JAVA_PATH
+  ./gradlew javadoc
+  cd $HERE
 }
 
 create_native_debug_symbols_package() {
-	echo "Creating zip file with native debug symbols.."
-	cd $REALM_JAVA_PATH
-	./gradlew distributionPackage
-	cd $HERE
+  echo "Creating zip file with native debug symbols.."
+  cd $REALM_JAVA_PATH
+  ./gradlew distributionPackage
+  cd $HERE
 }
 
 upload_to_bintray() {
-	echo "Releasing on Bintray..."
-	cd $REALM_JAVA_PATH
-	./gradlew bintrayUpload -PbintrayUser=$BINTRAY_USER -PbintrayKey=$BINTRAY_KEY
-	cd $HERE
+  echo "Releasing on Bintray..."
+  cd $REALM_JAVA_PATH
+  ./gradlew bintrayUpload -PbintrayUser=$BINTRAY_USER -PbintrayKey=$BINTRAY_KEY
+  cd $HERE
 }
 
 upload_debug_symbols() {
-	echo "Uploading native debug symbols..."
-	cd $REALM_JAVA_PATH
-	./gradlew distribute -PREALM_S3_ACCESS_KEY=$REALM_S3_ACCESS_KEY -PREALM_S3_SECRET_KEY=$REALM_S3_SECRET_KEY
-	cd $HERE
+  echo "Uploading native debug symbols..."
+  cd $REALM_JAVA_PATH
+  ./gradlew distribute -PREALM_S3_ACCESS_KEY=$REALM_S3_ACCESS_KEY -PREALM_S3_SECRET_KEY=$REALM_S3_SECRET_KEY
+  cd $HERE
 }
 
 upload_javadoc() {
-	echo "Uploading docs..."
-	cd $REALM_JAVA_PATH
-	./gradlew uploadJavadoc -PSDK_DOCS_AWS_ACCESS_KEY=$DOCS_S3_ACCESS_KEY -PSDK_DOCS_AWS_SECRET_KEY=$DOCS_S3_SECRET_KEY
-	cd $HERE
+  echo "Uploading docs..."
+  cd $REALM_JAVA_PATH
+  ./gradlew uploadJavadoc -PSDK_DOCS_AWS_ACCESS_KEY=$DOCS_S3_ACCESS_KEY -PSDK_DOCS_AWS_SECRET_KEY=$DOCS_S3_SECRET_KEY
+  cd $HERE
 }
 
 notify_slack_channels() {
-	echo "Notifying Slack channels..."
+  echo "Notifying Slack channels..."
 
-	# Read first . Link is the value with ".",")","(" and space removed.
-	command="grep '$RELEASE_VERSION' $REALM_JAVA_PATH/CHANGELOG.md | cut -c 4- | sed -e 's/[.)(]//g' | sed -e 's/ /-/g'"
-	tag=`eval $command`
-	if [ -z "$tag" ]
-	then
-      echo "\$tag did not resolve correctly. Aborting."
-      abort_release
-	fi
- 	current_branch=`git rev-parse --abbrev-ref HEAD`
-	if [ -z "$current_branch" ]
-	then
-      echo "Could not find current branch. Aborting."
-      abort_release
-	fi
+  # Read first . Link is the value with ".",")","(" and space removed.
+    tag=$(grep '$RELEASE_VERSION' $REALM_JAVA_PATH/CHANGELOG.md | cut -c 4- | sed 's/[.)(]//g' | sed -n 's/ /-/g')
+  if [ -z "$tag" ]
+  then
+    echo "\$tag did not resolve correctly. Aborting."
+    abort_release
+  fi
+  current_branch=`git rev-parse HEAD`
+  if [ -z "$current_branch" ]
+  then
+    echo "Could not find current branch. Aborting."
+    abort_release
+  fi
 
-	link_to_changelog="https://github.com/realm/realm-java/blob/$current_branch/CHANGELOG.md#$tag"
-	payload="{ \"username\": \"Realm CI\", \"icon_emoji\": \":realm_new:\", \"text\": \"<$link_to_changelog|*Realm Java $RELEASE_VERSION has been released*>\\nSee the Release Notes for more details.\" }"
-  echo $link_to_changelog
+  link_to_changelog="https://github.com/realm/realm-java/blob/$current_branch/CHANGELOG.md#$tag"
+  payload="{ \"username\": \"Realm CI\", \"icon_emoji\": \":realm_new:\", \"text\": \"<$link_to_changelog|*Realm Java $RELEASE_VERSION has been released*>\\nSee the Release Notes for more details.\" }"
+
   echo "Pinging #realm-releases"
-	curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_RELEASES_URL}
+  curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_RELEASES_URL}
   echo "Pinging #realm-java-team-ci"
-	curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_JAVA_CI_URL}
+  curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_JAVA_CI_URL}
 }
 
 ######################################
