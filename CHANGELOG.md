@@ -1,4 +1,4 @@
-## 7.0.6 (yyyy-mm-dd)
+## 7.0.6 (2020-09-18)
 
 ### Enhancements
 * Better exception messaging for UTF encoding errors. ([Issue #7093](https://github.com/realm/realm-java/pull/7093))
