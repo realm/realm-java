@@ -5,6 +5,7 @@
 
 ### Fixes
 * Fixes concurrent modification exceptions in the schema when refreshing a Realm (Issue [#6876](https://github.com/realm/realm-java/issues/6876))
+* If you use encryption your application cound crash with a message like "Opening Realm files of format version 0 is not supported by this version of Realm". ([#6889](https://github.com/realm/realm-java/issues/6889) among others, since v7.0.0)
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
@@ -12,8 +13,9 @@
 * APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
 
 ### Internal
-* None.
-
+* Upgraded to Object Store commit: e29b5515df8b8adfe2454424b78878bb63879307.
+* Upgraded to Realm Sync: 5.0.23.
+* Upgraded to Realm Core: 6.0.26.
 
 ## 7.0.5 (2020-09-09)
 
