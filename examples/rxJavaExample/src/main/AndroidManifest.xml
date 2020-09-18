@@ -20,7 +20,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".animation.AnimationActivity" />
-        <activity android:name=".animation.AnimationActivityKt" />
         <activity android:name=".retrofit.RetrofitExample" />
         <activity android:name=".throttle.ThrottleSearchActivity" />
         <activity android:name=".gotchas.GotchasActivity" />
