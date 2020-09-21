@@ -56,59 +56,28 @@ import kotlinx.coroutines.flow.flowOf
  * @return Kotlin [Flow] on which calls to `onEach` or `collect` can be made.
  */
 @Beta
-fun <T : RealmObject> T.toFlow(): Flow<T> {
-    // Return "as is" if frozen, there will be no listening for changes
-    if (realm.isFrozen) {
-        return flowOf(this)
-    }
-
-    val config = realm.configuration
-
-    return callbackFlow<T> {
-        val obj = this@toFlow
-
-        // Do nothing if the object is invalid
-        if (!obj.isValid) {
-            return@callbackFlow
-        }
-
-        // Get instance to ensure the Realm is open for as long as we are listening
-        val flowRealm = Realm.getInstance(config)
-        val listener = RealmChangeListener<T> { listenerObj ->
-            offer(listenerObj.freeze())
-        }
-
-        obj.addChangeListener(listener)
-
-        // Emit current (frozen) value
-        offer(freeze())
-
-        awaitClose {
-            // Remove listener and cleanup
-            if (!flowRealm.isClosed) {
-                obj.removeChangeListener(listener)
-                flowRealm.close()
-            }
-        }
-    }
-}
-
-fun <T : RealmModel> toFlow(obj: T): Flow<T> {
+fun <T : RealmModel> T.toFlow(): Flow<T> {
+    val obj = this
     return if (obj is RealmObjectProxy) {
         val proxy = obj as RealmObjectProxy
         val realm = proxy.`realmGet$proxyState`().`realm$realm`
 
         when (realm) {
-            is Realm -> toFlowFromRealm<T>(realm, obj)
-//            is DynamicRealm -> toFlowFromDynamicRealm<T>(realm, obj)
+            is Realm -> flowFromRealm<T>(realm, obj)
+            is DynamicRealm -> {
+                val dynamicObject = obj as DynamicRealmObject
+                flowFromDynamicRealm(realm, dynamicObject) as Flow<T>
+            }
+            // FIXME: exception text
             else -> throw UnsupportedOperationException("${realm.javaClass} does not support RxJava. See https://realm.io/docs/java/latest/#rxjava for more details.")
         }
     } else {
-        throw IllegalArgumentException("Cannot create Flows from unmanaged RealmObjects")
+        // TODO Is this true? Should we just return Observable.just(object) ?
+        throw IllegalArgumentException("Cannot create Observables from unmanaged RealmObjects")
     }
 }
 
-private fun <T : RealmModel> toFlowFromRealm(realm: Realm, obj: T): Flow<T> {
+private fun <T : RealmModel> flowFromRealm(realm: Realm, obj: T): Flow<T> {
     // Return "as is" if frozen, there will be no listening for changes
     if (realm.isFrozen) {
         return flowOf(obj)
@@ -124,7 +93,7 @@ private fun <T : RealmModel> toFlowFromRealm(realm: Realm, obj: T): Flow<T> {
 
         // Get instance to ensure the Realm is open for as long as we are listening
         val flowRealm = Realm.getInstance(config)
-        val listener = RealmChangeListener<RealmModel> { listenerObj ->
+        val listener = RealmChangeListener<T> { listenerObj ->
             offer(listenerObj.freeze())
         }
 
@@ -143,17 +112,20 @@ private fun <T : RealmModel> toFlowFromRealm(realm: Realm, obj: T): Flow<T> {
     }
 }
 
-private fun toFlowFromDynamicRealm(realm: DynamicRealm, obj: DynamicRealmObject): Flow<DynamicRealmObject> {
+private fun flowFromDynamicRealm(
+        dynamicRealm: DynamicRealm,
+        dynamicObject: DynamicRealmObject
+): Flow<DynamicRealmObject> {
     // Return "as is" if frozen, there will be no listening for changes
-    if (realm.isFrozen) {
-        return flowOf(obj)
+    if (dynamicRealm.isFrozen) {
+        return flowOf(dynamicObject)
     }
 
-    val config = realm.configuration
+    val config = dynamicRealm.configuration
 
     return callbackFlow<DynamicRealmObject> {
         // Do nothing if the object is invalid
-        if (!obj.isValid) {
+        if (!dynamicObject.isValid()) {
             return@callbackFlow
         }
 
@@ -163,15 +135,15 @@ private fun toFlowFromDynamicRealm(realm: DynamicRealm, obj: DynamicRealmObject)
             offer(listenerObj.freeze())
         }
 
-        obj.addChangeListener(listener)
+        dynamicObject.addChangeListener(listener)
 
         // Emit current (frozen) value
-        offer(freeze(obj))
+        offer(freeze(dynamicObject))
 
         awaitClose {
             // Remove listener and cleanup
             if (!flowRealm.isClosed) {
-                obj.removeChangeListener(listener)
+                dynamicObject.removeChangeListener(listener)
                 flowRealm.close()
             }
         }

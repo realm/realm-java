@@ -2,8 +2,10 @@ package io.realm
 
 import io.realm.entities.AllTypes
 import io.realm.entities.Dog
+import io.realm.entities.SimpleClass
 import io.realm.entities.SimpleObjectClass
 import io.realm.kotlin.executeTransactionAwait
+import io.realm.kotlin.isFrozen
 import io.realm.kotlin.toFlow
 import io.realm.kotlin.where
 import io.realm.rule.TestRealmConfigurationFactory
@@ -322,6 +324,67 @@ class CoroutineTests {
                 this.name = "doggo"
             }
             realmInstance.commitTransaction()
+        }
+
+        TestHelper.awaitOrFail(countDownLatch)
+    }
+
+    @Test
+    fun toFlow_realmModel_emitsOnCollect() {
+        val countDownLatch = CountDownLatch(1)
+
+        val context = Dispatchers.Main
+        val scope = CoroutineScope(context)
+
+        scope.launch {
+            val realmInstance = Realm.getInstance(configuration)
+            realmInstance.beginTransaction()
+            val obj = realmInstance.createObject(SimpleClass::class.java)
+                    .apply { name = "Foo" }
+            realmInstance.commitTransaction()
+
+            obj.toFlow()
+                    .flowOn(context)
+                    .onEach { flowObject ->
+                        assertTrue(flowObject.isFrozen())
+                        if (flowObject.name == "Foo") {
+                            scope.cancel("Cancelling scope...")
+                        }
+                    }.onCompletion {
+                        realmInstance.close()
+                        countDownLatch.countDown()
+                    }.launchIn(scope)
+        }
+
+        TestHelper.awaitOrFail(countDownLatch)
+    }
+
+    @Test
+    fun toFlow_dynamicRealmObject_emitsOnCollect() {
+        val countDownLatch = CountDownLatch(1)
+
+        val context = Dispatchers.Main
+        val scope = CoroutineScope(context)
+
+        scope.launch {
+            val realmInstance = Realm.getInstance(configuration)
+            realmInstance.beginTransaction()
+            realmInstance.createObject(AllTypes::class.java)
+            realmInstance.commitTransaction()
+
+            val dynamicRealm = DynamicRealm.getInstance(configuration)
+            dynamicRealm.where(AllTypes.CLASS_NAME)
+                    .findFirst()!!
+                    .toFlow()
+                    .flowOn(context)
+                    .onEach { flowObject ->
+                        assertTrue(flowObject.isFrozen)
+                        scope.cancel("Cancelling scope...")
+                    }.onCompletion {
+                        realmInstance.close()
+                        dynamicRealm.close()
+                        countDownLatch.countDown()
+                    }.launchIn(scope)
         }
 
         TestHelper.awaitOrFail(countDownLatch)
