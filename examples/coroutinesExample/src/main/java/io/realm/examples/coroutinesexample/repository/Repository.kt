@@ -41,7 +41,7 @@ class RealmRepository(private val realm: Realm) : Repository {
                 transactionRealm.insertOrUpdate(Dog().apply {
                     name = "Mr. Snuffles $i"
                     age = 1
-                    owner = "Jane Doe"
+                    owner = "Mortimer Smith"
                 })
             }
             Log.d(TAG, "--- AFTER")

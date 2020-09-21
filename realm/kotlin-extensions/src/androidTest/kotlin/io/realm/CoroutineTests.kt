@@ -3,19 +3,17 @@ package io.realm
 import io.realm.entities.AllTypes
 import io.realm.entities.Dog
 import io.realm.entities.SimpleClass
-import io.realm.entities.SimpleObjectClass
-import io.realm.kotlin.executeTransactionAwait
-import io.realm.kotlin.isFrozen
-import io.realm.kotlin.toFlow
-import io.realm.kotlin.where
+import io.realm.kotlin.*
 import io.realm.rule.TestRealmConfigurationFactory
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
-import org.junit.*
-import java.lang.Exception
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import java.util.concurrent.CountDownLatch
 import kotlin.test.*
 
@@ -57,7 +55,7 @@ class CoroutineTests {
         scope.launch {
             val realmInstance = Realm.getInstance(configuration)
 
-            realmInstance.where(SimpleObjectClass::class.java)
+            realmInstance.where<SimpleClass>()
                     .findAllAsync()
                     .toFlow()
                     .flowOn(context)
@@ -77,8 +75,8 @@ class CoroutineTests {
     @Test
     fun toFlow_resultsEmittedAfterCollect() {
         realm.executeTransactionAsync { transactionRealm ->
-            transactionRealm.createObject(SimpleObjectClass::class.java).name = "Foo"
-            transactionRealm.createObject(SimpleObjectClass::class.java).name = "Bar"
+            transactionRealm.createObject<SimpleClass>().name = "Foo"
+            transactionRealm.createObject<SimpleClass>().name = "Bar"
         }
 
         val countDownLatch = CountDownLatch(1)
@@ -88,7 +86,7 @@ class CoroutineTests {
 
         scope.launch {
             val realmInstance = Realm.getInstance(configuration)
-            realmInstance.where(SimpleObjectClass::class.java)
+            realmInstance.where<SimpleClass>()
                     .findAllAsync()
                     .toFlow()
                     .flowOn(context)
@@ -115,7 +113,7 @@ class CoroutineTests {
 
         scope.launch {
             val realmInstance = Realm.getInstance(configuration)
-            realmInstance.where(SimpleObjectClass::class.java)
+            realmInstance.where<SimpleClass>()
                     .findAllAsync()
                     .toFlow()
                     .flowOn(context)
@@ -137,7 +135,7 @@ class CoroutineTests {
         val countDownLatch = CountDownLatch(1)
 
         // Get results from the test thread
-        val findAll = realm.where<SimpleObjectClass>().findAll()
+        val findAll = realm.where<SimpleClass>().findAll()
 
         CoroutineScope(Dispatchers.Main).launch {
             assertFailsWith<IllegalStateException> {
@@ -162,7 +160,7 @@ class CoroutineTests {
         scope.launch {
             val realmInstance = Realm.getInstance(configuration)
 
-            flow = realmInstance.where(SimpleObjectClass::class.java)
+            flow = realmInstance.where<SimpleClass>()
                     .findAllAsync()
                     .toFlow()
 
@@ -189,6 +187,56 @@ class CoroutineTests {
     }
 
     @Test
+    fun toFlow_multipleSubscribers() {
+        val countDownLatch = CountDownLatch(2)
+
+        val context = Dispatchers.Main
+        val scope = CoroutineScope(context)
+
+        var flow: Flow<RealmResults<SimpleClass>>? = null
+
+        scope.launch {
+            val realmInstance = Realm.getInstance(configuration)
+
+            flow = realmInstance.where<SimpleClass>()
+                    .findAllAsync()
+                    .toFlow()
+
+            // Subscriber 1
+            flow!!.flowOn(context)
+                    .onEach { flowResults ->
+                        assertTrue(flowResults.isFrozen)
+                        assertEquals(0, flowResults.size)
+                    }.onCompletion {
+                        countDownLatch.countDown()
+
+                        if (countDownLatch.count == 0L && !realmInstance.isClosed) {
+                            realmInstance.close()
+                        }
+                    }.launchIn(scope)
+
+            // Subscriber 2
+            flow!!.flowOn(context)
+                    .onEach { flowResults ->
+                        assertTrue(flowResults.isFrozen)
+                        assertEquals(0, flowResults.size)
+                    }.onCompletion {
+                        countDownLatch.countDown()
+
+                        if (countDownLatch.count == 0L && !realmInstance.isClosed) {
+                            realmInstance.close()
+                        }
+                    }.launchIn(scope)
+
+            // Simulate asynchronous event and then cancel
+            delay(100)
+            scope.cancel("Cancelling")
+        }
+
+        TestHelper.awaitOrFail(countDownLatch)
+    }
+
+    @Test
     fun toFlow_emitObjectOnCollect() {
         val countDownLatch = CountDownLatch(1)
 
@@ -198,14 +246,14 @@ class CoroutineTests {
         scope.launch {
             val realmInstance = Realm.getInstance(configuration)
             realmInstance.beginTransaction()
-            val obj = realmInstance.createObject(SimpleObjectClass::class.java)
+            val obj = realmInstance.createObject<SimpleClass>()
                     .apply { name = "Foo" }
             realmInstance.commitTransaction()
 
             obj.toFlow()
                     .flowOn(context)
                     .onEach { flowObject ->
-                        assertTrue(flowObject.isFrozen)
+                        assertTrue(flowObject.isFrozen())
                         if (flowObject.name == "Foo") {
                             scope.cancel("Cancelling scope...")
                         }
@@ -228,14 +276,14 @@ class CoroutineTests {
         scope.launch {
             val realmInstance = Realm.getInstance(configuration)
             realmInstance.beginTransaction()
-            val obj = realmInstance.createObject(SimpleObjectClass::class.java)
+            val obj = realmInstance.createObject<SimpleClass>()
                     .apply { name = "Foo" }
             realmInstance.commitTransaction()
 
             obj.toFlow()
                     .flowOn(context)
                     .onEach { flowObject ->
-                        assertTrue(flowObject.isFrozen)
+                        assertTrue(flowObject.isFrozen())
                         if (flowObject.name == "Bar") {
                             scope.cancel("Cancelling scope...")
                         }
@@ -265,7 +313,7 @@ class CoroutineTests {
             val realmInstance = Realm.getInstance(configuration)
 
             realmInstance.beginTransaction()
-            val list = realmInstance.createObject(AllTypes::class.java).columnRealmList
+            val list = realmInstance.createObject<AllTypes>().columnRealmList
             list.add(Dog("dog"))
             realmInstance.commitTransaction()
 
@@ -295,7 +343,7 @@ class CoroutineTests {
             val realmInstance = Realm.getInstance(configuration)
 
             realmInstance.beginTransaction()
-            val list = realmInstance.createObject(AllTypes::class.java).columnRealmList
+            val list = realmInstance.createObject<AllTypes>().columnRealmList
             list.add(Dog("dog"))
             realmInstance.commitTransaction()
 
@@ -339,7 +387,7 @@ class CoroutineTests {
         scope.launch {
             val realmInstance = Realm.getInstance(configuration)
             realmInstance.beginTransaction()
-            val obj = realmInstance.createObject(SimpleClass::class.java)
+            val obj = realmInstance.createObject<SimpleClass>()
                     .apply { name = "Foo" }
             realmInstance.commitTransaction()
 
@@ -369,7 +417,7 @@ class CoroutineTests {
         scope.launch {
             val realmInstance = Realm.getInstance(configuration)
             realmInstance.beginTransaction()
-            realmInstance.createObject(AllTypes::class.java)
+            realmInstance.createObject<AllTypes>()
             realmInstance.commitTransaction()
 
             val dynamicRealm = DynamicRealm.getInstance(configuration)
@@ -394,15 +442,49 @@ class CoroutineTests {
     fun executeTransactionAwait() {
         testScope.runBlockingTest {
             Realm.getInstance(configuration).use { realmInstance ->
-                assertEquals(0, realmInstance.where<SimpleObjectClass>().findAll().size)
+                assertEquals(0, realmInstance.where<SimpleClass>().findAll().size)
 
                 realmInstance.executeTransactionAwait(testDispatcher) { transactionRealm ->
-                    val simpleObject = SimpleObjectClass().apply { name = "simpleName" }
+                    val simpleObject = SimpleClass().apply { name = "simpleName" }
                     transactionRealm.insert(simpleObject)
                 }
-                assertEquals(1, realmInstance.where<SimpleObjectClass>().findAll().size)
+                assertEquals(1, realmInstance.where<SimpleClass>().findAll().size)
             }
         }
+    }
+
+    @Test
+    fun executeTransactionAwait_cancel() {
+        var realmInstance: Realm? = null
+
+        val mainScope = CoroutineScope(Dispatchers.Main)
+        mainScope.launch {
+            realmInstance = Realm.getInstance(configuration)
+
+            for (i in 1..100) {
+                realmInstance!!.executeTransactionAwait { transactionRealm ->
+                    val simpleObject = SimpleClass().apply { name = "simpleName $i" }
+                    transactionRealm.insert(simpleObject)
+                }
+                delay(100)
+            }
+        }
+
+        val countDownLatch = CountDownLatch(1)
+        val newMainScope = CoroutineScope(Dispatchers.Main)
+        newMainScope.launch {
+            // Wait for 150 ms and cancel scope so that only two elements are inserted
+            delay(150)
+            mainScope.cancel("Cancelling")
+
+            assertEquals(2, realmInstance!!.where<SimpleClass>().count())
+
+            realmInstance!!.close()
+            countDownLatch.countDown()
+            newMainScope.cancel()
+        }
+
+        TestHelper.awaitOrFail(countDownLatch)
     }
 
     @Test
@@ -414,7 +496,7 @@ class CoroutineTests {
         // It will crash so long we aren't using Dispatchers.Unconfined
         CoroutineScope(Dispatchers.IO).launch {
             assertFailsWith<IllegalStateException> {
-                realm.where<SimpleObjectClass>().findAll()
+                realm.where<SimpleClass>().findAll()
             }.let {
                 exception = it
                 countDownLatch.countDown()
