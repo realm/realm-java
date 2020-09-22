@@ -159,11 +159,11 @@ try {
               } else {
                 runBuild(abiFilter, instrumentationTestTarget)
               }
-            }
 
-            // Release the library if needed
-            if (publishBuild) {
-              runPublish()
+              // Release the library if needed
+              if (publishBuild) {
+                runPublish()
+              }
             }
           }
         } finally {
