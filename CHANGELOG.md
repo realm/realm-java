@@ -9,6 +9,7 @@
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
+* Realm Studio: 5.0.0 or later.
 * File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
 * APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
 
@@ -28,6 +29,7 @@
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
+* Realm Studio: 5.0.0 or later.
 * File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
 * APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
 
@@ -38,7 +40,7 @@
 
 ## 7.0.4 (2020-09-08)
 
-Note: Fileformat has been bumped from 10 to 11. This means that downgrading to an earlier version of Realm is not possible and the latest version of Realm Studio must be used to view Realm files.
+Note: Fileformat has been bumped from 10 to 11. This means that downgrading to an earlier version of Realm is not possible and Realm Studio 5.0.0 must be used to view Realm files.
 
 ### Enhancements
 * None.
@@ -50,6 +52,7 @@ Note: Fileformat has been bumped from 10 to 11. This means that downgrading to a
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
+* Realm Studio: 5.0.0 or later.
 * File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
 * APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
 
@@ -70,6 +73,7 @@ Note: Fileformat has been bumped from 10 to 11. This means that downgrading to a
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
+* Realm Studio: 4.0.0 or later.
 * File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
 * APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
 
@@ -93,6 +97,7 @@ Note: Fileformat has been bumped from 10 to 11. This means that downgrading to a
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
+* Realm Studio: 4.0.0 or later.
 * File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
 * APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
 
@@ -114,6 +119,7 @@ Note: Fileformat has been bumped from 10 to 11. This means that downgrading to a
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
+* Realm Studio: 4.0.0 or later.
 * File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
 * APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
 
@@ -124,7 +130,7 @@ Note: Fileformat has been bumped from 10 to 11. This means that downgrading to a
 
 ## 7.0.0 (2020-05-16)
 
-NOTE: This version bumps the Realm file format to version 10. Files created with previous versions of Realm will be automatically upgraded. It is not possible to downgrade to version 9 or earlier. Only [Studio 3.11](https://github.com/realm/realm-studio/releases/tag/v3.11.0) or later will be able to open the new file format. 
+NOTE: This version bumps the Realm file format to version 10. Files created with previous versions of Realm will be automatically upgraded. It is not possible to downgrade to version 9 or earlier. Only [Realm Studio 4](https://github.com/realm/realm-studio/releases/tag/v4.0.0) or later will be able to open the new file format. 
 
 ### Breaking Changes
 * [ObjectServer] Removed deprecated method `SyncConfiguration.Builder.partialRealm()`. Use `SyncConfiguration.Builder.fullSynchronization()` instead.
@@ -152,7 +158,7 @@ NOTE: This version bumps the Realm file format to version 10. Files created with
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
-* Realm Studio: 3.11 or later.
+* Realm Studio: 4.0.0 or later.
 * File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
 * APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
 
