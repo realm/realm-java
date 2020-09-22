@@ -38,12 +38,14 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
 
     private okhttp3.Request makeRequest(String method, String url, Map<String, String> headers, String body){
         okhttp3.Request.Builder builder = new okhttp3.Request.Builder().url(url);
-        // TODO Ensure that we have correct custom headers until OS handles it
-        //  first of all add all custom headers
+
+        // Ensure that we have correct custom headers until OS handles it.
+
+        // 1. First of all add all custom headers
         for (Map.Entry<String, String> entry : getCustomRequestHeaders().entrySet()) {
             builder.addHeader(entry.getKey(), entry.getValue());
         }
-        //  and then replace default authorization header with custom one if present
+        // 2. Then replace default authorization header with custom one if present
         String authorizationHeaderValue = headers.get(AppConfiguration.DEFAULT_AUTHORIZATION_HEADER_NAME);
         String authorizationHeaderName = getAuthorizationHeaderName();
         if (authorizationHeaderValue != null && !AppConfiguration.DEFAULT_AUTHORIZATION_HEADER_NAME.equals(authorizationHeaderName)) {
@@ -51,9 +53,11 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
             headers.put(authorizationHeaderName, authorizationHeaderValue);
         }
 
+        // 3. Finally add all headers defined by Object Store
         for (Map.Entry<String, String> entry : headers.entrySet()) {
             builder.addHeader(entry.getKey(), entry.getValue());
         }
+        
         switch (method) {
             case "get":
                 builder.get();
@@ -72,10 +76,6 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
                 break;
             default:
                 throw new IllegalArgumentException("Unknown method type: " + method);
-        }
-
-        for (Map.Entry<String, String> entry : headers.entrySet()) {
-            builder.addHeader(entry.getKey(), entry.getValue());
         }
 
         return builder.build();
