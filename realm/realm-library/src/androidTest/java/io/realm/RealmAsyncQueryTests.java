@@ -17,8 +17,10 @@
 package io.realm;
 
 import android.os.SystemClock;
-import androidx.test.rule.UiThreadTestRule;
+
+import androidx.test.annotation.UiThreadTest;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.rule.UiThreadTestRule;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,6 +28,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.util.Date;
+import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -37,6 +40,7 @@ import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
@@ -1409,6 +1413,76 @@ public class RealmAsyncQueryTests {
                 looperThread.testComplete();
             }
         });
+    }
+
+    @Test
+    @UiThreadTest
+    public void executeTransactionAsync_mainThreadQueriesAllowed() {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowWritesOnUiThread()
+                .build();
+
+        Realm realm = Realm.getInstance(configuration);
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.insert(new Dog("Snuffles"));
+                countDownLatch.countDown();
+            }
+        });
+
+        TestHelper.awaitOrFail(countDownLatch);
+
+        // Avoid stale data
+        realm.refresh();
+
+        RealmResults<Dog> results = realm.where(Dog.class).equalTo("name", "Snuffles").findAll();
+        assertEquals(1, results.size());
+        assertNotNull(results.first());
+        assertEquals("Snuffles", Objects.requireNonNull(results.first()).getName());
+
+        realm.close();
+    }
+
+    @Test
+    @UiThreadTest
+    public void executeTransactionAsync_throwsWhenRunningOnMainThread() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .build();
+
+        // Try-with-resources
+        try (Realm realm = Realm.getInstance(configuration)) {
+            realm.executeTransactionAsync(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    // no-op
+                }
+            });
+            fail("It is not allowed to run async queries on the UI thread by default.");
+        } catch (RealmException e) {
+            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowWritesOnUiThread"));
+        }
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void executeTransactionAsync_runsOnRandomLooperThreadRegardlessOfSetting() {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .build();
+
+        Realm realm = Realm.getInstance(configuration);
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                countDownLatch.countDown();
+            }
+        });
+
+        looperThread.testComplete(countDownLatch);
     }
 
     // *** Helper methods ***

@@ -1626,6 +1626,15 @@ public class Realm extends BaseRealm {
         // We need to deliver the callback even if the Realm is closed. So acquire a reference to the notifier here.
         final RealmNotifier realmNotifier = sharedRealm.realmNotifier;
 
+        // Warn on transaction being executed on UI thread if allowWritesOnUiThread is set to true
+        if (sharedRealm.capabilities.isMainThread()) {
+            if (realmConfiguration.isAllowWritesOnUiThread()) {
+                RealmLog.warn("It is not possible to mix synchronous writes and asynchronous queries on the UI thread and still guarantee a consistent view for all RealmResults. To ensure consistency please refrain from running asynchronous transactions from the UI thread.");
+            } else {
+                throw new RealmException("Running asynchronous transactions on the UI thread is disabled by default. You can opt in using RealmConfiguration.allowWritesOnUiThread.");
+            }
+        }
+
         final Future<?> pendingTransaction = asyncTaskExecutor.submitTransaction(new Runnable() {
             @Override
             public void run() {

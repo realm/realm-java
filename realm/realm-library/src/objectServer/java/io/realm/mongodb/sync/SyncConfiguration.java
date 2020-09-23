@@ -119,6 +119,7 @@ public class SyncConfiguration extends RealmConfiguration {
                               @Nullable Realm.Transaction initialDataTransaction,
                               boolean readOnly,
                               long maxNumberOfActiveVersions,
+                              boolean allowWritesOnUiThread,
                               User user,
                               URI serverUrl,
                               SyncSession.ErrorHandler errorHandler,
@@ -144,7 +145,8 @@ public class SyncConfiguration extends RealmConfiguration {
                 readOnly,
                 compactOnLaunch,
                 false,
-                maxNumberOfActiveVersions
+                maxNumberOfActiveVersions,
+                allowWritesOnUiThread
         );
 
         this.user = user;
@@ -481,6 +483,7 @@ public class SyncConfiguration extends RealmConfiguration {
         @Nullable // null means the user hasn't explicitly set one. An appropriate default is chosen when calling build()
         private ClientResyncMode clientResyncMode = null;
         private long maxNumberOfActiveVersions = Long.MAX_VALUE;
+        private boolean allowWritesOnUiThread;
         private final BsonValue partitionValue;
 
         /**
@@ -551,6 +554,7 @@ public class SyncConfiguration extends RealmConfiguration {
             }
             this.errorHandler = user.getApp().getConfiguration().getDefaultErrorHandler();
             this.clientResetHandler = user.getApp().getConfiguration().getDefaultClientResetHandler();
+            this.allowWritesOnUiThread = false;
         }
 
         private void validateAndSet(User user) {
@@ -1013,6 +1017,17 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
+         * Allows calls to {@link Realm#executeTransactionAsync} to be done on the UI thread.
+         * <p>
+         * <b>Realm does not allow asynchronous transactions to be run on the main thread unless users explicitly opt in
+         * with this method.</b>
+         */
+        public Builder allowWritesOnUiThread() {
+            this.allowWritesOnUiThread = true;
+            return this;
+        }
+
+        /**
          * Creates the RealmConfiguration based on the builder parameters.
          *
          * @return the created {@link SyncConfiguration}.
@@ -1066,6 +1081,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     initialDataTransaction,
                     readOnly,
                     maxNumberOfActiveVersions,
+                    allowWritesOnUiThread,
 
                     // Sync Configuration specific
                     user,
