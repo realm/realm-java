@@ -146,14 +146,14 @@ notify_slack_channels() {
       echo "\$tag did not resolve correctly. Aborting."
       abort_release
 	fi
- 	current_branch=`git rev-parse --abbrev-ref HEAD`
+ 	current_commit=`git rev-parse HEAD`
 	if [ -z "$current_branch" ]
 	then
       echo "Could not find current branch. Aborting."
       abort_release
 	fi
 
-	link_to_changelog="https://github.com/realm/realm-java/blob/$current_branch/CHANGELOG.md#$tag"
+	link_to_changelog="https://github.com/realm/realm-java/blob/$current_commit/CHANGELOG.md#$tag"
 	payload="{ \"username\": \"Realm CI\", \"icon_emoji\": \":realm_new:\", \"text\": \"<$link_to_changelog|*Realm Java $RELEASE_VERSION has been released*>\\nSee the Release Notes for more details.\" }"
   echo $link_to_changelog
   echo "Pinging #realm-releases"
