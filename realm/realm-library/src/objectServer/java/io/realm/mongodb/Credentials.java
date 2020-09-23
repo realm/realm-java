@@ -150,17 +150,17 @@ public class Credentials {
     }
 
     /**
-     * Creates credentials representing a login using a Google access token.
+     * Creates credentials representing a login using a Google Authorization Code.
      * <p>
      * This provider must be enabled on MongoDB Realm to work.
      *
-     * @param googleToken the access token returned when logging in to Google.
+     * @param authorizationCode the authorization code returned when logging in to Google.
      * @return a set of credentials that can be used to log into MongoDB Realm using
      * {@link App#loginAsync(Credentials, App.Callback)}.
      */
-    public static Credentials google(String googleToken) {
-        Util.checkEmpty(googleToken, "googleToken");
-        return new Credentials(OsAppCredentials.google(googleToken), Provider.GOOGLE);
+    public static Credentials google(String authorizationCode) {
+        Util.checkEmpty(authorizationCode, "authorizationCode");
+        return new Credentials(OsAppCredentials.google(authorizationCode), Provider.GOOGLE);
     }
 
     /**
