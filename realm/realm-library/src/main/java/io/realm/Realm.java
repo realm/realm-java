@@ -1525,12 +1525,12 @@ public class Realm extends BaseRealm {
             throw new IllegalArgumentException("Transaction should not be null");
         }
 
-        // Warn on transaction being executed on UI thread if allowWritesOnUiThread is set to true
+        // Warn on transaction being executed on UI thread if allowWritesOnUiThread is set to true, throw otherwise
         if (sharedRealm.capabilities.isMainThread()) {
             if (getConfiguration().isAllowWritesOnUiThread()) {
-                RealmLog.warn("It is not recommended to perform transactions on the UI thread as it may lead to frozen screens or ANRs. Please consider using 'executeTransactionAsync' instead.");
+                RealmLog.warn("It is not recommended to run transactions on the UI thread as it may lead to a drop of frames or ANRs. Please consider using 'executeTransactionAsync' instead.");
             } else {
-                throw new RealmException("Running transactions on the UI thread is disabled by default. You can opt in using RealmConfiguration.allowWritesOnUiThread.");
+                throw new RealmException("Running transactions on the UI thread is disabled by default. You can opt in using 'RealmConfiguration.allowWritesOnUiThread'.");
             }
         }
 

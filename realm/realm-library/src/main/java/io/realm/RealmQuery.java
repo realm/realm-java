@@ -27,6 +27,7 @@ import java.util.Locale;
 import javax.annotation.Nullable;
 
 import io.realm.annotations.Required;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.OsList;
 import io.realm.internal.OsResults;
 import io.realm.internal.PendingRow;
@@ -37,6 +38,7 @@ import io.realm.internal.TableQuery;
 import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.core.QueryDescriptor;
 import io.realm.internal.fields.FieldDescriptor;
+import io.realm.log.RealmLog;
 
 
 /**
@@ -82,6 +84,15 @@ public class RealmQuery<E> {
      * to run it.
      */
     static <E extends RealmModel> RealmQuery<E> createQuery(Realm realm, Class<E> clazz) {
+        // Warn on query being executed on UI thread if isAllowQueriesOnUiThread is set to true, throw otherwise
+        if (realm.getSharedRealm().capabilities.isMainThread()) {
+            if (realm.getConfiguration().isAllowQueriesOnUiThread()) {
+                RealmLog.warn("It is not recommended to run queries on the UI thread as it may lead to a drop of frames or ANRs. Please consider doing so from another thread instead.");
+            } else {
+                throw new RealmException("There exists an opt-out for running queries on the UI thread. By default Realm allows queries from the UI thread. You can alternatively opt in using 'RealmConfiguration.allowQueriesOnUiThread'.");
+            }
+        }
+
         return new RealmQuery<>(realm, clazz);
     }
 

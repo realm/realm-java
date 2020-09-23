@@ -1419,7 +1419,7 @@ public class RealmAsyncQueryTests {
     @UiThreadTest
     public void executeTransaction_mainThreadWritesAllowed() {
         RealmConfiguration configuration = configFactory.createConfigurationBuilder()
-                .allowWritesOnUiThread()
+                .allowWritesOnUiThread(true)
                 .build();
 
         Realm realm = Realm.getInstance(configuration);
@@ -1452,7 +1452,7 @@ public class RealmAsyncQueryTests {
                     // no-op
                 }
             });
-            fail("It is not allowed to run async queries on the UI thread by default.");
+            fail("It is not allowed to run blocking transactions on the UI thread by default.");
         } catch (RealmException e) {
             assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowWritesOnUiThread"));
         }
@@ -1470,6 +1470,44 @@ public class RealmAsyncQueryTests {
                 // no-op
             }
         });
+    }
+
+    @Test
+    @UiThreadTest
+    public void query_runOnMainThreadAllowed() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .build();
+
+        Realm realm = Realm.getInstance(configuration);
+        realm.where(Dog.class).findAll();
+        realm.close();
+    }
+
+    @Test
+    @UiThreadTest
+    public void query_runOnMainThreadThrows() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowQueriesOnUiThread(false)
+                .build();
+
+        // Try-with-resources
+        try (Realm realm = Realm.getInstance(configuration)) {
+            realm.where(Dog.class).findAll();
+            fail("This test specifies queries are not allowed to run on the UI thread, so something went awry.");
+        } catch (RealmException e) {
+            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowQueriesOnUiThread"));
+        }
+    }
+
+    @Test
+    public void query_runOnAnyThreadAllowed() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .build();
+
+        Realm realm = Realm.getInstance(configuration);
+        RealmResults<Dog> results = realm.where(Dog.class).findAll();
+        assertEquals(0, results.size());
+        realm.close();
     }
 
     // *** Helper methods ***

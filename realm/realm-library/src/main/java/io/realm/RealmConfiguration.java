@@ -99,6 +99,7 @@ public class RealmConfiguration {
     private final CompactOnLaunchCallback compactOnLaunch;
     private final long maxNumberOfActiveVersions;
     private final boolean allowWritesOnUiThread;
+    private final boolean allowQueriesOnUiThread;
 
     /**
      * Whether this RealmConfiguration is intended to open a
@@ -122,7 +123,8 @@ public class RealmConfiguration {
             @Nullable CompactOnLaunchCallback compactOnLaunch,
             boolean isRecoveryConfiguration,
             long maxNumberOfActiveVersions,
-            boolean allowWritesOnUiThread) {
+            boolean allowWritesOnUiThread,
+            boolean allowQueriesOnUiThread) {
         this.realmDirectory = realmPath.getParentFile();
         this.realmFileName = realmPath.getName();
         this.canonicalPath = realmPath.getAbsolutePath();
@@ -140,6 +142,7 @@ public class RealmConfiguration {
         this.isRecoveryConfiguration = isRecoveryConfiguration;
         this.maxNumberOfActiveVersions = maxNumberOfActiveVersions;
         this.allowWritesOnUiThread = allowWritesOnUiThread;
+        this.allowQueriesOnUiThread = allowQueriesOnUiThread;
     }
 
     public File getRealmDirectory() {
@@ -290,15 +293,27 @@ public class RealmConfiguration {
     }
 
     /**
-     * Returns whether calls to {@link Realm#executeTransactionAsync} can be done on the UI thread.
+     * Returns whether calls to {@link Realm#executeTransaction} can be done on the UI thread.
      * <p>
-     * <b>Realm does not allow asynchronous transactions to be run on the main thread unless users explicitly opt in with
-     * {@link Builder#allowWritesOnUiThread()} or its Realm Sync builder counterpart.</b>
+     * <b>Note: Realm does not allow blocking transactions to be run on the main thread unless users explicitly opt in with
+     * {@link Builder#allowWritesOnUiThread(boolean)} or its Realm Sync builder counterpart.</b>
      *
      * @return whether or not write operations are allowed to be run from the UI thread.
      */
     public boolean isAllowWritesOnUiThread() {
         return allowWritesOnUiThread;
+    }
+
+    /**
+     * Returns whether {@code RealmQueries} are allowed from the UI thread.
+     * <p>
+     * By default Realm allows queries on the main thread. To disallow this users have to explicitly opt in with
+     * {@link Builder#allowQueriesOnUiThread(boolean)} or its Realm Sync builder counterpart.
+     *
+     * @return whether or not queries are allowed to be run from the UI thread.
+     */
+    public boolean isAllowQueriesOnUiThread() {
+        return allowQueriesOnUiThread;
     }
 
     @Override
@@ -445,7 +460,7 @@ public class RealmConfiguration {
     }
 
     protected static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
-        return new RealmConfiguration(new File(canonicalPath),null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true, Long.MAX_VALUE, false);
+        return new RealmConfiguration(new File(canonicalPath),null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true, Long.MAX_VALUE, false, true);
     }
 
     /**
@@ -469,6 +484,7 @@ public class RealmConfiguration {
         private CompactOnLaunchCallback compactOnLaunch;
         private long maxNumberOfActiveVersions = Long.MAX_VALUE;
         private boolean allowWritesOnUiThread;
+        private boolean allowQueriesOnUiThread;
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
@@ -505,6 +521,7 @@ public class RealmConfiguration {
                 this.modules.add(DEFAULT_MODULE);
             }
             this.allowWritesOnUiThread = false;
+            this.allowQueriesOnUiThread = true;
         }
 
         /**
@@ -813,13 +830,24 @@ public class RealmConfiguration {
         }
 
         /**
-         * Allows calls to {@link Realm#executeTransactionAsync} to be done on the UI thread.
+         * Sets whether or not users are allowed to perform calls to {@link Realm#executeTransaction} from the UI thread.
          * <p>
-         * <b>Realm does not allow asynchronous transactions to be run on the main thread unless users explicitly opt in
+         * <b>Note: Realm does not allow synchronous transactions to be run on the main thread unless users explicitly opt in
          * with this method.</b>
          */
-        public Builder allowWritesOnUiThread() {
-            this.allowWritesOnUiThread = true;
+        public Builder allowWritesOnUiThread(boolean allowWritesOnUiThread) {
+            this.allowWritesOnUiThread = allowWritesOnUiThread;
+            return this;
+        }
+
+        /**
+         * Sets whether or not RealmQueries are allowed from the UI thread.
+         * <p>
+         * By default Realm allows queries on the main thread. To disallow this users have to explicitly opt in with
+         * this method.
+         */
+        public Builder allowQueriesOnUiThread(boolean allowQueriesOnUiThread) {
+            this.allowQueriesOnUiThread = allowQueriesOnUiThread;
             return this;
         }
 
@@ -864,7 +892,8 @@ public class RealmConfiguration {
                     compactOnLaunch,
                     false,
                     maxNumberOfActiveVersions,
-                    allowWritesOnUiThread
+                    allowWritesOnUiThread,
+                    allowQueriesOnUiThread
             );
         }
 
