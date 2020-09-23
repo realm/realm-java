@@ -1417,26 +1417,18 @@ public class RealmAsyncQueryTests {
 
     @Test
     @UiThreadTest
-    public void executeTransactionAsync_mainThreadQueriesAllowed() {
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-
+    public void executeTransaction_mainThreadWritesAllowed() {
         RealmConfiguration configuration = configFactory.createConfigurationBuilder()
                 .allowWritesOnUiThread()
                 .build();
 
         Realm realm = Realm.getInstance(configuration);
-        realm.executeTransactionAsync(new Realm.Transaction() {
+        realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 realm.insert(new Dog("Snuffles"));
-                countDownLatch.countDown();
             }
         });
-
-        TestHelper.awaitOrFail(countDownLatch);
-
-        // Avoid stale data
-        realm.refresh();
 
         RealmResults<Dog> results = realm.where(Dog.class).equalTo("name", "Snuffles").findAll();
         assertEquals(1, results.size());
@@ -1448,13 +1440,13 @@ public class RealmAsyncQueryTests {
 
     @Test
     @UiThreadTest
-    public void executeTransactionAsync_throwsWhenRunningOnMainThread() {
+    public void executeTransaction_throwsWhenRunningOnMainThread() {
         RealmConfiguration configuration = configFactory.createConfigurationBuilder()
                 .build();
 
         // Try-with-resources
         try (Realm realm = Realm.getInstance(configuration)) {
-            realm.executeTransactionAsync(new Realm.Transaction() {
+            realm.executeTransaction(new Realm.Transaction() {
                 @Override
                 public void execute(Realm realm) {
                     // no-op
@@ -1467,22 +1459,17 @@ public class RealmAsyncQueryTests {
     }
 
     @Test
-    @RunTestInLooperThread
-    public void executeTransactionAsync_runsOnRandomLooperThreadRegardlessOfSetting() {
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-
+    public void executeTransaction_runsOnNonUiThreadRegardlessOfSetting() {
         RealmConfiguration configuration = configFactory.createConfigurationBuilder()
                 .build();
 
         Realm realm = Realm.getInstance(configuration);
-        realm.executeTransactionAsync(new Realm.Transaction() {
+        realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                countDownLatch.countDown();
+                // no-op
             }
         });
-
-        looperThread.testComplete(countDownLatch);
     }
 
     // *** Helper methods ***

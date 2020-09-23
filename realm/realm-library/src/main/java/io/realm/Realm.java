@@ -1525,6 +1525,15 @@ public class Realm extends BaseRealm {
             throw new IllegalArgumentException("Transaction should not be null");
         }
 
+        // Warn on transaction being executed on UI thread if allowWritesOnUiThread is set to true
+        if (sharedRealm.capabilities.isMainThread()) {
+            if (getConfiguration().isAllowWritesOnUiThread()) {
+                RealmLog.warn("It is not recommended to perform transactions on the UI thread as it may lead to frozen screens or ANRs. Please consider using 'executeTransactionAsync' instead.");
+            } else {
+                throw new RealmException("Running transactions on the UI thread is disabled by default. You can opt in using RealmConfiguration.allowWritesOnUiThread.");
+            }
+        }
+
         beginTransaction();
         try {
             transaction.execute(this);
@@ -1625,15 +1634,6 @@ public class Realm extends BaseRealm {
         final RealmConfiguration realmConfiguration = getConfiguration();
         // We need to deliver the callback even if the Realm is closed. So acquire a reference to the notifier here.
         final RealmNotifier realmNotifier = sharedRealm.realmNotifier;
-
-        // Warn on transaction being executed on UI thread if allowWritesOnUiThread is set to true
-        if (sharedRealm.capabilities.isMainThread()) {
-            if (realmConfiguration.isAllowWritesOnUiThread()) {
-                RealmLog.warn("It is not possible to mix synchronous writes and asynchronous queries on the UI thread and still guarantee a consistent view for all RealmResults. To ensure consistency please refrain from running asynchronous transactions from the UI thread.");
-            } else {
-                throw new RealmException("Running asynchronous transactions on the UI thread is disabled by default. You can opt in using RealmConfiguration.allowWritesOnUiThread.");
-            }
-        }
 
         final Future<?> pendingTransaction = asyncTaskExecutor.submitTransaction(new Runnable() {
             @Override
