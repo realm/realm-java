@@ -1,3 +1,22 @@
+## 10.0.0-BETA.8 (2020-09-23)
+
+We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
+
+The old Realm Cloud legacy APIs have undergone significant refactoring. The new APIs are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
+
+### Fixed
+* [RealmApp] Logging in caused an `token contains an invalid number of segments` error. (Issue [#7117](https://github.com/realm/realm-java/issues/7117), since 10.0.0-BETA.7) 
+* [RealmApp] The order of arguments to `EmailPassword.resetPassword()` was not handled correctly, resulting in resetting the password failing. (Issue [#7116](https://github.com/realm/realm-java/issues/7116), since 10.0.0-BETA.1)
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java 10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
+
+### Internal
+* Updated to Object Store commit: 035eb07f3ef313bfb78c046be9cf6b4f065d6772.
+
+
 ## 10.0.0-BETA.7 (2020-09-16)
 
 We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.

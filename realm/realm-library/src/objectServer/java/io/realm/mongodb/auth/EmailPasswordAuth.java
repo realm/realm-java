@@ -285,7 +285,9 @@ public abstract class EmailPasswordAuth {
         Util.checkEmpty(tokenId, "tokenId");
         Util.checkEmpty(newPassword, "newPassword");
         AtomicReference<AppException> error = new AtomicReference<>(null);
-        call(TYPE_RESET_PASSWORD, new OsJNIVoidResultCallback(error), token, tokenId, newPassword);
+        // The order of arguments in ObjectStore is different than the order of arguments in the
+        // Java API. The Java API order came from the old Stitch API.
+        call(TYPE_RESET_PASSWORD, new OsJNIVoidResultCallback(error), newPassword, token, tokenId);
         ResultHandler.handleResult(null, error);
     }
 
