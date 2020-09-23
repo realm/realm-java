@@ -68,12 +68,10 @@ fun <T : RealmModel> T.toFlow(): Flow<T> {
                 val dynamicObject = obj as DynamicRealmObject
                 flowFromDynamicRealm(realm, dynamicObject) as Flow<T>
             }
-            // FIXME: exception text
             else -> throw UnsupportedOperationException("${realm.javaClass} does not support RxJava. See https://realm.io/docs/java/latest/#rxjava for more details.")
         }
     } else {
-        // TODO Is this true? Should we just return Observable.just(object) ?
-        throw IllegalArgumentException("Cannot create Observables from unmanaged RealmObjects")
+        return flowOf(this)
     }
 }
 

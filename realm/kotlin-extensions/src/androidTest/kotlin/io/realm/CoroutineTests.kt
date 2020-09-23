@@ -40,7 +40,6 @@ class CoroutineTests {
 
     @After
     fun tearDown() {
-        realm.executeTransaction { it.deleteAll() }
         realm.close()
     }
 
@@ -66,7 +65,7 @@ class CoroutineTests {
                     }.onCompletion {
                         realmInstance.close()
                         countDownLatch.countDown()
-                    }.launchIn(scope)
+                    }.collect()
         }
 
         TestHelper.awaitOrFail(countDownLatch)
@@ -98,14 +97,14 @@ class CoroutineTests {
                     }.onCompletion {
                         realmInstance.close()
                         countDownLatch.countDown()
-                    }.launchIn(scope)
+                    }.collect()
         }
 
         TestHelper.awaitOrFail(countDownLatch)
     }
 
     @Test
-    fun toFlow_resultsCancelBeforeCollect() {
+    fun toFlow_resultsCancelBeforeCollectActualResults() {
         val countDownLatch = CountDownLatch(1)
 
         val context = Dispatchers.Main
@@ -326,7 +325,7 @@ class CoroutineTests {
                     }.onCompletion {
                         realmInstance.close()
                         countDownLatch.countDown()
-                    }.launchIn(scope)
+                    }.collect()
         }
 
         TestHelper.awaitOrFail(countDownLatch)
@@ -401,7 +400,7 @@ class CoroutineTests {
                     }.onCompletion {
                         realmInstance.close()
                         countDownLatch.countDown()
-                    }.launchIn(scope)
+                    }.collect()
         }
 
         TestHelper.awaitOrFail(countDownLatch)
@@ -432,7 +431,7 @@ class CoroutineTests {
                         realmInstance.close()
                         dynamicRealm.close()
                         countDownLatch.countDown()
-                    }.launchIn(scope)
+                    }.collect()
         }
 
         TestHelper.awaitOrFail(countDownLatch)

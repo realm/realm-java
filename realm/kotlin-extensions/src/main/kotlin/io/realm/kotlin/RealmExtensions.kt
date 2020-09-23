@@ -103,7 +103,7 @@ inline fun <reified T : RealmModel> Realm.createEmbeddedObject(parentObject: Rea
  * @throws RealmMigrationNeededException if the latest version contains incompatible schema changes.
  */
 suspend fun Realm.executeTransactionAwait(
-        context: CoroutineContext = Realm.writeExecutor.asCoroutineDispatcher(),
+        context: CoroutineContext = Realm.WRITE_EXECUTOR.asCoroutineDispatcher(),
         transaction: (realm: Realm) -> Unit
 ) {
     // Default to our own thread pool executor (as dispatcher)
