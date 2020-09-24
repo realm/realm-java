@@ -454,35 +454,36 @@ class CoroutineTests {
 
     @Test
     fun executeTransactionAwait_cancel() {
+        val upperBound = 10
         var realmInstance: Realm? = null
 
         val mainScope = CoroutineScope(Dispatchers.Main)
         mainScope.launch {
             realmInstance = Realm.getInstance(configuration)
 
-            for (i in 1..10) {
+            for (i in 1..upperBound) {
                 realmInstance!!.executeTransactionAwait { transactionRealm ->
                     val simpleObject = SimpleClass().apply { name = "simpleName $i" }
                     transactionRealm.insert(simpleObject)
                 }
 
-                // Wait for 100 ms between inserts
-                delay(100)
+                // Wait for 10 ms between inserts
+                delay(10)
             }
         }
 
         val countDownLatch = CountDownLatch(1)
-        val newMainScope = CoroutineScope(Dispatchers.Main)
-        newMainScope.launch {
-            // Wait for 10 ms and cancel scope so that only one element is inserted
-            delay(10)
+        val otherMainScope = CoroutineScope(Dispatchers.Main)
+        otherMainScope.launch {
+            // Wait for 50 ms and cancel scope so that not all planned 10 elements are inserted
+            delay(50)
             mainScope.cancel("Cancelling")
 
-            assertEquals(1, realmInstance!!.where<SimpleClass>().count())
+            assertNotEquals(upperBound.toLong(), realmInstance!!.where<SimpleClass>().count())
 
             realmInstance!!.close()
             countDownLatch.countDown()
-            newMainScope.cancel()
+            otherMainScope.cancel()
         }
 
         TestHelper.awaitOrFail(countDownLatch)
