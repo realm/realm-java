@@ -460,11 +460,13 @@ class CoroutineTests {
         mainScope.launch {
             realmInstance = Realm.getInstance(configuration)
 
-            for (i in 1..100) {
+            for (i in 1..10) {
                 realmInstance!!.executeTransactionAwait { transactionRealm ->
                     val simpleObject = SimpleClass().apply { name = "simpleName $i" }
                     transactionRealm.insert(simpleObject)
                 }
+
+                // Wait for 100 ms between inserts
                 delay(100)
             }
         }
@@ -472,11 +474,11 @@ class CoroutineTests {
         val countDownLatch = CountDownLatch(1)
         val newMainScope = CoroutineScope(Dispatchers.Main)
         newMainScope.launch {
-            // Wait for 150 ms and cancel scope so that only two elements are inserted
-            delay(150)
+            // Wait for 10 ms and cancel scope so that only one element is inserted
+            delay(10)
             mainScope.cancel("Cancelling")
 
-            assertEquals(2, realmInstance!!.where<SimpleClass>().count())
+            assertEquals(1, realmInstance!!.where<SimpleClass>().count())
 
             realmInstance!!.close()
             countDownLatch.countDown()
