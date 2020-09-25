@@ -4,7 +4,7 @@
 * None.
 
 ### Fixes
-* When querying a class where object references are part of the condition, the application may crash if objects has recently been added to the target table. (Issue [#7118](https://github.com/realm/realm-java/issues/7118), since v7.0.0)
+* When querying a class where object references are part of the condition, the application may crash if objects have recently been added to the target table. (Issue [#7118](https://github.com/realm/realm-java/issues/7118), since v7.0.0)
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
