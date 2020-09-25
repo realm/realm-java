@@ -13,8 +13,8 @@
 
 ### Internal
 * Upgraded to Object Store commit: 37e86c2905bfd424c16fc5d7860a1298bfc0ffa2.
-* Upgraded to Realm Sync: 5.0.24.
-* Upgraded to Realm Core: 6.1.0.
+* Upgraded to Realm Sync: 5.0.25.
+* Upgraded to Realm Core: 6.1.1.
 
 
 ## 7.0.6 (2020-09-18)
