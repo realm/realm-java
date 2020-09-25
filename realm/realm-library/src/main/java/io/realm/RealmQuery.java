@@ -89,7 +89,7 @@ public class RealmQuery<E> {
             if (realm.getConfiguration().isAllowQueriesOnUiThread()) {
                 RealmLog.warn("It is not recommended to run queries on the UI thread as it may lead to a drop of frames or ANRs. Please consider doing so from another thread instead.");
             } else {
-                throw new RealmException("There exists an opt-out for running queries on the UI thread. By default Realm allows queries from the UI thread. You can alternatively opt in using 'RealmConfiguration.allowQueriesOnUiThread'.");
+                throw new RealmException("There exists an opt-out for running queries on the UI thread. By default Realm allows queries from the UI thread. You can alternatively opt in by using 'RealmConfiguration.allowQueriesOnUiThread'.");
             }
         }
 
