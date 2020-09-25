@@ -38,7 +38,6 @@ import io.realm.internal.TableQuery;
 import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.core.QueryDescriptor;
 import io.realm.internal.fields.FieldDescriptor;
-import io.realm.log.RealmLog;
 
 
 /**
@@ -53,6 +52,13 @@ import io.realm.log.RealmLog;
  * is required.
  * <p>
  * A RealmQuery cannot be passed between different threads.
+ * <p>
+ * Queries can be launched from any thread and results are obtained fairly quickly most of the times. However, launching
+ * heavy queries from the UI thread may result in a drop of frames or even ANRs. If you want to prevent these behaviors,
+ * you can instantiate a Realm using a {@link RealmConfiguration} that explicitly sets
+ * {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)} to {@code false}. This way you will be forced to
+ * launch your queries from a non-UI thread. Alternatively, you can also use {@link #findAllAsync()} or
+ * {@link #findFirstAsync()}.
  *
  * @param <E> the class of the objects to be queried.
  * @see <a href="http://en.wikipedia.org/wiki/Builder_pattern">Builder pattern</a>
@@ -84,15 +90,6 @@ public class RealmQuery<E> {
      * to run it.
      */
     static <E extends RealmModel> RealmQuery<E> createQuery(Realm realm, Class<E> clazz) {
-        // Warn on query being executed on UI thread if isAllowQueriesOnUiThread is set to true, throw otherwise
-        if (realm.getSharedRealm().capabilities.isMainThread()) {
-            if (realm.getConfiguration().isAllowQueriesOnUiThread()) {
-                RealmLog.warn("It is not recommended to run queries on the UI thread as it may lead to a drop of frames or ANRs. Please consider doing so from another thread instead.");
-            } else {
-                throw new RealmException("There exists an opt-out for running queries on the UI thread. By default Realm allows queries from the UI thread. You can alternatively opt in by using 'RealmConfiguration.allowQueriesOnUiThread'.");
-            }
-        }
-
         return new RealmQuery<>(realm, clazz);
     }
 
@@ -2007,13 +2004,23 @@ public class RealmQuery<E> {
 
     /**
      * Finds all objects that fulfill the query conditions.
+     * <p>
+     * Queries can be launched from any thread and results are obtained fairly quickly in most cases. However, launching
+     * heavy queries from the UI thread may result in a drop of frames or even ANRs. <b>We do not recommend doing so and
+     * therefore it is not allowed by default.</b> If you want to prevent these behaviors you can obtain a Realm using a
+     * {@link RealmConfiguration} that explicitly sets {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}
+     * to {@code false}. This way you will be forced to launch your queries from a non-UI thread, otherwise calls to this
+     * method will throw a {@link RealmException}. Alternatively, you can use {@link #findAllAsync()}.
      *
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
      * objects is returned.
+     * @throws RealmException if a query is launched from the UI thread after having explicitly set
+     * {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)} to {@code false}.
      * @see io.realm.RealmResults
      */
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAll() {
+        realm.checkAllowQueriesOnUiThread();
         realm.checkIfValid();
         return createRealmResults(query, queryDescriptors, true);
     }
@@ -2242,13 +2249,23 @@ public class RealmQuery<E> {
 
     /**
      * Finds the first object that fulfills the query conditions.
+     * <p>
+     * Queries can be launched from any thread and results are obtained fairly quickly in most cases. However, launching
+     * heavy queries from the UI thread may result in a drop of frames or even ANRs. <b>We do not recommend doing so, but
+     * it is allowed by default.</b> If you want to prevent these behaviors you can obtain a Realm using a
+     * {@link RealmConfiguration} that explicitly sets {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}
+     * to {@code false}. This way you will be forced to launch your queries from a non-UI thread, otherwise calls to this
+     * method will throw a {@link RealmException}. Alternatively, you can use {@link #findFirstAsync()}.
      *
      * @return the object found or {@code null} if no object matches the query conditions.
+     * @throws RealmException if a query is launched from the UI thread after having explicitly set
+     * {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)} to {@code false}.
      * @see io.realm.RealmObject
      */
     @Nullable
     public E findFirst() {
         realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
 
         if (forValues) {
             // TODO implement this;

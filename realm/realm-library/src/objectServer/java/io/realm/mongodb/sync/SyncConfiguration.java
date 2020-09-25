@@ -48,6 +48,7 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
 import io.realm.RealmModel;
+import io.realm.RealmQuery;
 import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
@@ -1020,10 +1021,11 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Sets whether or not users are allowed to perform calls to {@link Realm#executeTransaction} from the UI thread.
+         * Sets whether or not calls to {@link Realm#executeTransaction} are allowed from the UI thread.
          * <p>
-         * <b>Note: Realm does not allow synchronous transactions to be run on the main thread unless users explicitly opt in
-         * with this method.</b>
+         * <b>WARNING: Realm does not allow synchronous transactions to be run on the main thread unless users explicitly opt in
+         * with this method.</b> We recommend diverting calls to {@code executeTransaction} to non-UI threads or, alternatively,
+         * using {@link Realm#executeTransactionAsync}.
          */
         public Builder allowWritesOnUiThread(boolean allowWritesOnUiThread) {
             this.allowWritesOnUiThread = allowWritesOnUiThread;
@@ -1031,10 +1033,11 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Sets whether or not RealmQueries are allowed from the UI thread.
+         * Sets whether or not {@code RealmQueries} are allowed from the UI thread.
          * <p>
-         * By default Realm allows queries on the main thread. To disallow this users have to explicitly opt in with
-         * this method.
+         * By default Realm allows queries on the main thread. However, by doing so your application may experience a drop of
+         * frames or even ANRs. We recommend diverting queries to non-UI threads or, alternatively, using
+         * {@link RealmQuery#findAllAsync()} or {@link RealmQuery#findFirstAsync()}.
          */
         public Builder allowQueriesOnUiThread(boolean allowQueriesOnUiThread) {
             this.allowQueriesOnUiThread = allowQueriesOnUiThread;

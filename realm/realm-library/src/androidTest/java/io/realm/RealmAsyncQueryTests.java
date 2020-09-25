@@ -1440,8 +1440,9 @@ public class RealmAsyncQueryTests {
 
     @Test
     @UiThreadTest
-    public void executeTransaction_throwsWhenRunningOnMainThread() {
+    public void executeTransaction_mainThreadWritesNotAllowed() {
         RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowWritesOnUiThread(false)
                 .build();
 
         // Try-with-resources
@@ -1459,8 +1460,9 @@ public class RealmAsyncQueryTests {
     }
 
     @Test
-    public void executeTransaction_runsOnNonUiThreadRegardlessOfSetting() {
+    public void executeTransaction_runsOnNonUiThread() {
         RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowWritesOnUiThread(false)
                 .build();
 
         Realm realm = Realm.getInstance(configuration);
@@ -1476,6 +1478,7 @@ public class RealmAsyncQueryTests {
     @UiThreadTest
     public void query_runOnMainThreadAllowed() {
         RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowQueriesOnUiThread(true)
                 .build();
 
         Realm realm = Realm.getInstance(configuration);
@@ -1500,7 +1503,24 @@ public class RealmAsyncQueryTests {
     }
 
     @Test
-    public void query_runOnAnyThreadAllowed() {
+    @UiThreadTest
+    public void asyncQuery_throwsWhenCallingRefresh() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowQueriesOnUiThread(false)
+                .build();
+
+        // Try-with-resources
+        try (Realm realm = Realm.getInstance(configuration)) {
+            realm.refresh();
+
+            fail("This test specifies queries are not allowed to run on the UI thread, so something went awry.");
+        } catch (RealmException e) {
+            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowQueriesOnUiThread"));
+        }
+    }
+
+    @Test
+    public void query_runOnNonUiThreadAllowed() {
         RealmConfiguration configuration = configFactory.createConfigurationBuilder()
                 .build();
 

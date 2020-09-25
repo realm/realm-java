@@ -1514,10 +1514,16 @@ public class Realm extends BaseRealm {
      * Executes a given transaction on the Realm. {@link #beginTransaction()} and {@link #commitTransaction()} will be
      * called automatically. If any exception is thrown during the transaction {@link #cancelTransaction()} will be
      * called instead of {@link #commitTransaction()}.
+     * <p>
+     *
+     * Calling this method from the UI thread will throw a {@link RealmException}. Doing so may result in a drop of frames
+     * or even ANRs. We recommend calling this method from a non-UI thread or using
+     * {@link #executeTransactionAsync(Transaction)} instead.
      *
      * @param transaction the {@link io.realm.Realm.Transaction} to execute.
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}.
      * @throws RealmMigrationNeededException if the latest version contains incompatible schema changes.
+     * @throws RealmException if called from the UI thread, unless an explicit opt-in has been declared in the configuration.
      */
     public void executeTransaction(Transaction transaction) {
         //noinspection ConstantConditions
@@ -1525,14 +1531,7 @@ public class Realm extends BaseRealm {
             throw new IllegalArgumentException("Transaction should not be null");
         }
 
-        // Warn on transaction being executed on UI thread if allowWritesOnUiThread is set to true, throw otherwise
-        if (sharedRealm.capabilities.isMainThread()) {
-            if (getConfiguration().isAllowWritesOnUiThread()) {
-                RealmLog.warn("It is not recommended to run transactions on the UI thread as it may lead to a drop of frames or ANRs. Please consider using 'executeTransactionAsync' instead.");
-            } else {
-                throw new RealmException("Running transactions on the UI thread is disabled by default. You can opt in by using 'RealmConfiguration.allowWritesOnUiThread'.");
-            }
-        }
+        checkAllowWritesOnUiThread();
 
         beginTransaction();
         try {

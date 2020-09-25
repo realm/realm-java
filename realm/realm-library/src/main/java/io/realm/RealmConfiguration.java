@@ -305,7 +305,7 @@ public class RealmConfiguration {
     }
 
     /**
-     * Returns whether {@code RealmQueries} are allowed from the UI thread.
+     * Returns whether a {@link RealmQuery} is allowed to be launched from the UI thread.
      * <p>
      * By default Realm allows queries on the main thread. To disallow this users have to explicitly opt in with
      * {@link Builder#allowQueriesOnUiThread(boolean)} or its Realm Sync builder counterpart.
@@ -830,10 +830,11 @@ public class RealmConfiguration {
         }
 
         /**
-         * Sets whether or not users are allowed to perform calls to {@link Realm#executeTransaction} from the UI thread.
+         * Sets whether or not calls to {@link Realm#executeTransaction} are allowed from the UI thread.
          * <p>
-         * <b>Note: Realm does not allow synchronous transactions to be run on the main thread unless users explicitly opt in
-         * with this method.</b>
+         * <b>WARNING: Realm does not allow synchronous transactions to be run on the main thread unless users explicitly opt in
+         * with this method.</b> We recommend diverting calls to {@code executeTransaction} to non-UI threads or, alternatively,
+         * using {@link Realm#executeTransactionAsync}.
          */
         public Builder allowWritesOnUiThread(boolean allowWritesOnUiThread) {
             this.allowWritesOnUiThread = allowWritesOnUiThread;
@@ -841,10 +842,11 @@ public class RealmConfiguration {
         }
 
         /**
-         * Sets whether or not RealmQueries are allowed from the UI thread.
+         * Sets whether or not a {@link RealmQuery} can be launched from the UI thread.
          * <p>
-         * By default Realm allows queries on the main thread. To disallow this users have to explicitly opt in with
-         * this method.
+         * By default Realm allows queries on the main thread. However, by doing so your application may experience a drop of
+         * frames or even ANRs. We recommend diverting queries to non-UI threads or, alternatively, using
+         * {@link RealmQuery#findAllAsync()} or {@link RealmQuery#findFirstAsync()}.
          */
         public Builder allowQueriesOnUiThread(boolean allowQueriesOnUiThread) {
             this.allowQueriesOnUiThread = allowQueriesOnUiThread;
