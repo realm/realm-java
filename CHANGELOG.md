@@ -1,3 +1,22 @@
+## 7.0.7 (2020-09-25)
+
+### Enhancements
+* None.
+
+### Fixes
+* When querying a class where object references are part of the condition, the application may crash if objects have recently been added to the target table. (Issue [#7118](https://github.com/realm/realm-java/issues/7118), since v7.0.0)
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Object Store commit: 37e86c2905bfd424c16fc5d7860a1298bfc0ffa2.
+* Upgraded to Realm Sync: 5.0.25.
+* Upgraded to Realm Core: 6.1.1.
+
+
 ## 7.0.6 (2020-09-18)
 
 ### Enhancements
