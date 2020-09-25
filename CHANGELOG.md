@@ -1,4 +1,4 @@
-## 7.0.7 (YYYY-MM-DD)
+## 7.0.7 (2020-09-25)
 
 ### Enhancements
 * None.
