@@ -1,3 +1,12 @@
+## 10.0.0-BETA.9 (2020-XX-XX)
+
+### Enhancements
+* Users can now opt out from allowing queries to be launched from the UI thread by using `RealmConfiguration.Builder.allowQueriesOnUiThread(false)`. Doing so will result in a `RealmException` when calling `RealmQuery.findAll()` or `RealmQuery.findFirst()`. Queries will still be allowed from any thread by default, although we recommend using a non-UI thread to launch queries, or, alternatively, using `RealmQuery.findAllAsync()` or `RealmQuery.findFirstAsync()`
+
+### Breaking Changes
+* From now on it is not allowed by default to run transactions with `Realm.executeTransaction` from the UI thread, resulting in a `RealmException`. Users can override this setting by using `RealmConfiguration.Builder.allowWritesOnUiThread(true)` when building a `RealmConfiguration` to obtain a Realm instance, though we do not recommend doing so. Instead, we recommend using non-UI threads when calling `Realm.executeTransaction`, or, alternatively, using `Realm.executeTransactionAsync`.
+
+
 ## 10.0.0-BETA.8 (2020-09-23)
 
 We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
@@ -5,7 +14,7 @@ We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Clo
 The old Realm Cloud legacy APIs have undergone significant refactoring. The new APIs are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
 
 ### Fixed
-* [RealmApp] Logging in caused an `token contains an invalid number of segments` error. (Issue [#7117](https://github.com/realm/realm-java/issues/7117), since 10.0.0-BETA.7) 
+* [RealmApp] Logging in caused an `token contains an invalid number of segments` error. (Issue [#7117](https://github.com/realm/realm-java/issues/7117), since 10.0.0-BETA.7)
 * [RealmApp] The order of arguments to `EmailPassword.resetPassword()` was not handled correctly, resulting in resetting the password failing. (Issue [#7116](https://github.com/realm/realm-java/issues/7116), since 10.0.0-BETA.1)
 
 ### Compatibility
@@ -287,7 +296,7 @@ The old Realm Cloud legacy API's have undergone significant refactoring. The new
 
 ## 7.0.0(2020-05-16)
 
-NOTE: This version bumps the Realm file format to version 10. Files created with previous versions of Realm will be automatically upgraded. It is not possible to downgrade to version 9 or earlier. Only [Studio 3.11](https://github.com/realm/realm-studio/releases/tag/v3.11.0) or later will be able to open the new file format. 
+NOTE: This version bumps the Realm file format to version 10. Files created with previous versions of Realm will be automatically upgraded. It is not possible to downgrade to version 9 or earlier. Only [Studio 3.11](https://github.com/realm/realm-studio/releases/tag/v3.11.0) or later will be able to open the new file format.
 
 ### Breaking Changes
 * [ObjectServer] Removed deprecated method `SyncConfiguration.Builder.partialRealm()`. Use `SyncConfiguration.Builder.fullSynchronization()` instead.
