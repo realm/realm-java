@@ -294,7 +294,7 @@ public class DynamicRealm extends BaseRealm {
      * or even ANRs. We recommend calling this method from a non-UI thread or using
      * {@link #executeTransactionAsync(Transaction)} instead.
      *
-     * @param transaction {@link io.realm.DynamicRealm.Transaction} to execute.
+     * @param transaction {@link Transaction} to execute.
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}.
      * @throws RealmException if called from the UI thread, unless an explicit opt-in has been declared in {@link RealmConfiguration.Builder#allowWritesOnUiThread(boolean)}.
      */
@@ -323,7 +323,7 @@ public class DynamicRealm extends BaseRealm {
     /**
      * Similar to {@link #executeTransaction(Transaction)} but runs asynchronously on a worker thread.
      *
-     * @param transaction {@link io.realm.Realm.Transaction} to execute.
+     * @param transaction {@link Transaction} to execute.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the Realm is opened from
      * another thread.
@@ -335,13 +335,13 @@ public class DynamicRealm extends BaseRealm {
     /**
      * Similar to {@link #executeTransactionAsync(Transaction)}, but also accepts an OnSuccess callback.
      *
-     * @param transaction {@link io.realm.Realm.Transaction} to execute.
+     * @param transaction {@link Transaction} to execute.
      * @param onSuccess callback invoked when the transaction succeeds.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
      * another thread.
      */
-    public RealmAsyncTask executeTransactionAsync(final Transaction transaction, final Realm.Transaction.OnSuccess onSuccess) {
+    public RealmAsyncTask executeTransactionAsync(final Transaction transaction, final Transaction.OnSuccess onSuccess) {
         //noinspection ConstantConditions
         if (onSuccess == null) {
             throw new IllegalArgumentException("onSuccess callback can't be null");
@@ -353,13 +353,13 @@ public class DynamicRealm extends BaseRealm {
     /**
      * Similar to {@link #executeTransactionAsync(Transaction)}, but also accepts an OnError callback.
      *
-     * @param transaction {@link io.realm.Realm.Transaction} to execute.
+     * @param transaction {@link Transaction} to execute.
      * @param onError callback invoked when the transaction fails.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
      * another thread.
      */
-    public RealmAsyncTask executeTransactionAsync(final Transaction transaction, final Realm.Transaction.OnError onError) {
+    public RealmAsyncTask executeTransactionAsync(final Transaction transaction, final Transaction.OnError onError) {
         //noinspection ConstantConditions
         if (onError == null) {
             throw new IllegalArgumentException("onError callback can't be null");
@@ -371,7 +371,7 @@ public class DynamicRealm extends BaseRealm {
     /**
      * Similar to {@link #executeTransactionAsync(Transaction)}, but also accepts an OnSuccess and OnError callbacks.
      *
-     * @param transaction {@link io.realm.Realm.Transaction} to execute.
+     * @param transaction {@link Transaction} to execute.
      * @param onSuccess callback invoked when the transaction succeeds.
      * @param onError callback invoked when the transaction fails.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
@@ -379,8 +379,8 @@ public class DynamicRealm extends BaseRealm {
      * another thread.
      */
     public RealmAsyncTask executeTransactionAsync(final Transaction transaction,
-                                                  @Nullable final Realm.Transaction.OnSuccess onSuccess,
-                                                  @Nullable final Realm.Transaction.OnError onError) {
+                                                  @Nullable final Transaction.OnSuccess onSuccess,
+                                                  @Nullable final Transaction.OnError onError) {
         checkIfValid();
 
         //noinspection ConstantConditions
@@ -583,6 +583,31 @@ public class DynamicRealm extends BaseRealm {
      */
     public interface Transaction {
         void execute(DynamicRealm realm);
+
+        /**
+         * Callback invoked to notify the caller thread.
+         */
+        class Callback {
+            public void onSuccess() {}
+
+            public void onError(Exception ignore) {}
+        }
+
+        /**
+         * Callback invoked to notify the caller thread about the success of the transaction.
+         */
+        interface OnSuccess {
+            void onSuccess();
+        }
+
+        /**
+         * Callback invoked to notify the caller thread about error during the transaction.
+         * The transaction will be rolled back and the background Realm will be closed before
+         * invoking {@link #onError(Throwable)}.
+         */
+        interface OnError {
+            void onError(Throwable error);
+        }
     }
 
     /**
