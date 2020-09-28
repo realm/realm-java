@@ -18,7 +18,6 @@ package io.realm;
 
 import android.os.SystemClock;
 
-import androidx.test.annotation.UiThreadTest;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.rule.UiThreadTestRule;
 
@@ -28,7 +27,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.util.Date;
-import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -40,7 +38,6 @@ import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
-import io.realm.exceptions.RealmException;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
@@ -1413,121 +1410,6 @@ public class RealmAsyncQueryTests {
                 looperThread.testComplete();
             }
         });
-    }
-
-    @Test
-    @UiThreadTest
-    public void executeTransaction_mainThreadWritesAllowed() {
-        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
-                .allowWritesOnUiThread(true)
-                .build();
-
-        Realm realm = Realm.getInstance(configuration);
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.insert(new Dog("Snuffles"));
-            }
-        });
-
-        RealmResults<Dog> results = realm.where(Dog.class).equalTo("name", "Snuffles").findAll();
-        assertEquals(1, results.size());
-        assertNotNull(results.first());
-        assertEquals("Snuffles", Objects.requireNonNull(results.first()).getName());
-
-        realm.close();
-    }
-
-    @Test
-    @UiThreadTest
-    public void executeTransaction_mainThreadWritesNotAllowed() {
-        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
-                .allowWritesOnUiThread(false)
-                .build();
-
-        // Try-with-resources
-        try (Realm realm = Realm.getInstance(configuration)) {
-            realm.executeTransaction(new Realm.Transaction() {
-                @Override
-                public void execute(Realm realm) {
-                    // no-op
-                }
-            });
-            fail("It is not allowed to run blocking transactions on the UI thread by default.");
-        } catch (RealmException e) {
-            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowWritesOnUiThread"));
-        }
-    }
-
-    @Test
-    public void executeTransaction_runsOnNonUiThread() {
-        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
-                .allowWritesOnUiThread(false)
-                .build();
-
-        Realm realm = Realm.getInstance(configuration);
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                // no-op
-            }
-        });
-    }
-
-    @Test
-    @UiThreadTest
-    public void query_runOnMainThreadAllowed() {
-        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
-                .allowQueriesOnUiThread(true)
-                .build();
-
-        Realm realm = Realm.getInstance(configuration);
-        realm.where(Dog.class).findAll();
-        realm.close();
-    }
-
-    @Test
-    @UiThreadTest
-    public void query_runOnMainThreadThrows() {
-        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
-                .allowQueriesOnUiThread(false)
-                .build();
-
-        // Try-with-resources
-        try (Realm realm = Realm.getInstance(configuration)) {
-            realm.where(Dog.class).findAll();
-            fail("This test specifies queries are not allowed to run on the UI thread, so something went awry.");
-        } catch (RealmException e) {
-            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowQueriesOnUiThread"));
-        }
-    }
-
-    @Test
-    @UiThreadTest
-    public void asyncQuery_throwsWhenCallingRefresh() {
-        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
-                .allowQueriesOnUiThread(false)
-                .build();
-
-        // Try-with-resources
-        try (Realm realm = Realm.getInstance(configuration)) {
-            realm.refresh();
-
-            fail("This test specifies queries are not allowed to run on the UI thread, so something went awry.");
-        } catch (RealmException e) {
-            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowQueriesOnUiThread"));
-        }
-    }
-
-    @Test
-    public void query_runOnNonUiThreadAllowed() {
-        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
-                .build();
-
-        Realm realm = Realm.getInstance(configuration);
-        RealmResults<Dog> results = realm.where(Dog.class).findAll();
-        assertEquals(0, results.size());
-        realm.close();
     }
 
     // *** Helper methods ***

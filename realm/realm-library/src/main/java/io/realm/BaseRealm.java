@@ -183,6 +183,7 @@ abstract class BaseRealm implements Closeable {
      * about changes to the Realm on a given thread than it is to use this method.
      *
      * @throws IllegalStateException if attempting to refresh from within a transaction.
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     public void refresh() {
         checkIfValid();
@@ -504,7 +505,7 @@ abstract class BaseRealm implements Closeable {
         // Warn on query being executed on UI thread if isAllowQueriesOnUiThread is set to true, throw otherwise
         if (getSharedRealm().capabilities.isMainThread()) {
             if (!getConfiguration().isAllowQueriesOnUiThread()) {
-                throw new RealmException("There exists an opt-out for running queries on the UI thread. By default Realm allows queries from the UI thread. You can alternatively opt in by using 'RealmConfiguration.allowQueriesOnUiThread'.");
+                throw new RealmException("Queries on the UI thread have been disabled. They can be enabled by setting 'RealmConfiguration.Builder.allowQueriesOnUiThread(true)'.");
             }
         }
     }
@@ -516,7 +517,7 @@ abstract class BaseRealm implements Closeable {
         // Warn on transaction being executed on UI thread if allowWritesOnUiThread is set to true, throw otherwise
         if (getSharedRealm().capabilities.isMainThread()) {
             if (!getConfiguration().isAllowWritesOnUiThread()) {
-                throw new RealmException("Running transactions on the UI thread is disabled by default. You can opt in by using 'RealmConfiguration.allowWritesOnUiThread' or avoid it by using 'Realm.executeTransactionAsync'.");
+                throw new RealmException("Running transactions on the UI thread has been disabled. It can be enabled by setting 'RealmConfiguration.Builder.allowWritesOnUiThread(true)'.");
             }
         }
     }

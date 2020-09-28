@@ -1,10 +1,20 @@
-## 10.0.0-BETA.9 (2020-XX-XX)
+## 10.0.0-BETA.9 (YYYY-MM-DD)
 
-### Enhancements
-* Users can now opt out from allowing queries to be launched from the UI thread by using `RealmConfiguration.Builder.allowQueriesOnUiThread(false)`. Doing so will result in a `RealmException` when calling `RealmQuery.findAll()` or `RealmQuery.findFirst()`. Queries will still be allowed from any thread by default, although we recommend using a non-UI thread to launch queries, or, alternatively, using `RealmQuery.findAllAsync()` or `RealmQuery.findFirstAsync()`
+We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
+
+The old Realm Cloud legacy APIs have undergone significant refactoring. The new APIs are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
+
+### Fixed
+* None.
+
+### Compatibility
+* None.
 
 ### Breaking Changes
 * From now on it is not allowed by default to run transactions with `Realm.executeTransaction` from the UI thread, resulting in a `RealmException`. Users can override this setting by using `RealmConfiguration.Builder.allowWritesOnUiThread(true)` when building a `RealmConfiguration` to obtain a Realm instance, though we do not recommend doing so. Instead, we recommend using non-UI threads when calling `Realm.executeTransaction`, or, alternatively, using `Realm.executeTransactionAsync`.
+
+### Enhancements
+* Users can now opt out from allowing queries to be launched from the UI thread by using `RealmConfiguration.Builder.allowQueriesOnUiThread(false)`. A `RealmException` will be thrown when calling `RealmQuery.findAll`, `RealmQuery.findFirst`, `RealmQuery.minimumDate`, `RealmQuery.maximumDate`, `RealmQuery.count`, `RealmQuery.sum`, `RealmQuery.max`, `RealmQuery.min`, `RealmQuery.average` and `RealmQuery.averageDecimal128` from the UI thread after having used `allowQueriesOnUiThread(false)`. Queries will be allowed from the thread from which the Realm instance was obtained as it always has been by default, although we recommend using a non-UI thread to launch them, or, alternatively, using `RealmQuery.findAllAsync` or `RealmQuery.findFirstAsync`.
 
 
 ## 10.0.0-BETA.8 (2020-09-23)
