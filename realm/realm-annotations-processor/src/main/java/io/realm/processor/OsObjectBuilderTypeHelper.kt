@@ -15,9 +15,7 @@
  */
 package io.realm.processor
 
-import java.util.Collections
-import java.util.HashMap
-
+import java.util.*
 import javax.lang.model.element.VariableElement
 
 /**
@@ -52,6 +50,7 @@ object OsObjectBuilderTypeHelper {
             this[QualifiedClassName("java.util.Date")] = "Date"
             this[QualifiedClassName("org.bson.types.Decimal128")] = "Decimal128"
             this[QualifiedClassName("org.bson.types.ObjectId")] = "ObjectId"
+            this[QualifiedClassName("java.util.UUID")] = "UUID"
             this[QualifiedClassName("io.realm.MutableRealmInteger")] = "MutableRealmInteger"
         }
         QUALIFIED_TYPE_TO_BUILDER = Collections.unmodifiableMap(fieldTypes)
@@ -72,6 +71,7 @@ object OsObjectBuilderTypeHelper {
             this[QualifiedClassName("io.realm.MutableRealmInteger")] = "MutableRealmIntegerList"
             this[QualifiedClassName("org.bson.types.Decimal128")] = "Decimal128List"
             this[QualifiedClassName("org.bson.types.ObjectId")] = "ObjectIdList"
+            this[QualifiedClassName("java.util.UUID")] = "UUIDList"
         }
         QUALIFIED_LIST_TYPE_TO_BUILDER = Collections.unmodifiableMap(listTypes)
     }

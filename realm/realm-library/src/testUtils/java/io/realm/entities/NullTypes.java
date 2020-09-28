@@ -16,8 +16,12 @@
 
 package io.realm.entities;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.UUID;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
@@ -26,9 +30,6 @@ import io.realm.TestHelper;
 import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
-
-import org.bson.types.Decimal128;
-import org.bson.types.ObjectId;
 
 // Always follow below order and put comments like below to make NullTypes Related cases
 // 1 String
@@ -70,6 +71,8 @@ public class NullTypes extends RealmObject {
     public static final String FIELD_DECIMAL128_NOT_NULL = "fieldDecimal128NotNull";
     public static final String FIELD_OBJECT_ID_NULL = "fieldObjectIdNull";
     public static final String FIELD_OBJECT_ID_NOT_NULL = "fieldObjectIdNotNull";
+    public static final String FIELD_UUID_NULL = "fieldUUIDNull";
+    public static final String FIELD_UUID_NOT_NULL = "fieldUUIDNotNull";
     public static final String FIELD_OBJECT_NULL = "fieldObjectNull";
     public static final String FIELD_LIST_NULL = "fieldListNull";
     public static final String FIELD_LO_OBJECT = "objectParents";
@@ -99,6 +102,8 @@ public class NullTypes extends RealmObject {
     public static final String FIELD_DECIMAL128_LIST_NOT_NULL = "fieldDecimal128ListNotNull";
     public static final String FIELD_OBJECT_ID_LIST_NULL = "fieldObjectIdListNull";
     public static final String FIELD_OBJECT_ID_LIST_NOT_NULL = "fieldObjectIdListNotNull";
+    public static final String FIELD_UUID_LIST_NULL = "fieldUUIDListNull";
+    public static final String FIELD_UUID_LIST_NOT_NULL = "fieldUUIDListNotNull";
 
     @PrimaryKey
     private int id;
@@ -150,6 +155,10 @@ public class NullTypes extends RealmObject {
     @Required
     private ObjectId fieldObjectIdNotNull = new ObjectId(TestHelper.generateObjectIdHexString(0));
     private ObjectId fieldObjectIdNull;
+
+    @Required
+    private UUID fieldUUIDNotNull = UUID.randomUUID();
+    private UUID fieldUUIDNull;
 
     private NullTypes fieldObjectNull;
 
@@ -203,6 +212,10 @@ public class NullTypes extends RealmObject {
     @Required
     private RealmList<ObjectId> fieldObjectIdListNotNull;
     private RealmList<ObjectId> fieldObjectIdListNull;
+
+    @Required
+    private RealmList<UUID> fieldUUIDListNotNull;
+    private RealmList<UUID> fieldUUIDListNull;
 
     // never nullable
     @LinkingObjects(FIELD_OBJECT_NULL)
@@ -626,5 +639,21 @@ public class NullTypes extends RealmObject {
 
     public void setFieldObjectIdListNull(RealmList<ObjectId> fieldObjectIdListNull) {
         this.fieldObjectIdListNull = fieldObjectIdListNull;
+    }
+
+    public RealmList<UUID> getFieldUUIDListNotNull() {
+        return fieldUUIDListNotNull;
+    }
+
+    public void setFieldUUIDListNotNull(RealmList<UUID> fieldUUIDListNotNull) {
+        this.fieldUUIDListNotNull = fieldUUIDListNotNull;
+    }
+
+    public RealmList<UUID> getFieldUUIDListNull() {
+        return fieldUUIDListNull;
+    }
+
+    public void setFieldUUIDListNull(RealmList<UUID> fieldUUIDListNull) {
+        this.fieldUUIDListNull = fieldUUIDListNull;
     }
 }

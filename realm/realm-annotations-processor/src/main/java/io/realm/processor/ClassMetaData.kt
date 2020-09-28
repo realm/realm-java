@@ -16,35 +16,16 @@
 
 package io.realm.processor
 
-import java.util.ArrayList
-import java.util.Arrays
-import java.util.Collections
-import java.util.LinkedHashSet
-import java.util.Locale
-
+import io.realm.annotations.*
+import io.realm.processor.nameconverter.NameConverter
+import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
-import javax.lang.model.element.Element
-import javax.lang.model.element.ElementKind
-import javax.lang.model.element.ExecutableElement
-import javax.lang.model.element.Modifier
-import javax.lang.model.element.PackageElement
-import javax.lang.model.element.TypeElement
-import javax.lang.model.element.VariableElement
+import javax.lang.model.element.*
 import javax.lang.model.type.DeclaredType
 import javax.lang.model.type.TypeKind
 import javax.lang.model.type.TypeMirror
 import javax.lang.model.util.Elements
 import javax.lang.model.util.Types
-
-import io.realm.annotations.Ignore
-import io.realm.annotations.Index
-import io.realm.annotations.LinkingObjects
-import io.realm.annotations.PrimaryKey
-import io.realm.annotations.RealmClass
-import io.realm.annotations.RealmField
-import io.realm.annotations.RealmNamingPolicy
-import io.realm.annotations.Required
-import io.realm.processor.nameconverter.NameConverter
 
 /**
  * Utility class for holding metadata for RealmProxy classes.
@@ -84,7 +65,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             typeMirrors.PRIMITIVE_INT_MIRROR,
             typeMirrors.PRIMITIVE_SHORT_MIRROR,
             typeMirrors.PRIMITIVE_BYTE_MIRROR,
-            typeMirrors.OBJECT_ID_MIRROR
+            typeMirrors.OBJECT_ID_MIRROR,
+            typeMirrors.UUID_MIRROR
     )
     private val validListValueTypes: List<TypeMirror> = Arrays.asList(
             typeMirrors.STRING_MIRROR,
@@ -98,7 +80,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             typeMirrors.FLOAT_MIRROR,
             typeMirrors.DATE_MIRROR,
             typeMirrors.DECIMAL128_MIRROR,
-            typeMirrors.OBJECT_ID_MIRROR
+            typeMirrors.OBJECT_ID_MIRROR,
+            typeMirrors.UUID_MIRROR
     )
     private val stringType = typeMirrors.STRING_MIRROR
 
@@ -650,7 +633,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     }
 
     // The field has the @Index annotation. It's only valid for column types:
-    // STRING, DATE, INTEGER, BOOLEAN, RealmMutableInteger and OBJECT_ID
+    // STRING, DATE, INTEGER, BOOLEAN, RealmMutableInteger, OBJECT_ID and UUID
     private fun categorizeIndexField(element: Element, fieldElement: RealmFieldElement): Boolean {
         var indexable = false
 
@@ -662,7 +645,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
                 Constants.RealmFieldType.DATE,
                 Constants.RealmFieldType.INTEGER,
                 Constants.RealmFieldType.BOOLEAN,
-                Constants.RealmFieldType.OBJECT_ID -> { indexable = true }
+                Constants.RealmFieldType.OBJECT_ID,
+                Constants.RealmFieldType.UUID -> { indexable = true }
                 else -> { /* Ignore */ }
             }
         }

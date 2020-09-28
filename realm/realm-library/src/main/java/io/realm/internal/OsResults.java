@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -471,6 +472,14 @@ public class OsResults implements NativeObject, ObservableCollection {
         }
     }
 
+    public void setUUID(String fieldName, @Nullable UUID value) {
+        if (value == null) {
+            nativeSetNull(nativePtr, fieldName);
+        } else {
+            nativeSetUUID(nativePtr, fieldName, value.toString());
+        }
+    }
+
     public void setObject(String fieldName, @Nullable Row row) {
         if (row == null) {
             setNull(fieldName);
@@ -624,6 +633,15 @@ public class OsResults implements NativeObject, ObservableCollection {
         });
     }
 
+    public void setUUIDList(String fieldName, RealmList<UUID> list) {
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<UUID>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<UUID> list) {
+                builder.addUUIDList(0, list);
+            }
+        });
+    }
+
     public <T> void addListener(T observer, OrderedRealmCollectionChangeListener<T> listener) {
         if (observerPairs.isEmpty()) {
             nativeStartListening(nativePtr);
@@ -753,6 +771,8 @@ public class OsResults implements NativeObject, ObservableCollection {
     private static native void nativeSetDecimal128(long nativePtr, String fieldName, long low, long high);
 
     private static native void nativeSetObjectId(long nativePtr, String fieldName, String data);
+
+    private static native void nativeSetUUID(long nativePtr, String fieldName, String data);
 
     private static native void nativeSetObject(long nativePtr, String fieldName, long rowNativePtr);
 

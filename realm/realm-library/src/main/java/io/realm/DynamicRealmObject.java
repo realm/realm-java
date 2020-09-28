@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.UUID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -117,6 +118,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                 return (E) proxyState.getRow$realm().getDecimal128(columnKey);
             case OBJECT_ID:
                 return (E) proxyState.getRow$realm().getObjectId(columnKey);
+            case UUID:
+                return (E) proxyState.getRow$realm().getUUID(columnKey);
             case OBJECT:
                 return (E) getObject(fieldName);
             case LIST:
@@ -359,6 +362,25 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     }
 
     /**
+     * Returns the {@code UUID} value for a given field.
+     *
+     * @param fieldName the name of the field.
+     * @return the UUID value.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain UUID.
+     */
+    public UUID getUUID(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        checkFieldType(fieldName, columnKey, RealmFieldType.UUID);
+        if (proxyState.getRow$realm().isNull(columnKey)) {
+            return null;
+        } else {
+            return proxyState.getRow$realm().getUUID(columnKey);
+        }
+    }
+
+    /**
      * Returns the object being linked to from this field.
      *
      * @param fieldName the name of the field.
@@ -455,6 +477,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             return RealmFieldType.DECIMAL128_LIST;
         } else if (primitiveType.equals(ObjectId.class)) {
             return RealmFieldType.OBJECT_ID_LIST;
+        } else if (primitiveType.equals(UUID.class)) {
+            return RealmFieldType.UUID_LIST;
         } else {
             throw new IllegalArgumentException("Unsupported element type. Only primitive types supported. Yours was: " + primitiveType);
         }
@@ -484,6 +508,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case DATE:
             case DECIMAL128:
             case OBJECT_ID:
+            case UUID:
                 return proxyState.getRow$realm().isNull(columnKey);
             case LIST:
             case LINKING_OBJECTS:
@@ -496,6 +521,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case DOUBLE_LIST:
             case DECIMAL128_LIST:
             case OBJECT_ID_LIST:
+            case UUID_LIST:
                 // fall through
             default:
                 return false;
@@ -573,6 +599,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                 case OBJECT_ID:
                     value = new ObjectId(strValue);
                     break;
+                case UUID:
+                    value = UUID.fromString(strValue);
+                    break;
                 default:
                     throw new IllegalArgumentException(String.format(Locale.US,
                             "Field %s is not a String field, " +
@@ -620,6 +649,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             setDecimal128(fieldName, (Decimal128) value);
         } else if (valueClass == ObjectId.class) {
             setObjectId(fieldName, (ObjectId) value);
+        } else if (valueClass == UUID.class) {
+            setUUID(fieldName, (UUID) value);
         } else {
             throw new IllegalArgumentException("Value is of an type not supported: " + value.getClass());
         }
@@ -816,6 +847,24 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     }
 
     /**
+     * Sets the {@code UUID} value of the given field.
+     *
+     * @param fieldName field name.
+     * @param value value to insert.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't a UUID field.
+     */
+    public void setUUID(String fieldName, @Nullable UUID value) {
+        proxyState.getRealm$realm().checkIfValid();
+
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        if (value == null) {
+            proxyState.getRow$realm().setNull(columnKey);
+        } else {
+            proxyState.getRow$realm().setUUID(columnKey, value);
+        }
+    }
+
+    /**
      * Sets a reference to another object on the given field.
      *
      * @param fieldName field name.
@@ -895,6 +944,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case DOUBLE_LIST:
             case DECIMAL128_LIST:
             case OBJECT_ID_LIST:
+            case UUID_LIST:
                 setValueList(fieldName, list, columnType);
                 break;
             default:
@@ -967,6 +1017,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case DOUBLE_LIST: elementClass = (Class<E>) Double.class; break;
             case DECIMAL128_LIST: elementClass = (Class<E>) Decimal128.class; break;
             case OBJECT_ID_LIST: elementClass = (Class<E>) ObjectId.class; break;
+            case UUID_LIST: elementClass = (Class<E>) UUID.class; break;
             default:
                 throw new IllegalArgumentException("Unsupported type: " + primitiveType);
         }
@@ -1025,6 +1076,10 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         if (valueListType == RealmFieldType.OBJECT_ID_LIST) {
             //noinspection unchecked
             return (ManagedListOperator<E>) new ObjectIdListOperator(realm, osList, (Class<ObjectId>) valueClass);
+        }
+        if (valueListType == RealmFieldType.UUID_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new UUIDListOperator(realm, osList, (Class<UUID>) valueClass);
         }
         throw new IllegalArgumentException("Unexpected list type: " + valueListType.name());
     }
@@ -1191,6 +1246,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                 case OBJECT_ID:
                     sb.append(proxyState.getRow$realm().isNull(columnKey) ? "null" : proxyState.getRow$realm().getObjectId(columnKey));
                     break;
+                case UUID:
+                    sb.append(proxyState.getRow$realm().isNull(columnKey) ? "null" : proxyState.getRow$realm().getUUID(columnKey));
+                    break;
                 case OBJECT:
                     sb.append(proxyState.getRow$realm().isNullLink(columnKey)
                             ? "null"
@@ -1226,6 +1284,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     break;
                 case OBJECT_ID_LIST:
                     sb.append(String.format(Locale.US, "RealmList<ObjectId>[%s]", proxyState.getRow$realm().getValueList(columnKey, type).size()));
+                    break;
+                case UUID_LIST:
+                    sb.append(String.format(Locale.US, "RealmList<UUID>[%s]", proxyState.getRow$realm().getValueList(columnKey, type).size()));
                     break;
                 default:
                     sb.append("?");
