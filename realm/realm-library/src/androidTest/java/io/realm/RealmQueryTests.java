@@ -3744,7 +3744,7 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     @UiThreadTest
-    public void finalAll_runOnMainThreadAllowed() {
+    public void findAll_runOnMainThreadAllowed() {
         RealmConfiguration configuration = configFactory.createConfigurationBuilder()
                 .allowQueriesOnUiThread(true)
                 .name("ui_realm")
@@ -3757,7 +3757,7 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     @UiThreadTest
-    public void finalFirst_runOnMainThreadAllowed() {
+    public void findFirst_runOnMainThreadAllowed() {
         RealmConfiguration configuration = configFactory.createConfigurationBuilder()
                 .allowQueriesOnUiThread(true)
                 .name("ui_realm")

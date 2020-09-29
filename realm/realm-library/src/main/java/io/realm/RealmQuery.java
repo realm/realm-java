@@ -53,7 +53,7 @@ import io.realm.internal.fields.FieldDescriptor;
  * <p>
  * A RealmQuery cannot be passed between different threads.
  * <p>
- * Results are obtained fairly quickly most of the times. However, launching heavy queries from the UI thread may result
+ * Results are obtained quickly most of the times. However, launching heavy queries from the UI thread may result
  * in a drop of frames or even ANRs. If you want to prevent these behaviors, you can instantiate a Realm using a
  * {@link RealmConfiguration} that explicitly sets {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)} to
  * {@code false}. This way queries will be forced to be launched from a non-UI thread. Alternatively, you can also use
@@ -2020,12 +2020,12 @@ public class RealmQuery<E> {
     /**
      * Finds all objects that fulfill the query conditions.
      * <p>
-     * Queries can be launched from any thread and results are obtained fairly quickly in most cases. However, launching
-     * heavy queries from the UI thread may result in a drop of frames or even ANRs. <b>We do not recommend doing so and
-     * therefore it is not allowed by default.</b> If you want to prevent these behaviors you can obtain a Realm using a
-     * {@link RealmConfiguration} that explicitly sets {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}
-     * to {@code false}. This way you will be forced to launch your queries from a non-UI thread, otherwise calls to this
-     * method will throw a {@link RealmException}. Alternatively, you can use {@link #findAllAsync()}.
+     * Launching heavy queries from the UI thread may result in a drop of frames or even ANRs. <b>We do not recommend
+     * doing so and therefore it is not allowed by default.</b> If you want to prevent these behaviors you can obtain
+     * a Realm using a {@link RealmConfiguration} that explicitly sets
+     * {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)} to {@code false}. This way you will be forced
+     * to launch your queries from a non-UI thread, otherwise calls to this method will throw a {@link RealmException}.
+     * Alternatively, you can use {@link #findAllAsync()}.
      *
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
      * objects is returned.
@@ -2264,12 +2264,12 @@ public class RealmQuery<E> {
     /**
      * Finds the first object that fulfills the query conditions.
      * <p>
-     * Queries can be launched from any thread and results are obtained fairly quickly in most cases. However, launching
-     * heavy queries from the UI thread may result in a drop of frames or even ANRs. <b>We do not recommend doing so, but
-     * it is allowed by default.</b> If you want to prevent these behaviors you can obtain a Realm using a
-     * {@link RealmConfiguration} that explicitly sets {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}
-     * to {@code false}. This way you will be forced to launch your queries from a non-UI thread, otherwise calls to this
-     * method will throw a {@link RealmException}. Alternatively, you can use {@link #findFirstAsync()}.
+     * Launching heavy queries from the UI thread may result in a drop of frames or even ANRs. <b>We do not recommend
+     * doing so, but it is allowed by default.</b> If you want to prevent these behaviors you can obtain a Realm using
+     * a {@link RealmConfiguration} that explicitly sets
+     * {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)} to {@code false}. This way you will be forced
+     * to launch your queries from a non-UI thread, otherwise calls to this method will throw a {@link RealmException}.
+     * Alternatively, you can use {@link #findFirstAsync()}.
      *
      * @return the object found or {@code null} if no object matches the query conditions.
      * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
