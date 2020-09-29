@@ -207,10 +207,11 @@ class CoroutineTests {
                         assertTrue(flowResults.isFrozen)
                         assertEquals(0, flowResults.size)
                     }.onCompletion {
-                        countDownLatch.countDown()
-
-                        if (countDownLatch.count == 0L && !realmInstance.isClosed) {
+                        if (countDownLatch.count > 1) {
+                            countDownLatch.countDown()
+                        } else if (!realmInstance.isClosed) {
                             realmInstance.close()
+                            countDownLatch.countDown()
                         }
                     }.launchIn(scope)
 
@@ -220,10 +221,11 @@ class CoroutineTests {
                         assertTrue(flowResults.isFrozen)
                         assertEquals(0, flowResults.size)
                     }.onCompletion {
-                        countDownLatch.countDown()
-
-                        if (countDownLatch.count == 0L && !realmInstance.isClosed) {
+                        if (countDownLatch.count > 1) {
+                            countDownLatch.countDown()
+                        } else if (!realmInstance.isClosed) {
                             realmInstance.close()
+                            countDownLatch.countDown()
                         }
                     }.launchIn(scope)
 
