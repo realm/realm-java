@@ -76,6 +76,12 @@ abstract class BaseRealm implements Closeable {
     // Thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
 
+    /**
+     * Thread pool executor used for write operations - only one thread is needed as writes cannot
+     * be parallelized.
+     */
+    public static final RealmThreadPoolExecutor WRITE_EXECUTOR = RealmThreadPoolExecutor.newSingleThreadExecutor();
+
     final boolean frozen; // Cache the value in Java, since it is accessed frequently and doesn't change.
     final long threadId;
     protected final RealmConfiguration configuration;

@@ -19,6 +19,9 @@ import io.realm.Realm
 import io.realm.RealmModel
 import io.realm.RealmQuery
 import io.realm.exceptions.RealmException
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Returns a typed RealmQuery, which can be used to query for specific objects of this type
@@ -92,16 +95,30 @@ inline fun <reified T : RealmModel> Realm.createEmbeddedObject(parentObject: Rea
 }
 
 /**
-TODO: Figure out if we should include this is or not. Using this makes it possible to do
-
-inline fun <T> Realm.callTransaction(crossinline action: Realm.() -> T): T {
-    val ref = AtomicReference<T>()
-    executeTransaction {
-        ref.set(action(it))
+ * Suspend version of [Realm.executeTransaction] to use within coroutines.
+ *
+ * @param context optional [CoroutineContext] in which this coroutine will run.
+ * @param transaction the [Realm.Transaction] to execute.
+ * @throws IllegalArgumentException if the `transaction` is `null`.
+ * @throws RealmMigrationNeededException if the latest version contains incompatible schema changes.
+ */
+suspend fun Realm.executeTransactionAwait(
+        context: CoroutineContext = Realm.WRITE_EXECUTOR.asCoroutineDispatcher(),
+        transaction: (realm: Realm) -> Unit
+) {
+    // Default to our own thread pool executor (as dispatcher)
+    withContext(context) {
+        // Get a new coroutine-confined Realm instance from the original Realm's configuration
+        Realm.getInstance(configuration).use { coroutineRealm ->
+            coroutineRealm.executeTransaction(transaction)
+        }
     }
-    return ref.get()
+
+    // force refresh because we risk fetching stale data from other realms
+    refresh()
 }
 
+/**
 Missing functions. Consider these for inclusion later:
 - createAllFromJson(Class<E> clazz, InputStream inputStream)
 - createAllFromJson(Class<E> clazz, org.json.JSONArray json)
@@ -116,4 +133,4 @@ Missing functions. Consider these for inclusion later:
 - createOrUpdateObjectFromJson(Class<E> clazz, org.json.JSONObject json)
 - createOrUpdateObjectFromJson(Class<E> clazz, String json)
 - createOrUpdateObjectFromJson(Class<E> clazz, String json)
-*/
+ */
