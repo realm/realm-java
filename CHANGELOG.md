@@ -15,6 +15,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 
 ### Enhancements
 * Users can now opt out from allowing queries to be launched from the UI thread by using `RealmConfiguration.Builder.allowQueriesOnUiThread(false)`. A `RealmException` will be thrown when calling `RealmQuery.findAll`, `RealmQuery.findFirst`, `RealmQuery.minimumDate`, `RealmQuery.maximumDate`, `RealmQuery.count`, `RealmQuery.sum`, `RealmQuery.max`, `RealmQuery.min`, `RealmQuery.average` and `RealmQuery.averageDecimal128` from the UI thread after having used `allowQueriesOnUiThread(false)`. Queries will be allowed from the thread from which the Realm instance was obtained as it always has been by default, although we recommend using a non-UI thread to launch them, or, alternatively, using `RealmQuery.findAllAsync` or `RealmQuery.findFirstAsync`.
+* `BaseRealm.refresh` will throw a `RealmException` if it is being called from the UI thread if `allowQueriesOnUiThread` is set to `false`, though it will be allowed by default.
 * Added `DynamicRealm.executeTransactionAsync` as a by-product of the new `allowWritesOnUiThread` configuration setting.
 
 
