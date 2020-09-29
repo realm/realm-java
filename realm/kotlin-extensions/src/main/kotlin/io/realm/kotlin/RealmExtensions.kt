@@ -95,7 +95,7 @@ inline fun <reified T : RealmModel> Realm.createEmbeddedObject(parentObject: Rea
 }
 
 /**
- * Suspend version of [Realm.beginTransaction] to use within coroutines.
+ * Suspend version of [Realm.executeTransaction] to use within coroutines.
  *
  * @param context optional [CoroutineContext] in which this coroutine will run.
  * @param transaction the [Realm.Transaction] to execute.
