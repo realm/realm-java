@@ -209,7 +209,7 @@ class CoroutineTests {
                     }.onCompletion {
                         if (countDownLatch.count > 1) {
                             countDownLatch.countDown()
-                        } else if (!realmInstance.isClosed) {
+                        } else {
                             realmInstance.close()
                             countDownLatch.countDown()
                         }
@@ -223,7 +223,7 @@ class CoroutineTests {
                     }.onCompletion {
                         if (countDownLatch.count > 1) {
                             countDownLatch.countDown()
-                        } else if (!realmInstance.isClosed) {
+                        } else {
                             realmInstance.close()
                             countDownLatch.countDown()
                         }
