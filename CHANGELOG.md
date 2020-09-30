@@ -4,12 +4,6 @@ We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Clo
 
 The old Realm Cloud legacy APIs have undergone significant refactoring. The new APIs are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
 
-### Fixed
-* None.
-
-### Compatibility
-* None.
-
 ### Breaking Changes
 * None.
 
@@ -18,6 +12,17 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * Added Kotlin extension function `RealmResults.toFlow` which returns a Kotlin flow, similar to RxJava's convenience method `asFlowable`.
 * Added Kotlin extension function `RealmList.toFlow` which returns a Kotlin flow, similar to RxJava's convenience method `asFlowable`.
 * Added Kotlin extension function `RealmModel.toFlow` which returns a Kotlin flow, similar to RxJava's convenience method `asFlowable`.
+
+### Fixed
+* Using `Realm.copyToRealmOrUpdate()` and `Realm.insertOrUpdate()` did not correctly update objects if they contained lists of embedded objets. Instead of replacing the original list, list items was appended to the original list. (Issue [#7131](https://github.com/realm/realm-java/issues/7131), since 10.0.0-BETA.1).
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java 10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
+
+### Internal
+* None.
 
 
 ## 10.0.0-BETA.8 (2020-09-23)
