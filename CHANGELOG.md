@@ -14,7 +14,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * Added Kotlin extension function `RealmModel.toFlow` which returns a Kotlin flow, similar to RxJava's convenience method `asFlowable`.
 
 ### Fixed
-* Using `Realm.copyToRealmOrUpdate()` and `Realm.insertOrUpdate()` did not correctly update objects if they contained lists of embedded objets. Instead of replacing the original list, list items was appended to the original list. (Issue [#7131](https://github.com/realm/realm-java/issues/7131), since 10.0.0-BETA.1).
+* Using `Realm.copyToRealmOrUpdate()` and `Realm.insertOrUpdate()` did not correctly update objects if they contained lists of embedded objets. Instead of replacing the original list, list items was appended to the original list. Note, some corner cases are still not supported. See [#7138](https://github.com/realm/realm-java/issues/7138) for more information. (Issue [#7131](https://github.com/realm/realm-java/issues/7131), since 10.0.0-BETA.1).
 
 ### Compatibility
 * File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java 10.0.0-BETA.1.
