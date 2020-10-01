@@ -106,11 +106,11 @@ class DynamicRealmAsyncQueryTests {
             owner.setString(Owner.FIELD_NAME, "Owner")
         }, DynamicRealm.Transaction.OnSuccess {
             assertTrue(realm.isClosed)
-            val newRealm = DynamicRealm.getInstance(config)
-            assertEquals(1, newRealm.where(Owner.CLASS_NAME).count())
-            assertEquals("Owner", newRealm.where(Owner.CLASS_NAME).findFirst()!!.getString(Owner.FIELD_NAME))
 
-            newRealm.close()
+            DynamicRealm.getInstance(config).use { newRealm ->
+                assertEquals(1, newRealm.where(Owner.CLASS_NAME).count())
+                assertEquals("Owner", newRealm.where(Owner.CLASS_NAME).findFirst()!!.getString(Owner.FIELD_NAME))
+            }
 
             looperThread.testComplete()
         })
@@ -148,12 +148,12 @@ class DynamicRealmAsyncQueryTests {
             throw runtimeException
         }) { error ->
             assertTrue(realm.isClosed)
-            val newRealm = DynamicRealm.getInstance(config)
-            assertEquals(0, newRealm.where(Owner.CLASS_NAME).count())
-            assertNull(newRealm.where(Owner.CLASS_NAME).findFirst())
-            assertEquals(runtimeException, error)
 
-            newRealm.close()
+            DynamicRealm.getInstance(config).use { newRealm ->
+                assertEquals(0, newRealm.where(Owner.CLASS_NAME).count())
+                assertNull(newRealm.where(Owner.CLASS_NAME).findFirst())
+                assertEquals(runtimeException, error)
+            }
 
             looperThread.testComplete()
         }
