@@ -1,4 +1,4 @@
-## 7.0.8 (YYYY-MM-DD)
+## 7.0.8 (2020-10-01)
 
 ### Enhancements
 * Slightly improve performance of most operations which read data from the Realm file.
