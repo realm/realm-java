@@ -1,3 +1,24 @@
+## 7.0.8 (YYYY-MM-DD)
+
+### Enhancements
+* Slightly improve performance of most operations which read data from the Realm file.
+
+### Fixes
+* Making a query in an indexed property may give a "Key not found" exception. (.NET issue [#2025](https://github.com/realm/realm-dotnet/issues/2025), since 7.0.0)
+* Queries for null on non-nullable indexed integer properties could return wrong results if 0 entries should be found. (Since 7.0.0)
+* Rerunning an equals query on an indexed string column which previously had more than one match and now has one match would sometimes throw a "key not found" exception. (Cocoa issue [#6536](https://github.com/realm/realm-cocoa/issues/6536), Since 7.0.0)
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Object Store commit: 8a68df3e9fa7743c13d927eb7fc330ed9bb06693.
+* Upgraded to Realm Sync: 5.0.28.
+* Upgraded to Realm Core: 6.1.3.
+
+
 ## 7.0.7 (2020-09-25)
 
 ### Enhancements
