@@ -196,7 +196,9 @@ publishing {
             groupId 'io.realm'
             artifactId 'realm-android-kotlin-extensions'
             version project.version
-            artifact file("${rootDir}/kotlin-extensions/build/outputs/aar/realm-kotlin-extensions-base-release.aar")
+            artifact (file("${rootDir}/kotlin-extensions/build/outputs/aar/realm-kotlin-extensions-base-release.aar")) {
+                builtBy assemble
+            }
             artifact sourcesJar
             artifact javadocJar
 
@@ -207,7 +209,9 @@ publishing {
             groupId 'io.realm'
             artifactId 'realm-android-kotlin-extensions-object-server'
             version project.version
-            artifact file("${rootDir}/kotlin-extensions/build/outputs/aar/realm-kotlin-extensions-objectServer-release.aar")
+            artifact (file("${rootDir}/kotlin-extensions/build/outputs/aar/realm-kotlin-extensions-objectServer-release.aar")) {
+                builtBy assemble
+            }
             artifact sourcesJar
             artifact javadocJar
 
