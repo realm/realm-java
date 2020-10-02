@@ -1,6 +1,5 @@
 package io.realm
 
-import android.util.Log
 import io.realm.entities.AllTypes
 import io.realm.entities.Dog
 import io.realm.entities.SimpleClass
