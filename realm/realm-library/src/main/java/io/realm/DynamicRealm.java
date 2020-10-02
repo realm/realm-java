@@ -17,6 +17,9 @@
 package io.realm;
 
 import java.util.Locale;
+import java.util.concurrent.Future;
+
+import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
 import io.realm.annotations.RealmClass;
@@ -26,10 +29,12 @@ import io.realm.internal.CheckedRow;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsSharedRealm;
+import io.realm.internal.RealmNotifier;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
+import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
 
 /**
@@ -284,15 +289,22 @@ public class DynamicRealm extends BaseRealm {
      * Executes a given transaction on the DynamicRealm. {@link #beginTransaction()} and
      * {@link #commitTransaction()} will be called automatically. If any exception is thrown
      * during the transaction {@link #cancelTransaction()} will be called instead of {@link #commitTransaction()}.
+     * <p>
+     * Calling this method from the UI thread will throw a {@link RealmException}. Doing so may result in a drop of frames
+     * or even ANRs. We recommend calling this method from a non-UI thread or using
+     * {@link #executeTransactionAsync(Transaction)} instead.
      *
-     * @param transaction {@link io.realm.DynamicRealm.Transaction} to execute.
+     * @param transaction {@link Transaction} to execute.
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}.
+     * @throws RealmException if called from the UI thread, unless an explicit opt-in has been declared in {@link RealmConfiguration.Builder#allowWritesOnUiThread(boolean)}.
      */
     public void executeTransaction(Transaction transaction) {
         //noinspection ConstantConditions
         if (transaction == null) {
             throw new IllegalArgumentException("Transaction should not be null");
         }
+
+        checkAllowWritesOnUiThread();
 
         beginTransaction();
         try {
@@ -306,6 +318,182 @@ public class DynamicRealm extends BaseRealm {
             }
             throw e;
         }
+    }
+
+    /**
+     * Similar to {@link #executeTransaction(Transaction)} but runs asynchronously on a worker thread.
+     *
+     * @param transaction {@link Transaction} to execute.
+     * @return a {@link RealmAsyncTask} representing a cancellable task.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the Realm is opened from
+     * another thread.
+     */
+    public RealmAsyncTask executeTransactionAsync(final Transaction transaction) {
+        return executeTransactionAsync(transaction, null, null);
+    }
+
+    /**
+     * Similar to {@link #executeTransactionAsync(Transaction)}, but also accepts an OnSuccess callback.
+     *
+     * @param transaction {@link Transaction} to execute.
+     * @param onSuccess callback invoked when the transaction succeeds.
+     * @return a {@link RealmAsyncTask} representing a cancellable task.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
+     * another thread.
+     */
+    public RealmAsyncTask executeTransactionAsync(final Transaction transaction, final Transaction.OnSuccess onSuccess) {
+        //noinspection ConstantConditions
+        if (onSuccess == null) {
+            throw new IllegalArgumentException("onSuccess callback can't be null");
+        }
+
+        return executeTransactionAsync(transaction, onSuccess, null);
+    }
+
+    /**
+     * Similar to {@link #executeTransactionAsync(Transaction)}, but also accepts an OnError callback.
+     *
+     * @param transaction {@link Transaction} to execute.
+     * @param onError callback invoked when the transaction fails.
+     * @return a {@link RealmAsyncTask} representing a cancellable task.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
+     * another thread.
+     */
+    public RealmAsyncTask executeTransactionAsync(final Transaction transaction, final Transaction.OnError onError) {
+        //noinspection ConstantConditions
+        if (onError == null) {
+            throw new IllegalArgumentException("onError callback can't be null");
+        }
+
+        return executeTransactionAsync(transaction, null, onError);
+    }
+
+    /**
+     * Similar to {@link #executeTransactionAsync(Transaction)}, but also accepts an OnSuccess and OnError callbacks.
+     *
+     * @param transaction {@link Transaction} to execute.
+     * @param onSuccess callback invoked when the transaction succeeds.
+     * @param onError callback invoked when the transaction fails.
+     * @return a {@link RealmAsyncTask} representing a cancellable task.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
+     * another thread.
+     */
+    public RealmAsyncTask executeTransactionAsync(final Transaction transaction,
+                                                  @Nullable final Transaction.OnSuccess onSuccess,
+                                                  @Nullable final Transaction.OnError onError) {
+        checkIfValid();
+
+        //noinspection ConstantConditions
+        if (transaction == null) {
+            throw new IllegalArgumentException("Transaction should not be null");
+        }
+
+        if (isFrozen()) {
+            throw new IllegalStateException("Write transactions on a frozen Realm is not allowed.");
+        }
+
+        // Avoid to call canDeliverNotification() in bg thread.
+        final boolean canDeliverNotification = sharedRealm.capabilities.canDeliverNotification();
+
+        // If the user provided a Callback then we have to make sure the current Realm has an events looper to deliver
+        // the results.
+        if ((onSuccess != null || onError != null)) {
+            sharedRealm.capabilities.checkCanDeliverNotification("Callback cannot be delivered on current thread.");
+        }
+
+        // We need to use the same configuration to open a background OsSharedRealm (i.e Realm)
+        // to perform the transaction
+        final RealmConfiguration realmConfiguration = getConfiguration();
+        // We need to deliver the callback even if the Realm is closed. So acquire a reference to the notifier here.
+        final RealmNotifier realmNotifier = sharedRealm.realmNotifier;
+
+        final Future<?> pendingTransaction = asyncTaskExecutor.submitTransaction(new Runnable() {
+            @Override
+            public void run() {
+                if (Thread.currentThread().isInterrupted()) {
+                    return;
+                }
+
+                OsSharedRealm.VersionID versionID = null;
+                Throwable exception = null;
+
+                final DynamicRealm bgRealm = DynamicRealm.getInstance(realmConfiguration);
+                bgRealm.beginTransaction();
+                try {
+                    transaction.execute(bgRealm);
+
+                    if (Thread.currentThread().isInterrupted()) {
+                        return;
+                    }
+
+                    bgRealm.commitTransaction();
+                    // The bgRealm needs to be closed before post event to caller's handler to avoid concurrency
+                    // problem. This is currently guaranteed by posting callbacks later below.
+                    versionID = bgRealm.sharedRealm.getVersionID();
+                } catch (final Throwable e) {
+                    exception = e;
+                } finally {
+                    try {
+                        if (bgRealm.isInTransaction()) {
+                            bgRealm.cancelTransaction();
+                        }
+                    } finally {
+                        bgRealm.close();
+                    }
+                }
+
+                final Throwable backgroundException = exception;
+                final OsSharedRealm.VersionID backgroundVersionID = versionID;
+                // Cannot be interrupted anymore.
+                if (canDeliverNotification) {
+                    if (backgroundVersionID != null && onSuccess != null) {
+                        realmNotifier.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (isClosed()) {
+                                    // The caller Realm is closed. Just call the onSuccess. Since the new created Realm
+                                    // cannot be behind the background one.
+                                    onSuccess.onSuccess();
+                                    return;
+                                }
+
+                                if (sharedRealm.getVersionID().compareTo(backgroundVersionID) < 0) {
+                                    sharedRealm.realmNotifier.addTransactionCallback(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            onSuccess.onSuccess();
+                                        }
+                                    });
+                                } else {
+                                    onSuccess.onSuccess();
+                                }
+                            }
+                        });
+                    } else if (backgroundException != null) {
+                        realmNotifier.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (onError != null) {
+                                    onError.onError(backgroundException);
+                                } else {
+                                    throw new RealmException("Async transaction failed", backgroundException);
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    if (backgroundException != null) {
+                        // FIXME: ThreadPoolExecutor will never throw the exception in the background.
+                        // We need a redesign of the async transaction API.
+                        // Throw in the worker thread since the caller thread cannot get notifications.
+                        throw new RealmException("Async transaction failed", backgroundException);
+                    }
+                }
+
+            }
+        });
+
+        return new RealmAsyncTaskImpl(pendingTransaction, asyncTaskExecutor);
     }
 
     /**
@@ -395,6 +583,31 @@ public class DynamicRealm extends BaseRealm {
      */
     public interface Transaction {
         void execute(DynamicRealm realm);
+
+        /**
+         * Callback invoked to notify the caller thread.
+         */
+        class Callback {
+            public void onSuccess() {}
+
+            public void onError(Exception ignore) {}
+        }
+
+        /**
+         * Callback invoked to notify the caller thread about the success of the transaction.
+         */
+        interface OnSuccess {
+            void onSuccess();
+        }
+
+        /**
+         * Callback invoked to notify the caller thread about error during the transaction.
+         * The transaction will be rolled back and the background Realm will be closed before
+         * invoking {@link #onError(Throwable)}.
+         */
+        interface OnError {
+            void onError(Throwable error);
+        }
     }
 
     /**

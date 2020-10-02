@@ -19,7 +19,6 @@ package io.realm;
 import android.content.Context;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -32,7 +31,6 @@ import javax.annotation.Nullable;
 
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
-import io.realm.exceptions.RealmFileException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmCore;
 import io.realm.internal.RealmProxyMediator;
@@ -100,6 +98,8 @@ public class RealmConfiguration {
     private final boolean readOnly;
     private final CompactOnLaunchCallback compactOnLaunch;
     private final long maxNumberOfActiveVersions;
+    private final boolean allowWritesOnUiThread;
+    private final boolean allowQueriesOnUiThread;
 
     /**
      * Whether this RealmConfiguration is intended to open a
@@ -122,7 +122,9 @@ public class RealmConfiguration {
             boolean readOnly,
             @Nullable CompactOnLaunchCallback compactOnLaunch,
             boolean isRecoveryConfiguration,
-            long maxNumberOfActiveVersions) {
+            long maxNumberOfActiveVersions,
+            boolean allowWritesOnUiThread,
+            boolean allowQueriesOnUiThread) {
         this.realmDirectory = realmPath.getParentFile();
         this.realmFileName = realmPath.getName();
         this.canonicalPath = realmPath.getAbsolutePath();
@@ -139,6 +141,8 @@ public class RealmConfiguration {
         this.compactOnLaunch = compactOnLaunch;
         this.isRecoveryConfiguration = isRecoveryConfiguration;
         this.maxNumberOfActiveVersions = maxNumberOfActiveVersions;
+        this.allowWritesOnUiThread = allowWritesOnUiThread;
+        this.allowQueriesOnUiThread = allowQueriesOnUiThread;
     }
 
     public File getRealmDirectory() {
@@ -288,6 +292,30 @@ public class RealmConfiguration {
         return maxNumberOfActiveVersions;
     }
 
+    /**
+     * Returns whether calls to {@link Realm#executeTransaction} can be done on the UI thread.
+     * <p>
+     * <b>Note: Realm does not allow blocking transactions to be run on the main thread unless users explicitly opt in with
+     * {@link Builder#allowWritesOnUiThread(boolean)} or its Realm Sync builder counterpart.</b>
+     *
+     * @return whether or not write operations are allowed to be run from the UI thread.
+     */
+    public boolean isAllowWritesOnUiThread() {
+        return allowWritesOnUiThread;
+    }
+
+    /**
+     * Returns whether a {@link RealmQuery} is allowed to be launched from the UI thread.
+     * <p>
+     * By default Realm allows queries on the main thread. To disallow this users have to explicitly opt in with
+     * {@link Builder#allowQueriesOnUiThread(boolean)} or its Realm Sync builder counterpart.
+     *
+     * @return whether or not queries are allowed to be run from the UI thread.
+     */
+    public boolean isAllowQueriesOnUiThread() {
+        return allowQueriesOnUiThread;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) { return true; }
@@ -432,7 +460,7 @@ public class RealmConfiguration {
     }
 
     protected static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
-        return new RealmConfiguration(new File(canonicalPath),null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true, Long.MAX_VALUE);
+        return new RealmConfiguration(new File(canonicalPath),null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true, Long.MAX_VALUE, false, true);
     }
 
     /**
@@ -455,6 +483,8 @@ public class RealmConfiguration {
         private boolean readOnly;
         private CompactOnLaunchCallback compactOnLaunch;
         private long maxNumberOfActiveVersions = Long.MAX_VALUE;
+        private boolean allowWritesOnUiThread;
+        private boolean allowQueriesOnUiThread;
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
@@ -490,6 +520,8 @@ public class RealmConfiguration {
             if (DEFAULT_MODULE != null) {
                 this.modules.add(DEFAULT_MODULE);
             }
+            this.allowWritesOnUiThread = false;
+            this.allowQueriesOnUiThread = true;
         }
 
         /**
@@ -798,6 +830,30 @@ public class RealmConfiguration {
         }
 
         /**
+         * Sets whether or not calls to {@link Realm#executeTransaction} are allowed from the UI thread.
+         * <p>
+         * <b>WARNING: Realm does not allow synchronous transactions to be run on the main thread unless users explicitly opt in
+         * with this method.</b> We recommend diverting calls to {@code executeTransaction} to non-UI threads or, alternatively,
+         * using {@link Realm#executeTransactionAsync}.
+         */
+        public Builder allowWritesOnUiThread(boolean allowWritesOnUiThread) {
+            this.allowWritesOnUiThread = allowWritesOnUiThread;
+            return this;
+        }
+
+        /**
+         * Sets whether or not a {@link RealmQuery} can be launched from the UI thread.
+         * <p>
+         * By default Realm allows queries on the main thread. However, by doing so your application may experience a drop of
+         * frames or even ANRs. We recommend diverting queries to non-UI threads or, alternatively, using
+         * {@link RealmQuery#findAllAsync()} or {@link RealmQuery#findFirstAsync()}.
+         */
+        public Builder allowQueriesOnUiThread(boolean allowQueriesOnUiThread) {
+            this.allowQueriesOnUiThread = allowQueriesOnUiThread;
+            return this;
+        }
+
+        /**
          * Creates the RealmConfiguration based on the builder parameters.
          *
          * @return the created {@link RealmConfiguration}.
@@ -837,7 +893,9 @@ public class RealmConfiguration {
                     readOnly,
                     compactOnLaunch,
                     false,
-                    maxNumberOfActiveVersions
+                    maxNumberOfActiveVersions,
+                    allowWritesOnUiThread,
+                    allowQueriesOnUiThread
             );
         }
 

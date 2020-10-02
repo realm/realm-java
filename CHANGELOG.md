@@ -5,13 +5,16 @@ We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Clo
 The old Realm Cloud legacy APIs have undergone significant refactoring. The new APIs are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
 
 ### Breaking Changes
-* None.
+* From now on it is not allowed by default to run transactions with either `Realm.executeTransaction()` or `DynamicRealm.executeTransaction()` from the UI thread. Doing so will yield a `RealmException`. Users can override this behavior by using `RealmConfiguration.Builder.allowWritesOnUiThread(true)` when building a `RealmConfiguration` to obtain a Realm or DynamicRealm instance, though we do not recommend doing so. Instead, we recommend using `executeTransactionAsync()` or, alternatively, using non-UI threads when calling `executeTransaction()` for both `Realm`s and `DynamicRealm`s.
 
 ### Enhancements
-* Added Kotlin extension suspend function `Realm.executeTransactionAwait` which runs transactions inside coroutines.
-* Added Kotlin extension function `RealmResults.toFlow` which returns a Kotlin flow, similar to RxJava's convenience method `asFlowable`.
-* Added Kotlin extension function `RealmList.toFlow` which returns a Kotlin flow, similar to RxJava's convenience method `asFlowable`.
-* Added Kotlin extension function `RealmModel.toFlow` which returns a Kotlin flow, similar to RxJava's convenience method `asFlowable`.
+* Users can now opt out from allowing queries to be launched from the UI thread by using `RealmConfiguration.Builder.allowQueriesOnUiThread(false)`. A `RealmException` will be thrown when calling `RealmQuery.findAll()`, `RealmQuery.findFirst()`, `RealmQuery.minimumDate()`, `RealmQuery.maximumDate()`, `RealmQuery.count()`, `RealmQuery.sum()`, `RealmQuery.max()`, `RealmQuery.min()`, `RealmQuery.average()` and `RealmQuery.averageDecimal128()` from the UI thread after having used `allowQueriesOnUiThread(false)`. Queries will be allowed from the thread from which the Realm instance was obtained as it always has been by default, although we recommend using `RealmQuery.findAllAsync()` or `RealmQuery.findFirstAsync()`, or, alternatively, using a non-UI thread to launch them.
+* `BaseRealm.refresh()` will throw a `RealmException` if it is being called from the UI thread if `allowQueriesOnUiThread` is set to `false`, though it will be allowed by default.
+* Added `DynamicRealm.executeTransactionAsync()`.
+* Added Kotlin extension suspend function `Realm.executeTransactionAwait()` which runs transactions inside coroutines.
+* Added Kotlin extension function `RealmResults.toFlow()` which returns a Kotlin flow, similar to our RxJava convenience method `asFlowable()`.
+* Added Kotlin extension function `RealmList.toFlow()` which returns a Kotlin flow, similar to our RxJava convenience method `asFlowable()`.
+* Added Kotlin extension function `RealmModel.toFlow()` which returns a Kotlin flow, similar to our RxJava convenience method `asFlowable()`.
 
 ### Fixed
 * Using `Realm.copyToRealmOrUpdate()` and `Realm.insertOrUpdate()` did not correctly update objects if they contained lists of embedded objets. Instead of replacing the original list, list items was appended to the original list. Note, some corner cases are still not supported. See [#7138](https://github.com/realm/realm-java/issues/7138) for more information. (Issue [#7131](https://github.com/realm/realm-java/issues/7131), since 10.0.0-BETA.1).
