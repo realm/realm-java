@@ -19,7 +19,9 @@ import io.realm.Realm
 import io.realm.RealmModel
 import io.realm.RealmQuery
 import io.realm.exceptions.RealmException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
@@ -79,15 +81,15 @@ inline fun <reified T : RealmModel> Realm.createObject(primaryKeyValue: Any?): T
 
 /**
  * Instantiates and adds a new embedded object to the Realm.
- * <p>
+ *
  * This method should only be used to create objects of types marked as embedded.
  *
- * @param T the Class of the object to create. It must be marked with {@code \@RealmClass(embedded = true)}.
+ * @param T the Class of the object to create. It must be marked with `@RealmClass(embedded = true)`.
  * @param parentObject The parent object which should hold a reference to the embedded object. If the parent property is a list
  * the embedded object will be added to the end of that list.
  * @param parentProperty the property in the parent class which holds the reference.
  * @return the newly created embedded object.
- * @throws IllegalArgumentException if {@code clazz} is not an embedded class or if the property
+ * @throws IllegalArgumentException if `clazz` is not an embedded class or if the property
  * in the parent class cannot hold objects of the appropriate type.
  */
 inline fun <reified T : RealmModel> Realm.createEmbeddedObject(parentObject: RealmModel, parentProperty: String): T {
@@ -96,6 +98,21 @@ inline fun <reified T : RealmModel> Realm.createEmbeddedObject(parentObject: Rea
 
 /**
  * Suspend version of [Realm.executeTransaction] to use within coroutines.
+ *
+ * Canceling the scope or job in which this function is executed does not cancel the transaction itself. If you want to ensure
+ * your transaction is cooperative, you have to check for the value of [CoroutineScope.isActive] while running the transaction:
+ *
+ * ```
+ * // insert 100 objects
+ * realmInstance.executeTransactionAwait { transactionRealm ->
+ *   for (i in 1..100) {
+ *     // all good if active, otherwise do nothing
+ *     if (isActive) {
+ *       transactionRealm.insert(MyObject(i))
+ *     }
+ *   }
+ * }
+ * ```
  *
  * @param context optional [CoroutineContext] in which this coroutine will run.
  * @param transaction the [Realm.Transaction] to execute.
@@ -110,7 +127,10 @@ suspend fun Realm.executeTransactionAwait(
     withContext(context) {
         // Get a new coroutine-confined Realm instance from the original Realm's configuration
         Realm.getInstance(configuration).use { coroutineRealm ->
-            coroutineRealm.executeTransaction(transaction)
+            // Ensure cooperation and prevent execution if the scope is not active.
+            if (isActive) {
+                coroutineRealm.executeTransaction(transaction)
+            }
         }
     }
 
