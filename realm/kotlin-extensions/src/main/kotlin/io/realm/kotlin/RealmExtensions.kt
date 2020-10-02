@@ -105,7 +105,7 @@ inline fun <reified T : RealmModel> Realm.createEmbeddedObject(parentObject: Rea
  * ```
  * coroutineScope.launch {
  *   // insert 100 objects
- *   realmInstance.executeTransactionAwait { transactionRealm ->
+ *   realm.executeTransactionAwait { transactionRealm ->
  *     for (i in 1..100) {
  *       // all good if active, otherwise do nothing
  *       if (isActive) {

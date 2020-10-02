@@ -33,8 +33,6 @@ class CoroutineTests {
         testDispatcher = TestCoroutineDispatcher()
         testScope = TestCoroutineScope(testDispatcher)
         configuration = configFactory.createConfiguration()
-
-        Realm.getInstance(configuration).close()
     }
 
     @Test
@@ -127,23 +125,22 @@ class CoroutineTests {
 
     @Test
     fun toFlow_throwsDueToThreadViolation() {
-        val countDownLatch = CountDownLatch(1)
+        Realm.getInstance(configuration).use { realm ->
+            val countDownLatch = CountDownLatch(1)
 
-        // Get results from the test thread
-        val realm = Realm.getInstance(configuration)
-        val findAll = realm.where<SimpleClass>().findAll()
+            // Get results from the test thread
+            val findAll = realm.where<SimpleClass>().findAll()
 
-        CoroutineScope(Dispatchers.Main).launch {
-            assertFailsWith<IllegalStateException> {
-                // Now we are on the main thread, which means crash
-                findAll.toFlow()
-                fail("toFlow() must be called from the thread that retrieved the results!")
+            CoroutineScope(Dispatchers.Main).launch {
+                assertFailsWith<IllegalStateException> {
+                    // Now we are on the main thread, which means crash
+                    findAll.toFlow()
+                    fail("toFlow() must be called from the thread that retrieved the results!")
+                }
+                countDownLatch.countDown()
             }
-            countDownLatch.countDown()
+            TestHelper.awaitOrFail(countDownLatch)
         }
-        TestHelper.awaitOrFail(countDownLatch)
-
-        realm.close()
     }
 
     @Test
@@ -416,9 +413,9 @@ class CoroutineTests {
 
         scope.launch {
             Realm.getInstance(configuration).use { realmInstance ->
-                realmInstance.beginTransaction()
-                realmInstance.createObject<AllTypes>()
-                realmInstance.commitTransaction()
+                realmInstance.executeTransaction {
+                    realmInstance.createObject<AllTypes>()
+                }
             }
 
             val dynamicRealm = DynamicRealm.getInstance(configuration)
@@ -491,13 +488,14 @@ class CoroutineTests {
 
     @Test
     fun executeTransactionAwait_cancelCoroutineWithHeavyCooperativeTransaction() {
-        val upperBound = 10000
+        val upperBound = 100000
         var realmInstance: Realm? = null
 
         val job = CoroutineScope(Dispatchers.Main).launch {
             realmInstance = Realm.getInstance(configuration)
 
             realmInstance!!.executeTransactionAwait { transactionRealm ->
+                // Try to insert 100000 objects to give time to be cancelled after 5ms
                 for (i in 1..upperBound) {
                     // The coroutine itself will not cancel the transaction, but we can make it cooperative ourselves
                     if (isActive) {
@@ -510,48 +508,18 @@ class CoroutineTests {
 
         val countDownLatch = CountDownLatch(1)
         CoroutineScope(Dispatchers.Main).launch {
-            // Wait for 50 ms and cancel job
-            delay(10)
+            // Wait for 5 ms and cancel job
+            delay(5)
             job.cancelAndJoin()
 
-            // The coroutine won't finish until the transaction is completely done
-            // but not all elements will have been inserted since the transaction is cooperative
+            // The coroutine won't finish until the transaction is completely done but not all
+            // elements will have been inserted since the transaction is cooperative.
+            // It isn't possible to guarantee we have inserted any element at all either because
+            // another coroutine is launched inside executeTransactionAwait and that triggers a
+            // context switching, which might result in that the call to cancelAndJoin above this
+            // comment be executed even before we check for isActive inside executeTransactionAwait.
+            // So the result yielded by count() will be a number from 0 to anywhere below 100000.
             assertNotEquals(upperBound.toLong(), realmInstance!!.where<SimpleClass>().count())
-
-            realmInstance!!.close()
-
-            countDownLatch.countDown()
-            this.cancel()
-        }
-
-        TestHelper.awaitOrFail(countDownLatch)
-    }
-
-    @Test
-    fun executeTransactionAwait_cancelCoroutineWithHeavyNonCooperativeTransaction() {
-        val upperBound = 10000
-        var realmInstance: Realm? = null
-
-        val job = CoroutineScope(Dispatchers.Main).launch {
-            realmInstance = Realm.getInstance(configuration)
-
-            realmInstance!!.executeTransactionAwait { transactionRealm ->
-                for (i in 1..upperBound) {
-                    val simpleObject = SimpleClass().apply { name = "simpleName $i" }
-                    transactionRealm.insert(simpleObject)
-                }
-            }
-        }
-
-        val countDownLatch = CountDownLatch(1)
-        CoroutineScope(Dispatchers.Main).launch {
-            // Wait for 50 ms and cancel job
-            delay(50)
-            job.cancelAndJoin()
-
-            // The coroutine won't finish until the transaction is completely done so all elements
-            // will be inserted since the transaction itself isn't cooperative
-            assertEquals(upperBound.toLong(), realmInstance!!.where<SimpleClass>().count())
 
             realmInstance!!.close()
 
@@ -566,23 +534,22 @@ class CoroutineTests {
     fun executeTransactionAwait_throwsDueToThreadViolation() {
         // Just to prevent the test to end prematurely
         val countDownLatch = CountDownLatch(1)
-        val realm = Realm.getInstance(configuration)
         var exception: IllegalStateException? = null
 
-        // It will crash so long we aren't using Dispatchers.Unconfined
-        CoroutineScope(Dispatchers.IO).launch {
-            assertFailsWith<IllegalStateException> {
-                realm.executeTransactionAwait {
-                    // no-op
+        Realm.getInstance(configuration).use { realm ->
+            // It will crash so long we aren't using Dispatchers.Unconfined
+            CoroutineScope(Dispatchers.IO).launch {
+                assertFailsWith<IllegalStateException> {
+                    realm.executeTransactionAwait {
+                        // no-op
+                    }
+                }.let {
+                    exception = it
+                    countDownLatch.countDown()
                 }
-            }.let {
-                exception = it
-                countDownLatch.countDown()
             }
+            TestHelper.awaitOrFail(countDownLatch)
         }
-        TestHelper.awaitOrFail(countDownLatch)
-
-        realm.close()
 
         // Ensure we failed
         assertNotNull(exception)
