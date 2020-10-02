@@ -1117,6 +1117,46 @@ class EmbeddedObjectsTest {
     }
 
     @Test
+    fun copyToRealmOrUpdate_replacesEmbededdList() {
+        realm.beginTransaction()
+        val parent = EmbeddedTreeParent()
+        parent.middleNodeList = RealmList(EmbeddedTreeNode("1"), EmbeddedTreeNode("2"))
+        parent._id = "1"
+        realm.copyToRealm(parent)
+        realm.commitTransaction()
+
+        realm.beginTransaction()
+        parent.middleNodeList.add(EmbeddedTreeNode("3"))
+        val managedParent = realm.copyToRealmOrUpdate(parent)
+        assertEquals(3, managedParent.middleNodeList.size)
+        realm.commitTransaction()
+    }
+
+    @Test
+    fun insertOrUpdate_replacesEmbededdList() {
+        realm.beginTransaction()
+        val parent = EmbeddedTreeParent()
+        parent.middleNodeList = RealmList(EmbeddedTreeNode("1"), EmbeddedTreeNode("2"))
+        parent._id = "1"
+        val managedParent = realm.copyToRealm(parent)
+        realm.commitTransaction()
+
+        realm.beginTransaction()
+
+        // insertOrUpdate has different code paths for lists of equal size vs. lists of different sizes
+        parent.middleNodeList = RealmList(EmbeddedTreeNode("3"), EmbeddedTreeNode("4"))
+        realm.insertOrUpdate(parent)
+        assertEquals(2, managedParent.middleNodeList.size)
+        assertEquals("3", managedParent.middleNodeList[0]!!.treeNodeId)
+        assertEquals("4", managedParent.middleNodeList[1]!!.treeNodeId)
+
+        parent.middleNodeList.add(EmbeddedTreeNode("5"))
+        realm.insertOrUpdate(parent)
+        assertEquals(3, managedParent.middleNodeList.size)
+        realm.commitTransaction()
+    }
+
+    @Test
     @Ignore("Add in another PR")
     fun results_bulkUpdate() {
         // What happens if you bulk update a RealmResults. Should it be allowed to use embeded
