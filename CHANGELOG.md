@@ -1,4 +1,4 @@
-## 10.0.0-BETA.9 (YYYY-MM-DD)
+## 10.0.0-RC.1 (YYYY-MM-DD)
 
 We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
 
@@ -22,7 +22,9 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * Realm Studio 10.0.0 and above is required to open Realms created by this version.
 
 ### Internal
-* None.
+* Updated to Object Store commit: ef6736cc07a8b94d1242c522969114bb8047deef
+* Updated to Realm Sync 10.0.0-beta.14.
+* Updated to Realm Core 10.0.0-beta.9.
 
 
 ## 10.0.0-BETA.8 (2020-09-23)
