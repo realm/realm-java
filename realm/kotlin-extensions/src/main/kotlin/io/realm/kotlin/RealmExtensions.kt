@@ -103,12 +103,14 @@ inline fun <reified T : RealmModel> Realm.createEmbeddedObject(parentObject: Rea
  * your transaction is cooperative, you have to check for the value of [CoroutineScope.isActive] while running the transaction:
  *
  * ```
- * // insert 100 objects
- * realmInstance.executeTransactionAwait { transactionRealm ->
- *   for (i in 1..100) {
- *     // all good if active, otherwise do nothing
- *     if (isActive) {
- *       transactionRealm.insert(MyObject(i))
+ * coroutineScope.launch {
+ *   // insert 100 objects
+ *   realmInstance.executeTransactionAwait { transactionRealm ->
+ *     for (i in 1..100) {
+ *       // all good if active, otherwise do nothing
+ *       if (isActive) {
+ *         transactionRealm.insert(MyObject(i))
+ *       }
  *     }
  *   }
  * }
