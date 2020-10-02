@@ -15,6 +15,8 @@
  */
 package io.realm;
 
+import androidx.test.rule.UiThreadTestRule;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -45,6 +47,8 @@ public abstract class QueryTests {
     public final ExpectedException thrown = ExpectedException.none();
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
+    @Rule
+    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
 
     protected static final List<RealmFieldType> SUPPORTED_IS_EMPTY_TYPES;
     protected static final List<RealmFieldType> NOT_SUPPORTED_IS_EMPTY_TYPES;

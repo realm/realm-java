@@ -1117,4 +1117,48 @@ public class RealmConfigurationTests {
         } catch (IllegalArgumentException ignore) {
         }
     }
+
+    @Test
+    public void allowQueriesOnUiThread_defaultsToTrue() {
+        RealmConfiguration configuration = new RealmConfiguration.Builder().build();
+        assertTrue(configuration.isAllowQueriesOnUiThread());
+    }
+
+    @Test
+    public void allowQueriesOnUiThread_explicitFalse() {
+        RealmConfiguration configuration = new RealmConfiguration.Builder()
+                .allowQueriesOnUiThread(false)
+                .build();
+        assertFalse(configuration.isAllowQueriesOnUiThread());
+    }
+
+    @Test
+    public void allowQueriesOnUiThread_explicitTrue() {
+        RealmConfiguration configuration = new RealmConfiguration.Builder()
+                .allowQueriesOnUiThread(true)
+                .build();
+        assertTrue(configuration.isAllowQueriesOnUiThread());
+    }
+
+    @Test
+    public void allowWritesOnUiThread_defaultsToFalse() {
+        RealmConfiguration configuration = new RealmConfiguration.Builder().build();
+        assertFalse(configuration.isAllowWritesOnUiThread());
+    }
+
+    @Test
+    public void allowWritesOnUiThread_explicitFalse() {
+        RealmConfiguration configuration = new RealmConfiguration.Builder()
+                .allowWritesOnUiThread(false)
+                .build();
+        assertFalse(configuration.isAllowWritesOnUiThread());
+    }
+
+    @Test
+    public void allowWritesOnUiThread_explicitTrue() {
+        RealmConfiguration configuration = new RealmConfiguration.Builder()
+                .allowWritesOnUiThread(true)
+                .build();
+        assertTrue(configuration.isAllowWritesOnUiThread());
+    }
 }

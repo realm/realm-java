@@ -21,6 +21,7 @@ import android.os.Build;
 import android.os.Looper;
 import android.os.SystemClock;
 
+import androidx.test.annotation.UiThreadTest;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.UiThreadTestRule;
@@ -36,7 +37,6 @@ import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -55,6 +55,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
@@ -761,6 +762,70 @@ public class RealmTests {
             RealmLog.remove(testLogger);
         }
         assertEquals(0, realm.where(Owner.class).count());
+    }
+
+    @Test
+    @UiThreadTest
+    public void executeTransaction_mainThreadWritesAllowed() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowWritesOnUiThread(true)
+                .name("ui_realm")
+                .build();
+
+        Realm uiRealm = Realm.getInstance(configuration);
+        uiRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.insert(new Dog("Snuffles"));
+            }
+        });
+
+        RealmResults<Dog> results = uiRealm.where(Dog.class).equalTo("name", "Snuffles").findAll();
+        assertEquals(1, results.size());
+        assertNotNull(results.first());
+        assertEquals("Snuffles", Objects.requireNonNull(results.first()).getName());
+
+        uiRealm.close();
+    }
+
+    @Test
+    @UiThreadTest
+    public void executeTransaction_mainThreadWritesNotAllowed() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowWritesOnUiThread(false)
+                .name("ui_realm")
+                .build();
+
+        // Try-with-resources
+        try (Realm uiRealm = Realm.getInstance(configuration)) {
+            uiRealm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    // no-op
+                }
+            });
+            fail("the call to executeTransaction should have failed, this line should not be reached.");
+        } catch (RealmException e) {
+            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowWritesOnUiThread"));
+        }
+    }
+
+    @Test
+    public void executeTransaction_runsOnNonUiThread() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowWritesOnUiThread(false)
+                .name("ui_realm")
+                .build();
+
+        Realm uiRealm = Realm.getInstance(configuration);
+        uiRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                // no-op
+            }
+        });
+
+        uiRealm.close();
     }
 
     @Test
