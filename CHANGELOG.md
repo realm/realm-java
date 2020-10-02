@@ -1,4 +1,4 @@
-## 10.0.0-RC.1 (YYYY-MM-DD)
+## 10.0.0-RC.1 (2020-10-02)
 
 We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
 
