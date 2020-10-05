@@ -26,16 +26,16 @@
 #include "util.hpp"
 #include "io_realm_internal_Util.h"
 #include "io_realm_internal_OsSharedRealm.h"
-#include "shared_realm.hpp"
-#include "results.hpp"
-#include "list.hpp"
-#include "java_exception_def.hpp"
-#include "java_object_accessor.hpp"
-#include "object.hpp"
+#include <realm/object-store/shared_realm.hpp>
+#include <realm/object-store/results.hpp>
+#include <realm/object-store/list.hpp>
+#include <realm/object-store/object.hpp>
 #if REALM_ENABLE_SYNC
-#include "sync/app.hpp"
+#include <realm/object-store/sync/app.hpp>
 #endif
 
+#include "java_exception_def.hpp"
+#include "java_object_accessor.hpp"
 #include "jni_util/java_exception_thrower.hpp"
 
 using namespace std;

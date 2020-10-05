@@ -16,17 +16,17 @@
 
 #include "io_realm_internal_OsSharedRealm.h"
 #if REALM_ENABLE_SYNC
-#include "object-store/src/sync/sync_manager.hpp"
-#include "object-store/src/sync/sync_config.hpp"
-#include "object-store/src/sync/sync_session.hpp"
-#include "object-store/src/results.hpp"
+#include "realm/sync/config.hpp"
+#include "realm/object-store/sync/sync_manager.hpp"
+#include "realm/object-store/sync/sync_session.hpp"
+#include "realm/object-store/results.hpp"
 
 #include "observable_collection_wrapper.hpp"
 #endif
 
 #include <realm/util/assert.hpp>
 
-#include <shared_realm.hpp>
+#include <realm/object-store/shared_realm.hpp>
 
 #include "java_accessor.hpp"
 #include "java_binding_context.hpp"

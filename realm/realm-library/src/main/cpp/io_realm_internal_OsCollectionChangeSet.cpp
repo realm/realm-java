@@ -16,7 +16,7 @@
 
 #include "io_realm_internal_OsCollectionChangeSet.h"
 
-#include <collection_notifications.hpp>
+#include <realm/object-store/collection_notifications.hpp>
 
 #include "util.hpp"
 

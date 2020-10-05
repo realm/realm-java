@@ -16,8 +16,8 @@
 
 #include "io_realm_internal_Property.h"
 
-#include <property.hpp>
-#include <object_store.hpp>
+#include <realm/object-store/property.hpp>
+#include <realm/object-store/object_store.hpp>
 
 #include "util.hpp"
 

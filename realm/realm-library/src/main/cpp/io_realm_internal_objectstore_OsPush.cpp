@@ -23,7 +23,7 @@
 #include "jni_util/jni_utils.hpp"
 
 #include <realm/util/optional.hpp>
-#include <sync/app.hpp>
+#include <realm/object-store/sync/app.hpp>
 #include <jni.h>
 
 using namespace realm;

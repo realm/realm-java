@@ -20,7 +20,7 @@
 #include <jni.h>
 #include <memory>
 
-#include "binding_context.hpp"
+#include <realm/object-store/binding_context.hpp>
 
 #include "jni_util/java_global_weak_ref.hpp"
 

@@ -16,8 +16,8 @@
 
 #include "io_realm_RealmQuery.h"
 
-#include <results.hpp>
-#include <shared_realm.hpp>
+#include <realm/object-store/results.hpp>
+#include <realm/object-store/shared_realm.hpp>
 
 #include "util.hpp"
 

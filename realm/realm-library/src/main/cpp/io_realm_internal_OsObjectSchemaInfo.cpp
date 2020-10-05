@@ -18,8 +18,8 @@
 
 #include <realm/util/assert.hpp>
 
-#include <object_schema.hpp>
-#include <property.hpp>
+#include <realm/object-store/object_schema.hpp>
+#include <realm/object-store/property.hpp>
 
 #include "java_accessor.hpp"
 #include "java_exception_def.hpp"

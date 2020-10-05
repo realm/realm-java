@@ -16,8 +16,8 @@
 
 #include "io_realm_internal_OsObjectStore.h"
 
-#include <object_store.hpp>
-#include <shared_realm.hpp>
+#include <realm/object-store/object_store.hpp>
+#include <realm/object-store/shared_realm.hpp>
 
 #include "util.hpp"
 #include "jni_util/java_method.hpp"

@@ -23,10 +23,10 @@
 #include "jni_util/jni_utils.hpp"
 
 #include <realm/util/optional.hpp>
-#include <sync/app.hpp>
-#include <sync/sync_user.hpp>
-#include <sync/remote_mongo_database.hpp>
-#include <sync/remote_mongo_collection.hpp>
+#include <realm/object-store/sync/app.hpp>
+#include <realm/object-store/sync/sync_user.hpp>
+#include <realm/object-store/sync/remote_mongo_database.hpp>
+#include <realm/object-store/sync/remote_mongo_collection.hpp>
 
 using namespace realm;
 using namespace realm::app;

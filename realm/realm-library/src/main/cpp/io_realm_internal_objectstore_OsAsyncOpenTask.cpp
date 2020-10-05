@@ -21,11 +21,10 @@
 #include "jni_util/java_method.hpp"
 #include "jni_util/java_class.hpp"
 #include "jni_util/jni_utils.hpp"
-#include "object-store/src/sync/async_open_task.hpp"
-#include "object-store/src/sync/sync_config.hpp"
+#include <realm/object-store/sync/async_open_task.hpp>
+#include <realm/object-store/sync/sync_config.hpp>
 
-#include <shared_realm.hpp>
-#include <sync/async_open_task.hpp>
+#include <realm/object-store/shared_realm.hpp>
 #include <memory>
 
 using namespace realm;

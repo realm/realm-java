@@ -22,7 +22,7 @@
 
 #include "java_accessor.hpp"
 #include "java_exception_def.hpp"
-#include "shared_realm.hpp"
+#include <realm/object-store/shared_realm.hpp>
 #include "jni_util/java_exception_thrower.hpp"
 
 #include <realm/util/to_string.hpp>
