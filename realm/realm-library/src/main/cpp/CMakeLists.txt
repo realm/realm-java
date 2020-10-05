@@ -15,7 +15,8 @@
 # limitations under the License.
 #
 ###########################################################################
-cmake_minimum_required(VERSION 3.6.0)
+cmake_minimum_required(VERSION 3.15.0)
+project(RealmJava)
 
 # loading dependencies properties
 file(STRINGS "${CMAKE_SOURCE_DIR}/../../../../../dependencies.list" DEPENDENCIES)
