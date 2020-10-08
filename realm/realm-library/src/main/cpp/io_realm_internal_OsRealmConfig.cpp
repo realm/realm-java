@@ -27,6 +27,7 @@
 
 #include <linux/errno.h>
 #include <jni_util/bson_util.hpp>
+#include <realm/sync/client.hpp>
 
 #include "java_accessor.hpp"
 #include "util.hpp"

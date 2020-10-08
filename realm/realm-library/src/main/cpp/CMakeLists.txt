@@ -225,3 +225,10 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:realm-jni> ${unstripped_SO_DIR}
         COMMAND ${CMAKE_STRIP} $<TARGET_FILE:realm-jni>)
 endif()
+
+target_link_libraries(RealmTrawler log android)
+target_link_libraries(RealmBrowser log android)
+target_link_libraries(Realm2JSON log android)
+target_link_libraries(RealmDump log android)
+
+# set_target_properties(RealmTrawler PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)

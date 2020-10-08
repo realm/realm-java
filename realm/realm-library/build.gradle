@@ -79,6 +79,7 @@ android {
 
     externalNativeBuild {
         cmake {
+            version=properties.getProperty('CMAKE')
             path 'src/main/cpp/CMakeLists.txt'
         }
     }
