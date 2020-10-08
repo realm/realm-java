@@ -48,6 +48,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           virt-manager \
                           wget \
                           zip \
+                          ninja-build \
     && apt-get clean
 
 # Install the Android SDK
