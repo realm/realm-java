@@ -68,7 +68,7 @@ In case you don't want to use the precompiled version, you can build Realm yours
  * Download the [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
  * The latest stable version of Android Studio. Currently [3.6.2](https://developer.android.com/studio/).
  * Download & install the Android SDK **Build-Tools 28.0.3**, **Android Pie (API 28)** (for example through Android Studio’s **Android SDK Manager**).
- * Install CMake from SDK manager in Android Studio ("SDK Tools" -> "CMake").
+ * Install CMake version 3.18.2 and build Ninja.
  * Install the NDK (currently r21) from the SDK Manager in Android Studio or using the [website](https://developer.android.com/ndk/downloads). If downloaded 
 You may unzip the file wherever you choose.  For macOS, a suggested location is `~/Library`.  The download will unzip as the directory `android-ndk-r21`.
 
