@@ -122,6 +122,12 @@ public class TestHelper {
         if (o instanceof byte[]) {
             return RealmFieldType.BINARY;
         }
+        if (o instanceof Decimal128) {
+            return RealmFieldType.DECIMAL128;
+        }
+        if (o instanceof ObjectId) {
+            return RealmFieldType.OBJECT_ID;
+        }
 
         throw new IllegalArgumentException("Unsupported type");
     }
