@@ -55,7 +55,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreatePersistedPro
             throw std::invalid_argument(
                 "This field cannot be indexed - Only String/byte/short/int/long/boolean/Date fields are supported.");
         }
-        if (to_bool(is_primary) && p_type != PropertyType::Int && p_type != PropertyType::String && p_type != PropertyType::ObjectId) {
+        if (to_bool(is_primary) && p_type != PropertyType::Int && p_type != PropertyType::String && p_type != PropertyType::ObjectId && p_type != PropertyType::UUID) {
             std::string typ = property->type_string();
             throw std::invalid_argument("Invalid primary key type: " + typ);
         }

@@ -584,8 +584,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDecimal128(JNIEnv* 
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetObjectId(JNIEnv* env, jclass, jlong nativeTableRefPtr,
-                                                                    jlong columnKey, jlong rowKey, jstring j_value,
-                                                                    jboolean isDefault)
+                                                                      jlong columnKey, jlong rowKey, jstring j_value,
+                                                                      jboolean isDefault)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
     if (!TYPE_VALID(env, table, columnKey, type_ObjectId)) {
@@ -594,6 +594,21 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetObjectId(JNIEnv* en
     try {
         JStringAccessor value(env, j_value);
         table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), ObjectId(StringData(value).data()), B(isDefault));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetUUID(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                      jlong columnKey, jlong rowKey, jstring j_value,
+                                                                      jboolean isDefault)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_UUID)) {
+        return;
+    }
+    try {
+        JStringAccessor value(env, j_value);
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), UUID(StringData(value).data()), B(isDefault));
     }
     CATCH_STD()
 }
@@ -855,7 +870,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstString(JNIEn
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstObjectId(JNIEnv* env, jclass, jlong nativeTableRefPtr,
-                                                                           jlong columnKey, jstring j_value)
+                                                                             jlong columnKey, jstring j_value)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
     if (!TYPE_VALID(env, table, columnKey, type_ObjectId)) {
@@ -866,6 +881,23 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstObjectId(JNI
         JStringAccessor value(env, j_value); // throws
         ObjectId id = ObjectId(StringData(value).data());
         return to_jlong_or_not_found(table->find_first_object_id(ColKey(columnKey), id));
+    }
+    CATCH_STD()
+    return -1;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstUUID(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                             jlong columnKey, jstring j_value)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_UUID)) {
+        return -1;
+    }
+
+    try {
+        JStringAccessor value(env, j_value); // throws
+        UUID uuid = UUID(StringData(value).data());
+        return to_jlong_or_not_found(table->find_first_uuid(ColKey(columnKey), uuid));
     }
     CATCH_STD()
     return -1;

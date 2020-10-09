@@ -395,6 +395,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetObjectId(JNIEnv
     update_objects(env, native_ptr, j_field_name, value);
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetUUID(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jstring j_value)
+{
+    JStringAccessor data(env, j_value);
+    UUID uuid = UUID(StringData(data).data());
+    JavaValue value(uuid);
+    update_objects(env, native_ptr, j_field_name, value);
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetObject(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jlong row_ptr)
 {
     JavaValue value(reinterpret_cast<Obj*>(row_ptr));

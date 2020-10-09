@@ -263,6 +263,7 @@ public class QueryDescriptorTests {
                     case DOUBLE_LIST:
                     case DECIMAL128_LIST:
                     case OBJECT_ID_LIST:
+                    case UUID_LIST:
                         break;
                     case LIST:
                     case OBJECT:

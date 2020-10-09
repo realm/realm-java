@@ -155,6 +155,18 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddUUID
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jstring j_data)
+{
+    try {
+        JStringAccessor data(env, j_data);
+        UUID uuid = UUID(StringData(data).data());
+        const JavaValue value(uuid);
+        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObject
         (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jlong row_ptr)
 {
@@ -392,6 +404,18 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
         JStringAccessor data(env, j_data);
         ObjectId objectId = ObjectId(StringData(data).data());
         const JavaValue value(objectId);
+        add_list_element(list_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddUUIDListItem
+        (JNIEnv* env, jclass, jlong list_ptr, jstring j_data)
+{
+    try {
+        JStringAccessor data(env, j_data);
+        UUID uuid = UUID(StringData(data).data());
+        const JavaValue value(uuid);
         add_list_element(list_ptr, value);
     }
     CATCH_STD()

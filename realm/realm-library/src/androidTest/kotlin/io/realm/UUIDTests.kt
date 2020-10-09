@@ -187,7 +187,6 @@ class UUIDTests {
         assertEquals("foo", frozen.name)
     }
 
-
     @Test
     fun requiredPK() {
         val uuid1 = UUID.randomUUID()
@@ -289,9 +288,9 @@ class UUIDTests {
 
     @Test
     fun sort() {
-        val uuid1 = UUID.randomUUID()
-        val uuid2 = UUID.randomUUID()
-        val uuid3 = UUID.randomUUID()
+        val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
+        val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
+        val uuid3 = UUID.fromString("037ba5ca-aa12-4afa-9219-e20cc3018599")
 
         realm.beginTransaction()
         realm.createObject<UUIDAndString>().id = uuid3
@@ -314,9 +313,9 @@ class UUIDTests {
 
     @Test
     fun distinct() {
-        val uuid1 = UUID.randomUUID()
-        val uuid2 = UUID.randomUUID()
-        val uuid3 = UUID.randomUUID()
+        val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
+        val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
+        val uuid3 = UUID.fromString("037ba5ca-aa12-4afa-9219-e20cc3018599")
 
         realm.beginTransaction()
         realm.createObject<UUIDAndString>().id = uuid2
@@ -341,9 +340,9 @@ class UUIDTests {
 
     @Test
     fun queries() {
-        val uuid1 = UUID.randomUUID()
-        val uuid2 = UUID.randomUUID()
-        val uuid3 = UUID.randomUUID()
+        val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
+        val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
+        val uuid3 = UUID.fromString("037ba5ca-aa12-4afa-9219-e20cc3018599")
 
         realm.beginTransaction()
         realm.createObject<UUIDAndString>().id = uuid2
@@ -360,6 +359,7 @@ class UUIDTests {
                 .notEqualTo("id", uuid2)
                 .sort("id", Sort.ASCENDING)
                 .findAll()
+
         assertEquals(3, all.size)
         assertNull(all[0]!!.id)
         assertEquals(uuid1, all[1]!!.id)
