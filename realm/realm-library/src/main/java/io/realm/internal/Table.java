@@ -116,6 +116,8 @@ public class Table implements NativeObject {
             case DATE_LIST:
             case FLOAT_LIST:
             case DOUBLE_LIST:
+            case DECIMAL128_LIST:
+            case OBJECT_ID_LIST:
                 return nativeAddPrimitiveListColumn(nativeTableRefPtr, type.getNativeValue() - 128, name, isNullable);
 
             default:
