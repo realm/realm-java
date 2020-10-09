@@ -215,6 +215,20 @@ public class TestHelper {
                         table.setBinaryByteArray(columnKeys[i], rowKey, (byte[]) value, false);
                     }
                     break;
+                case DECIMAL128:
+                    if (value == null) {
+                        table.setNull(columnKeys[i], rowKey, false);
+                    } else {
+                        table.setDecimal128(columnKeys[i], rowKey, (Decimal128) value, false);
+                    }
+                    break;
+                case OBJECT_ID:
+                    if (value == null) {
+                        table.setNull(columnKeys[i], rowKey, false);
+                    } else {
+                        table.setObjectId(columnKeys[i], rowKey, (ObjectId) value, false);
+                    }
+                    break;
                 default:
                     throw new RuntimeException("Unexpected columnType: " + String.valueOf(colTypes[i]));
             }
@@ -256,6 +270,8 @@ public class TestHelper {
             t.addColumn(RealmFieldType.FLOAT, "float");
             t.addColumn(RealmFieldType.INTEGER, "long");
             t.addColumn(RealmFieldType.STRING, "string");
+            t.addColumn(RealmFieldType.DECIMAL128, "decimal128");
+            t.addColumn(RealmFieldType.OBJECT_ID, "object_id");
 
             return t;
         } catch (RuntimeException e) {

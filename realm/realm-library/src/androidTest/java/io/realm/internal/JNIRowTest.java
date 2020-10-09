@@ -19,6 +19,8 @@ package io.realm.internal;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -81,6 +83,8 @@ public class JNIRowTest {
         final AtomicLong colKey5 = new AtomicLong(-1);
         final AtomicLong colKey6 = new AtomicLong(-1);
         final AtomicLong colKey7 = new AtomicLong(-1);
+        final AtomicLong colKey8 = new AtomicLong(-1);
+        final AtomicLong colKey9 = new AtomicLong(-1);
 
         Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
@@ -92,8 +96,13 @@ public class JNIRowTest {
                 colKey5.set(table.addColumn(RealmFieldType.BOOLEAN, "boolean"));
                 colKey6.set(table.addColumn(RealmFieldType.DATE, "date"));
                 colKey7.set(table.addColumn(RealmFieldType.BINARY, "binary"));
+                colKey8.set(table.addColumn(RealmFieldType.DECIMAL128, "decimal128"));
+                colKey9.set(table.addColumn(RealmFieldType.OBJECT_ID, "object_id"));
 
-                TestHelper.addRowWithValues(table, new long[]{colKey1.get(), colKey2.get(), colKey3.get(), colKey4.get(), colKey5.get(), colKey6.get(), colKey7.get()}, new Object[]{"abc", 3, (float) 1.2, 1.3, true, new Date(0), data});
+                TestHelper.addRowWithValues(table,
+                        new long[]{colKey1.get(), colKey2.get(), colKey3.get(), colKey4.get(), colKey5.get(), colKey6.get(), colKey7.get(), colKey8.get(), colKey9.get()},
+                        new Object[]{"abc", 3, (float) 1.2, 1.3, true, new Date(0), data, new Decimal128(1), new ObjectId(TestHelper.generateObjectIdHexString(1))}
+                );
             }
         });
 
@@ -106,6 +115,8 @@ public class JNIRowTest {
         assertEquals(true, row.getBoolean(colKey5.get()));
         assertEquals(new Date(0), row.getDate(colKey6.get()));
         assertArrayEquals(data, row.getBinaryByteArray(colKey7.get()));
+        assertEquals(new Decimal128(1), row.getDecimal128(colKey8.get()));
+        assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(1)), row.getObjectId(colKey9.get()));
 
         row.setString(colKey1.get(), "a");
         row.setLong(colKey2.get(), 1);
@@ -113,6 +124,8 @@ public class JNIRowTest {
         row.setDouble(colKey4.get(), 9.9);
         row.setBoolean(colKey5.get(), false);
         row.setDate(colKey6.get(), new Date(10000));
+        row.setDecimal128(colKey8.get(), new Decimal128(2));
+        row.setObjectId(colKey9.get(), new ObjectId(TestHelper.generateObjectIdHexString(2)));
 
         byte[] newData = new byte[3];
         row.setBinaryByteArray(colKey7.get(), newData);
@@ -124,11 +137,12 @@ public class JNIRowTest {
         assertEquals(false, row.getBoolean(colKey5.get()));
         assertEquals(new Date(10000), row.getDate(colKey6.get()));
         assertArrayEquals(newData, row.getBinaryByteArray(colKey7.get()));
+        assertEquals(new Decimal128(2), row.getDecimal128(colKey8.get()));
+        assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(2)), row.getObjectId(colKey9.get()));
     }
 
     @Test
     public void nullValues() {
-
         Table table = TestHelper.createTable(sharedRealm, "temp");
         long colStringIndex = table.addColumn(RealmFieldType.STRING, "string", true);
         long colIntIndex = table.addColumn(RealmFieldType.INTEGER, "integer", true);
@@ -137,6 +151,9 @@ public class JNIRowTest {
         long colBoolIndex = table.addColumn(RealmFieldType.BOOLEAN, "boolean", true);
         table.addColumn(RealmFieldType.DATE, "date");
         table.addColumn(RealmFieldType.BINARY, "binary");
+        long colDecimalIndex = table.addColumn(RealmFieldType.DECIMAL128, "decimal128", true);
+        long colObjectIdIndex = table.addColumn(RealmFieldType.OBJECT_ID, "object_id", true);
+
         long rowIndex = OsObject.createRow(table);
 
         UncheckedRow row = table.getUncheckedRow(rowIndex);
@@ -155,6 +172,16 @@ public class JNIRowTest {
         assertFalse(row.isNull(colBoolIndex));
         row.setNull(colBoolIndex);
         assertTrue(row.isNull(colBoolIndex));
+
+        row.setDecimal128(colDecimalIndex, new Decimal128(0));
+        assertFalse(row.isNull(colDecimalIndex));
+        row.setNull(colDecimalIndex);
+        assertTrue(row.isNull(colDecimalIndex));
+
+        row.setObjectId(colObjectIdIndex, new ObjectId());
+        assertFalse(row.isNull(colObjectIdIndex));
+        row.setNull(colObjectIdIndex);
+        assertTrue(row.isNull(colObjectIdIndex));
     }
 
 }
