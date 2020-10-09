@@ -61,6 +61,6 @@ jobject JavaClassGlobalDef::new_object_id(JNIEnv* env, const ObjectId& objectId)
 
 jobject JavaClassGlobalDef::new_uuid(JNIEnv* env, const UUID& uuid)
 {
-    static jni_util::JavaMethod init(env, instance()->m_java_util_uuid, "fromString", "(Ljava/lang/String;)Ljava/util/UUID;");
-    return env->NewObject(instance()->m_java_util_uuid, init, to_jstring(env, uuid.to_string().data()));
+    static jni_util::JavaMethod from_string(env, instance()->m_java_util_uuid, "fromString", "(Ljava/lang/String;)Ljava/util/UUID;", true);
+    return env->CallStaticObjectMethod(instance()->m_java_util_uuid, from_string, to_jstring(env, uuid.to_string().data()));
 }
