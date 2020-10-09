@@ -46,27 +46,24 @@ static std::function<jobject(JNIEnv*, util::Optional<bson::BsonDocument>)> colle
     return document ? JniBsonProtocol::bson_to_jstring(env, *document) : nullptr;
 };
 
-static std::function<jobject(JNIEnv*, util::Optional<Bson>)> collection_mapper_insert_one = [](JNIEnv* env, util::Optional<Bson> bson_object_id) {
-    if (bson_object_id) {
-        auto object_id = static_cast<ObjectId>(bson_object_id.value());
-        return JavaClassGlobalDef::new_object_id(env, object_id);
+static std::function<jobject(JNIEnv*, util::Optional<Bson>)> collection_mapper_insert_one = [](JNIEnv* env, util::Optional<Bson> bson_id) {
+    if (bson_id) {
+        return JniBsonProtocol::bson_to_jstring(env, bson_id.value());
     }
-    throw std::logic_error("Error in 'insert_one', parameter 'object_id' has no value.");
+    throw std::logic_error("Error in 'insert_one', parameter 'bson_id' has no value.");
 };
 
-static std::function<jobject(JNIEnv*, std::vector<Bson>)> collection_mapper_insert_many = [](JNIEnv* env, std::vector<Bson> bson_object_ids) {
-    if (bson_object_ids.empty()) {
+static std::function<jobject(JNIEnv*, std::vector<Bson>)> collection_mapper_insert_many = [](JNIEnv* env, std::vector<Bson> bson_ids) {
+    if (bson_ids.empty()) {
         throw std::logic_error("Error in 'insert_many', parameter 'object_ids' is empty.");
     }
-    auto arr = (jobjectArray)env->NewObjectArray(static_cast<jsize>(bson_object_ids.size()), JavaClassGlobalDef::java_lang_object(), nullptr);
+    auto arr = (jobjectArray)env->NewObjectArray(static_cast<jsize>(bson_ids.size()), JavaClassGlobalDef::java_lang_object(), nullptr);
     if (arr == nullptr) {
         ThrowException(env, OutOfMemory, "Could not allocate memory to return list of ObjectIds of inserted documents.");
         return arr;
     }
-    for (size_t i = 0; i < bson_object_ids.size(); ++i) {
-        auto object_id = static_cast<ObjectId>(bson_object_ids[i]);
-        jobject j_object_id = JavaClassGlobalDef::new_object_id(env, object_id);
-        env->SetObjectArrayElement(arr, i, j_object_id);
+    for (size_t i = 0; i < bson_ids.size(); ++i) {
+        env->SetObjectArrayElement(arr, i, JniBsonProtocol::bson_to_jstring(env, bson_ids[i]));
     }
     return arr;
 };

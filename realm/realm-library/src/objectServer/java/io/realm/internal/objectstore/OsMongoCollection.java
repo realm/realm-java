@@ -289,8 +289,8 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         OsJNIResultCallback<InsertOneResult> callback = new OsJNIResultCallback<InsertOneResult>(success, error) {
             @Override
             protected InsertOneResult mapSuccess(Object result) {
-                BsonValue bsonObjectId = new BsonObjectId((ObjectId) result);
-                return new InsertOneResult(bsonObjectId);
+                BsonValue id = JniBsonProtocol.decode((String) result, BsonValue.class, codecRegistry);
+                return new InsertOneResult(id);
             }
         };
 
@@ -308,9 +308,8 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                 Object[] objects = (Object[]) result;
                 Map<Long, BsonValue> insertedIdsMap = new HashMap<>();
                 for (int i = 0; i < objects.length; i++) {
-                    ObjectId objectId = (ObjectId) objects[i];
-                    BsonValue bsonObjectId = new BsonObjectId(objectId);
-                    insertedIdsMap.put((long) i, bsonObjectId);
+                    BsonValue id = JniBsonProtocol.decode((String) objects[i], BsonValue.class, codecRegistry);
+                    insertedIdsMap.put((long) i, id);
                 }
                 return new InsertManyResult(insertedIdsMap);
             }
