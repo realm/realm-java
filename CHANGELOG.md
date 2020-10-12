@@ -4,10 +4,11 @@
 * None.
 
 ### Enhancements
-* None.
+* [RealmApp] Illegal schemas where embedded object classes referenced each other is now correctly detected and throws and exception when opening a Realm with such a schema.
 
 ### Fixed
-* It is now possible to use types different than `ObjectId` for the `_id` field in documents inserted with `MongoCollection.insertOne` and `MongoCollection.insertMany`.
+* [RealmApp] It is now possible to use types different than `ObjectId` for the `_id` field in documents inserted with `MongoCollection.insertOne` and `MongoCollection.insertMany`.
+* [RealmApp] Lossy round trip of Double and Timestamps through functions when using Bson. (ObjectStore issue (#1106)[https://github.com/realm/realm-object-store/issues/1106])  
 
 ### Compatibility
 * File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java 10.0.0-BETA.1.
