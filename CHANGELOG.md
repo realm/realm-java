@@ -1,3 +1,24 @@
+## 10.0.0-RC.2 (YYYY-MM-DD)
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* [RealmApp] Illegal schemas where embedded object classes referenced each other is now correctly detected and throws and exception when opening a Realm with such a schema.
+
+### Fixed
+* [RealmApp] It is now possible to use types different than `ObjectId` for the `_id` field in documents inserted with `MongoCollection.insertOne` and `MongoCollection.insertMany`.
+* [RealmApp] Lossy round trip of Double and Timestamps through functions when using Bson. (ObjectStore issue (#1106)[https://github.com/realm/realm-object-store/issues/1106])  
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java 10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
+
+### Internal
+* Updated to Object Store commit: da02579eea7b36eb84d2c9f88988b7f32c83eb83.
+
+
 ## 10.0.0-RC.1 (2020-10-02)
 
 We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.

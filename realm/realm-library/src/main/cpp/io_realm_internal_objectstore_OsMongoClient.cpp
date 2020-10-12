@@ -34,7 +34,7 @@ using namespace realm::jni_util;
 using namespace realm::_impl;
 
 static void finalize_client(jlong ptr) {
-    delete reinterpret_cast<RemoteMongoClient*>(ptr);
+    delete reinterpret_cast<MongoClient*>(ptr);
 }
 
 JNIEXPORT jlong JNICALL
@@ -45,13 +45,13 @@ Java_io_realm_internal_objectstore_OsMongoClient_nativeGetFinalizerMethodPtr(JNI
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_objectstore_OsMongoClient_nativeCreate(JNIEnv* env,
                                                               jclass,
-                                                              jlong j_app_ptr,
+                                                              jlong j_user_ptr,
                                                               jstring j_service_name) {
     try {
-        std::shared_ptr<App> &app = *reinterpret_cast<std::shared_ptr<App> *>(j_app_ptr);
+        std::shared_ptr<SyncUser>& user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
         JStringAccessor name(env, j_service_name);
-        RemoteMongoClient client(app->remote_mongo_client(name));
-        return reinterpret_cast<jlong>(new RemoteMongoClient(std::move(client)));
+        MongoClient client(user->mongo_client(name));
+        return reinterpret_cast<jlong>(new MongoClient(std::move(client)));
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
@@ -63,10 +63,10 @@ Java_io_realm_internal_objectstore_OsMongoClient_nativeCreateDatabase(JNIEnv* en
                                                                       jlong j_client_ptr,
                                                                       jstring j_database_name) {
     try {
-        RemoteMongoClient* client = reinterpret_cast<RemoteMongoClient*>(j_client_ptr);
+        auto client = reinterpret_cast<MongoClient*>(j_client_ptr);
         JStringAccessor name(env, j_database_name);
-        RemoteMongoDatabase database(client->db(name));
-        return reinterpret_cast<jlong>(new RemoteMongoDatabase(std::move(database)));
+        MongoDatabase database(client->db(name));
+        return reinterpret_cast<jlong>(new MongoDatabase(std::move(database)));
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
