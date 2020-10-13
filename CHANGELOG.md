@@ -1,3 +1,45 @@
+## 10.0.0 (YYYY-MM-DD)
+
+NOTE: This is a unified release note covering all v10.0.0-BETA.X v10.0.0-RC.X releases.
+
+NOTE: Support for syncing with realm.cloud.io and/or Realm Object Server has been replaced with support for syncing with MongoDB Realm Cloud.
+
+NOTE: This version uses the Realm file format to version 20. It is not possible to downgrade to earlier versions than v10.0.0-BETA.7. Non-sync Realms will be upgraded automatically. Synced Realms can only be automatically upgraded if created with Realm JavaScript v10.0.0-BETA.1 and above.
+
+### Breaking Changes
+* [RealmApp] Most API's for interacting with Realm Cloud has changed significantly. All new API's can be found in the `io.realm.mongodb` package. The entry point is though the `App` class from which you can create and login users and otherwise interact with MongoDB Realm. See [the docs](https://docs.mongodb.com/realm/android/) for further details. Synced Realms still use a `SyncConfiguration` that are largely created the same way.
+* [RealmApp] Client Resets are now handled through a custom `SyncConfiguration.Builder.clientResetHandler()` instead of through the default session error handler `SyncConfiguration.Builder.errorHandler()`
+* [RealmApp] Realm files have changed location on disk. They are now located in `getFiles()/mongodb-realm`.
+* From now on it is not allowed by default to run transactions with either `Realm.executeTransaction()` or `DynamicRealm.executeTransaction()` from the UI thread. Doing so will yield a `RealmException`. Users can override this behavior by using `RealmConfiguration.Builder.allowWritesOnUiThread(true)` when building a `RealmConfiguration` to obtain a Realm or DynamicRealm instance, though we do not recommend doing so. Instead, we recommend using `executeTransactionAsync()` or, alternatively, using non-UI threads when calling `executeTransaction()` for both `Realm`s and `DynamicRealm`s.
+
+### Enhancements
+* Users can now opt out from allowing queries to be launched from the UI thread by using `RealmConfiguration.Builder.allowQueriesOnUiThread(false)`. A `RealmException` will be thrown when calling `RealmQuery.findAll()`, `RealmQuery.findFirst()`, `RealmQuery.minimumDate()`, `RealmQuery.maximumDate()`, `RealmQuery.count()`, `RealmQuery.sum()`, `RealmQuery.max()`, `RealmQuery.min()`, `RealmQuery.average()` and `RealmQuery.averageDecimal128()` from the UI thread after having used `allowQueriesOnUiThread(false)`. Queries will be allowed from the thread from which the Realm instance was obtained as it always has been by default, although we recommend using `RealmQuery.findAllAsync()` or `RealmQuery.findFirstAsync()`, or, alternatively, using a non-UI thread to launch them.
+* `BaseRealm.refresh()` will throw a `RealmException` if it is being called from the UI thread if `allowQueriesOnUiThread` is set to `false`, though it will be allowed by default.
+* Added `DynamicRealm.executeTransactionAsync()`.
+* Added Kotlin extension suspend function `Realm.executeTransactionAwait()` which runs transactions inside coroutines.
+* Added Kotlin extension function `RealmResults.toFlow()` which returns a Kotlin flow, similar to our RxJava convenience method `asFlowable()`.
+* Added Kotlin extension function `RealmList.toFlow()` which returns a Kotlin flow, similar to our RxJava convenience method `asFlowable()`.
+* Added Kotlin extension function `RealmModel.toFlow()` which returns a Kotlin flow, similar to our RxJava convenience method `asFlowable()`.
+* RealmLists can now be marked final. (Issue [#6892](https://github.com/realm/realm-java/issues/6892))
+* Added support for `distinct` queries on non-index and linked fields. (Issue [#1906](https://github.com/realm/realm-java/issues/1906))
+* Added support for `org.bson.types.Decimal128` and `org.bson.types.ObjectId` as supported fields in model classes.
+* Added support for `org.bson.types.ObjectId` as a primary key.
+* Added support for "Embedded Objects". They are enabled using `@RealmClass(embedded = true)`. An embedded object must have exactly one parent object linking to it and it will be deleted when the the parent is. Embedded objects can also be the parent of other embedded classes. Read more [here](https://realm.io/docs/java/latest/#embedded-objects). (Issue [#6713](https://github.com/realm/realm-java/issues/6713))  
+
+
+### Fixes
+* None.
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Sync: 10.0.0.
+* Updated to Realm Core: 10.0.0.
+
+
 ## 10.0.0-RC.2 (2020-10-12)
 
 ### Enhancements
