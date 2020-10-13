@@ -17,11 +17,13 @@
 package io.realm;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,6 +46,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * This class test interoperability with Realms created on iOS.
  */
+@Ignore("FIXME: See https://github.com/realm/realm-java/issues/6789")
 @RunWith(AndroidJUnit4.class)
 public class IOSRealmTests {
 
@@ -215,7 +218,7 @@ public class IOSRealmTests {
     }
 
     private byte[] getIOSKey() {
-        byte[] keyData = new byte[64];
+        byte[] keyData = new byte[Realm.ENCRYPTION_KEY_LENGTH];
         for (int i = 0; i < keyData.length; i++) {
             keyData[i] = 1;
         }

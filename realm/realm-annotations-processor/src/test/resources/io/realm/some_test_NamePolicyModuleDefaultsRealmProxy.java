@@ -151,7 +151,7 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
     }
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("NamePolicyModuleDefaults", 2, 0);
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("NamePolicyModuleDefaults", false, 2, 0);
         builder.addPersistedProperty("FirstName", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         builder.addPersistedProperty("LastName", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         return builder.build();
@@ -229,7 +229,7 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
         return realm.copyToRealm(obj);
     }
 
-    private static some_test_NamePolicyModuleDefaultsRealmProxy newProxyInstance(BaseRealm realm, Row row) {
+    static some_test_NamePolicyModuleDefaultsRealmProxy newProxyInstance(BaseRealm realm, Row row) {
         // Ignore default values to avoid creating unexpected objects from RealmModel/RealmList fields
         final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         objectContext.set(realm, row, realm.getSchema().getColumnInfo(some.test.NamePolicyModuleDefaults.class), false, Collections.<String>emptyList());
@@ -263,22 +263,22 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
             return (some.test.NamePolicyModuleDefaults) cachedRealmObject;
         }
 
-        some_test_NamePolicyModuleDefaultsRealmProxyInterface realmObjectSource = (some_test_NamePolicyModuleDefaultsRealmProxyInterface) newObject;
+        some_test_NamePolicyModuleDefaultsRealmProxyInterface unmanagedSource = (some_test_NamePolicyModuleDefaultsRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.NamePolicyModuleDefaults.class);
         OsObjectBuilder builder = new OsObjectBuilder(table, flags);
 
         // Add all non-"object reference" fields
-        builder.addString(columnInfo.firstNameColKey, realmObjectSource.realmGet$firstName());
-        builder.addString(columnInfo.lastNameColKey, realmObjectSource.realmGet$lastName());
+        builder.addString(columnInfo.firstNameColKey, unmanagedSource.realmGet$firstName());
+        builder.addString(columnInfo.lastNameColKey, unmanagedSource.realmGet$lastName());
 
         // Create the underlying object and cache it before setting any object/objectlist references
         // This will allow us to break any circular dependencies by using the object cache.
         Row row = builder.createNewObject();
-        io.realm.some_test_NamePolicyModuleDefaultsRealmProxy realmObjectCopy = newProxyInstance(realm, row);
-        cache.put(newObject, realmObjectCopy);
+        io.realm.some_test_NamePolicyModuleDefaultsRealmProxy managedCopy = newProxyInstance(realm, row);
+        cache.put(newObject, managedCopy);
 
-        return realmObjectCopy;
+        return managedCopy;
     }
 
     public static long insert(Realm realm, some.test.NamePolicyModuleDefaults object, Map<RealmModel,Long> cache) {
@@ -288,17 +288,17 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
         Table table = realm.getTable(some.test.NamePolicyModuleDefaults.class);
         long tableNativePtr = table.getNativePtr();
         NamePolicyModuleDefaultsColumnInfo columnInfo = (NamePolicyModuleDefaultsColumnInfo) realm.getSchema().getColumnInfo(some.test.NamePolicyModuleDefaults.class);
-        long colKey = OsObject.createRow(table);
-        cache.put(object, colKey);
+        long objKey = OsObject.createRow(table);
+        cache.put(object, objKey);
         String realmGet$firstName = ((some_test_NamePolicyModuleDefaultsRealmProxyInterface) object).realmGet$firstName();
         if (realmGet$firstName != null) {
-            Table.nativeSetString(tableNativePtr, columnInfo.firstNameColKey, colKey, realmGet$firstName, false);
+            Table.nativeSetString(tableNativePtr, columnInfo.firstNameColKey, objKey, realmGet$firstName, false);
         }
         String realmGet$lastName = ((some_test_NamePolicyModuleDefaultsRealmProxyInterface) object).realmGet$lastName();
         if (realmGet$lastName != null) {
-            Table.nativeSetString(tableNativePtr, columnInfo.lastNameColKey, colKey, realmGet$lastName, false);
+            Table.nativeSetString(tableNativePtr, columnInfo.lastNameColKey, objKey, realmGet$lastName, false);
         }
-        return colKey;
+        return objKey;
     }
 
     public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
@@ -315,15 +315,15 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
                 cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey());
                 continue;
             }
-            long colKey = OsObject.createRow(table);
-            cache.put(object, colKey);
+            long objKey = OsObject.createRow(table);
+            cache.put(object, objKey);
             String realmGet$firstName = ((some_test_NamePolicyModuleDefaultsRealmProxyInterface) object).realmGet$firstName();
             if (realmGet$firstName != null) {
-                Table.nativeSetString(tableNativePtr, columnInfo.firstNameColKey, colKey, realmGet$firstName, false);
+                Table.nativeSetString(tableNativePtr, columnInfo.firstNameColKey, objKey, realmGet$firstName, false);
             }
             String realmGet$lastName = ((some_test_NamePolicyModuleDefaultsRealmProxyInterface) object).realmGet$lastName();
             if (realmGet$lastName != null) {
-                Table.nativeSetString(tableNativePtr, columnInfo.lastNameColKey, colKey, realmGet$lastName, false);
+                Table.nativeSetString(tableNativePtr, columnInfo.lastNameColKey, objKey, realmGet$lastName, false);
             }
         }
     }
@@ -335,21 +335,21 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
         Table table = realm.getTable(some.test.NamePolicyModuleDefaults.class);
         long tableNativePtr = table.getNativePtr();
         NamePolicyModuleDefaultsColumnInfo columnInfo = (NamePolicyModuleDefaultsColumnInfo) realm.getSchema().getColumnInfo(some.test.NamePolicyModuleDefaults.class);
-        long colKey = OsObject.createRow(table);
-        cache.put(object, colKey);
+        long objKey = OsObject.createRow(table);
+        cache.put(object, objKey);
         String realmGet$firstName = ((some_test_NamePolicyModuleDefaultsRealmProxyInterface) object).realmGet$firstName();
         if (realmGet$firstName != null) {
-            Table.nativeSetString(tableNativePtr, columnInfo.firstNameColKey, colKey, realmGet$firstName, false);
+            Table.nativeSetString(tableNativePtr, columnInfo.firstNameColKey, objKey, realmGet$firstName, false);
         } else {
-            Table.nativeSetNull(tableNativePtr, columnInfo.firstNameColKey, colKey, false);
+            Table.nativeSetNull(tableNativePtr, columnInfo.firstNameColKey, objKey, false);
         }
         String realmGet$lastName = ((some_test_NamePolicyModuleDefaultsRealmProxyInterface) object).realmGet$lastName();
         if (realmGet$lastName != null) {
-            Table.nativeSetString(tableNativePtr, columnInfo.lastNameColKey, colKey, realmGet$lastName, false);
+            Table.nativeSetString(tableNativePtr, columnInfo.lastNameColKey, objKey, realmGet$lastName, false);
         } else {
-            Table.nativeSetNull(tableNativePtr, columnInfo.lastNameColKey, colKey, false);
+            Table.nativeSetNull(tableNativePtr, columnInfo.lastNameColKey, objKey, false);
         }
-        return colKey;
+        return objKey;
     }
 
     public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
@@ -366,19 +366,19 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
                 cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey());
                 continue;
             }
-            long colKey = OsObject.createRow(table);
-            cache.put(object, colKey);
+            long objKey = OsObject.createRow(table);
+            cache.put(object, objKey);
             String realmGet$firstName = ((some_test_NamePolicyModuleDefaultsRealmProxyInterface) object).realmGet$firstName();
             if (realmGet$firstName != null) {
-                Table.nativeSetString(tableNativePtr, columnInfo.firstNameColKey, colKey, realmGet$firstName, false);
+                Table.nativeSetString(tableNativePtr, columnInfo.firstNameColKey, objKey, realmGet$firstName, false);
             } else {
-                Table.nativeSetNull(tableNativePtr, columnInfo.firstNameColKey, colKey, false);
+                Table.nativeSetNull(tableNativePtr, columnInfo.firstNameColKey, objKey, false);
             }
             String realmGet$lastName = ((some_test_NamePolicyModuleDefaultsRealmProxyInterface) object).realmGet$lastName();
             if (realmGet$lastName != null) {
-                Table.nativeSetString(tableNativePtr, columnInfo.lastNameColKey, colKey, realmGet$lastName, false);
+                Table.nativeSetString(tableNativePtr, columnInfo.lastNameColKey, objKey, realmGet$lastName, false);
             } else {
-                Table.nativeSetNull(tableNativePtr, columnInfo.lastNameColKey, colKey, false);
+                Table.nativeSetNull(tableNativePtr, columnInfo.lastNameColKey, objKey, false);
             }
         }
     }
@@ -435,12 +435,12 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
     public int hashCode() {
         String realmName = proxyState.getRealm$realm().getPath();
         String tableName = proxyState.getRow$realm().getTable().getName();
-        long colKey = proxyState.getRow$realm().getObjectKey();
+        long objKey = proxyState.getRow$realm().getObjectKey();
 
         int result = 17;
         result = 31 * result + ((realmName != null) ? realmName.hashCode() : 0);
         result = 31 * result + ((tableName != null) ? tableName.hashCode() : 0);
-        result = 31 * result + (int) (colKey ^ (colKey >>> 32));
+        result = 31 * result + (int) (objKey ^ (objKey >>> 32));
         return result;
     }
 

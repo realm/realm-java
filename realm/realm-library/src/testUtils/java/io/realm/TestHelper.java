@@ -20,8 +20,11 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Build;
 import android.os.Looper;
-import android.support.test.InstrumentationRegistry;
 
+import androidx.test.platform.app.InstrumentationRegistry;
+
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.junit.Assert;
 
 import java.io.BufferedReader;
@@ -33,9 +36,11 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
@@ -60,8 +65,8 @@ import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
-import io.realm.internal.OsResults;
 import io.realm.internal.OsObject;
+import io.realm.internal.OsResults;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
@@ -79,7 +84,7 @@ public class TestHelper {
     public static final int STANDARD_WAIT_SECS = 200;
 
     private static final Charset UTF_8 = Charset.forName("UTF-8");
-    private static final Random RANDOM = new Random();
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     public static class ExpectedCountCallback implements RealmCache.Callback {
 
@@ -320,9 +325,13 @@ public class TestHelper {
 
     // Returns a random key used by encrypted Realms.
     public static byte[] getRandomKey() {
-        byte[] key = new byte[64];
+        byte[] key = new byte[Realm.ENCRYPTION_KEY_LENGTH];
         RANDOM.nextBytes(key);
         return key;
+    }
+
+    public static int getRandomId() {
+        return Math.abs(RANDOM.nextInt());
     }
 
     public static String getRandomEmail() {
@@ -334,7 +343,7 @@ public class TestHelper {
 
     // Returns a random key from the given seed. Used by encrypted Realms.
     public static byte[] getRandomKey(long seed) {
-        byte[] key = new byte[64];
+        byte[] key = new byte[Realm.ENCRYPTION_KEY_LENGTH];
         new Random(seed).nextBytes(key);
         return key;
     }
@@ -377,6 +386,7 @@ public class TestHelper {
 
         private final int minimumLevel;
         public String message;
+        public String previousMessage;
         public Throwable throwable;
 
         public TestLogger() {
@@ -390,6 +400,7 @@ public class TestHelper {
         @Override
         public void log(int level, String tag, Throwable throwable, String message) {
             if (minimumLevel <= level) {
+                this.previousMessage = this.message;
                 this.message = message;
                 this.throwable = throwable;
             }
@@ -472,7 +483,7 @@ public class TestHelper {
      */
     @Deprecated
     public static RealmConfiguration createConfiguration(File dir, String name, @Nullable byte[] key) {
-        RealmConfiguration.Builder config = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext())
+        RealmConfiguration.Builder config = new RealmConfiguration.Builder(InstrumentationRegistry.getInstrumentation().getTargetContext())
                 .directory(dir)
                 .name(name);
         if (key != null) {
@@ -671,6 +682,9 @@ public class TestHelper {
         Date[] dates = {new Date(0), null, new Date(10000)};
         NullTypes[] nullTypesArray = new NullTypes[3];
 
+        Decimal128[] decimals = {new Decimal128(BigDecimal.TEN), null, new Decimal128(BigDecimal.ONE)};
+        ObjectId[] ids = {new ObjectId(TestHelper.generateObjectIdHexString(10)), null, new ObjectId(TestHelper.generateObjectIdHexString(1))};
+
         testRealm.beginTransaction();
         for (int i = 0; i < 3; i++) {
             NullTypes nullTypes = new NullTypes();
@@ -716,6 +730,10 @@ public class TestHelper {
             if (dates[i] != null) {
                 nullTypes.setFieldDateNotNull(dates[i]);
             }
+
+            nullTypes.setFieldDecimal128Null(decimals[i]);
+
+            nullTypes.setFieldObjectIdNull(ids[i]);
 
             nullTypesArray[i] = testRealm.copyToRealm(nullTypes);
         }
@@ -1266,15 +1284,15 @@ public class TestHelper {
      */
     private static final Field networkPoolExecutorField;
     static {
-        Class syncManager = null;
+        Class app = null;
         try {
-            syncManager = Class.forName("io.realm.SyncManager");
+            app = Class.forName("io.realm.mongodb.App");
         } catch (ClassNotFoundException e) {
             // Ignore
         }
 
         try {
-            networkPoolExecutorField = (syncManager != null) ? syncManager.getDeclaredField("NETWORK_POOL_EXECUTOR") : null;
+            networkPoolExecutorField = (app != null) ? app.getDeclaredField("NETWORK_POOL_EXECUTOR") : null;
         } catch (NoSuchFieldException e) {
             throw new AssertionError("Could not find field: NETWORK_POOL_EXECUTOR\n" + Util.getStackTrace(e));
         }
@@ -1310,6 +1328,32 @@ public class TestHelper {
     @SuppressWarnings("TypeParameterUnusedInFormals")
     public static <T> T getNull() {
         return null;
+    }
+
+    // Workaround to cheat Kotlins type system when testing interop with Java
+    @Nonnull
+    public static <T> T allowNull(@Nullable T value) {
+        return value;
+    }
+
+    public static String randomObjectIdHexString() {
+        char[] hex = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E' , 'F'};
+
+        StringBuilder randomId = new StringBuilder(24);
+        for (int i = 0; i < 24; i++) {
+            randomId.append(hex[RANDOM.nextInt(16)]);
+        }
+        return randomId.toString();
+    }
+
+    public static String generateObjectIdHexString(int i) {
+        char[] hex = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E' , 'F'};
+
+        StringBuilder randomId = new StringBuilder(24);
+        for (int j = 0; j < 24; j++) {
+            randomId.append(hex[(i + j) % 16]);
+        }
+        return randomId.toString();
     }
 
 }

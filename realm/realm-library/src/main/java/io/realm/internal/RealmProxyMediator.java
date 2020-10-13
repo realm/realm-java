@@ -198,6 +198,23 @@ public abstract class RealmProxyMediator {
     public abstract <E extends RealmModel> E createDetachedCopy(E realmObject, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache);
 
     /**
+     * Returns whether or not this class is considered "embedded".
+     */
+    public abstract <E extends RealmModel> boolean isEmbedded(Class<E> clazz);
+
+
+    /**
+     * Updates an embedded object with the values from an unmanaged object.
+     *
+     * @param realm the reference to the {@link Realm} where the object will be copied.
+     * @param unmanagedObject the unmanaged objects whose values should be used to update the manged object
+     * @param managedObject the managed object that should be updated
+     * @param cache the cache for mapping between unmanaged objects and their {@link RealmObjectProxy} representation.
+     * @param flags any special flags controlling the behaviour of the import.
+     */
+    public abstract <E extends RealmModel> void updateEmbeddedObject(Realm realm, E unmanagedObject, E managedObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags);
+
+    /**
      * Returns whether Realm transformer has been applied or not. Subclasses of this class are
      * created by the annotation processor and the Realm transformer will add an override of
      * this method that always return {@code true} if the transform was successful.
@@ -237,5 +254,9 @@ public abstract class RealmProxyMediator {
     protected static RealmException getMissingProxyClassException(String className) {
         return new RealmException(
                 String.format("'%s' is not part of the schema for this Realm.", className));
+    }
+
+    protected static IllegalStateException getNotEmbeddedClassException(String className) {
+        return new IllegalStateException("This class is not marked embedded: " + className);
     }
 }

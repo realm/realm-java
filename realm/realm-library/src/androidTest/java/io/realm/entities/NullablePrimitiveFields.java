@@ -16,6 +16,9 @@
 
 package io.realm.entities;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.Date;
 
 import io.realm.RealmObject;
@@ -31,6 +34,8 @@ public class NullablePrimitiveFields extends RealmObject {
     public static final String FIELD_BOOLEAN = "fieldBoolean";
     public static final String FIELD_DATE = "fieldDate";
     public static final String FIELD_BINARY = "fieldBinary";
+    public static final String FIELD_OBJECT_ID = "fieldObjectId";
+    public static final String FIELD_DECIMAL128 = "fieldDecimal128";
 
     private Boolean fieldBoolean;
     private Integer fieldInt;
@@ -39,6 +44,8 @@ public class NullablePrimitiveFields extends RealmObject {
     private String fieldString;
     private Byte fieldBinary;
     private Date fieldDate;
+    private ObjectId fieldObjectId;
+    private Decimal128 fieldDecimal128;
 
     public Integer getFieldInt() {
         return fieldInt;
@@ -96,4 +103,19 @@ public class NullablePrimitiveFields extends RealmObject {
         this.fieldBinary = fieldBinary;
     }
 
+    public ObjectId getFieldObjectId() {
+        return fieldObjectId;
+    }
+
+    public void setFieldObjectId(ObjectId fieldObjectId) {
+        this.fieldObjectId = fieldObjectId;
+    }
+
+    public Decimal128 getFieldDecimal128() {
+        return fieldDecimal128;
+    }
+
+    public void setFieldDecimal128(Decimal128 fieldDecimal128) {
+        this.fieldDecimal128 = fieldDecimal128;
+    }
 }

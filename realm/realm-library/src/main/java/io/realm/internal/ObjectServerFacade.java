@@ -20,7 +20,6 @@ import android.content.Context;
 
 import java.lang.reflect.InvocationTargetException;
 
-import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmException;
 
@@ -31,7 +30,9 @@ import io.realm.exceptions.RealmException;
  */
 public class ObjectServerFacade {
 
-    private final static ObjectServerFacade nonSyncFacade = new ObjectServerFacade();
+    public static final int SYNC_CONFIG_OPTIONS = 14;
+
+    private static final ObjectServerFacade nonSyncFacade = new ObjectServerFacade();
     private static ObjectServerFacade syncFacade = null;
 
     static {
@@ -66,7 +67,7 @@ public class ObjectServerFacade {
     }
 
     public Object[] getSyncConfigurationOptions(RealmConfiguration config) {
-        return new Object[12];
+        return new Object[SYNC_CONFIG_OPTIONS];
     }
 
     public static ObjectServerFacade getFacade(boolean needSyncFacade) {
@@ -116,26 +117,8 @@ public class ObjectServerFacade {
         return false;
     }
 
-    public boolean isPartialRealm(RealmConfiguration configuration) {
-        return false;
-    }
-
-    public void addSupportForObjectLevelPermissions(RealmConfiguration.Builder builder) {
-        // Do nothing
-    }
-
-    /**
-     * If the Realm is a Query-based Realm, ensure that all subscriptions are ACTIVE before
-     * proceeding. This should only be called when opening a Realm for the first time.
-     *
-     * @throws {@code DownloadingRealmInterruptedException} if the thread was interrupted while blocked waiting for
-     * this to complete.
-     */
-    public void downloadInitialSubscriptions(Realm realm) {
-        // Do nothing
-    }
-
     public void createNativeSyncSession(RealmConfiguration configuration) {
         // Do nothing
     }
+
 }

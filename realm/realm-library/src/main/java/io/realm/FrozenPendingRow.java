@@ -15,6 +15,9 @@
  */
 package io.realm;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.Date;
 
 import io.realm.internal.InvalidRow;
@@ -100,6 +103,16 @@ public enum FrozenPendingRow implements Row {
     }
 
     @Override
+    public Decimal128 getDecimal128(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public ObjectId getObjectId(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
     public long getLink(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
@@ -171,6 +184,21 @@ public enum FrozenPendingRow implements Row {
 
     @Override
     public void setNull(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public void setDecimal128(long columnKey, Decimal128 value) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public void setObjectId(long columnKey, ObjectId value) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public long createEmbeddedObject(long columnKey, RealmFieldType parentPropertyType) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 

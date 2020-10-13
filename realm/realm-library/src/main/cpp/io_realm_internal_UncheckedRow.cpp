@@ -87,7 +87,7 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnType(J
     ColKey column_key (columnKey);
     auto table = OBJ(nativeRowPtr)->get_table();
     jint column_type = table->get_column_type(column_key);
-    if (table->is_list(column_key) && column_type < type_LinkList) {
+    if (column_type != type_LinkList && table->is_list(column_key)/* && column_type < type_LinkList because type_ObjectId is = 15*/) {
         // add the offset so it can be mapped correctly in Java (RealmFieldType#fromNativeValue)
         column_type += 128;
     }
@@ -368,7 +368,8 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsNull(JNIE
     }
 
     try {
-        return to_jbool(OBJ(nativeRowPtr)->is_null(ColKey(columnKey)));
+        bool is_bool = to_jbool(OBJ(nativeRowPtr)->is_null(ColKey(columnKey)));
+        return is_bool;
     }
     CATCH_STD()
     return JNI_FALSE;
@@ -411,4 +412,82 @@ static void finalize_unchecked_row(jlong ptr)
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
     return reinterpret_cast<jlong>(&finalize_unchecked_row);
+}
+
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_UncheckedRow_nativeGetDecimal128(JNIEnv* env, jobject,
+                                                                                    jlong nativeRowPtr,
+                                                                                    jlong columnKey)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return nullptr;
+    }
+
+    try {
+        Decimal128 decimal128 = OBJ(nativeRowPtr)->get<Decimal128>(ColKey(columnKey));
+        RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetDecimal128(JNIEnv* env, jobject,
+                                                                              jlong nativeRowPtr, jlong columnKey,
+                                                                              jlong low, jlong high)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return;
+    }
+
+    try {
+        ColKey col_key(columnKey);
+        Decimal128::Bid128 raw {static_cast<uint64_t>(low), static_cast<uint64_t>(high)};
+        OBJ(nativeRowPtr)->set(col_key, Decimal128(raw));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_UncheckedRow_nativeGetObjectId(JNIEnv* env, jobject,
+                                                                                    jlong nativeRowPtr,
+                                                                                    jlong columnKey)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return nullptr;
+    }
+
+    try {
+        ObjectId objectId = OBJ(nativeRowPtr)->get<ObjectId>(ColKey(columnKey));
+        return to_jstring(env, objectId.to_string().data());
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetObjectId(JNIEnv* env, jobject,
+                                                                              jlong nativeRowPtr, jlong columnKey,
+                                                                              jstring j_value)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return;
+    }
+
+    try {
+        JStringAccessor value(env, j_value);
+        OBJ(nativeRowPtr)->set(ColKey(columnKey), ObjectId(StringData(value).data()));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeCreateEmbeddedObject(JNIEnv* env, jobject,
+                                                                                       jlong j_obj_ptr,
+                                                                                       jlong j_column_key)
+{
+    if (!ROW_VALID(env, OBJ(j_obj_ptr))) {
+        return -1;
+    }
+    try {
+        Obj embedded_object = OBJ(j_obj_ptr)->create_and_set_linked_object(ColKey(j_column_key));
+        return reinterpret_cast<jlong>(embedded_object.get_key().value);
+    }
+    CATCH_STD()
+    return -1;
 }

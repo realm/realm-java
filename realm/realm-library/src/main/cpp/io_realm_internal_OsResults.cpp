@@ -152,7 +152,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_OsResults_nativeAggregate(JNIEn
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
 
         ColKey col_key(column_key);
-        Optional<Mixed> value;
+        util::Optional<Mixed> value;
         switch (agg_func) {
             case io_realm_internal_OsResults_AGGREGATE_FUNCTION_MINIMUM:
                 value = wrapper->collection().min(col_key);
@@ -161,12 +161,12 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_OsResults_nativeAggregate(JNIEn
                 value = wrapper->collection().max(col_key);
                 break;
             case io_realm_internal_OsResults_AGGREGATE_FUNCTION_AVERAGE: {
-                Optional<double> value_count(wrapper->collection().average(col_key));
+                util::Optional<Mixed> value_count(wrapper->collection().average(col_key));
                 if (value_count) {
-                    value = Optional<Mixed>(Mixed(value_count.value()));
+                    value = value_count;
                 }
                 else {
-                    value = Optional<Mixed>(0.0);
+                    value = util::Optional<Mixed>(0.0);
                 }
                 break;
             }
@@ -375,6 +375,23 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetBinary(JNIEnv* 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetTimestamp(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jlong j_value)
 {
     JavaValue value(from_milliseconds(j_value));
+    update_objects(env, native_ptr, j_field_name, value);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetDecimal128(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jlong low, jlong high)
+{
+
+    Decimal128::Bid128 raw = {static_cast<uint64_t>(low), static_cast<uint64_t>(high)};
+    Decimal128 decimal128 = Decimal128(raw);
+    JavaValue value(decimal128);
+    update_objects(env, native_ptr, j_field_name, value);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsResults_nativeSetObjectId(JNIEnv* env, jclass, jlong native_ptr, jstring j_field_name, jstring j_value)
+{
+    JStringAccessor data(env, j_value);
+    ObjectId objectId = ObjectId(StringData(data).data());
+    JavaValue value(objectId);
     update_objects(env, native_ptr, j_field_name, value);
 }
 

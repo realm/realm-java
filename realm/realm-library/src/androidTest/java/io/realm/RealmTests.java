@@ -20,12 +20,16 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.rule.UiThreadTestRule;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.test.annotation.UiThreadTest;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.rule.UiThreadTestRule;
 
 import junit.framework.AssertionFailedError;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.hamcrest.CoreMatchers;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -46,10 +50,12 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
@@ -145,17 +151,18 @@ public class RealmTests {
 
     private Context context;
     private Realm realm;
-    private List<String> columnData = new ArrayList<String>();
+    private List<String> columnData = new ArrayList<String>() {{
+        add(AllTypes.FIELD_BOOLEAN);
+        add(AllTypes.FIELD_DATE);
+        add(AllTypes.FIELD_DOUBLE);
+        add(AllTypes.FIELD_FLOAT);
+        add(AllTypes.FIELD_STRING);
+        add(AllTypes.FIELD_LONG);
+        add(AllTypes.FIELD_BINARY);
+        add(AllTypes.FIELD_DECIMAL128);
+        add(AllTypes.FIELD_OBJECT_ID);
+    }};
     private RealmConfiguration realmConfig;
-
-    private void setColumnData() {
-        columnData.add(0, AllTypes.FIELD_BOOLEAN);
-        columnData.add(1, AllTypes.FIELD_DATE);
-        columnData.add(2, AllTypes.FIELD_DOUBLE);
-        columnData.add(3, AllTypes.FIELD_FLOAT);
-        columnData.add(4, AllTypes.FIELD_STRING);
-        columnData.add(5, AllTypes.FIELD_LONG);
-    }
 
     @Before
     public void setUp() {
@@ -183,6 +190,8 @@ public class RealmTests {
             allTypes.setColumnDate(new Date());
             allTypes.setColumnDouble(Math.PI);
             allTypes.setColumnFloat(1.234567F + i);
+            allTypes.setColumnObjectId(new ObjectId(TestHelper.generateObjectIdHexString(i)));
+            allTypes.setColumnDecimal128(new Decimal128(new BigDecimal(i + "12345")));
 
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
@@ -323,7 +332,6 @@ public class RealmTests {
     @Test
     public void where_equalTo_wrongFieldTypeAsInput() throws IOException {
         populateTestRealm();
-        setColumnData();
 
         for (int i = 0; i < columnData.size(); i++) {
             try {
@@ -369,6 +377,30 @@ public class RealmTests {
             try {
                 realm.where(AllTypes.class).equalTo(columnData.get(i), 1337).findAll();
                 if (i != 5) {
+                    fail("Realm.where should fail with illegal argument");
+                }
+            } catch (IllegalArgumentException ignored) {
+            }
+
+            try {
+                realm.where(AllTypes.class).equalTo(columnData.get(i), new byte[] {1, 2, 3}).findAll();
+                if (i != 6) {
+                    fail("Realm.where should fail with illegal argument");
+                }
+            } catch (IllegalArgumentException ignored) {
+            }
+
+            try {
+                realm.where(AllTypes.class).equalTo(columnData.get(i), new Decimal128(new BigDecimal(i + "12345"))).findAll();
+                if (i != 7) {
+                    fail("Realm.where should fail with illegal argument");
+                }
+            } catch (IllegalArgumentException ignored) {
+            }
+
+            try {
+                realm.where(AllTypes.class).equalTo(columnData.get(i), new ObjectId(TestHelper.generateObjectIdHexString(i))).findAll();
+                if (i != 8) {
                     fail("Realm.where should fail with illegal argument");
                 }
             } catch (IllegalArgumentException ignored) {
@@ -730,6 +762,70 @@ public class RealmTests {
             RealmLog.remove(testLogger);
         }
         assertEquals(0, realm.where(Owner.class).count());
+    }
+
+    @Test
+    @UiThreadTest
+    public void executeTransaction_mainThreadWritesAllowed() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowWritesOnUiThread(true)
+                .name("ui_realm")
+                .build();
+
+        Realm uiRealm = Realm.getInstance(configuration);
+        uiRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.insert(new Dog("Snuffles"));
+            }
+        });
+
+        RealmResults<Dog> results = uiRealm.where(Dog.class).equalTo("name", "Snuffles").findAll();
+        assertEquals(1, results.size());
+        assertNotNull(results.first());
+        assertEquals("Snuffles", Objects.requireNonNull(results.first()).getName());
+
+        uiRealm.close();
+    }
+
+    @Test
+    @UiThreadTest
+    public void executeTransaction_mainThreadWritesNotAllowed() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowWritesOnUiThread(false)
+                .name("ui_realm")
+                .build();
+
+        // Try-with-resources
+        try (Realm uiRealm = Realm.getInstance(configuration)) {
+            uiRealm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    // no-op
+                }
+            });
+            fail("the call to executeTransaction should have failed, this line should not be reached.");
+        } catch (RealmException e) {
+            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowWritesOnUiThread"));
+        }
+    }
+
+    @Test
+    public void executeTransaction_runsOnNonUiThread() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowWritesOnUiThread(false)
+                .name("ui_realm")
+                .build();
+
+        Realm uiRealm = Realm.getInstance(configuration);
+        uiRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                // no-op
+            }
+        });
+
+        uiRealm.close();
     }
 
     @Test
@@ -1282,6 +1378,8 @@ public class RealmTests {
         realm.beginTransaction();
         AllTypes allTypes = realm.createObject(AllTypes.class);
         allTypes.setColumnString("Test");
+        allTypes.setColumnDecimal128(new Decimal128(new BigDecimal("12345")));
+        allTypes.setColumnObjectId(new ObjectId(TestHelper.randomObjectIdHexString()));
         realm.commitTransaction();
 
         RealmConfiguration realmConfig = configFactory.createConfiguration("other-realm");
@@ -1311,6 +1409,8 @@ public class RealmTests {
         allTypes.setColumnBoolean(true);
         allTypes.setColumnDate(date);
         allTypes.setColumnBinary(new byte[] {1, 2, 3});
+        allTypes.setColumnDecimal128(new Decimal128(new BigDecimal("12345")));
+        allTypes.setColumnObjectId(new ObjectId(TestHelper.generateObjectIdHexString(7)));
         allTypes.setColumnRealmObject(dog);
         allTypes.setColumnRealmList(list);
 
@@ -1321,6 +1421,8 @@ public class RealmTests {
         allTypes.setColumnDoubleList(new RealmList<Double>(1D));
         allTypes.setColumnFloatList(new RealmList<Float>(1F));
         allTypes.setColumnDateList(new RealmList<Date>(new Date(1L)));
+        allTypes.setColumnDecimal128List(new RealmList<Decimal128>(new Decimal128(new BigDecimal("54321"))));
+        allTypes.setColumnObjectIdList(new RealmList<ObjectId>(new ObjectId(TestHelper.generateObjectIdHexString(5))));
 
         realm.beginTransaction();
         AllTypes realmTypes = realm.copyToRealm(allTypes);
@@ -1334,6 +1436,8 @@ public class RealmTests {
         assertEquals(allTypes.isColumnBoolean(), realmTypes.isColumnBoolean());
         assertEquals(allTypes.getColumnDate(), realmTypes.getColumnDate());
         assertArrayEquals(allTypes.getColumnBinary(), realmTypes.getColumnBinary());
+        assertEquals(allTypes.getColumnDecimal128(), realmTypes.getColumnDecimal128());
+        assertEquals(allTypes.getColumnObjectId(), realmTypes.getColumnObjectId());
         assertEquals(allTypes.getColumnRealmObject().getName(), dog.getName());
         assertEquals(list.size(), realmTypes.getColumnRealmList().size());
         //noinspection ConstantConditions
@@ -1352,6 +1456,13 @@ public class RealmTests {
         assertEquals((Float) 1F, realmTypes.getColumnFloatList().get(0));
         assertEquals(1, realmTypes.getColumnDateList().size());
         assertEquals(new Date(1), realmTypes.getColumnDateList().get(0));
+
+        assertEquals(1, realmTypes.getColumnDecimal128List().size());
+        assertEquals(new Decimal128(new BigDecimal("54321")), realmTypes.getColumnDecimal128List().get(0));
+
+        assertEquals(1, realmTypes.getColumnObjectIdList().size());
+        assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(5)), realmTypes.getColumnObjectIdList().get(0));
+
     }
 
     @Test
@@ -3362,6 +3473,8 @@ public class RealmTests {
         assertEquals(realmObject.getColumnDouble(), unmanagedObject.getColumnDouble(), 0.00000000001);
         assertEquals(realmObject.isColumnBoolean(), unmanagedObject.isColumnBoolean());
         assertEquals(realmObject.getColumnDate(), unmanagedObject.getColumnDate());
+        assertEquals(realmObject.getColumnObjectId(), unmanagedObject.getColumnObjectId());
+        assertEquals(realmObject.getColumnDecimal128(), unmanagedObject.getColumnDecimal128());
     }
 
     @Test

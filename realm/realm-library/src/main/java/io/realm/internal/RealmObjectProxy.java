@@ -16,6 +16,7 @@
 
 package io.realm.internal;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.ProxyState;
 import io.realm.RealmModel;
 
@@ -34,6 +35,7 @@ public interface RealmObjectProxy extends RealmModel {
      * Tuple class for saving meta data about a cached RealmObject.
      */
     class CacheData<E extends RealmModel> {
+        @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
         public int minDepth;
         public final E object;
 

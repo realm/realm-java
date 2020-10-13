@@ -4,7 +4,7 @@ version '1.0.0'
 buildscript {
     def properties = new Properties()
     properties.load(new FileInputStream("${projectDir}/../dependencies.list"))
-    ext.kotlin_version = '1.2.61'
+    ext.kotlin_version = properties.get('KOTLIN')
 
     repositories {
         mavenCentral()

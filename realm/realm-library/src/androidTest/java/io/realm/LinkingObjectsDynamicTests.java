@@ -16,7 +16,7 @@
 
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -202,6 +202,12 @@ public class LinkingObjectsDynamicTests {
                     case DOUBLE:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DOUBLE);
                         break;
+                    case DECIMAL128:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DECIMAL128);
+                        break;
+                    case OBJECT_ID:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_OBJECT_ID);
+                        break;
                     case INTEGER_LIST:
                         // FIXME zaki50 enable this once Primitive List is implemented
                         //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_INT_LIST);
@@ -234,6 +240,16 @@ public class LinkingObjectsDynamicTests {
                         throw new IllegalArgumentException("Unexpected field type");
                     case DOUBLE_LIST:
                         // FIXME zaki50 enable this once Primitive List is implemented
+                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DOUBLE_LIST);
+                        //break;
+                        throw new IllegalArgumentException("Unexpected field type");
+                    case DECIMAL128_LIST:
+                        // FIXME enable this once Primitive List is implemented
+                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DOUBLE_LIST);
+                        //break;
+                        throw new IllegalArgumentException("Unexpected field type");
+                    case OBJECT_ID_LIST:
+                        // FIXME enable this once Primitive List is implemented
                         //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DOUBLE_LIST);
                         //break;
                         throw new IllegalArgumentException("Unexpected field type");

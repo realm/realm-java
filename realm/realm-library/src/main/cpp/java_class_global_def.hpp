@@ -50,8 +50,14 @@ private:
         , m_java_util_date(env, "java/util/Date", false)
         , m_java_lang_string(env, "java/lang/String", false)
         , m_java_lang_boolean(env, "java/lang/Boolean", false)
+        , m_java_lang_object(env, "java/lang/Object", false)
         , m_shared_realm_schema_change_callback(env, "io/realm/internal/OsSharedRealm$SchemaChangedCallback", false)
         , m_realm_notifier(env, "io/realm/internal/RealmNotifier", false)
+        , m_bson_decimal128(env, "org/bson/types/Decimal128", false)
+        , m_bson_object_id(env, "org/bson/types/ObjectId", false)
+#if REALM_ENABLE_SYNC
+        , m_network_transport_response(env, "io/realm/internal/objectstore/OsJavaNetworkTransport$Response", false)
+#endif
     {
     }
 
@@ -61,9 +67,16 @@ private:
     jni_util::JavaClass m_java_util_date;
     jni_util::JavaClass m_java_lang_string;
     jni_util::JavaClass m_java_lang_boolean;
+    jni_util::JavaClass m_java_lang_object;
 
     jni_util::JavaClass m_shared_realm_schema_change_callback;
     jni_util::JavaClass m_realm_notifier;
+    jni_util::JavaClass m_bson_decimal128;
+    jni_util::JavaClass m_bson_object_id;
+
+#if REALM_ENABLE_SYNC
+    jni_util::JavaClass m_network_transport_response;
+#endif
 
     inline static std::unique_ptr<JavaClassGlobalDef>& instance()
     {
@@ -154,6 +167,10 @@ public:
     // return nullptr if binary_data is null
     static jbyteArray new_byte_array(JNIEnv* env, const BinaryData& binary_data);
 
+    static jobject new_decimal128(JNIEnv* env, const Decimal128& decimal128);
+
+    static jobject new_object_id(JNIEnv* env, const ObjectId& objectId);
+
     // io.realm.internal.OsSharedRealm.SchemaChangedCallback
     inline static const jni_util::JavaClass& shared_realm_schema_change_callback()
     {
@@ -165,6 +182,19 @@ public:
     {
         return instance()->m_realm_notifier;
     }
+
+    // java.lang.Object
+    inline static const jni_util::JavaClass& java_lang_object()
+    {
+        return instance()->m_java_lang_object;
+    }
+
+#if REALM_ENABLE_SYNC
+    inline static const jni_util::JavaClass& network_transport_response_class()
+    {
+        return instance()->m_network_transport_response;
+    }
+#endif
 };
 
 } // namespace realm

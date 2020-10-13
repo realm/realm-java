@@ -38,5 +38,13 @@
   {
     "id": 10,
     "fieldDateNotNull": null
+  },
+  {
+    "id": 11,
+    "fieldDecimal128NotNull": null
+  },
+  {
+    "id": 12,
+    "fieldObjectIdNotNull": null
   }
 ]

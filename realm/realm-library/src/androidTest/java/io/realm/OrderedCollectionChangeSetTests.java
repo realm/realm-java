@@ -472,7 +472,6 @@ public class OrderedCollectionChangeSetTests {
         results.addChangeListener((collection, changeSet) -> {
             assertSame(collection, results);
             assertEquals(10, collection.size());
-            assertTrue(changeSet.isCompleteResult());
             assertEquals(OrderedCollectionChangeSet.State.INITIAL, changeSet.getState());
             assertEquals(0, changeSet.getInsertions().length);
             assertEquals(0, changeSet.getChanges().length);
@@ -497,7 +496,6 @@ public class OrderedCollectionChangeSetTests {
         results.addChangeListener((collection, changeSet) -> {
             assertSame(collection, results);
             assertEquals(11, collection.size());
-            assertTrue(changeSet.isCompleteResult());
             assertEquals(OrderedCollectionChangeSet.State.UPDATE, changeSet.getState());
             assertEquals(1, changeSet.getInsertions().length);
             looperThread.testComplete();

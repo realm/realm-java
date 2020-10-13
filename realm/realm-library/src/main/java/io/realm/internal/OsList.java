@@ -1,5 +1,8 @@
 package io.realm.internal;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.Date;
 
 import javax.annotation.Nullable;
@@ -176,6 +179,54 @@ public class OsList implements NativeObject, ObservableCollection {
         }
     }
 
+    public void addDecimal128(@Nullable Decimal128 value) {
+        if (value == null) {
+            nativeAddNull(nativePtr);
+        } else {
+            nativeAddDecimal128(nativePtr, value.getLow(), value.getHigh());
+        }
+    }
+
+    public void insertDecimal128(long pos, @Nullable Decimal128 value) {
+        if (value == null) {
+            nativeInsertNull(nativePtr, pos);
+        } else {
+            nativeInsertDecimal128(nativePtr, pos, value.getLow(), value.getHigh());
+        }
+    }
+
+    public void setDecimal128(long pos, @Nullable Decimal128 value) {
+        if (value == null) {
+            nativeSetNull(nativePtr, pos);
+        } else {
+            nativeSetDecimal128(nativePtr, pos, value.getLow(), value.getHigh());
+        }
+    }
+
+    public void addObjectId(@Nullable ObjectId value) {
+        if (value == null) {
+            nativeAddNull(nativePtr);
+        } else {
+            nativeAddObjectId(nativePtr, value.toString());
+        }
+    }
+
+    public void insertObjectId(long pos, @Nullable ObjectId value) {
+        if (value == null) {
+            nativeInsertNull(nativePtr, pos);
+        } else {
+            nativeInsertObjectId(nativePtr, pos, value.toString());
+        }
+    }
+
+    public void setObjectId(long pos, @Nullable ObjectId value) {
+        if (value == null) {
+            nativeSetNull(nativePtr, pos);
+        } else {
+            nativeSetObjectId(nativePtr, pos, value.toString());
+        }
+    }
+
     @Nullable
     public Object getValue(long pos) {
         return nativeGetValue(nativePtr, pos);
@@ -269,6 +320,19 @@ public class OsList implements NativeObject, ObservableCollection {
                 (targetTable != null) ? targetTable.freeze(frozenRealm) : null);
     }
 
+    public long createAndAddEmbeddedObject() {
+        return nativeCreateAndAddEmbeddedObject(nativePtr, size());
+    }
+
+    public long createAndAddEmbeddedObject(long index) {
+        return nativeCreateAndAddEmbeddedObject(nativePtr, index);
+    }
+
+    public long createAndSetEmbeddedObject(long index) {
+        return nativeCreateAndSetEmbeddedObject(nativePtr, index);
+    }
+
+
     private static native long nativeGetFinalizerPtr();
 
     // TODO: nativeTablePtr is not necessary. It is used to create FieldDescriptor which should be generated from
@@ -348,6 +412,18 @@ public class OsList implements NativeObject, ObservableCollection {
 
     private static native void nativeSetString(long nativePtr, long pos, @Nullable String value);
 
+    private static native void nativeAddDecimal128(long nativePtr, long low, long high);
+
+    private static native void nativeInsertDecimal128(long nativePtr, long pos, long low, long high);
+
+    private static native void nativeSetDecimal128(long nativePtr, long pos, long low, long high);
+
+    private static native void nativeAddObjectId(long nativePtr, String data);
+
+    private static native void nativeInsertObjectId(long nativePtr, long pos, String data);
+
+    private static native void nativeSetObjectId(long nativePtr, long pos, String data);
+
     private static native Object nativeGetValue(long nativePtr, long pos);
 
     private native void nativeStartListening(long nativePtr);
@@ -355,4 +431,11 @@ public class OsList implements NativeObject, ObservableCollection {
     private native void nativeStopListening(long nativePtr);
 
     private static native long nativeFreeze(long nativePtr, long sharedRealmNativePtr);
+
+    // Create an "empty" embedded object at the end of the list
+    private static native long nativeCreateAndAddEmbeddedObject(long nativePtr, long index);
+
+    // Replaces the embedded object and index with a new "empty" embedded object
+    private static native long nativeCreateAndSetEmbeddedObject(long nativePtr, long index);
+
 }

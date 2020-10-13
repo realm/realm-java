@@ -20,8 +20,8 @@ import java.io.File;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 
@@ -174,7 +174,7 @@ public class OsRealmConfig implements NativeObject {
     public static final byte CLIENT_RESYNC_MODE_DISCARD = 1;
     public static final byte CLIENT_RESYNC_MODE_MANUAL = 2;
 
-    private final static long nativeFinalizerPtr = nativeGetFinalizerPtr();
+    private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     private final RealmConfiguration realmConfiguration;
     private final URI resolvedRealmURI;
@@ -206,23 +206,26 @@ public class OsRealmConfig implements NativeObject {
         NativeContext.dummyContext.addReference(this);
 
         // Retrieve Sync settings first. We need syncRealmUrl to identify if this is a SyncConfig
+        int j = 0;
         Object[] syncConfigurationOptions = ObjectServerFacade.getSyncFacadeIfPossible().getSyncConfigurationOptions(realmConfiguration);
-        String syncUserIdentifier = (String) syncConfigurationOptions[0];
-        String syncRealmUrl = (String) syncConfigurationOptions[1];
-        String syncRealmAuthUrl = (String) syncConfigurationOptions[2];
-        String syncRefreshToken = (String) syncConfigurationOptions[3];
-        boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncConfigurationOptions[4]));
-        String syncSslTrustCertificatePath = (String) syncConfigurationOptions[5];
-        Byte sessionStopPolicy = (Byte) syncConfigurationOptions[6];
-        boolean isPartial = (Boolean.TRUE.equals(syncConfigurationOptions[7]));
-        String urlPrefix = (String)(syncConfigurationOptions[8]);
-        String customAuthorizationHeaderName = (String)(syncConfigurationOptions[9]);
-        Byte clientResyncMode = (Byte) syncConfigurationOptions[11];
+        String syncUserIdentifier = (String) syncConfigurationOptions[j++];
+        String syncRealmUrl = (String) syncConfigurationOptions[j++];
+        String syncRealmAuthUrl = (String) syncConfigurationOptions[j++];
+        String syncRefreshToken = (String) syncConfigurationOptions[j++];
+        String syncAccessToken = (String) syncConfigurationOptions[j++];
+        String deviceId = (String) syncConfigurationOptions[j++];
+        Byte sessionStopPolicy = (Byte) syncConfigurationOptions[j++];
+        String urlPrefix = (String)(syncConfigurationOptions[j++]);
+        String customAuthorizationHeaderName = (String)(syncConfigurationOptions[j++]);
+        //noinspection unchecked
+        Map<String, String> customHeadersMap = (Map<String, String>) (syncConfigurationOptions[j++]);
+        Byte clientResyncMode = (Byte) syncConfigurationOptions[j++];
+        String encodedPartitionValue = (String) syncConfigurationOptions[j++];
+        Object syncService = syncConfigurationOptions[j++];
+        Long appPtr = (Long) syncConfigurationOptions[j++];
 
         // Convert the headers into a String array to make it easier to send through JNI
         // [key1, value1, key2, value2, ...]
-        //noinspection unchecked
-        Map<String, String> customHeadersMap = (Map<String, String>) (syncConfigurationOptions[10]);
         String[] customHeaders = new String[customHeadersMap != null ? customHeadersMap.size() * 2 : 0];
         if (customHeadersMap != null) {
             int i = 0;
@@ -277,31 +280,35 @@ public class OsRealmConfig implements NativeObject {
         // Set sync config
         if (syncRealmUrl != null) {
             String resolvedSyncRealmUrl = nativeCreateAndSetSyncConfig(
+                    appPtr,
                     nativePtr,
                     syncRealmUrl,
                     syncRealmAuthUrl,
                     syncUserIdentifier,
                     syncRefreshToken,
-                    isPartial,
+                    syncAccessToken,
+                    deviceId,
                     sessionStopPolicy,
                     urlPrefix,
                     customAuthorizationHeaderName,
                     customHeaders,
-                    clientResyncMode);
+                    clientResyncMode,
+                    encodedPartitionValue,
+                    syncService);
             try {
+                resolvedSyncRealmUrl = syncRealmAuthUrl + urlPrefix.substring(1); // FIXME
                 resolvedRealmURI = new URI(resolvedSyncRealmUrl);
             } catch (URISyntaxException e) {
                 RealmLog.error(e, "Cannot create a URI from the Realm URL address");
             }
-            nativeSetSyncConfigSslSettings(nativePtr, syncClientValidateSsl, syncSslTrustCertificatePath);
 
             // TODO: maybe expose the option for a custom Proxy or ProxySelector in the config?
             ProxySelector proxySelector = ProxySelector.getDefault();
             if (resolvedRealmURI != null && proxySelector != null) {
                 URI websocketUrl = null;
                 try {
-                    // replace scheme in URI so that a proxy selector won't be confused by 'realm://'
-                    websocketUrl = new URI(resolvedSyncRealmUrl.replaceFirst("realm", "http"));
+                    // replace scheme in URI so that a proxy selector won't be confused by 'ws://' or 'wss://'
+                    websocketUrl = new URI(resolvedSyncRealmUrl.replaceFirst("ws", "http"));
                 } catch (URISyntaxException e) {
                     // we shouldn't ever get here if parsing the resolved url above worked
                     RealmLog.error(e, "Cannot create a URI from the Realm URL address");
@@ -379,11 +386,12 @@ public class OsRealmConfig implements NativeObject {
 
     private static native void nativeEnableChangeNotification(long nativePtr, boolean enableNotification);
 
-    private static native String nativeCreateAndSetSyncConfig(long nativePtr, String syncRealmUrl, String authUrl,
-                                                              String userId, String refreshToken, boolean isPartial,
-                                                              byte sessionStopPolicy, String urlPrefix,
+    private static native String nativeCreateAndSetSyncConfig(long appPtr, long configPtr, String syncRealmUrl, String authUrl,
+                                                              String userId, String refreshToken, String accessToken,
+                                                              String deviceId, byte sessionStopPolicy, String urlPrefix,
                                                               String customAuthorizationHeaderName,
-                                                              String[] customHeaders, byte clientResetMode);
+                                                              String[] customHeaders, byte clientResetMode,
+                                                              String partionKeyValue, Object syncService);
 
     private static native void nativeSetSyncConfigSslSettings(long nativePtr,
                                                               boolean validateSsl, String trustCertificatePath);

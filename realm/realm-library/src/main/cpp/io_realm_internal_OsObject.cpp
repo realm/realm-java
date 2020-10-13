@@ -83,7 +83,7 @@ struct ChangeCallback {
         }
 
         // The local ref of jstring needs to be released to avoid reach the local ref table size limitation.
-        std::vector<JavaGlobalRef> field_names;
+        std::vector<JavaGlobalRefByMove> field_names;
         auto table = m_wrapper->m_object.obj().get_table();
         for (const auto& col: change_set.columns) {
             if (col.second.empty()) {
@@ -91,7 +91,7 @@ struct ChangeCallback {
             }
             // FIXME: After full integration of the OS schema, parse the column name from
             // wrapper->m_object.get_object_schema() will be faster.
-            field_names.push_back(JavaGlobalRef(env, to_jstring(env, table->get_column_name(ColKey(col.first))), true));
+            field_names.push_back(JavaGlobalRefByMove(env, to_jstring(env, table->get_column_name(ColKey(col.first))), true));
         }
         m_field_names_array = env->NewObjectArray(field_names.size(), JavaClassGlobalDef::java_lang_string(), 0);
         for (size_t i = 0; i < field_names.size(); ++i) {
@@ -175,12 +175,12 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
     if (is_pk_null) {
 
         if (bool(table->find_first_null(col_key))) {
-            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, util::format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
         }
     }
     else {
         if (bool(table->find_first_int(col_key, pk_value))) {
-            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, pk_value));
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, util::format(PK_EXCEPTION_MSG_FORMAT, pk_value));
         }
     }
 
@@ -203,16 +203,46 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
     if (pk_value) {
         if (bool(table->find_first_string(col_key, str_accessor))) {
             THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS,
-                                 format(PK_EXCEPTION_MSG_FORMAT, str_accessor.operator std::string()));
+                                 util::format(PK_EXCEPTION_MSG_FORMAT, str_accessor.operator std::string()));
         }
     }
     else {
         if (bool(table->find_first_null(col_key))) {
-            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, util::format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
         }
     }
     return table->create_object_with_primary_key(StringData(str_accessor));
 }
+
+static inline Obj do_create_row_with_object_id_primary_key(JNIEnv* env, jlong shared_realm_ptr, jlong table_ref_ptr,
+                                                 jlong pk_column_key, jstring pk_value)
+{
+    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    TableRef table = TBL_REF(table_ref_ptr);
+    ColKey col_key(pk_column_key);
+    shared_realm->verify_in_write(); // throws
+    JStringAccessor str_accessor(env, pk_value); // throws
+    if (!pk_value && !COL_NULLABLE(env, table, pk_column_key)) {
+        return Obj();
+    }
+
+    if (pk_value) {
+        auto objectId = ObjectId(StringData(str_accessor).data());
+        if (bool(table->find_first_object_id(col_key, objectId))) {
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS,
+                                 util::format(PK_EXCEPTION_MSG_FORMAT, str_accessor.operator std::string()));
+        }
+
+        return table->create_object_with_primary_key(objectId);
+    }
+    else {
+        if (bool(table->find_first_null(col_key))) {
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, util::format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
+        }
+        return table->create_object_with_primary_key(realm::util::Optional<realm::ObjectId>());
+    }
+}
+
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
@@ -320,7 +350,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWit
         }
     }
     CATCH_STD()
-
     return 0;
 }
 
@@ -333,4 +362,51 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithStrin
     }
     CATCH_STD()
     return realm::npos;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithObjectIdPrimaryKey(
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ref_ptr, jlong pk_column_ndx, jstring pk_value)
+{
+    try {
+        Obj obj = do_create_row_with_object_id_primary_key(env, shared_realm_ptr, table_ref_ptr, pk_column_ndx, pk_value);
+        return (jlong)(obj.get_key().value);
+    }
+    CATCH_STD()
+    return realm::npos;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWithObjectIdPrimaryKey(
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ref_ptr, jlong pk_column_ndx, jstring pk_value)
+{
+    try {
+        Obj obj = do_create_row_with_object_id_primary_key(env, shared_realm_ptr, table_ref_ptr, pk_column_ndx, pk_value);
+        if (bool(obj)) {
+            return reinterpret_cast<jlong>(new Obj(obj));
+        } else {
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, "Invalid Object returned from 'do_create_row_with_object_id_primary_key'");
+        }
+    }
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateEmbeddedObject(
+    JNIEnv* env, jclass, jlong j_parent_table_ptr, jlong j_parent_object_key, jlong j_parent_column_key)
+{
+    try {
+        TableRef table = TBL_REF(j_parent_table_ptr);
+        ObjKey obj_key(static_cast<int64_t>(j_parent_object_key));
+        Obj parent_obj = table->get_object(obj_key);
+        ColKey col_key(static_cast<int64_t>(j_parent_column_key));
+        Obj child_obj;
+        if (table->get_column_type(col_key) == type_Link) {
+            child_obj = parent_obj.create_and_set_linked_object(col_key);
+        } else {
+            LnkLstPtr list = parent_obj.get_linklist_ptr(col_key);
+            child_obj = list->create_and_insert_linked_object(list->size());
+        }
+        return to_jlong_or_not_found(child_obj.get_key());
+    }
+    CATCH_STD()
+    return 0;
 }

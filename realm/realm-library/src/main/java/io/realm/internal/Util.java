@@ -21,25 +21,24 @@ import android.os.Build;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
 
-import io.realm.ImportFlag;
 import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
+import io.realm.internal.android.AndroidCapabilities;
 import io.realm.log.RealmLog;
 
 
 public class Util {
+
+    private static Boolean rxJavaAvailable;
 
     public static String getTablePrefix() {
         return nativeGetTablePrefix();
@@ -178,6 +177,61 @@ public class Util {
                 }
             }
             return set;
+        }
+    }
+
+    public static void checkEmpty(String argValue, String argName) {
+        if (isEmptyString(argValue)) {
+            throw new IllegalArgumentException("Non-empty '" + argName + "' required.");
+        }
+    }
+
+    public static void checkNull(@Nullable Object argValue, String argName) {
+        if (argValue == null) {
+            throw new IllegalArgumentException("Nonnull '" + argName + "' required.");
+        }
+    }
+
+    public static void checkLooperThread(String errorMessage) {
+        AndroidCapabilities capabilities = new AndroidCapabilities();
+        capabilities.checkCanDeliverNotification(errorMessage);
+    }
+
+    public static void checkNotOnMainThread(String errorMessage) {
+        if (new AndroidCapabilities().isMainThread()) {
+            throw new IllegalStateException(errorMessage);
+        }
+    }
+
+    /**
+     * Checks if RxJava is can be loaded.
+     *
+     * @return {@code true} if RxJava dependency exist, {@code false} otherwise.
+     */
+    @SuppressWarnings("LiteralClassName")
+    public static synchronized boolean isRxJavaAvailable() {
+        if (rxJavaAvailable == null) {
+            try {
+                Class.forName("io.reactivex.Flowable");
+                rxJavaAvailable = true;
+            } catch (ClassNotFoundException ignore) {
+                rxJavaAvailable = false;
+            }
+        }
+        return rxJavaAvailable;
+    }
+
+    /**
+     * Validates that a key is present in a given map
+     *
+     * @param key the key to expect.
+     * @param map the map to search.
+     * @param argName the map argument name
+     * @throws IllegalArgumentException if key is not present.
+     */
+    public static void checkContainsKey(final String key, final Map<String, ?> map, final String argName) {
+        if (!map.containsKey(key)) {
+            throw new IllegalArgumentException("Key '" + key + "' required in '"+ argName +"'.");
         }
     }
 }

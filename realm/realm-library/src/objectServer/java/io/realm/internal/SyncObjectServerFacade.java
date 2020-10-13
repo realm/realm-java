@@ -21,26 +21,27 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 
+import org.bson.BsonValue;
+
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.Realm;
+import io.realm.internal.objectstore.OsApp;
+import io.realm.mongodb.App;
 import io.realm.RealmConfiguration;
-import io.realm.RealmResults;
-import io.realm.SyncConfiguration;
-import io.realm.SyncManager;
-import io.realm.SyncSession;
-import io.realm.SyncUser;
+import io.realm.mongodb.AppConfiguration;
+import io.realm.mongodb.sync.Sync;
+import io.realm.mongodb.User;
+import io.realm.mongodb.sync.SyncConfiguration;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.android.AndroidCapabilities;
+import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.objectstore.OsAsyncOpenTask;
-import io.realm.internal.sync.permissions.ObjectPermissionsModule;
-import io.realm.sync.Subscription;
 
 @SuppressWarnings({"unused", "WeakerAccess"}) // Used through reflection. See ObjectServerFacade
 @Keep
@@ -51,30 +52,12 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     @SuppressLint("StaticFieldLeak") //
     private static Context applicationContext;
     private static volatile Method removeSessionMethod;
+    private static volatile Field osAppField;
 
     @Override
     public void initialize(Context context, String userAgent) {
-        // Trying to keep things out the public API is no fun :/
-        // Just use reflection on init. It is a one-time method call so should be acceptable.
-        //noinspection TryWithIdenticalCatches
-        try {
-            // FIXME: Reflection can be avoided by moving some functions of SyncManager and ObjectServer out of public
-            Class<?> syncManager = Class.forName("io.realm.ObjectServer");
-            Method method = syncManager.getDeclaredMethod("init", Context.class, String.class);
-            method.setAccessible(true);
-            method.invoke(null, context, userAgent);
-        } catch (NoSuchMethodException e) {
-            throw new RealmException("Could not initialize the Realm Object Server", e);
-        } catch (InvocationTargetException e) {
-            throw new RealmException("Could not initialize the Realm Object Server", e);
-        } catch (IllegalAccessException e) {
-            throw new RealmException("Could not initialize the Realm Object Server", e);
-        } catch (ClassNotFoundException e) {
-            throw new RealmException("Could not initialize the Realm Object Server", e);
-        }
         if (applicationContext == null) {
             applicationContext = context;
-
             applicationContext.registerReceiver(new NetworkStateReceiver(),
                     new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         }
@@ -96,31 +79,74 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     public Object[] getSyncConfigurationOptions(RealmConfiguration config) {
         if (config instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
-            SyncUser user = syncConfig.getUser();
+            User user = syncConfig.getUser();
+            App app = user.getApp();
             String rosServerUrl = syncConfig.getServerUrl().toString();
-            String rosUserIdentity = user.getIdentity();
-            String syncRealmAuthUrl = user.getAuthenticationUrl().toString();
-            String rosSerializedUser = user.toJson();
+            String rosUserIdentity = user.getId();
+            String syncRealmAuthUrl = user.getApp().getConfiguration().getBaseUrl().toString();
+            String syncUserRefreshToken = user.getRefreshToken();
+            String syncUserAccessToken = user.getAccessToken();
+            String deviceId = user.getDeviceId();
             byte sessionStopPolicy = syncConfig.getSessionStopPolicy().getNativeValue();
             String urlPrefix = syncConfig.getUrlPrefix();
-            String customAuthorizationHeaderName = SyncManager.getAuthorizationHeaderName(syncConfig.getServerUrl());
-            Map<String, String> customHeaders = SyncManager.getCustomRequestHeaders(syncConfig.getServerUrl());
-            return new Object[]{
-                    rosUserIdentity,
-                    rosServerUrl,
-                    syncRealmAuthUrl,
-                    rosSerializedUser,
-                    syncConfig.syncClientValidateSsl(),
-                    syncConfig.getServerCertificateFilePath(),
-                    sessionStopPolicy,
-                    !syncConfig.isFullySynchronizedRealm(),
-                    urlPrefix,
-                    customAuthorizationHeaderName,
-                    customHeaders,
-                    syncConfig.getClientResyncMode().getNativeValue()
-            };
+            String customAuthorizationHeaderName = app.getConfiguration().getAuthorizationHeaderName();
+            Map<String, String> customHeaders = app.getConfiguration().getCustomRequestHeaders();
+            long appNativePointer;
+
+            // We cannot get the app native pointer without exposing it in the public API due to
+            // how our packages are structured. Instead of polluting the API we use reflection to
+            // access it.
+            try {
+                if (osAppField == null) {
+                    synchronized (SyncObjectServerFacade.class) {
+                        if (osAppField == null) {
+                            Field field = App.class.getDeclaredField("osApp");
+                            field.setAccessible(true);
+                            osAppField = field;
+                        }
+                    }
+                }
+                OsApp osApp = (OsApp) osAppField.get(app);
+                appNativePointer = osApp.getNativePtr();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+            // TODO Simplify. org.bson serialization only allows writing full documents, so the partition
+            //  key is embedded in a document with key 'value' and unwrapped in JNI.
+            BsonValue partitionValue = syncConfig.getPartitionValue();
+            String encodedPartitionValue;
+            switch (partitionValue.getBsonType()) {
+                case STRING:
+                case OBJECT_ID:
+                case INT32:
+                case INT64:
+                case NULL:
+                    encodedPartitionValue = JniBsonProtocol.encode(partitionValue, AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unsupported type: " + partitionValue);
+            }
+
+            int i = 0;
+            Object[] configObj = new Object[SYNC_CONFIG_OPTIONS];
+            configObj[i++] = rosUserIdentity;
+            configObj[i++] = rosServerUrl;
+            configObj[i++] = syncRealmAuthUrl;
+            configObj[i++] = syncUserRefreshToken;
+            configObj[i++] = syncUserAccessToken;
+            configObj[i++] = deviceId;
+            configObj[i++] = sessionStopPolicy;
+            configObj[i++] = urlPrefix;
+            configObj[i++] = customAuthorizationHeaderName;
+            configObj[i++] = customHeaders;
+            configObj[i++] = OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL;
+            configObj[i++] = encodedPartitionValue;
+            configObj[i++] = app.getSync();
+            configObj[i++] = appNativePointer;
+            return configObj;
         } else {
-            return new Object[12];
+            return new Object[SYNC_CONFIG_OPTIONS];
         }
     }
 
@@ -131,27 +157,9 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     @Override
     public void wrapObjectStoreSessionIfRequired(OsRealmConfig config) {
         if (config.getRealmConfiguration() instanceof SyncConfiguration) {
-            SyncManager.getOrCreateSession((SyncConfiguration) config.getRealmConfiguration(), config.getResolvedRealmURI());
-        }
-    }
-
-    @Override
-    public String getSyncServerCertificateAssetName(RealmConfiguration configuration) {
-        if (configuration instanceof SyncConfiguration) {
-            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
-            return syncConfig.getServerCertificateAssetName();
-        } else {
-            throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
-        }
-    }
-
-    @Override
-    public String getSyncServerCertificateFilePath(RealmConfiguration configuration) {
-        if (configuration instanceof SyncConfiguration) {
-            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
-            return syncConfig.getServerCertificateFilePath();
-        } else {
-            throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
+            SyncConfiguration syncConfig = (SyncConfiguration) config.getRealmConfiguration();
+            App app = syncConfig.getUser().getApp();
+            app.getSync().getOrCreateSession(syncConfig);
         }
     }
 
@@ -164,13 +172,13 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             if (removeSessionMethod == null) {
                 synchronized (SyncObjectServerFacade.class) {
                     if (removeSessionMethod == null) {
-                        Method removeSession = SyncManager.class.getDeclaredMethod("removeSession", SyncConfiguration.class);
+                        Method removeSession = Sync.class.getDeclaredMethod("removeSession", SyncConfiguration.class);
                         removeSession.setAccessible(true);
                         removeSessionMethod = removeSession;
                     }
                 }
             }
-            removeSessionMethod.invoke(null, syncConfig);
+            removeSessionMethod.invoke(syncConfig.getUser().getApp().getSync(), syncConfig);
         } catch (NoSuchMethodException e) {
             throw new RealmException("Could not lookup method to remove session: " + syncConfig.toString(), e);
         } catch (InvocationTargetException e) {
@@ -188,11 +196,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                 if (new AndroidCapabilities().isMainThread()) {
                     throw new IllegalStateException("waitForInitialRemoteData() cannot be used synchronously on the main thread. Use Realm.getInstanceAsync() instead.");
                 }
-                if (syncConfig.isFullySynchronizedRealm()) {
-                    downloadInitialFullRealm(syncConfig);
-                } else {
-                    downloadInitialQueryBasedRealm(syncConfig);
-                }
+                downloadInitialFullRealm(syncConfig);
             }
         }
     }
@@ -206,97 +210,18 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         }
     }
 
-    private void downloadInitialQueryBasedRealm(SyncConfiguration syncConfig) {
-        if (syncConfig.shouldWaitForInitialRemoteData()) {
-            SyncSession session = SyncManager.getSession(syncConfig);
-            try {
-                long timeoutMillis = syncConfig.getInitialRemoteDataTimeout(TimeUnit.MILLISECONDS);
-                if (!syncConfig.isFullySynchronizedRealm()) {
-                    // For Query-based Realms we want to upload all our local changes
-                    // first since those might include subscriptions the server needs to process.
-                    // This means that once `downloadAllServerChanges` completes, all initial
-                    // subscriptions will also have been downloaded.
-                    //
-                    // Note that we are reusing the same timeout for uploading and downloading.
-                    // This means that in the worst case you end up with 2x the timeout for
-                    // Query-based Realms. This is probably an acceptable trade-of as trying
-                    // to expose this would not only complicate the API surface quite a lot,
-                    // but in most (almost all?) cases the amount of data to upload will be trivial.
-                    if (!session.uploadAllLocalChanges(timeoutMillis, TimeUnit.MILLISECONDS)) {
-                        throw new DownloadingRealmInterruptedException(syncConfig, "Failed to first upload local changes in " + timeoutMillis + " milliseconds");
-                    };
-                }
-                if (!session.downloadAllServerChanges(timeoutMillis, TimeUnit.MILLISECONDS)) {
-                    throw new DownloadingRealmInterruptedException(syncConfig, "Failed to download remote changes in " + timeoutMillis + " milliseconds");
-                }
-            } catch (InterruptedException e) {
-                throw new DownloadingRealmInterruptedException(syncConfig, e);
-            }
-        }
-    }
-
     @Override
     public boolean wasDownloadInterrupted(Throwable throwable) {
         return (throwable instanceof DownloadingRealmInterruptedException);
     }
 
     @Override
-    public boolean isPartialRealm(RealmConfiguration configuration) {
-        if (configuration instanceof SyncConfiguration) {
-            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
-            return !syncConfig.isFullySynchronizedRealm();
-        }
-        
-        return false;
-    }
-
-    @Override
-    public void addSupportForObjectLevelPermissions(RealmConfiguration.Builder builder) {
-        builder.addModule(new ObjectPermissionsModule());
-    }
-
-    @Override
-    public void downloadInitialSubscriptions(Realm realm) {
-        if (isPartialRealm(realm.getConfiguration())) {
-            SyncConfiguration syncConfig = (SyncConfiguration) realm.getConfiguration();
-            if (syncConfig.shouldWaitForInitialRemoteData()) {
-                RealmResults<Subscription> pendingSubscriptions = realm.where(Subscription.class)
-                        .equalTo("status", Subscription.State.PENDING.getValue())
-                        .findAll();
-                SyncSession session = SyncManager.getSession(syncConfig);
-
-                // Continue once all subscriptions are either ACTIVE or ERROR'ed.
-                while (!pendingSubscriptions.isEmpty()) {
-                    try {
-                        session.uploadAllLocalChanges(); // Uploads subscriptions (if any)
-                        session.downloadAllServerChanges(); // Download subscriptions (if any)
-                    } catch (InterruptedException e) {
-                        throw new DownloadingRealmInterruptedException(syncConfig, e);
-                    }
-                    realm.refresh();
-                }
-
-                // If some of the subscriptions failed to become ACTIVE, report them and cancel opening
-                // the Realm. Note, this should only happen if the client is contacting an older
-                // version of the server which are lacking query support for features available
-                // in the client SDK.
-                RealmResults<Subscription> failedSubscriptions = realm.where(Subscription.class)
-                        .equalTo("status", Subscription.State.ERROR.getValue())
-                        .findAll();
-                if (!failedSubscriptions.isEmpty()) {
-                    String errorMessage = "Some initial subscriptions encountered errors:" + Arrays.toString(failedSubscriptions.toArray());
-                    throw new DownloadingRealmInterruptedException(syncConfig, errorMessage);
-                }
-            }
-        }
-    }
-
-    @Override
     public void createNativeSyncSession(RealmConfiguration configuration) {
         if (configuration instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) configuration;
-            OsRealmConfig config = new OsRealmConfig.Builder(syncConfig).build();
-            SyncManager.getOrCreateSession(syncConfig, config.getResolvedRealmURI());
+            App app = syncConfig.getUser().getApp();
+            app.getSync().getOrCreateSession(syncConfig);
         }
     }
+
 }

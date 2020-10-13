@@ -235,3 +235,44 @@ JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeNullifyLink(JNIEn
 
     Java_io_realm_internal_UncheckedRow_nativeNullifyLink(env, obj, nativeRowPtr, columnKey);
 }
+
+
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_CheckedRow_nativeGetDecimal128(JNIEnv* env, jobject obj, jlong nativeRowPtr, jlong columnKey)
+{
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, type_Decimal)) {
+        return nullptr;
+    }
+
+    return Java_io_realm_internal_UncheckedRow_nativeGetDecimal128(env, obj, nativeRowPtr, columnKey);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetDecimal128(JNIEnv* env, jobject obj, jlong nativeRowPtr, jlong columnKey, jlong low, jlong high)
+{
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, type_Decimal)) {
+        return;
+    }
+
+    Java_io_realm_internal_UncheckedRow_nativeSetDecimal128(env, obj, nativeRowPtr, columnKey, low, high);
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_CheckedRow_nativeGetObjectId(JNIEnv* env, jobject obj,
+                                                                                    jlong nativeRowPtr,
+                                                                                    jlong columnKey)
+{
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, type_ObjectId)) {
+        return nullptr;
+    }
+
+    return Java_io_realm_internal_UncheckedRow_nativeGetObjectId(env, obj, nativeRowPtr, columnKey);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetObjectId(JNIEnv* env, jobject obj,
+                                                                              jlong nativeRowPtr, jlong columnKey,
+                                                                              jstring j_value)
+{
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, type_ObjectId)) {
+        return;
+    }
+
+    Java_io_realm_internal_UncheckedRow_nativeSetObjectId(env, obj, nativeRowPtr, columnKey, j_value);
+}

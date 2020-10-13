@@ -22,6 +22,7 @@
 
 #include "observable_collection_wrapper.hpp"
 #include "java_accessor.hpp"
+#include "java_object_accessor.hpp"
 #include "java_exception_def.hpp"
 #include "jni_util/java_exception_thrower.hpp"
 #include "util.hpp"
@@ -477,6 +478,67 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetString(JNIEnv* env
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddDecimal128(JNIEnv* env, jclass, jlong list_ptr,
+                                                                         jlong j_low_value, jlong j_high_value)
+{
+    try {
+          Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
+          add_value(env, list_ptr, Any(Decimal128(raw)));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertDecimal128(JNIEnv* env, jclass, jlong list_ptr,
+                                                                            jlong pos, jlong j_low_value, jlong j_high_value)
+{
+    try {
+        Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
+        insert_value(env, list_ptr, pos, Any(Decimal128(raw)));
+    }
+    CATCH_STD();
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetDecimal128(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
+                                                                         jlong j_high_value, jlong j_low_value)
+{
+    try {
+        Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
+        set_value(env, list_ptr, pos, Any(Decimal128(raw)));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddObjectId(JNIEnv* env, jclass, jlong list_ptr,
+                                                                         jstring j_value)
+{
+
+    try {
+        JStringAccessor value(env, j_value);
+        add_value(env, list_ptr, Any(ObjectId(StringData(value).data())));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertObjectId(JNIEnv* env, jclass, jlong list_ptr,
+                                                                            jlong pos, jstring j_value)
+{
+    try {
+        JStringAccessor value(env, j_value);
+        insert_value(env, list_ptr, pos, Any(ObjectId(StringData(value).data())));
+    }
+    CATCH_STD();
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetObjectId(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
+                                                                         jstring j_value)
+{
+    try {
+        JStringAccessor value(env, j_value);
+        set_value(env, list_ptr, pos, Any(ObjectId(StringData(value).data())));
+    }
+    CATCH_STD()
+}
+
 JNIEXPORT jobject JNICALL Java_io_realm_internal_OsList_nativeGetValue(JNIEnv* env, jclass, jlong list_ptr, jlong pos)
 {
     try {
@@ -487,6 +549,43 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_OsList_nativeGetValue(JNIEnv* e
     CATCH_STD()
 
     return nullptr;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeCreateAndAddEmbeddedObject(JNIEnv* env, jclass, jlong native_list_ptr, jlong j_index)
+{
+    try {
+        List& list = reinterpret_cast<ListWrapper*>(native_list_ptr)->collection();
+        auto& realm = list.get_realm();
+        auto& object_schema = list.get_object_schema();
+        JavaContext ctx(env, realm, object_schema);
+        // Create dummy object. Properties must be added later.
+        // TODO CreatePolicy::Skip is a hack right after the object is inserted and before Schemas
+        //  are validated. Figure out a better approach.
+        auto array_index = static_cast<size_t>(j_index);
+        list.insert(ctx, array_index, JavaValue(std::map<ColKey, JavaValue>()), CreatePolicy::Skip);
+        return reinterpret_cast<jlong>(list.get(array_index).get_key().value);
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeCreateAndSetEmbeddedObject(JNIEnv* env, jclass, jlong native_list_ptr, jlong j_index)
+{
+    try {
+        List& list = reinterpret_cast<ListWrapper*>(native_list_ptr)->collection();
+        auto& realm = list.get_realm();
+        auto& object_schema = list.get_object_schema();
+        JavaContext ctx(env, realm, object_schema);
+        size_t array_index = static_cast<size_t>(j_index);
+        // Create dummy object. Properties must be added later.
+        // TODO CreatePolicy::Skip is a hack right after the object is inserted and before Schemas
+        //  are validated. Figure out a better approach.
+        list.set(ctx, array_index, JavaValue(std::map<ColKey, JavaValue>()), CreatePolicy::Skip);
+        return reinterpret_cast<jlong>(list.get(list.size() - 1).get_key().value);
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeFreeze(JNIEnv* env, jclass, jlong native_list_ptr, jlong frozen_realm_native_ptr)

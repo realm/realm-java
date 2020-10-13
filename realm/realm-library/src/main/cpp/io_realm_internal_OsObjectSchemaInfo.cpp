@@ -36,12 +36,14 @@ static void finalize_object_schema(jlong ptr)
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeCreateRealmObjectSchema(JNIEnv* env, jclass,
-                                                                                                jstring j_name_str)
+                                                                                                jstring j_name_str,
+                                                                                                jboolean j_embedded)
 {
     try {
         JStringAccessor name(env, j_name_str);
         ObjectSchema* object_schema = new ObjectSchema();
         object_schema->name = name;
+        object_schema->is_embedded = to_bool(j_embedded);
         return reinterpret_cast<jlong>(object_schema);
     }
     CATCH_STD()
@@ -110,7 +112,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetPrope
             return reinterpret_cast<jlong>(new Property(*property));
         }
         THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
-                             format("Property '%1' cannot be found.", property_name.data()));
+                             util::format("Property '%1' cannot be found.", property_name.data()));
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
@@ -128,4 +130,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetPrima
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeIsEmbedded(JNIEnv* env, jclass, jlong native_ptr)
+{
+    try {
+        auto& object_schema = *reinterpret_cast<ObjectSchema*>(native_ptr);
+        return to_jbool(object_schema.is_embedded);
+    }
+    CATCH_STD()
+    return to_jbool(false);
 }

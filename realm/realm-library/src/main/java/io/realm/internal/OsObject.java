@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import org.bson.types.ObjectId;
+
 import javax.annotation.Nullable;
 
 import io.realm.ObjectChangeSet;
@@ -204,6 +206,11 @@ public class OsObject implements NativeObject {
             return new UncheckedRow(sharedRealm.context, table,
                     nativeCreateNewObjectWithLongPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
                             primaryKeyColumnKey, value, primaryKeyValue == null));
+        } else if (type == RealmFieldType.OBJECT_ID) {
+            String objectIdValue = primaryKeyValue == null ? null : primaryKeyValue.toString();
+            return new UncheckedRow(sharedRealm.context, table,
+                    nativeCreateNewObjectWithObjectIdPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
+                            primaryKeyColumnKey, objectIdValue));
         } else {
             throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
         }
@@ -220,7 +227,7 @@ public class OsObject implements NativeObject {
      * @return a newly created {@code UncheckedRow}.
      */
     // FIXME: Proxy could just pass the pk index here which is much faster.
-    public static long createRowWithPrimaryKey(Table table, long primaryKeyColumnIndex, Object primaryKeyValue) {
+    public static long createRowWithPrimaryKey(Table table, long primaryKeyColumnIndex, @Nullable Object primaryKeyValue) {
         RealmFieldType type = table.getColumnType(primaryKeyColumnIndex);
         final OsSharedRealm sharedRealm = table.getSharedRealm();
 
@@ -235,9 +242,20 @@ public class OsObject implements NativeObject {
             long value = primaryKeyValue == null ? 0 : Long.parseLong(primaryKeyValue.toString());
             return nativeCreateRowWithLongPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
                     primaryKeyColumnIndex, value, primaryKeyValue == null);
+        } else if (type == RealmFieldType.OBJECT_ID) {
+            if (primaryKeyValue != null && !(primaryKeyValue instanceof ObjectId)) {
+                throw new IllegalArgumentException("Primary key value is not an ObjectId: " + primaryKeyValue);
+            }
+            String objectIdValue = primaryKeyValue == null ? null : primaryKeyValue.toString();
+            return nativeCreateRowWithObjectIdPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
+                    primaryKeyColumnIndex, objectIdValue);
         } else {
             throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
         }
+    }
+
+    public static long createEmbeddedObject(Table parentTable, long parentObjectKey, long parentColumnKey) {
+        return nativeCreateEmbeddedObject(parentTable.getNativePtr(), parentObjectKey, parentColumnKey);
     }
 
     // Called by JNI
@@ -277,6 +295,16 @@ public class OsObject implements NativeObject {
     // Return a index of newly created Row.
     private static native long nativeCreateRowWithStringPrimaryKey(long sharedRealmPtr,
                                                                    long tableRefPtr, long pk_column_index,
-                                                                   String primaryKeyValue);
+                                                                   @Nullable String primaryKeyValue);
+
+    private static native long nativeCreateRowWithObjectIdPrimaryKey(long sharedRealmPtr,
+                                                                     long tableRefPtr, long pk_column_index,
+                                                                     @Nullable String primaryKeyValue);
+
+    private static native long nativeCreateNewObjectWithObjectIdPrimaryKey(long sharedRealmPtr,
+                                                                           long tableRefPtr, long pk_column_index,
+                                                                           @Nullable String data);
+
+    private static native long nativeCreateEmbeddedObject(long parentTablePtr, long parentObjectKey, long parentObjectColumnKey);
 
 }

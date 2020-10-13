@@ -2,7 +2,6 @@
 <network-security-config>
     <base-config>
         <trust-anchors>
-            <certificates src="@raw/android_test_certificate" />
             <certificates src="system" />
         </trust-anchors>
     </base-config>

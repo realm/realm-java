@@ -17,35 +17,27 @@
 package io.realm;
 
 
-import android.text.TextUtils;
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 
 import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
-import io.realm.annotations.Beta;
 import io.realm.annotations.Required;
-import io.realm.internal.CheckedRow;
-import io.realm.internal.ObjectServerFacade;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.OsList;
 import io.realm.internal.OsResults;
 import io.realm.internal.PendingRow;
-import io.realm.internal.annotations.ObjectServer;
-import io.realm.internal.core.IncludeDescriptor;
-import io.realm.internal.core.QueryDescriptor;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import io.realm.internal.SubscriptionAwareOsResults;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
-import io.realm.internal.Util;
 import io.realm.internal.core.DescriptorOrdering;
+import io.realm.internal.core.QueryDescriptor;
 import io.realm.internal.fields.FieldDescriptor;
-import io.realm.internal.sync.SubscriptionAction;
-import io.realm.sync.Subscription;
 
 
 /**
@@ -60,6 +52,12 @@ import io.realm.sync.Subscription;
  * is required.
  * <p>
  * A RealmQuery cannot be passed between different threads.
+ * <p>
+ * Results are obtained quickly most of the times. However, launching heavy queries from the UI thread may result
+ * in a drop of frames or even ANRs. If you want to prevent these behaviors, you can instantiate a Realm using a
+ * {@link RealmConfiguration} that explicitly sets {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)} to
+ * {@code false}. This way queries will be forced to be launched from a non-UI thread. Alternatively, you can also use
+ * {@link #findAllAsync()} or {@link #findFirstAsync()}.
  *
  * @param <E> the class of the objects to be queried.
  * @see <a href="http://en.wikipedia.org/wiki/Builder_pattern">Builder pattern</a>
@@ -311,6 +309,32 @@ public class RealmQuery<E> {
         return equalToWithoutThreadValidation(fieldName, value, casing);
     }
 
+    /**
+     * Equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> equalTo(String fieldName, @Nullable Decimal128 value) {
+        realm.checkIfValid();
+        return equalToWithoutThreadValidation(fieldName, value);
+    }
+
+    /**
+     * Equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> equalTo(String fieldName, @Nullable ObjectId value) {
+        realm.checkIfValid();
+        return equalToWithoutThreadValidation(fieldName, value);
+    }
+
     private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable String value, Case casing) {
         FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.STRING);
         this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value, casing);
@@ -371,7 +395,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Short value) {
         realm.checkIfValid();
-
         return equalToWithoutThreadValidation(fieldName, value);
     }
 
@@ -524,6 +547,27 @@ public class RealmQuery<E> {
         this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
         return this;
     }
+
+    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable Decimal128 value) {
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
+        if (value == null) {
+            this.query.isNull(fd.getColumnKeys(), fd.getNativeTablePointers());
+        } else {
+            this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        }
+        return this;
+    }
+
+    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable ObjectId value) {
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.OBJECT_ID);
+        if (value == null) {
+            this.query.isNull(fd.getColumnKeys(), fd.getNativeTablePointers());
+        } else {
+            this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        }
+        return this;
+    }
+
 
     /**
      * In comparison. This allows you to test if objects match any value in an array of values.
@@ -798,6 +842,44 @@ public class RealmQuery<E> {
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
+    public RealmQuery<E> notEqualTo(String fieldName, Decimal128 value) {
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
+        if (value == null) {
+            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
+        } else {
+            this.query.notEqualTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        }
+        return this;
+    }
+
+    /**
+     * Not-equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> notEqualTo(String fieldName, ObjectId value) {
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.OBJECT_ID);
+        if (value == null) {
+            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
+        } else {
+            this.query.notEqualTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        }
+        return this;
+    }
+
+    /**
+     * Not-equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Byte value) {
         realm.checkIfValid();
 
@@ -1051,6 +1133,36 @@ public class RealmQuery<E> {
     }
 
     /**
+     * Greater-than comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> greaterThan(String fieldName, Decimal128 value) {
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
+        this.query.greaterThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        return this;
+    }
+
+    /**
+     * Greater-than comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> greaterThan(String fieldName, ObjectId value) {
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.OBJECT_ID);
+        this.query.greaterThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        return this;
+    }
+
+    /**
      * Greater-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
@@ -1131,6 +1243,36 @@ public class RealmQuery<E> {
     }
 
     /**
+     * Greater-than-or-equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> greaterThanOrEqualTo(String fieldName, Decimal128 value) {
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
+        this.query.greaterThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        return this;
+    }
+
+    /**
+     * Greater-than-or-equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> greaterThanOrEqualTo(String fieldName, ObjectId value) {
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.OBJECT_ID);
+        this.query.greaterThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        return this;
+    }
+
+    /**
      * Less-than comparison.
      *
      * @param fieldName the field to compare.
@@ -1158,6 +1300,36 @@ public class RealmQuery<E> {
         realm.checkIfValid();
 
         FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
+        this.query.lessThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        return this;
+    }
+
+    /**
+     * Less-than comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> lessThan(String fieldName, Decimal128 value) {
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
+        this.query.lessThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        return this;
+    }
+
+    /**
+     * Less-than comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> lessThan(String fieldName, ObjectId value) {
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.OBJECT_ID);
         this.query.lessThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
         return this;
     }
@@ -1204,7 +1376,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, Date value) {
         realm.checkIfValid();
-
         FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DATE);
         this.query.lessThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
         return this;
@@ -1236,8 +1407,37 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, long value) {
         realm.checkIfValid();
-
         FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
+        this.query.lessThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        return this;
+    }
+
+    /**
+     * Less-than-or-equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> lessThanOrEqualTo(String fieldName, Decimal128 value) {
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
+        this.query.lessThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        return this;
+    }
+
+    /**
+     * Less-than-or-equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> lessThanOrEqualTo(String fieldName, ObjectId value) {
+        realm.checkIfValid();
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.OBJECT_ID);
         this.query.lessThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
         return this;
     }
@@ -1375,6 +1575,22 @@ public class RealmQuery<E> {
         return this;
     }
 
+    /**
+     * Between condition.
+     *
+     * @param fieldName the field to compare.
+     * @param from lowest value (inclusive).
+     * @param to highest value (inclusive).
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> between(String fieldName, Decimal128 from, Decimal128 to) {
+        realm.checkIfValid();
+
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
+        this.query.between(fd.getColumnKeys(), from, to);
+        return this;
+    }
 
     /**
      * Condition that value of field contains the specified substring.
@@ -1616,9 +1832,11 @@ public class RealmQuery<E> {
      * for the given field, {@code 0} will be returned. When computing the sum, objects with {@code null} values
      * are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     public Number sum(String fieldName) {
         realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
 
         long columnKey = schema.getAndCheckFieldColumnKey(fieldName);
         switch (table.getColumnType(columnKey)) {
@@ -1628,6 +1846,8 @@ public class RealmQuery<E> {
                 return query.sumFloat(columnKey);
             case DOUBLE:
                 return query.sumDouble(columnKey);
+            case DECIMAL128:
+                return query.sumDecimal128(columnKey);
             default:
                 throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double"));
@@ -1643,9 +1863,11 @@ public class RealmQuery<E> {
      * types of number fields. If no objects exist or they all have {@code null} as the value for the given field,
      * {@code 0} will be returned. When computing the average, objects with {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     public double average(String fieldName) {
         realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
 
         long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
         switch (table.getColumnType(columnIndex)) {
@@ -1657,10 +1879,26 @@ public class RealmQuery<E> {
                 return query.averageFloat(columnIndex);
             default:
                 throw new IllegalArgumentException(String.format(Locale.US,
-                        TYPE_MISMATCH, fieldName, "int, float or double"));
+                        TYPE_MISMATCH, fieldName, "int, float or double. For Decimal128 use `averageDecimal128` method."));
         }
     }
+    /**
+     * Returns the average of a given field.
+     * Does not support dotted field notation.
+     *
+     * @param fieldName the field to calculate average on. Only Decimal128 fields is supported. For other number types consider using {@link #average(String)}.
+     * @return the average for the given field amongst objects in query results. This will be of type Decimal128. If no objects exist or they all have {@code null}
+     * as the value for the given field {@code 0} will be returned. When computing the average, objects with {@code null} values are ignored.
+     * @throws java.lang.IllegalArgumentException if the field is not a Decimal128 type.
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
+     */
+    public @Nullable Decimal128 averageDecimal128(String fieldName) {
+        realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
 
+        long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
+        return query.averageDecimal128(columnIndex);
+    }
     /**
      * Finds the minimum value of a field.
      *
@@ -1669,10 +1907,12 @@ public class RealmQuery<E> {
      * returned. Otherwise the minimum value is returned. When determining the minimum value, objects with {@code null}
      * values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     @Nullable
     public Number min(String fieldName) {
         realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
 
         long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
         switch (table.getColumnType(columnIndex)) {
@@ -1682,6 +1922,8 @@ public class RealmQuery<E> {
                 return this.query.minimumFloat(columnIndex);
             case DOUBLE:
                 return this.query.minimumDouble(columnIndex);
+            case DECIMAL128:
+                return this.query.minimumDecimal128(columnIndex);
             default:
                 throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double"));
@@ -1696,10 +1938,12 @@ public class RealmQuery<E> {
      * will be returned. Otherwise the minimum date is returned. When determining the minimum date, objects with
      * {@code null} values are ignored.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     @Nullable
     public Date minimumDate(String fieldName) {
         realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
 
         long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
         return this.query.minimumDate(columnIndex);
@@ -1713,10 +1957,12 @@ public class RealmQuery<E> {
      * returned. Otherwise the maximum value is returned. When determining the maximum value, objects with {@code null}
      * values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     @Nullable
     public Number max(String fieldName) {
         realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
 
         long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
         switch (table.getColumnType(columnIndex)) {
@@ -1726,6 +1972,8 @@ public class RealmQuery<E> {
                 return this.query.maximumFloat(columnIndex);
             case DOUBLE:
                 return this.query.maximumDouble(columnIndex);
+            case DECIMAL128:
+                return this.query.maximumDecimal128(columnIndex);
             default:
                 throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double"));
@@ -1744,6 +1992,7 @@ public class RealmQuery<E> {
     @Nullable
     public Date maximumDate(String fieldName) {
         realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
 
         long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
         return this.query.maximumDate(columnIndex);
@@ -1754,9 +2003,12 @@ public class RealmQuery<E> {
      *
      * @return the number of matching objects.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     public long count() {
         realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
+
         // The fastest way of doing `count()` is going through `TableQuery.count()`. Unfortunately
         // doing this does not correctly apply all side effects of queries (like subscriptions). Also
         // some queries constructs, like doing distinct is not easily supported this way.
@@ -1767,15 +2019,24 @@ public class RealmQuery<E> {
 
     /**
      * Finds all objects that fulfill the query conditions.
+     * <p>
+     * Launching heavy queries from the UI thread may result in a drop of frames or even ANRs. <b>We do not recommend
+     * doing so and therefore it is not allowed by default.</b> If you want to prevent these behaviors you can obtain
+     * a Realm using a {@link RealmConfiguration} that explicitly sets
+     * {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)} to {@code false}. This way you will be forced
+     * to launch your queries from a non-UI thread, otherwise calls to this method will throw a {@link RealmException}.
+     * Alternatively, you can use {@link #findAllAsync()}.
      *
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
      * objects is returned.
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      * @see io.realm.RealmResults
      */
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAll() {
         realm.checkIfValid();
-        return createRealmResults(query, queryDescriptors, true, SubscriptionAction.NO_SUBSCRIPTION);
+        realm.checkAllowQueriesOnUiThread();
+        return createRealmResults(query, queryDescriptors, true);
     }
 
     /**
@@ -1791,15 +2052,11 @@ public class RealmQuery<E> {
         return createRealmResults(
                 query,
                 queryDescriptors,
-                false,
-                SubscriptionAction.NO_SUBSCRIPTION).osResults;
+                false).osResults;
     }
 
     /**
      * Finds all objects that fulfill the query conditions. This method is only available from a Looper thread.
-     * <p>
-     * If the Realm is a Query-based synchronized Realms, this method will also create an anonymous subscription
-     * that will download all server data matching the query.
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
@@ -1807,122 +2064,9 @@ public class RealmQuery<E> {
      */
     public RealmResults<E> findAllAsync() {
         realm.checkIfValid();
-
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        SubscriptionAction subscriptionAction;
-        
-        // Don't create subscriptions for list queries as they are always part of an object covered by another query.
-        if (realm.sharedRealm.isPartial() && osList == null) {
-            subscriptionAction = SubscriptionAction.ANONYMOUS_SUBSCRIPTION;
-        }  else {
-            subscriptionAction = SubscriptionAction.NO_SUBSCRIPTION;
-        }
-        return createRealmResults(query, queryDescriptors, false, subscriptionAction);
+        return createRealmResults(query, queryDescriptors, false);
     }
-
-    /**
-     * Finds all objects that fulfill the query condition(s). This method is only available from a Looper thread.
-     * <p>
-     * This method is only available on query-based synchronized Realms and will also create a named subscription
-     * that will synchronize all server data matching the query. Named subscriptions can be removed again by
-     * calling {@code Realm.unsubscribe(subscriptionName}.
-     *
-     * @param subscriptionName name of the underlying subscription being created.
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @see io.realm.RealmResults
-     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm or the query is on a {@link RealmList}.
-     */
-    @ObjectServer
-    public RealmResults<E> findAllAsync(String subscriptionName) {
-        return findAllAsync(subscriptionName, Long.MAX_VALUE, TimeUnit.MILLISECONDS, false);
-    }
-
-    /**
-     * Finds all objects that fulfil the query condition(s). This method is only available from a Looper thread.
-     * <p>
-     * This method is only available on query-based synchronized Realms and will also create a named subscription
-     * that will synchronize all server data matching the query. Named subscriptions can be removed again by
-     * calling {@code Realm.unsubscribe(subscriptionName}.
-     *
-     * @param subscriptionName name of the underlying subscription being created.
-     * @param update if an existing subscription exists with a different query. It will be replaced with this
-     *               one instead of an error being reported through {@link OrderedRealmCollectionChangeListener}.
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @see io.realm.RealmResults
-     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm or the query is on a {@link RealmList}.
-     */
-    @ObjectServer
-    @Beta
-    public RealmResults<E> findAllAsync(String subscriptionName, boolean update) {
-        return findAllAsync(subscriptionName, Long.MAX_VALUE, TimeUnit.MILLISECONDS, update);
-    }
-
-    /**
-     * Finds all objects that fulfil the query condition(s). This method is only available from a Looper thread.
-     * <p>
-     * This method is only available on query-based synchronized Realms and will also create a named subscription
-     * that will synchronize all server data matching the query. Named subscriptions can be removed again by
-     * calling {@code Realm.unsubscribe(subscriptionName}.
-     *
-     * @param subscriptionName name of the underlying subscription being created.
-     * @param timeToLive the amount of time the Subscription must be kept alive after last being used. After this
-     *                   period Realm will automatically remove it.
-     * @param timeUnit the unit for {@code timeToLive}.
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @see io.realm.RealmResults
-     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm or the query is on a {@link RealmList}.
-     */
-    @ObjectServer
-    @Beta
-    public RealmResults<E> findAllAsync(String subscriptionName, long timeToLive, TimeUnit timeUnit) {
-        return findAllAsync(subscriptionName, timeToLive, timeUnit, false);
-    }
-
-    /**
-     * Finds all objects that fulfil the query condition(s). This method is only available from a Looper thread.
-     * <p>
-     * This method is only available on query-based synchronized Realms and will also create a named subscription
-     * that will synchronize all server data matching the query. Named subscriptions can be removed again by
-     * calling {@code Realm.unsubscribe(subscriptionName}.
-     *
-     * @param subscriptionName name of the underlying subscription being created.
-     * @param timeToLive the amount of time the Subscription must be kept alive after last being used. After this
-     *                   period Realm will automatically remove it.
-     * @param timeUnit the unit for {@code timeToLive}.
-     * @param update if an existing subscription exists with a different query. It will be replaced with this
-     *               one instead of an error being reported through {@link OrderedRealmCollectionChangeListener}.
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @see io.realm.RealmResults
-     * @throws IllegalStateException If the Realm is a not a query-based synchronized Realm or the query is on a {@link RealmList}.
-     */
-    @ObjectServer
-    @Beta
-    public RealmResults<E> findAllAsync(String subscriptionName, long timeToLive, TimeUnit timeUnit, boolean update) {
-        realm.checkIfValid();
-        realm.checkIfPartialRealm();
-        if (osList != null) {
-            throw new IllegalStateException("Cannot create subscriptions for queries based on a 'RealmList'");
-        }
-        if (Util.isEmptyString(subscriptionName)) {
-            throw new IllegalArgumentException("Non-empty 'subscriptionName' required.");
-        }
-        if (timeToLive < 0) {
-            throw new IllegalArgumentException("Negative values for 'timeToLive' are not allowed: " + timeToLive);
-        }
-        //noinspection ConstantConditions
-        if (timeUnit == null) {
-            throw new IllegalArgumentException("Non-null 'timeUnit' required.");
-        }
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        long timeToLiveMs = timeUnit.toMillis(timeToLive);
-        SubscriptionAction action = (update) ? SubscriptionAction.update(subscriptionName, timeToLiveMs) : SubscriptionAction.create(subscriptionName, timeToLiveMs);
-        return createRealmResults(query, queryDescriptors, false, action);
-    }
-
 
     /**
      * Sorts the query result by the specific field name in ascending order.
@@ -2055,45 +2199,6 @@ public class RealmQuery<E> {
     }
 
     /**
-     * This predicate is only relevant for Query-based Realms.
-     * <p>
-     * Objects referenced through fields marked with {@link io.realm.annotations.LinkingObjects} are normally not downloaded
-     * as part of the subscription in Query-based Realms, but by using this predicate, it is possible to specify which linking
-     * objects relationships should also be included in the subscription as well.
-     * <p>
-     * Note, that all "forward" object references like object references and lists are always downloaded as part of the
-     * subscription by default.
-     * <p>
-     * This predicate can be called multiple times, in which case all fields will be added to the subscription.
-     * <p>
-     * NOTE: This method is only supported when connecting to Realm Object Server 3.21.0 or later. If you use it with previous
-     * versions of Realm Object Server, an {@link IllegalArgumentException} will be sent to {@link OrderedCollectionChangeSet#getError()}.
-     *
-     * @param firstIncludePath the first {@link io.realm.annotations.LinkingObjects} field to add.
-     * @param remainingFieldPaths any remaining {@link io.realm.annotations.LinkingObjects} fields to add.
-     * @throws IllegalStateException if called on a non-query-based Realm.
-     * @throws IllegalArgumentException if the path does not end with a field marked with {@link io.realm.annotations.LinkingObjects}.
-     */
-    @ObjectServer
-    public RealmQuery<E> includeLinkingObjects(String firstIncludePath, @Nullable String... remainingFieldPaths) {
-        realm.checkIfValid();
-        if (!ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(realm.getConfiguration())) {
-            throw new IllegalStateException("This method is only available for Query-based Realms.");
-        }
-        if (Util.isEmptyString(firstIncludePath)) {
-            throw new IllegalArgumentException("Non-empty 'firstIncludePath' required.");
-        }
-        queryDescriptors.appendIncludes(IncludeDescriptor.createInstance(getSchemaConnector(), table, firstIncludePath));
-        if (remainingFieldPaths != null) {
-            //noinspection ForLoopReplaceableByForEach
-            for (int i = 0; i < remainingFieldPaths.length; i++) {
-                queryDescriptors.appendIncludes(IncludeDescriptor.createInstance(getSchemaConnector(), table, remainingFieldPaths[i]));
-            }
-        }
-        return this;
-    }
-
-    /**
      * This predicate will always match.
      */
     public RealmQuery<E> alwaysTrue() {
@@ -2134,152 +2239,6 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Creates an anonymous subscription from this query or returns the existing Subscription if
-     * one already existed.
-     *
-     * @return the subscription representing this query.
-     * @throws IllegalStateException if this method is not called inside a write transaction or if
-     * the query is on a {@link DynamicRealm}
-     */
-    @ObjectServer
-    @Beta
-    public Subscription subscribe() {
-        StringBuilder sb = new StringBuilder("[");
-        sb.append((table != null) ? table.getClassName() : "");
-        sb.append("] ");
-        sb.append(nativeSerializeQuery(query.getNativePtr(), queryDescriptors.getNativePtr()));
-        String name = sb.toString();
-        return subscribe(name);
-    }
-
-    /**
-     * Creates a named subscription from this query or returns the existing Subscription if
-     * one already existed. Subscriptions created this way will live forever or until the
-     * subscription is manually deleted.
-     *
-     * @return the name of the subscription representing this query.
-     * @return the subscription representing this query.
-     * @throws IllegalStateException if this method is not called inside a write transaction, if
-     * the query is on a {@link DynamicRealm} or a {@link RealmList}.
-     * @throws IllegalArgumentException if a subscription for a different query with the same name
-     * already exists.
-     */
-    @ObjectServer
-    @Beta
-    public Subscription subscribe(String name) {
-        return subscribe(name, Long.MAX_VALUE, TimeUnit.MILLISECONDS, false);
-    }
-
-    /**
-     * Creates a named subscription from this query or returns the existing Subscription if
-     * one already exists.
-     * <p>
-     * {@code timeToLive} indicates for how long Realm must keep the subscription alive after last
-     * being used. After this period expires Realm are allowed to delete the subscription.
-     * This happens automatically. The period is reset, whenever someone resubscribes or updates
-     * the subscription itself.
-     * </p>
-     * When a subscription is deleted, the data covered by the subscription is removed from the
-     * device, but not the server.
-     *
-     * @param name the name subscription representing this query.
-     * @param timeToLive the amount of time the Subscription must be kept alive after last being used. After this
-     *                   period Realm will automatically remove it.
-     * @param timeUnit the unit for {@code timeToLive}.
-     * @return the subscription representing this query.
-     * @throws IllegalStateException if this method is not called inside a write transaction, if
-     * the query is on a {@link DynamicRealm} or a {@link RealmList}.
-     * @throws IllegalArgumentException if a subscription for a different query with the same name
-     * already exists.
-     */
-    @ObjectServer
-    @Beta
-    public Subscription subscribe(String name, long timeToLive, TimeUnit timeUnit) {
-        return subscribe(name, timeToLive, timeUnit, false);
-    }
-
-    /**
-     * Creates a named subscription from this query or returns the existing Subscription if
-     * one already existed. If an existing subscription already exists and the existing query
-     * is different, it will be replaced by this query.
-     * <p>
-     * It is only allowed to update a subscription that queries for objects of the same type. If
-     * the existing subscription queries for objects of a different type, an {@link IllegalArgumentException}
-     * is thrown.
-     *
-     * @param name the name of the subscription.
-     * @return the subscription representing this query.
-     * @throws IllegalStateException if this method is not called inside a write transaction, if
-     * the query is on a {@link DynamicRealm} or a {@link RealmList}.
-     * @throws IllegalArgumentException if this query are for other objects than those already being
-     * returned by an existing subscription.
-     */
-    @ObjectServer
-    @Beta
-    public Subscription subscribeOrUpdate(String name) {
-        return subscribe(name, Long.MAX_VALUE, TimeUnit.MILLISECONDS, true);
-    }
-
-    /**
-     * Creates a named subscription from this query or returns the existing Subscription if
-     * one already existed. If a subscription already exists and the query
-     * is different, it will be replaced by this query.
-     * <p>
-     * It is only allowed to update a subscription that queries for objects of the same type. If
-     * the existing subscription queries for objects of a different type, an {@link IllegalArgumentException}
-     * is thrown.
-     * <p>
-     * {@code timeToLive} indicates for how long Realm must keep the subscription alive after last
-     * being used. After this period expires Realm are allowed to delete the subscription.
-     * This happens automatically. The period is reset, whenever the subscription is resubscribed or updated
-     * </p>
-     * When a subscription is deleted, the data covered by the subscription is removed from the
-     * device, but not the server.
-     *
-     * @param name the name of the subscription.
-     * @param timeToLive the amount of time the Subscription must be kept alive after last being used.
-     * @param timeUnit the unit for {@code timeToLive}.
-     * @return the subscription representing this query.
-     * @throws IllegalStateException if this method is not called inside a write transaction, if
-     * the query is on a {@link DynamicRealm} or a {@link RealmList}.
-     * @throws IllegalArgumentException if this query are for other objects than those already being
-     * returned by an existing subscription.
-     */
-    @ObjectServer
-    @Beta
-    public Subscription subscribeOrUpdate(String name, long timeToLive, TimeUnit timeUnit) {
-        return subscribe(name, timeToLive, timeUnit, true);
-    }
-
-
-    @ObjectServer
-    private Subscription subscribe(String name, long timeToLive, TimeUnit timeUnit, boolean update) {
-        realm.checkIfValid();
-        if (realm instanceof DynamicRealm) {
-            throw new IllegalStateException("'subscribe' is not supported for queries on Dynamic Realms.");
-        }
-        if (osList != null) {
-            throw new IllegalStateException("Cannot create subscriptions for queries based on a 'RealmList. Subscribe to the object holding the list instead.'");
-        }
-        if (TextUtils.isEmpty(name)) {
-            throw new IllegalArgumentException("Non-empty 'name' required.");
-        }
-        //noinspection ConstantConditions
-        if (timeUnit == null) {
-            throw new IllegalArgumentException("Non-null 'timeUnit' is required.");
-        }
-
-        // Convert timestamp to milliseconds and clamp at max
-        long timeToLiveMs = TimeUnit.MILLISECONDS.convert(timeToLive, timeUnit);
-
-        long objKey = nativeSubscribe(realm.getSharedRealm().getNativePtr(), name, query.getNativePtr(),
-                queryDescriptors.getNativePtr(), timeToLiveMs, update);
-        CheckedRow row = ((Realm) realm).getTable(Subscription.class).getCheckedRow(objKey);
-        return realm.get(Subscription.class, null, row);
-    }
-
-
-    /**
      * Returns a textual description of this query.
      *
      * @return the textual description of the query.
@@ -2304,13 +2263,22 @@ public class RealmQuery<E> {
 
     /**
      * Finds the first object that fulfills the query conditions.
+     * <p>
+     * Launching heavy queries from the UI thread may result in a drop of frames or even ANRs. <b>We do not recommend
+     * doing so, but it is allowed by default.</b> If you want to prevent these behaviors you can obtain a Realm using
+     * a {@link RealmConfiguration} that explicitly sets
+     * {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)} to {@code false}. This way you will be forced
+     * to launch your queries from a non-UI thread, otherwise calls to this method will throw a {@link RealmException}.
+     * Alternatively, you can use {@link #findFirstAsync()}.
      *
      * @return the object found or {@code null} if no object matches the query conditions.
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      * @see io.realm.RealmObject
      */
     @Nullable
     public E findFirst() {
         realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
 
         if (forValues) {
             // TODO implement this;
@@ -2378,15 +2346,10 @@ public class RealmQuery<E> {
 
     private RealmResults<E> createRealmResults(TableQuery query,
                                                DescriptorOrdering queryDescriptors,
-                                               boolean loadResults,
-                                               SubscriptionAction subscriptionAction) {
+                                               boolean loadResults) {
         RealmResults<E> results;
         OsResults osResults;
-        if (subscriptionAction.shouldCreateSubscriptions()) {
-            osResults = SubscriptionAwareOsResults.createFromQuery(realm.sharedRealm, query, queryDescriptors, subscriptionAction);
-        } else {
-            osResults = OsResults.createFromQuery(realm.sharedRealm, query, queryDescriptors);
-        }
+        osResults = OsResults.createFromQuery(realm.sharedRealm, query, queryDescriptors);
 
         if (isDynamicQuery()) {
             results = new RealmResults<>(realm, osResults, className);
@@ -2418,7 +2381,4 @@ public class RealmQuery<E> {
     }
 
     private static native String nativeSerializeQuery(long tableQueryPtr, long descriptorPtr);
-    private static native long nativeSubscribe(long sharedRealmPtr, String name, long tableQueryPtr,
-                                               long descriptorPtr, long timeToLiveMs, boolean update);
-
 }

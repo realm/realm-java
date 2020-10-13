@@ -6,7 +6,7 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'maven-publish'
-apply plugin: 'findbugs'
+apply plugin: 'com.github.spotbugs-base'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
@@ -16,7 +16,7 @@ apply plugin: 'net.ltgt.errorprone'
 def properties = new Properties()
 properties.load(new FileInputStream("${projectDir}/../../dependencies.list"))
 
-ext.coreVersion = properties.getProperty('REALM_SYNC_VERSION')
+ext.coreVersion = properties.getProperty('REALM_SYNC')
 // empty or comment out this to disable hash checking
 ext.coreSha256Hash = properties.getProperty('REALM_SYNC_SHA256')
 ext.forceDownloadCore = project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
@@ -46,7 +46,8 @@ android {
         targetSdkVersion rootProject.compileSdkVersion
         versionName version
         project.archivesBaseName = "realm-android-library"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
         externalNativeBuild {
             cmake {
                 arguments "-DREALM_CORE_DIST_DIR:STRING=${project.coreDir.getAbsolutePath()}",
@@ -96,11 +97,17 @@ android {
     }
 
     sourceSets {
+        testObjectServer {
+            java.srcDirs += ['src/testObjectServer/kotlin']
+        }
         androidTest {
             java.srcDirs += ['src/androidTest/kotlin', 'src/testUtils/java', 'src/testUtils/kotlin']
         }
         androidTestObjectServer {
-            java.srcDirs += ['src/syncIntegrationTest/java', 'src/syncTestUtils/java']
+            java.srcDirs += [/* FIXME 'src/syncIntegrationTest/java', */
+                             'src/syncIntegrationTest/kotlin',
+                             'src/androidTestObjectServer/kotlin', 'src/syncTestUtils/java'
+            , 'src/syncTestUtils/kotlin']
             assets.srcDirs += ['src/syncIntegrationTest/assets/']
         }
     }
@@ -157,6 +164,7 @@ android {
     }
 }
 
+
 project.afterEvaluate {
     tasks.withType(JavaCompile) {
         options.compilerArgs << '-Werror'
@@ -200,30 +208,38 @@ repositories {
 
 dependencies {
 
-    compileOnly 'io.reactivex.rxjava2:rxjava:2.1.5'
-    compileOnly 'com.google.code.findbugs:findbugs-annotations:3.0.1'
+    compileOnly "io.reactivex.rxjava2:rxjava:${properties.getProperty('RXJAVA_DEPENDENCY')}"
+    compileOnly 'com.github.spotbugs:spotbugs-annotations:4.1.2'
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
 
     api "io.realm:realm-annotations:${version}"
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation 'com.getkeepsafe.relinker:relinker:1.4.0'
-    implementation('io.reactivex.rxjava2:rxandroid:2.1.1') {
+    api "org.mongodb:bson:${properties.getProperty('BSON_DEPENDENCY')}"
+    implementation("io.reactivex.rxjava2:rxandroid:${properties.getProperty('RXANDROID_DEPENDENCY')}") {
         exclude group: 'io.reactivex.rxjava2', module: 'rxjava'
     }
 
-    kapt project(':realm-annotations-processor') // See https://github.com/realm/realm-java/issues/5799
-    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    androidTestImplementation "androidx.multidex:multidex:2.0.1"
 
+    kapt project(':realm-annotations-processor') // See https://github.com/realm/realm-java/issues/5799
+    objectServerImplementation 'com.squareup.okhttp3:okhttp:3.12.0' // Going above this requires minSDK 21
     kaptAndroidTest project(':realm-annotations-processor')
-    androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
-    androidTestImplementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test:rules:1.0.2'
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+    androidTestImplementation "io.reactivex.rxjava2:rxjava:${properties.getProperty('RXJAVA_DEPENDENCY')}"
+    androidTestImplementation "io.reactivex.rxjava2:rxandroid:${properties.getProperty('RXANDROID_DEPENDENCY')}"
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test:rules:1.2.0'
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
     androidTestImplementation 'com.google.dexmaker:dexmaker-mockito:1.2'
     androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
     androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     androidTestImplementation "org.skyscreamer:jsonassert:1.5.0"
+    androidTestImplementation project(':kotlin-extensions')
 
     // specify error prone version to prevent sudden failure
     errorprone 'com.google.errorprone:error_prone_core:2.1.2'
@@ -256,6 +272,8 @@ task javadoc(type: Javadoc) {
 
         links "https://docs.oracle.com/javase/7/docs/api/"
         links "http://reactivex.io/RxJava/javadoc/"
+        // TODO We probably need to add the bson.jar to the classpath for these to work
+        links "https://www.javadoc.io/doc/org.mongodb/bson/${properties.getProperty('BSON_DEPENDENCY')}/"
         linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
 
         tags = [betaTag]
@@ -276,34 +294,34 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
 }
 
-task findbugs(type: FindBugs) {
-    dependsOn assemble
-    group = 'Verification'
-
+// See https://spotbugs-gradle-plugin.netlify.app/com/github/spotbugs/snom/spotbugsextension
+spotbugs {
+    toolVersion = '4.1.1'
     ignoreFailures = false
     effort = "default"
     reportLevel = "medium"
     excludeFilter = file("${projectDir}/../config/findbugs/findbugs-filter.xml")
-    classes = files("${projectDir}/build/intermediates/javac")
-    source = fileTree('src/main/java/')
-    classpath = files()
+}
+
+// See https://spotbugs.readthedocs.io/en/latest/migration.html#findbugs-gradle-plugin
+task spotbugsMain(type: com.github.spotbugs.snom.SpotBugsTask) {
+    dependsOn 'assemble'
+    group = 'verification'
+    classes = fileTree("build/intermediates/javac/")
+
     reports {
         xml.enabled = false
         html.enabled = true
-        xml {
-            destination file("$project.buildDir/findbugs/findbugs-output.xml")
-        }
-        html {
-            destination file("$project.buildDir/findbugs/findbugs-output.html")
-        }
     }
 }
 
 task pmd(type: Pmd) {
-    group = 'Verification'
+    group = 'verification'
 
-    source = fileTree('src/main/java')
+    source = fileTree('src/main/java') + fileTree('src/objectServer/java')
     ruleSetFiles = files("${projectDir}/../config/pmd/ruleset.xml")
+
+    ruleSets = []
 
     reports {
         xml.enabled = false
@@ -314,28 +332,21 @@ task pmd(type: Pmd) {
 // Configure Checkstyle
 // Android sourceSets are not sourceSets, so we can't confgure this with the DSL.
 task checkstyle(type: Checkstyle) {
-    group = 'Verification'
+    group = 'verification'
+    configFile file("${projectDir}/../config/checkstyle/checkstyle.xml")
 
-    source 'src'
-    include '*/java/**/*.java'
-    // Ignore tests for now.
-    exclude '*Test*/**'
+    source fileTree('src/main/java') + fileTree('src/objectServer/java')
+    include '**/*.java'
+    exclude '**/gen/**'
 
     // empty classpath
     classpath = files()
+
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
 }
-
-checkstyle {
-    toolVersion ="7.6"
-
-    configFile = file("${projectDir}/../config/checkstyle/checkstyle.xml")
-
-    def configProps = ['proj.module.dir': projectDir.absolutePath]
-    configProperties configProps
-
-    ignoreFailures = true
-}
-check.dependsOn tasks.checkstyle
 
 install {
     repositories.mavenInstaller {

@@ -33,6 +33,9 @@ import java.lang.annotation.Target;
  * It is allowed to apply this annotation on the following primitive types: byte, short, int, and long.
  * String, Byte, Short, Integer, and Long are also allowed, and further permitted to have {@code null}
  * as a primary key value.
+ * <p>
+ * This annotation is not allowed inside Realm classes marked as {@code \@RealmClass(embedded = true)}.
+ * </p>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

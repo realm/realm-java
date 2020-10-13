@@ -17,20 +17,25 @@
 package io.realm;
 
 import java.util.Locale;
+import java.util.concurrent.Future;
+
+import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
-import io.realm.annotations.Beta;
+import io.realm.annotations.RealmClass;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsSharedRealm;
+import io.realm.internal.RealmNotifier;
+import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
-import io.realm.internal.annotations.ObjectServer;
+import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.log.RealmLog;
-import io.realm.sync.permissions.ClassPrivileges;
 
 /**
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
@@ -165,6 +170,51 @@ public class DynamicRealm extends BaseRealm {
     }
 
     /**
+     * Instantiates and adds a new embedded object to the Realm.
+     * <p>
+     * This method should only be used to create objects of types marked as embedded.
+     *
+     * @param className the class name of the object to create.
+     * @param parentObject The parent object which should hold a reference to the embedded object.
+     *                     If the parent property is a list the embedded object will be added to the
+     *                     end of that list.
+     * @param parentProperty the property in the parent class which holds the reference.
+     * @return the newly created embedded object.
+     * @throws IllegalArgumentException if {@code clazz} is not an embedded class or if the property
+     * in the parent class cannot hold objects of the appropriate type.
+     * @see RealmClass#embedded()
+     */
+    public DynamicRealmObject createEmbeddedObject(String className,
+                                                   DynamicRealmObject parentObject,
+                                                   String parentProperty) {
+        checkIfValid();
+        Util.checkNull(parentObject, "parentObject");
+        Util.checkEmpty(parentProperty, "parentProperty");
+        if (!RealmObject.isManaged(parentObject) || !RealmObject.isValid(parentObject)) {
+            throw new IllegalArgumentException("Only valid, managed objects can be a parent to an embedded object.");
+        }
+
+        String pkField = OsObjectStore.getPrimaryKeyForObject(sharedRealm, className);
+        // Check and throw the exception earlier for a better exception message.
+        if (pkField != null) {
+            throw new RealmException(String.format(Locale.US,
+                    "'%s' has a primary key field '%s', embedded objects cannot have primary keys.",
+                    className, pkField));
+        }
+
+        String parentClassName = parentObject.getType();
+        RealmObjectSchema parentObjectSchema = schema.get(parentClassName);
+
+        if (parentObjectSchema == null) {
+            throw new IllegalStateException(String.format("No schema found for '%s'.", parentClassName));
+        }
+
+        Row embeddedObject = getEmbeddedObjectRow(className, parentObject, parentProperty, schema, parentObjectSchema);
+
+        return new DynamicRealmObject(this, embeddedObject);
+    }
+
+    /**
      * Returns a RealmQuery, which can be used to query the provided class.
      *
      * @param className the class of the object which is to be queried.
@@ -227,31 +277,34 @@ public class DynamicRealm extends BaseRealm {
      * Deletes all objects of the specified class from the Realm.
      *
      * @param className the class for which all objects should be removed.
-     * @throws IllegalStateException if the corresponding Realm is a partially synchronized Realm, is
-     * closed or called from an incorrect thread.
+     * @throws IllegalStateException if the Realm is closed or called from an incorrect thread.
      */
     public void delete(String className) {
         checkIfValid();
         checkIfInTransaction();
-        if (sharedRealm.isPartial()) {
-            throw new IllegalStateException(DELETE_NOT_SUPPORTED_UNDER_PARTIAL_SYNC);
-        }
-        schema.getTable(className).clear(sharedRealm.isPartial());
+        schema.getTable(className).clear();
     }
 
     /**
      * Executes a given transaction on the DynamicRealm. {@link #beginTransaction()} and
      * {@link #commitTransaction()} will be called automatically. If any exception is thrown
      * during the transaction {@link #cancelTransaction()} will be called instead of {@link #commitTransaction()}.
+     * <p>
+     * Calling this method from the UI thread will throw a {@link RealmException}. Doing so may result in a drop of frames
+     * or even ANRs. We recommend calling this method from a non-UI thread or using
+     * {@link #executeTransactionAsync(Transaction)} instead.
      *
-     * @param transaction {@link io.realm.DynamicRealm.Transaction} to execute.
+     * @param transaction {@link Transaction} to execute.
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}.
+     * @throws RealmException if called from the UI thread, unless an explicit opt-in has been declared in {@link RealmConfiguration.Builder#allowWritesOnUiThread(boolean)}.
      */
     public void executeTransaction(Transaction transaction) {
         //noinspection ConstantConditions
         if (transaction == null) {
             throw new IllegalArgumentException("Transaction should not be null");
         }
+
+        checkAllowWritesOnUiThread();
 
         beginTransaction();
         try {
@@ -265,6 +318,182 @@ public class DynamicRealm extends BaseRealm {
             }
             throw e;
         }
+    }
+
+    /**
+     * Similar to {@link #executeTransaction(Transaction)} but runs asynchronously on a worker thread.
+     *
+     * @param transaction {@link Transaction} to execute.
+     * @return a {@link RealmAsyncTask} representing a cancellable task.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the Realm is opened from
+     * another thread.
+     */
+    public RealmAsyncTask executeTransactionAsync(final Transaction transaction) {
+        return executeTransactionAsync(transaction, null, null);
+    }
+
+    /**
+     * Similar to {@link #executeTransactionAsync(Transaction)}, but also accepts an OnSuccess callback.
+     *
+     * @param transaction {@link Transaction} to execute.
+     * @param onSuccess callback invoked when the transaction succeeds.
+     * @return a {@link RealmAsyncTask} representing a cancellable task.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
+     * another thread.
+     */
+    public RealmAsyncTask executeTransactionAsync(final Transaction transaction, final Transaction.OnSuccess onSuccess) {
+        //noinspection ConstantConditions
+        if (onSuccess == null) {
+            throw new IllegalArgumentException("onSuccess callback can't be null");
+        }
+
+        return executeTransactionAsync(transaction, onSuccess, null);
+    }
+
+    /**
+     * Similar to {@link #executeTransactionAsync(Transaction)}, but also accepts an OnError callback.
+     *
+     * @param transaction {@link Transaction} to execute.
+     * @param onError callback invoked when the transaction fails.
+     * @return a {@link RealmAsyncTask} representing a cancellable task.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
+     * another thread.
+     */
+    public RealmAsyncTask executeTransactionAsync(final Transaction transaction, final Transaction.OnError onError) {
+        //noinspection ConstantConditions
+        if (onError == null) {
+            throw new IllegalArgumentException("onError callback can't be null");
+        }
+
+        return executeTransactionAsync(transaction, null, onError);
+    }
+
+    /**
+     * Similar to {@link #executeTransactionAsync(Transaction)}, but also accepts an OnSuccess and OnError callbacks.
+     *
+     * @param transaction {@link Transaction} to execute.
+     * @param onSuccess callback invoked when the transaction succeeds.
+     * @param onError callback invoked when the transaction fails.
+     * @return a {@link RealmAsyncTask} representing a cancellable task.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from
+     * another thread.
+     */
+    public RealmAsyncTask executeTransactionAsync(final Transaction transaction,
+                                                  @Nullable final Transaction.OnSuccess onSuccess,
+                                                  @Nullable final Transaction.OnError onError) {
+        checkIfValid();
+
+        //noinspection ConstantConditions
+        if (transaction == null) {
+            throw new IllegalArgumentException("Transaction should not be null");
+        }
+
+        if (isFrozen()) {
+            throw new IllegalStateException("Write transactions on a frozen Realm is not allowed.");
+        }
+
+        // Avoid to call canDeliverNotification() in bg thread.
+        final boolean canDeliverNotification = sharedRealm.capabilities.canDeliverNotification();
+
+        // If the user provided a Callback then we have to make sure the current Realm has an events looper to deliver
+        // the results.
+        if ((onSuccess != null || onError != null)) {
+            sharedRealm.capabilities.checkCanDeliverNotification("Callback cannot be delivered on current thread.");
+        }
+
+        // We need to use the same configuration to open a background OsSharedRealm (i.e Realm)
+        // to perform the transaction
+        final RealmConfiguration realmConfiguration = getConfiguration();
+        // We need to deliver the callback even if the Realm is closed. So acquire a reference to the notifier here.
+        final RealmNotifier realmNotifier = sharedRealm.realmNotifier;
+
+        final Future<?> pendingTransaction = asyncTaskExecutor.submitTransaction(new Runnable() {
+            @Override
+            public void run() {
+                if (Thread.currentThread().isInterrupted()) {
+                    return;
+                }
+
+                OsSharedRealm.VersionID versionID = null;
+                Throwable exception = null;
+
+                final DynamicRealm bgRealm = DynamicRealm.getInstance(realmConfiguration);
+                bgRealm.beginTransaction();
+                try {
+                    transaction.execute(bgRealm);
+
+                    if (Thread.currentThread().isInterrupted()) {
+                        return;
+                    }
+
+                    bgRealm.commitTransaction();
+                    // The bgRealm needs to be closed before post event to caller's handler to avoid concurrency
+                    // problem. This is currently guaranteed by posting callbacks later below.
+                    versionID = bgRealm.sharedRealm.getVersionID();
+                } catch (final Throwable e) {
+                    exception = e;
+                } finally {
+                    try {
+                        if (bgRealm.isInTransaction()) {
+                            bgRealm.cancelTransaction();
+                        }
+                    } finally {
+                        bgRealm.close();
+                    }
+                }
+
+                final Throwable backgroundException = exception;
+                final OsSharedRealm.VersionID backgroundVersionID = versionID;
+                // Cannot be interrupted anymore.
+                if (canDeliverNotification) {
+                    if (backgroundVersionID != null && onSuccess != null) {
+                        realmNotifier.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (isClosed()) {
+                                    // The caller Realm is closed. Just call the onSuccess. Since the new created Realm
+                                    // cannot be behind the background one.
+                                    onSuccess.onSuccess();
+                                    return;
+                                }
+
+                                if (sharedRealm.getVersionID().compareTo(backgroundVersionID) < 0) {
+                                    sharedRealm.realmNotifier.addTransactionCallback(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            onSuccess.onSuccess();
+                                        }
+                                    });
+                                } else {
+                                    onSuccess.onSuccess();
+                                }
+                            }
+                        });
+                    } else if (backgroundException != null) {
+                        realmNotifier.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (onError != null) {
+                                    onError.onError(backgroundException);
+                                } else {
+                                    throw new RealmException("Async transaction failed", backgroundException);
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    if (backgroundException != null) {
+                        // FIXME: ThreadPoolExecutor will never throw the exception in the background.
+                        // We need a redesign of the async transaction API.
+                        // Throw in the worker thread since the caller thread cannot get notifications.
+                        throw new RealmException("Async transaction failed", backgroundException);
+                    }
+                }
+
+            }
+        });
+
+        return new RealmAsyncTaskImpl(pendingTransaction, asyncTaskExecutor);
     }
 
     /**
@@ -302,86 +531,6 @@ public class DynamicRealm extends BaseRealm {
     public boolean isEmpty() {
         checkIfValid();
         return sharedRealm.isEmpty();
-    }
-
-// FIXME: Depends on a typed schema. Find a work-around
-//    /**
-//     * {@inheritDoc}
-//     */
-//    @Beta
-//    @ObjectServer
-//    @Override
-//    public RealmPermissions getPermissions() {
-//        checkIfValid();
-//        Table table = sharedRealm.getTable("class___Realm");
-//        TableQuery query = table.where();
-//        OsResults result = OsResults.createFromQuery(sharedRealm, query);
-//        return new RealmResults<>(this, result, RealmPermissions.class).first();
-//    }
-
-
-// FIXME: Depends on a typed schema. Find a work-around
-//    /**
-//     * Returns all permissions associated with the given class. Attach a change listener
-//     * using {@link ClassPermissions#addChangeListener(RealmChangeListener)} to be notified about
-//     * any future changes.
-//     *
-//     * @param className class to receive permissions for.
-//     * @return the permissions for the given class or {@code null} if no permissions where found.
-//     * @throws RealmException if the class is not part of this Realms schema.
-//     */
-//    @Beta
-//    @ObjectServer
-//    public ClassPermissions getPermissions(String className) {
-//        checkIfValid();
-//        //noinspection ConstantConditions
-//        if (Util.isEmptyString(className)) {
-//            throw new IllegalArgumentException("Non-empty 'className' required.");
-//        }
-//        if (!schema.contains(className)) {
-//            throw new RealmException("Class '" + className + "' is not part of the schema for this Realm.");
-//        }
-//        Table table = sharedRealm.getTable("class___Class");
-//        TableQuery query = table.where()
-//                .equalTo(new long[]{table.getObjectKey("name")}, new long[]{NativeObject.NULLPTR}, className);
-//        OsResults result = OsResults.createFromQuery(sharedRealm, query);
-//        return new RealmResults<>(this, result, ClassPermissions.class).first(null);
-//    }
-
-// FIXME: Depends on a typed schema. Find a work-around
-//    /**
-//     * {@inheritDoc}
-//     */
-//    @Beta
-//    @ObjectServer
-//    @Override
-//    public RealmResults<Role> getRoles() {
-//        checkIfValid();
-//        //noinspection ConstantConditions
-//        Table table = sharedRealm.getTable("class___Role");
-//        TableQuery query = table.where();
-//        OsResults result = OsResults.createFromQuery(sharedRealm, query);
-//        return new RealmResults<>(this, result, Role.class);
-//    }
-
-    /**
-     * Returns the privileges granted the current user for the given class.
-     *
-     * @param className class to get privileges for.
-     * @return the privileges granted the current user for the given class.
-     */
-    @Beta
-    @ObjectServer
-    public ClassPrivileges getPrivileges(String className) {
-        checkIfValid();
-        //noinspection ConstantConditions
-        if (Util.isEmptyString(className)) {
-            throw new IllegalArgumentException("Non-empty 'className' required.");
-        }
-        if (!schema.contains(className)) {
-            throw new RealmException("Class '" + className + "' is not part of the schema for this Realm");
-        }
-        return new ClassPrivileges(sharedRealm.getClassPrivileges(className));
     }
 
     /**
@@ -434,12 +583,37 @@ public class DynamicRealm extends BaseRealm {
      */
     public interface Transaction {
         void execute(DynamicRealm realm);
+
+        /**
+         * Callback invoked to notify the caller thread.
+         */
+        class Callback {
+            public void onSuccess() {}
+
+            public void onError(Exception ignore) {}
+        }
+
+        /**
+         * Callback invoked to notify the caller thread about the success of the transaction.
+         */
+        interface OnSuccess {
+            void onSuccess();
+        }
+
+        /**
+         * Callback invoked to notify the caller thread about error during the transaction.
+         * The transaction will be rolled back and the background Realm will be closed before
+         * invoking {@link #onError(Throwable)}.
+         */
+        interface OnError {
+            void onError(Throwable error);
+        }
     }
 
     /**
      * {@inheritDoc}
      */
-    public static abstract class Callback extends InstanceCallback<DynamicRealm> {
+    public abstract static class Callback extends InstanceCallback<DynamicRealm> {
         /**
          * {@inheritDoc}
          */

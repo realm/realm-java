@@ -29,14 +29,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
-import io.realm.annotations.Beta;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
-import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.OsSchemaInfo;
@@ -47,11 +45,8 @@ import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
-import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.RealmLog;
-import io.realm.sync.permissions.ObjectPrivileges;
-import io.realm.sync.permissions.RealmPrivileges;
 
 /**
  * Base class for all Realm instances.
@@ -80,6 +75,12 @@ abstract class BaseRealm implements Closeable {
 
     // Thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
+
+    /**
+     * Thread pool executor used for write operations - only one thread is needed as writes cannot
+     * be parallelized.
+     */
+    public static final RealmThreadPoolExecutor WRITE_EXECUTOR = RealmThreadPoolExecutor.newSingleThreadExecutor();
 
     final boolean frozen; // Cache the value in Java, since it is accessed frequently and doesn't change.
     final long threadId;
@@ -152,7 +153,7 @@ abstract class BaseRealm implements Closeable {
         this.shouldCloseSharedRealm = false;
     }
 
-    /**
+   /**
      * Sets the auto-refresh status of the Realm instance.
      * <p>
      * Auto-refresh is a feature that enables automatic update of the current Realm instance and all its derived objects
@@ -179,16 +180,21 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Refreshes the Realm instance and all the RealmResults and RealmObjects instances coming from it.
-     * It also calls any listeners associated with the Realm if neeeded.
+     * It also calls any listeners associated with the Realm if needed.
      * <p>
      * WARNING: Calling this on a thread with async queries will turn those queries into synchronous queries.
-     * In most cases it is better to use {@link RealmChangeListener}s to be notified about changes to the
-     * Realm on a given thread than it is to use this method.
+     * This means this method will throw a {@link RealmException} if
+     * {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)} was used with {@code true} to
+     * obtain a Realm instance. In most cases it is better to use {@link RealmChangeListener}s to be notified
+     * about changes to the Realm on a given thread than it is to use this method.
      *
      * @throws IllegalStateException if attempting to refresh from within a transaction.
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     public void refresh() {
         checkIfValid();
+        checkAllowQueriesOnUiThread();
+
         if (isInTransaction()) {
             throw new IllegalStateException("Cannot refresh a Realm instance inside a transaction.");
         }
@@ -513,20 +519,33 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
-    protected void checkIfInTransaction() {
-        if (!sharedRealm.isInTransaction()) {
-            throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
+    /**
+     * Checks whether queries are allowed from the UI thread in the current RealmConfiguration.
+     */
+    protected void checkAllowQueriesOnUiThread() {
+        // Warn on query being executed on UI thread if isAllowQueriesOnUiThread is set to true, throw otherwise
+        if (getSharedRealm().capabilities.isMainThread()) {
+            if (!getConfiguration().isAllowQueriesOnUiThread()) {
+                throw new RealmException("Queries on the UI thread have been disabled. They can be enabled by setting 'RealmConfiguration.Builder.allowQueriesOnUiThread(true)'.");
+            }
         }
     }
 
-    protected void checkIfPartialRealm() {
-        boolean isPartialRealm = false;
-        if (configuration.isSyncConfiguration()) {
-            isPartialRealm = ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(configuration);
+    /**
+     * Checks whether writes are allowed from the UI thread in the current RealmConfiguration.
+     */
+    protected void checkAllowWritesOnUiThread() {
+        // Warn on transaction being executed on UI thread if allowWritesOnUiThread is set to true, throw otherwise
+        if (getSharedRealm().capabilities.isMainThread()) {
+            if (!getConfiguration().isAllowWritesOnUiThread()) {
+                throw new RealmException("Running transactions on the UI thread has been disabled. It can be enabled by setting 'RealmConfiguration.Builder.allowWritesOnUiThread(true)'.");
+            }
         }
+    }
 
-        if (!isPartialRealm) {
-            throw new IllegalStateException("This method is only available on partially synchronized Realms.");
+    protected void checkIfInTransaction() {
+        if (!sharedRealm.isInTransaction()) {
+            throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
         }
     }
 
@@ -540,12 +559,49 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
+     * Creates a row representing an embedded object - for internal use only.
+     *
+     * @param className the class name of the object to create.
+     * @param parentProxy The parent object which should hold a reference to the embedded object.
+     * @param parentProperty the property in the parent class which holds the reference.
+     * @param schema the Realm schema from which to obtain table information.
+     * @param parentObjectSchema the parent object schema from which to obtain property information.
+     * @return the row representing the newly created embedded object.
+     * @throws IllegalArgumentException if any embedded object invariants are broken.
+     */
+    Row getEmbeddedObjectRow(final String className,
+                             final RealmObjectProxy parentProxy,
+                             final String parentProperty,
+                             final RealmSchema schema,
+                             final RealmObjectSchema parentObjectSchema) {
+        final long parentPropertyColKey = parentObjectSchema.getColumnKey(parentProperty);
+        final RealmFieldType parentPropertyType = parentObjectSchema.getFieldType(parentProperty);
+        final Row row = parentProxy.realmGet$proxyState().getRow$realm();
+        final RealmFieldType fieldType = parentObjectSchema.getFieldType(parentProperty);
+        boolean propertyAcceptable = parentObjectSchema.isPropertyAcceptableForEmbeddedObject(fieldType);
+        if (!propertyAcceptable) {
+            throw new IllegalArgumentException(String.format("Field '%s' does not contain a valid link", parentProperty));
+        }
+        final String linkedType = parentObjectSchema.getPropertyClassName(parentProperty);
+
+        // By now linkedType can only be either OBJECT or LIST, so no exhaustive check needed
+        Row embeddedObject;
+        if (linkedType.equals(className)) {
+            long objKey = row.createEmbeddedObject(parentPropertyColKey, parentPropertyType);
+            embeddedObject = schema.getTable(className).getCheckedRow(objKey);
+        } else {
+            throw new IllegalArgumentException(String.format("Parent type %s expects that property '%s' be of type %s but was %s.", parentObjectSchema.getClassName(), parentProperty, linkedType, className));
+        }
+
+        return embeddedObject;
+    }
+
+    /**
      * Checks if the Realm is not built with a SyncRealmConfiguration.
      */
     void checkNotInSync() {
         if (configuration.isSyncConfiguration()) {
-            throw new IllegalArgumentException("You cannot perform changes to a schema. " +
-                    "Please update app and restart.");
+            throw new UnsupportedOperationException("You cannot perform destructive changes to a schema of a synced Realm");
         }
     }
 
@@ -575,43 +631,6 @@ abstract class BaseRealm implements Closeable {
      */
     public long getVersion() {
         return OsObjectStore.getSchemaVersion(sharedRealm);
-    }
-
-    /**
-     * Returns the privileges granted to the current user for this Realm.
-     *
-     * @return the privileges granted the current user for this Realm.
-     */
-    @Beta
-    @ObjectServer
-    public RealmPrivileges getPrivileges() {
-        checkIfValid();
-        return new RealmPrivileges(sharedRealm.getPrivileges());
-    }
-
-    /**
-     * Returns the privileges granted to the current user for the given object.
-     *
-     * @param object Realm object to get privileges for.
-     * @return the privileges granted the current user for the object.
-     * @throws IllegalArgumentException if the object is either null, unmanaged or not part of this Realm.
-     */
-    @Beta
-    @ObjectServer
-    public ObjectPrivileges getPrivileges(RealmModel object) {
-        checkIfValid();
-        //noinspection ConstantConditions
-        if (object == null) {
-            throw new IllegalArgumentException("Non-null 'object' required.");
-        }
-        if (!RealmObject.isManaged(object)) {
-            throw new IllegalArgumentException("Only managed objects have privileges. This is a an unmanaged object: " + object.toString());
-        }
-        if (!((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(getPath())) {
-            throw new IllegalArgumentException("Object belongs to a different Realm.");
-        }
-        UncheckedRow row = (UncheckedRow) ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm();
-        return new ObjectPrivileges(sharedRealm.getObjectPrivileges(row));
     }
 
     /**
@@ -665,7 +684,7 @@ abstract class BaseRealm implements Closeable {
      *
      * @return {@code true} if empty, @{code false} otherwise.
      */
-    abstract public boolean isEmpty();
+    public abstract boolean isEmpty();
 
     /**
      * Returns the schema for this Realm.
@@ -725,20 +744,13 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Deletes all objects from this Realm.
-     * <p>
-     * If the Realm is a partially synchronized Realm, all subscriptions will be cleared as well.
      *
-     * @throws IllegalStateException if the corresponding Realm is a partially synchronized Realm, is
-     * closed or called from an incorrect thread.
+     * @throws IllegalStateException if the Realm is closed or called from an incorrect thread.
      */
     public void deleteAll() {
         checkIfValid();
-        if (sharedRealm.isPartial()) {
-            throw new IllegalStateException(DELETE_NOT_SUPPORTED_UNDER_PARTIAL_SYNC);
-        }
-        boolean isPartialRealm = sharedRealm.isPartial();
         for (RealmObjectSchema objectSchema : getSchema().getAll()) {
-            getSchema().getTable(objectSchema.getClassName()).clear(isPartialRealm);
+            getSchema().getTable(objectSchema.getClassName()).clear();
         }
     }
 

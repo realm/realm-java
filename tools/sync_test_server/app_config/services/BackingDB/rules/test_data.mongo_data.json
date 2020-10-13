@@ -1,0 +1,26 @@
+{
+    "collection": "mongo_data",
+    "database": "test_data",
+    "id": "5f8026eb41a54eac41130720",
+    "roles": [
+        {
+            "name": "default",
+            "apply_when": {},
+            "insert": true,
+            "delete": true,
+            "additional_fields": {}
+        }
+    ],
+    "schema": {
+        "properties": {
+            "_id": {
+                "bsonType": "objectId"
+            },
+            "realm_id": {
+                "bsonType": "string"
+            }
+        },
+        "required": [],
+        "title": "mongo_data"
+    }
+}

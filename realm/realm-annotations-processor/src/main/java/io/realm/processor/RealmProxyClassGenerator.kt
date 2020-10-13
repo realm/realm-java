@@ -17,23 +17,17 @@
 package io.realm.processor
 
 import com.squareup.javawriter.JavaWriter
-
+import io.realm.processor.ext.beginMethod
+import io.realm.processor.ext.beginType
 import java.io.BufferedWriter
 import java.io.IOException
-import java.util.ArrayList
-import java.util.Arrays
-import java.util.Collections
-import java.util.EnumSet
-import java.util.Locale
-
+import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Modifier
 import javax.lang.model.element.VariableElement
 import javax.lang.model.type.DeclaredType
 import javax.lang.model.type.TypeMirror
-
-import io.realm.processor.ext.beginMethod
-import io.realm.processor.ext.beginType
+import javax.tools.JavaFileObject
 
 /**
  * This class is responsible for generating the Realm Proxy classes for each model class defined
@@ -64,9 +58,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     //  in the realm-library project, for an example of how to set this flag.
     private val suppressWarnings: Boolean = !"false".equals(processingEnvironment.options[OPTION_SUPPRESS_WARNINGS], ignoreCase = true)
 
+    lateinit var sourceFile: JavaFileObject
     @Throws(IOException::class, UnsupportedOperationException::class)
     fun generate() {
-        val sourceFile = processingEnvironment.filer.createSourceFile(generatedClassName.toString())
+        sourceFile = processingEnvironment.filer.createSourceFile(generatedClassName.toString())
 
         val imports = ArrayList(IMPORTS)
         if (metadata.backlinkFields.isNotEmpty()) {
@@ -111,6 +106,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             emitInsertOrUpdateListMethod(writer)
             emitCreateDetachedCopyMethod(writer)
             emitUpdateMethod(writer)
+            emitUpdateEmbeddedObjectMethod(writer)
             emitToStringMethod(writer)
             emitRealmObjectProxyImplementation(writer)
             emitHashcodeMethod(writer)
@@ -373,15 +369,26 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             // Getter - End
 
             // Setter - Start
+            val fieldType = QualifiedClassName(field.asType())
+            val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
+            val linkedQualifiedClassName: QualifiedClassName = Utils.getFieldTypeQualifiedName(field)
+            val linkedProxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field)
             emitAnnotation("Override")
             beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value")
+                emitStatement("Realm realm = (Realm) proxyState.getRealm\$realm()")
                 emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field)) {
                     // check excludeFields
                     beginControlFlow("if (proxyState.getExcludeFields\$realm().contains(\"%1\$s\"))", field.simpleName.toString())
                         emitStatement("return")
                     endControlFlow()
                     beginControlFlow("if (value != null && !RealmObject.isManaged(value))")
-                        emitStatement("value = ((Realm) proxyState.getRealm\$realm()).copyToRealm(value)")
+                        if (fieldTypeMetaData.embedded) {
+                            emitStatement("%1\$s proxyObject = realm.createEmbeddedObject(%1\$s.class, this, \"%2\$s\")", linkedQualifiedClassName, fieldName)
+                            emitStatement("%s.updateEmbeddedObject(realm, value, proxyObject, new HashMap<RealmModel, RealmObjectProxy>(), Collections.EMPTY_SET)", linkedProxyClass)
+                            emitStatement("value = proxyObject")
+                        } else {
+                            emitStatement("value = realm.copyToRealm(value)")
+                        }
                     endControlFlow()
 
                     // set value as default value
@@ -400,8 +407,17 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement("proxyState.getRow\$realm().nullifyLink(%s)", fieldColKeyVariableReference(field))
                     emitStatement("return")
                 endControlFlow()
-                emitStatement("proxyState.checkValidObject(value)")
-                emitStatement("proxyState.getRow\$realm().setLink(%s, ((RealmObjectProxy) value).realmGet\$proxyState().getRow\$realm().getObjectKey())", fieldColKeyVariableReference(field))
+
+                if (fieldTypeMetaData.embedded) {
+                    beginControlFlow("if (RealmObject.isManaged(value))")
+                        emitStatement("proxyState.checkValidObject(value)")
+                    endControlFlow()
+                    emitStatement("%1\$s proxyObject = realm.createEmbeddedObject(%1\$s.class, this, \"%2\$s\")", linkedQualifiedClassName, fieldName)
+                    emitStatement("%s.updateEmbeddedObject(realm, value, proxyObject, new HashMap<RealmModel, RealmObjectProxy>(), Collections.EMPTY_SET)", linkedProxyClass)
+                } else {
+                    emitStatement("proxyState.checkValidObject(value)")
+                    emitStatement("proxyState.getRow\$realm().setLink(%s, ((RealmObjectProxy) value).realmGet\$proxyState().getRow\$realm().getObjectKey())", fieldColKeyVariableReference(field))
+                }
             endMethod()
             // Setter - End
         }
@@ -549,6 +565,12 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         if (typeUtils.isSameType(elementTypeMirror, typeMirrors.FLOAT_MIRROR)) {
             return "$osListVariableName.addFloat($valueVariableName.floatValue())"
         }
+        if (typeUtils.isSameType(elementTypeMirror, typeMirrors.DECIMAL128_MIRROR)) {
+            return "$osListVariableName.addDecimal128($valueVariableName)"
+        }
+        if (typeUtils.isSameType(elementTypeMirror, typeMirrors.OBJECT_ID_MIRROR)) {
+            return "$osListVariableName.addObjectId($valueVariableName)"
+        }
         throw RuntimeException("unexpected element type: $elementTypeMirror")
     }
 
@@ -597,19 +619,39 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         for (backlink in metadata.backlinkFields) {
             val cacheFieldName = backlink.targetField + BACKLINKS_FIELD_EXTENSION
             val realmResultsType = "RealmResults<" + backlink.sourceClass + ">"
-            // Getter, no setter
-            writer.apply {
-                emitAnnotation("Override")
-                beginMethod(realmResultsType, metadata.getInternalGetter(backlink.targetField), EnumSet.of(Modifier.PUBLIC))
-                    emitStatement("BaseRealm realm = proxyState.getRealm\$realm()")
-                    emitStatement("realm.checkIfValid()")
-                    emitStatement("proxyState.getRow\$realm().checkIfAttached()")
-                    beginControlFlow("if ($cacheFieldName == null)")
+            when (backlink.exposeAsRealmResults) {
+                true -> {
+                    // Getter, no setter
+                    writer.apply {
+                        emitAnnotation("Override")
+                        beginMethod(realmResultsType, metadata.getInternalGetter(backlink.targetField), EnumSet.of(Modifier.PUBLIC))
+                        emitStatement("BaseRealm realm = proxyState.getRealm\$realm()")
+                        emitStatement("realm.checkIfValid()")
+                        emitStatement("proxyState.getRow\$realm().checkIfAttached()")
+                        beginControlFlow("if ($cacheFieldName == null)")
                         emitStatement("$cacheFieldName = RealmResults.createBacklinkResults(realm, proxyState.getRow\$realm(), %s.class, \"%s\")", backlink.sourceClass, backlink.sourceField)
-                    endControlFlow()
-                    emitStatement("return $cacheFieldName")
-                endMethod()
-                emitEmptyLine()
+                        endControlFlow()
+                        emitStatement("return $cacheFieldName")
+                        endMethod()
+                        emitEmptyLine()
+                    }
+                }
+                false -> {
+                    // Getter, no setter
+                    writer.apply {
+                        emitAnnotation("Override")
+                        beginMethod(backlink.sourceClass.toString(), metadata.getInternalGetter(backlink.targetField), EnumSet.of(Modifier.PUBLIC))
+                        emitStatement("BaseRealm realm = proxyState.getRealm\$realm()")
+                        emitStatement("realm.checkIfValid()")
+                        emitStatement("proxyState.getRow\$realm().checkIfAttached()")
+                        beginControlFlow("if ($cacheFieldName == null)")
+                        emitStatement("$cacheFieldName = RealmResults.createBacklinkResults(realm, proxyState.getRow\$realm(), %s.class, \"%s\").first()", backlink.sourceClass, backlink.sourceField)
+                        endControlFlow()
+                        emitStatement("return $cacheFieldName") // TODO: Figure out the exact API for this
+                        endMethod()
+                        emitEmptyLine()
+                    }
+                }
             }
         }
     }
@@ -633,8 +675,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 // Used to prevent array resizing at runtime
                 val persistedFields = metadata.fields.size
                 val computedFields = metadata.backlinkFields.size
+                val embeddedClass = if (metadata.embedded) "true" else "false"
 
-                emitStatement("OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder(\"%s\", %s, %s)", internalClassName, persistedFields, computedFields)
+                emitStatement("OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder(\"%s\", %s, %s, %s)", internalClassName, embeddedClass, persistedFields, computedFields)
 
                 // For each field generate corresponding table index constant
                 for (field in metadata.fields) {
@@ -660,6 +703,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Constants.RealmFieldType.BINARY_LIST,
                         Constants.RealmFieldType.DATE_LIST,
                         Constants.RealmFieldType.FLOAT_LIST,
+                        Constants.RealmFieldType.DECIMAL128_LIST,
+                        Constants.RealmFieldType.OBJECT_ID_LIST,
                         Constants.RealmFieldType.DOUBLE_LIST -> {
                             val requiredFlag = if (metadata.isElementNullable(field)) "!Property.REQUIRED" else "Property.REQUIRED"
                             emitStatement("builder.addPersistedValueListProperty(\"%s\", %s, %s)", fieldName, fieldType.realmType, requiredFlag)
@@ -674,6 +719,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Constants.RealmFieldType.STRING,
                         Constants.RealmFieldType.DATE,
                         Constants.RealmFieldType.BINARY,
+                        Constants.RealmFieldType.DECIMAL128,
+                        Constants.RealmFieldType.OBJECT_ID,
                         Constants.RealmFieldType.REALM_INTEGER -> {
                             val nullableFlag = (if (metadata.isNullable(field)) "!" else "") + "Property.REQUIRED"
                             val indexedFlag = (if (metadata.isIndexed(field)) "" else "!") + "Property.INDEXED"
@@ -737,7 +784,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     @Throws(IOException::class)
     private fun emitNewProxyInstance(writer: JavaWriter) {
         writer.apply {
-            beginMethod(generatedClassName, "newProxyInstance", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC), "BaseRealm", "realm", "Row", "row")
+            beginMethod(generatedClassName, "newProxyInstance", EnumSet.of(Modifier.STATIC), "BaseRealm", "realm", "Row", "row")
                 emitSingleLineComment("Ignore default values to avoid creating unexpected objects from RealmModel/RealmList fields")
                 emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()")
                 emitStatement("objectContext.set(realm, row, realm.getSchema().getColumnInfo(%s.class), false, Collections.<String>emptyList())", qualifiedJavaClassName)
@@ -792,31 +839,46 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         if (metadata.isNullable(primaryKeyElement!!)) {
                             if (Utils.isString(primaryKeyElement)) {
                                 emitStatement("String value = ((%s) object).%s()", interfaceName, primaryKeyGetter)
-                                emitStatement("long colKey = Table.NO_MATCH")
+                                emitStatement("long objKey = Table.NO_MATCH")
                                 beginControlFlow("if (value == null)")
-                                    emitStatement("colKey = table.findFirstNull(pkColumnKey)")
+                                    emitStatement("objKey = table.findFirstNull(pkColumnKey)")
                                 nextControlFlow("else")
-                                    emitStatement("colKey = table.findFirstString(pkColumnKey, value)")
+                                    emitStatement("objKey = table.findFirstString(pkColumnKey, value)")
+                                endControlFlow()
+                            } else if (Utils.isObjectId(primaryKeyElement)) {
+                                emitStatement("org.bson.types.ObjectId value = ((%s) object).%s()", interfaceName, primaryKeyGetter)
+                                emitStatement("long objKey = Table.NO_MATCH")
+                                beginControlFlow("if (value == null)")
+                                emitStatement("objKey = table.findFirstNull(pkColumnKey)")
+                                nextControlFlow("else")
+                                emitStatement("objKey = table.findFirstObjectId(pkColumnKey, value)")
                                 endControlFlow()
                             } else {
                                 emitStatement("Number value = ((%s) object).%s()", interfaceName, primaryKeyGetter)
-                                emitStatement("long colKey = Table.NO_MATCH")
+                                emitStatement("long objKey = Table.NO_MATCH")
                                 beginControlFlow("if (value == null)")
-                                    emitStatement("colKey = table.findFirstNull(pkColumnKey)")
+                                    emitStatement("objKey = table.findFirstNull(pkColumnKey)")
                                 nextControlFlow("else")
-                                    emitStatement("colKey = table.findFirstLong(pkColumnKey, value.longValue())")
+                                    emitStatement("objKey = table.findFirstLong(pkColumnKey, value.longValue())")
                                 endControlFlow()
                             }
                         } else {
-                            val pkType = if (Utils.isString(metadata.primaryKey)) "String" else "Long"
-                            emitStatement("long colKey = table.findFirst%s(pkColumnKey, ((%s) object).%s())", pkType, interfaceName, primaryKeyGetter)
+                            if (Utils.isString(primaryKeyElement)) {
+                                emitStatement("long objKey = table.findFirstString(pkColumnKey, ((%s) object).%s())", interfaceName, primaryKeyGetter)
+
+                            } else if (Utils.isObjectId(primaryKeyElement)) {
+                                emitStatement("long objKey = table.findFirstObjectId(pkColumnKey, ((%s) object).%s())", interfaceName, primaryKeyGetter)
+
+                            } else {
+                                emitStatement("long objKey = table.findFirstLong(pkColumnKey, ((%s) object).%s())", interfaceName, primaryKeyGetter)
+                            }
                         }
 
-                        beginControlFlow("if (colKey == Table.NO_MATCH)")
+                        beginControlFlow("if (objKey == Table.NO_MATCH)")
                             emitStatement("canUpdate = false")
                         nextControlFlow("else")
                             beginControlFlow("try")
-                                emitStatement("objectContext.set(realm, table.getUncheckedRow(colKey), columnInfo, false, Collections.<String> emptyList())")
+                                emitStatement("objectContext.set(realm, table.getUncheckedRow(objKey), columnInfo, false, Collections.<String> emptyList())")
                                 emitStatement("realmObject = new %s()", generatedClassName)
                                 emitStatement("cache.put(object, (RealmObjectProxy) realmObject)")
                             nextControlFlow("finally")
@@ -841,7 +903,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 "int",
                 "short",
                 "byte" -> {
-                    emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sColKey, colKey, ((%s) object).%s(), false)", fieldName, interfaceName, getter)
+                    emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sColKey, objKey, ((%s) object).%s(), false)", fieldName, interfaceName, getter)
                 }
                 "java.lang.Long",
                 "java.lang.Integer",
@@ -849,90 +911,110 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 "java.lang.Byte" -> {
                     emitStatement("Number %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                        emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sColKey, colKey, %s.longValue(), false)", fieldName, getter)
+                        emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sColKey, objKey, %s.longValue(), false)", fieldName, getter)
                         if (isUpdate) {
                             nextControlFlow("else")
-                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
+                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
                         }
                     endControlFlow()
                 }
                 "io.realm.MutableRealmInteger" -> {
                     emitStatement("Long %s = ((%s) object).%s().get()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                        emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sColKey, colKey, %s.longValue(), false)", fieldName, getter)
+                        emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sColKey, objKey, %s.longValue(), false)", fieldName, getter)
                         if (isUpdate) {
                             nextControlFlow("else")
-                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
+                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
                         }
                     endControlFlow()
                 }
                 "double" -> {
-                    emitStatement("Table.nativeSetDouble(tableNativePtr, columnInfo.%sColKey, colKey, ((%s) object).%s(), false)", fieldName, interfaceName, getter)
+                    emitStatement("Table.nativeSetDouble(tableNativePtr, columnInfo.%sColKey, objKey, ((%s) object).%s(), false)", fieldName, interfaceName, getter)
                 }
                 "java.lang.Double" -> {
                     emitStatement("Double %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                        emitStatement("Table.nativeSetDouble(tableNativePtr, columnInfo.%sColKey, colKey, %s, false)", fieldName, getter)
+                        emitStatement("Table.nativeSetDouble(tableNativePtr, columnInfo.%sColKey, objKey, %s, false)", fieldName, getter)
                         if (isUpdate) {
                             nextControlFlow("else")
-                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
+                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
                         }
                     endControlFlow()
                 }
                 "float" -> {
-                    emitStatement("Table.nativeSetFloat(tableNativePtr, columnInfo.%sColKey, colKey, ((%s) object).%s(), false)", fieldName, interfaceName, getter)
+                    emitStatement("Table.nativeSetFloat(tableNativePtr, columnInfo.%sColKey, objKey, ((%s) object).%s(), false)", fieldName, interfaceName, getter)
                 }
                 "java.lang.Float" -> {
                     emitStatement("Float %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                        emitStatement("Table.nativeSetFloat(tableNativePtr, columnInfo.%sColKey, colKey, %s, false)", fieldName, getter)
+                        emitStatement("Table.nativeSetFloat(tableNativePtr, columnInfo.%sColKey, objKey, %s, false)", fieldName, getter)
                         if (isUpdate) {
                             nextControlFlow("else")
-                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
+                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
                         }
                     endControlFlow()
                 }
                 "boolean" -> {
-                    emitStatement("Table.nativeSetBoolean(tableNativePtr, columnInfo.%sColKey, colKey, ((%s) object).%s(), false)", fieldName, interfaceName, getter)
+                    emitStatement("Table.nativeSetBoolean(tableNativePtr, columnInfo.%sColKey, objKey, ((%s) object).%s(), false)", fieldName, interfaceName, getter)
                 }
                 "java.lang.Boolean" -> {
                     emitStatement("Boolean %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                        emitStatement("Table.nativeSetBoolean(tableNativePtr, columnInfo.%sColKey, colKey, %s, false)", fieldName, getter)
+                        emitStatement("Table.nativeSetBoolean(tableNativePtr, columnInfo.%sColKey, objKey, %s, false)", fieldName, getter)
                         if (isUpdate) {
                             nextControlFlow("else")
-                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
+                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
                         }
                     endControlFlow()
                 }
                 "byte[]" -> {
                     emitStatement("byte[] %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                        emitStatement("Table.nativeSetByteArray(tableNativePtr, columnInfo.%sColKey, colKey, %s, false)", fieldName, getter)
+                        emitStatement("Table.nativeSetByteArray(tableNativePtr, columnInfo.%sColKey, objKey, %s, false)", fieldName, getter)
                         if (isUpdate) {
                             nextControlFlow("else")
-                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
+                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
                         }
                     endControlFlow()
                 }
                 "java.util.Date" -> {
                     emitStatement("java.util.Date %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                        emitStatement("Table.nativeSetTimestamp(tableNativePtr, columnInfo.%sColKey, colKey, %s.getTime(), false)", fieldName, getter)
+                        emitStatement("Table.nativeSetTimestamp(tableNativePtr, columnInfo.%sColKey, objKey, %s.getTime(), false)", fieldName, getter)
                         if (isUpdate) {
                             nextControlFlow("else")
-                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
+                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
                         }
                     endControlFlow()
                 }
                 "java.lang.String" -> {
                     emitStatement("String %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                        emitStatement("Table.nativeSetString(tableNativePtr, columnInfo.%sColKey, colKey, %s, false)", fieldName, getter)
+                        emitStatement("Table.nativeSetString(tableNativePtr, columnInfo.%sColKey, objKey, %s, false)", fieldName, getter)
                         if (isUpdate) {
                             nextControlFlow("else")
-                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, colKey, false)", fieldName)
+                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
                         }
+                    endControlFlow()
+                }
+                "org.bson.types.Decimal128" -> {
+                    emitStatement("org.bson.types.Decimal128 %s = ((%s) object).%s()", getter, interfaceName, getter)
+                    beginControlFlow("if (%s != null)", getter)
+                    emitStatement("Table.nativeSetDecimal128(tableNativePtr, columnInfo.%1\$sColKey, objKey, %2\$s.getLow(), %2\$s.getHigh(), false)", fieldName, getter)
+                    if (isUpdate) {
+                        nextControlFlow("else")
+                        emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
+                    }
+                    endControlFlow()
+                }
+                "org.bson.types.ObjectId" -> {
+                    emitStatement("org.bson.types.ObjectId %s = ((%s) object).%s()", getter, interfaceName, getter)
+                    beginControlFlow("if (%s != null)", getter)
+                    emitStatement("Table.nativeSetObjectId(tableNativePtr, columnInfo.%sColKey, objKey, %s.toString(), false)", fieldName, getter)
+                    if (isUpdate) {
+                        nextControlFlow("else")
+                        emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
+                    }
                     endControlFlow()
                 }
                 else -> {
@@ -945,12 +1027,25 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     @Throws(IOException::class)
     private fun emitInsertMethod(writer: JavaWriter) {
         writer.apply {
-            beginMethod("long","insert", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), "Realm", "realm", qualifiedJavaClassName.toString(), "object", "Map<RealmModel,Long>", "cache")
+            val topLevelArgs = arrayOf("Realm", "realm",
+                    qualifiedJavaClassName.toString(), "object",
+                    "Map<RealmModel,Long>", "cache")
+            val embeddedArgs = arrayOf("Realm", "realm",
+                    "Table", "parentObjectTable",
+                    "long", "parentColumnKey",
+                    "long", "parentObjectKey",
+                    qualifiedJavaClassName.toString(), "object",
+                    "Map<RealmModel,Long>", "cache")
+            val args = if (metadata.embedded) embeddedArgs else topLevelArgs
+            beginMethod("long","insert", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), *args)
 
-            // If object is already in the Realm there is nothing to update
-            beginControlFlow("if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
-                emitStatement("return ((RealmObjectProxy) object).realmGet\$proxyState().getRow\$realm().getObjectKey()")
-            endControlFlow()
+            // If object is already in the Realm there is nothing to update, unless it is an embedded
+            // object. In which case we always update the underlying object.
+            if (!metadata.embedded) {
+                beginControlFlow("if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
+                   emitStatement("return ((RealmObjectProxy) object).realmGet\$proxyState().getRow\$realm().getObjectKey()")
+                endControlFlow()
+            }
 
             emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
             emitStatement("long tableNativePtr = table.getNativePtr()")
@@ -963,33 +1058,53 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
             for (field in metadata.fields) {
                 val fieldName = field.simpleName.toString()
-                val fieldType = field.asType().toString()
+                val fieldType = QualifiedClassName(field.asType().toString())
                 val getter = metadata.getInternalGetter(fieldName)
 
                 when {
                     Utils.isRealmModel(field) -> {
+                        val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
+
                         emitEmptyLine()
                         emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
                         beginControlFlow("if (%sObj != null)", fieldName)
                             emitStatement("Long cache%1\$s = cache.get(%1\$sObj)", fieldName)
-                            beginControlFlow("if (cache%s == null)", fieldName)
-                                emitStatement("cache%s = %s.insert(realm, %sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
-                            endControlFlow()
-                            emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1\$sColKey, colKey, cache%1\$s, false)", fieldName)
+                            if (fieldTypeMetaData.embedded) {
+                                beginControlFlow("if (cache%s != null)", fieldName)
+                                    emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cache%s.toString())", fieldName)
+                                nextControlFlow("else")
+                                    emitStatement("cache%1\$s = %2\$s.insert(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
+                                endControlFlow()
+                            } else {
+                                beginControlFlow("if (cache%s == null)", fieldName)
+                                    emitStatement("cache%s = %s.insert(realm, %sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
+                                endControlFlow()
+                                emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1\$sColKey, objKey, cache%1\$s, false)", fieldName)
+                            }
                         endControlFlow()
                     }
                     Utils.isRealmModelList(field) -> {
-                        val genericType = Utils.getGenericTypeQualifiedName(field)
+                        val genericType = Utils.getGenericTypeQualifiedName(field)!!
+                        val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
+
                         emitEmptyLine()
                         emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                         beginControlFlow("if (%sList != null)", fieldName)
-                            emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(colKey), columnInfo.%1\$sColKey)", fieldName)
+                            emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
                             beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
                                 emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
-                                beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
-                                    emitStatement("cacheItemIndex%1\$s = %2\$s.insert(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
-                                endControlFlow()
-                                emitStatement("%1\$sOsList.addRow(cacheItemIndex%1\$s)", fieldName)
+                                if (fieldTypeMetaData.embedded) {
+                                    beginControlFlow("if (cacheItemIndex%s != null)", fieldName)
+                                        emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cacheItemIndex%s.toString())", fieldName)
+                                    nextControlFlow("else")
+                                        emitStatement("cacheItemIndex%1\$s = %2\$s.insert(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sItem, cache)", fieldName, Utils.getProxyClassName(genericType), fieldName)
+                                    endControlFlow()
+                                } else {
+                                    beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
+                                        emitStatement("cacheItemIndex%1\$s = %2\$s.insert(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
+                                    endControlFlow()
+                                    emitStatement("%1\$sOsList.addRow(cacheItemIndex%1\$s)", fieldName)
+                                }
                             endControlFlow()
                         endControlFlow()
                     }
@@ -999,7 +1114,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitEmptyLine()
                         emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                         beginControlFlow("if (%sList != null)", fieldName)
-                            emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(colKey), columnInfo.%1\$sColKey)", fieldName)
+                            emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
                             beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
                                 beginControlFlow("if (%1\$sItem == null)", fieldName)
                                     emitStatement(fieldName + "OsList.addNull()")
@@ -1011,13 +1126,13 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     }
                     else -> {
                         if (metadata.primaryKey !== field) {
-                            setTableValues(writer, fieldType, fieldName, interfaceName, getter, false)
+                            setTableValues(writer, fieldType.toString(), fieldName, interfaceName, getter, false)
                         }
                     }
                 }
             }
 
-            emitStatement("return colKey")
+            emitStatement("return objKey")
             endMethod()
             emitEmptyLine()
         }
@@ -1026,7 +1141,18 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     @Throws(IOException::class)
     private fun emitInsertListMethod(writer: JavaWriter) {
         writer.apply {
-            beginMethod("void", "insert", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), "Realm", "realm", "Iterator<? extends RealmModel>", "objects", "Map<RealmModel,Long>", "cache")
+            val topLevelArgs = arrayOf("Realm", "realm",
+                    "Iterator<? extends RealmModel>", "objects",
+                    "Map<RealmModel,Long>", "cache")
+            val embeddedArgs = arrayOf("Realm", "realm",
+                    "Table", "parentObjectTable",
+                    "long", "parentColumnKey",
+                    "long", "parentObjectKey",
+                    "Iterator<? extends RealmModel>", "objects",
+                    "Map<RealmModel,Long>", "cache")
+            val args = if (metadata.embedded) embeddedArgs else topLevelArgs
+
+            beginMethod("void", "insert", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), *args)
                 emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
                 emitStatement("long tableNativePtr = table.getNativePtr()")
                 emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)", columnInfoClassName(), columnInfoClassName(), qualifiedJavaClassName)
@@ -1049,31 +1175,51 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                     for (field in metadata.fields) {
                         val fieldName = field.simpleName.toString()
-                        val fieldType = field.asType().toString()
+                        val fieldType = QualifiedClassName(field.asType().toString())
                         val getter = metadata.getInternalGetter(fieldName)
 
                         if (Utils.isRealmModel(field)) {
+                            val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
+
                             emitEmptyLine()
                             emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
                             beginControlFlow("if (%sObj != null)", fieldName)
                                 emitStatement("Long cache%1\$s = cache.get(%1\$sObj)", fieldName)
-                                beginControlFlow("if (cache%s == null)", fieldName)
-                                    emitStatement("cache%s = %s.insert(realm, %sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
-                                endControlFlow()
-                                emitStatement("table.setLink(columnInfo.%1\$sColKey, colKey, cache%1\$s, false)", fieldName)
+                                if (fieldTypeMetaData.embedded) {
+                                    beginControlFlow("if (cache%s != null)", fieldName)
+                                        emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cache%s.toString())", fieldName)
+                                    nextControlFlow("else")
+                                        emitStatement("cache%1\$s = %2\$s.insert(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
+                                    endControlFlow()
+                                } else {
+                                    beginControlFlow("if (cache%s == null)", fieldName)
+                                        emitStatement("cache%s = %s.insert(realm, %sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
+                                    endControlFlow()
+                                    emitStatement("table.setLink(columnInfo.%1\$sColKey, objKey, cache%1\$s, false)", fieldName)
+                                }
                             endControlFlow()
                         } else if (Utils.isRealmModelList(field)) {
-                            val genericType = Utils.getGenericTypeQualifiedName(field)
+                            val genericType = Utils.getGenericTypeQualifiedName(field)!!
+                            val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
+
                             emitEmptyLine()
                             emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                             beginControlFlow("if (%sList != null)", fieldName)
-                                emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(colKey), columnInfo.%1\$sColKey)", fieldName)
+                                emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
                                 beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
                                     emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
-                                    beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
-                                        emitStatement("cacheItemIndex%1\$s = %2\$s.insert(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
-                                    endControlFlow()
-                                    emitStatement("%1\$sOsList.addRow(cacheItemIndex%1\$s)", fieldName)
+                                    if (fieldTypeMetaData.embedded) {
+                                        beginControlFlow("if (cacheItemIndex%s != null)", fieldName)
+                                            emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cacheItemIndex%s.toString())", fieldName)
+                                        nextControlFlow("else")
+                                            emitStatement("cacheItemIndex%1\$s = %2\$s.insert(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sItem, cache)", fieldName, Utils.getProxyClassName(genericType), fieldName)
+                                        endControlFlow()
+                                    } else {
+                                        beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
+                                            emitStatement("cacheItemIndex%1\$s = %2\$s.insert(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
+                                        endControlFlow()
+                                        emitStatement("%1\$sOsList.addRow(cacheItemIndex%1\$s)", fieldName)
+                                    }
                                 endControlFlow()
                             endControlFlow()
                         } else if (Utils.isRealmValueList(field)) {
@@ -1082,7 +1228,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitEmptyLine()
                             emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                             beginControlFlow("if (%sList != null)", fieldName)
-                                emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(colKey), columnInfo.%1\$sColKey)", fieldName)
+                                emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
                                 beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
                                     beginControlFlow("if (%1\$sItem == null)", fieldName)
                                         emitStatement("%1\$sOsList.addNull()", fieldName)
@@ -1093,7 +1239,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                         } else {
                             if (metadata.primaryKey !== field) {
-                                setTableValues(writer, fieldType, fieldName, interfaceName, getter, false)
+                                setTableValues(writer, fieldType.toString(), fieldName, interfaceName, getter, false)
                             }
                         }
                     }
@@ -1106,7 +1252,17 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     @Throws(IOException::class)
     private fun emitInsertOrUpdateMethod(writer: JavaWriter) {
         writer.apply {
-            beginMethod("long", "insertOrUpdate", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), "Realm", "realm", qualifiedJavaClassName.toString(), "object", "Map<RealmModel,Long>", "cache")
+            val topLevelArgs = arrayOf("Realm", "realm",
+                    qualifiedJavaClassName.toString(), "object",
+                    "Map<RealmModel,Long>", "cache")
+            val embeddedArgs = arrayOf("Realm", "realm",
+                    "Table", "parentObjectTable",
+                    "long", "parentColumnKey",
+                    "long", "parentObjectKey",
+                    qualifiedJavaClassName.toString(), "object",
+                    "Map<RealmModel,Long>", "cache")
+            val args = if (metadata.embedded) embeddedArgs else topLevelArgs
+            beginMethod("long", "insertOrUpdate", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), *args)
 
             // If object is already in the Realm there is nothing to update
             beginControlFlow("if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
@@ -1123,56 +1279,82 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
             for (field in metadata.fields) {
                 val fieldName = field.simpleName.toString()
-                val fieldType = field.asType().toString()
+                val fieldType = QualifiedClassName(field.asType().toString())
                 val getter = metadata.getInternalGetter(fieldName)
 
                 if (Utils.isRealmModel(field)) {
+                    val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
+
                     emitEmptyLine()
                     emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
                     beginControlFlow("if (%sObj != null)", fieldName)
                         emitStatement("Long cache%1\$s = cache.get(%1\$sObj)", fieldName)
-                        beginControlFlow("if (cache%s == null)", fieldName)
-                            emitStatement("cache%1\$s = %2\$s.insertOrUpdate(realm, %1\$sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field))
-                        endControlFlow()
-                        emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1\$sColKey, colKey, cache%1\$s, false)", fieldName)
+                        if (fieldTypeMetaData.embedded) {
+                            beginControlFlow("if (cache%s != null)", fieldName)
+                                emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cache%s.toString())", fieldName)
+                            nextControlFlow("else")
+                                emitStatement("cache%1\$s = %2\$s.insertOrUpdate(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
+                            endControlFlow()
+                        } else {
+                            beginControlFlow("if (cache%s == null)", fieldName)
+                                emitStatement("cache%1\$s = %2\$s.insertOrUpdate(realm, %1\$sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field))
+                            endControlFlow()
+                            emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1\$sColKey, objKey, cache%1\$s, false)", fieldName)
+                        }
                     nextControlFlow("else")
                         // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
-                        emitStatement("Table.nativeNullifyLink(tableNativePtr, columnInfo.%sColKey, colKey)", fieldName)
+                        emitStatement("Table.nativeNullifyLink(tableNativePtr, columnInfo.%sColKey, objKey)", fieldName)
                     endControlFlow()
                 } else if (Utils.isRealmModelList(field)) {
-                    val genericType = Utils.getGenericTypeQualifiedName(field)
+                    val genericType = Utils.getGenericTypeQualifiedName(field)!!
+                    val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
+
                     emitEmptyLine()
-                    emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(colKey), columnInfo.%1\$sColKey)", fieldName)
+                    emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
                     emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
-                    beginControlFlow("if (%1\$sList != null && %1\$sList.size() == %1\$sOsList.size())", fieldName)
-                        emitSingleLineComment("For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.")
-                        emitStatement("int objects = %1\$sList.size()", fieldName)
-                        beginControlFlow("for (int i = 0; i < objects; i++)")
-                            emitStatement("%1\$s %2\$sItem = %2\$sList.get(i)", genericType, fieldName)
-                            emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
-                            beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
-                                emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
-                            endControlFlow()
-                            emitStatement("%1\$sOsList.setRow(i, cacheItemIndex%1\$s)", fieldName)
-                        endControlFlow()
-                    nextControlFlow("else")
+                    if (fieldTypeMetaData.embedded) {
                         emitStatement("%1\$sOsList.removeAll()", fieldName)
                         beginControlFlow("if (%sList != null)", fieldName)
                             beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
                                 emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
+                                beginControlFlow("if (cacheItemIndex%s != null)", fieldName)
+                                    emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cacheItemIndex%s.toString())", fieldName)
+                                nextControlFlow("else")
+                                    emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sItem, cache)", fieldName, Utils.getProxyClassName(genericType), fieldName)
+                                endControlFlow()
+                            endControlFlow()
+                        endControlFlow()
+                    } else {
+                        beginControlFlow("if (%1\$sList != null && %1\$sList.size() == %1\$sOsList.size())", fieldName)
+                            emitSingleLineComment("For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.")
+                            emitStatement("int objects = %1\$sList.size()", fieldName)
+                            beginControlFlow("for (int i = 0; i < objects; i++)")
+                                emitStatement("%1\$s %2\$sItem = %2\$sList.get(i)", genericType, fieldName)
+                                emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
                                 beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
                                     emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
                                 endControlFlow()
-                                emitStatement("%1\$sOsList.addRow(cacheItemIndex%1\$s)", fieldName)
+                                emitStatement("%1\$sOsList.setRow(i, cacheItemIndex%1\$s)", fieldName)
+                            endControlFlow()
+                        nextControlFlow("else")
+                            emitStatement("%1\$sOsList.removeAll()", fieldName)
+                            beginControlFlow("if (%sList != null)", fieldName)
+                                beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
+                                    emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
+                                    beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
+                                        emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
+                                    endControlFlow()
+                                    emitStatement("%1\$sOsList.addRow(cacheItemIndex%1\$s)", fieldName)
+                                endControlFlow()
                             endControlFlow()
                         endControlFlow()
-                    endControlFlow()
+                    }
                     emitEmptyLine()
                 } else if (Utils.isRealmValueList(field)) {
                     val genericType = Utils.getGenericTypeQualifiedName(field)
                     val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field)
                     emitEmptyLine()
-                    emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(colKey), columnInfo.%1\$sColKey)", fieldName)
+                    emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
                     emitStatement("%1\$sOsList.removeAll()", fieldName)
                     emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                     beginControlFlow("if (%sList != null)", fieldName)
@@ -1187,12 +1369,12 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitEmptyLine()
                 } else {
                     if (metadata.primaryKey !== field) {
-                        setTableValues(writer, fieldType, fieldName, interfaceName, getter, true)
+                        setTableValues(writer, fieldType.toString(), fieldName, interfaceName, getter, true)
                     }
                 }
             }
 
-            emitStatement("return colKey")
+            emitStatement("return objKey")
             endMethod()
             emitEmptyLine()
         }
@@ -1201,7 +1383,18 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     @Throws(IOException::class)
     private fun emitInsertOrUpdateListMethod(writer: JavaWriter) {
         writer.apply {
-            beginMethod("void", "insertOrUpdate", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), "Realm", "realm", "Iterator<? extends RealmModel>", "objects", "Map<RealmModel,Long>", "cache")
+            val topLevelArgs = arrayOf("Realm", "realm",
+                    "Iterator<? extends RealmModel>", "objects",
+                    "Map<RealmModel,Long>", "cache")
+            val embeddedArgs = arrayOf("Realm", "realm",
+                    "Table", "parentObjectTable",
+                    "long", "parentColumnKey",
+                    "long", "parentObjectKey",
+                    "Iterator<? extends RealmModel>", "objects",
+                    "Map<RealmModel,Long>", "cache")
+            val args = if (metadata.embedded) embeddedArgs else topLevelArgs
+
+            beginMethod("void", "insertOrUpdate", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), *args)
                 emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
                 emitStatement("long tableNativePtr = table.getNativePtr()")
                 emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)", columnInfoClassName(), columnInfoClassName(), qualifiedJavaClassName)
@@ -1223,28 +1416,40 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                     for (field in metadata.fields) {
                         val fieldName = field.simpleName.toString()
-                        val fieldType = field.asType().toString()
+                        val fieldType = QualifiedClassName(field.asType().toString())
                         val getter = metadata.getInternalGetter(fieldName)
 
                         when {
                             Utils.isRealmModel(field) -> {
+                                val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
+
                                 emitEmptyLine()
                                 emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
                                 beginControlFlow("if (%sObj != null)", fieldName)
                                     emitStatement("Long cache%1\$s = cache.get(%1\$sObj)", fieldName)
-                                    beginControlFlow("if (cache%s == null)", fieldName)
-                                        emitStatement("cache%1\$s = %2\$s.insertOrUpdate(realm, %1\$sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field))
-                                    endControlFlow()
-                                    emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1\$sColKey, colKey, cache%1\$s, false)", fieldName)
+                                    if (fieldTypeMetaData.embedded) {
+                                        beginControlFlow("if (cache%s != null)", fieldName)
+                                            emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cache%s.toString())", fieldName)
+                                        nextControlFlow("else")
+                                            emitStatement("cache%1\$s = %2\$s.insertOrUpdate(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
+                                        endControlFlow()
+                                    } else {
+                                        beginControlFlow("if (cache%s == null)", fieldName)
+                                            emitStatement("cache%1\$s = %2\$s.insertOrUpdate(realm, %1\$sObj, cache)", fieldName, Utils.getProxyClassSimpleName(field))
+                                        endControlFlow()
+                                        emitStatement("Table.nativeSetLink(tableNativePtr, columnInfo.%1\$sColKey, objKey, cache%1\$s, false)", fieldName)
+                                    }
                                 nextControlFlow("else")
                                     // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
-                                    emitStatement("Table.nativeNullifyLink(tableNativePtr, columnInfo.%sColKey, colKey)", fieldName)
+                                    emitStatement("Table.nativeNullifyLink(tableNativePtr, columnInfo.%sColKey, objKey)", fieldName)
                                 endControlFlow()
                             }
                             Utils.isRealmModelList(field) -> {
-                                val genericType = Utils.getGenericTypeQualifiedName(field)
+                                val genericType = Utils.getGenericTypeQualifiedName(field)!!
+                                val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
+
                                 emitEmptyLine()
-                                emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(colKey), columnInfo.%1\$sColKey)", fieldName)
+                                emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
                                 emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                                 beginControlFlow("if (%1\$sList != null && %1\$sList.size() == %1\$sOsList.size())", fieldName)
                                     emitSingleLineComment("For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.")
@@ -1252,20 +1457,36 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     beginControlFlow("for (int i = 0; i < objectCount; i++)")
                                         emitStatement("%1\$s %2\$sItem = %2\$sList.get(i)", genericType, fieldName)
                                         emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
-                                        beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
-                                            emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
-                                        endControlFlow()
-                                        emitStatement("%1\$sOsList.setRow(i, cacheItemIndex%1\$s)", fieldName)
+                                        if (fieldTypeMetaData.embedded) {
+                                            beginControlFlow("if (cacheItemIndex%s != null)", fieldName)
+                                                emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cacheItemIndex%s.toString())", fieldName)
+                                            nextControlFlow("else")
+                                                emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sItem, cache)", fieldName, Utils.getProxyClassName(genericType), fieldName)
+                                            endControlFlow()
+                                        } else {
+                                            beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
+                                                emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
+                                            endControlFlow()
+                                            emitStatement("%1\$sOsList.setRow(i, cacheItemIndex%1\$s)", fieldName)
+                                        }
                                     endControlFlow()
                                 nextControlFlow("else")
                                     emitStatement("%1\$sOsList.removeAll()", fieldName)
                                     beginControlFlow("if (%sList != null)", fieldName)
                                         beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
                                             emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
-                                            beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
-                                                emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
-                                            endControlFlow()
-                                            emitStatement("%1\$sOsList.addRow(cacheItemIndex%1\$s)", fieldName)
+                                            if (fieldTypeMetaData.embedded) {
+                                                beginControlFlow("if (cacheItemIndex%s != null)", fieldName)
+                                                    emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cacheItemIndex%s.toString())", fieldName)
+                                                nextControlFlow("else")
+                                                    emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sItem, cache)", fieldName, Utils.getProxyClassName(genericType), fieldName)
+                                                endControlFlow()
+                                            } else {
+                                                beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
+                                                    emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
+                                                endControlFlow()
+                                                emitStatement("%1\$sOsList.addRow(cacheItemIndex%1\$s)", fieldName)
+                                            }
                                         endControlFlow()
                                     endControlFlow()
                                 endControlFlow()
@@ -1275,7 +1496,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 val genericType = Utils.getGenericTypeQualifiedName(field)
                                 val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field)
                                 emitEmptyLine()
-                                emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(colKey), columnInfo.%1\$sColKey)", fieldName)
+                                emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
                                 emitStatement("%1\$sOsList.removeAll()", fieldName)
                                 emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                                 beginControlFlow("if (%sList != null)", fieldName)
@@ -1291,7 +1512,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             }
                             else -> {
                                 if (metadata.primaryKey !== field) {
-                                    setTableValues(writer, fieldType, fieldName, interfaceName, getter, true)
+                                    setTableValues(writer, fieldType.toString(), fieldName, interfaceName, getter, true)
                                 }
                             }
                         }
@@ -1311,38 +1532,48 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 if (metadata.isNullable(primaryKeyElement!!)) {
                     if (Utils.isString(primaryKeyElement)) {
                         emitStatement("String primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
-                        emitStatement("long colKey = Table.NO_MATCH")
+                        emitStatement("long objKey = Table.NO_MATCH")
                         beginControlFlow("if (primaryKeyValue == null)")
-                            emitStatement("colKey = Table.nativeFindFirstNull(tableNativePtr, pkColumnKey)")
+                        emitStatement("objKey = Table.nativeFindFirstNull(tableNativePtr, pkColumnKey)")
                         nextControlFlow("else")
-                            emitStatement("colKey = Table.nativeFindFirstString(tableNativePtr, pkColumnKey, primaryKeyValue)")
+                        emitStatement("objKey = Table.nativeFindFirstString(tableNativePtr, pkColumnKey, primaryKeyValue)")
+                        endControlFlow()
+                    } else if (Utils.isObjectId(primaryKeyElement)) {
+                        emitStatement("org.bson.types.ObjectId primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
+                        emitStatement("long objKey = Table.NO_MATCH")
+                        beginControlFlow("if (primaryKeyValue == null)")
+                        emitStatement("objKey = Table.nativeFindFirstNull(tableNativePtr, pkColumnKey)")
+                        nextControlFlow("else")
+                        emitStatement("objKey = Table.nativeFindFirstObjectId(tableNativePtr, pkColumnKey, primaryKeyValue.toString())")
                         endControlFlow()
                     } else {
                         emitStatement("Object primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
-                        emitStatement("long colKey = Table.NO_MATCH")
+                        emitStatement("long objKey = Table.NO_MATCH")
                         beginControlFlow("if (primaryKeyValue == null)")
-                            emitStatement("colKey = Table.nativeFindFirstNull(tableNativePtr, pkColumnKey)")
+                            emitStatement("objKey = Table.nativeFindFirstNull(tableNativePtr, pkColumnKey)")
                         nextControlFlow("else")
-                            emitStatement("colKey = Table.nativeFindFirstInt(tableNativePtr, pkColumnKey, ((%s) object).%s())", interfaceName, primaryKeyGetter)
+                            emitStatement("objKey = Table.nativeFindFirstInt(tableNativePtr, pkColumnKey, ((%s) object).%s())", interfaceName, primaryKeyGetter)
                         endControlFlow()
                     }
                 } else {
-                    emitStatement("long colKey = Table.NO_MATCH")
+                    emitStatement("long objKey = Table.NO_MATCH")
                     emitStatement("Object primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
                     beginControlFlow("if (primaryKeyValue != null)")
                         if (Utils.isString(metadata.primaryKey)) {
-                            emitStatement("colKey = Table.nativeFindFirstString(tableNativePtr, pkColumnKey, (String)primaryKeyValue)")
+                            emitStatement("objKey = Table.nativeFindFirstString(tableNativePtr, pkColumnKey, (String)primaryKeyValue)")
+                        } else if (Utils.isObjectId(metadata.primaryKey)) {
+                            emitStatement("objKey = Table.nativeFindFirstObjectId(tableNativePtr, pkColumnKey, ((org.bson.types.ObjectId)primaryKeyValue).toString())")
                         } else {
-                            emitStatement("colKey = Table.nativeFindFirstInt(tableNativePtr, pkColumnKey, ((%s) object).%s())", interfaceName, primaryKeyGetter)
+                            emitStatement("objKey = Table.nativeFindFirstInt(tableNativePtr, pkColumnKey, ((%s) object).%s())", interfaceName, primaryKeyGetter)
                         }
                     endControlFlow()
                 }
 
-                beginControlFlow("if (colKey == Table.NO_MATCH)")
-                    if (Utils.isString(metadata.primaryKey)) {
-                        emitStatement("colKey = OsObject.createRowWithPrimaryKey(table, pkColumnKey, primaryKeyValue)")
+                beginControlFlow("if (objKey == Table.NO_MATCH)")
+                    if (Utils.isString(metadata.primaryKey) || Utils.isObjectId(metadata.primaryKey)) {
+                        emitStatement("objKey = OsObject.createRowWithPrimaryKey(table, pkColumnKey, primaryKeyValue)")
                     } else {
-                        emitStatement("colKey = OsObject.createRowWithPrimaryKey(table, pkColumnKey, ((%s) object).%s())", interfaceName, primaryKeyGetter)
+                        emitStatement("objKey = OsObject.createRowWithPrimaryKey(table, pkColumnKey, ((%s) object).%s())", interfaceName, primaryKeyGetter)
                     }
     
                     if (throwIfPrimaryKeyDuplicate) {
@@ -1350,10 +1581,15 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitStatement("Table.throwDuplicatePrimaryKeyException(primaryKeyValue)")
                     }
                 endControlFlow()
-                emitStatement("cache.put(object, colKey)")
+                emitStatement("cache.put(object, objKey)")
             } else {
-                emitStatement("long colKey = OsObject.createRow(table)")
-                emitStatement("cache.put(object, colKey)")
+                if (metadata.embedded) {
+                    emitStatement("long objKey = OsObject.createEmbeddedObject(parentObjectTable, parentObjectKey, parentColumnKey)")
+                    emitStatement("cache.put(object, objKey)")
+                } else {
+                    emitStatement("long objKey = OsObject.createRow(table)")
+                    emitStatement("cache.put(object, objKey)")
+                }
             }
         }
     }
@@ -1374,7 +1610,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement("return (%s) cachedRealmObject", qualifiedJavaClassName)
                 endControlFlow()
                 emitEmptyLine()
-                emitStatement("%1\$s realmObjectSource = (%1\$s) newObject", interfaceName)
+                emitStatement("%1\$s unmanagedSource = (%1\$s) newObject", interfaceName)
                 emitEmptyLine()
                 emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
                 emitStatement("OsObjectBuilder builder = new OsObjectBuilder(table, flags)")
@@ -1386,7 +1622,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     val fieldColKey = fieldColKeyVariableReference(field)
                     val fieldName = field.simpleName.toString()
                     val getter = metadata.getInternalGetter(fieldName)
-                    emitStatement("builder.%s(%s, realmObjectSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey, getter)
+                    emitStatement("builder.%s(%s, unmanagedSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey, getter)
                 }
 
                 // Create the underlying object
@@ -1394,8 +1630,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 emitSingleLineComment("Create the underlying object and cache it before setting any object/objectlist references")
                 emitSingleLineComment("This will allow us to break any circular dependencies by using the object cache.")
                 emitStatement("Row row = builder.createNewObject()")
-                emitStatement("%s realmObjectCopy = newProxyInstance(realm, row)", generatedClassName)
-                emitStatement("cache.put(newObject, realmObjectCopy)")
+                emitStatement("%s managedCopy = newProxyInstance(realm, row)", generatedClassName)
+                emitStatement("cache.put(newObject, managedCopy)")
 
                 // Copy all object references or lists-of-objects
                 emitEmptyLine()
@@ -1403,42 +1639,81 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitSingleLineComment("Finally add all fields that reference other Realm Objects, either directly or through a list")
                 }
                 for (field in metadata.objectReferenceFields) {
-                    val fieldType = field.asType().toString()
-                    val fieldName = field.simpleName.toString()
-                    val getter = metadata.getInternalGetter(fieldName)
-                    val setter = metadata.getInternalSetter(fieldName)
+                    val fieldType = QualifiedClassName(field.asType())
+                    val fieldName: String = field.simpleName.toString()
+                    val getter: String = metadata.getInternalGetter(fieldName)
+                    val setter: String = metadata.getInternalSetter(fieldName)
+                    val parentPropertyType: Constants.RealmFieldType = getRealmType(field)
 
                     when {
                         Utils.isRealmModel(field) -> {
-                            emitStatement("%s %sObj = realmObjectSource.%s()", fieldType, fieldName, getter)
+                            val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
+                            val fieldColKey: String = fieldColKeyVariableReference(field)
+                            val linkedQualifiedClassName: QualifiedClassName = Utils.getFieldTypeQualifiedName(field)
+                            val linkedProxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field)
+
+                            emitStatement("%s %sObj = unmanagedSource.%s()", fieldType, fieldName, getter)
                             beginControlFlow("if (%sObj == null)", fieldName)
-                                emitStatement("realmObjectCopy.%s(null)", setter)
+                                emitStatement("managedCopy.%s(null)", setter)
                             nextControlFlow("else")
                                 emitStatement("%s cache%s = (%s) cache.get(%sObj)", fieldType, fieldName, fieldType, fieldName)
-                                beginControlFlow("if (cache%s != null)", fieldName)
-                                    emitStatement("realmObjectCopy.%s(cache%s)", setter, fieldName)
-                                nextControlFlow("else")
-                                    emitStatement("realmObjectCopy.%s(%s.copyOrUpdate(realm, (%s) realm.getSchema().getColumnInfo(%s.class), %sObj, update, cache, flags))", setter, Utils.getProxyClassSimpleName(field), columnInfoClassName(field), Utils.getFieldTypeQualifiedName(field), fieldName)
-                                endControlFlow()
+
+                                if (fieldTypeMetaData.embedded) {
+                                    beginControlFlow("if (cache%s != null)", fieldName)
+                                        emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cache%s.toString()\")", fieldName)
+                                    nextControlFlow("else")
+                                        emitStatement("long objKey = ((RealmObjectProxy) managedCopy).realmGet\$proxyState().getRow\$realm().createEmbeddedObject(%s, RealmFieldType.%s)", fieldColKey, parentPropertyType.name)
+                                        emitStatement("Row linkedObjectRow = realm.getTable(%s.class).getUncheckedRow(objKey)", linkedQualifiedClassName)
+                                        emitStatement("%s linkedObject = %s.newProxyInstance(realm, linkedObjectRow)", linkedQualifiedClassName, linkedProxyClass)
+                                        emitStatement("cache.put(%sObj, (RealmObjectProxy) linkedObject)", fieldName)
+                                        emitStatement("%s.updateEmbeddedObject(realm, %sObj, linkedObject, cache, flags)", linkedProxyClass, fieldName)
+                                   endControlFlow()
+                                } else {
+                                    beginControlFlow("if (cache%s != null)", fieldName)
+                                        emitStatement("managedCopy.%s(cache%s)", setter, fieldName)
+                                    nextControlFlow("else")
+                                        emitStatement("managedCopy.%s(%s.copyOrUpdate(realm, (%s) realm.getSchema().getColumnInfo(%s.class), %sObj, update, cache, flags))", setter, linkedProxyClass, columnInfoClassName(field), linkedQualifiedClassName, fieldName)
+                                    endControlFlow()
+                                }
+
                             // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
                             endControlFlow()
                             emitEmptyLine()
                         }
                         Utils.isRealmModelList(field) -> {
-                            val genericType = Utils.getGenericTypeQualifiedName(field)
-                            emitStatement("RealmList<%s> %sList = realmObjectSource.%s()", genericType, fieldName, getter)
-                            beginControlFlow("if (%sList != null)", fieldName)
-                                emitStatement("RealmList<%s> %sRealmList = realmObjectCopy.%s()", genericType, fieldName, getter)
+                            val listElementType: QualifiedClassName = Utils.getRealmListType(field)!!
+                            val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(listElementType)
+                            val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
+                            val linkedProxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field)
+
+                            emitStatement("RealmList<%s> %sUnmanagedList = unmanagedSource.%s()", genericType, fieldName, getter)
+                            beginControlFlow("if (%sUnmanagedList != null)", fieldName)
+                                emitStatement("RealmList<%s> %sManagedList = managedCopy.%s()", genericType, fieldName, getter)
                                 // Clear is needed. See bug https://github.com/realm/realm-java/issues/4957
-                                emitStatement("%sRealmList.clear()", fieldName)
-                                beginControlFlow("for (int i = 0; i < %sList.size(); i++)", fieldName)
-                                    emitStatement("%1\$s %2\$sItem = %2\$sList.get(i)", genericType, fieldName)
-                                    emitStatement("%1\$s cache%2\$s = (%1\$s) cache.get(%2\$sItem)", genericType, fieldName)
-                                    beginControlFlow("if (cache%s != null)", fieldName)
-                                        emitStatement("%1\$sRealmList.add(cache%1\$s)", fieldName)
-                                    nextControlFlow("else")
-                                        emitStatement("%1\$sRealmList.add(%2\$s.copyOrUpdate(realm, (%3\$s) realm.getSchema().getColumnInfo(%4\$s.class), %1\$sItem, update, cache, flags))", fieldName, Utils.getProxyClassSimpleName(field), columnInfoClassName(field), Utils.getGenericTypeQualifiedName(field))
-                                    endControlFlow()
+                                emitStatement("%sManagedList.clear()", fieldName)
+                                beginControlFlow("for (int i = 0; i < %sUnmanagedList.size(); i++)", fieldName)
+                                    emitStatement("%1\$s %2\$sUnmanagedItem = %2\$sUnmanagedList.get(i)", genericType, fieldName)
+                                    emitStatement("%1\$s cache%2\$s = (%1\$s) cache.get(%2\$sUnmanagedItem)", genericType, fieldName)
+
+                                    if (fieldTypeMetaData.embedded) {
+                                        beginControlFlow("if (cache%s != null)", fieldName)
+                                            emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cache%s.toString()\")", fieldName)
+                                        nextControlFlow("else")
+                                            emitStatement("long objKey = %sManagedList.getOsList().createAndAddEmbeddedObject()", fieldName)
+                                            emitStatement("Row linkedObjectRow = realm.getTable(%s.class).getUncheckedRow(objKey)", genericType)
+                                            emitStatement("%s linkedObject = %s.newProxyInstance(realm, linkedObjectRow)", genericType, linkedProxyClass)
+                                            emitStatement("cache.put(%sUnmanagedItem, (RealmObjectProxy) linkedObject)", fieldName)
+                                            emitStatement("%s.updateEmbeddedObject(realm, %sUnmanagedItem, linkedObject, new HashMap<RealmModel, RealmObjectProxy>(), Collections.EMPTY_SET)", linkedProxyClass, fieldName)
+                                        endControlFlow()
+
+                                    } else {
+                                        beginControlFlow("if (cache%s != null)", fieldName)
+                                            emitStatement("%1\$sManagedList.add(cache%1\$s)", fieldName)
+                                        nextControlFlow("else")
+                                            emitStatement("%1\$sManagedList.add(%2\$s.copyOrUpdate(realm, (%3\$s) realm.getSchema().getColumnInfo(%4\$s.class), %1\$sUnmanagedItem, update, cache, flags))", fieldName, Utils.getProxyClassSimpleName(field), columnInfoClassName(field), Utils.getGenericTypeQualifiedName(field))
+                                        endControlFlow()
+                                    }
+
                                 endControlFlow()
                             endControlFlow()
                             emitEmptyLine()
@@ -1448,7 +1723,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         }
                     }
                 }
-                emitStatement("return realmObjectCopy")
+                emitStatement("return managedCopy")
             endMethod()
             emitEmptyLine()
         }
@@ -1527,7 +1802,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
    
     @Throws(IOException::class)
     private fun emitUpdateMethod(writer: JavaWriter) {
-        if (!metadata.hasPrimaryKey()) {
+        if (!metadata.hasPrimaryKey() && !metadata.embedded) {
             return
         }
         writer.apply {
@@ -1544,43 +1819,91 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
                 emitStatement("OsObjectBuilder builder = new OsObjectBuilder(table, flags)")
                 for (field in metadata.fields) {
-                    val fieldType = field.asType().toString()
+                    val fieldType = QualifiedClassName(field.asType())
                     val fieldName = field.simpleName.toString()
                     val getter = metadata.getInternalGetter(fieldName)
                     val fieldColKey = fieldColKeyVariableReference(field)
+                    val parentPropertyType: Constants.RealmFieldType = getRealmType(field)
 
                     when {
                         Utils.isRealmModel(field) -> {
+                            val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
+
                             emitEmptyLine()
                             emitStatement("%s %sObj = realmObjectSource.%s()", fieldType, fieldName, getter)
                             beginControlFlow("if (%sObj == null)", fieldName)
                                 emitStatement("builder.addNull(%s)", fieldColKeyVariableReference(field))
                             nextControlFlow("else")
+
+                            if (fieldTypeMetaData.embedded) {
+                                // Embedded objects are created in-place as we need to know the
+                                // parent object + the property containing it.
+                                // After this we know that changing values will always be considered
+                                // an "update
+                                emitSingleLineComment("Embedded objects are created directly instead of using the builder.")
+                                emitStatement("%s cache%s = (%s) cache.get(%sObj)", fieldType, fieldName, fieldType, fieldName)
+                                beginControlFlow("if (cache%s != null)", fieldName)
+                                    emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cache%s.toString()\")", fieldName)
+                                endControlFlow()
+                                emitEmptyLine()
+                                emitStatement("long objKey = ((RealmObjectProxy) realmObject).realmGet\$proxyState().getRow\$realm().createEmbeddedObject(%s, RealmFieldType.%s)", fieldColKey, parentPropertyType.name)
+                                emitStatement("Row row = realm.getTable(%s.class).getUncheckedRow(objKey)", Utils.getFieldTypeQualifiedName(field))
+                                emitStatement("%s proxyObject = %s.newProxyInstance(realm, row)", fieldType, Utils.getProxyClassSimpleName(field))
+                                emitStatement("cache.put(%sObj, (RealmObjectProxy) proxyObject)", fieldName)
+                                emitStatement("%s.updateEmbeddedObject(realm, %sObj, proxyObject, cache, flags)", Utils.getProxyClassSimpleName(field), fieldName)
+                            } else {
+                                // Non-embedded classes are updating using normal recursive bottom-up approach
                                 emitStatement("%s cache%s = (%s) cache.get(%sObj)", fieldType, fieldName, fieldType, fieldName)
                                 beginControlFlow("if (cache%s != null)", fieldName)
                                     emitStatement("builder.addObject(%s, cache%s)", fieldColKey, fieldName)
                                 nextControlFlow("else")
                                     emitStatement("builder.addObject(%s, %s.copyOrUpdate(realm, (%s) realm.getSchema().getColumnInfo(%s.class), %sObj, true, cache, flags))", fieldColKey, Utils.getProxyClassSimpleName(field), columnInfoClassName(field), Utils.getFieldTypeQualifiedName(field), fieldName)
                                 endControlFlow()
+                            }
+
                             // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
                             endControlFlow()
                         }
                         Utils.isRealmModelList(field) -> {
-                            val genericType = Utils.getGenericTypeQualifiedName(field)
+                            val genericType: QualifiedClassName = Utils.getRealmListType(field)!!
+                            val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(genericType)
+                            val proxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field)
+
                             emitEmptyLine()
-                            emitStatement("RealmList<%s> %sList = realmObjectSource.%s()", genericType, fieldName, getter)
-                            beginControlFlow("if (%sList != null)", fieldName)
+                            emitStatement("RealmList<%s> %sUnmanagedList = realmObjectSource.%s()", genericType, fieldName, getter)
+                            beginControlFlow("if (%sUnmanagedList != null)", fieldName)
                                 emitStatement("RealmList<%s> %sManagedCopy = new RealmList<%s>()", genericType, fieldName, genericType)
-                                beginControlFlow("for (int i = 0; i < %sList.size(); i++)", fieldName)
-                                    emitStatement("%1\$s %2\$sItem = %2\$sList.get(i)", genericType, fieldName)
-                                    emitStatement("%1\$s cache%2\$s = (%1\$s) cache.get(%2\$sItem)", genericType, fieldName)
-                                    beginControlFlow("if (cache%s != null)", fieldName)
-                                        emitStatement("%1\$sManagedCopy.add(cache%1\$s)", fieldName)
-                                    nextControlFlow("else")
-                                        emitStatement("%1\$sManagedCopy.add(%2\$s.copyOrUpdate(realm, (%3\$s) realm.getSchema().getColumnInfo(%4\$s.class), %1\$sItem, true, cache, flags))", fieldName, Utils.getProxyClassSimpleName(field), columnInfoClassName(field), Utils.getGenericTypeQualifiedName(field))
+
+                                if (fieldTypeMetaData.embedded) {
+                                    emitStatement("OsList targetList = realmObjectTarget.realmGet\$%s().getOsList()", fieldName)
+                                    emitStatement("targetList.deleteAll()")
+                                    beginControlFlow("for (int i = 0; i < %sUnmanagedList.size(); i++)", fieldName)
+                                        emitStatement("%1\$s %2\$sUnmanagedItem = %2\$sUnmanagedList.get(i)", genericType, fieldName)
+                                        emitStatement("%1\$s cache%2\$s = (%1\$s) cache.get(%2\$sUnmanagedItem)", genericType, fieldName)
+                                        beginControlFlow("if (cache%s != null)", fieldName)
+                                            emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cache%s.toString()\")", fieldName)
+                                        nextControlFlow("else")
+                                            emitStatement("long objKey = targetList.createAndAddEmbeddedObject()")
+                                            emitStatement("Row row = realm.getTable(%s.class).getUncheckedRow(objKey)", genericType)
+                                            emitStatement("%s proxyObject = %s.newProxyInstance(realm, row)", genericType, proxyClass)
+                                            emitStatement("cache.put(%sUnmanagedItem, (RealmObjectProxy) proxyObject)", fieldName)
+                                            emitStatement("%sManagedCopy.add(proxyObject)", fieldName)
+                                            emitStatement("%s.updateEmbeddedObject(realm, %sUnmanagedItem, proxyObject, new HashMap<RealmModel, RealmObjectProxy>(), Collections.EMPTY_SET)", Utils.getProxyClassSimpleName(field), fieldName)
+                                        endControlFlow()
                                     endControlFlow()
-                                endControlFlow()
-                                emitStatement("builder.addObjectList(%s, %sManagedCopy)", fieldColKey, fieldName)
+                                } else {
+                                    beginControlFlow("for (int i = 0; i < %sUnmanagedList.size(); i++)", fieldName)
+                                        emitStatement("%1\$s %2\$sItem = %2\$sUnmanagedList.get(i)", genericType, fieldName)
+                                        emitStatement("%1\$s cache%2\$s = (%1\$s) cache.get(%2\$sItem)", genericType, fieldName)
+                                        beginControlFlow("if (cache%s != null)", fieldName)
+                                            emitStatement("%1\$sManagedCopy.add(cache%1\$s)", fieldName)
+                                        nextControlFlow("else")
+                                            emitStatement("%1\$sManagedCopy.add(%2\$s.copyOrUpdate(realm, (%3\$s) realm.getSchema().getColumnInfo(%4\$s.class), %1\$sItem, true, cache, flags))", fieldName, proxyClass, columnInfoClassName(field), genericType)
+                                        endControlFlow()
+                                    endControlFlow()
+                                    emitStatement("builder.addObjectList(%s, %sManagedCopy)", fieldColKey, fieldName)
+                                }
+
                             nextControlFlow("else")
                                 emitStatement("builder.addObjectList(%s, new RealmList<%s>())", fieldColKey, genericType)
                             endControlFlow()
@@ -1591,8 +1914,32 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     }
                 }
                 emitEmptyLine()
-                emitStatement("builder.updateExistingObject()")
+                if (metadata.embedded) {
+                    emitStatement("builder.updateExistingEmbeddedObject((RealmObjectProxy) realmObject)")
+                } else {
+                    emitStatement("builder.updateExistingTopLevelObject()")
+                }
                 emitStatement("return realmObject")
+            endMethod()
+            emitEmptyLine()
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun emitUpdateEmbeddedObjectMethod(writer: JavaWriter) {
+        if (!metadata.embedded) {
+            return
+        }
+
+        writer.apply {
+            beginMethod("void", "updateEmbeddedObject", EnumSet.of(Modifier.STATIC, Modifier.PUBLIC),
+                    "Realm", "realm", // Argument type & argument name
+                    qualifiedJavaClassName.toString(), "unmanagedObject",
+                    qualifiedJavaClassName.toString(), "managedObject",
+                    "Map<RealmModel, RealmObjectProxy>", "cache",
+                    "Set<ImportFlag>", "flags"
+            )
+                emitStatement("update(realm, (%s) realm.getSchema().getColumnInfo(%s.class), managedObject, unmanagedObject, cache, flags)", Utils.getSimpleColumnInfoClassName(metadata.qualifiedClassName), metadata.qualifiedClassName)
             endMethod()
             emitEmptyLine()
         }
@@ -1673,12 +2020,12 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             beginMethod("int", "hashCode", EnumSet.of(Modifier.PUBLIC))
                 emitStatement("String realmName = proxyState.getRealm\$realm().getPath()")
                 emitStatement("String tableName = proxyState.getRow\$realm().getTable().getName()")
-                emitStatement("long colKey = proxyState.getRow\$realm().getObjectKey()")
+                emitStatement("long objKey = proxyState.getRow\$realm().getObjectKey()")
                 emitEmptyLine()
                 emitStatement("int result = 17")
                 emitStatement("result = 31 * result + ((realmName != null) ? realmName.hashCode() : 0)")
                 emitStatement("result = 31 * result + ((tableName != null) ? tableName.hashCode() : 0)")
-                emitStatement("result = 31 * result + (int) (colKey ^ (colKey >>> 32))")
+                emitStatement("result = 31 * result + (int) (objKey ^ (objKey >>> 32))")
                 emitStatement("return result")
             endMethod()
             emitEmptyLine()
@@ -1725,98 +2072,126 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     @Throws(IOException::class)
     private fun emitCreateOrUpdateUsingJsonObject(writer: JavaWriter) {
         writer.apply {
+            val embedded = metadata.embedded
             emitAnnotation("SuppressWarnings", "\"cast\"")
-            beginMethod(qualifiedJavaClassName,"createOrUpdateUsingJsonObject", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), Arrays.asList("Realm", "realm", "JSONObject", "json", "boolean", "update"), listOf("JSONException"))
-            val modelOrListCount = countModelOrListFields(metadata.fields)
-            if (modelOrListCount == 0) {
-                emitStatement("final List<String> excludeFields = Collections.<String> emptyList()")
+            if (!embedded) {
+                beginMethod(qualifiedJavaClassName, "createOrUpdateUsingJsonObject", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), Arrays.asList("Realm", "realm", "JSONObject", "json", "boolean", "update"), listOf("JSONException"))
             } else {
-                emitStatement("final List<String> excludeFields = new ArrayList<String>(%1\$d)", modelOrListCount)
+                beginMethod(qualifiedJavaClassName, "createOrUpdateEmbeddedUsingJsonObject", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), Arrays.asList("Realm", "realm", "RealmModel", "parent", "String", "parentProperty", "JSONObject", "json", "boolean", "update"), listOf("JSONException"))
             }
+                val modelOrListCount = countModelOrListFields(metadata.fields)
+                if (modelOrListCount == 0) {
+                    emitStatement("final List<String> excludeFields = Collections.<String> emptyList()")
+                } else {
+                    emitStatement("final List<String> excludeFields = new ArrayList<String>(%1\$d)", modelOrListCount)
+                }
 
-            if (!metadata.hasPrimaryKey()) {
-                buildExcludeFieldsList(writer, metadata.fields)
-                emitStatement("%s obj = realm.createObjectInternal(%s.class, true, excludeFields)", qualifiedJavaClassName, qualifiedJavaClassName)
-            } else {
-                val pkType = if (Utils.isString(metadata.primaryKey)) "String" else "Long"
-                emitStatement("%s obj = null", qualifiedJavaClassName)
-                beginControlFlow("if (update)")
-                    emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
-                    emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)", columnInfoClassName(), columnInfoClassName(), qualifiedJavaClassName)
-                    emitStatement("long pkColumnKey = %s", fieldColKeyVariableReference(metadata.primaryKey))
-                    emitStatement("long colKey = Table.NO_MATCH")
-                    if (metadata.isNullable(metadata.primaryKey!!)) {
-                        beginControlFlow("if (json.isNull(\"%s\"))", metadata.primaryKey!!.simpleName)
-                            emitStatement("colKey = table.findFirstNull(pkColumnKey)")
-                        nextControlFlow("else")
-                            emitStatement("colKey = table.findFirst%s(pkColumnKey, json.get%s(\"%s\"))", pkType, pkType, metadata.primaryKey!!.simpleName)
-                        endControlFlow()
+                if (!metadata.hasPrimaryKey()) {
+                    buildExcludeFieldsList(writer, metadata.fields)
+                    if (!embedded) {
+                        emitStatement("%s obj = realm.createObjectInternal(%s.class, true, excludeFields)", qualifiedJavaClassName, qualifiedJavaClassName)
                     } else {
-                        beginControlFlow("if (!json.isNull(\"%s\"))", metadata.primaryKey!!.simpleName)
-                            emitStatement("colKey = table.findFirst%s(pkColumnKey, json.get%s(\"%s\"))", pkType, pkType, metadata.primaryKey!!.simpleName)
-                        endControlFlow()
+                        emitStatement("%s obj = realm.createEmbeddedObject(%s.class, parent, parentProperty)", qualifiedJavaClassName, qualifiedJavaClassName)
                     }
-                    beginControlFlow("if (colKey != Table.NO_MATCH)")
-                        emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()")
-                        beginControlFlow("try")
-                            emitStatement("objectContext.set(realm, table.getUncheckedRow(colKey), realm.getSchema().getColumnInfo(%s.class), false, Collections.<String> emptyList())", qualifiedJavaClassName)
-                            emitStatement("obj = new %s()", generatedClassName)
-                        nextControlFlow("finally")
-                            emitStatement("objectContext.clear()")
+                } else {
+                    var pkType = "Long"
+                    var jsonAccessorMethodSuffix = "Long"
+                    var findFirstCast = ""
+                    if (Utils.isString(metadata.primaryKey)) {
+                        pkType = "String"
+                        jsonAccessorMethodSuffix=  "String"
+                    } else if (Utils.isObjectId(metadata.primaryKey)) {
+                        pkType = "ObjectId"
+                        findFirstCast = "(org.bson.types.ObjectId)"
+                        jsonAccessorMethodSuffix = ""
+                    }
+                    emitStatement("%s obj = null", qualifiedJavaClassName)
+                    beginControlFlow("if (update)")
+                        emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
+                        emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)", columnInfoClassName(), columnInfoClassName(), qualifiedJavaClassName)
+                        emitStatement("long pkColumnKey = %s", fieldColKeyVariableReference(metadata.primaryKey))
+                        emitStatement("long objKey = Table.NO_MATCH")
+                        if (metadata.isNullable(metadata.primaryKey!!)) {
+                            beginControlFlow("if (json.isNull(\"%s\"))", metadata.primaryKey!!.simpleName)
+                                emitStatement("objKey = table.findFirstNull(pkColumnKey)")
+                            nextControlFlow("else")
+                                emitStatement("objKey = table.findFirst%s(pkColumnKey, %sjson.get%s(\"%s\"))", pkType, findFirstCast, jsonAccessorMethodSuffix, metadata.primaryKey!!.simpleName)
+                            endControlFlow()
+                        } else {
+                            beginControlFlow("if (!json.isNull(\"%s\"))", metadata.primaryKey!!.simpleName)
+                                emitStatement("objKey = table.findFirst%s(pkColumnKey, %sjson.get%s(\"%s\"))", pkType, findFirstCast, jsonAccessorMethodSuffix, metadata.primaryKey!!.simpleName)
+                            endControlFlow()
+                        }
+                        beginControlFlow("if (objKey != Table.NO_MATCH)")
+                            emitStatement("final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get()")
+                            beginControlFlow("try")
+                                emitStatement("objectContext.set(realm, table.getUncheckedRow(objKey), realm.getSchema().getColumnInfo(%s.class), false, Collections.<String> emptyList())", qualifiedJavaClassName)
+                                emitStatement("obj = new %s()", generatedClassName)
+                            nextControlFlow("finally")
+                                emitStatement("objectContext.clear()")
+                            endControlFlow()
                         endControlFlow()
                     endControlFlow()
-                endControlFlow()
 
-                beginControlFlow("if (obj == null)")
-                    buildExcludeFieldsList(writer, metadata.fields)
-                    val primaryKeyFieldType = QualifiedClassName(metadata.primaryKey!!.asType().toString())
-                    val primaryKeyFieldName = metadata.primaryKey!!.simpleName.toString()
-                    RealmJsonTypeHelper.emitCreateObjectWithPrimaryKeyValue(qualifiedJavaClassName, generatedClassName, primaryKeyFieldType, primaryKeyFieldName, writer)
-                endControlFlow()
-            }
-            emitEmptyLine()
-            emitStatement("final %1\$s objProxy = (%1\$s) obj", interfaceName)
-            for (field in metadata.fields) {
-                val fieldName = field.simpleName.toString()
-                val qualifiedFieldType = QualifiedClassName(field.asType().toString())
-                if (metadata.isPrimaryKey(field)) {
-                    continue  // Primary key has already been set when adding new row or finding the existing row.
+                    beginControlFlow("if (obj == null)")
+                        buildExcludeFieldsList(writer, metadata.fields)
+                        val primaryKeyFieldType = QualifiedClassName(metadata.primaryKey!!.asType().toString())
+                        val primaryKeyFieldName = metadata.primaryKey!!.simpleName.toString()
+                        RealmJsonTypeHelper.emitCreateObjectWithPrimaryKeyValue(qualifiedJavaClassName, generatedClassName, primaryKeyFieldType, primaryKeyFieldName, writer)
+                    endControlFlow()
                 }
-                when {
-                    Utils.isRealmModel(field) -> RealmJsonTypeHelper.emitFillRealmObjectWithJsonValue(
-                            "objProxy",
-                            metadata.getInternalSetter(fieldName),
-                            fieldName,
-                            qualifiedFieldType,
-                            Utils.getProxyClassSimpleName(field),
-                            writer)
-                    Utils.isRealmModelList(field) -> RealmJsonTypeHelper.emitFillRealmListWithJsonValue(
-                            "objProxy",
-                            metadata.getInternalGetter(fieldName),
-                            metadata.getInternalSetter(fieldName),
-                            fieldName,
-                            (field.asType() as DeclaredType).typeArguments[0].toString(),
-                            Utils.getProxyClassSimpleName(field),
-                            writer)
-                    Utils.isRealmValueList(field) -> emitStatement("ProxyUtils.setRealmListWithJsonObject(objProxy.%1\$s(), json, \"%2\$s\")", metadata.getInternalGetter(fieldName), fieldName)
-                    Utils.isMutableRealmInteger(field) -> RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
-                            "objProxy",
-                            metadata.getInternalGetter(fieldName),
-                            fieldName,
-                            qualifiedFieldType,
-                            writer)
-                    else -> RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
-                            "objProxy",
-                            metadata.getInternalSetter(fieldName),
-                            fieldName,
-                            qualifiedFieldType,
-                            writer
-                    )
+                emitEmptyLine()
+                emitStatement("final %1\$s objProxy = (%1\$s) obj", interfaceName)
+                for (field in metadata.fields) {
+                    val fieldName = field.simpleName.toString()
+                    val qualifiedFieldType = QualifiedClassName(field.asType().toString())
+                    if (metadata.isPrimaryKey(field)) {
+                        continue  // Primary key has already been set when adding new row or finding the existing row.
+                    }
+                    when {
+                        Utils.isRealmModel(field) -> {
+                            val fieldType = QualifiedClassName(field.asType())
+                            val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
+                            RealmJsonTypeHelper.emitFillRealmObjectWithJsonValue(
+                                    "objProxy",
+                                    metadata.getInternalSetter(fieldName),
+                                    fieldName,
+                                    qualifiedFieldType,
+                                    Utils.getProxyClassSimpleName(field),
+                                    fieldTypeMetaData.embedded,
+                                    writer)
+                        }
+                        Utils.isRealmModelList(field) -> {
+                            val fieldType = QualifiedClassName((field.asType() as DeclaredType).typeArguments[0])
+                            val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
+                            RealmJsonTypeHelper.emitFillRealmListWithJsonValue(
+                                    "objProxy",
+                                    metadata.getInternalGetter(fieldName),
+                                    metadata.getInternalSetter(fieldName),
+                                    fieldName,
+                                    (field.asType() as DeclaredType).typeArguments[0].toString(),
+                                    Utils.getProxyClassSimpleName(field),
+                                    fieldTypeMetaData.embedded,
+                                    writer)
+                        }
+                        Utils.isRealmValueList(field) -> emitStatement("ProxyUtils.setRealmListWithJsonObject(objProxy.%1\$s(), json, \"%2\$s\")", metadata.getInternalGetter(fieldName), fieldName)
+                        Utils.isMutableRealmInteger(field) -> RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
+                                "objProxy",
+                                metadata.getInternalGetter(fieldName),
+                                fieldName,
+                                qualifiedFieldType,
+                                writer)
+                        else -> RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
+                                "objProxy",
+                                metadata.getInternalSetter(fieldName),
+                                fieldName,
+                                qualifiedFieldType,
+                                writer)
+                    }
                 }
-            }
-            emitStatement("return obj")
-            endMethod()
-            emitEmptyLine()            
+                emitStatement("return obj")
+                endMethod()
+                emitEmptyLine()
         }
     }
 
@@ -1910,7 +2285,13 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement(Constants.STATEMENT_EXCEPTION_NO_PRIMARY_KEY_IN_JSON, metadata.primaryKey)
                 endControlFlow()
             }
-            emitStatement("return realm.copyToRealm(obj)")
+            if (!metadata.embedded) {
+                emitStatement("return realm.copyToRealm(obj)")
+            } else {
+                // Embedded objects are left unmanaged and assumed to be added by their parent. This
+                // is safe as json import is blocked for embedded objects without a parent.
+                emitStatement("return obj")
+            }
             endMethod()
             emitEmptyLine()            
         }

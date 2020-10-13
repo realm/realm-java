@@ -15,6 +15,8 @@
  */
 package io.realm;
 
+import androidx.test.rule.UiThreadTestRule;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -45,6 +47,8 @@ public abstract class QueryTests {
     public final ExpectedException thrown = ExpectedException.none();
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
+    @Rule
+    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
 
     protected static final List<RealmFieldType> SUPPORTED_IS_EMPTY_TYPES;
     protected static final List<RealmFieldType> NOT_SUPPORTED_IS_EMPTY_TYPES;
@@ -71,6 +75,8 @@ public abstract class QueryTests {
         list.remove(RealmFieldType.DOUBLE_LIST);
         list.remove(RealmFieldType.FLOAT_LIST);
         list.remove(RealmFieldType.DATE_LIST);
+        list.remove(RealmFieldType.DECIMAL128_LIST);
+        list.remove(RealmFieldType.OBJECT_ID_LIST);
 
         NOT_SUPPORTED_IS_EMPTY_TYPES = Collections.unmodifiableList(list);
         NOT_SUPPORTED_IS_NOT_EMPTY_TYPES = Collections.unmodifiableList(list);

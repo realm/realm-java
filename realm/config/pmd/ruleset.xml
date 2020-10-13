@@ -8,6 +8,7 @@
         Realm PMD ruleset
     </description>
 
-    <rule ref="rulesets/java/android.xml"/>
-
+    <rule ref="category/java/errorprone.xml/CallSuperFirst" />
+    <rule ref="category/java/errorprone.xml/CallSuperLast"/>
+    <rule ref="category/java/errorprone.xml/DoNotHardCodeSDCard"/>
 </ruleset>

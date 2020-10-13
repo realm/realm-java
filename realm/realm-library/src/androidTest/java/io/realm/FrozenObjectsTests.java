@@ -15,14 +15,17 @@
  */
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 
 import javax.annotation.Nullable;
@@ -744,8 +747,10 @@ public class FrozenObjectsTests {
                 obj.setColumnString("String " + i);
                 obj.setColumnLong(i);
                 obj.setColumnRealmList(list);
-                obj.setColumnStringList(new RealmList<String>("Foo", "Bar", "Baz"));
+                obj.setColumnStringList(new RealmList<>("Foo", "Bar", "Baz"));
                 obj.setColumnRealmObject(r.copyToRealm(new Dog("Dog 42")));
+                obj.setColumnObjectId(new ObjectId(TestHelper.randomObjectIdHexString()));
+                obj.setColumnDecimal128(new Decimal128(new BigDecimal(i + ".23456789")));
                 r.insert(obj);
             }
         });

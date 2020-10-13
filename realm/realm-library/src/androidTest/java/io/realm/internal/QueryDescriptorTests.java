@@ -16,7 +16,7 @@
 
 package io.realm.internal;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -90,7 +90,7 @@ public class QueryDescriptorTests {
     }
 
     @Test
-    public void getInstanceForDistinct_shouldThrowOnLinkAndListListField() {
+    public void getInstanceForDistinct_shouldThrowOnListField() {
         RealmFieldType type = RealmFieldType.STRING;
         RealmFieldType objectType = RealmFieldType.OBJECT;
         RealmFieldType listType = RealmFieldType.LIST;
@@ -100,12 +100,6 @@ public class QueryDescriptorTests {
 
         try {
             QueryDescriptor.getInstanceForDistinct(null, table, String.format("%s.%s", listType.name(), type.name()));
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-
-        try {
-            QueryDescriptor.getInstanceForDistinct(null, table, String.format("%s.%s", objectType.name(), type.name()));
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -267,6 +261,8 @@ public class QueryDescriptorTests {
                     case DATE_LIST:
                     case FLOAT_LIST:
                     case DOUBLE_LIST:
+                    case DECIMAL128_LIST:
+                    case OBJECT_ID_LIST:
                         break;
                     case LIST:
                     case OBJECT:

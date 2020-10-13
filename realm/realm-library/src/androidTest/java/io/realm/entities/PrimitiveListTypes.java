@@ -16,6 +16,10 @@
 
 package io.realm.entities;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
+import java.text.DecimalFormat;
 import java.util.Date;
 
 import io.realm.RealmList;
@@ -33,6 +37,8 @@ public class PrimitiveListTypes extends RealmObject {
     public static final String FIELD_SHORT_LIST = "shortList";
     public static final String FIELD_INT_LIST = "intList";
     public static final String FIELD_LONG_LIST = "longList";
+    public static final String FIELD_DECIMAL128_LIST = "decimal128List";
+    public static final String FIELD_OBJECT_ID_LIST = "objectIdList";
     public static final String FIELD_REQUIRED_STRING_LIST = "requiredStringList";
     public static final String FIELD_REQUIRED_BINARY_LIST = "requiredBinaryList";
     public static final String FIELD_REQUIRED_BOOLEAN_LIST = "requiredBooleanList";
@@ -43,6 +49,8 @@ public class PrimitiveListTypes extends RealmObject {
     public static final String FIELD_REQUIRED_SHORT_LIST = "requiredShortList";
     public static final String FIELD_REQUIRED_INT_LIST = "requiredIntList";
     public static final String FIELD_REQUIRED_LONG_LIST = "requiredLongList";
+    public static final String FIELD_REQUIRED_DECIMAL128_LIST = "requiredDecimal128List";
+    public static final String FIELD_REQUIRED_OBJECT_ID_LIST = "requiredObjectIdList";
 
     @SuppressWarnings("unused")
     private RealmList<String> stringList;
@@ -64,6 +72,10 @@ public class PrimitiveListTypes extends RealmObject {
     private RealmList<Integer> intList;
     @SuppressWarnings("unused")
     private RealmList<Long> longList;
+    @SuppressWarnings("unused")
+    private RealmList<Decimal128> decimal128List;
+    @SuppressWarnings("unused")
+    private RealmList<ObjectId> objectIdList;
 
     @SuppressWarnings("unused")
     @Required
@@ -95,6 +107,12 @@ public class PrimitiveListTypes extends RealmObject {
     @SuppressWarnings("unused")
     @Required
     private RealmList<Long> requiredLongList;
+    @SuppressWarnings("unused")
+    @Required
+    private RealmList<Decimal128> requiredDecimal128List;
+    @SuppressWarnings("unused")
+    @Required
+    private RealmList<ObjectId> requiredObjectIdList;
 
     public RealmList getList(String fieldName) {
         switch (fieldName) {
@@ -118,6 +136,10 @@ public class PrimitiveListTypes extends RealmObject {
                 return intList;
             case FIELD_LONG_LIST:
                 return longList;
+            case FIELD_DECIMAL128_LIST:
+                return decimal128List;
+            case FIELD_OBJECT_ID_LIST:
+                return objectIdList;
             case FIELD_REQUIRED_STRING_LIST:
                 return requiredStringList;
             case FIELD_REQUIRED_BINARY_LIST:
@@ -138,6 +160,10 @@ public class PrimitiveListTypes extends RealmObject {
                 return requiredIntList;
             case FIELD_REQUIRED_LONG_LIST:
                 return requiredLongList;
+            case FIELD_REQUIRED_DECIMAL128_LIST:
+                return requiredDecimal128List;
+            case FIELD_REQUIRED_OBJECT_ID_LIST:
+                return requiredObjectIdList;
             default:
                 throw new IllegalArgumentException("Unknown field name: '" + fieldName + "'.");
         }

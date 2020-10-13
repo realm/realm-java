@@ -16,14 +16,17 @@
 
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -129,6 +132,10 @@ public class BulkInsertTests {
         assertEquals(list.get(0).getFieldString(), realmTypes.getFieldList().get(0).getFieldString());
         assertEquals(list.get(0).getFieldLong(), realmTypes.getFieldList().get(0).getFieldLong());
         assertNull(realmTypes.getFieldList().get(0).getFieldIgnored());
+        assertNull(realmTypes.getFieldDecimal128());
+        assertNull(realmTypes.getFieldObjectId());
+        assertEquals(0, realmTypes.getFieldDecimal128List().size());
+        assertEquals(0, realmTypes.getFieldObjectIdList().size());
 
 
         // Makes sure Dog was not inserted twice in the recursive process.
@@ -146,6 +153,8 @@ public class BulkInsertTests {
         allTypes.columnFloat = 1.234567f;
         allTypes.columnString = "test data";
         allTypes.columnByte = 0x2A;
+        allTypes.columnDecimal128 = new Decimal128(BigDecimal.TEN);
+        allTypes.columnObjectId = new ObjectId(TestHelper.generateObjectIdHexString(7));
 
         realm.beginTransaction();
         realm.insert(allTypes);
@@ -161,6 +170,8 @@ public class BulkInsertTests {
         assertEquals(allTypes.columnDouble, first.columnDouble, 0.0000001);
         assertEquals(allTypes.columnFloat, first.columnFloat, 0.0000001);
         assertEquals(allTypes.columnByte, first.columnByte);
+        assertEquals(allTypes.columnDecimal128, first.columnDecimal128);
+        assertEquals(allTypes.columnObjectId, first.columnObjectId);
     }
 
     @Test
@@ -187,6 +198,8 @@ public class BulkInsertTests {
         nullTypes1.setFieldBooleanNull(true);
         nullTypes1.setFieldStringNull("4");
         nullTypes1.setFieldDateNull(new Date(12345));
+        nullTypes1.setFieldDecimal128Null(new Decimal128(BigDecimal.TEN));
+        nullTypes1.setFieldObjectIdNull(new ObjectId(TestHelper.generateObjectIdHexString(7)));
 
         realm.beginTransaction();
         realm.insert(nullTypes1);
@@ -202,6 +215,8 @@ public class BulkInsertTests {
         assertEquals(nullTypes1.getFieldBooleanNull(), first.getFieldBooleanNull());
         assertEquals(nullTypes1.getFieldStringNull(), first.getFieldStringNull());
         assertEquals(nullTypes1.getFieldDateNull(), first.getFieldDateNull());
+        assertEquals(nullTypes1.getFieldDecimal128Null(), first.getFieldDecimal128Null());
+        assertEquals(nullTypes1.getFieldObjectIdNull(), first.getFieldObjectIdNull());
 
         NullTypes nullTypes2 = new NullTypes();
         nullTypes2.setId(2);
@@ -217,6 +232,8 @@ public class BulkInsertTests {
         nullTypes1.setFieldBooleanNull(null);
         nullTypes1.setFieldStringNull(null);
         nullTypes1.setFieldDateNull(null);
+        nullTypes1.setFieldDecimal128Null(null);
+        nullTypes1.setFieldObjectIdNull(null);
         nullTypes1.setFieldListNull(new RealmList<NullTypes>());
         nullTypes1.getFieldListNull().add(nullTypes2);
         nullTypes1.getFieldListNull().add(nullTypes3);
@@ -240,6 +257,8 @@ public class BulkInsertTests {
         assertNull(first.getFieldBooleanNull());
         assertNull(first.getFieldStringNull());
         assertNull(first.getFieldDateNull());
+        assertNull(first.getFieldDecimal128Null());
+        assertNull(first.getFieldObjectIdNull());
         assertEquals(2, first.getFieldListNull().size());
         assertEquals(2, first.getFieldListNull().get(0).getId());
         assertEquals(3, first.getFieldListNull().get(1).getId());

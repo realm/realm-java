@@ -30,6 +30,7 @@ public class OsObjectSchemaInfo implements NativeObject {
     public static class Builder {
         private final String className;
         private final long[] persistedPropertyPtrArray;
+        private final boolean embedded;
         private int persistedPropertyPtrCurPos = 0;
         private final long[] computedPropertyPtrArray;
         private int computedPropertyPtrCurPos = 0;
@@ -40,8 +41,9 @@ public class OsObjectSchemaInfo implements NativeObject {
          *
          * @param className name of the class
          */
-        public Builder(String className, int persistedPropertyCapacity, int computedPropertyCapacity) {
+        public Builder(String className, boolean embedded, int persistedPropertyCapacity, int computedPropertyCapacity) {
             this.className = className;
+            this.embedded = embedded;
             this.persistedPropertyPtrArray = new long[persistedPropertyCapacity];
             this.computedPropertyPtrArray = new long[computedPropertyCapacity];
         }
@@ -125,7 +127,7 @@ public class OsObjectSchemaInfo implements NativeObject {
             if (persistedPropertyPtrCurPos == -1 || computedPropertyPtrCurPos == -1) {
                 throw new IllegalStateException("'OsObjectSchemaInfo.build()' has been called before on this object.");
             }
-            OsObjectSchemaInfo info = new OsObjectSchemaInfo(className);
+            OsObjectSchemaInfo info = new OsObjectSchemaInfo(className, embedded);
             nativeAddProperties(info.nativePtr, persistedPropertyPtrArray, computedPropertyPtrArray);
             persistedPropertyPtrCurPos = -1;
             computedPropertyPtrCurPos = -1;
@@ -142,8 +144,8 @@ public class OsObjectSchemaInfo implements NativeObject {
      *
      * @param className name of the class
      */
-    private OsObjectSchemaInfo(String className) {
-        this(nativeCreateRealmObjectSchema(className));
+    private OsObjectSchemaInfo(String className, boolean embedded) {
+        this(nativeCreateRealmObjectSchema(className, embedded));
     }
 
     /**
@@ -185,6 +187,11 @@ public class OsObjectSchemaInfo implements NativeObject {
         return propertyPtr == 0 ? null : new Property(nativeGetPrimaryKeyProperty(nativePtr));
     }
 
+
+    public boolean isEmbedded() {
+        return nativeIsEmbedded(nativePtr);
+    }
+
     @Override
     public long getNativePtr() {
         return nativePtr;
@@ -195,7 +202,7 @@ public class OsObjectSchemaInfo implements NativeObject {
         return nativeFinalizerPtr;
     }
 
-    private static native long nativeCreateRealmObjectSchema(String className);
+    private static native long nativeCreateRealmObjectSchema(String className, boolean embedded);
 
     private static native long nativeGetFinalizerPtr();
 
@@ -210,4 +217,5 @@ public class OsObjectSchemaInfo implements NativeObject {
     // Return nullptr if it doesn't have a primary key.
     private static native long nativeGetPrimaryKeyProperty(long nativePtr);
 
+    private static native boolean nativeIsEmbedded(long nativePtr);
 }

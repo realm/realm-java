@@ -80,18 +80,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppe
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeAppendInclude(JNIEnv* env, jclass,
-                                                                            jlong descriptor_ptr,
-                                                                            jlong include_descriptor_ptr)
-{
-    try {
-        auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
-        auto include_descriptor = reinterpret_cast<IncludeDescriptor*>(include_descriptor_ptr);
-        descriptor->append_include(*include_descriptor);
-    }
-    CATCH_STD()
-}
-
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_core_DescriptorOrdering_nativeIsEmpty(JNIEnv* env, jclass,
                                                                              jlong descriptor_ptr)
 {

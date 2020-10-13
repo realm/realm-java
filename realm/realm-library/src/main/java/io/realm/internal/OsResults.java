@@ -16,6 +16,9 @@
 
 package io.realm.internal;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
@@ -42,7 +45,7 @@ public class OsResults implements NativeObject, ObservableCollection {
             "This Realm instance has already been closed, making it unusable.";
 
     // Custom OsResults iterator. It ensures that we only iterate on a Realm OsResults that hasn't changed.
-    public static abstract class Iterator<T> implements java.util.Iterator<T> {
+    public abstract static class Iterator<T> implements java.util.Iterator<T> {
         OsResults iteratorOsResults;
         protected int pos = -1;
 
@@ -128,7 +131,7 @@ public class OsResults implements NativeObject, ObservableCollection {
     }
 
     // Custom Realm collection list iterator.
-    public static abstract class ListIterator<T> extends Iterator<T> implements java.util.ListIterator<T> {
+    public abstract static class ListIterator<T> extends Iterator<T> implements java.util.ListIterator<T> {
 
         public ListIterator(OsResults osResults, int start) {
             super(osResults);
@@ -452,6 +455,22 @@ public class OsResults implements NativeObject, ObservableCollection {
         }
     }
 
+    public void setDecimal128(String fieldName, @Nullable Decimal128 value) {
+        if (value == null) {
+            nativeSetNull(nativePtr, fieldName);
+        } else {
+            nativeSetDecimal128(nativePtr, fieldName, value.getLow(), value.getHigh());
+        }
+    }
+
+    public void setObjectId(String fieldName, @Nullable ObjectId value) {
+        if (value == null) {
+            nativeSetNull(nativePtr, fieldName);
+        } else {
+            nativeSetObjectId(nativePtr, fieldName, value.toString());
+        }
+    }
+
     public void setObject(String fieldName, @Nullable Row row) {
         if (row == null) {
             setNull(fieldName);
@@ -587,6 +606,24 @@ public class OsResults implements NativeObject, ObservableCollection {
         });
     }
 
+    public void setDecimal128List(String fieldName, RealmList<Decimal128> list) {
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<Decimal128>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<Decimal128> list) {
+                builder.addDecimal128List(0, list);
+            }
+        });
+    }
+
+    public void setObjectIdList(String fieldName, RealmList<ObjectId> list) {
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<ObjectId>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<ObjectId> list) {
+                builder.addObjectIdList(0, list);
+            }
+        });
+    }
+
     public <T> void addListener(T observer, OrderedRealmCollectionChangeListener<T> listener) {
         if (observerPairs.isEmpty()) {
             nativeStartListening(nativePtr);
@@ -625,8 +662,8 @@ public class OsResults implements NativeObject, ObservableCollection {
         // Object Store compute the change set between the SharedGroup versions when the query created and the latest.
         // So it is possible it deliver a non-empty change set for the first async query returns.
         OsCollectionChangeSet changeset = (nativeChangeSetPtr == 0)
-                ? new EmptyLoadChangeSet(null, sharedRealm.isPartial())
-                : new OsCollectionChangeSet(nativeChangeSetPtr, !isLoaded(), null, sharedRealm.isPartial());
+                ? new EmptyLoadChangeSet()
+                : new OsCollectionChangeSet(nativeChangeSetPtr, !isLoaded());
 
         // Happens e.g. if a synchronous query is created, a change listener is added and then
         // a transaction is started on the same thread. This will trigger all notifications
@@ -712,6 +749,10 @@ public class OsResults implements NativeObject, ObservableCollection {
     private static native void nativeSetBinary(long nativePtr, String fieldName, @Nullable byte[] value);
 
     private static native void nativeSetTimestamp(long nativePtr, String fieldName, long value);
+
+    private static native void nativeSetDecimal128(long nativePtr, String fieldName, long low, long high);
+
+    private static native void nativeSetObjectId(long nativePtr, String fieldName, String data);
 
     private static native void nativeSetObject(long nativePtr, String fieldName, long rowNativePtr);
 

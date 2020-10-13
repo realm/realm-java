@@ -16,7 +16,7 @@
 
 package io.realm.internal;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -51,7 +51,7 @@ public class OsListTests {
 
     @Before
     public void setUp() {
-        OsObjectSchemaInfo objectSchemaInfo = new OsObjectSchemaInfo.Builder("TestModel",14, 0)
+        OsObjectSchemaInfo objectSchemaInfo = new OsObjectSchemaInfo.Builder("TestModel", false,14, 0)
                 .addPersistedValueListProperty("longList", RealmFieldType.INTEGER_LIST, !Property.REQUIRED)
                 .addPersistedValueListProperty("doubleList", RealmFieldType.DOUBLE_LIST,  !Property.REQUIRED)
                 .addPersistedValueListProperty("floatList", RealmFieldType.FLOAT_LIST, !Property.REQUIRED)

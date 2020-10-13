@@ -185,7 +185,7 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
     }
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("Booleans", 4, 0);
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("Booleans", false, 4, 0);
         builder.addPersistedProperty("done", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addPersistedProperty("isReady", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addPersistedProperty("mCompleted", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
@@ -293,7 +293,7 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
         return realm.copyToRealm(obj);
     }
 
-    private static some_test_BooleansRealmProxy newProxyInstance(BaseRealm realm, Row row) {
+    static some_test_BooleansRealmProxy newProxyInstance(BaseRealm realm, Row row) {
         // Ignore default values to avoid creating unexpected objects from RealmModel/RealmList fields
         final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         objectContext.set(realm, row, realm.getSchema().getColumnInfo(some.test.Booleans.class), false, Collections.<String>emptyList());
@@ -327,24 +327,24 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
             return (some.test.Booleans) cachedRealmObject;
         }
 
-        some_test_BooleansRealmProxyInterface realmObjectSource = (some_test_BooleansRealmProxyInterface) newObject;
+        some_test_BooleansRealmProxyInterface unmanagedSource = (some_test_BooleansRealmProxyInterface) newObject;
 
         Table table = realm.getTable(some.test.Booleans.class);
         OsObjectBuilder builder = new OsObjectBuilder(table, flags);
 
         // Add all non-"object reference" fields
-        builder.addBoolean(columnInfo.doneColKey, realmObjectSource.realmGet$done());
-        builder.addBoolean(columnInfo.isReadyColKey, realmObjectSource.realmGet$isReady());
-        builder.addBoolean(columnInfo.mCompletedColKey, realmObjectSource.realmGet$mCompleted());
-        builder.addBoolean(columnInfo.anotherBooleanColKey, realmObjectSource.realmGet$anotherBoolean());
+        builder.addBoolean(columnInfo.doneColKey, unmanagedSource.realmGet$done());
+        builder.addBoolean(columnInfo.isReadyColKey, unmanagedSource.realmGet$isReady());
+        builder.addBoolean(columnInfo.mCompletedColKey, unmanagedSource.realmGet$mCompleted());
+        builder.addBoolean(columnInfo.anotherBooleanColKey, unmanagedSource.realmGet$anotherBoolean());
 
         // Create the underlying object and cache it before setting any object/objectlist references
         // This will allow us to break any circular dependencies by using the object cache.
         Row row = builder.createNewObject();
-        io.realm.some_test_BooleansRealmProxy realmObjectCopy = newProxyInstance(realm, row);
-        cache.put(newObject, realmObjectCopy);
+        io.realm.some_test_BooleansRealmProxy managedCopy = newProxyInstance(realm, row);
+        cache.put(newObject, managedCopy);
 
-        return realmObjectCopy;
+        return managedCopy;
     }
 
     public static long insert(Realm realm, some.test.Booleans object, Map<RealmModel,Long> cache) {
@@ -354,13 +354,13 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
         Table table = realm.getTable(some.test.Booleans.class);
         long tableNativePtr = table.getNativePtr();
         BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.getSchema().getColumnInfo(some.test.Booleans.class);
-        long colKey = OsObject.createRow(table);
-        cache.put(object, colKey);
-        Table.nativeSetBoolean(tableNativePtr, columnInfo.doneColKey, colKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$done(), false);
-        Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyColKey, colKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$isReady(), false);
-        Table.nativeSetBoolean(tableNativePtr, columnInfo.mCompletedColKey, colKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$mCompleted(), false);
-        Table.nativeSetBoolean(tableNativePtr, columnInfo.anotherBooleanColKey, colKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$anotherBoolean(), false);
-        return colKey;
+        long objKey = OsObject.createRow(table);
+        cache.put(object, objKey);
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.doneColKey, objKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$done(), false);
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyColKey, objKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$isReady(), false);
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.mCompletedColKey, objKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$mCompleted(), false);
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.anotherBooleanColKey, objKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$anotherBoolean(), false);
+        return objKey;
     }
 
     public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
@@ -377,12 +377,12 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
                 cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey());
                 continue;
             }
-            long colKey = OsObject.createRow(table);
-            cache.put(object, colKey);
-            Table.nativeSetBoolean(tableNativePtr, columnInfo.doneColKey, colKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$done(), false);
-            Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyColKey, colKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$isReady(), false);
-            Table.nativeSetBoolean(tableNativePtr, columnInfo.mCompletedColKey, colKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$mCompleted(), false);
-            Table.nativeSetBoolean(tableNativePtr, columnInfo.anotherBooleanColKey, colKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$anotherBoolean(), false);
+            long objKey = OsObject.createRow(table);
+            cache.put(object, objKey);
+            Table.nativeSetBoolean(tableNativePtr, columnInfo.doneColKey, objKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$done(), false);
+            Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyColKey, objKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$isReady(), false);
+            Table.nativeSetBoolean(tableNativePtr, columnInfo.mCompletedColKey, objKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$mCompleted(), false);
+            Table.nativeSetBoolean(tableNativePtr, columnInfo.anotherBooleanColKey, objKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$anotherBoolean(), false);
         }
     }
 
@@ -393,13 +393,13 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
         Table table = realm.getTable(some.test.Booleans.class);
         long tableNativePtr = table.getNativePtr();
         BooleansColumnInfo columnInfo = (BooleansColumnInfo) realm.getSchema().getColumnInfo(some.test.Booleans.class);
-        long colKey = OsObject.createRow(table);
-        cache.put(object, colKey);
-        Table.nativeSetBoolean(tableNativePtr, columnInfo.doneColKey, colKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$done(), false);
-        Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyColKey, colKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$isReady(), false);
-        Table.nativeSetBoolean(tableNativePtr, columnInfo.mCompletedColKey, colKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$mCompleted(), false);
-        Table.nativeSetBoolean(tableNativePtr, columnInfo.anotherBooleanColKey, colKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$anotherBoolean(), false);
-        return colKey;
+        long objKey = OsObject.createRow(table);
+        cache.put(object, objKey);
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.doneColKey, objKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$done(), false);
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyColKey, objKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$isReady(), false);
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.mCompletedColKey, objKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$mCompleted(), false);
+        Table.nativeSetBoolean(tableNativePtr, columnInfo.anotherBooleanColKey, objKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$anotherBoolean(), false);
+        return objKey;
     }
 
     public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
@@ -416,12 +416,12 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
                 cache.put(object, ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey());
                 continue;
             }
-            long colKey = OsObject.createRow(table);
-            cache.put(object, colKey);
-            Table.nativeSetBoolean(tableNativePtr, columnInfo.doneColKey, colKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$done(), false);
-            Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyColKey, colKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$isReady(), false);
-            Table.nativeSetBoolean(tableNativePtr, columnInfo.mCompletedColKey, colKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$mCompleted(), false);
-            Table.nativeSetBoolean(tableNativePtr, columnInfo.anotherBooleanColKey, colKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$anotherBoolean(), false);
+            long objKey = OsObject.createRow(table);
+            cache.put(object, objKey);
+            Table.nativeSetBoolean(tableNativePtr, columnInfo.doneColKey, objKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$done(), false);
+            Table.nativeSetBoolean(tableNativePtr, columnInfo.isReadyColKey, objKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$isReady(), false);
+            Table.nativeSetBoolean(tableNativePtr, columnInfo.mCompletedColKey, objKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$mCompleted(), false);
+            Table.nativeSetBoolean(tableNativePtr, columnInfo.anotherBooleanColKey, objKey, ((some_test_BooleansRealmProxyInterface) object).realmGet$anotherBoolean(), false);
         }
     }
 
@@ -487,12 +487,12 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
     public int hashCode() {
         String realmName = proxyState.getRealm$realm().getPath();
         String tableName = proxyState.getRow$realm().getTable().getName();
-        long colKey = proxyState.getRow$realm().getObjectKey();
+        long objKey = proxyState.getRow$realm().getObjectKey();
 
         int result = 17;
         result = 31 * result + ((realmName != null) ? realmName.hashCode() : 0);
         result = 31 * result + ((tableName != null) ? tableName.hashCode() : 0);
-        result = 31 * result + (int) (colKey ^ (colKey >>> 32));
+        result = 31 * result + (int) (objKey ^ (objKey >>> 32));
         return result;
     }
 

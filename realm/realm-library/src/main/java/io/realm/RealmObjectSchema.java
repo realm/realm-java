@@ -26,6 +26,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import io.realm.annotations.RealmClass;
 import io.realm.annotations.Required;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
@@ -82,7 +83,7 @@ public abstract class RealmObjectSchema {
     final RealmSchema schema;
     final BaseRealm realm;
     final Table table;
-    private final ColumnInfo columnInfo;
+    final ColumnInfo columnInfo;
 
     /**
      * Creates a schema object for a given Realm class.
@@ -119,7 +120,7 @@ public abstract class RealmObjectSchema {
      * @param className the new name for this class.
      * @throws IllegalArgumentException if className is {@code null} or an empty string, or its length exceeds 56
      * characters.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or from a synced Realm.
      * @see RealmSchema#rename(String, String)
      */
     public abstract RealmObjectSchema setClassName(String className);
@@ -139,7 +140,8 @@ public abstract class RealmObjectSchema {
      * @return the updated schema.
      * @throws IllegalArgumentException if the type isn't supported, field name is illegal or a field with that name
      * already exists.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or if adding a
+     * a field with {@link FieldAttribute#PRIMARY_KEY} attribute to a schema of a synced Realm.
      */
     public abstract RealmObjectSchema addField(String fieldName, Class<?> fieldType, FieldAttribute... attributes);
 
@@ -201,7 +203,7 @@ public abstract class RealmObjectSchema {
      * @param fieldName field name to remove.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or for a synced Realm.
      */
     public abstract RealmObjectSchema removeField(String fieldName);
 
@@ -212,7 +214,7 @@ public abstract class RealmObjectSchema {
      * @param newFieldName the new field name.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist or if the new field name already exists.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or for a synced Realm.
      */
     public abstract RealmObjectSchema renameField(String currentFieldName, String newFieldName);
 
@@ -258,7 +260,7 @@ public abstract class RealmObjectSchema {
      * @param fieldName field to remove index from.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist or the field doesn't have an index.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or of a synced Realm.
      */
     public abstract RealmObjectSchema removeIndex(String fieldName);
 
@@ -271,7 +273,7 @@ public abstract class RealmObjectSchema {
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exist, the field cannot be a primary key or it already
      * has a primary key defined.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or this method is called on a synced Realm.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or of a synced Realm.
      */
     public abstract RealmObjectSchema addPrimaryKey(String fieldName);
 
@@ -282,7 +284,7 @@ public abstract class RealmObjectSchema {
      *
      * @return the updated schema.
      * @throws IllegalArgumentException if the class doesn't have a primary key defined.
-     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable or of a synced Realm.
      */
     public abstract RealmObjectSchema removePrimaryKey();
 
@@ -416,6 +418,73 @@ public abstract class RealmObjectSchema {
     public RealmFieldType getFieldType(String fieldName) {
         long columnKey = getColumnKey(fieldName);
         return table.getColumnType(columnKey);
+    }
+
+    /**
+     * Returns {@code true} if objects of this type are considered "embedded".
+     * See {@link RealmClass#embedded()} for further details.
+     *
+     * @return {@code true} if objects of this type are embedded. {@code false} if not.
+     */
+    public boolean isEmbedded() {
+        return table.isEmbedded();
+    }
+
+    /**
+     * Converts the class to be embedded or not.
+     * <p>
+     * A class can only be marked as embedded if the following invariants are satisfied:
+     * <ul>
+     *     <li>
+     *         The class is not allowed to have a primary key defined.
+     *     </li>
+     *     <li>
+     *         All existing objects of this type, must have one and exactly one parent object
+     *         already pointing to it. If 0 or more than 1 object has a reference to an object
+     *         about to be marked embedded an {@link IllegalStateException} will be thrown.
+     *     </li>
+     * </ul>
+     *
+     * @throws IllegalStateException if the class could not be converted because it broke some of the Embedded Objects invariants.
+     * @see RealmClass#embedded()
+     */
+    public void setEmbedded(boolean embedded) {
+        if (hasPrimaryKey()) {
+            throw new IllegalStateException("Embedded classes cannot have primary keys. This class " +
+                    "has a primary key defined so cannot be marked as embedded: " + getClassName());
+        }
+        boolean setEmbedded = table.setEmbedded(embedded);
+        if (!setEmbedded && embedded) {
+            throw new IllegalStateException("The class could not be marked as embedded as some " +
+                    "objects of this type break some of the Embedded Objects invariants. In order to convert " +
+                    "all objects to be embedded, they must have one and exactly one parent object" +
+                    "pointing to them.");
+        }
+    }
+
+    /**
+     * Returns a string with the class name of a given property.
+     * @param propertyName the property for which we want to know the class name.
+     * @return the name of the class for the given property.
+     * @throws IllegalArgumentException if the given property is not found in the schema.
+     */
+    abstract String getPropertyClassName(String propertyName);
+
+    /**
+     * Checks whether a given property's {@code RealmFieldType} could host an acceptable embedded
+     * object reference in a parent - acceptable embedded object types are
+     * {@link RealmFieldType#OBJECT} and {@link RealmFieldType#LIST}, i.e. for the property to be
+     * acceptable it has to be either a subclass of {@code RealmModel} or a {@code RealmList}.
+     * <p>
+     * This method does not check the existence of a backlink between the child and the parent nor
+     * that the parent points at the correct child in their respective schemas nor that the object
+     * is a suitable parent/child.
+     * @param property the field type to be checked.
+     * @return whether the property could host an embedded object in a parent.
+     */
+    boolean isPropertyAcceptableForEmbeddedObject(RealmFieldType property) {
+        return property == RealmFieldType.OBJECT
+                || property == RealmFieldType.LIST;
     }
 
     /**

@@ -17,7 +17,7 @@
 package io.realm.rule;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
@@ -35,7 +35,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.internal.ObjectServerFacade;
 
 import static org.junit.Assert.assertTrue;
 
@@ -74,7 +73,7 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
 
     @Override
     protected void before() throws Throwable {
-        Realm.init(InstrumentationRegistry.getTargetContext());
+        Realm.init(InstrumentationRegistry.getInstrumentation().getTargetContext());
         super.before();
     }
 
@@ -135,7 +134,6 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     // You have to delete it yourself.
     public RealmConfiguration.Builder createConfigurationBuilder() {
         RealmConfiguration.Builder builder = new RealmConfiguration.Builder().directory(getRoot());
-        ObjectServerFacade.getSyncFacadeIfPossible().addSupportForObjectLevelPermissions(builder);
         return builder;
     }
 
@@ -175,13 +173,14 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
 
         if (module != null) {
             builder.modules(module);
-        } else {
-            ObjectServerFacade.getSyncFacadeIfPossible().addSupportForObjectLevelPermissions(builder);
         }
 
         if (key != null) {
             builder.encryptionKey(key);
         }
+
+        // Allow writes on UI
+        builder.allowWritesOnUiThread(true);
 
         RealmConfiguration configuration = builder.build();
         configurations.add(configuration);

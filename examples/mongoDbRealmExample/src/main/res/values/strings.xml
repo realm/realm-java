@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MongoDB Realm Example</string>
+    <string name="realm_logo">Realm Logo</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="create_account">Create account and login</string>
+    <string name="login">Login</string>
+    <string name="logout">Logout</string>
+    <string name="login_error_unknown_account">Account does not exist.</string>
+    <string name="login_error_invalid_credentials">User name and password do not match.</string>
+</resources>

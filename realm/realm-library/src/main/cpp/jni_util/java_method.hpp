@@ -31,8 +31,12 @@ public:
         : m_method_id(nullptr)
     {
     }
+    // Lookup a method on a named class
     JavaMethod(JNIEnv* env, JavaClass const& cls, const char* method_name, const char* signature,
                bool static_method = false);
+
+    // Lookup a method on a object from Java
+    JavaMethod(JNIEnv* env, jobject const& cls, const char* method_name, const char* signature);
 
     // From https://developer.android.com/training/articles/perf-jni.html
     // The class references, field IDs, and method IDs are guaranteed valid until the class is unloaded. Classes are

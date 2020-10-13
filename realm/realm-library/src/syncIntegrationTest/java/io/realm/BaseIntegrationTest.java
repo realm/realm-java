@@ -16,7 +16,7 @@
 
 package io.realm;
 
-import android.support.test.rule.UiThreadTestRule;
+import androidx.test.rule.UiThreadTestRule;
 import android.util.Log;
 
 import org.junit.Rule;
@@ -27,7 +27,6 @@ import java.io.IOException;
 
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.Util;
-import io.realm.internal.sync.permissions.ObjectPermissionsModule;
 import io.realm.objectserver.utils.HttpUtils;
 import io.realm.rule.RunInLooperThread;
 
@@ -94,7 +93,7 @@ public abstract class BaseIntegrationTest {
         public SyncConfiguration.Builder createSyncConfigurationBuilder(SyncUser user, String url) {
             return user.createConfiguration(url)
                     .sessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
-                    .modules(Realm.getDefaultModule(), new ObjectPermissionsModule())
+                    .modules(Realm.getDefaultModule())
                     .directory(looperThread.getRoot());
         }
 

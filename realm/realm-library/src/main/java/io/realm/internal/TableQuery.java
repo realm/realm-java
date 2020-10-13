@@ -16,6 +16,9 @@
 
 package io.realm.internal;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.Date;
 
 import javax.annotation.Nullable;
@@ -309,6 +312,16 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
+    public TableQuery between(long[] columnKey, Decimal128 value1, Decimal128 value2) {
+        //noinspection ConstantConditions
+        if (value1 == null || value2 == null) {
+            throw new IllegalArgumentException("Decimal128 values in query criteria must not be null.");
+        }
+        nativeBetweenDecimal128(nativePtr, columnKey, value1.getLow(), value1.getHigh(), value2.getLow(), value2.getHigh());
+        queryValidated = false;
+        return this;
+    }
+
     // Queries for Binary values.
 
     public TableQuery equalTo(long[] columnKeys, long[] tablePtrs, byte[] value) {
@@ -409,6 +422,83 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
+    // Queries for Decimal128
+
+    public TableQuery equalTo(long[] columnKeys, long[] tablePtrs, Decimal128 value) {
+        nativeEqualDecimal128(nativePtr, columnKeys, tablePtrs, value.getLow(), value.getHigh());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery notEqualTo(long[] columnKeys, long[] tablePtrs, Decimal128 value) {
+        nativeNotEqualDecimal128(nativePtr, columnKeys, tablePtrs, value.getLow(), value.getHigh());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery lessThan(long[] columnKeys, long[] tablePtrs, Decimal128 value) {
+        nativeLessDecimal128(nativePtr, columnKeys, tablePtrs, value.getLow(), value.getHigh());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery lessThanOrEqual(long[] columnKeys, long[] tablePtrs, Decimal128 value) {
+        nativeLessEqualDecimal128(nativePtr, columnKeys, tablePtrs, value.getLow(), value.getHigh());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery greaterThan(long[] columnKeys, long[] tablePtrs, Decimal128 value) {
+        nativeGreaterDecimal128(nativePtr, columnKeys, tablePtrs, value.getLow(), value.getHigh());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery greaterThanOrEqual(long[] columnKeys, long[] tablePtrs, Decimal128 value) {
+        nativeGreaterEqualDecimal128(nativePtr, columnKeys, tablePtrs, value.getLow(), value.getHigh());
+        queryValidated = false;
+        return this;
+    }
+
+
+    // Queries for ObjectId
+
+    public TableQuery equalTo(long[] columnKeys, long[] tablePtrs, ObjectId value) {
+        nativeEqualObjectId(nativePtr, columnKeys, tablePtrs, value.toString());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery notEqualTo(long[] columnKeys, long[] tablePtrs, ObjectId value) {
+        nativeNotEqualObjectId(nativePtr, columnKeys, tablePtrs, value.toString());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery lessThan(long[] columnKeys, long[] tablePtrs, ObjectId value) {
+        nativeLessObjectId(nativePtr, columnKeys, tablePtrs, value.toString());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery lessThanOrEqual(long[] columnKeys, long[] tablePtrs, ObjectId value) {
+        nativeLessEqualObjectId(nativePtr, columnKeys, tablePtrs, value.toString());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery greaterThan(long[] columnKeys, long[] tablePtrs, ObjectId value) {
+        nativeGreaterObjectId(nativePtr, columnKeys, tablePtrs, value.toString());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery greaterThanOrEqual(long[] columnKeys, long[] tablePtrs, ObjectId value) {
+        nativeGreaterEqualObjectId(nativePtr, columnKeys, tablePtrs,  value.toString());
+        queryValidated = false;
+        return this;
+    }
+
     // Searching methods.
 
     /**
@@ -474,6 +564,16 @@ public class TableQuery implements NativeObject {
         return nativeSumDouble(nativePtr, columnKey);
     }
 
+    public Decimal128 sumDecimal128(long columnKey) {
+        validateQuery();
+        long[] data = nativeSumDecimal128(nativePtr, columnKey);
+        if (data != null) {
+            return Decimal128.fromIEEE754BIDEncoding(data[1]/*high*/, data[0]/*low*/);
+        } else {
+            return null;
+        }
+    }
+
     public Double maximumDouble(long columnKey) {
         validateQuery();
         return nativeMaximumDouble(nativePtr, columnKey);
@@ -487,6 +587,24 @@ public class TableQuery implements NativeObject {
     public double averageDouble(long columnKey) {
         validateQuery();
         return nativeAverageDouble(nativePtr, columnKey);
+    }
+
+    public Decimal128 averageDecimal128(long columnKey) {
+        validateQuery();
+        long[] result = nativeAverageDecimal128(nativePtr, columnKey);
+        if (result != null) {
+            return Decimal128.fromIEEE754BIDEncoding(result[1]/*high*/, result[0]/*low*/);
+        }
+        return null;
+    }
+
+    public Decimal128 maximumDecimal128(long columnKey) {
+        validateQuery();
+        long[] result = nativeMaximumDecimal128(nativePtr, columnKey);
+        if (result != null) {
+            return Decimal128.fromIEEE754BIDEncoding(result[1]/*high*/, result[0]/*low*/);
+        }
+        return null;
     }
 
     // Date aggregation
@@ -505,6 +623,15 @@ public class TableQuery implements NativeObject {
         Long result = nativeMinimumTimestamp(nativePtr, columnKey);
         if (result != null) {
             return new Date(result);
+        }
+        return null;
+    }
+
+    public Decimal128 minimumDecimal128(long columnKey) {
+        validateQuery();
+        long[] result = nativeMinimumDecimal128(nativePtr, columnKey);
+        if (result != null) {
+            return Decimal128.fromIEEE754BIDEncoding(result[1]/*high*/, result[0]/*low*/);
         }
         return null;
     }
@@ -622,6 +749,8 @@ public class TableQuery implements NativeObject {
 
     private native void nativeBetweenTimestamp(long nativeQueryPtr, long[] columnIndex, long value1, long value2);
 
+    private native void nativeBetweenDecimal128(long nativeQueryPtr, long[] columnIndex, long value1Low, long value1How, long value2Low, long value2High);
+
     private native void nativeEqual(long nativeQueryPtr, long[] columnKeys, long[] tablePtrs, byte[] value);
 
     private native void nativeNotEqual(long nativeQueryPtr, long[] columnKeys, long[] tablePtrs, byte[] value);
@@ -637,6 +766,30 @@ public class TableQuery implements NativeObject {
     private native void nativeLike(long nativeQueryPtr, long[] columnKeys, long[] tablePtrs, String value, boolean caseSensitive);
 
     private native void nativeContains(long nativeQueryPtr, long[] columnKeys, long[] tablePtrs, String value, boolean caseSensitive);
+
+    private native void nativeEqualDecimal128(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long low, long high);
+
+    private native void nativeNotEqualDecimal128(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long low, long high);
+
+    private native void nativeGreaterDecimal128(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long low, long high);
+
+    private native void nativeGreaterEqualDecimal128(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long low, long high);
+
+    private native void nativeLessDecimal128(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long low, long high);
+
+    private native void nativeLessEqualDecimal128(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long low, long high);
+
+    private native void nativeEqualObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
+
+    private native void nativeNotEqualObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
+
+    private native void nativeGreaterObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
+
+    private native void nativeGreaterEqualObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
+
+    private native void nativeLessObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
+
+    private native void nativeLessEqualObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
 
     private native void nativeIsEmpty(long nativePtr, long[] columnKeys, long[] tablePtrs);
 
@@ -666,11 +819,19 @@ public class TableQuery implements NativeObject {
 
     private native double nativeSumDouble(long nativeQueryPtr, long columnKey);
 
+    private native long[] nativeSumDecimal128(long nativeQueryPtr, long columnKey);
+
     private native Double nativeMaximumDouble(long nativeQueryPtr, long columnKey);
+
+    private native long[] nativeMaximumDecimal128(long nativeQueryPtr, long columnKey);
 
     private native Double nativeMinimumDouble(long nativeQueryPtr, long columnKey);
 
+    private native long[] nativeMinimumDecimal128(long nativeQueryPtr, long columnKey);
+
     private native double nativeAverageDouble(long nativeQueryPtr, long columnKey);
+
+    private native long[] nativeAverageDecimal128(long nativeQueryPtr, long columnKey);
 
     private native Long nativeMaximumTimestamp(long nativeQueryPtr, long columnKey);
 

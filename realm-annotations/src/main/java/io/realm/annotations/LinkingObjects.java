@@ -68,7 +68,7 @@ import java.lang.annotation.Target;
  *     <li>The annotated field must be `final`.</li>
  *     <li>The annotation argument (the name of the backlinked field) is required.</li>
  *     <li>The annotation argument must be a simple field name.  It cannot contain periods ('.').</li>
- *     <li>The annotated field must be of type `RealmResults&gt;T&lt;` where T is concrete class that extends `RealmModel`.</li>
+ *     <li>The annotated field must be of type `RealmResults&lt;T&gt;` where T is concrete class that extends `RealmModel`.</li>
  * </ul>
  *
  * Note that when the source of the reverse reference (`dog` in the case above) is a `List`, there is a reverse

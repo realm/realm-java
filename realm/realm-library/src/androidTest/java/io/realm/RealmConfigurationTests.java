@@ -17,8 +17,8 @@
 package io.realm;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -87,7 +87,7 @@ public class RealmConfigurationTests {
 
     @Before
     public void setUp() {
-        context = InstrumentationRegistry.getTargetContext();
+        context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         defaultConfig = configFactory.createConfiguration();
     }
 
@@ -201,8 +201,8 @@ public class RealmConfigurationTests {
     public void constructBuilder_wrongKeyLengthThrows() {
         byte[][] wrongKeys = new byte[][] {
                 new byte[0],
-                new byte[RealmConfiguration.KEY_LENGTH - 1],
-                new byte[RealmConfiguration.KEY_LENGTH + 1]
+                new byte[Realm.ENCRYPTION_KEY_LENGTH - 1],
+                new byte[Realm.ENCRYPTION_KEY_LENGTH + 1]
         };
         for (byte[] key : wrongKeys) {
             try {
@@ -1116,5 +1116,49 @@ public class RealmConfigurationTests {
             builder.maxNumberOfActiveVersions(-1);
         } catch (IllegalArgumentException ignore) {
         }
+    }
+
+    @Test
+    public void allowQueriesOnUiThread_defaultsToTrue() {
+        RealmConfiguration configuration = new RealmConfiguration.Builder().build();
+        assertTrue(configuration.isAllowQueriesOnUiThread());
+    }
+
+    @Test
+    public void allowQueriesOnUiThread_explicitFalse() {
+        RealmConfiguration configuration = new RealmConfiguration.Builder()
+                .allowQueriesOnUiThread(false)
+                .build();
+        assertFalse(configuration.isAllowQueriesOnUiThread());
+    }
+
+    @Test
+    public void allowQueriesOnUiThread_explicitTrue() {
+        RealmConfiguration configuration = new RealmConfiguration.Builder()
+                .allowQueriesOnUiThread(true)
+                .build();
+        assertTrue(configuration.isAllowQueriesOnUiThread());
+    }
+
+    @Test
+    public void allowWritesOnUiThread_defaultsToFalse() {
+        RealmConfiguration configuration = new RealmConfiguration.Builder().build();
+        assertFalse(configuration.isAllowWritesOnUiThread());
+    }
+
+    @Test
+    public void allowWritesOnUiThread_explicitFalse() {
+        RealmConfiguration configuration = new RealmConfiguration.Builder()
+                .allowWritesOnUiThread(false)
+                .build();
+        assertFalse(configuration.isAllowWritesOnUiThread());
+    }
+
+    @Test
+    public void allowWritesOnUiThread_explicitTrue() {
+        RealmConfiguration configuration = new RealmConfiguration.Builder()
+                .allowWritesOnUiThread(true)
+                .build();
+        assertTrue(configuration.isAllowWritesOnUiThread());
     }
 }

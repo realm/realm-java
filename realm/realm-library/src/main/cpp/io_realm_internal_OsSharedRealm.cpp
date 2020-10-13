@@ -20,7 +20,6 @@
 #include "object-store/src/sync/sync_config.hpp"
 #include "object-store/src/sync/sync_session.hpp"
 #include "object-store/src/results.hpp"
-#include "object-store/src/sync/partial_sync.hpp"
 
 #include "observable_collection_wrapper.hpp"
 #endif
@@ -231,7 +230,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetTableRef(J
                 name_str = name_str.substr(TABLE_PREFIX.length());
             }
             THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
-                                 format("The class '%1' doesn't exist in this Realm.", name_str));
+                                 util::format("The class '%1' doesn't exist in this Realm.", name_str));
         }
 
         TableRef* tableRef = new TableRef(group.get_table(name));
@@ -257,7 +256,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTable(J
         // Sync doesn't throw when table exists.
         if (group.has_table(table_name)) {
             THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
-                                 format(c_table_name_exists_exception_msg, table_name.substr(TABLE_PREFIX.length())));
+                                 util::format(c_table_name_exists_exception_msg, table_name.substr(TABLE_PREFIX.length())));
         }
         table = sync::create_table(static_cast<Transaction&>(group), table_name); // throws
 #else
@@ -268,7 +267,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTable(J
     catch (TableNameInUse& e) {
         // We need to print the table name, so catch the exception here.
         std::string class_name_str(table_name.substr(TABLE_PREFIX.length()));
-        ThrowException(env, IllegalArgument, format(c_table_name_exists_exception_msg, class_name_str));
+        ThrowException(env, IllegalArgument, util::format(c_table_name_exists_exception_msg, class_name_str));
     }
     CATCH_STD()
 
@@ -293,7 +292,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTableWi
         // Sync doesn't throw when table exists.
         if (group.has_table(table_name)) {
             THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
-                                 format(c_table_name_exists_exception_msg, class_name_str));
+                                 util::format(c_table_name_exists_exception_msg, class_name_str));
         }
         table =
             sync::create_table_with_primary_key(static_cast<Transaction&>(group), table_name, pkType, field_name, is_nullable);
@@ -305,7 +304,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTableWi
     }
     catch (TableNameInUse& e) {
         // We need to print the table name, so catch the exception here.
-        ThrowException(env, IllegalArgument, format(c_table_name_exists_exception_msg, class_name_str));
+        ThrowException(env, IllegalArgument, util::format(c_table_name_exists_exception_msg, class_name_str));
     }
     CATCH_STD()
 
@@ -482,45 +481,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsSharedRealm_nativeRegisterSchema
     }
 }
 
-#if REALM_ENABLE_SYNC
-JNIEXPORT jint JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetRealmPrivileges(
-    JNIEnv*, jclass, jlong shared_realm_ptr)
-{
-    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    return static_cast<jint>(shared_realm->get_privileges());
-}
-
-JNIEXPORT jint JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetClassPrivileges(
-    JNIEnv* env, jclass, jlong shared_realm_ptr, jstring j_class_name)
-{
-    try {
-        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        JStringAccessor class_name(env, j_class_name);
-        return static_cast<jint>(shared_realm->get_privileges(StringData(class_name)));
-    }
-    CATCH_STD()
-    return 0;
-}
-
-JNIEXPORT jint JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetObjectPrivileges(
-    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong row_ptr)
-{
-    try {
-        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        auto r = reinterpret_cast<Obj*>(row_ptr);
-        auto obj = r->get_table()->get_object(r->get_key());
-        return static_cast<jint>(shared_realm->get_privileges(obj));
-    }
-    CATCH_STD()
-    return 0;
-}
-#endif
-
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeIsPartial(JNIEnv*, jclass, jlong shared_realm_ptr)
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeIsPartial(JNIEnv*, jclass, jlong /*shared_realm_ptr*/)
 {
     // No throws
-    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-    return to_jbool(shared_realm->is_partial());
+    // auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    return to_jbool(false);
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsSharedRealm_nativeIsFrozen(JNIEnv* env, jclass, jlong shared_realm_ptr)

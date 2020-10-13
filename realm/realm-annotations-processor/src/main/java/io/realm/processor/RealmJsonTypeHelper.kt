@@ -17,11 +17,8 @@
 package io.realm.processor
 
 import com.squareup.javawriter.JavaWriter
-
 import java.io.IOException
-import java.util.Collections
-import java.util.HashMap
-import java.util.Locale
+import java.util.*
 
 
 /**
@@ -49,6 +46,8 @@ object RealmJsonTypeHelper {
         m[QualifiedClassName("java.lang.Boolean")] = m[QualifiedClassName("boolean")] as JsonToRealmFieldTypeConverter
         m[QualifiedClassName("java.lang.String")] = SimpleTypeConverter("String", "String")
         m[QualifiedClassName("java.util.Date")] = DateTypeConverter()
+        m[QualifiedClassName("org.bson.types.Decimal128")] = Decimal128TypeConverter()
+        m[QualifiedClassName("org.bson.types.ObjectId")] = ObjectIdTypeConverter()
         m[QualifiedClassName("io.realm.MutableRealmInteger")] = MutableRealmIntegerTypeConverter()
         JAVA_TO_JSON_TYPES = Collections.unmodifiableMap(m)
     }
@@ -78,14 +77,19 @@ object RealmJsonTypeHelper {
                                          fieldName: String,
                                          qualifiedFieldType: QualifiedClassName,
                                          proxyClass: SimpleClassName,
+                                         embedded: Boolean,
                                          writer: JavaWriter) {
         writer.apply {
             beginControlFlow("if (json.has(\"%s\"))", fieldName)
                 beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
                     emitStatement("%s.%s(null)", varName, setter)
                 nextControlFlow("else")
-                    emitStatement("%s %sObj = %s.createOrUpdateUsingJsonObject(realm, json.getJSONObject(\"%s\"), update)", qualifiedFieldType, fieldName, proxyClass, fieldName)
-                    emitStatement("%s.%s(%sObj)", varName, setter, fieldName)
+                    if (!embedded) {
+                        emitStatement("%s %sObj = %s.createOrUpdateUsingJsonObject(realm, json.getJSONObject(\"%s\"), update)", qualifiedFieldType, fieldName, proxyClass, fieldName)
+                        emitStatement("%s.%s(%sObj)", varName, setter, fieldName)
+                    } else {
+                        emitStatement("%s.createOrUpdateEmbeddedUsingJsonObject(realm, (RealmModel)%s, \"%s\", json.getJSONObject(\"%s\"), update)", proxyClass, varName, fieldName, fieldName)
+                    }
                 endControlFlow()
             endControlFlow()
         }
@@ -98,6 +102,7 @@ object RealmJsonTypeHelper {
                                        fieldName: String,
                                        fieldTypeCanonicalName: String,
                                        proxyClass: SimpleClassName,
+                                       embedded: Boolean,
                                        writer: JavaWriter) {
         writer.apply {
             beginControlFlow("if (json.has(\"%s\"))", fieldName)
@@ -107,8 +112,12 @@ object RealmJsonTypeHelper {
                     emitStatement("%s.%s().clear()", varName, getter)
                     emitStatement("JSONArray array = json.getJSONArray(\"%s\")", fieldName)
                     beginControlFlow("for (int i = 0; i < array.length(); i++)")
-                        emitStatement("%s item = %s.createOrUpdateUsingJsonObject(realm, array.getJSONObject(i), update)", fieldTypeCanonicalName, proxyClass, fieldTypeCanonicalName)
-                        emitStatement("%s.%s().add(item)", varName, getter)
+                        if (!embedded) {
+                            emitStatement("%s item = %s.createOrUpdateUsingJsonObject(realm, array.getJSONObject(i), update)", fieldTypeCanonicalName, proxyClass, fieldTypeCanonicalName)
+                            emitStatement("%s.%s().add(item)", varName, getter)
+                       } else {
+                            emitStatement("%s.createOrUpdateEmbeddedUsingJsonObject(realm, (RealmModel)%s, \"%s\", array.getJSONObject(i), update)", proxyClass, varName, fieldName)
+                        }
                     endControlFlow()
                 endControlFlow()
             endControlFlow()
@@ -317,6 +326,101 @@ object RealmJsonTypeHelper {
             throw IllegalArgumentException("'Date' is not allowed as a primary key value.")
         }
     }
+
+    private class Decimal128TypeConverter : JsonToRealmFieldTypeConverter {
+        @Throws(IOException::class)
+        override fun emitTypeConversion(varName: String, accessor: String, fieldName: String, fieldType: QualifiedClassName, writer: JavaWriter) {
+            writer.apply {
+                beginControlFlow("if (json.has(\"%s\"))", fieldName)
+                    beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
+                        emitStatement("%s.%s(null)", varName, accessor)
+                    nextControlFlow("else")
+                            emitStatement("Object decimal = json.get(\"%s\")", fieldName)
+                            beginControlFlow("if (decimal instanceof org.bson.types.Decimal128)")
+                                emitStatement("%s.%s((org.bson.types.Decimal128) decimal)", varName, accessor)
+                            nextControlFlow("else if (decimal instanceof String)")
+                                emitStatement("%s.%s(org.bson.types.Decimal128.parse((String)decimal))", varName, accessor)
+                            nextControlFlow("else if (decimal instanceof Integer)")
+                            emitStatement("%s.%s(new org.bson.types.Decimal128((Integer)(decimal)))", varName, accessor, fieldName)
+                            nextControlFlow("else if (decimal instanceof Long)")
+                                emitStatement("%s.%s(new org.bson.types.Decimal128((Long)(decimal)))", varName, accessor, fieldName)
+                            nextControlFlow("else if (decimal instanceof Double)")
+                                emitStatement("%s.%s(new org.bson.types.Decimal128(new java.math.BigDecimal((Double)(decimal))))", varName, accessor, fieldName)
+                            nextControlFlow("else")
+                                emitStatement("throw new UnsupportedOperationException(decimal.getClass() + \" is not supported as a Decimal128 value\")")
+                            endControlFlow()
+                    endControlFlow()
+                endControlFlow()
+            }
+        }
+
+        @Throws(IOException::class)
+        override fun emitStreamTypeConversion(varName: String, accessor: String, fieldName: String, fieldType: QualifiedClassName, writer: JavaWriter, isPrimaryKey: Boolean) {
+            writer.apply {
+                beginControlFlow("if (reader.peek() == JsonToken.NULL)")
+                    emitStatement("reader.skipValue()")
+                    emitStatement("%s.%s(null)", varName, accessor)
+                nextControlFlow("else")
+                    emitStatement("%s.%s(org.bson.types.Decimal128.parse(reader.nextString()))", varName, accessor)
+                endControlFlow()
+            }
+        }
+
+        @Throws(IOException::class)
+        override fun emitGetObjectWithPrimaryKeyValue(realmObjectClass: QualifiedClassName, realmObjectProxyClass: QualifiedClassName, fieldName: String, writer: JavaWriter) {
+            throw IllegalArgumentException("'Decimal128' is not allowed as a primary key value.")
+        }
+    }
+
+    private class ObjectIdTypeConverter() : JsonToRealmFieldTypeConverter {
+        @Throws(IOException::class)
+        override fun emitTypeConversion(varName: String, accessor: String, fieldName: String, fieldType: QualifiedClassName, writer: JavaWriter) {
+            writer.apply {
+                beginControlFlow("if (json.has(\"%s\"))", fieldName)
+                beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
+                emitStatement("%s.%s(null)", varName, accessor)
+                nextControlFlow("else")
+                emitStatement("Object id = json.get(\"%s\")", fieldName)
+                beginControlFlow("if (id instanceof org.bson.types.ObjectId)")
+                emitStatement("%s.%s((org.bson.types.ObjectId) id)", varName, accessor)
+                nextControlFlow("else")
+                emitStatement("%s.%s(new org.bson.types.ObjectId((String)id))", varName, accessor)
+                endControlFlow()
+                endControlFlow()
+                endControlFlow()
+            }
+        }
+
+        @Throws(IOException::class)
+        override fun emitStreamTypeConversion(varName: String, accessor: String, fieldName: String, fieldType: QualifiedClassName, writer: JavaWriter, isPrimaryKey: Boolean) {
+            writer.apply {
+                beginControlFlow("if (reader.peek() == JsonToken.NULL)")
+                emitStatement("reader.skipValue()")
+                emitStatement("%s.%s(null)", varName, accessor)
+                nextControlFlow("else")
+                emitStatement("%s.%s(new org.bson.types.ObjectId(reader.nextString()))", varName, accessor)
+                endControlFlow()
+            }
+        }
+
+        @Throws(IOException::class)
+        override fun emitGetObjectWithPrimaryKeyValue(realmObjectClass: QualifiedClassName, realmObjectProxyClass: QualifiedClassName, fieldName: String, writer: JavaWriter) {
+            // No error checking is done here for valid primary key types.
+            // This should be done by the annotation processor.
+            writer.apply {
+                beginControlFlow("if (json.has(\"%s\"))", fieldName)
+                beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
+                emitStatement("obj = (%1\$s) realm.createObjectInternal(%2\$s.class, null, true, excludeFields)", realmObjectProxyClass, realmObjectClass)
+                nextControlFlow("else")
+                emitStatement("obj = (%1\$s) realm.createObjectInternal(%2\$s.class, json.get(\"%3\$s\"), true, excludeFields)", realmObjectProxyClass, realmObjectClass, fieldName)
+                endControlFlow()
+                nextControlFlow("else")
+                emitStatement(Constants.STATEMENT_EXCEPTION_NO_PRIMARY_KEY_IN_JSON, fieldName)
+                endControlFlow()
+            }
+        }
+    }
+
 
     private class MutableRealmIntegerTypeConverter : JsonToRealmFieldTypeConverter {
         @Throws(IOException::class)

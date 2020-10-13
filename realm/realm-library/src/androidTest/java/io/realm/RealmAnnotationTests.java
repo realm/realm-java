@@ -16,7 +16,7 @@
 
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -128,13 +128,15 @@ public class RealmAnnotationTests {
 
     @Test
     public void string_primaryKey_isNotIndexed() {
+        // Before Core 6 only String primary keys did not have a Index as a default
+        // With Core 10, primary keys do not need indexes in general.
         Table table = realm.getTable(PrimaryKeyAsString.class);
         assertNotNull(OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), PrimaryKeyAsString.CLASS_NAME));
         assertFalse(table.hasSearchIndex(table.getColumnKey("name")));
 
         table = realm.getTable(PrimaryKeyAsLong.class);
         assertNotNull(OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), PrimaryKeyAsLong.CLASS_NAME));
-        assertTrue(table.hasSearchIndex(table.getColumnKey("id")));
+        assertFalse(table.hasSearchIndex(table.getColumnKey("id")));
     }
 
     // Annotation processor honors common naming conventions.

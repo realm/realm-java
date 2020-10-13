@@ -48,6 +48,19 @@
         <Class name="io.realm.objectserver.utils.RemoteIntegrationTestService" />
         <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
     </Match>
+    <Match>
+        <Class name="io.realm.internal.common.ThreadDispatcher" />
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE" />
+    </Match>
+    <Match>
+        <Class name="io.realm.TestHelper$TestLogger" />
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
+    </Match>
+    <Match>
+        <Class name="io.realm.rule.RunWithRemoteService" />
+        <Field name="afterRunnable" />
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
+    </Match>
 
     <!-- Generated code -->
     <Match>

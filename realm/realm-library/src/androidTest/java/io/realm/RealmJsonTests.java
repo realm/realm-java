@@ -18,10 +18,13 @@ package io.realm;
 
 import android.content.Context;
 import android.os.Build;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,6 +37,7 @@ import org.junit.runner.RunWith;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -81,7 +85,7 @@ public class RealmJsonTests {
 
     @Before
     public void setUp() {
-        context = InstrumentationRegistry.getTargetContext();
+        context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         RealmConfiguration realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
     }
@@ -245,6 +249,112 @@ public class RealmJsonTests {
 
         AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals(new Date(1000), obj.getColumnDate());
+    }
+
+    @Test
+    public void createObjectFromJson_decimal128() throws JSONException {
+        JSONObject json = new JSONObject();
+        json.put("columnDecimal128", new Decimal128(BigDecimal.TEN));
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, json);
+        realm.commitTransaction();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(new Decimal128(BigDecimal.TEN), obj.getColumnDecimal128());
+    }
+
+    @Test
+    public void createUsingJsonStream_decimal128() throws JSONException {
+        JSONObject json = new JSONObject();
+        json.put("columnDecimal128", new Decimal128(BigDecimal.TEN));
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, json);
+        realm.commitTransaction();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(new Decimal128(BigDecimal.TEN), obj.getColumnDecimal128());
+    }
+
+    @Test
+    public void createObjectFromJson_decimal128AsInt() throws JSONException {
+        JSONObject json = new JSONObject();
+        json.put("columnDecimal128", -42);
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, json);
+        realm.commitTransaction();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(new Decimal128(-42), obj.getColumnDecimal128());
+    }
+
+    @Test
+    public void createObjectFromJson_decimal128AsLong() throws JSONException {
+        JSONObject json = new JSONObject();
+        json.put("columnDecimal128", -32361122672259149L);
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, json);
+        realm.commitTransaction();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(new Decimal128(-32361122672259149L), obj.getColumnDecimal128());
+    }
+
+    @Test
+    public void createObjectFromJson_decimal128AsDouble() throws JSONException {
+        JSONObject json = new JSONObject();
+        json.put("columnDecimal128", 0.30000001192092896D);
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, json);
+        realm.commitTransaction();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(new Decimal128(new BigDecimal(0.30000001192092896D)), obj.getColumnDecimal128());
+    }
+
+    @Test
+    public void createObjectFromJson_decimal128AsString() throws JSONException {
+        JSONObject json = new JSONObject();
+        json.put("columnDecimal128", "32361122672259149");
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, json);
+        realm.commitTransaction();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(Decimal128.parse("32361122672259149"), obj.getColumnDecimal128());
+    }
+
+    @Test
+    public void createObjectFromJson_objectId() throws JSONException {
+        JSONObject json = new JSONObject();
+        String idHex = TestHelper.generateObjectIdHexString(7);
+        json.put("columnObjectId", new ObjectId(idHex));
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, json);
+        realm.commitTransaction();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(new ObjectId(idHex), obj.getColumnObjectId());
+    }
+
+    @Test
+    public void createObjectFromJson_objectIdAsString() throws JSONException {
+        JSONObject json = new JSONObject();
+        String idHex = TestHelper.generateObjectIdHexString(7);
+        json.put("columnObjectId", idHex);
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, json);
+        realm.commitTransaction();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(new ObjectId(idHex), obj.getColumnObjectId());
     }
 
     @Test
@@ -757,6 +867,76 @@ public class RealmJsonTests {
         // Checks that all primitive types are imported correctly.
         AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals(new Date(1000), obj.getColumnDate());
+    }
+
+    @Test
+    public void createObjectFromJson_streamDecimal128AsInt() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
+        InputStream in = TestHelper.loadJsonFromAssets(context, "decimal128_as_int.json");
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, in);
+        realm.commitTransaction();
+        in.close();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(new Decimal128(-42), obj.getColumnDecimal128());
+    }
+
+    @Test
+    public void createObjectFromJson_streamDecimal128AsLong() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
+        InputStream in = TestHelper.loadJsonFromAssets(context, "decimal128_as_long.json");
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, in);
+        realm.commitTransaction();
+        in.close();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(new Decimal128(-32361122672259149L), obj.getColumnDecimal128());
+    }
+
+    @Test
+    public void createObjectFromJson_streamDecimal128AsDouble() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
+        InputStream in = TestHelper.loadJsonFromAssets(context, "decimal128_as_double.json");
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, in);
+        realm.commitTransaction();
+        in.close();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(Decimal128.parse("0.30000001192092896"), obj.getColumnDecimal128());
+    }
+
+    @Test
+    public void createObjectFromJson_streamDecimal128AsString() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
+        InputStream in = TestHelper.loadJsonFromAssets(context, "decimal128_as_string.json");
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, in);
+        realm.commitTransaction();
+        in.close();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(Decimal128.parse("32361122672259149"), obj.getColumnDecimal128());
+    }
+
+    @Test
+    public void createObjectFromJson_streamObjectIdAsString() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
+        InputStream in = TestHelper.loadJsonFromAssets(context, "objectid_as_string.json");
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, in);
+        realm.commitTransaction();
+        in.close();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(new ObjectId("789ABCDEF0123456789ABCDE"), obj.getColumnObjectId());
     }
 
     @Test
@@ -1560,6 +1740,26 @@ public class RealmJsonTests {
             fail("Unexpected exception: " + e);
         }
 
+        // 11 Decimal128
+        try {
+            realm.createObjectFromJson(NullTypes.class, array.getJSONObject(10));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_DECIMAL128_NOT_NULL));
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
+        }
+
+        // 12 ObjectId
+        try {
+            realm.createObjectFromJson(NullTypes.class, array.getJSONObject(11));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_OBJECT_ID_NOT_NULL));
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
+        }
+
         realm.cancelTransaction();
     }
 
@@ -1671,6 +1871,26 @@ public class RealmJsonTests {
             fail();
         } catch (IllegalArgumentException ignored) {
             assertTrue(ignored.getMessage().contains(NullTypes.FIELD_DATE_NOT_NULL));
+        } finally {
+            realm.cancelTransaction();
+        }
+        // 11 Decimal128
+        try {
+            realm.beginTransaction();
+            realm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(10)));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_DECIMAL128_NOT_NULL));
+        } finally {
+            realm.cancelTransaction();
+        }
+        // 12 ObjectId
+        try {
+            realm.beginTransaction();
+            realm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(11)));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_OBJECT_ID_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }

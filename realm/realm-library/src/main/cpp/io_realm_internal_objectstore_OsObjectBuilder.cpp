@@ -131,6 +131,29 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDecimal128
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jlong j_low_value, jlong j_high_value)
+{
+    try {
+        Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
+        Decimal128 decimal128 = Decimal128(raw);
+        const JavaValue value(decimal128);
+        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObjectId
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jstring j_data)
+{
+    try {
+        JStringAccessor data(env, j_data);
+        ObjectId objectId = ObjectId(StringData(data).data());
+        const JavaValue value(objectId);
+        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
 
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObject
         (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jlong row_ptr)
@@ -148,13 +171,18 @@ static inline const ObjectSchema& get_schema(const Schema& schema, TableRef tabl
     std::string class_name = std::string(table_name.substr(TABLE_PREFIX.length()));
     auto it = schema.find(class_name);
     if (it == schema.end()) {
-        throw std::runtime_error(format("Class '%1' cannot be found in the schema.", class_name.data()));
+        throw std::runtime_error(util::format("Class '%1' cannot be found in the schema.", class_name.data()));
     }
     return *it;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeCreateOrUpdate
-        (JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ref_ptr, jlong builder_ptr, jboolean update_existing, jboolean ignore_same_values)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeCreateOrUpdateTopLevelObject(JNIEnv* env,
+                                                                                                              jclass,
+                                                                                                              jlong shared_realm_ptr,
+                                                                                                              jlong table_ref_ptr,
+                                                                                                              jlong builder_ptr,
+                                                                                                              jboolean update_existing,
+                                                                                                              jboolean ignore_same_values)
 {
     try {
         SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
@@ -173,6 +201,31 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativ
         auto list = *reinterpret_cast<OsObjectData*>(builder_ptr);
         JavaValue values = JavaValue(list);
         Object obj = Object::create(ctx, shared_realm, object_schema, values, policy);
+        return reinterpret_cast<jlong>(new Obj(obj.obj()));
+    }
+    CATCH_STD()
+    return realm::npos;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeUpdateEmbeddedObject(JNIEnv* env,
+                                                                                                      jclass,
+                                                                                                      jlong shared_realm_ptr,
+                                                                                                      jlong table_ref_ptr,
+                                                                                                      jlong builder_ptr,
+                                                                                                      jlong j_obj_key,
+                                                                                                      jboolean ignore_same_values)
+{
+    try {
+        SharedRealm shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        CreatePolicy policy = (ignore_same_values) ? CreatePolicy::UpdateModified : CreatePolicy::UpdateAll;
+        TableRef table = TBL_REF(table_ref_ptr);
+        ObjKey embedded_object_key(j_obj_key);
+        const auto& schema = shared_realm->schema();
+        const ObjectSchema& object_schema = get_schema(schema, table);
+        JavaContext ctx(env, shared_realm, object_schema);
+        auto list = *reinterpret_cast<OsObjectData*>(builder_ptr);
+        JavaValue values = JavaValue(list);
+        Object obj = Object::create(ctx, shared_realm, object_schema, values, policy, embedded_object_key);
         return reinterpret_cast<jlong>(new Obj(obj.obj()));
     }
     CATCH_STD()
@@ -315,6 +368,30 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
 {
     try {
         const JavaValue value(reinterpret_cast<Obj*>(row_ptr));
+        add_list_element(list_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDecimal128ListItem
+        (JNIEnv* env, jclass, jlong list_ptr, jlong j_low_value, jlong j_high_value)
+{
+    try {
+        Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
+        Decimal128 decimal128 = Decimal128(raw);
+        const JavaValue value(decimal128);
+        add_list_element(list_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObjectIdListItem
+        (JNIEnv* env, jclass, jlong list_ptr, jstring j_data)
+{
+    try {
+        JStringAccessor data(env, j_data);
+        ObjectId objectId = ObjectId(StringData(data).data());
+        const JavaValue value(objectId);
         add_list_element(list_ptr, value);
     }
     CATCH_STD()

@@ -928,20 +928,11 @@ public class RealmObjectSchemaTests {
             ((DynamicRealm)realm).createObject(schema.getClassName(), "1");
             ((DynamicRealm)realm).createObject(schema.getClassName(), "2");
             assertTrue(schema.hasPrimaryKey());
-            if (fieldType.getType().isAssignableFrom(String.class)) {
-                assertFalse(schema.hasIndex(fieldName));
-            } else {
-                assertTrue(schema.hasIndex(fieldName));
-            }
-
+            assertFalse(schema.hasIndex(fieldName));
 
             schema.setRequired(fieldName, isRequired);
             assertTrue(schema.hasPrimaryKey());
-            if (fieldType.getType().isAssignableFrom(String.class)) {
-                assertFalse(schema.hasIndex(fieldName));
-            } else {
-                assertTrue(schema.hasIndex(fieldName));
-            }
+            assertFalse(schema.hasIndex(fieldName));
 
             RealmResults<DynamicRealmObject> results = ((DynamicRealm)realm).where(className).sort(fieldName).findAll();
             assertEquals(2, results.size());
@@ -1028,11 +1019,7 @@ public class RealmObjectSchemaTests {
             schema.addPrimaryKey(fieldName);
             assertTrue(schema.hasPrimaryKey());
             assertTrue(schema.isPrimaryKey(fieldName));
-            if (fieldType.getType().isAssignableFrom(String.class)) {
-                assertFalse(schema.hasIndex(fieldName));
-            } else {
-                assertTrue(schema.hasIndex(fieldName));
-            }
+            assertFalse(schema.hasIndex(fieldName));
             schema.removePrimaryKey();
             assertFalse(schema.hasPrimaryKey());
             assertFalse(schema.isPrimaryKey(fieldName));

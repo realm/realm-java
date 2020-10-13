@@ -1,0 +1,72 @@
+buildscript {
+    ext.kotlin_version = rootProject.kotlinVersion
+    repositories {
+        google()
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'realm-android'
+
+android {
+    compileSdkVersion rootProject.sdkVersion
+    buildToolsVersion rootProject.buildTools
+
+    defaultConfig {
+        applicationId 'com.mongodb.realm.example'
+        targetSdkVersion rootProject.sdkVersion
+        minSdkVersion rootProject.minSdkVersion
+        versionCode 1
+        versionName "1.0"
+    }
+
+    dataBinding {
+        enabled = true
+    }
+
+    buildTypes {
+        // Configure server and App Id.
+        // The default server is https://realm-dev.mongodb.com/ . Go to that and copy the MongoDB
+        // Realm App Id.
+        //
+        // If you are running a local version of MongoDB Realm, modify endpoint accordingly. Most
+        // likely it is "http://localhost:9090"
+        def mongodbRealmUrl = "https://realm-dev.mongodb.com"
+        def appId = "my-app-id"
+        debug {
+            buildConfigField "String", "MONGODB_REALM_URL", "\"${mongodbRealmUrl}\""
+            buildConfigField "String", "MONGODB_REALM_APP_ID", "\"${appId}\""
+            minifyEnabled true
+        }
+        release {
+            buildConfigField "String", "MONGODB_REALM_URL", "\"${mongodbRealmUrl}\""
+            buildConfigField "String", "MONGODB_REALM_APP_ID", "\"${appId}\""
+            minifyEnabled true
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+}
+
+realm {
+    syncEnabled = true
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'com.google.android.material:material:1.1.0'
+    implementation 'me.zhanghai.android.materialprogressbar:library:1.6.1'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+}

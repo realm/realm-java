@@ -16,11 +16,8 @@
 package io.realm.kotlin
 
 import io.realm.Realm
-import io.realm.RealmModel
-import io.realm.SyncConfiguration
-import io.realm.SyncManager
-import io.realm.SyncSession
-import io.realm.sync.permissions.ClassPermissions
+import io.realm.mongodb.sync.SyncConfiguration
+import io.realm.mongodb.sync.SyncSession
 
 
 /**
@@ -34,20 +31,7 @@ val Realm.syncSession: SyncSession
         if (!(this.configuration is SyncConfiguration)) {
             throw IllegalStateException("This method is only available on synchronized Realms")
         }
-        return SyncManager.getSession(this.configuration as SyncConfiguration)
-    }
 
-/**
- * Returns all permissions associated with the given class. Attach a change listener using
- * [ClassPermissions.addChangeListener] to be notified about any future changes.
- *
- * @return the permissions for the given class or `null` if no permissions where found.
- * @throws RealmException if the class is not part of this Realms schema.
- * @throws IllegalStateException if the Realm is not a synchronized Realm.
- */
-inline fun <reified T : RealmModel> Realm.classPermissions(): ClassPermissions {
-    if (!(this.configuration is SyncConfiguration)) {
-        throw java.lang.IllegalStateException("This method is only available on synchronized Realms")
+        val syncConfig = this.configuration as SyncConfiguration
+        return syncConfig.user.app.sync.getSession(syncConfig)
     }
-    return this.getPermissions(T::class.java)
-}

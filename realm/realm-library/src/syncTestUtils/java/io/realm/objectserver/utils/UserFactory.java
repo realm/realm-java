@@ -19,20 +19,13 @@ package io.realm.objectserver.utils;
 import android.os.Handler;
 import android.os.HandlerThread;
 
-import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.SyncCredentials;
-import io.realm.SyncUser;
 import io.realm.TestHelper;
-import io.realm.internal.ObjectServerFacade;
 import io.realm.log.RealmLog;
-
-import static org.junit.Assert.fail;
 
 
 // Helper class to retrieve users with same IDs even in multi-processes.
@@ -51,68 +44,12 @@ public class UserFactory {
     private static synchronized void initFactory(boolean forceReset) {
         if (configuration == null || forceReset) {
             RealmConfiguration.Builder builder = new RealmConfiguration.Builder().name("user-factory.realm");
-            ObjectServerFacade.getSyncFacadeIfPossible().addSupportForObjectLevelPermissions(builder);
             configuration = builder.build();
         }
     }
 
     private UserFactory(String userName) {
         this.userName = userName;
-    }
-
-    public SyncUser loginWithDefaultUser(String authUrl) {
-        SyncCredentials credentials = SyncCredentials.usernamePassword(userName, PASSWORD, false);
-        return SyncUser.logIn(credentials, authUrl);
-    }
-
-    /**
-     * Create a unique user, using the standard authentification URL used by the test server.
-     */
-    public static SyncUser createUniqueUser() {
-        return createUniqueUser(Constants.AUTH_URL);
-    }
-
-    public static SyncUser createUser(String username) {
-        return createUser(username, Constants.AUTH_URL);
-    }
-
-    public static SyncUser createUniqueUser(String authUrl) {
-        String uniqueName = UUID.randomUUID().toString();
-        return createUser(uniqueName);
-    }
-
-    private static SyncUser createUser(String username, String authUrl) {
-        SyncCredentials credentials = SyncCredentials.usernamePassword(username, PASSWORD, true);
-        return SyncUser.logIn(credentials, authUrl);
-    }
-
-
-    public SyncUser createDefaultUser(String authUrl) {
-        SyncCredentials credentials = SyncCredentials.usernamePassword(userName, PASSWORD, true);
-        return SyncUser.logIn(credentials, authUrl);
-    }
-
-    public static SyncUser createAdminUser(String authUrl) {
-        // `admin` required as user identifier to be granted admin rights.
-        // ROS 2.0 comes with a default admin user named "realm-admin" with password "".
-        SyncCredentials credentials = SyncCredentials.usernamePassword("realm-admin", "", false);
-        return SyncUser.logIn(credentials, authUrl);
-    }
-
-    // Since we don't have a reliable way to reset the sync server and client, just use a new user factory for every
-    // test case.
-    public static void resetInstance() {
-        initFactory(true);
-        Realm realm = Realm.getInstance(configuration);
-        UserFactoryStore store = realm.where(UserFactoryStore.class).findFirst();
-        realm.beginTransaction();
-        if (store == null) {
-            store = realm.createObject(UserFactoryStore.class);
-        }
-        store.setUserName(UUID.randomUUID().toString());
-        realm.commitTransaction();
-        realm.close();
-        instance = null;
     }
 
     // The @Before method will be called before the looper tests finished. We need to find a better place to call this.
@@ -151,10 +88,10 @@ public class UserFactory {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                Map<String, SyncUser> users = SyncUser.all();
-                for (SyncUser user : users.values()) {
-                    user.logOut();
-                }
+//                Map<String, User> users = App.allUsers();
+//                for (User user : users.values()) {
+//                    App.logout(user);
+//                }
                 TestHelper.waitForNetworkThreadExecutorToFinish();
                 allUsersLoggedOut.countDown();
             }

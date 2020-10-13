@@ -16,6 +16,9 @@
 
 package some.test;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.Date;
 
 import io.realm.MutableRealmInteger;
@@ -38,6 +41,10 @@ public class AllTypes extends RealmObject {
     private float columnFloat;
     private double columnDouble;
     private boolean columnBoolean;
+    @Required
+    private Decimal128 columnDecimal128;
+    @Required
+    private ObjectId columnObjectId;
 
     @Required
     private Date columnDate;
@@ -50,6 +57,7 @@ public class AllTypes extends RealmObject {
     private AllTypes columnObject;
 
     private RealmList<AllTypes> columnRealmList;
+    private final RealmList<AllTypes> columnRealmFinalList = new RealmList<AllTypes>();
 
     private RealmList<String> columnStringList;
     private RealmList<byte[]> columnBinaryList;
@@ -61,7 +69,8 @@ public class AllTypes extends RealmObject {
     private RealmList<Double> columnDoubleList;
     private RealmList<Float> columnFloatList;
     private RealmList<Date> columnDateList;
-
+    private RealmList<Decimal128> columnDecimal128List;
+    private RealmList<ObjectId> columnObjectIdList;
 
     @LinkingObjects(FIELD_PARENTS)
     private final RealmResults<AllTypes> parentObjects = null;

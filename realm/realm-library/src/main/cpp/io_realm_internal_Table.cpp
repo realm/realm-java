@@ -177,15 +177,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSize(JNIEnv*, jobject
     return static_cast<jlong>(table->size()); // noexcept
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClear(JNIEnv* env, jobject, jlong nativeTableRefPtr, jboolean is_partial_realm)
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClear(JNIEnv* env, jobject, jlong nativeTableRefPtr)
 {
     try {
         TableRef table = TBL_REF(nativeTableRefPtr);
-        if (is_partial_realm) {
-            table->where().find_all().clear();
-        } else {
-            table->clear();
-        }
+        table->clear();
     }
     CATCH_STD()
 }
@@ -256,7 +252,7 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeGetColumnType(JNIEnv*,
     ColKey column_key (columnKey);
     TableRef table = TBL_REF(nativeTableRefPtr);
     jint column_type = table->get_column_type(column_key);
-    if (table->is_list(column_key) && column_type < type_LinkList) {
+    if (column_type != type_LinkList &&  table->is_list(column_key)) {
         // add the offset so it can be mapped correctly in Java (RealmFieldType#fromNativeValue)
         column_type += 128;
     }
@@ -353,6 +349,34 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetString(JNIEnv* e
     return nullptr;
 }
 
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_Table_nativeGetDecimal128(JNIEnv* env, jobject, jlong nativeTableRefPtr,
+                                                                       jlong columnKey, jlong rowKey)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Decimal)) {
+        return nullptr;
+    }
+    try {
+        Decimal128 decimal128 = table->get_object(ObjKey(rowKey)).get<Decimal128>(ColKey(columnKey));
+        RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetObjectId(JNIEnv* env, jobject, jlong nativeTableRefPtr,
+                                                                       jlong columnKey, jlong rowKey)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_ObjectId)) {
+        return nullptr;
+    }
+    try {
+        return to_jstring(env, table->get_object(ObjKey(rowKey)).get<ObjectId>(ColKey(columnKey)).to_string().data());
+    }
+    CATCH_STD()
+    return nullptr;
+}
 
 JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Table_nativeGetByteArray(JNIEnv* env, jobject,
                                                                              jlong nativeTableRefPtr, jlong columnKey,
@@ -543,6 +567,37 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(JNIEnv* e
     }
     CATCH_STD()
 }
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDecimal128(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                    jlong columnKey, jlong rowKey, jlong low,
+                                                                    jlong high, jboolean isDefault)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Decimal)) {
+        return;
+    }
+    try {
+        Decimal128::Bid128 raw {static_cast<uint64_t>(low), static_cast<uint64_t>(high)};
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), Decimal128(raw), B(isDefault));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetObjectId(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                    jlong columnKey, jlong rowKey, jstring j_value,
+                                                                    jboolean isDefault)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_ObjectId)) {
+        return;
+    }
+    try {
+        JStringAccessor value(env, j_value);
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), ObjectId(StringData(value).data()), B(isDefault));
+    }
+    CATCH_STD()
+}
+
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetNull(JNIEnv* env, jclass, jlong nativeTableRefPtr,
                                                                   jlong columnKey, jlong rowKey,
@@ -799,6 +854,24 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstString(JNIEn
     return -1;
 }
 
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstObjectId(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                           jlong columnKey, jstring j_value)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_ObjectId)) {
+        return -1;
+    }
+
+    try {
+        JStringAccessor value(env, j_value); // throws
+        ObjectId id = ObjectId(StringData(value).data());
+        return to_jlong_or_not_found(table->find_first_object_id(ColKey(columnKey), id));
+    }
+    CATCH_STD()
+    return -1;
+}
+
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstNull(JNIEnv* env, jclass, jlong nativeTableRefPtr,
                                                                          jlong columnKey)
 {
@@ -865,4 +938,24 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFreeze(JNIEnv*, jclas
     TableRef table = TableRef(TBL_REF(j_table_ptr));
     TableRef* frozen_table = new TableRef(shared_realm->import_copy_of(table));
     return reinterpret_cast<jlong>(frozen_table);
+}
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsEmbedded(JNIEnv* env, jclass, jlong j_table_ptr)
+{
+    try {
+        TableRef table = TableRef(TBL_REF(j_table_ptr));
+        return to_jbool(table->is_embedded());
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeSetEmbedded(JNIEnv* env, jclass, jlong j_table_ptr, jboolean j_embedded)
+{
+    try {
+        TableRef table = TableRef(TBL_REF(j_table_ptr));
+        return to_jbool(table->set_embedded(to_bool(j_embedded)));
+    }
+    CATCH_STD()
+    return false;
 }

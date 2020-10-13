@@ -164,6 +164,8 @@ Note: Building from source with Realm Sync is not enabled yet. Only building the
 
 Note: If you want to build from source inside Android Studio, you need to update the Gradle parameters by going into the Realm projects settings `Settings > Build, Execution, Deployment > Compiler > Command-line options` and add `-PcoreSourcePath=<path>` to it.
 
+Note: If building on OSX you might like to prevent Gatekeeper to block all NDK executables by disabling it: `sudo spctl --master-disable`. Remember to enable it afterwards: `sudo spctl --master-enable`
+
 ### Other Commands
 
  * `./gradlew tasks` will show all the available tasks
@@ -178,10 +180,10 @@ Generating the Javadoc using the command above may generate warnings. The Javado
 
 ### Upgrading Gradle Wrappers
 
- All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer to `gradleVersion` property defined in `/dependencies.list` to determine Gradle Version of generating wrappers.
+ All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer to `gradle` property defined in `/dependencies.list` to determine Gradle Version of generating wrappers.
 We have a script `./tools/update_gradle_wrapper.sh` to automate these steps. When you update Gradle Wrappers, please obey the following steps.
 
- 1. Edit `gradleVersion` property in defined in `/dependencies.list` to new Gradle Wrapper version.
+ 1. Edit `gradle` property in defined in `/dependencies.list` to new Gradle Wrapper version.
  2. Execute `/tools/update_gradle_wrapper.sh`.
 
 ### Gotchas

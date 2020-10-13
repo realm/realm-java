@@ -814,8 +814,37 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetweenTimestamp(
                 return;
             }
             Q(nativeQueryPtr)
-                ->greater_equal(ColKey(col_key_arr[0]), from_milliseconds(value1))
-                .less_equal(ColKey(col_key_arr[0]), from_milliseconds(value2));
+                    ->greater_equal(ColKey(col_key_arr[0]), from_milliseconds(value1))
+                    .less_equal(ColKey(col_key_arr[0]), from_milliseconds(value2));
+        }
+        else {
+            ThrowException(env, IllegalArgument, "between() does not support queries using child object fields.");
+        }
+    }
+    CATCH_STD()
+}
+
+
+// Decimal128
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetweenDecimal128(JNIEnv* env, jobject,
+                                                                                 jlong nativeQueryPtr,
+                                                                                 jlongArray columnKeys,
+                                                                                 jlong value1Low, jlong value1High,
+                                                                                 jlong value2Low, jlong value2High)
+{
+    Decimal128::Bid128 raw1 = {static_cast<uint64_t>(value1Low), static_cast<uint64_t>(value1High)};
+    Decimal128::Bid128 raw2 = {static_cast<uint64_t>(value2Low), static_cast<uint64_t>(value2High)};
+    Decimal128 value1 = Decimal128(raw1);
+    Decimal128 value2 = Decimal128(raw2);
+
+    JLongArrayAccessor col_key_arr(env, columnKeys);
+    jsize arr_len = col_key_arr.size();
+    try {
+        if (arr_len == 1) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Decimal)) {
+                return;
+            }
+            Q(nativeQueryPtr)->between(ColKey(col_key_arr[0]), value1, value2);
         }
         else {
             ThrowException(env, IllegalArgument, "between() does not support queries using child object fields.");
@@ -848,6 +877,270 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3J_3JZ(J
     }
     CATCH_STD()
 }
+
+// Decimal128
+enum Decimal128Predicate { Decimal128Equal, Decimal128NotEqual, Decimal128Less, Decimal128LessEqual, Decimal128Greater, Decimal128GreaterEqual };
+static void TableQuery_Decimal128Predicate(JNIEnv* env, jlong nativeQueryPtr, jlongArray columnKeys,
+                                       jlongArray tablePointers, jlong low, jlong high, Decimal128Predicate predicate)
+{
+    try {
+        JLongArrayAccessor table_arr(env, tablePointers);
+        JLongArrayAccessor col_key_arr(env, columnKeys);
+        jsize arr_len = col_key_arr.size();
+        LinkChain linkChain = getTableForLinkQuery(nativeQueryPtr, table_arr, col_key_arr);
+
+        Decimal128::Bid128 raw = {static_cast<uint64_t>(low), static_cast<uint64_t>(high)};
+        Decimal128 decimal128 = Decimal128(raw);
+        if (arr_len == 1) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Decimal)) {
+                return;
+            }
+            switch (predicate) {
+                case Decimal128Equal:
+                    Q(nativeQueryPtr)->equal(ColKey(col_key_arr[0]), decimal128);
+                    break;
+                case Decimal128NotEqual:
+                    Q(nativeQueryPtr)->not_equal(ColKey(col_key_arr[0]), decimal128);
+                    break;
+                case Decimal128Less:
+                    Q(nativeQueryPtr)->less(ColKey(col_key_arr[0]), decimal128);
+                    break;
+                case Decimal128LessEqual:
+                    Q(nativeQueryPtr)->less_equal(ColKey(col_key_arr[0]), decimal128);
+                    break;
+                case Decimal128Greater:
+                    Q(nativeQueryPtr)->greater(ColKey(col_key_arr[0]), decimal128);
+                    break;
+                case Decimal128GreaterEqual:
+                    Q(nativeQueryPtr)->greater_equal(ColKey(col_key_arr[0]), decimal128);
+                    break;
+
+            }
+        }
+        else {
+            switch (predicate) {
+                case Decimal128Equal:
+                    Q(nativeQueryPtr)
+                            ->and_query(linkChain.column<Decimal128>(ColKey(col_key_arr[arr_len - 1])) ==
+                                                decimal128);
+                    break;
+                case Decimal128NotEqual:
+                    Q(nativeQueryPtr)
+                            ->and_query(linkChain.column<Decimal128>(ColKey(col_key_arr[arr_len - 1])) !=
+                                                decimal128);
+                    break;
+                case Decimal128Less:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_less<Decimal128, Decimal128, Decimal128>(linkChain, col_key_arr[arr_len - 1], decimal128));
+                    break;
+                case Decimal128LessEqual:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_lessequal<Decimal128, Decimal128, Decimal128>(linkChain, col_key_arr[arr_len - 1], decimal128));
+                    break;
+                case Decimal128Greater:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_greater<Decimal128, Decimal128, Decimal128>(linkChain, col_key_arr[arr_len - 1], decimal128));
+                    break;
+                case Decimal128GreaterEqual:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_greaterequal<Decimal128, Decimal128, Decimal128>(linkChain, col_key_arr[arr_len - 1], decimal128));
+                    break;
+
+            }
+        }
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqualDecimal128(JNIEnv* env, jobject,
+                                                                                      jlong nativeQueryPtr,
+                                                                                      jlongArray columnKeys,
+                                                                                      jlongArray tablePointers,
+                                                                                      jlong low,
+                                                                                      jlong high)
+{
+    TableQuery_Decimal128Predicate(env, nativeQueryPtr, columnKeys, tablePointers, low, high, Decimal128GreaterEqual);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterDecimal128(JNIEnv* env, jobject,
+                                                                                 jlong nativeQueryPtr,
+                                                                                 jlongArray columnKeys,
+                                                                                 jlongArray tablePointers,
+                                                                                 jlong low,
+                                                                                 jlong high)
+{
+    TableQuery_Decimal128Predicate(env, nativeQueryPtr, columnKeys, tablePointers, low, high, Decimal128Greater);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqualDecimal128(JNIEnv* env, jobject,
+                                                                                   jlong nativeQueryPtr,
+                                                                                   jlongArray columnKeys,
+                                                                                   jlongArray tablePointers,
+                                                                                   jlong low,
+                                                                                   jlong high)
+{
+    TableQuery_Decimal128Predicate(env, nativeQueryPtr, columnKeys, tablePointers, low, high, Decimal128LessEqual);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessDecimal128(JNIEnv* env, jobject,
+                                                                              jlong nativeQueryPtr,
+                                                                              jlongArray columnKeys,
+                                                                              jlongArray tablePointers,
+                                                                              jlong low,
+                                                                              jlong high)
+{
+    TableQuery_Decimal128Predicate(env, nativeQueryPtr, columnKeys, tablePointers, low, high, Decimal128Less);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualDecimal128(JNIEnv* env, jobject,
+                                                                                  jlong nativeQueryPtr,
+                                                                                  jlongArray columnKeys,
+                                                                                  jlongArray tablePointers,
+                                                                                  jlong low,
+                                                                                  jlong high)
+{
+    TableQuery_Decimal128Predicate(env, nativeQueryPtr, columnKeys, tablePointers, low, high, Decimal128NotEqual);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualDecimal128(JNIEnv* env, jobject,
+                                                                               jlong nativeQueryPtr,
+                                                                               jlongArray columnKeys,
+                                                                               jlongArray tablePointers,
+                                                                               jlong low,
+                                                                               jlong high)
+{
+    TableQuery_Decimal128Predicate(env, nativeQueryPtr, columnKeys, tablePointers, low, high, Decimal128Equal);
+}
+
+
+// ObjectID
+enum ObjectIdPredicate { ObjectIdEqual, ObjectIdNotEqual, ObjectIdLess, ObjectIdLessEqual, ObjectIdGreater, ObjectIdGreaterEqual };
+static void TableQuery_ObjectIdPredicate(JNIEnv* env, jlong nativeQueryPtr, jlongArray columnKeys,
+                                           jlongArray tablePointers, jstring j_data, ObjectIdPredicate predicate)
+{
+    try {
+        JStringAccessor data(env, j_data);
+        JLongArrayAccessor table_arr(env, tablePointers);
+        JLongArrayAccessor col_key_arr(env, columnKeys);
+        jsize arr_len = col_key_arr.size();
+        LinkChain linkChain = getTableForLinkQuery(nativeQueryPtr, table_arr, col_key_arr);
+
+        ObjectId objectId = ObjectId(StringData(data).data());
+        if (arr_len == 1) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_ObjectId)) {
+                return;
+            }
+
+            switch (predicate) {
+                case ObjectIdEqual:
+                    Q(nativeQueryPtr)->equal(ColKey(col_key_arr[0]), objectId);
+                    break;
+                case ObjectIdNotEqual:
+                    Q(nativeQueryPtr)->not_equal(ColKey(col_key_arr[0]), objectId);
+                    break;
+                case ObjectIdLess:
+                    Q(nativeQueryPtr)->less(ColKey(col_key_arr[0]), objectId);
+                    break;
+                case ObjectIdLessEqual:
+                    Q(nativeQueryPtr)->less_equal(ColKey(col_key_arr[0]), objectId);
+                    break;
+                case ObjectIdGreater:
+                    Q(nativeQueryPtr)->greater(ColKey(col_key_arr[0]), objectId);
+                    break;
+                case ObjectIdGreaterEqual:
+                    Q(nativeQueryPtr)->greater_equal(ColKey(col_key_arr[0]), objectId);
+                    break;
+            }
+        }
+        else {
+            LinkChain linkChain = getTableForLinkQuery(nativeQueryPtr, table_arr, col_key_arr);
+            switch (predicate) {
+                case ObjectIdEqual:
+                    Q(nativeQueryPtr)
+                            ->and_query(linkChain.column<ObjectId>(ColKey(col_key_arr[arr_len - 1])) ==
+                                        objectId);
+                    break;
+                case ObjectIdNotEqual:
+                    Q(nativeQueryPtr)
+                            ->and_query(linkChain.column<ObjectId>(ColKey(col_key_arr[arr_len - 1])) !=
+                                        objectId);
+                    break;
+                case ObjectIdLess:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_less<ObjectId, ObjectId, ObjectId>(linkChain, col_key_arr[arr_len - 1], objectId));
+                    break;
+                case ObjectIdLessEqual:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_lessequal<ObjectId, ObjectId, ObjectId>(linkChain, col_key_arr[arr_len - 1], objectId));
+                    break;
+                case ObjectIdGreater:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_greater<ObjectId, ObjectId, ObjectId>(linkChain, col_key_arr[arr_len - 1], objectId));
+                    break;
+                case ObjectIdGreaterEqual:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_greaterequal<ObjectId, ObjectId, ObjectId>(linkChain, col_key_arr[arr_len - 1], objectId));
+                    break;
+            }
+        }
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualObjectId(JNIEnv* env, jobject,
+                                                                             jlong nativeQueryPtr,
+                                                                             jlongArray columnKeys,
+                                                                             jlongArray tablePointers,
+                                                                             jstring j_data)
+{
+    TableQuery_ObjectIdPredicate(env, nativeQueryPtr, columnKeys, tablePointers, j_data, ObjectIdEqual);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualObjectId(JNIEnv* env, jobject,
+                                                                                jlong nativeQueryPtr,
+                                                                                jlongArray columnKeys,
+                                                                                jlongArray tablePointers,
+                                                                                jstring data)
+{
+    TableQuery_ObjectIdPredicate(env, nativeQueryPtr, columnKeys, tablePointers, data, ObjectIdNotEqual);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessObjectId(JNIEnv* env, jobject,
+                                                                            jlong nativeQueryPtr,
+                                                                            jlongArray columnKeys,
+                                                                            jlongArray tablePointers,
+                                                                            jstring data)
+{
+    TableQuery_ObjectIdPredicate(env, nativeQueryPtr, columnKeys, tablePointers, data, ObjectIdLess);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqualObjectId(JNIEnv* env, jobject,
+                                                                                 jlong nativeQueryPtr,
+                                                                                 jlongArray columnKeys,
+                                                                                 jlongArray tablePointers,
+                                                                                 jstring data)
+{
+    TableQuery_ObjectIdPredicate(env, nativeQueryPtr, columnKeys, tablePointers, data, ObjectIdLessEqual);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterObjectId(JNIEnv* env, jobject,
+                                                                               jlong nativeQueryPtr,
+                                                                               jlongArray columnKeys,
+                                                                               jlongArray tablePointers,
+                                                                               jstring data)
+{
+    TableQuery_ObjectIdPredicate(env, nativeQueryPtr, columnKeys, tablePointers, data, ObjectIdGreater);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqualObjectId(JNIEnv* env, jobject,
+                                                                                    jlong nativeQueryPtr,
+                                                                                    jlongArray columnKeys,
+                                                                                    jlongArray tablePointers,
+                                                                                    jstring data)
+{
+    TableQuery_ObjectIdPredicate(env, nativeQueryPtr, columnKeys, tablePointers, data, ObjectIdGreaterEqual);
+}
+
 
 // String
 
@@ -1284,6 +1577,41 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDouble(
     return nullptr;
 }
 
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDecimal128(JNIEnv* env, jobject,
+                                                                                jlong nativeQueryPtr,
+                                                                                jlong columnKey)
+{
+    Query* pQuery = Q(nativeQueryPtr);
+    ConstTableRef pTable = pQuery->get_table();
+    if (!TYPE_VALID(env, pTable, columnKey, type_Decimal)) {
+        return nullptr;
+    }
+    try {
+        Decimal128 decimal128 = pQuery->maximum_decimal128(ColKey(columnKey));
+        RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeSumDecimal128(JNIEnv* env, jobject,
+                                                                            jlong nativeQueryPtr, jlong columnKey)
+{
+    Query* pQuery = Q(nativeQueryPtr);
+    ConstTableRef pTable = pQuery->get_table();
+    if (!TYPE_VALID(env, pTable, columnKey, type_Decimal)) {
+        return 0;
+    }
+    try {
+
+//        Decimal128 decimal128 = pQuery->sum_decimal128(ColKey(columnKey)); //FIXME waiting for Core to add sum_decimal into query.hpp
+        Decimal128 decimal128 = pQuery->get_table()->sum_decimal(ColKey(columnKey));
+        RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
+    }
+    CATCH_STD()
+    return 0;
+}
+
 JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(JNIEnv* env, jobject,
                                                                                 jlong nativeQueryPtr,
                                                                                 jlong columnKey)
@@ -1299,6 +1627,23 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(
         if (bool(return_ndx)) {
             return JavaClassGlobalDef::new_double(env, result);
         }
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDecimal128(JNIEnv* env, jobject,
+                                                                                jlong nativeQueryPtr,
+                                                                                jlong columnKey)
+{
+    Query* pQuery = Q(nativeQueryPtr);
+    ConstTableRef pTable = pQuery->get_table();
+    if (!TYPE_VALID(env, pTable, columnKey, type_Decimal)) {
+        return nullptr;
+    }
+    try {
+        Decimal128 decimal128 = pQuery->minimum_decimal128(ColKey(columnKey));
+        RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
     }
     CATCH_STD()
     return nullptr;
@@ -1320,6 +1665,22 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble(
     return 0;
 }
 
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeAverageDecimal128(JNIEnv* env, jobject,
+                                                                                jlong nativeQueryPtr,
+                                                                                jlong columnKey)
+{
+    Query* pQuery = Q(nativeQueryPtr);
+    ConstTableRef pTable = pQuery->get_table();
+    if (!TYPE_VALID(env, pTable, columnKey, type_Decimal)) {
+        return nullptr;
+    }
+    try {
+        Decimal128 decimal128 = pQuery->average_decimal128(ColKey(columnKey));
+        RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
+    }
+    CATCH_STD()
+    return nullptr;
+}
 
 // date aggregates
 // FIXME: This is a rough workaround while waiting for https://github.com/realm/realm-core/issues/1745 to be solved
@@ -1423,6 +1784,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
                 case type_Float:
                 case type_Double:
                 case type_Timestamp:
+                case type_Decimal:
+                case type_ObjectId:
                     Q(nativeQueryPtr)->equal(ColKey(column_idx), realm::null());
                     break;
                 default:
@@ -1458,6 +1821,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
                     break;
                 case type_Timestamp:
                     pQuery->and_query(linkChain.column<Timestamp>(ColKey(column_idx)) == realm::null());
+                    break;
+                case type_Decimal:
+                    pQuery->and_query(linkChain.column<Decimal128>(ColKey(column_idx)) == realm::null());
+                    break;
+                case type_ObjectId:
+                    pQuery->and_query(linkChain.column<ObjectId>(ColKey(column_idx)) == realm::null());
                     break;
                 default:
                     REALM_UNREACHABLE();
@@ -1503,6 +1872,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull(JNIEnv*
                 case type_Float:
                 case type_Double:
                 case type_Timestamp:
+                case type_Decimal:
+                case type_ObjectId:
                     pQuery->not_equal(ColKey(column_idx), realm::null());
                     break;
                 default:
@@ -1539,6 +1910,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull(JNIEnv*
                     break;
                 case type_Timestamp:
                     pQuery->and_query(linkChain.column<Timestamp>(ColKey(column_idx)) != realm::null());
+                    break;
+                case type_Decimal:
+                    pQuery->and_query(linkChain.column<Decimal128>(ColKey(column_idx)) != realm::null());
+                    break;
+                case type_ObjectId:
+                    pQuery->and_query(linkChain.column<ObjectId>(ColKey(column_idx)) != realm::null());
                     break;
                 default:
                     REALM_UNREACHABLE();

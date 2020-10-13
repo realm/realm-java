@@ -16,9 +16,11 @@
 
 package io.realm;
 
-import android.support.test.annotation.UiThreadTest;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.annotation.UiThreadTest;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.json.JSONException;
 import org.junit.After;
 import org.junit.Before;
@@ -29,6 +31,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.skyscreamer.jsonassert.JSONAssert;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -736,6 +739,8 @@ public class RealmResultsTests extends CollectionTests {
             obj.fieldString = ("test data " + i);
             obj.fieldLong = i;
             obj.fieldObject = obj;
+            obj.fieldDecimal128 = new Decimal128( i);
+            obj.fieldObjectId = new ObjectId(TestHelper.generateObjectIdHexString(i));
             obj.fieldList.add(obj);
         }
         realm.commitTransaction();
@@ -754,6 +759,8 @@ public class RealmResultsTests extends CollectionTests {
             obj.setFieldString("test data " + i);
             obj.setFieldLong(i);
             obj.setFieldObject(obj);
+            obj.setFieldDecimal128(new Decimal128(new BigDecimal(i + ".23456789")));
+            obj.setFieldObjectId(new ObjectId(TestHelper.generateObjectIdHexString(i)));
             obj.getFieldList().add(obj);
         }
         realm.commitTransaction();
@@ -770,6 +777,8 @@ public class RealmResultsTests extends CollectionTests {
         DOUBLE,
         BINARY,
         DATE,
+        DECIMAL128,
+        OBJECT_ID,
         OBJECT,
         MODEL_LIST,
         STRING_VALUE_LIST,
@@ -781,7 +790,9 @@ public class RealmResultsTests extends CollectionTests {
         FLOAT_VALUE_LIST,
         DOUBLE_VALUE_LIST,
         BINARY_VALUE_LIST,
-        DATE_VALUE_LIST
+        DATE_VALUE_LIST,
+        DECIMAL128_VALUE_LIST,
+        OBJECT_ID_VALUE_LIST
     }
 
     interface ElementValidator<T> {
@@ -845,7 +856,20 @@ public class RealmResultsTests extends CollectionTests {
                     collection.setValue(AllJavaTypes.FIELD_DATE, new Date(1000));
                     assertElements(collection, obj -> assertEquals(new Date(1000), obj.getFieldDate()));
                     collection.setValue(AllJavaTypes.FIELD_DATE, null);
-                    assertElements(collection, obj -> assertEquals(null, obj.getFieldDate()));
+                    assertElements(collection, obj -> assertNull(obj.getFieldDate()));
+                    break;
+                case DECIMAL128:
+                    collection.setValue(AllJavaTypes.FIELD_DECIMAL128, new Decimal128(1000));
+                    assertElements(collection, obj -> assertEquals(new Decimal128(1000), obj.getFieldDecimal128()));
+                    collection.setValue(AllJavaTypes.FIELD_DECIMAL128, null);
+                    assertElements(collection, obj -> assertNull(obj.getFieldDecimal128()));
+                    break;
+                case OBJECT_ID:
+                    String hex = TestHelper.randomObjectIdHexString();
+                    collection.setValue(AllJavaTypes.FIELD_OBJECT_ID, new ObjectId(hex));
+                    assertElements(collection, obj -> assertEquals(new ObjectId(hex), obj.getFieldObjectId()));
+                    collection.setValue(AllJavaTypes.FIELD_OBJECT_ID, null);
+                    assertElements(collection, obj -> assertNull(obj.getFieldObjectId()));
                     break;
                 case OBJECT: {
                     AllJavaTypes childObj = realm.createObject(AllJavaTypes.class, 42);
@@ -954,6 +978,26 @@ public class RealmResultsTests extends CollectionTests {
                     });
                     break;
                 }
+                case DECIMAL128_VALUE_LIST:  {
+                    RealmList<Decimal128> list = new RealmList<>(new Decimal128(1000), new Decimal128(2000));
+                    collection.setValue(AllJavaTypes.FIELD_DECIMAL128_LIST, list);
+                    assertElements(collection, obj -> {
+                        assertEquals(new Decimal128(1000), obj.getFieldDecimal128List().first());
+                        assertEquals(new Decimal128(2000), obj.getFieldDecimal128List().last());
+                    });
+                    break;
+                }
+                case OBJECT_ID_VALUE_LIST:  {
+                    String hex1 = TestHelper.randomObjectIdHexString();
+                    String hex2 = TestHelper.randomObjectIdHexString();
+                    RealmList<ObjectId> list = new RealmList<>(new ObjectId(hex1), new ObjectId(hex2));
+                    collection.setValue(AllJavaTypes.FIELD_OBJECT_ID_LIST, list);
+                    assertElements(collection, obj -> {
+                        assertEquals(new ObjectId(hex1), obj.getFieldObjectIdList().first());
+                        assertEquals(new ObjectId(hex2), obj.getFieldObjectIdList().last());
+                    });
+                    break;
+                }
                 default:
                     fail("Unknown type: " + type);
             }
@@ -1009,6 +1053,15 @@ public class RealmResultsTests extends CollectionTests {
                     collection.setValue(AllJavaTypes.FIELD_DATE, "/Date(2000+0000)/");
                     assertElements(collection, obj -> assertEquals(new Date(2000), obj.getFieldDate()));
                     break;
+                case DECIMAL128:
+                    collection.setValue(AllJavaTypes.FIELD_DECIMAL128, "1.234");
+                    assertElements(collection, obj -> assertEquals(Decimal128.parse("1.234"), obj.getFieldDecimal128()));
+                    break;
+                case OBJECT_ID:
+                    String hex = TestHelper.randomObjectIdHexString();
+                    collection.setValue(AllJavaTypes.FIELD_OBJECT_ID, new ObjectId(hex));
+                    assertElements(collection, obj -> assertEquals(new ObjectId(hex), obj.getFieldObjectId()));
+                    break;
 
                 // These types do not offer any implicit conversion
                 case STRING:
@@ -1025,6 +1078,8 @@ public class RealmResultsTests extends CollectionTests {
                 case DOUBLE_VALUE_LIST:
                 case BINARY_VALUE_LIST:
                 case DATE_VALUE_LIST:
+                case DECIMAL128_VALUE_LIST:
+                case OBJECT_ID_VALUE_LIST:
                     continue;
 
                 default:
@@ -1107,7 +1162,19 @@ public class RealmResultsTests extends CollectionTests {
                     collection.setDate(AllJavaTypes.FIELD_DATE, new Date(1000));
                     assertElements(collection, obj -> assertEquals(new Date(1000), obj.getFieldDate()));
                     collection.setDate(AllJavaTypes.FIELD_DATE, null);
-                    assertElements(collection, obj -> assertEquals(null, obj.getFieldDate()));
+                    assertElements(collection, obj -> assertNull(obj.getFieldDate()));
+                    break;
+                case DECIMAL128:
+                    collection.setDecimal128(AllJavaTypes.FIELD_DECIMAL128, new Decimal128(1000));
+                    assertElements(collection, obj -> assertEquals(new Decimal128(1000), obj.getFieldDecimal128()));
+                    collection.setDecimal128(AllJavaTypes.FIELD_DECIMAL128, null);
+                    assertElements(collection, obj -> assertNull(obj.getFieldDecimal128()));
+                    break;
+                case OBJECT_ID:
+                    collection.setObjectId(AllJavaTypes.FIELD_OBJECT_ID, new ObjectId(TestHelper.generateObjectIdHexString(1)));
+                    assertElements(collection, obj -> assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(1)), obj.getFieldObjectId()));
+                    collection.setObjectId(AllJavaTypes.FIELD_OBJECT_ID, null);
+                    assertElements(collection, obj -> assertNull(obj.getFieldObjectId()));
                     break;
                 case OBJECT: {
                     AllJavaTypes childObj = realm.createObject(AllJavaTypes.class, 42);
@@ -1216,6 +1283,26 @@ public class RealmResultsTests extends CollectionTests {
                     });
                     break;
                 }
+                case DECIMAL128_VALUE_LIST:  {
+                    RealmList<Decimal128> list = new RealmList<>(new Decimal128(1000), new Decimal128(2000));
+                    collection.setList(AllJavaTypes.FIELD_DECIMAL128_LIST, list);
+                    assertElements(collection, obj -> {
+                        assertEquals(new Decimal128(1000), obj.getFieldDecimal128List().first());
+                        assertEquals(new Decimal128(2000), obj.getFieldDecimal128List().last());
+                    });
+                    break;
+                }
+                case OBJECT_ID_VALUE_LIST:  {
+                    String hex1 = TestHelper.randomObjectIdHexString();
+                    String hex2 = TestHelper.randomObjectIdHexString();
+                    RealmList<ObjectId> list = new RealmList<>(new ObjectId(hex1), new ObjectId(hex2));
+                    collection.setList(AllJavaTypes.FIELD_OBJECT_ID_LIST, list);
+                    assertElements(collection, obj -> {
+                        assertEquals(new ObjectId(hex1), obj.getFieldObjectIdList().first());
+                        assertEquals(new ObjectId(hex2), obj.getFieldObjectIdList().last());
+                    });
+                    break;
+                }
                 default:
                     fail("Unknown type: " + type);
             }
@@ -1316,6 +1403,8 @@ public class RealmResultsTests extends CollectionTests {
                     case DOUBLE: collection.setDouble("foo", 1.234); break;
                     case BINARY: collection.setBlob("foo", new byte[]{1,2,3}); break;
                     case DATE: collection.setDate("foo", new Date(1000)); break;
+                    case DECIMAL128: collection.setDecimal128("foo", new Decimal128(1000)); break;
+                    case OBJECT_ID: collection.setObjectId("foo", new ObjectId(TestHelper.randomObjectIdHexString())); break;
                     case OBJECT: collection.setObject("foo", realm.createObject(AllTypes.class)); break;
                     case MODEL_LIST: collection.setList("foo", new RealmList<>()); break;
                     case STRING_VALUE_LIST: collection.setList("foo", new RealmList<>("Foo")); break;
@@ -1328,6 +1417,8 @@ public class RealmResultsTests extends CollectionTests {
                     case DOUBLE_VALUE_LIST: collection.setList("foo", new RealmList<>(1.1D)); break;
                     case BINARY_VALUE_LIST: collection.setList("foo", new RealmList<>(new byte[] {})); break;
                     case DATE_VALUE_LIST: collection.setList("foo", new RealmList<>(new Date())); break;
+                    case DECIMAL128_VALUE_LIST: collection.setList("foo", new RealmList<>(new Decimal128(1000))); break;
+                    case OBJECT_ID_VALUE_LIST: collection.setList("foo", new RealmList<>(new ObjectId(TestHelper.randomObjectIdHexString()))); break;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -1356,6 +1447,8 @@ public class RealmResultsTests extends CollectionTests {
                     case DOUBLE: collection.setDouble(AllJavaTypes.FIELD_STRING, 1.234); break;
                     case BINARY: collection.setBlob(AllJavaTypes.FIELD_STRING, new byte[]{1,2,3}); break;
                     case DATE: collection.setDate(AllJavaTypes.FIELD_STRING, new Date(1000)); break;
+                    case DECIMAL128: collection.setDecimal128(AllJavaTypes.FIELD_STRING, new Decimal128(1000)); break;
+                    case OBJECT_ID: collection.setObjectId(AllJavaTypes.FIELD_STRING, new ObjectId(TestHelper.randomObjectIdHexString())); break;
                     case OBJECT: collection.setObject(AllJavaTypes.FIELD_STRING, realm.createObject(AllJavaTypes.class, 42)); break;
                     case MODEL_LIST: collection.setList(AllJavaTypes.FIELD_STRING, new RealmList<>(realm.createObject(AllJavaTypes.class, 43))); break;
                     case STRING_VALUE_LIST: collection.setList(AllJavaTypes.FIELD_STRING, new RealmList<>("Foo")); break;
@@ -1368,6 +1461,8 @@ public class RealmResultsTests extends CollectionTests {
                     case DOUBLE_VALUE_LIST: collection.setList(AllJavaTypes.FIELD_STRING, new RealmList<>(2.2D)); break;
                     case BINARY_VALUE_LIST: collection.setList(AllJavaTypes.FIELD_STRING, new RealmList<>(new byte[]{})); break;
                     case DATE_VALUE_LIST: collection.setList(AllJavaTypes.FIELD_STRING, new RealmList<>(new Date())); break;
+                    case DECIMAL128_VALUE_LIST: collection.setList(AllJavaTypes.FIELD_STRING, new RealmList<>(new Decimal128(1000))); break;
+                    case OBJECT_ID_VALUE_LIST: collection.setList(AllJavaTypes.FIELD_STRING, new RealmList<>(new ObjectId(TestHelper.randomObjectIdHexString()))); break;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -1398,6 +1493,15 @@ public class RealmResultsTests extends CollectionTests {
             fail();
         } catch (IllegalStateException ignore) {
         }
+
+        try {
+            RealmResults<ObjectIdPrimaryKeyRequired> collection = realm.where(ObjectIdPrimaryKeyRequired.class).findAll();
+            collection.setObjectId("id", new ObjectId(TestHelper.randomObjectIdHexString()));
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+
+
     }
 
     @Test
@@ -1446,6 +1550,15 @@ public class RealmResultsTests extends CollectionTests {
                 case DATE:
                     collection.setDate("fieldDate", new Date(1000));
                     assertElements(collection, obj -> assertEquals(new Date(1000), obj.fieldDate));
+                    break;
+                case DECIMAL128:
+                    collection.setDecimal128("fieldDecimal128", new Decimal128(1000));
+                    assertElements(collection, obj -> assertEquals(new Decimal128(1000), obj.fieldDecimal128));
+                    break;
+                case OBJECT_ID:
+//                    String hex = TestHelper.randomObjectIdHexString();
+//                    collection.setObjectId("fieldObjectId", new ObjectId(hex));
+//                    assertElements(collection, obj -> assertEquals(new ObjectId(hex), obj.fieldObjectId));
                     break;
                 case OBJECT: {
                     MappedAllJavaTypes childObj = realm.createObject(MappedAllJavaTypes.class, 42);
@@ -1532,6 +1645,21 @@ public class RealmResultsTests extends CollectionTests {
                         assertEquals(new Date(1000), obj.fieldDateList.first());
                     });
                     break;
+                case DECIMAL128_VALUE_LIST:
+                    collection.setList("fieldDecimalList", new RealmList<>(new Decimal128(1000)));
+                    assertElements(collection, obj -> {
+                        assertEquals(1, obj.fieldDecimalList.size());
+                        assertEquals(new Decimal128(1000), obj.fieldDecimalList.first());
+                    });
+                    break;
+                case OBJECT_ID_VALUE_LIST:
+                    String hex = TestHelper.randomObjectIdHexString();
+                    collection.setList("fieldObjectIdList", new RealmList<>(new ObjectId(hex)));
+                    assertElements(collection, obj -> {
+                        assertEquals(1, obj.fieldObjectIdList.size());
+                        assertEquals(new ObjectId(hex), obj.fieldObjectIdList.first());
+                    });
+                    break;
                 default:
                     fail("Unknown type: " + type);
             }
@@ -1586,6 +1714,15 @@ public class RealmResultsTests extends CollectionTests {
                     case DATE:
                         collection.setDate("field_date", new Date(1000));
                         assertElements(collection, obj -> assertEquals(new Date(1000), obj.getDate("field_date")));
+                        break;
+                    case DECIMAL128:
+                        collection.setDecimal128("field_decimal128", new Decimal128(1000));
+                        assertElements(collection, obj -> assertEquals(new Decimal128(1000), obj.getDecimal128("field_decimal128")));
+                        break;
+                    case OBJECT_ID:
+                        String hex = TestHelper.randomObjectIdHexString();
+                        collection.setObjectId("field_object_id", new ObjectId(hex));
+                        assertElements(collection, obj -> assertEquals(new ObjectId(hex), obj.getObjectId("field_object_id")));
                         break;
                     case OBJECT: {
                         DynamicRealmObject childObj = dynamicRealm.createObject("MappedAllJavaTypes", 42);
@@ -1683,6 +1820,23 @@ public class RealmResultsTests extends CollectionTests {
                             assertEquals(new Date(1000), list.first());
                         });
                         break;
+                    case DECIMAL128_VALUE_LIST:
+                        collection.setList("field_decimal_list", new RealmList<>(new Decimal128(1000)));
+                        assertElements(collection, obj -> {
+                            RealmList<Decimal128> list = obj.getList("field_decimal_list", Decimal128.class);
+                            assertEquals(1, list.size());
+                            assertEquals(new Decimal128(1000), list.first());
+                        });
+                        break;
+                    case OBJECT_ID_VALUE_LIST:
+                        hex = TestHelper.randomObjectIdHexString();
+                        collection.setList("field_object_id_list", new RealmList<>(new ObjectId(hex)));
+                        assertElements(collection, obj -> {
+                            RealmList<ObjectId> list = obj.getList("field_object_id_list", ObjectId.class);
+                            assertEquals(1, list.size());
+                            assertEquals(new ObjectId(hex), list.first());
+                        });
+                        break;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -1737,6 +1891,8 @@ public class RealmResultsTests extends CollectionTests {
         allTypes.setColumnDouble(0.89123);
         allTypes.setColumnBoolean(false);
         allTypes.setColumnDate(date);
+        allTypes.setColumnDecimal128(new Decimal128(new BigDecimal("0.123456789")));
+        allTypes.setColumnObjectId(new ObjectId(TestHelper.generateObjectIdHexString(7)));
         allTypes.setColumnBinary(new byte[]{1, 2, 3});
         allTypes.setColumnMutableRealmInteger(0);
         allTypes.setColumnRealmObject(dog1);
@@ -1754,6 +1910,14 @@ public class RealmResultsTests extends CollectionTests {
         allTypes.getColumnFloatList().add(0.13f);
         allTypes.getColumnDateList().add(date);
         allTypes.getColumnDateList().add(date);
+        allTypes.getColumnDecimal128List().add(new Decimal128(-42));
+        allTypes.getColumnDecimal128List().add(Decimal128.NaN);
+        allTypes.getColumnDecimal128List().add(Decimal128.NEGATIVE_ZERO);
+        allTypes.getColumnDecimal128List().add(Decimal128.POSITIVE_ZERO);
+        allTypes.getColumnDecimal128List().add(Decimal128.NEGATIVE_INFINITY);
+        allTypes.getColumnDecimal128List().add(Decimal128.POSITIVE_INFINITY);
+        allTypes.getColumnObjectIdList().add(new ObjectId(TestHelper.generateObjectIdHexString(1)));
+        allTypes.getColumnObjectIdList().add(new ObjectId(TestHelper.generateObjectIdHexString(2)));
 
         AllTypes allTypes2 = realm.createObject(AllTypes.class);
         allTypes2.setColumnString("alltypes2");
@@ -1763,6 +1927,7 @@ public class RealmResultsTests extends CollectionTests {
                 .equalTo("columnString", "alltypes1").findAll();
         assertEquals(1, all.size());
         String json = all.asJSON();
+
         final String expectedJSON = "[\n" +
                 "   {\n" +
                 "      \"_key\":100,\n" +
@@ -1773,6 +1938,8 @@ public class RealmResultsTests extends CollectionTests {
                 "      \"columnBoolean\":false,\n" +
                 "      \"columnDate\": \"" + now + "\",\n" +
                 "      \"columnBinary\":\"AQID\",\n" +
+                "      \"columnDecimal128\":\"1.23456789E-1\",\n" +
+                "      \"columnObjectId\":\"789abcdef0123456789abcde\",\n" +
                 "      \"columnMutableRealmInteger\":0,\n" +
                 "      \"columnRealmObject\":{\n" +
                 "         \"_key\":100,\n" +
@@ -1839,10 +2006,21 @@ public class RealmResultsTests extends CollectionTests {
                 "      \"columnDateList\":[\n" +
                 "            \"" + now + "\",\n" +
                 "            \"" + now + "\"\n" +
+                "      ],\n" +
+                "      \"columnDecimal128List\":[\n" +
+                "         \"-42\",\n" +
+                "         \"NaN\",\n" +
+                "         \"-0\",\n" +
+                "         \"0\",\n" +
+                "         \"-Inf\",\n" +
+                "         \"Inf\"\n" +
+                "      ],\n" +
+                "      \"columnObjectIdList\":[\n" +
+                "         \"123456789abcdef012345678\",\n" +
+                "         \"23456789abcdef0123456789\"\n" +
                 "      ]\n" +
                 "   }\n" +
                 "]";
-
         JSONAssert.assertEquals(expectedJSON, json, false);
     }
 

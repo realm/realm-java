@@ -17,8 +17,8 @@
 package io.realm;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
@@ -852,7 +852,7 @@ public class RealmMigrationTests {
         realm = Realm.getInstance(realmConfig);
         RealmObjectSchema schema = realm.getSchema().get("AnnotationTypes");
         assertTrue(schema.hasPrimaryKey());
-        assertTrue(schema.hasIndex("id"));
+        assertFalse(schema.hasIndex("id"));
         realm.close();
     }
 
@@ -886,7 +886,7 @@ public class RealmMigrationTests {
         Table table = realm.getTable(AnnotationTypes.class);
         assertEquals(3, table.getColumnCount());
         assertEquals("id", OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), "AnnotationTypes"));
-        assertTrue(table.hasSearchIndex(table.getColumnKey("id")));
+        assertFalse(table.hasSearchIndex(table.getColumnKey("id")));
         assertTrue(table.hasSearchIndex(table.getColumnKey("indexString")));
     }
 
@@ -898,7 +898,7 @@ public class RealmMigrationTests {
             Realm.getInstance(configFactory.createConfiguration());
             fail();
         } catch (RealmMigrationNeededException expected) {
-            assertEquals(expected.getPath(), realm.getCanonicalPath());
+            assertEquals(expected.getPath(), realm.getAbsolutePath());
         }
     }
 
@@ -1447,7 +1447,7 @@ public class RealmMigrationTests {
                 .build());
         assertFalse(realm.isEmpty());
         // Upgrading to Core 6 will strip all indexes on primary keys as they are no longer needed.
-        assertTrue(realm.getSchema().get("MigrationCore6PKStringIndexedByDefault").hasIndex("name"));
+        assertFalse(realm.getSchema().get("MigrationCore6PKStringIndexedByDefault").hasIndex("name"));
         MigrationCore6PKStringIndexedByDefault first = realm.where(MigrationCore6PKStringIndexedByDefault.class).findFirst();
         assertNotNull(first);
         assertEquals("Foo", first.name);

@@ -15,10 +15,7 @@
  */
 package io.realm.internal;
 
-import javax.annotation.Nullable;
-
 import io.realm.RealmResults;
-import io.realm.internal.sync.OsSubscription;
 
 /**
  * Empty changeset used if {@link RealmResults#load()} is called manually or if no collection
@@ -29,12 +26,12 @@ public class EmptyLoadChangeSet extends OsCollectionChangeSet {
     private static final int[] NO_INDEX_CHANGES = new int[0];
     private static final Range[] NO_RANGE_CHANGES = new Range[0];
 
-    public EmptyLoadChangeSet(@Nullable OsSubscription subscription, boolean firstCallback, boolean isPartialRealm) {
-        super(0, firstCallback, subscription, isPartialRealm);
+    public EmptyLoadChangeSet(boolean firstCallback) {
+        super(0, firstCallback);
     }
 
-    public EmptyLoadChangeSet(@Nullable OsSubscription subscription, boolean isPartialRealm) {
-        super(0, true, subscription, isPartialRealm);
+    public EmptyLoadChangeSet() {
+        super(0, true);
     }
 
     @Override
@@ -74,20 +71,7 @@ public class EmptyLoadChangeSet extends OsCollectionChangeSet {
 
     @Override
     public Throwable getError() {
-        if (subscription != null && subscription.getState() == OsSubscription.SubscriptionState.ERROR) {
-            return subscription.getError();
-        }
         return null;
-    }
-
-    @Override
-    public boolean isRemoteDataLoaded() {
-        return super.isRemoteDataLoaded();
-    }
-
-    @Override
-    public boolean isCompleteResult() {
-        return isRemoteDataLoaded();
     }
 
     @Override
@@ -97,13 +81,7 @@ public class EmptyLoadChangeSet extends OsCollectionChangeSet {
 
     @Override
     public boolean isEmpty() {
-        // Since this class represents "No collection" changes, it is only considered empty
-        // if no partial sync updates are found
-        if (subscription == null) {
-            return true;
-        } else {
-            return false;
-        }
+        return true;
     }
 
     @Override

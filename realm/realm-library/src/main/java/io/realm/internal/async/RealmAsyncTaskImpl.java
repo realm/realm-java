@@ -22,7 +22,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import io.realm.RealmAsyncTask;
 
 
-public class RealmAsyncTaskImpl implements RealmAsyncTask {
+public final class RealmAsyncTaskImpl implements RealmAsyncTask {
     private final Future<?> pendingTask;
     private final ThreadPoolExecutor service;
     private volatile boolean isCancelled = false;

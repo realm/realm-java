@@ -1,25 +1,26 @@
 package io.realm
 
-import android.support.test.InstrumentationRegistry
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.entities.PrimaryKeyClass
 import io.realm.entities.SimpleClass
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import io.realm.rule.TestRealmConfigurationFactory
 import org.junit.After
-import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import kotlin.test.assertEquals
 
 @Suppress("FunctionName")
 @RunWith(AndroidJUnit4::class)
 class KotlinRealmTests {
 
     @Suppress("MemberVisibilityCanPrivate")
-    @Rule @JvmField val configFactory = TestRealmConfigurationFactory()
+    @Rule
+    @JvmField
+    val configFactory = TestRealmConfigurationFactory()
 
     private lateinit var realm: Realm
 
@@ -30,6 +31,7 @@ class KotlinRealmTests {
 
     @After
     fun tearDown() {
+        realm.executeTransaction { it.deleteAll() }
         realm.close()
     }
 
@@ -54,6 +56,4 @@ class KotlinRealmTests {
     fun where() {
         assertEquals(0, realm.where<SimpleClass>().count())
     }
-
-
 }

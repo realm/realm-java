@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.realm.objectserver;
 
 import android.os.Looper;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -74,7 +73,6 @@ public class ProcessCommitTests extends StandardIntegrationTest {
                 String realmUrl = Constants.SYNC_SERVER_URL;
 
                 final SyncConfiguration syncConfig = user.createConfiguration(realmUrl)
-                        .fullSynchronization()
                         .modules(new ProcessCommitTestsModule())
                         .directory(getService().getRoot())
                         .build();
@@ -126,7 +124,6 @@ public class ProcessCommitTests extends StandardIntegrationTest {
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
         final SyncConfiguration syncConfig = user.createConfiguration(realmUrl)
-                .fullSynchronization()
                 .modules(new ProcessCommitTestsModule())
                 .directory(looperThread.getRoot())
                 .build();
@@ -160,7 +157,6 @@ public class ProcessCommitTests extends StandardIntegrationTest {
                 String realmUrl = Constants.SYNC_SERVER_URL;
 
                 final SyncConfiguration syncConfig = user.createConfiguration(realmUrl)
-                        .fullSynchronization()
                         .modules(new ProcessCommitTestsModule())
                         .directory(getService().getRoot())
                         .name(UUID.randomUUID().toString() + ".realm")
@@ -208,7 +204,6 @@ public class ProcessCommitTests extends StandardIntegrationTest {
         final SyncUser user = UserFactory.getInstance().createDefaultUser(Constants.AUTH_URL);
         String realmUrl = Constants.SYNC_SERVER_URL;
         final SyncConfiguration syncConfig = user.createConfiguration(realmUrl)
-                .fullSynchronization()
                 .modules(new ProcessCommitTestsModule())
                 .directory(looperThread.getRoot())
                 .build();
