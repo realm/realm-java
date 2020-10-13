@@ -1755,6 +1755,9 @@ public class DynamicRealmObjectTests {
             allJavaTypes.getFieldStringList().add(null);
             allJavaTypes.getFieldBinaryList().add(null);
             allJavaTypes.getFieldDateList().add(null);
+            allJavaTypes.getFieldObjectIdList().add(null);
+            allJavaTypes.getFieldDecimal128List().add(null);
+
         });
         realm.close();
         dynamicRealm.refresh();
@@ -1788,6 +1791,12 @@ public class DynamicRealmObjectTests {
                 case OBJECT:
                     assertNull(allJavaTypes.get(AllJavaTypes.FIELD_OBJECT));
                     break;
+                case DECIMAL128:
+                    assertNull(primitiveNullables.get(NullablePrimitiveFields.FIELD_DECIMAL128));
+                    break;
+                case OBJECT_ID:
+                    assertNull(primitiveNullables.get(NullablePrimitiveFields.FIELD_OBJECT_ID));
+                    break;
                 case INTEGER_LIST:
                     assertNull(allJavaTypes.getList(AllJavaTypes.FIELD_INTEGER_LIST, Integer.class).get(0));
                     break;
@@ -1808,6 +1817,12 @@ public class DynamicRealmObjectTests {
                     break;
                 case DOUBLE_LIST:
                     assertNull(allJavaTypes.getList(AllJavaTypes.FIELD_DOUBLE_LIST, Double.class).get(0));
+                    break;
+                case DECIMAL128_LIST:
+                    assertNull(allJavaTypes.getList(AllJavaTypes.FIELD_DECIMAL128_LIST, Decimal128.class).get(0));
+                    break;
+                case OBJECT_ID_LIST:
+                    assertNull(allJavaTypes.getList(AllJavaTypes.FIELD_OBJECT_ID_LIST, ObjectId.class).get(0));
                     break;
                 case LIST:
                 case LINKING_OBJECTS:
