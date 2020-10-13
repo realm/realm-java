@@ -1,8 +1,5 @@
 ## 10.0.0-RC.2 (2020-10-12)
 
-### Breaking Changes
-* None.
-
 ### Enhancements
 * [RealmApp] Illegal schemas where embedded object classes referenced each other is now correctly detected and throws and exception when opening a Realm with such a schema.
 
@@ -165,9 +162,6 @@ We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Clo
 
 The old Realm Cloud legacy API's have undergone significant refactoring. The new API's are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
 
-### Breaking Changes
-* None.
-
 ### Enhancements
 * [RealmApp] Added support for Api Keys, Server Api Keys and Custom Functions as Credential types when logging in.
 * Added support for `distinct` queries on non-index and linked fields. (Issue [#1906](https://github.com/realm/realm-java/issues/1906))
@@ -297,7 +291,134 @@ The old Realm Cloud legacy API's have undergone significant refactoring. The new
 * Updated compileSdkVersion to 29.
 
 
-## 7.0.2(2020-08-14)
+## 7.0.8 (2020-10-01)
+
+### Enhancements
+* Slightly improve performance of most operations which read data from the Realm file.
+
+### Fixes
+* Making a query in an indexed property may give a "Key not found" exception. (.NET issue [#2025](https://github.com/realm/realm-dotnet/issues/2025), since 7.0.0)
+* Queries for null on non-nullable indexed integer properties could return wrong results if 0 entries should be found. (Since 7.0.0)
+* Rerunning an equals query on an indexed string column which previously had more than one match and now has one match would sometimes throw a "key not found" exception. (Cocoa issue [#6536](https://github.com/realm/realm-cocoa/issues/6536), Since 7.0.0)
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Object Store commit: 8a68df3e9fa7743c13d927eb7fc330ed9bb06693.
+* Upgraded to Realm Sync: 5.0.28.
+* Upgraded to Realm Core: 6.1.3.
+
+
+## 7.0.7 (2020-09-25)
+
+### Enhancements
+* None.
+
+### Fixes
+* When querying a class where object references are part of the condition, the application may crash if objects have recently been added to the target table. (Issue [#7118](https://github.com/realm/realm-java/issues/7118), since v7.0.0)
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Object Store commit: 37e86c2905bfd424c16fc5d7860a1298bfc0ffa2.
+* Upgraded to Realm Sync: 5.0.25.
+* Upgraded to Realm Core: 6.1.1.
+
+
+## 7.0.6 (2020-09-18)
+
+### Enhancements
+* Better exception messaging for UTF encoding errors. ([Issue #7093](https://github.com/realm/realm-java/pull/7093))
+
+### Fixes
+* Fixes concurrent modification exceptions in the schema when refreshing a Realm (Issue [#6876](https://github.com/realm/realm-java/issues/6876))
+* If you use encryption your application cound crash with a message like "Opening Realm files of format version 0 is not supported by this version of Realm". ([#6889](https://github.com/realm/realm-java/issues/6889) among others, since v7.0.0)
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* Realm Studio: 5.0.0 or later.
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Object Store commit: e29b5515df8b8adfe2454424b78878bb63879307.
+* Upgraded to Realm Sync: 5.0.23.
+* Upgraded to Realm Core: 6.0.26.
+
+
+## 7.0.5 (2020-09-09)
+
+### Enhancements
+* None.
+
+### Fixes
+* If you have a Realm file growing towards 2Gb and have a model class with more than 16 properties, then you may get a "Key not found" exception when updating an object. (Realm JS issue [#3194](https://github.com/realm/realm-js/issues/3194), since v7.0.0)
+* In cases where you have more than 32 properties in a model class, you may get a currrupted file resulting in various crashes (Issue [#7057](https://github.com/realm/realm-java/issues/7057), since v7.0.0)
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* Realm Studio: 5.0.0 or later.
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Realm Sync: 5.0.22.
+* Upgraded to Realm Core: 6.0.25.
+
+
+## 7.0.4 (2020-09-08)
+
+Note: Fileformat has been bumped from 10 to 11. This means that downgrading to an earlier version of Realm is not possible and Realm Studio 5.0.0 must be used to view Realm files.
+
+### Enhancements
+* None.
+
+### Fixes
+* In some cases a frozen Realm of the wrong version could be returned. ([ObjectStore issue #1078](https://github.com/realm/realm-object-store/pull/1078))
+* Upgrading files with string primary keys would result in a file where it was not possible to find the objects by primary key. ([Core issue #3893](https://github.com/realm/realm-core/pull/3893), since 7.0.0)
+* NullPointerException when calling `toString` on RealmObjects with a binary field containing `null`. (Issue [#7084](https://github.com/realm/realm-java/issues/7084), since 7.0.0)
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* Realm Studio: 5.0.0 or later.
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Object Store commit: 286d7cb2f10c41f89a2efb43b22938610ccad4cf.
+* Upgraded to Realm Sync: 5.0.21.
+* Upgraded to Realm Core: 6.0.24.
+
+## 7.0.3 (2020-09-01)
+
+### Enhancements
+* Added `Realm.getNumberOfActiveVersions()`, which returns the current number of active versions maintained by the Realm file.
+
+### Fixes
+* Creating a query inside a change listener could in some cases result in the version being pinned, which would either drastically increase filesize or cause `RealmConfiguration.maxNumberOfActiveVersions()` to trigger. (Issue [#6977](https://github.com/realm/realm-java/issues/6977), since 7.0.0)
+* If you upgrade a Realm file where you have "" elements in a list of non-nullable strings, the upgrade would crash.
+* If an attempt to upgrade a Realm file has ended with a crash with "migrate_links" in the call stack, the Realm ended in a corrupt state where further upgrade was not possible. A remedy for this situation is now provided.
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* Realm Studio: 4.0.0 or later.
+* File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Object Store commit: eef80f42e6ede2294eb60f048228012d9b7bc627.
+* Upgraded to Realm Sync: 5.0.19.
+* Upgraded to Realm Core: 6.0.22.
+* The upgrade logic for upgrading fileformats has changed so that progress is now recorded explicitly in a table. This makes the logic simpler and reduces the chance of errors. It will also make it easier to detect if a file has only been partially upgraded.
+
+
+## 7.0.2 (2020-08-14)
 
 ### Enhancements
 * None.
@@ -306,9 +427,11 @@ The old Realm Cloud legacy API's have undergone significant refactoring. The new
 * [ObjectServer] Calling `SyncManager.refreshConnections()` did not correctly refresh connections in all cases, which could delay reconnects up to 5 minutes. (Issue [#7003](https://github.com/realm/realm-java/issues/7003))
 * Upgrading the file format result did in some cases not work correctly. This could result in a number of crashes, e.g. `FORMAT_UPGRADE_REQUIRED`. (Issue [#6889](https://github.com/realm/realm-java/issues/6889), since 7.0.0)  
 * Bug in memory mapping management. This bug could result in multiple different asserts as well as segfaults. In many cases stack backtraces would include members of the EncyptedFileMapping near the top - even if encryption was not used at all. In other cases asserts or crashes would be in methods reading an array header or array element. In all cases the application would terminate immediately. (Issue [#3838](https://github.com/realm/realm-core/pull/3838), since 7.0.0)
+* Crash when retrieving `null` valued primitive fields from dynamic realm. (Issue [#7025](https://github.com/realm/realm-java/issues/7025))
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
+* Realm Studio: 4.0.0 or later.
 * File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
 * APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
 
@@ -317,7 +440,7 @@ The old Realm Cloud legacy API's have undergone significant refactoring. The new
 * Upgraded to Realm Core 6.0.17.
 
 
-## 7.0.1(2020-07-01)
+## 7.0.1 (2020-07-01)
 
 ### Enhancements
 * None.
@@ -330,6 +453,7 @@ The old Realm Cloud legacy API's have undergone significant refactoring. The new
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
+* Realm Studio: 4.0.0 or later.
 * File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
 * APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
 
@@ -338,9 +462,11 @@ The old Realm Cloud legacy API's have undergone significant refactoring. The new
 * Upgraded to Realm Core 6.0.8.
 
 
-## 7.0.0(2020-05-16)
+## 7.0.0 (2020-05-16)
 
+NOTE: This version bumps the Realm file format to version 10. Files created with previous versions of Realm will be automatically upgraded. It is not possible to downgrade to version 9 or earlier. Only [Studio 3.11](https://github.com/realm/realm-studio/releases/tag/v3.11.0) or later will be able to open the new file format. 
 NOTE: This version bumps the Realm file format to version 10. Files created with previous versions of Realm will be automatically upgraded. It is not possible to downgrade to version 9 or earlier. Only [Studio 3.11](https://github.com/realm/realm-studio/releases/tag/v3.11.0) or later will be able to open the new file format.
+NOTE: This version bumps the Realm file format to version 10. Files created with previous versions of Realm will be automatically upgraded. It is not possible to downgrade to version 9 or earlier. Only [Realm Studio 4](https://github.com/realm/realm-studio/releases/tag/v4.0.0) or later will be able to open the new file format. 
 
 ### Breaking Changes
 * [ObjectServer] Removed deprecated method `SyncConfiguration.Builder.partialRealm()`. Use `SyncConfiguration.Builder.fullSynchronization()` instead.
@@ -370,7 +496,7 @@ NOTE: This version bumps the Realm file format to version 10. Files created with
 
 ### Compatibility
 * Realm Object Server: 3.23.1 or later.
-* Realm Studio: 3.11 or later.
+* Realm Studio: 4.0.0 or later.
 * File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
 * APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
 

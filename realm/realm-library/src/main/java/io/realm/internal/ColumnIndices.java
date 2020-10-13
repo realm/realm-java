@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nonnull;
 
@@ -49,7 +50,7 @@ import io.realm.exceptions.RealmException;
 public final class ColumnIndices {
     // Class to ColumnInfo map
     private final Map<Class<? extends RealmModel>, ColumnInfo> classToColumnInfoMap =
-            new HashMap<Class<? extends RealmModel>, ColumnInfo>();
+            new ConcurrentHashMap<Class<? extends RealmModel>, ColumnInfo>();
     // Class name to ColumnInfo map. All the elements in this map should be existing in classToColumnInfoMap.
     private final Map<String, ColumnInfo> simpleClassNameToColumnInfoMap =
             new HashMap<String, ColumnInfo>();
