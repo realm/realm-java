@@ -4,7 +4,7 @@ NOTE: This is a unified release note covering all v10.0.0-BETA.X v10.0.0-RC.X re
 
 NOTE: Support for syncing with realm.cloud.io and/or Realm Object Server has been replaced with support for syncing with MongoDB Realm Cloud.
 
-NOTE: This version uses the Realm file format to version 20. It is not possible to downgrade to earlier versions than v10.0.0-BETA.7. Non-sync Realms will be upgraded automatically. Synced Realms can only be automatically upgraded if created with Realm Java v10.0.0-BETA.1 and above.
+NOTE: This version upgrades the Realm file format to version 20. It is not possible to downgrade to earlier versions than v10.0.0-BETA.7. Non-sync Realms will be upgraded automatically. Synced Realms can only be automatically upgraded if created with Realm Java v10.0.0-BETA.1 and above.
 
 ### Breaking Changes
 * [RealmApp] Most APIs for interacting with Realm Cloud have changed significantly. All new APIs can be found in the `io.realm.mongodb` package. The entry point is through the `App` class from which you can create and login users and otherwise interact with MongoDB Realm. See [the docs](https://docs.mongodb.com/realm/android/) for further details. Synced Realms still use a `SyncConfiguration` that are largely created the same way.
@@ -25,7 +25,7 @@ NOTE: This version uses the Realm file format to version 20. It is not possible 
 * Added support for `distinct` queries on non-index and linked fields. (Issue [#1906](https://github.com/realm/realm-java/issues/1906))
 * Added support for `org.bson.types.Decimal128` and `org.bson.types.ObjectId` as supported fields in model classes.
 * Added support for `org.bson.types.ObjectId` as a primary key.
-* Added support for "Embedded Objects". They are enabled using `@RealmClass(embedded = true)`. An embedded object must have exactly one parent object linking to it and it will be deleted when the the parent is. Embedded objects can also be the parent of other embedded classes. Read more [here](https://docs.mongodb.com/realm/android/embedded-objects/). (Issue [#6713](https://github.com/realm/realm-java/issues/6713))  
+* Added support for "Embedded Objects". They are enabled using `@RealmClass(embedded = true)`. An embedded object must have exactly one parent object linking to it and it will be deleted when the parent is. Embedded objects can also be the parent of other embedded classes. Read more [here](https://docs.mongodb.com/realm/android/embedded-objects/). (Issue [#6713](https://github.com/realm/realm-java/issues/6713))  
 
 
 ### Fixes
@@ -34,7 +34,7 @@ NOTE: This version uses the Realm file format to version 20. It is not possible 
 ### Compatibility
 * File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
 * APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
-* Realm Studio 10.0.0 and above is required to open Realms created by this version.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
 
 ### Internal
 * Updated to Realm Sync: 10.0.0.
