@@ -1,4 +1,4 @@
-## 10.0.0 (YYYY-MM-DD)
+## 10.0.0 (2020-10-15)
 
 NOTE: This is a unified release note covering all v10.0.0-BETA.X v10.0.0-RC.X releases.
 
