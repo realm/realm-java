@@ -477,6 +477,17 @@ public class RealmObjectTests {
         assertEquals(expected, cm.toString());
     }
 
+    // Test for https://github.com/realm/realm-java/issues/7084
+    @Test
+    public void toString_nullBinary() {
+        realm.beginTransaction();
+        AllJavaTypes obj = realm.createObject(AllJavaTypes.class, 1);
+        obj.setFieldBinary(null);
+        realm.commitTransaction();
+        String desc = obj.toString();
+        assertTrue(desc.contains("fieldBinary:null"));
+    }
+
     @Test
     public void hashCode_cyclicObject() {
         realm.beginTransaction();

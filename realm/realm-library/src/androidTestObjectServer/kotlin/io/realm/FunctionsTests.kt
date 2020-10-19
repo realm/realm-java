@@ -131,7 +131,7 @@ class FunctionsTests {
             when (type) {
                 BsonType.DOUBLE -> {
                     assertEquals(1.4f, functions.callFunction(FIRST_ARG_FUNCTION, listOf(1.4f), java.lang.Float::class.java).toFloat())
-                    assertEquals(1.4, functions.callFunction(FIRST_ARG_FUNCTION, listOf(1.4f), java.lang.Double::class.java).toDouble())
+                    assertEquals(1.4, functions.callFunction(FIRST_ARG_FUNCTION, listOf(1.4), java.lang.Double::class.java).toDouble())
                     assertTypeOfFirstArgFunction(BsonDouble(1.4), BsonDouble::class.java)
                 }
                 BsonType.STRING -> {

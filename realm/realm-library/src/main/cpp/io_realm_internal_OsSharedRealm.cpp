@@ -508,3 +508,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeFreeze(JNIEnv
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
 }
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeNumberOfVersions(JNIEnv* env, jclass, jlong shared_realm_ptr)
+{
+    try {
+        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        return to_jlong_or_not_found(shared_realm->get_number_of_versions());
+    }
+    CATCH_STD()
+    return 0;
+}

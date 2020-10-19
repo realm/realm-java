@@ -51,7 +51,7 @@ public class NYTimesDataLoader {
         Retrofit retrofit = new Retrofit.Builder()
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(JacksonConverterFactory.create())
-                .baseUrl("http://api.nytimes.com/")
+                .baseUrl("https://api.nytimes.com/")
                 .build();
         nyTimesService = retrofit.create(NYTimesService.class);
     }
@@ -71,7 +71,8 @@ public class NYTimesDataLoader {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(response -> {
                     Timber.d("Success - Data received: %s", sectionKey);
-                    processAndAddData(realm, response.section, response.results);
+                    // response.section is different from sectionKey
+                    processAndAddData(realm, sectionKey, response.results);
                     networkInUse.onNext(false);
                 }, throwable -> {
                     networkInUse.onNext(false);
