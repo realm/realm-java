@@ -93,6 +93,14 @@ android {
         }
 
         release {
+            externalNativeBuild {
+                cmake {
+                    // LTO is enabled for release builds unless specifically opted out of.
+                    if (!project.hasProperty("disableLTO")) {
+                        arguments "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON"
+                    }
+                }
+            }
             // minifyEnabled = true;
         }
     }

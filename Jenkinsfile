@@ -82,7 +82,7 @@ try {
           // Build development branch
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
-          abiFilter = "-PbuildTargetABIs=x86"
+          abiFilter = "-PbuildTargetABIs=x86 -PdisableLTO=1"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           deviceSerial = "emulator-5554"
         } else {
