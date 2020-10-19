@@ -4673,6 +4673,64 @@ public class RealmTests {
         }
     }
 
+    // Test for https://github.com/realm/realm-java/issues/6977
+    @Test
+    @RunTestInLooperThread
+    public void numberOfVersionsDecreasedOnClose() {
+        realm.close();
+        int count = 50;
+        final CountDownLatch bgThreadDoneLatch = new CountDownLatch(count);
+
+        RealmConfiguration config = configFactory.createConfigurationBuilder()
+                // The multiple embedded threads seems to cause trouble with factory's directory setting
+                .directory(context.getFilesDir())
+                .name("versions-test.realm")
+                .maxNumberOfActiveVersions(5)
+                .build();
+        Realm.deleteRealm(config);
+
+        // Synchronizes between change listener and Background writes so they operate in lockstep.
+        AtomicReference<CountDownLatch> guard = new AtomicReference<>(new CountDownLatch(1));
+
+        Realm realm = Realm.getInstance(config);
+        looperThread.closeAfterTest(realm);
+        realm.addChangeListener(callbackRealm -> {
+            // This test catches a bug that caused ObjectStore to pin Realm versions
+            // if a TableView was created inside a change notification and no elements
+            // in the TableView was accessed.
+            RealmResults<AllJavaTypes> query = realm.where(AllJavaTypes.class).findAll();
+            guard.get().countDown();
+            bgThreadDoneLatch.countDown();
+            if (bgThreadDoneLatch.getCount() == 0) {
+                looperThread.testComplete();
+            }
+        });
+
+        // Write a number of transactions in the background in a serial manner
+        // in order to create a number of different versions. Done in serial
+        // to allow the LooperThread to catch up.
+        new Thread(() -> {
+            for (int i = 0; i < count; i++) {
+                Thread t = new Thread() {
+                    @Override
+                    public void run() {
+                        Realm realm = Realm.getInstance(config);
+                        realm.executeTransaction(bgRealm -> { });
+                        realm.close();
+                    }
+                };
+                t.start();
+                try {
+                    t.join();
+                    TestHelper.awaitOrFail(guard.get());
+                    guard.set(new CountDownLatch(1));
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }).start();
+    }
+
     // Test for https://github.com/realm/realm-java/issues/6152
     @Test
     @RunTestInLooperThread
@@ -4727,5 +4785,38 @@ public class RealmTests {
                 }
             }
         });
+    }
+
+    @Test
+    public void getNumberOfActiveVersions() throws InterruptedException {
+        CountDownLatch bgWritesCompleted = new CountDownLatch(1);
+        CountDownLatch closeBgRealm = new CountDownLatch(1);
+        assertEquals(2, realm.getNumberOfActiveVersions());
+        Thread t = new Thread(() -> {
+            Realm bgRealm = Realm.getInstance(realmConfig);
+            assertEquals(2, bgRealm.getNumberOfActiveVersions());
+            for (int i = 0; i < 5; i++) {
+                bgRealm.executeTransaction(r -> { /* empty */ });
+            }
+            assertEquals(6, bgRealm.getNumberOfActiveVersions());
+            bgWritesCompleted.countDown();
+            TestHelper.awaitOrFail(closeBgRealm);
+            bgRealm.close();
+        });
+        t.start();
+        TestHelper.awaitOrFail(bgWritesCompleted);
+        assertEquals(6, realm.getNumberOfActiveVersions());
+        closeBgRealm.countDown();
+        t.join();
+        realm.refresh(); // Release old versions for GC
+        realm.beginTransaction();
+        realm.commitTransaction(); // Actually release the versions
+        assertEquals(2, realm.getNumberOfActiveVersions());
+        realm.close();
+        try {
+            realm.getNumberOfActiveVersions();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
     }
 }

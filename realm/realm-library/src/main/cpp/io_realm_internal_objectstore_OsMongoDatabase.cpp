@@ -34,7 +34,7 @@ using namespace realm::jni_util;
 using namespace realm::_impl;
 
 static void finalize_database(jlong ptr) {
-    delete reinterpret_cast<RemoteMongoDatabase*>(ptr);
+    delete reinterpret_cast<MongoDatabase*>(ptr);
 }
 
 JNIEXPORT jlong JNICALL
@@ -48,10 +48,10 @@ Java_io_realm_internal_objectstore_OsMongoDatabase_nativeGetCollection(JNIEnv* e
                                                                        jlong j_database_ptr,
                                                                        jstring j_collection_name) {
     try {
-        RemoteMongoDatabase* database = reinterpret_cast<RemoteMongoDatabase*>(j_database_ptr);
+        auto database = reinterpret_cast<MongoDatabase*>(j_database_ptr);
         JStringAccessor name(env, j_collection_name);
-        RemoteMongoCollection collection(database->collection(name));
-        return reinterpret_cast<jlong>(new RemoteMongoCollection(std::move(collection)));
+        MongoCollection collection(database->collection(name));
+        return reinterpret_cast<jlong>(new MongoCollection(std::move(collection)));
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
