@@ -21,12 +21,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import io.realm.examples.coroutinesexample.R
 import io.realm.examples.coroutinesexample.TAG
+import io.realm.examples.coroutinesexample.databinding.MainFragmentBinding
 import io.realm.examples.coroutinesexample.model.Dog
 
 class MainFragment : Fragment() {
@@ -37,10 +36,14 @@ class MainFragment : Fragment() {
 
     private val viewModel: MainViewModel by viewModels()
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View {
-        return inflater.inflate(R.layout.main_fragment, container, false)
-                .also { view -> addClickListeners(view) }
+    override fun onCreateView(
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
+    ): View {
+        return MainFragmentBinding.inflate(inflater)
+                .also { addClickListeners(it) }
+                .root
     }
 
     override fun onResume() {
@@ -53,25 +56,25 @@ class MainFragment : Fragment() {
         removeObservers()
     }
 
-    private fun addClickListeners(view: View) {
-        view.findViewById<Button>(R.id.buttonHeavyTransaction).setOnClickListener {
+    private fun addClickListeners(binding: MainFragmentBinding) {
+        binding.buttonHeavyTransaction.setOnClickListener {
             // Calling this multiple times before each transaction is done will not
             // freeze the UI
             viewModel.insertDogs(100000)
         }
-        view.findViewById<Button>(R.id.buttonTransaction).setOnClickListener {
+        binding.buttonTransaction.setOnClickListener {
             // Calling this multiple times before each transaction is done will not
             // freeze the UI
             viewModel.insertDogs()
         }
-        view.findViewById<Button>(R.id.buttonCount).setOnClickListener {
+        binding.buttonCount.setOnClickListener {
             viewModel.countDogs()
         }
-        view.findViewById<Button>(R.id.buttonDelete).setOnClickListener {
+        binding.buttonDelete.setOnClickListener {
             // Calling this while bulk-inserting will not freeze the UI
             viewModel.deleteAll()
         }
-        view.findViewById<Button>(R.id.buttonCancelCoroutine).setOnClickListener {
+        binding.buttonCancelCoroutine.setOnClickListener {
             viewModel.cancel()
         }
     }

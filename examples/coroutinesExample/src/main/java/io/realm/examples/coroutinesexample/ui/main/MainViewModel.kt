@@ -22,7 +22,6 @@ import io.realm.examples.coroutinesexample.model.Dog
 import io.realm.examples.coroutinesexample.repository.RealmRepository
 import io.realm.examples.coroutinesexample.repository.Repository
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 

@@ -36,6 +36,10 @@ android {
         }
     }
 
+    buildFeatures {
+        viewBinding = true
+    }
+
     packagingOptions {
         exclude 'META-INF/LICENSE'
     }
@@ -65,6 +69,8 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.2.0"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.2.0"
     implementation "androidx.lifecycle:lifecycle-common-java8:2.2.0"
+
+    implementation "com.dropbox.mobile.store:store4:4.0.0-beta01"
 
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
