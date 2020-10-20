@@ -45,7 +45,7 @@ Java_io_realm_mongodb_mongo_iterable_AggregateIterable_nativeAggregate(JNIEnv* e
                                                                        jstring j_pipeline,
                                                                        jobject j_callback) {
     try {
-        auto collection = reinterpret_cast<RemoteMongoCollection *>(j_collection_ptr);
+        auto collection = reinterpret_cast<MongoCollection *>(j_collection_ptr);
 
         BsonArray bson_array(JniBsonProtocol::parse_checked(env, j_pipeline, Bson::Type::Array, "BSON pipeline must be a BsonArray"));
 

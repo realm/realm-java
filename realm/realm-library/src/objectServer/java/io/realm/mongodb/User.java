@@ -487,8 +487,7 @@ public class User {
         Util.checkEmpty(serviceName, "serviceName");
         if (mongoClient == null) {
             StreamNetworkTransport streamNetworkTransport = new StreamNetworkTransport(app.osApp, this.osUser);
-
-            OsMongoClient osMongoClient = new OsMongoClient(app.osApp, serviceName, streamNetworkTransport);
+            OsMongoClient osMongoClient = new OsMongoClient(osUser, serviceName, streamNetworkTransport);
             mongoClient = new MongoClientImpl(osMongoClient, app.getConfiguration().getDefaultCodecRegistry());
         }
         return mongoClient;

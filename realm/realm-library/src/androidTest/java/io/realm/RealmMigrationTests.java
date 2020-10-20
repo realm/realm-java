@@ -1435,7 +1435,8 @@ public class RealmMigrationTests {
 
     // File format 9 (up to Core5) added an index automatically to the primary key, in Core6
     // (File format 10) string based PK are not indexed because the search index is derived from
-    // the ObjectKey. In this case the Core 5 index is now automatically removed.
+    // the ObjectKey. So the Index was stripped if found. However, this turned out to cause other bugs: https://github.com/realm/realm-core/pull/3893
+    // In file format 11, the index is thus re-added for String primary keys.
     @Test
     public void core5AutomaticIndexOnStringPKShouldOpenInCore6() throws IOException {
         configFactory.copyRealmFromAssets(context,
