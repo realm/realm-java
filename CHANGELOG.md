@@ -1,3 +1,21 @@
+## 10.0.1 (YYYY-MM-DD)
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* None.
+
+### Fixes
+* Crash with `Assertion failed: m_method_id != nullptr with (method_name, signature) =  ["<init>", "(Ljava/lang/String;)V"]` when `Minify` is enabled.
+
+### Compatibility
+* None.
+
+### Internal
+* None.
+
+
 ## 10.0.0 (2020-10-15)
 
 NOTE: This is a unified release note covering all v10.0.0-BETA.X v10.0.0-RC.X releases.
