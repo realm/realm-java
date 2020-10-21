@@ -19,9 +19,9 @@
 
 #include "io_realm_mongodb_sync_SyncSession.h"
 
-#include "sync/app.hpp"
-#include "sync/sync_manager.hpp"
-#include "sync/sync_session.hpp"
+#include <realm/object-store/sync/app.hpp>
+#include <realm/object-store/sync/sync_manager.hpp>
+#include <realm/object-store/sync/sync_session.hpp>
 
 #include "util.hpp"
 #include "java_class_global_def.hpp"

@@ -22,7 +22,7 @@
 
 #include "java_accessor.hpp"
 #include "java_exception_def.hpp"
-#include "shared_realm.hpp"
+#include <realm/object-store/shared_realm.hpp>
 #include "jni_util/java_exception_thrower.hpp"
 
 #include <realm/util/to_string.hpp>
@@ -96,9 +96,20 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumnLink(JNIEnv*
         return 0;
     }
     try {
-        JStringAccessor name2(env, name); // throws
+        JStringAccessor name_accessor(env, name); // throws
         TableRef table = TBL_REF(nativeTableRefPtr);
-        return static_cast<jlong>(table->add_column_link(DataType(colType), name2, *targetTableRef).value);
+        auto data_type = DataType(colType);
+
+        if (REALM_UNLIKELY(!Table::is_link_type(ColumnType(data_type))))
+            throw LogicError(LogicError::illegal_type);
+
+        if (data_type == type_LinkList) {
+            return static_cast<jlong>(table->add_column_list(*targetTableRef, name_accessor).value);
+        }
+        else {
+            REALM_ASSERT(data_type == type_Link);
+            return static_cast<jlong>(table->add_column(*targetTableRef, name_accessor).value);
+        }
     }
     CATCH_STD()
     return 0;

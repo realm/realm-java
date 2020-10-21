@@ -139,25 +139,24 @@ class RealmResultTaskImplTest {
     @Test
     fun cancel() {
         val taskReference = AtomicReference<RealmResultTask<String>>()
-        val finishRunnable = Runnable {
-            looperThread.testComplete()
-        }
         val task: RealmResultTask<String> = RealmResultTaskImpl(
                 service,
                 object : RealmResultTaskImpl.Executor<String>() {
                     override fun run(): String? {
                         // Ensure we cancel before returning a result
-                        BlockingLooperThread().runBlocking {
-                            taskReference.get().let {
-                                assertNotNull(it)
-                                assertFalse(it.isCancelled)
+                        taskReference.get().let {
+                            assertNotNull(it)
+                            assertFalse(it.isCancelled)
 
-                                it.cancel()
+                            // Cancel task here
+                            it.cancel()
 
-                                looperThread.postRunnable(finishRunnable)
-                            }
+                            // Makes no difference to complete here or from another thread
+                            looperThread.testComplete()
                         }
-                        fail("Should fail before returning anything")
+
+                        // It does not matter we return something here, it will not be delivered
+                        return null
                     }
                 }
         )

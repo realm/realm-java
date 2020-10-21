@@ -4703,7 +4703,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldBytesNull:");
-        stringBuilder.append("binary(" + realmGet$fieldBytesNull().length + ")");
+        stringBuilder.append((realmGet$fieldBytesNull() == null) ? "null" : "binary(" + realmGet$fieldBytesNull().length + ")");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldByteNotNull:");

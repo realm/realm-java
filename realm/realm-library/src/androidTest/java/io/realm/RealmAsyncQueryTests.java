@@ -17,7 +17,7 @@
 package io.realm;
 
 import android.os.SystemClock;
-import androidx.test.rule.UiThreadTestRule;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.Rule;
@@ -58,8 +58,6 @@ public class RealmAsyncQueryTests {
     public final RunInLooperThread looperThread = new RunInLooperThread();
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
-    @Rule
-    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 

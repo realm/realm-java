@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.entities.embedded
 
-import io.realm.RealmObject
-import io.realm.annotations.PrimaryKey
-import java.util.*
+package io.realm.examples.coroutinesexample
 
-// Parent pointing to an embedded object that has a circular schema, i.e. objects can point
-// to themselves. Note, this isn't actually allowed at runtime. Only at schema validation time.
-open class EmbeddedCircularParentWithoutPrimaryKey(var _id: String = UUID.randomUUID().toString()) : RealmObject() {
-    var singleChild: EmbeddedCircularChild? = null
+import android.app.Application
+import io.realm.Realm
+
+const val TAG = "--- CoroutinesExample"
+
+class MainApplication : Application() {
+
+    override fun onCreate() {
+        super.onCreate()
+        Realm.init(this)
+    }
 }

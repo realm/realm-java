@@ -76,6 +76,12 @@ abstract class BaseRealm implements Closeable {
     // Thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
 
+    /**
+     * Thread pool executor used for write operations - only one thread is needed as writes cannot
+     * be parallelized.
+     */
+    public static final RealmThreadPoolExecutor WRITE_EXECUTOR = RealmThreadPoolExecutor.newSingleThreadExecutor();
+
     final boolean frozen; // Cache the value in Java, since it is accessed frequently and doesn't change.
     final long threadId;
     protected final RealmConfiguration configuration;
@@ -177,13 +183,18 @@ abstract class BaseRealm implements Closeable {
      * It also calls any listeners associated with the Realm if needed.
      * <p>
      * WARNING: Calling this on a thread with async queries will turn those queries into synchronous queries.
-     * In most cases it is better to use {@link RealmChangeListener}s to be notified about changes to the
-     * Realm on a given thread than it is to use this method.
+     * This means this method will throw a {@link RealmException} if
+     * {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)} was used with {@code true} to
+     * obtain a Realm instance. In most cases it is better to use {@link RealmChangeListener}s to be notified
+     * about changes to the Realm on a given thread than it is to use this method.
      *
      * @throws IllegalStateException if attempting to refresh from within a transaction.
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     public void refresh() {
         checkIfValid();
+        checkAllowQueriesOnUiThread();
+
         if (isInTransaction()) {
             throw new IllegalStateException("Cannot refresh a Realm instance inside a transaction.");
         }
@@ -480,6 +491,21 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
+     * Returns the current number of active versions currently being held by this Realm.
+     * <p>
+     * Having a large number of active versions have a negative impact on the size of the
+     * Realm file. See <a href="https://realm.io/docs/java/latest/#faq-large-realm-file-size">the FAQ</a>
+     * for more information.
+     *
+     * @return number of active versions currently being held by the Realm.
+     * @see RealmConfiguration.Builder#maxNumberOfActiveVersions(long)
+     */
+    public long getNumberOfActiveVersions() {
+        checkIfValid();
+        return getSharedRealm().getNumberOfVersions();
+    }
+
+    /**
      * Checks if a Realm's underlying resources are still available or not getting accessed from the wrong thread.
      */
     protected void checkIfValid() {
@@ -490,6 +516,30 @@ abstract class BaseRealm implements Closeable {
         // Checks if we are in the right thread.
         if (!frozen && threadId != Thread.currentThread().getId()) {
             throw new IllegalStateException(BaseRealm.INCORRECT_THREAD_MESSAGE);
+        }
+    }
+
+    /**
+     * Checks whether queries are allowed from the UI thread in the current RealmConfiguration.
+     */
+    protected void checkAllowQueriesOnUiThread() {
+        // Warn on query being executed on UI thread if isAllowQueriesOnUiThread is set to true, throw otherwise
+        if (getSharedRealm().capabilities.isMainThread()) {
+            if (!getConfiguration().isAllowQueriesOnUiThread()) {
+                throw new RealmException("Queries on the UI thread have been disabled. They can be enabled by setting 'RealmConfiguration.Builder.allowQueriesOnUiThread(true)'.");
+            }
+        }
+    }
+
+    /**
+     * Checks whether writes are allowed from the UI thread in the current RealmConfiguration.
+     */
+    protected void checkAllowWritesOnUiThread() {
+        // Warn on transaction being executed on UI thread if allowWritesOnUiThread is set to true, throw otherwise
+        if (getSharedRealm().capabilities.isMainThread()) {
+            if (!getConfiguration().isAllowWritesOnUiThread()) {
+                throw new RealmException("Running transactions on the UI thread has been disabled. It can be enabled by setting 'RealmConfiguration.Builder.allowWritesOnUiThread(true)'.");
+            }
         }
     }
 

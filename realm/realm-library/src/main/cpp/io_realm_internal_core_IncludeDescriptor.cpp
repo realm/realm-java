@@ -18,11 +18,11 @@
 
 #include <realm/parser/parser.hpp>
 #include <realm/parser/query_builder.hpp>
-#include <object_schema.hpp>
-#include <object_store.hpp>
-#include <property.hpp>
-#include <schema.hpp>
-#include <shared_realm.hpp>
+#include <realm/object-store/object_schema.hpp>
+#include <realm/object-store/object_store.hpp>
+#include <realm/object-store/property.hpp>
+#include <realm/object-store/schema.hpp>
+#include <realm/object-store/shared_realm.hpp>
 
 #include "java_accessor.hpp"
 #include "java_query_descriptor.hpp"

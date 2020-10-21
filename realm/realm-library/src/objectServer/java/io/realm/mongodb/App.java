@@ -117,7 +117,7 @@ import io.realm.mongodb.sync.Sync;
  *     instance.close();
  * </pre>
  * <p>
- * You can call remove Realm functions as shown below:
+ * You can call remote Realm functions as shown below:
  * <pre>
  *     Functions functions = user.getFunctions();
  *     Integer sum = functions.callFunction("sum", Arrays.asList(1, 2, 3, 4), Integer.class);

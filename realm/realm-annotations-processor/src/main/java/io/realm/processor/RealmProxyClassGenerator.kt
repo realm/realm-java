@@ -1335,45 +1335,43 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitEmptyLine()
                     emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
                     emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
-                    beginControlFlow("if (%1\$sList != null && %1\$sList.size() == %1\$sOsList.size())", fieldName)
-                        emitSingleLineComment("For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.")
-                        emitStatement("int objects = %1\$sList.size()", fieldName)
-                        beginControlFlow("for (int i = 0; i < objects; i++)")
-                            emitStatement("%1\$s %2\$sItem = %2\$sList.get(i)", genericType, fieldName)
-                            emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
-                            if (fieldTypeMetaData.embedded) {
+                    if (fieldTypeMetaData.embedded) {
+                        emitStatement("%1\$sOsList.removeAll()", fieldName)
+                        beginControlFlow("if (%sList != null)", fieldName)
+                            beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
+                                emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
                                 beginControlFlow("if (cacheItemIndex%s != null)", fieldName)
                                     emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cacheItemIndex%s.toString())", fieldName)
                                 nextControlFlow("else")
                                     emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sItem, cache)", fieldName, Utils.getProxyClassName(genericType), fieldName)
                                 endControlFlow()
-                            } else {
+                            endControlFlow()
+                        endControlFlow()
+                    } else {
+                        beginControlFlow("if (%1\$sList != null && %1\$sList.size() == %1\$sOsList.size())", fieldName)
+                            emitSingleLineComment("For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.")
+                            emitStatement("int objects = %1\$sList.size()", fieldName)
+                            beginControlFlow("for (int i = 0; i < objects; i++)")
+                                emitStatement("%1\$s %2\$sItem = %2\$sList.get(i)", genericType, fieldName)
+                                emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
                                 beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
                                     emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
                                 endControlFlow()
                                 emitStatement("%1\$sOsList.setRow(i, cacheItemIndex%1\$s)", fieldName)
-                            }
-                        endControlFlow()
-                    nextControlFlow("else")
-                        emitStatement("%1\$sOsList.removeAll()", fieldName)
-                        beginControlFlow("if (%sList != null)", fieldName)
-                            beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
-                                emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
-                                if (fieldTypeMetaData.embedded) {
-                                    beginControlFlow("if (cacheItemIndex%s != null)", fieldName)
-                                        emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cacheItemIndex%s.toString())", fieldName)
-                                    nextControlFlow("else")
-                                        emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sItem, cache)", fieldName, Utils.getProxyClassName(genericType), fieldName)
-                                    endControlFlow()
-                                } else {
+                            endControlFlow()
+                        nextControlFlow("else")
+                            emitStatement("%1\$sOsList.removeAll()", fieldName)
+                            beginControlFlow("if (%sList != null)", fieldName)
+                                beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
+                                    emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
                                     beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
                                         emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
                                     endControlFlow()
                                     emitStatement("%1\$sOsList.addRow(cacheItemIndex%1\$s)", fieldName)
-                                }
+                                endControlFlow()
                             endControlFlow()
                         endControlFlow()
-                    endControlFlow()
+                    }
                     emitEmptyLine()
                 } else if (Utils.isRealmValueList(field)) {
                     val genericType = Utils.getGenericTypeQualifiedName(field)
@@ -1910,13 +1908,15 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitStatement("RealmList<%s> %sManagedCopy = new RealmList<%s>()", genericType, fieldName, genericType)
 
                                 if (fieldTypeMetaData.embedded) {
+                                    emitStatement("OsList targetList = realmObjectTarget.realmGet\$%s().getOsList()", fieldName)
+                                    emitStatement("targetList.deleteAll()")
                                     beginControlFlow("for (int i = 0; i < %sUnmanagedList.size(); i++)", fieldName)
                                         emitStatement("%1\$s %2\$sUnmanagedItem = %2\$sUnmanagedList.get(i)", genericType, fieldName)
                                         emitStatement("%1\$s cache%2\$s = (%1\$s) cache.get(%2\$sUnmanagedItem)", genericType, fieldName)
                                         beginControlFlow("if (cache%s != null)", fieldName)
                                             emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cache%s.toString()\")", fieldName)
                                         nextControlFlow("else")
-                                            emitStatement("long objKey = realmObjectTarget.%s().getOsList().createAndAddEmbeddedObject()", getter)
+                                            emitStatement("long objKey = targetList.createAndAddEmbeddedObject()")
                                             emitStatement("Row row = realm.getTable(%s.class).getUncheckedRow(objKey)", genericType)
                                             emitStatement("%s proxyObject = %s.newProxyInstance(realm, row)", genericType, proxyClass)
                                             emitStatement("cache.put(%sUnmanagedItem, (RealmObjectProxy) proxyObject)", fieldName)
@@ -2010,7 +2010,11 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitStatement("stringBuilder.append(%s().get())", metadata.getInternalGetter(fieldName))
                         }
                         Utils.isByteArray(field) -> {
-                            emitStatement("stringBuilder.append(\"binary(\" + %s().length + \")\")", metadata.getInternalGetter(fieldName))
+                            if (metadata.isNullable(field)) {
+                                emitStatement("stringBuilder.append((%1\$s() == null) ? \"null\" : \"binary(\" + %1\$s().length + \")\")", metadata.getInternalGetter(fieldName))
+                            } else {
+                                emitStatement("stringBuilder.append(\"binary(\" + %1\$s().length + \")\")", metadata.getInternalGetter(fieldName))
+                            }
                         }
                         else -> {
                             if (metadata.isNullable(field)) {
