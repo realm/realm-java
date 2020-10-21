@@ -23,19 +23,20 @@ import io.realm.exceptions.RealmException
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
+import io.realm.rule.TestRealmConfigurationFactory
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.util.*
+import kotlin.test.assertFailsWith
 
 open class UUIDPrimaryKeyRequired
     : RealmObject() {
-    @field:PrimaryKey
-    @field:Required
+    @PrimaryKey
+    @Required
     var id: UUID? = null
     var name: String = ""
     var anotherId: UUID? = null
@@ -43,10 +44,9 @@ open class UUIDPrimaryKeyRequired
 
 open class UUIDPrimaryKeyNotRequired
     : RealmObject() {
-    @field:PrimaryKey
+    @PrimaryKey
     var id: UUID? = null
     var name: String = ""
-
 }
 
 open class UUIDAndString
@@ -59,7 +59,7 @@ open class UUIDRequiredRealmList
     : RealmObject() {
     var id: Long = 0
 
-    @field:Required
+    @Required
     var ids: RealmList<UUID> = RealmList()
     var name: String = ""
 }
@@ -79,7 +79,7 @@ class UUIDTests {
 
     @Rule
     @JvmField
-    val folder = TemporaryFolder()
+    val configFactory = TestRealmConfigurationFactory()
 
     init {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
@@ -87,15 +87,15 @@ class UUIDTests {
 
     @Before
     fun setUp() {
-        realmConfiguration = RealmConfiguration
-                .Builder(InstrumentationRegistry.getInstrumentation().targetContext)
-                .directory(folder.newFolder())
+        realmConfiguration = configFactory
+                .createConfigurationBuilder()
                 .schema(UUIDPrimaryKeyRequired::class.java,
                         UUIDPrimaryKeyNotRequired::class.java,
                         UUIDAndString::class.java,
                         UUIDRequiredRealmList::class.java,
                         UUIDOptionalRealmList::class.java)
                 .build()
+
         realm = Realm.getInstance(realmConfiguration)
     }
 
@@ -105,68 +105,112 @@ class UUIDTests {
     }
 
     @Test
-    fun copyToAndFromRealm() {
+    fun copyToRealm() {
         val uuid1 = UUID.randomUUID()
         val uuid2 = UUID.randomUUID()
-        val uuid3 = UUID.randomUUID()
 
         val value = UUIDPrimaryKeyRequired()
         value.id = uuid1
         value.anotherId = uuid2
         value.name = "Foo"
 
-        // copyToRealm
         realm.beginTransaction()
         val obj = realm.copyToRealm(value)
         realm.commitTransaction()
+
         assertEquals(uuid1, obj.id)
         assertEquals(uuid2, obj.anotherId)
         assertEquals("Foo", obj.name)
+    }
 
-        // copyToRealmOrUpdate
-        value.name = "Bar"
-        value.anotherId = uuid3
+    @Test
+    fun copyFromRealm() {
+        val uuid1 = UUID.randomUUID()
+        val uuid2 = UUID.randomUUID()
+
         realm.beginTransaction()
-        realm.copyToRealmOrUpdate(value)
+        val obj = realm.createObject<UUIDPrimaryKeyRequired>(uuid1)
+        obj.anotherId = uuid2
+        obj.name = "Foo"
         realm.commitTransaction()
 
-        // copyFromRealm
         val copy = realm.copyFromRealm(obj)
+
         assertEquals(uuid1, copy.id)
-        assertEquals(uuid3, copy.anotherId)
-        assertEquals("Bar", copy.name)
+        assertEquals(uuid2, copy.anotherId)
+        assertEquals("Foo", copy.name)
+    }
+
+    @Test
+    fun copyToRealmOrUpdate() {
+        val uuid1 = UUID.randomUUID()
+        val uuid2 = UUID.randomUUID()
+        val uuid3 = UUID.randomUUID()
+
+        realm.executeTransaction { realm ->
+            val obj = realm.createObject<UUIDPrimaryKeyRequired>(uuid1)
+            obj.anotherId = uuid2
+            obj.name = "Foo"
+        }
+
+        val value = UUIDPrimaryKeyRequired()
+        value.id = uuid1
+        value.name = "Bar"
+        value.anotherId = uuid3
+
+        realm.beginTransaction()
+        val obj = realm.copyToRealmOrUpdate(value)
+        realm.commitTransaction()
+
+        assertEquals(uuid1, obj.id)
+        assertEquals(uuid3, obj.anotherId)
+        assertEquals("Bar", obj.name)
     }
 
     @Test
     fun insert() {
         val uuid1 = UUID.randomUUID()
         val uuid2 = UUID.randomUUID()
-        val uuid3 = UUID.randomUUID()
 
-        val value = UUIDPrimaryKeyRequired()
-        value.id = uuid1
-        value.name = "Foo"
-        value.anotherId = uuid2
+        realm.executeTransaction { realm ->
+            val value = UUIDPrimaryKeyRequired()
+            value.id = uuid1
+            value.name = "Foo"
+            value.anotherId = uuid2
 
-        // insert
-        realm.beginTransaction()
-        realm.insert(value)
-        realm.commitTransaction()
+            realm.insert(value)
+        }
 
         val obj = realm.where<UUIDPrimaryKeyRequired>().findFirst()
+
         assertNotNull(obj)
         assertEquals(uuid1, obj!!.id)
         assertEquals(uuid2, obj.anotherId)
         assertEquals("Foo", obj.name)
+    }
 
-        // insertOrUpdate
-        realm.beginTransaction()
-        obj.anotherId = uuid3
-        obj.name = "Bar"
-        realm.insertOrUpdate(obj)
-        realm.commitTransaction()
+    @Test
+    fun insertOrUpdate() {
+        val uuid1 = UUID.randomUUID()
+        val uuid2 = UUID.randomUUID()
+        val uuid3 = UUID.randomUUID()
+
+        realm.executeTransaction { realm ->
+            val value = realm.createObject<UUIDPrimaryKeyRequired>(uuid1)
+            value.name = "Foo"
+            value.anotherId = uuid2
+        }
+
+        realm.executeTransaction { realm ->
+            val obj = UUIDPrimaryKeyRequired()
+            obj.id = uuid1
+            obj.anotherId = uuid3
+            obj.name = "Bar"
+            realm.insertOrUpdate(obj)
+        }
 
         val all = realm.where<UUIDPrimaryKeyRequired>().findAll()
+
         assertEquals(1, all.size)
         assertEquals(uuid1, all[0]!!.id)
         assertEquals(uuid3, all[0]!!.anotherId)
@@ -192,10 +236,9 @@ class UUIDTests {
         val uuid1 = UUID.randomUUID()
 
         realm.beginTransaction()
-        try {
+
+        assertFailsWith<RealmException> {
             realm.createObject<UUIDPrimaryKeyRequired>()
-            fail()
-        } catch (ignore: RealmException) {
         }
 
         val obj = realm.createObject<UUIDPrimaryKeyRequired>(uuid1)
@@ -210,10 +253,8 @@ class UUIDTests {
 
     @Test
     fun nullablePK() {
-        try {
+        assertFailsWith<RealmException> {
             realm.createObject<UUIDPrimaryKeyNotRequired>()
-            fail()
-        } catch (ignore: RealmException) {
         }
 
         realm.beginTransaction()
@@ -231,10 +272,9 @@ class UUIDTests {
     fun requiredRealmList() {
         realm.beginTransaction()
         val obj = realm.createObject<UUIDRequiredRealmList>()
-        try {
+
+        assertFailsWith<IllegalArgumentException>("It should not be possible to add nullable elements to a required RealmList<UUID>") {
             obj.ids.add(null)
-            fail("It should not be possible to add nullable elements to a required RealmList<UUID>")
-        } catch (expected: Exception) {
         }
     }
 
@@ -255,19 +295,16 @@ class UUIDTests {
     fun linkQueryNotSupported() {
         val uuid1 = UUID.randomUUID()
 
-        try {
+        assertFailsWith<IllegalArgumentException>("It should not be possible to perform link query on UUID") {
             realm.where<UUIDRequiredRealmList>().greaterThan("ids", uuid1).findAll()
-            fail("It should not be possible to perform link query on UUID")
-        } catch (expected: IllegalArgumentException) {
         }
 
         realm.beginTransaction()
         val obj = realm.createObject<UUIDRequiredRealmList>()
         realm.cancelTransaction()
 
-        try {
+        assertFailsWith<UnsupportedOperationException> {
             obj.ids.where().equalTo("ids", uuid1).findAll()
-        } catch (expected: UnsupportedOperationException) {
         }
     }
 
@@ -277,10 +314,9 @@ class UUIDTests {
 
         realm.beginTransaction()
         realm.createObject<UUIDPrimaryKeyRequired>(uuid1)
-        try {
+
+        assertFailsWith<RealmPrimaryKeyConstraintException>("It should throw for duplicate PK usage") {
             realm.createObject<UUIDPrimaryKeyRequired>(uuid1)
-            fail("It should throw for duplicate PK usage")
-        } catch (expected: RealmPrimaryKeyConstraintException) {
         }
 
         realm.cancelTransaction()
@@ -299,12 +335,14 @@ class UUIDTests {
         realm.commitTransaction()
 
         var all = realm.where<UUIDAndString>().sort("id", Sort.ASCENDING).findAll()
+
         assertEquals(3, all.size)
         assertEquals(uuid1, all[0]!!.id)
         assertEquals(uuid2, all[1]!!.id)
         assertEquals(uuid3, all[2]!!.id)
 
         all = realm.where<UUIDAndString>().sort("id", Sort.DESCENDING).findAll()
+
         assertEquals(3, all.size)
         assertEquals(uuid3, all[0]!!.id)
         assertEquals(uuid2, all[1]!!.id)
@@ -330,6 +368,7 @@ class UUIDTests {
         realm.commitTransaction()
 
         val all = realm.where<UUIDAndString>().distinct("id").sort("id", Sort.ASCENDING).findAll()
+
         assertEquals(4, all.size)
         assertNull(all[0]!!.id)
         assertEquals(uuid1, all[1]!!.id)
@@ -340,22 +379,34 @@ class UUIDTests {
 
     @Test
     fun queries() {
-        val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
-        val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
-        val uuid3 = UUID.fromString("037ba5ca-aa12-4afa-9219-e20cc3018599")
+        val uuid1 = UUID.randomUUID()
+        val uuid2 = UUID.randomUUID()
+        val uuid3 = UUID.randomUUID()
 
-        realm.beginTransaction()
-        realm.createObject<UUIDAndString>().id = uuid2
-        realm.createObject<UUIDAndString>().id = null
-        realm.createObject<UUIDAndString>().id = uuid3
-        realm.createObject<UUIDAndString>().id = uuid1
-        realm.commitTransaction()
+        realm.executeTransaction { realm ->
+            realm.createObject<UUIDAndString>().id = uuid2
+            realm.createObject<UUIDAndString>().id = null
+            realm.createObject<UUIDAndString>().id = uuid3
+            realm.createObject<UUIDAndString>().id = uuid1
+        }
 
-        // count
         assertEquals(4, realm.where<UUIDAndString>().count())
+    }
 
-        // notEqualTo
-        var all = realm.where<UUIDAndString>()
+    @Test
+    fun queriesNotEqualTo() {
+        val uuid1 = UUID.randomUUID()
+        val uuid2 = UUID.randomUUID()
+        val uuid3 = UUID.randomUUID()
+
+        realm.executeTransaction { realm ->
+            realm.createObject<UUIDAndString>().id = uuid2
+            realm.createObject<UUIDAndString>().id = null
+            realm.createObject<UUIDAndString>().id = uuid3
+            realm.createObject<UUIDAndString>().id = uuid1
+        }
+
+        val all = realm.where<UUIDAndString>()
                 .notEqualTo("id", uuid2)
                 .sort("id", Sort.ASCENDING)
                 .findAll()
@@ -364,72 +415,176 @@ class UUIDTests {
         assertNull(all[0]!!.id)
         assertEquals(uuid1, all[1]!!.id)
         assertEquals(uuid3, all[2]!!.id)
+    }
 
-        // greaterThanOrEqualTo
-        all = realm.where<UUIDAndString>()
+    @Test
+    fun queriesGreaterThanOrEqualTo() {
+        val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
+        val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
+        val uuid3 = UUID.fromString("037ba5ca-aa12-4afa-9219-e20cc3018599")
+
+        realm.executeTransaction { realm ->
+            realm.createObject<UUIDAndString>().id = uuid2
+            realm.createObject<UUIDAndString>().id = null
+            realm.createObject<UUIDAndString>().id = uuid3
+            realm.createObject<UUIDAndString>().id = uuid1
+        }
+
+        val all = realm.where<UUIDAndString>()
                 .greaterThanOrEqualTo("id", uuid2)
                 .sort("id", Sort.ASCENDING)
                 .findAll()
+
         assertEquals(2, all.size)
         assertEquals(uuid2, all[0]!!.id)
         assertEquals(uuid3, all[1]!!.id)
+    }
 
-        // greaterThan
-        all = realm.where<UUIDAndString>()
+    @Test
+    fun queriesGreaterThan() {
+        val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
+        val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
+        val uuid3 = UUID.fromString("037ba5ca-aa12-4afa-9219-e20cc3018599")
+
+        realm.executeTransaction { realm ->
+            realm.createObject<UUIDAndString>().id = uuid2
+            realm.createObject<UUIDAndString>().id = null
+            realm.createObject<UUIDAndString>().id = uuid3
+            realm.createObject<UUIDAndString>().id = uuid1
+        }
+
+        val all = realm.where<UUIDAndString>()
                 .greaterThan("id", uuid2)
                 .sort("id", Sort.ASCENDING)
                 .findAll()
+
         assertEquals(1, all.size)
         assertEquals(uuid3, all[0]!!.id)
+    }
 
+    @Test
+    fun queriesLessThanOrEqualTo() {
+        val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
+        val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
+        val uuid3 = UUID.fromString("037ba5ca-aa12-4afa-9219-e20cc3018599")
 
-        // lessThanOrEqualTo
-        all = realm.where<UUIDAndString>()
+        realm.executeTransaction { realm ->
+            realm.createObject<UUIDAndString>().id = uuid2
+            realm.createObject<UUIDAndString>().id = null
+            realm.createObject<UUIDAndString>().id = uuid3
+            realm.createObject<UUIDAndString>().id = uuid1
+        }
+
+        val all = realm.where<UUIDAndString>()
                 .lessThanOrEqualTo("id", uuid2)
                 .sort("id", Sort.ASCENDING)
                 .findAll()
+
         assertEquals(2, all.size)
         assertEquals(uuid1, all[0]!!.id)
         assertEquals(uuid2, all[1]!!.id)
+    }
 
-        // lessThan
-        all = realm.where<UUIDAndString>()
+    @Test
+    fun queriesLessThan() {
+        val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
+        val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
+        val uuid3 = UUID.fromString("037ba5ca-aa12-4afa-9219-e20cc3018599")
+
+        realm.executeTransaction { realm ->
+            realm.createObject<UUIDAndString>().id = uuid2
+            realm.createObject<UUIDAndString>().id = null
+            realm.createObject<UUIDAndString>().id = uuid3
+            realm.createObject<UUIDAndString>().id = uuid1
+        }
+
+        val all = realm.where<UUIDAndString>()
                 .lessThan("id", uuid2)
                 .sort("id", Sort.ASCENDING)
                 .findAll()
+
         assertEquals(1, all.size)
         assertEquals(uuid1, all[0]!!.id)
+    }
 
-        // isNull
-        all = realm.where<UUIDAndString>()
+    @Test
+    fun queriesIsNull() {
+        val uuid1 = UUID.randomUUID()
+        val uuid2 = UUID.randomUUID()
+        val uuid3 = UUID.randomUUID()
+
+        realm.executeTransaction { realm ->
+            realm.createObject<UUIDAndString>().id = uuid2
+            realm.createObject<UUIDAndString>().id = null
+            realm.createObject<UUIDAndString>().id = uuid3
+            realm.createObject<UUIDAndString>().id = uuid1
+        }
+
+        val all = realm.where<UUIDAndString>()
                 .isNull("id")
                 .findAll()
+
         assertEquals(1, all.size)
         assertNull(all[0]!!.id)
+    }
 
-        // isNotNull
-        all = realm.where<UUIDAndString>()
+    @Test
+    fun queriesIsNotNull() {
+        val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
+        val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
+        val uuid3 = UUID.fromString("037ba5ca-aa12-4afa-9219-e20cc3018599")
+
+        realm.executeTransaction { realm ->
+            realm.createObject<UUIDAndString>().id = uuid2
+            realm.createObject<UUIDAndString>().id = null
+            realm.createObject<UUIDAndString>().id = uuid3
+            realm.createObject<UUIDAndString>().id = uuid1
+        }
+
+        val all = realm.where<UUIDAndString>()
                 .isNotNull("id")
                 .sort("id", Sort.ASCENDING)
                 .findAll()
+
         assertEquals(3, all.size)
         assertEquals(uuid1, all[0]!!.id)
         assertEquals(uuid2, all[1]!!.id)
         assertEquals(uuid3, all[2]!!.id)
+    }
 
-        // average
-        try {
-            realm.where<UUIDAndString>().average("id") // FIXME should we support average queries in Core?
-            fail("Average is not supported for UUID")
-        } catch (expected: IllegalArgumentException) {
+    @Test
+    fun queriesAverage() {
+        val uuid1 = UUID.randomUUID()
+        val uuid2 = UUID.randomUUID()
+        val uuid3 = UUID.randomUUID()
+
+        realm.executeTransaction { realm ->
+            realm.createObject<UUIDAndString>().id = uuid2
+            realm.createObject<UUIDAndString>().id = null
+            realm.createObject<UUIDAndString>().id = uuid3
+            realm.createObject<UUIDAndString>().id = uuid1
         }
 
-        // isEmpty
-        try {
-            realm.where<UUIDAndString>().isEmpty("id")
-            fail("isEmpty is not supported for UUID")
-        } catch (expected: IllegalArgumentException) {
+        assertFailsWith<IllegalArgumentException>("Average is not supported for UUID") {
+            realm.where<UUIDAndString>().average("id") // FIXME should we support average queries in Core?
         }
     }
 
+    @Test
+    fun queriesIsEmpty() {
+        val uuid1 = UUID.randomUUID()
+        val uuid2 = UUID.randomUUID()
+        val uuid3 = UUID.randomUUID()
+
+        realm.executeTransaction { realm ->
+            realm.createObject<UUIDAndString>().id = uuid2
+            realm.createObject<UUIDAndString>().id = null
+            realm.createObject<UUIDAndString>().id = uuid3
+            realm.createObject<UUIDAndString>().id = uuid1
+        }
+
+        assertFailsWith<IllegalArgumentException>("isEmpty is not supported for UUID") {
+            realm.where<UUIDAndString>().isEmpty("id")
+        }
+    }
 }

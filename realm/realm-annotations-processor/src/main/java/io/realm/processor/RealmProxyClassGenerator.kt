@@ -632,7 +632,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitStatement("realm.checkIfValid()")
                         emitStatement("proxyState.getRow\$realm().checkIfAttached()")
                         beginControlFlow("if ($cacheFieldName == null)")
-                        emitStatement("$cacheFieldName = RealmResults.createBacklinkResults(realm, proxyState.getRow\$realm(), %s.class, \"%s\")", backlink.sourceClass, backlink.sourceField)
+                            emitStatement("$cacheFieldName = RealmResults.createBacklinkResults(realm, proxyState.getRow\$realm(), %s.class, \"%s\")", backlink.sourceClass, backlink.sourceField)
                         endControlFlow()
                         emitStatement("return $cacheFieldName")
                         endMethod()
@@ -648,7 +648,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitStatement("realm.checkIfValid()")
                         emitStatement("proxyState.getRow\$realm().checkIfAttached()")
                         beginControlFlow("if ($cacheFieldName == null)")
-                        emitStatement("$cacheFieldName = RealmResults.createBacklinkResults(realm, proxyState.getRow\$realm(), %s.class, \"%s\").first()", backlink.sourceClass, backlink.sourceField)
+                            emitStatement("$cacheFieldName = RealmResults.createBacklinkResults(realm, proxyState.getRow\$realm(), %s.class, \"%s\").first()", backlink.sourceClass, backlink.sourceField)
                         endControlFlow()
                         emitStatement("return $cacheFieldName") // TODO: Figure out the exact API for this
                         endMethod()
@@ -854,17 +854,17 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitStatement("org.bson.types.ObjectId value = ((%s) object).%s()", interfaceName, primaryKeyGetter)
                                 emitStatement("long objKey = Table.NO_MATCH")
                                 beginControlFlow("if (value == null)")
-                                emitStatement("objKey = table.findFirstNull(pkColumnKey)")
+                                    emitStatement("objKey = table.findFirstNull(pkColumnKey)")
                                 nextControlFlow("else")
-                                emitStatement("objKey = table.findFirstObjectId(pkColumnKey, value)")
+                                    emitStatement("objKey = table.findFirstObjectId(pkColumnKey, value)")
                                 endControlFlow()
                             } else if (Utils.isUUID(primaryKeyElement)) {
                                 emitStatement("java.util.UUID value = ((%s) object).%s()", interfaceName, primaryKeyGetter)
                                 emitStatement("long objKey = Table.NO_MATCH")
                                 beginControlFlow("if (value == null)")
-                                emitStatement("objKey = table.findFirstNull(pkColumnKey)")
+                                    emitStatement("objKey = table.findFirstNull(pkColumnKey)")
                                 nextControlFlow("else")
-                                emitStatement("objKey = table.findFirstUUID(pkColumnKey, value)")
+                                    emitStatement("objKey = table.findFirstUUID(pkColumnKey, value)")
                                 endControlFlow()
                             } else {
                                 emitStatement("Number value = ((%s) object).%s()", interfaceName, primaryKeyGetter)
@@ -1013,31 +1013,31 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 "org.bson.types.Decimal128" -> {
                     emitStatement("org.bson.types.Decimal128 %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                    emitStatement("Table.nativeSetDecimal128(tableNativePtr, columnInfo.%1\$sColKey, objKey, %2\$s.getLow(), %2\$s.getHigh(), false)", fieldName, getter)
-                    if (isUpdate) {
-                        nextControlFlow("else")
-                        emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
-                    }
+                        emitStatement("Table.nativeSetDecimal128(tableNativePtr, columnInfo.%1\$sColKey, objKey, %2\$s.getLow(), %2\$s.getHigh(), false)", fieldName, getter)
+                        if (isUpdate) {
+                            nextControlFlow("else")
+                            emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
+                        }
                     endControlFlow()
                 }
                 "org.bson.types.ObjectId" -> {
                     emitStatement("org.bson.types.ObjectId %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                    emitStatement("Table.nativeSetObjectId(tableNativePtr, columnInfo.%sColKey, objKey, %s.toString(), false)", fieldName, getter)
-                    if (isUpdate) {
-                        nextControlFlow("else")
-                        emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
-                    }
+                        emitStatement("Table.nativeSetObjectId(tableNativePtr, columnInfo.%sColKey, objKey, %s.toString(), false)", fieldName, getter)
+                        if (isUpdate) {
+                            nextControlFlow("else")
+                            emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
+                        }
                     endControlFlow()
                 }
                 "java.util.UUID" -> {
                     emitStatement("java.util.UUID %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                    emitStatement("Table.nativeSetUUID(tableNativePtr, columnInfo.%sColKey, objKey, %s.toString(), false)", fieldName, getter)
-                    if (isUpdate) {
-                        nextControlFlow("else")
-                        emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
-                    }
+                        emitStatement("Table.nativeSetUUID(tableNativePtr, columnInfo.%sColKey, objKey, %s.toString(), false)", fieldName, getter)
+                        if (isUpdate) {
+                            nextControlFlow("else")
+                            emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
+                        }
                     endControlFlow()
                 }
                 else -> {
@@ -1557,25 +1557,25 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitStatement("String primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
                         emitStatement("long objKey = Table.NO_MATCH")
                         beginControlFlow("if (primaryKeyValue == null)")
-                        emitStatement("objKey = Table.nativeFindFirstNull(tableNativePtr, pkColumnKey)")
+                            emitStatement("objKey = Table.nativeFindFirstNull(tableNativePtr, pkColumnKey)")
                         nextControlFlow("else")
-                        emitStatement("objKey = Table.nativeFindFirstString(tableNativePtr, pkColumnKey, primaryKeyValue)")
+                            emitStatement("objKey = Table.nativeFindFirstString(tableNativePtr, pkColumnKey, primaryKeyValue)")
                         endControlFlow()
                     } else if (Utils.isObjectId(primaryKeyElement)) {
                         emitStatement("org.bson.types.ObjectId primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
                         emitStatement("long objKey = Table.NO_MATCH")
                         beginControlFlow("if (primaryKeyValue == null)")
-                        emitStatement("objKey = Table.nativeFindFirstNull(tableNativePtr, pkColumnKey)")
+                            emitStatement("objKey = Table.nativeFindFirstNull(tableNativePtr, pkColumnKey)")
                         nextControlFlow("else")
-                        emitStatement("objKey = Table.nativeFindFirstObjectId(tableNativePtr, pkColumnKey, primaryKeyValue.toString())")
+                            emitStatement("objKey = Table.nativeFindFirstObjectId(tableNativePtr, pkColumnKey, primaryKeyValue.toString())")
                         endControlFlow()
                     } else if (Utils.isUUID(primaryKeyElement)) {
                         emitStatement("java.util.UUID primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
                         emitStatement("long objKey = Table.NO_MATCH")
                         beginControlFlow("if (primaryKeyValue == null)")
-                        emitStatement("objKey = Table.nativeFindFirstNull(tableNativePtr, pkColumnKey)")
+                            emitStatement("objKey = Table.nativeFindFirstNull(tableNativePtr, pkColumnKey)")
                         nextControlFlow("else")
-                        emitStatement("objKey = Table.nativeFindFirstUUID(tableNativePtr, pkColumnKey, primaryKeyValue.toString())")
+                            emitStatement("objKey = Table.nativeFindFirstUUID(tableNativePtr, pkColumnKey, primaryKeyValue.toString())")
                         endControlFlow()
                     } else {
                         emitStatement("Object primaryKeyValue = ((%s) object).%s()", interfaceName, primaryKeyGetter)
