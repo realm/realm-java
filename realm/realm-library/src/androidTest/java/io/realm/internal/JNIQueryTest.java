@@ -19,6 +19,8 @@ package io.realm.internal;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -171,11 +173,13 @@ public class JNIQueryTest {
         long columnKey5 = t.getColumnKey("float");
         long columnKey6 = t.getColumnKey("long");
         long columnKey7 = t.getColumnKey("string");
+        long columnKey8 = t.getColumnKey("decimal128");
+        long columnKey9 = t.getColumnKey("object_id");
 
 
         sharedRealm.beginTransaction();
-        TestHelper.addRowWithValues(t, new long[]{columnKey1, columnKey2, columnKey3, columnKey4, columnKey5, columnKey6, columnKey7},
-                new Object[]{new byte[]{1,2,3}, true, new Date(1384423149761L), 4.5d, 5.7f, 100, "string"});
+        TestHelper.addRowWithValues(t, new long[]{columnKey1, columnKey2, columnKey3, columnKey4, columnKey5, columnKey6, columnKey7, columnKey8, columnKey9},
+                new Object[]{new byte[]{1,2,3}, true, new Date(1384423149761L), 4.5d, 5.7f, 100, "string", new Decimal128(0), new ObjectId()});
         sharedRealm.commitTransaction();
 
         TableQuery q = t.where().greaterThan(new long[]{columnKey6}, oneNullTable, 1000); // No matches
@@ -258,18 +262,16 @@ public class JNIQueryTest {
         }
 
         // Compares date.
-        /* TODO:
-        for (int i = 0; i <= 8; i++) {
+        for (int i = 0; i <= 6; i++) {
             if (i != 2) {
-                try { query.equal(i, new Date());                   fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.lessThan(i, new Date());                fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.lessThanOrEqual(i, new Date());         fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.greaterThan(i, new Date());             fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.greaterThanOrEqual(i, new Date());      fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.between(i, new Date(), new Date());     fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.equalTo(new long[]{columnKeys[i]}, oneNullTable, new Date());                   fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.lessThan(new long[]{columnKeys[i]}, oneNullTable, new Date());                fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.lessThanOrEqual(new long[]{columnKeys[i]}, oneNullTable, new Date());         fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.greaterThan(new long[]{columnKeys[i]}, oneNullTable, new Date());             fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.greaterThanOrEqual(new long[]{columnKeys[i]}, oneNullTable, new Date());      fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.between(new long[]{columnKeys[i]}, new Date(), new Date());                     fail(); } catch(IllegalArgumentException ignore) {}
             }
         }
-        */
     }
 
     @Test
@@ -442,5 +444,87 @@ public class JNIQueryTest {
 
         assertEquals(3L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, binary2).count());
         assertEquals(3L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, binary4).count());
+    }
+
+    @Test
+    public void decimal128Query() throws Exception {
+        final Decimal128 one = new Decimal128(1);
+        final Decimal128 two = new Decimal128(2);
+        final Decimal128 three = new Decimal128(3);
+
+        final AtomicLong columnKey = new AtomicLong(-1);
+
+        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+            @Override
+            public void execute(Table table) {
+                columnKey.set(table.addColumn(RealmFieldType.DECIMAL128, "date"));
+
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{one});
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{two});
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{three});
+            }
+        });
+
+        assertEquals(1L, table.where().equalTo(new long[]{columnKey.get()}, oneNullTable, one).count());
+        assertEquals(2L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, one).count());
+        assertEquals(0L, table.where().lessThan(new long[]{columnKey.get()}, oneNullTable, one).count());
+        assertEquals(1L, table.where().lessThanOrEqual(new long[]{columnKey.get()}, oneNullTable, one).count());
+        assertEquals(2L, table.where().greaterThan(new long[]{columnKey.get()}, oneNullTable, one).count());
+        assertEquals(3L, table.where().greaterThanOrEqual(new long[]{columnKey.get()}, oneNullTable, one).count());
+
+        assertEquals(1L, table.where().equalTo(new long[]{columnKey.get()}, oneNullTable, two).count());
+        assertEquals(2L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, two).count());
+        assertEquals(1L, table.where().lessThan(new long[]{columnKey.get()}, oneNullTable, two).count());
+        assertEquals(2L, table.where().lessThanOrEqual(new long[]{columnKey.get()}, oneNullTable, two).count());
+        assertEquals(1L, table.where().greaterThan(new long[]{columnKey.get()}, oneNullTable, two).count());
+        assertEquals(2L, table.where().greaterThanOrEqual(new long[]{columnKey.get()}, oneNullTable, two).count());
+
+        assertEquals(1L, table.where().equalTo(new long[]{columnKey.get()}, oneNullTable, three).count());
+        assertEquals(2L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, three).count());
+        assertEquals(2L, table.where().lessThan(new long[]{columnKey.get()}, oneNullTable, three).count());
+        assertEquals(3L, table.where().lessThanOrEqual(new long[]{columnKey.get()}, oneNullTable, three).count());
+        assertEquals(0L, table.where().greaterThan(new long[]{columnKey.get()}, oneNullTable, three).count());
+        assertEquals(1L, table.where().greaterThanOrEqual(new long[]{columnKey.get()}, oneNullTable, three).count());
+    }
+
+    @Test
+    public void objectIdQuery() throws Exception {
+        final ObjectId one = new ObjectId(new Date(10));
+        final ObjectId two = new ObjectId(new Date(20));
+        final ObjectId three = new ObjectId(new Date(30));
+
+        final AtomicLong columnKey = new AtomicLong(-1);
+
+        Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
+            @Override
+            public void execute(Table table) {
+                columnKey.set(table.addColumn(RealmFieldType.OBJECT_ID, "date"));
+
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{one});
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{two});
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{three});
+            }
+        });
+
+        assertEquals(1L, table.where().equalTo(new long[]{columnKey.get()}, oneNullTable, one).count());
+        assertEquals(2L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, one).count());
+        assertEquals(0L, table.where().lessThan(new long[]{columnKey.get()}, oneNullTable, one).count());
+        assertEquals(1L, table.where().lessThanOrEqual(new long[]{columnKey.get()}, oneNullTable, one).count());
+        assertEquals(2L, table.where().greaterThan(new long[]{columnKey.get()}, oneNullTable, one).count());
+        assertEquals(3L, table.where().greaterThanOrEqual(new long[]{columnKey.get()}, oneNullTable, one).count());
+
+        assertEquals(1L, table.where().equalTo(new long[]{columnKey.get()}, oneNullTable, two).count());
+        assertEquals(2L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, two).count());
+        assertEquals(1L, table.where().lessThan(new long[]{columnKey.get()}, oneNullTable, two).count());
+        assertEquals(2L, table.where().lessThanOrEqual(new long[]{columnKey.get()}, oneNullTable, two).count());
+        assertEquals(1L, table.where().greaterThan(new long[]{columnKey.get()}, oneNullTable, two).count());
+        assertEquals(2L, table.where().greaterThanOrEqual(new long[]{columnKey.get()}, oneNullTable, two).count());
+
+        assertEquals(1L, table.where().equalTo(new long[]{columnKey.get()}, oneNullTable, three).count());
+        assertEquals(2L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, three).count());
+        assertEquals(2L, table.where().lessThan(new long[]{columnKey.get()}, oneNullTable, three).count());
+        assertEquals(3L, table.where().lessThanOrEqual(new long[]{columnKey.get()}, oneNullTable, three).count());
+        assertEquals(0L, table.where().greaterThan(new long[]{columnKey.get()}, oneNullTable, three).count());
+        assertEquals(1L, table.where().greaterThanOrEqual(new long[]{columnKey.get()}, oneNullTable, three).count());
     }
 }

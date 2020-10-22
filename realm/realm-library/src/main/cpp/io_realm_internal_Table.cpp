@@ -854,6 +854,22 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstString(JNIEn
     return -1;
 }
 
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstDecimal128(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                             jlong columnKey, jlong low, jlong high)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Decimal)) {
+        return -1;
+    }
+
+    try {
+        Decimal128::Bid128 raw {static_cast<uint64_t>(low), static_cast<uint64_t>(high)};
+        return to_jlong_or_not_found(table->find_first_decimal(ColKey(columnKey), Decimal128(raw)));
+    }
+    CATCH_STD()
+    return -1;
+}
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstObjectId(JNIEnv* env, jclass, jlong nativeTableRefPtr,
                                                                            jlong columnKey, jstring j_value)
 {
