@@ -17,16 +17,12 @@
 package io.realm.examples.coroutinesexample.ui.main
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
-import io.realm.examples.coroutinesexample.TAG
 import io.realm.examples.coroutinesexample.databinding.MainFragmentBinding
-import io.realm.examples.coroutinesexample.model.Dog
 
 class MainFragment : Fragment() {
 
@@ -41,19 +37,13 @@ class MainFragment : Fragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View {
-        return MainFragmentBinding.inflate(inflater)
-                .also { addClickListeners(it) }
+        return MainFragmentBinding.inflate(inflater, container, false)
+                .also {
+                    addClickListeners(it)
+                    it.viewModel = viewModel
+                    it.lifecycleOwner = viewLifecycleOwner
+                }
                 .root
-    }
-
-    override fun onResume() {
-        super.onResume()
-        addObservers()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        removeObservers()
     }
 
     private fun addClickListeners(binding: MainFragmentBinding) {
@@ -67,9 +57,6 @@ class MainFragment : Fragment() {
             // freeze the UI
             viewModel.insertDogs()
         }
-        binding.buttonCount.setOnClickListener {
-            viewModel.countDogs()
-        }
         binding.buttonDelete.setOnClickListener {
             // Calling this while bulk-inserting will not freeze the UI
             viewModel.deleteAll()
@@ -77,23 +64,5 @@ class MainFragment : Fragment() {
         binding.buttonCancelCoroutine.setOnClickListener {
             viewModel.cancel()
         }
-    }
-
-    private fun addObservers() {
-        viewModel.getDogs().observe(viewLifecycleOwner, dogsObserver)
-        viewModel.count.observe(viewLifecycleOwner, countObserver)
-    }
-
-    private fun removeObservers() {
-        viewModel.getDogs().removeObserver(dogsObserver)
-        viewModel.count.removeObserver(countObserver)
-    }
-
-    private val dogsObserver = Observer<List<Dog>> { doggos ->
-        Log.d(TAG, "Added ${doggos.size}")
-    }
-
-    private val countObserver = Observer<Long> { count ->
-        Log.d(TAG, "count: $count")
     }
 }

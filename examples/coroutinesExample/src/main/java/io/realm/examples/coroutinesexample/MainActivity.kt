@@ -18,7 +18,6 @@ package io.realm.examples.coroutinesexample
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import io.realm.examples.coroutinesexample.databinding.MainActivityBinding
 import io.realm.examples.coroutinesexample.ui.main.MainFragment
 
 class MainActivity : AppCompatActivity() {
@@ -26,8 +25,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val binding = MainActivityBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.main_activity)
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()

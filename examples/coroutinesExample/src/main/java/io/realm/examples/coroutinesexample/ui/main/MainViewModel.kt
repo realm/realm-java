@@ -27,15 +27,17 @@ import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
 
-    private val _count = MutableLiveData<Long>().apply { value = 0 }
-    val count: LiveData<Long>
-        get() = _count
+    val dogs: LiveData<String> = getDogsInternal().map { it.size.toString() }
 
     private val realm = Realm.getDefaultInstance()
     private val repository: Repository = RealmRepository(realm)
 
     private lateinit var insertDogsJob: Job
     private lateinit var deleteAllDogsJob: Job
+
+    override fun onCleared() {
+        realm.close()
+    }
 
     fun insertDogs(number: Int = 10) {
         insertDogsJob = viewModelScope.launch {
@@ -47,19 +49,6 @@ class MainViewModel : ViewModel() {
         deleteAllDogsJob = viewModelScope.launch {
             repository.deleteDogs()
         }
-    }
-
-    fun getDogs(): LiveData<List<Dog>> {
-        return liveData {
-            repository.getDogs()
-                    .collect {
-                        emit(it)
-                    }
-        }
-    }
-
-    fun countDogs() {
-        _count.postValue(repository.countDogs())
     }
 
     fun cancel() {
@@ -75,7 +64,12 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    override fun onCleared() {
-        realm.close()
+    private fun getDogsInternal(): LiveData<List<Dog>> {
+        return liveData {
+            repository.getDogs()
+                    .collect {
+                        emit(it)
+                    }
+        }
     }
 }

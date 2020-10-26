@@ -16,12 +16,12 @@
 
 package io.realm.examples.coroutinesexample
 
-import android.app.Application
+import androidx.multidex.MultiDexApplication
 import io.realm.Realm
 
 const val TAG = "--- CoroutinesExample"
 
-class MainApplication : Application() {
+class MainApplication : MultiDexApplication() {
 
     override fun onCreate() {
         super.onCreate()
