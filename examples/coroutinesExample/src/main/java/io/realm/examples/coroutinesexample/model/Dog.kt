@@ -8,4 +8,6 @@ open class Dog : RealmObject() {
     var name: String = ""
     var age: Int = 1
     var owner: String = ""
+
+    override fun toString(): String = "Name: $name, age: $age, owner: $owner"
 }

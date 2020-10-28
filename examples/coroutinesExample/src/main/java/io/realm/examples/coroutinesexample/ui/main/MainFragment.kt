@@ -22,8 +22,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.dropbox.android.external.store4.ExperimentalStoreApi
 import io.realm.examples.coroutinesexample.databinding.MainFragmentBinding
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 
+@ExperimentalCoroutinesApi
+@ExperimentalStoreApi
+@FlowPreview
 class MainFragment : Fragment() {
 
     companion object {
@@ -42,27 +48,20 @@ class MainFragment : Fragment() {
                     addClickListeners(it)
                     it.viewModel = viewModel
                     it.lifecycleOwner = viewLifecycleOwner
-                }
-                .root
+                }.root
     }
 
     private fun addClickListeners(binding: MainFragmentBinding) {
-        binding.buttonHeavyTransaction.setOnClickListener {
-            // Calling this multiple times before each transaction is done will not
-            // freeze the UI
-            viewModel.insertDogs(100000)
+        binding.buttonGet.setOnClickListener {
+            viewModel.getDogs()
         }
-        binding.buttonTransaction.setOnClickListener {
-            // Calling this multiple times before each transaction is done will not
-            // freeze the UI
-            viewModel.insertDogs()
+
+        binding.buttonRefresh.setOnClickListener {
+            viewModel.refreshDogs()
         }
+
         binding.buttonDelete.setOnClickListener {
-            // Calling this while bulk-inserting will not freeze the UI
-            viewModel.deleteAll()
-        }
-        binding.buttonCancelCoroutine.setOnClickListener {
-            viewModel.cancel()
+            viewModel.deleteDogs()
         }
     }
 }

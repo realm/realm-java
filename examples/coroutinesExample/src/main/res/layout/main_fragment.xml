@@ -17,48 +17,50 @@
         android:layout_height="match_parent"
         tools:context="io.realm.examples.coroutinesexample.MainActivity">
 
-        <TextView
-            android:id="@+id/label"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:padding="8dp"
-            android:text="@string/dogs"
-            android:textSize="32sp"
-            app:layout_constraintBottom_toTopOf="@id/text"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+<!--        <TextView-->
+<!--            android:id="@+id/label"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:gravity="center"-->
+<!--            android:padding="8dp"-->
+<!--            android:text="@string/dogs"-->
+<!--            android:textSize="32sp"-->
+<!--            android:visibility="invisible"-->
+<!--            app:layout_constraintBottom_toTopOf="@id/text"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toTopOf="parent" />-->
 
-        <TextView
-            android:id="@+id/text"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:padding="@dimen/default_padding"
-            android:text="@{viewModel.dogs}"
-            android:textSize="32sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/label"
-            tools:text="8" />
+<!--        <TextView-->
+<!--            android:id="@+id/text"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:gravity="center"-->
+<!--            android:padding="@dimen/default_padding"-->
+<!--            android:text="@{viewModel.dogs}"-->
+<!--            android:textSize="32sp"-->
+<!--            android:visibility="invisible"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toBottomOf="@id/label"-->
+<!--            tools:text="8" />-->
 
         <Button
-            android:id="@+id/buttonHeavyTransaction"
+            android:id="@+id/buttonGet"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="@string/add_many_dogs"
-            app:layout_constraintBottom_toTopOf="@id/buttonTransaction"
+            android:text="@string/get_dogs"
+            app:layout_constraintBottom_toTopOf="@id/buttonRefresh"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
         <Button
-            android:id="@+id/buttonTransaction"
+            android:id="@+id/buttonRefresh"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="@string/add_few_dogs"
+            android:text="@string/refresh_dogs"
             app:layout_constraintBottom_toTopOf="@id/buttonDelete"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
@@ -68,17 +70,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="@string/delete_all_dogs"
-            app:layout_constraintBottom_toTopOf="@id/buttonCancelCoroutine"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <Button
-            android:id="@+id/buttonCancelCoroutine"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="@string/cancel_coroutine"
+            android:text="@string/delete_dogs"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
