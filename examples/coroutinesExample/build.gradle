@@ -73,6 +73,9 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.2.0"
     implementation "androidx.lifecycle:lifecycle-common-java8:2.2.0"
 
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+
     implementation "com.dropbox.mobile.store:store4:4.0.0-beta01"
 
     testImplementation 'junit:junit:4.13'

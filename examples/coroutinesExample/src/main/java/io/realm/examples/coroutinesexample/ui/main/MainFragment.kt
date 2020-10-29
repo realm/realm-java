@@ -1,19 +1,3 @@
-/*
- * Copyright 2020 Realm Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package io.realm.examples.coroutinesexample.ui.main
 
 import android.os.Bundle
@@ -22,46 +6,51 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import com.dropbox.android.external.store4.ExperimentalStoreApi
-import io.realm.examples.coroutinesexample.databinding.MainFragmentBinding
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
+import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.LinearLayoutManager
+import io.realm.examples.coroutinesexample.databinding.FragmentMainBinding
 
-@ExperimentalCoroutinesApi
-@ExperimentalStoreApi
-@FlowPreview
 class MainFragment : Fragment() {
 
-    companion object {
-        fun newInstance() = MainFragment()
-    }
-
     private val viewModel: MainViewModel by viewModels()
+    private val dogAdapter = DomainDogAdapter()
+
+    private lateinit var binding: FragmentMainBinding
 
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
-    ): View {
-        return MainFragmentBinding.inflate(inflater, container, false)
-                .also {
-                    addClickListeners(it)
-                    it.viewModel = viewModel
-                    it.lifecycleOwner = viewLifecycleOwner
-                }.root
+    ): View? = FragmentMainBinding.inflate(inflater, container, false)
+            .also { binding ->
+                this.binding = binding
+                setupRecyclerView()
+                setupLiveData()
+            }.root
+
+    private fun setupRecyclerView() {
+        with(binding.list) {
+            layoutManager = LinearLayoutManager(context)
+            adapter = dogAdapter
+        }
+
+        with(binding.refresh) {
+            setOnRefreshListener {
+                viewModel.refreshDogs()
+            }
+        }
     }
 
-    private fun addClickListeners(binding: MainFragmentBinding) {
-        binding.buttonGet.setOnClickListener {
-            viewModel.getDogs()
-        }
+    private fun setupLiveData() {
+        viewModel.dogs.observe(viewLifecycleOwner, Observer { dogs ->
+            if (binding.refresh.isRefreshing) {
+                binding.refresh.setRefreshing(false)
+            }
+            dogAdapter.submitList(dogs)
+        })
+    }
 
-        binding.buttonRefresh.setOnClickListener {
-            viewModel.refreshDogs()
-        }
-
-        binding.buttonDelete.setOnClickListener {
-            viewModel.deleteDogs()
-        }
+    companion object {
+        fun newInstance() = MainFragment()
     }
 }

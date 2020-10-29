@@ -1,8 +1,3 @@
 <resources>
     <string name="app_name">Coroutines Example</string>
-    <string name="dogs">Dogs</string>
-    <string name="get_dogs">Get dogs</string>
-    <string name="refresh_dogs">Refresh dogs</string>
-    <string name="delete_dogs">Delete dogs</string>
-    <string name="cancel_coroutine">Cancel coroutine</string>
 </resources>
