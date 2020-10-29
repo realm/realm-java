@@ -25,8 +25,8 @@
 #include <realm/util/optional.hpp>
 #include <sync/app.hpp>
 #include <sync/sync_user.hpp>
-#include <sync/remote_mongo_client.hpp>
-#include <sync/remote_mongo_database.hpp>
+#include <sync/mongo_client.hpp>
+#include <sync/mongo_database.hpp>
 
 using namespace realm;
 using namespace realm::app;

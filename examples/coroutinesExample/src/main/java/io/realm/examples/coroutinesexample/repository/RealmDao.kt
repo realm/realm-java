@@ -24,8 +24,12 @@ import io.realm.examples.coroutinesexample.model.Dog
 import io.realm.kotlin.executeTransactionAwait
 import io.realm.kotlin.toFlow
 import io.realm.kotlin.where
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
 import java.io.Closeable
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadPoolExecutor
 
 interface RealmDao : Closeable {
     suspend fun insertDogs(dogs: List<Dog>)
@@ -38,40 +42,23 @@ class RealmDaoImpl(
         private val realmConfiguration: RealmConfiguration
 ) : RealmDao {
 
+    private val monoThreadDispatcher = Executors.newFixedThreadPool(1).asCoroutineDispatcher()
     private val closeableRealm = Realm.getInstance(realmConfiguration)
 
     override suspend fun insertDogs(dogs: List<Dog>) {
-//        runCloseableTransaction { transactionRealm ->
-//            transactionRealm.insertOrUpdate(dogs)
-//        }
-
-        val realm = Realm.getInstance(realmConfiguration)
-
-        Log.d(TAG, "(INSERT) fetching $realm on ${Thread.currentThread().id}")
-
-        realm.executeTransactionAwait() { transactionRealm ->
-            transactionRealm.insertOrUpdate(dogs)
+        withContext(monoThreadDispatcher) {
+            runCloseableTransaction { transactionRealm ->
+                transactionRealm.insertOrUpdate(dogs)
+            }
         }
-
-        Log.d(TAG, "(INSERT) closing  $realm on ${Thread.currentThread().id}")
-        realm.close()
     }
 
     override suspend fun deleteDogs() {
-//        runCloseableTransaction { transactionRealm ->
-//            transactionRealm.deleteAll()
-//        }
-
-        val realm = Realm.getInstance(realmConfiguration)
-
-        Log.d(TAG, "(DELETE) fetching $realm on ${Thread.currentThread().id}")
-
-        realm.executeTransactionAwait { transactionRealm ->
-            transactionRealm.deleteAll()
+        withContext(monoThreadDispatcher) {
+            runCloseableTransaction { transactionRealm ->
+                transactionRealm.deleteAll()
+            }
         }
-
-        Log.d(TAG, "(DELETE) closing  $realm on ${Thread.currentThread().id}")
-        realm.close()
     }
 
     override fun getDogs(): Flow<List<Dog>> {
@@ -86,18 +73,18 @@ class RealmDaoImpl(
         closeableRealm.close()
     }
 
-//    private suspend fun runCloseableTransaction(transaction: (realm: Realm) -> Unit) {
-////        Realm.getInstance(realmConfiguration).use { realmInstance ->
-////            realmInstance.executeTransactionAwait(transaction = transaction)
-////        }
-//
-//        val realm = Realm.getInstance(realmConfiguration)
-//
-//        Log.d(TAG, "------> fetching $realm on ${Thread.currentThread().name}")
-//
-//        realm.executeTransactionAwait(transaction = transaction)
-//
-//        Log.d(TAG, "------> closing  $realm on ${Thread.currentThread().name}")
-//        realm.close()
-//    }
+    private suspend fun runCloseableTransaction(transaction: (realm: Realm) -> Unit) {
+//        Realm.getInstance(realmConfiguration).use { realmInstance ->
+//            realmInstance.executeTransactionAwait(transaction = transaction)
+//        }
+
+        val realm = Realm.getInstance(realmConfiguration)
+
+        Log.d(TAG, "------> fetching $realm on ${Thread.currentThread().name}")
+
+        realm.executeTransactionAwait(transaction = transaction)
+
+        Log.d(TAG, "------> closing  $realm on ${Thread.currentThread().name}")
+        realm.close()
+    }
 }
