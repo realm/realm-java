@@ -1,4 +1,4 @@
-package io.realm.examples.coroutinesexample.model
+package io.realm.examples.coroutinesexample.data.local.model
 
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey

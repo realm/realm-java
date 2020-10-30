@@ -1,8 +1,8 @@
-package io.realm.examples.coroutinesexample.model.entity
+package io.realm.examples.coroutinesexample.domain
 
-import io.realm.examples.coroutinesexample.model.Dog
-import io.realm.examples.coroutinesexample.model.network.ApiDog
-import io.realm.examples.coroutinesexample.ui.main.DomainDog
+import io.realm.examples.coroutinesexample.data.local.model.Dog
+import io.realm.examples.coroutinesexample.data.network.model.ApiDog
+import io.realm.examples.coroutinesexample.domain.model.DomainDog
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

@@ -1,4 +1,4 @@
-package io.realm.examples.coroutinesexample.ui.main
+package io.realm.examples.coroutinesexample.domain.model
 
 data class DomainDog(
         val name: String,

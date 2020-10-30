@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package io.realm.examples.coroutinesexample.ui.main
+package io.realm.examples.coroutinesexample.ui.dog
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dropbox.android.external.store4.*
 import io.realm.RealmConfiguration
-import io.realm.examples.coroutinesexample.TAG
-import io.realm.examples.coroutinesexample.model.Dog
-import io.realm.examples.coroutinesexample.model.entity.DogMapper.toDogFlow
-import io.realm.examples.coroutinesexample.model.entity.DogMapper.toDomainDogFlow
-import io.realm.examples.coroutinesexample.model.network.ApiClient
-import io.realm.examples.coroutinesexample.model.network.FakeApiClient
-import io.realm.examples.coroutinesexample.repository.RealmDao
-import io.realm.examples.coroutinesexample.repository.RealmDaoImpl
+import io.realm.examples.coroutinesexample.data.local.DogDao
+import io.realm.examples.coroutinesexample.data.local.RealmDogDao
+import io.realm.examples.coroutinesexample.data.local.model.Dog
+import io.realm.examples.coroutinesexample.data.network.DogApiClient
+import io.realm.examples.coroutinesexample.data.network.FakeDogApiClient
+import io.realm.examples.coroutinesexample.domain.DogMapper.toDogFlow
+import io.realm.examples.coroutinesexample.domain.DogMapper.toDomainDogFlow
+import io.realm.examples.coroutinesexample.domain.model.DomainDog
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.launchIn
@@ -40,31 +39,31 @@ import kotlinx.coroutines.launch
 @ExperimentalStoreApi
 @ExperimentalCoroutinesApi
 @FlowPreview
-class MainViewModel : ViewModel() {
+class DogViewModel : ViewModel() {
 
     private val store: Store<Unit, List<DomainDog>>
 
-    private val repository: RealmDao = RealmDaoImpl(RealmConfiguration.Builder().build())
-    private val apiClient: ApiClient = FakeApiClient()
+    private val dogDao: DogDao = RealmDogDao(RealmConfiguration.Builder().build())
+    private val dogApiClient: DogApiClient = FakeDogApiClient()
 
-    private val _dogs = MutableLiveData<List<DomainDog>>().apply { value = listOf() }
-    val dogs: LiveData<List<DomainDog>>
-        get() = _dogs
+    private val _storeResponse = MutableLiveData<StoreResponse<List<DomainDog>>>()
+    val storeResponse: LiveData<StoreResponse<List<DomainDog>>>
+        get() = _storeResponse
 
     init {
         val fetcher: Fetcher<Unit, List<Dog>> = Fetcher.ofFlow {
-            apiClient.getDogs().toDogFlow()
+            dogApiClient.getDogs().toDogFlow()
         }
 
         val sourceOfTruth: SourceOfTruth<Unit, List<Dog>, List<DomainDog>> = SourceOfTruth.of(
                 reader = {
-                    repository.getDogs().toDomainDogFlow()
+                    dogDao.getDogs().toDomainDogFlow()
                 },
                 writer = { _, dogs ->
-                    repository.insertDogs(dogs)
+                    dogDao.insertDogs(dogs)
                 },
                 deleteAll = {
-                    repository.deleteDogs()
+                    dogDao.deleteDogs()
                 }
         )
 
@@ -76,7 +75,7 @@ class MainViewModel : ViewModel() {
     }
 
     override fun onCleared() {
-        repository.close()
+        dogDao.close()
     }
 
     fun refreshDogs() {
@@ -90,25 +89,7 @@ class MainViewModel : ViewModel() {
                 key = Unit,
                 refresh = true
         )).onEach { response ->
-            // React to responses from the store
-            when (response) {
-                is StoreResponse.Loading ->
-                    Log.d(TAG, "--- loading...")
-                is StoreResponse.Data -> {
-                    Log.d(TAG, "--- origin: ${response.origin}")
-                    _dogs.postValue(response.value)
-                }
-                is StoreResponse.NoNewData ->
-                    Log.d(TAG, "--- no new data")
-                is StoreResponse.Error.Exception -> {
-                    val stacktrace = response.error.cause?.stackTrace?.joinToString {
-                        "$it\n"
-                    }
-                    Log.e(TAG, "--- error (exception): ${response.error.message} - ${response.error.cause?.message}: $stacktrace")
-                }
-                is StoreResponse.Error.Message ->
-                    Log.e(TAG, "--- error (message): ${response.message}")
-            }
+            _storeResponse.postValue(response)
         }.launchIn(viewModelScope)
     }
 }

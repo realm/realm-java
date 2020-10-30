@@ -1,13 +1,14 @@
-package io.realm.examples.coroutinesexample.model.network
+package io.realm.examples.coroutinesexample.data.network
 
+import io.realm.examples.coroutinesexample.data.network.model.ApiDog
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-interface ApiClient {
+interface DogApiClient {
     fun getDogs(): Flow<List<ApiDog>>
 }
 
-class FakeApiClient : ApiClient {
+class FakeDogApiClient : DogApiClient {
     override fun getDogs(): Flow<List<ApiDog>> {
         return flowOf(
                 (1..15).map { i ->

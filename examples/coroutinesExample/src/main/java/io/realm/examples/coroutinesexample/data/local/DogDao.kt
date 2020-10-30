@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package io.realm.examples.coroutinesexample.repository
+package io.realm.examples.coroutinesexample.data.local
 
 import android.util.Log
 import io.realm.Realm
 import io.realm.RealmConfiguration
 import io.realm.examples.coroutinesexample.TAG
-import io.realm.examples.coroutinesexample.model.Dog
+import io.realm.examples.coroutinesexample.data.local.model.Dog
 import io.realm.kotlin.executeTransactionAwait
 import io.realm.kotlin.toFlow
 import io.realm.kotlin.where
@@ -29,18 +29,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 import java.util.concurrent.Executors
-import java.util.concurrent.ThreadPoolExecutor
 
-interface RealmDao : Closeable {
+interface DogDao : Closeable {
     suspend fun insertDogs(dogs: List<Dog>)
     suspend fun deleteDogs()
     fun getDogs(): Flow<List<Dog>>
     fun countDogs(): Long
 }
 
-class RealmDaoImpl(
+class RealmDogDao(
         private val realmConfiguration: RealmConfiguration
-) : RealmDao {
+) : DogDao {
 
     private val monoThreadDispatcher = Executors.newFixedThreadPool(1).asCoroutineDispatcher()
     private val closeableRealm = Realm.getInstance(realmConfiguration)

@@ -1,4 +1,4 @@
-package io.realm.examples.coroutinesexample.ui.main
+package io.realm.examples.coroutinesexample.ui.dog
 
 import android.view.LayoutInflater
 import android.view.View
@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import io.realm.examples.coroutinesexample.R
+import io.realm.examples.coroutinesexample.domain.model.DomainDog
 
 class DomainDogAdapter : ListAdapter<DomainDog, DomainDogAdapter.DogViewHolder>(DIFF_CALLBACK) {
 

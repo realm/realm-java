@@ -1,4 +1,4 @@
-package io.realm.examples.coroutinesexample.model.network
+package io.realm.examples.coroutinesexample.data.network.model
 
 data class ApiDog(
         val name: String,
