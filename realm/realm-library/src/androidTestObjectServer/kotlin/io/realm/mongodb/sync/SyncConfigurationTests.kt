@@ -401,4 +401,27 @@ class SyncConfigurationTests {
                 .build()
         assertTrue(configuration.isAllowQueriesOnUiThread)
     }
+
+    @Test
+    fun allowWritesOnUiThread_defaultsToFalse() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.build()
+        assertFalse(configuration.isAllowWritesOnUiThread)
+    }
+
+    @Test
+    fun allowWritesOnUiThread_explicitFalse() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.allowWritesOnUiThread(false)
+                .build()
+        assertFalse(configuration.isAllowWritesOnUiThread)
+    }
+
+    @Test
+    fun allowWritesOnUiThread_explicitTrue() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.allowWritesOnUiThread(true)
+                .build()
+        assertTrue(configuration.isAllowWritesOnUiThread)
+    }
 }
