@@ -8,6 +8,7 @@
 
 ### Fixes
 * [SyncConfiguration] The `SyncConfiguration.Builder.allowQueriesOnUiThread` flag was wrongly initialized to `false` keeping users from running queries from the UI thread when using synced Realms. It now defaults to `true`, allowing queries to be run from the UI. See [#7177](https://github.com/realm/realm-java/issues/7177)
+* Crash with `Assertion failed: m_method_id != nullptr with (method_name, signature) =  ["<init>", "(Ljava/lang/String;)V"]` when `Minify` is enabled.
 
 ### Compatibility
 * None.

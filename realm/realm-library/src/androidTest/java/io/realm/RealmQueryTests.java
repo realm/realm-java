@@ -2828,6 +2828,33 @@ public class RealmQueryTests extends QueryTests {
                     case OBJECT_ID:
                         realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT_ID).findAll();
                         break;
+                    case INTEGER_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_INTEGER_LIST).findAll();
+                        break;
+                    case BOOLEAN_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_BOOLEAN_LIST).findAll();
+                        break;
+                    case STRING_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_STRING_LIST).findAll();
+                        break;
+                    case BINARY_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_BINARY_LIST).findAll();
+                        break;
+                    case DATE_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DATE_LIST).findAll();
+                        break;
+                    case FLOAT_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_FLOAT_LIST).findAll();
+                        break;
+                    case DOUBLE_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DOUBLE_LIST).findAll();
+                        break;
+                    case DECIMAL128_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DECIMAL128_LIST).findAll();
+                        break;
+                    case OBJECT_ID_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT_ID_LIST).findAll();
+                        break;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -2946,6 +2973,33 @@ public class RealmQueryTests extends QueryTests {
                         break;
                     case OBJECT_ID:
                         realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT_ID).findAll();
+                        break;
+                    case INTEGER_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_INTEGER_LIST).findAll();
+                        break;
+                    case BOOLEAN_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_BOOLEAN_LIST).findAll();
+                        break;
+                    case STRING_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_STRING_LIST).findAll();
+                        break;
+                    case BINARY_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_BINARY_LIST).findAll();
+                        break;
+                    case DATE_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_DATE_LIST).findAll();
+                        break;
+                    case FLOAT_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_FLOAT_LIST).findAll();
+                        break;
+                    case DOUBLE_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_DOUBLE_LIST).findAll();
+                        break;
+                    case DECIMAL128_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_DECIMAL128_LIST).findAll();
+                        break;
+                    case OBJECT_ID_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT_ID_LIST).findAll();
                         break;
                     default:
                         fail("Unknown type: " + type);

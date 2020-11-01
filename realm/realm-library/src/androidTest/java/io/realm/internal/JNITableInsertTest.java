@@ -18,6 +18,8 @@ package io.realm.internal;
 
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -76,6 +78,8 @@ public class JNITableInsertTest {
         value.add(4, 1234567.898d);
         value.add(5, new Date(645342));
         value.add(6, new byte[]{1, 2, 3, 4, 5});
+        value.add(7, new Decimal128(1));
+        value.add(8, new ObjectId());
         return Arrays.asList(
                 new Object[]{value},
                 new Object[]{value}

@@ -178,7 +178,7 @@ public class LinkingObjectsDynamicTests {
                     case OBJECT: // fall-through
                     case LIST:
                         continue;
-                    // skip special case
+                        // skip special case
                     case LINKING_OBJECTS:
                         continue;
                     case INTEGER:
@@ -209,50 +209,32 @@ public class LinkingObjectsDynamicTests {
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_OBJECT_ID);
                         break;
                     case INTEGER_LIST:
-                        // FIXME zaki50 enable this once Primitive List is implemented
-                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_INT_LIST);
-                        //break;
-                        throw new IllegalArgumentException("Unexpected field type");
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_INTEGER_LIST);
+                        break;
                     case BOOLEAN_LIST:
-                        // FIXME zaki50 enable this once Primitive List is implemented
-                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_BOOLEAN_LIST);
-                        //break;
-                        throw new IllegalArgumentException("Unexpected field type");
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_BOOLEAN_LIST);
+                        break;
                     case STRING_LIST:
-                        // FIXME zaki50 enable this once Primitive List is implemented
-                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_STRING_LIST);
-                        //break;
-                        throw new IllegalArgumentException("Unexpected field type");
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_STRING_LIST);
+                        break;
                     case BINARY_LIST:
-                        // FIXME zaki50 enable this once Primitive List is implemented
-                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_BINARY_LIST);
-                        //break;
-                        throw new IllegalArgumentException("Unexpected field type");
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_BINARY_LIST);
+                        break;
                     case DATE_LIST:
-                        // FIXME zaki50 enable this once Primitive List is implemented
-                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DATE_LIST);
-                        //break;
-                        throw new IllegalArgumentException("Unexpected field type");
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DATE_LIST);
+                        break;
                     case FLOAT_LIST:
-                        // FIXME zaki50 enable this once Primitive List is implemented
-                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_FLOAT_LIST);
-                        //break;
-                        throw new IllegalArgumentException("Unexpected field type");
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_FLOAT_LIST);
+                        break;
                     case DOUBLE_LIST:
-                        // FIXME zaki50 enable this once Primitive List is implemented
-                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DOUBLE_LIST);
-                        //break;
-                        throw new IllegalArgumentException("Unexpected field type");
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DOUBLE_LIST);
+                        break;
                     case DECIMAL128_LIST:
-                        // FIXME enable this once Primitive List is implemented
-                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DOUBLE_LIST);
-                        //break;
-                        throw new IllegalArgumentException("Unexpected field type");
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DECIMAL128_LIST);
+                        break;
                     case OBJECT_ID_LIST:
-                        // FIXME enable this once Primitive List is implemented
-                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DOUBLE_LIST);
-                        //break;
-                        throw new IllegalArgumentException("Unexpected field type");
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_OBJECT_ID_LIST);
+                        break;
                     default:
                         fail("unknown type: " + fieldType);
                         break;
@@ -264,7 +246,7 @@ public class LinkingObjectsDynamicTests {
         }
 
         // Linking Object fields are implicit and do not exist.
-        for (String field : new String[] {AllJavaTypes.FIELD_LO_OBJECT, AllJavaTypes.FIELD_LO_LIST}) {
+        for (String field : new String[]{AllJavaTypes.FIELD_LO_OBJECT, AllJavaTypes.FIELD_LO_LIST}) {
             try {
                 object.linkingObjects(AllJavaTypes.CLASS_NAME, field);
                 fail();
@@ -552,7 +534,7 @@ public class LinkingObjectsDynamicTests {
 
     @Test
     public void dynamicQuery_invalidSyntax() {
-        String[] invalidBacklinks = new String[] {
+        String[] invalidBacklinks = new String[]{
                 "linkingObject(x",
                 "linkingObject(x.y",
                 "linkingObject(x.y)",
