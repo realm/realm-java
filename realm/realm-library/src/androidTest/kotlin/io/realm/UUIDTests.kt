@@ -395,9 +395,9 @@ class UUIDTests {
 
     @Test
     fun queriesNotEqualTo() {
-        val uuid1 = UUID.randomUUID()
-        val uuid2 = UUID.randomUUID()
-        val uuid3 = UUID.randomUUID()
+        val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
+        val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
+        val uuid3 = UUID.fromString("037ba5ca-aa12-4afa-9219-e20cc3018599")
 
         realm.executeTransaction { realm ->
             realm.createObject<UUIDAndString>().id = uuid2
