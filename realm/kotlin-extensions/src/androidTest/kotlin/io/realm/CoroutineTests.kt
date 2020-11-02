@@ -182,6 +182,30 @@ class CoroutineTests {
     }
 
     @Test
+    fun toFlow_throwsOnClosed() {
+        val countDownLatch = CountDownLatch(1)
+
+        val context = Dispatchers.Main
+        val scope = CoroutineScope(context)
+
+        scope.launch {
+            val realmInstance = Realm.getInstance(configuration)
+            val findAllAsync: Flow<RealmResults<SimpleClass>> = realmInstance.where<SimpleClass>()
+                    .findAllAsync()
+                    .toFlow()
+            realmInstance.close()
+            // FIXME Collecting after close throw. Emit a more descriptive error
+            //  java.lang.IllegalStateException: 'awaitClose { yourCallbackOrListener.cancel() }' should be used in the end of callbackFlow block.
+//            assertFailsWith<> {
+                findAllAsync.collect()
+//            }
+            countDownLatch.countDown()
+        }
+
+        TestHelper.awaitOrFail(countDownLatch)
+    }
+
+    @Test
     fun toFlow_multipleSubscribers() {
         val countDownLatch = CountDownLatch(2)
 
