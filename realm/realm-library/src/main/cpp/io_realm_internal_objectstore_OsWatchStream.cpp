@@ -19,7 +19,7 @@
 #include "java_class_global_def.hpp"
 #include "jni_util/bson_util.hpp"
 
-#include <realm/object-store/sync/remote_mongo_collection.hpp>
+#include <realm/object-store/sync/mongo_collection.hpp>
 
 using namespace realm;
 using namespace realm::app;
