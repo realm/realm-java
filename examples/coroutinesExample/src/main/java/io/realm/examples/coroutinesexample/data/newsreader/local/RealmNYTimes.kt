@@ -24,6 +24,7 @@ import io.realm.annotations.RealmClass
 import java.util.*
 
 open class RealmNYTimesArticle : RealmObject() {
+    var apiSection: String = ""
     var section: String = ""
     var subsection: String = ""
     var title: String = ""
@@ -48,6 +49,7 @@ open class RealmNYTimesArticle : RealmObject() {
 
     companion object {
         const val EMBEDDED_MULTIMEDIA = "multimedia"
+        const val COLUMN_API_SECTION = "apiSection"
     }
 }
 

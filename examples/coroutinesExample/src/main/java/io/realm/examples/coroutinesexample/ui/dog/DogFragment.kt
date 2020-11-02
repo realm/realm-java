@@ -82,7 +82,11 @@ class DogFragment : Fragment() {
             }
         }
 
-        fun data(binding: FragmentDogBinding, response: StoreResponse.Data<List<DomainDog>>, dogAdapter: DomainDogAdapter) {
+        fun data(
+                binding: FragmentDogBinding,
+                response: StoreResponse.Data<List<DomainDog>>,
+                dogAdapter: DomainDogAdapter
+        ) {
             if (binding.refresh.isRefreshing) {
                 binding.refresh.setRefreshing(false)
             }

@@ -17,6 +17,9 @@
 package io.realm.examples.coroutinesexample.data.newsreader.network
 
 import io.realm.examples.coroutinesexample.data.newsreader.network.model.NYTimesResponse
+import okhttp3.OkHttp
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -32,8 +35,12 @@ class NYTimesApiClientImpl : NYTimesApiClient {
     private val service: NYTimesService
 
     init {
-        // FIXME: inject retrofit instead
+        // FIXME: inject retrofit and client instead
+        val interceptor = HttpLoggingInterceptor().apply { setLevel(HttpLoggingInterceptor.Level.BODY) }
+        val okHttpClient = OkHttpClient.Builder().addInterceptor(interceptor).build()
+
         service = Retrofit.Builder()
+                .client(okHttpClient)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(MoshiConverterFactory.create())
                 .baseUrl("https://api.nytimes.com/")

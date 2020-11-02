@@ -5,11 +5,20 @@ import io.realm.examples.coroutinesexample.data.newsreader.local.RealmNYTMultime
 import io.realm.examples.coroutinesexample.data.newsreader.local.RealmNYTimesArticle
 import io.realm.examples.coroutinesexample.data.newsreader.network.model.NYTMultimedium
 import io.realm.examples.coroutinesexample.data.newsreader.network.model.NYTimesArticle
+import io.realm.examples.coroutinesexample.domain.newsreader.model.DomainNYTArticle
 
 object NYTMapper {
-    fun List<NYTimesArticle>.toRealmArticles(): List<RealmNYTimesArticle> {
+
+    fun List<RealmNYTimesArticle>.toDomainArticles(): List<DomainNYTArticle> {
+        return map { realmArticle ->
+            DomainNYTArticle(realmArticle.title, realmArticle.abstract)
+        }
+    }
+
+    fun List<NYTimesArticle>.toRealmArticles(apiQuerySection: String): List<RealmNYTimesArticle> {
         return map { article ->
             RealmNYTimesArticle().apply {
+                apiSection = apiQuerySection
                 section = article.section
                 subsection = article.subsection
                 title = article.title

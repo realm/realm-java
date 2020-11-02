@@ -44,20 +44,20 @@ class NewsReaderViewModel : ViewModel() {
     private val nytDao: NYTDao = RealmNYTDao(RealmConfiguration.Builder().build())
     private val nytApiClient: NYTimesApiClient = NYTimesApiClientImpl()
 
-    private val _articles = MutableLiveData<List<NYTimesArticle>>().apply { value = listOf() }
-    val articles: LiveData<List<NYTimesArticle>>
-        get() = _articles
+    private val _storeResponse = MutableLiveData<StoreResponse<List<RealmNYTimesArticle>>>()
+    val storeResponse: LiveData<StoreResponse<List<RealmNYTimesArticle>>>
+        get() = _storeResponse
 
     init {
-        val fetcher: Fetcher<String, List<RealmNYTimesArticle>> = Fetcher.of { section ->
-            nytApiClient.getTopStories(section).results.toRealmArticles()
+        val fetcher: Fetcher<String, List<RealmNYTimesArticle>> = Fetcher.of { apiSection ->
+            nytApiClient.getTopStories(apiSection).results.toRealmArticles(apiSection)
         }
 
         val sourceOfTruth: SourceOfTruth<String, List<RealmNYTimesArticle>, List<RealmNYTimesArticle>> = SourceOfTruth.Companion.of(
                 reader = { section ->
                     nytDao.getArticles(section)
                 },
-                writer = { section, articles ->
+                writer = { _, articles ->
                     nytDao.insertArticles(articles)
                 },
                 deleteAll = {
@@ -76,12 +76,6 @@ class NewsReaderViewModel : ViewModel() {
 
     fun refreshTopStories() {
         viewModelScope.launch {
-//            withContext(Dispatchers.IO) {
-//                nytApiClient.getTopStories("home")
-//            }.also { response ->
-//                response.results
-//            }
-
             store.fresh("home")
         }
     }
@@ -91,7 +85,7 @@ class NewsReaderViewModel : ViewModel() {
                 key = "home",
                 refresh = true
         )).onEach { response ->
-            val kjashdkhj = 0
+            _storeResponse.postValue(response)
         }.launchIn(viewModelScope)
     }
 }
