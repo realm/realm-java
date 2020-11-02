@@ -22,14 +22,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dropbox.android.external.store4.*
 import io.realm.RealmConfiguration
-import io.realm.examples.coroutinesexample.data.local.DogDao
-import io.realm.examples.coroutinesexample.data.local.RealmDogDao
-import io.realm.examples.coroutinesexample.data.local.model.Dog
-import io.realm.examples.coroutinesexample.data.network.DogApiClient
-import io.realm.examples.coroutinesexample.data.network.FakeDogApiClient
-import io.realm.examples.coroutinesexample.domain.DogMapper.toDogFlow
-import io.realm.examples.coroutinesexample.domain.DogMapper.toDomainDogFlow
-import io.realm.examples.coroutinesexample.domain.model.DomainDog
+import io.realm.examples.coroutinesexample.data.dog.local.DogDao
+import io.realm.examples.coroutinesexample.data.dog.local.RealmDogDao
+import io.realm.examples.coroutinesexample.data.dog.local.model.Dog
+import io.realm.examples.coroutinesexample.data.dog.network.DogApiClient
+import io.realm.examples.coroutinesexample.data.dog.network.FakeDogApiClient
+import io.realm.examples.coroutinesexample.domain.dog.DogMapper.toDogFlow
+import io.realm.examples.coroutinesexample.domain.dog.DogMapper.toDomainDogFlow
+import io.realm.examples.coroutinesexample.domain.dog.model.DomainDog
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.launchIn
@@ -43,6 +43,7 @@ class DogViewModel : ViewModel() {
 
     private val store: Store<Unit, List<DomainDog>>
 
+    // FIXME: inject RealmConfiguration
     private val dogDao: DogDao = RealmDogDao(RealmConfiguration.Builder().build())
     private val dogApiClient: DogApiClient = FakeDogApiClient()
 
@@ -68,8 +69,7 @@ class DogViewModel : ViewModel() {
         )
 
         // Create store instance and start listening for stream changes
-        store = StoreBuilder
-                .from(fetcher, sourceOfTruth)
+        store = StoreBuilder.from(fetcher, sourceOfTruth)
                 .build()
                 .also { setupStoreStream(it) }
     }

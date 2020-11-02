@@ -60,6 +60,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
     implementation "androidx.constraintlayout:constraintlayout:2.0.3"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:1.1.0"
 
     implementation "androidx.activity:activity-ktx:1.1.0"
     implementation "androidx.fragment:fragment-ktx:1.2.5"
@@ -76,7 +77,13 @@ dependencies {
     implementation "androidx.legacy:legacy-support-v4:1.0.0"
     implementation "androidx.recyclerview:recyclerview:1.1.0"
 
+    implementation "com.google.android.material:material:1.2.1"
+
     implementation "com.dropbox.mobile.store:store4:4.0.0-beta01"
+
+    implementation "com.squareup.retrofit2:adapter-rxjava2:2.3.0"
+    implementation "com.squareup.retrofit2:retrofit:2.8.1"
+    implementation "com.squareup.retrofit2:converter-moshi:2.8.1"
 
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package io.realm.examples.coroutinesexample.data.local
+package io.realm.examples.coroutinesexample.data.newsreader.local
 
-import android.util.Log
 import io.realm.Realm
 import io.realm.RealmConfiguration
-import io.realm.examples.coroutinesexample.TAG
-import io.realm.examples.coroutinesexample.data.local.model.Dog
-import io.realm.kotlin.executeTransactionAwait
+import io.realm.examples.coroutinesexample.data.newsreader.network.model.NYTimesArticle
+import io.realm.examples.coroutinesexample.util.runCloseableTransaction
 import io.realm.kotlin.toFlow
 import io.realm.kotlin.where
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -30,60 +28,52 @@ import kotlinx.coroutines.withContext
 import java.io.Closeable
 import java.util.concurrent.Executors
 
-interface DogDao : Closeable {
-    suspend fun insertDogs(dogs: List<Dog>)
-    suspend fun deleteDogs()
-    fun getDogs(): Flow<List<Dog>>
-    fun countDogs(): Long
+interface NYTDao : Closeable {
+    suspend fun insertArticles(articles: List<RealmNYTimesArticle>)
+    suspend fun deleteArticles()
+    fun getArticles(section: String): Flow<List<RealmNYTimesArticle>>
+    fun countArticles(): Long
+    fun countArticles(section: String): Long
 }
 
-class RealmDogDao(
+class RealmNYTDao(
         private val realmConfiguration: RealmConfiguration
-) : DogDao {
+) : NYTDao {
 
     private val monoThreadDispatcher = Executors.newFixedThreadPool(1).asCoroutineDispatcher()
     private val closeableRealm = Realm.getInstance(realmConfiguration)
 
-    override suspend fun insertDogs(dogs: List<Dog>) {
+    override suspend fun insertArticles(articles: List<RealmNYTimesArticle>) {
         withContext(monoThreadDispatcher) {
-            runCloseableTransaction { transactionRealm ->
-                transactionRealm.insertOrUpdate(dogs)
+            runCloseableTransaction(realmConfiguration) { transactionRealm ->
+                transactionRealm.insertOrUpdate(articles)
             }
         }
     }
 
-    override suspend fun deleteDogs() {
+    override suspend fun deleteArticles() {
         withContext(monoThreadDispatcher) {
-            runCloseableTransaction { transactionRealm ->
+            runCloseableTransaction(realmConfiguration) { transactionRealm ->
                 transactionRealm.deleteAll()
             }
         }
     }
 
-    override fun getDogs(): Flow<List<Dog>> {
-        return closeableRealm.where(Dog::class.java)
+    override fun getArticles(section: String): Flow<List<RealmNYTimesArticle>> {
+        return closeableRealm.where(RealmNYTimesArticle::class.java)
                 .findAllAsync()
                 .toFlow()
     }
 
-    override fun countDogs(): Long = closeableRealm.where<Dog>().count()
+    override fun countArticles(): Long =
+            closeableRealm.where<RealmNYTimesArticle>().count()
+
+    override fun countArticles(section: String): Long =
+            closeableRealm.where<RealmNYTimesArticle>()
+                    .equalTo("section", section)
+                    .count()
 
     override fun close() {
         closeableRealm.close()
-    }
-
-    private suspend fun runCloseableTransaction(transaction: (realm: Realm) -> Unit) {
-//        Realm.getInstance(realmConfiguration).use { realmInstance ->
-//            realmInstance.executeTransactionAwait(transaction = transaction)
-//        }
-
-        val realm = Realm.getInstance(realmConfiguration)
-
-        Log.d(TAG, "------> fetching $realm on ${Thread.currentThread().name}")
-
-        realm.executeTransactionAwait(transaction = transaction)
-
-        Log.d(TAG, "------> closing  $realm on ${Thread.currentThread().name}")
-        realm.close()
     }
 }

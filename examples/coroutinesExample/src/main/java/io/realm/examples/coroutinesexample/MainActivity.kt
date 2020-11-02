@@ -18,7 +18,7 @@ package io.realm.examples.coroutinesexample
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import io.realm.examples.coroutinesexample.ui.dog.DogFragment
+import io.realm.examples.coroutinesexample.ui.newsreader.NewsReaderFragment
 
 class MainActivity : AppCompatActivity() {
 
@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-                    .replace(R.id.container, DogFragment.newInstance())
+                    .replace(R.id.container, NewsReaderFragment.newInstance())
                     .commitNow()
         }
     }
