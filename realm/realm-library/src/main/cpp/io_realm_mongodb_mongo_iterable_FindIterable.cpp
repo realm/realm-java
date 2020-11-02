@@ -25,7 +25,7 @@
 
 #include <realm/util/optional.hpp>
 #include <realm/object-store//util/bson/bson.hpp>
-#include <realm/object-store/sync/remote_mongo_collection.hpp>
+#include <realm/object-store/sync/mongo_collection.hpp>
 #include <jni_util/bson_util.hpp>
 
 using namespace realm;
