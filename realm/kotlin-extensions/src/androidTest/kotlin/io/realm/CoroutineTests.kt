@@ -194,14 +194,17 @@ class CoroutineTests {
                     .findAllAsync()
                     .toFlow()
             realmInstance.close()
-            // FIXME Collecting after close throw. Emit a more descriptive error
-            //  java.lang.IllegalStateException: 'awaitClose { yourCallbackOrListener.cancel() }' should be used in the end of callbackFlow block.
-//            assertFailsWith<> {
-                findAllAsync.collect()
-//            }
+
+            // There will never be emited any changes, but at least ensure that we are not
+            // triggering coroutines internal
+            // java.lang.IllegalStateException: 'awaitClose { yourCallbackOrListener.cancel() }' should be used in the end of callbackFlow block.
+            assertFailsWith<TimeoutCancellationException> {
+                withTimeout(10) {
+                    findAllAsync.collect()
+                }
+            }
             countDownLatch.countDown()
         }
-
         TestHelper.awaitOrFail(countDownLatch)
     }
 

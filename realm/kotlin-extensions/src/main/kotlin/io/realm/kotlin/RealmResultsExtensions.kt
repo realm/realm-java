@@ -75,6 +75,9 @@ fun <T : RealmModel> RealmResults<T>.toFlow(): Flow<RealmResults<T>> {
 
         // Do nothing if the results are invalid
         if (!results.isValid) {
+            // Prevent callbackFlow's internal asserting
+            // java.lang.IllegalStateException: 'awaitClose { yourCallbackOrListener.cancel() }' should be used in the end of callbackFlow block.
+            awaitClose {}
             return@callbackFlow
         }
 
