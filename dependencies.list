@@ -5,7 +5,7 @@ REALM_SYNC_SHA256=e0cf26042beb9909658e40fe486ac3ac8d023989f9c7a40440d00a34132e14
 
 # Version of MongoDB Realm used by integration tests
 # See https://github.com/realm/ci/packages/147854 for available versions
-MONGODB_REALM_SERVER=2020-09-21
+MONGODB_REALM_SERVER=2020-10-03
 
 # Common Android settings across projects
 GRADLE_BUILD_TOOLS=4.0.0
