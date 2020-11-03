@@ -86,6 +86,16 @@ dependencies {
     implementation "com.squareup.retrofit2:converter-moshi:2.8.1"
     implementation "com.squareup.okhttp3:logging-interceptor:4.9.0"
 
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-rx2:1.4.0"
+
+    /////////////////////
+
+    implementation "androidx.room:room-runtime:2.2.5"
+    kapt "androidx.room:room-compiler:2.2.5"
+    implementation "androidx.room:room-ktx:2.2.5"
+
+    /////////////////////
+
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'

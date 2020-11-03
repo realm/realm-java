@@ -22,12 +22,40 @@ import okhttp3.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
+import java.util.*
+import kotlin.Comparator
 
 interface NYTimesService {
-    // FIXME: add API_KEY usin an interceptor
+    // FIXME: add API_KEY using an interceptor
     @GET("svc/topstories/v2/{section}.json")
     suspend fun topStories(
             @Path("section") section: String,
             @Query(value = "api-key", encoded = true) apiKey: String
     ): NYTimesResponse
 }
+
+val sectionsToNames = mapOf(
+        "home" to "Home",
+        "world" to "World",
+        "national" to "National",
+        "politics" to "Politics",
+        "nyregion" to "NY Region",
+        "business" to "Business",
+        "opinion" to "Opinion",
+        "technology" to "Technology",
+        "science" to "Science",
+        "health" to "Health",
+        "sports" to "Sports",
+        "arts" to "Arts",
+        "fashion" to "Fashion",
+        "dining" to "Dining",
+        "travel" to "Travel",
+        "magazine" to "Magazine",
+        "realestate" to "Real Estate"
+).toSortedMap(
+        Comparator { o1, o2 ->
+            if (o1.toLowerCase(Locale.ROOT) == "home") return@Comparator -1
+            if (o2.toLowerCase(Locale.ROOT) == "home") return@Comparator 1
+            return@Comparator o1.compareTo(o2, ignoreCase = true)
+        }
+)

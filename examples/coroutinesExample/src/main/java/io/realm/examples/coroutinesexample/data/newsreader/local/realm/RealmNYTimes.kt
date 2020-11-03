@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.coroutinesexample.data.newsreader.local
+package io.realm.examples.coroutinesexample.data.newsreader.local.realm
 
 import io.realm.RealmList
 import io.realm.RealmObject
@@ -26,20 +26,21 @@ import java.util.*
 open class RealmNYTimesArticle : RealmObject() {
     var apiSection: String = ""
     var section: String = ""
-    var subsection: String = ""
+    var subsection: String? = null
     var title: String = ""
     var abstract: String = ""
 
     @PrimaryKey
     var url: String = UUID.randomUUID().toString()
-    var uri: String = ""
-    var byline: String = ""
+
+    var uri: String? = null
+    var byline: String? = null
     var itemType: String? = null
     var updatedDate: String? = null
     var createDate: String? = null
     var publishedDate: String? = null
     var materialTypeFacet: String? = null
-    var kicker: String = ""
+    var kicker: String? = null
     var desFacet: RealmList<String> = RealmList()
     var orgFacet: RealmList<String> = RealmList()
     var perFacet: RealmList<String> = RealmList()
@@ -55,14 +56,14 @@ open class RealmNYTimesArticle : RealmObject() {
 
 @RealmClass(embedded = true)
 open class RealmNYTMultimedium : RealmObject() {
-    var url: String = ""
-    var format: String = ""
+    var url: String? = null
+    var format: String? = null
     var height: Int = 0
     var width: Int = 0
-    var type: String = ""
-    var subtype: String = ""
-    var caption: String = ""
-    var copyright: String = ""
+    var type: String? = null
+    var subtype: String? = null
+    var caption: String? = null
+    var copyright: String? = null
 
     @LinkingObjects(RealmNYTimesArticle.EMBEDDED_MULTIMEDIA)
     val parent = RealmNYTimesArticle()

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.coroutinesexample.data.newsreader.local
+package io.realm.examples.coroutinesexample.data.newsreader.local.realm
 
 import io.realm.Realm
 import io.realm.RealmConfiguration
@@ -27,18 +27,17 @@ import kotlinx.coroutines.withContext
 import java.io.Closeable
 import java.util.concurrent.Executors
 
-interface NYTDao : Closeable {
+interface RealmNYTDao : Closeable {
     suspend fun insertArticles(articles: List<RealmNYTimesArticle>)
-    suspend fun deleteArticles()
-    fun getArticles(): Flow<List<RealmNYTimesArticle>>
+    suspend fun deleteArticles(section: String)
+    suspend fun deleteAllArticles()
     fun getArticles(section: String): Flow<List<RealmNYTimesArticle>>
-    fun countArticles(): Long
     fun countArticles(section: String): Long
 }
 
-class RealmNYTDao(
+class RealmNYTDaoImpl(
         private val realmConfiguration: RealmConfiguration
-) : NYTDao {
+) : RealmNYTDao {
 
     private val monoThreadDispatcher = Executors.newFixedThreadPool(1).asCoroutineDispatcher()
     private val closeableRealm = Realm.getInstance(realmConfiguration)
@@ -51,7 +50,7 @@ class RealmNYTDao(
         }
     }
 
-    override suspend fun deleteArticles() {
+    override suspend fun deleteArticles(section: String) {
         withContext(monoThreadDispatcher) {
             runCloseableTransaction(realmConfiguration) { transactionRealm ->
                 transactionRealm.deleteAll()
@@ -59,28 +58,29 @@ class RealmNYTDao(
         }
     }
 
-    override fun getArticles(): Flow<List<RealmNYTimesArticle>> {
-        return closeableRealm.where(RealmNYTimesArticle::class.java)
-                .findAllAsync()
-                .toFlow()
+    override suspend fun deleteAllArticles() {
+        withContext(monoThreadDispatcher) {
+            runCloseableTransaction(realmConfiguration) { transactionRealm ->
+                transactionRealm.deleteAll()
+            }
+        }
     }
 
     override fun getArticles(section: String): Flow<List<RealmNYTimesArticle>> {
-        return closeableRealm.where(RealmNYTimesArticle::class.java)
+        return closeableRealm.where<RealmNYTimesArticle>()
                 .equalTo(RealmNYTimesArticle.COLUMN_API_SECTION, section)
                 .findAllAsync()
                 .toFlow()
     }
 
-    override fun countArticles(): Long =
-            closeableRealm.where<RealmNYTimesArticle>().count()
-
-    override fun countArticles(section: String): Long =
-            closeableRealm.where<RealmNYTimesArticle>()
-                    .equalTo(RealmNYTimesArticle.COLUMN_API_SECTION, section)
-                    .count()
+    override fun countArticles(section: String): Long {
+        return closeableRealm.where<RealmNYTimesArticle>()
+                .equalTo(RealmNYTimesArticle.COLUMN_API_SECTION, section)
+                .count()
+    }
 
     override fun close() {
         closeableRealm.close()
     }
 }
+

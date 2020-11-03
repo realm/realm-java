@@ -17,7 +17,6 @@
 package io.realm.examples.coroutinesexample.data.newsreader.network
 
 import io.realm.examples.coroutinesexample.data.newsreader.network.model.NYTimesResponse
-import okhttp3.OkHttp
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit

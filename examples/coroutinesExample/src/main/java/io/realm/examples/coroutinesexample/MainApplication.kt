@@ -17,7 +17,9 @@
 package io.realm.examples.coroutinesexample
 
 import androidx.multidex.MultiDexApplication
+import androidx.room.Room
 import io.realm.Realm
+import io.realm.examples.coroutinesexample.data.newsreader.local.room.NYTDatabase
 
 const val TAG = "--- CoroutinesExample"
 
@@ -26,5 +28,13 @@ class MainApplication : MultiDexApplication() {
     override fun onCreate() {
         super.onCreate()
         Realm.init(this)
+
+        ROOM_DB = Room.databaseBuilder(this, NYTDatabase::class.java, "articles_database")
+                .allowMainThreadQueries()
+                .build()
+    }
+
+    companion object {
+        lateinit var ROOM_DB: NYTDatabase
     }
 }

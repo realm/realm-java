@@ -24,9 +24,9 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import io.realm.examples.coroutinesexample.R
-import io.realm.examples.coroutinesexample.domain.newsreader.model.DomainNYTArticle
+import io.realm.examples.coroutinesexample.data.newsreader.local.realm.RealmNYTimesArticle
 
-class DomainNewsReaderAdapter : ListAdapter<DomainNYTArticle, DomainNewsReaderAdapter.ArticleViewHolder>(DIFF_CALLBACK) {
+class DomainNewsReaderAdapter : ListAdapter<RealmNYTimesArticle, DomainNewsReaderAdapter.ArticleViewHolder>(DIFF_CALLBACK) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ArticleViewHolder =
             LayoutInflater.from(parent.context)
@@ -43,11 +43,11 @@ class DomainNewsReaderAdapter : ListAdapter<DomainNYTArticle, DomainNewsReaderAd
     }
 
     companion object {
-        val DIFF_CALLBACK = object : DiffUtil.ItemCallback<DomainNYTArticle>() {
-            override fun areItemsTheSame(oldItem: DomainNYTArticle, newItem: DomainNYTArticle): Boolean =
+        val DIFF_CALLBACK = object : DiffUtil.ItemCallback<RealmNYTimesArticle>() {
+            override fun areItemsTheSame(oldItem: RealmNYTimesArticle, newItem: RealmNYTimesArticle): Boolean =
                     oldItem == newItem
 
-            override fun areContentsTheSame(oldItem: DomainNYTArticle, newItem: DomainNYTArticle): Boolean =
+            override fun areContentsTheSame(oldItem: RealmNYTimesArticle, newItem: RealmNYTimesArticle): Boolean =
                     oldItem.title == newItem.title && oldItem.abstract == newItem.abstract
         }
     }

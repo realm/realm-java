@@ -21,19 +21,21 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.dropbox.android.external.store4.StoreResponse
 import io.realm.examples.coroutinesexample.R
 import io.realm.examples.coroutinesexample.TAG
-import io.realm.examples.coroutinesexample.data.newsreader.local.RealmNYTimesArticle
+import io.realm.examples.coroutinesexample.data.newsreader.local.realm.RealmNYTimesArticle
+import io.realm.examples.coroutinesexample.data.newsreader.local.room.RoomNYTimesArticle
+import io.realm.examples.coroutinesexample.data.newsreader.network.sectionsToNames
 import io.realm.examples.coroutinesexample.databinding.FragmentNewsReaderBinding
-import io.realm.examples.coroutinesexample.domain.newsreader.NYTMapper.toDomainArticles
-import io.realm.examples.coroutinesexample.ui.dog.DogFragment
-import io.realm.examples.coroutinesexample.ui.dog.DomainDogAdapter
+import io.realm.examples.coroutinesexample.domain.newsreader.model.DomainNYTArticle
+import java.util.*
 
 class NewsReaderFragment : Fragment() {
 
@@ -49,9 +51,36 @@ class NewsReaderFragment : Fragment() {
     ): View? = FragmentNewsReaderBinding.inflate(inflater, container, false)
             .also { binding ->
                 this.binding = binding
+                setupSpinner()
                 setupRecyclerView()
                 setupLiveData()
             }.root
+
+    private fun setupSpinner() {
+        with(binding.spinner) {
+            adapter = ArrayAdapter<CharSequence>(
+                    context,
+                    android.R.layout.simple_spinner_dropdown_item,
+                    sectionsToNames.values.toTypedArray()
+            )
+            onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+                    sectionsToNames.let { sectionMap ->
+                        for (key in sectionMap.keys) {
+                            if (key.toLowerCase(Locale.ROOT) == (adapter.getItem(position) as String).toLowerCase(Locale.ROOT)) {
+                                viewModel.getTopStories(key)
+                                break
+                            }
+                        }
+                    }
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>) {
+                    // No-op
+                }
+            }
+        }
+    }
 
     private fun setupRecyclerView() {
         with(binding.list) {
@@ -61,62 +90,75 @@ class NewsReaderFragment : Fragment() {
 
         with(binding.refresh) {
             setOnRefreshListener {
-                viewModel.refreshTopStories()
+                viewModel.getTopStories(viewModel.section, true)
             }
         }
     }
 
     private fun setupLiveData() {
-        viewModel.storeResponse.observe(viewLifecycleOwner, Observer { response ->
-            when (response) {
-                is StoreResponse.Loading -> NewsReaderFragment.StateHelper.loading(binding)
-                is StoreResponse.Data -> NewsReaderFragment.StateHelper.data(binding, response, newsReaderAdapter)
-                is StoreResponse.NoNewData -> NewsReaderFragment.StateHelper.noNewData(binding)
-                is StoreResponse.Error.Exception -> NewsReaderFragment.StateHelper.errorException(binding, response.error)
-                is StoreResponse.Error.Message -> NewsReaderFragment.StateHelper.errorMessage(binding, response)
+        viewModel.newsReaderState.observe(viewLifecycleOwner, Observer { viewState ->
+            when (viewState) {
+                is NewsReaderState.Loading -> StateHelper.loading(binding)
+                is NewsReaderState.Data -> StateHelper.data(binding, viewState.data, newsReaderAdapter)
+                is NewsReaderState.NoNewData -> StateHelper.noNewData(binding)
+                is NewsReaderState.ErrorException -> StateHelper.errorException(binding, viewState.throwable)
+                is NewsReaderState.ErrorMessage -> StateHelper.errorMessage(binding, viewState.message)
             }
         })
     }
 
-    private object StateHelper {
-        fun loading(binding: FragmentNewsReaderBinding) {
-            if (!binding.refresh.isRefreshing) {
-                binding.refresh.setRefreshing(true)
-            }
-        }
-
-        fun data(
-                binding: FragmentNewsReaderBinding,
-                response: StoreResponse.Data<List<RealmNYTimesArticle>>,
-                newsReaderAdapter: DomainNewsReaderAdapter
-        ) {
-            if (binding.refresh.isRefreshing) {
-                binding.refresh.setRefreshing(false)
-            }
-            newsReaderAdapter.submitList(response.value.toDomainArticles())
-        }
-
-        fun noNewData(binding: FragmentNewsReaderBinding) {
-            // do nothing...?
-        }
-
-        fun errorException(binding: FragmentNewsReaderBinding, throwable: Throwable) {
-            val stacktrace = throwable.cause?.stackTrace?.joinToString { "$it\n" }
-            Log.e(TAG, "--- error (exception): ${throwable.message} - ${throwable.cause?.message}: $stacktrace")
-            Toast.makeText(binding.root.context, R.string.error_generic, Toast.LENGTH_SHORT).show()
-        }
-
-        fun errorMessage(
-                binding: FragmentNewsReaderBinding,
-                response: StoreResponse.Error.Message
-        ) {
-            Log.e(TAG, "--- error (message): ${response.message}")
-            Toast.makeText(binding.root.context, R.string.error_generic, Toast.LENGTH_SHORT).show()
-        }
-
-    }
-
     companion object {
         fun newInstance() = NewsReaderFragment()
+    }
+}
+
+sealed class NewsReaderState {
+
+    abstract val origin: String
+
+    data class Loading(override val origin: String) : NewsReaderState()
+    data class Data(override val origin: String, val data: List<RealmNYTimesArticle>) : NewsReaderState()
+    data class NoNewData(override val origin: String) : NewsReaderState()
+    data class ErrorException(override val origin: String, val throwable: Throwable) : NewsReaderState()
+    data class ErrorMessage(override val origin: String, val message: String) : NewsReaderState()
+}
+
+private object StateHelper {
+    fun loading(binding: FragmentNewsReaderBinding) {
+        if (!binding.refresh.isRefreshing) {
+            binding.refresh.setRefreshing(true)
+        }
+    }
+
+    fun data(
+            binding: FragmentNewsReaderBinding,
+            data: List<RealmNYTimesArticle>,
+            newsReaderAdapter: DomainNewsReaderAdapter
+    ) {
+        hideLoadingSpinner(binding)
+        newsReaderAdapter.submitList(data)
+    }
+
+    fun noNewData(binding: FragmentNewsReaderBinding) {
+        hideLoadingSpinner(binding)
+    }
+
+    fun errorException(binding: FragmentNewsReaderBinding, throwable: Throwable) {
+        hideLoadingSpinner(binding)
+        val stacktrace = throwable.cause?.stackTrace?.joinToString { "$it\n" }
+        Log.e(TAG, "--- error (exception): ${throwable.message} - ${throwable.cause?.message}: $stacktrace")
+        Toast.makeText(binding.root.context, R.string.error_generic, Toast.LENGTH_SHORT).show()
+    }
+
+    fun errorMessage(binding: FragmentNewsReaderBinding, message: String) {
+        hideLoadingSpinner(binding)
+        Log.e(TAG, "--- error (message): $message")
+        Toast.makeText(binding.root.context, R.string.error_generic, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun hideLoadingSpinner(binding: FragmentNewsReaderBinding) {
+        if (binding.refresh.isRefreshing) {
+            binding.refresh.setRefreshing(false)
+        }
     }
 }
