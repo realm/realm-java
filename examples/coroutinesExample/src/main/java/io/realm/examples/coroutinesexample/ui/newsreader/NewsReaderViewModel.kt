@@ -85,16 +85,8 @@ class NewsReaderViewModel : ViewModel() {
 
     fun getTopStories(apiSection: String, refresh: Boolean = false) {
         viewModelScope.launch {
-            if (section != apiSection) {
-                section = apiSection
-                store.fresh(section)
-            } else {
-                if (refresh) {
-                    store.fresh(section)
-                } else {
-                    store.get(section)
-                }
-            }
+            section = apiSection
+            store.fresh(section)
         }
     }
 
@@ -103,7 +95,7 @@ class NewsReaderViewModel : ViewModel() {
                 key = section,
                 refresh = true
         )).onEach { response ->
-            Log.e(TAG, "--- response: $response")
+            Log.d(TAG, "--- response: $response")
 
             val origin = response.origin.toString()
 
