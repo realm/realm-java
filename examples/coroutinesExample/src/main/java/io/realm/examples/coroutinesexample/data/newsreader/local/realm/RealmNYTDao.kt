@@ -18,11 +18,13 @@ package io.realm.examples.coroutinesexample.data.newsreader.local.realm
 
 import io.realm.Realm
 import io.realm.RealmConfiguration
+import io.realm.RealmResults
 import io.realm.examples.coroutinesexample.util.runCloseableTransaction
 import io.realm.kotlin.toFlow
 import io.realm.kotlin.where
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 import java.util.concurrent.Executors
@@ -31,6 +33,7 @@ interface RealmNYTDao : Closeable {
     suspend fun insertArticles(articles: List<RealmNYTimesArticle>)
     suspend fun deleteArticles(section: String)
     suspend fun deleteAllArticles()
+    fun getArticlesBlocking(section: String) : RealmResults<RealmNYTimesArticle>
     fun getArticles(section: String): Flow<List<RealmNYTimesArticle>>
     fun countArticles(section: String): Long
 }
@@ -66,11 +69,18 @@ class RealmNYTDaoImpl(
         }
     }
 
+    override fun getArticlesBlocking(section: String) : RealmResults<RealmNYTimesArticle> {
+        return closeableRealm.where<RealmNYTimesArticle>()
+                .equalTo(RealmNYTimesArticle.COLUMN_API_SECTION, section)
+                .findAllAsync()
+    }
+
     override fun getArticles(section: String): Flow<List<RealmNYTimesArticle>> {
         return closeableRealm.where<RealmNYTimesArticle>()
                 .equalTo(RealmNYTimesArticle.COLUMN_API_SECTION, section)
                 .findAllAsync()
-                .toFlow()
+                .asFlowable()
+                .asFlow()
     }
 
     override fun countArticles(section: String): Long {

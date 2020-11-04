@@ -23,6 +23,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.SpinnerAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -30,17 +31,15 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.realm.examples.coroutinesexample.R
 import io.realm.examples.coroutinesexample.TAG
-import io.realm.examples.coroutinesexample.data.newsreader.local.realm.RealmNYTimesArticle
 import io.realm.examples.coroutinesexample.data.newsreader.local.room.RoomNYTimesArticle
 import io.realm.examples.coroutinesexample.data.newsreader.network.sectionsToNames
 import io.realm.examples.coroutinesexample.databinding.FragmentNewsReaderBinding
-import io.realm.examples.coroutinesexample.domain.newsreader.model.DomainNYTArticle
 import java.util.*
 
 class NewsReaderFragment : Fragment() {
 
     private val viewModel: NewsReaderViewModel by viewModels()
-    private val newsReaderAdapter = DomainNewsReaderAdapter()
+    private val newsReaderAdapter = NewsReaderAdapter()
 
     private lateinit var binding: FragmentNewsReaderBinding
 
@@ -65,14 +64,7 @@ class NewsReaderFragment : Fragment() {
             )
             onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                    sectionsToNames.let { sectionMap ->
-                        for (key in sectionMap.keys) {
-                            if (key.toLowerCase(Locale.ROOT) == (adapter.getItem(position) as String).toLowerCase(Locale.ROOT)) {
-                                viewModel.getTopStories(key)
-                                break
-                            }
-                        }
-                    }
+                    viewModel.getTopStories(getKey(adapter, position))
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>) {
@@ -90,7 +82,10 @@ class NewsReaderFragment : Fragment() {
 
         with(binding.refresh) {
             setOnRefreshListener {
-                viewModel.getTopStories(viewModel.section, true)
+                with(binding.spinner) {
+                    val key = getKey(adapter, selectedItemPosition)
+                    viewModel.getTopStories(key, true)
+                }
             }
         }
     }
@@ -107,6 +102,17 @@ class NewsReaderFragment : Fragment() {
         })
     }
 
+    private fun getKey(adapter: SpinnerAdapter, position: Int): String {
+        return sectionsToNames.let { sectionMap ->
+            for (key in sectionMap.keys) {
+                if (key.toLowerCase(Locale.ROOT) == (adapter.getItem(position) as String).toLowerCase(Locale.ROOT)) {
+                    return@let key
+                }
+            }
+            throw IllegalStateException("Key not found")
+        }
+    }
+
     companion object {
         fun newInstance() = NewsReaderFragment()
     }
@@ -117,7 +123,7 @@ sealed class NewsReaderState {
     abstract val origin: String
 
     data class Loading(override val origin: String) : NewsReaderState()
-    data class Data(override val origin: String, val data: List<RealmNYTimesArticle>) : NewsReaderState()
+    data class Data(override val origin: String, val data: List<RoomNYTimesArticle>) : NewsReaderState()
     data class NoNewData(override val origin: String) : NewsReaderState()
     data class ErrorException(override val origin: String, val throwable: Throwable) : NewsReaderState()
     data class ErrorMessage(override val origin: String, val message: String) : NewsReaderState()
@@ -132,8 +138,8 @@ private object StateHelper {
 
     fun data(
             binding: FragmentNewsReaderBinding,
-            data: List<RealmNYTimesArticle>,
-            newsReaderAdapter: DomainNewsReaderAdapter
+            data: List<RoomNYTimesArticle>,
+            newsReaderAdapter: NewsReaderAdapter
     ) {
         hideLoadingSpinner(binding)
         newsReaderAdapter.submitList(data)
