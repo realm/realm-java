@@ -41,7 +41,6 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.File
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -73,6 +72,7 @@ class SyncedRealmIntegrationTests {
                 //  could make test booting with a cleaner state by somehow flushing data between
                 //  tests.
                 .createSyncConfigurationBuilder(user, BsonObjectId(ObjectId()))
+                .testSchema(StringOnly::class.java)
                 .modules(DefaultSyncSchema())
                 .build()
     }
@@ -213,6 +213,7 @@ class SyncedRealmIntegrationTests {
     fun waitForInitialData_resilientInCaseOfRetriesAsync() = looperThread.runBlocking {
         val config: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, user.id)
                 .testSessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
+                .testSchema(SyncStringOnly::class.java)
                 .waitForInitialRemoteData()
                 .build()
         val randomizer = Random()
@@ -297,7 +298,10 @@ class SyncedRealmIntegrationTests {
 
     @Test
     fun defaultRealm() {
-        val config: SyncConfiguration = SyncConfiguration.defaultConfig(user, user.id)
+        val config: SyncConfiguration = SyncConfiguration.Builder(user, user.id)
+                .testSchema(SyncStringOnly::class.java)
+                .build()
+
         Realm.getInstance(config).use { realm ->
             realm.syncSession.downloadAllServerChanges()
             realm.refresh()
@@ -319,7 +323,7 @@ class SyncedRealmIntegrationTests {
         val password = "password"
         val user: User = app.registerUserAndLogin(username, password)
         val config: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, Constants.USER_REALM)
-                .testSchema(StringOnly::class.java)
+                .testSchema(SyncStringOnly::class.java)
                 .build()
         val realm = Realm.getInstance(config)
         app.sync.reconnect()
