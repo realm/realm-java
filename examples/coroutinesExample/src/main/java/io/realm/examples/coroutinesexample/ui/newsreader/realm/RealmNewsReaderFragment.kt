@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.coroutinesexample.ui.newsreader
+package io.realm.examples.coroutinesexample.ui.newsreader.realm
 
 import android.os.Bundle
 import android.util.Log
@@ -31,15 +31,19 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.realm.examples.coroutinesexample.R
 import io.realm.examples.coroutinesexample.TAG
-import io.realm.examples.coroutinesexample.data.newsreader.local.room.RoomNYTimesArticle
+import io.realm.examples.coroutinesexample.data.newsreader.local.realm.RealmNYTimesArticle
 import io.realm.examples.coroutinesexample.data.newsreader.network.sectionsToNames
 import io.realm.examples.coroutinesexample.databinding.FragmentNewsReaderBinding
+import io.realm.examples.coroutinesexample.ui.newsreader.RealmNewsReaderAdapter
 import java.util.*
 
-class NewsReaderFragment : Fragment() {
+/**
+ * Realm implementation.
+ */
+class RealmNewsReaderFragment : Fragment() {
 
-    private val viewModel: NewsReaderViewModel by viewModels()
-    private val newsReaderAdapter = NewsReaderAdapter()
+    private val viewModel: RealmNewsReaderViewModel by viewModels()
+    private val newsReaderAdapter = RealmNewsReaderAdapter()
 
     private lateinit var binding: FragmentNewsReaderBinding
 
@@ -93,11 +97,11 @@ class NewsReaderFragment : Fragment() {
     private fun setupLiveData() {
         viewModel.newsReaderState.observe(viewLifecycleOwner, Observer { viewState ->
             when (viewState) {
-                is NewsReaderState.Loading -> StateHelper.loading(binding)
-                is NewsReaderState.Data -> StateHelper.data(binding, viewState.data, newsReaderAdapter)
-                is NewsReaderState.NoNewData -> StateHelper.noNewData(binding)
-                is NewsReaderState.ErrorException -> StateHelper.errorException(binding, viewState.throwable)
-                is NewsReaderState.ErrorMessage -> StateHelper.errorMessage(binding, viewState.message)
+                is RealmNewsReaderState.Loading -> RealmStateHelper.loading(binding)
+                is RealmNewsReaderState.Data -> RealmStateHelper.data(binding, viewState.data, newsReaderAdapter)
+                is RealmNewsReaderState.NoNewData -> RealmStateHelper.noNewData(binding)
+                is RealmNewsReaderState.ErrorException -> RealmStateHelper.errorException(binding, viewState.throwable)
+                is RealmNewsReaderState.ErrorMessage -> RealmStateHelper.errorMessage(binding, viewState.message)
             }
         })
     }
@@ -114,22 +118,22 @@ class NewsReaderFragment : Fragment() {
     }
 
     companion object {
-        fun newInstance() = NewsReaderFragment()
+        fun newInstance() = RealmNewsReaderFragment()
     }
 }
 
-sealed class NewsReaderState {
+sealed class RealmNewsReaderState {
 
     abstract val origin: String
 
-    data class Loading(override val origin: String) : NewsReaderState()
-    data class Data(override val origin: String, val data: List<RoomNYTimesArticle>) : NewsReaderState()
-    data class NoNewData(override val origin: String) : NewsReaderState()
-    data class ErrorException(override val origin: String, val throwable: Throwable) : NewsReaderState()
-    data class ErrorMessage(override val origin: String, val message: String) : NewsReaderState()
+    data class Loading(override val origin: String) : RealmNewsReaderState()
+    data class Data(override val origin: String, val data: List<RealmNYTimesArticle>) : RealmNewsReaderState()
+    data class NoNewData(override val origin: String) : RealmNewsReaderState()
+    data class ErrorException(override val origin: String, val throwable: Throwable) : RealmNewsReaderState()
+    data class ErrorMessage(override val origin: String, val message: String) : RealmNewsReaderState()
 }
 
-private object StateHelper {
+private object RealmStateHelper {
     fun loading(binding: FragmentNewsReaderBinding) {
         if (!binding.refresh.isRefreshing) {
             binding.refresh.setRefreshing(true)
@@ -138,8 +142,8 @@ private object StateHelper {
 
     fun data(
             binding: FragmentNewsReaderBinding,
-            data: List<RoomNYTimesArticle>,
-            newsReaderAdapter: NewsReaderAdapter
+            data: List<RealmNYTimesArticle>,
+            newsReaderAdapter: RealmNewsReaderAdapter
     ) {
         hideLoadingSpinner(binding)
         newsReaderAdapter.submitList(data)
