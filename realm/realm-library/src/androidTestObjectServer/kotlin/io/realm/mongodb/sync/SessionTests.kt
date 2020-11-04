@@ -20,7 +20,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.TestHelper.TestLogger
-import io.realm.entities.*
+import io.realm.entities.DefaultSyncSchema
+import io.realm.entities.SyncStringOnly
+import io.realm.entities.SyncStringOnlyModule
 import io.realm.exceptions.RealmFileException
 import io.realm.exceptions.RealmMigrationNeededException
 import io.realm.kotlin.syncSession
@@ -209,11 +211,10 @@ class SessionTests {
                     }
                     looperThread.testComplete()
                 }
-                .modules(StringOnlyModule())
                 .build()
         val realm = Realm.getInstance(config)
         realm.executeTransaction {
-            realm.createObject(SyncStringOnly::class.java).chars = "Foo"
+            realm.createObject(SyncStringOnly::class.java, ObjectId()).chars = "Foo"
         }
         resources.add(realm)
 
@@ -294,7 +295,7 @@ class SessionTests {
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .clientResyncMode(ClientResyncMode.MANUAL)
                 .encryptionKey(randomKey)
-                .modules(StringOnlyModule())
+                .modules(SyncStringOnlyModule())
                 .clientResetHandler { session: SyncSession?, error: ClientResetRequiredError ->
                     // Execute Client Reset
                     resources.close()
@@ -303,23 +304,23 @@ class SessionTests {
 
                     // can open encrypted backup Realm
                     Realm.getInstance(backupRealmConfiguration).use { backupEncryptedRealm ->
-                        assertEquals(1, backupEncryptedRealm.where(StringOnly::class.java).count())
-                        val allSorted = backupEncryptedRealm.where(StringOnly::class.java).findAll()
+                        assertEquals(1, backupEncryptedRealm.where(SyncStringOnly::class.java).count())
+                        val allSorted = backupEncryptedRealm.where(SyncStringOnly::class.java).findAll()
                         assertEquals("Foo", allSorted[0]!!.chars)
                     }
                     val backupFile = error.backupFile.absolutePath
 
                     // build a conf to open a DynamicRealm
-                    backupRealmConfiguration = SyncConfiguration.forRecovery(backupFile, randomKey, StringOnlyModule())
+                    backupRealmConfiguration = SyncConfiguration.forRecovery(backupFile, randomKey, SyncStringOnlyModule())
                     Realm.getInstance(backupRealmConfiguration).use { backupEncryptedRealm ->
-                        assertEquals(1, backupEncryptedRealm.where(StringOnly::class.java).count())
-                        val allSorted = backupEncryptedRealm.where(StringOnly::class.java).findAll()
+                        assertEquals(1, backupEncryptedRealm.where(SyncStringOnly::class.java).count())
+                        val allSorted = backupEncryptedRealm.where(SyncStringOnly::class.java).findAll()
                         assertEquals("Foo", allSorted[0]!!.chars)
                     }
 
                     // using wrong key throw
                     assertFailsWith<RealmFileException> {
-                        Realm.getInstance(SyncConfiguration.forRecovery(backupFile, TestHelper.getRandomKey(), StringOnlyModule()))
+                        Realm.getInstance(SyncConfiguration.forRecovery(backupFile, TestHelper.getRandomKey(), SyncStringOnlyModule()))
                     }
                     looperThread.testComplete()
                 }
@@ -327,7 +328,7 @@ class SessionTests {
 
         val realm = Realm.getInstance(config)
         realm.executeTransaction {
-            realm.createObject(StringOnly::class.java).chars = "Foo"
+            realm.createObject(SyncStringOnly::class.java, ObjectId()).chars = "Foo"
         }
         resources.add(realm)
 
