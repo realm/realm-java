@@ -352,14 +352,14 @@ class SyncConfigurationTests {
         val user: User = createTestUser(app)
 
         val configs = listOf<SyncConfiguration>(
-            SyncConfiguration.defaultConfig(user, null as String?),
-            SyncConfiguration.defaultConfig(user, null as Int?),
-            SyncConfiguration.defaultConfig(user, null as Long?),
-            SyncConfiguration.defaultConfig(user, null as ObjectId?),
-            SyncConfiguration.Builder(user, null as String?).build(),
-            SyncConfiguration.Builder(user, null as Int?).build(),
-            SyncConfiguration.Builder(user, null as Long?).build(),
-            SyncConfiguration.Builder(user, null as ObjectId?).build()
+                SyncConfiguration.defaultConfig(user, null as String?),
+                SyncConfiguration.defaultConfig(user, null as Int?),
+                SyncConfiguration.defaultConfig(user, null as Long?),
+                SyncConfiguration.defaultConfig(user, null as ObjectId?),
+                SyncConfiguration.Builder(user, null as String?).build(),
+                SyncConfiguration.Builder(user, null as Int?).build(),
+                SyncConfiguration.Builder(user, null as Long?).build(),
+                SyncConfiguration.Builder(user, null as ObjectId?).build()
         )
 
         configs.forEach { config ->
@@ -379,4 +379,49 @@ class SyncConfigurationTests {
         }
     }
 
+    @Test
+    fun allowQueriesOnUiThread_defaultsToTrue() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.build()
+        assertTrue(configuration.isAllowQueriesOnUiThread)
+    }
+
+    @Test
+    fun allowQueriesOnUiThread_explicitFalse() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.allowQueriesOnUiThread(false)
+                .build()
+        assertFalse(configuration.isAllowQueriesOnUiThread)
+    }
+
+    @Test
+    fun allowQueriesOnUiThread_explicitTrue() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.allowQueriesOnUiThread(true)
+                .build()
+        assertTrue(configuration.isAllowQueriesOnUiThread)
+    }
+
+    @Test
+    fun allowWritesOnUiThread_defaultsToFalse() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.build()
+        assertFalse(configuration.isAllowWritesOnUiThread)
+    }
+
+    @Test
+    fun allowWritesOnUiThread_explicitFalse() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.allowWritesOnUiThread(false)
+                .build()
+        assertFalse(configuration.isAllowWritesOnUiThread)
+    }
+
+    @Test
+    fun allowWritesOnUiThread_explicitTrue() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.allowWritesOnUiThread(true)
+                .build()
+        assertTrue(configuration.isAllowWritesOnUiThread)
+    }
 }
