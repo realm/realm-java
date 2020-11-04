@@ -4,16 +4,22 @@
 * None.
 
 ### Enhancements
-* None.
+* Improved the error message for `NoSuchTable` errors. In some cases an outdated native reference was used,but the table was still there. In those cases an `InvalidTableRef` error is now used.
 
 ### Fixes
-* Crash with `Assertion failed: m_method_id != nullptr with (method_name, signature) =  ["<init>", "(Ljava/lang/String;)V"]` when `Minify` is enabled.
+* Crash with `Assertion failed: m_method_id != nullptr with (method_name, signature) =  ["<init>", "(Ljava/lang/String;)V"]` when `Minify` is enabled. (Issue [#7159](https://github.com/realm/realm-java/pull/7159), since 10.0.0)
+* Fix crash in case insensitive query on indexed string columns when nothing matches (Cocoa issue [#6836](https://github.com/realm/realm-cocoa/issues/6836), since v10.0.0)
+* Fix list of primitives with nullable values where `Lst::is_null(ndx)` always false even on null values, (Core issue [#3987](https://github.com/realm/realm-core/pull/3987), since v10.0.0).
+* Fix queries for the size of a list of primitive nullable ints returning size + 1. (Core issue [#4016](https://github.com/realm/realm-core/pull/4016), since v10.0.0).
 
 ### Compatibility
-* None.
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
 
 ### Internal
-* None.
+* Updated to Realm Sync: 10.1.0.
+* Updated to Realm Core: 10.1.0.
 
 
 ## 10.0.0 (2020-10-15)
