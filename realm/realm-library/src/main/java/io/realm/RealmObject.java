@@ -47,6 +47,8 @@ import io.realm.rx.ObjectChange;
  * <li>byte[]</li>
  * <li>String</li>
  * <li>Date</li>
+ * <li>org.bson.Decimal128</li>
+ * <li>org.bson.ObjectId</li>
  * <li>Any RealmObject subclass</li>
  * <li>RealmList</li>
  * </ul>
