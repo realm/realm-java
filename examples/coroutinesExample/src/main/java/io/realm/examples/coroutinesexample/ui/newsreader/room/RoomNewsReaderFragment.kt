@@ -67,7 +67,8 @@ class RoomNewsReaderFragment : Fragment() {
             )
             onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                    viewModel.getTopStories(getKey(adapter, position))
+                    val apiSection = getKey(adapter, position)
+                    viewModel.getTopStories(apiSection)
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>) {

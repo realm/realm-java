@@ -35,7 +35,7 @@ class NYTimesApiClientImpl : NYTimesApiClient {
 
     init {
         // FIXME: inject retrofit and client instead
-        val interceptor = HttpLoggingInterceptor().apply { setLevel(HttpLoggingInterceptor.Level.BODY) }
+        val interceptor = HttpLoggingInterceptor().apply { setLevel(HttpLoggingInterceptor.Level.BASIC) }
         val okHttpClient = OkHttpClient.Builder().addInterceptor(interceptor).build()
 
         service = Retrofit.Builder()

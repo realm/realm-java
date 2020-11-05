@@ -14,7 +14,7 @@ suspend fun RoomNYTDao.insertArticles(
         articles: List<NYTimesArticle>
 ) {
     deleteArticles(apiSection)
-    val roomArticles = articles.toRoomArticles(apiSection).take(10)
+    val roomArticles = articles.toRoomArticles(apiSection)
     insertArticles(roomArticles)
 }
 

@@ -34,7 +34,6 @@ import io.realm.examples.coroutinesexample.TAG
 import io.realm.examples.coroutinesexample.data.newsreader.local.realm.RealmNYTimesArticle
 import io.realm.examples.coroutinesexample.data.newsreader.network.sectionsToNames
 import io.realm.examples.coroutinesexample.databinding.FragmentNewsReaderBinding
-import io.realm.examples.coroutinesexample.ui.newsreader.RealmNewsReaderAdapter
 import java.util.*
 
 /**
@@ -68,7 +67,8 @@ class RealmNewsReaderFragment : Fragment() {
             )
             onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                    viewModel.getTopStories(getKey(adapter, position))
+                    val apiSection = getKey(adapter, position)
+                    viewModel.getTopStories(apiSection)
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>) {

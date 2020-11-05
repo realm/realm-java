@@ -23,29 +23,27 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dropbox.android.external.store4.*
 import io.realm.RealmConfiguration
-import io.realm.examples.coroutinesexample.MainApplication
 import io.realm.examples.coroutinesexample.TAG
 import io.realm.examples.coroutinesexample.data.newsreader.local.realm.RealmNYTDao
 import io.realm.examples.coroutinesexample.data.newsreader.local.realm.RealmNYTDaoImpl
 import io.realm.examples.coroutinesexample.data.newsreader.local.realm.RealmNYTimesArticle
 import io.realm.examples.coroutinesexample.data.newsreader.local.realm.insertArticles
-import io.realm.examples.coroutinesexample.data.newsreader.local.room.RoomNYTDao
-import io.realm.examples.coroutinesexample.data.newsreader.local.room.RoomNYTimesArticle
-import io.realm.examples.coroutinesexample.data.newsreader.local.room.insertArticles
 import io.realm.examples.coroutinesexample.data.newsreader.network.NYTimesApiClient
 import io.realm.examples.coroutinesexample.data.newsreader.network.NYTimesApiClientImpl
 import io.realm.examples.coroutinesexample.data.newsreader.network.model.NYTimesArticle
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
+import kotlin.time.ExperimentalTime
+import kotlin.time.seconds
 
 /**
  * Realm implementation.
  */
-@ExperimentalStoreApi
 @ExperimentalCoroutinesApi
+@ExperimentalStoreApi
+@ExperimentalTime
 @FlowPreview
 class RealmNewsReaderViewModel : ViewModel() {
 
@@ -58,17 +56,19 @@ class RealmNewsReaderViewModel : ViewModel() {
     val newsReaderState: LiveData<RealmNewsReaderState>
         get() = _newsReaderState
 
+    private var currentJob: Job? = null
+
     init {
         val fetcher: Fetcher<String, List<NYTimesArticle>> = Fetcher.of { apiSection ->
-            val kajsh = 0
-            val apiResults = nytApiClient.getTopStories(apiSection).results
-            val kjhasd = 0
-            apiResults
+            nytApiClient.getTopStories(apiSection).results
         }
 
         val sourceOfTruth: SourceOfTruth<String, List<NYTimesArticle>, List<RealmNYTimesArticle>> = SourceOfTruth.of(
                 reader = { apiSection ->
-                    realmDao.getArticles(apiSection)
+                    realmDao.getArticles(apiSection).map { articles ->
+                        if (articles.isEmpty()) null
+                        else articles
+                    }
                 },
                 writer = { apiSection, articles ->
                     realmDao.insertArticles(apiSection, articles)
@@ -81,10 +81,14 @@ class RealmNewsReaderViewModel : ViewModel() {
                 }
         )
 
-        store = StoreBuilder.from(fetcher, sourceOfTruth)
+        val cachePolicy = MemoryPolicy.MemoryPolicyBuilder<String, List<RealmNYTimesArticle>>()
+                .setMaxSize(3)
+                .setExpireAfterWrite(30.seconds)
                 .build()
 
-        setupStoreStream()
+        store = StoreBuilder.from(fetcher, sourceOfTruth)
+                .cachePolicy(cachePolicy)
+                .build()
     }
 
     override fun onCleared() {
@@ -92,29 +96,41 @@ class RealmNewsReaderViewModel : ViewModel() {
     }
 
     fun getTopStories(apiSection: String, refresh: Boolean = false) {
+        Log.d(TAG, "--- apiSection: $apiSection - refresh '$refresh'")
         viewModelScope.launch {
-            store.fresh(apiSection)
+            // Cancel previous streams when selecting a different section
+            currentJob?.cancelAndJoin()
+            currentJob = store.stream(StoreRequest.cached(
+                    key = apiSection,
+                    refresh = refresh
+            )).onEach { response ->
+                val origin = response.origin.toString()
+
+                when (response) {
+                    is StoreResponse.Loading -> {
+                        Log.d(TAG, "--- response origin: ${response.origin} - Loading '$apiSection'")
+                        RealmNewsReaderState.Loading(origin)
+                    }
+                    is StoreResponse.Data -> {
+                        Log.d(TAG, "--- response origin: ${response.origin} - Data '$apiSection': ${response.value.size}")
+                        RealmNewsReaderState.Data(origin, response.value)
+                    }
+                    is StoreResponse.NoNewData -> {
+                        Log.d(TAG, "--- response origin: ${response.origin} - NoNewData '$apiSection'")
+                        RealmNewsReaderState.NoNewData(origin)
+                    }
+                    is StoreResponse.Error.Exception -> {
+                        Log.e(TAG, "--- response origin: ${response.origin} - Error.Exception '$apiSection': ${response.error}")
+                        RealmNewsReaderState.ErrorException(origin, response.error)
+                    }
+                    is StoreResponse.Error.Message -> {
+                        Log.e(TAG, "--- response origin: ${response.origin} - Error.Message '$apiSection': ${response.message}")
+                        RealmNewsReaderState.ErrorMessage(origin, response.message)
+                    }
+                }.let {
+                    _newsReaderState.postValue(it)
+                }
+            }.launchIn(viewModelScope)
         }
-    }
-
-    private fun setupStoreStream() {
-        store.stream(StoreRequest.cached(
-                key = "home",
-                refresh = true
-        )).onEach { response ->
-            Log.d(TAG, "--- response: $response")
-
-            val origin = response.origin.toString()
-
-            when (response) {
-                is StoreResponse.Loading -> RealmNewsReaderState.Loading(origin)
-                is StoreResponse.Data -> RealmNewsReaderState.Data(origin, response.value)
-                is StoreResponse.NoNewData -> RealmNewsReaderState.NoNewData(origin)
-                is StoreResponse.Error.Exception -> RealmNewsReaderState.ErrorException(origin, response.error)
-                is StoreResponse.Error.Message -> RealmNewsReaderState.ErrorMessage(origin, response.message)
-            }.let {
-                _newsReaderState.postValue(it)
-            }
-        }.launchIn(viewModelScope)
     }
 }
