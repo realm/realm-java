@@ -21,6 +21,7 @@
 ### Internal
 * Updated to Realm Sync: 10.1.0.
 * Updated to Realm Core: 10.1.0.
+* Updated to Object Store commit: fd246c54de7d1fee6bcbeb3609de75a4eccd5b70.
 
 
 ## 10.0.0 (2020-10-15)
