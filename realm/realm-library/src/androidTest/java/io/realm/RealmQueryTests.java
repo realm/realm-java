@@ -3086,8 +3086,8 @@ public class RealmQueryTests extends QueryTests {
     public void findAll_indexedCaseInsensitiveFields() {
         // Catches https://github.com/realm/realm-java/issues/4788
         realm.beginTransaction();
-        realm.createObject(IndexedFields.class).indexedString = "ROVER";
-        realm.createObject(IndexedFields.class).indexedString = "Rover";
+        realm.createObject(IndexedFields.class, new ObjectId()).indexedString = "ROVER";
+        realm.createObject(IndexedFields.class, new ObjectId()).indexedString = "Rover";
         realm.commitTransaction();
 
         RealmResults<IndexedFields> results = realm.where(IndexedFields.class)

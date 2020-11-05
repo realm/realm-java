@@ -16,6 +16,9 @@
 
 package io.realm;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -28,10 +31,8 @@ import javax.annotation.Nullable;
 
 import io.realm.annotations.RealmClass;
 import io.realm.annotations.Required;
-import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.OsObjectStore;
-import io.realm.internal.OsResults;
 import io.realm.internal.Table;
 import io.realm.internal.fields.FieldDescriptor;
 
@@ -68,6 +69,8 @@ public abstract class RealmObjectSchema {
         m.put(Byte.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, true));
         m.put(byte[].class, new FieldMetaData(RealmFieldType.BINARY, RealmFieldType.BINARY_LIST, true));
         m.put(Date.class, new FieldMetaData(RealmFieldType.DATE, RealmFieldType.DATE_LIST, true));
+        m.put(ObjectId.class, new FieldMetaData(RealmFieldType.OBJECT_ID, RealmFieldType.OBJECT_ID_LIST, true));
+        m.put(Decimal128.class, new FieldMetaData(RealmFieldType.DECIMAL128, RealmFieldType.DECIMAL128_LIST, true));
         SUPPORTED_SIMPLE_FIELDS = Collections.unmodifiableMap(m);
     }
 

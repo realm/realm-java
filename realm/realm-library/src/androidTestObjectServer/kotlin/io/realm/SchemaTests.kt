@@ -16,13 +16,15 @@
 package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.realm.entities.SyncStringOnly
 import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
-import io.realm.entities.StringOnly
 import io.realm.mongodb.close
 import io.realm.mongodb.sync.SyncConfiguration
+import io.realm.mongodb.sync.testSchema
 import io.realm.util.assertFailsWith
 import junit.framework.Assert.*
 import junit.framework.TestCase
+import org.bson.types.ObjectId
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -46,7 +48,10 @@ class SchemaTests {
     fun setUp() {
         app = TestApp()
         val user = createTestUser(app)
-        config = configFactory.createSyncConfigurationBuilder(user).build()
+        config = configFactory
+                .createSyncConfigurationBuilder(user)
+                .testSchema(SyncStringOnly::class.java)
+                .build()
     }
 
     @After
@@ -69,11 +74,10 @@ class SchemaTests {
     fun createObject() {
         Realm.getInstance(config).use { realm ->
             realm.executeTransaction {
-                assertTrue(realm.schema.contains("StringOnly"))
-                val stringOnly = realm.createObject(StringOnly::class.java)
-                stringOnly.chars = "TEST"
+                assertTrue(realm.schema.contains(SyncStringOnly.CLASS_NAME))
+                val stringOnly = realm.createObject(SyncStringOnly::class.java, ObjectId())
             }
-            assertEquals(1, realm.where(StringOnly::class.java).count())
+            assertEquals(1, realm.where(SyncStringOnly::class.java).count())
         }
     }
 
@@ -92,9 +96,8 @@ class SchemaTests {
     fun allow_addField() {
         // Init schema
         Realm.getInstance(config).close()
-        val className = "StringOnly"
         DynamicRealm.getInstance(config).use { realm ->
-            val objectSchema = realm.schema[className]!!
+            val objectSchema = realm.schema[SyncStringOnly.CLASS_NAME]!!
             assertNotNull(objectSchema)
             realm.executeTransaction {
                 objectSchema.addField("foo", String::class.java)
@@ -107,13 +110,15 @@ class SchemaTests {
     // Special column "__OID" should be hidden from users.
     @Test
     fun fieldNames_stableIdColumnShouldBeHidden() {
-        val className = "StringOnly"
         Realm.getInstance(config).use { realm ->
-            val objectSchema = realm.schema[className]!!
+            val objectSchema = realm.schema[SyncStringOnly.CLASS_NAME]!!
             assertNotNull(objectSchema)
             val names = objectSchema.fieldNames
-            assertEquals(1, names.size)
-            assertEquals(StringOnly.FIELD_CHARS, names.iterator().next())
+            assertEquals(2, names.size)
+
+            val iter = names.iterator()
+            assertEquals(SyncStringOnly.FIELD_ID, iter.next())
+            assertEquals(SyncStringOnly.FIELD_CHARS, iter.next())
         }
     }
 
@@ -134,9 +139,9 @@ class SchemaTests {
         for (operation in DestructiveSchemaOperation.values()) {
             // Init schema
             Realm.getInstance(config).close()
-            val className = "StringOnly"
+            val className = SyncStringOnly.CLASS_NAME
             val newClassName = "Dogplace"
-            val fieldName = "chars"
+            val fieldName = SyncStringOnly.FIELD_CHARS
             val newFieldName = "newchars"
 
             DynamicRealm.getInstance(config).use { realm ->
