@@ -30,6 +30,7 @@ import io.realm.examples.coroutinesexample.data.newsreader.local.room.insertArti
 import io.realm.examples.coroutinesexample.data.newsreader.network.NYTimesApiClient
 import io.realm.examples.coroutinesexample.data.newsreader.network.NYTimesApiClientImpl
 import io.realm.examples.coroutinesexample.data.newsreader.network.model.NYTimesArticle
+import io.realm.examples.coroutinesexample.ui.newsreader.realm.RealmNewsReaderState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -49,12 +50,11 @@ class RoomNewsReaderViewModel : ViewModel() {
     val newsReaderState: LiveData<RoomNewsReaderState>
         get() = _newsReaderState
 
-    private var currentJob: Job? = null
+    private val sectionRefreshJobs = mutableMapOf<String, Job>()
 
     init {
         val fetcher: Fetcher<String, List<NYTimesArticle>> = Fetcher.of { apiSection ->
-            val apiResults = nytApiClient.getTopStories(apiSection).results
-            apiResults
+            nytApiClient.getTopStories(apiSection).results
         }
 
         val sourceOfTruth: SourceOfTruth<String, List<NYTimesArticle>, List<RoomNYTimesArticle>> = SourceOfTruth.of(
@@ -79,28 +79,61 @@ class RoomNewsReaderViewModel : ViewModel() {
                 .build()
     }
 
-    fun getTopStories(apiSection: String = "home", refresh: Boolean = false) {
+    fun getTopStories(apiSection: String, refresh: Boolean = false) {
+        Log.d(TAG, "--- apiSection: $apiSection - refresh '$refresh'")
         viewModelScope.launch {
-            // Cancel previous streams when selecting a different section
-            currentJob?.cancelAndJoin()
-            currentJob = store.stream(StoreRequest.cached(
-                    key = apiSection,
-                    refresh = true
-            )).onEach { response ->
-                Log.d(TAG, "--- response: $response")
-
-                val origin = response.origin.toString()
-
-                when (response) {
-                    is StoreResponse.Loading -> RoomNewsReaderState.Loading(origin)
-                    is StoreResponse.Data -> RoomNewsReaderState.Data(origin, response.value)
-                    is StoreResponse.NoNewData -> RoomNewsReaderState.NoNewData(origin)
-                    is StoreResponse.Error.Exception -> RoomNewsReaderState.ErrorException(origin, response.error)
-                    is StoreResponse.Error.Message -> RoomNewsReaderState.ErrorMessage(origin, response.message)
-                }.let {
-                    _newsReaderState.postValue(it)
+            if (refresh) {
+                store.fresh(apiSection)
+            } else {
+                if (sectionRefreshJobs[apiSection] != null) {
+                    getFromCache(apiSection)
+                } else {
+                    getFromStream(apiSection)
                 }
-            }.launchIn(viewModelScope)
+            }
+        }
+    }
+
+    private suspend fun getFromCache(apiSection: String) {
+        val cachedResults = store.get(apiSection)
+        Log.d(TAG, "--- cached data, - '$apiSection': ${cachedResults.size}")
+        _newsReaderState.postValue(RoomNewsReaderState.Data("Cache", cachedResults))
+    }
+
+    private fun getFromStream(apiSection: String) {
+        store.stream(StoreRequest.cached(
+                key = apiSection,
+                refresh = false
+        )).onEach { response ->
+            val origin = response.origin.toString()
+            when (response) {
+                is StoreResponse.Loading -> {
+                    Log.d(TAG, "--- response origin: ${response.origin} - Loading '$apiSection'")
+                    RoomNewsReaderState.Loading(origin)
+                }
+                is StoreResponse.Data -> {
+                    Log.d(TAG, "--- response origin: ${response.origin} - Data '$apiSection': ${response.value.size}")
+                    RoomNewsReaderState.Data(origin, response.value)
+                }
+                is StoreResponse.NoNewData -> {
+                    Log.d(TAG, "--- response origin: ${response.origin} - NoNewData '$apiSection'")
+                    RoomNewsReaderState.NoNewData(origin)
+                }
+                is StoreResponse.Error.Exception -> {
+                    Log.e(TAG, "--- response origin: ${response.origin} - Error.Exception '$apiSection': ${response.error}")
+                    RoomNewsReaderState.ErrorException(origin, response.error)
+                }
+                is StoreResponse.Error.Message -> {
+                    Log.e(TAG, "--- response origin: ${response.origin} - Error.Message '$apiSection': ${response.message}")
+                    RoomNewsReaderState.ErrorMessage(origin, response.message)
+                }
+            }.let {
+                _newsReaderState.postValue(it)
+            }
+        }.launchIn(
+                viewModelScope
+        ).also { job ->
+            sectionRefreshJobs[apiSection] = job
         }
     }
 }

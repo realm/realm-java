@@ -26,9 +26,6 @@ import androidx.recyclerview.widget.RecyclerView
 import io.realm.examples.coroutinesexample.R
 import io.realm.examples.coroutinesexample.data.newsreader.local.realm.RealmNYTimesArticle
 
-/**
- * Realm implementation.
- */
 class RealmNewsReaderAdapter : ListAdapter<RealmNYTimesArticle, RealmNewsReaderAdapter.ArticleViewHolder>(DIFF_CALLBACK) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ArticleViewHolder =

@@ -17,13 +17,9 @@
 package io.realm.examples.coroutinesexample.data.newsreader.network
 
 import io.realm.examples.coroutinesexample.data.newsreader.network.model.NYTimesResponse
-import kotlinx.coroutines.flow.Flow
-import okhttp3.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
-import java.util.*
-import kotlin.Comparator
 
 interface NYTimesService {
     // FIXME: add API_KEY using an interceptor
@@ -35,27 +31,21 @@ interface NYTimesService {
 }
 
 val sectionsToNames = mapOf(
-        "home" to "Home",
-        "world" to "World",
-        "national" to "National",
-        "politics" to "Politics",
-        "nyregion" to "NY Region",
-        "business" to "Business",
-        "opinion" to "Opinion",
-        "technology" to "Technology",
-        "science" to "Science",
-        "health" to "Health",
-        "sports" to "Sports",
-        "arts" to "Arts",
-        "fashion" to "Fashion",
-        "dining" to "Dining",
-        "travel" to "Travel",
-        "magazine" to "Magazine",
-        "realestate" to "Real Estate"
-).toSortedMap(
-        Comparator { o1, o2 ->
-            if (o1.toLowerCase(Locale.ROOT) == "home") return@Comparator -1
-            if (o2.toLowerCase(Locale.ROOT) == "home") return@Comparator 1
-            return@Comparator o1.compareTo(o2, ignoreCase = true)
-        }
+        "Home" to "home",
+        "World" to "world",
+        "National" to "national",
+        "Politics" to "politics",
+        "NY Region" to "nyregion",
+        "Business" to "business",
+        "Opinion" to "opinion",
+        "Technology" to "technology",
+        "Science" to "science",
+        "Health" to "health",
+        "Sports" to "sports",
+        "Arts" to "arts",
+        "Fashion" to "fashion",
+        "Dining" to "dining",
+        "Travel" to "travel",
+        "Magazine" to "magazine",
+        "Real Estate" to "realestate"
 )

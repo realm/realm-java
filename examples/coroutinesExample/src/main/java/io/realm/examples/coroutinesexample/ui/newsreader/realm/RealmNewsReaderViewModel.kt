@@ -31,19 +31,17 @@ import io.realm.examples.coroutinesexample.data.newsreader.local.realm.insertArt
 import io.realm.examples.coroutinesexample.data.newsreader.network.NYTimesApiClient
 import io.realm.examples.coroutinesexample.data.newsreader.network.NYTimesApiClientImpl
 import io.realm.examples.coroutinesexample.data.newsreader.network.model.NYTimesArticle
-import kotlinx.coroutines.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlin.time.ExperimentalTime
-import kotlin.time.seconds
 
-/**
- * Realm implementation.
- */
 @ExperimentalCoroutinesApi
 @ExperimentalStoreApi
-@ExperimentalTime
 @FlowPreview
 class RealmNewsReaderViewModel : ViewModel() {
 
@@ -56,7 +54,7 @@ class RealmNewsReaderViewModel : ViewModel() {
     val newsReaderState: LiveData<RealmNewsReaderState>
         get() = _newsReaderState
 
-    private var currentJob: Job? = null
+    private val sectionRefreshJobs = mutableMapOf<String, Job>()
 
     init {
         val fetcher: Fetcher<String, List<NYTimesArticle>> = Fetcher.of { apiSection ->
@@ -81,56 +79,74 @@ class RealmNewsReaderViewModel : ViewModel() {
                 }
         )
 
-        val cachePolicy = MemoryPolicy.MemoryPolicyBuilder<String, List<RealmNYTimesArticle>>()
-                .setMaxSize(3)
-                .setExpireAfterWrite(30.seconds)
-                .build()
-
         store = StoreBuilder.from(fetcher, sourceOfTruth)
-                .cachePolicy(cachePolicy)
                 .build()
     }
 
     override fun onCleared() {
         realmDao.close()
+        sectionRefreshJobs.values.forEach { job ->
+            if (job.isActive) {
+                job.cancel()
+            }
+        }
     }
 
     fun getTopStories(apiSection: String, refresh: Boolean = false) {
         Log.d(TAG, "--- apiSection: $apiSection - refresh '$refresh'")
         viewModelScope.launch {
-            // Cancel previous streams when selecting a different section
-            currentJob?.cancelAndJoin()
-            currentJob = store.stream(StoreRequest.cached(
-                    key = apiSection,
-                    refresh = refresh
-            )).onEach { response ->
-                val origin = response.origin.toString()
-
-                when (response) {
-                    is StoreResponse.Loading -> {
-                        Log.d(TAG, "--- response origin: ${response.origin} - Loading '$apiSection'")
-                        RealmNewsReaderState.Loading(origin)
-                    }
-                    is StoreResponse.Data -> {
-                        Log.d(TAG, "--- response origin: ${response.origin} - Data '$apiSection': ${response.value.size}")
-                        RealmNewsReaderState.Data(origin, response.value)
-                    }
-                    is StoreResponse.NoNewData -> {
-                        Log.d(TAG, "--- response origin: ${response.origin} - NoNewData '$apiSection'")
-                        RealmNewsReaderState.NoNewData(origin)
-                    }
-                    is StoreResponse.Error.Exception -> {
-                        Log.e(TAG, "--- response origin: ${response.origin} - Error.Exception '$apiSection': ${response.error}")
-                        RealmNewsReaderState.ErrorException(origin, response.error)
-                    }
-                    is StoreResponse.Error.Message -> {
-                        Log.e(TAG, "--- response origin: ${response.origin} - Error.Message '$apiSection': ${response.message}")
-                        RealmNewsReaderState.ErrorMessage(origin, response.message)
-                    }
-                }.let {
-                    _newsReaderState.postValue(it)
+            if (refresh) {
+                store.fresh(apiSection)
+            } else {
+                if (sectionRefreshJobs[apiSection] != null) {
+                    getFromCache(apiSection)
+                } else {
+                    getFromStream(apiSection)
                 }
-            }.launchIn(viewModelScope)
+            }
+        }
+    }
+
+    private suspend fun getFromCache(apiSection: String) {
+        val cachedResults = store.get(apiSection)
+        Log.d(TAG, "--- cached data, - '$apiSection': ${cachedResults.size}")
+        _newsReaderState.postValue(RealmNewsReaderState.Data("Cache", cachedResults))
+    }
+
+    private fun getFromStream(apiSection: String) {
+        store.stream(StoreRequest.cached(
+                key = apiSection,
+                refresh = false
+        )).onEach { response ->
+            val origin = response.origin.toString()
+            when (response) {
+                is StoreResponse.Loading -> {
+                    Log.d(TAG, "--- response origin: ${response.origin} - Loading '$apiSection'")
+                    RealmNewsReaderState.Loading(origin)
+                }
+                is StoreResponse.Data -> {
+                    Log.d(TAG, "--- response origin: ${response.origin} - Data '$apiSection': ${response.value.size}")
+                    RealmNewsReaderState.Data(origin, response.value)
+                }
+                is StoreResponse.NoNewData -> {
+                    Log.d(TAG, "--- response origin: ${response.origin} - NoNewData '$apiSection'")
+                    RealmNewsReaderState.NoNewData(origin)
+                }
+                is StoreResponse.Error.Exception -> {
+                    Log.e(TAG, "--- response origin: ${response.origin} - Error.Exception '$apiSection': ${response.error}")
+                    RealmNewsReaderState.ErrorException(origin, response.error)
+                }
+                is StoreResponse.Error.Message -> {
+                    Log.e(TAG, "--- response origin: ${response.origin} - Error.Message '$apiSection': ${response.message}")
+                    RealmNewsReaderState.ErrorMessage(origin, response.message)
+                }
+            }.let {
+                _newsReaderState.postValue(it)
+            }
+        }.launchIn(
+                viewModelScope
+        ).also { job ->
+            sectionRefreshJobs[apiSection] = job
         }
     }
 }

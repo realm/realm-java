@@ -36,9 +36,6 @@ import io.realm.examples.coroutinesexample.data.newsreader.network.sectionsToNam
 import io.realm.examples.coroutinesexample.databinding.FragmentNewsReaderBinding
 import java.util.*
 
-/**
- * Room implementation.
- */
 class RoomNewsReaderFragment : Fragment() {
 
     private val viewModel: RoomNewsReaderViewModel by viewModels()

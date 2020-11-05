@@ -35,10 +35,9 @@ import io.realm.examples.coroutinesexample.data.newsreader.local.realm.RealmNYTi
 import io.realm.examples.coroutinesexample.data.newsreader.network.sectionsToNames
 import io.realm.examples.coroutinesexample.databinding.FragmentNewsReaderBinding
 import java.util.*
+import kotlin.Comparator
+import kotlin.time.ExperimentalTime
 
-/**
- * Realm implementation.
- */
 class RealmNewsReaderFragment : Fragment() {
 
     private val viewModel: RealmNewsReaderViewModel by viewModels()
@@ -63,12 +62,17 @@ class RealmNewsReaderFragment : Fragment() {
             adapter = ArrayAdapter<CharSequence>(
                     context,
                     android.R.layout.simple_spinner_dropdown_item,
-                    sectionsToNames.values.toTypedArray()
+                    sectionsToNames.keys.sortedWith(
+                            Comparator { o1, o2 ->
+                                if (o1.toLowerCase(Locale.ROOT) == "home") return@Comparator -1
+                                if (o2.toLowerCase(Locale.ROOT) == "home") return@Comparator 1
+                                return@Comparator o1.compareTo(o2, ignoreCase = true)
+                            }
+                    )
             )
             onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                    val apiSection = getKey(adapter, position)
-                    viewModel.getTopStories(apiSection)
+                    viewModel.getTopStories(getApiSection(adapter, position))
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>) {
@@ -87,8 +91,7 @@ class RealmNewsReaderFragment : Fragment() {
         with(binding.refresh) {
             setOnRefreshListener {
                 with(binding.spinner) {
-                    val key = getKey(adapter, selectedItemPosition)
-                    viewModel.getTopStories(key, true)
+                    viewModel.getTopStories(getApiSection(adapter, selectedItemPosition), true)
                 }
             }
         }
@@ -106,15 +109,9 @@ class RealmNewsReaderFragment : Fragment() {
         })
     }
 
-    private fun getKey(adapter: SpinnerAdapter, position: Int): String {
-        return sectionsToNames.let { sectionMap ->
-            for (key in sectionMap.keys) {
-                if (key.toLowerCase(Locale.ROOT) == (adapter.getItem(position) as String).toLowerCase(Locale.ROOT)) {
-                    return@let key
-                }
-            }
-            throw IllegalStateException("Key not found")
-        }
+    private fun getApiSection(adapter: SpinnerAdapter, position: Int): String {
+        val apiSection = adapter.getItem(position) as String
+        return requireNotNull(sectionsToNames[apiSection])
     }
 
     companion object {
