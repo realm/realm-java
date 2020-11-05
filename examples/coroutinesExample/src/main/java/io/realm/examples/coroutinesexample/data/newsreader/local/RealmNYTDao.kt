@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package io.realm.examples.coroutinesexample.data.newsreader.local.realm
+package io.realm.examples.coroutinesexample.data.newsreader.local
 
 import io.realm.Realm
 import io.realm.RealmConfiguration
 import io.realm.RealmResults
 import io.realm.examples.coroutinesexample.util.runCloseableTransaction
-import io.realm.kotlin.toFlow
 import io.realm.kotlin.where
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow

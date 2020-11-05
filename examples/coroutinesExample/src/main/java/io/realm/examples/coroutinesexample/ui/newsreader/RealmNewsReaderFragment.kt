@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.coroutinesexample.ui.newsreader.room
+package io.realm.examples.coroutinesexample.ui.newsreader
 
 import android.os.Bundle
 import android.util.Log
@@ -31,15 +31,16 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.realm.examples.coroutinesexample.R
 import io.realm.examples.coroutinesexample.TAG
-import io.realm.examples.coroutinesexample.data.newsreader.local.room.RoomNYTimesArticle
+import io.realm.examples.coroutinesexample.data.newsreader.local.RealmNYTimesArticle
 import io.realm.examples.coroutinesexample.data.newsreader.network.sectionsToNames
 import io.realm.examples.coroutinesexample.databinding.FragmentNewsReaderBinding
 import java.util.*
+import kotlin.Comparator
 
-class RoomNewsReaderFragment : Fragment() {
+class RealmNewsReaderFragment : Fragment() {
 
-    private val viewModel: RoomNewsReaderViewModel by viewModels()
-    private val newsReaderAdapter = RoomNewsReaderAdapter()
+    private val viewModel: RealmNewsReaderViewModel by viewModels()
+    private val newsReaderAdapter = RealmNewsReaderAdapter()
 
     private lateinit var binding: FragmentNewsReaderBinding
 
@@ -60,12 +61,17 @@ class RoomNewsReaderFragment : Fragment() {
             adapter = ArrayAdapter<CharSequence>(
                     context,
                     android.R.layout.simple_spinner_dropdown_item,
-                    sectionsToNames.values.toTypedArray()
+                    sectionsToNames.keys.sortedWith(
+                            Comparator { o1, o2 ->
+                                if (o1.toLowerCase(Locale.ROOT) == "home") return@Comparator -1
+                                if (o2.toLowerCase(Locale.ROOT) == "home") return@Comparator 1
+                                return@Comparator o1.compareTo(o2, ignoreCase = true)
+                            }
+                    )
             )
             onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                    val apiSection = getKey(adapter, position)
-                    viewModel.getTopStories(apiSection)
+                    viewModel.getTopStories(getApiSection(adapter, position))
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>) {
@@ -84,8 +90,7 @@ class RoomNewsReaderFragment : Fragment() {
         with(binding.refresh) {
             setOnRefreshListener {
                 with(binding.spinner) {
-                    val key = getKey(adapter, selectedItemPosition)
-                    viewModel.getTopStories(key, true)
+                    viewModel.getTopStories(getApiSection(adapter, selectedItemPosition), true)
                 }
             }
         }
@@ -94,43 +99,37 @@ class RoomNewsReaderFragment : Fragment() {
     private fun setupLiveData() {
         viewModel.newsReaderState.observe(viewLifecycleOwner, Observer { viewState ->
             when (viewState) {
-                is RoomNewsReaderState.Loading -> RoomStateHelper.loading(binding)
-                is RoomNewsReaderState.Data -> RoomStateHelper.data(binding, viewState.data, newsReaderAdapter)
-                is RoomNewsReaderState.NoNewData -> RoomStateHelper.noNewData(binding)
-                is RoomNewsReaderState.ErrorException -> RoomStateHelper.errorException(binding, viewState.throwable)
-                is RoomNewsReaderState.ErrorMessage -> RoomStateHelper.errorMessage(binding, viewState.message)
+                is RealmNewsReaderState.Loading -> RealmStateHelper.loading(binding)
+                is RealmNewsReaderState.Data -> RealmStateHelper.data(binding, viewState.data, newsReaderAdapter)
+                is RealmNewsReaderState.NoNewData -> RealmStateHelper.noNewData(binding)
+                is RealmNewsReaderState.ErrorException -> RealmStateHelper.errorException(binding, viewState.throwable)
+                is RealmNewsReaderState.ErrorMessage -> RealmStateHelper.errorMessage(binding, viewState.message)
             }
         })
     }
 
-    private fun getKey(adapter: SpinnerAdapter, position: Int): String {
-        return sectionsToNames.let { sectionMap ->
-            for (key in sectionMap.keys) {
-                if (key.toLowerCase(Locale.ROOT) == (adapter.getItem(position) as String).toLowerCase(Locale.ROOT)) {
-                    return@let key
-                }
-            }
-            throw IllegalStateException("Key not found")
-        }
+    private fun getApiSection(adapter: SpinnerAdapter, position: Int): String {
+        val apiSection = adapter.getItem(position) as String
+        return requireNotNull(sectionsToNames[apiSection])
     }
 
     companion object {
-        fun newInstance() = RoomNewsReaderFragment()
+        fun newInstance() = RealmNewsReaderFragment()
     }
 }
 
-sealed class RoomNewsReaderState {
+sealed class RealmNewsReaderState {
 
     abstract val origin: String
 
-    data class Loading(override val origin: String) : RoomNewsReaderState()
-    data class Data(override val origin: String, val data: List<RoomNYTimesArticle>) : RoomNewsReaderState()
-    data class NoNewData(override val origin: String) : RoomNewsReaderState()
-    data class ErrorException(override val origin: String, val throwable: Throwable) : RoomNewsReaderState()
-    data class ErrorMessage(override val origin: String, val message: String) : RoomNewsReaderState()
+    data class Loading(override val origin: String) : RealmNewsReaderState()
+    data class Data(override val origin: String, val data: List<RealmNYTimesArticle>) : RealmNewsReaderState()
+    data class NoNewData(override val origin: String) : RealmNewsReaderState()
+    data class ErrorException(override val origin: String, val throwable: Throwable) : RealmNewsReaderState()
+    data class ErrorMessage(override val origin: String, val message: String) : RealmNewsReaderState()
 }
 
-private object RoomStateHelper {
+private object RealmStateHelper {
     fun loading(binding: FragmentNewsReaderBinding) {
         if (!binding.refresh.isRefreshing) {
             binding.refresh.setRefreshing(true)
@@ -139,8 +138,8 @@ private object RoomStateHelper {
 
     fun data(
             binding: FragmentNewsReaderBinding,
-            data: List<RoomNYTimesArticle>,
-            newsReaderAdapter: RoomNewsReaderAdapter
+            data: List<RealmNYTimesArticle>,
+            newsReaderAdapter: RealmNewsReaderAdapter
     ) {
         hideLoadingSpinner(binding)
         newsReaderAdapter.submitList(data)

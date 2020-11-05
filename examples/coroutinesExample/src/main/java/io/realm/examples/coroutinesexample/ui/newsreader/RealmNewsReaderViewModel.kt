@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.coroutinesexample.ui.newsreader.room
+package io.realm.examples.coroutinesexample.ui.newsreader
 
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -22,32 +22,35 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dropbox.android.external.store4.*
-import io.realm.examples.coroutinesexample.MainApplication
+import io.realm.RealmConfiguration
 import io.realm.examples.coroutinesexample.TAG
-import io.realm.examples.coroutinesexample.data.newsreader.local.room.RoomNYTDao
-import io.realm.examples.coroutinesexample.data.newsreader.local.room.RoomNYTimesArticle
-import io.realm.examples.coroutinesexample.data.newsreader.local.room.insertArticles
+import io.realm.examples.coroutinesexample.data.newsreader.local.RealmNYTDao
+import io.realm.examples.coroutinesexample.data.newsreader.local.RealmNYTDaoImpl
+import io.realm.examples.coroutinesexample.data.newsreader.local.RealmNYTimesArticle
+import io.realm.examples.coroutinesexample.data.newsreader.local.insertArticles
 import io.realm.examples.coroutinesexample.data.newsreader.network.NYTimesApiClient
 import io.realm.examples.coroutinesexample.data.newsreader.network.NYTimesApiClientImpl
 import io.realm.examples.coroutinesexample.data.newsreader.network.model.NYTimesArticle
-import io.realm.examples.coroutinesexample.ui.newsreader.realm.RealmNewsReaderState
-import kotlinx.coroutines.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
-@ExperimentalStoreApi
 @ExperimentalCoroutinesApi
+@ExperimentalStoreApi
 @FlowPreview
-class RoomNewsReaderViewModel : ViewModel() {
+class RealmNewsReaderViewModel : ViewModel() {
 
-    private val dao: RoomNYTDao = MainApplication.ROOM_DB.nytDao()
-    private val store: Store<String, List<RoomNYTimesArticle>>
+    private val realmDao: RealmNYTDao = RealmNYTDaoImpl(RealmConfiguration.Builder().build())
+    private val store: Store<String, List<RealmNYTimesArticle>>
 
     private val nytApiClient: NYTimesApiClient = NYTimesApiClientImpl()
 
-    private val _newsReaderState = MutableLiveData<RoomNewsReaderState>()
-    val newsReaderState: LiveData<RoomNewsReaderState>
+    private val _newsReaderState = MutableLiveData<RealmNewsReaderState>()
+    val newsReaderState: LiveData<RealmNewsReaderState>
         get() = _newsReaderState
 
     private val sectionRefreshJobs = mutableMapOf<String, Job>()
@@ -57,26 +60,35 @@ class RoomNewsReaderViewModel : ViewModel() {
             nytApiClient.getTopStories(apiSection).results
         }
 
-        val sourceOfTruth: SourceOfTruth<String, List<NYTimesArticle>, List<RoomNYTimesArticle>> = SourceOfTruth.of(
+        val sourceOfTruth: SourceOfTruth<String, List<NYTimesArticle>, List<RealmNYTimesArticle>> = SourceOfTruth.of(
                 reader = { apiSection ->
-                    dao.getArticles(apiSection).map { articles ->
+                    realmDao.getArticles(apiSection).map { articles ->
                         if (articles.isEmpty()) null
                         else articles
                     }
                 },
                 writer = { apiSection, articles ->
-                    dao.insertArticles(apiSection, articles)
+                    realmDao.insertArticles(apiSection, articles)
                 },
                 delete = { apiSection ->
-                    dao.deleteArticles(apiSection)
+                    realmDao.deleteArticles(apiSection)
                 },
                 deleteAll = {
-                    dao.deleteAllArticles()
+                    realmDao.deleteAllArticles()
                 }
         )
 
         store = StoreBuilder.from(fetcher, sourceOfTruth)
                 .build()
+    }
+
+    override fun onCleared() {
+        realmDao.close()
+        sectionRefreshJobs.values.forEach { job ->
+            if (job.isActive) {
+                job.cancel()
+            }
+        }
     }
 
     fun getTopStories(apiSection: String, refresh: Boolean = false) {
@@ -97,7 +109,7 @@ class RoomNewsReaderViewModel : ViewModel() {
     private suspend fun getFromCache(apiSection: String) {
         val cachedResults = store.get(apiSection)
         Log.d(TAG, "--- cached data, - '$apiSection': ${cachedResults.size}")
-        _newsReaderState.postValue(RoomNewsReaderState.Data("Cache", cachedResults))
+        _newsReaderState.postValue(RealmNewsReaderState.Data("Cache", cachedResults))
     }
 
     private fun getFromStream(apiSection: String) {
@@ -109,23 +121,23 @@ class RoomNewsReaderViewModel : ViewModel() {
             when (response) {
                 is StoreResponse.Loading -> {
                     Log.d(TAG, "--- response origin: ${response.origin} - Loading '$apiSection'")
-                    RoomNewsReaderState.Loading(origin)
+                    RealmNewsReaderState.Loading(origin)
                 }
                 is StoreResponse.Data -> {
                     Log.d(TAG, "--- response origin: ${response.origin} - Data '$apiSection': ${response.value.size}")
-                    RoomNewsReaderState.Data(origin, response.value)
+                    RealmNewsReaderState.Data(origin, response.value)
                 }
                 is StoreResponse.NoNewData -> {
                     Log.d(TAG, "--- response origin: ${response.origin} - NoNewData '$apiSection'")
-                    RoomNewsReaderState.NoNewData(origin)
+                    RealmNewsReaderState.NoNewData(origin)
                 }
                 is StoreResponse.Error.Exception -> {
                     Log.e(TAG, "--- response origin: ${response.origin} - Error.Exception '$apiSection': ${response.error}")
-                    RoomNewsReaderState.ErrorException(origin, response.error)
+                    RealmNewsReaderState.ErrorException(origin, response.error)
                 }
                 is StoreResponse.Error.Message -> {
                     Log.e(TAG, "--- response origin: ${response.origin} - Error.Message '$apiSection': ${response.message}")
-                    RoomNewsReaderState.ErrorMessage(origin, response.message)
+                    RealmNewsReaderState.ErrorMessage(origin, response.message)
                 }
             }.let {
                 _newsReaderState.postValue(it)

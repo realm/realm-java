@@ -1,4 +1,4 @@
-package io.realm.examples.coroutinesexample.data.newsreader.local.realm
+package io.realm.examples.coroutinesexample.data.newsreader.local
 
 import io.realm.RealmList
 import io.realm.examples.coroutinesexample.data.newsreader.network.model.NYTMultimedium

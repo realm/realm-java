@@ -18,7 +18,7 @@ package io.realm.examples.coroutinesexample
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import io.realm.examples.coroutinesexample.ui.newsreader.realm.RealmNewsReaderFragment
+import io.realm.examples.coroutinesexample.ui.newsreader.RealmNewsReaderFragment
 
 class MainActivity : AppCompatActivity() {
 
@@ -29,7 +29,6 @@ class MainActivity : AppCompatActivity() {
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-//                    .replace(R.id.container, RoomNewsReaderFragment.newInstance())
                     .replace(R.id.container, RealmNewsReaderFragment.newInstance())
                     .commitNow()
         }
