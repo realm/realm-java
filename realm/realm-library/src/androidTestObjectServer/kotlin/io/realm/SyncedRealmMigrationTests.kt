@@ -16,20 +16,25 @@
 package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
 import io.realm.entities.IndexedFields
 import io.realm.entities.PrimaryKeyAsString
 import io.realm.entities.StringOnly
+import io.realm.entities.SyncStringOnly
 import io.realm.internal.OsObjectSchemaInfo
 import io.realm.internal.OsRealmConfig
 import io.realm.internal.OsSchemaInfo
 import io.realm.internal.OsSharedRealm
+import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
 import io.realm.mongodb.close
 import io.realm.mongodb.sync.testSchema
 import io.realm.util.assertFailsWithMessage
+import org.bson.types.ObjectId
 import org.hamcrest.CoreMatchers
-import org.junit.*
+import org.junit.After
 import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.assertFailsWith
 
@@ -69,21 +74,20 @@ class SyncedRealmMigrationTests {
     @Test
     fun addField_worksWithMigrationError() {
         val config = configFactory.createSyncConfigurationBuilder(createTestUser(app))
-                .testSchema(StringOnly::class.java)
+                .testSchema(SyncStringOnly::class.java)
                 .build()
 
         // Setup initial Realm schema (with missing fields)
-        val className = StringOnly::class.java.simpleName
         DynamicRealm.getInstance(config).use { dynamicRealm ->
             val schema = dynamicRealm.schema
             dynamicRealm.executeTransaction {
-                schema.create(className) // Create empty class
+                schema.createWithPrimaryKeyField(SyncStringOnly.CLASS_NAME, SyncStringOnly.FIELD_ID, ObjectId::class.java, FieldAttribute.REQUIRED) // Create empty class
             }
         }
 
         // Open typed Realm, which will validate the schema
         Realm.getInstance(config).use { realm ->
-            assertTrue(realm.schema[className]!!.hasField(StringOnly.FIELD_CHARS)) // Field has been added
+            assertTrue(realm.schema[SyncStringOnly.CLASS_NAME]!!.hasField(StringOnly.FIELD_CHARS)) // Field has been added
         }
     }
 
@@ -92,16 +96,15 @@ class SyncedRealmMigrationTests {
     @Test
     fun missingFields_hiddenSilently() {
         val config = configFactory.createSyncConfigurationBuilder(createTestUser(app))
-                .testSchema(StringOnly::class.java)
+                .testSchema(SyncStringOnly::class.java)
                 .build()
 
         // Setup initial Realm schema (with too many fields)
-        val className = StringOnly::class.java.simpleName
         DynamicRealm.getInstance(config).use { dynamicRealm ->
             val schema = dynamicRealm.schema
             dynamicRealm.executeTransaction {
-                schema.create(className)
-                        .addField(StringOnly.FIELD_CHARS, String::class.java)
+                schema.createWithPrimaryKeyField(SyncStringOnly.CLASS_NAME, SyncStringOnly.FIELD_ID, ObjectId::class.java, FieldAttribute.REQUIRED)
+                        .addField(SyncStringOnly.FIELD_CHARS, String::class.java)
                         .addField("newField", String::class.java)
                 // A schema version has to be set otherwise Object Store will try to initialize the schema again and reach an
                 // error branch. That is not a real case.
@@ -111,10 +114,10 @@ class SyncedRealmMigrationTests {
 
         // Open typed Realm, which will validate the schema
         Realm.getInstance(config).use { realm ->
-            val stringOnlySchema = realm.schema[className]!!
-            assertTrue(stringOnlySchema.hasField(StringOnly.FIELD_CHARS))
+            val stringOnlySchema = realm.schema[SyncStringOnly.CLASS_NAME]!!
+            assertTrue(stringOnlySchema.hasField(SyncStringOnly.FIELD_CHARS))
             assertTrue(stringOnlySchema.hasField("newField"))
-            assertEquals(2, stringOnlySchema.fieldNames.size.toLong())
+            assertEquals(3, stringOnlySchema.fieldNames.size.toLong())
         }
     }
 
@@ -126,15 +129,15 @@ class SyncedRealmMigrationTests {
                 .build()
 
         // Setup initial Realm schema (with a different primary key)
-        val expectedObjectSchema = OsObjectSchemaInfo.Builder(PrimaryKeyAsString.CLASS_NAME, false,2, 0)
+        val expectedObjectSchema = OsObjectSchemaInfo.Builder(PrimaryKeyAsString.CLASS_NAME, false, 2, 0)
                 .addPersistedProperty(PrimaryKeyAsString.FIELD_PRIMARY_KEY, RealmFieldType.STRING, false, true, false)
-                .addPersistedProperty(PrimaryKeyAsString.FIELD_ID, RealmFieldType.INTEGER, true, true, true)
+                .addPersistedProperty("_id", RealmFieldType.INTEGER, true, true, true)
                 .build()
         val schemaInfo = OsSchemaInfo(listOf(expectedObjectSchema))
         val configBuilder = OsRealmConfig.Builder(config).schemaInfo(schemaInfo)
         OsSharedRealm.getInstance(configBuilder, OsSharedRealm.VersionID.LIVE).close()
         assertFailsWithMessage<java.lang.IllegalStateException>(
-                CoreMatchers.containsString("The following changes cannot be made in additive-only schema mode:")
+                CoreMatchers.containsString("Schema validation failed due to the following errors:")
         ) {
             Realm.getInstance(config).close()
         }
@@ -149,12 +152,10 @@ class SyncedRealmMigrationTests {
                 .build()
 
         // Setup initial Realm schema (with no indexes)
-        val className = IndexedFields::class.java.simpleName
-
         DynamicRealm.getInstance(config).use { dynamicRealm ->
             val schema = dynamicRealm.schema
             dynamicRealm.executeTransaction {
-                schema.create(className)
+                schema.createWithPrimaryKeyField(IndexedFields.CLASS_NAME, IndexedFields.FIELD_PRIMARY_STRING, ObjectId::class.java)
                         .addField(IndexedFields.FIELD_INDEXED_STRING, String::class.java) // No index
                         .addField(IndexedFields.FIELD_NON_INDEXED_STRING, String::class.java)
                 dynamicRealm.version = 42
@@ -163,7 +164,7 @@ class SyncedRealmMigrationTests {
 
         Realm.getInstance(config).use { realm ->
             // Opening at same schema version (42) will not rebuild indexes
-            val indexedFieldsSchema = realm.schema[className]!!
+            val indexedFieldsSchema = realm.schema[IndexedFields.CLASS_NAME]!!
             assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_INDEXED_STRING))
             assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_NON_INDEXED_STRING))
         }
@@ -178,11 +179,10 @@ class SyncedRealmMigrationTests {
                 .build()
 
         // Setup initial Realm schema (with no indexes)
-        val className = IndexedFields::class.java.simpleName
         DynamicRealm.getInstance(config).use { dynamicRealm ->
             val schema = dynamicRealm.schema
             dynamicRealm.executeTransaction {
-                schema.create(className)
+                schema.createWithPrimaryKeyField(IndexedFields.CLASS_NAME, IndexedFields.FIELD_PRIMARY_STRING, ObjectId::class.java)
                         .addField(IndexedFields.FIELD_INDEXED_STRING, String::class.java) // No index
                         .addField(IndexedFields.FIELD_NON_INDEXED_STRING, String::class.java)
                 dynamicRealm.version = 43
@@ -191,7 +191,7 @@ class SyncedRealmMigrationTests {
 
         Realm.getInstance(config).use { realm ->
             // Opening at different schema version (42) should rebuild indexes
-            val indexedFieldsSchema = realm.schema[className]!!
+            val indexedFieldsSchema = realm.schema[IndexedFields.CLASS_NAME]!!
             assertNotNull(indexedFieldsSchema)
             assertTrue(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_INDEXED_STRING))
             assertFalse(indexedFieldsSchema.hasIndex(IndexedFields.FIELD_NON_INDEXED_STRING))
@@ -211,7 +211,7 @@ class SyncedRealmMigrationTests {
         DynamicRealm.getInstance(config).use { dynamicRealm ->
             val schema = dynamicRealm.schema
             dynamicRealm.executeTransaction {
-                schema.create(className)
+                schema.createWithPrimaryKeyField(className, IndexedFields.FIELD_PRIMARY_STRING, ObjectId::class.java)
                         .addField(IndexedFields.FIELD_INDEXED_STRING, String::class.java) // No index
                 // .addField(IndexedFields.FIELD_NON_INDEXED_STRING, String.class); // Missing field
                 dynamicRealm.version = 41
@@ -229,15 +229,15 @@ class SyncedRealmMigrationTests {
     @Test
     fun schemaVersionUpgradedWhenMigrating() {
         val config = configFactory.createSyncConfigurationBuilder(createTestUser(app))
+                .testSchema(SyncStringOnly::class.java)
                 .schemaVersion(42)
                 .build()
 
         // Setup initial Realm schema (with missing fields)
         DynamicRealm.getInstance(config).use { dynamicRealm ->
-            val className = StringOnly::class.java.simpleName
             val schema = dynamicRealm.schema
             dynamicRealm.executeTransaction {
-                schema.create(className) // Create empty class
+                schema.createWithPrimaryKeyField(SyncStringOnly.CLASS_NAME, SyncStringOnly.FIELD_ID, ObjectId::class.java, FieldAttribute.REQUIRED) // Create empty class
                 dynamicRealm.version = 1
             }
         }
@@ -253,14 +253,14 @@ class SyncedRealmMigrationTests {
     fun moreFieldsThanExpectedIsAllowed() {
         val config = configFactory
                 .createSyncConfigurationBuilder(createTestUser(app))
-                .testSchema(StringOnly::class.java)
+                .testSchema(SyncStringOnly::class.java)
                 .build()
 
         // Initialize schema
         Realm.getInstance(config).close()
         DynamicRealm.getInstance(config).use { dynamicRealm ->
             dynamicRealm.executeTransaction {
-                val objectSchema = dynamicRealm.schema[StringOnly.CLASS_NAME]!!
+                val objectSchema = dynamicRealm.schema[SyncStringOnly.CLASS_NAME]!!
                 // Add one extra field which doesn't exist in the typed Realm.
                 objectSchema.addField("oneMoreField", Integer::class.java)
             }

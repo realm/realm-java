@@ -18,13 +18,12 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
-import io.realm.entities.DefaultSyncSchema
+import io.realm.entities.SyncStringOnly
 import io.realm.exceptions.RealmFileException
-import io.realm.kotlin.syncSession
 import io.realm.mongodb.*
 import io.realm.mongodb.sync.SyncConfiguration
+import io.realm.mongodb.sync.testSchema
 import io.realm.rule.BlockingLooperThread
-import org.bson.BsonString
 import org.bson.codecs.StringCodec
 import org.bson.codecs.configuration.CodecRegistries
 import org.junit.*
@@ -36,7 +35,6 @@ import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
 class AppTests {
-
     @get:Rule
     val configFactory = TestSyncConfigurationFactory()
 
@@ -283,7 +281,12 @@ class AppTests {
         try {
             // Create Realm in order to create the sync metadata Realm
             var user = testApp.login(Credentials.anonymous())
-            val syncConfig = SyncConfiguration.defaultConfig(user, "foo")
+
+            val syncConfig = SyncConfiguration
+                    .Builder(user, "foo")
+                    .testSchema(SyncStringOnly::class.java)
+                    .build()
+
             Realm.getInstance(syncConfig).close()
 
             // Create a configuration pointing to the metadata Realm for that app
