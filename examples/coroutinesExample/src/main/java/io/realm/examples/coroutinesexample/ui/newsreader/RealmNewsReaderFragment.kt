@@ -36,6 +36,7 @@ import io.realm.examples.coroutinesexample.data.newsreader.network.sectionsToNam
 import io.realm.examples.coroutinesexample.databinding.FragmentNewsReaderBinding
 import java.util.*
 import kotlin.Comparator
+import kotlin.time.ExperimentalTime
 
 class RealmNewsReaderFragment : Fragment() {
 

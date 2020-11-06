@@ -78,7 +78,14 @@ class RealmNewsReaderViewModel : ViewModel() {
                 }
         )
 
+//        val cachePolicy = MemoryPolicy.MemoryPolicyBuilder<String, List<RealmNYTimesArticle>>()
+//                .setExpireAfterWrite(15.seconds)
+////                .setExpireAfterAccess(15.seconds)
+//                .setMaxSize(5)
+//                .build()
+
         store = StoreBuilder.from(fetcher, sourceOfTruth)
+//                .cachePolicy(cachePolicy)
                 .build()
     }
 
@@ -92,22 +99,30 @@ class RealmNewsReaderViewModel : ViewModel() {
     }
 
     fun getTopStories(apiSection: String, refresh: Boolean = false) {
-        Log.d(TAG, "--- apiSection: $apiSection - refresh '$refresh'")
+        Log.d(TAG, "------------------------------------------ apiSection: $apiSection - refresh '$refresh'")
         viewModelScope.launch {
             if (refresh) {
                 store.fresh(apiSection)
             } else {
-                if (sectionRefreshJobs[apiSection] != null) {
-                    getFromCache(apiSection)
-                } else {
-                    getFromStream(apiSection)
-                }
+                getFromStream(apiSection)
+//                if (sectionRefreshJobs[apiSection] != null) {
+//                    getFromCache(apiSection)
+//                } else {
+//                    getFromStream(apiSection)
+//                }
             }
         }
     }
 
     private suspend fun getFromCache(apiSection: String) {
         val cachedResults = store.get(apiSection)
+
+//        val cachedResults = store.stream(
+//                StoreRequest.cached(apiSection, refresh = false)
+//        ).filterNot {
+//            it is StoreResponse.Loading || it is StoreResponse.NoNewData
+//        }.first().requireData()
+
         Log.d(TAG, "--- cached data, - '$apiSection': ${cachedResults.size}")
         _newsReaderState.postValue(RealmNewsReaderState.Data("Cache", cachedResults))
     }

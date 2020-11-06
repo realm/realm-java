@@ -20,6 +20,7 @@ import io.realm.Realm
 import io.realm.RealmConfiguration
 import io.realm.RealmResults
 import io.realm.examples.coroutinesexample.util.runCloseableTransaction
+import io.realm.kotlin.toFlow
 import io.realm.kotlin.where
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -78,8 +79,9 @@ class RealmNYTDaoImpl(
         return closeableRealm.where<RealmNYTimesArticle>()
                 .equalTo(RealmNYTimesArticle.COLUMN_API_SECTION, section)
                 .findAllAsync()
-                .asFlowable()
-                .asFlow()
+                .toFlow()
+//                .asFlowable()
+//                .asFlow()
     }
 
     override fun countArticles(section: String): Long {
