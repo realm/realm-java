@@ -208,16 +208,16 @@ repositories {
 
 dependencies {
 
+    // Hidden from deliverable
     compileOnly "io.reactivex.rxjava2:rxjava:${properties.getProperty('RXJAVA_DEPENDENCY')}"
     compileOnly 'com.github.spotbugs:spotbugs-annotations:4.1.2'
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_android_version"
+    compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
 
     testImplementation 'junit:junit:4.12'
     testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
-
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_android_version"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
 
     api "io.realm:realm-annotations:${version}"
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
