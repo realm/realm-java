@@ -18,8 +18,8 @@ package io.realm.mongodb.sync
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
-import io.realm.entities.StringOnly
-import io.realm.entities.StringOnlyModule
+import io.realm.entities.SyncStringOnly
+import io.realm.entities.SyncStringOnlyModule
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import io.realm.mongodb.AppException
@@ -204,11 +204,11 @@ class SyncConfigurationTests {
     fun initialData() {
         val user: User = createTestUser(app)
         val config = configFactory.createSyncConfigurationBuilder(user)
-                .schema(StringOnly::class.java)
+                .schema(SyncStringOnly::class.java)
                 .initialData(object : Realm.Transaction {
                     override fun execute(realm: Realm) {
-                        val stringOnly: StringOnly = realm.createObject<StringOnly>()
-                        stringOnly.setChars("TEST 42")
+                        val stringOnly: SyncStringOnly = realm.createObject(ObjectId())
+                        stringOnly.chars = "TEST 42"
                     }
                 })
                 .build()
@@ -216,14 +216,14 @@ class SyncConfigurationTests {
 
         // open the first time - initialData must be triggered
         Realm.getInstance(config).use { realm ->
-            val results: RealmResults<StringOnly> = realm.where<StringOnly>().findAll()
+            val results: RealmResults<SyncStringOnly> = realm.where<SyncStringOnly>().findAll()
             assertEquals(1, results.size)
-            assertEquals("TEST 42", results.first()!!.getChars())
+            assertEquals("TEST 42", results.first()!!.chars)
         }
 
         // open the second time - initialData must not be triggered
         Realm.getInstance(config).use { realm ->
-            assertEquals(1, realm.where<StringOnly>().count())
+            assertEquals(1, realm.where<SyncStringOnly>().count())
         }
     }
 
@@ -250,10 +250,10 @@ class SyncConfigurationTests {
         val user2: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
 
         val config1: SyncConfiguration = SyncConfiguration.Builder(user1, DEFAULT_PARTITION)
-                .modules(StringOnlyModule())
+                .modules(SyncStringOnlyModule())
                 .build()
         val config2: SyncConfiguration = SyncConfiguration.Builder(user2, DEFAULT_PARTITION)
-                .modules(StringOnlyModule())
+                .modules(SyncStringOnlyModule())
                 .build()
 
         // Verify that two different configurations can be used for the same URL
@@ -330,8 +330,8 @@ class SyncConfigurationTests {
     @Test
     fun differentPartitionValuesAreDifferentRealms() {
         val user: User = createTestUser(app)
-        val config1 = SyncConfiguration.defaultConfig(user, "realm1")
-        val config2 = SyncConfiguration.defaultConfig(user, "realm2")
+        val config1 = SyncConfiguration.Builder(user, "realm1").modules(SyncStringOnlyModule()).build()
+        val config2 = SyncConfiguration.Builder(user, "realm2").modules(SyncStringOnlyModule()).build()
         assertNotEquals(config1.path, config2.path)
 
          assertTrue(config1.path.endsWith("${app.configuration.appId}/${user.id}/s_realm1.realm"))
@@ -352,14 +352,14 @@ class SyncConfigurationTests {
         val user: User = createTestUser(app)
 
         val configs = listOf<SyncConfiguration>(
-            SyncConfiguration.defaultConfig(user, null as String?),
-            SyncConfiguration.defaultConfig(user, null as Int?),
-            SyncConfiguration.defaultConfig(user, null as Long?),
-            SyncConfiguration.defaultConfig(user, null as ObjectId?),
-            SyncConfiguration.Builder(user, null as String?).build(),
-            SyncConfiguration.Builder(user, null as Int?).build(),
-            SyncConfiguration.Builder(user, null as Long?).build(),
-            SyncConfiguration.Builder(user, null as ObjectId?).build()
+                SyncConfiguration.defaultConfig(user, null as String?),
+                SyncConfiguration.defaultConfig(user, null as Int?),
+                SyncConfiguration.defaultConfig(user, null as Long?),
+                SyncConfiguration.defaultConfig(user, null as ObjectId?),
+                SyncConfiguration.Builder(user, null as String?).build(),
+                SyncConfiguration.Builder(user, null as Int?).build(),
+                SyncConfiguration.Builder(user, null as Long?).build(),
+                SyncConfiguration.Builder(user, null as ObjectId?).build()
         )
 
         configs.forEach { config ->
@@ -379,4 +379,49 @@ class SyncConfigurationTests {
         }
     }
 
+    @Test
+    fun allowQueriesOnUiThread_defaultsToTrue() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.build()
+        assertTrue(configuration.isAllowQueriesOnUiThread)
+    }
+
+    @Test
+    fun allowQueriesOnUiThread_explicitFalse() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.allowQueriesOnUiThread(false)
+                .build()
+        assertFalse(configuration.isAllowQueriesOnUiThread)
+    }
+
+    @Test
+    fun allowQueriesOnUiThread_explicitTrue() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.allowQueriesOnUiThread(true)
+                .build()
+        assertTrue(configuration.isAllowQueriesOnUiThread)
+    }
+
+    @Test
+    fun allowWritesOnUiThread_defaultsToFalse() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.build()
+        assertFalse(configuration.isAllowWritesOnUiThread)
+    }
+
+    @Test
+    fun allowWritesOnUiThread_explicitFalse() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.allowWritesOnUiThread(false)
+                .build()
+        assertFalse(configuration.isAllowWritesOnUiThread)
+    }
+
+    @Test
+    fun allowWritesOnUiThread_explicitTrue() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.allowWritesOnUiThread(true)
+                .build()
+        assertTrue(configuration.isAllowWritesOnUiThread)
+    }
 }

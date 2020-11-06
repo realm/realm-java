@@ -26,6 +26,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javax.annotation.Nullable;
 
 import io.realm.RealmConfiguration;
+import io.realm.RealmFieldType;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.annotations.ObjectServer;
@@ -326,10 +327,9 @@ public final class OsSharedRealm implements Closeable, NativeObject {
      * @param isNullable          if the primary key field is nullable or not.
      * @return a newly created {@link Table} object.
      */
-    public Table createTableWithPrimaryKey(String tableName, String primaryKeyFieldName, boolean isStringType,
+    public Table createTableWithPrimaryKey(String tableName, String primaryKeyFieldName, RealmFieldType primaryKeyFieldType,
                                            boolean isNullable) {
-        return new Table(this, nativeCreateTableWithPrimaryKeyField(nativePtr, tableName, primaryKeyFieldName,
-                isStringType, isNullable));
+        return new Table(this, nativeCreateTableWithPrimaryKeyField(nativePtr, tableName, primaryKeyFieldName, primaryKeyFieldType.getNativeValue(), isNullable));
     }
 
     public void renameTable(String oldName, String newName) {
@@ -602,7 +602,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     // If isStringType is false, the PK field will be created as an integer PK field.
     private static native long nativeCreateTableWithPrimaryKeyField(long nativeSharedRealmPtr, String tableName,
                                                                     String primaryKeyFieldName,
-                                                                    boolean isStringType, boolean isNullable);
+                                                                    int primaryKeyFieldType, boolean isNullable);
 
     private static native String[] nativeGetTablesName(long nativeSharedRealmPtr);
 

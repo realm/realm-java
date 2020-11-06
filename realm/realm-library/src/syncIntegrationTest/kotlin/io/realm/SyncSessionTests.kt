@@ -65,6 +65,7 @@ class SyncSessionTests {
             val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
             val syncConfiguration = configFactory
                     .createSyncConfigurationBuilder(user)
+                    .testSchema(SyncStringOnly::class.java)
                     .build()
             val realm = Realm.getInstance(syncConfiguration)
             looperThread.closeAfterTest(realm)
@@ -599,6 +600,7 @@ class SyncSessionTests {
 
         val configRef = AtomicReference<SyncConfiguration?>(null)
         val config: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
+                .testSchema(SyncStringOnly::class.java)
                 // ClientResyncMode is currently hidden, but MANUAL is the default
                 // .clientResyncMode(ClientResyncMode.MANUAL)
                 // FIXME Is this critical for the test
@@ -732,6 +734,7 @@ class SyncSessionTests {
     @Test
     fun cachedInstanceShouldNotThrowIfUserTokenIsInvalid() {
         val configuration: RealmConfiguration = configFactory.createSyncConfigurationBuilder(user)
+                .testSchema(SyncStringOnly::class.java)
                 .errorHandler { session, error ->
                     RealmLog.debug("error", error)
                 }

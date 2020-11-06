@@ -33,6 +33,7 @@ import io.realm.mongodb.User
 import io.realm.mongodb.close
 import org.bson.BsonNull
 import org.bson.BsonString
+import org.bson.types.ObjectId
 import org.junit.*
 import org.junit.Assert.assertNotEquals
 import org.junit.runner.RunWith
@@ -230,13 +231,16 @@ class SyncedRealmTests {
         val user = createTestUser(app)
 
         // Fill Realm with data and record size
-        val config1 = configFactory.createSyncConfigurationBuilder(user).build()
+        val config1 = configFactory.createSyncConfigurationBuilder(user)
+                .testSchema(SyncByteArray::class.java)
+                .build()
+
         var originalSize : Long? = null
         Realm.getInstance(config1).use { realm ->
             val oneMBData = ByteArray(1024 * 1024)
             realm.executeTransaction {
                 for (i in 0..9) {
-                    realm.createObject(AllTypes::class.java).columnBinary = oneMBData
+                    realm.createObject(SyncByteArray::class.java, ObjectId()).columnBinary = oneMBData
                 }
             }
             originalSize = File(realm.path).length()
@@ -245,6 +249,7 @@ class SyncedRealmTests {
         // Open Realm with CompactOnLaunch
         val config2 = configFactory.createSyncConfigurationBuilder(user)
                 .compactOnLaunch { totalBytes, usedBytes -> true }
+                .testSchema(SyncByteArray::class.java)
                 .build()
         Realm.getInstance(config2).use { realm ->
             val compactedSize = File(realm.path).length()
