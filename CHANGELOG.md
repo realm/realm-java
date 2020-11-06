@@ -1,4 +1,4 @@
-## 10.0.1 (YYYY-MM-DD)
+## 10.0.1 (20202-11-06)
 
 ### Breaking Changes
 * None.
@@ -7,7 +7,7 @@
 * Improved the error message for `NoSuchTable` errors. In some cases an outdated native reference was used,but the table was still there. In those cases an `InvalidTableRef` error is now used.
 
 ### Fixes
-* [SyncConfiguration] The `SyncConfiguration.Builder.allowQueriesOnUiThread` flag was wrongly initialized to `false` keeping users from running queries from the UI thread when using synced Realms. It now defaults to `true`, allowing queries to be run from the UI. (Issue [#7177](https://github.com/realm/realm-java/issues/7177), since 10.0.0)
+* [RealmApp] The `SyncConfiguration.Builder.allowQueriesOnUiThread` flag was wrongly initialized to `false` keeping users from running queries from the UI thread when using synced Realms. It now defaults to `true`, allowing queries to be run from the UI. (Issue [#7177](https://github.com/realm/realm-java/issues/7177), since 10.0.0)
 * Crash with `Assertion failed: m_method_id != nullptr with (method_name, signature) =  ["<init>", "(Ljava/lang/String;)V"]` when `Minify` is enabled. (Issue [#7159](https://github.com/realm/realm-java/pull/7159), since 10.0.0)
 * Fix crash in case insensitive query on indexed string columns when nothing matches (Cocoa issue [#6836](https://github.com/realm/realm-cocoa/issues/6836), since v10.0.0)
 * Fix list of primitives with nullable values where `Lst::is_null(ndx)` always false even on null values, (Core issue [#3987](https://github.com/realm/realm-core/pull/3987), since v10.0.0).
