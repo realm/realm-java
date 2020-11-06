@@ -51,13 +51,14 @@ import io.realm.RealmModel;
 import io.realm.RealmQuery;
 import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
+import io.realm.coroutines.CoroutinesFactory;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Util;
 import io.realm.mongodb.App;
-import io.realm.mongodb.User;
 import io.realm.mongodb.Credentials;
+import io.realm.mongodb.User;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
@@ -117,6 +118,7 @@ public class SyncConfiguration extends RealmConfiguration {
                               OsRealmConfig.Durability durability,
                               RealmProxyMediator schemaMediator,
                               @Nullable RxObservableFactory rxFactory,
+                              @Nullable CoroutinesFactory coroutinesFactory,
                               @Nullable Realm.Transaction initialDataTransaction,
                               boolean readOnly,
                               long maxNumberOfActiveVersions,
@@ -143,6 +145,7 @@ public class SyncConfiguration extends RealmConfiguration {
                 durability,
                 schemaMediator,
                 rxFactory,
+                coroutinesFactory,
                 initialDataTransaction,
                 readOnly,
                 compactOnLaunch,
@@ -466,6 +469,8 @@ public class SyncConfiguration extends RealmConfiguration {
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
         @Nullable
         private RxObservableFactory rxFactory;
+        @Nullable
+        private CoroutinesFactory coroutinesFactory;
         @Nullable
         private Realm.Transaction initialDataTransaction;
         @Nullable
@@ -794,6 +799,16 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
+         * FIXME
+         * @param factory
+         * @return
+         */
+        public Builder coroutinesFactory(CoroutinesFactory factory) {
+            coroutinesFactory = factory;
+            return this;
+        }
+
+        /**
          * Sets the initial data in {@link io.realm.Realm}. This transaction will be executed only the first time
          * the Realm file is opened (created) or while migrating the data if
          * {@link RealmConfiguration.Builder#deleteRealmIfMigrationNeeded()} is set.
@@ -1096,6 +1111,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     durability,
                     createSchemaMediator(modules, debugSchema),
                     rxFactory,
+                    coroutinesFactory,
                     initialDataTransaction,
                     readOnly,
                     maxNumberOfActiveVersions,

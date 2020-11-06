@@ -63,38 +63,6 @@ import kotlinx.coroutines.flow.flowOf
  */
 @Beta
 fun <T : RealmModel> RealmResults<T>.toFlow(): Flow<RealmResults<T>> {
-    // Return "as is" if frozen, there will be no listening for changes
-    if (realm.isFrozen) {
-        return flowOf(this)
-    }
-
-    val config = realm.configuration
-
-    return callbackFlow {
-        val results = this@toFlow
-
-        // Do nothing if the results are invalid
-        if (!results.isValid) {
-            return@callbackFlow
-        }
-
-        // Get instance to ensure the Realm is open for as long as we are listening
-        val flowRealm = Realm.getInstance(config)
-        val listener = RealmChangeListener<RealmResults<T>> { listenerResults ->
-            offer(listenerResults.freeze())
-        }
-
-        results.addChangeListener(listener)
-
-        // Emit current (frozen) value
-        offer(freeze())
-
-        awaitClose {
-            // Remove listener and cleanup
-            if (!flowRealm.isClosed) {
-                results.removeChangeListener(listener)
-                flowRealm.close()
-            }
-        }
-    }
+    return realm.configuration.coroutinesFactory?.from(realm, this)
+            ?: throw IllegalStateException("Missing coroutines factory in Realm configuration.")
 }
