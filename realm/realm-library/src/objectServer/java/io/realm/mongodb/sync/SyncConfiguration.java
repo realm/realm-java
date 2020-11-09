@@ -558,6 +558,7 @@ public class SyncConfiguration extends RealmConfiguration {
             }
             this.errorHandler = user.getApp().getConfiguration().getDefaultErrorHandler();
             this.clientResetHandler = user.getApp().getConfiguration().getDefaultClientResetHandler();
+            this.allowQueriesOnUiThread = true;
             this.allowWritesOnUiThread = false;
         }
 

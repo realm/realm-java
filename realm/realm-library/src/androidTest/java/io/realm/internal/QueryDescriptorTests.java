@@ -253,17 +253,7 @@ public class QueryDescriptorTests {
         for (RealmFieldType type : RealmFieldType.values()) {
             if (!filter.contains(type)) {
                 switch (type) {
-                    case LINKING_OBJECTS: // TODO: should be supported?s
-                    case INTEGER_LIST: // FIXME zaki50 revisit this once Primitive List query is implemented
-                    case BOOLEAN_LIST:
-                    case STRING_LIST:
-                    case BINARY_LIST:
-                    case DATE_LIST:
-                    case FLOAT_LIST:
-                    case DOUBLE_LIST:
-                    case DECIMAL128_LIST:
-                    case OBJECT_ID_LIST:
-                    case UUID_LIST:
+                    case LINKING_OBJECTS:
                         break;
                     case LIST:
                     case OBJECT:

@@ -411,8 +411,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWit
         Obj obj = do_create_row_with_object_id_primary_key(env, shared_realm_ptr, table_ref_ptr, pk_column_ndx, pk_value);
         if (bool(obj)) {
             return reinterpret_cast<jlong>(new Obj(obj));
-        } else {
-            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, "Invalid Object returned from 'do_create_row_with_object_id_primary_key'");
         }
     }
     CATCH_STD()
