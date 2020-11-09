@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.realm.kotlin
 
-import io.realm.Realm
-import io.realm.RealmChangeListener
 import io.realm.RealmModel
 import io.realm.RealmResults
 import io.realm.annotations.Beta
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flowOf
 
 /**
  * Returns a [Flow] that monitors changes to this RealmResults. It will emit the current

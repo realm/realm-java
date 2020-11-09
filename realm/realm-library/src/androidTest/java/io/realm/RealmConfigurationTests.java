@@ -33,9 +33,12 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.realm.coroutines.CoroutinesFactory;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesModelModule;
 import io.realm.entities.AnimalModule;
@@ -57,6 +60,7 @@ import io.realm.rx.CollectionChange;
 import io.realm.rx.ObjectChange;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
+import kotlinx.coroutines.flow.Flow;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -794,6 +798,48 @@ public class RealmConfigurationTests {
                 .build();
         assertNotNull(configuration2.getRxFactory());
         assertFalse(configuration2.getRxFactory() == dummyFactory);
+    }
+
+    @Test
+    public void coroutinesFactory_defaultNotNull() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .build();
+        assertNotNull(configuration.getCoroutinesFactory());
+    }
+
+    @Test
+    public void coroutinesFactory() {
+        final CoroutinesFactory dummyFactory = new CoroutinesFactory() {
+            @Override
+            public <T> Flow<RealmResults<T>> from(@Nonnull Realm realm, @Nonnull RealmResults<T> results) {
+                return null;
+            }
+
+            @Override
+            public <T> Flow<RealmList<T>> from(@Nonnull Realm realm, @Nonnull RealmList<T> results) {
+                return null;
+            }
+
+            @Override
+            public <T extends RealmModel> Flow<T> from(@Nonnull Realm realm, @Nonnull T realmModel) {
+                return null;
+            }
+
+            @Override
+            public Flow<DynamicRealmObject> from(@Nonnull DynamicRealm realm, @Nonnull DynamicRealmObject obj) {
+                return null;
+            }
+        };
+
+        RealmConfiguration configuration1 = configFactory.createConfigurationBuilder()
+                .coroutinesFactory(dummyFactory)
+                .build();
+        assertTrue(configuration1.getCoroutinesFactory() == dummyFactory);
+
+        RealmConfiguration configuration2 = configFactory.createConfigurationBuilder()
+                .build();
+        assertNotNull(configuration2.getCoroutinesFactory());
+        assertFalse(configuration2.getCoroutinesFactory() == dummyFactory);
     }
 
     @Test

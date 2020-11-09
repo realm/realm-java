@@ -910,7 +910,7 @@ public class RealmConfiguration {
                 rxFactory = new RealmObservableFactory(true);
             }
 
-            if (coroutinesFactory == null) {    // FIXME: check if coroutines are in classpath?
+            if (coroutinesFactory == null) {
                 coroutinesFactory = new RealmCoroutinesFactory();
             }
 

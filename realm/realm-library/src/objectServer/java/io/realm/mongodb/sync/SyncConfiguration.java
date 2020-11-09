@@ -52,6 +52,7 @@ import io.realm.RealmQuery;
 import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
 import io.realm.coroutines.CoroutinesFactory;
+import io.realm.coroutines.RealmCoroutinesFactory;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmProxyMediator;
@@ -1093,6 +1094,10 @@ public class SyncConfiguration extends RealmConfiguration {
 
             if (rxFactory == null && Util.isRxJavaAvailable()) {
                 rxFactory = new RealmObservableFactory(true);
+            }
+
+            if (coroutinesFactory == null) {
+                coroutinesFactory = new RealmCoroutinesFactory();
             }
 
             URI resolvedServerUrl = serverUrl;

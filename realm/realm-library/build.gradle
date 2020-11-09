@@ -214,6 +214,8 @@ dependencies {
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_android_version"
     compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
+    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_android_version"
+    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
 
     testImplementation 'junit:junit:4.12'
     testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
