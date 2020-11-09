@@ -442,19 +442,31 @@ class SyncConfigurationTests {
     @Test
     fun coroutinesFactory() {
         val factory = object : FlowFactory {
-            override fun <T> from(realm: Realm, results: RealmResults<T>): Flow<RealmResults<T>> {
+            override fun from(realm: Realm): Flow<Realm> {
                 return flowOf()
             }
 
-            override fun <T> from(realm: Realm, results: RealmList<T>): Flow<RealmList<T>> {
+            override fun from(realm: DynamicRealm): Flow<DynamicRealm> {
                 return flowOf()
             }
 
-            override fun <T : RealmModel> from(realm: Realm, realmModel: T): Flow<T> {
+            override fun <T : RealmModel?> from(realm: Realm, results: RealmResults<T>): Flow<RealmResults<T>> {
                 return flowOf()
             }
 
-            override fun from(realm: DynamicRealm, obj: DynamicRealmObject): Flow<DynamicRealmObject> {
+            override fun <T : RealmObject?> from(realm: Realm, realmList: RealmList<T>): Flow<RealmList<T>> {
+                return flowOf()
+            }
+
+            override fun <T : DynamicRealmObject?> from(realm: DynamicRealm, realmList: RealmList<T>): Flow<RealmList<T>> {
+                return flowOf()
+            }
+
+            override fun <T : RealmModel?> from(realm: Realm, realmObject: T): Flow<T> {
+                return flowOf()
+            }
+
+            override fun from(realm: DynamicRealm, dynamicRealmObject: DynamicRealmObject): Flow<DynamicRealmObject> {
                 return flowOf()
             }
         }

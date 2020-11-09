@@ -18,6 +18,7 @@ package io.realm.kotlin
 import io.realm.Realm
 import io.realm.RealmModel
 import io.realm.RealmQuery
+import io.realm.annotations.Beta
 import io.realm.exceptions.RealmException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -103,6 +104,7 @@ inline fun <reified T : RealmModel> Realm.createEmbeddedObject(parentObject: Rea
  *
  * @return Kotlin [Flow] that emit all updates to the Realm.
  */
+@Beta
 fun Realm.toflow(): Flow<Realm> {
     return configuration.flowFactory?.from(this)
             ?: throw IllegalStateException("Missing flow factory in Realm configuration.")

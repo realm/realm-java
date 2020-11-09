@@ -52,7 +52,13 @@ import kotlinx.coroutines.flow.Flow
  * @return Kotlin [Flow] on which calls to `onEach` or `collect` can be made.
  */
 @Beta
-fun <T : RealmObject> RealmList<T>.toFlow(): Flow<RealmList<T>> {
-    return realm.configuration.flowFactory?.from(realm, this)
-            ?: throw IllegalStateException("Missing flow factory in Realm configuration.")
+fun <T> RealmList<T>.toFlow(): Flow<RealmList<T>> {
+    @Suppress("INACCESSIBLE_TYPE")
+    return when (val realmInstance = baseRealm) {
+        is Realm -> realmInstance.configuration.flowFactory?.from(baseRealm as Realm, this)
+                ?: throw IllegalStateException("Missing flow factory in Realm configuration.")
+        is DynamicRealm -> realmInstance.configuration.flowFactory?.from(baseRealm as DynamicRealm, this)
+                ?: throw IllegalStateException("Missing flow factory in Realm configuration.")
+        else -> throw IllegalStateException("Wrong type of Realm.")
+    }
 }

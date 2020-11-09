@@ -25,65 +25,107 @@ import io.realm.RealmList;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
+import io.realm.annotations.Beta;
 import kotlinx.coroutines.flow.Flow;
 
 /**
- * FIXME
+ * Factory interface for creating Kotlin {@link Flow}s for Realm classes.
  */
+@Beta
 public interface FlowFactory {
 
     /**
-     * FIXME
+     * Creates a {@link Flow} for a {@link Realm}. It should emit the initial state of the Realm when subscribed to and
+     * on each subsequent update of the Realm.
      *
-     * @param realm
-     * @return
+     * @param realm {@link Realm} instance being observed for changes to be emitted by the flow.
+     * @return Flow that emits all updates to the Realm.
      */
+    @Beta
     Flow<Realm> from(@Nonnull Realm realm);
 
     /**
-     * FIXME
+     * Creates a {@link Flow} for a {@link DynamicRealm}. It should emit the initial state of the Realm when subscribed to and
+     * on each subsequent update of the Realm.
      *
-     * @param realm
-     * @return
+     * @param dynamicRealm {@link DynamicRealm} instance being observed for changes to be emitted by the flow.
+     * @return Flow that emits all updates to the Realm.
      */
-    Flow<DynamicRealm> from(@Nonnull DynamicRealm realm);
+    @Beta
+    Flow<DynamicRealm> from(@Nonnull DynamicRealm dynamicRealm);
 
     /**
-     * FIXME
+     * Creates a {@link Flow} for a {@link RealmResults}. It should emit the initial RealmResult when subscribed to and
+     * on each subsequent update of the RealmResults.
      *
-     * @param realm
-     * @param results
-     * @param <T>
-     * @return
+     * @param results {@link RealmResults} instance being observed for changes to be emitted by the flow.
+     * @param realm   {@link Realm} instance from where the results are coming.
+     * @param <T>     type of RealmObject.
+     * @return {@link Flow} that emits all updates to the RealmObject.
      */
-    <T extends RealmModel> Flow<RealmResults<T>> from(@Nonnull Realm realm, @Nonnull RealmResults<T> results);
+    @Beta
+    <T> Flow<RealmResults<T>> from(@Nonnull Realm realm, @Nonnull RealmResults<T> results);
 
     /**
-     * FIXME
+     * Creates a {@link Flow} for a {@link RealmResults}. It should emit the initial RealmResult when subscribed to and
+     * on each subsequent update of the RealmResults.
      *
-     * @param realm
-     * @param results
-     * @param <T>
-     * @return
+     * @param results      {@link RealmResults} instance being observed for changes to be emitted by the flow.
+     * @param dynamicRealm {@link DynamicRealm} instance from where the results are coming.
+     * @param <T>          type of RealmObject.
+     * @return {@link Flow} that emits all updates to the RealmObject.
      */
-    <T extends RealmObject> Flow<RealmList<T>> from(@Nonnull Realm realm, @Nonnull RealmList<T> results);
+    @Beta
+    <T> Flow<RealmResults<T>> from(@Nonnull DynamicRealm dynamicRealm, @Nonnull RealmResults<T> results);
 
     /**
-     * FIXME
+     * Creates a {@link Flow} for a {@link RealmList}. It should emit the initial RealmResult when subscribed to and
+     * on each subsequent update of the RealmList.
+     * <p>
+     * Note: {@link io.realm.RealmChangeListener} is currently not supported on RealmLists.
      *
-     * @param realm
-     * @param realmModel
-     * @param <T>
-     * @return
+     * @param realmList {@link RealmList} instance being observed for changes to be emitted by the flow.
+     * @param realm     {@link Realm} instance from where the results are coming.
+     * @param <T>       type of RealmObject
+     * @return {@link Flow} that emit all updates to the RealmList.
      */
-    <T extends RealmModel> Flow<T> from(@Nonnull Realm realm, @Nonnull T realmModel);
+    @Beta
+    <T> Flow<RealmList<T>> from(@Nonnull Realm realm, @Nonnull RealmList<T> realmList);
 
     /**
-     * FIXME
+     * Creates a {@link Flow} for a {@link RealmList}. It should emit the initial RealmResult when subscribed to and
+     * on each subsequent update of the RealmList.
+     * <p>
+     * Note: {@link io.realm.RealmChangeListener} is currently not supported on RealmLists.
      *
-     * @param realm
-     * @param obj
-     * @return
+     * @param realmList    {@link RealmList} instance being observed for changes to be emitted by the flow.
+     * @param dynamicRealm {@link DynamicRealm} instance from where the results are coming.
+     * @param <T>          type of RealmObject
+     * @return {@link Flow} that emit all updates to the RealmList.
      */
-    Flow<DynamicRealmObject> from(@Nonnull DynamicRealm realm, @Nonnull DynamicRealmObject obj);
+    @Beta
+    <T> Flow<RealmList<T>> from(@Nonnull DynamicRealm dynamicRealm, @Nonnull RealmList<T> realmList);
+
+    /**
+     * Creates a {@link Flow} for a {@link RealmObject}. It should emit the initial object when subscribed to and on each
+     * subsequent update of the object.
+     *
+     * @param realmObject {@link RealmObject} instance being observed for changes to be emitted by the flow.
+     * @param realm       {@link Realm} instance from where the object is coming.
+     * @param <T>         type of query target
+     * @return {@link Flow} that emits all updates to the DynamicRealmObject.
+     */
+    @Beta
+    <T extends RealmModel> Flow<T> from(@Nonnull Realm realm, @Nonnull T realmObject);
+
+    /**
+     * Creates a {@link Flow} for a {@link DynamicRealmObject}. It should emit the initial object when subscribed to and
+     * on each subsequent update of the object.
+     *
+     * @param dynamicRealmObject {@link DynamicRealmObject} instance being observed for changes to be emitted by the flow.
+     * @param dynamicRealm       {@link DynamicRealm} instance from where the object is coming.
+     * @return {@link Flow} that emits all updates to the DynamicRealmObject.
+     */
+    @Beta
+    Flow<DynamicRealmObject> from(@Nonnull DynamicRealm dynamicRealm, @Nonnull DynamicRealmObject dynamicRealmObject);
 }

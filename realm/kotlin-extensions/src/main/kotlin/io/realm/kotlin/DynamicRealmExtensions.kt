@@ -1,6 +1,7 @@
 package io.realm.kotlin
 
 import io.realm.DynamicRealm
+import io.realm.annotations.Beta
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -9,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
  *
  * @return Kotlin [Flow] that emit all updates to the Realm.
  */
+@Beta
 fun DynamicRealm.toflow(): Flow<DynamicRealm> {
     return configuration.flowFactory?.from(this)
             ?: throw IllegalStateException("Missing flow factory in Realm configuration.")

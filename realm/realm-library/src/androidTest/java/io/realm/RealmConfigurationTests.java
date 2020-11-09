@@ -17,8 +17,9 @@
 package io.realm;
 
 import android.content.Context;
-import androidx.test.platform.app.InstrumentationRegistry;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.After;
 import org.junit.Before;
@@ -811,22 +812,37 @@ public class RealmConfigurationTests {
     public void coroutinesFactory() {
         final FlowFactory dummyFactory = new FlowFactory() {
             @Override
-            public <T> Flow<RealmResults<T>> from(@Nonnull Realm realm, @Nonnull RealmResults<T> results) {
+            public Flow<Realm> from(@Nonnull Realm realm) {
                 return null;
             }
 
             @Override
-            public <T> Flow<RealmList<T>> from(@Nonnull Realm realm, @Nonnull RealmList<T> results) {
+            public Flow<DynamicRealm> from(@Nonnull DynamicRealm realm) {
                 return null;
             }
 
             @Override
-            public <T extends RealmModel> Flow<T> from(@Nonnull Realm realm, @Nonnull T realmModel) {
+            public <T extends RealmModel> Flow<RealmResults<T>> from(@Nonnull Realm realm, @Nonnull RealmResults<T> results) {
                 return null;
             }
 
             @Override
-            public Flow<DynamicRealmObject> from(@Nonnull DynamicRealm realm, @Nonnull DynamicRealmObject obj) {
+            public <T extends RealmObject> Flow<RealmList<T>> from(@Nonnull Realm realm, @Nonnull RealmList<T> realmList) {
+                return null;
+            }
+
+            @Override
+            public <T extends DynamicRealmObject> Flow<RealmList<T>> from(@Nonnull DynamicRealm realm, @Nonnull RealmList<T> realmList) {
+                return null;
+            }
+
+            @Override
+            public <T extends RealmModel> Flow<T> from(@Nonnull Realm realm, @Nonnull T realmObject) {
+                return null;
+            }
+
+            @Override
+            public Flow<DynamicRealmObject> from(@Nonnull DynamicRealm realm, @Nonnull DynamicRealmObject dynamicRealmObject) {
                 return null;
             }
         };
