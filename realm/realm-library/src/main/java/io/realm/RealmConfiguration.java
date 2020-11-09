@@ -30,8 +30,8 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import io.realm.annotations.RealmModule;
-import io.realm.coroutines.CoroutinesFactory;
-import io.realm.coroutines.RealmCoroutinesFactory;
+import io.realm.coroutines.FlowFactory;
+import io.realm.coroutines.RealmFlowFactory;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmCore;
@@ -96,7 +96,7 @@ public class RealmConfiguration {
     private final OsRealmConfig.Durability durability;
     private final RealmProxyMediator schemaMediator;
     private final RxObservableFactory rxObservableFactory;
-    private final CoroutinesFactory coroutinesFactory;
+    private final FlowFactory flowFactory;
     private final Realm.Transaction initialDataTransaction;
     private final boolean readOnly;
     private final CompactOnLaunchCallback compactOnLaunch;
@@ -121,7 +121,7 @@ public class RealmConfiguration {
             OsRealmConfig.Durability durability,
             RealmProxyMediator schemaMediator,
             @Nullable RxObservableFactory rxObservableFactory,
-            @Nullable CoroutinesFactory coroutinesFactory,
+            @Nullable FlowFactory flowFactory,
             @Nullable Realm.Transaction initialDataTransaction,
             boolean readOnly,
             @Nullable CompactOnLaunchCallback compactOnLaunch,
@@ -140,7 +140,7 @@ public class RealmConfiguration {
         this.durability = durability;
         this.schemaMediator = schemaMediator;
         this.rxObservableFactory = rxObservableFactory;
-        this.coroutinesFactory = coroutinesFactory;
+        this.flowFactory = flowFactory;
         this.initialDataTransaction = initialDataTransaction;
         this.readOnly = readOnly;
         this.compactOnLaunch = compactOnLaunch;
@@ -277,11 +277,11 @@ public class RealmConfiguration {
      * @return
      */
     @Nullable
-    public CoroutinesFactory getCoroutinesFactory() {
-        if (coroutinesFactory == null) {
+    public FlowFactory getFlowFactory() {
+        if (flowFactory == null) {
             throw new UnsupportedOperationException("TODO");    // FIXME
         }
-        return coroutinesFactory;
+        return flowFactory;
     }
 
     /**
@@ -498,7 +498,7 @@ public class RealmConfiguration {
         @Nullable
         private RxObservableFactory rxFactory;
         @Nullable
-        private CoroutinesFactory coroutinesFactory;
+        private FlowFactory flowFactory;
         private Realm.Transaction initialDataTransaction;
         private boolean readOnly;
         private CompactOnLaunchCallback compactOnLaunch;
@@ -731,8 +731,8 @@ public class RealmConfiguration {
          * @param factory
          * @return
          */
-        public Builder coroutinesFactory(CoroutinesFactory factory) {
-            coroutinesFactory = factory;
+        public Builder coroutinesFactory(FlowFactory factory) {
+            flowFactory = factory;
             return this;
         }
 
@@ -910,8 +910,8 @@ public class RealmConfiguration {
                 rxFactory = new RealmObservableFactory(true);
             }
 
-            if (coroutinesFactory == null) {
-                coroutinesFactory = new RealmCoroutinesFactory();
+            if (flowFactory == null) {
+                flowFactory = new RealmFlowFactory();
             }
 
             return new RealmConfiguration(new File(directory, fileName),
@@ -923,7 +923,7 @@ public class RealmConfiguration {
                     durability,
                     createSchemaMediator(modules, debugSchema),
                     rxFactory,
-                    coroutinesFactory,
+                    flowFactory,
                     initialDataTransaction,
                     readOnly,
                     compactOnLaunch,

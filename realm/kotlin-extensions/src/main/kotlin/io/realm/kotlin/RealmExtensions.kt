@@ -21,6 +21,7 @@ import io.realm.RealmQuery
 import io.realm.exceptions.RealmException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
@@ -94,6 +95,17 @@ inline fun <reified T : RealmModel> Realm.createObject(primaryKeyValue: Any?): T
  */
 inline fun <reified T : RealmModel> Realm.createEmbeddedObject(parentObject: RealmModel, parentProperty: String): T {
     return this.createEmbeddedObject(T::class.java, parentObject, parentProperty)
+}
+
+/**
+ * Creates a [Flow] for a [Realm]. It should emit the initial state of the Realm when subscribed to and
+ * on each subsequent update of the Realm.
+ *
+ * @return Kotlin [Flow] that emit all updates to the Realm.
+ */
+fun Realm.toflow(): Flow<Realm> {
+    return configuration.flowFactory?.from(this)
+            ?: throw IllegalStateException("Missing flow factory in Realm configuration.")
 }
 
 /**

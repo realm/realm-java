@@ -38,7 +38,7 @@ import javax.annotation.Nonnull;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
-import io.realm.coroutines.CoroutinesFactory;
+import io.realm.coroutines.FlowFactory;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesModelModule;
 import io.realm.entities.AnimalModule;
@@ -804,12 +804,12 @@ public class RealmConfigurationTests {
     public void coroutinesFactory_defaultNotNull() {
         RealmConfiguration configuration = configFactory.createConfigurationBuilder()
                 .build();
-        assertNotNull(configuration.getCoroutinesFactory());
+        assertNotNull(configuration.getFlowFactory());
     }
 
     @Test
     public void coroutinesFactory() {
-        final CoroutinesFactory dummyFactory = new CoroutinesFactory() {
+        final FlowFactory dummyFactory = new FlowFactory() {
             @Override
             public <T> Flow<RealmResults<T>> from(@Nonnull Realm realm, @Nonnull RealmResults<T> results) {
                 return null;
@@ -834,12 +834,12 @@ public class RealmConfigurationTests {
         RealmConfiguration configuration1 = configFactory.createConfigurationBuilder()
                 .coroutinesFactory(dummyFactory)
                 .build();
-        assertTrue(configuration1.getCoroutinesFactory() == dummyFactory);
+        assertTrue(configuration1.getFlowFactory() == dummyFactory);
 
         RealmConfiguration configuration2 = configFactory.createConfigurationBuilder()
                 .build();
-        assertNotNull(configuration2.getCoroutinesFactory());
-        assertFalse(configuration2.getCoroutinesFactory() == dummyFactory);
+        assertNotNull(configuration2.getFlowFactory());
+        assertFalse(configuration2.getFlowFactory() == dummyFactory);
     }
 
     @Test

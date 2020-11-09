@@ -18,7 +18,7 @@ package io.realm.mongodb.sync
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
-import io.realm.coroutines.CoroutinesFactory
+import io.realm.coroutines.FlowFactory
 import io.realm.entities.SyncStringOnly
 import io.realm.entities.SyncStringOnlyModule
 import io.realm.kotlin.createObject
@@ -436,12 +436,12 @@ class SyncConfigurationTests {
     fun coroutinesFactory_defaultNonNull() {
         val configuration = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
                 .build()
-        assertNotNull(configuration.coroutinesFactory)
+        assertNotNull(configuration.flowFactory)
     }
 
     @Test
     fun coroutinesFactory() {
-        val factory = object : CoroutinesFactory {
+        val factory = object : FlowFactory {
             override fun <T> from(realm: Realm, results: RealmResults<T>): Flow<RealmResults<T>> {
                 return flowOf()
             }
@@ -462,10 +462,10 @@ class SyncConfigurationTests {
         val configuration1 = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
                 .coroutinesFactory(factory)
                 .build()
-        assertEquals(factory, configuration1.coroutinesFactory)
+        assertEquals(factory, configuration1.flowFactory)
 
         val configuration2 = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
                 .build()
-        assertNotEquals(factory, configuration2.coroutinesFactory)
+        assertNotEquals(factory, configuration2.flowFactory)
     }
 }

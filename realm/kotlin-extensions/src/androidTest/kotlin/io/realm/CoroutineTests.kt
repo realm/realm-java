@@ -36,6 +36,125 @@ class CoroutineTests {
     }
 
     @Test
+    fun realm_toFlow_emittedOnCollect() {
+        val countDownLatch = CountDownLatch(1)
+
+        val context = Dispatchers.Main
+        val scope = CoroutineScope(context)
+
+        scope.launch {
+            val realmInstance = Realm.getInstance(configuration)
+            realmInstance.toflow()
+                    .flowOn(context)
+                    .onEach { emittedRealm ->
+                        assertNotNull(emittedRealm)
+                        scope.cancel("Cancelling scope...")
+                    }
+                    .onCompletion {
+                        realmInstance.close()
+                        countDownLatch.countDown()
+                    }
+                    .collect()
+        }
+
+        TestHelper.awaitOrFail(countDownLatch)
+    }
+
+    @Test
+    fun realm_toFlow_emittedOnUpdate() {
+        val countDownLatch = CountDownLatch(1)
+
+        val context = Dispatchers.Main
+        val scope = CoroutineScope(context)
+
+        scope.launch {
+            val realmInstance = Realm.getInstance(configuration)
+            realmInstance.toflow()
+                    .flowOn(context)
+                    .onEach { emittedRealm ->
+                        assertNotNull(emittedRealm)
+
+                        if (emittedRealm.isEmpty) {
+                            realmInstance.beginTransaction()
+                            realmInstance.createObject(AllTypes::class.java)
+                            realmInstance.commitTransaction()
+                        } else {
+                            assertTrue(emittedRealm.where<AllTypes>().count() > 0)
+                            scope.cancel("Cancelling scope...")
+                        }
+                    }
+                    .onCompletion {
+                        realmInstance.close()
+                        countDownLatch.countDown()
+                    }
+                    .collect()
+        }
+
+        TestHelper.awaitOrFail(countDownLatch)
+    }
+
+    @Test
+    fun dynamicRealm_toFlow_emittedOnCollect() {
+        val countDownLatch = CountDownLatch(1)
+
+        val context = Dispatchers.Main
+        val scope = CoroutineScope(context)
+
+        scope.launch {
+            val realmInstance = DynamicRealm.getInstance(configuration)
+            realmInstance.toflow()
+                    .flowOn(context)
+                    .onEach { emittedRealm ->
+                        assertNotNull(emittedRealm)
+                        scope.cancel("Cancelling scope...")
+                    }
+                    .onCompletion {
+                        realmInstance.close()
+                        countDownLatch.countDown()
+                    }
+                    .collect()
+        }
+
+        TestHelper.awaitOrFail(countDownLatch)
+    }
+
+    @Test
+    fun dynamicRealm_toFlow_emittedOnUpdate() {
+        val countDownLatch = CountDownLatch(1)
+
+        val context = Dispatchers.Main
+        val scope = CoroutineScope(context)
+
+        // Initializes schema. DynamicRealm will not do that, so let a normal Realm create the file first.
+        Realm.getInstance(configuration).close()
+
+        scope.launch {
+            val realmInstance = DynamicRealm.getInstance(configuration)
+            realmInstance.toflow()
+                    .flowOn(context)
+                    .onEach { emittedRealm ->
+                        assertNotNull(emittedRealm)
+
+                        if (emittedRealm.isEmpty) {
+                            realmInstance.beginTransaction()
+                            realmInstance.createObject(AllTypes.CLASS_NAME)
+                            realmInstance.commitTransaction()
+                        } else {
+                            assertTrue(emittedRealm.where(AllTypes.CLASS_NAME).count() > 0)
+                            scope.cancel("Cancelling scope...")
+                        }
+                    }
+                    .onCompletion {
+                        realmInstance.close()
+                        countDownLatch.countDown()
+                    }
+                    .collect()
+        }
+
+        TestHelper.awaitOrFail(countDownLatch)
+    }
+
+    @Test
     fun toFlow_emittedOnCollect() {
         val countDownLatch = CountDownLatch(1)
 

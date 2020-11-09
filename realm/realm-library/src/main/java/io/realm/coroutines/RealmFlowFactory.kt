@@ -25,7 +25,69 @@ import kotlinx.coroutines.flow.flowOf
 /**
  * FIXME
  */
-class RealmCoroutinesFactory : CoroutinesFactory {
+class RealmFlowFactory(
+        private val returnFrozenObjects: Boolean = true
+) : FlowFactory {
+
+    override fun from(realm: Realm): Flow<Realm> {
+        if (realm.isFrozen) {
+            return flowOf(realm)
+        }
+
+        return callbackFlow {
+            val flowRealm = Realm.getInstance(realm.configuration)
+            val listener = RealmChangeListener<Realm> { listenerRealm ->
+                if (returnFrozenObjects) {
+                    offer(realm.freeze())
+                } else {
+                    offer(listenerRealm)
+                }
+            }
+
+            flowRealm.addChangeListener(listener)
+
+            if (returnFrozenObjects) {
+                offer(flowRealm.freeze())
+            } else {
+                offer(flowRealm)
+            }
+
+            awaitClose {
+                flowRealm.removeChangeListener(listener)
+                flowRealm.close()
+            }
+        }
+    }
+
+    override fun from(realm: DynamicRealm): Flow<DynamicRealm> {
+        if (realm.isFrozen) {
+            return flowOf(realm)
+        }
+
+        return callbackFlow {
+            val flowRealm = DynamicRealm.getInstance(realm.configuration)
+            val listener = RealmChangeListener<DynamicRealm> { listenerRealm ->
+                if (returnFrozenObjects) {
+                    offer(realm.freeze())
+                } else {
+                    offer(listenerRealm)
+                }
+            }
+
+            flowRealm.addChangeListener(listener)
+
+            if (returnFrozenObjects) {
+                offer(flowRealm.freeze())
+            } else {
+                offer(flowRealm)
+            }
+
+            awaitClose {
+                flowRealm.removeChangeListener(listener)
+                flowRealm.close()
+            }
+        }
+    }
 
     override fun <T : RealmModel> from(realm: Realm, results: RealmResults<T>): Flow<RealmResults<T>> {
         // Return "as is" if frozen, there will be no listening for changes
@@ -44,13 +106,21 @@ class RealmCoroutinesFactory : CoroutinesFactory {
             // Get instance to ensure the Realm is open for as long as we are listening
             val flowRealm = Realm.getInstance(config)
             val listener = RealmChangeListener<RealmResults<T>> { listenerResults ->
-                offer(listenerResults.freeze())
+                if (returnFrozenObjects) {
+                    offer(listenerResults.freeze())
+                } else {
+                    offer(listenerResults)
+                }
             }
 
             results.addChangeListener(listener)
 
-            // Emit current (frozen) value
-            offer(results.freeze())
+            // Emit current value
+            if (returnFrozenObjects) {
+                offer(results.freeze())
+            } else {
+                offer(results)
+            }
 
             awaitClose {
                 // Remove listener and cleanup
@@ -79,13 +149,21 @@ class RealmCoroutinesFactory : CoroutinesFactory {
             // Get instance to ensure the Realm is open for as long as we are listening
             val flowRealm = Realm.getInstance(config)
             val listener = RealmChangeListener<RealmList<T>> { listenerResults ->
-                offer(listenerResults.freeze())
+                if (returnFrozenObjects) {
+                    offer(listenerResults.freeze())
+                } else {
+                    offer(listenerResults)
+                }
             }
 
             realmList.addChangeListener(listener)
 
-            // Emit current (frozen) value
-            offer(realmList.freeze())
+            // Emit current value
+            if (returnFrozenObjects) {
+                offer(realmList.freeze())
+            } else {
+                offer(realmList)
+            }
 
             awaitClose {
                 // Remove listener and cleanup
@@ -114,13 +192,21 @@ class RealmCoroutinesFactory : CoroutinesFactory {
             // Get instance to ensure the Realm is open for as long as we are listening
             val flowRealm = Realm.getInstance(config)
             val listener = RealmChangeListener<T> { listenerObj ->
-                offer(RealmObject.freeze(listenerObj) as T)
+                if (returnFrozenObjects) {
+                    offer(RealmObject.freeze(listenerObj) as T)
+                } else {
+                    offer(listenerObj)
+                }
             }
 
             RealmObject.addChangeListener(realmModel, listener)
 
-            // Emit current (frozen) value
-            offer(RealmObject.freeze(realmModel))
+            // Emit current value
+            if (returnFrozenObjects) {
+                offer(RealmObject.freeze(realmModel))
+            } else {
+                offer(realmModel)
+            }
 
             awaitClose {
                 // Remove listener and cleanup
@@ -149,13 +235,21 @@ class RealmCoroutinesFactory : CoroutinesFactory {
             // Get instance to ensure the Realm is open for as long as we are listening
             val flowRealm = Realm.getInstance(config)
             val listener = RealmChangeListener<DynamicRealmObject> { listenerObj ->
-                offer(listenerObj.freeze())
+                if (returnFrozenObjects) {
+                    offer(listenerObj.freeze())
+                } else {
+                    offer(listenerObj)
+                }
             }
 
             dynamicObject.addChangeListener(listener)
 
-            // Emit current (frozen) value
-            offer(RealmObject.freeze(dynamicObject))
+            // Emit current value
+            if (returnFrozenObjects) {
+                offer(RealmObject.freeze(dynamicObject))
+            } else {
+                offer(dynamicObject)
+            }
 
             awaitClose {
                 // Remove listener and cleanup

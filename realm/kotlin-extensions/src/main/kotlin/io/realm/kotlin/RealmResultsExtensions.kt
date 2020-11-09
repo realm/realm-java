@@ -16,10 +16,13 @@
 
 package io.realm.kotlin
 
+import io.realm.OrderedCollectionChangeSet
 import io.realm.RealmModel
 import io.realm.RealmResults
 import io.realm.annotations.Beta
+import io.realm.rx.CollectionChange
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 /**
  * Returns a [Flow] that monitors changes to this RealmResults. It will emit the current
@@ -58,6 +61,11 @@ import kotlinx.coroutines.flow.Flow
  */
 @Beta
 fun <T : RealmModel> RealmResults<T>.toFlow(): Flow<RealmResults<T>> {
-    return realm.configuration.coroutinesFactory?.from(realm, this)
-            ?: throw IllegalStateException("Missing coroutines factory in Realm configuration.")
+    return realm.configuration.flowFactory?.from(realm, this)
+            ?: throw IllegalStateException("Missing flow factory in Realm configuration.")
 }
+
+// TODO figure out if we want to do this as a separate method or merge both in one that delivers changesets and results
+//fun <T : RealmModel> RealmResults<T>.toChangesetsFlow(): Flow<Pair<RealmResults<T>, OrderedCollectionChangeSet>> {
+//    return flowOf()
+//}

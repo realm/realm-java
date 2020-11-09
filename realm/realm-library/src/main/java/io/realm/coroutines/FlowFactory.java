@@ -30,7 +30,24 @@ import kotlinx.coroutines.flow.Flow;
 /**
  * FIXME
  */
-public interface CoroutinesFactory {
+public interface FlowFactory {
+
+    /**
+     * FIXME
+     *
+     * @param realm
+     * @return
+     */
+    Flow<Realm> from(@Nonnull Realm realm);
+
+    /**
+     * FIXME
+     *
+     * @param realm
+     * @return
+     */
+    Flow<DynamicRealm> from(@Nonnull DynamicRealm realm);
+
     /**
      * FIXME
      *

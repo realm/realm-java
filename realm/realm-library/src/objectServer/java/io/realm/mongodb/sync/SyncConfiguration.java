@@ -51,8 +51,8 @@ import io.realm.RealmModel;
 import io.realm.RealmQuery;
 import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
-import io.realm.coroutines.CoroutinesFactory;
-import io.realm.coroutines.RealmCoroutinesFactory;
+import io.realm.coroutines.FlowFactory;
+import io.realm.coroutines.RealmFlowFactory;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmProxyMediator;
@@ -119,7 +119,7 @@ public class SyncConfiguration extends RealmConfiguration {
                               OsRealmConfig.Durability durability,
                               RealmProxyMediator schemaMediator,
                               @Nullable RxObservableFactory rxFactory,
-                              @Nullable CoroutinesFactory coroutinesFactory,
+                              @Nullable FlowFactory flowFactory,
                               @Nullable Realm.Transaction initialDataTransaction,
                               boolean readOnly,
                               long maxNumberOfActiveVersions,
@@ -146,7 +146,7 @@ public class SyncConfiguration extends RealmConfiguration {
                 durability,
                 schemaMediator,
                 rxFactory,
-                coroutinesFactory,
+                flowFactory,
                 initialDataTransaction,
                 readOnly,
                 compactOnLaunch,
@@ -471,7 +471,7 @@ public class SyncConfiguration extends RealmConfiguration {
         @Nullable
         private RxObservableFactory rxFactory;
         @Nullable
-        private CoroutinesFactory coroutinesFactory;
+        private FlowFactory flowFactory;
         @Nullable
         private Realm.Transaction initialDataTransaction;
         @Nullable
@@ -804,8 +804,8 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param factory
          * @return
          */
-        public Builder coroutinesFactory(CoroutinesFactory factory) {
-            coroutinesFactory = factory;
+        public Builder coroutinesFactory(FlowFactory factory) {
+            flowFactory = factory;
             return this;
         }
 
@@ -1096,8 +1096,8 @@ public class SyncConfiguration extends RealmConfiguration {
                 rxFactory = new RealmObservableFactory(true);
             }
 
-            if (coroutinesFactory == null) {
-                coroutinesFactory = new RealmCoroutinesFactory();
+            if (flowFactory == null) {
+                flowFactory = new RealmFlowFactory();
             }
 
             URI resolvedServerUrl = serverUrl;
@@ -1116,7 +1116,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     durability,
                     createSchemaMediator(modules, debugSchema),
                     rxFactory,
-                    coroutinesFactory,
+                    flowFactory,
                     initialDataTransaction,
                     readOnly,
                     maxNumberOfActiveVersions,

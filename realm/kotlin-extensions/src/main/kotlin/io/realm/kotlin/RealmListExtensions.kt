@@ -18,10 +18,7 @@ package io.realm.kotlin
 
 import io.realm.*
 import io.realm.annotations.Beta
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flowOf
 
 /**
  * Returns a [Flow] that monitors changes to this RealmList. It will emit the current
@@ -56,6 +53,6 @@ import kotlinx.coroutines.flow.flowOf
  */
 @Beta
 fun <T : RealmObject> RealmList<T>.toFlow(): Flow<RealmList<T>> {
-    return realm.configuration.coroutinesFactory?.from(realm, this)
-            ?: throw IllegalStateException("Missing coroutines factory in Realm configuration.")
+    return realm.configuration.flowFactory?.from(realm, this)
+            ?: throw IllegalStateException("Missing flow factory in Realm configuration.")
 }
