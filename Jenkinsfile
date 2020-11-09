@@ -241,7 +241,7 @@ def runBuild(buildFlags, instrumentationTestTarget) {
     },
     'Static code analysis' : {
       try {
-        gradle('realm', "spotbugsMain pmd checkstyle ${buildFlagsbuildFlags}")
+        gradle('realm', "spotbugsMain pmd checkstyle ${buildFlags}")
       } finally {
         publishHTML(target: [
           allowMissing: false, 
