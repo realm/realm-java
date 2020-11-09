@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.flowOf
  */
 class RealmCoroutinesFactory : CoroutinesFactory {
 
-    override fun <T> from(realm: Realm, results: RealmResults<T>): Flow<RealmResults<T>> {
+    override fun <T : RealmModel> from(realm: Realm, results: RealmResults<T>): Flow<RealmResults<T>> {
         // Return "as is" if frozen, there will be no listening for changes
         if (realm.isFrozen) {
             return flowOf(results)
@@ -62,7 +62,7 @@ class RealmCoroutinesFactory : CoroutinesFactory {
         }
     }
 
-    override fun <T : Any?> from(realm: Realm, realmList: RealmList<T>): Flow<RealmList<T>> {
+    override fun <T : RealmObject> from(realm: Realm, realmList: RealmList<T>): Flow<RealmList<T>> {
         // Return "as is" if frozen, there will be no listening for changes
         if (realm.isFrozen) {
             return flowOf(realmList)

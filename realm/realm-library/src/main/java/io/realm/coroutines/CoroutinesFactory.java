@@ -23,6 +23,7 @@ import io.realm.DynamicRealmObject;
 import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmModel;
+import io.realm.RealmObject;
 import io.realm.RealmResults;
 import kotlinx.coroutines.flow.Flow;
 
@@ -38,7 +39,7 @@ public interface CoroutinesFactory {
      * @param <T>
      * @return
      */
-    <T> Flow<RealmResults<T>> from(@Nonnull Realm realm, @Nonnull RealmResults<T> results);
+    <T extends RealmModel> Flow<RealmResults<T>> from(@Nonnull Realm realm, @Nonnull RealmResults<T> results);
 
     /**
      * FIXME
@@ -48,7 +49,7 @@ public interface CoroutinesFactory {
      * @param <T>
      * @return
      */
-    <T> Flow<RealmList<T>> from(@Nonnull Realm realm, @Nonnull RealmList<T> results);
+    <T extends RealmObject> Flow<RealmList<T>> from(@Nonnull Realm realm, @Nonnull RealmList<T> results);
 
     /**
      * FIXME
