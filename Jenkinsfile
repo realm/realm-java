@@ -75,14 +75,14 @@ try {
         //   on an actual device.
         def useEmulator = false
         def emulatorImage = ""
-        def abiFilter = ""
+        def buildFlags = ""
         def instrumentationTestTarget = "connectedAndroidTest"
         def deviceSerial = ""
         if (!releaseBranches.contains(currentBranch)) {
           // Build development branch
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
-          abiFilter = "-PbuildTargetABIs=x86"
+          buildFlags = "-PbuildTargetABIs=x86 -PdisableLTO=1"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           deviceSerial = "emulator-5554"
         } else {
@@ -151,12 +151,12 @@ try {
                 // Need to go to ANDROID_HOME due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
                 sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-boot-anim -no-window -wipe-data -noaudio -partition-size 4098 &"
                 try {
-                  runBuild(abiFilter, instrumentationTestTarget)
+                  runBuild(buildFlags, instrumentationTestTarget)
                 } finally {
                   sh "adb emu kill"
                 }
               } else {
-                runBuild(abiFilter, instrumentationTestTarget)
+                runBuild(buildFlags, instrumentationTestTarget)
               }
 
               // Release the library if needed
@@ -214,17 +214,17 @@ try {
 }
 
 // Runs all build steps
-def runBuild(abiFilter, instrumentationTestTarget) {
+def runBuild(buildFlags, instrumentationTestTarget) {
 
   stage('Build') {
     sh "chmod +x gradlew"
-    sh "./gradlew assemble ${abiFilter} --stacktrace"
+    sh "./gradlew assemble ${buildFlags} --stacktrace"
   }
 
   stage('Tests') {
     parallel 'JVM' : {
       try {
-        sh "chmod +x gradlew && ./gradlew check ${abiFilter} --stacktrace"
+        sh "chmod +x gradlew && ./gradlew check ${buildFlags} --stacktrace"
       } finally {
         storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
         storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
@@ -241,7 +241,7 @@ def runBuild(abiFilter, instrumentationTestTarget) {
     },
     'Static code analysis' : {
       try {
-        gradle('realm', "spotbugsMain pmd checkstyle ${abiFilter}")
+        gradle('realm', "spotbugsMain pmd checkstyle ${buildFlags}")
       } finally {
         publishHTML(target: [
           allowMissing: false, 
@@ -277,7 +277,7 @@ def runBuild(abiFilter, instrumentationTestTarget) {
         try {
           backgroundPid = startLogCatCollector()
           forwardAdbPorts()
-          gradle('realm', "${instrumentationTestTarget} ${abiFilter}")
+          gradle('realm', "${instrumentationTestTarget} ${buildFlags}")
         } finally {
           stopLogCatCollector(backgroundPid)
           storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
@@ -295,7 +295,7 @@ def runBuild(abiFilter, instrumentationTestTarget) {
       }
     },
     'JavaDoc': {
-      sh "./gradlew javadoc ${abiFilter} --stacktrace"
+      sh "./gradlew javadoc ${buildFlags} --stacktrace"
     }
   }
 

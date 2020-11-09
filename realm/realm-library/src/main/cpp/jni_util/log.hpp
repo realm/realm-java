@@ -26,7 +26,7 @@
 
 #include "io_realm_log_LogLevel.h"
 
-#include "realm/util/logger.hpp"
+#include <realm/util/logger.hpp>
 
 namespace realm {
 

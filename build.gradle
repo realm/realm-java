@@ -40,6 +40,9 @@ def copyProperties = {
     if (project.hasProperty('s3cfg')) {
         startParameter.projectProperties += [s3cfg: project.getProperty('s3cfg')]
     }
+    if (project.hasProperty('disableLTO')) {
+        startParameter.projectProperties += [disableLTO: project.getProperty('disableLTO')]
+    }
 }
 
 task assembleAnnotations(type:GradleBuild) {

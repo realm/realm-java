@@ -22,12 +22,12 @@
 #include "jni_util/java_method.hpp"
 #include "jni_util/jni_utils.hpp"
 #include "jni_util/bson_util.hpp"
-#include "object-store/src/util/bson/bson.hpp"
+#include <realm/object-store/util/bson/bson.hpp>
 
 #include <realm/util/optional.hpp>
-#include <sync/app.hpp>
-#include <sync/mongo_database.hpp>
-#include <sync/mongo_collection.hpp>
+#include <realm/object-store/sync/app.hpp>
+#include <realm/object-store/sync/mongo_database.hpp>
+#include <realm/object-store/sync/mongo_collection.hpp>
 #include <jni_util/bson_util.hpp>
 
 using namespace realm;

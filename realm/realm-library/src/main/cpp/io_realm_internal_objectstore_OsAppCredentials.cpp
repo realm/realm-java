@@ -19,7 +19,7 @@
 #include "util.hpp"
 
 #include <jni_util/bson_util.hpp>
-#include <sync/app_credentials.hpp>
+#include <realm/object-store/sync/app_credentials.hpp>
 
 using namespace realm;
 using namespace realm::app;

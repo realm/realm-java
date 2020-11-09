@@ -18,7 +18,7 @@
 #define REALM_BSON_UTIL_HPP
 
 #include <jni.h>
-#include <util/bson/bson.hpp>
+#include <realm/object-store/util/bson/bson.hpp>
 
 namespace realm {
 namespace jni_util {

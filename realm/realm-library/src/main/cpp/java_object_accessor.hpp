@@ -25,8 +25,8 @@
 
 #include "java_accessor.hpp"
 #include "java_class_global_def.hpp"
-#include "object_accessor.hpp"
-#include "object-store/src/property.hpp"
+#include <realm/object-store/object_accessor.hpp>
+#include <realm/object-store/property.hpp>
 
 #include <realm/decimal128.hpp>
 #include <realm/object_id.hpp>
