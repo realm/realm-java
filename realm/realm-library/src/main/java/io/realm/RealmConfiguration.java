@@ -727,11 +727,12 @@ public class RealmConfiguration {
         }
 
         /**
-         * FIXME
-         * @param factory
-         * @return
+         * Sets the {@link FlowFactory} used to create coroutines Flows from Realm objects.
+         * The default factory is {@link RealmFlowFactory}.
+         *
+         * @param factory factory to use.
          */
-        public Builder coroutinesFactory(FlowFactory factory) {
+        public Builder flowFactory(FlowFactory factory) {
             flowFactory = factory;
             return this;
         }

@@ -848,7 +848,7 @@ public class RealmConfigurationTests {
         };
 
         RealmConfiguration configuration1 = configFactory.createConfigurationBuilder()
-                .coroutinesFactory(dummyFactory)
+                .flowFactory(dummyFactory)
                 .build();
         assertTrue(configuration1.getFlowFactory() == dummyFactory);
 

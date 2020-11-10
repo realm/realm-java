@@ -472,7 +472,7 @@ class SyncConfigurationTests {
         }
 
         val configuration1 = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
-                .coroutinesFactory(factory)
+                .flowFactory(factory)
                 .build()
         assertEquals(factory, configuration1.flowFactory)
 
