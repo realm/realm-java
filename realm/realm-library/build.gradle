@@ -287,6 +287,7 @@ task javadoc(type: Javadoc) {
     exclude '**/internal/**'
     exclude '**/BuildConfig.java'
     exclude '**/R.java'
+    exclude '**/*.kt'
     doLast {
         copy {
             from "src/realm-java-overview.png"
