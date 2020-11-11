@@ -232,38 +232,6 @@ To run these tests, you must have a device connected to the build computer, and 
 
 These tests may take as much as half an hour to complete.
 
-## Running Tests Using The Realm Object Server
-
-Tests in `realm/realm-library/src/syncIntegrationTest` require a running testing server to work.
-A docker image can be built from `tools/sync_test_server/Dockerfile` to run the test server.
-`tools/sync_test_server/start_server.sh` will build the docker image automatically.
-
-To run a testing server locally:
-
-1. Install [docker](https://www.docker.com/products/overview) and run it.
-
-2. Run `tools/sync_test_server/start_server.sh`:
-
-    ```sh
-    cd tools/sync_test_server
-    ./start_server.sh
-    ```
-
-    This command will not complete until the server has stopped.
-
-3. Run instrumentation tests
-
-    In a new terminal window, run:
-
-    ```sh
-    cd realm
-    ./gradlew connectedObjectServerDebugAndroidTest
-    ```
-
-Note that if using VirtualBox (Genymotion), the network needs to be bridged for the tests to work.
-This is done in `VirtualBox > Network`. Set "Adapter 2" to "Bridged Adapter".
-
-These tests may take as much as half an hour to complete.
 
 ## Contributing
 
