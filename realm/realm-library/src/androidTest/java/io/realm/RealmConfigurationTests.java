@@ -817,22 +817,27 @@ public class RealmConfigurationTests {
             }
 
             @Override
-            public Flow<DynamicRealm> from(@Nonnull DynamicRealm realm) {
+            public Flow<DynamicRealm> from(@Nonnull DynamicRealm dynamicRealm) {
                 return null;
             }
 
             @Override
-            public <T extends RealmModel> Flow<RealmResults<T>> from(@Nonnull Realm realm, @Nonnull RealmResults<T> results) {
+            public <T> Flow<RealmResults<T>> from(@Nonnull Realm realm, @Nonnull RealmResults<T> results) {
                 return null;
             }
 
             @Override
-            public <T extends RealmObject> Flow<RealmList<T>> from(@Nonnull Realm realm, @Nonnull RealmList<T> realmList) {
+            public <T> Flow<RealmResults<T>> from(@Nonnull DynamicRealm dynamicRealm, @Nonnull RealmResults<T> results) {
                 return null;
             }
 
             @Override
-            public <T extends DynamicRealmObject> Flow<RealmList<T>> from(@Nonnull DynamicRealm realm, @Nonnull RealmList<T> realmList) {
+            public <T> Flow<RealmList<T>> from(@Nonnull Realm realm, @Nonnull RealmList<T> realmList) {
+                return null;
+            }
+
+            @Override
+            public <T> Flow<RealmList<T>> from(@Nonnull DynamicRealm dynamicRealm, @Nonnull RealmList<T> realmList) {
                 return null;
             }
 
@@ -842,7 +847,7 @@ public class RealmConfigurationTests {
             }
 
             @Override
-            public Flow<DynamicRealmObject> from(@Nonnull DynamicRealm realm, @Nonnull DynamicRealmObject dynamicRealmObject) {
+            public Flow<DynamicRealmObject> from(@Nonnull DynamicRealm dynamicRealm, @Nonnull DynamicRealmObject dynamicRealmObject) {
                 return null;
             }
         };

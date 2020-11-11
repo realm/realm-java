@@ -446,19 +446,23 @@ class SyncConfigurationTests {
                 return flowOf()
             }
 
-            override fun from(realm: DynamicRealm): Flow<DynamicRealm> {
+            override fun from(dynamicRealm: DynamicRealm): Flow<DynamicRealm> {
                 return flowOf()
             }
 
-            override fun <T : RealmModel?> from(realm: Realm, results: RealmResults<T>): Flow<RealmResults<T>> {
+            override fun <T : Any?> from(realm: Realm, results: RealmResults<T>): Flow<RealmResults<T>> {
                 return flowOf()
             }
 
-            override fun <T : RealmObject?> from(realm: Realm, realmList: RealmList<T>): Flow<RealmList<T>> {
+            override fun <T : Any?> from(dynamicRealm: DynamicRealm, results: RealmResults<T>): Flow<RealmResults<T>> {
                 return flowOf()
             }
 
-            override fun <T : DynamicRealmObject?> from(realm: DynamicRealm, realmList: RealmList<T>): Flow<RealmList<T>> {
+            override fun <T : Any?> from(realm: Realm, realmList: RealmList<T>): Flow<RealmList<T>> {
+                return flowOf()
+            }
+
+            override fun <T : Any?> from(dynamicRealm: DynamicRealm, realmList: RealmList<T>): Flow<RealmList<T>> {
                 return flowOf()
             }
 
@@ -466,7 +470,7 @@ class SyncConfigurationTests {
                 return flowOf()
             }
 
-            override fun from(realm: DynamicRealm, dynamicRealmObject: DynamicRealmObject): Flow<DynamicRealmObject> {
+            override fun from(dynamicRealm: DynamicRealm, dynamicRealmObject: DynamicRealmObject): Flow<DynamicRealmObject> {
                 return flowOf()
             }
         }
