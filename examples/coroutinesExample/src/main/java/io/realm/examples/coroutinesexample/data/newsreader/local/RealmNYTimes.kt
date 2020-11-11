@@ -21,9 +21,11 @@ import io.realm.RealmObject
 import io.realm.annotations.LinkingObjects
 import io.realm.annotations.PrimaryKey
 import io.realm.annotations.RealmClass
+import java.time.LocalDateTime
 import java.util.*
 
 open class RealmNYTimesArticle : RealmObject() {
+    var updateTime: Long = 0
     var apiSection: String = ""
     var section: String = ""
     var subsection: String? = null

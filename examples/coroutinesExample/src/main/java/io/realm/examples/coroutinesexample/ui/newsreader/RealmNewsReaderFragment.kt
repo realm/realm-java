@@ -36,7 +36,6 @@ import io.realm.examples.coroutinesexample.data.newsreader.network.sectionsToNam
 import io.realm.examples.coroutinesexample.databinding.FragmentNewsReaderBinding
 import java.util.*
 import kotlin.Comparator
-import kotlin.time.ExperimentalTime
 
 class RealmNewsReaderFragment : Fragment() {
 
@@ -100,11 +99,27 @@ class RealmNewsReaderFragment : Fragment() {
     private fun setupLiveData() {
         viewModel.newsReaderState.observe(viewLifecycleOwner, Observer { viewState ->
             when (viewState) {
-                is RealmNewsReaderState.Loading -> RealmStateHelper.loading(binding)
-                is RealmNewsReaderState.Data -> RealmStateHelper.data(binding, viewState.data, newsReaderAdapter)
-                is RealmNewsReaderState.NoNewData -> RealmStateHelper.noNewData(binding)
-                is RealmNewsReaderState.ErrorException -> RealmStateHelper.errorException(binding, viewState.throwable)
-                is RealmNewsReaderState.ErrorMessage -> RealmStateHelper.errorMessage(binding, viewState.message)
+                is NewsReaderState.Loading -> {
+                    Log.d(TAG, "--- origin: ${viewState.origin}, loading")
+                    RealmStateHelper.loading(binding)
+                }
+                is NewsReaderState.Data -> {
+                    Log.d(TAG, "--- origin: ${viewState.origin}, elements: ${viewState.data.size}")
+                    RealmStateHelper.data(binding, viewState.data, newsReaderAdapter)
+                }
+                is NewsReaderState.NoNewData -> {
+                    Log.d(TAG, "--- origin: ${viewState.origin}, no new data")
+                    RealmStateHelper.noNewData(binding)
+                }
+                is NewsReaderState.ErrorException -> {
+                    val stacktrace = viewState.throwable.cause?.stackTrace?.joinToString { "$it\n" }
+                    Log.e(TAG, "--- error (exception): ${viewState.throwable.message} - ${viewState.throwable.cause?.message}: $stacktrace")
+                    RealmStateHelper.error(binding)
+                }
+                is NewsReaderState.ErrorMessage -> {
+                    Log.e(TAG, "--- error (message): ${viewState.message}")
+                    RealmStateHelper.error(binding)
+                }
             }
         })
     }
@@ -119,15 +134,15 @@ class RealmNewsReaderFragment : Fragment() {
     }
 }
 
-sealed class RealmNewsReaderState {
+sealed class NewsReaderState {
 
     abstract val origin: String
 
-    data class Loading(override val origin: String) : RealmNewsReaderState()
-    data class Data(override val origin: String, val data: List<RealmNYTimesArticle>) : RealmNewsReaderState()
-    data class NoNewData(override val origin: String) : RealmNewsReaderState()
-    data class ErrorException(override val origin: String, val throwable: Throwable) : RealmNewsReaderState()
-    data class ErrorMessage(override val origin: String, val message: String) : RealmNewsReaderState()
+    data class Loading(override val origin: String) : NewsReaderState()
+    data class Data(override val origin: String, val data: List<RealmNYTimesArticle>) : NewsReaderState()
+    data class NoNewData(override val origin: String) : NewsReaderState()
+    data class ErrorException(override val origin: String, val throwable: Throwable) : NewsReaderState()
+    data class ErrorMessage(override val origin: String, val message: String) : NewsReaderState()
 }
 
 private object RealmStateHelper {
@@ -150,22 +165,20 @@ private object RealmStateHelper {
         hideLoadingSpinner(binding)
     }
 
-    fun errorException(binding: FragmentNewsReaderBinding, throwable: Throwable) {
+    fun error(binding: FragmentNewsReaderBinding) {
         hideLoadingSpinner(binding)
-        val stacktrace = throwable.cause?.stackTrace?.joinToString { "$it\n" }
-        Log.e(TAG, "--- error (exception): ${throwable.message} - ${throwable.cause?.message}: $stacktrace")
-        Toast.makeText(binding.root.context, R.string.error_generic, Toast.LENGTH_SHORT).show()
-    }
-
-    fun errorMessage(binding: FragmentNewsReaderBinding, message: String) {
-        hideLoadingSpinner(binding)
-        Log.e(TAG, "--- error (message): $message")
         Toast.makeText(binding.root.context, R.string.error_generic, Toast.LENGTH_SHORT).show()
     }
 
     private fun hideLoadingSpinner(binding: FragmentNewsReaderBinding) {
         if (binding.refresh.isRefreshing) {
             binding.refresh.setRefreshing(false)
+        }
+    }
+
+    private fun showLoadingSpinner(binding: FragmentNewsReaderBinding) {
+        if (!binding.refresh.isRefreshing) {
+            binding.refresh.setRefreshing(true)
         }
     }
 }

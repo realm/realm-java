@@ -24,7 +24,6 @@ import io.realm.kotlin.toFlow
 import io.realm.kotlin.where
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 import java.util.concurrent.Executors
@@ -80,8 +79,6 @@ class RealmNYTDaoImpl(
                 .equalTo(RealmNYTimesArticle.COLUMN_API_SECTION, section)
                 .findAllAsync()
                 .toFlow()
-//                .asFlowable()
-//                .asFlow()
     }
 
     override fun countArticles(section: String): Long {
