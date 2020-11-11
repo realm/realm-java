@@ -433,7 +433,7 @@ class CoroutinesTests {
             obj.toFlow()
                     .flowOn(context)
                     .onEach { flowObject ->
-                        assertTrue(flowObject.isFrozen())
+                        assertTrue(flowObject!!.isFrozen())
                         if (flowObject.name == "Foo") {
                             scope.cancel("Cancelling scope...")
                         }
@@ -463,7 +463,7 @@ class CoroutinesTests {
             obj.toFlow()
                     .flowOn(context)
                     .onEach { flowObject ->
-                        assertTrue(flowObject.isFrozen())
+                        assertTrue(flowObject!!.isFrozen())
                         if (flowObject.name == "Bar") {
                             scope.cancel("Cancelling scope...")
                         }
@@ -477,6 +477,30 @@ class CoroutinesTests {
             realmInstance.beginTransaction()
             obj.name = "Bar"
             realmInstance.commitTransaction()
+        }
+
+        TestHelper.awaitOrFail(countDownLatch)
+    }
+
+    @Test
+    fun realmObject_toFlow_nullObjectEmitsNullFlow() {
+        val countDownLatch = CountDownLatch(1)
+
+        val context = Dispatchers.Main
+        val scope = CoroutineScope(context)
+
+        scope.launch {
+            val realmInstance = Realm.getInstance(configuration)
+            val obj = realmInstance.where<SimpleClass>().findFirst()
+
+            obj.toFlow()
+                    .flowOn(context)
+                    .onEach {
+                        assertNull(it)
+                    }.onCompletion {
+                        realmInstance.close()
+                        countDownLatch.countDown()
+                    }.launchIn(scope)
         }
 
         TestHelper.awaitOrFail(countDownLatch)
@@ -668,7 +692,7 @@ class CoroutinesTests {
             obj.toFlow()
                     .flowOn(context)
                     .onEach { flowObject ->
-                        assertTrue(flowObject.isFrozen())
+                        assertTrue(flowObject!!.isFrozen())
                         if (flowObject.name == "Foo") {
                             scope.cancel("Cancelling scope...")
                         }
@@ -701,7 +725,7 @@ class CoroutinesTests {
                     .toFlow()
                     .flowOn(context)
                     .onEach { flowObject ->
-                        assertTrue(flowObject.isFrozen)
+                        assertTrue(flowObject!!.isFrozen)
                         scope.cancel("Cancelling scope...")
                     }.onCompletion {
                         dynamicRealm.close()
