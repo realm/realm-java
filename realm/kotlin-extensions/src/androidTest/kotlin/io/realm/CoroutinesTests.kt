@@ -253,7 +253,7 @@ class CoroutinesTests {
             CoroutineScope(Dispatchers.Main).launch {
                 assertFailsWith<IllegalStateException> {
                     // Now we are on the main thread, which means crash
-                    findAll.toFlow()
+                    findAll.toFlow().collect()
                     fail("toFlow() must be called from the thread that retrieved the results!")
                 }
                 countDownLatch.countDown()
