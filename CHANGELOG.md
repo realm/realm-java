@@ -1,3 +1,29 @@
+## 10.0.1 (2020-11-06)
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* Improved the error message for `NoSuchTable` errors. In some cases an outdated native reference was used,but the table was still there. In those cases an `InvalidTableRef` error is now used.
+
+### Fixes
+* [RealmApp] The `SyncConfiguration.Builder.allowQueriesOnUiThread` flag was wrongly initialized to `false` keeping users from running queries from the UI thread when using synced Realms. It now defaults to `true`, allowing queries to be run from the UI. (Issue [#7177](https://github.com/realm/realm-java/issues/7177), since 10.0.0)
+* Crash with `Assertion failed: m_method_id != nullptr with (method_name, signature) =  ["<init>", "(Ljava/lang/String;)V"]` when `Minify` is enabled. (Issue [#7159](https://github.com/realm/realm-java/pull/7159), since 10.0.0)
+* Fix crash in case insensitive query on indexed string columns when nothing matches (Cocoa issue [#6836](https://github.com/realm/realm-cocoa/issues/6836), since v10.0.0)
+* Fix list of primitives with nullable values where `Lst::is_null(ndx)` always false even on null values, (Core issue [#3987](https://github.com/realm/realm-core/pull/3987), since v10.0.0).
+* Fix queries for the size of a list of primitive nullable ints returning size + 1. (Core issue [#4016](https://github.com/realm/realm-core/pull/4016), since v10.0.0).
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Sync: 10.1.0.
+* Updated to Realm Core: 10.1.0.
+* Updated to Object Store commit: fd246c54de7d1fee6bcbeb3609de75a4eccd5b70.
+
+
 ## 10.0.0 (2020-10-15)
 
 NOTE: This is a unified release note covering all v10.0.0-BETA.X v10.0.0-RC.X releases.
@@ -507,9 +533,8 @@ Note: Fileformat has been bumped from 10 to 11. This means that downgrading to a
 
 ## 7.0.0 (2020-05-16)
 
-NOTE: This version bumps the Realm file format to version 10. Files created with previous versions of Realm will be automatically upgraded. It is not possible to downgrade to version 9 or earlier. Only [Studio 3.11](https://github.com/realm/realm-studio/releases/tag/v3.11.0) or later will be able to open the new file format. 
 NOTE: This version bumps the Realm file format to version 10. Files created with previous versions of Realm will be automatically upgraded. It is not possible to downgrade to version 9 or earlier. Only [Studio 3.11](https://github.com/realm/realm-studio/releases/tag/v3.11.0) or later will be able to open the new file format.
-NOTE: This version bumps the Realm file format to version 10. Files created with previous versions of Realm will be automatically upgraded. It is not possible to downgrade to version 9 or earlier. Only [Realm Studio 4](https://github.com/realm/realm-studio/releases/tag/v4.0.0) or later will be able to open the new file format. 
+NOTE: This version bumps the Realm file format to version 10. Files created with previous versions of Realm will be automatically upgraded. It is not possible to downgrade to version 9 or earlier. Only [Realm Studio 4](https://github.com/realm/realm-studio/releases/tag/v4.0.0) or later will be able to open the new file format.
 
 ### Breaking Changes
 * [ObjectServer] Removed deprecated method `SyncConfiguration.Builder.partialRealm()`. Use `SyncConfiguration.Builder.fullSynchronization()` instead.

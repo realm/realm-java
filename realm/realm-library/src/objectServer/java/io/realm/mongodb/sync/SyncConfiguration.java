@@ -51,13 +51,15 @@ import io.realm.RealmModel;
 import io.realm.RealmQuery;
 import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
+import io.realm.coroutines.FlowFactory;
+import io.realm.coroutines.RealmFlowFactory;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Util;
 import io.realm.mongodb.App;
-import io.realm.mongodb.User;
 import io.realm.mongodb.Credentials;
+import io.realm.mongodb.User;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
@@ -117,6 +119,7 @@ public class SyncConfiguration extends RealmConfiguration {
                               OsRealmConfig.Durability durability,
                               RealmProxyMediator schemaMediator,
                               @Nullable RxObservableFactory rxFactory,
+                              @Nullable FlowFactory flowFactory,
                               @Nullable Realm.Transaction initialDataTransaction,
                               boolean readOnly,
                               long maxNumberOfActiveVersions,
@@ -143,6 +146,7 @@ public class SyncConfiguration extends RealmConfiguration {
                 durability,
                 schemaMediator,
                 rxFactory,
+                flowFactory,
                 initialDataTransaction,
                 readOnly,
                 compactOnLaunch,
@@ -467,6 +471,8 @@ public class SyncConfiguration extends RealmConfiguration {
         @Nullable
         private RxObservableFactory rxFactory;
         @Nullable
+        private FlowFactory flowFactory;
+        @Nullable
         private Realm.Transaction initialDataTransaction;
         @Nullable
         private String filename;
@@ -558,6 +564,7 @@ public class SyncConfiguration extends RealmConfiguration {
             }
             this.errorHandler = user.getApp().getConfiguration().getDefaultErrorHandler();
             this.clientResetHandler = user.getApp().getConfiguration().getDefaultClientResetHandler();
+            this.allowQueriesOnUiThread = true;
             this.allowWritesOnUiThread = false;
         }
 
@@ -789,6 +796,17 @@ public class SyncConfiguration extends RealmConfiguration {
          */
         public Builder rxFactory(RxObservableFactory factory) {
             rxFactory = factory;
+            return this;
+        }
+
+        /**
+         * Sets the {@link FlowFactory} used to create coroutines Flows from Realm objects.
+         * The default factory is {@link RealmFlowFactory}.
+         *
+         * @param factory factory to use.
+         */
+        public Builder flowFactory(FlowFactory factory) {
+            flowFactory = factory;
             return this;
         }
 
@@ -1079,6 +1097,10 @@ public class SyncConfiguration extends RealmConfiguration {
                 rxFactory = new RealmObservableFactory(true);
             }
 
+            if (flowFactory == null) {
+                flowFactory = new RealmFlowFactory();
+            }
+
             URI resolvedServerUrl = serverUrl;
             syncUrlPrefix = String.format("/api/client/v2.0/app/%s/realm-sync", user.getApp().getConfiguration().getAppId());
 
@@ -1095,6 +1117,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     durability,
                     createSchemaMediator(modules, debugSchema),
                     rxFactory,
+                    flowFactory,
                     initialDataTransaction,
                     readOnly,
                     maxNumberOfActiveVersions,

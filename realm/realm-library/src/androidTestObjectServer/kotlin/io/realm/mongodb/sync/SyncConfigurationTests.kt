@@ -18,8 +18,9 @@ package io.realm.mongodb.sync
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
-import io.realm.entities.StringOnly
-import io.realm.entities.StringOnlyModule
+import io.realm.coroutines.FlowFactory
+import io.realm.entities.SyncStringOnly
+import io.realm.entities.SyncStringOnlyModule
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import io.realm.mongodb.AppException
@@ -27,6 +28,8 @@ import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
 import io.realm.mongodb.User
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import org.bson.BsonString
 import org.bson.types.ObjectId
 import org.junit.*
@@ -79,7 +82,7 @@ class SyncConfigurationTests {
     fun errorHandler_nullThrows() {
         val user: User = createTestUser(app)
         val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-        assertFailsWith<IllegalArgumentException> { builder.errorHandler(TestHelper.getNull())  }
+        assertFailsWith<IllegalArgumentException> { builder.errorHandler(TestHelper.getNull()) }
     }
 
     @Test
@@ -103,7 +106,7 @@ class SyncConfigurationTests {
     fun clientResetHandler_nullThrows() {
         val user: User = createTestUser(app)
         val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-        assertFailsWith<IllegalArgumentException> { builder.clientResetHandler(TestHelper.getNull())  }
+        assertFailsWith<IllegalArgumentException> { builder.clientResetHandler(TestHelper.getNull()) }
     }
 
     @Test
@@ -204,11 +207,11 @@ class SyncConfigurationTests {
     fun initialData() {
         val user: User = createTestUser(app)
         val config = configFactory.createSyncConfigurationBuilder(user)
-                .schema(StringOnly::class.java)
+                .schema(SyncStringOnly::class.java)
                 .initialData(object : Realm.Transaction {
                     override fun execute(realm: Realm) {
-                        val stringOnly: StringOnly = realm.createObject<StringOnly>()
-                        stringOnly.setChars("TEST 42")
+                        val stringOnly: SyncStringOnly = realm.createObject(ObjectId())
+                        stringOnly.chars = "TEST 42"
                     }
                 })
                 .build()
@@ -216,14 +219,14 @@ class SyncConfigurationTests {
 
         // open the first time - initialData must be triggered
         Realm.getInstance(config).use { realm ->
-            val results: RealmResults<StringOnly> = realm.where<StringOnly>().findAll()
+            val results: RealmResults<SyncStringOnly> = realm.where<SyncStringOnly>().findAll()
             assertEquals(1, results.size)
-            assertEquals("TEST 42", results.first()!!.getChars())
+            assertEquals("TEST 42", results.first()!!.chars)
         }
 
         // open the second time - initialData must not be triggered
         Realm.getInstance(config).use { realm ->
-            assertEquals(1, realm.where<StringOnly>().count())
+            assertEquals(1, realm.where<SyncStringOnly>().count())
         }
     }
 
@@ -250,10 +253,10 @@ class SyncConfigurationTests {
         val user2: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
 
         val config1: SyncConfiguration = SyncConfiguration.Builder(user1, DEFAULT_PARTITION)
-                .modules(StringOnlyModule())
+                .modules(SyncStringOnlyModule())
                 .build()
         val config2: SyncConfiguration = SyncConfiguration.Builder(user2, DEFAULT_PARTITION)
-                .modules(StringOnlyModule())
+                .modules(SyncStringOnlyModule())
                 .build()
 
         // Verify that two different configurations can be used for the same URL
@@ -278,22 +281,26 @@ class SyncConfigurationTests {
 
     @Test
     @Ignore("Not implemented yet")
-    fun shouldWaitForInitialRemoteData() { }
+    fun shouldWaitForInitialRemoteData() {
+    }
 
     @Test
     @Ignore("Not implemented yet")
-    fun getInitialRemoteDataTimeout() { }
+    fun getInitialRemoteDataTimeout() {
+    }
 
     @Test
     @Ignore("Not implemented yet")
-    fun getSessionStopPolicy () { }
+    fun getSessionStopPolicy() {
+    }
 
     @Test
     @Ignore("Not implemented yet")
-    fun getUrlPrefix () { }
+    fun getUrlPrefix() {
+    }
 
     @Test
-    fun getPartitionValue () {
+    fun getPartitionValue() {
         val user: User = createTestUser(app)
         val config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
         assertEquals(BsonString(DEFAULT_PARTITION), config.partitionValue)
@@ -330,12 +337,12 @@ class SyncConfigurationTests {
     @Test
     fun differentPartitionValuesAreDifferentRealms() {
         val user: User = createTestUser(app)
-        val config1 = SyncConfiguration.defaultConfig(user, "realm1")
-        val config2 = SyncConfiguration.defaultConfig(user, "realm2")
+        val config1 = SyncConfiguration.Builder(user, "realm1").modules(SyncStringOnlyModule()).build()
+        val config2 = SyncConfiguration.Builder(user, "realm2").modules(SyncStringOnlyModule()).build()
         assertNotEquals(config1.path, config2.path)
 
-         assertTrue(config1.path.endsWith("${app.configuration.appId}/${user.id}/s_realm1.realm"))
-         assertTrue(config2.path.endsWith("${app.configuration.appId}/${user.id}/s_realm2.realm"))
+        assertTrue(config1.path.endsWith("${app.configuration.appId}/${user.id}/s_realm1.realm"))
+        assertTrue(config2.path.endsWith("${app.configuration.appId}/${user.id}/s_realm2.realm"))
 
         // Check for https://github.com/realm/realm-java/issues/6882
         val realm1 = Realm.getInstance(config1)
@@ -352,14 +359,14 @@ class SyncConfigurationTests {
         val user: User = createTestUser(app)
 
         val configs = listOf<SyncConfiguration>(
-            SyncConfiguration.defaultConfig(user, null as String?),
-            SyncConfiguration.defaultConfig(user, null as Int?),
-            SyncConfiguration.defaultConfig(user, null as Long?),
-            SyncConfiguration.defaultConfig(user, null as ObjectId?),
-            SyncConfiguration.Builder(user, null as String?).build(),
-            SyncConfiguration.Builder(user, null as Int?).build(),
-            SyncConfiguration.Builder(user, null as Long?).build(),
-            SyncConfiguration.Builder(user, null as ObjectId?).build()
+                SyncConfiguration.defaultConfig(user, null as String?),
+                SyncConfiguration.defaultConfig(user, null as Int?),
+                SyncConfiguration.defaultConfig(user, null as Long?),
+                SyncConfiguration.defaultConfig(user, null as ObjectId?),
+                SyncConfiguration.Builder(user, null as String?).build(),
+                SyncConfiguration.Builder(user, null as Int?).build(),
+                SyncConfiguration.Builder(user, null as Long?).build(),
+                SyncConfiguration.Builder(user, null as ObjectId?).build()
         )
 
         configs.forEach { config ->
@@ -379,4 +386,98 @@ class SyncConfigurationTests {
         }
     }
 
+    @Test
+    fun allowQueriesOnUiThread_defaultsToTrue() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.build()
+        assertTrue(configuration.isAllowQueriesOnUiThread)
+    }
+
+    @Test
+    fun allowQueriesOnUiThread_explicitFalse() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.allowQueriesOnUiThread(false)
+                .build()
+        assertFalse(configuration.isAllowQueriesOnUiThread)
+    }
+
+    @Test
+    fun allowQueriesOnUiThread_explicitTrue() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.allowQueriesOnUiThread(true)
+                .build()
+        assertTrue(configuration.isAllowQueriesOnUiThread)
+    }
+
+    @Test
+    fun allowWritesOnUiThread_defaultsToFalse() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.build()
+        assertFalse(configuration.isAllowWritesOnUiThread)
+    }
+
+    @Test
+    fun allowWritesOnUiThread_explicitFalse() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.allowWritesOnUiThread(false)
+                .build()
+        assertFalse(configuration.isAllowWritesOnUiThread)
+    }
+
+    @Test
+    fun allowWritesOnUiThread_explicitTrue() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration = builder.allowWritesOnUiThread(true)
+                .build()
+        assertTrue(configuration.isAllowWritesOnUiThread)
+    }
+
+    @Test
+    fun coroutinesFactory_defaultNonNull() {
+        val configuration = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+                .build()
+        assertNotNull(configuration.flowFactory)
+    }
+
+    @Test
+    fun coroutinesFactory() {
+        val factory = object : FlowFactory {
+            override fun from(realm: Realm): Flow<Realm> {
+                return flowOf()
+            }
+
+            override fun from(realm: DynamicRealm): Flow<DynamicRealm> {
+                return flowOf()
+            }
+
+            override fun <T : RealmModel?> from(realm: Realm, results: RealmResults<T>): Flow<RealmResults<T>> {
+                return flowOf()
+            }
+
+            override fun <T : RealmObject?> from(realm: Realm, realmList: RealmList<T>): Flow<RealmList<T>> {
+                return flowOf()
+            }
+
+            override fun <T : DynamicRealmObject?> from(realm: DynamicRealm, realmList: RealmList<T>): Flow<RealmList<T>> {
+                return flowOf()
+            }
+
+            override fun <T : RealmModel?> from(realm: Realm, realmObject: T): Flow<T> {
+                return flowOf()
+            }
+
+            override fun from(realm: DynamicRealm, dynamicRealmObject: DynamicRealmObject): Flow<DynamicRealmObject> {
+                return flowOf()
+            }
+        }
+
+        val configuration1 = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+                .flowFactory(factory)
+                .build()
+        assertEquals(factory, configuration1.flowFactory)
+
+        val configuration2 = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+                .build()
+        assertNotEquals(factory, configuration2.flowFactory)
+    }
 }

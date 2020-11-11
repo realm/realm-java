@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.realm.kotlin
 
 import io.realm.*
 import io.realm.annotations.Beta
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flowOf
 
 /**
  * Returns a [Flow] that monitors changes to this RealmList. It will emit the current
@@ -54,39 +52,13 @@ import kotlinx.coroutines.flow.flowOf
  * @return Kotlin [Flow] on which calls to `onEach` or `collect` can be made.
  */
 @Beta
-fun <T : RealmObject> RealmList<T>.toFlow(): Flow<RealmList<T>> {
-    // Return "as is" if frozen, there will be no listening for changes
-    if (realm.isFrozen) {
-        return flowOf(this)
-    }
-
-    val config = realm.configuration
-
-    return callbackFlow {
-        val results = this@toFlow
-
-        // Do nothing if the results are invalid
-        if (!results.isValid) {
-            return@callbackFlow
-        }
-
-        // Get instance to ensure the Realm is open for as long as we are listening
-        val flowRealm = Realm.getInstance(config)
-        val listener = RealmChangeListener<RealmList<T>> { listenerResults ->
-            offer(listenerResults.freeze())
-        }
-
-        results.addChangeListener(listener)
-
-        // Emit current (frozen) value
-        offer(freeze())
-
-        awaitClose {
-            // Remove listener and cleanup
-            if (!flowRealm.isClosed) {
-                results.removeChangeListener(listener)
-                flowRealm.close()
-            }
-        }
+fun <T> RealmList<T>.toFlow(): Flow<RealmList<T>> {
+    @Suppress("INACCESSIBLE_TYPE")
+    return when (val realmInstance = baseRealm) {
+        is Realm -> realmInstance.configuration.flowFactory?.from(baseRealm as Realm, this)
+                ?: throw IllegalStateException("Missing flow factory in Realm configuration.")
+        is DynamicRealm -> realmInstance.configuration.flowFactory?.from(baseRealm as DynamicRealm, this)
+                ?: throw IllegalStateException("Missing flow factory in Realm configuration.")
+        else -> throw IllegalStateException("Wrong type of Realm.")
     }
 }

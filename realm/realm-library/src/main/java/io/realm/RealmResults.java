@@ -23,15 +23,12 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
-import io.realm.annotations.Beta;
-import io.realm.internal.CheckedRow;
 import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -105,7 +102,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     @Override
     public RealmQuery<E> where() {
-        realm.checkIfValid();
+        baseRealm.checkIfValid();
         return RealmQuery.createQueryFromResult(this);
     }
 
@@ -125,7 +122,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     @Override
     public boolean isLoaded() {
-        realm.checkIfValid();
+        baseRealm.checkIfValid();
         return osResults.isLoaded();
     }
 
@@ -141,7 +138,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         // Instead, accessing the OsResults will just trigger the execution of query if needed. We add this flag is
         // only to keep the original behavior of those APIs. eg.: For a async RealmResults, before query returns, the
         // size() call should return 0 instead of running the query get the real size.
-        realm.checkIfValid();
+        baseRealm.checkIfValid();
         osResults.load();
         return true;
     }
@@ -165,7 +162,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setValue(String fieldName, @Nullable Object value) {
         checkNonEmptyFieldName(fieldName);
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         fieldName = mapFieldNameToInternalName(fieldName);
         boolean isString = (value instanceof String);
         String strValue = isString ? (String) value : null;
@@ -261,7 +258,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setNull(String fieldName) {
         checkNonEmptyFieldName(fieldName);
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         osResults.setNull(fieldName);
     }
 
@@ -274,7 +271,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setBoolean(String fieldName, boolean value) {
         checkNonEmptyFieldName(fieldName);
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.BOOLEAN);
         osResults.setBoolean(fieldName, value);
@@ -289,7 +286,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setByte(String fieldName, byte value) {
         checkNonEmptyFieldName(fieldName);
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.INTEGER);
         osResults.setInt(fieldName, value);
@@ -304,7 +301,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setShort(String fieldName, short value) {
         checkNonEmptyFieldName(fieldName);
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.INTEGER);
         osResults.setInt(fieldName, value);
@@ -321,7 +318,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         checkNonEmptyFieldName(fieldName);
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.INTEGER);
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         osResults.setInt(fieldName, value);
     }
 
@@ -334,7 +331,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setLong(String fieldName, long value) {
         checkNonEmptyFieldName(fieldName);
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.INTEGER);
         osResults.setInt(fieldName, value);
@@ -349,7 +346,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setFloat(String fieldName, float value) {
         checkNonEmptyFieldName(fieldName);
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.FLOAT);
         osResults.setFloat(fieldName, value);
@@ -364,7 +361,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setDouble(String fieldName, double value) {
         checkNonEmptyFieldName(fieldName);
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.DOUBLE);
         osResults.setDouble(fieldName, value);
@@ -379,7 +376,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setString(String fieldName, @Nullable String value) {
         checkNonEmptyFieldName(fieldName);
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.STRING);
         osResults.setString(fieldName, value);
@@ -394,7 +391,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setBlob(String fieldName, @Nullable byte[] value) {
         checkNonEmptyFieldName(fieldName);
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.BINARY);
         osResults.setBlob(fieldName, value);
@@ -409,7 +406,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setDate(String fieldName, @Nullable Date value) {
         checkNonEmptyFieldName(fieldName);
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.DATE);
         osResults.setDate(fieldName, value);
@@ -424,7 +421,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setObject(String fieldName, @Nullable RealmModel value) {
         checkNonEmptyFieldName(fieldName);
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.OBJECT);
         Row row = checkRealmObjectConstraints(fieldName, value);
@@ -440,7 +437,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setDecimal128(String fieldName, @Nullable Decimal128 value) {
         checkNonEmptyFieldName(fieldName);
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.DECIMAL128);
         osResults.setDecimal128(fieldName, value);
@@ -455,7 +452,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     public void setObjectId(String fieldName, @Nullable ObjectId value) {
         checkNonEmptyFieldName(fieldName);
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         fieldName = mapFieldNameToInternalName(fieldName);
         checkType(fieldName, RealmFieldType.OBJECT_ID);
         osResults.setObjectId(fieldName, value);
@@ -467,7 +464,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
                 throw new IllegalArgumentException("'value' is not a valid, managed Realm object.");
             }
             ProxyState proxyState = ((RealmObjectProxy) value).realmGet$proxyState();
-            if (!proxyState.getRealm$realm().getPath().equals(realm.getPath())) {
+            if (!proxyState.getRealm$realm().getPath().equals(baseRealm.getPath())) {
                 throw new IllegalArgumentException("'value' does not belong to the same Realm as the RealmResults.");
             }
 
@@ -500,7 +497,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     public <T> void setList(String fieldName, RealmList<T> list) {
         checkNonEmptyFieldName(fieldName);
         fieldName = mapFieldNameToInternalName(fieldName);
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
 
         //noinspection ConstantConditions
         if (list == null) {
@@ -510,7 +507,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         // Due to type erasure of generics it is not possible to have multiple overloaded methods with the same signature.
         // So instead we fake  it by checking the first element in the list and verifies that
         // against the underlying type.
-        RealmFieldType columnType = realm.getSchema().getSchemaForClass(osResults.getTable().getClassName()).getFieldType(fieldName);
+        RealmFieldType columnType = baseRealm.getSchema().getSchemaForClass(osResults.getTable().getClassName()).getFieldType(fieldName);
         switch (columnType) {
             case LIST:
                 checkTypeOfListElements(list, RealmModel.class);
@@ -587,7 +584,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     @Override
     public boolean isFrozen() {
-        return realm != null && realm.isFrozen();
+        return baseRealm != null && baseRealm.isFrozen();
     }
 
     /**
@@ -599,7 +596,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
             throw new IllegalStateException("Only valid, managed RealmResults can be frozen.");
         }
 
-        BaseRealm frozenRealm = realm.freeze();
+        BaseRealm frozenRealm = baseRealm.freeze();
         OsResults frozenResults = osResults.freeze(frozenRealm.sharedRealm);
         if (className != null) {
             return new RealmResults<>(frozenRealm, frozenResults, className);
@@ -707,8 +704,8 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
-        realm.checkIfValid();
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+        baseRealm.checkIfValid();
+        baseRealm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
     }
 
     private void checkForRemoveListener(@Nullable Object listener, boolean checkListener) {
@@ -716,9 +713,9 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
             throw new IllegalArgumentException("Listener should not be null");
         }
 
-        if (realm.isClosed()) {
+        if (baseRealm.isClosed()) {
             RealmLog.warn("Calling removeChangeListener on a closed Realm %s, " +
-                    "make sure to close all listeners before closing the Realm.", realm.configuration.getPath());
+                    "make sure to close all listeners before closing the Realm.", baseRealm.configuration.getPath());
         }
     }
 
@@ -801,18 +798,18 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     @SuppressWarnings("unchecked")
     public Flowable<RealmResults<E>> asFlowable() {
-        if (realm instanceof Realm) {
-            return realm.configuration.getRxFactory().from((Realm) realm, this);
+        if (baseRealm instanceof Realm) {
+            return baseRealm.configuration.getRxFactory().from((Realm) baseRealm, this);
         }
 
-        if (realm instanceof DynamicRealm) {
-            DynamicRealm dynamicRealm = (DynamicRealm) realm;
+        if (baseRealm instanceof DynamicRealm) {
+            DynamicRealm dynamicRealm = (DynamicRealm) baseRealm;
             RealmResults<DynamicRealmObject> dynamicResults = (RealmResults<DynamicRealmObject>) this;
             @SuppressWarnings("UnnecessaryLocalVariable")
-            Flowable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicResults);
+            Flowable results = baseRealm.configuration.getRxFactory().from(dynamicRealm, dynamicResults);
             return results;
         } else {
-            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
+            throw new UnsupportedOperationException(baseRealm.getClass() + " does not support RxJava2.");
         }
     }
 
@@ -846,14 +843,14 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     public Observable<CollectionChange<RealmResults<E>>> asChangesetObservable() {
-        if (realm instanceof Realm) {
-            return realm.configuration.getRxFactory().changesetsFrom((Realm) realm, this);
-        } else if (realm instanceof DynamicRealm) {
-            DynamicRealm dynamicRealm = (DynamicRealm) realm;
+        if (baseRealm instanceof Realm) {
+            return baseRealm.configuration.getRxFactory().changesetsFrom((Realm) baseRealm, this);
+        } else if (baseRealm instanceof DynamicRealm) {
+            DynamicRealm dynamicRealm = (DynamicRealm) baseRealm;
             RealmResults<DynamicRealmObject> dynamicResults = (RealmResults<DynamicRealmObject>) this;
-            return (Observable) realm.configuration.getRxFactory().changesetsFrom(dynamicRealm, dynamicResults);
+            return (Observable) baseRealm.configuration.getRxFactory().changesetsFrom(dynamicRealm, dynamicResults);
         } else {
-            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
+            throw new UnsupportedOperationException(baseRealm.getClass() + " does not support RxJava2.");
         }
     }
 
@@ -886,7 +883,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
 
     private void checkType(String fieldName, RealmFieldType expectedFieldType) {
         String className = osResults.getTable().getClassName();
-        RealmFieldType fieldType = realm.getSchema().get(className).getFieldType(fieldName);
+        RealmFieldType fieldType = baseRealm.getSchema().get(className).getFieldType(fieldName);
         if (fieldType != expectedFieldType) {
             throw new IllegalArgumentException(String.format("The field '%s.%s' is not of the expected type. " +
                     "Actual: %s, Expected: %s", className, fieldName, fieldType, expectedFieldType));
@@ -894,10 +891,10 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     }
 
     private String mapFieldNameToInternalName(String fieldName) {
-        if (realm instanceof Realm) {
+        if (baseRealm instanceof Realm) {
             // We only need to map field names from typed Realms.
             String className = osResults.getTable().getClassName();
-            String mappedFieldName = realm.getSchema().getColumnInfo(className).getInternalFieldName(fieldName);
+            String mappedFieldName = baseRealm.getSchema().getColumnInfo(className).getInternalFieldName(fieldName);
             if (mappedFieldName == null) {
                 throw new IllegalArgumentException(String.format("Field '%s' does not exists.", fieldName));
             } else {

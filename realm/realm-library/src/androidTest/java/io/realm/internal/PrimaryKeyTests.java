@@ -18,11 +18,14 @@ package io.realm.internal;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.Date;
 
 import io.realm.DynamicRealm;
 import io.realm.DynamicRealmObject;
@@ -34,6 +37,8 @@ import io.realm.RealmSchema;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
@@ -77,6 +82,11 @@ public class PrimaryKeyTests {
         t.addSearchIndex(column);
         OsObjectStore.setPrimaryKeyForObject(sharedRealm, "TestTable", "colName");
         return t;
+    }
+
+    private Table getTableWithPrimaryKey(RealmFieldType fieldType, boolean isNullable) {
+        OsObjectStore.setSchemaVersion(sharedRealm,0); // Create meta table
+        return sharedRealm.createTableWithPrimaryKey(Table.getTableNameForClass("TestTable"), "colName", fieldType, isNullable);
     }
 
     /**
@@ -159,6 +169,128 @@ public class PrimaryKeyTests {
         UncheckedRow row = OsObject.createWithPrimaryKey(t, 42);
         assertEquals(1, t.size());
         assertEquals(42L, row.getLong(row.getColumnKey("colName")));
+        sharedRealm.cancelTransaction();
+    }
+
+    @Test
+    public void createTableWithIntegerPrimaryKeyNullable(){
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
+        sharedRealm.beginTransaction();
+
+        Table t = getTableWithPrimaryKey(RealmFieldType.INTEGER, true);
+
+        UncheckedRow row = OsObject.createWithPrimaryKey(t, 42);
+        assertEquals(1, t.size());
+        assertEquals(42, row.getLong(row.getColumnKey("colName")));
+
+
+        row = OsObject.createWithPrimaryKey(t, null);
+        assertEquals(2, t.size());
+        assertTrue(row.isNull(row.getColumnKey("colName")));
+
+        sharedRealm.cancelTransaction();
+    }
+
+    @Test
+    public void createTableWithStringPrimaryKeyNullable(){
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
+        sharedRealm.beginTransaction();
+
+        Table t = getTableWithPrimaryKey(RealmFieldType.STRING, true);
+
+        UncheckedRow row = OsObject.createWithPrimaryKey(t, "Foo");
+        assertEquals(1, t.size());
+        assertEquals("Foo", row.getString(row.getColumnKey("colName")));
+
+        row = OsObject.createWithPrimaryKey(t, null);
+        assertEquals(2, t.size());
+        assertTrue(row.isNull(row.getColumnKey("colName")));
+
+        sharedRealm.cancelTransaction();
+    }
+
+    @Test
+    public void createTableWithObjectIdPrimaryKeyNullable(){
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
+        sharedRealm.beginTransaction();
+
+        Table t = getTableWithPrimaryKey(RealmFieldType.OBJECT_ID, true);
+
+        Date date = new Date();
+
+        UncheckedRow row = OsObject.createWithPrimaryKey(t, new ObjectId(date, 0));
+        assertEquals(1, t.size());
+        assertEquals(new ObjectId(date, 0), row.getObjectId(row.getColumnKey("colName")));
+
+        row = OsObject.createWithPrimaryKey(t, null);
+        assertEquals(2, t.size());
+        assertTrue(row.isNull(row.getColumnKey("colName")));
+
+        sharedRealm.cancelTransaction();
+    }
+
+    @Test
+    public void createTableWithIntegerPrimaryKey(){
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
+        sharedRealm.beginTransaction();
+
+        Table t = getTableWithPrimaryKey(RealmFieldType.INTEGER, false);
+
+        UncheckedRow row = OsObject.createWithPrimaryKey(t, 42);
+        assertEquals(1, t.size());
+        assertEquals(42, row.getLong(row.getColumnKey("colName")));
+
+        try {
+            OsObject.createWithPrimaryKey(t, null);
+            fail("Non-nullable primary key created with a null value.");
+        } catch (IllegalArgumentException e){
+            assertEquals("Illegal Argument: This field(colName) is not nullable.", e.getMessage());
+        }
+
+        sharedRealm.cancelTransaction();
+    }
+
+    @Test
+    public void createTableWithStringPrimaryKey(){
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
+        sharedRealm.beginTransaction();
+
+        Table t = getTableWithPrimaryKey(RealmFieldType.STRING, false);
+
+        UncheckedRow row = OsObject.createWithPrimaryKey(t, "Foo");
+        assertEquals(1, t.size());
+        assertEquals("Foo", row.getString(row.getColumnKey("colName")));
+
+        try {
+            OsObject.createWithPrimaryKey(t, null);
+            fail("Non-nullable primary key created with a null value.");
+        } catch (IllegalArgumentException e){
+            assertEquals("Illegal Argument: This field(colName) is not nullable.", e.getMessage());
+        }
+
+        sharedRealm.cancelTransaction();
+    }
+
+    @Test
+    public void createTableWithObjectIdPrimaryKey(){
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
+        sharedRealm.beginTransaction();
+
+        Table t = getTableWithPrimaryKey(RealmFieldType.OBJECT_ID, false);
+
+        Date date = new Date();
+
+        UncheckedRow row = OsObject.createWithPrimaryKey(t, new ObjectId(date, 0));
+        assertEquals(1, t.size());
+        assertEquals(new ObjectId(date, 0), row.getObjectId(row.getColumnKey("colName")));
+
+        try {
+            OsObject.createWithPrimaryKey(t, null);
+            fail("Non-nullable primary key created with a null value.");
+        } catch (IllegalArgumentException e){
+            assertEquals("Illegal Argument: This field(colName) is not nullable.", e.getMessage());
+        }
+
         sharedRealm.cancelTransaction();
     }
 }

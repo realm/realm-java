@@ -30,6 +30,8 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import io.realm.annotations.RealmModule;
+import io.realm.coroutines.FlowFactory;
+import io.realm.coroutines.RealmFlowFactory;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmCore;
@@ -94,6 +96,7 @@ public class RealmConfiguration {
     private final OsRealmConfig.Durability durability;
     private final RealmProxyMediator schemaMediator;
     private final RxObservableFactory rxObservableFactory;
+    private final FlowFactory flowFactory;
     private final Realm.Transaction initialDataTransaction;
     private final boolean readOnly;
     private final CompactOnLaunchCallback compactOnLaunch;
@@ -118,6 +121,7 @@ public class RealmConfiguration {
             OsRealmConfig.Durability durability,
             RealmProxyMediator schemaMediator,
             @Nullable RxObservableFactory rxObservableFactory,
+            @Nullable FlowFactory flowFactory,
             @Nullable Realm.Transaction initialDataTransaction,
             boolean readOnly,
             @Nullable CompactOnLaunchCallback compactOnLaunch,
@@ -136,6 +140,7 @@ public class RealmConfiguration {
         this.durability = durability;
         this.schemaMediator = schemaMediator;
         this.rxObservableFactory = rxObservableFactory;
+        this.flowFactory = flowFactory;
         this.initialDataTransaction = initialDataTransaction;
         this.readOnly = readOnly;
         this.compactOnLaunch = compactOnLaunch;
@@ -265,6 +270,18 @@ public class RealmConfiguration {
                     " See https://realm.io/docs/java/latest/#rxjava for more details.");
         }
         return rxObservableFactory;
+    }
+
+    /**
+     * FIXME
+     * @return
+     */
+    @Nullable
+    public FlowFactory getFlowFactory() {
+        if (flowFactory == null) {
+            throw new UnsupportedOperationException("TODO");    // FIXME
+        }
+        return flowFactory;
     }
 
     /**
@@ -460,7 +477,7 @@ public class RealmConfiguration {
     }
 
     protected static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
-        return new RealmConfiguration(new File(canonicalPath),null, encryptionKey, 0,null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, true, null, true, Long.MAX_VALUE, false, true);
+        return new RealmConfiguration(new File(canonicalPath),null, encryptionKey, 0, null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, null, true, null, true, Long.MAX_VALUE, false, true);
     }
 
     /**
@@ -478,7 +495,10 @@ public class RealmConfiguration {
         private OsRealmConfig.Durability durability;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
+        @Nullable
         private RxObservableFactory rxFactory;
+        @Nullable
+        private FlowFactory flowFactory;
         private Realm.Transaction initialDataTransaction;
         private boolean readOnly;
         private CompactOnLaunchCallback compactOnLaunch;
@@ -707,6 +727,17 @@ public class RealmConfiguration {
         }
 
         /**
+         * Sets the {@link FlowFactory} used to create coroutines Flows from Realm objects.
+         * The default factory is {@link RealmFlowFactory}.
+         *
+         * @param factory factory to use.
+         */
+        public Builder flowFactory(FlowFactory factory) {
+            flowFactory = factory;
+            return this;
+        }
+
+        /**
          * Sets the initial data in {@link io.realm.Realm}. This transaction will be executed only for the first time
          * when database file is created or while migrating the data when {@link Builder#deleteRealmIfMigrationNeeded()} is set.
          *
@@ -880,6 +911,10 @@ public class RealmConfiguration {
                 rxFactory = new RealmObservableFactory(true);
             }
 
+            if (flowFactory == null) {
+                flowFactory = new RealmFlowFactory();
+            }
+
             return new RealmConfiguration(new File(directory, fileName),
                     assetFilePath,
                     key,
@@ -889,6 +924,7 @@ public class RealmConfiguration {
                     durability,
                     createSchemaMediator(modules, debugSchema),
                     rxFactory,
+                    flowFactory,
                     initialDataTransaction,
                     readOnly,
                     compactOnLaunch,
