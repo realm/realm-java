@@ -1,3 +1,23 @@
+## 10.0.2 (YYYY-MM-DD)
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* None.
+
+### Fixes
+* Fixed crash when adding classes containing an `ObjectId` as primary key to the schema (Issue [#7189](https://github.com/realm/realm-java/issues/7189), since v10.0.0).
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* None.
+
+
 ## 10.0.1 (2020-11-06)
 
 ### Breaking Changes
