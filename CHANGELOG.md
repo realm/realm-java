@@ -8,6 +8,7 @@
 
 ### Fixes
 * Fixed crash when adding classes containing an `ObjectId` as primary key to the schema (Issue [#7189](https://github.com/realm/realm-java/issues/7189), since v10.0.0).
+* Fixed crash when creating proxy classes containing an `ObjectId` as primary key (Issue [#7197](https://github.com/realm/realm-java/issues/7197), since v10.0.0).
 
 ### Compatibility
 * File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
