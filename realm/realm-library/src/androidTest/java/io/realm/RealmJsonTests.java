@@ -1564,14 +1564,14 @@ public class RealmJsonTests {
     public void createOrUpdateObjectFromJson_objectIdPK() throws JSONException {
         String stringId = "789ABCDEF0123456789ABCDE";
         JSONObject jsonObject = new JSONObject("{\"id\": \""+ stringId + "\", \"name\": \"bar\"}");
-        realm.executeTransaction(realmInstance -> {
-            realmInstance.createObject(PrimaryKeyAsObjectId.class, new ObjectId());
-            realmInstance.createOrUpdateObjectFromJson(PrimaryKeyAsObjectId.class, jsonObject);
-        });
+        realm.beginTransaction();
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsObjectId.class, jsonObject);
+        realm.commitTransaction();
+
         RealmResults<PrimaryKeyAsObjectId> owners = realm.where(PrimaryKeyAsObjectId.class).findAll();
-        assertEquals(2, owners.size());
-        assertEquals(new ObjectId(stringId), owners.get(1).getId());
-        assertEquals("bar", owners.get(1).getName());
+        assertEquals(1, owners.size());
+        assertEquals(new ObjectId(stringId), owners.get(0).getId());
+        assertEquals("bar", owners.get(0).getName());
     }
 
     // Tests creating objects from Json, all nullable fields with null values or non-null values.
