@@ -72,6 +72,10 @@ open class UUIDOptionalRealmList
     var name: String = ""
 }
 
+open class LinkedUUID : RealmObject() {
+    var linkedUUID: UUIDPrimaryKeyNotRequired? = null
+}
+
 @RunWith(AndroidJUnit4::class)
 class UUIDTests {
     private lateinit var realmConfiguration: RealmConfiguration
@@ -93,7 +97,8 @@ class UUIDTests {
                         UUIDPrimaryKeyNotRequired::class.java,
                         UUIDAndString::class.java,
                         UUIDRequiredRealmList::class.java,
-                        UUIDOptionalRealmList::class.java)
+                        UUIDOptionalRealmList::class.java,
+                        LinkedUUID::class.java)
                 .build()
 
         realm = Realm.getInstance(realmConfiguration)
@@ -566,7 +571,7 @@ class UUIDTests {
         }
 
         assertFailsWith<IllegalArgumentException>("Average is not supported for UUID") {
-            realm.where<UUIDAndString>().average("id") // FIXME should we support average queries in Core?
+            realm.where<UUIDAndString>().average("id")
         }
     }
 
@@ -585,6 +590,24 @@ class UUIDTests {
 
         assertFailsWith<IllegalArgumentException>("isEmpty is not supported for UUID") {
             realm.where<UUIDAndString>().isEmpty("id")
+        }
+    }
+
+    @Test
+    fun linkedQuery() {
+        val uuidArray = arrayOf(null, UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID())
+
+        realm.executeTransaction { realm ->
+            for (uuid in uuidArray) {
+                val uuidObj = realm.createObject<UUIDPrimaryKeyNotRequired>(uuid)
+                realm.createObject<LinkedUUID>().linkedUUID = uuidObj
+            }
+        }
+
+        for (uuid in uuidArray) {
+            val results = realm.where<LinkedUUID>().equalTo("linkedUUID.id", uuid).findAll()
+            assertEquals(1, results.size)
+            assertEquals(uuid, results.first()?.linkedUUID?.id)
         }
     }
 }

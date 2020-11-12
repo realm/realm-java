@@ -16,9 +16,6 @@
 
 package io.realm;
 
-import androidx.test.annotation.UiThreadTest;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.json.JSONException;
@@ -43,6 +40,8 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import androidx.test.annotation.UiThreadTest;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
@@ -745,7 +744,7 @@ public class RealmResultsTests extends CollectionTests {
             obj.fieldObject = obj;
             obj.fieldDecimal128 = new Decimal128( i);
             obj.fieldObjectId = new ObjectId(TestHelper.generateObjectIdHexString(i));
-            obj.fieldUUID = UUID.fromString(String.format("%d27ba5ca-aa12-4afa-9219-e20cc3018599", i));
+            obj.fieldUUID = UUID.fromString(TestHelper.generateUUIDString(i));
             obj.fieldList.add(obj);
         }
         realm.commitTransaction();
@@ -766,7 +765,7 @@ public class RealmResultsTests extends CollectionTests {
             obj.setFieldObject(obj);
             obj.setFieldDecimal128(new Decimal128(new BigDecimal(i + ".23456789")));
             obj.setFieldObjectId(new ObjectId(TestHelper.generateObjectIdHexString(i)));
-            obj.setFieldUUID(UUID.fromString(String.format("%d27ba5ca-aa12-4afa-9219-e20cc3018599", i)));
+            obj.setFieldUUID(UUID.fromString(TestHelper.generateUUIDString(i)));
             obj.getFieldList().add(obj);
         }
         realm.commitTransaction();

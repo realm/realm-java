@@ -1316,6 +1316,18 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+        if (json.has("columnUUID")) {
+            if (json.isNull("columnUUID")) {
+                objProxy.realmSet$columnUUID(null);
+            } else {
+                Object id = json.get("columnUUID");
+                if (id instanceof java.util.UUID) {
+                    objProxy.realmSet$columnUUID((java.util.UUID) id);
+                } else {
+                    objProxy.realmSet$columnUUID(java.util.UUID.fromString((String)id));
+                }
+            }
+        }
         if (json.has("columnDate")) {
             if (json.isNull("columnDate")) {
                 objProxy.realmSet$columnDate(null);
@@ -1448,6 +1460,12 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     objProxy.realmSet$columnObjectId(new org.bson.types.ObjectId(reader.nextString()));
                 }
             } else if (name.equals("columnUUID")) {
+                if (reader.peek() == JsonToken.NULL) {
+                    reader.skipValue();
+                    objProxy.realmSet$columnUUID(null);
+                } else {
+                    objProxy.realmSet$columnUUID(java.util.UUID.fromString(reader.nextString()));
+                }
             } else if (name.equals("columnDate")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();

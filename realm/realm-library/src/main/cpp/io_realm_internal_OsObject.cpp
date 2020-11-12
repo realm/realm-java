@@ -168,7 +168,7 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
     TableRef table = TBL_REF(table_ref_ptr);
     ColKey col_key(pk_column_key);
     shared_realm->verify_in_write(); // throws
-    if (is_pk_null && !COL_NULLABLE(env, table, pk_column_key)) {
+    if (is_pk_null && !COL_NULLABLE(env, table, pk_column_key)) { // throws
         return Obj();
     }
 
@@ -196,7 +196,7 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
     ColKey col_key(pk_column_key);
     shared_realm->verify_in_write(); // throws
     JStringAccessor str_accessor(env, pk_value); // throws
-    if (!pk_value && !COL_NULLABLE(env, table, pk_column_key)) {
+    if (!pk_value && !COL_NULLABLE(env, table, pk_column_key)) { // throws
         return Obj();
     }
 
@@ -222,7 +222,7 @@ static inline Obj do_create_row_with_object_id_primary_key(JNIEnv* env, jlong sh
     ColKey col_key(pk_column_key);
     shared_realm->verify_in_write(); // throws
     JStringAccessor str_accessor(env, pk_value); // throws
-    if (!pk_value && !COL_NULLABLE(env, table, pk_column_key)) {
+    if (!pk_value && !COL_NULLABLE(env, table, pk_column_key)) { // throws
         return Obj();
     }
 
@@ -251,7 +251,7 @@ static inline Obj do_create_row_with_uuid_primary_key(JNIEnv* env, jlong shared_
     ColKey col_key(pk_column_key);
     shared_realm->verify_in_write(); // throws
     JStringAccessor str_accessor(env, pk_value); // throws
-    if (!pk_value && !COL_NULLABLE(env, table, pk_column_key)) {
+    if (!pk_value && !COL_NULLABLE(env, table, pk_column_key)) { //throws
         return Obj();
     }
 

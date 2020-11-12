@@ -37,6 +37,7 @@ import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
+import io.realm.entities.PrimaryKeyAsUUID;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
@@ -72,7 +73,8 @@ public class RealmJsonAbsentPrimaryKeyTests {
             {PrimaryKeyAsBoxedShort.class,   "{ \"name\":\"KeyValueTestIsFun\" }"},
             {PrimaryKeyAsBoxedInteger.class, "{ \"name\":\"FunValueTestIsKey\" }"},
             {PrimaryKeyAsBoxedLong.class,    "{ \"name\":\"NameAsBoxedLong-!\" }"},
-            {PrimaryKeyAsString.class,       "{ \"id\":2429214 }"}
+            {PrimaryKeyAsString.class,       "{ \"id\":2429214 }"},
+            {PrimaryKeyAsUUID.class,         "{ \"name\":\"NameAsBoxedLong-!\" }"}
         });
     }
 

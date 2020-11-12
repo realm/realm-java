@@ -656,4 +656,20 @@ public class NullTypes extends RealmObject {
     public void setFieldUUIDListNull(RealmList<UUID> fieldUUIDListNull) {
         this.fieldUUIDListNull = fieldUUIDListNull;
     }
+
+    public UUID getFieldUUIDNotNull() {
+        return fieldUUIDNotNull;
+    }
+
+    public void setFieldUUIDNotNull(UUID fieldUUIDNotNull) {
+        this.fieldUUIDNotNull = fieldUUIDNotNull;
+    }
+
+    public UUID getFieldUUIDNull() {
+        return fieldUUIDNull;
+    }
+
+    public void setFieldUUIDNull(UUID fieldUUIDNull) {
+        this.fieldUUIDNull = fieldUUIDNull;
+    }
 }

@@ -73,6 +73,10 @@ open class ObjectIdOptionalRealmList
     var name: String = ""
 }
 
+open class LinkedObjectId : RealmObject() {
+    var linkedObjectId: ObjectIdPrimaryKeyNotRequired? = null
+}
+
 @RunWith(AndroidJUnit4::class)
 class ObjectIdTests {
     private lateinit var realmConfiguration: RealmConfiguration
@@ -94,7 +98,8 @@ class ObjectIdTests {
                         ObjectIdPrimaryKeyNotRequired::class.java,
                         ObjectIdAndString::class.java,
                         ObjectIdRequiredRealmList::class.java,
-                        ObjectIdOptionalRealmList::class.java)
+                        ObjectIdOptionalRealmList::class.java,
+                        LinkedObjectId::class.java)
                 .build()
         realm = Realm.getInstance(realmConfiguration)
     }
@@ -516,7 +521,7 @@ class ObjectIdTests {
         realm.commitTransaction()
 
         assertFailsWith<IllegalArgumentException>("Average is not supported for ObjectId") {
-            realm.where<ObjectIdAndString>().average("id") // FIXME should we support avergae queries in Core?
+            realm.where<ObjectIdAndString>().average("id")
         }
     }
 
@@ -531,6 +536,24 @@ class ObjectIdTests {
 
         assertFailsWith<IllegalArgumentException>("isEmpty is not supported for ObjectId") {
             realm.where<ObjectIdAndString>().isEmpty("id")
+        }
+    }
+
+    @Test
+    fun linkedQuery() {
+        val objectIdArray = arrayOf(null, ObjectId(), ObjectId(), ObjectId())
+
+        realm.executeTransaction { realm ->
+            for (objectId in objectIdArray) {
+                val objectIdObj = realm.createObject<ObjectIdPrimaryKeyNotRequired>(objectId)
+                realm.createObject<LinkedObjectId>().linkedObjectId = objectIdObj
+            }
+        }
+
+        for (objectId in objectIdArray) {
+            val results = realm.where<LinkedObjectId>().equalTo("linkedObjectId.id", objectId).findAll()
+            assertEquals(1, results.size)
+            assertEquals(objectId, results.first()?.linkedObjectId?.id)
         }
     }
 

@@ -20,9 +20,6 @@ import android.content.Context;
 import android.os.Build;
 import android.util.Base64;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
-
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.json.JSONArray;
@@ -46,9 +43,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationTypes;
@@ -355,6 +355,35 @@ public class RealmJsonTests {
 
         AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals(new ObjectId(idHex), obj.getColumnObjectId());
+    }
+
+    @Test
+    public void createObjectFromJson_uuid() throws JSONException {
+        JSONObject json = new JSONObject();
+        String uuid = "027ba5ca-aa12-4afa-9219-e20cc3018599";
+
+        json.put("columnUUID", UUID.fromString(uuid));
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, json);
+        realm.commitTransaction();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(UUID.fromString(uuid), obj.getColumnUUID());
+    }
+
+    @Test
+    public void createObjectFromJson_uuidAsString() throws JSONException {
+        JSONObject json = new JSONObject();
+        String uuid = "027ba5ca-aa12-4afa-9219-e20cc3018599";
+        json.put("columnUUID", uuid);
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, json);
+        realm.commitTransaction();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(UUID.fromString(uuid), obj.getColumnUUID());
     }
 
     @Test
@@ -937,6 +966,20 @@ public class RealmJsonTests {
 
         AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals(new ObjectId("789ABCDEF0123456789ABCDE"), obj.getColumnObjectId());
+    }
+
+    @Test
+    public void createObjectFromJson_streamUUIDAsString() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
+        InputStream in = TestHelper.loadJsonFromAssets(context, "uuid_as_string.json");
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, in);
+        realm.commitTransaction();
+        in.close();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599"), obj.getColumnUUID());
     }
 
     @Test
@@ -1760,6 +1803,16 @@ public class RealmJsonTests {
             fail("Unexpected exception: " + e);
         }
 
+        // 13 UUID
+        try {
+            realm.createObjectFromJson(NullTypes.class, array.getJSONObject(12));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_UUID_NOT_NULL));
+        } catch (Exception e) {
+            fail("Unexpected exception: " + e);
+        }
+
         realm.cancelTransaction();
     }
 
@@ -1891,6 +1944,16 @@ public class RealmJsonTests {
             fail();
         } catch (IllegalArgumentException ignored) {
             assertTrue(ignored.getMessage().contains(NullTypes.FIELD_OBJECT_ID_NOT_NULL));
+        } finally {
+            realm.cancelTransaction();
+        }
+        // 13 UUID
+        try {
+            realm.beginTransaction();
+            realm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(12)));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+            assertTrue(ignored.getMessage().contains(NullTypes.FIELD_UUID_NOT_NULL));
         } finally {
             realm.cancelTransaction();
         }

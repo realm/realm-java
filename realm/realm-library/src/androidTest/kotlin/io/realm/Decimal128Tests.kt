@@ -62,6 +62,10 @@ open class Decimal128OptionalRealmList : RealmObject() {
     var name: String = ""
 }
 
+open class LinkedDecimal128 : RealmObject() {
+    var linkedDecimal128: Decimal128NotRequired? = null
+}
+
 @RunWith(AndroidJUnit4::class)
 class Decimal128Tests {
     private lateinit var realmConfiguration: RealmConfiguration
@@ -82,7 +86,8 @@ class Decimal128Tests {
                 .schema(Decimal128Required::class.java,
                         Decimal128NotRequired::class.java,
                         Decimal128RequiredRealmList::class.java,
-                        Decimal128OptionalRealmList::class.java)
+                        Decimal128OptionalRealmList::class.java,
+                        LinkedDecimal128::class.java)
                 .build()
         realm = Realm.getInstance(realmConfiguration)
     }
@@ -627,4 +632,23 @@ class Decimal128Tests {
         }
     }
 
+    @Test
+    fun linkedQuery() {
+        val decimal128Array = arrayOf(null, Decimal128.parse("0"), Decimal128.parse("1"), Decimal128.parse("2"))
+
+        realm.executeTransaction { realm ->
+            decimal128Array.forEachIndexed { i, decimal128 ->
+                val decimalObj = realm.createObject<Decimal128NotRequired>(i)
+                decimalObj.decimal = decimal128
+
+                realm.createObject<LinkedDecimal128>().linkedDecimal128 = decimalObj
+            }
+        }
+
+        for (decimal in decimal128Array) {
+            val results = realm.where<LinkedDecimal128>().equalTo("linkedDecimal128.decimal", decimal).findAll()
+            assertEquals(1, results.size)
+            assertEquals(decimal, results.first()?.linkedDecimal128?.decimal)
+        }
+    }
 }
