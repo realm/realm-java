@@ -1,3 +1,21 @@
+## 10.1.0 (YYYY-MM-DD)
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* Added support for `java.util.UUID` as supported field in model classes.
+* Added support for `java.util.UUID` as a primary key.
+
+### Fixes
+* None
+
+### Compatibility
+* None.
+
+### Internal
+* None.
+
 ## 10.0.1 (2020-11-06)
 
 ### Breaking Changes
