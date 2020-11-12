@@ -2098,7 +2098,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     var pkType = "Long"
                     var jsonAccessorMethodSuffix = "Long"
                     var findFirstCast = ""
-                    var constructor = ""
                     if (Utils.isString(metadata.primaryKey)) {
                         pkType = "String"
                         jsonAccessorMethodSuffix=  "String"
@@ -2106,10 +2105,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         pkType = "ObjectId"
                         findFirstCast = "(org.bson.types.ObjectId)"
                         jsonAccessorMethodSuffix = ""
-                        constructor = "org.bson.types.ObjectId"
                     }
                     val nullableMetadata = if (Utils.isObjectId(metadata.primaryKey)) {
-                        "objKey = table.findFirst%s(pkColumnKey, new %s((String)json.get%s(\"%s\")))".format(pkType, constructor, jsonAccessorMethodSuffix, metadata.primaryKey!!.simpleName)
+                        "objKey = table.findFirst%s(pkColumnKey, new org.bson.types.ObjectId((String)json.get%s(\"%s\")))".format(pkType, jsonAccessorMethodSuffix, metadata.primaryKey!!.simpleName)
                     } else {
                         "objKey = table.findFirst%s(pkColumnKey, %sjson.get%s(\"%s\"))".format(pkType, findFirstCast, jsonAccessorMethodSuffix, metadata.primaryKey!!.simpleName)
                     }
