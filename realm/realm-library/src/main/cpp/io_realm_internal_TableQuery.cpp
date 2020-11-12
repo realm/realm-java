@@ -1226,7 +1226,7 @@ static void TableQuery_StringPredicate(JNIEnv* env, jlong nativeQueryPtr, jlongA
     CATCH_STD()
 }
 
-// ObjectID
+// UUID
 enum UUIDPredicate { UUIDEqual, UUIDNotEqual, UUIDLess, UUIDLessEqual, UUIDGreater, UUIDGreaterEqual };
 static void TableQuery_UUIDPredicate(JNIEnv* env, jlong nativeQueryPtr, jlongArray columnKeys,
                                          jlongArray tablePointers, jstring j_data, UUIDPredicate predicate)
