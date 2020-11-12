@@ -1236,7 +1236,6 @@ static void TableQuery_UUIDPredicate(JNIEnv* env, jlong nativeQueryPtr, jlongArr
         JLongArrayAccessor table_arr(env, tablePointers);
         JLongArrayAccessor col_key_arr(env, columnKeys);
         jsize arr_len = col_key_arr.size();
-        LinkChain linkChain = getTableForLinkQuery(nativeQueryPtr, table_arr, col_key_arr);
 
         UUID uuid = UUID(StringData(data).data());
         if (arr_len == 1) {
