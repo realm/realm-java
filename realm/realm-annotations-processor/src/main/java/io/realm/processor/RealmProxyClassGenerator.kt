@@ -19,6 +19,7 @@ package io.realm.processor
 import com.squareup.javawriter.JavaWriter
 import io.realm.processor.ext.beginMethod
 import io.realm.processor.ext.beginType
+import org.bson.types.ObjectId
 import java.io.BufferedWriter
 import java.io.IOException
 import java.util.*
@@ -2105,6 +2106,13 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         findFirstCast = "(org.bson.types.ObjectId)"
                         jsonAccessorMethodSuffix = ""
                     }
+                    val nullableMetadata = if (Utils.isObjectId(metadata.primaryKey)) {
+                        "objKey = table.findFirst%s(pkColumnKey, new org.bson.types.ObjectId((String)json.get%s(\"%s\")))".format(pkType, jsonAccessorMethodSuffix, metadata.primaryKey!!.simpleName)
+                    } else {
+                        "objKey = table.findFirst%s(pkColumnKey, %sjson.get%s(\"%s\"))".format(pkType, findFirstCast, jsonAccessorMethodSuffix, metadata.primaryKey!!.simpleName)
+                    }
+                    val nonNullableMetadata = "objKey = table.findFirst%s(pkColumnKey, %sjson.get%s(\"%s\"))".format(pkType, findFirstCast, jsonAccessorMethodSuffix, metadata.primaryKey!!.simpleName)
+
                     emitStatement("%s obj = null", qualifiedJavaClassName)
                     beginControlFlow("if (update)")
                         emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
@@ -2115,11 +2123,11 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             beginControlFlow("if (json.isNull(\"%s\"))", metadata.primaryKey!!.simpleName)
                                 emitStatement("objKey = table.findFirstNull(pkColumnKey)")
                             nextControlFlow("else")
-                                emitStatement("objKey = table.findFirst%s(pkColumnKey, %sjson.get%s(\"%s\"))", pkType, findFirstCast, jsonAccessorMethodSuffix, metadata.primaryKey!!.simpleName)
+                                emitStatement(nullableMetadata)
                             endControlFlow()
                         } else {
                             beginControlFlow("if (!json.isNull(\"%s\"))", metadata.primaryKey!!.simpleName)
-                                emitStatement("objKey = table.findFirst%s(pkColumnKey, %sjson.get%s(\"%s\"))", pkType, findFirstCast, jsonAccessorMethodSuffix, metadata.primaryKey!!.simpleName)
+                                emitStatement(nonNullableMetadata)
                             endControlFlow()
                         }
                         beginControlFlow("if (objKey != Table.NO_MATCH)")
