@@ -275,7 +275,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTable(J
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTableWithPrimaryKeyField(
-    JNIEnv* env, jclass, jlong shared_realm_ptr, jstring j_table_name, jstring j_field_name, jboolean is_string_type,
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jstring j_table_name, jstring j_field_name, jint j_field_type,
     jboolean is_nullable)
 {
     std::string class_name_str;
@@ -285,7 +285,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTableWi
         JStringAccessor field_name(env, j_field_name); // throws
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         shared_realm->verify_in_write(); // throws
-        DataType pkType = is_string_type ? DataType::type_String : DataType::type_Int;
+
+        DataType pkType = static_cast<DataType>(j_field_type);
         TableRef table;
         auto& group = shared_realm->read_group();
 #if REALM_ENABLE_SYNC
@@ -506,4 +507,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeFreeze(JNIEnv
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeNumberOfVersions(JNIEnv* env, jclass, jlong shared_realm_ptr)
+{
+    try {
+        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        return to_jlong_or_not_found(shared_realm->get_number_of_versions());
+    }
+    CATCH_STD()
+    return 0;
 }

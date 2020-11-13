@@ -7,7 +7,7 @@ import groovy.json.JsonOutput
 // CONSTANTS
 
 // Branches from which we release SNAPSHOT's. Only release branches need to run on actual hardware.
-releaseBranches = ['master', 'next-major', 'v10']
+releaseBranches = ['master', 'next-major', 'v10', 'releases']
 // Branches that are "important", so if they do not compile they will generate a Slack notification
 slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
 // WARNING: Only set to `false` as an absolute last resort. Doing this will disable all integration
@@ -25,7 +25,7 @@ mongoDbRealmContainer = null
 mongoDbRealmCommandServerContainer = null
 emulatorContainer = null
 dockerNetworkId = UUID.randomUUID().toString()
-currentBranch = env.CHANGE_BRANCH
+currentBranch = env.BRANCH_NAME
 // FIXME: Always used the emulator until we can enable more reliable devices
 // 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen.
 // nodeSelector = (releaseBranches.contains(currentBranch)) ? 'android' : 'docker-cph-03' // Switch to `brix` when all CPH nodes work: https://jira.mongodb.org/browse/RCI-14
@@ -99,10 +99,9 @@ try {
 
           def buildEnv = null
           stage('Prepare Docker Images') {
-            // TODO Should be renamed to 'master' when merged there.
             // TODO Caching is currently disabled (with -do-not-cache suffix) due to the upload speed
             //  in Copenhagen being too slow. So the upload times out.
-            buildEnv = buildDockerEnv("ci/realm-java:v10", push: currentBranch == 'v10-do-not-cache')
+            buildEnv = buildDockerEnv("ci/realm-java:master", push: currentBranch == 'master-do-not-cache')
             def props = readProperties file: 'dependencies.list'
             echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER}"
             def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER}")

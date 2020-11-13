@@ -107,6 +107,8 @@ public class Table implements NativeObject {
             case DATE:
             case FLOAT:
             case DOUBLE:
+            case DECIMAL128:
+            case OBJECT_ID:
                 return nativeAddColumn(nativeTableRefPtr, type.getNativeValue(), name, isNullable);
 
             case INTEGER_LIST:
@@ -116,6 +118,8 @@ public class Table implements NativeObject {
             case DATE_LIST:
             case FLOAT_LIST:
             case DOUBLE_LIST:
+            case DECIMAL128_LIST:
+            case OBJECT_ID_LIST:
                 return nativeAddPrimitiveListColumn(nativeTableRefPtr, type.getNativeValue() - 128, name, isNullable);
 
             default:
@@ -602,6 +606,13 @@ public class Table implements NativeObject {
         return nativeFindFirstString(nativeTableRefPtr, columnKey, value);
     }
 
+    public long findFirstDecimal128(long columnKey, Decimal128 value) {
+        if (value == null) {
+            throw new IllegalArgumentException("null is not supported");
+        }
+        return nativeFindFirstDecimal128(nativeTableRefPtr, columnKey, value.getLow(), value.getHigh());
+    }
+
     public long findFirstObjectId(long columnKey, ObjectId value) {
         if (value == null) {
             throw new IllegalArgumentException("null is not supported");
@@ -844,6 +855,8 @@ public class Table implements NativeObject {
     private native long nativeFindFirstTimestamp(long nativeTableRefPtr, long columnKey, long dateTimeValue);
 
     public static native long nativeFindFirstString(long nativeTableRefPtr, long columnKey, String value);
+
+    public static native long nativeFindFirstDecimal128(long nativeTableRefPtr, long columnKey, long low, long high);
 
     public static native long nativeFindFirstObjectId(long nativeTableRefPtr, long columnKey, String value);
 

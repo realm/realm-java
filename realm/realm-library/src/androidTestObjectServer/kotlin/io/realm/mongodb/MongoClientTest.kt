@@ -41,7 +41,8 @@ import org.junit.runner.RunWith
 import java.io.IOException
 import kotlin.test.*
 
-private const val COLLECTION_NAME = "mongo_data" // name of collection used by tests
+private const val COLLECTION_NAME = "mongo_data" // uses ObjectId as _id
+private const val COLLECTION_NAME_ALT = "mongo_data_alt" // uses Integer as _id
 
 @RunWith(AndroidJUnit4::class)
 class MongoClientTest {
@@ -62,7 +63,10 @@ class MongoClientTest {
     @After
     fun tearDown() {
         if (this::client.isInitialized) {
-            with(getCollectionInternal()) {
+            with(getCollectionInternal(COLLECTION_NAME)) {
+                deleteMany(Document()).get()
+            }
+            with(getCollectionInternal(COLLECTION_NAME_ALT)) {
                 deleteMany(Document()).get()
             }
         }
@@ -308,8 +312,32 @@ class MongoClientTest {
             assertEquals(1, count().get())
 
             val doc2 = Document("hello", "world")
-            assertNotEquals(doc1.getObjectId("_id"), insertOne(doc2).get()!!.insertedId.asObjectId().value)
+            val insertOneResult = insertOne(doc2).get()!!
+            assertNotNull(insertOneResult.insertedId.asObjectId().value)
             assertEquals(2, count().get())
+        }
+    }
+
+    @Test
+    fun insertOne_throwsWhenMixingIdTypes() {
+        with(getCollectionInternal()) {
+            // The default collection uses ObjectId for "_id"
+            val doc1 = Document("hello", "world").apply { this["_id"] = 666 }
+            assertFailsWith<AppException> {
+                insertOne(doc1).get()!!
+            }.let { e ->
+                assertEquals("insert not permitted", e.errorMessage)
+            }
+        }
+    }
+
+    @Test
+    fun insertOne_integerId() {
+        with(getCollectionInternal(COLLECTION_NAME_ALT)) {
+            val doc1 = Document("hello", "world").apply { this["_id"] = 666 }
+            val insertOneResult = insertOne(doc1).get()!!
+            assertEquals(doc1.getInteger("_id"), insertOneResult.insertedId.asInt32().value)
+            assertEquals(1, count().get())
         }
     }
 
@@ -377,6 +405,42 @@ class MongoClientTest {
 
             insertMany(listOf(doc3, doc4)).get()
             assertEquals(4, count().get())
+        }
+    }
+
+    @Test
+    fun insertMany_multipleDocuments_IntegerId() {
+        with(getCollectionInternal(COLLECTION_NAME_ALT)) {
+            val doc1 = Document("hello", "world").apply { this["_id"] = 42 }
+            val doc2 = Document("hello", "world").apply { this["_id"] = 42 + 1 }
+            val documents = listOf(doc1, doc2)
+
+            insertMany(documents).get()!!
+                    .insertedIds
+                    .forEach { entry ->
+                        assertEquals(documents[entry.key.toInt()]["_id"], entry.value.asInt32().value)
+                    }
+
+            val doc3 = Document("one", "two")
+            val doc4 = Document("three", 4)
+
+            insertMany(listOf(doc3, doc4)).get()
+            assertEquals(4, count().get())
+        }
+    }
+
+    @Test
+    fun insertMany_throwsWhenMixingIdTypes() {
+        with(getCollectionInternal()) {
+            val doc1 = Document("hello", "world").apply { this["_id"] = 42 }
+            val doc2 = Document("hello", "world").apply { this["_id"] = 42 + 1 }
+            val documents = listOf(doc1, doc2)
+
+            assertFailsWith<AppException> {
+                insertMany(documents).get()!!
+            }.let { e ->
+                assertEquals("insert not permitted", e.errorMessage)
+            }
         }
     }
 
@@ -1444,22 +1508,25 @@ class MongoClientTest {
         }
     }
 
-    private fun getCollectionInternal(): MongoCollection<Document> {
+    private fun getCollectionInternal(
+            collectionName: String = COLLECTION_NAME
+    ): MongoCollection<Document> {
         return client.getDatabase(DATABASE_NAME).let {
             assertEquals(it.name, DATABASE_NAME)
-            it.getCollection(COLLECTION_NAME).also { collection ->
-                assertEquals(MongoNamespace(DATABASE_NAME, COLLECTION_NAME), collection.namespace)
+            it.getCollection(collectionName).also { collection ->
+                assertEquals(MongoNamespace(DATABASE_NAME, collectionName), collection.namespace)
             }
         }
     }
 
     private fun <ResultT> getCollectionInternal(
-            resultClass: Class<ResultT>
+            resultClass: Class<ResultT>,
+            collectionName: String = COLLECTION_NAME
     ): MongoCollection<ResultT> {
         return client.getDatabase(DATABASE_NAME).let {
             assertEquals(it.name, DATABASE_NAME)
-            it.getCollection(COLLECTION_NAME, resultClass).also { collection ->
-                assertEquals(MongoNamespace(DATABASE_NAME, COLLECTION_NAME), collection.namespace)
+            it.getCollection(collectionName, resultClass).also { collection ->
+                assertEquals(MongoNamespace(DATABASE_NAME, collectionName), collection.namespace)
             }
         }
     }

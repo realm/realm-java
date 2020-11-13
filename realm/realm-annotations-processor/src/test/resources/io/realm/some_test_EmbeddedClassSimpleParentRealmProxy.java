@@ -607,28 +607,14 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
 
         OsList childrenOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.childrenColKey);
         RealmList<some.test.EmbeddedClass> childrenList = ((some_test_EmbeddedClassSimpleParentRealmProxyInterface) object).realmGet$children();
-        if (childrenList != null && childrenList.size() == childrenOsList.size()) {
-            // For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.
-            int objects = childrenList.size();
-            for (int i = 0; i < objects; i++) {
-                some.test.EmbeddedClass childrenItem = childrenList.get(i);
+        childrenOsList.removeAll();
+        if (childrenList != null) {
+            for (some.test.EmbeddedClass childrenItem : childrenList) {
                 Long cacheItemIndexchildren = cache.get(childrenItem);
                 if (cacheItemIndexchildren != null) {
                     throw new IllegalArgumentException("Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: " + cacheItemIndexchildren.toString());
                 } else {
                     cacheItemIndexchildren = some_test_EmbeddedClassRealmProxy.insertOrUpdate(realm, table, columnInfo.childrenColKey, objKey, childrenItem, cache);
-                }
-            }
-        } else {
-            childrenOsList.removeAll();
-            if (childrenList != null) {
-                for (some.test.EmbeddedClass childrenItem : childrenList) {
-                    Long cacheItemIndexchildren = cache.get(childrenItem);
-                    if (cacheItemIndexchildren != null) {
-                        throw new IllegalArgumentException("Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: " + cacheItemIndexchildren.toString());
-                    } else {
-                        cacheItemIndexchildren = some_test_EmbeddedClassRealmProxy.insertOrUpdate(realm, table, columnInfo.childrenColKey, objKey, childrenItem, cache);
-                    }
                 }
             }
         }
@@ -775,13 +761,15 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
         RealmList<some.test.EmbeddedClass> childrenUnmanagedList = realmObjectSource.realmGet$children();
         if (childrenUnmanagedList != null) {
             RealmList<some.test.EmbeddedClass> childrenManagedCopy = new RealmList<some.test.EmbeddedClass>();
+            OsList targetList = realmObjectTarget.realmGet$children().getOsList();
+            targetList.deleteAll();
             for (int i = 0; i < childrenUnmanagedList.size(); i++) {
                 some.test.EmbeddedClass childrenUnmanagedItem = childrenUnmanagedList.get(i);
                 some.test.EmbeddedClass cachechildren = (some.test.EmbeddedClass) cache.get(childrenUnmanagedItem);
                 if (cachechildren != null) {
                     throw new IllegalArgumentException("Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cachechildren.toString()");
                 } else {
-                    long objKey = realmObjectTarget.realmGet$children().getOsList().createAndAddEmbeddedObject();
+                    long objKey = targetList.createAndAddEmbeddedObject();
                     Row row = realm.getTable(some.test.EmbeddedClass.class).getUncheckedRow(objKey);
                     some.test.EmbeddedClass proxyObject = some_test_EmbeddedClassRealmProxy.newProxyInstance(realm, row);
                     cache.put(childrenUnmanagedItem, (RealmObjectProxy) proxyObject);
