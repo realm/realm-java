@@ -294,44 +294,6 @@ class CoroutinesTests {
     }
 
     @Test
-    fun realmResults_toFlow_throwsDueToBeingCancelled() {
-        val countDownLatch = CountDownLatch(1)
-
-        val context = Dispatchers.Main
-        val scope = CoroutineScope(context)
-
-        var flow: Flow<*>? = null
-
-        scope.launch {
-            val realmInstance = Realm.getInstance(configuration)
-
-            flow = realmInstance.where<SimpleClass>()
-                    .findAllAsync()
-                    .toFlow()
-
-            flow!!.flowOn(context)
-                    .onCompletion {
-                        realmInstance.close()
-                        countDownLatch.countDown()
-                    }.launchIn(scope)
-
-            // Simulate asynchronous event and then cancel
-            delay(100)
-            scope.cancel("Cancelling")
-        }
-
-        TestHelper.awaitOrFail(countDownLatch)
-
-        // Throws when re-subscribing to an already-cancelled flow
-        val errorLatch = CountDownLatch(1)
-        CoroutineScope(context).launch {
-            assertFailsWith<IllegalStateException> { flow!!.collect() }
-            errorLatch.countDown()
-        }
-        TestHelper.awaitOrFail(errorLatch)
-    }
-
-    @Test
     fun realmResults_toFlow_multipleSubscribers() {
         val countDownLatch = CountDownLatch(2)
 
