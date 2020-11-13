@@ -19,6 +19,7 @@ package io.realm.kotlin
 import io.realm.*
 import io.realm.annotations.Beta
 import io.realm.internal.RealmObjectProxy
+import io.realm.rx.ObjectChange
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
@@ -71,6 +72,31 @@ fun <T : RealmModel> T?.toFlow(): Flow<T?> {
         } else {
             // Return a one-time emission in case the object is unmanaged
             return flowOf(this)
+        }
+    } ?: flowOf(null)
+}
+
+/**
+ * FIXME
+ */
+@Beta
+fun <T: RealmModel> T?.toChangesetFlow(): Flow<ObjectChange<T>?> {
+    // Return flow with objectchange containing this object or null flow if this function is called on null
+    return this?.let { obj ->
+        if (obj is RealmObjectProxy) {
+            val proxy = obj as RealmObjectProxy
+            @Suppress("INACCESSIBLE_TYPE")
+            when (val realm = proxy.`realmGet$proxyState`().`realm$realm`) {
+                is Realm -> realm.configuration.flowFactory.changesetFrom<T>(realm, obj)
+                is DynamicRealm -> (obj as DynamicRealmObject).let { dynamicRealmObject ->
+                    realm.configuration.flowFactory.changesetFrom(realm, dynamicRealmObject) as Flow<ObjectChange<T>?>
+                }
+                else -> throw UnsupportedOperationException("${realm.javaClass} is not supported as a candidate for 'toFlow'. Only subclasses of RealmModel/RealmObject can be used.")
+            }
+
+        } else {
+            // Return a one-time emission in case the object is unmanaged
+            return flowOf(ObjectChange(this, null))
         }
     } ?: flowOf(null)
 }

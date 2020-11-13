@@ -248,6 +248,84 @@ class CoroutinesTests {
     }
 
     @Test
+    fun realmResults_toChangesetFlow_emittedAfterCollect() {
+        Realm.getInstance(configuration).use { realm ->
+            realm.executeTransaction { transactionRealm ->
+                transactionRealm.createObject<SimpleClass>().name = "Foo"
+            }
+        }
+
+        val countDownLatch = CountDownLatch(1)
+
+        val context = Dispatchers.Main
+        val scope = CoroutineScope(context)
+
+        scope.launch {
+            val realmInstance = Realm.getInstance(configuration)
+            realmInstance.where<SimpleClass>()
+                    .findAllAsync()
+                    .toChangesetFlow()
+                    .flowOn(context)
+                    .onEach { collectionChange ->
+                        assertTrue(collectionChange.collection.isFrozen)
+
+                        if (collectionChange.collection.size == 0) {
+                            assertNull(collectionChange.changeset)
+                        } else {
+                            assertNotNull(collectionChange.changeset)
+                            assertEquals(1, collectionChange.collection.size)
+                            assertEquals("Foo", collectionChange.collection.first()!!.name)
+                            scope.cancel("Cancelling scope...")
+                        }
+                    }.onCompletion {
+                        realmInstance.close()
+                        countDownLatch.countDown()
+                    }.collect()
+        }
+
+        TestHelper.awaitOrFail(countDownLatch)
+    }
+
+    @Test
+    fun realmResults_dynamicRealm_toChangesetFlow_emittedAfterCollect() {
+        Realm.getInstance(configuration).use { realm ->
+            realm.executeTransaction { transactionRealm ->
+                transactionRealm.createObject<SimpleClass>().name = "Foo"
+            }
+        }
+
+        val countDownLatch = CountDownLatch(1)
+
+        val context = Dispatchers.Main
+        val scope = CoroutineScope(context)
+
+        scope.launch {
+            val realmInstance = DynamicRealm.getInstance(configuration)
+            realmInstance.where("SimpleClass")
+                    .findAllAsync()
+                    .toChangesetFlow()
+                    .flowOn(context)
+                    .onEach { collectionChange ->
+                        assertTrue(collectionChange.collection.isFrozen)
+
+                        if (collectionChange.collection.size == 0) {
+                            assertNull(collectionChange.changeset)
+                        } else {
+                            assertNotNull(collectionChange.changeset)
+                            assertEquals(1, collectionChange.collection.size)
+                            assertEquals("Foo", collectionChange.collection.first()!!.getString("name"))
+                            scope.cancel("Cancelling scope...")
+                        }
+                    }.onCompletion {
+                        realmInstance.close()
+                        countDownLatch.countDown()
+                    }.collect()
+        }
+
+        TestHelper.awaitOrFail(countDownLatch)
+    }
+
+    @Test
     fun realmResults_toFlow_resultsCancelBeforeCollectActualResults() {
         val countDownLatch = CountDownLatch(1)
 
@@ -457,19 +535,56 @@ class CoroutinesTests {
                     .flowOn(context)
                     .onEach { flowObject ->
                         assertTrue(flowObject!!.isFrozen())
-                        if (flowObject.name == "Bar") {
+
+                        if (flowObject.name == "Foo") {
+                            realmInstance.beginTransaction()
+                            obj.name = "Bar"
+                            realmInstance.commitTransaction()
+                        } else {
+                            assertEquals("Bar", flowObject.name)
                             scope.cancel("Cancelling scope...")
                         }
                     }.onCompletion {
                         realmInstance.close()
                         countDownLatch.countDown()
                     }.launchIn(scope)
+        }
 
-            // Simulate asynchronous event and then update object
-            delay(100)
+        TestHelper.awaitOrFail(countDownLatch)
+    }
+
+    @Test
+    fun realmObject_toChangesetFlow_emitObjectOnObjectUpdates() {
+        val countDownLatch = CountDownLatch(1)
+
+        val context = Dispatchers.Main
+        val scope = CoroutineScope(context)
+
+        scope.launch {
+            val realmInstance = Realm.getInstance(configuration)
             realmInstance.beginTransaction()
-            obj.name = "Bar"
+            val obj = realmInstance.createObject<SimpleClass>()
+                    .apply { name = "Foo" }
             realmInstance.commitTransaction()
+
+            obj.toChangesetFlow()
+                    .flowOn(context)
+                    .onEach { objectChange ->
+                        assertNotNull(objectChange)
+                        assertTrue(objectChange.`object`.isFrozen())
+
+                        if (objectChange.`object`.name == "Foo") {
+                            realmInstance.beginTransaction()
+                            obj.name = "Bar"
+                            realmInstance.commitTransaction()
+                        } else {
+                            assertEquals("Bar", objectChange.`object`.name)
+                            scope.cancel("Cancelling scope...")
+                        }
+                    }.onCompletion {
+                        realmInstance.close()
+                        countDownLatch.countDown()
+                    }.launchIn(scope)
         }
 
         TestHelper.awaitOrFail(countDownLatch)
@@ -616,6 +731,56 @@ class CoroutinesTests {
     }
 
     @Test
+    fun realmList_toChangesetFlow_emitListOnListUpdates() {
+        val countDownLatch = CountDownLatch(1)
+
+        val context = Dispatchers.Main
+        val scope = CoroutineScope(context)
+
+        scope.launch {
+            val realmInstance = Realm.getInstance(configuration)
+
+            realmInstance.beginTransaction()
+            val list = realmInstance.createObject<AllTypes>().columnRealmList
+            list.add(Dog("dog"))
+            realmInstance.commitTransaction()
+
+            list.toChangesetFlow()
+                    .onEach { collectionChange ->
+                        assertTrue(collectionChange.collection.isFrozen)
+                        assertEquals(1, collectionChange.collection.size)
+
+                        val listDog = collectionChange.collection.first()!!
+                        val dogName = listDog.name
+                        if (dogName != "doggo") {
+                            assertNull(collectionChange.changeset)
+
+                            // Before update we have the original name
+                            assertEquals("dog", dogName)
+
+                            // Now update object
+                            realmInstance.beginTransaction()
+                            list.first()?.apply {
+                                this.name = "doggo"
+                            }
+                            realmInstance.commitTransaction()
+                        } else {
+                            assertNotNull(collectionChange.changeset)
+                            assertEquals("doggo", dogName)
+
+                            // Name has been updated, close everything
+                            scope.cancel("Cancelling scope...")
+                        }
+                    }.onCompletion {
+                        realmInstance.close()
+                        countDownLatch.countDown()
+                    }.launchIn(scope)
+        }
+
+        TestHelper.awaitOrFail(countDownLatch)
+    }
+
+    @Test
     fun realmList_dynamicRealm_toFlow_emitListOnListUpdates() {
         val countDownLatch = CountDownLatch(1)
 
@@ -654,6 +819,62 @@ class CoroutinesTests {
                             }
                             realmInstance.commitTransaction()
                         } else {
+                            assertEquals("doggo", dogName)
+
+                            // Name has been updated, close everything
+                            scope.cancel("Cancelling scope...")
+                        }
+                    }.onCompletion {
+                        realmInstance.close()
+                        countDownLatch.countDown()
+                    }.launchIn(scope)
+        }
+
+        TestHelper.awaitOrFail(countDownLatch)
+    }
+
+    @Test
+    fun realmList_dynamicRealm_toChangesetFlow_emitListOnListUpdates() {
+        val countDownLatch = CountDownLatch(1)
+
+        val context = Dispatchers.Main
+        val scope = CoroutineScope(context)
+
+        // Initializes schema. DynamicRealm will not do that, so let a normal Realm create the file first.
+        Realm.getInstance(configuration).close()
+
+        scope.launch {
+            val realmInstance = DynamicRealm.getInstance(configuration)
+
+            realmInstance.beginTransaction()
+            val dynamicRealmObject = realmInstance.createObject(AllTypes.CLASS_NAME)
+            val dog = realmInstance.createObject("Dog")
+                    .apply { setString(Dog.FIELD_NAME, "dog") }
+            val list = dynamicRealmObject.getList(AllTypes.FIELD_REALMLIST)
+                    .apply { add(dog) }
+            realmInstance.commitTransaction()
+
+            list.toChangesetFlow()
+                    .onEach { collectionChange ->
+                        assertTrue(collectionChange.collection.isFrozen)
+                        assertEquals(1, collectionChange.collection.size)
+
+                        val listDog = collectionChange.collection.first()!!
+                        val dogName = listDog.getString(Dog.FIELD_NAME)
+                        if (dogName != "doggo") {
+                            assertNull(collectionChange.changeset)
+
+                            // Before update we have the original name
+                            assertEquals("dog", dogName)
+
+                            // Now update object
+                            realmInstance.beginTransaction()
+                            list.first()?.apply {
+                                this.setString(Dog.FIELD_NAME, "doggo")
+                            }
+                            realmInstance.commitTransaction()
+                        } else {
+                            assertNotNull(collectionChange.changeset)
                             assertEquals("doggo", dogName)
 
                             // Name has been updated, close everything
@@ -728,6 +949,10 @@ class CoroutinesTests {
 
         TestHelper.awaitOrFail(countDownLatch)
     }
+
+    // FIXME: missing dynamicRealmObject_toFlow_emitsOnUpdate
+
+    // FIXME: missing dynamicRealmObject_toChangesetFlow_emitsOnUpdate
 
     @Test
     fun executeTransactionAwait() {

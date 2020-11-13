@@ -18,6 +18,7 @@ package io.realm.kotlin
 
 import io.realm.*
 import io.realm.annotations.Beta
+import io.realm.rx.CollectionChange
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -55,8 +56,21 @@ import kotlinx.coroutines.flow.Flow
 fun <T> RealmList<T>.toFlow(): Flow<RealmList<T>> {
     @Suppress("INACCESSIBLE_TYPE")
     return when (val realmInstance = baseRealm) {
-        is Realm -> realmInstance.configuration.flowFactory.from(baseRealm as Realm, this)
-        is DynamicRealm -> realmInstance.configuration.flowFactory.from(baseRealm as DynamicRealm, this)
+        is Realm -> realmInstance.configuration.flowFactory.from(realmInstance, this)
+        is DynamicRealm -> realmInstance.configuration.flowFactory.from(realmInstance, this)
+        else -> throw IllegalStateException("Wrong type of Realm.")
+    }
+}
+
+/**
+ * FIXME
+ */
+@Beta
+fun <T> RealmList<T>.toChangesetFlow(): Flow<CollectionChange<RealmList<T>>> {
+    @Suppress("INACCESSIBLE_TYPE")
+    return when (val realmInstance = baseRealm) {
+        is Realm -> realmInstance.configuration.flowFactory.changesetFrom(realmInstance, this)
+        is DynamicRealm -> realmInstance.configuration.flowFactory.changesetFrom(realmInstance, this)
         else -> throw IllegalStateException("Wrong type of Realm.")
     }
 }
