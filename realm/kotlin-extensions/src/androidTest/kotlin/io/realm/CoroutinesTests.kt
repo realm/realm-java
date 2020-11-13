@@ -155,6 +155,37 @@ class CoroutinesTests {
     }
 
     @Test
+    fun realmResults_toFlow_throwsOnClosed() {
+        val countDownLatch = CountDownLatch(1)
+
+        val context = Dispatchers.Main
+        val scope = CoroutineScope(context)
+
+        scope.launch {
+            val realmInstance = Realm.getInstance(configuration)
+
+            // No updates will be emitted, but at least ensure that we are not
+            // triggering coroutines internal java.lang.IllegalStateException due to missing
+            // 'awaitClose { yourCallbackOrListener.cancel() }', which should be used in the end of
+            // a callbackFlow block.
+            assertFailsWith<TimeoutCancellationException> {
+                withTimeout(100) {
+                    realmInstance.where<SimpleClass>()
+                            .findAllAsync()
+                            .toFlow()
+                            .onStart {
+                                realmInstance.close()
+                            }.onCompletion {
+                                countDownLatch.countDown()
+                            }.collect()
+                }
+            }
+        }
+
+        TestHelper.awaitOrFail(countDownLatch)
+    }
+
+    @Test
     fun realmResults_toFlow_emittedOnCollect() {
         val countDownLatch = CountDownLatch(1)
 

@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package io.realm.coroutines
+package io.realm.internal.coroutines
 
 import io.realm.*
 import io.realm.annotations.Beta
+import io.realm.coroutines.FlowFactory
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOf
 
 /**
- * Factory class used to create coroutine [Flow]s.
- *
- * This class is used by default unless overridden in [RealmConfiguration.Builder.flowFactory].
+ * Internal factory implementation used to conceal Kotlin implementation details from the public
+ * API and to avoid having to use Kotlin's documentation solution for just one class.
  */
-@Beta
-class RealmFlowFactory(
+class InternalFlowFactory(
         private val returnFrozenObjects: Boolean = true
 ) : FlowFactory {
 
@@ -107,6 +106,8 @@ class RealmFlowFactory(
         return callbackFlow {
             // Do nothing if the results are invalid
             if (!results.isValid) {
+                awaitClose {}
+
                 return@callbackFlow
             }
 
@@ -150,6 +151,8 @@ class RealmFlowFactory(
         return callbackFlow {
             // Do nothing if the results are invalid
             if (!results.isValid) {
+                awaitClose {}
+
                 return@callbackFlow
             }
 
@@ -194,6 +197,8 @@ class RealmFlowFactory(
         return callbackFlow {
             // Do nothing if the results are invalid
             if (!realmList.isValid) {
+                awaitClose {}
+
                 return@callbackFlow
             }
 
@@ -237,6 +242,8 @@ class RealmFlowFactory(
         return callbackFlow {
             // Do nothing if the results are invalid
             if (!realmList.isValid) {
+                awaitClose {}
+
                 return@callbackFlow
             }
 
@@ -281,6 +288,8 @@ class RealmFlowFactory(
         return callbackFlow<T> {
             // Do nothing if the object is invalid
             if (!RealmObject.isValid(realmObject)) {
+                awaitClose {}
+
                 return@callbackFlow
             }
 
@@ -325,6 +334,8 @@ class RealmFlowFactory(
         return callbackFlow<DynamicRealmObject> {
             // Do nothing if the object is invalid
             if (!dynamicRealmObject.isValid) {
+                awaitClose {}
+
                 return@callbackFlow
             }
 
