@@ -16,7 +16,10 @@
 
 package io.realm.kotlin
 
-import io.realm.*
+import io.realm.DynamicRealm
+import io.realm.Realm
+import io.realm.RealmModel
+import io.realm.RealmResults
 import io.realm.annotations.Beta
 import kotlinx.coroutines.flow.Flow
 
@@ -59,10 +62,8 @@ import kotlinx.coroutines.flow.Flow
 fun <T : RealmModel> RealmResults<T>.toFlow(): Flow<RealmResults<T>> {
     @Suppress("INACCESSIBLE_TYPE")
     return when (val realmInstance = baseRealm) {
-        is Realm -> realmInstance.configuration.flowFactory?.from(baseRealm as Realm, this)
-                ?: throw IllegalStateException("Missing flow factory in Realm configuration.")
-        is DynamicRealm -> realmInstance.configuration.flowFactory?.from(baseRealm as DynamicRealm, this)
-                ?: throw IllegalStateException("Missing flow factory in Realm configuration.")
+        is Realm -> realmInstance.configuration.flowFactory.from(baseRealm as Realm, this)
+        is DynamicRealm -> realmInstance.configuration.flowFactory.from(baseRealm as DynamicRealm, this)
         else -> throw IllegalStateException("Wrong type of Realm.")
     }
 }

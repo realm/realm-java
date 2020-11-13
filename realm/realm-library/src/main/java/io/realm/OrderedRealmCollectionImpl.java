@@ -28,7 +28,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
     /**
      * The {@link BaseRealm} instance in which this collection resides.
      * <p>
-     * Warning: we discourage using this property directly from your code.
+     * Warning: This field is only exposed for internal usage, and should not be used.
      */
     public final BaseRealm baseRealm;
 

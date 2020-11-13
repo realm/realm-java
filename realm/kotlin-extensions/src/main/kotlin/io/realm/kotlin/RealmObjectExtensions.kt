@@ -62,16 +62,14 @@ fun <T : RealmModel> T?.toFlow(): Flow<T?> {
 
             @Suppress("INACCESSIBLE_TYPE")
             when (val realm = proxy.`realmGet$proxyState`().`realm$realm`) {
-                is Realm -> realm.configuration.flowFactory?.from<T>(realm, obj)
-                        ?: throw IllegalStateException("Missing flow factory in Realm configuration.")
-                is DynamicRealm ->
-                    (obj as DynamicRealmObject).let { dynamicRealmObject ->
-                        (realm.configuration.flowFactory?.from(realm, dynamicRealmObject)
-                                ?: throw IllegalStateException("Missing flow factory in Realm configuration.")) as Flow<T?>
-                    }
+                is Realm -> realm.configuration.flowFactory.from<T>(realm, obj)
+                is DynamicRealm -> (obj as DynamicRealmObject).let { dynamicRealmObject ->
+                    realm.configuration.flowFactory.from(realm, dynamicRealmObject) as Flow<T?>
+                }
                 else -> throw UnsupportedOperationException("${realm.javaClass} is not supported as a candidate for 'toFlow'. Only subclasses of RealmModel/RealmObject can be used.")
             }
         } else {
+            // Return a one-time emission in case the object is unmanaged
             return flowOf(this)
         }
     } ?: flowOf(null)

@@ -207,8 +207,6 @@ repositories {
 }
 
 dependencies {
-
-    // Hidden from deliverable
     compileOnly "io.reactivex.rxjava2:rxjava:${properties.getProperty('RXJAVA_DEPENDENCY')}"
     compileOnly 'com.github.spotbugs:spotbugs-annotations:4.1.2'
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"

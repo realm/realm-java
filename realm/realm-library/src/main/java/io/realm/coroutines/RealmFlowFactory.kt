@@ -24,7 +24,9 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOf
 
 /**
- * Flow factory used by Realm by default.
+ * Factory class used to create coroutine [Flow]s.
+ *
+ * This class is used by default unless overridden in [RealmConfiguration.Builder.flowFactory].
  */
 @Beta
 class RealmFlowFactory(

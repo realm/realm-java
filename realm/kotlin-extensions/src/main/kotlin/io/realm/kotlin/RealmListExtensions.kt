@@ -55,10 +55,8 @@ import kotlinx.coroutines.flow.Flow
 fun <T> RealmList<T>.toFlow(): Flow<RealmList<T>> {
     @Suppress("INACCESSIBLE_TYPE")
     return when (val realmInstance = baseRealm) {
-        is Realm -> realmInstance.configuration.flowFactory?.from(baseRealm as Realm, this)
-                ?: throw IllegalStateException("Missing flow factory in Realm configuration.")
-        is DynamicRealm -> realmInstance.configuration.flowFactory?.from(baseRealm as DynamicRealm, this)
-                ?: throw IllegalStateException("Missing flow factory in Realm configuration.")
+        is Realm -> realmInstance.configuration.flowFactory.from(baseRealm as Realm, this)
+        is DynamicRealm -> realmInstance.configuration.flowFactory.from(baseRealm as DynamicRealm, this)
         else -> throw IllegalStateException("Wrong type of Realm.")
     }
 }
