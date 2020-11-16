@@ -30,7 +30,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.realm.examples.coroutinesexample.R
-import io.realm.examples.coroutinesexample.TAG
 import io.realm.examples.coroutinesexample.data.newsreader.local.RealmNYTimesArticle
 import io.realm.examples.coroutinesexample.data.newsreader.network.sectionsToNames
 import io.realm.examples.coroutinesexample.databinding.FragmentMainBinding
@@ -79,11 +78,11 @@ class MainFragment : Fragment() {
                     )
             )
             onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                     viewModel.getTopStories(getApiSection(adapter, position))
                 }
 
-                override fun onNothingSelected(parent: AdapterView<*>) {
+                override fun onNothingSelected(parent: AdapterView<*>?) {
                     // No-op
                 }
             }

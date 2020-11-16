@@ -67,7 +67,7 @@ class NewsReaderRepository(
         sectionRefreshJobs.clear()
     }
 
-    private fun getFromStream(scope: CoroutineScope,apiSection: String) {
+    private fun getFromStream(scope: CoroutineScope, apiSection: String) {
         store.stream(StoreRequest.cached(
                 key = apiSection,
                 refresh = false

@@ -17,15 +17,14 @@
 package io.realm.examples.coroutinesexample.ui.details
 
 import androidx.lifecycle.*
-import io.realm.examples.coroutinesexample.MainApplication
 import io.realm.examples.coroutinesexample.data.newsreader.local.RealmNYTimesArticle
 import io.realm.examples.coroutinesexample.di.DependencyGraph
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.isActive
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
 
@@ -72,8 +71,10 @@ class DetailsViewModel : ViewModel() {
         } else {
             flow<Unit> {
                 delay(2.seconds)
-                repository.updateArticle(viewModelScope, article.url)
-                _read.postValue(true)
+                if (currentCoroutineContext().isActive) {
+                    repository.updateArticle(viewModelScope, article.url)
+                    _read.postValue(true)
+                }
             }.launchIn(viewModelScope)
         }
     }

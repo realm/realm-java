@@ -36,7 +36,7 @@ class MainAdapter(
                     .let { view -> ArticleViewHolder(view) }
 
     override fun onBindViewHolder(holder: ArticleViewHolder, position: Int) {
-        with (holder.title) {
+        with(holder.title) {
             val article = getItem(position)
 
             text = article.title
@@ -61,7 +61,9 @@ class MainAdapter(
                     oldItem == newItem
 
             override fun areContentsTheSame(oldItem: RealmNYTimesArticle, newItem: RealmNYTimesArticle): Boolean =
-                    oldItem.title == newItem.title && oldItem.abstractText == newItem.abstractText
+                    oldItem.read == newItem.read
+                            && oldItem.title == newItem.title
+                            && oldItem.abstractText == newItem.abstractText
         }
     }
 }

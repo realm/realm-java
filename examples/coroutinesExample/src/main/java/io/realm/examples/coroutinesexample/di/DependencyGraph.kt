@@ -30,7 +30,6 @@ import io.realm.examples.coroutinesexample.data.newsreader.network.NYTimesApiCli
 import io.realm.examples.coroutinesexample.data.newsreader.network.NYTimesApiClientImpl
 import io.realm.examples.coroutinesexample.data.newsreader.network.model.NYTimesArticle
 import io.realm.examples.coroutinesexample.util.NewsReaderFlowFactory
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.map
 
 object DependencyGraph {

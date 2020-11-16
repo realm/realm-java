@@ -20,7 +20,6 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.realm.examples.coroutinesexample.MainApplication
 import io.realm.examples.coroutinesexample.TAG
 import io.realm.examples.coroutinesexample.di.DependencyGraph
 

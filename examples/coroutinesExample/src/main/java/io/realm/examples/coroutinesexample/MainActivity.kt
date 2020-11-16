@@ -44,29 +44,29 @@ class MainActivity : AppCompatActivity(), MainFragment.OnItemClicked {
     }
 
     override fun onBackPressed() {
-        val detailsFragment = supportFragmentManager.findFragmentByTag(DetailsFragment::class.java.simpleName)
+        val detailsFragment = supportFragmentManager.findFragmentByTag(DetailsFragment.TAG)
         if (detailsFragment != null) {
-            showMainFragment()
+            supportFragmentManager.popBackStackImmediate()
         } else {
             super.onBackPressed()
         }
     }
 
     override fun onItemClicked(id: String) {
-        val fragment = DetailsFragment.instantiate(DetailsFragment.ArgsBundle(id))
+        val mainFragment = supportFragmentManager.findFragmentByTag(MainFragment.TAG)
+        val detailsFragment = DetailsFragment.instantiate(DetailsFragment.ArgsBundle(id))
+
         supportFragmentManager.commit {
-            setCustomAnimations(
-                    R.anim.fragment_open_enter,
-                    R.anim.fragment_open_exit
-            )
-            replace(R.id.container, fragment, DetailsFragment.TAG)
+            setCustomAnimations(R.anim.fragment_open_enter, R.anim.fragment_open_exit)
+            add(R.id.container, detailsFragment, DetailsFragment.TAG)
+            hide(requireNotNull(mainFragment))
             addToBackStack(null)
         }
     }
 
     private fun showMainFragment() {
         supportFragmentManager.commit {
-            replace(R.id.container, MainFragment.newInstance(), DetailsFragment.TAG)
+            replace(R.id.container, MainFragment.newInstance(), MainFragment.TAG)
         }
     }
 }
