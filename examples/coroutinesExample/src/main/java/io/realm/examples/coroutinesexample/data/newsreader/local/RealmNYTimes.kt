@@ -25,6 +25,7 @@ import java.time.LocalDateTime
 import java.util.*
 
 open class RealmNYTimesArticle : RealmObject() {
+    var read: Boolean = false
     var updateTime: Long = 0
     var apiSection: String = ""
     var section: String = ""
@@ -52,6 +53,7 @@ open class RealmNYTimesArticle : RealmObject() {
 
     companion object {
         const val EMBEDDED_MULTIMEDIA = "multimedia"
+        const val COLUMN_URL = "url"
         const val COLUMN_API_SECTION = "apiSection"
     }
 }

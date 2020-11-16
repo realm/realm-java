@@ -34,6 +34,7 @@ interface RealmNYTDao : Closeable {
     suspend fun deleteAllArticles()
     fun getArticlesBlocking(section: String) : RealmResults<RealmNYTimesArticle>
     fun getArticles(section: String): Flow<List<RealmNYTimesArticle>>
+    fun getArticle(id: String): Flow<RealmNYTimesArticle?>
     fun countArticles(section: String): Long
 }
 
@@ -78,6 +79,13 @@ class RealmNYTDaoImpl(
         return closeableRealm.where<RealmNYTimesArticle>()
                 .equalTo(RealmNYTimesArticle.COLUMN_API_SECTION, section)
                 .findAllAsync()
+                .toFlow()
+    }
+
+    override fun getArticle(id: String): Flow<RealmNYTimesArticle?> {
+        return closeableRealm.where<RealmNYTimesArticle>()
+                .equalTo(RealmNYTimesArticle.COLUMN_URL, id)
+                .findFirstAsync()
                 .toFlow()
     }
 

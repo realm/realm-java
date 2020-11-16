@@ -21,7 +21,7 @@ import androidx.lifecycle.MutableLiveData
 import com.dropbox.android.external.store4.*
 import io.realm.examples.coroutinesexample.data.newsreader.local.RealmNYTDao
 import io.realm.examples.coroutinesexample.data.newsreader.local.RealmNYTimesArticle
-import io.realm.examples.coroutinesexample.ui.newsreader.NewsReaderState
+import io.realm.examples.coroutinesexample.ui.main.NewsReaderState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
@@ -41,11 +41,13 @@ class NewsReaderRepository(
 
     private val sectionRefreshJobs = mutableMapOf<String, Job>()
 
-    suspend fun getTopStories(apiSection: String, refresh: Boolean = false) {
-        if (refresh) {
-            store.fresh(apiSection)
-        } else {
-            getFromStream(apiSection)
+    fun getTopStories(apiSection: String, refresh: Boolean = false) {
+        scope.launch {
+            if (refresh) {
+                store.fresh(apiSection)
+            } else {
+                getFromStream(apiSection)
+            }
         }
     }
 

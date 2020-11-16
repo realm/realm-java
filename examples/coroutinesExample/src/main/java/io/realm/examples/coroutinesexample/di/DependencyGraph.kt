@@ -66,7 +66,7 @@ object DependencyGraph {
             )
 
     // Database dependencies
-    private fun provideRealmDao(): RealmNYTDao = RealmNYTDaoImpl(provideRealmConfig())
+    fun provideRealmDao(): RealmNYTDao = RealmNYTDaoImpl(provideRealmConfig())
 
     private fun provideRealmConfig(): RealmConfiguration = RealmConfiguration.Builder()
             .flowFactory(NewsReaderFlowFactory())
