@@ -19,15 +19,10 @@ package io.realm.examples.coroutinesexample.data.newsreader.network
 import io.realm.examples.coroutinesexample.data.newsreader.network.model.NYTimesResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
-import retrofit2.http.Query
 
 interface NYTimesService {
-    // FIXME: add API_KEY using an interceptor
     @GET("svc/topstories/v2/{section}.json")
-    suspend fun topStories(
-            @Path("section") section: String,
-            @Query(value = "api-key", encoded = true) apiKey: String
-    ): NYTimesResponse
+    suspend fun topStories(@Path("section") section: String): NYTimesResponse
 }
 
 val sectionsToNames = mapOf(

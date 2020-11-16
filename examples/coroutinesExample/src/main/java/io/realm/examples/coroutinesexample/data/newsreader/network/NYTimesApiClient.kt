@@ -17,7 +17,9 @@
 package io.realm.examples.coroutinesexample.data.newsreader.network
 
 import io.realm.examples.coroutinesexample.data.newsreader.network.model.NYTimesResponse
+import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
@@ -34,9 +36,26 @@ class NYTimesApiClientImpl : NYTimesApiClient {
     private val service: NYTimesService
 
     init {
-        // FIXME: inject retrofit and client instead
-        val interceptor = HttpLoggingInterceptor().apply { setLevel(HttpLoggingInterceptor.Level.BASIC) }
-        val okHttpClient = OkHttpClient.Builder().addInterceptor(interceptor).build()
+        val okHttpClient = OkHttpClient.Builder()
+                .addInterceptor(
+                        HttpLoggingInterceptor()
+                                .apply { setLevel(HttpLoggingInterceptor.Level.BASIC) }
+                )
+                .addInterceptor { chain ->
+                    val original = chain.request()
+                    val originalHttpUrl = original.url
+
+                    val url = originalHttpUrl.newBuilder()
+                            .addEncodedQueryParameter("api-key", API_KEY)
+                            .build()
+
+                    val requestBuilder: Request.Builder = original.newBuilder()
+                            .url(url)
+
+                    val request: Request = requestBuilder.build()
+                    chain.proceed(request)
+                }
+                .build()
 
         service = Retrofit.Builder()
                 .client(okHttpClient)
@@ -48,6 +67,6 @@ class NYTimesApiClientImpl : NYTimesApiClient {
     }
 
     override suspend fun getTopStories(section: String): NYTimesResponse {
-        return service.topStories(section, API_KEY)
+        return service.topStories(section)
     }
 }
