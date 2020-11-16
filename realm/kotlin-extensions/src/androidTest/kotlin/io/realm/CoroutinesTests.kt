@@ -890,7 +890,7 @@ class CoroutinesTests {
     }
 
     @Test
-    fun realmObject_toFlow_realmModel_emitsOnCollect() {
+    fun realmObject_toFlow_emitsOnCollect() {
         val countDownLatch = CountDownLatch(1)
 
         val context = Dispatchers.Main
@@ -920,7 +920,7 @@ class CoroutinesTests {
     }
 
     @Test
-    fun dynamicRealmObject_toFlow_dynamicRealmObject_emitsOnCollect() {
+    fun dynamicRealmObject_toFlow_emitsOnCollect() {
         val countDownLatch = CountDownLatch(1)
 
         val context = Dispatchers.Main
@@ -950,9 +950,98 @@ class CoroutinesTests {
         TestHelper.awaitOrFail(countDownLatch)
     }
 
-    // FIXME: missing dynamicRealmObject_toFlow_emitsOnUpdate
+    @Test
+    fun dynamicRealmObject_toFlow_emitsOnUpdate() {
+        val countDownLatch = CountDownLatch(1)
 
-    // FIXME: missing dynamicRealmObject_toChangesetFlow_emitsOnUpdate
+        val context = Dispatchers.Main
+        val scope = CoroutineScope(context)
+
+        // Initializes schema. DynamicRealm will not do that, so let a normal Realm create the file first.
+        Realm.getInstance(configuration).close()
+
+        scope.launch {
+            val realmInstance = DynamicRealm.getInstance(configuration)
+            realmInstance.beginTransaction()
+            val simpleObject = realmInstance.createObject("SimpleClass")
+                    .apply { setString("name", "simpleName") }
+            realmInstance.commitTransaction()
+
+            val dynamicRealm = DynamicRealm.getInstance(configuration)
+            dynamicRealm.where("SimpleClass")
+                    .findFirst()
+                    .toFlow()
+                    .flowOn(context)
+                    .onEach { flowObject ->
+                        assertNotNull(flowObject)
+                        assertTrue(flowObject.isFrozen)
+
+                        val name = flowObject.getString("name")
+                        if (name == "simpleName") {
+                            realmInstance.beginTransaction()
+                            simpleObject.setString("name", "advancedName")
+                            realmInstance.commitTransaction()
+                        } else {
+                            assertEquals("advancedName", name)
+                            scope.cancel("Cancelling scope...")
+                        }
+                    }.onCompletion {
+                        realmInstance.close()
+                        dynamicRealm.close()
+                        countDownLatch.countDown()
+                    }.collect()
+        }
+
+        TestHelper.awaitOrFail(countDownLatch)
+    }
+
+    @Test
+    fun dynamicRealmObject_toChangesetFlow_emitsOnUpdate() {
+        val countDownLatch = CountDownLatch(1)
+
+        val context = Dispatchers.Main
+        val scope = CoroutineScope(context)
+
+        // Initializes schema. DynamicRealm will not do that, so let a normal Realm create the file first.
+        Realm.getInstance(configuration).close()
+
+        scope.launch {
+            val realmInstance = DynamicRealm.getInstance(configuration)
+            realmInstance.beginTransaction()
+            val simpleObject = realmInstance.createObject("SimpleClass")
+                    .apply { setString("name", "simpleName") }
+            realmInstance.commitTransaction()
+
+            val dynamicRealm = DynamicRealm.getInstance(configuration)
+            dynamicRealm.where("SimpleClass")
+                    .findFirst()
+                    .toChangesetFlow()
+                    .flowOn(context)
+                    .onEach { objectChange ->
+                        assertNotNull(objectChange)
+                        assertNotNull(objectChange.`object`)
+                        assertTrue(objectChange.`object`.isFrozen)
+
+                        val name = objectChange.`object`.getString("name")
+                        if (name == "simpleName") {
+                            assertNull(objectChange.changeset)
+                            realmInstance.beginTransaction()
+                            simpleObject.setString("name", "advancedName")
+                            realmInstance.commitTransaction()
+                        } else {
+                            assertNotNull(objectChange.changeset)
+                            assertEquals("advancedName", name)
+                            scope.cancel("Cancelling scope...")
+                        }
+                    }.onCompletion {
+                        realmInstance.close()
+                        dynamicRealm.close()
+                        countDownLatch.countDown()
+                    }.collect()
+        }
+
+        TestHelper.awaitOrFail(countDownLatch)
+    }
 
     @Test
     fun executeTransactionAwait() {
