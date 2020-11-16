@@ -30,6 +30,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
+private const val THIRTY_MINUTES = 30 * 60 * 1000
+
 class NewsReaderRepository(
         private val dao: RealmNYTDao,
         private val store: Store<String, List<RealmNYTimesArticle>>
@@ -93,33 +95,28 @@ class NewsReaderRepository(
         }
     }
 
-    companion object {
+    private suspend fun getNewsReaderState(
+            response: StoreResponse.Data<List<RealmNYTimesArticle>>,
+            store: Store<String, List<RealmNYTimesArticle>>,
+            apiSection: String,
+            origin: String
+    ): NewsReaderState {
+        val data = response.value
+        return if (data.isNotEmpty()) {
+            data.first()
+                    .let { firstElement ->
+                        val now = System.currentTimeMillis()
+                        val entryExpired = (firstElement.updateTime + THIRTY_MINUTES) < now
 
-        private const val THIRTY_MINUTES = 30 * 60 * 1000
-
-        private suspend fun getNewsReaderState(
-                response: StoreResponse.Data<List<RealmNYTimesArticle>>,
-                store: Store<String, List<RealmNYTimesArticle>>,
-                apiSection: String,
-                origin: String
-        ): NewsReaderState {
-            val data = response.value
-            return if (data.isNotEmpty()) {
-                data.first()
-                        .let { firstElement ->
-                            val now = System.currentTimeMillis()
-                            val entryExpired = (firstElement.updateTime + THIRTY_MINUTES) < now
-
-                            if (!(response.origin == ResponseOrigin.Fetcher || !entryExpired)) {
-                                store.fresh(apiSection)
-                                NewsReaderState.Loading(origin)
-                            } else {
-                                NewsReaderState.Data(origin, response.value)
-                            }
+                        if (!(response.origin == ResponseOrigin.Fetcher || !entryExpired)) {
+                            store.fresh(apiSection)
+                            NewsReaderState.Loading(origin)
+                        } else {
+                            NewsReaderState.Data(origin, response.value)
                         }
-            } else {
-                NewsReaderState.Data(origin, response.value)
-            }
+                    }
+        } else {
+            NewsReaderState.Data(origin, response.value)
         }
     }
 }

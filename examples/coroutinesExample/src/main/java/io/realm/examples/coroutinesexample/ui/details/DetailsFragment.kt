@@ -56,17 +56,13 @@ class DetailsFragment : Fragment() {
 
     private fun setupLiveData() {
         viewModel.read.observe(viewLifecycleOwner, Observer {
-            setRead(true)
+            setRead()
         })
     }
 
-    private fun setRead(read: Boolean) {
+    private fun setRead() {
         with(binding.read) {
-            if (read) {
-                animate().alpha(1.0f)
-            } else {
-                animate().alpha(0f)
-            }
+            animate().alpha(1.0f)
         }
     }
 

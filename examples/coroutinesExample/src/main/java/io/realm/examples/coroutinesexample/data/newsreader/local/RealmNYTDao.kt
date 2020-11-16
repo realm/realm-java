@@ -22,7 +22,7 @@ import io.realm.RealmList
 import io.realm.RealmResults
 import io.realm.examples.coroutinesexample.data.newsreader.network.model.NYTMultimedium
 import io.realm.examples.coroutinesexample.data.newsreader.network.model.NYTimesArticle
-import io.realm.examples.coroutinesexample.util.runCloseableTransaction
+import io.realm.kotlin.executeTransactionAwait
 import io.realm.kotlin.toFlow
 import io.realm.kotlin.where
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -179,5 +179,14 @@ private fun NYTMultimedium.toRealmMultimedium(): RealmNYTMultimedium {
         it.subtype = subtype
         it.caption = caption
         it.copyright = copyright
+    }
+}
+
+private suspend fun runCloseableTransaction(
+        realmConfiguration: RealmConfiguration,
+        transaction: (realm: Realm) -> Unit
+) {
+    Realm.getInstance(realmConfiguration).use { realmInstance ->
+        realmInstance.executeTransactionAwait(transaction = transaction)
     }
 }

@@ -54,7 +54,7 @@
                 android:layout_marginLeft="@dimen/default_margin"
                 android:layout_marginRight="@dimen/default_margin"
                 app:layoutManager="LinearLayoutManager"
-                tools:context=".ui.dog.DogFragment"
+                tools:context=".ui.main.MainFragment"
                 tools:listitem="@layout/item_article" />
 
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
