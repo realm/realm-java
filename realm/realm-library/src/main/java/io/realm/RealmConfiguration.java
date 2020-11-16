@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import io.realm.annotations.RealmModule;
@@ -266,20 +267,23 @@ public class RealmConfiguration {
         // Since RxJava doesn't exist, rxObservableFactory is not initialized.
         if (rxObservableFactory == null) {
             throw new UnsupportedOperationException("RxJava seems to be missing from the classpath. " +
-                    "Remember to add it as a compile dependency." +
+                    "Remember to add it as an implementation dependency." +
                     " See https://realm.io/docs/java/latest/#rxjava for more details.");
         }
         return rxObservableFactory;
     }
 
     /**
-     * FIXME
-     * @return
+     * Returns the {@link FlowFactory} that is used to create Kotlin Flows from Realm objects.
+     *
+     * @return the factory instance used to create Flows.
+     * @throws UnsupportedOperationException if the required coroutines framework is not on the classpath.
      */
-    @Nullable
     public FlowFactory getFlowFactory() {
         if (flowFactory == null) {
-            throw new UnsupportedOperationException("TODO");    // FIXME
+            throw new UnsupportedOperationException("The coroutines framework is missing from the classpath. " +
+                    "Remember to add it as an implementation dependency. " +
+                    "See https://github.com/Kotlin/kotlinx.coroutines#android for more details");
         }
         return flowFactory;
     }
@@ -721,7 +725,10 @@ public class RealmConfiguration {
          *
          * @param factory factory to use.
          */
-        public Builder rxFactory(RxObservableFactory factory) {
+        public Builder rxFactory(@Nonnull RxObservableFactory factory) {
+            if (factory == null) {
+                throw new IllegalArgumentException("The provided Rx Observable factory must not be null.");
+            }
             rxFactory = factory;
             return this;
         }
@@ -732,7 +739,10 @@ public class RealmConfiguration {
          *
          * @param factory factory to use.
          */
-        public Builder flowFactory(FlowFactory factory) {
+        public Builder flowFactory(@Nonnull FlowFactory factory) {
+            if (factory == null) {
+                throw new IllegalArgumentException("The provided Flow factory must not be null.");
+            }
             flowFactory = factory;
             return this;
         }
@@ -911,7 +921,7 @@ public class RealmConfiguration {
                 rxFactory = new RealmObservableFactory(true);
             }
 
-            if (flowFactory == null) {
+            if (flowFactory == null && Util.isCoroutinesAvailable()) {
                 flowFactory = new RealmFlowFactory();
             }
 

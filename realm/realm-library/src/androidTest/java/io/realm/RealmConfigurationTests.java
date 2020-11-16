@@ -802,14 +802,25 @@ public class RealmConfigurationTests {
     }
 
     @Test
-    public void coroutinesFactory_defaultNotNull() {
+    public void rxFactory_nullThrows() {
+        try {
+            configFactory.createConfigurationBuilder()
+                    .rxFactory(null);
+            fail("Setting a null factory from Java should fail.");
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("null"));
+        }
+    }
+
+    @Test
+    public void flowFactory_defaultNotNull() {
         RealmConfiguration configuration = configFactory.createConfigurationBuilder()
                 .build();
         assertNotNull(configuration.getFlowFactory());
     }
 
     @Test
-    public void coroutinesFactory() {
+    public void flowFactory() {
         final FlowFactory dummyFactory = new FlowFactory() {
             @Override
             public Flow<Realm> from(@Nonnull Realm realm) {
@@ -861,6 +872,17 @@ public class RealmConfigurationTests {
                 .build();
         assertNotNull(configuration2.getFlowFactory());
         assertFalse(configuration2.getFlowFactory() == dummyFactory);
+    }
+
+    @Test
+    public void flowFactory_nullThrows() {
+        try {
+            configFactory.createConfigurationBuilder()
+                    .flowFactory(null);
+            fail("Setting a null factory from Java should fail.");
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("null"));
+        }
     }
 
     @Test

@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -794,7 +795,10 @@ public class SyncConfiguration extends RealmConfiguration {
          *
          * @param factory factory to use.
          */
-        public Builder rxFactory(RxObservableFactory factory) {
+        public Builder rxFactory(@Nonnull RxObservableFactory factory) {
+            if (factory == null) {
+                throw new IllegalArgumentException("The provided Rx Observable factory must not be null.");
+            }
             rxFactory = factory;
             return this;
         }
@@ -805,7 +809,10 @@ public class SyncConfiguration extends RealmConfiguration {
          *
          * @param factory factory to use.
          */
-        public Builder flowFactory(FlowFactory factory) {
+        public Builder flowFactory(@Nonnull FlowFactory factory) {
+            if (factory == null) {
+                throw new IllegalArgumentException("The provided Flow factory must not be null.");
+            }
             flowFactory = factory;
             return this;
         }
@@ -1097,7 +1104,7 @@ public class SyncConfiguration extends RealmConfiguration {
                 rxFactory = new RealmObservableFactory(true);
             }
 
-            if (flowFactory == null) {
+            if (flowFactory == null && Util.isCoroutinesAvailable()) {
                 flowFactory = new RealmFlowFactory();
             }
 

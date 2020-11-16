@@ -39,6 +39,7 @@ import io.realm.log.RealmLog;
 public class Util {
 
     private static Boolean rxJavaAvailable;
+    private static Boolean coroutinesAvailable;
 
     public static String getTablePrefix() {
         return nativeGetTablePrefix();
@@ -204,9 +205,9 @@ public class Util {
     }
 
     /**
-     * Checks if RxJava is can be loaded.
+     * Checks if RxJava is present and can be loaded.
      *
-     * @return {@code true} if RxJava dependency exist, {@code false} otherwise.
+     * @return {@code true} if RxJava dependency exists, {@code false} otherwise.
      */
     @SuppressWarnings("LiteralClassName")
     public static synchronized boolean isRxJavaAvailable() {
@@ -219,6 +220,23 @@ public class Util {
             }
         }
         return rxJavaAvailable;
+    }
+
+    /**
+     * Checks if the coroutines framework is present and can be loaded.
+     *
+     * @return {@code true} if the coroutines dependency exists, {@code false} otherwise.
+     */
+    public static synchronized boolean isCoroutinesAvailable() {
+        if (coroutinesAvailable == null) {
+            try {
+                Class.forName("kotlinx.coroutines.flow.Flow");
+                coroutinesAvailable = true;
+            } catch (ClassNotFoundException ignore) {
+                coroutinesAvailable = false;
+            }
+        }
+        return coroutinesAvailable;
     }
 
     /**

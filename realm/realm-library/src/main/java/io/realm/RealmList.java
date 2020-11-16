@@ -77,7 +77,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     /**
      * The {@link BaseRealm} instance in which this list resides.
      * <p>
-     * Warning: we discourage using this property directly from your code.
+     * Warning: This field is only exposed for internal usage, and should not be used.
      */
     public final BaseRealm baseRealm;
 
