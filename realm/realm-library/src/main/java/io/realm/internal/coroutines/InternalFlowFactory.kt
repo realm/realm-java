@@ -483,8 +483,8 @@ class InternalFlowFactory(
         val config = realm.configuration
 
         return callbackFlow<T> {
-            // Do nothing if the object is invalid
-            if (!RealmObject.isValid(realmObject)) {
+            // Check if the Realm is closed (instead of using isValid - findFirstAsync always return "invalid object" right away, which would render this logic useless
+            if (realm.isClosed) {
                 awaitClose {}
 
                 return@callbackFlow
@@ -531,8 +531,8 @@ class InternalFlowFactory(
         val config = realm.configuration
 
         return callbackFlow {
-            // Do nothing if the results are invalid
-            if (!RealmObject.isValid(realmObject)) {
+            // Check if the Realm is closed (instead of using isValid - findFirstAsync always return "invalid object" right away, which would render this logic useless
+            if (realm.isClosed) {
                 awaitClose {}
 
                 return@callbackFlow
@@ -580,8 +580,8 @@ class InternalFlowFactory(
         val config = dynamicRealm.configuration
 
         return callbackFlow<DynamicRealmObject> {
-            // Do nothing if the object is invalid
-            if (!dynamicRealmObject.isValid) {
+            // Check if the Realm is closed (instead of using isValid - findFirstAsync always return "invalid object" right away, which would render this logic useless
+            if (dynamicRealm.isClosed) {
                 awaitClose {}
 
                 return@callbackFlow
