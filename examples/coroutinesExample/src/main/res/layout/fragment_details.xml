@@ -109,17 +109,6 @@
             app:layout_constraintTop_toBottomOf="@id/title"
             tools:text="What was once a health crisis that Americans feared has evolved into one virtually everyone has experienced up close. That will affect behavior, but in many different ways." />
 
-        <!--        <ProgressBar-->
-        <!--            android:id="@+id/loadingSpinner"-->
-        <!--            style="?android:attr/progressBarStyleLarge"-->
-        <!--            android:layout_width="wrap_content"-->
-        <!--            android:layout_height="wrap_content"-->
-        <!--            android:layout_centerInParent="true"-->
-        <!--            app:layout_constraintBottom_toBottomOf="parent"-->
-        <!--            app:layout_constraintTop_toTopOf="parent"-->
-        <!--            app:layout_constraintEnd_toEndOf="parent"-->
-        <!--            app:layout_constraintStart_toStartOf="parent" />-->
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </layout>
