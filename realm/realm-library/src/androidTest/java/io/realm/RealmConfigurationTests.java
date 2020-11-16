@@ -838,7 +838,17 @@ public class RealmConfigurationTests {
             }
 
             @Override
+            public <T> Flow<CollectionChange<RealmResults<T>>> changesetFrom(@Nonnull Realm realm, @Nonnull RealmResults<T> results) {
+                return null;
+            }
+
+            @Override
             public <T> Flow<RealmResults<T>> from(@Nonnull DynamicRealm dynamicRealm, @Nonnull RealmResults<T> results) {
+                return null;
+            }
+
+            @Override
+            public <T> Flow<CollectionChange<RealmResults<T>>> changesetFrom(@Nonnull DynamicRealm dynamicRealm, @Nonnull RealmResults<T> results) {
                 return null;
             }
 
@@ -848,7 +858,17 @@ public class RealmConfigurationTests {
             }
 
             @Override
+            public <T> Flow<CollectionChange<RealmList<T>>> changesetFrom(@Nonnull Realm realm, @Nonnull RealmList<T> list) {
+                return null;
+            }
+
+            @Override
             public <T> Flow<RealmList<T>> from(@Nonnull DynamicRealm dynamicRealm, @Nonnull RealmList<T> realmList) {
+                return null;
+            }
+
+            @Override
+            public <T> Flow<CollectionChange<RealmList<T>>> changesetFrom(@Nonnull DynamicRealm dynamicRealm, @Nonnull RealmList<T> list) {
                 return null;
             }
 
@@ -858,7 +878,17 @@ public class RealmConfigurationTests {
             }
 
             @Override
+            public <T extends RealmModel> Flow<ObjectChange<T>> changesetFrom(@Nonnull Realm realm, @Nonnull T realmObject) {
+                return null;
+            }
+
+            @Override
             public Flow<DynamicRealmObject> from(@Nonnull DynamicRealm dynamicRealm, @Nonnull DynamicRealmObject dynamicRealmObject) {
+                return null;
+            }
+
+            @Override
+            public Flow<ObjectChange<DynamicRealmObject>> changesetFrom(@Nonnull DynamicRealm dynamicRealm, @Nonnull DynamicRealmObject dynamicRealmObject) {
                 return null;
             }
         };
