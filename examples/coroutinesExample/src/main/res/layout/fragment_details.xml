@@ -57,6 +57,7 @@
             android:layout_alignParentTop="true"
             android:gravity="center_vertical"
             android:padding="@dimen/default_double_padding"
+            android:text="@{viewModel.date}"
             android:textColor="@android:color/darker_gray"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/appBar"
@@ -69,26 +70,44 @@
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
+            android:alpha="0"
             android:gravity="center_vertical"
             android:padding="@dimen/default_double_padding"
+            android:text="@string/read"
+            android:textAllCaps="true"
             android:textColor="@android:color/holo_green_dark"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/appBar"
-            tools:ignore="RelativeOverlap"
-            tools:text="READ" />
+            tools:alpha="1"
+            tools:ignore="RelativeOverlap" />
 
         <TextView
-            android:id="@+id/details"
+            android:id="@+id/title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="3"
             android:padding="@dimen/default_double_padding"
             android:paddingTop="16dp"
+            android:text="@{viewModel.title}"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/date"
-            tools:text="Just a few weeks ago, Kem Kemp, a high school teacher in Houston, knew no one personally who had tested positive for the coronavirus. Then her roommate came down with a deep cough and was diagnosed with Covid-19. Her brother, a dentist in Amarillo, Texas, also tested positive. A neighbor fell sick with the virus. Two faculty members at the private school where she teaches were required to quarantine. And in the last few days, so were two of the  students she advises. " />
+            tools:text="With 11 Million Cases in the U.S., the Coronavirus Has Gotten Personal for Most People " />
+
+        <TextView
+            android:id="@+id/article"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="5"
+            android:padding="@dimen/default_double_padding"
+            android:paddingTop="16dp"
+            android:text="@{viewModel.articleText}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/title"
+            tools:text="What was once a health crisis that Americans feared has evolved into one virtually everyone has experienced up close. That will affect behavior, but in many different ways." />
 
         <!--        <ProgressBar-->
         <!--            android:id="@+id/loadingSpinner"-->

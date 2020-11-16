@@ -31,7 +31,7 @@ open class RealmNYTimesArticle : RealmObject() {
     var section: String = ""
     var subsection: String? = null
     var title: String = ""
-    var abstract: String = ""
+    var abstractText: String? = null
 
     @PrimaryKey
     var url: String = UUID.randomUUID().toString()

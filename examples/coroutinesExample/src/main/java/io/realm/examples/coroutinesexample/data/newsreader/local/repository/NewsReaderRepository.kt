@@ -25,14 +25,14 @@ import io.realm.examples.coroutinesexample.ui.main.NewsReaderState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class NewsReaderRepository(
         private val dao: RealmNYTDao,
-        private val store: Store<String, List<RealmNYTimesArticle>>,
-        private val scope: CoroutineScope
+        private val store: Store<String, List<RealmNYTimesArticle>>
 ) {
 
     private val _newsReaderState = MutableLiveData<NewsReaderState>()
@@ -41,13 +41,23 @@ class NewsReaderRepository(
 
     private val sectionRefreshJobs = mutableMapOf<String, Job>()
 
-    fun getTopStories(apiSection: String, refresh: Boolean = false) {
+    fun getTopStories(scope: CoroutineScope, apiSection: String, refresh: Boolean = false) {
         scope.launch {
             if (refresh) {
                 store.fresh(apiSection)
             } else {
-                getFromStream(apiSection)
+                getFromStream(scope, apiSection)
             }
+        }
+    }
+
+    fun getStory(id: String): Flow<RealmNYTimesArticle?> {
+        return dao.getArticle(id)
+    }
+
+    fun updateArticle(scope: CoroutineScope, id: String) {
+        scope.launch {
+            dao.updateArticle(id)
         }
     }
 
@@ -57,7 +67,7 @@ class NewsReaderRepository(
         sectionRefreshJobs.clear()
     }
 
-    private fun getFromStream(apiSection: String) {
+    private fun getFromStream(scope: CoroutineScope,apiSection: String) {
         store.stream(StoreRequest.cached(
                 key = apiSection,
                 refresh = false

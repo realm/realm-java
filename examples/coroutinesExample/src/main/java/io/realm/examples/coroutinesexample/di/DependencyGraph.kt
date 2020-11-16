@@ -21,7 +21,10 @@ import com.dropbox.android.external.store4.SourceOfTruth
 import com.dropbox.android.external.store4.Store
 import com.dropbox.android.external.store4.StoreBuilder
 import io.realm.RealmConfiguration
-import io.realm.examples.coroutinesexample.data.newsreader.local.*
+import io.realm.examples.coroutinesexample.data.newsreader.local.RealmNYTDao
+import io.realm.examples.coroutinesexample.data.newsreader.local.RealmNYTDaoImpl
+import io.realm.examples.coroutinesexample.data.newsreader.local.RealmNYTimesArticle
+import io.realm.examples.coroutinesexample.data.newsreader.local.insertArticles
 import io.realm.examples.coroutinesexample.data.newsreader.local.repository.NewsReaderRepository
 import io.realm.examples.coroutinesexample.data.newsreader.network.NYTimesApiClient
 import io.realm.examples.coroutinesexample.data.newsreader.network.NYTimesApiClientImpl
@@ -33,8 +36,8 @@ import kotlinx.coroutines.flow.map
 object DependencyGraph {
 
     // Repository dependencies
-    fun provideNewsReaderRepository(scope: CoroutineScope): NewsReaderRepository =
-            NewsReaderRepository(provideRealmDao(), provideStore(), scope)
+    fun provideNewsReaderRepository(): NewsReaderRepository =
+            NewsReaderRepository(provideRealmDao(), provideStore())
 
     private fun provideStore(): Store<String, List<RealmNYTimesArticle>> = StoreBuilder.from(
             fetcher = provideFetcher(provideApiClient()),
@@ -49,10 +52,11 @@ object DependencyGraph {
     private fun provideSourceOfTruth(realmDao: RealmNYTDao): SourceOfTruth<String, List<NYTimesArticle>, List<RealmNYTimesArticle>> =
             SourceOfTruth.of(
                     reader = { apiSection ->
-                        realmDao.getArticles(apiSection).map { articles ->
-                            if (articles.isEmpty()) null
-                            else articles
-                        }
+                        realmDao.getArticles(apiSection)
+                                .map { articles ->
+                                    if (articles.isEmpty()) null
+                                    else articles
+                                }
                     },
                     writer = { apiSection, articles ->
                         realmDao.insertArticles(apiSection, articles)
@@ -66,7 +70,7 @@ object DependencyGraph {
             )
 
     // Database dependencies
-    fun provideRealmDao(): RealmNYTDao = RealmNYTDaoImpl(provideRealmConfig())
+    private fun provideRealmDao(): RealmNYTDao = RealmNYTDaoImpl(provideRealmConfig())
 
     private fun provideRealmConfig(): RealmConfiguration = RealmConfiguration.Builder()
             .flowFactory(NewsReaderFlowFactory())

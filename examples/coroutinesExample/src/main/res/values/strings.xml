@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Coroutines Example</string>
     <string name="error_generic">An error has occurred. Check Logcat for more details.</string>
+    <string name="read">Read</string>
 </resources>

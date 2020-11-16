@@ -18,9 +18,14 @@ package io.realm.examples.coroutinesexample
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
+import io.realm.examples.coroutinesexample.ui.details.DetailsFragment
 import io.realm.examples.coroutinesexample.ui.main.MainFragment
+import kotlin.time.ExperimentalTime
 
-class MainActivity : AppCompatActivity() {
+@ExperimentalTime
+class MainActivity : AppCompatActivity(), MainFragment.OnItemClicked {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,9 +33,40 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         if (savedInstanceState == null) {
-            supportFragmentManager.beginTransaction()
-                    .replace(R.id.container, MainFragment.newInstance())
-                    .commitNow()
+            showMainFragment()
+        }
+    }
+
+    override fun onAttachFragment(fragment: Fragment) {
+        when (fragment) {
+            is MainFragment -> fragment.onItemclickedCallback = this
+        }
+    }
+
+    override fun onBackPressed() {
+        val detailsFragment = supportFragmentManager.findFragmentByTag(DetailsFragment::class.java.simpleName)
+        if (detailsFragment != null) {
+            showMainFragment()
+        } else {
+            super.onBackPressed()
+        }
+    }
+
+    override fun onItemClicked(id: String) {
+        val fragment = DetailsFragment.instantiate(DetailsFragment.ArgsBundle(id))
+        supportFragmentManager.commit {
+            setCustomAnimations(
+                    R.anim.fragment_open_enter,
+                    R.anim.fragment_open_exit
+            )
+            replace(R.id.container, fragment, DetailsFragment.TAG)
+            addToBackStack(null)
+        }
+    }
+
+    private fun showMainFragment() {
+        supportFragmentManager.commit {
+            replace(R.id.container, MainFragment.newInstance(), DetailsFragment.TAG)
         }
     }
 }

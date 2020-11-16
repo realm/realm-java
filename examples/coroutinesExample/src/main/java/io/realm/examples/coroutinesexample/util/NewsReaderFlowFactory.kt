@@ -18,6 +18,8 @@ package io.realm.examples.coroutinesexample.util
 
 import io.realm.*
 import io.realm.coroutines.FlowFactory
+import io.realm.rx.CollectionChange
+import io.realm.rx.ObjectChange
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -81,6 +83,8 @@ class NewsReaderFlowFactory : FlowFactory {
         return callbackFlow {
             // Do nothing if the results are invalid
             if (!results.isValid) {
+                awaitClose {}
+
                 return@callbackFlow
             }
 
@@ -113,6 +117,8 @@ class NewsReaderFlowFactory : FlowFactory {
         return callbackFlow {
             // Do nothing if the results are invalid
             if (!results.isValid) {
+                awaitClose {}
+
                 return@callbackFlow
             }
 
@@ -145,6 +151,8 @@ class NewsReaderFlowFactory : FlowFactory {
         return callbackFlow {
             // Do nothing if the results are invalid
             if (!realmList.isValid) {
+                awaitClose {}
+
                 return@callbackFlow
             }
 
@@ -177,6 +185,8 @@ class NewsReaderFlowFactory : FlowFactory {
         return callbackFlow {
             // Do nothing if the results are invalid
             if (!realmList.isValid) {
+                awaitClose {}
+
                 return@callbackFlow
             }
 
@@ -208,7 +218,9 @@ class NewsReaderFlowFactory : FlowFactory {
 
         return callbackFlow<T> {
             // Do nothing if the object is invalid
-            if (!RealmObject.isValid(realmObject)) {
+            if (realm.isClosed) {
+                awaitClose {}
+
                 return@callbackFlow
             }
 
@@ -240,7 +252,9 @@ class NewsReaderFlowFactory : FlowFactory {
 
         return callbackFlow<DynamicRealmObject> {
             // Do nothing if the object is invalid
-            if (!dynamicRealmObject.isValid) {
+            if (dynamicRealm.isClosed) {
+                awaitClose {}
+
                 return@callbackFlow
             }
 
@@ -256,6 +270,228 @@ class NewsReaderFlowFactory : FlowFactory {
                 // Remove listener and cleanup
                 if (!flowRealm.isClosed) {
                     dynamicRealmObject.removeChangeListener(listener)
+                    flowRealm.close()
+                }
+            }
+        }
+    }
+
+    override fun <T : Any?> changesetFrom(realm: Realm, results: RealmResults<T>): Flow<CollectionChange<RealmResults<T>>> {
+        // Return "as is" if frozen, there will be no listening for changes
+        if (realm.isFrozen) {
+            return flowOf(CollectionChange(results, null))
+        }
+
+        val config = realm.configuration
+
+        return callbackFlow {
+            // Do nothing if the results are invalid
+            if (!results.isValid) {
+                awaitClose {}
+
+                return@callbackFlow
+            }
+
+            // Get instance to ensure the Realm is open for as long as we are listening
+            val flowRealm = Realm.getInstance(config)
+            val listener = OrderedRealmCollectionChangeListener<RealmResults<T>> { listenerResults, changeSet ->
+                offer(CollectionChange(listenerResults.freeze(), changeSet))
+            }
+
+            results.addChangeListener(listener)
+
+            // Emit current value
+            offer(CollectionChange(results.freeze(), null))
+
+            awaitClose {
+                // Remove listener and cleanup
+                if (!flowRealm.isClosed) {
+                    results.removeChangeListener(listener)
+                    flowRealm.close()
+                }
+            }
+        }
+    }
+
+    override fun <T : Any?> changesetFrom(dynamicRealm: DynamicRealm, results: RealmResults<T>): Flow<CollectionChange<RealmResults<T>>> {
+        // Return "as is" if frozen, there will be no listening for changes
+        if (dynamicRealm.isFrozen) {
+            return flowOf(CollectionChange(results, null))
+        }
+
+        val config = dynamicRealm.configuration
+
+        return callbackFlow {
+            // Do nothing if the results are invalid
+            if (!results.isValid) {
+                awaitClose {}
+
+                return@callbackFlow
+            }
+
+            // Get instance to ensure the Realm is open for as long as we are listening
+            val flowRealm = DynamicRealm.getInstance(config)
+            val listener = OrderedRealmCollectionChangeListener<RealmResults<T>> { listenerResults, changeSet ->
+                offer(CollectionChange(listenerResults.freeze(), changeSet))
+            }
+
+            results.addChangeListener(listener)
+
+            // Emit current value
+            offer(CollectionChange(results.freeze(), null))
+
+            awaitClose {
+                // Remove listener and cleanup
+                if (!flowRealm.isClosed) {
+                    results.removeChangeListener(listener)
+                    flowRealm.close()
+                }
+            }
+        }
+    }
+
+    override fun <T : Any?> changesetFrom(realm: Realm, list: RealmList<T>): Flow<CollectionChange<RealmList<T>>> {
+        // Return "as is" if frozen, there will be no listening for changes
+        if (realm.isFrozen) {
+            return flowOf(CollectionChange(list, null))
+        }
+
+        val config = realm.configuration
+
+        return callbackFlow {
+            // Do nothing if the results are invalid
+            if (!list.isValid) {
+                awaitClose {}
+
+                return@callbackFlow
+            }
+
+            // Get instance to ensure the Realm is open for as long as we are listening
+            val flowRealm = Realm.getInstance(config)
+            val listener = OrderedRealmCollectionChangeListener<RealmList<T>> { listenerList, changeSet ->
+                offer(CollectionChange(listenerList.freeze(), changeSet))
+            }
+
+            list.addChangeListener(listener)
+
+            // Emit current value
+            offer(CollectionChange(list.freeze(), null))
+
+            awaitClose {
+                // Remove listener and cleanup
+                if (!flowRealm.isClosed) {
+                    list.removeChangeListener(listener)
+                    flowRealm.close()
+                }
+            }
+        }
+    }
+
+    override fun <T : Any?> changesetFrom(dynamicRealm: DynamicRealm, list: RealmList<T>): Flow<CollectionChange<RealmList<T>>> {
+        // Return "as is" if frozen, there will be no listening for changes
+        if (dynamicRealm.isFrozen) {
+            return flowOf(CollectionChange(list, null))
+        }
+
+        val config = dynamicRealm.configuration
+
+        return callbackFlow {
+            // Do nothing if the results are invalid
+            if (!list.isValid) {
+                awaitClose {}
+
+                return@callbackFlow
+            }
+
+            // Get instance to ensure the Realm is open for as long as we are listening
+            val flowRealm = DynamicRealm.getInstance(config)
+            val listener = OrderedRealmCollectionChangeListener<RealmList<T>> { listenerList, changeSet ->
+                offer(CollectionChange(listenerList.freeze(), changeSet))
+            }
+
+            list.addChangeListener(listener)
+
+            // Emit current value
+            offer(CollectionChange(list.freeze(), null))
+
+            awaitClose {
+                // Remove listener and cleanup
+                if (!flowRealm.isClosed) {
+                    list.removeChangeListener(listener)
+                    flowRealm.close()
+                }
+            }
+        }
+    }
+
+    override fun <T : RealmModel?> changesetFrom(realm: Realm, realmObject: T): Flow<ObjectChange<T>> {
+        // Return "as is" if frozen, there will be no listening for changes
+        if (realm.isFrozen) {
+            return flowOf(ObjectChange(realmObject, null))
+        }
+
+        val config = realm.configuration
+
+        return callbackFlow {
+            // Do nothing if the results are invalid
+            if (!RealmObject.isValid(realmObject)) {
+                awaitClose {}
+
+                return@callbackFlow
+            }
+
+            // Get instance to ensure the Realm is open for as long as we are listening
+            val flowRealm = Realm.getInstance(config)
+            val listener = RealmObjectChangeListener<T> { listenerObject, changeSet ->
+                offer(ObjectChange(RealmObject.freeze(listenerObject), changeSet))
+            }
+
+            RealmObject.addChangeListener(realmObject, listener)
+
+            // Emit current value
+            offer(ObjectChange(RealmObject.freeze(realmObject), null))
+
+            awaitClose {
+                // Remove listener and cleanup
+                if (!flowRealm.isClosed) {
+                    RealmObject.removeChangeListener(realmObject, listener)
+                    flowRealm.close()
+                }
+            }
+        }
+    }
+
+    override fun changesetFrom(dynamicRealm: DynamicRealm, dynamicRealmObject: DynamicRealmObject): Flow<ObjectChange<DynamicRealmObject>> {
+        // Return "as is" if frozen, there will be no listening for changes
+        if (dynamicRealm.isFrozen) {
+            return flowOf(ObjectChange(dynamicRealmObject, null))
+        }
+
+        val config = dynamicRealm.configuration
+
+        return callbackFlow {
+            // Do nothing if the results are invalid
+            if (!RealmObject.isValid(dynamicRealmObject)) {
+                awaitClose {}
+
+                return@callbackFlow
+            }
+
+            // Get instance to ensure the Realm is open for as long as we are listening
+            val flowRealm = Realm.getInstance(config)
+            val listener = RealmObjectChangeListener<DynamicRealmObject> { listenerObject, changeSet ->
+                offer(ObjectChange(RealmObject.freeze(listenerObject), changeSet))
+            }
+
+            RealmObject.addChangeListener(dynamicRealmObject, listener)
+
+            // Emit current value
+            offer(ObjectChange(RealmObject.freeze(dynamicRealmObject), null))
+
+            awaitClose {
+                // Remove listener and cleanup
+                if (!flowRealm.isClosed) {
+                    RealmObject.removeChangeListener(dynamicRealmObject, listener)
                     flowRealm.close()
                 }
             }

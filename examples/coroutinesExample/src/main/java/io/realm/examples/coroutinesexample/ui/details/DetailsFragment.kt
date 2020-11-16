@@ -21,34 +21,69 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import io.realm.examples.coroutinesexample.di.DependencyGraph
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
+import io.realm.examples.coroutinesexample.databinding.FragmentDetailsBinding
+import kotlin.time.ExperimentalTime
 
+@ExperimentalTime
 class DetailsFragment : Fragment() {
+
+    private val viewModel: DetailsViewModel by viewModels()
+
+    private lateinit var binding: FragmentDetailsBinding
 
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
-        return super.onCreateView(inflater, container, savedInstanceState)
+        return FragmentDetailsBinding.inflate(inflater, container, false)
+                .also { binding ->
+                    this.binding = binding
+                    binding.lifecycleOwner = viewLifecycleOwner
+                    binding.viewModel = viewModel
+                    setupLiveData()
+                }.root
     }
-}
 
-class DetailsViewModel : ViewModel() {
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
 
-    private val _date = MutableLiveData<String>()
-    val date: LiveData<String>
-        get() = _date
+        val id = requireNotNull(requireArguments().getString(ARG_ID))
+        viewModel.loadDetails(id)
+    }
 
-    private val _details = MutableLiveData<String>()
-    val details: LiveData<String>
-        get() = _details
+    private fun setupLiveData() {
+        viewModel.read.observe(viewLifecycleOwner, Observer {
+            setRead(true)
+        })
+    }
 
-    fun loadDetails(id: String) {
-        val dao = DependencyGraph.provideRealmDao()
-        dao.getArticlesBlocking(id)
+    private fun setRead(read: Boolean) {
+        with(binding.read) {
+            if (read) {
+                animate().alpha(1.0f)
+            } else {
+                animate().alpha(0f)
+            }
+        }
+    }
+
+    data class ArgsBundle(val id: String)
+
+    companion object {
+
+        const val TAG = "DetailsFragment"
+
+        private const val ARG_ID = "id"
+
+        fun instantiate(argsBundle: ArgsBundle): DetailsFragment {
+            return DetailsFragment().apply {
+                arguments = Bundle().apply {
+                    putString(ARG_ID, argsBundle.id)
+                }
+            }
+        }
     }
 }

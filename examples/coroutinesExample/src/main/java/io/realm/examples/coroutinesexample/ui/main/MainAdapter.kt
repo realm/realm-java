@@ -26,7 +26,9 @@ import androidx.recyclerview.widget.RecyclerView
 import io.realm.examples.coroutinesexample.R
 import io.realm.examples.coroutinesexample.data.newsreader.local.RealmNYTimesArticle
 
-class MainAdapter : ListAdapter<RealmNYTimesArticle, MainAdapter.ArticleViewHolder>(DIFF_CALLBACK) {
+class MainAdapter(
+        private val onClick: (String) -> Unit
+) : ListAdapter<RealmNYTimesArticle, MainAdapter.ArticleViewHolder>(DIFF_CALLBACK) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ArticleViewHolder =
             LayoutInflater.from(parent.context)
@@ -34,12 +36,23 @@ class MainAdapter : ListAdapter<RealmNYTimesArticle, MainAdapter.ArticleViewHold
                     .let { view -> ArticleViewHolder(view) }
 
     override fun onBindViewHolder(holder: ArticleViewHolder, position: Int) {
-        val article = getItem(position)
-        holder.title.text = article.title
+        with (holder.title) {
+            val article = getItem(position)
+
+            text = article.title
+            isEnabled = !article.read
+        }
     }
 
     inner class ArticleViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+
         val title: TextView = view.findViewById(R.id.title)
+
+        init {
+            view.setOnClickListener {
+                onClick.invoke(getItem(adapterPosition).url)
+            }
+        }
     }
 
     companion object {
@@ -48,7 +61,7 @@ class MainAdapter : ListAdapter<RealmNYTimesArticle, MainAdapter.ArticleViewHold
                     oldItem == newItem
 
             override fun areContentsTheSame(oldItem: RealmNYTimesArticle, newItem: RealmNYTimesArticle): Boolean =
-                    oldItem.title == newItem.title && oldItem.abstract == newItem.abstract
+                    oldItem.title == newItem.title && oldItem.abstractText == newItem.abstractText
         }
     }
 }

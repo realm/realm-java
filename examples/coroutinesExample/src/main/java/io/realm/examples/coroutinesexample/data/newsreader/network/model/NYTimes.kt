@@ -22,8 +22,8 @@ data class NYTimesResponse(
         val status: String,
         val copyright: String,
         val section: String,
-        @Json(name = "last_updated") val lastUpdated: String,
-        @Json(name = "num_results") val numResults: Int,
+        @field:Json(name = "last_updated") val lastUpdated: String,
+        @field:Json(name = "num_results") val numResults: Int,
         val results: List<NYTimesArticle>
 )
 
@@ -31,22 +31,22 @@ data class NYTimesArticle(
         val section: String,
         val subsection: String,
         val title: String,
-        val abstract: String,
+        @field:Json(name = "abstract") val abstractText: String?,
         val url: String,
         val uri: String,
         val byline: String,
-        @Json(name = "item_type") val itemType: String?,
-        @Json(name = "updated_date") val updatedDate: String?,
-        @Json(name = "created_date") val createDate: String?,
-        @Json(name = "published_date") val publishedDate: String?,
-        @Json(name = "material_type_facet") val materialTypeFacet: String?,
+        @field:Json(name = "item_type") val itemType: String?,
+        @field:Json(name = "updated_date") val updatedDate: String?,
+        @field:Json(name = "created_date") val createDate: String?,
+        @field:Json(name = "published_date") val publishedDate: String?,
+        @field:Json(name = "material_type_facet") val materialTypeFacet: String?,
         val kicker: String,
-        @Json(name = "des_facet") val desFacet: List<String>?,
-        @Json(name = "org_facet") val orgFacet: List<String>?,
-        @Json(name = "per_facet") val perFacet: List<String>?,
-        @Json(name = "geo_facet") val geoFacet: List<String>?,
+        @field:Json(name = "des_facet") val desFacet: List<String>?,
+        @field:Json(name = "org_facet") val orgFacet: List<String>?,
+        @field:Json(name = "per_facet") val perFacet: List<String>?,
+        @field:Json(name = "geo_facet") val geoFacet: List<String>?,
         val multimedia: List<NYTMultimedium>,
-        @Json(name = "short_url") val shortUrl: String?
+        @field:Json(name = "short_url") val shortUrl: String?
 )
 
 data class NYTMultimedium(

@@ -20,12 +20,13 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.realm.examples.coroutinesexample.MainApplication
 import io.realm.examples.coroutinesexample.TAG
 import io.realm.examples.coroutinesexample.di.DependencyGraph
 
 class MainViewModel : ViewModel() {
 
-    private val repository = DependencyGraph.provideNewsReaderRepository(viewModelScope)
+    private val repository = DependencyGraph.provideNewsReaderRepository()
 
     val newsReaderState: LiveData<NewsReaderState>
         get() = repository.newsReaderState
@@ -36,6 +37,6 @@ class MainViewModel : ViewModel() {
 
     fun getTopStories(apiSection: String, refresh: Boolean = false) {
         Log.d(TAG, "------ apiSection: $apiSection - refresh '$refresh'")
-        repository.getTopStories(apiSection, refresh)
+        repository.getTopStories(viewModelScope, apiSection, refresh)
     }
 }

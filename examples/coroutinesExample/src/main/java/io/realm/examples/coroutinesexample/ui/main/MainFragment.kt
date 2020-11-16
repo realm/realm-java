@@ -39,8 +39,16 @@ import kotlin.Comparator
 
 class MainFragment : Fragment() {
 
+    interface OnItemClicked {
+        fun onItemClicked(id: String)
+    }
+
+    internal lateinit var onItemclickedCallback: OnItemClicked
+
     private val viewModel: MainViewModel by viewModels()
-    private val newsReaderAdapter = MainAdapter()
+    private val newsReaderAdapter = MainAdapter { id ->
+        onItemclickedCallback.onItemClicked(id)
+    }
 
     private lateinit var binding: FragmentMainBinding
 
@@ -50,6 +58,7 @@ class MainFragment : Fragment() {
             savedInstanceState: Bundle?
     ): View? = FragmentMainBinding.inflate(inflater, container, false)
             .also { binding ->
+                binding.lifecycleOwner = viewLifecycleOwner
                 this.binding = binding
                 setupSpinner()
                 setupRecyclerView()
@@ -130,6 +139,9 @@ class MainFragment : Fragment() {
     }
 
     companion object {
+
+        const val TAG = "MainFragment"
+
         fun newInstance() = MainFragment()
     }
 }
