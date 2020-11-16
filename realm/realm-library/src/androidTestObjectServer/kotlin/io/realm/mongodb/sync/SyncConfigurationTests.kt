@@ -586,6 +586,30 @@ class SyncConfigurationTests {
             override fun from(dynamicRealm: DynamicRealm, dynamicRealmObject: DynamicRealmObject): Flow<DynamicRealmObject> {
                 return flowOf()
             }
+
+            override fun <T : Any?> changesetFrom(realm: Realm, results: RealmResults<T>): Flow<CollectionChange<RealmResults<T>>> {
+                return flowOf()
+            }
+
+            override fun <T : Any?> changesetFrom(dynamicRealm: DynamicRealm, results: RealmResults<T>): Flow<CollectionChange<RealmResults<T>>> {
+                return flowOf()
+            }
+
+            override fun <T : Any?> changesetFrom(realm: Realm, list: RealmList<T>): Flow<CollectionChange<RealmList<T>>> {
+                return flowOf()
+            }
+
+            override fun <T : Any?> changesetFrom(dynamicRealm: DynamicRealm, list: RealmList<T>): Flow<CollectionChange<RealmList<T>>> {
+                return flowOf()
+            }
+
+            override fun <T : RealmModel?> changesetFrom(realm: Realm, realmObject: T): Flow<ObjectChange<T>> {
+                return flowOf()
+            }
+
+            override fun changesetFrom(dynamicRealm: DynamicRealm, dynamicRealmObject: DynamicRealmObject): Flow<ObjectChange<DynamicRealmObject>> {
+                return flowOf()
+            }
         }
 
         val configuration1 = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
