@@ -434,7 +434,7 @@ class NewsReaderFlowFactory : FlowFactory {
 
         return callbackFlow {
             // Do nothing if the results are invalid
-            if (!RealmObject.isValid(realmObject)) {
+            if (realm.isClosed) {
                 awaitClose {}
 
                 return@callbackFlow
