@@ -106,7 +106,7 @@ inline fun <reified T : RealmModel> Realm.createEmbeddedObject(parentObject: Rea
  */
 @Beta
 fun Realm.toflow(): Flow<Realm> {
-    return configuration.flowFactory?.from(this)
+    return configuration.flowFactory.from(this)
             ?: throw IllegalStateException("Missing flow factory in Realm configuration.")
 }
 
