@@ -16,10 +16,7 @@
 
 package io.realm.kotlin
 
-import io.realm.DynamicRealm
-import io.realm.Realm
-import io.realm.RealmModel
-import io.realm.RealmResults
+import io.realm.*
 import io.realm.annotations.Beta
 import io.realm.rx.CollectionChange
 import kotlinx.coroutines.flow.Flow
@@ -70,7 +67,41 @@ fun <T : RealmModel> RealmResults<T>.toFlow(): Flow<RealmResults<T>> {
 }
 
 /**
- * FIXME
+ * Returns a [Flow] that monitors changes to this RealmResults. It will emit the current
+ * RealmResults upon subscription. For each update to the RealmResults a [CollectionChange]
+ * consisting of a pair with the RealmResults and its corresponding [OrderedCollectionChangeSet]
+ * will be sent. The changeset will be `null` the first time the RealmResults is emitted.
+ *
+ * The RealmResults will continually be emitted as they are updated. This flow will never complete.
+ *
+ * Items emitted are frozen (see [RealmResults.freeze]). This means that they are immutable and can
+ * be read on any thread.
+ *
+ * Realm flows always emit items from the thread holding the live Realm. This means that if
+ * you need to do further processing, it is recommended to collect the values on a computation
+ * dispatcher:
+ *
+ * ```
+ * results.toChangesetFlow()
+ *   .map { change -> doExpensiveWork(change) }
+ *   .flowOn(Dispatchers.IO)
+ *   .onEach { change ->
+ *     // ...
+ *   }.launchIn(Dispatchers.Main)
+ * ```
+ *
+ * If you would like `toChangesetFlow()` to stop emitting items you can instruct the flow to only
+ * emit the first item by calling [kotlinx.coroutines.flow.first]:
+ * ```
+ * val foo = results.toChangesetFlow()
+ *   .flowOn(context)
+ *   .first()
+ * ```
+ *
+ * @return Kotlin [Flow] that will never complete.
+ * @throws UnsupportedOperationException if the required coroutines framework is not on the
+ * classpath or the corresponding Realm instance doesn't support flows.
+ * @throws IllegalStateException if the Realm wasn't opened on a Looper thread.
  */
 @Beta
 fun <T : RealmModel> RealmResults<T>.toChangesetFlow(): Flow<CollectionChange<RealmResults<T>>> {

@@ -922,7 +922,7 @@ public class RealmConfiguration {
             }
 
             if (flowFactory == null && Util.isCoroutinesAvailable()) {
-                flowFactory = new RealmFlowFactory();
+                flowFactory = new RealmFlowFactory(true);
             }
 
             return new RealmConfiguration(new File(directory, fileName),

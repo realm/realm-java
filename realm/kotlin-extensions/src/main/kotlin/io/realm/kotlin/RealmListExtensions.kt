@@ -63,7 +63,41 @@ fun <T> RealmList<T>.toFlow(): Flow<RealmList<T>> {
 }
 
 /**
- * FIXME
+ * Returns a [Flow] that monitors changes to this RealmList. It will emit the current
+ * RealmList upon subscription. For each update to the RealmList a [CollectionChange] consisting of
+ * a pair with the RealmList and its corresponding [OrderedCollectionChangeSet] will be sent. The
+ * changeset will be `null` the first time the RealmList is emitted.
+ *
+ * The RealmList will continually be emitted as it is updated. This flow will never complete.
+ *
+ * Items emitted are frozen (see [RealmList.freeze]). This means that they are immutable and can
+ * be read on any thread.
+ *
+ * Realm flows always emit items from the thread holding the live Realm. This means that if
+ * you need to do further processing, it is recommended to collect the values on a computation
+ * dispatcher:
+ *
+ * ```
+ * list.toChangesetFlow()
+ *   .map { change -> doExpensiveWork(change) }
+ *   .flowOn(Dispatchers.IO)
+ *   .onEach { change ->
+ *     // ...
+ *   }.launchIn(Dispatchers.Main)
+ * ```
+ *
+ * If you would like `toChangesetFlow()` to stop emitting items you can instruct the flow to only
+ * emit the first item by calling [kotlinx.coroutines.flow.first]:
+ * ```
+ * val foo = list.toChangesetFlow()
+ *   .flowOn(context)
+ *   .first()
+ * ```
+ *
+ * @return Kotlin [Flow] that will never complete.
+ * @throws UnsupportedOperationException if the required coroutines framework is not on the
+ * classpath or the corresponding Realm instance doesn't support flows.
+ * @throws IllegalStateException if the Realm wasn't opened on a Looper thread.
  */
 @Beta
 fun <T> RealmList<T>.toChangesetFlow(): Flow<CollectionChange<RealmList<T>>> {
