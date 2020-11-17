@@ -43,6 +43,7 @@ using namespace realm::_impl;
     X(Date) \
     X(ObjectId) \
     X(Decimal) \
+    X(Mixed) \
     X(Binary) \
     X(Object) \
     X(List) \
@@ -78,6 +79,7 @@ template <> struct JavaValueTypeRepr<JavaValueType::Double>  { using Type = jdou
 template <> struct JavaValueTypeRepr<JavaValueType::Date>    { using Type = Timestamp; };
 template <> struct JavaValueTypeRepr<JavaValueType::ObjectId>{ using Type = ObjectId; };
 template <> struct JavaValueTypeRepr<JavaValueType::Decimal> { using Type = Decimal128; };
+template <> struct JavaValueTypeRepr<JavaValueType::Mixed> { using Type = Mixed; };
 template <> struct JavaValueTypeRepr<JavaValueType::Binary>  { using Type = OwnedBinaryData; };
 template <> struct JavaValueTypeRepr<JavaValueType::Object>  { using Type = Obj*; };
 template <> struct JavaValueTypeRepr<JavaValueType::List>    { using Type = std::vector<JavaValue>; };
@@ -233,6 +235,11 @@ struct JavaValue {
         return get_as<JavaValueType::Decimal>();
     }
 
+    auto& get_mixed() const noexcept
+    {
+        return get_as<JavaValueType::Mixed>();
+    }
+
     auto& get_binary() const noexcept
     {
         return get_as<JavaValueType::Binary>();
@@ -286,6 +293,9 @@ struct JavaValue {
                 return get_object_id().to_string();
             case JavaValueType::Decimal:
                 return get_decimal128().to_string();
+            case JavaValueType::Mixed:
+                // TODO: Return actual string
+                return "Mixed";
             case JavaValueType::Binary:
                 ss << "Blob[";
                 ss << get_binary().size();
@@ -528,6 +538,11 @@ inline Decimal128 JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) c
     return v.has_value() ? v.get_decimal128() : Decimal128();
 }
 
+template <>
+inline Mixed JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
+{
+    return v.has_value() ? v.get_mixed() : Mixed();
+}
 
 template <>
 inline ObjectId JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
@@ -572,12 +587,6 @@ inline util::Optional<float> JavaContext::unbox(JavaValue const& v, CreatePolicy
 }
 
 template <>
-inline Mixed JavaContext::unbox(JavaValue const&, CreatePolicy, ObjKey) const
-{
-    REALM_TERMINATE("'Mixed' not supported");
-}
-
-template <>
 inline util::Optional<ObjectId> JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? util::make_optional(v.get_object_id()) : util::none;
@@ -587,6 +596,12 @@ template <>
 inline util::Optional<Decimal> JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? util::make_optional(v.get_decimal128()) : util::none;
+}
+
+template <>
+inline util::Optional<Mixed> JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
+{
+    return v.has_value() ? util::make_optional(v.get_mixed()) : util::none;
 }
 
 inline Obj JavaContext::create_embedded_object() {

@@ -26,6 +26,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import io.realm.ImportFlag;
+import io.realm.Mixed;
 import io.realm.MutableRealmInteger;
 import io.realm.RealmList;
 import io.realm.RealmModel;
@@ -228,6 +229,47 @@ public class OsObjectBuilder implements Closeable {
             nativeAddNull(builderPtr, columnKey);
         } else {
             nativeAddInteger(builderPtr, columnKey, val.get());
+        }
+    }
+
+    public void addMixed(long columnKey, @Nullable Mixed value) {
+        if ((value != null) && !value.isNull()) {
+            switch (value.getType()) {
+                case INTEGER:
+                    nativeMixedAddLong(builderPtr, columnKey, value.asInteger());
+                    break;
+                case BOOLEAN:
+                    nativeMixedAddBoolean(builderPtr, columnKey, value.asBoolean());
+                    break;
+                case FLOAT:
+                    nativeMixedAddFloat(builderPtr, columnKey, value.asFloat());
+                    break;
+                case DOUBLE:
+                    nativeMixedAddDouble(builderPtr, columnKey, value.asDouble());
+                    break;
+                case STRING:
+                    nativeMixedAddString(builderPtr, columnKey, value.asString());
+                    break;
+                case BINARY:
+                    nativeMixedAddByteArray(builderPtr, columnKey, value.asBinary());
+                    break;
+                case DATE:
+                    nativeMixedAddTimestamp(builderPtr, columnKey, value.asDate().getTime());
+                    break;
+                case OBJECT_ID:
+                    nativeMixedAddObjectId(builderPtr, columnKey, value.asObjectId().toString());
+                    break;
+                case DECIMAL128:
+                    Decimal128 decimalValue = value.asDecimal128();
+                    nativeMixedAddDecimal128(builderPtr, columnKey, decimalValue.getLow(), decimalValue.getHigh());
+                    break;
+                case OBJECT:
+                    nativeMixedAddObject(builderPtr, columnKey, ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getObjectKey());
+                    break;
+                default:
+            }
+        } else {
+            nativeMixedAddNull(builderPtr, columnKey);
         }
     }
 
@@ -492,6 +534,30 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeAddObject(long builderPtr, long columnKey, long rowPtr);
     private static native void nativeAddDecimal128(long builderPtr, long columnKey, long low, long high);
     private static native void nativeAddObjectId(long builderPtr, long columnKey, String data);
+
+    // Mixed
+    public static native void nativeMixedAddNull(long builderPtr, long columnKey);
+
+    public static native void nativeMixedAddLong(long builderPtr, long columnKey, long value);
+
+    public static native void nativeMixedAddBoolean(long builderPtr, long columnKey, boolean value);
+
+    public static native void nativeMixedAddFloat(long builderPtr, long columnKey, float value);
+
+    public static native void nativeMixedAddDouble(long builderPtr, long columnKey, double value);
+
+    public static native void nativeMixedAddTimestamp(long builderPtr, long columnKey, long dateTimeValue);
+
+    public static native void nativeMixedAddString(long builderPtr, long columnKey, String value);
+
+    public static native void nativeMixedAddByteArray(long builderPtr, long columnKey, byte[] data);
+
+    public static native void nativeMixedAddDecimal128(long builderPtr, long columnKey, long low, long high);
+
+    public static native void nativeMixedAddObjectId(long builderPtr, long columnKey, String data);
+
+    public static native void nativeMixedAddObject(long builderPtr, long columnKey, long value);
+
 
     // Methods for adding lists
     // Lists sent across JNI one element at a time

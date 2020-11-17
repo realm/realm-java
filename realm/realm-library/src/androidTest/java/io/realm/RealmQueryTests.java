@@ -4013,6 +4013,7 @@ public class RealmQueryTests extends QueryTests {
             case OBJECT:
             case DECIMAL128:
             case OBJECT_ID:
+            case MIXED:
             case LINKING_OBJECTS:
                 return true;
             case LIST:
@@ -4025,6 +4026,7 @@ public class RealmQueryTests extends QueryTests {
             case DOUBLE_LIST:
             case DECIMAL128_LIST:
             case OBJECT_ID_LIST:
+            case MIXED_LIST:
                 return false;
         }
         // Should never reach here as the above switch is exhaustive

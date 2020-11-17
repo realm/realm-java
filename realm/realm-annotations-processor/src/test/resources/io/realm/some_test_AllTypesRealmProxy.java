@@ -414,6 +414,33 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
     }
 
     @Override
+    public Mixed realmGet$columnMixed() {
+        proxyState.getRealm$realm().checkIfValid();
+        return this.columnMutableRealmIntegerMutableRealmInteger;
+    }
+
+    @Override
+    public void realmSet$columnMixed() {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            final Row row = proxyState.getRow$realm();
+            if (value == null) {
+                throw new IllegalArgumentException("Trying to set non-nullable field 'columnDate' to null.");
+            }
+            row.getTable().nativeSetMixed(columnInfo.columnDateColKey, row.getObjectKey(), value, true);
+            return;
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        if (value == null) {
+            throw new IllegalArgumentException("Trying to set non-nullable field 'columnDate' to null.");
+        }
+        proxyState.getRow$realm().nativeSetMixed(columnInfo.columnDateColKey, value);
+    }
+
+    @Override
     public void realmSet$columnObject(some.test.AllTypes value) {
         Realm realm = (Realm) proxyState.getRealm$realm();
         if (proxyState.isUnderConstruction()) {

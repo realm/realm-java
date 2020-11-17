@@ -16,26 +16,17 @@
  
 package io.realm.processor
 
+import io.realm.annotations.RealmNamingPolicy
+import io.realm.processor.nameconverter.*
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
-import javax.lang.model.element.Element
-import javax.lang.model.element.ExecutableElement
-import javax.lang.model.element.Modifier
-import javax.lang.model.element.TypeElement
-import javax.lang.model.element.VariableElement
+import javax.lang.model.element.*
 import javax.lang.model.type.DeclaredType
 import javax.lang.model.type.ReferenceType
 import javax.lang.model.type.TypeKind
 import javax.lang.model.type.TypeMirror
 import javax.lang.model.util.Types
 import javax.tools.Diagnostic
-
-import io.realm.annotations.RealmNamingPolicy
-import io.realm.processor.nameconverter.CamelCaseConverter
-import io.realm.processor.nameconverter.IdentityConverter
-import io.realm.processor.nameconverter.LowerCaseWithSeparatorConverter
-import io.realm.processor.nameconverter.NameConverter
-import io.realm.processor.nameconverter.PascalCaseConverter
 
 /**
  * Utility methods working with the Realm processor.
@@ -45,6 +36,7 @@ object Utils {
     private lateinit var typeUtils: Types
     private lateinit var messager: Messager
     private lateinit var realmInteger: TypeMirror
+    private lateinit var mixed: TypeMirror
     private lateinit var realmList: DeclaredType
     private lateinit var realmResults: DeclaredType
     private lateinit var markerInterface: DeclaredType
@@ -55,6 +47,7 @@ object Utils {
         typeUtils = env.typeUtils
         messager = env.messager
         realmInteger = elementUtils.getTypeElement("io.realm.MutableRealmInteger").asType()
+        mixed = elementUtils.getTypeElement("io.realm.Mixed").asType()
         realmList = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null))
         realmResults = typeUtils.getDeclaredType(env.elementUtils.getTypeElement("io.realm.RealmResults"), typeUtils.getWildcardType(null, null))
         realmModel = elementUtils.getTypeElement("io.realm.RealmModel").asType()
@@ -188,6 +181,13 @@ object Utils {
      */
     fun isMutableRealmInteger(field: VariableElement): Boolean {
         return typeUtils.isAssignable(field.asType(), realmInteger)
+    }
+
+    /**
+     * @return `true` if a given field type is `Mixed`, `false` otherwise.
+     */
+    fun isMixed(field: VariableElement): Boolean {
+        return typeUtils.isAssignable(field.asType(), mixed)
     }
 
     /**

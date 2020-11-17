@@ -23,6 +23,7 @@ import java.util.Date;
 
 import javax.annotation.Nullable;
 
+import io.realm.Mixed;
 import io.realm.RealmFieldType;
 
 
@@ -236,6 +237,17 @@ public class UncheckedRow implements NativeObject, Row {
         nativeSetTimestamp(nativePtr, columnKey, timestamp);
     }
 
+    @Override
+    public void setMixed(long columnKey, Mixed mixed) {
+        parent.checkImmutable();
+        //noinspection ConstantConditions
+        if (mixed == null) {
+            throw new IllegalArgumentException("Null Mixed is not allowed.");
+        }
+
+        nativeSetMixed(nativePtr, columnKey, mixed);
+    }
+
     /**
      * Sets a string value to a row pointer.
      *
@@ -426,4 +438,63 @@ public class UncheckedRow implements NativeObject, Row {
     protected native long nativeCreateEmbeddedObject(long nativeRowPtr, long columnKey);
 
     private static native long nativeGetFinalizerPtr();
+
+    public static native void nativeMixedSetLong(long nativeRowPtr, long columnKey, long value);
+
+    public static native void nativeMixedSetBoolean(long nativeRowPtr, long columnKey, boolean value);
+
+    public static native void nativeMixedSetFloat(long nativeRowPtr, long columnKey, float value);
+
+    public static native void nativeMixedSetDouble(long nativeRowPtr, long columnKey, double value);
+
+    public static native void nativeMixedSetTimestamp(long nativeRowPtr, long columnKey, long dateTimeValue);
+
+    public static native void nativeMixedSetString(long nativeRowPtr, long columnKey, String value);
+
+    public static native void nativeMixedSetNull(long nativeRowPtr, long columnKey);
+
+    public static native void nativeMixedSetByteArray(long nativeRowPtr, long columnKey, byte[] data);
+
+    public static native void nativeMixedSetDecimal128(long nativeRowPtr, long columnKey, long low, long high);
+
+    public static native void nativeMixedSetObjectId(long nativeRowPtr, long columnKey, String data);
+
+    public static native void nativeMixedSetLink(long nativeRowPtr, long columnKey, long value);
+
+    public static void nativeSetMixed(long nativeRowPtr, long columnKey, Mixed value) {
+        switch (value.getType()) {
+            case INTEGER:
+                nativeMixedSetLong(nativeRowPtr, columnKey, value.asInteger());
+                break;
+            case BOOLEAN:
+                nativeMixedSetBoolean(nativeRowPtr, columnKey, value.asBoolean());
+                break;
+            case FLOAT:
+                nativeMixedSetFloat(nativeRowPtr, columnKey, value.asFloat());
+                break;
+            case DOUBLE:
+                nativeMixedSetDouble(nativeRowPtr, columnKey, value.asDouble());
+                break;
+            case STRING:
+                nativeMixedSetString(nativeRowPtr, columnKey, value.asString());
+                break;
+            case BINARY:
+                nativeMixedSetByteArray(nativeRowPtr, columnKey, value.asBinary());
+                break;
+            case DATE:
+                nativeMixedSetTimestamp(nativeRowPtr, columnKey, value.asDate().getTime());
+                break;
+            case OBJECT_ID:
+                nativeMixedSetObjectId(nativeRowPtr, columnKey, value.asObjectId().toString());
+                break;
+            case DECIMAL128:
+                Decimal128 decimalValue = value.asDecimal128();
+                nativeMixedSetDecimal128(nativeRowPtr, columnKey, decimalValue.getLow(), decimalValue.getHigh());
+                break;
+            case OBJECT:
+                nativeMixedSetLink(nativeRowPtr, columnKey, ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getObjectKey());
+                break;
+            default:
+        }
+    }
 }

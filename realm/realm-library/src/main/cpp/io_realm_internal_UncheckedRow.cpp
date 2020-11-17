@@ -228,6 +228,19 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetLong(JNIEnv*
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeMixedSetLong(JNIEnv* env, jclass, jlong nativeRowPtr,
+                                                                         jlong columnKey, jlong value)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return;
+    }
+
+    try {
+        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), Mixed(value));
+    }
+    CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetBoolean(JNIEnv* env, jobject, jlong nativeRowPtr,
                                                                             jlong columnKey, jboolean value)
 {

@@ -49,7 +49,9 @@ object Constants {
             "java.util.Date" to RealmFieldType.DATE,
             "byte[]" to RealmFieldType.BINARY,
             "org.bson.types.Decimal128" to RealmFieldType.DECIMAL128,
-            "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID)
+            "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID
+//            "io.realm.Mixed" to RealmFieldType.MIXED
+    )
 
     val LIST_ELEMENT_TYPE_TO_REALM_TYPES = mapOf(
             "java.lang.Byte" to RealmFieldType.INTEGER_LIST,
@@ -64,6 +66,7 @@ object Constants {
             "byte[]" to RealmFieldType.BINARY_LIST,
             "org.bson.types.Decimal128" to RealmFieldType.DECIMAL128_LIST,
             "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID_LIST
+//            "io.realm.Mixed" to RealmFieldType.MIXED_LIST
     )
 
     /**
@@ -82,6 +85,7 @@ object Constants {
         DATE("DATE", "Date"),
         BINARY("BINARY", "BinaryByteArray"),
         REALM_INTEGER("INTEGER", "Long"),
+        MIXED("MIXED", "Mixed"),
         OBJECT("OBJECT", "Object"),
         LIST("LIST", "List"),
         DECIMAL128("DECIMAL128", "Decimal128"),
@@ -97,7 +101,8 @@ object Constants {
         FLOAT_LIST("FLOAT_LIST", "List"),
         DOUBLE_LIST("DOUBLE_LIST", "List"),
         DECIMAL128_LIST("DECIMAL128_LIST", "List"),
-        OBJECT_ID_LIST("OBJECT_ID_LIST", "List");
+        OBJECT_ID_LIST("OBJECT_ID_LIST", "List"),
+        MIXED_LIST("MIXED_LIST", "List");
 
         /**
          * The name of the enum, used in the Java bindings, used to represent the corresponding type.
