@@ -4,7 +4,8 @@
 * None.
 
 ### Enhancements
-* None.
+* Added `FlowFactory` interface that allows customization of `Flow` emissions, just as we do with `RxObservableFactory`. A default implementation, `RealmFlowFactory`, is provided when building `RealmConfiguration`s.
+* Added `toChangeSetFlow` methods (similar to the Rx `asChangesetFlowable` methods) for `RealmObject`, `RealmResults` and `RealmList`.
 
 ### Fixes
 * Fixed crash when adding classes containing an `ObjectId` as primary key to the schema. (Issue [#7189](https://github.com/realm/realm-java/issues/7189), since v10.0.0)

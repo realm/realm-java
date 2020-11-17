@@ -207,9 +207,13 @@ repositories {
 }
 
 dependencies {
-
     compileOnly "io.reactivex.rxjava2:rxjava:${properties.getProperty('RXJAVA_DEPENDENCY')}"
     compileOnly 'com.github.spotbugs:spotbugs-annotations:4.1.2'
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_android_version"
+    compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
+    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_android_version"
+    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
 
     testImplementation 'junit:junit:4.12'
     testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -281,6 +285,7 @@ task javadoc(type: Javadoc) {
     exclude '**/internal/**'
     exclude '**/BuildConfig.java'
     exclude '**/R.java'
+    exclude '**/*.kt'
     doLast {
         copy {
             from "src/realm-java-overview.png"

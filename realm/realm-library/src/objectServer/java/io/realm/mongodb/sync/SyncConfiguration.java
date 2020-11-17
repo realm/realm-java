@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -51,13 +52,15 @@ import io.realm.RealmModel;
 import io.realm.RealmQuery;
 import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
+import io.realm.coroutines.FlowFactory;
+import io.realm.coroutines.RealmFlowFactory;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Util;
 import io.realm.mongodb.App;
-import io.realm.mongodb.User;
 import io.realm.mongodb.Credentials;
+import io.realm.mongodb.User;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
@@ -117,6 +120,7 @@ public class SyncConfiguration extends RealmConfiguration {
                               OsRealmConfig.Durability durability,
                               RealmProxyMediator schemaMediator,
                               @Nullable RxObservableFactory rxFactory,
+                              @Nullable FlowFactory flowFactory,
                               @Nullable Realm.Transaction initialDataTransaction,
                               boolean readOnly,
                               long maxNumberOfActiveVersions,
@@ -143,6 +147,7 @@ public class SyncConfiguration extends RealmConfiguration {
                 durability,
                 schemaMediator,
                 rxFactory,
+                flowFactory,
                 initialDataTransaction,
                 readOnly,
                 compactOnLaunch,
@@ -467,6 +472,8 @@ public class SyncConfiguration extends RealmConfiguration {
         @Nullable
         private RxObservableFactory rxFactory;
         @Nullable
+        private FlowFactory flowFactory;
+        @Nullable
         private Realm.Transaction initialDataTransaction;
         @Nullable
         private String filename;
@@ -788,8 +795,25 @@ public class SyncConfiguration extends RealmConfiguration {
          *
          * @param factory factory to use.
          */
-        public Builder rxFactory(RxObservableFactory factory) {
+        public Builder rxFactory(@Nonnull RxObservableFactory factory) {
+            if (factory == null) {
+                throw new IllegalArgumentException("The provided Rx Observable factory must not be null.");
+            }
             rxFactory = factory;
+            return this;
+        }
+
+        /**
+         * Sets the {@link FlowFactory} used to create coroutines Flows from Realm objects.
+         * The default factory is {@link RealmFlowFactory}.
+         *
+         * @param factory factory to use.
+         */
+        public Builder flowFactory(@Nonnull FlowFactory factory) {
+            if (factory == null) {
+                throw new IllegalArgumentException("The provided Flow factory must not be null.");
+            }
+            flowFactory = factory;
             return this;
         }
 
@@ -1080,6 +1104,10 @@ public class SyncConfiguration extends RealmConfiguration {
                 rxFactory = new RealmObservableFactory(true);
             }
 
+            if (flowFactory == null && Util.isCoroutinesAvailable()) {
+                flowFactory = new RealmFlowFactory(true);
+            }
+
             URI resolvedServerUrl = serverUrl;
             syncUrlPrefix = String.format("/api/client/v2.0/app/%s/realm-sync", user.getApp().getConfiguration().getAppId());
 
@@ -1096,6 +1124,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     durability,
                     createSchemaMediator(modules, debugSchema),
                     rxFactory,
+                    flowFactory,
                     initialDataTransaction,
                     readOnly,
                     maxNumberOfActiveVersions,
