@@ -25,6 +25,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.isActive
 
 /**
  * Returns a [Flow] that monitors changes to this RealmResults. It will emit the current
@@ -81,7 +82,9 @@ fun <T : RealmModel> RealmResults<T>.toFlow(): Flow<RealmResults<T>> {
         // Get instance to ensure the Realm is open for as long as we are listening
         val flowRealm = Realm.getInstance(config)
         val listener = RealmChangeListener<RealmResults<T>> { listenerResults ->
-            offer(listenerResults.freeze())
+            if (isActive) {
+                offer(listenerResults.freeze())
+            }
         }
 
         results.addChangeListener(listener)
