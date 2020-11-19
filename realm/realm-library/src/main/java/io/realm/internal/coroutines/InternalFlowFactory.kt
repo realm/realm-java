@@ -526,10 +526,12 @@ class InternalFlowFactory(
             RealmObject.addChangeListener(realmObject, listener)
 
             // Emit current value
-            if (returnFrozenObjects) {
-                offer(RealmObject.freeze(realmObject))
-            } else {
-                offer(realmObject)
+            if (RealmObject.isLoaded(realmObject)) {
+                if (returnFrozenObjects) {
+                    offer(RealmObject.freeze(realmObject))
+                } else {
+                    offer(realmObject)
+                }
             }
 
             awaitClose {
@@ -576,10 +578,12 @@ class InternalFlowFactory(
             RealmObject.addChangeListener(realmObject, listener)
 
             // Emit current value
-            if (returnFrozenObjects) {
-                offer(ObjectChange(RealmObject.freeze(realmObject), null))
-            } else {
-                offer(ObjectChange(realmObject, null))
+            if (RealmObject.isLoaded(realmObject)) {
+                if (returnFrozenObjects) {
+                    offer(ObjectChange(RealmObject.freeze(realmObject), null))
+                } else {
+                    offer(ObjectChange(realmObject, null))
+                }
             }
 
             awaitClose {
@@ -627,10 +631,12 @@ class InternalFlowFactory(
             dynamicRealmObject.addChangeListener(listener)
 
             // Emit current value
-            if (returnFrozenObjects) {
-                offer(RealmObject.freeze(dynamicRealmObject))
-            } else {
-                offer(dynamicRealmObject)
+            if (RealmObject.isLoaded(dynamicRealmObject)) {
+                if (returnFrozenObjects) {
+                    offer(RealmObject.freeze(dynamicRealmObject))
+                } else {
+                    offer(dynamicRealmObject)
+                }
             }
 
             awaitClose {
@@ -677,10 +683,12 @@ class InternalFlowFactory(
             RealmObject.addChangeListener(dynamicRealmObject, listener)
 
             // Emit current value
-            if (returnFrozenObjects) {
-                offer(ObjectChange(RealmObject.freeze(dynamicRealmObject), null))
-            } else {
-                offer(ObjectChange(dynamicRealmObject, null))
+            if (RealmObject.isLoaded(dynamicRealmObject)) {
+                if (returnFrozenObjects) {
+                    offer(ObjectChange(RealmObject.freeze(dynamicRealmObject), null))
+                } else {
+                    offer(ObjectChange(dynamicRealmObject, null))
+                }
             }
 
             awaitClose {

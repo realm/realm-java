@@ -10,7 +10,7 @@
 ### Fixes
 * Fixed crash when adding classes containing an `ObjectId` as primary key to the schema. (Issue [#7189](https://github.com/realm/realm-java/issues/7189), since v10.0.0)
 * Fixed crash when creating proxy classes containing an `ObjectId` as primary key. (Issue [#7197](https://github.com/realm/realm-java/issues/7197), since v10.0.0)
-* Fixed crash present on slow devices in which calls to `toFlow` could crash if the Flow job is cancelled and object updates are emitted after that happens. (Issue [7211](https://github.com/realm/realm-java/issues/7211), since v10.0.1)
+* Fixed crash where calls to `toFlow` could crash if the Flow job is canceled and object updates are emitted after that happens. (Issue [7211](https://github.com/realm/realm-java/issues/7211), since v10.0.1)
 
 ### Compatibility
 * File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
