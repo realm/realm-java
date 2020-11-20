@@ -214,7 +214,7 @@ class CoroutinesTests {
     }
 
     @Test
-    fun realmResults_toFlow_resultsEmittedAfterCollect() {
+    fun findAll_realmResults_toFlow_resultsEmittedAfterCollect() {
         Realm.getInstance(configuration).use { realm ->
             realm.executeTransaction { transactionRealm ->
                 transactionRealm.createObject<SimpleClass>().name = "Foo"
@@ -238,6 +238,41 @@ class CoroutinesTests {
                         if (flowResults.size == 2) {
                             scope.cancel("Cancelling scope...")
                         }
+                    }.onCompletion {
+                        realmInstance.close()
+                        countDownLatch.countDown()
+                    }.collect()
+        }
+
+        TestHelper.awaitOrFail(countDownLatch)
+    }
+
+    @Test
+    fun realmObject_findFirst_toFlow_onlyValidObjectsAreEmitted() {
+        Realm.getInstance(configuration).use { realm ->
+            realm.executeTransaction { transactionRealm ->
+                transactionRealm.createObject<SimpleClass>().name = "Foo"
+                transactionRealm.createObject<SimpleClass>().name = "Bar"
+            }
+        }
+
+        val countDownLatch = CountDownLatch(1)
+
+        val context = Dispatchers.Main
+        val scope = CoroutineScope(context)
+
+        scope.launch {
+            val realmInstance = Realm.getInstance(configuration)
+            realmInstance.where<SimpleClass>()
+                    .findFirstAsync()
+                    .toFlow()
+                    .flowOn(context)
+                    .onEach { flowObject ->
+                        assertNotNull(flowObject)
+                        assertTrue(flowObject.isFrozen())
+                        assertTrue(flowObject.isValid())
+                        assertEquals("Foo", flowObject.name)
+                        scope.cancel("Cancelling scope...")
                     }.onCompletion {
                         realmInstance.close()
                         countDownLatch.countDown()

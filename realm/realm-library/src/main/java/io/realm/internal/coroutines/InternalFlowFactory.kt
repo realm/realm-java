@@ -25,6 +25,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.isActive
 
 /**
  * Internal factory implementation used to conceal Kotlin implementation details from the public
@@ -43,10 +44,12 @@ class InternalFlowFactory(
         return callbackFlow {
             val flowRealm = Realm.getInstance(realm.configuration)
             val listener = RealmChangeListener<Realm> { listenerRealm ->
-                if (returnFrozenObjects) {
-                    offer(realm.freeze())
-                } else {
-                    offer(listenerRealm)
+                if (isActive) {
+                    if (returnFrozenObjects) {
+                        offer(realm.freeze())
+                    } else {
+                        offer(listenerRealm)
+                    }
                 }
             }
 
@@ -74,10 +77,12 @@ class InternalFlowFactory(
         return callbackFlow {
             val flowRealm = DynamicRealm.getInstance(dynamicRealm.configuration)
             val listener = RealmChangeListener<DynamicRealm> { listenerRealm ->
-                if (returnFrozenObjects) {
-                    offer(dynamicRealm.freeze())
-                } else {
-                    offer(listenerRealm)
+                if (isActive) {
+                    if (returnFrozenObjects) {
+                        offer(dynamicRealm.freeze())
+                    } else {
+                        offer(listenerRealm)
+                    }
                 }
             }
 
@@ -116,10 +121,12 @@ class InternalFlowFactory(
             // Get instance to ensure the Realm is open for as long as we are listening
             val flowRealm = Realm.getInstance(config)
             val listener = RealmChangeListener<RealmResults<T>> { listenerResults ->
-                if (returnFrozenObjects) {
-                    offer(listenerResults.freeze())
-                } else {
-                    offer(listenerResults)
+                if (isActive) {
+                    if (returnFrozenObjects) {
+                        offer(listenerResults.freeze())
+                    } else {
+                        offer(listenerResults)
+                    }
                 }
             }
 
@@ -164,10 +171,12 @@ class InternalFlowFactory(
             // Get instance to ensure the Realm is open for as long as we are listening
             val flowRealm = Realm.getInstance(config)
             val listener = OrderedRealmCollectionChangeListener<RealmResults<T>> { listenerResults, changeSet ->
-                if (returnFrozenObjects) {
-                    offer(CollectionChange(listenerResults.freeze(), changeSet))
-                } else {
-                    offer(CollectionChange(listenerResults, changeSet))
+                if (isActive) {
+                    if (returnFrozenObjects) {
+                        offer(CollectionChange(listenerResults.freeze(), changeSet))
+                    } else {
+                        offer(CollectionChange(listenerResults, changeSet))
+                    }
                 }
             }
 
@@ -212,10 +221,12 @@ class InternalFlowFactory(
             // Get instance to ensure the Realm is open for as long as we are listening
             val flowRealm = DynamicRealm.getInstance(config)
             val listener = RealmChangeListener<RealmResults<T>> { listenerResults ->
-                if (returnFrozenObjects) {
-                    offer(listenerResults.freeze())
-                } else {
-                    offer(listenerResults)
+                if (isActive) {
+                    if (returnFrozenObjects) {
+                        offer(listenerResults.freeze())
+                    } else {
+                        offer(listenerResults)
+                    }
                 }
             }
 
@@ -260,10 +271,12 @@ class InternalFlowFactory(
             // Get instance to ensure the Realm is open for as long as we are listening
             val flowRealm = DynamicRealm.getInstance(config)
             val listener = OrderedRealmCollectionChangeListener<RealmResults<T>> { listenerResults, changeSet ->
-                if (returnFrozenObjects) {
-                    offer(CollectionChange(listenerResults.freeze(), changeSet))
-                } else {
-                    offer(CollectionChange(listenerResults, changeSet))
+                if (isActive) {
+                    if (returnFrozenObjects) {
+                        offer(CollectionChange(listenerResults.freeze(), changeSet))
+                    } else {
+                        offer(CollectionChange(listenerResults, changeSet))
+                    }
                 }
             }
 
@@ -306,10 +319,12 @@ class InternalFlowFactory(
             // Get instance to ensure the Realm is open for as long as we are listening
             val flowRealm = Realm.getInstance(config)
             val listener = RealmChangeListener<RealmList<T>> { listenerResults ->
-                if (returnFrozenObjects) {
-                    offer(listenerResults.freeze())
-                } else {
-                    offer(listenerResults)
+                if (isActive) {
+                    if (returnFrozenObjects) {
+                        offer(listenerResults.freeze())
+                    } else {
+                        offer(listenerResults)
+                    }
                 }
             }
 
@@ -354,10 +369,12 @@ class InternalFlowFactory(
             // Get instance to ensure the Realm is open for as long as we are listening
             val flowRealm = Realm.getInstance(config)
             val listener = OrderedRealmCollectionChangeListener<RealmList<T>> { listenerList, changeSet ->
-                if (returnFrozenObjects) {
-                    offer(CollectionChange(listenerList.freeze(), changeSet))
-                } else {
-                    offer(CollectionChange(listenerList, changeSet))
+                if (isActive) {
+                    if (returnFrozenObjects) {
+                        offer(CollectionChange(listenerList.freeze(), changeSet))
+                    } else {
+                        offer(CollectionChange(listenerList, changeSet))
+                    }
                 }
             }
 
@@ -399,10 +416,12 @@ class InternalFlowFactory(
             // Get instance to ensure the Realm is open for as long as we are listening
             val flowRealm = DynamicRealm.getInstance(config)
             val listener = RealmChangeListener<RealmList<T>> { listenerResults ->
-                if (returnFrozenObjects) {
-                    offer(listenerResults.freeze())
-                } else {
-                    offer(listenerResults)
+                if (isActive) {
+                    if (returnFrozenObjects) {
+                        offer(listenerResults.freeze())
+                    } else {
+                        offer(listenerResults)
+                    }
                 }
             }
 
@@ -447,10 +466,12 @@ class InternalFlowFactory(
             // Get instance to ensure the Realm is open for as long as we are listening
             val flowRealm = DynamicRealm.getInstance(config)
             val listener = OrderedRealmCollectionChangeListener<RealmList<T>> { listenerList, changeSet ->
-                if (returnFrozenObjects) {
-                    offer(CollectionChange(listenerList.freeze(), changeSet))
-                } else {
-                    offer(CollectionChange(listenerList, changeSet))
+                if (isActive) {
+                    if (returnFrozenObjects) {
+                        offer(CollectionChange(listenerList.freeze(), changeSet))
+                    } else {
+                        offer(CollectionChange(listenerList, changeSet))
+                    }
                 }
             }
 
@@ -493,20 +514,24 @@ class InternalFlowFactory(
             // Get instance to ensure the Realm is open for as long as we are listening
             val flowRealm = Realm.getInstance(config)
             val listener = RealmChangeListener<T> { listenerObj ->
-                if (returnFrozenObjects) {
-                    offer(RealmObject.freeze(listenerObj) as T)
-                } else {
-                    offer(listenerObj)
+                if (isActive) {
+                    if (returnFrozenObjects) {
+                        offer(RealmObject.freeze(listenerObj) as T)
+                    } else {
+                        offer(listenerObj)
+                    }
                 }
             }
 
             RealmObject.addChangeListener(realmObject, listener)
 
             // Emit current value
-            if (returnFrozenObjects) {
-                offer(RealmObject.freeze(realmObject))
-            } else {
-                offer(realmObject)
+            if (RealmObject.isLoaded(realmObject)) {
+                if (returnFrozenObjects) {
+                    offer(RealmObject.freeze(realmObject))
+                } else {
+                    offer(realmObject)
+                }
             }
 
             awaitClose {
@@ -541,20 +566,24 @@ class InternalFlowFactory(
             // Get instance to ensure the Realm is open for as long as we are listening
             val flowRealm = Realm.getInstance(config)
             val listener = RealmObjectChangeListener<T> { listenerObject, changeSet ->
-                if (returnFrozenObjects) {
-                    offer(ObjectChange(RealmObject.freeze(listenerObject), changeSet))
-                } else {
-                    offer(ObjectChange(listenerObject, changeSet))
+                if (isActive) {
+                    if (returnFrozenObjects) {
+                        offer(ObjectChange(RealmObject.freeze(listenerObject), changeSet))
+                    } else {
+                        offer(ObjectChange(listenerObject, changeSet))
+                    }
                 }
             }
 
             RealmObject.addChangeListener(realmObject, listener)
 
             // Emit current value
-            if (returnFrozenObjects) {
-                offer(ObjectChange(RealmObject.freeze(realmObject), null))
-            } else {
-                offer(ObjectChange(realmObject, null))
+            if (RealmObject.isLoaded(realmObject)) {
+                if (returnFrozenObjects) {
+                    offer(ObjectChange(RealmObject.freeze(realmObject), null))
+                } else {
+                    offer(ObjectChange(realmObject, null))
+                }
             }
 
             awaitClose {
@@ -590,20 +619,24 @@ class InternalFlowFactory(
             // Get instance to ensure the Realm is open for as long as we are listening
             val flowRealm = DynamicRealm.getInstance(config)
             val listener = RealmChangeListener<DynamicRealmObject> { listenerObj ->
-                if (returnFrozenObjects) {
-                    offer(listenerObj.freeze())
-                } else {
-                    offer(listenerObj)
+                if (isActive) {
+                    if (returnFrozenObjects) {
+                        offer(listenerObj.freeze())
+                    } else {
+                        offer(listenerObj)
+                    }
                 }
             }
 
             dynamicRealmObject.addChangeListener(listener)
 
             // Emit current value
-            if (returnFrozenObjects) {
-                offer(RealmObject.freeze(dynamicRealmObject))
-            } else {
-                offer(dynamicRealmObject)
+            if (RealmObject.isLoaded(dynamicRealmObject)) {
+                if (returnFrozenObjects) {
+                    offer(RealmObject.freeze(dynamicRealmObject))
+                } else {
+                    offer(dynamicRealmObject)
+                }
             }
 
             awaitClose {
@@ -638,20 +671,24 @@ class InternalFlowFactory(
             // Get instance to ensure the Realm is open for as long as we are listening
             val flowRealm = Realm.getInstance(config)
             val listener = RealmObjectChangeListener<DynamicRealmObject> { listenerObject, changeSet ->
-                if (returnFrozenObjects) {
-                    offer(ObjectChange(RealmObject.freeze(listenerObject), changeSet))
-                } else {
-                    offer(ObjectChange(listenerObject, changeSet))
+                if (isActive) {
+                    if (returnFrozenObjects) {
+                        offer(ObjectChange(RealmObject.freeze(listenerObject), changeSet))
+                    } else {
+                        offer(ObjectChange(listenerObject, changeSet))
+                    }
                 }
             }
 
             RealmObject.addChangeListener(dynamicRealmObject, listener)
 
             // Emit current value
-            if (returnFrozenObjects) {
-                offer(ObjectChange(RealmObject.freeze(dynamicRealmObject), null))
-            } else {
-                offer(ObjectChange(dynamicRealmObject, null))
+            if (RealmObject.isLoaded(dynamicRealmObject)) {
+                if (returnFrozenObjects) {
+                    offer(ObjectChange(RealmObject.freeze(dynamicRealmObject), null))
+                } else {
+                    offer(ObjectChange(dynamicRealmObject, null))
+                }
             }
 
             awaitClose {
