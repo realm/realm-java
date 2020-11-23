@@ -79,7 +79,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             typeMirrors.FLOAT_MIRROR,
             typeMirrors.DATE_MIRROR,
             typeMirrors.DECIMAL128_MIRROR,
-            typeMirrors.OBJECT_ID_MIRROR
+            typeMirrors.OBJECT_ID_MIRROR,
+            typeMirrors.MIXED_MIRROR
     )
     private val stringType = typeMirrors.STRING_MIRROR
 
@@ -635,7 +636,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     private fun categorizeIndexField(element: Element, fieldElement: RealmFieldElement): Boolean {
         var indexable = false
 
-        if (Utils.isMutableRealmInteger(fieldElement)) {
+        if (Utils.isMutableRealmInteger(fieldElement) || Utils.isMixed(fieldElement)) {
             indexable = true
         } else {
             when (Constants.JAVA_TO_REALM_TYPES[fieldElement.asType().toString()]) {
@@ -643,7 +644,6 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
                 Constants.RealmFieldType.DATE,
                 Constants.RealmFieldType.INTEGER,
                 Constants.RealmFieldType.BOOLEAN,
-                Constants.RealmFieldType.MIXED,
                 Constants.RealmFieldType.OBJECT_ID -> { indexable = true }
                 else -> { /* Ignore */ }
             }

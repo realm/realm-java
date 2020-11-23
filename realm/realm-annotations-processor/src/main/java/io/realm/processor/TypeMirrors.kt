@@ -18,8 +18,7 @@ package io.realm.processor
 
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
-import java.util.Date
-
+import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.VariableElement
 import javax.lang.model.type.DeclaredType
@@ -46,6 +45,7 @@ class TypeMirrors(env: ProcessingEnvironment) {
     @JvmField val DATE_MIRROR: TypeMirror
     @JvmField val DECIMAL128_MIRROR: TypeMirror
     @JvmField val OBJECT_ID_MIRROR: TypeMirror
+    @JvmField val MIXED_MIRROR: TypeMirror
 
     @JvmField val PRIMITIVE_LONG_MIRROR: TypeMirror
     @JvmField val PRIMITIVE_INT_MIRROR: TypeMirror
@@ -68,6 +68,7 @@ class TypeMirrors(env: ProcessingEnvironment) {
         DATE_MIRROR = elementUtils.getTypeElement(Date::class.javaObjectType.name).asType()
         DECIMAL128_MIRROR = elementUtils.getTypeElement(Decimal128::class.javaObjectType.name).asType()
         OBJECT_ID_MIRROR = elementUtils.getTypeElement(ObjectId::class.javaObjectType.name).asType()
+        MIXED_MIRROR = elementUtils.getTypeElement("io.realm.Mixed").asType()
 
         PRIMITIVE_LONG_MIRROR = typeUtils.getPrimitiveType(TypeKind.LONG)
         PRIMITIVE_INT_MIRROR = typeUtils.getPrimitiveType(TypeKind.INT)

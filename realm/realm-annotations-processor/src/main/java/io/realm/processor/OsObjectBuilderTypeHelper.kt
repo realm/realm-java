@@ -71,7 +71,7 @@ object OsObjectBuilderTypeHelper {
             this[QualifiedClassName("io.realm.MutableRealmInteger")] = "MutableRealmIntegerList"
             this[QualifiedClassName("org.bson.types.Decimal128")] = "Decimal128List"
             this[QualifiedClassName("org.bson.types.ObjectId")] = "ObjectIdList"
-            this[QualifiedClassName("io.realm.Mixed")] = "Mixed"
+            this[QualifiedClassName("io.realm.Mixed")] = "MixedList"
         }
         QUALIFIED_LIST_TYPE_TO_BUILDER = Collections.unmodifiableMap(listTypes)
     }

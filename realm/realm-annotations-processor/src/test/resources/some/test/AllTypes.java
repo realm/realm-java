@@ -74,6 +74,7 @@ public class AllTypes extends RealmObject {
     private RealmList<Date> columnDateList;
     private RealmList<Decimal128> columnDecimal128List;
     private RealmList<ObjectId> columnObjectIdList;
+    private RealmList<Mixed> columnMixedList;
 
     @LinkingObjects(FIELD_PARENTS)
     private final RealmResults<AllTypes> parentObjects = null;

@@ -190,8 +190,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             for (variableElement in metadata.fields) {
                 if (Utils.isMutableRealmInteger(variableElement)) {
                     emitMutableRealmIntegerField(writer, variableElement)
-                } else if (Utils.isMixed(variableElement)) {
-                    emitMixedField(writer, variableElement)
+//                } else if (Utils.isMixed(variableElement)) {
+//                    emitMixedField(writer, variableElement)
                 } else if (Utils.isRealmList(variableElement)) {
                     val genericType = Utils.getGenericTypeQualifiedName(variableElement)
                     emitField("RealmList<$genericType>", variableElement.simpleName.toString() + "RealmList", EnumSet.of(Modifier.PRIVATE))
@@ -222,20 +222,20 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         }
     }
 
-    @Throws(IOException::class)
-    private fun emitMixedField(writer: JavaWriter, variableElement: VariableElement) {
-        writer.apply {
-            emitField("Mixed.Managed",
-                    mixedFieldName(variableElement),
-                    EnumSet.of(Modifier.PRIVATE, Modifier.FINAL),
-                    String.format(
-                            "new Mixed.Managed<%1\$s>() {\n"
-                                    + "    @Override protected ProxyState<%1\$s> getProxyState() { return proxyState; }\n"
-                                    + "    @Override protected long getColumnIndex() { return columnInfo.%2\$s; }\n"
-                                    + "}",
-                            qualifiedJavaClassName, columnKeyVarName(variableElement)))
-        }
-    }
+//    @Throws(IOException::class)
+//    private fun emitMixedField(writer: JavaWriter, variableElement: VariableElement) {
+//        writer.apply {
+//            emitField("Mixed.Managed",
+//                    mixedFieldName(variableElement),
+//                    EnumSet.of(Modifier.PRIVATE, Modifier.FINAL),
+//                    String.format(
+//                            "new Mixed.Managed<%1\$s>() {\n"
+//                                    + "    @Override protected ProxyState<%1\$s> getProxyState() { return proxyState; }\n"
+//                                    + "    @Override protected long getColumnIndex() { return columnInfo.%2\$s; }\n"
+//                                    + "}",
+//                            qualifiedJavaClassName, columnKeyVarName(variableElement)))
+//        }
+//    }
 
     @Throws(IOException::class)
     private fun emitConstructor(writer: JavaWriter) {
@@ -256,7 +256,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             when {
                 Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName) -> emitPrimitiveType(writer, field, fieldName, fieldTypeCanonicalName)
                 Utils.isMutableRealmInteger(field) -> emitMutableRealmInteger(writer, field, fieldName, fieldTypeCanonicalName)
-                Utils.isMixed(field) -> emitMixed(writer, field, fieldName, fieldTypeCanonicalName)
+//                Utils.isMixed(field) -> emitMixed(writer, field, fieldName, fieldTypeCanonicalName)
                 Utils.isRealmModel(field) -> emitRealmModel(writer, field, fieldName, fieldTypeCanonicalName)
                 Utils.isRealmList(field) -> {
                     val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field)
@@ -365,62 +365,66 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         }
     }
 
-    /**
-     * Emit Get method for Mixed fields.
-     */
-    @Throws(IOException::class)
-    private fun emitMixed(writer: JavaWriter, field: VariableElement, fieldName: String, fieldTypeCanonicalName: String) {
-        writer.apply {
-            // Getter - Start
-            emitAnnotation("Override")
-            beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
-                emitStatement("proxyState.getRealm\$realm().checkIfValid()")
-                emitStatement("return this.%s", mixedFieldName(field))
-            endMethod()
-
-            // Setter - Start
-            emitAnnotation("Override")
-            beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value")
-            emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field)) {
-                // set value as default value
-                emitStatement("final Row row = proxyState.getRow\$realm()")
-                if (metadata.isNullable(field)) {
-                    beginControlFlow("if (value == null)")
-                    emitStatement("row.getTable().mixedSetNull(%s, row.getObjectKey(), true)", fieldColKeyVariableReference(field))
-                    emitStatement("return")
-                    endControlFlow()
-                } else if (!metadata.isNullable(field) && !Utils.isPrimitiveType(field)) {
-                    beginControlFlow("if (value == null)")
-                    emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName)
-                    endControlFlow()
-                }
-                emitStatement("row.getTable().setMixed(%s, row.getObjectKey(), value, true)", fieldColKeyVariableReference(field))
-                emitStatement("return")
-            }
-            emitStatement("proxyState.getRealm\$realm().checkIfValid()")
-            // Although setting null value for String and bytes[] can be handled by the JNI code, we still generate the same code here.
-            // Compared with getter, null value won't trigger more native calls in setter which is relatively cheaper.
-            if (metadata.isPrimaryKey(field)) {
-                // Primary key is not allowed to be changed after object created.
-                emitStatement(Constants.STATEMENT_EXCEPTION_PRIMARY_KEY_CANNOT_BE_CHANGED, fieldName)
-            } else {
-                if (metadata.isNullable(field)) {
-                    beginControlFlow("if (value == null)")
-                    emitStatement("proxyState.getRow\$realm().setNull(%s)", fieldColKeyVariableReference(field))
-                    emitStatement("return")
-                    endControlFlow()
-                } else if (!metadata.isNullable(field) && !Utils.isPrimitiveType(field)) {
-                    // Same reason, throw IAE earlier.
-                    beginControlFlow("if (value == null)")
-                    emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName)
-                    endControlFlow()
-                }
-                emitStatement("proxyState.getRow\$realm().setMixed(%s, value)", fieldColKeyVariableReference(field))
-            }
-            endMethod()
-            // Setter - End
-        }
-    }
+//    /**
+//     * Emit Get method for Mixed fields.
+//     */
+//    @Throws(IOException::class)
+//    private fun emitMixed(writer: JavaWriter, field: VariableElement, fieldName: String, fieldTypeCanonicalName: String) {
+//        writer.apply {
+//            // Getter - Start
+//            emitAnnotation("Override")
+//            beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
+//                emitStatement("proxyState.getRealm\$realm().checkIfValid()")
+//
+//                beginControlFlow("if (proxyState.getRow\$realm().isNull(%s))", fieldColKeyVariableReference(field))
+//                    emitStatement("return null")
+//                endControlFlow()
+//                emitStatement("return this.%s", mixedFieldName(field))
+//            endMethod()
+//
+//            // Setter - Start
+//            emitAnnotation("Override")
+//            beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value")
+//            emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field)) {
+//                // set value as default value
+//                emitStatement("final Row row = proxyState.getRow\$realm()")
+//                if (metadata.isNullable(field)) {
+//                    beginControlFlow("if (value == null)")
+//                    emitStatement("row.getTable().mixedSetNull(%s, row.getObjectKey(), true)", fieldColKeyVariableReference(field))
+//                    emitStatement("return")
+//                    endControlFlow()
+//                } else if (!metadata.isNullable(field) && !Utils.isPrimitiveType(field)) {
+//                    beginControlFlow("if (value == null)")
+//                    emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName)
+//                    endControlFlow()
+//                }
+//                emitStatement("row.getTable().setMixed(%s, row.getObjectKey(), value, true)", fieldColKeyVariableReference(field))
+//                emitStatement("return")
+//            }
+//            emitStatement("proxyState.getRealm\$realm().checkIfValid()")
+//            // Although setting null value for String and bytes[] can be handled by the JNI code, we still generate the same code here.
+//            // Compared with getter, null value won't trigger more native calls in setter which is relatively cheaper.
+//            if (metadata.isPrimaryKey(field)) {
+//                // Primary key is not allowed to be changed after object created.
+//                emitStatement(Constants.STATEMENT_EXCEPTION_PRIMARY_KEY_CANNOT_BE_CHANGED, fieldName)
+//            } else {
+//                if (metadata.isNullable(field)) {
+//                    beginControlFlow("if (value == null)")
+//                    emitStatement("proxyState.getRow\$realm().setNull(%s)", fieldColKeyVariableReference(field))
+//                    emitStatement("return")
+//                    endControlFlow()
+//                } else if (!metadata.isNullable(field) && !Utils.isPrimitiveType(field)) {
+//                    // Same reason, throw IAE earlier.
+//                    beginControlFlow("if (value == null)")
+//                    emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName)
+//                    endControlFlow()
+//                }
+//                emitStatement("proxyState.getRow\$realm().setMixed(%s, value)", fieldColKeyVariableReference(field))
+//            }
+//            endMethod()
+//            // Setter - End
+//        }
+//    }
 
     /**
      * Emit Set/Get methods for RealmModel fields.
@@ -646,6 +650,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         if (typeUtils.isSameType(elementTypeMirror, typeMirrors.OBJECT_ID_MIRROR)) {
             return "$osListVariableName.addObjectId($valueVariableName)"
         }
+        if (typeUtils.isSameType(elementTypeMirror, typeMirrors.MIXED_MIRROR)) {
+            return "$osListVariableName.addMixed($valueVariableName)"
+        }
         throw RuntimeException("unexpected element type: $elementTypeMirror")
     }
 
@@ -780,6 +787,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Constants.RealmFieldType.FLOAT_LIST,
                         Constants.RealmFieldType.DECIMAL128_LIST,
                         Constants.RealmFieldType.OBJECT_ID_LIST,
+                        Constants.RealmFieldType.MIXED_LIST,
                         Constants.RealmFieldType.DOUBLE_LIST -> {
                             val requiredFlag = if (metadata.isElementNullable(field)) "!Property.REQUIRED" else "Property.REQUIRED"
                             emitStatement("builder.addPersistedValueListProperty(\"%s\", %s, %s)", fieldName, fieldType.realmType, requiredFlag)
