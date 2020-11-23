@@ -1,4 +1,4 @@
-## 10.0.2 (YYYY-MM-DD)
+## 10.1.0 (YYYY-MM-DD)
 
 ### Breaking Changes
 * None.
@@ -18,7 +18,9 @@
 * Realm Studio 10.0.0 or above is required to open Realms created by this version.
 
 ### Internal
-* None.
+* Updated to Realm Sync: 10.1.3.
+* Updated to Realm Core: 10.1.3.
+* Updated to Object Store commit: fc6daca61133aa9601e4cb34fbeb9ec7569e162e.
 
 
 ## 10.0.1 (2020-11-06)
