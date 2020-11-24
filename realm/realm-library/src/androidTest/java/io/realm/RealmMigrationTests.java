@@ -17,8 +17,6 @@
 package io.realm;
 
 import android.content.Context;
-import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
@@ -33,8 +31,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.CatOwner;
@@ -50,6 +51,7 @@ import io.realm.entities.PrimaryKeyAsInteger;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsShort;
 import io.realm.entities.PrimaryKeyAsString;
+import io.realm.entities.PrimaryKeyAsUUID;
 import io.realm.entities.StringOnly;
 import io.realm.entities.StringOnlyRequired;
 import io.realm.entities.Thread;
@@ -1451,6 +1453,39 @@ public class RealmMigrationTests {
         MigrationCore6PKStringIndexedByDefault first = realm.where(MigrationCore6PKStringIndexedByDefault.class).findFirst();
         assertNotNull(first);
         assertEquals("Foo", first.name);
+    }
+
+    @Test
+    public void migrateRealm_addPrimaryKey_UUID() {
+        // Creates v0 of the Realm.
+        RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
+                .schema(StringOnly.class)
+                .build();
+        Realm.getInstance(originalConfig).close();
+
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmSchema schema = realm.getSchema();
+                schema.create(PrimaryKeyAsUUID.CLASS_NAME)
+                        .addField(PrimaryKeyAsUUID.FIELD_PRIMARY_KEY, UUID.class)
+                        .addPrimaryKey(PrimaryKeyAsUUID.FIELD_PRIMARY_KEY)
+                        .addField(PrimaryKeyAsUUID.FIELD_NAME, String.class);
+            }
+        };
+
+        // Creates v1 of the Realm.
+        RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                .schemaVersion(1)
+                .schema(StringOnly.class, PrimaryKeyAsUUID.class)
+                .migration(migration)
+                .build();
+
+        realm = Realm.getInstance(realmConfig);
+        RealmObjectSchema schema = realm.getSchema().get(PrimaryKeyAsUUID.CLASS_NAME);
+        assertTrue(schema.hasPrimaryKey());
+        assertFalse(schema.hasIndex(PrimaryKeyAsUUID.FIELD_PRIMARY_KEY));
+        realm.close();
     }
 
     // TODO Add unit tests for default nullability

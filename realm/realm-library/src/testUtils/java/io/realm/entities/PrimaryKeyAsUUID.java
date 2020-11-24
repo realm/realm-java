@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2020 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package io.realm.entities;
 
-import org.bson.types.ObjectId;
-
 import java.util.UUID;
 
 import io.realm.RealmObject;
@@ -26,9 +24,9 @@ import io.realm.annotations.PrimaryKey;
 
 public class PrimaryKeyAsUUID extends RealmObject {
 
-    public static final String CLASS_NAME = "PrimaryKeyAsObjectId";
-    public static final String FIELD_PRIMARY_KEY = "name";
-    public static final String FIELD_ID = "id";
+    public static final String CLASS_NAME = "PrimaryKeyAsUUID";
+    public static final String FIELD_PRIMARY_KEY = "id";
+    public static final String FIELD_NAME = "name";
 
     @PrimaryKey
     private UUID id;
