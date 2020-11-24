@@ -57,6 +57,7 @@ import io.realm.entities.Dog;
 import io.realm.entities.NoPrimaryKeyNullTypes;
 import io.realm.entities.NullTypes;
 import io.realm.entities.OwnerPrimaryKey;
+import io.realm.entities.PrimaryKeyAsObjectId;
 import io.realm.entities.PrimitiveListTypes;
 import io.realm.entities.RandomPrimaryKey;
 import io.realm.exceptions.RealmException;
@@ -1557,6 +1558,20 @@ public class RealmJsonTests {
         realm.commitTransaction();
 
         assertAllTypesPrimaryKeyUpdated();
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_objectIdPK() throws JSONException {
+        String stringId = "789ABCDEF0123456789ABCDE";
+        JSONObject jsonObject = new JSONObject("{\"id\": \""+ stringId + "\", \"name\": \"bar\"}");
+        realm.beginTransaction();
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsObjectId.class, jsonObject);
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsObjectId> owners = realm.where(PrimaryKeyAsObjectId.class).findAll();
+        assertEquals(1, owners.size());
+        assertEquals(new ObjectId(stringId), owners.get(0).getId());
+        assertEquals("bar", owners.get(0).getName());
     }
 
     // Tests creating objects from Json, all nullable fields with null values or non-null values.

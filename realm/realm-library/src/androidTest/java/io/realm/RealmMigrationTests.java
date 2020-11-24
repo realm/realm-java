@@ -17,9 +17,11 @@
 package io.realm;
 
 import android.content.Context;
-import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+
+import org.bson.types.ObjectId;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
@@ -41,6 +43,7 @@ import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
 import io.realm.entities.FieldOrder;
 import io.realm.entities.NullTypes;
+import io.realm.entities.ObjectIdPrimaryKey;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
 import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
@@ -1451,6 +1454,38 @@ public class RealmMigrationTests {
         MigrationCore6PKStringIndexedByDefault first = realm.where(MigrationCore6PKStringIndexedByDefault.class).findFirst();
         assertNotNull(first);
         assertEquals("Foo", first.name);
+    }
+
+    @Test
+    public void migrateRealm_addPrimaryKey_objectId() {
+        // Creates v0 of the Realm.
+        RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
+                .schema(StringOnly.class)
+                .build();
+        Realm.getInstance(originalConfig).close();
+
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmSchema schema = realm.getSchema();
+                schema.create(ObjectIdPrimaryKey.CLASS_NAME)
+                        .addField(ObjectIdPrimaryKey.PROPERTY_OBJECT_ID, ObjectId.class)
+                        .addPrimaryKey(ObjectIdPrimaryKey.PROPERTY_OBJECT_ID);
+            }
+        };
+
+        // Creates v1 of the Realm.
+        RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+                .schemaVersion(1)
+                .schema(StringOnly.class, ObjectIdPrimaryKey.class)
+                .migration(migration)
+                .build();
+
+        realm = Realm.getInstance(realmConfig);
+        RealmObjectSchema schema = realm.getSchema().get(ObjectIdPrimaryKey.CLASS_NAME);
+        assertTrue(schema.hasPrimaryKey());
+        assertFalse(schema.hasIndex(ObjectIdPrimaryKey.PROPERTY_OBJECT_ID));
+        realm.close();
     }
 
     // TODO Add unit tests for default nullability

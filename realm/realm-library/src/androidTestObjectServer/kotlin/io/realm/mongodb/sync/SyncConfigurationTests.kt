@@ -17,7 +17,11 @@ package io.realm.mongodb.sync
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.reactivex.Flowable
+import io.reactivex.Observable
+import io.reactivex.Single
 import io.realm.*
+import io.realm.coroutines.FlowFactory
 import io.realm.entities.SyncStringOnly
 import io.realm.entities.SyncStringOnlyModule
 import io.realm.kotlin.createObject
@@ -27,6 +31,12 @@ import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
 import io.realm.mongodb.User
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
+import io.realm.rx.CollectionChange
+import io.realm.rx.ObjectChange
+import io.realm.rx.RealmObservableFactory
+import io.realm.rx.RxObservableFactory
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import org.bson.BsonString
 import org.bson.types.ObjectId
 import org.junit.*
@@ -79,7 +89,7 @@ class SyncConfigurationTests {
     fun errorHandler_nullThrows() {
         val user: User = createTestUser(app)
         val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-        assertFailsWith<IllegalArgumentException> { builder.errorHandler(TestHelper.getNull())  }
+        assertFailsWith<IllegalArgumentException> { builder.errorHandler(TestHelper.getNull()) }
     }
 
     @Test
@@ -103,7 +113,7 @@ class SyncConfigurationTests {
     fun clientResetHandler_nullThrows() {
         val user: User = createTestUser(app)
         val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-        assertFailsWith<IllegalArgumentException> { builder.clientResetHandler(TestHelper.getNull())  }
+        assertFailsWith<IllegalArgumentException> { builder.clientResetHandler(TestHelper.getNull()) }
     }
 
     @Test
@@ -278,22 +288,26 @@ class SyncConfigurationTests {
 
     @Test
     @Ignore("Not implemented yet")
-    fun shouldWaitForInitialRemoteData() { }
+    fun shouldWaitForInitialRemoteData() {
+    }
 
     @Test
     @Ignore("Not implemented yet")
-    fun getInitialRemoteDataTimeout() { }
+    fun getInitialRemoteDataTimeout() {
+    }
 
     @Test
     @Ignore("Not implemented yet")
-    fun getSessionStopPolicy () { }
+    fun getSessionStopPolicy() {
+    }
 
     @Test
     @Ignore("Not implemented yet")
-    fun getUrlPrefix () { }
+    fun getUrlPrefix() {
+    }
 
     @Test
-    fun getPartitionValue () {
+    fun getPartitionValue() {
         val user: User = createTestUser(app)
         val config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
         assertEquals(BsonString(DEFAULT_PARTITION), config.partitionValue)
@@ -334,8 +348,8 @@ class SyncConfigurationTests {
         val config2 = SyncConfiguration.Builder(user, "realm2").modules(SyncStringOnlyModule()).build()
         assertNotEquals(config1.path, config2.path)
 
-         assertTrue(config1.path.endsWith("${app.configuration.appId}/${user.id}/s_realm1.realm"))
-         assertTrue(config2.path.endsWith("${app.configuration.appId}/${user.id}/s_realm2.realm"))
+        assertTrue(config1.path.endsWith("${app.configuration.appId}/${user.id}/s_realm1.realm"))
+        assertTrue(config2.path.endsWith("${app.configuration.appId}/${user.id}/s_realm2.realm"))
 
         // Check for https://github.com/realm/realm-java/issues/6882
         val realm1 = Realm.getInstance(config1)
@@ -423,5 +437,188 @@ class SyncConfigurationTests {
         val configuration = builder.allowWritesOnUiThread(true)
                 .build()
         assertTrue(configuration.isAllowWritesOnUiThread)
+    }
+
+    @Test
+    fun rxFactory_defaultNonNull() {
+        val configuration = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+                .build()
+        assertNotNull(configuration.rxFactory)
+    }
+
+    @Test
+    fun rxFactory_nullThrows() {
+        assertFailsWith<IllegalArgumentException> {
+            SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+                    .rxFactory(TestHelper.getNull())
+        }.let {
+            assertTrue(it.message!!.contains("null"))
+        }
+    }
+
+    @Test
+    fun rxFactory() {
+        val factory = object: RxObservableFactory {
+            override fun from(realm: Realm): Flowable<Realm> {
+                return Flowable.just(null)
+            }
+
+            override fun from(realm: DynamicRealm): Flowable<DynamicRealm> {
+                return Flowable.just(null)
+            }
+
+            override fun <E : Any?> from(realm: Realm, results: RealmResults<E>): Flowable<RealmResults<E>> {
+                return Flowable.just(null)
+            }
+
+            override fun <E : Any?> from(realm: DynamicRealm, results: RealmResults<E>): Flowable<RealmResults<E>> {
+                return Flowable.just(null)
+            }
+
+            override fun <E : Any?> from(realm: Realm, list: RealmList<E>): Flowable<RealmList<E>> {
+                return Flowable.just(null)
+            }
+
+            override fun <E : Any?> from(realm: DynamicRealm, list: RealmList<E>): Flowable<RealmList<E>> {
+                return Flowable.just(null)
+            }
+
+            override fun <E : RealmModel?> from(realm: Realm, `object`: E): Flowable<E> {
+                return Flowable.just(null)
+            }
+
+            override fun from(realm: DynamicRealm, `object`: DynamicRealmObject): Flowable<DynamicRealmObject> {
+                return Flowable.just(null)
+            }
+
+            override fun <E : Any?> from(realm: Realm, query: RealmQuery<E>): Single<RealmQuery<E>> {
+                return Single.just(null)
+            }
+
+            override fun <E : Any?> from(realm: DynamicRealm, query: RealmQuery<E>): Single<RealmQuery<E>> {
+                return Single.just(null)
+            }
+
+            override fun <E : Any?> changesetsFrom(realm: Realm, results: RealmResults<E>): Observable<CollectionChange<RealmResults<E>>> {
+                return Observable.just(null)
+            }
+
+            override fun <E : Any?> changesetsFrom(realm: DynamicRealm, results: RealmResults<E>): Observable<CollectionChange<RealmResults<E>>> {
+                return Observable.just(null)
+            }
+
+            override fun <E : Any?> changesetsFrom(realm: Realm, list: RealmList<E>): Observable<CollectionChange<RealmList<E>>> {
+                return Observable.just(null)
+            }
+
+            override fun <E : Any?> changesetsFrom(realm: DynamicRealm, list: RealmList<E>): Observable<CollectionChange<RealmList<E>>> {
+                return Observable.just(null)
+            }
+
+            override fun <E : RealmModel?> changesetsFrom(realm: Realm, `object`: E): Observable<ObjectChange<E>> {
+                return Observable.just(null)
+            }
+
+            override fun changesetsFrom(realm: DynamicRealm, `object`: DynamicRealmObject): Observable<ObjectChange<DynamicRealmObject>> {
+                return Observable.just(null)
+            }
+
+        }
+
+        val configuration1 = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+                .rxFactory(factory)
+                .build()
+        assertEquals(factory, configuration1.rxFactory)
+
+        val configuration2 = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+                .build()
+        assertNotEquals(factory, configuration2.rxFactory)
+    }
+
+    @Test
+    fun flowFactory_defaultNonNull() {
+        val configuration = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+                .build()
+        assertNotNull(configuration.flowFactory)
+    }
+
+    @Test
+    fun flowFactory_nullThrows() {
+        assertFailsWith<IllegalArgumentException> {
+            SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+                    .flowFactory(TestHelper.getNull())
+        }.let {
+            assertTrue(it.message!!.contains("null"))
+        }
+    }
+
+    @Test
+    fun flowFactory() {
+        val factory = object : FlowFactory {
+            override fun from(realm: Realm): Flow<Realm> {
+                return flowOf()
+            }
+
+            override fun from(dynamicRealm: DynamicRealm): Flow<DynamicRealm> {
+                return flowOf()
+            }
+
+            override fun <T : Any?> from(realm: Realm, results: RealmResults<T>): Flow<RealmResults<T>> {
+                return flowOf()
+            }
+
+            override fun <T : Any?> from(dynamicRealm: DynamicRealm, results: RealmResults<T>): Flow<RealmResults<T>> {
+                return flowOf()
+            }
+
+            override fun <T : Any?> from(realm: Realm, realmList: RealmList<T>): Flow<RealmList<T>> {
+                return flowOf()
+            }
+
+            override fun <T : Any?> from(dynamicRealm: DynamicRealm, realmList: RealmList<T>): Flow<RealmList<T>> {
+                return flowOf()
+            }
+
+            override fun <T : RealmModel?> from(realm: Realm, realmObject: T): Flow<T> {
+                return flowOf()
+            }
+
+            override fun from(dynamicRealm: DynamicRealm, dynamicRealmObject: DynamicRealmObject): Flow<DynamicRealmObject> {
+                return flowOf()
+            }
+
+            override fun <T : Any?> changesetFrom(realm: Realm, results: RealmResults<T>): Flow<CollectionChange<RealmResults<T>>> {
+                return flowOf()
+            }
+
+            override fun <T : Any?> changesetFrom(dynamicRealm: DynamicRealm, results: RealmResults<T>): Flow<CollectionChange<RealmResults<T>>> {
+                return flowOf()
+            }
+
+            override fun <T : Any?> changesetFrom(realm: Realm, list: RealmList<T>): Flow<CollectionChange<RealmList<T>>> {
+                return flowOf()
+            }
+
+            override fun <T : Any?> changesetFrom(dynamicRealm: DynamicRealm, list: RealmList<T>): Flow<CollectionChange<RealmList<T>>> {
+                return flowOf()
+            }
+
+            override fun <T : RealmModel?> changesetFrom(realm: Realm, realmObject: T): Flow<ObjectChange<T>> {
+                return flowOf()
+            }
+
+            override fun changesetFrom(dynamicRealm: DynamicRealm, dynamicRealmObject: DynamicRealmObject): Flow<ObjectChange<DynamicRealmObject>> {
+                return flowOf()
+            }
+        }
+
+        val configuration1 = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+                .flowFactory(factory)
+                .build()
+        assertEquals(factory, configuration1.flowFactory)
+
+        val configuration2 = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+                .build()
+        assertNotEquals(factory, configuration2.flowFactory)
     }
 }
