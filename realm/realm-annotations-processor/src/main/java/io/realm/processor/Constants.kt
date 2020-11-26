@@ -49,8 +49,7 @@ object Constants {
             "java.util.Date" to RealmFieldType.DATE,
             "byte[]" to RealmFieldType.BINARY,
             "org.bson.types.Decimal128" to RealmFieldType.DECIMAL128,
-            "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID,
-            "io.realm.Mixed" to RealmFieldType.MIXED
+            "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID
     )
 
     val LIST_ELEMENT_TYPE_TO_REALM_TYPES = mapOf(
@@ -65,8 +64,7 @@ object Constants {
             "java.util.Date" to RealmFieldType.DATE_LIST,
             "byte[]" to RealmFieldType.BINARY_LIST,
             "org.bson.types.Decimal128" to RealmFieldType.DECIMAL128_LIST,
-            "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID_LIST,
-            "io.realm.Mixed" to RealmFieldType.MIXED_LIST
+            "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID_LIST
     )
 
     /**
