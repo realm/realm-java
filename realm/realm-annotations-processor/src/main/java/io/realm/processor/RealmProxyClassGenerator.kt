@@ -2421,7 +2421,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         return fieldTypeMetaData?.embedded ?: type.isEmbedded()
     }
 
-
     private fun TypeMirror.isEmbedded() : Boolean {
         var isEmbedded = false
 
