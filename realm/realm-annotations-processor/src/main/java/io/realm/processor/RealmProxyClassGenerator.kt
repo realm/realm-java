@@ -2410,11 +2410,11 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
     }
 
-    // Returns whether a type of a  Realm field is embedded or not.
-    // If the type class is part of this processing round then lookup the class metadata from 'classCollection'
-    // then invoke 'embedded' property, Otherwise the class might not be present within the 'classCollection' because it was
-    // processed from another module for example, then use the compiler tool api to find out if it was annotated with 'embedded'
-    // the second method could be slightly slower this is why we default to the first appraoch.
+    // Returns whether a type of a Realm field is embedded or not.
+    // For types which are part of this processing round we can look it up immediately from 
+    // the metadata in the `classCollection`. For types defined in other modules we will 
+    // have to use the slower approach of inspecting the `embedded` property of the
+    // RealmClass annotation using the compiler tool api. 
     private fun isFieldTypeEmbedded(type: TypeMirror) : Boolean  {
         val fieldType = QualifiedClassName(type)
         val fieldTypeMetaData: ClassMetaData? = classCollection.getClassFromQualifiedNameOrNull(fieldType)
