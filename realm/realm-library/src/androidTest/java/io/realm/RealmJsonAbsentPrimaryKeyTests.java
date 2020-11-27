@@ -36,6 +36,7 @@ import io.realm.entities.PrimaryKeyAsBoxedByte;
 import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
+import io.realm.entities.PrimaryKeyAsObjectId;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -68,11 +69,12 @@ public class RealmJsonAbsentPrimaryKeyTests {
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][]{
-            {PrimaryKeyAsBoxedByte.class,    "{ \"name\":\"HaHaHaHaHaHaHaHaH\" }"},
-            {PrimaryKeyAsBoxedShort.class,   "{ \"name\":\"KeyValueTestIsFun\" }"},
-            {PrimaryKeyAsBoxedInteger.class, "{ \"name\":\"FunValueTestIsKey\" }"},
-            {PrimaryKeyAsBoxedLong.class,    "{ \"name\":\"NameAsBoxedLong-!\" }"},
-            {PrimaryKeyAsString.class,       "{ \"id\":2429214 }"}
+                {PrimaryKeyAsBoxedByte.class, "{ \"name\":\"HaHaHaHaHaHaHaHaH\" }"},
+                {PrimaryKeyAsBoxedShort.class, "{ \"name\":\"KeyValueTestIsFun\" }"},
+                {PrimaryKeyAsBoxedInteger.class, "{ \"name\":\"FunValueTestIsKey\" }"},
+                {PrimaryKeyAsBoxedLong.class, "{ \"name\":\"NameAsBoxedLong-!\" }"},
+                {PrimaryKeyAsString.class, "{ \"id\":2429214 }"},
+                {PrimaryKeyAsObjectId.class, "{ \"name\":\"789ABCDEF0123456789ABCDE\" }"}
         });
     }
 
