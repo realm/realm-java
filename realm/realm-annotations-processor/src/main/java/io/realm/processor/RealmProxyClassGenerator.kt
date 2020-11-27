@@ -2425,11 +2425,12 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         if (this is Type.ClassType) {
             val declarationAttributes: com.sun.tools.javac.util.List<Attribute.Compound>? = tsym.metadata?.declarationAttributes
             if (declarationAttributes != null) {
-                for (attribute: Attribute.Compound in declarationAttributes) {
+                loop@for (attribute: Attribute.Compound in declarationAttributes) {
                     if (attribute.type.tsym.qualifiedName.toString() == "io.realm.annotations.RealmClass") {
                         for (pair: Pair<Symbol.MethodSymbol, Attribute> in attribute.values) {
                             if (pair.fst.name.toString() == "embedded") {
                                 isEmbedded = pair.snd.value as Boolean
+                                break@loop
                             }
                         }
                     }
