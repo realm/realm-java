@@ -143,6 +143,8 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject {
 
     @Override
     public Collection<V> values() {
+        // TODO: figure out whether we should return a Java collection or our RealmSet solution:
+        // TODO: unmanaged vs. managed
         return mapStrategy.values();
     }
 
@@ -156,6 +158,7 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject {
     // ------------------------------------------
 
     public RealmMap<K, V> freeze() {
+        // TODO: investigate Freezable interface
         return mapStrategy.freeze();
     }
 
@@ -280,52 +283,52 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject {
 
         @Override
         public boolean isEmpty() {
-            return false;
+            return mapOperator.isEmpty();
         }
 
         @Override
         public boolean containsKey(Object key) {
-            return false;
+            return mapOperator.containsKey(key);
         }
 
         @Override
         public boolean containsValue(Object value) {
-            return false;
+            return mapOperator.containsKey(value);
         }
 
         @Override
         public V get(Object key) {
-            return null;
+            return mapOperator.get(key);
         }
 
         @Override
         public V remove(Object key) {
-            return null;
+            return mapOperator.remove(key);
         }
 
         @Override
         public void putAll(Map<? extends K, ? extends V> m) {
-
+            mapOperator.putAll(m);
         }
 
         @Override
         public void clear() {
-
+            mapOperator.clear();
         }
 
         @Override
         public Set<K> keySet() {
-            return null;
+            return mapOperator.keySet();
         }
 
         @Override
         public Collection<V> values() {
-            return null;
+            return mapOperator.values();
         }
 
         @Override
         public Set<Entry<K, V>> entrySet() {
-            return null;
+            return mapOperator.entrySet();
         }
 
         // ------------------------------------------
@@ -340,11 +343,6 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject {
         @Override
         protected V putInternal(K key, V value) {
             return null;
-        }
-
-        private boolean isAttached() {
-            // FIXME
-            return true;
         }
     }
 
