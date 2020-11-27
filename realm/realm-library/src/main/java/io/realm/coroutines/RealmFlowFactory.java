@@ -32,13 +32,22 @@ import kotlinx.coroutines.flow.Flow;
 
 /**
  * Factory class used to create coroutine {@link Flow}s.
- *
- * This class is used by default unless overridden in {@link io.realm.RealmConfiguration.Builder#flowFactory(FlowFactory}.
+ * <p>
+ * This class is used by default unless overridden in {@link io.realm.RealmConfiguration.Builder#flowFactory(FlowFactory)}.
  */
 @Beta
 public class RealmFlowFactory implements FlowFactory {
 
-    private final InternalFlowFactory factory = new InternalFlowFactory(true);
+    private final InternalFlowFactory factory;
+
+    /**
+     * Constructor for the Flow factory.
+     *
+     * @param returnFrozenObjects whether the emissions should return frozen objects or not.
+     */
+    public RealmFlowFactory(Boolean returnFrozenObjects) {
+        this.factory = new InternalFlowFactory(returnFrozenObjects);
+    }
 
     @Override
     public Flow<Realm> from(@Nonnull Realm realm) {

@@ -1105,7 +1105,7 @@ public class SyncConfiguration extends RealmConfiguration {
             }
 
             if (flowFactory == null && Util.isCoroutinesAvailable()) {
-                flowFactory = new RealmFlowFactory();
+                flowFactory = new RealmFlowFactory(true);
             }
 
             URI resolvedServerUrl = serverUrl;

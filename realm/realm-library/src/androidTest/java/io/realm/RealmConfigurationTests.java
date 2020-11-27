@@ -87,7 +87,7 @@ public class RealmConfigurationTests {
     public final ExpectedException thrown = ExpectedException.none();
 
     private Context context;
-    private  RealmConfiguration defaultConfig;
+    private RealmConfiguration defaultConfig;
     private Realm realm;
 
     @Before
@@ -388,8 +388,8 @@ public class RealmConfigurationTests {
         RealmConfiguration.Builder builder = configFactory.createConfigurationBuilder();
         try {
             builder
-                .assetFile("asset_file.realm")
-                .deleteRealmIfMigrationNeeded();
+                    .assetFile("asset_file.realm")
+                    .deleteRealmIfMigrationNeeded();
             fail();
         } catch (IllegalStateException expected) {
             assertEquals("Realm cannot clear its schema when previously configured to use an asset file by calling assetFile().",
@@ -803,9 +803,9 @@ public class RealmConfigurationTests {
 
     @Test
     public void rxFactory_nullThrows() {
+        RealmConfiguration.Builder builder = configFactory.createConfigurationBuilder();
         try {
-            configFactory.createConfigurationBuilder()
-                    .rxFactory(null);
+            builder.rxFactory(null);
             fail("Setting a null factory from Java should fail.");
         } catch (IllegalArgumentException e) {
             assertTrue(e.getMessage().contains("null"));
