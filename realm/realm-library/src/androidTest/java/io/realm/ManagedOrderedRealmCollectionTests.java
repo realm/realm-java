@@ -114,7 +114,6 @@ import static org.junit.Assert.fail;
  */
 
 @RunWith(Parameterized.class)
-@Ignore
 public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
     private static final int TEST_SIZE = 10;
