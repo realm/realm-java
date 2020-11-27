@@ -383,11 +383,12 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             emitAnnotation("Override")
             beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value")
             emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field)) {
-                // set value as default value
                 emitStatement("final Row row = proxyState.getRow\$realm()")
+
                 emitStatement("row.getTable().setMixed(%s, row.getObjectKey(), value, true)", fieldColKeyVariableReference(field))
                 emitStatement("return")
             }
+
             emitStatement("proxyState.getRealm\$realm().checkIfValid()")
             emitStatement("proxyState.getRow\$realm().setMixed(%s, value)", fieldColKeyVariableReference(field))
 
@@ -981,7 +982,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 "io.realm.Mixed" -> {
                     emitStatement("io.realm.Mixed %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                    emitStatement("Table.nativeSetMixed(tableNativePtr, columnInfo.%sColKey, objKey, %s, false)", fieldName, getter)
+                    emitStatement("Table.setMixed(tableNativePtr, columnInfo.%sColKey, objKey, %s, false)", fieldName, getter)
                     if (isUpdate) {
                         nextControlFlow("else")
                         emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)

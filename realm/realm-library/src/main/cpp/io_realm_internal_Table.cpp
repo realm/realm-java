@@ -435,14 +435,20 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsNull(JNIEnv*, jo
 
 // ----------------- Mixed getters
 
-JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeMixedGetType(JNIEnv* env, jobject, jlong nativeTableRefPtr,
+JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeMixedGetType(JNIEnv* env, jclass, jlong nativeTableRefPtr,
                                                                        jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
     if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
         // TODO: Throw exception
     }
-    return table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey)).get_type();
+    auto mixed = table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey));
+
+    if(mixed.is_null()){
+        return -1;
+    } else {
+        return mixed.get_type();
+    }
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMixedAsLong(JNIEnv* env, jclass, jlong nativeTableRefPtr,
@@ -459,7 +465,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMixedAsLong(JNIEnv* e
     return 0;
 }
 
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeMixedAsBoolean(JNIEnv* env, jobject, jlong nativeTableRefPtr,
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeMixedAsBoolean(JNIEnv* env, jclass, jlong nativeTableRefPtr,
                                                                        jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
@@ -473,7 +479,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeMixedAsBoolean(JNI
     return JNI_FALSE;
 }
 
-JNIEXPORT jfloat JNICALL Java_io_realm_internal_Table_nativeMixedAsFloat(JNIEnv* env, jobject, jlong nativeTableRefPtr,
+JNIEXPORT jfloat JNICALL Java_io_realm_internal_Table_nativeMixedAsFloat(JNIEnv* env, jclass, jlong nativeTableRefPtr,
                                                                        jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
@@ -487,7 +493,7 @@ JNIEXPORT jfloat JNICALL Java_io_realm_internal_Table_nativeMixedAsFloat(JNIEnv*
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMixedAsDouble(JNIEnv* env, jobject, jlong nativeTableRefPtr,
+JNIEXPORT jdouble JNICALL Java_io_realm_internal_Table_nativeMixedAsDouble(JNIEnv* env, jclass, jlong nativeTableRefPtr,
                                                                        jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
@@ -501,7 +507,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMixedAsDouble(JNIEnv*
     return 0;
 }
 
-JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeMixedAsString(JNIEnv* env, jobject, jlong nativeTableRefPtr,
+JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeMixedAsString(JNIEnv* env, jclass, jlong nativeTableRefPtr,
                                                                        jlong columnKey, jlong rowKey) {
     TableRef table = TBL_REF(nativeTableRefPtr);
     if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
@@ -516,7 +522,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeMixedAsString(JNIEn
 
 }
 
-JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Table_nativeMixedAsByteArray(JNIEnv* env, jobject, jlong nativeTableRefPtr,
+JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Table_nativeMixedAsByteArray(JNIEnv* env, jclass, jlong nativeTableRefPtr,
                                                                        jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
@@ -532,7 +538,7 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Table_nativeMixedAsByteArray
     return nullptr;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMixedAsTimestamp(JNIEnv* env, jobject, jlong nativeTableRefPtr,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMixedAsTimestamp(JNIEnv* env, jclass, jlong nativeTableRefPtr,
                                                                        jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
@@ -546,7 +552,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMixedAsTimestamp(JNIE
     return 0;
 }
 
-JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeMixedAsObjectId(JNIEnv* env, jobject, jlong nativeTableRefPtr,
+JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeMixedAsObjectId(JNIEnv* env, jclass, jlong nativeTableRefPtr,
                                                                        jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
@@ -560,7 +566,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeMixedAsObjectId(JNI
     return nullptr;
 }
 
-JNIEXPORT jlongArray JNICALL Java_io_realm_internal_Table_nativeMixedAsDecimal128(JNIEnv* env, jobject, jlong nativeTableRefPtr,
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_Table_nativeMixedAsDecimal128(JNIEnv* env, jclass, jlong nativeTableRefPtr,
                                                                        jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
@@ -573,16 +579,6 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_Table_nativeMixedAsDecimal12
     }
     CATCH_STD()
     return nullptr;
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMixedAsObject(JNIEnv* env, jobject, jlong nativeTableRefPtr,
-                                                                       jlong columnKey, jlong rowKey)
-{
-    TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
-        return 0;
-    }
-    return table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey)).get_link().get_obj_key().value;
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeMixedIsNull(JNIEnv* env, jobject, jlong nativeTableRefPtr,

@@ -269,17 +269,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeMixedAddObject
-        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jlong row_ptr)
-{
-    try {
-        // TODO: Implement with correct behavior
-        const JavaValue value(reinterpret_cast<Obj*>(row_ptr));
-        add_property(data_ptr, column_key, value);
-    }
-    CATCH_STD()
-}
-
 static inline const ObjectSchema& get_schema(const Schema& schema, TableRef table)
 {
     std::string table_name(table->get_name());

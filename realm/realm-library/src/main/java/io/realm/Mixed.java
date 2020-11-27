@@ -1,3 +1,19 @@
+/*
+ * Copyright 2020 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.realm;
 
 import org.bson.types.Decimal128;
@@ -7,20 +23,37 @@ import java.util.Date;
 
 import javax.annotation.Nullable;
 
-import io.realm.annotations.RealmField;
 import io.realm.internal.ManageableObject;
-import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 
+
+/**
+ * {@link Mixed} is used to represent a polymorphic Realm value.
+ * It has two modes: a managed and unmanaged mode. In managed mode contents are persisted inside a Realm, in
+ * unmanaged mode contents are persisted in the object instance.
+ * <p>
+ * Only Realm can create managed Mixed. Managed Mixed will automatically update the content whenever the
+ * underlying Realm is updated, and can only be accessed using the getter of a {@link io.realm.Mixed}.
+ * <p>
+ * Unmanaged Mixed can be created by the user and can contain any Realm value, or both managed and unmanaged RealmObjects.
+ */
 public abstract class Mixed implements ManageableObject {
     private static final class Unmanaged extends Mixed {
         @Nullable
-        private Object value;
+        private final Object value;
         @Nullable
-        private RealmFieldType fieldType;
+        private final MixedType mixedType;
 
-        Unmanaged() {}
+        Unmanaged() {
+            this.value = null;
+            this.mixedType = MixedType.NO_TYPE;
+        }
+
+        Unmanaged(@Nullable Object value, MixedType mixedType) {
+            this.value = value;
+            this.mixedType = (value == null) ? MixedType.NO_TYPE : mixedType;
+        }
 
         @Override
         public boolean isManaged() {
@@ -38,16 +71,8 @@ public abstract class Mixed implements ManageableObject {
         }
 
         @Override
-        protected <T> Mixed set(@Nullable T value, RealmFieldType fieldType) {
-            this.value = value;
-            this.fieldType = fieldType;
-
-            return this;
-        }
-
-        @Override
         @Nullable
-        protected <T> T get(Class<T> clazz, RealmFieldType fieldType) {
+        protected <T> T get(Class<T> clazz, MixedType fieldType) {
             return clazz.cast(value);
         }
 
@@ -57,8 +82,8 @@ public abstract class Mixed implements ManageableObject {
         }
 
         @Override
-        public RealmFieldType getType() {
-            return fieldType;
+        public MixedType getType() {
+            return mixedType;
         }
     }
 
@@ -83,35 +108,14 @@ public abstract class Mixed implements ManageableObject {
         }
 
         @Override
-        protected <T> Mixed set(@Nullable T value, RealmFieldType fieldType) {
-            // TODO: Shall we check types? Devs could subclass Mixed to get access to this method
-
-            ProxyState<M> proxyState = getProxyState();
-            proxyState.getRealm$realm().checkIfValidAndInTransaction();
-
-            if (!proxyState.isUnderConstruction()) {
-                setValue(value, fieldType, false);
-                return this;
-            }
-
-            if (!proxyState.getAcceptDefaultValue$realm()) {
-                return this;
-            }
-
-            setValue(value, fieldType, true);
-
-            return this;
-        }
-
-        @Override
         @Nullable
-        protected <T> T get(Class<T> clazz, RealmFieldType fieldType) {
+        protected <T> T get(Class<T> clazz, MixedType fieldType) {
             Row row = getRow();
             Table table = row.getTable();
             long rowIndex = row.getObjectKey();
             long columnIndex = getColumnIndex();
 
-            switch (fieldType){
+            switch (fieldType) {
                 case INTEGER:
                     return clazz.cast(table.mixedAsLong(columnIndex, rowIndex));
                 case BOOLEAN:
@@ -130,8 +134,6 @@ public abstract class Mixed implements ManageableObject {
                     return clazz.cast(table.mixedAsObjectId(columnIndex, rowIndex));
                 case DECIMAL128:
                     return clazz.cast(table.mixedAsDecimal128(columnIndex, rowIndex));
-                case OBJECT:
-                    return clazz.cast(table.mixedAsLink(columnIndex, rowIndex));
                 default:
                     throw new ClassCastException("Couldn't cast to " + fieldType);
             }
@@ -139,12 +141,7 @@ public abstract class Mixed implements ManageableObject {
 
         @Override
         public boolean isNull() {
-            Row row = getRow();
-            Table table = row.getTable();
-            long rowIndex = row.getObjectKey();
-            long columnIndex = getColumnIndex();
-
-            return table.mixedIsNull(columnIndex, rowIndex);
+            return getType() == MixedType.NO_TYPE;
         }
 
         private BaseRealm getRealm() {
@@ -152,161 +149,243 @@ public abstract class Mixed implements ManageableObject {
         }
 
         @Override
-        public RealmFieldType getType() {
+        public MixedType getType() {
             Row row = getRow();
             Table table = row.getTable();
             long rowIndex = row.getObjectKey();
             long columnIndex = getColumnIndex();
 
-            return RealmFieldType.fromNativeValue(table.mixedGetType(columnIndex, rowIndex));
+            return MixedType.fromNativeValue(table.mixedGetType(columnIndex, rowIndex));
         }
 
         private Row getRow() {
             return getProxyState().getRow$realm();
         }
-
-        private <T> void setValue(@Nullable T value, RealmFieldType fieldType, boolean isDefault) {
-            Row row = getRow();
-            Table table = row.getTable();
-            long rowIndex = row.getObjectKey();
-            long columnIndex = getColumnIndex();
-
-            if (value == null) {
-                table.mixedSetNull(columnIndex, rowIndex, isDefault);
-            } else {
-                switch (fieldType) {
-                    case INTEGER:
-                        table.mixedSetLong(columnIndex, rowIndex, (Long) value, isDefault);
-                        break;
-                    case BOOLEAN:
-                        table.mixedSetBoolean(columnIndex, rowIndex, (Boolean) value, isDefault);
-                        break;
-                    case FLOAT:
-                        table.mixedSetFloat(columnIndex, rowIndex, (Float) value, isDefault);
-                        break;
-                    case DOUBLE:
-                        table.mixedSetDouble(columnIndex, rowIndex, (Double) value, isDefault);
-                        break;
-                    case STRING:
-                        table.mixedSetString(columnIndex, rowIndex, (String) value, isDefault);
-                        break;
-                    case BINARY:
-                        table.mixedSetBinaryByteArray(columnIndex, rowIndex, (byte[]) value, isDefault);
-                        break;
-                    case DATE:
-                        table.mixedSetDate(columnIndex, rowIndex, (Date) value, isDefault);
-                        break;
-                    case OBJECT_ID:
-                        table.mixedSetObjectId(columnIndex, rowIndex, (ObjectId) value, isDefault);
-                        break;
-                    case DECIMAL128:
-                        table.mixedSetDecimal128(columnIndex, rowIndex, (Decimal128) value, isDefault);
-                        break;
-                    case OBJECT:
-                        table.mixedSetLink(columnIndex, rowIndex, ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getObjectKey(), isDefault);
-                        break;
-                    default:
-                        //TODO: throw exception
-                }
-            }
-        }
     }
-
-    protected abstract <T> Mixed set(@Nullable T value, RealmFieldType fieldType);
 
     @Nullable
-    protected abstract <T> T get(Class<T> clazz, RealmFieldType fieldType);
+    protected abstract <T> T get(Class<T> clazz, MixedType fieldType);
 
-    public static Mixed valueOf(Long value) {
-        return new Unmanaged().set(value, RealmFieldType.INTEGER);
+    /**
+     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NO_TYPE} otherwise.
+     *
+     * @param value initial value
+     * @return a new, unmanaged {@link Mixed} of a Long
+     */
+    public static Mixed valueOf(@Nullable Long value) {
+        return new Unmanaged(value, MixedType.INTEGER);
     }
 
+    /**
+     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * If the value is not null the type will be {@link MixedType#BOOLEAN}, {@link MixedType#NO_TYPE} otherwise.
+     *
+     * @param value initial value
+     * @return a new, unmanaged {@link Mixed} of a Boolean
+     */
+    public static Mixed valueOf(@Nullable Boolean value) {
+        return new Unmanaged(value, MixedType.BOOLEAN);
+    }
+
+    /**
+     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * If the value is not null the type will be {@link MixedType#FLOAT}, {@link MixedType#NO_TYPE} otherwise.
+     *
+     * @param value initial value
+     * @return a new, unmanaged {@link Mixed} of a Float
+     */
+    public static Mixed valueOf(@Nullable Float value) {
+        return new Unmanaged(value, MixedType.FLOAT);
+    }
+
+    /**
+     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * If the value is not null the type will be {@link MixedType#DOUBLE}, {@link MixedType#NO_TYPE} otherwise.
+     *
+     * @param value initial value
+     * @return a new, unmanaged {@link Mixed} of a Double
+     */
+    public static Mixed valueOf(@Nullable Double value) {
+        return new Unmanaged(value, MixedType.DOUBLE);
+    }
+
+    /**
+     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * If the value is not null the type will be {@link MixedType#STRING}, {@link MixedType#NO_TYPE} otherwise.
+     *
+     * @param value initial value
+     * @return a new, unmanaged {@link Mixed} of a String
+     */
+    public static Mixed valueOf(@Nullable String value) {
+        return new Unmanaged(value, MixedType.STRING);
+    }
+
+    /**
+     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * If the value is not null the type will be {@link MixedType#BINARY}, {@link MixedType#NO_TYPE} otherwise.
+     *
+     * @param value initial value
+     * @return a new, unmanaged {@link Mixed} of a byte[]
+     */
+    public static Mixed valueOf(@Nullable byte[] value) {
+        return new Unmanaged(value, MixedType.BINARY);
+    }
+
+    /**
+     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * If the value is not null the type will be {@link MixedType#DATE}, {@link MixedType#NO_TYPE} otherwise.
+     *
+     * @param value initial value
+     * @return a new, unmanaged {@link Mixed} of a Date
+     */
+    public static Mixed valueOf(@Nullable Date value) {
+        return new Unmanaged(value, MixedType.DATE);
+    }
+
+    /**
+     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * If the value is not null the type will be {@link MixedType#OBJECT_ID}, {@link MixedType#NO_TYPE} otherwise.
+     *
+     * @param value initial value
+     * @return a new, unmanaged {@link Mixed} of a ObjectId
+     */
+    public static Mixed valueOf(@Nullable ObjectId value) {
+        return new Unmanaged(value, MixedType.OBJECT_ID);
+    }
+
+    /**
+     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * If the value is not null the type will be {@link MixedType#DECIMAL128}, {@link MixedType#NO_TYPE} otherwise.
+     *
+     * @param value initial value
+     * @return a new, unmanaged {@link Mixed} of a Decimal128
+     */
+    public static Mixed valueOf(@Nullable Decimal128 value) {
+        return new Unmanaged(value, MixedType.DECIMAL128);
+    }
+
+    /**
+     * Creates a new, unmanaged {@link Mixed} of a null value
+     *
+     * @return a new, unmanaged {@link Mixed} instance of a null value
+     */
+    public static Mixed nullValue() {
+        return new Unmanaged();
+    }
+
+    /**
+     * Returns true if the inner value is null, false otherwise.
+     *
+     * @return true if the inner value is null, false otherwise
+     */
     public abstract boolean isNull();
 
-    public abstract RealmFieldType getType();
+    /**
+     * Gets the inner type of this Mixed object.
+     *
+     * @return the inner MixedType
+     */
+    public abstract MixedType getType();
 
-    public void set(Integer value) {
-        set(value, RealmFieldType.INTEGER);
-    }
-
-    public void set(Boolean value) {
-        set(value, RealmFieldType.BOOLEAN);
-    }
-
-    public void set(Float value) {
-        set(value, RealmFieldType.FLOAT);
-    }
-
-    public void set(Double value) {
-        set(value, RealmFieldType.DOUBLE);
-    }
-
-    public void set(String value) {
-        set(value, RealmFieldType.STRING);
-    }
-
-    public void set(byte[] value) {
-        set(value, RealmFieldType.BINARY);
-    }
-
-    public void set(Date value) {
-        set(value, RealmFieldType.DATE);
-    }
-
-    public void set(ObjectId value) {
-        set(value, RealmFieldType.OBJECT_ID);
-    }
-
-    public void set(Decimal128 value) {
-        set(value, RealmFieldType.DECIMAL128);
-    }
-
-    public void set(RealmModel value) {
-        set(value, RealmFieldType.OBJECT);
-    }
-
-    // TODO: Should be able to copy mixed into mixed?
-    //    public void set(Mixed value) {
-    //        set(value, Mixed.class);
-    //    }
-
+    /**
+     * Gets this value as a Long if it is one, otherwise throws exception.
+     *
+     * @return a Long
+     * @throws java.lang.ClassCastException if this value is not of the expected type
+     */
     public Long asInteger() {
-        return get(Long.class, RealmFieldType.INTEGER);
+        return get(Long.class, MixedType.INTEGER);
     }
 
+    /**
+     * Gets this value as a Boolean if it is one, otherwise throws exception.
+     *
+     * @return a Boolean
+     * @throws java.lang.ClassCastException if this value is not of the expected type
+     */
     public Boolean asBoolean() {
-        return get(Boolean.class, RealmFieldType.BOOLEAN);
+        return get(Boolean.class, MixedType.BOOLEAN);
     }
 
+    /**
+     * Gets this value as a Float if it is one, otherwise throws exception.
+     *
+     * @return a Float
+     * @throws java.lang.ClassCastException if this value is not of the expected type
+     */
     public Float asFloat() {
-        return get(Float.class, RealmFieldType.FLOAT);
+        return get(Float.class, MixedType.FLOAT);
     }
 
+    /**
+     * Gets this value as a Double if it is one, otherwise throws exception.
+     *
+     * @return a Double
+     * @throws java.lang.ClassCastException if this value is not of the expected type
+     */
     public Double asDouble() {
-        return get(Double.class, RealmFieldType.DOUBLE);
+        return get(Double.class, MixedType.DOUBLE);
     }
 
+    /**
+     * Gets this value as a String if it is one, otherwise throws exception.
+     *
+     * @return a String
+     * @throws java.lang.ClassCastException if this value is not of the expected type
+     */
     public String asString() {
-        return get(String.class, RealmFieldType.STRING);
+        return get(String.class, MixedType.STRING);
     }
 
+    /**
+     * Gets this value as a byte[] if it is one, otherwise throws exception.
+     *
+     * @return a byte[]
+     * @throws java.lang.ClassCastException if this value is not of the expected type
+     */
     public byte[] asBinary() {
-        return get(byte[].class, RealmFieldType.BINARY);
+        return get(byte[].class, MixedType.BINARY);
     }
 
+    /**
+     * Gets this value as a Date if it is one, otherwise throws exception.
+     *
+     * @return a Date
+     * @throws java.lang.ClassCastException if this value is not of the expected type
+     */
     public Date asDate() {
-        return get(Date.class, RealmFieldType.DATE);
+        return get(Date.class, MixedType.DATE);
     }
 
+    /**
+     * Gets this value as a ObjectId if it is one, otherwise throws exception.
+     *
+     * @return a ObjectId
+     * @throws java.lang.ClassCastException if this value is not of the expected type
+     */
     public ObjectId asObjectId() {
-        return get(ObjectId.class, RealmFieldType.OBJECT_ID);
+        return get(ObjectId.class, MixedType.OBJECT_ID);
     }
 
+    /**
+     * Gets this value as a Decimal128 if it is one, otherwise throws exception.
+     *
+     * @return a Decimal128
+     * @throws java.lang.ClassCastException if this value is not of the expected type
+     */
     public Decimal128 asDecimal128() {
-        return get(Decimal128.class, RealmFieldType.DECIMAL128);
+        return get(Decimal128.class, MixedType.DECIMAL128);
     }
 
+    /**
+     * Gets this value as a RealmModel if it is one, otherwise throws exception.
+     *
+     * @param <T> the RealmModel type to cast the inner value to
+     * @return a RealmModel of the T type
+     * @throws java.lang.ClassCastException if this value is not of the expected type
+     */
     public <T extends RealmModel> T asRealmModel(Class<T> clazz) {
-        return get(clazz, RealmFieldType.OBJECT);
+        throw new NoSuchMethodError("Not implemented");
     }
 }

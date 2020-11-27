@@ -27,8 +27,6 @@ import io.realm.Mixed;
 import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 
-import static io.realm.RealmFieldType.*;
-
 
 /**
  * This class is a base class for all Realm tables. The class supports all low level methods
@@ -477,67 +475,6 @@ public class Table implements NativeObject {
         return Decimal128.fromIEEE754BIDEncoding(longs[0], longs[1]);
     }
 
-    public long mixedAsLink(long columnKey, long rowKey) {
-        return nativeMixedAsObject(nativeTableRefPtr, columnKey, rowKey);
-    }
-
-    // Mixed setters
-
-    public void mixedSetNull(long columnKey, long rowKey, boolean isDefault) {
-        checkImmutable();
-        nativeMixedSetNull(nativeTableRefPtr, columnKey, rowKey, isDefault);
-    }
-
-    public void mixedSetLong(long columnKey, long rowKey, long value, boolean isDefault) {
-        checkImmutable();
-        nativeMixedSetLong(nativeTableRefPtr, columnKey, rowKey, value, isDefault);
-    }
-
-    public void mixedSetBoolean(long columnKey, long rowKey, boolean value, boolean isDefault) {
-        checkImmutable();
-        nativeMixedSetBoolean(nativeTableRefPtr, columnKey, rowKey, value, isDefault);
-    }
-
-    public void mixedSetFloat(long columnKey, long rowKey, float value, boolean isDefault) {
-        checkImmutable();
-        nativeMixedSetFloat(nativeTableRefPtr, columnKey, rowKey, value, isDefault);
-    }
-
-    public void mixedSetDouble(long columnKey, long rowKey, double value, boolean isDefault) {
-        checkImmutable();
-        nativeMixedSetDouble(nativeTableRefPtr, columnKey, rowKey, value, isDefault);
-    }
-
-    public void mixedSetString(long columnKey, long rowKey, String value, boolean isDefault) {
-        checkImmutable();
-        nativeMixedSetString(nativeTableRefPtr, columnKey, rowKey, value, isDefault);
-    }
-
-    public void mixedSetBinaryByteArray(long columnKey, long rowKey, byte[] value, boolean isDefault) {
-        checkImmutable();
-        nativeMixedSetByteArray(nativeTableRefPtr, columnKey, rowKey, value, isDefault);
-    }
-
-    public void mixedSetDate(long columnKey, long rowKey, Date value, boolean isDefault) {
-        checkImmutable();
-        nativeMixedSetTimestamp(nativeTableRefPtr, columnKey, rowKey, value.getTime(), isDefault);
-    }
-
-    public void mixedSetObjectId(long columnKey, long rowKey, ObjectId value, boolean isDefault) {
-        checkImmutable();
-        nativeMixedSetObjectId(nativeTableRefPtr, columnKey, rowKey, value.toString(), isDefault);
-    }
-
-    public void mixedSetDecimal128(long columnKey, long rowKey, Decimal128 value, boolean isDefault) {
-        checkImmutable();
-        nativeMixedSetDecimal128(nativeTableRefPtr, columnKey, rowKey, value.getLow(), value.getHigh(), isDefault);
-    }
-
-    public void mixedSetLink(long columnKey, long rowKey, long value, boolean isDefault) {
-        checkImmutable();
-        nativeMixedSetLink(nativeTableRefPtr, columnKey, rowKey, value, isDefault);
-    }
-
     //
     // Setters
     //
@@ -613,12 +550,49 @@ public class Table implements NativeObject {
         }
     }
 
-    public void setMixed(long columnKey, long rowKey, @Nullable Mixed value, boolean isDefault){
+    public void setMixed(long columnKey, long rowKey, @Nullable Mixed value, boolean isDefault) {
         checkImmutable();
+        setMixed(nativeTableRefPtr, columnKey, rowKey, value, isDefault);
+    }
+
+    public static void setMixed(long nativeTableRefPtr, long columnKey, long rowKey, @Nullable Mixed value, boolean isDefault) {
         if (value == null) {
             nativeMixedSetNull(nativeTableRefPtr, columnKey, rowKey, isDefault);
         } else {
-            nativeSetMixed(nativeTableRefPtr, columnKey, rowKey, value, isDefault);
+            switch (value.getType()) {
+                case INTEGER:
+                    nativeMixedSetLong(nativeTableRefPtr, columnKey, rowKey, value.asInteger(), isDefault);
+                    break;
+                case BOOLEAN:
+                    nativeMixedSetBoolean(nativeTableRefPtr, columnKey, rowKey, value.asBoolean(), isDefault);
+                    break;
+                case FLOAT:
+                    nativeMixedSetFloat(nativeTableRefPtr, columnKey, rowKey, value.asFloat(), isDefault);
+                    break;
+                case DOUBLE:
+                    nativeMixedSetDouble(nativeTableRefPtr, columnKey, rowKey, value.asDouble(), isDefault);
+                    break;
+                case STRING:
+                    nativeMixedSetString(nativeTableRefPtr, columnKey, rowKey, value.asString(), isDefault);
+                    break;
+                case BINARY:
+                    nativeMixedSetByteArray(nativeTableRefPtr, columnKey, rowKey, value.asBinary(), isDefault);
+                    break;
+                case DATE:
+                    nativeMixedSetTimestamp(nativeTableRefPtr, columnKey, rowKey, value.asDate().getTime(), isDefault);
+                    break;
+                case OBJECT_ID:
+                    nativeMixedSetObjectId(nativeTableRefPtr, columnKey, rowKey, value.asObjectId().toString(), isDefault);
+                    break;
+                case DECIMAL128:
+                    Decimal128 decimalValue = value.asDecimal128();
+                    nativeMixedSetDecimal128(nativeTableRefPtr, columnKey, rowKey, decimalValue.getLow(), decimalValue.getHigh(), isDefault);
+                    break;
+                case NO_TYPE:
+                    nativeMixedSetNull(nativeTableRefPtr, columnKey, rowKey, isDefault);
+                    break;
+                default:
+            }
         }
     }
 
@@ -963,8 +937,6 @@ public class Table implements NativeObject {
 
     public static native String nativeMixedAsObjectId(long nativeTableRefPtr, long columnKey, long rowKey);
 
-    public static native long nativeMixedAsObject(long nativeTableRefPtr, long columnKey, long rowKey);
-
     public static native boolean nativeMixedIsNull(long nativeTableRefPtr, long columnKey, long rowKey);
 
     public static native void nativeMixedSetLong(long nativeTableRefPtr, long columnKey, long rowKey, long value, boolean isDefault);
@@ -1038,45 +1010,4 @@ public class Table implements NativeObject {
     private static native boolean nativeIsEmbedded(long nativeTableRefPtr);
 
     private static native boolean nativeSetEmbedded(long nativeTableRefPtr, boolean isEmbedded);
-
-    public static void nativeSetMixed(long nativeTableRefPtr, long columnIndex, long rowIndex, Mixed value, boolean isDefault) {
-        if (!value.isNull()) {
-            switch (value.getType()) {
-                case INTEGER:
-                    nativeMixedSetLong(nativeTableRefPtr, columnIndex, rowIndex, value.asInteger(), isDefault);
-                    break;
-                case BOOLEAN:
-                    nativeMixedSetBoolean(nativeTableRefPtr, columnIndex, rowIndex, value.asBoolean(), isDefault);
-                    break;
-                case FLOAT:
-                    nativeMixedSetFloat(nativeTableRefPtr, columnIndex, rowIndex, value.asFloat(), isDefault);
-                    break;
-                case DOUBLE:
-                    nativeMixedSetDouble(nativeTableRefPtr, columnIndex, rowIndex, value.asDouble(), isDefault);
-                    break;
-                case STRING:
-                    nativeMixedSetString(nativeTableRefPtr, columnIndex, rowIndex, value.asString(), isDefault);
-                    break;
-                case BINARY:
-                    nativeMixedSetByteArray(nativeTableRefPtr, columnIndex, rowIndex, value.asBinary(), isDefault);
-                    break;
-                case DATE:
-                    nativeMixedSetTimestamp(nativeTableRefPtr, columnIndex, rowIndex, value.asDate().getTime(), isDefault);
-                    break;
-                case OBJECT_ID:
-                    nativeMixedSetObjectId(nativeTableRefPtr, columnIndex, rowIndex, value.asObjectId().toString(), isDefault);
-                    break;
-                case DECIMAL128:
-                    Decimal128 decimalValue = value.asDecimal128();
-                    nativeMixedSetDecimal128(nativeTableRefPtr, columnIndex, rowIndex, decimalValue.getLow(), decimalValue.getHigh(), isDefault);
-                    break;
-                case OBJECT:
-                    nativeMixedSetLink(nativeTableRefPtr, columnIndex, rowIndex, ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getObjectKey(), isDefault);
-                    break;
-                default:
-            }
-        } else {
-            nativeMixedSetNull(nativeTableRefPtr, columnIndex, rowIndex, isDefault);
-        }
-    }
 }
