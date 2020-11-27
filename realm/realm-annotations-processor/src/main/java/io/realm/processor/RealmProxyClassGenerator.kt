@@ -2031,8 +2031,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         }
     }
 
-
-
     @Throws(IOException::class)
     private fun emitEqualsMethod(writer: JavaWriter) {
         if (metadata.containsEquals()) {
