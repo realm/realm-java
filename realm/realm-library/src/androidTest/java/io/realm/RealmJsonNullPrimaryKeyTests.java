@@ -31,12 +31,14 @@ import io.realm.entities.PrimaryKeyAsBoxedByte;
 import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
+import io.realm.entities.PrimaryKeyAsObjectId;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.PrimaryKeyAsUUID;
 import io.realm.objectid.NullPrimaryKey;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 @RunWith(Parameterized.class)
 public class RealmJsonNullPrimaryKeyTests {
@@ -68,6 +70,7 @@ public class RealmJsonNullPrimaryKeyTests {
                 {PrimaryKeyAsBoxedLong.class, "?YOUNOWKNOWRIGHT?", "{ \"id\":null, \"name\":\"?YOUNOWKNOWRIGHT?\" }"},
                 {PrimaryKeyAsString.class, "4299121", "{ \"name\":null, \"id\":4299121  }"},
                 {PrimaryKeyAsUUID.class, "-!dlroWolleH", "{ \"id\":null, \"name\":\"-!dlroWolleH\" }"},
+                {PrimaryKeyAsObjectId.class, "Samsquanch", "{ \"id\":null, \"name\":\"Samsquanch\" }"},
         });
     }
 
@@ -93,7 +96,7 @@ public class RealmJsonNullPrimaryKeyTests {
             RealmResults<PrimaryKeyAsString> results = realm.where(PrimaryKeyAsString.class).findAll();
             assertEquals(1, results.size());
             assertEquals(Long.valueOf(secondaryFieldValue).longValue(), results.first().getId());
-            assertEquals(null, results.first().getName());
+            assertNull(results.first().getName());
 
             // PrimaryKeyAsObjectId
         } else if (clazz.equals(PrimaryKeyAsUUID.class)) {
@@ -104,10 +107,11 @@ public class RealmJsonNullPrimaryKeyTests {
 
             // PrimaryKeyAsNumber
         } else {
+            // Other types
             RealmResults results = realm.where(clazz).findAll();
             assertEquals(1, results.size());
-            assertEquals(null, ((NullPrimaryKey)results.first()).getId());
-            assertEquals(secondaryFieldValue, ((NullPrimaryKey)results.first()).getName());
+            assertNull(((NullPrimaryKey) results.first()).getId());
+            assertEquals(secondaryFieldValue, ((NullPrimaryKey) results.first()).getName());
         }
     }
 
@@ -134,10 +138,11 @@ public class RealmJsonNullPrimaryKeyTests {
 
         // PrimaryKeyAsNumber
         } else {
+            // Other types
             RealmResults results = realm.where(clazz).findAll();
             assertEquals(1, results.size());
-            assertEquals(null, ((NullPrimaryKey)results.first()).getId());
-            assertEquals(secondaryFieldValue, ((NullPrimaryKey)results.first()).getName());
+            assertEquals(null, ((NullPrimaryKey) results.first()).getId());
+            assertEquals(secondaryFieldValue, ((NullPrimaryKey) results.first()).getName());
         }
     }
 
@@ -165,10 +170,11 @@ public class RealmJsonNullPrimaryKeyTests {
 
             // PrimaryKeyAsNumber
         } else {
+            // Other types
             RealmResults results = realm.where(clazz).findAll();
             assertEquals(1, results.size());
-            assertEquals(null, ((NullPrimaryKey)results.first()).getId());
-            assertEquals(secondaryFieldValue, ((NullPrimaryKey)results.first()).getName());
+            assertEquals(null, ((NullPrimaryKey) results.first()).getId());
+            assertEquals(secondaryFieldValue, ((NullPrimaryKey) results.first()).getName());
         }
     }
 }

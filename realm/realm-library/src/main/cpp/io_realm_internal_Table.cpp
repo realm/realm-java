@@ -40,13 +40,19 @@ static void finalize_table(jlong ptr);
 
 inline static bool is_allowed_to_index(JNIEnv* env, DataType column_type)
 {
-    if (!(column_type == type_String || column_type == type_Int || column_type == type_Bool ||
-          column_type == type_Timestamp || column_type == type_OldDateTime || column_type == type_UUID)) {
-        ThrowException(env, IllegalArgument, "This field cannot be indexed - "
-                                             "Only String/byte/short/int/long/boolean/Date/UUID fields are supported.");
-        return false;
+    if (column_type == type_String
+           || column_type == type_Int
+           || column_type == type_Bool
+           || column_type == type_Timestamp
+           || column_type == type_OldDateTime
+           || column_type == type_ObjectId
+           || column_type == type_UUID) {
+        return true;
     }
-    return true;
+
+    ThrowException(env, IllegalArgument, "This field cannot be indexed - "
+                                         "Only String/byte/short/int/long/boolean/Date/ObjectId fields are supported.");
+    return false;
 }
 
 // Note: Don't modify spec on a table which has a shared_spec.

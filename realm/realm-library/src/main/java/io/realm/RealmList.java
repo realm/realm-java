@@ -74,7 +74,14 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
 
     // Always null if RealmList is unmanaged, always non-null if managed.
     private final ManagedListOperator<E> osListOperator;
-    protected final BaseRealm realm;
+
+    /**
+     * The {@link BaseRealm} instance in which this list resides.
+     * <p>
+     * Warning: This field is only exposed for internal usage, and should not be used.
+     */
+    public final BaseRealm baseRealm;
+
     private List<E> unmanagedList;
 
     /**
@@ -85,7 +92,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * Use {@link io.realm.Realm#copyToRealm(Iterable, ImportFlag...)} to properly persist its elements in Realm.
      */
     public RealmList() {
-        realm = null;
+        baseRealm = null;
         osListOperator = null;
         unmanagedList = new ArrayList<>();
     }
@@ -104,7 +111,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (objects == null) {
             throw new IllegalArgumentException("The objects argument cannot be null");
         }
-        realm = null;
+        baseRealm = null;
         osListOperator = null;
         unmanagedList = new ArrayList<>(objects.length);
         Collections.addAll(unmanagedList, objects);
@@ -115,18 +122,18 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      *
      * @param clazz type of elements in the Array.
      * @param osList backing {@link OsList}.
-     * @param realm reference to Realm containing the data.
+     * @param baseRealm reference to Realm containing the data.
      */
-    RealmList(Class<E> clazz, OsList osList, BaseRealm realm) {
+    RealmList(Class<E> clazz, OsList osList, BaseRealm baseRealm) {
         this.clazz = clazz;
-        osListOperator = getOperator(realm, osList, clazz, null);
-        this.realm = realm;
+        osListOperator = getOperator(baseRealm, osList, clazz, null);
+        this.baseRealm = baseRealm;
     }
 
-    RealmList(String className, OsList osList, BaseRealm realm) {
-        this.realm = realm;
+    RealmList(String className, OsList osList, BaseRealm baseRealm) {
+        this.baseRealm = baseRealm;
         this.className = className;
-        osListOperator = getOperator(realm, osList, null, className);
+        osListOperator = getOperator(baseRealm, osList, null, className);
     }
 
     OsList getOsList() {
@@ -142,11 +149,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     @Override
     public boolean isValid() {
-        if (realm == null) {
+        if (baseRealm == null) {
             return true;
         }
         //noinspection SimplifiableIfStatement
-        if (realm.isClosed()) {
+        if (baseRealm.isClosed()) {
             return false;
         }
         return isAttached();
@@ -162,7 +169,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                 throw new IllegalStateException("Only valid, managed RealmLists can be frozen.");
             }
 
-            BaseRealm frozenRealm = realm.freeze();
+            BaseRealm frozenRealm = baseRealm.freeze();
             OsList frozenList = getOsList().freeze(frozenRealm.sharedRealm);
             if (className != null) {
                 return new RealmList<>(className, frozenList, frozenRealm);
@@ -179,7 +186,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     @Override
     public boolean isFrozen() {
-        return (realm != null && realm.isFrozen());
+        return (baseRealm != null && baseRealm.isFrozen());
     }
 
     /**
@@ -187,7 +194,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     @Override
     public boolean isManaged() {
-        return realm != null;
+        return baseRealm != null;
     }
 
     private boolean isAttached() {
@@ -367,7 +374,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     @Override
     public boolean remove(@Nullable Object object) {
-        if (isManaged() && !realm.isInTransaction()) {
+        if (isManaged() && !baseRealm.isInTransaction()) {
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
         return super.remove(object);
@@ -391,7 +398,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     @Override
     public boolean removeAll(Collection<?> collection) {
-        if (isManaged() && !realm.isInTransaction()) {
+        if (isManaged() && !baseRealm.isInTransaction()) {
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
         return super.removeAll(collection);
@@ -720,7 +727,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     @Override
     public boolean contains(@Nullable Object object) {
         if (isManaged()) {
-            realm.checkIfValid();
+            baseRealm.checkIfValid();
 
             // Deleted objects can never be part of a RealmList
             if (object instanceof RealmObjectProxy) {
@@ -772,7 +779,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     }
 
     private void checkValidRealm() {
-        realm.checkIfValid();
+        baseRealm.checkIfValid();
     }
 
     /**
@@ -789,15 +796,15 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         }
         if (className != null) {
             return new OrderedRealmCollectionSnapshot<>(
-                    realm,
-                    OsResults.createFromQuery(realm.sharedRealm, osListOperator.getOsList().getQuery()),
+                    baseRealm,
+                    OsResults.createFromQuery(baseRealm.sharedRealm, osListOperator.getOsList().getQuery()),
                     className);
         } else {
             // 'clazz' is non-null when 'dynamicClassName' is null.
             //noinspection ConstantConditions
             return new OrderedRealmCollectionSnapshot<>(
-                    realm,
-                    OsResults.createFromQuery(realm.sharedRealm, osListOperator.getOsList().getQuery()),
+                    baseRealm,
+                    OsResults.createFromQuery(baseRealm.sharedRealm, osListOperator.getOsList().getQuery()),
                     clazz);
         }
     }
@@ -814,14 +821,14 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * {@link Realm} was already closed.
      */
     public Realm getRealm() {
-        if (realm == null) {
+        if (baseRealm == null) {
             return null;
         }
-        realm.checkIfValid();
-        if (!(realm instanceof Realm)) {
+        baseRealm.checkIfValid();
+        if (!(baseRealm instanceof Realm)) {
             throw new IllegalStateException("This method is only available for typed Realms");
         }
-        return (Realm) realm;
+        return (Realm) baseRealm;
     }
 
     @Override
@@ -865,7 +872,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                 //noinspection ConstantConditions,unchecked
                 if (isClassForRealmModel(clazz)) {
                     //noinspection ConstantConditions,unchecked
-                    sb.append(realm.getSchema().getSchemaForClass((Class<RealmModel>) clazz).getClassName());
+                    sb.append(baseRealm.getSchema().getSchemaForClass((Class<RealmModel>) clazz).getClassName());
                 } else {
                     if (clazz == byte[].class) {
                         sb.append(clazz.getSimpleName());
@@ -946,14 +953,14 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     @SuppressWarnings("unchecked")
     public Flowable<RealmList<E>> asFlowable() {
-        if (realm instanceof Realm) {
-            return realm.configuration.getRxFactory().from((Realm) realm, this);
-        } else if (realm instanceof DynamicRealm) {
+        if (baseRealm instanceof Realm) {
+            return baseRealm.configuration.getRxFactory().from((Realm) baseRealm, this);
+        } else if (baseRealm instanceof DynamicRealm) {
             @SuppressWarnings("UnnecessaryLocalVariable")
-            Flowable<RealmList<E>> results = realm.configuration.getRxFactory().from((DynamicRealm) realm, this);
+            Flowable<RealmList<E>> results = baseRealm.configuration.getRxFactory().from((DynamicRealm) baseRealm, this);
             return results;
         } else {
-            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
+            throw new UnsupportedOperationException(baseRealm.getClass() + " does not support RxJava2.");
         }
     }
 
@@ -987,14 +994,14 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     public Observable<CollectionChange<RealmList<E>>> asChangesetObservable() {
-        if (realm instanceof Realm) {
-            return realm.configuration.getRxFactory().changesetsFrom((Realm) realm, this);
-        } else if (realm instanceof DynamicRealm) {
-            DynamicRealm dynamicRealm = (DynamicRealm) realm;
+        if (baseRealm instanceof Realm) {
+            return baseRealm.configuration.getRxFactory().changesetsFrom((Realm) baseRealm, this);
+        } else if (baseRealm instanceof DynamicRealm) {
+            DynamicRealm dynamicRealm = (DynamicRealm) baseRealm;
             RealmList<DynamicRealmObject> dynamicResults = (RealmList<DynamicRealmObject>) this;
-            return (Observable) realm.configuration.getRxFactory().changesetsFrom(dynamicRealm, dynamicResults);
+            return (Observable) baseRealm.configuration.getRxFactory().changesetsFrom(dynamicRealm, dynamicResults);
         } else {
-            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
+            throw new UnsupportedOperationException(baseRealm.getClass() + " does not support RxJava2.");
         }
     }
 
@@ -1002,8 +1009,8 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (checkListener && listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
-        realm.checkIfValid();
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+        baseRealm.checkIfValid();
+        baseRealm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
     }
 
     /**
@@ -1263,7 +1270,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
          */
         @Override
         public void set(@Nullable E e) {
-            realm.checkIfValid();
+            baseRealm.checkIfValid();
             if (lastRet < 0) {
                 throw new IllegalStateException();
             }
@@ -1285,7 +1292,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
          */
         @Override
         public void add(@Nullable E e) {
-            realm.checkIfValid();
+            baseRealm.checkIfValid();
             checkConcurrentModification();
             try {
                 int i = cursor;

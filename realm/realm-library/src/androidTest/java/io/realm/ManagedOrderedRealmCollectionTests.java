@@ -18,6 +18,7 @@ package io.realm;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -113,6 +114,7 @@ import static org.junit.Assert.fail;
  */
 
 @RunWith(Parameterized.class)
+@Ignore
 public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
     private static final int TEST_SIZE = 10;
