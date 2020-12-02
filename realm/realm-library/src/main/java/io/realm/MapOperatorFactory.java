@@ -22,33 +22,37 @@ import java.util.Set;
 
 import io.realm.internal.ManageableObject;
 import io.realm.internal.OsMap;
+import io.realm.internal.Util;
 
 /**
  * This factory instantiates a {@link MapOperator} matching the map's key and value types.
  * <p>
  * Note: at the moment {@link RealmMap}s can only use {@code String}s as keys and primitive, Mixed,
- * RealmList, RealmSet and RealmMap as values - TODO at the moment we only support integer values.
+ * RealmList, RealmSet and RealmMap as values
+ * <p>
+ * TODO even though Integers shouldn't be accepted, we are using them until Mixed type is ready
  */
 public class MapOperatorFactory {
 
     /**
      * FIXME
      *
-     * @param keyClass
-     * @param valueClass
+     * @param keyClassString
+     * @param valueClassString
      * @param baseRealm
+     * @param osMap
      * @param <K>
      * @param <V>
      * @return
      */
-    public static <K, V> MapOperator<K, V> getOperator(Class<K> keyClass, Class<V> valueClass, BaseRealm baseRealm, OsMap osMap) {
+    public static <K, V> MapOperator<K, V> getOperator(String keyClassString, String valueClassString, BaseRealm baseRealm, OsMap osMap) {
         // TODO: only String keys for now
-        if (keyClass != String.class) {
+        if (!keyClassString.equals(String.class.toString())) {
             throw new IllegalArgumentException("Only String keys are allowed in RealmMaps.");
         } else {
             // TODO: add other types when ready
-            if (valueClass == Integer.class) {
-                return new MapOperator<>(baseRealm, keyClass, new IntegerValueOperator(baseRealm, osMap));
+            if (valueClassString.equals(Integer.class.toString())) {
+                return new MapOperator<>(baseRealm, keyClassString, new IntegerValueOperator(baseRealm, osMap));
             } else {
                 throw new IllegalArgumentException("Only Integer values are allowed in RealmMaps.");
             }
@@ -58,6 +62,9 @@ public class MapOperatorFactory {
 
 /**
  * FIXME
+ *
+ * @param <K>
+ * @param <V>
  */
 class MapOperator<K, V> implements Map<K, V>, ManageableObject {
 
@@ -65,9 +72,9 @@ class MapOperator<K, V> implements Map<K, V>, ManageableObject {
     private final Class<K> keyClass;
     private final MapValueOperator mapValueOperator;
 
-    MapOperator(BaseRealm baseRealm, Class<K> keyClass, MapValueOperator mapValueOperator) {
+    MapOperator(BaseRealm baseRealm, String keyClass, MapValueOperator mapValueOperator) {
         this.baseRealm = baseRealm;
-        this.keyClass = keyClass;
+        this.keyClass = getKeyClass(keyClass);
         this.mapValueOperator = mapValueOperator;
     }
 
@@ -162,6 +169,11 @@ class MapOperator<K, V> implements Map<K, V>, ManageableObject {
     public Set<Entry<K, V>> entrySet() {
         // TODO: use operator + do it natively
         return null;
+    }
+
+    private Class<K> getKeyClass(String keyClass) {
+        //noinspection unchecked
+        return (Class<K>) Util.getClassForName(keyClass);
     }
 }
 

@@ -252,4 +252,19 @@ public class Util {
             throw new IllegalArgumentException("Key '" + key + "' required in '"+ argName +"'.");
         }
     }
+
+    /**
+     * Returns a {@link Class} object from a string.
+     *
+     * @param className the class name
+     * @return the {@code Class} object matching the string.
+     * @throws IllegalArgumentException if the class does not exist.
+     */
+    public static Class<?> getClassForName(String className) {
+        try {
+            return Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalArgumentException("Class '" + className + "' does not exist.");
+        }
+    }
 }

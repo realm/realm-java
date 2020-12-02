@@ -18,7 +18,6 @@ package io.realm;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -62,7 +61,7 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<Re
     // ------------------------------------------
 
     /**
-     * FIXME
+     * Constructor used by {@code Realm}s.
      *
      * @param baseRealm
      * @param osMap
@@ -70,7 +69,19 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<Re
      * @param valueClass
      */
     RealmMap(BaseRealm baseRealm, OsMap osMap, Class<K> keyClass, Class<V> valueClass) {
-        this.mapStrategy = new ManagedMapStrategy<>(baseRealm, osMap, keyClass, valueClass);
+        this.mapStrategy = new ManagedMapStrategy<>(baseRealm, osMap, new RealmClassManager<>(keyClass, valueClass));
+    }
+
+    /**
+     * Constructor used by {@code DynamicRealm}s.
+     *
+     * @param baseRealm
+     * @param osMap
+     * @param keyClass
+     * @param valueClass
+     */
+    RealmMap(BaseRealm baseRealm, OsMap osMap, String keyClass, String valueClass) {
+        this.mapStrategy = new ManagedMapStrategy<>(baseRealm, osMap, new DynamicRealmClassManager(keyClass, valueClass));
     }
 
     // ------------------------------------------
@@ -217,16 +228,15 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<Re
      */
     private static class ManagedMapStrategy<K, V> extends MapStrategy<K, V> {
 
-        private final Class<K> keyClass;
-        private final Class<V> valueClass;
         private final MapOperator<K, V> mapOperator;
 
-        protected ManagedMapStrategy(BaseRealm baseRealm, OsMap osMap, Class<K> keyClass, Class<V> valueClass) {
+        ManagedMapStrategy(BaseRealm baseRealm, OsMap osMap, ClassManager classManager) {
+            String keyClass = classManager.getKeyClass();
+            String valueClass = classManager.getValueClass();
+
             checkKeyClass(keyClass);
             checkValueClass(valueClass);
 
-            this.keyClass = keyClass;
-            this.valueClass = valueClass;
             this.mapOperator = MapOperatorFactory.getOperator(keyClass, valueClass, baseRealm, osMap);
         }
 
@@ -270,6 +280,7 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<Re
 
         @Override
         public boolean containsValue(Object value) {
+            //noinspection SuspiciousMethodCalls
             return mapOperator.containsKey(value);
         }
 
@@ -326,18 +337,17 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<Re
             return null;
         }
 
-        private void checkKeyClass(Class<K> keyClass) {
-            if (keyClass != String.class) {
+        private void checkKeyClass(String keyClass) {
+            // TODO: preliminary implementation
+            if (!keyClass.equals(String.class.toString())) {
                 throw new IllegalArgumentException("Only String keys are allowed.");
             }
         }
 
-        private void checkValueClass(Class<V> valueClass) {
-            // TODO: add RealmSet as invalid type when ready for phase 1
-            if (valueClass == RealmMap.class ||
-                    valueClass == RealmList.class ||
-                    valueClass == List.class) {
-                throw new IllegalArgumentException("Instances of " + valueClass.getSimpleName() + " are not allowed as values.");
+        private void checkValueClass(String valueClass) {
+            // TODO: preliminary implementation
+            if (!valueClass.equals(Integer.class.toString())) {
+                throw new IllegalArgumentException("Only Integer values are allowed.");
             }
         }
     }
@@ -351,10 +361,6 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<Re
     private static class UnmanagedMapStrategy<K, V> extends MapStrategy<K, V> {
 
         private final Map<K, V> unmanagedMap = new HashMap<>();
-
-        protected UnmanagedMapStrategy() {
-            super();
-        }
 
         // ------------------------------------------
         // ManageableObject API
@@ -450,6 +456,66 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<Re
         @Override
         protected V putInternal(K key, V value) {
             return unmanagedMap.put(key, value);
+        }
+    }
+
+    /**
+     * FIXME
+     */
+    private interface ClassManager {
+        String getKeyClass();
+
+        String getValueClass();
+    }
+
+    /**
+     * FIXME
+     *
+     * @param <K>
+     * @param <V>
+     */
+    private static class RealmClassManager<K, V> implements ClassManager {
+
+        private final Class<K> keyClass;
+        private final Class<V> valueClass;
+
+        public RealmClassManager(Class<K> keyClass, Class<V> valueClass) {
+            this.keyClass = keyClass;
+            this.valueClass = valueClass;
+        }
+
+        @Override
+        public String getKeyClass() {
+            return keyClass.toString();
+        }
+
+        @Override
+        public String getValueClass() {
+            return valueClass.toString();
+        }
+    }
+
+    /**
+     * FIXME
+     */
+    private static class DynamicRealmClassManager implements ClassManager {
+
+        private final String keyClass;
+        private final String valueClass;
+
+        public DynamicRealmClassManager(String keyClass, String valueClass) {
+            this.keyClass = keyClass;
+            this.valueClass = valueClass;
+        }
+
+        @Override
+        public String getKeyClass() {
+            return keyClass;
+        }
+
+        @Override
+        public String getValueClass() {
+            return valueClass;
         }
     }
 }
