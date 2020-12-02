@@ -2165,8 +2165,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     writer)
                         }
                         Utils.isRealmModelList(field) -> {
-                            val fieldType = QualifiedClassName((field.asType() as DeclaredType).typeArguments[0])
-                            val fieldTypeMetaData: ClassMetaData = classCollection.getClassFromQualifiedName(fieldType)
+                            val fieldType = (field.asType() as DeclaredType).typeArguments[0]
                             RealmJsonTypeHelper.emitFillRealmListWithJsonValue(
                                     "objProxy",
                                     metadata.getInternalGetter(fieldName),
@@ -2174,7 +2173,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     fieldName,
                                     (field.asType() as DeclaredType).typeArguments[0].toString(),
                                     Utils.getProxyClassSimpleName(field),
-                                    fieldTypeMetaData.embedded,
+                                    isFieldTypeEmbedded(fieldType),
                                     writer)
                         }
                         Utils.isRealmValueList(field) -> emitStatement("ProxyUtils.setRealmListWithJsonObject(objProxy.%1\$s(), json, \"%2\$s\")", metadata.getInternalGetter(fieldName), fieldName)
