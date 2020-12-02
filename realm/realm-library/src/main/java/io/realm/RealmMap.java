@@ -62,9 +62,12 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<Re
     // ------------------------------------------
 
     /**
-     * Instantiates a managed map.
+     * FIXME
      *
      * @param baseRealm
+     * @param osMap
+     * @param keyClass
+     * @param valueClass
      */
     RealmMap(BaseRealm baseRealm, OsMap osMap, Class<K> keyClass, Class<V> valueClass) {
         this.mapStrategy = new ManagedMapStrategy<>(baseRealm, osMap, keyClass, valueClass);
