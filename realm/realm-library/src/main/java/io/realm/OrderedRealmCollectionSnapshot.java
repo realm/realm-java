@@ -18,6 +18,7 @@ package io.realm;
 
 import java.util.Locale;
 
+import io.realm.internal.Freezable;
 import io.realm.internal.OsResults;
 import io.realm.internal.UncheckedRow;
 
@@ -48,7 +49,7 @@ import io.realm.internal.UncheckedRow;
  * }
  * </pre>
  */
-public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImpl<E> {
+public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImpl<E> implements Freezable<OrderedRealmCollection<E>> {
 
     private int size = -1;
 

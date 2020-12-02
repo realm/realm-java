@@ -54,7 +54,7 @@ public interface RealmCollection<E> extends Collection<E>, ManageableObject {
      * returned. Otherwise the minimum value is returned. When determining the minimum value, objects with {@code null}
      * values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
+     * @throws java.lang.IllegalStateException    if the Realm has been closed or called from an incorrect thread.
      */
     @Nullable
     Number min(String fieldName);
@@ -67,7 +67,7 @@ public interface RealmCollection<E> extends Collection<E>, ManageableObject {
      * returned. Otherwise the maximum value is returned. When determining the maximum value, objects with {@code null}
      * values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
+     * @throws java.lang.IllegalStateException    if the Realm has been closed or called from an incorrect thread.
      */
     @Nullable
     Number max(String fieldName);
@@ -79,7 +79,7 @@ public interface RealmCollection<E> extends Collection<E>, ManageableObject {
      * @return the sum. If no objects exist or they all have {@code null} as the value for the given field, {@code 0}
      * will be returned. When computing the sum, objects with {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
+     * @throws java.lang.IllegalStateException    if the Realm has been closed or called from an incorrect thread.
      */
     Number sum(String fieldName);
 
@@ -91,7 +91,7 @@ public interface RealmCollection<E> extends Collection<E>, ManageableObject {
      * types of number fields. If no objects exist or they all have {@code null} as the value for the given field,
      * {@code 0} will be returned. When computing the average, objects with {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
+     * @throws java.lang.IllegalStateException    if the Realm has been closed or called from an incorrect thread.
      */
     double average(String fieldName);
 
@@ -99,12 +99,12 @@ public interface RealmCollection<E> extends Collection<E>, ManageableObject {
      * Finds the maximum date.
      *
      * @param fieldName the field to look for the maximum date. If fieldName is not of Date type, an exception is
-     * thrown.
+     *                  thrown.
      * @return if no objects exist or they all have {@code null} as the value for the given date field, {@code null}
      * will be returned. Otherwise the maximum date is returned. When determining the maximum date, objects with
      * {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if fieldName is not a Date field.
-     * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
+     * @throws java.lang.IllegalStateException    if the Realm has been closed or called from an incorrect thread.
      */
     @Nullable
     Date maxDate(String fieldName);
@@ -113,12 +113,12 @@ public interface RealmCollection<E> extends Collection<E>, ManageableObject {
      * Finds the minimum date.
      *
      * @param fieldName the field to look for the minimum date. If fieldName is not of Date type, an exception is
-     * thrown.
+     *                  thrown.
      * @return if no objects exist or they all have {@code null} as the value for the given date field, {@code null}
      * will be returned. Otherwise the minimum date is returned. When determining the minimum date, objects with
      * {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if fieldName is not a Date field.
-     * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
+     * @throws java.lang.IllegalStateException    if the Realm has been closed or called from an incorrect thread.
      */
     @Nullable
     Date minDate(String fieldName);
@@ -127,7 +127,7 @@ public interface RealmCollection<E> extends Collection<E>, ManageableObject {
      * This deletes all objects in the collection from the underlying Realm as well as from the collection.
      *
      * @return {@code true} if objects was deleted, {@code false} otherwise.
-     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
+     * @throws IllegalStateException           if the corresponding Realm is closed or in an incorrect thread.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
     boolean deleteAllFromRealm();
@@ -180,27 +180,8 @@ public interface RealmCollection<E> extends Collection<E>, ManageableObject {
      * @param object the object to search for.
      * @return {@code true} if object is an element of this {@code Collection}, {@code false} otherwise.
      * @throws NullPointerException if the object to look for is {@code null} and this {@code Collection} doesn't
-     * support {@code null} elements.
+     *                              support {@code null} elements.
      */
     @Override
     boolean contains(@Nullable Object object);
-
-    /**
-     * Returns a frozen snapshot of this collection. The frozen copy can be read and queried from any thread without throwing
-     * an {@link IllegalStateException}.
-     * <p>
-     * Freezing a collection also creates a Realm which has its own lifecycle, but if the live Realm that spawned the
-     * original collection is fully closed (i.e. all instances across all threads are closed), the frozen Realm and this
-     * collection will be closed as well.
-     * <p>
-     * Frozen collections can be queried as normal, but trying to mutate it in any way or attempting to register a listener will
-     * throw an {@link IllegalStateException}.
-     * <p>
-     * Note: Keeping a large number of frozen collections with different versions alive can have a negative impact on the filesize
-     * of the Realm. In order to avoid such a situation, it is possible to set {@link RealmConfiguration.Builder#maxNumberOfActiveVersions(long)}.
-     *
-     * @return a frozen copy of this collection.
-     * @throws IllegalStateException if this method is called from inside a write transaction.
-     */
-    RealmCollection<E> freeze();
 }

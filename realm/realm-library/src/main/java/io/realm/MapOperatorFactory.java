@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.realm.internal.ManageableObject;
+import io.realm.internal.OsMap;
 
 /**
  * This factory instantiates a {@link MapOperator} matching the map's key and value types.
@@ -40,14 +41,14 @@ public class MapOperatorFactory {
      * @param <V>
      * @return
      */
-    public static <K, V> MapOperator<K, V> getOperator(Class<K> keyClass, Class<V> valueClass, BaseRealm baseRealm) {
+    public static <K, V> MapOperator<K, V> getOperator(Class<K> keyClass, Class<V> valueClass, BaseRealm baseRealm, OsMap osMap) {
         // TODO: only String keys for now
         if (keyClass != String.class) {
             throw new IllegalArgumentException("Only String keys are allowed in RealmMaps.");
         } else {
             // TODO: add other types when ready
             if (valueClass == Integer.class) {
-                return new MapOperator<>(baseRealm, keyClass, new IntegerValueOperator(baseRealm));
+                return new MapOperator<>(baseRealm, keyClass, new IntegerValueOperator(baseRealm, osMap));
             } else {
                 throw new IllegalArgumentException("Only Integer values are allowed in RealmMaps.");
             }
@@ -64,7 +65,7 @@ class MapOperator<K, V> implements Map<K, V>, ManageableObject {
     private final Class<K> keyClass;
     private final MapValueOperator mapValueOperator;
 
-    public MapOperator(BaseRealm baseRealm, Class<K> keyClass, MapValueOperator mapValueOperator) {
+    MapOperator(BaseRealm baseRealm, Class<K> keyClass, MapValueOperator mapValueOperator) {
         this.baseRealm = baseRealm;
         this.keyClass = keyClass;
         this.mapValueOperator = mapValueOperator;
@@ -170,9 +171,11 @@ class MapOperator<K, V> implements Map<K, V>, ManageableObject {
 abstract class MapValueOperator {
 
     protected final BaseRealm baseRealm;
+    protected final OsMap osMap;
 
-    public MapValueOperator(BaseRealm baseRealm) {
+    MapValueOperator(BaseRealm baseRealm, OsMap osMap) {
         this.baseRealm = baseRealm;
+        this.osMap = osMap;
     }
 }
 
@@ -181,7 +184,7 @@ abstract class MapValueOperator {
  */
 class IntegerValueOperator extends MapValueOperator {
 
-    public IntegerValueOperator(BaseRealm baseRealm) {
-        super(baseRealm);
+    IntegerValueOperator(BaseRealm baseRealm, OsMap osMap) {
+        super(baseRealm, osMap);
     }
 }

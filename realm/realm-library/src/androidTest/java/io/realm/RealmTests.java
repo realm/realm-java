@@ -37,6 +37,7 @@ import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -133,7 +134,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
+@Ignore("Tests crash due to bug in core, see https://jira.mongodb.org/browse/RCORE-435")
 @RunWith(AndroidJUnit4.class)
 public class RealmTests {
     private final static int TEST_DATA_SIZE = 10;
