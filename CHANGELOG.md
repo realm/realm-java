@@ -1,3 +1,19 @@
+## 10.1.2 (YYYY-MM-DD)
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* None.
+
+### Fixes
+* Complementary fix for missed edge case in https://github.com/realm/realm-java/pull/7220 where KAPT crash if we process a RealmObject referencing a type in RealmList defined in another module. (Issue [#7213](https://github.com/realm/realm-java/issues/7213), since v10.0.0).
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
 ## 10.1.1 (2020-10-27)
 
 ### Breaking Changes
@@ -13,11 +29,6 @@
 * File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
 * APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
 * Realm Studio 10.0.0 or above is required to open Realms created by this version.
-
-### Internal
-* Updated to Realm Sync: 10.1.3.
-* Updated to Realm Core: 10.1.3.
-* Updated to Object Store commit: fc6daca61133aa9601e4cb34fbeb9ec7569e162e.
 
 
 ## 10.1.0 (2020-10-23)
