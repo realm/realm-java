@@ -156,14 +156,14 @@ public class Credentials {
      * <p>
      * This provider must be enabled on MongoDB Realm to work.
      *
-     * @param accessToken the access token returned when logging in to Google.
+     * @param token the access token returned when logging in to Google.
      * @param type the access token type
      * @return a set of credentials that can be used to log into MongoDB Realm using
      * {@link App#loginAsync(Credentials, App.Callback)}.
      */
-    public static Credentials google(String accessToken, GoogleAuthType type) {
-        Util.checkEmpty(accessToken, "authorizationCode");
-        return new Credentials(OsAppCredentials.google(accessToken, type), Provider.GOOGLE);
+    public static Credentials google(String token, GoogleAuthType type) {
+        Util.checkEmpty(token, "authorizationCode");
+        return new Credentials(OsAppCredentials.google(token, type), Provider.GOOGLE);
     }
 
     /**
