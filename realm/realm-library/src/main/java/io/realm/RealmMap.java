@@ -32,7 +32,7 @@ import io.realm.internal.OsMap;
  * @param <K>
  * @param <V>
  */
-public class RealmMap<K, V> implements Map<K, V>, ManageableObject {
+public class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<RealmMap<K, V>> {
 
     private final MapStrategy<K, V> mapStrategy;
 
@@ -154,9 +154,10 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject {
     }
 
     // ------------------------------------------
-    // RealmMap API
+    // Freezable API
     // ------------------------------------------
 
+    @Override
     public RealmMap<K, V> freeze() {
         return mapStrategy.freeze();
     }
@@ -305,13 +306,17 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject {
         }
 
         // ------------------------------------------
-        // MapStrategy API
+        // Freezable API
         // ------------------------------------------
 
         @Override
         public RealmMap<K, V> freeze() {
             return null;
         }
+
+        // ------------------------------------------
+        // MapStrategy API
+        // ------------------------------------------
 
         @Override
         protected V putInternal(K key, V value) {
@@ -427,13 +432,17 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject {
         }
 
         // ------------------------------------------
-        // MapStrategy API
+        // Freezable API
         // ------------------------------------------
 
         @Override
         public RealmMap<K, V> freeze() {
             throw new UnsupportedOperationException("This method is only available in managed RealmMaps.");
         }
+
+        // ------------------------------------------
+        // MapStrategy API
+        // ------------------------------------------
 
         @Override
         protected V putInternal(K key, V value) {
