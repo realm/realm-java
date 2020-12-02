@@ -22,6 +22,8 @@ import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsAppCredentials;
 import io.realm.mongodb.auth.EmailPasswordAuth;
+import io.realm.mongodb.auth.GoogleAuthType;
+
 
 /**
  * Credentials represent a login with a given login provider, and are used by the MongoDB Realm to
@@ -150,17 +152,33 @@ public class Credentials {
     }
 
     /**
-     * Creates credentials representing a login using a Google Authorization Code.
+     * Creates credentials representing a login using a Google access token of a given {@link GoogleAuthType}.
+     * <p>
+     * This provider must be enabled on MongoDB Realm to work.
+     *
+     * @param accessToken the access token returned when logging in to Google.
+     * @param type the access token type
+     * @return a set of credentials that can be used to log into MongoDB Realm using
+     * {@link App#loginAsync(Credentials, App.Callback)}.
+     */
+    public static Credentials google(String accessToken, GoogleAuthType type) {
+        Util.checkEmpty(accessToken, "authorizationCode");
+        return new Credentials(OsAppCredentials.google(accessToken, type), Provider.GOOGLE);
+    }
+
+    /**
+     * Creates credentials representing a login using a {@link GoogleAuthType#AUTH_CODE} Google access token.
      * <p>
      * This provider must be enabled on MongoDB Realm to work.
      *
      * @param authorizationCode the authorization code returned when logging in to Google.
      * @return a set of credentials that can be used to log into MongoDB Realm using
      * {@link App#loginAsync(Credentials, App.Callback)}.
+     * @deprecated Use {@link Credentials#google(String, GoogleAuthType)} instead.
      */
+    @Deprecated
     public static Credentials google(String authorizationCode) {
-        Util.checkEmpty(authorizationCode, "authorizationCode");
-        return new Credentials(OsAppCredentials.google(authorizationCode), Provider.GOOGLE);
+        return google(authorizationCode, GoogleAuthType.AUTH_CODE);
     }
 
     /**
