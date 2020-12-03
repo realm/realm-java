@@ -36,6 +36,7 @@ import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_LIST;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_OBJECT;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_OBJECTID;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_STRING;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_MIXED;
 import static io.realm.RealmFieldTypeConstants.LIST_OFFSET;
 import static io.realm.RealmFieldTypeConstants.MAX_CORE_TYPE_VALUE;
 
@@ -55,6 +56,7 @@ interface RealmFieldTypeConstants {
     int CORE_TYPE_VALUE_LINKING_OBJECTS = 14;
     int CORE_TYPE_VALUE_DECIMAL128 = 11;
     int CORE_TYPE_VALUE_OBJECTID = 15;
+    int CORE_TYPE_VALUE_MIXED = 6;
 
     int MAX_CORE_TYPE_VALUE = CORE_TYPE_VALUE_OBJECTID;
 }
@@ -79,6 +81,7 @@ public enum RealmFieldType {
     OBJECT(CORE_TYPE_VALUE_OBJECT),
     DECIMAL128(CORE_TYPE_VALUE_DECIMAL128),
     OBJECT_ID(CORE_TYPE_VALUE_OBJECTID),
+    MIXED(CORE_TYPE_VALUE_MIXED),
 
     LIST(CORE_TYPE_VALUE_LIST),
     LINKING_OBJECTS(CORE_TYPE_VALUE_LINKING_OBJECTS),
@@ -91,7 +94,8 @@ public enum RealmFieldType {
     FLOAT_LIST(CORE_TYPE_VALUE_FLOAT + LIST_OFFSET),
     DOUBLE_LIST(CORE_TYPE_VALUE_DOUBLE + LIST_OFFSET),
     DECIMAL128_LIST(CORE_TYPE_VALUE_DECIMAL128 + LIST_OFFSET),
-    OBJECT_ID_LIST(CORE_TYPE_VALUE_OBJECTID + LIST_OFFSET);
+    OBJECT_ID_LIST(CORE_TYPE_VALUE_OBJECTID + LIST_OFFSET),
+    MIXED_LIST(CORE_TYPE_VALUE_MIXED + LIST_OFFSET);
 
     // Primitive array for fast mapping between between native values and their Realm type.
     private static final RealmFieldType[] basicTypes = new RealmFieldType[MAX_CORE_TYPE_VALUE + 1];
@@ -149,6 +153,8 @@ public enum RealmFieldType {
                 return (obj instanceof Decimal128);
             case CORE_TYPE_VALUE_OBJECTID:
                 return (obj instanceof ObjectId);
+            case CORE_TYPE_VALUE_MIXED:
+                return (obj instanceof Mixed);
             case CORE_TYPE_VALUE_OBJECT:
                 return false;
             case CORE_TYPE_VALUE_LIST:

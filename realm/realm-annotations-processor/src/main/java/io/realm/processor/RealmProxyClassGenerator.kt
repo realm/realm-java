@@ -191,6 +191,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             for (variableElement in metadata.fields) {
                 if (Utils.isMutableRealmInteger(variableElement)) {
                     emitMutableRealmIntegerField(writer, variableElement)
+                } else if (Utils.isMixed(variableElement)) {
+                    emitMixedField(writer, variableElement)
                 } else if (Utils.isRealmList(variableElement)) {
                     val genericType = Utils.getGenericTypeQualifiedName(variableElement)
                     emitField("RealmList<$genericType>", variableElement.simpleName.toString() + "RealmList", EnumSet.of(Modifier.PRIVATE))
@@ -222,6 +224,21 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     }
 
     @Throws(IOException::class)
+    private fun emitMixedField(writer: JavaWriter, variableElement: VariableElement) {
+        writer.apply {
+            emitField("Mixed.Managed",
+                    mixedFieldName(variableElement),
+                    EnumSet.of(Modifier.PRIVATE, Modifier.FINAL),
+                    String.format(
+                            "new Mixed.Managed<%1\$s>() {\n"
+                                    + "    @Override protected ProxyState<%1\$s> getProxyState() { return proxyState; }\n"
+                                    + "    @Override protected long getColumnIndex() { return columnInfo.%2\$s; }\n"
+                                    + "}",
+                            qualifiedJavaClassName, columnKeyVarName(variableElement)))
+        }
+    }
+
+    @Throws(IOException::class)
     private fun emitConstructor(writer: JavaWriter) {
         writer.apply {
             emitEmptyLine()
@@ -240,6 +257,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             when {
                 Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName) -> emitPrimitiveType(writer, field, fieldName, fieldTypeCanonicalName)
                 Utils.isMutableRealmInteger(field) -> emitMutableRealmInteger(writer, field, fieldName, fieldTypeCanonicalName)
+                Utils.isMixed(field) -> emitMixed(writer, field, fieldName, fieldTypeCanonicalName)
                 Utils.isRealmModel(field) -> emitRealmModel(writer, field, fieldName, fieldTypeCanonicalName)
                 Utils.isRealmList(field) -> {
                     val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field)
@@ -342,9 +360,41 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         writer.apply {
             emitAnnotation("Override")
             beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
-                emitStatement("proxyState.getRealm\$realm().checkIfValid()")
-                emitStatement("return this.%s", mutableRealmIntegerFieldName(field))
+            emitStatement("proxyState.getRealm\$realm().checkIfValid()")
+            emitStatement("return this.%s", mutableRealmIntegerFieldName(field))
             endMethod()
+        }
+    }
+
+    /**
+     * Emit Get method for Mixed fields.
+     */
+    @Throws(IOException::class)
+    private fun emitMixed(writer: JavaWriter, field: VariableElement, fieldName: String, fieldTypeCanonicalName: String) {
+        writer.apply {
+            // Getter - Start
+            emitAnnotation("Override")
+            beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
+                emitStatement("proxyState.getRealm\$realm().checkIfValid()")
+                emitStatement("return this.%s", mixedFieldName(field))
+            endMethod()
+            // Getter - End
+
+            // Setter - Start
+            emitAnnotation("Override")
+            beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value")
+            emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field)) {
+                emitStatement("final Row row = proxyState.getRow\$realm()")
+
+                emitStatement("row.getTable().setMixed(%s, row.getObjectKey(), value, true)", fieldColKeyVariableReference(field))
+                emitStatement("return")
+            }
+
+            emitStatement("proxyState.getRealm\$realm().checkIfValid()")
+            emitStatement("proxyState.getRow\$realm().setMixed(%s, value)", fieldColKeyVariableReference(field))
+
+            endMethod()
+            // Setter - End
         }
     }
 
@@ -722,6 +772,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Constants.RealmFieldType.BINARY,
                         Constants.RealmFieldType.DECIMAL128,
                         Constants.RealmFieldType.OBJECT_ID,
+                        Constants.RealmFieldType.MIXED,
                         Constants.RealmFieldType.REALM_INTEGER -> {
                             val nullableFlag = (if (metadata.isNullable(field)) "!" else "") + "Property.REQUIRED"
                             val indexedFlag = (if (metadata.isIndexed(field)) "" else "!") + "Property.INDEXED"
@@ -895,7 +946,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             emitEmptyLine()
         }
     }
-   
+
     @Throws(IOException::class)
     private fun setTableValues(writer: JavaWriter, fieldType: String, fieldName: String, interfaceName: SimpleClassName, getter: String, isUpdate: Boolean) {
         writer.apply {
@@ -922,11 +973,21 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 "io.realm.MutableRealmInteger" -> {
                     emitStatement("Long %s = ((%s) object).%s().get()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                        emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sColKey, objKey, %s.longValue(), false)", fieldName, getter)
-                        if (isUpdate) {
-                            nextControlFlow("else")
-                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
-                        }
+                    emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sColKey, objKey, %s.longValue(), false)", fieldName, getter)
+                    if (isUpdate) {
+                        nextControlFlow("else")
+                        emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
+                    }
+                    endControlFlow()
+                }
+                "io.realm.Mixed" -> {
+                    emitStatement("io.realm.Mixed %s = ((%s) object).%s()", getter, interfaceName, getter)
+                    beginControlFlow("if (%s != null)", getter)
+                    emitStatement("Table.setMixed(tableNativePtr, columnInfo.%sColKey, objKey, %s, false)", fieldName, getter)
+                    if (isUpdate) {
+                        nextControlFlow("else")
+                        emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
+                    }
                     endControlFlow()
                 }
                 "double" -> {
@@ -1520,7 +1581,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     }
                 endControlFlow()
             endMethod()
-            emitEmptyLine()            
+            emitEmptyLine()
         }
     }
 
@@ -1576,7 +1637,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     } else {
                         emitStatement("objKey = OsObject.createRowWithPrimaryKey(table, pkColumnKey, ((%s) object).%s())", interfaceName, primaryKeyGetter)
                     }
-    
+
                     if (throwIfPrimaryKeyDuplicate) {
                         nextControlFlow("else")
                         emitStatement("Table.throwDuplicatePrimaryKeyException(primaryKeyValue)")
@@ -1800,7 +1861,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             emitEmptyLine()
         }
     }
-   
+
     @Throws(IOException::class)
     private fun emitUpdateMethod(writer: JavaWriter) {
         if (!metadata.hasPrimaryKey() && !metadata.embedded) {
@@ -2032,9 +2093,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             emitEmptyLine()
         }
     }
-   
 
-   
+
+
     @Throws(IOException::class)
     private fun emitEqualsMethod(writer: JavaWriter) {
         if (metadata.containsEquals()) {
@@ -2069,7 +2130,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             endMethod()
         }
     }
-   
+
     @Throws(IOException::class)
     private fun emitCreateOrUpdateUsingJsonObject(writer: JavaWriter) {
         writer.apply {
@@ -2301,7 +2362,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 emitStatement("return obj")
             }
             endMethod()
-            emitEmptyLine()            
+            emitEmptyLine()
         }
     }
 
@@ -2326,6 +2387,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         return "${variableElement.simpleName}MutableRealmInteger"
     }
 
+    private fun mixedFieldName(variableElement: VariableElement): String {
+        return "${variableElement.simpleName}Mixed"
+    }
+
     private fun fieldColKeyVariableReference(variableElement: VariableElement?): String {
         return "columnInfo.${columnKeyVarName(variableElement!!)}"
     }
@@ -2338,6 +2403,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         }
         if (Utils.isMutableRealmInteger(field)) {
             return Constants.RealmFieldType.REALM_INTEGER
+        }
+        if (Utils.isMixed(field)){
+            return Constants.RealmFieldType.MIXED
         }
         if (Utils.isRealmModel(field)) {
             return Constants.RealmFieldType.OBJECT

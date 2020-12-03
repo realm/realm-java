@@ -438,6 +438,335 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsNull(JNIEnv*, jo
     return to_jbool(table->get_object(ObjKey(rowKey)).is_null(ColKey(columnKey))); // noexcept
 }
 
+// ----------------- Mixed getters
+
+JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeMixedGetType(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                       jlong columnKey, jlong rowKey)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        // TODO: Throw exception
+    }
+    auto mixed = table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey));
+
+    if(mixed.is_null()){
+        return -1;
+    } else {
+        return mixed.get_type();
+    }
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMixedAsLong(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                       jlong columnKey, jlong rowKey)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return 0;
+    }
+    try {
+        return table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey)).get<int64_t>();
+    }
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeMixedAsBoolean(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                       jlong columnKey, jlong rowKey)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return JNI_FALSE;
+    }
+    try {
+        return table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey)).get<bool>();
+    }
+    CATCH_STD()
+    return JNI_FALSE;
+}
+
+JNIEXPORT jfloat JNICALL Java_io_realm_internal_Table_nativeMixedAsFloat(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                       jlong columnKey, jlong rowKey)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return 0;
+    }
+    try {
+        return table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey)).get<float>();
+    }
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jdouble JNICALL Java_io_realm_internal_Table_nativeMixedAsDouble(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                       jlong columnKey, jlong rowKey)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return 0;
+    }
+    try {
+        return table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey)).get<double>();
+    }
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeMixedAsString(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                       jlong columnKey, jlong rowKey) {
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return nullptr;
+    }
+    try {
+        return to_jstring(env,
+                table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey)).get<StringData>());
+    }
+    CATCH_STD()
+    return nullptr;
+
+}
+
+JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Table_nativeMixedAsByteArray(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                       jlong columnKey, jlong rowKey)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return nullptr;
+    }
+    try {
+        realm::BinaryData bin = table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey)).get<BinaryData>();
+        return JavaClassGlobalDef::new_byte_array(env, bin);
+    }
+    CATCH_STD()
+
+    return nullptr;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMixedAsTimestamp(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                       jlong columnKey, jlong rowKey)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return 0;
+    }
+    try {
+        return to_milliseconds(table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey)).get<Timestamp>());
+    }
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeMixedAsObjectId(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                       jlong columnKey, jlong rowKey)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return nullptr;
+    }
+    try {
+        return to_jstring(env, table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey)).get<ObjectId>().to_string().data());
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_Table_nativeMixedAsDecimal128(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                       jlong columnKey, jlong rowKey)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return nullptr;
+    }
+    try {
+        Decimal128 decimal128 = table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey)).get<Decimal128>();
+        RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeMixedIsNull(JNIEnv* env, jobject, jlong nativeTableRefPtr,
+                                                                       jlong columnKey, jlong rowKey)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        // TODO: Throw exception
+    }
+    return table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey)).is_null(); // noexcept
+}
+
+// ----------------- Mixed setters
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMixedSetLong(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                  jlong columnKey, jlong rowKey, jlong value,
+                                                                  jboolean isDefault)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return;
+    }
+    try {
+        table->get_object(ObjKey(rowKey)).set<Mixed>(ColKey(columnKey), Mixed(value), B(isDefault));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMixedSetBoolean(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                     jlong columnKey, jlong rowKey,
+                                                                     jboolean value, jboolean isDefault)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return;
+    }
+    try {
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), Mixed(B(value)), B(isDefault));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMixedSetFloat(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                   jlong columnKey, jlong rowKey, jfloat value,
+                                                                   jboolean isDefault)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return;
+    }
+    try {
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), Mixed(value), B(isDefault));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMixedSetDouble(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                    jlong columnKey, jlong rowKey, jdouble value,
+                                                                    jboolean isDefault)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return;
+    }
+    try {
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), Mixed(value), B(isDefault));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMixedSetString(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                    jlong columnKey, jlong rowKey, jstring value,
+                                                                    jboolean isDefault)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return;
+    }
+    try {
+        if (value == nullptr) {
+            if (!COL_NULLABLE(env, table, columnKey)) {
+                return;
+            }
+        }
+        JStringAccessor value2(env, value); // throws
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), Mixed(StringData(value2)), B(isDefault));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMixedSetTimestamp(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                       jlong columnKey, jlong rowKey,
+                                                                       jlong timestampValue, jboolean isDefault)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return;
+    }
+    try {
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), Mixed(from_milliseconds(timestampValue)), B(isDefault));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMixedSetByteArray(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                       jlong columnKey, jlong rowKey,
+                                                                       jbyteArray dataArray, jboolean isDefault)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return;
+    }
+    try {
+        if (dataArray == nullptr && !COL_NULLABLE(env, table, columnKey)) {
+            return;
+        }
+
+        JByteArrayAccessor jarray_accessor(env, dataArray);
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), Mixed(jarray_accessor.transform<BinaryData>()), B(isDefault));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMixedSetDecimal128(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                        jlong columnKey, jlong rowKey, jlong low,
+                                                                        jlong high, jboolean isDefault)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return;
+    }
+    try {
+        Decimal128::Bid128 raw {static_cast<uint64_t>(low), static_cast<uint64_t>(high)};
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), Mixed(Decimal128(raw)), B(isDefault));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMixedSetObjectId(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                      jlong columnKey, jlong rowKey, jstring j_value,
+                                                                      jboolean isDefault)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return;
+    }
+    try {
+        JStringAccessor value(env, j_value);
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), Mixed(ObjectId(StringData(value).data())), B(isDefault));
+    }
+    CATCH_STD()
+}
+
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMixedSetNull(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                  jlong columnKey, jlong rowKey,
+                                                                  jboolean isDefault)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return;
+    }
+
+    try {
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), Mixed(), B(isDefault));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMixedSetLink(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                  jlong columnKey, jlong rowKey,
+                                                                  jlong targetRowKey, jboolean isDefault)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Link)) {
+        return;
+    }
+    try {
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), Mixed(ObjKey(targetRowKey)), B(isDefault));
+    }
+    CATCH_STD()
+}
+
 // ----------------- Set cell
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetLink(JNIEnv* env, jclass, jlong nativeTableRefPtr,
@@ -585,8 +914,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(JNIEnv* e
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDecimal128(JNIEnv* env, jclass, jlong nativeTableRefPtr,
-                                                                    jlong columnKey, jlong rowKey, jlong low,
-                                                                    jlong high, jboolean isDefault)
+                                                                        jlong columnKey, jlong rowKey, jlong low,
+                                                                        jlong high, jboolean isDefault)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
     if (!TYPE_VALID(env, table, columnKey, type_Decimal)) {

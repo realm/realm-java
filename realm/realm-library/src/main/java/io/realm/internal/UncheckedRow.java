@@ -23,6 +23,8 @@ import java.util.Date;
 
 import javax.annotation.Nullable;
 
+import io.realm.Mixed;
+import io.realm.MixedType;
 import io.realm.RealmFieldType;
 
 
@@ -72,8 +74,8 @@ public class UncheckedRow implements NativeObject, Row {
      * Gets the row object associated with a row key in a Table.
      *
      * @param context the Realm context.
-     * @param table the Table that holds the row.
-     * @param rowKey Row key.
+     * @param table   the Table that holds the row.
+     * @param rowKey  Row key.
      * @return an instance of Row for the table and row key specified.
      */
     static UncheckedRow getByRowKey(NativeContext context, Table table, long rowKey) {
@@ -84,8 +86,8 @@ public class UncheckedRow implements NativeObject, Row {
     /**
      * Gets the row object from a row pointer.
      *
-     * @param context the Realm context.
-     * @param table the Table that holds the row.
+     * @param context          the Realm context.
+     * @param table            the Table that holds the row.
      * @param nativeRowPointer pointer of a row.
      * @return an instance of Row for the table and row specified.
      */
@@ -236,11 +238,57 @@ public class UncheckedRow implements NativeObject, Row {
         nativeSetTimestamp(nativePtr, columnKey, timestamp);
     }
 
+    @Override
+    public void setMixed(long columnKey, Mixed value) {
+        parent.checkImmutable();
+
+        if (value == null) {
+            nativeMixedSetNull(nativePtr, columnKey);
+        } else {
+            MixedType type = value.getType();
+            switch (type) {
+                case INTEGER:
+                    nativeMixedSetLong(nativePtr, columnKey, value.asInteger());
+                    break;
+                case BOOLEAN:
+                    nativeMixedSetBoolean(nativePtr, columnKey, value.asBoolean());
+                    break;
+                case FLOAT:
+                    nativeMixedSetFloat(nativePtr, columnKey, value.asFloat());
+                    break;
+                case DOUBLE:
+                    nativeMixedSetDouble(nativePtr, columnKey, value.asDouble());
+                    break;
+                case STRING:
+                    nativeMixedSetString(nativePtr, columnKey, value.asString());
+                    break;
+                case BINARY:
+                    nativeMixedSetByteArray(nativePtr, columnKey, value.asBinary());
+                    break;
+                case DATE:
+                    nativeMixedSetTimestamp(nativePtr, columnKey, value.asDate().getTime());
+                    break;
+                case OBJECT_ID:
+                    nativeMixedSetObjectId(nativePtr, columnKey, value.asObjectId().toString());
+                    break;
+                case DECIMAL128:
+                    Decimal128 decimalValue = value.asDecimal128();
+                    nativeMixedSetDecimal128(nativePtr, columnKey, decimalValue.getLow(), decimalValue.getHigh());
+                    break;
+                case NO_TYPE:
+                    nativeMixedSetNull(nativePtr, columnKey);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid mixed type: " + type);
+            }
+        }
+    }
+
     /**
      * Sets a string value to a row pointer.
      *
      * @param columnKey column key.
-     * @param value the value to to a row
+     * @param value     the value to to a row
      */
     @Override
     public void setString(long columnKey, @Nullable String value) {
@@ -426,4 +474,24 @@ public class UncheckedRow implements NativeObject, Row {
     protected native long nativeCreateEmbeddedObject(long nativeRowPtr, long columnKey);
 
     private static native long nativeGetFinalizerPtr();
+
+    public static native void nativeMixedSetLong(long nativeRowPtr, long columnKey, long value);
+
+    public static native void nativeMixedSetBoolean(long nativeRowPtr, long columnKey, boolean value);
+
+    public static native void nativeMixedSetFloat(long nativeRowPtr, long columnKey, float value);
+
+    public static native void nativeMixedSetDouble(long nativeRowPtr, long columnKey, double value);
+
+    public static native void nativeMixedSetTimestamp(long nativeRowPtr, long columnKey, long dateTimeValue);
+
+    public static native void nativeMixedSetString(long nativeRowPtr, long columnKey, String value);
+
+    public static native void nativeMixedSetByteArray(long nativeRowPtr, long columnKey, byte[] data);
+
+    public static native void nativeMixedSetDecimal128(long nativeRowPtr, long columnKey, long low, long high);
+
+    public static native void nativeMixedSetObjectId(long nativeRowPtr, long columnKey, String data);
+
+    public static native void nativeMixedSetNull(long nativeRowPtr, long columnKey);
 }

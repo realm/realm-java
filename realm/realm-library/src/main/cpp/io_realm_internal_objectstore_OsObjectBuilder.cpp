@@ -165,6 +165,110 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeMixedAddNull
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key)
+{
+    try {
+        const JavaValue value = JavaValue(Mixed());
+        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeMixedAddLong
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jlong j_value)
+{
+    try {
+        const JavaValue value = JavaValue(Mixed(j_value));
+        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeMixedAddBoolean
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jboolean j_value)
+{
+    try {
+        const JavaValue value = JavaValue(Mixed(j_value));
+        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeMixedAddFloat
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jfloat j_value)
+{
+    try {
+        const JavaValue value = JavaValue(Mixed(j_value));
+        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeMixedAddDouble
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jdouble j_value)
+{
+    try {
+        const JavaValue value = JavaValue(Mixed(j_value));
+        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeMixedAddTimestamp
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jlong j_value)
+{
+    try {
+        const JavaValue value = JavaValue(Mixed(from_milliseconds(j_value)));
+        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeMixedAddString
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jstring j_value)
+{
+    try {
+        JStringAccessor string_value(env, j_value); // throws
+        const JavaValue value = JavaValue(Mixed(StringData(string_value)));
+        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeMixedAddByteArray
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jbyteArray j_value)
+{
+    try {
+        JByteArrayAccessor jarray_accessor(env, j_value);
+        const JavaValue value = JavaValue(Mixed(jarray_accessor.transform<BinaryData>()));
+        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeMixedAddDecimal128
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jlong j_low, jlong j_high)
+{
+    try {
+        Decimal128::Bid128 raw {static_cast<uint64_t>(j_low), static_cast<uint64_t>(j_high)};
+        const JavaValue value = JavaValue(Mixed(Decimal128(raw)));
+        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeMixedAddObjectId
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jstring j_value)
+{
+    try {
+        JStringAccessor string_value(env, j_value);
+        const JavaValue value = JavaValue(Mixed(ObjectId(StringData(string_value).data())));
+        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
+
 static inline const ObjectSchema& get_schema(const Schema& schema, TableRef table)
 {
     std::string table_name(table->get_name());

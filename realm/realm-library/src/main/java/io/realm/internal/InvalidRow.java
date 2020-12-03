@@ -21,6 +21,7 @@ import org.bson.types.ObjectId;
 
 import java.util.Date;
 
+import io.realm.Mixed;
 import io.realm.RealmFieldType;
 
 
@@ -189,6 +190,11 @@ public enum InvalidRow implements Row {
 
     @Override
     public void setObjectId(long columnKey, ObjectId value) {
+        throw getStubException();
+    }
+
+    @Override
+    public void setMixed(long columnKey, Mixed value) {
         throw getStubException();
     }
 

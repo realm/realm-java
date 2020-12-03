@@ -23,6 +23,7 @@ import java.util.Date;
 
 import javax.annotation.Nullable;
 
+import io.realm.Mixed;
 import io.realm.RealmFieldType;
 
 
@@ -119,6 +120,8 @@ public interface Row {
     void setDecimal128(long columnKey, Decimal128 value);
 
     void setObjectId(long columnKey, ObjectId value);
+
+    void setMixed(long columnKey, Mixed value);
 
     // Creates a new Embedded object in the given property.
     // This will replace any existing object which will be
