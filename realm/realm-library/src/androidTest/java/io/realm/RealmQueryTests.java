@@ -570,27 +570,34 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(1, fives.size());
     }
 
-    @Test (expected = UnsupportedOperationException.class)
+    @Test
     public void or_emptyGroupThrows() {
         populateTestRealm(); // create TEST_DATA_SIZE objects
-        RealmResults<AllTypes> fives = realm.where(AllTypes.class)
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class)
                 .equalTo(AllTypes.FIELD_LONG, 5)
                 .or()
                 .beginGroup()
-                .endGroup()
-                .findAll();
+                .endGroup();
+        try {
+            query.findAll();
+        } catch (UnsupportedOperationException ignore) {
+            // Expected exception
+        }
     }
 
-    @Test (expected = UnsupportedOperationException.class)
+    @Test
     public void not_emptyGroup_throws() {
-        populateTestRealm(); // create TEST_DATA_SIZE objects
-        realm.where(AllTypes.class)
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class)
                 .equalTo(AllTypes.FIELD_LONG, 5)
                 .or()
                 .not()
                 .beginGroup()
-                .endGroup()
-                .findAll();
+                .endGroup();
+        try {
+            query.findAll();
+        } catch (UnsupportedOperationException ignore) {
+            // Expected exception
+        }
     }
 
     @Test (expected = UnsupportedOperationException.class)
