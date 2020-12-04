@@ -306,16 +306,20 @@ struct JcharTraits {
 };
 
 struct JStringCharsAccessor {
-    JStringCharsAccessor(JNIEnv* e, jstring s)
+    JStringCharsAccessor(JNIEnv* e, jstring s, bool owned)
         : m_env(e)
         , m_string(s)
         , m_data(e->GetStringChars(s, 0))
         , m_size(get_size(e, s))
+        , m_owned(owned)
     {
     }
     ~JStringCharsAccessor()
     {
         m_env->ReleaseStringChars(m_string, m_data);
+        if (m_owned) {
+            m_env->DeleteLocalRef(m_string);
+        }
     }
     const jchar* data() const noexcept
     {
@@ -331,6 +335,7 @@ private:
     const jstring m_string;
     const jchar* const m_data;
     const size_t m_size;
+    const bool m_owned;
 
     static size_t get_size(JNIEnv* e, jstring s)
     {
@@ -472,7 +477,7 @@ transcode_complete : {
 }
 
 
-JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
+JStringAccessor::JStringAccessor(JNIEnv* env, jstring str, bool owned)
     : m_env(env)
 {
     // For efficiency, if the incoming UTF-16 string is sufficiently
@@ -488,7 +493,7 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
     }
     m_is_null = false;
 
-    JStringCharsAccessor chars(env, str);
+    JStringCharsAccessor chars(env, str, owned);
 
     typedef Utf8x16<jchar, JcharTraits> Xcode;
     size_t max_project_size = 48;
