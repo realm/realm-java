@@ -3,7 +3,6 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.annotations.Index
-import io.realm.annotations.RealmClass
 import io.realm.entities.PrimaryKeyAsString
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
@@ -27,7 +26,6 @@ open class MixedNotIndexed : RealmObject() {
     var mixed: Mixed? = null
 }
 
-@RealmClass("omgClas")
 open class MixedIndexed : RealmObject() {
     companion object {
         const val FIELD_MIXED = "mixed"
@@ -35,9 +33,6 @@ open class MixedIndexed : RealmObject() {
 
     @Index
     var mixed: Mixed? = null
-    var myList: RealmList<MixedNotIndexed>? = RealmList()
-    var myOtherList: RealmList<PrimaryKeyAsString>? = RealmList()
-    var myModel: MixedIndexed? = null
 }
 
 // FIXME: MIXED PARAMETRIZED TESTS FOR INDEXED AND UNINDEXED

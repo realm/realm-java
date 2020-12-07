@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.ManageableObject;
 import io.realm.internal.OsSharedRealm;
+import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 
