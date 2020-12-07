@@ -378,16 +378,16 @@ object RealmJsonTypeHelper {
         override fun emitTypeConversion(varName: String, accessor: String, fieldName: String, fieldType: QualifiedClassName, writer: JavaWriter) {
             writer.apply {
                 beginControlFlow("if (json.has(\"%s\"))", fieldName)
-                beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
-                emitStatement("%s.%s(null)", varName, accessor)
-                nextControlFlow("else")
-                emitStatement("Object id = json.get(\"%s\")", fieldName)
-                beginControlFlow("if (id instanceof org.bson.types.ObjectId)")
-                emitStatement("%s.%s((org.bson.types.ObjectId) id)", varName, accessor)
-                nextControlFlow("else")
-                emitStatement("%s.%s(new org.bson.types.ObjectId((String)id))", varName, accessor)
-                endControlFlow()
-                endControlFlow()
+                    beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
+                        emitStatement("%s.%s(null)", varName, accessor)
+                    nextControlFlow("else")
+                        emitStatement("Object id = json.get(\"%s\")", fieldName)
+                        beginControlFlow("if (id instanceof org.bson.types.ObjectId)")
+                            emitStatement("%s.%s((org.bson.types.ObjectId) id)", varName, accessor)
+                        nextControlFlow("else")
+                            emitStatement("%s.%s(new org.bson.types.ObjectId((String)id))", varName, accessor)
+                        endControlFlow()
+                    endControlFlow()
                 endControlFlow()
             }
         }
@@ -396,10 +396,10 @@ object RealmJsonTypeHelper {
         override fun emitStreamTypeConversion(varName: String, accessor: String, fieldName: String, fieldType: QualifiedClassName, writer: JavaWriter, isPrimaryKey: Boolean) {
             writer.apply {
                 beginControlFlow("if (reader.peek() == JsonToken.NULL)")
-                emitStatement("reader.skipValue()")
-                emitStatement("%s.%s(null)", varName, accessor)
+                    emitStatement("reader.skipValue()")
+                    emitStatement("%s.%s(null)", varName, accessor)
                 nextControlFlow("else")
-                emitStatement("%s.%s(new org.bson.types.ObjectId(reader.nextString()))", varName, accessor)
+                    emitStatement("%s.%s(new org.bson.types.ObjectId(reader.nextString()))", varName, accessor)
                 endControlFlow()
             }
         }
@@ -410,13 +410,13 @@ object RealmJsonTypeHelper {
             // This should be done by the annotation processor.
             writer.apply {
                 beginControlFlow("if (json.has(\"%s\"))", fieldName)
-                beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
-                emitStatement("obj = (%1\$s) realm.createObjectInternal(%2\$s.class, null, true, excludeFields)", realmObjectProxyClass, realmObjectClass)
+                    beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
+                        emitStatement("obj = (%1\$s) realm.createObjectInternal(%2\$s.class, null, true, excludeFields)", realmObjectProxyClass, realmObjectClass)
+                    nextControlFlow("else")
+                        emitStatement("obj = (%1\$s) realm.createObjectInternal(%2\$s.class, json.get(\"%3\$s\"), true, excludeFields)", realmObjectProxyClass, realmObjectClass, fieldName)
+                    endControlFlow()
                 nextControlFlow("else")
-                emitStatement("obj = (%1\$s) realm.createObjectInternal(%2\$s.class, json.get(\"%3\$s\"), true, excludeFields)", realmObjectProxyClass, realmObjectClass, fieldName)
-                endControlFlow()
-                nextControlFlow("else")
-                emitStatement(Constants.STATEMENT_EXCEPTION_NO_PRIMARY_KEY_IN_JSON, fieldName)
+                    emitStatement(Constants.STATEMENT_EXCEPTION_NO_PRIMARY_KEY_IN_JSON, fieldName)
                 endControlFlow()
             }
         }
@@ -427,16 +427,16 @@ object RealmJsonTypeHelper {
         override fun emitTypeConversion(varName: String, accessor: String, fieldName: String, fieldType: QualifiedClassName, writer: JavaWriter) {
             writer.apply {
                 beginControlFlow("if (json.has(\"%s\"))", fieldName)
-                beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
-                emitStatement("%s.%s(null)", varName, accessor)
-                nextControlFlow("else")
-                emitStatement("Object id = json.get(\"%s\")", fieldName)
-                beginControlFlow("if (id instanceof java.util.UUID)")
-                emitStatement("%s.%s((java.util.UUID) id)", varName, accessor)
-                nextControlFlow("else")
-                emitStatement("%s.%s(java.util.UUID.fromString((String)id))", varName, accessor)
-                endControlFlow()
-                endControlFlow()
+                    beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
+                        emitStatement("%s.%s(null)", varName, accessor)
+                    nextControlFlow("else")
+                        emitStatement("Object id = json.get(\"%s\")", fieldName)
+                        beginControlFlow("if (id instanceof java.util.UUID)")
+                            emitStatement("%s.%s((java.util.UUID) id)", varName, accessor)
+                        nextControlFlow("else")
+                            emitStatement("%s.%s(java.util.UUID.fromString((String)id))", varName, accessor)
+                        endControlFlow()
+                    endControlFlow()
                 endControlFlow()
             }
         }
@@ -445,10 +445,10 @@ object RealmJsonTypeHelper {
         override fun emitStreamTypeConversion(varName: String, accessor: String, fieldName: String, fieldType: QualifiedClassName, writer: JavaWriter, isPrimaryKey: Boolean) {
             writer.apply {
                 beginControlFlow("if (reader.peek() == JsonToken.NULL)")
-                emitStatement("reader.skipValue()")
-                emitStatement("%s.%s(null)", varName, accessor)
+                    emitStatement("reader.skipValue()")
+                    emitStatement("%s.%s(null)", varName, accessor)
                 nextControlFlow("else")
-                emitStatement("%s.%s(java.util.UUID.fromString(reader.nextString()))", varName, accessor)
+                    emitStatement("%s.%s(java.util.UUID.fromString(reader.nextString()))", varName, accessor)
                 endControlFlow()
             }
         }
@@ -459,13 +459,13 @@ object RealmJsonTypeHelper {
             // This should be done by the annotation processor.
             writer.apply {
                 beginControlFlow("if (json.has(\"%s\"))", fieldName)
-                beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
-                emitStatement("obj = (%1\$s) realm.createObjectInternal(%2\$s.class, null, true, excludeFields)", realmObjectProxyClass, realmObjectClass)
+                    beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
+                        emitStatement("obj = (%1\$s) realm.createObjectInternal(%2\$s.class, null, true, excludeFields)", realmObjectProxyClass, realmObjectClass)
+                    nextControlFlow("else")
+                        emitStatement("obj = (%1\$s) realm.createObjectInternal(%2\$s.class, json.get(\"%3\$s\"), true, excludeFields)", realmObjectProxyClass, realmObjectClass, fieldName)
+                    endControlFlow()
                 nextControlFlow("else")
-                emitStatement("obj = (%1\$s) realm.createObjectInternal(%2\$s.class, json.get(\"%3\$s\"), true, excludeFields)", realmObjectProxyClass, realmObjectClass, fieldName)
-                endControlFlow()
-                nextControlFlow("else")
-                emitStatement(Constants.STATEMENT_EXCEPTION_NO_PRIMARY_KEY_IN_JSON, fieldName)
+                    emitStatement(Constants.STATEMENT_EXCEPTION_NO_PRIMARY_KEY_IN_JSON, fieldName)
                 endControlFlow()
             }
         }
