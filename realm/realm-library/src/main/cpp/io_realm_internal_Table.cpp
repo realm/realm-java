@@ -571,8 +571,8 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeMixedAsObjectId(JNI
     return nullptr;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMixedAsLink(JNIEnv* env, jclass, jlong nativeTableRefPtr,
-jlong columnKey, jlong rowKey)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMixedGetRowKey(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                          jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
     if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
@@ -584,6 +584,24 @@ jlong columnKey, jlong rowKey)
     }
     CATCH_STD()
     return -1;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeMixedGetTableName(JNIEnv* env, jclass, jlong nativeSharedRealmPtr, jlong nativeTableRefPtr,
+                                                                            jlong columnKey, jlong rowKey)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return nullptr;
+    }
+    try {
+        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(nativeSharedRealmPtr));
+
+        auto obj_link = table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey)).get<ObjLink>();
+
+        return to_jstring(env, shared_realm->read_group().get_table(obj_link.get_table_key())->get_name());
+    }
+    CATCH_STD()
+    return nullptr;
 }
 
 JNIEXPORT jlongArray JNICALL Java_io_realm_internal_Table_nativeMixedAsDecimal128(JNIEnv* env, jclass, jlong nativeTableRefPtr,

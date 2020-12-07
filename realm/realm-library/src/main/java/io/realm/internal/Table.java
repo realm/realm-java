@@ -476,8 +476,13 @@ public class Table implements NativeObject {
         return Decimal128.fromIEEE754BIDEncoding(longs[0], longs[1]);
     }
 
-    public long mixedAsLink(long columnKey, long rowKey){
-        return nativeMixedAsLink(nativeTableRefPtr, columnKey, rowKey);
+    public long mixedGetRowKey(long columnKey, long rowKey){
+        return nativeMixedGetRowKey(nativeTableRefPtr, columnKey, rowKey);
+    }
+
+
+    public String mixedGetClassName(OsSharedRealm sharedRealm, long columnKey, long rowKey) {
+        return Table.getClassNameForTable(nativeMixedGetTableName(sharedRealm.getNativePtr(), nativeTableRefPtr, columnKey, rowKey));
     }
 
     //
@@ -952,7 +957,9 @@ public class Table implements NativeObject {
 
     public static native String nativeMixedAsObjectId(long nativeTableRefPtr, long columnKey, long rowKey);
 
-    public static native long nativeMixedAsLink(long nativeTableRefPtr, long columnKey, long rowKey);
+    public static native long nativeMixedGetRowKey(long nativeTableRefPtr, long columnKey, long rowKey);
+
+    public static native String nativeMixedGetTableName(long sharedRealmPtr, long nativeTableRefPtr, long columnKey, long rowKey);
 
     public static native boolean nativeMixedIsNull(long nativeTableRefPtr, long columnKey, long rowKey);
 

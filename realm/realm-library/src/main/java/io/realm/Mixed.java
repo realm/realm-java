@@ -25,6 +25,7 @@ import java.util.Date;
 import javax.annotation.Nullable;
 
 import io.realm.internal.ManageableObject;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 
@@ -71,12 +72,6 @@ public abstract class Mixed implements ManageableObject {
             return false;
         }
 
-        @Nullable
-        @Override
-        protected <T extends RealmModel> T getRealmModel(Class<T> clazz) {
-            return get(clazz, MixedType.OBJECT);
-        }
-
         @Override
         @Nullable
         protected <T> T get(Class<T> clazz, MixedType fieldType) {
@@ -85,12 +80,12 @@ public abstract class Mixed implements ManageableObject {
 
         @Nullable
         @Override
-        public String getSimpleClassName() {
+        public Class<?> getValueClass() {
             if (mixedType == MixedType.OBJECT) {
-                return value.getClass().getSimpleName();
+                return value.getClass();
             }
 
-            return mixedType.getSimpleClassName();
+            return mixedType.getTypedClass();
         }
 
         @Override
@@ -151,6 +146,8 @@ public abstract class Mixed implements ManageableObject {
                     return clazz.cast(table.mixedAsObjectId(columnIndex, rowIndex));
                 case DECIMAL128:
                     return clazz.cast(table.mixedAsDecimal128(columnIndex, rowIndex));
+                case OBJECT:
+                    return getRealmModel(clazz);
                 default:
                     throw new ClassCastException("Couldn't cast to " + fieldType);
             }
@@ -158,19 +155,36 @@ public abstract class Mixed implements ManageableObject {
 
         @Nullable
         @Override
-        public String getSimpleClassName() {
+        public Class<?> getValueClass() {
             MixedType mixedType = getType();
 
             if (mixedType == MixedType.OBJECT) {
-                return "placeholder";
+                Row row = getRow();
+                Table table = row.getTable();
+                long rowIndex = row.getObjectKey();
+                long columnIndex = getColumnIndex();
+
+                OsSharedRealm sharedRealm = getProxyState()
+                        .getRealm$realm()
+                        .getSharedRealm();
+
+                String className = table.mixedGetClassName(sharedRealm, columnIndex, rowIndex);
+
+                return getProxyState()
+                        .getRealm$realm()
+                        .getConfiguration()
+                        .getSchemaMediator()
+                        .getClazz(className);
             }
 
-            return mixedType.getSimpleClassName();
+            return mixedType.getTypedClass();
         }
 
-        @Override
         @Nullable
-        protected <T extends RealmModel> T getRealmModel(Class<T> clazz) {
+        @SuppressWarnings({"TypeParameterUnusedInFormals", "unchecked"})
+        private <T extends RealmModel> T getRealmModel(Class<?> clazz) {
+            Class<T> modelClazz = (Class<T>) clazz;
+
             Row row = getRow();
             Table table = row.getTable();
             long rowIndex = row.getObjectKey();
@@ -178,7 +192,7 @@ public abstract class Mixed implements ManageableObject {
 
             return getProxyState()
                     .getRealm$realm()
-                    .get(clazz, table.mixedAsLink(columnIndex, rowIndex), false, Collections.emptyList());
+                    .get(modelClazz, table.mixedGetRowKey(columnIndex, rowIndex), false, Collections.emptyList());
         }
 
         @Override
@@ -206,14 +220,15 @@ public abstract class Mixed implements ManageableObject {
     }
 
     @Nullable
-    protected abstract <T extends RealmModel> T getRealmModel(Class<T> clazz);
-
-    @Nullable
     protected abstract <T> T get(Class<T> clazz, MixedType fieldType);
 
-    // FIXME: ADD DOCUMENTATION
+    /**
+     * Returns the Java class that represents the inner value wrapped by this Mixed value.
+     *
+     * @return the class that represents the inner value wrapped by this Mixed value.
+     */
     @Nullable
-    public abstract String getSimpleClassName();
+    public abstract Class<?> getValueClass();
 
     /**
      * Creates a new, unmanaged {@link Mixed} with the specified initial value.
@@ -439,6 +454,6 @@ public abstract class Mixed implements ManageableObject {
      * @throws java.lang.ClassCastException if this value is not of the expected type
      */
     public <T extends RealmModel> T asRealmModel(Class<T> clazz) {
-        return getRealmModel(clazz);
+        return get(clazz, MixedType.OBJECT);
     }
 }

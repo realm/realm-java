@@ -3,6 +3,7 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.annotations.Index
+import io.realm.annotations.RealmClass
 import io.realm.entities.PrimaryKeyAsString
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
@@ -26,6 +27,7 @@ open class MixedNotIndexed : RealmObject() {
     var mixed: Mixed? = null
 }
 
+@RealmClass("omgClas")
 open class MixedIndexed : RealmObject() {
     companion object {
         const val FIELD_MIXED = "mixed"
@@ -77,7 +79,7 @@ class MixedTests {
         val mixed = Mixed.valueOf(10)
         assertEquals(10, mixed.asInteger())
         assertEquals(MixedType.INTEGER, mixed.type)
-        assertEquals(MixedType.INTEGER.simpleClassName, mixed.simpleClassName)
+        assertEquals(MixedType.INTEGER.typedClass, mixed.valueClass)
     }
 
     @Test
@@ -85,7 +87,7 @@ class MixedTests {
         val mixed = Mixed.valueOf(true)
         assertEquals(true, mixed.asBoolean())
         assertEquals(MixedType.BOOLEAN, mixed.type)
-        assertEquals(MixedType.BOOLEAN.simpleClassName, mixed.simpleClassName)
+        assertEquals(MixedType.BOOLEAN.typedClass, mixed.valueClass)
     }
 
     @Test
@@ -93,7 +95,7 @@ class MixedTests {
         val mixed = Mixed.valueOf("hello world")
         assertEquals("hello world", mixed.asString())
         assertEquals(MixedType.STRING, mixed.type)
-        assertEquals(MixedType.STRING.simpleClassName, mixed.simpleClassName)
+        assertEquals(MixedType.STRING.typedClass, mixed.valueClass)
     }
 
     @Test
@@ -101,7 +103,7 @@ class MixedTests {
         val mixed = Mixed.valueOf(byteArrayOf(0, 1, 0))
         assertTrue(Arrays.equals(byteArrayOf(0, 1, 0), mixed.asBinary()))
         assertEquals(MixedType.BINARY, mixed.type)
-        assertEquals(MixedType.BINARY.simpleClassName, mixed.simpleClassName)
+        assertEquals(MixedType.BINARY.typedClass, mixed.valueClass)
     }
 
     @Test
@@ -109,7 +111,7 @@ class MixedTests {
         val mixed = Mixed.valueOf(Date(10))
         assertEquals(Date(10), mixed.asDate())
         assertEquals(MixedType.DATE, mixed.type)
-        assertEquals(MixedType.DATE.simpleClassName, mixed.simpleClassName)
+        assertEquals(MixedType.DATE.typedClass, mixed.valueClass)
     }
 
     @Test
@@ -117,7 +119,7 @@ class MixedTests {
         val mixed = Mixed.valueOf(Decimal128.fromIEEE754BIDEncoding(10, 10))
         assertEquals(Decimal128.fromIEEE754BIDEncoding(10, 10), mixed.asDecimal128())
         assertEquals(MixedType.DECIMAL128, mixed.type)
-        assertEquals(MixedType.DECIMAL128.simpleClassName, mixed.simpleClassName)
+        assertEquals(MixedType.DECIMAL128.typedClass, mixed.valueClass)
     }
 
     @Test
@@ -125,7 +127,7 @@ class MixedTests {
         val mixed = Mixed.valueOf(10.0)
         assertEquals(10.0, mixed.asDouble())
         assertEquals(MixedType.DOUBLE, mixed.type)
-        assertEquals(MixedType.DOUBLE.simpleClassName, mixed.simpleClassName)
+        assertEquals(MixedType.DOUBLE.typedClass, mixed.valueClass)
     }
 
     @Test
@@ -133,7 +135,7 @@ class MixedTests {
         val mixed = Mixed.valueOf(10.0f)
         assertEquals(10.0f, mixed.asFloat())
         assertEquals(MixedType.FLOAT, mixed.type)
-        assertEquals(MixedType.FLOAT.simpleClassName, mixed.simpleClassName)
+        assertEquals(MixedType.FLOAT.typedClass, mixed.valueClass)
     }
 
     @Test
@@ -142,7 +144,7 @@ class MixedTests {
 
         assertEquals(ObjectId(TestHelper.generateObjectIdHexString(0)), mixed.asObjectId())
         assertEquals(MixedType.OBJECT_ID, mixed.type)
-        assertEquals(MixedType.OBJECT_ID.simpleClassName, mixed.simpleClassName)
+        assertEquals(MixedType.OBJECT_ID.typedClass, mixed.valueClass)
     }
 
     @Test
@@ -152,7 +154,7 @@ class MixedTests {
 
         assertEquals(obj, mixed.asRealmModel(MixedNotIndexed::class.java))
         assertEquals(MixedType.OBJECT, mixed.type)
-        assertEquals(MixedNotIndexed::class.simpleName, mixed.simpleClassName)
+        assertEquals(MixedNotIndexed::class.simpleName, mixed.valueClass?.simpleName)
     }
 
     @Test
@@ -163,7 +165,7 @@ class MixedTests {
 
         assertTrue(mixed.isNull)
         assertEquals(MixedType.NULL, mixed.type)
-        assertEquals("null", mixed.simpleClassName)
+        assertEquals(null, mixed.valueClass)
     }
 
     // Managed Tests
@@ -179,7 +181,7 @@ class MixedTests {
 
         assertEquals(10, mixedObject!!.mixed!!.asInteger())
         assertEquals(MixedType.INTEGER, mixedObject.mixed!!.type)
-        assertEquals(MixedType.INTEGER.simpleClassName, mixedObject.mixed!!.simpleClassName)
+        assertEquals(MixedType.INTEGER.typedClass, mixedObject.mixed!!.valueClass)
     }
 
     @Test
@@ -193,7 +195,7 @@ class MixedTests {
 
         assertEquals(true, mixedObject!!.mixed!!.asBoolean())
         assertEquals(MixedType.BOOLEAN, mixedObject.mixed!!.type)
-        assertEquals(MixedType.BOOLEAN.simpleClassName, mixedObject.mixed!!.simpleClassName)
+        assertEquals(MixedType.BOOLEAN.typedClass, mixedObject.mixed!!.valueClass)
     }
 
     @Test
@@ -207,7 +209,7 @@ class MixedTests {
 
         assertEquals("hello world", mixedObject!!.mixed!!.asString())
         assertEquals(MixedType.STRING, mixedObject.mixed!!.type)
-        assertEquals(MixedType.STRING.simpleClassName, mixedObject.mixed!!.simpleClassName)
+        assertEquals(MixedType.STRING.typedClass, mixedObject.mixed!!.valueClass)
     }
 
     @Test
@@ -221,7 +223,7 @@ class MixedTests {
 
         assertTrue(Arrays.equals(byteArrayOf(0, 1, 0), mixedObject!!.mixed!!.asBinary()))
         assertEquals(MixedType.BINARY, mixedObject.mixed!!.type)
-        assertEquals(MixedType.BINARY.simpleClassName, mixedObject.mixed!!.simpleClassName)
+        assertEquals(MixedType.BINARY.typedClass, mixedObject.mixed!!.valueClass)
     }
 
     @Test
@@ -235,7 +237,7 @@ class MixedTests {
 
         assertEquals(Date(10), mixedObject!!.mixed!!.asDate())
         assertEquals(MixedType.DATE, mixedObject.mixed!!.type)
-        assertEquals(MixedType.DATE.simpleClassName, mixedObject.mixed!!.simpleClassName)
+        assertEquals(MixedType.DATE.typedClass, mixedObject.mixed!!.valueClass)
     }
 
     @Test
@@ -249,7 +251,7 @@ class MixedTests {
 
         assertEquals(Decimal128(10), mixedObject!!.mixed!!.asDecimal128())
         assertEquals(MixedType.DECIMAL128, mixedObject.mixed!!.type)
-        assertEquals(MixedType.DECIMAL128.simpleClassName, mixedObject.mixed!!.simpleClassName)
+        assertEquals(MixedType.DECIMAL128.typedClass, mixedObject.mixed!!.valueClass)
     }
 
     @Test
@@ -263,7 +265,7 @@ class MixedTests {
 
         assertEquals(10.0, mixedObject!!.mixed!!.asDouble())
         assertEquals(MixedType.DOUBLE, mixedObject.mixed!!.type)
-        assertEquals(MixedType.DOUBLE.simpleClassName, mixedObject.mixed!!.simpleClassName)
+        assertEquals(MixedType.DOUBLE.typedClass, mixedObject.mixed!!.valueClass)
     }
 
     @Test
@@ -277,7 +279,7 @@ class MixedTests {
 
         assertEquals(10f, mixedObject!!.mixed!!.asFloat())
         assertEquals(MixedType.FLOAT, mixedObject.mixed!!.type)
-        assertEquals(MixedType.FLOAT.simpleClassName, mixedObject.mixed!!.simpleClassName)
+        assertEquals(MixedType.FLOAT.typedClass, mixedObject.mixed!!.valueClass)
     }
 
     @Test
@@ -291,7 +293,7 @@ class MixedTests {
 
         assertEquals(ObjectId(TestHelper.generateObjectIdHexString(0)), mixedObject!!.mixed!!.asObjectId())
         assertEquals(MixedType.OBJECT_ID, mixedObject.mixed!!.type)
-        assertEquals(MixedType.OBJECT_ID.simpleClassName, mixedObject.mixed!!.simpleClassName)
+        assertEquals(MixedType.OBJECT_ID.typedClass, mixedObject.mixed!!.valueClass)
     }
 
     @Test
@@ -305,7 +307,7 @@ class MixedTests {
 
         assertTrue(mixedObject!!.mixed!!.isNull)
         assertEquals(MixedType.NULL, mixedObject.mixed!!.type)
-        assertEquals(MixedType.NULL.simpleClassName, mixedObject.mixed!!.simpleClassName)
+        assertEquals(MixedType.NULL.typedClass, mixedObject.mixed!!.valueClass)
     }
 
     @Test
@@ -320,11 +322,10 @@ class MixedTests {
         }
 
         val mixedObject = realm.where<MixedNotIndexed>().findFirst()
-        val auto = mixedObject!!.mixed!!.asRealmModel(PrimaryKeyAsString::class.java)
 
         assertEquals(key, mixedObject!!.mixed!!.asRealmModel(PrimaryKeyAsString::class.java).name)
         assertEquals(MixedType.OBJECT, mixedObject.mixed!!.type)
-        assertEquals(PrimaryKeyAsString::class.simpleName, mixedObject.mixed!!.simpleClassName)
+        assertEquals(PrimaryKeyAsString::class.simpleName, mixedObject.mixed!!.valueClass?.simpleName)
     }
 
     @Test
@@ -343,7 +344,8 @@ class MixedTests {
 
         assertEquals(key, mixedObject!!.mixed!!.asRealmModel(PrimaryKeyAsString::class.java).name)
         assertEquals(MixedType.OBJECT, mixedObject.mixed!!.type)
-        assertEquals(PrimaryKeyAsString::class.simpleName, mixedObject.mixed!!.simpleClassName)
+
+        assertEquals(PrimaryKeyAsString::class.simpleName, mixedObject.mixed!!.valueClass?.simpleName)
     }
 
     @Test
@@ -357,6 +359,6 @@ class MixedTests {
 
         assertTrue(mixedObject!!.mixed!!.isNull)
         assertEquals(MixedType.NULL, mixedObject.mixed!!.type)
-        assertEquals(MixedType.NULL.simpleClassName, mixedObject.mixed!!.simpleClassName)
+        assertEquals(MixedType.NULL.typedClass, mixedObject.mixed!!.valueClass)
     }
 }

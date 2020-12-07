@@ -101,6 +101,12 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
+    protected Class<? extends RealmModel> getClazzImpl(String className) {
+        RealmProxyMediator mediator = getMediator(className);
+        return mediator.getClazz(className);
+    }
+
+    @Override
     public <E extends RealmModel> E newInstance(Class<E> clazz,
             Object baseRealm,
             Row row,
@@ -193,5 +199,11 @@ public class CompositeMediator extends RealmProxyMediator {
             throw new RealmException(clazz.getSimpleName() + " is not part of the schema for this Realm");
         }
         return mediator;
+    }
+
+    // Returns the mediator for a given model class (not RealmProxy) or throws exception
+    private RealmProxyMediator getMediator(String className) {
+        Class<? extends RealmModel> clazz = internalClassNames.get(className);
+        return getMediator(clazz);
     }
 }
