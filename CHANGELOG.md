@@ -1,3 +1,19 @@
+## 10.1.3 (YYYY-MM-DD)
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* None.
+
+### Fixes
+* Clean up JNI references to prevent crash from JNI reference table overflow (Issue [#7217](https://github.com/realm/realm-java/issues/7217))
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
 ## 10.1.2 (2020-12-02)
 
 ### Breaking Changes
