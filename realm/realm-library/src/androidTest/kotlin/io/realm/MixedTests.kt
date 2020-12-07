@@ -335,11 +335,9 @@ class MixedTests {
         }
 
         val mixedObject = realm.where<MixedNotIndexed>().findFirst()
-        val auto = mixedObject!!.mixed!!.asRealmModel(PrimaryKeyAsString::class.java)
 
         assertEquals(key, mixedObject!!.mixed!!.asRealmModel(PrimaryKeyAsString::class.java).name)
         assertEquals(MixedType.OBJECT, mixedObject.mixed!!.type)
-
         assertEquals(PrimaryKeyAsString::class.simpleName, mixedObject.mixed!!.valueClass?.simpleName)
     }
 
