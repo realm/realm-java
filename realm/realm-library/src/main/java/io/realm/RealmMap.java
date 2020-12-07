@@ -402,7 +402,7 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<Re
 
         @Override
         public boolean containsValue(Object value) {
-            return unmanagedMap.containsKey(value);
+            return unmanagedMap.containsValue(value);
         }
 
         @Override
