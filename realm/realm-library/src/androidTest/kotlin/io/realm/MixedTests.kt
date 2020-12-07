@@ -17,22 +17,7 @@ import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-open class MixedNotIndexed : RealmObject() {
-    companion object {
-        const val FIELD_MIXED = "mixed"
-    }
 
-    var mixed: Mixed? = null
-}
-
-open class MixedIndexed : RealmObject() {
-    companion object {
-        const val FIELD_MIXED = "mixed"
-    }
-
-    @Index
-    var mixed: Mixed? = null
-}
 
 @RunWith(AndroidJUnit4::class)
 class MixedTests {
