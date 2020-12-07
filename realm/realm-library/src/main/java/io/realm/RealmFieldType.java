@@ -37,6 +37,7 @@ import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_OBJECT;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_OBJECTID;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_STRING;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_MIXED;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_TYPED_LINK;
 import static io.realm.RealmFieldTypeConstants.LIST_OFFSET;
 import static io.realm.RealmFieldTypeConstants.MAX_CORE_TYPE_VALUE;
 
@@ -57,8 +58,9 @@ interface RealmFieldTypeConstants {
     int CORE_TYPE_VALUE_DECIMAL128 = 11;
     int CORE_TYPE_VALUE_OBJECTID = 15;
     int CORE_TYPE_VALUE_MIXED = 6;
+    int CORE_TYPE_VALUE_TYPED_LINK = 16;
 
-    int MAX_CORE_TYPE_VALUE = CORE_TYPE_VALUE_OBJECTID;
+    int MAX_CORE_TYPE_VALUE = CORE_TYPE_VALUE_TYPED_LINK;
 }
 
 /**
@@ -82,6 +84,7 @@ public enum RealmFieldType {
     DECIMAL128(CORE_TYPE_VALUE_DECIMAL128),
     OBJECT_ID(CORE_TYPE_VALUE_OBJECTID),
     MIXED(CORE_TYPE_VALUE_MIXED),
+    TYPED_LINK(CORE_TYPE_VALUE_TYPED_LINK),
 
     LIST(CORE_TYPE_VALUE_LIST),
     LINKING_OBJECTS(CORE_TYPE_VALUE_LINKING_OBJECTS),
@@ -99,7 +102,7 @@ public enum RealmFieldType {
 
     // Primitive array for fast mapping between between native values and their Realm type.
     private static final RealmFieldType[] basicTypes = new RealmFieldType[MAX_CORE_TYPE_VALUE + 1];
-    private static final RealmFieldType[] listTypes = new RealmFieldType[MAX_CORE_TYPE_VALUE + 1];
+    private static final RealmFieldType[] listTypes = new RealmFieldType[MAX_CORE_TYPE_VALUE];
 
     static {
         for (RealmFieldType columnType : values()) {

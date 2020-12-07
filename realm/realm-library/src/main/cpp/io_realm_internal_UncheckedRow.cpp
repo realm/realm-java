@@ -349,6 +349,24 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeMixedSetObjectI
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeMixedSetLink(JNIEnv* env, jclass, jlong nativeRowPtr,
+                                                                                  jlong columnKey, jlong targetTableRef,
+                                                                                  jlong targetObjectKey)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return;
+    }
+
+    try {
+        TableRef target_table = TBL_REF(targetTableRef);
+        ObjKey object_key(targetObjectKey);
+        ObjLink object_link(target_table->get_key(), object_key);
+
+        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), Mixed(object_link));
+    }
+    CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeMixedSetNull(JNIEnv* env, jclass, jlong nativeRowPtr,
                                                                                   jlong columnKey)
 {

@@ -25,6 +25,7 @@ import javax.annotation.Nullable;
 
 import io.realm.Mixed;
 import io.realm.RealmFieldType;
+import io.realm.RealmModel;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 
 
@@ -475,6 +476,10 @@ public class Table implements NativeObject {
         return Decimal128.fromIEEE754BIDEncoding(longs[0], longs[1]);
     }
 
+    public long mixedAsLink(long columnKey, long rowKey){
+        return nativeMixedAsLink(nativeTableRefPtr, columnKey, rowKey);
+    }
+
     //
     // Setters
     //
@@ -588,7 +593,17 @@ public class Table implements NativeObject {
                     Decimal128 decimalValue = value.asDecimal128();
                     nativeMixedSetDecimal128(nativeTableRefPtr, columnKey, rowKey, decimalValue.getLow(), decimalValue.getHigh(), isDefault);
                     break;
-                case NO_TYPE:
+                case OBJECT:
+                    RealmModel model = value.asRealmModel(RealmModel.class);
+
+                    Row row$realm = ((RealmObjectProxy) model).realmGet$proxyState().getRow$realm();
+
+                    long targetTablePtr = row$realm.getTable().getNativePtr();
+                    long targetObjectKey = row$realm.getObjectKey();
+
+                    nativeMixedSetLink(nativeTableRefPtr, columnKey, rowKey, targetTablePtr, targetObjectKey, isDefault);
+                    break;
+                case NULL:
                     nativeMixedSetNull(nativeTableRefPtr, columnKey, rowKey, isDefault);
                     break;
                 default:
@@ -937,6 +952,8 @@ public class Table implements NativeObject {
 
     public static native String nativeMixedAsObjectId(long nativeTableRefPtr, long columnKey, long rowKey);
 
+    public static native long nativeMixedAsLink(long nativeTableRefPtr, long columnKey, long rowKey);
+
     public static native boolean nativeMixedIsNull(long nativeTableRefPtr, long columnKey, long rowKey);
 
     public static native void nativeMixedSetLong(long nativeTableRefPtr, long columnKey, long rowKey, long value, boolean isDefault);
@@ -959,7 +976,7 @@ public class Table implements NativeObject {
 
     public static native void nativeMixedSetObjectId(long nativeTableRefPtr, long columnKey, long rowKey, String data, boolean isDefault);
 
-    public static native void nativeMixedSetLink(long nativeTableRefPtr, long columnKey, long rowKey, long value, boolean isDefault);
+    public static native void nativeMixedSetLink(long nativeTableRefPtr, long columnKey, long rowKey, long tableKey, long targetRowKey, boolean isDefault);
 
     private native void nativeAddSearchIndex(long nativePtr, long columnKey);
 

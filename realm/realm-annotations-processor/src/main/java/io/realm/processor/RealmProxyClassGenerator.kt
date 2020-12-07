@@ -19,7 +19,6 @@ package io.realm.processor
 import com.squareup.javawriter.JavaWriter
 import io.realm.processor.ext.beginMethod
 import io.realm.processor.ext.beginType
-import org.bson.types.ObjectId
 import java.io.BufferedWriter
 import java.io.IOException
 import java.util.*
@@ -380,19 +379,29 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             endMethod()
             // Getter - End
 
+            emitEmptyLine()
+
             // Setter - Start
             emitAnnotation("Override")
             beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value")
-            emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field)) {
-                emitStatement("final Row row = proxyState.getRow\$realm()")
 
+            emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field)) {
+                beginControlFlow("if (proxyState.getExcludeFields\$realm().contains(\"%1\$s\"))", field.simpleName.toString())
+                    emitStatement("return")
+                endControlFlow()
+                emitEmptyLine()
+                emitStatement("value = ProxyUtils.copyToRealmIfNeeded(proxyState, value)")
+                emitEmptyLine()
+                emitStatement("final Row row = proxyState.getRow\$realm()")
                 emitStatement("row.getTable().setMixed(%s, row.getObjectKey(), value, true)", fieldColKeyVariableReference(field))
                 emitStatement("return")
+
             }
-
+            emitEmptyLine()
             emitStatement("proxyState.getRealm\$realm().checkIfValid()")
+            emitEmptyLine()
+            emitStatement("value = ProxyUtils.copyToRealmIfNeeded(proxyState, value)")
             emitStatement("proxyState.getRow\$realm().setMixed(%s, value)", fieldColKeyVariableReference(field))
-
             endMethod()
             // Setter - End
         }

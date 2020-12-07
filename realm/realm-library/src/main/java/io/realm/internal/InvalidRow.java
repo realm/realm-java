@@ -22,6 +22,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 
 import io.realm.Mixed;
+import io.realm.Realm;
 import io.realm.RealmFieldType;
 
 

@@ -264,7 +264,8 @@ public class OsObjectBuilder implements Closeable {
                     Decimal128 decimalValue = value.asDecimal128();
                     nativeMixedAddDecimal128(builderPtr, columnKey, decimalValue.getLow(), decimalValue.getHigh());
                     break;
-                case NO_TYPE:
+                case NULL:
+                    nativeMixedAddNull(builderPtr, columnKey);
                     break;
                 default:
             }

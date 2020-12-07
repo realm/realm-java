@@ -19,6 +19,7 @@ package io.realm;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
+import java.util.Collections;
 import java.util.Date;
 
 import javax.annotation.Nullable;
@@ -47,12 +48,12 @@ public abstract class Mixed implements ManageableObject {
 
         Unmanaged() {
             this.value = null;
-            this.mixedType = MixedType.NO_TYPE;
+            this.mixedType = MixedType.NULL;
         }
 
         Unmanaged(@Nullable Object value, MixedType mixedType) {
             this.value = value;
-            this.mixedType = (value == null) ? MixedType.NO_TYPE : mixedType;
+            this.mixedType = (value == null) ? MixedType.NULL : mixedType;
         }
 
         @Override
@@ -70,10 +71,26 @@ public abstract class Mixed implements ManageableObject {
             return false;
         }
 
+        @Nullable
+        @Override
+        protected <T extends RealmModel> T getRealmModel(Class<T> clazz) {
+            return get(clazz, MixedType.OBJECT);
+        }
+
         @Override
         @Nullable
         protected <T> T get(Class<T> clazz, MixedType fieldType) {
             return clazz.cast(value);
+        }
+
+        @Nullable
+        @Override
+        public String getSimpleClassName() {
+            if (mixedType == MixedType.OBJECT) {
+                return value.getClass().getSimpleName();
+            }
+
+            return mixedType.getSimpleClassName();
         }
 
         @Override
@@ -139,9 +156,34 @@ public abstract class Mixed implements ManageableObject {
             }
         }
 
+        @Nullable
+        @Override
+        public String getSimpleClassName() {
+            MixedType mixedType = getType();
+
+            if (mixedType == MixedType.OBJECT) {
+                return "placeholder";
+            }
+
+            return mixedType.getSimpleClassName();
+        }
+
+        @Override
+        @Nullable
+        protected <T extends RealmModel> T getRealmModel(Class<T> clazz) {
+            Row row = getRow();
+            Table table = row.getTable();
+            long rowIndex = row.getObjectKey();
+            long columnIndex = getColumnIndex();
+
+            return getProxyState()
+                    .getRealm$realm()
+                    .get(clazz, table.mixedAsLink(columnIndex, rowIndex), false, Collections.emptyList());
+        }
+
         @Override
         public boolean isNull() {
-            return getType() == MixedType.NO_TYPE;
+            return getType() == MixedType.NULL;
         }
 
         private BaseRealm getRealm() {
@@ -164,11 +206,18 @@ public abstract class Mixed implements ManageableObject {
     }
 
     @Nullable
+    protected abstract <T extends RealmModel> T getRealmModel(Class<T> clazz);
+
+    @Nullable
     protected abstract <T> T get(Class<T> clazz, MixedType fieldType);
+
+    // FIXME: ADD DOCUMENTATION
+    @Nullable
+    public abstract String getSimpleClassName();
 
     /**
      * Creates a new, unmanaged {@link Mixed} with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NO_TYPE} otherwise.
+     * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
      * @return a new, unmanaged {@link Mixed} of a Long
@@ -179,7 +228,7 @@ public abstract class Mixed implements ManageableObject {
 
     /**
      * Creates a new, unmanaged {@link Mixed} with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#BOOLEAN}, {@link MixedType#NO_TYPE} otherwise.
+     * If the value is not null the type will be {@link MixedType#BOOLEAN}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
      * @return a new, unmanaged {@link Mixed} of a Boolean
@@ -190,7 +239,7 @@ public abstract class Mixed implements ManageableObject {
 
     /**
      * Creates a new, unmanaged {@link Mixed} with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#FLOAT}, {@link MixedType#NO_TYPE} otherwise.
+     * If the value is not null the type will be {@link MixedType#FLOAT}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
      * @return a new, unmanaged {@link Mixed} of a Float
@@ -201,7 +250,7 @@ public abstract class Mixed implements ManageableObject {
 
     /**
      * Creates a new, unmanaged {@link Mixed} with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#DOUBLE}, {@link MixedType#NO_TYPE} otherwise.
+     * If the value is not null the type will be {@link MixedType#DOUBLE}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
      * @return a new, unmanaged {@link Mixed} of a Double
@@ -212,7 +261,7 @@ public abstract class Mixed implements ManageableObject {
 
     /**
      * Creates a new, unmanaged {@link Mixed} with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#STRING}, {@link MixedType#NO_TYPE} otherwise.
+     * If the value is not null the type will be {@link MixedType#STRING}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
      * @return a new, unmanaged {@link Mixed} of a String
@@ -223,7 +272,7 @@ public abstract class Mixed implements ManageableObject {
 
     /**
      * Creates a new, unmanaged {@link Mixed} with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#BINARY}, {@link MixedType#NO_TYPE} otherwise.
+     * If the value is not null the type will be {@link MixedType#BINARY}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
      * @return a new, unmanaged {@link Mixed} of a byte[]
@@ -234,7 +283,7 @@ public abstract class Mixed implements ManageableObject {
 
     /**
      * Creates a new, unmanaged {@link Mixed} with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#DATE}, {@link MixedType#NO_TYPE} otherwise.
+     * If the value is not null the type will be {@link MixedType#DATE}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
      * @return a new, unmanaged {@link Mixed} of a Date
@@ -245,7 +294,7 @@ public abstract class Mixed implements ManageableObject {
 
     /**
      * Creates a new, unmanaged {@link Mixed} with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#OBJECT_ID}, {@link MixedType#NO_TYPE} otherwise.
+     * If the value is not null the type will be {@link MixedType#OBJECT_ID}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
      * @return a new, unmanaged {@link Mixed} of a ObjectId
@@ -256,7 +305,7 @@ public abstract class Mixed implements ManageableObject {
 
     /**
      * Creates a new, unmanaged {@link Mixed} with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#DECIMAL128}, {@link MixedType#NO_TYPE} otherwise.
+     * If the value is not null the type will be {@link MixedType#DECIMAL128}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
      * @return a new, unmanaged {@link Mixed} of a Decimal128
@@ -272,6 +321,10 @@ public abstract class Mixed implements ManageableObject {
      */
     public static Mixed nullValue() {
         return new Unmanaged();
+    }
+
+    public static Mixed valueOf(@Nullable RealmModel value) {
+        return new Unmanaged(value, MixedType.OBJECT);
     }
 
     /**
@@ -386,6 +439,6 @@ public abstract class Mixed implements ManageableObject {
      * @throws java.lang.ClassCastException if this value is not of the expected type
      */
     public <T extends RealmModel> T asRealmModel(Class<T> clazz) {
-        throw new NoSuchMethodError("Not implemented");
+        return getRealmModel(clazz);
     }
 }

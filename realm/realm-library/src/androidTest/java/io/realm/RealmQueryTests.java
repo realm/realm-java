@@ -4027,6 +4027,7 @@ public class RealmQueryTests extends QueryTests {
             case DECIMAL128_LIST:
             case OBJECT_ID_LIST:
             case MIXED_LIST:
+            case TYPED_LINK:
                 return false;
         }
         // Should never reach here as the above switch is exhaustive

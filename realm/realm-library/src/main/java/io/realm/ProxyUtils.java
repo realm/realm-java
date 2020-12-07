@@ -254,4 +254,21 @@ class ProxyUtils {
                 clazz));
     }
 
+    @Nullable
+    static <T extends RealmModel> Mixed copyToRealmIfNeeded(ProxyState<T> proxyState, @Nullable Mixed value) {
+        final Realm realm = (Realm) proxyState.getRealm$realm();
+
+        if ((value != null) && (value.getType() == MixedType.OBJECT)) {
+            RealmModel mixedRealmModel = value.asRealmModel(RealmModel.class);
+
+            if (!RealmObject.isManaged(mixedRealmModel)) {
+                value = Mixed.valueOf(realm.copyToRealm(mixedRealmModel));
+            } else {
+                proxyState.checkValidObject(mixedRealmModel);
+            }
+        }
+
+        return value;
+    }
+
 }
