@@ -1,4 +1,4 @@
-## 10.1.2 (YYYY-MM-DD)
+## 10.1.2 (2020-12-02)
 
 ### Breaking Changes
 * None.
