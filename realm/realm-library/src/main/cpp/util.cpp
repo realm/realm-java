@@ -317,6 +317,10 @@ struct JStringCharsAccessor {
     ~JStringCharsAccessor()
     {
         m_env->ReleaseStringChars(m_string, m_data);
+        // TODO Left as opt-in to avoid inspecting all usages as part of the fix for
+        //  https://github.com/realm/realm-java/pull/7232. We should consider making this the
+        //  default and try to handle local refs uniformly through JavaLocalRefs or similar
+        //  mechanisms.
         if (m_delete_jstring_ref_on_delete) {
             m_env->DeleteLocalRef(m_string);
         }
