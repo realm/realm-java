@@ -2,8 +2,9 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.annotations.Index
 import io.realm.entities.PrimaryKeyAsString
+import io.realm.entities.MixedIndexed
+import io.realm.entities.MixedNotIndexed
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import org.bson.types.Decimal128
@@ -18,22 +19,6 @@ import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-open class MixedNotIndexed : RealmObject() {
-    companion object {
-        const val FIELD_MIXED = "mixed"
-    }
-
-    var mixed: Mixed? = null
-}
-
-open class MixedIndexed : RealmObject() {
-    companion object {
-        const val FIELD_MIXED = "mixed"
-    }
-
-    @Index
-    var mixed: Mixed? = null
-}
 
 // FIXME: MIXED PARAMETRIZED TESTS FOR INDEXED AND UNINDEXED
 @RunWith(AndroidJUnit4::class)

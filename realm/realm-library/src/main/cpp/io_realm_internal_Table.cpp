@@ -445,7 +445,8 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeMixedGetType(JNIEnv* e
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
     if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
-        // TODO: Throw exception
+        THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
+                             "Cannot retrieve the Mixed type as the column is not of type Mixed.");
     }
     auto mixed = table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey));
 
@@ -619,12 +620,13 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_Table_nativeMixedAsDecimal12
     return nullptr;
 }
 
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeMixedIsNull(JNIEnv* env, jobject, jlong nativeTableRefPtr,
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeMixedIsNull(JNIEnv* env, jclass, jlong nativeTableRefPtr,
                                                                        jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
     if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
-        // TODO: Throw exception
+        THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
+                             "Cannot retrieve the Mixed type as the column is not of type Mixed.");
     }
     return table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey)).is_null(); // noexcept
 }
