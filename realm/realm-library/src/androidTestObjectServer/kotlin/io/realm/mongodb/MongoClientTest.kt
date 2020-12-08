@@ -702,6 +702,7 @@ class MongoClientTest {
         }
     }
 
+    @Ignore("https://github.com/realm/realm-java/issues/7238")
     @Test
     fun findOneAndUpdate_noUpsert() {
         with(getCollectionInternal()) {
