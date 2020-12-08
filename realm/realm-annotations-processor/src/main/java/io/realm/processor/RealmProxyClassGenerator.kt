@@ -19,7 +19,6 @@ package io.realm.processor
 import com.squareup.javawriter.JavaWriter
 import io.realm.processor.ext.beginMethod
 import io.realm.processor.ext.beginType
-import org.bson.types.ObjectId
 import java.io.BufferedWriter
 import java.io.IOException
 import java.util.*
@@ -973,21 +972,21 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 "io.realm.MutableRealmInteger" -> {
                     emitStatement("Long %s = ((%s) object).%s().get()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                    emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sColKey, objKey, %s.longValue(), false)", fieldName, getter)
-                    if (isUpdate) {
-                        nextControlFlow("else")
-                        emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
-                    }
+                        emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sColKey, objKey, %s.longValue(), false)", fieldName, getter)
+                        if (isUpdate) {
+                            nextControlFlow("else")
+                            emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
+                        }
                     endControlFlow()
                 }
                 "io.realm.Mixed" -> {
                     emitStatement("io.realm.Mixed %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                    emitStatement("Table.setMixed(tableNativePtr, columnInfo.%sColKey, objKey, %s, false)", fieldName, getter)
-                    if (isUpdate) {
-                        nextControlFlow("else")
-                        emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
-                    }
+                        emitStatement("Table.setMixed(tableNativePtr, columnInfo.%sColKey, objKey, %s, false)", fieldName, getter)
+                        if (isUpdate) {
+                            nextControlFlow("else")
+                            emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
+                        }
                     endControlFlow()
                 }
                 "double" -> {
@@ -1062,21 +1061,21 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 "org.bson.types.Decimal128" -> {
                     emitStatement("org.bson.types.Decimal128 %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                    emitStatement("Table.nativeSetDecimal128(tableNativePtr, columnInfo.%1\$sColKey, objKey, %2\$s.getLow(), %2\$s.getHigh(), false)", fieldName, getter)
-                    if (isUpdate) {
-                        nextControlFlow("else")
-                        emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
-                    }
+                        emitStatement("Table.nativeSetDecimal128(tableNativePtr, columnInfo.%1\$sColKey, objKey, %2\$s.getLow(), %2\$s.getHigh(), false)", fieldName, getter)
+                        if (isUpdate) {
+                            nextControlFlow("else")
+                            emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
+                        }
                     endControlFlow()
                 }
                 "org.bson.types.ObjectId" -> {
                     emitStatement("org.bson.types.ObjectId %s = ((%s) object).%s()", getter, interfaceName, getter)
                     beginControlFlow("if (%s != null)", getter)
-                    emitStatement("Table.nativeSetObjectId(tableNativePtr, columnInfo.%sColKey, objKey, %s.toString(), false)", fieldName, getter)
-                    if (isUpdate) {
-                        nextControlFlow("else")
-                        emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
-                    }
+                        emitStatement("Table.nativeSetObjectId(tableNativePtr, columnInfo.%sColKey, objKey, %s.toString(), false)", fieldName, getter)
+                        if (isUpdate) {
+                            nextControlFlow("else")
+                            emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
+                        }
                     endControlFlow()
                 }
                 else -> {
