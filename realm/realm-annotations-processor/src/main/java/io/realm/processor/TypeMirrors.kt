@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("TypeMirrors")
+
 package io.realm.processor
 
 import org.bson.types.Decimal128
@@ -87,6 +88,23 @@ class TypeMirrors(env: ProcessingEnvironment) {
             }
             val typeArguments = (field.asType() as DeclaredType).typeArguments
             return if (typeArguments.isNotEmpty()) typeArguments[0] else null
+        }
+
+        /**
+         * FIXME
+         */
+        @JvmStatic
+        fun getRealmMapTypeMirrors(field: VariableElement): Pair<TypeMirror, TypeMirror>? {
+            if (!Utils.isRealmList(field)) {
+                return null
+            }
+            return (field.asType() as DeclaredType).typeArguments
+                    .let { typeArguments ->
+                        when {
+                            typeArguments.isNotEmpty() -> Pair(typeArguments[0], typeArguments[1])
+                            else -> null
+                        }
+                    }
         }
     }
 }

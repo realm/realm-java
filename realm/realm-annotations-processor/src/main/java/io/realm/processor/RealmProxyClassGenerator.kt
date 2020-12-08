@@ -19,7 +19,6 @@ package io.realm.processor
 import com.squareup.javawriter.JavaWriter
 import io.realm.processor.ext.beginMethod
 import io.realm.processor.ext.beginType
-import org.bson.types.ObjectId
 import java.io.BufferedWriter
 import java.io.IOException
 import java.util.*
@@ -196,6 +195,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 } else if (Utils.isRealmList(variableElement)) {
                     val genericType = Utils.getGenericTypeQualifiedName(variableElement)
                     emitField("RealmList<$genericType>", variableElement.simpleName.toString() + "RealmList", EnumSet.of(Modifier.PRIVATE))
+                } else if (Utils.isRealmMap(variableElement)) {
+                    val keyType = Utils.getMapKeyTypeQualifiedName(variableElement)
+                    val valueType = Utils.getMapValueTypeQualifiedName(variableElement)
+                    emitField("RealmMap<$keyType,$valueType>", variableElement.simpleName.toString() + "RealmMap", EnumSet.of(Modifier.PRIVATE))
                 }
             }
 
@@ -262,6 +265,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 Utils.isRealmList(field) -> {
                     val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field)
                     emitRealmList(writer, field, fieldName, fieldTypeCanonicalName, elementTypeMirror)
+                }
+                Utils.isRealmMap(field) -> {
+//                    val typeMirrors = TypeMirrors.getRealmMapTypeMirrors(field)
+                    writer.emitSingleLineComment("--------- REALM MAP")
                 }
                 else -> throw UnsupportedOperationException(String.format(Locale.US, "Field \"%s\" of type \"%s\" is not supported.", fieldName, fieldTypeCanonicalName))
             }
@@ -2416,6 +2423,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         if (Utils.isRealmValueList(field)) {
             return Utils.getValueListFieldType(field)
         }
+//        if (Utils.isRealmMap(field)) {
+//            return Utils.
+//        }
         return Constants.RealmFieldType.NOTYPE
     }
 

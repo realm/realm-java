@@ -301,6 +301,9 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         if (!checkCollectionTypes()) {
             return false
         }
+        if (!checkMapTypes()) {
+            return false
+        }
         if (!checkReferenceTypes()) {
             return false
         }
@@ -338,6 +341,41 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
 
         if (fields.isEmpty()) {
             Utils.error(String.format(Locale.US, "Class \"%s\" must contain at least 1 persistable field.", simpleJavaClassName))
+        }
+
+        return true
+    }
+
+    private fun checkMapTypes(): Boolean {
+        for (field in fields) {
+            if (Utils.isRealmMap(field)) {
+                if (!checkRealmMapTypes(field)) {
+                    return false
+                }
+            }
+        }
+        return true
+    }
+
+    private fun checkRealmMapTypes(field: VariableElement): Boolean {
+        val mapTypes = (field.asType() as DeclaredType).typeArguments
+
+        // Check key and value types have been defined
+        if (mapTypes.size == 0) {
+            Utils.error("RealmMaps cannot be defined without key-value types.")
+            return false
+        }
+
+        // We only allow strings as keys in Phase 1
+        if (mapTypes[0].toString() != String::class.java.canonicalName) {
+            Utils.error("RealmMaps can only use Strings as keys.")
+            return false
+        }
+
+        // Check other types than mixed or RealmModel as values
+        if (!Utils.isRealmModel(mapTypes[1]) && !Utils.isMixedType(mapTypes[1])) {
+            Utils.error("RealmMaps can only use Mixed or RealmModel as value types.")
+            return false
         }
 
         return true
@@ -532,6 +570,9 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
                     nullableValueListFields.add(field)
                 }
             }
+        } else if (Utils.isRealmMap(field)) {
+            // TODO: nullable value?
+            // TODO: required annotation?
         } else if (isRequiredField(field)) {
             if (!checkBasicRequiredAnnotationUsage(field)) {
                 return false
@@ -569,7 +610,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         fields.add(field)
         if (Utils.isRealmModel(field) || Utils.isRealmModelList(field)) {
             _objectReferenceFields.add(field)
-        } else {
+        } else {    // TODO: check for RealmMap? handle _objectReferenceFields too?
             basicTypeFields.add(field)
         }
 
@@ -644,7 +685,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
                 Constants.RealmFieldType.DATE,
                 Constants.RealmFieldType.INTEGER,
                 Constants.RealmFieldType.BOOLEAN,
-                Constants.RealmFieldType.OBJECT_ID -> { indexable = true }
+                Constants.RealmFieldType.OBJECT_ID -> indexable = true
                 else -> { /* Ignore */ }
             }
         }

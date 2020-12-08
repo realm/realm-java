@@ -41,6 +41,7 @@ object Utils {
     private lateinit var realmResults: DeclaredType
     private lateinit var markerInterface: DeclaredType
     private lateinit var realmModel: TypeMirror
+    private lateinit var realmMap: DeclaredType
 
     fun initialize(env: ProcessingEnvironment) {
         val elementUtils = env.elementUtils
@@ -52,6 +53,11 @@ object Utils {
         realmResults = typeUtils.getDeclaredType(env.elementUtils.getTypeElement("io.realm.RealmResults"), typeUtils.getWildcardType(null, null))
         realmModel = elementUtils.getTypeElement("io.realm.RealmModel").asType()
         markerInterface = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmModel"))
+        realmMap = typeUtils.getDeclaredType(
+                elementUtils.getTypeElement("io.realm.RealmMap"),
+                typeUtils.getWildcardType(null, null),
+                typeUtils.getWildcardType(null, null)
+        )
     }
 
     /**
@@ -198,6 +204,13 @@ object Utils {
     }
 
     /**
+     * FIXME
+     */
+    fun isRealmMap(field: VariableElement): Boolean {
+        return typeUtils.isAssignable(field.asType(), realmMap)
+    }
+
+    /**
      * @param field [VariableElement] of a value list field.
      * @return element type of the list field.
      */
@@ -205,6 +218,19 @@ object Utils {
         val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field)
         return Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES[elementTypeMirror!!.toString()]!!
     }
+
+    /**
+     * FIXME
+     */
+//    fun getValueASDASD(field: VariableElement): Constants.RealmFieldType {
+//        return TypeMirrors.getRealmMapElementTypeMirror(field)
+//                ?.let { (keyTypeMirror, valueTypeMirror) ->
+//                    val typeString = keyTypeMirror.toString() + valueTypeMirror.toString()
+//
+//                } ?: throw IllegalStateException("Could not get the type mirrors for RealmMap field.")
+//
+////        return Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES[elementTypeMirror!!.toString()]!!
+//    }
 
     /**
      * @return `true` if a given field type is `RealmList` and its element type is `RealmObject`,
@@ -255,6 +281,13 @@ object Utils {
         //            }
         //        }
         //        return false;
+    }
+
+    /**
+     * FIXME
+     */
+    fun isMixedType(type: TypeMirror): Boolean {
+        return typeUtils.isSameType(type, mixed)
     }
 
     fun isRealmResults(field: VariableElement): Boolean {
@@ -316,6 +349,22 @@ object Utils {
         val fieldType = field.asType()
         val typeArguments = (fieldType as DeclaredType).typeArguments
         return if (typeArguments.isEmpty()) null else QualifiedClassName(typeArguments[0].toString())
+    }
+
+    /**
+     * FIXME
+     */
+    fun getMapKeyTypeQualifiedName(field: VariableElement): QualifiedClassName? {
+        return getGenericTypeQualifiedName(field)
+    }
+
+    /**
+     * FIXME
+     */
+    fun getMapValueTypeQualifiedName(field: VariableElement): QualifiedClassName? {
+        val fieldType = field.asType()
+        val typeArguments = (fieldType as DeclaredType).typeArguments
+        return if (typeArguments.isEmpty()) null else QualifiedClassName(typeArguments[1].toString())
     }
 
     /**

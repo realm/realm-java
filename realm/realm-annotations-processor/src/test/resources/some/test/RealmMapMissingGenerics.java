@@ -14,18 +14,24 @@
  * limitations under the License.
  */
 
-package io.realm.entities
+package some.test;
 
-import io.realm.RealmList
-import io.realm.RealmMap
-import io.realm.RealmObject
-import io.realm.annotations.Ignore
+import io.realm.RealmMap;
+import io.realm.RealmObject;
 
-open class MapClass : RealmObject() {
+public class RealmMapMissingGenerics extends RealmObject {
 
-    var listField: RealmList<String>? = null
-//    var mixedField: Mixed? = null
+    private RealmMap map; // this is an error!
 
-    @Ignore     // FIXME: this goes when the annotation processor is ready
-    var mapField: RealmMap<String, Int>? = null
+    public RealmMapMissingGenerics() {
+        // no-op
+    }
+
+    public RealmMap getMap() {
+        return map;
+    }
+
+    public void setMap(RealmMap map) {
+        this.map = map;
+    }
 }

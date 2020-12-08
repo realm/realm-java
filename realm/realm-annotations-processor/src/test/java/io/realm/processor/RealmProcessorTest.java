@@ -58,6 +58,8 @@ public class RealmProcessorTest {
     private final JavaFileObject SimpleRealmModel = JavaFileObjects.forResource("some/test/SimpleRealmModel.java");
     private final JavaFileObject customInterface = JavaFileObjects.forResource("some/test/CustomInterface.java");
     private final JavaFileObject nonLatinName = JavaFileObjects.forResource("some/test/ÁrvíztűrőTükörfúrógép.java");
+    private final JavaFileObject realmMapMissingGenericsModel = JavaFileObjects.forResource("some/test/RealmMapMissingGenerics.java");
+    private final JavaFileObject realmMapModel = JavaFileObjects.forResource("some/test/RealmMapModel.java");
 
     @Test
     public void compileSimpleFile() {
@@ -472,6 +474,22 @@ public class RealmProcessorTest {
     public void compareNonLatinName() {
         ASSERT.about(javaSource())
                 .that(nonLatinName)
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileRealmMapMissingGenerics() {
+        ASSERT.about(javaSource())
+                .that(realmMapMissingGenericsModel)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileRealmMapModel() {
+        ASSERT.about(javaSource())
+                .that(realmMapModel)
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
     }
