@@ -236,7 +236,8 @@ jstring to_jstring(JNIEnv*, realm::StringData);
 
 class JStringAccessor {
 public:
-    JStringAccessor(JNIEnv*, jstring); // throws
+    JStringAccessor(JNIEnv* env, jstring s) : JStringAccessor(env, s, false) {}; // throws
+    JStringAccessor(JNIEnv*, jstring, bool); // throws
 
     bool is_null_or_empty() {
         return m_is_null || m_size == 0;
