@@ -20,6 +20,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
 import io.realm.RealmList;
 import io.realm.RealmModel;
@@ -52,6 +53,7 @@ public class AllTypesRealmModel implements RealmModel {
     public RealmList<Dog> columnRealmList;
     public Decimal128 columnDecimal128;
     public ObjectId columnObjectId;
+    public UUID columnUUID;
 
 
     @Override

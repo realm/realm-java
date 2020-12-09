@@ -16,26 +16,17 @@
  
 package io.realm.processor
 
+import io.realm.annotations.RealmNamingPolicy
+import io.realm.processor.nameconverter.*
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
-import javax.lang.model.element.Element
-import javax.lang.model.element.ExecutableElement
-import javax.lang.model.element.Modifier
-import javax.lang.model.element.TypeElement
-import javax.lang.model.element.VariableElement
+import javax.lang.model.element.*
 import javax.lang.model.type.DeclaredType
 import javax.lang.model.type.ReferenceType
 import javax.lang.model.type.TypeKind
 import javax.lang.model.type.TypeMirror
 import javax.lang.model.util.Types
 import javax.tools.Diagnostic
-
-import io.realm.annotations.RealmNamingPolicy
-import io.realm.processor.nameconverter.CamelCaseConverter
-import io.realm.processor.nameconverter.IdentityConverter
-import io.realm.processor.nameconverter.LowerCaseWithSeparatorConverter
-import io.realm.processor.nameconverter.NameConverter
-import io.realm.processor.nameconverter.PascalCaseConverter
 
 /**
  * Utility methods working with the Realm processor.
@@ -113,6 +104,17 @@ object Utils {
             throw IllegalArgumentException("Argument 'field' cannot be null.")
         }
         return getFieldTypeQualifiedName(field).toString() == "org.bson.types.ObjectId"
+    }
+
+    /**
+     * @return `true` if a field is of type "java.util.UUID", `false` otherwise.
+     * @throws IllegalArgumentException if the field is `null`.
+     */
+    fun isUUID(field: VariableElement?): Boolean {
+        if (field == null) {
+            throw IllegalArgumentException("Argument 'field' cannot be null.")
+        }
+        return getFieldTypeQualifiedName(field).toString() == "java.util.UUID"
     }
 
     /**

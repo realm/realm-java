@@ -19,6 +19,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
 import io.realm.internal.InvalidRow;
 import io.realm.internal.OsList;
@@ -113,6 +114,11 @@ public enum FrozenPendingRow implements Row {
     }
 
     @Override
+    public UUID getUUID(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
     public long getLink(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
@@ -194,6 +200,11 @@ public enum FrozenPendingRow implements Row {
 
     @Override
     public void setObjectId(long columnKey, ObjectId value) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public void setUUID(long columnKey, UUID value) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 

@@ -22,6 +22,7 @@ import java.io.Closeable;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -177,6 +178,13 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
+    private static ItemCallback<UUID> uuidItemCallback = new ItemCallback<UUID>() {
+        @Override
+        public void handleItem(long listPtr, UUID item) {
+            nativeAddUUIDListItem(listPtr, item.toString());
+        }
+    };
+
     // If true, fields will not be updated if the same value would be written to it.
     private final boolean ignoreFieldsWithSameValue;
 
@@ -295,6 +303,14 @@ public class OsObjectBuilder implements Closeable {
         }
     }
 
+    public void addUUID(long columnKey, @Nullable UUID val) {
+        if (val == null) {
+            nativeAddNull(builderPtr, columnKey);
+        } else {
+            nativeAddUUID(builderPtr, columnKey, val.toString());
+        }
+    }
+
     public void addNull(long columnKey) {
         nativeAddNull(builderPtr, columnKey);
     }
@@ -397,6 +413,10 @@ public class OsObjectBuilder implements Closeable {
         addListItem(builderPtr, columnKey, list, objectIdItemCallback);
     }
 
+    public void addUUIDList(long columnKey, RealmList<UUID> list) {
+        addListItem(builderPtr, columnKey, list, uuidItemCallback);
+    }
+
     private void addEmptyList(long columnKey) {
         long listPtr = nativeStartList(0);
         nativeStopList(builderPtr, columnKey, listPtr);
@@ -492,6 +512,7 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeAddObject(long builderPtr, long columnKey, long rowPtr);
     private static native void nativeAddDecimal128(long builderPtr, long columnKey, long low, long high);
     private static native void nativeAddObjectId(long builderPtr, long columnKey, String data);
+    private static native void nativeAddUUID(long builderPtr, long columnKey, String data);
 
     // Methods for adding lists
     // Lists sent across JNI one element at a time
@@ -507,6 +528,7 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeAddDateListItem(long listPtr, long val);
     private static native void nativeAddDecimal128ListItem(long listPtr, long low, long high);
     private static native void nativeAddObjectIdListItem(long listPtr, String data);
+    private static native void nativeAddUUIDListItem(long listPtr, String data);
     private static native void nativeAddObjectListItem(long listPtr, long rowPtr);
     private static native void nativeAddObjectList(long builderPtr, long columnKey, long[] rowPtrs);
 }

@@ -447,8 +447,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetDecimal128(J
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_UncheckedRow_nativeGetObjectId(JNIEnv* env, jobject,
-                                                                                    jlong nativeRowPtr,
-                                                                                    jlong columnKey)
+                                                                                jlong nativeRowPtr,
+                                                                                jlong columnKey)
 {
     if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
         return nullptr;
@@ -473,6 +473,37 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetObjectId(JNI
     try {
         JStringAccessor value(env, j_value);
         OBJ(nativeRowPtr)->set(ColKey(columnKey), ObjectId(StringData(value).data()));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_UncheckedRow_nativeGetUUID(JNIEnv* env, jobject,
+                                                                            jlong nativeRowPtr,
+                                                                            jlong columnKey)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return nullptr;
+    }
+
+    try {
+        UUID uuid = OBJ(nativeRowPtr)->get<UUID>(ColKey(columnKey));
+        return to_jstring(env, uuid.to_string().data());
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetUUID(JNIEnv* env, jobject,
+                                                                             jlong nativeRowPtr, jlong columnKey,
+                                                                             jstring j_value)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return;
+    }
+
+    try {
+        JStringAccessor value(env, j_value);
+        OBJ(nativeRowPtr)->set(ColKey(columnKey), UUID(StringData(value).data()));
     }
     CATCH_STD()
 }

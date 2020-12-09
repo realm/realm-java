@@ -21,26 +21,28 @@ import io.realm.annotations.PrimaryKey
 import io.realm.annotations.Required
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
+import io.realm.rule.TestRealmConfigurationFactory
 import org.bson.types.Decimal128
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.math.BigDecimal
+import kotlin.test.assertFailsWith
 
 open class Decimal128Required : RealmObject() {
-    @field:PrimaryKey
+    @PrimaryKey
     var id: Long = 0
-    @field:Required
+
+    @Required
     var decimal: Decimal128? = null
     var name: String = ""
 }
 
 open class Decimal128NotRequired : RealmObject() {
-    @field:PrimaryKey
+    @PrimaryKey
     var id: Long = 0
     var decimal: Decimal128? = null
     var name: String = ""
@@ -48,7 +50,8 @@ open class Decimal128NotRequired : RealmObject() {
 
 open class Decimal128RequiredRealmList : RealmObject() {
     var id: Long = 0
-    @field:Required
+
+    @Required
     var decimals: RealmList<Decimal128> = RealmList()
     var name: String = ""
 }
@@ -59,6 +62,10 @@ open class Decimal128OptionalRealmList : RealmObject() {
     var name: String = ""
 }
 
+open class LinkedDecimal128 : RealmObject() {
+    var linkedDecimal128: Decimal128NotRequired? = null
+}
+
 @RunWith(AndroidJUnit4::class)
 class Decimal128Tests {
     private lateinit var realmConfiguration: RealmConfiguration
@@ -66,7 +73,7 @@ class Decimal128Tests {
 
     @Rule
     @JvmField
-    val folder = TemporaryFolder()
+    val configFactory = TestRealmConfigurationFactory()
 
     init {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
@@ -74,13 +81,13 @@ class Decimal128Tests {
 
     @Before
     fun setUp() {
-        realmConfiguration = RealmConfiguration
-                .Builder(InstrumentationRegistry.getInstrumentation().targetContext)
-                .directory(folder.newFolder())
+        realmConfiguration = configFactory
+                .createConfigurationBuilder()
                 .schema(Decimal128Required::class.java,
                         Decimal128NotRequired::class.java,
                         Decimal128RequiredRealmList::class.java,
-                        Decimal128OptionalRealmList::class.java)
+                        Decimal128OptionalRealmList::class.java,
+                        LinkedDecimal128::class.java)
                 .build()
         realm = Realm.getInstance(realmConfiguration)
     }
@@ -91,61 +98,96 @@ class Decimal128Tests {
     }
 
     @Test
-    fun copyToAndFromRealm() {
+    fun copyToRealm() {
         val value = Decimal128NotRequired()
         value.decimal = Decimal128(BigDecimal.TEN)
         value.id = 42
         value.name = "Foo"
 
-        // copyToRealm
         realm.beginTransaction()
         val obj = realm.copyToRealm(value)
         realm.commitTransaction()
+
         assertEquals(Decimal128(BigDecimal.TEN), obj.decimal)
         assertEquals(42L, obj.id)
         assertEquals("Foo", obj.name)
+    }
 
-        // copyToRealmOrUpdate
+    @Test
+    fun copyFromRealm() {
+        realm.beginTransaction()
+        val value = realm.createObject<Decimal128NotRequired>(42)
+        value.decimal = Decimal128(BigDecimal.TEN)
+        value.name = "Foo"
+        realm.commitTransaction()
+
+        val copy = realm.copyFromRealm(value)
+
+        assertEquals(Decimal128(BigDecimal.TEN), copy.decimal)
+        assertEquals(42L, copy.id)
+        assertEquals("Foo", copy.name)
+    }
+
+    @Test
+    fun copyToRealmOrUpdate() {
+        realm.executeTransaction { realm ->
+            val value = realm.createObject<Decimal128NotRequired>(42)
+            value.decimal = Decimal128(BigDecimal.TEN)
+            value.name = "Foo"
+        }
+
+        val value = Decimal128NotRequired()
         value.id = 42
         value.decimal = Decimal128(BigDecimal.ONE)
         value.name = "Bar"
+
         realm.beginTransaction()
-        realm.copyToRealmOrUpdate(value)
+        val obj = realm.copyToRealmOrUpdate(value)
         realm.commitTransaction()
 
-        // copyFromRealm
-        val copy = realm.copyFromRealm(obj)
-        assertEquals(Decimal128(BigDecimal.ONE), copy.decimal)
-        assertEquals(42L, copy.id)
-        assertEquals("Bar", copy.name)
+        assertEquals(42L, obj.id)
+        assertEquals(Decimal128(BigDecimal.ONE), obj.decimal)
+        assertEquals("Bar", obj.name)
     }
 
     @Test
     fun insert() {
-        val value = Decimal128Required()
-        value.id = 7
-        value.name = "Foo"
-        value.decimal = Decimal128(10)
+        realm.executeTransaction { realm ->
+            val value = Decimal128Required()
+            value.id = 7
+            value.name = "Foo"
+            value.decimal = Decimal128(10)
 
-        // insert
-        realm.beginTransaction()
-        realm.insert(value)
-        realm.commitTransaction()
+            realm.insert(value)
+        }
 
         val obj = realm.where<Decimal128Required>().findFirst()
+
         assertNotNull(obj)
         assertEquals(7, obj!!.id)
         assertEquals(Decimal128(10), obj.decimal)
         assertEquals("Foo", obj.name)
+    }
 
-        // insertOrUpdate
-        realm.beginTransaction()
-        obj.decimal = Decimal128(20)
-        obj.name = "Bar"
-        realm.insertOrUpdate(obj)
-        realm.commitTransaction()
+    @Test
+    fun insertOrUpdate() {
+        realm.executeTransaction { realm ->
+            val value = realm.createObject<Decimal128Required>(7)
+            value.name = "Foo"
+            value.decimal = Decimal128(10)
+        }
+
+        realm.executeTransaction { realm ->
+            val value = Decimal128Required()
+            value.id = 7
+            value.name = "Bar"
+            value.decimal = Decimal128(20)
+
+            realm.insertOrUpdate(value)
+        }
 
         val all = realm.where<Decimal128Required>().findAll()
+
         assertEquals(1, all.size)
         assertEquals(7, all[0]!!.id)
         assertEquals(Decimal128(20), all[0]!!.decimal)
@@ -161,6 +203,7 @@ class Decimal128Tests {
         realm.commitTransaction()
 
         val frozen = obj.freeze<Decimal128Required>()
+
         assertEquals(Decimal128(BigDecimal.TEN), frozen.decimal)
         assertEquals("foo", frozen.name)
         assertEquals(42L, frozen.id)
@@ -180,11 +223,11 @@ class Decimal128Tests {
         assertEquals("foo", result.name)
 
         realm.beginTransaction()
-        try {
+
+        assertFailsWith<IllegalArgumentException>("It should not be possible to set null value for the required decimal field") {
             result.decimal = null
-            fail("It should not be possible to set null value for the required decimal field")
-        } catch (expected: IllegalArgumentException) {
         }
+
         realm.commitTransaction()
     }
 
@@ -214,10 +257,8 @@ class Decimal128Tests {
     fun requiredRealmList() {
         realm.beginTransaction()
         val obj = realm.createObject<Decimal128RequiredRealmList>()
-        try {
+        assertFailsWith<IllegalArgumentException>("It should not be possible to add nullable elements to a required RealmList<Decimal128>") {
             obj.decimals.add(null)
-            fail("It should not be possible to add nullable elements to a required RealmList<Decimal128>")
-        } catch (expected: Exception) {
         }
     }
 
@@ -234,19 +275,16 @@ class Decimal128Tests {
 
     @Test
     fun linkQueryNotSupported() {
-        try {
+        assertFailsWith<IllegalArgumentException>("It should not be possible to perform link query on Decimal128") {
             realm.where<Decimal128RequiredRealmList>().greaterThan("decimals", Decimal128(BigDecimal.ZERO)).findAll()
-            fail("It should not be possible to perform link query on Decimal128")
-        } catch (expected: IllegalArgumentException) {
         }
 
         realm.beginTransaction()
         val obj = realm.createObject<Decimal128RequiredRealmList>()
         realm.cancelTransaction()
 
-        try {
+        assertFailsWith<UnsupportedOperationException> {
             obj.decimals.where().equalTo("decimals", Decimal128(BigDecimal.ZERO)).findAll()
-        } catch (expected: UnsupportedOperationException) {
         }
     }
 
@@ -259,6 +297,7 @@ class Decimal128Tests {
         realm.commitTransaction()
 
         val all = realm.where<Decimal128Required>().equalTo("decimal", Decimal128(Float.NaN.toLong())).findAll()
+
         assertEquals(3, all.size)
     }
 
@@ -274,6 +313,7 @@ class Decimal128Tests {
         realm.commitTransaction()
 
         var all = realm.where<Decimal128Required>().equalTo("decimal", Decimal128(Float.MIN_VALUE.toLong())).findAll()
+
         assertEquals(4, all.size)
         assertEquals(Decimal128(BigDecimal(Float.MIN_VALUE.toLong())), all[0]!!.decimal)
         assertEquals(Decimal128(Float.MIN_VALUE.toLong()), all[1]!!.decimal)
@@ -281,6 +321,7 @@ class Decimal128Tests {
         assertEquals(Decimal128.NEGATIVE_ZERO, all[3]!!.decimal)
 
         all = realm.where<Decimal128Required>().notEqualTo("decimal", Decimal128(Float.MIN_VALUE.toLong())).findAll()
+
         assertEquals(2, all.size)
         assertEquals(Decimal128.NEGATIVE_INFINITY, all[0]!!.decimal)
         assertEquals(Decimal128.NEGATIVE_NaN, all[1]!!.decimal)
@@ -295,6 +336,7 @@ class Decimal128Tests {
         realm.commitTransaction()
 
         val min: Number? = realm.where<Decimal128Required>().min("decimal")
+
         assertNotNull(min)
         assertTrue(min is Decimal128)
         assertEquals(Decimal128(BigDecimal.ZERO), min)
@@ -319,6 +361,7 @@ class Decimal128Tests {
         assertEquals(Decimal128(Double.MAX_VALUE.toLong()), all[2]!!.decimal)
 
         all = realm.where<Decimal128Required>().notEqualTo("decimal", Decimal128(Float.MAX_VALUE.toLong())).findAll()
+
         assertEquals(3, all.size)
         assertEquals(Decimal128.POSITIVE_INFINITY, all[0]!!.decimal)
         assertEquals(Decimal128.NaN, all[1]!!.decimal)
@@ -334,6 +377,7 @@ class Decimal128Tests {
         realm.commitTransaction()
 
         val max: Number? = realm.where<Decimal128Required>().max("decimal")
+
         assertNotNull(max)
         assertTrue(max is Decimal128)
         assertEquals(Decimal128(BigDecimal.TEN), max)
@@ -348,6 +392,7 @@ class Decimal128Tests {
         realm.commitTransaction()
 
         val between = realm.where<Decimal128Required>().between("decimal", Decimal128(-1L), Decimal128(11L)).findAll()
+
         assertEquals(3, between.size)
         assertEquals(Decimal128(BigDecimal.TEN), between[0]!!.decimal)
         assertEquals(Decimal128(BigDecimal.ONE), between[1]!!.decimal)
@@ -384,6 +429,7 @@ class Decimal128Tests {
         assertEquals(Decimal128(BigDecimal.TEN), all[2]!!.decimal)
 
         all = realm.where<Decimal128Required>().sort("decimal", Sort.DESCENDING).findAll()
+
         assertEquals(3, all.size)
         assertEquals(Decimal128(BigDecimal.TEN), all[0]!!.decimal)
         assertEquals(Decimal128(BigDecimal.ONE), all[1]!!.decimal)
@@ -405,6 +451,7 @@ class Decimal128Tests {
         realm.commitTransaction()
 
         val all = realm.where<Decimal128NotRequired>().distinct("decimal").sort("decimal", Sort.ASCENDING).findAll()
+
         assertEquals(4, all.size)
         assertNull(all[0]!!.decimal)
         assertEquals(Decimal128(BigDecimal.ZERO), all[1]!!.decimal)
@@ -414,7 +461,7 @@ class Decimal128Tests {
     }
 
     @Test
-    fun queries() {
+    fun queriesCount() {
         realm.beginTransaction()
         realm.createObject<Decimal128NotRequired>(1).decimal = Decimal128(BigDecimal.ONE)
         realm.createObject<Decimal128NotRequired>(2).decimal = null
@@ -422,85 +469,186 @@ class Decimal128Tests {
         realm.createObject<Decimal128NotRequired>(4).decimal = Decimal128(BigDecimal.ZERO)
         realm.commitTransaction()
 
-        // count
         assertEquals(4, realm.where<Decimal128NotRequired>().count())
+    }
 
-        // notEqualTo
-        var all = realm.where<Decimal128NotRequired>()
+    @Test
+    fun queriesNotEqualTo() {
+        realm.beginTransaction()
+        realm.createObject<Decimal128NotRequired>(1).decimal = Decimal128(BigDecimal.ONE)
+        realm.createObject<Decimal128NotRequired>(2).decimal = null
+        realm.createObject<Decimal128NotRequired>(3).decimal = Decimal128(BigDecimal.TEN)
+        realm.createObject<Decimal128NotRequired>(4).decimal = Decimal128(BigDecimal.ZERO)
+        realm.commitTransaction()
+
+        val all = realm.where<Decimal128NotRequired>()
                 .notEqualTo("decimal", Decimal128(BigDecimal.ONE))
                 .sort("decimal", Sort.ASCENDING)
                 .findAll()
+
         assertEquals(3, all.size)
         assertNull(all[0]!!.decimal)
         assertEquals(Decimal128(BigDecimal.ZERO), all[1]!!.decimal)
         assertEquals(Decimal128(BigDecimal.TEN), all[2]!!.decimal)
+    }
 
-        // greaterThanOrEqualTo
-        all = realm.where<Decimal128NotRequired>()
+    @Test
+    fun queriesGreaterThanOrEqualTo() {
+        realm.beginTransaction()
+        realm.createObject<Decimal128NotRequired>(1).decimal = Decimal128(BigDecimal.ONE)
+        realm.createObject<Decimal128NotRequired>(2).decimal = null
+        realm.createObject<Decimal128NotRequired>(3).decimal = Decimal128(BigDecimal.TEN)
+        realm.createObject<Decimal128NotRequired>(4).decimal = Decimal128(BigDecimal.ZERO)
+        realm.commitTransaction()
+
+        val all = realm.where<Decimal128NotRequired>()
                 .greaterThanOrEqualTo("decimal", Decimal128(BigDecimal.ONE))
                 .sort("decimal", Sort.ASCENDING)
                 .findAll()
+
         assertEquals(2, all.size)
         assertEquals(Decimal128(BigDecimal.ONE), all[0]!!.decimal)
         assertEquals(Decimal128(BigDecimal.TEN), all[1]!!.decimal)
+    }
 
-        // greaterThan
-        all = realm.where<Decimal128NotRequired>()
+    @Test
+    fun queriesGreaterThan() {
+        realm.beginTransaction()
+        realm.createObject<Decimal128NotRequired>(1).decimal = Decimal128(BigDecimal.ONE)
+        realm.createObject<Decimal128NotRequired>(2).decimal = null
+        realm.createObject<Decimal128NotRequired>(3).decimal = Decimal128(BigDecimal.TEN)
+        realm.createObject<Decimal128NotRequired>(4).decimal = Decimal128(BigDecimal.ZERO)
+        realm.commitTransaction()
+
+        val all = realm.where<Decimal128NotRequired>()
                 .greaterThan("decimal", Decimal128(BigDecimal.ONE))
                 .sort("decimal", Sort.ASCENDING)
                 .findAll()
+
         assertEquals(1, all.size)
         assertEquals(Decimal128(BigDecimal.TEN), all[0]!!.decimal)
+    }
 
+    @Test
+    fun queriesLessThanOrEqualTo() {
+        realm.beginTransaction()
+        realm.createObject<Decimal128NotRequired>(1).decimal = Decimal128(BigDecimal.ONE)
+        realm.createObject<Decimal128NotRequired>(2).decimal = null
+        realm.createObject<Decimal128NotRequired>(3).decimal = Decimal128(BigDecimal.TEN)
+        realm.createObject<Decimal128NotRequired>(4).decimal = Decimal128(BigDecimal.ZERO)
+        realm.commitTransaction()
 
-        // lessThanOrEqualTo
-        all = realm.where<Decimal128NotRequired>()
+        val all = realm.where<Decimal128NotRequired>()
                 .lessThanOrEqualTo("decimal", Decimal128(BigDecimal.ONE))
                 .sort("decimal", Sort.ASCENDING)
                 .findAll()
+
         assertEquals(2, all.size)
         assertEquals(Decimal128(BigDecimal.ZERO), all[0]!!.decimal)
         assertEquals(Decimal128(BigDecimal.ONE), all[1]!!.decimal)
+    }
 
-        // lessThan
-        all = realm.where<Decimal128NotRequired>()
+    @Test
+    fun queriesLessThan() {
+        realm.beginTransaction()
+        realm.createObject<Decimal128NotRequired>(1).decimal = Decimal128(BigDecimal.ONE)
+        realm.createObject<Decimal128NotRequired>(2).decimal = null
+        realm.createObject<Decimal128NotRequired>(3).decimal = Decimal128(BigDecimal.TEN)
+        realm.createObject<Decimal128NotRequired>(4).decimal = Decimal128(BigDecimal.ZERO)
+        realm.commitTransaction()
+
+        val all = realm.where<Decimal128NotRequired>()
                 .lessThan("decimal", Decimal128(BigDecimal.ONE))
                 .sort("decimal", Sort.ASCENDING)
                 .findAll()
+
         assertEquals(1, all.size)
         assertEquals(Decimal128(BigDecimal.ZERO), all[0]!!.decimal)
+    }
 
-        // isNull
-        all = realm.where<Decimal128NotRequired>()
+    @Test
+    fun queriesIsNull() {
+        realm.beginTransaction()
+        realm.createObject<Decimal128NotRequired>(1).decimal = Decimal128(BigDecimal.ONE)
+        realm.createObject<Decimal128NotRequired>(2).decimal = null
+        realm.createObject<Decimal128NotRequired>(3).decimal = Decimal128(BigDecimal.TEN)
+        realm.createObject<Decimal128NotRequired>(4).decimal = Decimal128(BigDecimal.ZERO)
+        realm.commitTransaction()
+
+        val all = realm.where<Decimal128NotRequired>()
                 .isNull("decimal")
                 .findAll()
+
         assertEquals(1, all.size)
         assertNull(all[0]!!.decimal)
         assertEquals(2L, all[0]!!.id)
+    }
 
-        // isNotNull
-        all = realm.where<Decimal128NotRequired>()
+    @Test
+    fun queriesIsNotNull() {
+        realm.beginTransaction()
+        realm.createObject<Decimal128NotRequired>(1).decimal = Decimal128(BigDecimal.ONE)
+        realm.createObject<Decimal128NotRequired>(2).decimal = null
+        realm.createObject<Decimal128NotRequired>(3).decimal = Decimal128(BigDecimal.TEN)
+        realm.createObject<Decimal128NotRequired>(4).decimal = Decimal128(BigDecimal.ZERO)
+        realm.commitTransaction()
+
+        val all = realm.where<Decimal128NotRequired>()
                 .isNotNull("decimal")
                 .sort("decimal", Sort.ASCENDING)
                 .findAll()
+
         assertEquals(3, all.size)
         assertEquals(Decimal128(BigDecimal.ZERO), all[0]!!.decimal)
         assertEquals(Decimal128(BigDecimal.ONE), all[1]!!.decimal)
         assertEquals(Decimal128(BigDecimal.TEN), all[2]!!.decimal)
+    }
 
-        // average
-        try {
+    @Test
+    fun queriesAverage() {
+        realm.beginTransaction()
+        realm.createObject<Decimal128NotRequired>(1).decimal = Decimal128(BigDecimal.ONE)
+        realm.createObject<Decimal128NotRequired>(2).decimal = null
+        realm.createObject<Decimal128NotRequired>(3).decimal = Decimal128(BigDecimal.TEN)
+        realm.createObject<Decimal128NotRequired>(4).decimal = Decimal128(BigDecimal.ZERO)
+        realm.commitTransaction()
+
+        assertFailsWith<IllegalArgumentException>("Average is not supported for Decimal128") {
             realm.where<Decimal128NotRequired>().average("decimal") // FIXME should we support avergae queries in Core?
-            fail("Average is not supported for Decimal128")
-        } catch (expected: IllegalArgumentException) {
-        }
-
-        // isEmpty
-        try {
-            realm.where<Decimal128NotRequired>().isEmpty("decimal")
-            fail("isEmpty is not supported for Decimal128")
-        } catch (expected: IllegalArgumentException) {
         }
     }
 
+    @Test
+    fun queriesIsEmpty() {
+        realm.beginTransaction()
+        realm.createObject<Decimal128NotRequired>(1).decimal = Decimal128(BigDecimal.ONE)
+        realm.createObject<Decimal128NotRequired>(2).decimal = null
+        realm.createObject<Decimal128NotRequired>(3).decimal = Decimal128(BigDecimal.TEN)
+        realm.createObject<Decimal128NotRequired>(4).decimal = Decimal128(BigDecimal.ZERO)
+        realm.commitTransaction()
+
+        assertFailsWith<IllegalArgumentException>("isEmpty is not supported for Decimal128") {
+            realm.where<Decimal128NotRequired>().isEmpty("decimal")
+        }
+    }
+
+    @Test
+    fun linkedQuery() {
+        val decimal128Array = arrayOf(null, Decimal128.parse("0"), Decimal128.parse("1"), Decimal128.parse("2"))
+
+        realm.executeTransaction { realm ->
+            decimal128Array.forEachIndexed { i, decimal128 ->
+                val decimalObj = realm.createObject<Decimal128NotRequired>(i)
+                decimalObj.decimal = decimal128
+
+                realm.createObject<LinkedDecimal128>().linkedDecimal128 = decimalObj
+            }
+        }
+
+        for (decimal in decimal128Array) {
+            val results = realm.where<LinkedDecimal128>().equalTo("linkedDecimal128.decimal", decimal).findAll()
+            assertEquals(1, results.size)
+            assertEquals(decimal, results.first()?.linkedDecimal128?.decimal)
+        }
+    }
 }

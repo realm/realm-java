@@ -119,7 +119,7 @@ public class RealmObjectTests {
         realm.commitTransaction();
 
         assertNotNull("RealmObject.realmGetRow returns zero ", row);
-        assertEquals(22, row.getColumnCount());
+        assertEquals(24, row.getColumnCount());
     }
 
     @Test

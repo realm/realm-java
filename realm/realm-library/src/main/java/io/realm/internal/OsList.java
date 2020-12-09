@@ -4,6 +4,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -227,6 +228,30 @@ public class OsList implements NativeObject, ObservableCollection {
         }
     }
 
+    public void addUUID(@Nullable UUID value) {
+        if (value == null) {
+            nativeAddNull(nativePtr);
+        } else {
+            nativeAddUUID(nativePtr, value.toString());
+        }
+    }
+
+    public void insertUUID(long pos, @Nullable UUID value) {
+        if (value == null) {
+            nativeInsertNull(nativePtr, pos);
+        } else {
+            nativeInsertUUID(nativePtr, pos, value.toString());
+        }
+    }
+
+    public void setUUID(long pos, @Nullable UUID value) {
+        if (value == null) {
+            nativeSetNull(nativePtr, pos);
+        } else {
+            nativeSetUUID(nativePtr, pos, value.toString());
+        }
+    }
+
     @Nullable
     public Object getValue(long pos) {
         return nativeGetValue(nativePtr, pos);
@@ -423,6 +448,12 @@ public class OsList implements NativeObject, ObservableCollection {
     private static native void nativeInsertObjectId(long nativePtr, long pos, String data);
 
     private static native void nativeSetObjectId(long nativePtr, long pos, String data);
+
+    private static native void nativeAddUUID(long nativePtr, String data);
+
+    private static native void nativeInsertUUID(long nativePtr, long pos, String data);
+
+    private static native void nativeSetUUID(long nativePtr, long pos, String data);
 
     private static native Object nativeGetValue(long nativePtr, long pos);
 
