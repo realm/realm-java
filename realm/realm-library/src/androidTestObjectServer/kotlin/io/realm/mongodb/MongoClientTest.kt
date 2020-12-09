@@ -1353,12 +1353,15 @@ class MongoClientTest {
         }
     }
 
-    @Ignore("Figure out why this is now failing")
+    @Ignore("https://github.com/realm/realm-java/issues/7239")
     @Test
     fun watchError() {
         with(getCollectionInternal()) {
             val watcher = this.watch()
 
+            // This should time out after 60 seconds with no events.
+            // This no longer seems to happen though as pr. https://github.com/realm/realm-java/issues/7239
+            // So we need to find another way to test this.
             assertFailsWith<AppException> {
                 watcher.next
             }

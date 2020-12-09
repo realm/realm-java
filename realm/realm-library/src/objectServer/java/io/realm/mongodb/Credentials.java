@@ -162,7 +162,7 @@ public class Credentials {
      * {@link App#loginAsync(Credentials, App.Callback)}.
      */
     public static Credentials google(String token, GoogleAuthType type) {
-        Util.checkEmpty(token, "authorizationCode");
+        Util.checkEmpty(token, "token");
         return new Credentials(OsAppCredentials.google(token, type), Provider.GOOGLE);
     }
 

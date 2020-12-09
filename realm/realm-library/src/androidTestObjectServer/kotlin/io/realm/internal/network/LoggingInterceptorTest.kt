@@ -25,6 +25,7 @@ import io.realm.log.RealmLog
 import io.realm.mongodb.*
 import io.realm.mongodb.auth.GoogleAuthType
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator
+import io.realm.util.assertFailsWithErrorCode
 import org.bson.Document
 import org.junit.After
 import org.junit.Assert
@@ -228,11 +229,9 @@ class LoggingInterceptorTest {
         testLogger = getLogger()
         val token = "google-token"
 
-        try {
+        assertFailsWithErrorCode(ErrorCode.INVALID_SESSION) {
             app.login(Credentials.google(token, GoogleAuthType.ID_TOKEN))
-        } catch (error: AppException) {
-            Assert.assertEquals(ErrorCode.INVALID_SESSION, error.errorCode)
-        } finally {
+        }.also {
             assertMessageExists(""""id_token":"$token"""")
         }
     }

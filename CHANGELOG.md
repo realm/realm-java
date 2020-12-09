@@ -7,7 +7,7 @@
 * None.
 
 ### Enhancements
-* [RealmApp] Added `Credentials.google(token: String, authType: GoogleAuthType)`, as MongoDB Realm support multiple ways of logging in Google Accounts.
+* [RealmApp] Added `Credentials.google(token: String, authType: GoogleAuthType)`, as MongoDB Realm now supports multiple ways of logging into Google Accounts.
 
 ### Fixes
 * [RealmApp] Bug that would prevent eventual consistency during conflict resolution. Affected clients would experience data divergence and potentially consistency errors as a result if they experienced conflict resolution between cycles of Create-Erase-Create for objects with primary keys.
