@@ -11,7 +11,6 @@
 
 ### Fixes
 * [RealmApp] Bug that would prevent eventual consistency during conflict resolution. Affected clients would experience data divergence and potentially consistency errors as a result if they experienced conflict resolution between cycles of Create-Erase-Create for objects with primary keys.
-* Complementary fix for missed edge case in https://github.com/realm/realm-java/pull/7220 where KAPT crash if we process a RealmObject referencing a type in RealmList defined in another module. (Issue [#7213](https://github.com/realm/realm-java/issues/7213), since v10.0.0).
 * Clean up JNI references to prevent crash from JNI reference table overflow (Issue [#7217](https://github.com/realm/realm-java/issues/7217))
 
 ### Compatibility
@@ -40,7 +39,8 @@
 * APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
 * Realm Studio 10.0.0 or above is required to open Realms created by this version.
 
-## 10.1.1 (2020-10-27)
+
+## 10.1.1 (2020-11-27)
 
 ### Breaking Changes
 * None.
@@ -62,7 +62,7 @@
 * Updated to Object Store commit: fc6daca61133aa9601e4cb34fbeb9ec7569e162e.
 
 
-## 10.1.0 (2020-10-23)
+## 10.1.0 (2020-11-23)
 
 ### Breaking Changes
 * None.
