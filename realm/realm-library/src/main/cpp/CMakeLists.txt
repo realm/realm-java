@@ -21,6 +21,7 @@ project(RealmJava)
 # loading dependencies properties
 file(STRINGS "${CMAKE_SOURCE_DIR}/../../../../../dependencies.list" DEPENDENCIES)
 foreach(LINE IN LISTS DEPENDENCIES)
+
     string(REGEX MATCHALL "([^=]+)" KEY_VALUE "${LINE}")
     list(LENGTH KEY_VALUE matches_count)
     if(matches_count STREQUAL 2)
@@ -130,12 +131,30 @@ create_javah(TARGET jni_headers
     DEPENDS ${classes_PATH}
 )
 
-option(REALM_JAVA_BUILD_CORE_FROM_SOURCE "Build Realm Core from source, as opposed to downloading prebuilt binaries" ON)
 if(REALM_JAVA_BUILD_CORE_FROM_SOURCE)
+    message(STATUS "Building Realm Core from source...")
+
     set(REALM_BUILD_LIB_ONLY ON)
     add_subdirectory(realm-core)
 else()
-    message(FATAL_ERROR "TODO: Implement downloading monorepo release artifacts")
+    message(STATUS "Using prebuild Realm Core.")
+
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF) # CMAKE_INTERPROCEDURAL_OPTIMIZATION is not compatible with binary artifacts.
+
+    execute_process(COMMAND "${CMAKE_COMMAND}" "-E" "environment")
+    set(core_filename "realm-${CMAKE_BUILD_TYPE}-v${DEP_REALM_CORE}-Android-${CMAKE_ANDROID_ARCH_ABI}-devel")
+
+    message(STATUS "Downloading realm-core...")
+#    file(DOWNLOAD "http://static.realm.io/downloads/core/${core_filename}.tar.gz" "${CMAKE_BINARY_DIR}/${core_filename}.tar.gz")
+    file(DOWNLOAD "http://127.0.0.1:8080/${core_filename}.tar.gz" "${CMAKE_BINARY_DIR}/${core_filename}.tar.gz")
+
+    message(STATUS "Uncompressing realm-core...")
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/${core_filename}")
+
+    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfz "${CMAKE_BINARY_DIR}/${core_filename}.tar.gz"
+            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/${core_filename}")
+
+    include(${CMAKE_BINARY_DIR}/${core_filename}/lib/cmake/Realm/RealmConfig.cmake)
 endif()
 
 # build application's shared lib
