@@ -131,7 +131,7 @@ create_javah(TARGET jni_headers
     DEPENDS ${classes_PATH}
 )
 
-if(REALM_JAVA_BUILD_CORE_FROM_SOURCE)
+if(REALM_JAVA_BUILD_CORE_FROM_SOURCE OR NOT REALM_ENABLE_SYNC)
     message(STATUS "Building Realm Core from source...")
 
     set(REALM_BUILD_LIB_ONLY ON)
@@ -145,8 +145,7 @@ else()
     set(core_filename "realm-${CMAKE_BUILD_TYPE}-v${DEP_REALM_CORE}-Android-${CMAKE_ANDROID_ARCH_ABI}-devel")
 
     message(STATUS "Downloading realm-core...")
-#    file(DOWNLOAD "http://static.realm.io/downloads/core/${core_filename}.tar.gz" "${CMAKE_BINARY_DIR}/${core_filename}.tar.gz")
-    file(DOWNLOAD "http://127.0.0.1:8080/${core_filename}.tar.gz" "${CMAKE_BINARY_DIR}/${core_filename}.tar.gz")
+    file(DOWNLOAD "http://static.realm.io/downloads/core/${core_filename}.tar.gz" "${CMAKE_BINARY_DIR}/${core_filename}.tar.gz")
 
     message(STATUS "Uncompressing realm-core...")
     file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/${core_filename}")
