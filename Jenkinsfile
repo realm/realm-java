@@ -82,7 +82,7 @@ try {
           // Build development branch
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
-          buildFlags = "-PbuildTargetABIs=x86 -PdisableLTO=1"
+          buildFlags = "-PbuildTargetABIs=x86 -PenableLTO=0 -PbuildCore=0"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           deviceSerial = "emulator-5554"
         } else {
@@ -91,6 +91,7 @@ try {
           //  But still build all ABI's and run all types of tests. 
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
+          buildFlags = "-PenableLTO=1 -PbuildCore=1"
           instrumentationTestTarget = "connectedAndroidTest"
           deviceSerial = "emulator-5554"
         }
