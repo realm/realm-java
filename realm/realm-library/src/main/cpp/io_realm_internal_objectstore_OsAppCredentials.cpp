@@ -63,9 +63,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsAppCredentials_nati
                 creds = AppCredentials::apple(id_token);
                 break;
             }
-            case io_realm_internal_objectstore_OsAppCredentials_TYPE_GOOGLE: {
+            case io_realm_internal_objectstore_OsAppCredentials_TYPE_GOOGLE_AUTH_CODE: {
                 JStringAccessor id_token(env, (jstring) env->GetObjectArrayElement(j_args, 0));
-                creds = AppCredentials::google(id_token);
+                creds = AppCredentials::google(AuthCode(StringData(id_token).data()));
+                break;
+            }
+            case io_realm_internal_objectstore_OsAppCredentials_TYPE_GOOGLE_ID_TOKEN: {
+                JStringAccessor id_token(env, (jstring) env->GetObjectArrayElement(j_args, 0));
+                creds = AppCredentials::google(IdToken(StringData(id_token).data()));
                 break;
             }
             case io_realm_internal_objectstore_OsAppCredentials_TYPE_JWT: {

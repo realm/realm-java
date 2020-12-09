@@ -23,7 +23,9 @@ import io.realm.internal.network.LoggingInterceptor.LOGIN_FEATURE
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.*
+import io.realm.mongodb.auth.GoogleAuthType
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator
+import io.realm.util.assertFailsWithErrorCode
 import org.bson.Document
 import org.junit.After
 import org.junit.Assert
@@ -189,13 +191,13 @@ class LoggingInterceptorTest {
     }
 
     @Test
-    fun googleTokenLogin_noObfuscation() {
+    fun googleTokenLogin_authCode_noObfuscation() {
         app = TestApp()
         testLogger = getLogger()
         val token = "google-token"
 
         try {
-            app.login(Credentials.google(token))
+            app.login(Credentials.google(token, GoogleAuthType.AUTH_CODE))
         } catch (error: AppException) {
             Assert.assertEquals(ErrorCode.INVALID_SESSION, error.errorCode)
         } finally {
@@ -204,7 +206,7 @@ class LoggingInterceptorTest {
     }
 
     @Test
-    fun googleTokenLogin_obfuscation() {
+    fun googleTokenLogin_authCode_obfuscation() {
         app = TestApp { builder ->
             builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, AppConfiguration.loginObfuscators))
         }
@@ -212,11 +214,42 @@ class LoggingInterceptorTest {
         val token = "google-token"
 
         try {
-            app.login(Credentials.google(token))
+            app.login(Credentials.google(token, GoogleAuthType.AUTH_CODE))
         } catch (error: AppException) {
             Assert.assertEquals(ErrorCode.INVALID_SESSION, error.errorCode)
         } finally {
             assertMessageExists(""""authCode":"***"""")
+        }
+    }
+
+
+    @Test
+    fun googleTokenLogin_idToken_noObfuscation() {
+        app = TestApp()
+        testLogger = getLogger()
+        val token = "google-token"
+
+        assertFailsWithErrorCode(ErrorCode.INVALID_SESSION) {
+            app.login(Credentials.google(token, GoogleAuthType.ID_TOKEN))
+        }.also {
+            assertMessageExists(""""id_token":"$token"""")
+        }
+    }
+
+    @Test
+    fun googleTokenLogin_idToken_obfuscation() {
+        app = TestApp { builder ->
+            builder.httpLogObfuscator(HttpLogObfuscator(LOGIN_FEATURE, AppConfiguration.loginObfuscators))
+        }
+        testLogger = getLogger()
+        val token = "google-token"
+
+        try {
+            app.login(Credentials.google(token, GoogleAuthType.ID_TOKEN))
+        } catch (error: AppException) {
+            Assert.assertEquals(ErrorCode.INVALID_SESSION, error.errorCode)
+        } finally {
+            assertMessageExists(""""id_token":"***"""")
         }
     }
 

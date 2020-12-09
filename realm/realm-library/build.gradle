@@ -341,7 +341,7 @@ install {
                 // Add your description here
                 name 'realm-android-library'
                 description 'Realm is a mobile database: a replacement for SQLite & ORMs.'
-                url 'http://realm.io'
+                url 'https://docs.mongodb.com/realm/'
 
                 // Set your license
                 licenses {
