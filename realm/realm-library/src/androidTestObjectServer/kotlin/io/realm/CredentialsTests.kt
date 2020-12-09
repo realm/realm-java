@@ -20,6 +20,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
 import io.realm.mongodb.*
 import io.realm.mongodb.auth.ApiKey
+import io.realm.mongodb.auth.GoogleAuthType
 import org.bson.Document
 import org.junit.After
 import org.junit.Assert.*
@@ -134,16 +135,31 @@ class CredentialsTests {
     }
 
     @Test
-    fun google() {
-        val creds = Credentials.google("google-token")
+    fun google_authCode() {
+        val creds = Credentials.google("google-token", GoogleAuthType.AUTH_CODE)
         assertEquals(Credentials.Provider.GOOGLE, creds.identityProvider)
         assertTrue(creds.asJson().contains("google-token"))
+        assertTrue(creds.asJson().contains("authCode"))
     }
 
     @Test
-    fun google_invalidInput() {
-        assertFailsWith<IllegalArgumentException> { Credentials.google("") }
-        assertFailsWith<IllegalArgumentException> { Credentials.google(TestHelper.getNull()) }
+    fun google_idToken() {
+        val creds = Credentials.google("google-token", GoogleAuthType.ID_TOKEN)
+        assertEquals(Credentials.Provider.GOOGLE, creds.identityProvider)
+        assertTrue(creds.asJson().contains("google-token"))
+        assertTrue(creds.asJson().contains("id_token"))
+    }
+
+    @Test
+    fun google_invalidInput_authCode() {
+        assertFailsWith<IllegalArgumentException> { Credentials.google("", GoogleAuthType.AUTH_CODE) }
+        assertFailsWith<IllegalArgumentException> { Credentials.google(TestHelper.getNull(), GoogleAuthType.AUTH_CODE) }
+    }
+
+    @Test
+    fun google_invalidInput_idToken() {
+        assertFailsWith<IllegalArgumentException> { Credentials.google("", GoogleAuthType.ID_TOKEN) }
+        assertFailsWith<IllegalArgumentException> { Credentials.google(TestHelper.getNull(), GoogleAuthType.ID_TOKEN) }
     }
 
     @Ignore("FIXME: Awaiting ObjectStore support")
@@ -210,7 +226,8 @@ class CredentialsTests {
                     expectErrorCode(app, ErrorCode.INVALID_SESSION, Credentials.apple("apple-token"))
                 }
                 Credentials.Provider.GOOGLE -> {
-                    expectErrorCode(app, ErrorCode.INVALID_SESSION, Credentials.google("google-token"))
+                    expectErrorCode(app, ErrorCode.INVALID_SESSION, Credentials.google("google-token", GoogleAuthType.AUTH_CODE))
+                    expectErrorCode(app, ErrorCode.INVALID_SESSION, Credentials.google("google-token", GoogleAuthType.ID_TOKEN))
                 }
                 Credentials.Provider.JWT -> {
                     expectErrorCode(app, ErrorCode.INVALID_SESSION, Credentials.jwt("jwt-token"))
