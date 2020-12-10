@@ -131,6 +131,11 @@ create_javah(TARGET jni_headers
     DEPENDS ${classes_PATH}
 )
 
+# Check if user defined download location
+if(NOT DEFINED REALM_CORE_DOWNLOAD_DIR)
+    set(REALM_CORE_DOWNLOAD_DIR ${CMAKE_BINARY_DIR})
+endif()
+
 if(REALM_JAVA_BUILD_CORE_FROM_SOURCE OR NOT REALM_ENABLE_SYNC)
     message(STATUS "Building Realm Core from source...")
 
@@ -139,18 +144,25 @@ if(REALM_JAVA_BUILD_CORE_FROM_SOURCE OR NOT REALM_ENABLE_SYNC)
 else()
     message(STATUS "Using prebuild Realm Core.")
 
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF) # CMAKE_INTERPROCEDURAL_OPTIMIZATION is not compatible with binary artifacts.
+    # CMAKE_INTERPROCEDURAL_OPTIMIZATION is not compatible with binary artifacts.
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
 
     execute_process(COMMAND "${CMAKE_COMMAND}" "-E" "environment")
     set(core_filename "realm-${CMAKE_BUILD_TYPE}-v${DEP_REALM_CORE}-Android-${CMAKE_ANDROID_ARCH_ABI}-devel")
 
-    message(STATUS "Downloading realm-core...")
-    file(DOWNLOAD "http://static.realm.io/downloads/core/${core_filename}.tar.gz" "${CMAKE_BINARY_DIR}/${core_filename}.tar.gz")
+    # Use cached resources if possible
+    if(NOT EXISTS "${REALM_CORE_DOWNLOAD_DIR}/${core_filename}.tar.gz")
+        message(STATUS "Downloading ${core_filename}...")
+        file(DOWNLOAD "http://static.realm.io/downloads/core/${core_filename}.tar.gz" "${CMAKE_BINARY_DIR}/${core_filename}.tar.gz")
+    else()
+        file(TIMESTAMP "${REALM_CORE_DOWNLOAD_DIR}/${core_filename}.tar.gz" CORE_FILE_TIMESTAMP "%b %d %H:%M")
+        message(STATUS "Using cached filename: ${core_filename}.tar.gz : ${CORE_FILE_TIMESTAMP}")
+    endif()
 
     message(STATUS "Uncompressing realm-core...")
     file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/${core_filename}")
 
-    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfz "${CMAKE_BINARY_DIR}/${core_filename}.tar.gz"
+    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfz "${REALM_CORE_DOWNLOAD_DIR}/${core_filename}.tar.gz"
             WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/${core_filename}")
 
     include(${CMAKE_BINARY_DIR}/${core_filename}/lib/cmake/Realm/RealmConfig.cmake)

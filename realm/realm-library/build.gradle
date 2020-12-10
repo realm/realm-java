@@ -40,8 +40,12 @@ android {
                     // "armeabi" and "mips" are no longer supported by the NDK
                     abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
                 }
-                if (project.hasProperty('buildCore')) arguments "-DREALM_JAVA_BUILD_CORE_FROM_SOURCE=${project.getProperty('buildCore')}"
-                if (project.hasProperty('enableLTO')) arguments "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=${project.getProperty('enableLTO')}"
+
+                arguments "-DREALM_JAVA_BUILD_CORE_FROM_SOURCE=${project.hasProperty('buildCore') && project.getProperty('buildCore')}"
+                arguments "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=${!project.hasProperty('enableLTO') || project.getProperty('enableLTO')}"
+
+                if(project.hasProperty('realmCoreDownloadDir'))
+                    arguments "-DREALM_CORE_DOWNLOAD_DIR=${project.getProperty('realmCoreDownloadDir')}"
             }
         }
 
@@ -56,7 +60,7 @@ android {
         }
     }
 
-    ndkVersion = "21.0.6113669"
+    ndkVersion = '21.0.6113669'
 
     externalNativeBuild {
         cmake {
