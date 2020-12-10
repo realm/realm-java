@@ -144,7 +144,7 @@ if(REALM_JAVA_BUILD_CORE_FROM_SOURCE OR NOT REALM_ENABLE_SYNC)
     set(REALM_BUILD_LIB_ONLY ON)
     add_subdirectory(realm-core EXCLUDE_FROM_ALL)
 else()
-    message(STATUS "Using prebuild Realm Core.")
+    message(STATUS "Using prebuilt Realm Core.")
 
     # CMAKE_INTERPROCEDURAL_OPTIMIZATION is not compatible with binary artifacts.
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
