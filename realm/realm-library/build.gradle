@@ -41,11 +41,8 @@ android {
                     abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
                 }
 
-                arguments "-DREALM_JAVA_BUILD_CORE_FROM_SOURCE=${project.hasProperty('buildCore') && project.getProperty('buildCore')}"
-                arguments "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=${!project.hasProperty('enableLTO') || project.getProperty('enableLTO')}"
-
-                if(project.hasProperty('realmCoreDownloadDir'))
-                    arguments "-DREALM_CORE_DOWNLOAD_DIR=${project.getProperty('realmCoreDownloadDir')}"
+                arguments "-DREALM_JAVA_BUILD_CORE_FROM_SOURCE=${project.hasProperty('buildCore') && project.getProperty('buildCore').toBoolean()}"
+                arguments "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=${!project.hasProperty('enableLTO') || project.getProperty('enableLTO').toBoolean()}"
             }
         }
 

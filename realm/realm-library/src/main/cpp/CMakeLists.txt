@@ -132,8 +132,10 @@ create_javah(TARGET jni_headers
 )
 
 # Check if user defined download location
-if(NOT DEFINED REALM_CORE_DOWNLOAD_DIR)
+if(NOT DEFINED ENV{REALM_CORE_DOWNLOAD_DIR})
     set(REALM_CORE_DOWNLOAD_DIR ${CMAKE_BINARY_DIR})
+else()
+    set(REALM_CORE_DOWNLOAD_DIR $ENV{REALM_CORE_DOWNLOAD_DIR})
 endif()
 
 if(REALM_JAVA_BUILD_CORE_FROM_SOURCE OR NOT REALM_ENABLE_SYNC)
@@ -153,7 +155,7 @@ else()
     # Use cached resources if possible
     if(NOT EXISTS "${REALM_CORE_DOWNLOAD_DIR}/${core_filename}.tar.gz")
         message(STATUS "Downloading ${core_filename}...")
-        file(DOWNLOAD "http://static.realm.io/downloads/core/${core_filename}.tar.gz" "${CMAKE_BINARY_DIR}/${core_filename}.tar.gz")
+        file(DOWNLOAD "http://static.realm.io/downloads/core/${core_filename}.tar.gz" "${REALM_CORE_DOWNLOAD_DIR}/${core_filename}.tar.gz")
     else()
         file(TIMESTAMP "${REALM_CORE_DOWNLOAD_DIR}/${core_filename}.tar.gz" CORE_FILE_TIMESTAMP "%b %d %H:%M")
         message(STATUS "Using cached filename: ${core_filename}.tar.gz : ${CORE_FILE_TIMESTAMP}")
