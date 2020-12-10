@@ -142,7 +142,7 @@ if(REALM_JAVA_BUILD_CORE_FROM_SOURCE OR NOT REALM_ENABLE_SYNC)
     message(STATUS "Building Realm Core from source...")
 
     set(REALM_BUILD_LIB_ONLY ON)
-    add_subdirectory(realm-core)
+    add_subdirectory(realm-core EXCLUDE_FROM_ALL)
 else()
     message(STATUS "Using prebuild Realm Core.")
 
