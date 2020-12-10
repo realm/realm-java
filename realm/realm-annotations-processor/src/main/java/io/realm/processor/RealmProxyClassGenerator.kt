@@ -194,11 +194,11 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitMixedField(writer, variableElement)
                 } else if (Utils.isRealmList(variableElement)) {
                     val genericType = Utils.getGenericTypeQualifiedName(variableElement)
-                    emitField("RealmList<$genericType>", variableElement.simpleName.toString() + "RealmList", EnumSet.of(Modifier.PRIVATE))
+                    emitField("RealmList<$genericType>", "${variableElement.simpleName}RealmList", EnumSet.of(Modifier.PRIVATE))
                 } else if (Utils.isRealmMap(variableElement)) {
                     val keyType = Utils.getMapKeyTypeQualifiedName(variableElement)
                     val valueType = Utils.getMapValueTypeQualifiedName(variableElement)
-                    emitField("RealmMap<$keyType,$valueType>", variableElement.simpleName.toString() + "RealmMap", EnumSet.of(Modifier.PRIVATE))
+                    emitField("RealmMap<$keyType,$valueType>", "${variableElement.simpleName}RealmMap", EnumSet.of(Modifier.PRIVATE))
                 }
             }
 
@@ -267,8 +267,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitRealmList(writer, field, fieldName, fieldTypeCanonicalName, elementTypeMirror)
                 }
                 Utils.isRealmMap(field) -> {
-//                    val typeMirrors = TypeMirrors.getRealmMapTypeMirrors(field)
-                    writer.emitSingleLineComment("--------- REALM MAP")
+                    TypeMirrors.getRealmMapTypeMirrors(field)
+                            ?.let { (keyType, valueType) ->
+                                emitRealmMap(writer, field, fieldName, fieldTypeCanonicalName, keyType, valueType)
+                            }
                 }
                 else -> throw UnsupportedOperationException(String.format(Locale.US, "Field \"%s\" of type \"%s\" is not supported.", fieldName, fieldTypeCanonicalName))
             }
@@ -478,6 +480,39 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 }
             endMethod()
             // Setter - End
+        }
+    }
+
+    /**
+     * FIXME
+     */
+    @Throws(IOException::class)
+    private fun emitRealmMap(
+            writer: JavaWriter,
+            field: VariableElement,
+            fieldName: String,
+            fieldTypeCanonicalName: String,
+            keyTypeMirror: TypeMirror,
+            valueTypeMirror: TypeMirror
+    ) {
+        with(writer) {
+            // Getter
+            emitAnnotation("Override")
+            beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
+            // TODO
+            emitSingleLineComment("TODO")
+            emitStatement("""throw new RuntimeException("wip")""")
+            endMethod()
+            emitEmptyLine()
+
+            // Setter
+            emitAnnotation("Override")
+            beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value")
+            // TODO
+            emitSingleLineComment("TODO")
+            emitStatement("""throw new RuntimeException("wip")""")
+            endMethod()
+            emitEmptyLine()
         }
     }
 
@@ -784,7 +819,12 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val nullableFlag = (if (metadata.isNullable(field)) "!" else "") + "Property.REQUIRED"
                             val indexedFlag = (if (metadata.isIndexed(field)) "" else "!") + "Property.INDEXED"
                             val primaryKeyFlag = (if (metadata.isPrimaryKey(field)) "" else "!") + "Property.PRIMARY_KEY"
-                            emitStatement("builder.addPersistedProperty(\"%s\", %s, %s, %s, %s)", fieldName, fieldType.realmType, primaryKeyFlag, indexedFlag, nullableFlag)
+                            emitStatement("""builder.addPersistedProperty("%s", %s, %s, %s, %s)""", fieldName, fieldType.realmType, primaryKeyFlag, indexedFlag, nullableFlag)
+                        }
+                        Constants.RealmFieldType.STRING_TO_MIXED_MAP -> {
+                            // TODO: do this properly once nullable and required are clear
+                            val requiredFlag = "!Property.REQUIRED"
+                            emitStatement("""builder.addPersistedMapProperty("%s", %s, %s)""", fieldName, fieldType.realmType, requiredFlag)
                         }
                     }
                 }
@@ -794,7 +834,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     val sourceClass = classCollection.getClassFromQualifiedName(backlink.sourceClass!!)
                     val targetField = backlink.targetField // Only in the model, so no internal name exists
                     val internalSourceField = sourceClass.getInternalFieldName(backlink.sourceField!!)
-                    emitStatement("builder.addComputedLinkProperty(\"%s\", \"%s\", \"%s\")", targetField, sourceClass.internalClassName, internalSourceField)
+                    emitStatement("""builder.addComputedLinkProperty("%s", "%s", "%s")""", targetField, sourceClass.internalClassName, internalSourceField)
                 }
                 emitStatement("return builder.build()")
             endMethod()
@@ -1193,6 +1233,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                         endControlFlow()
                     }
+                    Utils.isRealmMap(field) -> {
+                        // TODO: maps
+                    }
                     else -> {
                         if (metadata.primaryKey !== field) {
                             setTableValues(writer, fieldType.toString(), fieldName, interfaceName, getter, false)
@@ -1306,6 +1349,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     endControlFlow()
                                 endControlFlow()
                             endControlFlow()
+                        } else if (Utils.isRealmMap(field)) {
+                            // TODO: maps
                         } else {
                             if (metadata.primaryKey !== field) {
                                 setTableValues(writer, fieldType.toString(), fieldName, interfaceName, getter, false)
@@ -1436,6 +1481,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         endControlFlow()
                     endControlFlow()
                     emitEmptyLine()
+                } else if (Utils.isRealmMap(field)) {
+                    // TODO: maps
                 } else {
                     if (metadata.primaryKey !== field) {
                         setTableValues(writer, fieldType.toString(), fieldName, interfaceName, getter, true)
@@ -1578,6 +1625,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     endControlFlow()
                                 endControlFlow()
                                 emitEmptyLine()
+                            }
+                            Utils.isRealmMap(field) -> {
+                                // TODO: does this belong in here or should it be its own method?
                             }
                             else -> {
                                 if (metadata.primaryKey !== field) {
@@ -1787,6 +1837,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                             emitEmptyLine()
                         }
+                        Utils.isRealmMap(field) -> {
+                            // TODO: maps
+                        }
                         else -> {
                             throw IllegalStateException("Unsupported field: $field")
                         }
@@ -1857,6 +1910,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         }
                         Utils.isMutableRealmInteger(field) -> // If the user initializes the unmanaged MutableRealmInteger to null, this will fail mysteriously.
                             emitStatement("unmanagedCopy.%s().set(realmSource.%s().get())", getter, getter)
+                        Utils.isRealmMap(field) -> {
+                            // TODO: maps
+                        }
                         else -> {
                             emitStatement("unmanagedCopy.%s(realmSource.%s())", setter, getter)
                         }
@@ -1977,6 +2033,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitStatement("builder.addObjectList(%s, new RealmList<%s>())", fieldColKey, genericType)
                             endControlFlow()
                         }
+                        Utils.isRealmMap(field) -> {
+                            // TODO: maps
+                        }
                         else -> {
                             emitStatement("builder.%s(%s, realmObjectSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey, getter)
                         }
@@ -2051,6 +2110,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             } else {
                                 emitStatement("stringBuilder.append(\"binary(\" + %1\$s().length + \")\")", metadata.getInternalGetter(fieldName))
                             }
+                        }
+                        Utils.isRealmMap(field) -> {
+                            // TODO: maps
                         }
                         else -> {
                             if (metadata.isNullable(field)) {
@@ -2257,6 +2319,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 fieldName,
                                 qualifiedFieldType,
                                 writer)
+                        Utils.isRealmMap(field) -> {
+                            // TODO: maps
+                        }
                         else -> RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
                                 "objProxy",
                                 metadata.getInternalSetter(fieldName),
@@ -2338,6 +2403,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     fieldName,
                                     fieldType,
                                     writer)
+                        }
+                        Utils.isRealmMap(field) -> {
+                            // TODO: add support for maps
                         }
                         else -> {
                             RealmJsonTypeHelper.emitFillJavaTypeFromStream(
@@ -2423,9 +2491,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         if (Utils.isRealmValueList(field)) {
             return Utils.getValueListFieldType(field)
         }
-//        if (Utils.isRealmMap(field)) {
-//            return Utils.
-//        }
+        if (Utils.isRealmMap(field)) {
+            // FIXME: temporary setup
+            return Constants.RealmFieldType.STRING_TO_MIXED_MAP
+        }
         return Constants.RealmFieldType.NOTYPE
     }
 

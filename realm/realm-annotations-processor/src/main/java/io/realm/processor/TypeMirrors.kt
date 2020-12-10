@@ -95,7 +95,7 @@ class TypeMirrors(env: ProcessingEnvironment) {
          */
         @JvmStatic
         fun getRealmMapTypeMirrors(field: VariableElement): Pair<TypeMirror, TypeMirror>? {
-            if (!Utils.isRealmList(field)) {
+            if (!Utils.isRealmMap(field)) {
                 return null
             }
             return (field.asType() as DeclaredType).typeArguments

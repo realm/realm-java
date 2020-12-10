@@ -71,6 +71,8 @@ public class Property implements NativeObject {
     public static final int TYPE_NULLABLE = 64;
     @SuppressWarnings("WeakerAccess")
     public static final int TYPE_ARRAY = 128;
+    @SuppressWarnings("WeakerAccess")
+    public static final int TYPE_DICTIONARY = 512;
 
     private long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
@@ -149,6 +151,9 @@ public class Property implements NativeObject {
                 break;
             case DOUBLE_LIST:
                 type = TYPE_DOUBLE | TYPE_ARRAY;
+                break;
+            case STRING_TO_MIXED_MAP:
+                type = TYPE_MIXED | TYPE_DICTIONARY;
                 break;
             default:
                 throw new IllegalArgumentException(

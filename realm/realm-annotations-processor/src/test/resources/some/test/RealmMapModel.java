@@ -24,26 +24,26 @@ import io.realm.annotations.Ignore;
 
 public class RealmMapModel extends RealmObject {
 
-    private RealmList<String> list;
-    private RealmMap<String, Mixed> map;
+//    private RealmList<String> myStringList;
+    private RealmMap<String, Mixed> myMap;
 
     public RealmMapModel() {
         // no-op
     }
 
-    public RealmList<String> getList() {
-        return list;
+//    public RealmList<String> getMyStringList() {
+//        return myStringList;
+//    }
+//
+//    public void setMyStringList(RealmList<String> list) {
+//        this.myStringList = list;
+//    }
+
+    public RealmMap<String, Mixed> getMyMap() {
+        return myMap;
     }
 
-    public void setList(RealmList<String> list) {
-        this.list = list;
-    }
-
-    public RealmMap<String, Mixed> getMap() {
-        return map;
-    }
-
-    public void setMap(RealmMap<String, Mixed> map) {
-        this.map = map;
+    public void setMyMap(RealmMap<String, Mixed> map) {
+        this.myMap = map;
     }
 }

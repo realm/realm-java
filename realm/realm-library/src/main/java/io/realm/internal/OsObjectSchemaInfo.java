@@ -51,15 +51,15 @@ public class OsObjectSchemaInfo implements NativeObject {
         /**
          * Adds a persisted non-link, non value list property to this builder.
          *
-         * @param name the name of the property.
-         * @param type the type of the property.
+         * @param name         the name of the property.
+         * @param type         the type of the property.
          * @param isPrimaryKey set to true if this property is the primary key.
-         * @param isIndexed set to true if this property needs an index.
-         * @param isRequired set to true if this property is not nullable.
+         * @param isIndexed    set to true if this property needs an index.
+         * @param isRequired   set to true if this property is not nullable.
          * @return this {@code OsObjectSchemaInfo}.
          */
         public Builder addPersistedProperty(String name, RealmFieldType type, boolean isPrimaryKey, boolean isIndexed,
-                boolean isRequired) {
+                                            boolean isRequired) {
             long propertyPtr = Property.nativeCreatePersistedProperty(name,
                     Property.convertFromRealmFieldType(type, isRequired), isPrimaryKey, isIndexed);
             persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
@@ -70,8 +70,8 @@ public class OsObjectSchemaInfo implements NativeObject {
         /**
          * Adds a persisted value list property to this builder.
          *
-         * @param name the name of the property.
-         * @param type the type of the property. It must be one of value list type.
+         * @param name       the name of the property.
+         * @param type       the type of the property. It must be one of value list type.
          * @param isRequired set to true if this property is not nullable.
          * @return this {@code OsObjectSchemaInfo}.
          */
@@ -84,12 +84,30 @@ public class OsObjectSchemaInfo implements NativeObject {
         }
 
         /**
+         * TODO: what about isRequired?
+         *
+         * @param name
+         * @param type
+         * @param isRequired
+         * @return
+         */
+        public Builder addPersistedMapProperty(String name, RealmFieldType type, boolean isRequired) {
+            long propertyPtr = Property.nativeCreatePersistedProperty(name,
+                    Property.convertFromRealmFieldType(type, isRequired),
+                    !Property.PRIMARY_KEY,
+                    !Property.INDEXED);
+            persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
+            persistedPropertyPtrCurPos++;
+            return this;
+        }
+
+        /**
          * Adds a persisted link property to this {@code OsObjectSchemaInfo}. A persisted link property will be stored
          * in the Realm file's schema.
          *
          * @param name the name of the link property.
          * @param type the type of the link property. Can only be {@link RealmFieldType#OBJECT} or
-         * {@link RealmFieldType#LIST}.
+         *             {@link RealmFieldType#LIST}.
          * @return this {@code OsObjectSchemaInfo.Builder}.
          */
         public Builder addPersistedLinkProperty(String name, RealmFieldType type, String linkedClassName) {
@@ -105,8 +123,8 @@ public class OsObjectSchemaInfo implements NativeObject {
          * information in the Realm file's schema. This property type will always be
          * {@link RealmFieldType#LINKING_OBJECTS}.
          *
-         * @param name the name of the property .
-         * @param sourceClass The class name of the the class linking to this class, ie. the source class.
+         * @param name            the name of the property .
+         * @param sourceClass     The class name of the the class linking to this class, ie. the source class.
          * @param sourceClassName The field name in the source class that links to this class.
          * @return this {@code OsObjectSchemaInfo.Builder}.
          */
@@ -182,7 +200,8 @@ public class OsObjectSchemaInfo implements NativeObject {
      * @return a {@link Property} object of the primary key property, {@code null} if this {@code ObjectSchema} doesn't
      * contains a primary key.
      */
-    public @Nullable Property getPrimaryKeyProperty() {
+    public @Nullable
+    Property getPrimaryKeyProperty() {
         long propertyPtr = nativeGetPrimaryKeyProperty(nativePtr);
         return propertyPtr == 0 ? null : new Property(nativeGetPrimaryKeyProperty(nativePtr));
     }

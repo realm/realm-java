@@ -16,6 +16,7 @@
 
 package io.realm.entities
 
+import io.realm.Mixed
 import io.realm.RealmList
 import io.realm.RealmMap
 import io.realm.RealmObject
@@ -23,9 +24,8 @@ import io.realm.annotations.Ignore
 
 open class MapClass : RealmObject() {
 
-    var listField: RealmList<String>? = null
-//    var mixedField: Mixed? = null
+//    var myStringList: RealmList<String>? = null
 
-    @Ignore     // FIXME: this goes when the annotation processor is ready
-    var mapField: RealmMap<String, Int>? = null
+//    @Ignore     // FIXME: this goes when the annotation processor is ready
+    var myMap: RealmMap<String, Mixed>? = null
 }

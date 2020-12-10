@@ -25,11 +25,17 @@ object OsObjectBuilderTypeHelper {
 
     private val QUALIFIED_TYPE_TO_BUILDER: Map<QualifiedClassName, String>
     private val QUALIFIED_LIST_TYPE_TO_BUILDER: Map<QualifiedClassName, String>
+    private val QUALIFIED_MAP_KEYS: Map<QualifiedClassName, String> = mapOf(
+            QualifiedClassName("java.lang.String") to "StringKey"
+    )
+    private val QUALIFIED_MAP_VALUES: Map<QualifiedClassName, String> = mapOf(
+            QualifiedClassName("io.realm.Mixed") to "MixedValueMap"
+    )
 
     init {
         // Map of qualified types to their OsObjectBuilder Type
         val fieldTypes = HashMap<QualifiedClassName, String>()
-        fieldTypes.apply { 
+        fieldTypes.apply {
             this[QualifiedClassName("byte")] = "Integer"
             this[QualifiedClassName("byte")] = "Integer"
             this[QualifiedClassName("short")] = "Integer"
@@ -87,6 +93,8 @@ object OsObjectBuilderTypeHelper {
             "addObjectList"
         } else if (Utils.isRealmValueList(field)) {
             "add" + getListTypeName(Utils.getRealmListType(field))
+        } else if (Utils.isRealmMap(field)) {
+            "add" + getMapTypesName(Utils.getRealmMapTypes(field))
         } else if (Utils.isRealmResults(field)) {
             throw IllegalStateException("RealmResults are not supported by OsObjectBuilder: $field")
         } else {
@@ -110,4 +118,17 @@ object OsObjectBuilderTypeHelper {
         throw IllegalArgumentException("Unsupported list type: $type")
     }
 
+    private fun getMapTypesName(keyValueTypes: Pair<QualifiedClassName, QualifiedClassName>?): String {
+        return requireNotNull(keyValueTypes) {
+            "Unable to extract <K, V> types for map."
+        }.let {
+            val keyType = requireNotNull(QUALIFIED_MAP_KEYS[keyValueTypes.first]) {
+                "Invalid key type: ${keyValueTypes.first}"
+            }
+            val valueType = requireNotNull(QUALIFIED_MAP_VALUES[keyValueTypes.second]) {
+                "Invalid value type: ${keyValueTypes.second}"
+            }
+            keyType + valueType
+        }
+    }
 }

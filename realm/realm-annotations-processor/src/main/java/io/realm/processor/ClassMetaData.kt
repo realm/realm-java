@@ -367,14 +367,16 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         }
 
         // We only allow strings as keys in Phase 1
-        if (mapTypes[0].toString() != String::class.java.canonicalName) {
-            Utils.error("RealmMaps can only use Strings as keys.")
+        val keyType = mapTypes[0].toString()
+        if (keyType != String::class.java.canonicalName) {
+            Utils.error("RealmMaps can only use Strings as keys - received '$keyType' instead.")
             return false
         }
 
         // Check other types than mixed or RealmModel as values
-        if (!Utils.isRealmModel(mapTypes[1]) && !Utils.isMixedType(mapTypes[1])) {
-            Utils.error("RealmMaps can only use Mixed or RealmModel as value types.")
+        val valueType = mapTypes[1]
+        if (!Utils.isRealmModel(valueType) && !Utils.isMixedType(valueType)) {
+            Utils.error("RealmMaps can only use Mixed objects as value types - received '$valueType' instead.")
             return false
         }
 

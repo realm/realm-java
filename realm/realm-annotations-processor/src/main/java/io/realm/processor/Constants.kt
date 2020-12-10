@@ -102,8 +102,7 @@ object Constants {
         OBJECT_ID_LIST("OBJECT_ID_LIST", "List"),
         MIXED_LIST("MIXED_LIST", "List"),
 
-        STRING_TO_MIXED_MAP("STRING_TO_MIXED_MAP", "Map"),
-        STRING_TO_REALMMODEL_MAP("STRING_TO_REALMMODEL_MAP", "Map");
+        STRING_TO_MIXED_MAP("STRING_TO_MIXED_MAP", "Map");
 
         /**
          * The name of the enum, used in the Java bindings, used to represent the corresponding type.

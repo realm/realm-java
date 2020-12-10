@@ -220,19 +220,6 @@ object Utils {
     }
 
     /**
-     * FIXME
-     */
-//    fun getValueASDASD(field: VariableElement): Constants.RealmFieldType {
-//        return TypeMirrors.getRealmMapElementTypeMirror(field)
-//                ?.let { (keyTypeMirror, valueTypeMirror) ->
-//                    val typeString = keyTypeMirror.toString() + valueTypeMirror.toString()
-//
-//                } ?: throw IllegalStateException("Could not get the type mirrors for RealmMap field.")
-//
-////        return Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES[elementTypeMirror!!.toString()]!!
-//    }
-
-    /**
      * @return `true` if a given field type is `RealmList` and its element type is `RealmObject`,
      * `false` otherwise.
      */
@@ -310,6 +297,15 @@ object Utils {
         }
         val type = getGenericTypeForContainer(field) ?: return null
         return QualifiedClassName(type.toString())
+    }
+
+    fun getRealmMapTypes(field: VariableElement): Pair<QualifiedClassName, QualifiedClassName>? {
+        if (!isRealmMap(field)) {
+            return null
+        }
+        val keyType = requireNotNull(getMapKeyTypeQualifiedName(field))
+        val valueType = requireNotNull(getMapValueTypeQualifiedName(field))
+        return Pair(keyType, valueType)
     }
 
     // Note that, because subclassing subclasses of RealmObject is forbidden,
