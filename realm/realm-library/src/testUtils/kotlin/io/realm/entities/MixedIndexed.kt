@@ -9,6 +9,6 @@ open class MixedIndexed : RealmObject() {
         const val FIELD_MIXED = "mixed"
     }
 
-    @Index
+//    @Index
     var mixed: Mixed? = null
 }
