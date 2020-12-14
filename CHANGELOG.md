@@ -1,6 +1,28 @@
 ## 10.2.0 (2020-12-02)
 
 ### Deprecated
+* None.
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* None.
+
+### Fixes
+* None.
+
+### Compatibility
+* None.
+
+### Internal
+* Updated to Realm Core: 10.3.2 (Monorepo).
+* Updated to Realm Core commit: 5a46901438b784214cdd8d9376011474595f807f3e46aeed18d32a16fa2e170d..
+
+
+## 10.2.0 (2020-12-02)
+
+### Deprecated
 * [RealmApp] `Credentials.google(authenticationCode: String)`. Use `Credentials.google(token: String, authType: GoogleAuthType)` instead.
 
 ### Breaking Changes
