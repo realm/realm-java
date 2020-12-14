@@ -22,6 +22,8 @@ import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.mongodb.AppConfiguration;
 import io.realm.mongodb.AppException;
 import io.realm.mongodb.Credentials;
+import io.realm.mongodb.auth.GoogleAuthType;
+
 
 /**
  * Class wrapping ObjectStores {@code realm::app::AppCredentials}.
@@ -35,8 +37,10 @@ public class OsAppCredentials implements NativeObject {
     private static final int TYPE_CUSTOM_FUNCTION = 5;
     private static final int TYPE_EMAIL_PASSWORD = 6;
     private static final int TYPE_FACEBOOK = 7;
-    private static final int TYPE_GOOGLE = 8;
-    private static final int TYPE_JWT = 9;
+    private static final int TYPE_JWT = 8;
+    private static final int TYPE_GOOGLE_AUTH_CODE = 9;
+    private static final int TYPE_GOOGLE_ID_TOKEN = 10;
+
     private static final long finalizerPtr = nativeGetFinalizerMethodPtr();
 
     public static OsAppCredentials anonymous() {
@@ -68,8 +72,21 @@ public class OsAppCredentials implements NativeObject {
         return new OsAppCredentials(nativeCreate(TYPE_FACEBOOK, accessToken));
     }
 
-    public static OsAppCredentials google(String whatToCallThisToken) {
-        return new OsAppCredentials(nativeCreate(TYPE_GOOGLE, whatToCallThisToken));
+    public static OsAppCredentials google(String accessToken, GoogleAuthType type) {
+        int authType;
+
+        switch (type){
+            case AUTH_CODE:
+                authType = TYPE_GOOGLE_AUTH_CODE;
+                break;
+            case ID_TOKEN:
+                authType = TYPE_GOOGLE_ID_TOKEN;
+                break;
+            default:
+                throw new RuntimeException("Unsupported GoogleAuthType:  " + type);
+        }
+
+        return new OsAppCredentials(nativeCreate(authType, accessToken));
     }
 
     public static OsAppCredentials jwt(String jwtToken) {

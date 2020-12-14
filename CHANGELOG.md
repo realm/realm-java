@@ -1,4 +1,68 @@
-## 10.1.0 (2020-10-23)
+## 10.2.0 (2020-12-02)
+
+### Deprecated
+* [RealmApp] `Credentials.google(authenticationCode: String)`. Use `Credentials.google(token: String, authType: GoogleAuthType)` instead.
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* [RealmApp] Added `Credentials.google(token: String, authType: GoogleAuthType)`, as MongoDB Realm now supports multiple ways of logging into Google Accounts.
+
+### Fixes
+* [RealmApp] Bug that would prevent eventual consistency during conflict resolution. Affected clients would experience data divergence and potentially consistency errors as a result if they experienced conflict resolution between cycles of Create-Erase-Create for objects with primary keys.
+* Clean up JNI references to prevent crash from JNI reference table overflow (Issue [#7217](https://github.com/realm/realm-java/issues/7217))
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Sync: 10.1.4.
+* Updated to Object Store commit: f838a27402c5b5243280102014defd844420abba66eb93c10334507d9c0fd513..
+
+
+## 10.1.2 (2020-12-02)
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* None.
+
+### Fixes
+* Complementary fix for missed edge case in https://github.com/realm/realm-java/pull/7220 where KAPT crash if we process a RealmObject referencing a type in RealmList defined in another module. (Issue [#7213](https://github.com/realm/realm-java/issues/7213), since v10.0.0).
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+
+## 10.1.1 (2020-11-27)
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* None.
+
+### Fixes
+* KAPT crash when processing a RealmObject referenced from another module (changed revealed after we started checking for embedded types). (Issue [#7213](https://github.com/realm/realm-java/issues/7213), since v10.0.0).
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Sync: 10.1.3.
+* Updated to Realm Core: 10.1.3.
+* Updated to Object Store commit: fc6daca61133aa9601e4cb34fbeb9ec7569e162e.
+
+
+## 10.1.0 (2020-11-23)
 
 ### Breaking Changes
 * None.
