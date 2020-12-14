@@ -261,7 +261,7 @@ class ProxyUtils {
         if ((value != null) && (value.getType() == MixedType.OBJECT)) {
             RealmModel mixedRealmModel = value.asRealmModel(RealmModel.class);
 
-            if(realm.getSchema().getSchemaForClass(mixedRealmModel.getClass()).isEmbedded()){
+            if (realm.getSchema().getSchemaForClass(mixedRealmModel.getClass()).isEmbedded()) {
                 throw new IllegalArgumentException("Embedded objects are not supported by Mixed.");
             }
 

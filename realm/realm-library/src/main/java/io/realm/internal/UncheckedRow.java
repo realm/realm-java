@@ -244,7 +244,7 @@ public class UncheckedRow implements NativeObject, Row {
     public void setMixed(long columnKey, Mixed value) {
         parent.checkImmutable();
 
-        if(value == null){
+        if (value == null) {
             nativeMixedSetNull(nativePtr, columnKey);
             return;
         }
