@@ -21,7 +21,7 @@ public enum MixedType {
 
     static {
         for (MixedType mixedType : values()) {
-            if(mixedType == NO_TYPE)
+            if (mixedType == NO_TYPE)
                 continue;
 
             final int nativeValue = mixedType.realmFieldType.getNativeValue();
@@ -30,7 +30,7 @@ public enum MixedType {
     }
 
     public static MixedType fromNativeValue(int realmFieldType) {
-        if(realmFieldType == -1)
+        if (realmFieldType == -1)
             return NO_TYPE;
 
         return realmFieldToMixedTypeMap[realmFieldType];
