@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -1347,6 +1348,10 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (clazz == ObjectId.class) {
             //noinspection unchecked
             return (ManagedListOperator<E>) new ObjectIdListOperator(realm, osList, (Class<ObjectId>) clazz);
+        }
+        if (clazz == UUID.class) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new UUIDListOperator(realm, osList, (Class<UUID>) clazz);
         }
         throw new IllegalArgumentException("Unexpected value class: " + clazz.getName());
     }

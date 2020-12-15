@@ -58,3 +58,9 @@ jobject JavaClassGlobalDef::new_object_id(JNIEnv* env, const ObjectId& objectId)
     static jni_util::JavaMethod init(env, instance()->m_bson_object_id, "<init>", "(Ljava/lang/String;)V");
     return env->NewObject(instance()->m_bson_object_id, init, to_jstring(env, objectId.to_string().data()));
 }
+
+jobject JavaClassGlobalDef::new_uuid(JNIEnv* env, const UUID& uuid)
+{
+    static jni_util::JavaMethod from_string(env, instance()->m_java_util_uuid, "fromString", "(Ljava/lang/String;)Ljava/util/UUID;", true);
+    return env->CallStaticObjectMethod(instance()->m_java_util_uuid, from_string, to_jstring(env, uuid.to_string().data()));
+}

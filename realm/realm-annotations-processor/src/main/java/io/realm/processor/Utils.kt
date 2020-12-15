@@ -109,6 +109,17 @@ object Utils {
     }
 
     /**
+     * @return `true` if a field is of type "java.util.UUID", `false` otherwise.
+     * @throws IllegalArgumentException if the field is `null`.
+     */
+    fun isUUID(field: VariableElement?): Boolean {
+        if (field == null) {
+            throw IllegalArgumentException("Argument 'field' cannot be null.")
+        }
+        return getFieldTypeQualifiedName(field).toString() == "java.util.UUID"
+    }
+
+    /**
      * @return `true` if a field is a primitive type, `false` otherwise.
      * @throws IllegalArgumentException if the typeString is `null`.
      */

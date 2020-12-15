@@ -509,7 +509,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetDecimal128(JNIEnv*
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddObjectId(JNIEnv* env, jclass, jlong list_ptr,
-                                                                         jstring j_value)
+                                                                       jstring j_value)
 {
 
     try {
@@ -520,7 +520,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddObjectId(JNIEnv* e
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertObjectId(JNIEnv* env, jclass, jlong list_ptr,
-                                                                            jlong pos, jstring j_value)
+                                                                          jlong pos, jstring j_value)
 {
     try {
         JStringAccessor value(env, j_value);
@@ -530,11 +530,42 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertObjectId(JNIEnv
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetObjectId(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
-                                                                         jstring j_value)
+                                                                       jstring j_value)
 {
     try {
         JStringAccessor value(env, j_value);
         set_value(env, list_ptr, pos, Any(ObjectId(StringData(value).data())));
+    }
+    CATCH_STD()
+}
+
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddUUID(JNIEnv* env, jclass, jlong list_ptr,
+                                                                       jstring j_value)
+{
+    try {
+        JStringAccessor value(env, j_value);
+        add_value(env, list_ptr, Any(UUID(StringData(value).data())));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertUUID(JNIEnv* env, jclass, jlong list_ptr,
+                                                                          jlong pos, jstring j_value)
+{
+    try {
+        JStringAccessor value(env, j_value);
+        insert_value(env, list_ptr, pos, Any(UUID(StringData(value).data())));
+    }
+    CATCH_STD();
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetUUID(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
+                                                                       jstring j_value)
+{
+    try {
+        JStringAccessor value(env, j_value);
+        set_value(env, list_ptr, pos, Any(UUID(StringData(value).data())));
     }
     CATCH_STD()
 }

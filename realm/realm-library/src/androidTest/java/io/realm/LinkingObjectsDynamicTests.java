@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,6 +25,7 @@ import org.junit.runner.RunWith;
 
 import java.util.Locale;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.BacklinksSource;
 import io.realm.entities.BacklinksTarget;
@@ -208,6 +207,9 @@ public class LinkingObjectsDynamicTests {
                     case OBJECT_ID:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_OBJECT_ID);
                         break;
+                    case UUID:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID);
+                        break;
                     case INTEGER_LIST:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_INTEGER_LIST);
                         break;
@@ -234,6 +236,9 @@ public class LinkingObjectsDynamicTests {
                         break;
                     case OBJECT_ID_LIST:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_OBJECT_ID_LIST);
+                        break;
+                    case UUID_LIST:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
                         break;
                     default:
                         fail("unknown type: " + fieldType);

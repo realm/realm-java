@@ -20,6 +20,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -179,6 +180,11 @@ public class UncheckedRow implements NativeObject, Row {
     @Override
     public ObjectId getObjectId(long columnKey) {
         return new ObjectId(nativeGetObjectId(nativePtr, columnKey));
+    }
+
+    @Override
+    public UUID getUUID(long columnKey) {
+        return UUID.fromString(nativeGetUUID(nativePtr, columnKey));
     }
 
     @Override
@@ -355,6 +361,16 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
+    public void setUUID(long columnKey, @Nullable UUID value) {
+        parent.checkImmutable();
+        if (value == null) {
+            nativeSetNull(nativePtr, columnKey);
+        } else {
+            nativeSetUUID(nativePtr, columnKey, value.toString());
+        }
+    }
+
+    @Override
     public long createEmbeddedObject(long columnKey, RealmFieldType parentPropertyType) {
         switch (parentPropertyType) {
             case OBJECT:
@@ -437,6 +453,8 @@ public class UncheckedRow implements NativeObject, Row {
 
     protected native String nativeGetObjectId(long nativePtr, long columnKey);
 
+    protected native String nativeGetUUID(long nativePtr, long columnKey);
+
     protected native void nativeSetLong(long nativeRowPtr, long columnKey, long value);
 
     protected native void nativeSetBoolean(long nativeRowPtr, long columnKey, boolean value);
@@ -456,6 +474,8 @@ public class UncheckedRow implements NativeObject, Row {
     protected native void nativeSetDecimal128(long nativePtr, long columnKey, long low, long high);
 
     protected native void nativeSetObjectId(long nativePtr, long columnKey, String value);
+
+    protected native void nativeSetUUID(long nativePtr, long columnKey, String value);
 
     protected native void nativeSetLink(long nativeRowPtr, long columnKey, long value);
 
