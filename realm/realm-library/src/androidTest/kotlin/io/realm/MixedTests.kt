@@ -2,9 +2,9 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.entities.PrimaryKeyAsString
 import io.realm.entities.MixedIndexed
 import io.realm.entities.MixedNotIndexed
+import io.realm.entities.PrimaryKeyAsString
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import org.bson.types.Decimal128

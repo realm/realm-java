@@ -120,6 +120,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                 return (E) proxyState.getRow$realm().getDecimal128(columnKey);
             case OBJECT_ID:
                 return (E) proxyState.getRow$realm().getObjectId(columnKey);
+            case MIXED:
+                return (E) getMixed(columnKey);
             case OBJECT:
                 return (E) getObject(fieldName);
             case LIST:
@@ -137,7 +139,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      *
      * @param fieldName the name of the field.
      * @return the boolean value.
-     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain booleans.
+     * @throws IllegalArgumentException           if field name doesn't exist or it doesn't contain booleans.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public boolean getBoolean(String fieldName) {
@@ -160,7 +162,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      *
      * @param fieldName the name of the field.
      * @return the int value. Integer values exceeding {@code Integer.MAX_VALUE} will wrap.
-     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain integers.
+     * @throws IllegalArgumentException           if field name doesn't exist or it doesn't contain integers.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public int getInt(String fieldName) {
@@ -175,7 +177,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      *
      * @param fieldName the name of the field.
      * @return the short value. Integer values exceeding {@code Short.MAX_VALUE} will wrap.
-     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain integers.
+     * @throws IllegalArgumentException           if field name doesn't exist or it doesn't contain integers.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public short getShort(String fieldName) {
@@ -190,7 +192,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      *
      * @param fieldName the name of the field.
      * @return the long value. Integer values exceeding {@code Long.MAX_VALUE} will wrap.
-     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain integers.
+     * @throws IllegalArgumentException           if field name doesn't exist or it doesn't contain integers.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public long getLong(String fieldName) {
@@ -213,7 +215,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      *
      * @param fieldName the name of the field.
      * @return the byte value.
-     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain integers.
+     * @throws IllegalArgumentException           if field name doesn't exist or it doesn't contain integers.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public byte getByte(String fieldName) {
@@ -228,7 +230,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      *
      * @param fieldName the name of the field.
      * @return the float value.
-     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain floats.
+     * @throws IllegalArgumentException           if field name doesn't exist or it doesn't contain floats.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public float getFloat(String fieldName) {
@@ -251,7 +253,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      *
      * @param fieldName the name of the field.
      * @return the double value.
-     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain doubles.
+     * @throws IllegalArgumentException           if field name doesn't exist or it doesn't contain doubles.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public double getDouble(String fieldName) {
@@ -362,6 +364,22 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     }
 
     /**
+     * Returns the {@code Mixed} value for a given field.
+     *
+     * @param fieldName the name of the field.
+     * @return the Mixed value.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain Mixed.
+     */
+    public Mixed getMixed(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        checkFieldType(fieldName, columnKey, RealmFieldType.MIXED);
+
+        return getMixed(columnKey);
+    }
+
+    /**
      * Returns the object being linked to from this field.
      *
      * @param fieldName the name of the field.
@@ -414,7 +432,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * <p>
      * If the list contains references to other Realm objects, use {@link #getList(String)} instead.
      *
-     * @param fieldName the name of the field.
+     * @param fieldName     the name of the field.
      * @param primitiveType the type of elements in the list. Only primitive types are supported.
      * @return the {@link RealmList} data for this field.
      * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a list of primitive objects.
@@ -487,6 +505,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case DATE:
             case DECIMAL128:
             case OBJECT_ID:
+            case MIXED:
                 return proxyState.getRow$realm().isNull(columnKey);
             case LIST:
             case LINKING_OBJECTS:
@@ -499,6 +518,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case DOUBLE_LIST:
             case DECIMAL128_LIST:
             case OBJECT_ID_LIST:
+            case MIXED_LIST:
                 // fall through
             default:
                 return false;
@@ -539,9 +559,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * Using the typed setters will be faster than using this method.
      *
      * @throws IllegalArgumentException if field name doesn't exist or if the input value cannot be converted
-     * to the appropriate input type.
-     * @throws NumberFormatException if a String based number cannot be converted properly.
-     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
+     *                                  to the appropriate input type.
+     * @throws NumberFormatException    if a String based number cannot be converted properly.
+     * @throws RealmException           if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     @SuppressWarnings("unchecked")
     public void set(String fieldName, Object value) {
@@ -579,8 +599,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                 default:
                     throw new IllegalArgumentException(String.format(Locale.US,
                             "Field %s is not a String field, " +
-                            "and the provide value could not be automatically converted: %s. Use a typed" +
-                            "setter instead", fieldName, value));
+                                    "and the provide value could not be automatically converted: %s. Use a typed" +
+                                    "setter instead", fieldName, value));
             }
         }
 
@@ -632,7 +652,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * Sets the {@code boolean} value of the given field.
      *
      * @param fieldName field name to update.
-     * @param value value to insert.
+     * @param value     value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't a boolean field.
      */
     public void setBoolean(String fieldName, boolean value) {
@@ -646,9 +666,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * Sets the {@code short} value of the given field.
      *
      * @param fieldName field name.
-     * @param value value to insert.
+     * @param value     value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't an integer field.
-     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
+     * @throws RealmException           if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     public void setShort(String fieldName, short value) {
         proxyState.getRealm$realm().checkIfValid();
@@ -662,9 +682,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * Sets the {@code int} value of the given field.
      *
      * @param fieldName field name to update.
-     * @param value value to insert.
+     * @param value     value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't an integer field.
-     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
+     * @throws RealmException           if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     public void setInt(String fieldName, int value) {
         proxyState.getRealm$realm().checkIfValid();
@@ -678,9 +698,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * Sets the {@code long} value of the given field.
      *
      * @param fieldName field name.
-     * @param value value to insert.
+     * @param value     value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't an integer field.
-     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
+     * @throws RealmException           if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     public void setLong(String fieldName, long value) {
         proxyState.getRealm$realm().checkIfValid();
@@ -694,9 +714,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * Sets the {@code byte} value of the given field.
      *
      * @param fieldName field name.
-     * @param value value to insert.
+     * @param value     value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't an integer field.
-     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
+     * @throws RealmException           if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     public void setByte(String fieldName, byte value) {
         proxyState.getRealm$realm().checkIfValid();
@@ -710,7 +730,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * Sets the {@code float} value of the given field.
      *
      * @param fieldName field name.
-     * @param value value to insert.
+     * @param value     value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't a float field.
      */
     public void setFloat(String fieldName, float value) {
@@ -724,7 +744,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * Sets the {@code double} value of the given field.
      *
      * @param fieldName field name.
-     * @param value value to insert.
+     * @param value     value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't a double field.
      */
     public void setDouble(String fieldName, double value) {
@@ -738,9 +758,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * Sets the {@code String} value of the given field.
      *
      * @param fieldName field name.
-     * @param value value to insert.
+     * @param value     value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't a String field.
-     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
+     * @throws RealmException           if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     public void setString(String fieldName, @Nullable String value) {
         proxyState.getRealm$realm().checkIfValid();
@@ -754,7 +774,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * Sets the binary value of the given field.
      *
      * @param fieldName field name.
-     * @param value value to insert.
+     * @param value     value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't a binary field.
      */
     public void setBlob(String fieldName, @Nullable byte[] value) {
@@ -768,7 +788,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * Sets the {@code Date} value of the given field.
      *
      * @param fieldName field name.
-     * @param value value to insert.
+     * @param value     value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't a Date field.
      */
     public void setDate(String fieldName, @Nullable Date value) {
@@ -786,7 +806,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * Sets the {@code Decimal128} value of the given field.
      *
      * @param fieldName field name.
-     * @param value value to insert.
+     * @param value     value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't a Decimal128 field.
      */
     public void setDecimal128(String fieldName, @Nullable Decimal128 value) {
@@ -804,7 +824,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * Sets the {@code ObjectId} value of the given field.
      *
      * @param fieldName field name.
-     * @param value value to insert.
+     * @param value     value to insert.
      * @throws IllegalArgumentException if field name doesn't exist or field isn't a ObjectId field.
      */
     public void setObjectId(String fieldName, @Nullable ObjectId value) {
@@ -819,12 +839,26 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     }
 
     /**
+     * Sets the {@code Mixed} value of the given field.
+     *
+     * @param fieldName field name.
+     * @param value     value to insert.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't a Mixed field.
+     */
+    public void setMixed(String fieldName, @Nullable Mixed value) {
+        proxyState.getRealm$realm().checkIfValid();
+
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        proxyState.getRow$realm().setMixed(columnKey, value);
+    }
+
+    /**
      * Sets a reference to another object on the given field.
      *
      * @param fieldName field name.
-     * @param value object to link to.
+     * @param value     object to link to.
      * @throws IllegalArgumentException if field name doesn't exist, it doesn't link to other Realm objects, the type
-     * of DynamicRealmObject doesn't match or it belongs to a different Realm.
+     *                                  of DynamicRealmObject doesn't match or it belongs to a different Realm.
      */
     public void setObject(String fieldName, @Nullable DynamicRealmObject value) {
         proxyState.getRealm$realm().checkIfValid();
@@ -858,9 +892,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * the managed list.
      *
      * @param fieldName field name.
-     * @param list list of objects. Must either be primitive types or {@link DynamicRealmObject}s.
+     * @param list      list of objects. Must either be primitive types or {@link DynamicRealmObject}s.
      * @throws IllegalArgumentException if field name doesn't exist, it is not a list field, the objects in the
-     * list doesn't match the expected type or any Realm object in the list belongs to a different Realm.
+     *                                  list doesn't match the expected type or any Realm object in the list belongs to a different Realm.
      */
     public <E> void setList(String fieldName, RealmList<E> list) {
         proxyState.getRealm$realm().checkIfValid();
@@ -910,8 +944,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         OsList osList = proxyState.getRow$realm().getModelList(columnKey);
         Table linkTargetTable = osList.getTargetTable();
         //noinspection ConstantConditions
-        @Nonnull
-        final String linkTargetTableName = linkTargetTable.getClassName();
+        @Nonnull final String linkTargetTableName = linkTargetTable.getClassName();
 
         boolean typeValidated;
         if (list.className == null && list.clazz == null) {
@@ -960,16 +993,34 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         OsList osList = proxyState.getRow$realm().getValueList(columnKey, primitiveType);
 
         Class<E> elementClass;
-        switch(primitiveType) {
-            case INTEGER_LIST: elementClass = (Class<E>) Long.class; break;
-            case BOOLEAN_LIST: elementClass = (Class<E>) Boolean.class; break;
-            case STRING_LIST: elementClass = (Class<E>) String.class; break;
-            case BINARY_LIST: elementClass = (Class<E>) byte[].class; break;
-            case DATE_LIST: elementClass = (Class<E>) Date.class; break;
-            case FLOAT_LIST: elementClass = (Class<E>) Float.class; break;
-            case DOUBLE_LIST: elementClass = (Class<E>) Double.class; break;
-            case DECIMAL128_LIST: elementClass = (Class<E>) Decimal128.class; break;
-            case OBJECT_ID_LIST: elementClass = (Class<E>) ObjectId.class; break;
+        switch (primitiveType) {
+            case INTEGER_LIST:
+                elementClass = (Class<E>) Long.class;
+                break;
+            case BOOLEAN_LIST:
+                elementClass = (Class<E>) Boolean.class;
+                break;
+            case STRING_LIST:
+                elementClass = (Class<E>) String.class;
+                break;
+            case BINARY_LIST:
+                elementClass = (Class<E>) byte[].class;
+                break;
+            case DATE_LIST:
+                elementClass = (Class<E>) Date.class;
+                break;
+            case FLOAT_LIST:
+                elementClass = (Class<E>) Float.class;
+                break;
+            case DOUBLE_LIST:
+                elementClass = (Class<E>) Double.class;
+                break;
+            case DECIMAL128_LIST:
+                elementClass = (Class<E>) Decimal128.class;
+                break;
+            case OBJECT_ID_LIST:
+                elementClass = (Class<E>) ObjectId.class;
+                break;
             default:
                 throw new IllegalArgumentException("Unsupported type: " + primitiveType);
         }
@@ -981,11 +1032,10 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             final int size = list.size();
             final Iterator<?> iterator = list.iterator();
             for (int i = 0; i < size; i++) {
-                @Nullable
-                final Object value = iterator.next();
+                @Nullable final Object value = iterator.next();
                 operator.set(i, value);
             }
-        }  else {
+        } else {
             osList.removeAll();
             for (Object value : list) {
                 operator.append(value);
@@ -1037,7 +1087,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      *
      * @param fieldName field name.
      * @throws IllegalArgumentException if field name doesn't exist, or the field isn't nullable.
-     * @throws RealmException if the field is a {@link io.realm.annotations.PrimaryKey} field.
+     * @throws RealmException           if the field is a {@link io.realm.annotations.PrimaryKey} field.
      */
     public void setNull(String fieldName) {
         proxyState.getRealm$realm().checkIfValid();
@@ -1194,6 +1244,10 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                 case OBJECT_ID:
                     sb.append(proxyState.getRow$realm().isNull(columnKey) ? "null" : proxyState.getRow$realm().getObjectId(columnKey));
                     break;
+                case MIXED:
+                    //TODO: FIX
+                    sb.append(proxyState.getRow$realm().isNull(columnKey) ? "null" : getMixed(columnKey));
+                    break;
                 case OBJECT:
                     sb.append(proxyState.getRow$realm().isNullLink(columnKey)
                             ? "null"
@@ -1241,6 +1295,20 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         return sb.toString();
     }
 
+    private Mixed getMixed(long columnKey) {
+        return new Mixed.Managed<DynamicRealmObject>() {
+            @Override
+            protected ProxyState<DynamicRealmObject> getProxyState() {
+                return proxyState;
+            }
+
+            @Override
+            protected long getColumnIndex() {
+                return columnKey;
+            }
+        };
+    }
+
     /**
      * Returns {@link RealmResults} containing all {@code srcClassName} class objects that have a relationship
      * to this object from {@code srcFieldName} field.
@@ -1250,11 +1318,11 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      *
      * @param srcClassName name of the class returned objects belong to.
      * @param srcFieldName name of the field in the source class that holds a reference to this object.
-     *                    Field type must be either {@code io.realm.RealmFieldType.OBJECT} or {@code io.realm.RealmFieldType.LIST}.
+     *                     Field type must be either {@code io.realm.RealmFieldType.OBJECT} or {@code io.realm.RealmFieldType.LIST}.
      * @return the result.
      * @throws IllegalArgumentException if the {@code srcClassName} is {@code null} or does not exist,
-     * the {@code srcFieldName} is {@code null} or does not exist,
-     * type of the source field is not supported.
+     *                                  the {@code srcFieldName} is {@code null} or does not exist,
+     *                                  type of the source field is not supported.
      */
     public RealmResults<DynamicRealmObject> linkingObjects(String srcClassName, String srcFieldName) {
         final DynamicRealm realm = (DynamicRealm) proxyState.getRealm$realm();

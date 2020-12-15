@@ -71,6 +71,7 @@ public abstract class RealmObjectSchema {
         m.put(Date.class, new FieldMetaData(RealmFieldType.DATE, RealmFieldType.DATE_LIST, true));
         m.put(ObjectId.class, new FieldMetaData(RealmFieldType.OBJECT_ID, RealmFieldType.OBJECT_ID_LIST, true));
         m.put(Decimal128.class, new FieldMetaData(RealmFieldType.DECIMAL128, RealmFieldType.DECIMAL128_LIST, true));
+        m.put(Mixed.class, new FieldMetaData(RealmFieldType.MIXED, RealmFieldType.MIXED_LIST, true));
         SUPPORTED_SIMPLE_FIELDS = Collections.unmodifiableMap(m);
     }
 

@@ -111,6 +111,7 @@ public class Table implements NativeObject {
             case DOUBLE:
             case DECIMAL128:
             case OBJECT_ID:
+            case MIXED:
                 return nativeAddColumn(nativeTableRefPtr, type.getNativeValue(), name, isNullable);
 
             case INTEGER_LIST:
@@ -122,6 +123,7 @@ public class Table implements NativeObject {
             case DOUBLE_LIST:
             case DECIMAL128_LIST:
             case OBJECT_ID_LIST:
+            case MIXED_LIST:
                 return nativeAddPrimitiveListColumn(nativeTableRefPtr, type.getNativeValue() - 128, name, isNullable);
 
             default:
