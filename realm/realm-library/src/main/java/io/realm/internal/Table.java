@@ -588,7 +588,7 @@ public class Table implements NativeObject {
                     Decimal128 decimalValue = value.asDecimal128();
                     nativeMixedSetDecimal128(nativeTableRefPtr, columnKey, rowKey, decimalValue.getLow(), decimalValue.getHigh(), isDefault);
                     break;
-                case NO_TYPE:
+                case NULL:
                     nativeMixedSetNull(nativeTableRefPtr, columnKey, rowKey, isDefault);
                     break;
                 default:

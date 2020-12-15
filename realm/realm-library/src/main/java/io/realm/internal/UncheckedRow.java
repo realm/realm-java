@@ -275,7 +275,7 @@ public class UncheckedRow implements NativeObject, Row {
                     Decimal128 decimalValue = value.asDecimal128();
                     nativeMixedSetDecimal128(nativePtr, columnKey, decimalValue.getLow(), decimalValue.getHigh());
                     break;
-                case NO_TYPE:
+                case NULL:
                     nativeMixedSetNull(nativePtr, columnKey);
                     break;
                 default:
