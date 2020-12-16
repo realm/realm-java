@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.UUID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -805,5 +806,55 @@ final class ObjectIdListOperator extends ManagedListOperator<ObjectId> {
     @Override
     protected void setValue(int index, Object value) {
         osList.setObjectId(index, (ObjectId) value);
+    }
+}
+
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@link UUID} list field.
+ */
+final class UUIDListOperator extends ManagedListOperator<UUID> {
+
+    UUIDListOperator(BaseRealm realm, OsList osList, Class<UUID> clazz) {
+        super(realm, osList, clazz);
+    }
+
+    @Override
+    public boolean forRealmModel() {
+        return false;
+    }
+
+    @Nullable
+    @Override
+    public UUID get(int index) {
+        return (UUID) osList.getValue(index);
+    }
+
+    @Override
+    protected void checkValidValue(@Nullable Object value) {
+        if (value == null) {
+            // null is always valid (but schema may reject null on insertion).
+            return;
+        }
+        if (!(value instanceof UUID)) {
+            throw new IllegalArgumentException(
+                    String.format(Locale.ENGLISH, INVALID_OBJECT_TYPE_MESSAGE,
+                            "java.util.UUID",
+                            value.getClass().getName()));
+        }
+    }
+
+    @Override
+    public void appendValue(Object value) {
+        osList.addUUID((UUID) value);
+    }
+
+    @Override
+    public void insertValue(int index, Object value) {
+        osList.insertUUID(index, (UUID) value);
+    }
+
+    @Override
+    protected void setValue(int index, Object value) {
+        osList.setUUID(index, (UUID) value);
     }
 }

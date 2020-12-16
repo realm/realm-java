@@ -20,6 +20,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
 import io.realm.Mixed;
 import io.realm.RealmFieldType;
@@ -109,6 +110,11 @@ public enum InvalidRow implements Row {
     }
 
     @Override
+    public UUID getUUID(long columnKey) {
+        throw getStubException();
+    }
+
+    @Override
     public long getLink(long columnKey) {
         throw getStubException();
     }
@@ -190,6 +196,11 @@ public enum InvalidRow implements Row {
 
     @Override
     public void setObjectId(long columnKey, ObjectId value) {
+        throw getStubException();
+    }
+
+    @Override
+    public void setUUID(long columnKey, UUID value) {
         throw getStubException();
     }
 

@@ -20,6 +20,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
 import io.realm.RealmObject;
 import io.realm.annotations.Required;
@@ -104,6 +105,10 @@ public class NoPrimaryKeyNullTypes extends RealmObject {
     @Required
     private ObjectId fieldObjectIdNotNull = new ObjectId();
     private ObjectId fieldObjectIdNull;
+
+    @Required
+    private UUID fieldUUIDNotNull = UUID.randomUUID();
+    private UUID fieldUUIDNull;
 
     private NoPrimaryKeyNullTypes fieldObjectNull;
 
@@ -305,5 +310,21 @@ public class NoPrimaryKeyNullTypes extends RealmObject {
 
     public void setFieldObjectIdNull(ObjectId fieldObjectIdNull) {
         this.fieldObjectIdNull = fieldObjectIdNull;
+    }
+
+    public UUID getFieldUUIDNotNull() {
+        return fieldUUIDNotNull;
+    }
+
+    public void setFieldUUIDNotNull(UUID fieldUUIDNotNull) {
+        this.fieldUUIDNotNull = fieldUUIDNotNull;
+    }
+
+    public UUID getFieldUUIDNull() {
+        return fieldUUIDNull;
+    }
+
+    public void setFieldUUIDNull(UUID fieldUUIDNull) {
+        this.fieldUUIDNull = fieldUUIDNull;
     }
 }

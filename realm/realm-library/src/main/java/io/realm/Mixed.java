@@ -47,12 +47,12 @@ public abstract class Mixed implements ManageableObject {
 
         Unmanaged() {
             this.value = null;
-            this.mixedType = MixedType.NO_TYPE;
+            this.mixedType = MixedType.NULL;
         }
 
         Unmanaged(@Nullable Object value, MixedType mixedType) {
             this.value = value;
-            this.mixedType = (value == null) ? MixedType.NO_TYPE : mixedType;
+            this.mixedType = (value == null) ? MixedType.NULL : mixedType;
         }
 
         @Override
@@ -141,7 +141,7 @@ public abstract class Mixed implements ManageableObject {
 
         @Override
         public boolean isNull() {
-            return getType() == MixedType.NO_TYPE;
+            return getType() == MixedType.NULL;
         }
 
         private BaseRealm getRealm() {
@@ -168,7 +168,29 @@ public abstract class Mixed implements ManageableObject {
 
     /**
      * Creates a new, unmanaged {@link Mixed} with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NO_TYPE} otherwise.
+     * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
+     *
+     * @param value initial value
+     * @return a new, unmanaged {@link Mixed} of a Long
+     */
+    public static Mixed valueOf(@Nullable Byte value) {
+        return new Unmanaged(value.longValue(), MixedType.INTEGER);
+    }
+
+    /**
+     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
+     *
+     * @param value initial value
+     * @return a new, unmanaged {@link Mixed} of a Long
+     */
+    public static Mixed valueOf(@Nullable Integer value) {
+        return new Unmanaged(value.longValue(), MixedType.INTEGER);
+    }
+
+    /**
+     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
      * @return a new, unmanaged {@link Mixed} of a Long
@@ -179,7 +201,7 @@ public abstract class Mixed implements ManageableObject {
 
     /**
      * Creates a new, unmanaged {@link Mixed} with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#BOOLEAN}, {@link MixedType#NO_TYPE} otherwise.
+     * If the value is not null the type will be {@link MixedType#BOOLEAN}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
      * @return a new, unmanaged {@link Mixed} of a Boolean
@@ -190,7 +212,7 @@ public abstract class Mixed implements ManageableObject {
 
     /**
      * Creates a new, unmanaged {@link Mixed} with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#FLOAT}, {@link MixedType#NO_TYPE} otherwise.
+     * If the value is not null the type will be {@link MixedType#FLOAT}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
      * @return a new, unmanaged {@link Mixed} of a Float
@@ -201,7 +223,7 @@ public abstract class Mixed implements ManageableObject {
 
     /**
      * Creates a new, unmanaged {@link Mixed} with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#DOUBLE}, {@link MixedType#NO_TYPE} otherwise.
+     * If the value is not null the type will be {@link MixedType#DOUBLE}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
      * @return a new, unmanaged {@link Mixed} of a Double
@@ -212,7 +234,7 @@ public abstract class Mixed implements ManageableObject {
 
     /**
      * Creates a new, unmanaged {@link Mixed} with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#STRING}, {@link MixedType#NO_TYPE} otherwise.
+     * If the value is not null the type will be {@link MixedType#STRING}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
      * @return a new, unmanaged {@link Mixed} of a String
@@ -223,7 +245,7 @@ public abstract class Mixed implements ManageableObject {
 
     /**
      * Creates a new, unmanaged {@link Mixed} with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#BINARY}, {@link MixedType#NO_TYPE} otherwise.
+     * If the value is not null the type will be {@link MixedType#BINARY}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
      * @return a new, unmanaged {@link Mixed} of a byte[]
@@ -234,7 +256,7 @@ public abstract class Mixed implements ManageableObject {
 
     /**
      * Creates a new, unmanaged {@link Mixed} with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#DATE}, {@link MixedType#NO_TYPE} otherwise.
+     * If the value is not null the type will be {@link MixedType#DATE}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
      * @return a new, unmanaged {@link Mixed} of a Date
@@ -245,7 +267,7 @@ public abstract class Mixed implements ManageableObject {
 
     /**
      * Creates a new, unmanaged {@link Mixed} with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#OBJECT_ID}, {@link MixedType#NO_TYPE} otherwise.
+     * If the value is not null the type will be {@link MixedType#OBJECT_ID}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
      * @return a new, unmanaged {@link Mixed} of a ObjectId
@@ -256,7 +278,7 @@ public abstract class Mixed implements ManageableObject {
 
     /**
      * Creates a new, unmanaged {@link Mixed} with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#DECIMAL128}, {@link MixedType#NO_TYPE} otherwise.
+     * If the value is not null the type will be {@link MixedType#DECIMAL128}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
      * @return a new, unmanaged {@link Mixed} of a Decimal128

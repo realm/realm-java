@@ -15,14 +15,13 @@ public enum MixedType {
     OBJECT(RealmFieldType.OBJECT),
     DECIMAL128(RealmFieldType.DECIMAL128),
     OBJECT_ID(RealmFieldType.OBJECT_ID),
-    NO_TYPE(null);
+    NULL(null);
 
     private static final MixedType[] realmFieldToMixedTypeMap = new MixedType[MAX_CORE_TYPE_VALUE + 1];
 
     static {
         for (MixedType mixedType : values()) {
-            if (mixedType == NO_TYPE)
-                continue;
+            if (mixedType == NULL) { continue; }
 
             final int nativeValue = mixedType.realmFieldType.getNativeValue();
             realmFieldToMixedTypeMap[nativeValue] = mixedType;
@@ -30,8 +29,7 @@ public enum MixedType {
     }
 
     public static MixedType fromNativeValue(int realmFieldType) {
-        if (realmFieldType == -1)
-            return NO_TYPE;
+        if (realmFieldType == -1) { return NULL; }
 
         return realmFieldToMixedTypeMap[realmFieldType];
     }

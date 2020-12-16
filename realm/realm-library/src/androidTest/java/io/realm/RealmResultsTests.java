@@ -16,14 +16,12 @@
 
 package io.realm;
 
-import androidx.test.annotation.UiThreadTest;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.json.JSONException;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -39,9 +37,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import androidx.test.annotation.UiThreadTest;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
@@ -68,6 +69,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
+@Ignore("Tests crash due to bug in core, see https://jira.mongodb.org/browse/RCORE-435")
 public class RealmResultsTests extends CollectionTests {
 
     private final static int TEST_DATA_SIZE = 100;
@@ -83,6 +85,9 @@ public class RealmResultsTests extends CollectionTests {
 
     private Realm realm;
     private RealmResults<AllTypes> collection;
+
+    private static final String uuid1 = "017ba5ca-aa12-4afa-9219-e20cc3018599";
+    private static final String uuid2 = "027ba5ca-aa12-4afa-9219-e20cc3018599";
 
     @Before
     public void setUp() {
@@ -741,6 +746,7 @@ public class RealmResultsTests extends CollectionTests {
             obj.fieldObject = obj;
             obj.fieldDecimal128 = new Decimal128( i);
             obj.fieldObjectId = new ObjectId(TestHelper.generateObjectIdHexString(i));
+            obj.fieldUUID = UUID.fromString(TestHelper.generateUUIDString(i));
             obj.fieldList.add(obj);
         }
         realm.commitTransaction();
@@ -761,6 +767,7 @@ public class RealmResultsTests extends CollectionTests {
             obj.setFieldObject(obj);
             obj.setFieldDecimal128(new Decimal128(new BigDecimal(i + ".23456789")));
             obj.setFieldObjectId(new ObjectId(TestHelper.generateObjectIdHexString(i)));
+            obj.setFieldUUID(UUID.fromString(TestHelper.generateUUIDString(i)));
             obj.getFieldList().add(obj);
         }
         realm.commitTransaction();
@@ -779,6 +786,7 @@ public class RealmResultsTests extends CollectionTests {
         DATE,
         DECIMAL128,
         OBJECT_ID,
+        UUID,
         OBJECT,
         MODEL_LIST,
         STRING_VALUE_LIST,
@@ -792,7 +800,8 @@ public class RealmResultsTests extends CollectionTests {
         BINARY_VALUE_LIST,
         DATE_VALUE_LIST,
         DECIMAL128_VALUE_LIST,
-        OBJECT_ID_VALUE_LIST
+        OBJECT_ID_VALUE_LIST,
+        UUID_VALUE_LIST
     }
 
     interface ElementValidator<T> {
@@ -870,6 +879,13 @@ public class RealmResultsTests extends CollectionTests {
                     assertElements(collection, obj -> assertEquals(new ObjectId(hex), obj.getFieldObjectId()));
                     collection.setValue(AllJavaTypes.FIELD_OBJECT_ID, null);
                     assertElements(collection, obj -> assertNull(obj.getFieldObjectId()));
+                    break;
+                case UUID:
+                    String uuid = UUID.randomUUID().toString();
+                    collection.setValue(AllJavaTypes.FIELD_UUID, UUID.fromString(uuid));
+                    assertElements(collection, obj -> assertEquals(UUID.fromString(uuid), obj.getFieldUUID()));
+                    collection.setValue(AllJavaTypes.FIELD_UUID, null);
+                    assertElements(collection, obj -> assertNull(obj.getFieldUUID()));
                     break;
                 case OBJECT: {
                     AllJavaTypes childObj = realm.createObject(AllJavaTypes.class, 42);
@@ -998,6 +1014,17 @@ public class RealmResultsTests extends CollectionTests {
                     });
                     break;
                 }
+                case UUID_VALUE_LIST:  {
+                    String uuid1 = UUID.randomUUID().toString();
+                    String uuid2 = UUID.randomUUID().toString();
+                    RealmList<UUID> list = new RealmList<>(UUID.fromString(uuid1), UUID.fromString(uuid2));
+                    collection.setValue(AllJavaTypes.FIELD_UUID_LIST, list);
+                    assertElements(collection, obj -> {
+                        assertEquals(UUID.fromString(uuid1), obj.getFieldUUIDList().first());
+                        assertEquals(UUID.fromString(uuid2), obj.getFieldUUIDList().last());
+                    });
+                    break;
+                }
                 default:
                     fail("Unknown type: " + type);
             }
@@ -1062,6 +1089,11 @@ public class RealmResultsTests extends CollectionTests {
                     collection.setValue(AllJavaTypes.FIELD_OBJECT_ID, new ObjectId(hex));
                     assertElements(collection, obj -> assertEquals(new ObjectId(hex), obj.getFieldObjectId()));
                     break;
+                case UUID:
+                    String uuid = UUID.randomUUID().toString();
+                    collection.setValue(AllJavaTypes.FIELD_UUID, UUID.fromString(uuid));
+                    assertElements(collection, obj -> assertEquals(UUID.fromString(uuid), obj.getFieldUUID()));
+                    break;
 
                 // These types do not offer any implicit conversion
                 case STRING:
@@ -1080,6 +1112,7 @@ public class RealmResultsTests extends CollectionTests {
                 case DATE_VALUE_LIST:
                 case DECIMAL128_VALUE_LIST:
                 case OBJECT_ID_VALUE_LIST:
+                case UUID_VALUE_LIST:
                     continue;
 
                 default:
@@ -1175,6 +1208,12 @@ public class RealmResultsTests extends CollectionTests {
                     assertElements(collection, obj -> assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(1)), obj.getFieldObjectId()));
                     collection.setObjectId(AllJavaTypes.FIELD_OBJECT_ID, null);
                     assertElements(collection, obj -> assertNull(obj.getFieldObjectId()));
+                    break;
+                case UUID:
+                    collection.setUUID(AllJavaTypes.FIELD_UUID, UUID.fromString(uuid1));
+                    assertElements(collection, obj -> assertEquals(UUID.fromString(uuid1), obj.getFieldUUID()));
+                    collection.setUUID(AllJavaTypes.FIELD_UUID, null);
+                    assertElements(collection, obj -> assertNull(obj.getFieldUUID()));
                     break;
                 case OBJECT: {
                     AllJavaTypes childObj = realm.createObject(AllJavaTypes.class, 42);
@@ -1303,6 +1342,17 @@ public class RealmResultsTests extends CollectionTests {
                     });
                     break;
                 }
+                case UUID_VALUE_LIST:  {
+                    String uuid1 = UUID.randomUUID().toString();
+                    String uuid2 = UUID.randomUUID().toString();
+                    RealmList<UUID> list = new RealmList<>(UUID.fromString(uuid1), UUID.fromString(uuid2));
+                    collection.setList(AllJavaTypes.FIELD_UUID_LIST, list);
+                    assertElements(collection, obj -> {
+                        assertEquals(UUID.fromString(uuid1), obj.getFieldUUIDList().first());
+                        assertEquals(UUID.fromString(uuid2), obj.getFieldUUIDList().last());
+                    });
+                    break;
+                }
                 default:
                     fail("Unknown type: " + type);
             }
@@ -1405,6 +1455,7 @@ public class RealmResultsTests extends CollectionTests {
                     case DATE: collection.setDate("foo", new Date(1000)); break;
                     case DECIMAL128: collection.setDecimal128("foo", new Decimal128(1000)); break;
                     case OBJECT_ID: collection.setObjectId("foo", new ObjectId(TestHelper.randomObjectIdHexString())); break;
+                    case UUID: collection.setUUID("foo", UUID.randomUUID()); break;
                     case OBJECT: collection.setObject("foo", realm.createObject(AllTypes.class)); break;
                     case MODEL_LIST: collection.setList("foo", new RealmList<>()); break;
                     case STRING_VALUE_LIST: collection.setList("foo", new RealmList<>("Foo")); break;
@@ -1419,6 +1470,7 @@ public class RealmResultsTests extends CollectionTests {
                     case DATE_VALUE_LIST: collection.setList("foo", new RealmList<>(new Date())); break;
                     case DECIMAL128_VALUE_LIST: collection.setList("foo", new RealmList<>(new Decimal128(1000))); break;
                     case OBJECT_ID_VALUE_LIST: collection.setList("foo", new RealmList<>(new ObjectId(TestHelper.randomObjectIdHexString()))); break;
+                    case UUID_VALUE_LIST: collection.setList("foo", new RealmList<>(UUID.randomUUID())); break;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -1449,6 +1501,7 @@ public class RealmResultsTests extends CollectionTests {
                     case DATE: collection.setDate(AllJavaTypes.FIELD_STRING, new Date(1000)); break;
                     case DECIMAL128: collection.setDecimal128(AllJavaTypes.FIELD_STRING, new Decimal128(1000)); break;
                     case OBJECT_ID: collection.setObjectId(AllJavaTypes.FIELD_STRING, new ObjectId(TestHelper.randomObjectIdHexString())); break;
+                    case UUID: collection.setUUID(AllJavaTypes.FIELD_STRING, UUID.randomUUID()); break;
                     case OBJECT: collection.setObject(AllJavaTypes.FIELD_STRING, realm.createObject(AllJavaTypes.class, 42)); break;
                     case MODEL_LIST: collection.setList(AllJavaTypes.FIELD_STRING, new RealmList<>(realm.createObject(AllJavaTypes.class, 43))); break;
                     case STRING_VALUE_LIST: collection.setList(AllJavaTypes.FIELD_STRING, new RealmList<>("Foo")); break;
@@ -1463,6 +1516,7 @@ public class RealmResultsTests extends CollectionTests {
                     case DATE_VALUE_LIST: collection.setList(AllJavaTypes.FIELD_STRING, new RealmList<>(new Date())); break;
                     case DECIMAL128_VALUE_LIST: collection.setList(AllJavaTypes.FIELD_STRING, new RealmList<>(new Decimal128(1000))); break;
                     case OBJECT_ID_VALUE_LIST: collection.setList(AllJavaTypes.FIELD_STRING, new RealmList<>(new ObjectId(TestHelper.randomObjectIdHexString()))); break;
+                    case UUID_VALUE_LIST: collection.setList(AllJavaTypes.FIELD_STRING, new RealmList<>(UUID.randomUUID())); break;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -1555,11 +1609,18 @@ public class RealmResultsTests extends CollectionTests {
                     collection.setDecimal128("fieldDecimal128", new Decimal128(1000));
                     assertElements(collection, obj -> assertEquals(new Decimal128(1000), obj.fieldDecimal128));
                     break;
-                case OBJECT_ID:
-//                    String hex = TestHelper.randomObjectIdHexString();
-//                    collection.setObjectId("fieldObjectId", new ObjectId(hex));
-//                    assertElements(collection, obj -> assertEquals(new ObjectId(hex), obj.fieldObjectId));
+                case OBJECT_ID:{
+                    String hex = TestHelper.randomObjectIdHexString();
+                    collection.setObjectId("fieldObjectId", new ObjectId(hex));
+                    assertElements(collection, obj -> assertEquals(new ObjectId(hex), obj.fieldObjectId));
                     break;
+                }
+                case UUID:{
+                    String uuid = UUID.randomUUID().toString();
+                    collection.setUUID("fieldUUID", UUID.fromString(uuid));
+                    assertElements(collection, obj -> assertEquals(UUID.fromString(uuid), obj.fieldUUID));
+                    break;
+                }
                 case OBJECT: {
                     MappedAllJavaTypes childObj = realm.createObject(MappedAllJavaTypes.class, 42);
                     collection.setObject("fieldObject", childObj);
@@ -1652,7 +1713,7 @@ public class RealmResultsTests extends CollectionTests {
                         assertEquals(new Decimal128(1000), obj.fieldDecimalList.first());
                     });
                     break;
-                case OBJECT_ID_VALUE_LIST:
+                case OBJECT_ID_VALUE_LIST:{
                     String hex = TestHelper.randomObjectIdHexString();
                     collection.setList("fieldObjectIdList", new RealmList<>(new ObjectId(hex)));
                     assertElements(collection, obj -> {
@@ -1660,6 +1721,16 @@ public class RealmResultsTests extends CollectionTests {
                         assertEquals(new ObjectId(hex), obj.fieldObjectIdList.first());
                     });
                     break;
+                }
+                case UUID_VALUE_LIST:{
+                    String uuid = UUID.randomUUID().toString();
+                    collection.setList("fieldUUIDList", new RealmList<>(UUID.fromString(uuid)));
+                    assertElements(collection, obj -> {
+                        assertEquals(1, obj.fieldUUIDList.size());
+                        assertEquals(UUID.fromString(uuid), obj.fieldUUIDList.first());
+                    });
+                    break;
+                }
                 default:
                     fail("Unknown type: " + type);
             }
@@ -1719,11 +1790,18 @@ public class RealmResultsTests extends CollectionTests {
                         collection.setDecimal128("field_decimal128", new Decimal128(1000));
                         assertElements(collection, obj -> assertEquals(new Decimal128(1000), obj.getDecimal128("field_decimal128")));
                         break;
-                    case OBJECT_ID:
+                    case OBJECT_ID:{
                         String hex = TestHelper.randomObjectIdHexString();
                         collection.setObjectId("field_object_id", new ObjectId(hex));
                         assertElements(collection, obj -> assertEquals(new ObjectId(hex), obj.getObjectId("field_object_id")));
                         break;
+                    }
+                    case UUID:{
+                        String uuid = UUID.randomUUID().toString();
+                        collection.setUUID("field_uuid", UUID.fromString(uuid));
+                        assertElements(collection, obj -> assertEquals(UUID.fromString(uuid), obj.getUUID("field_uuid")));
+                        break;
+                    }
                     case OBJECT: {
                         DynamicRealmObject childObj = dynamicRealm.createObject("MappedAllJavaTypes", 42);
                         collection.setObject("field_object", childObj);
@@ -1828,8 +1906,8 @@ public class RealmResultsTests extends CollectionTests {
                             assertEquals(new Decimal128(1000), list.first());
                         });
                         break;
-                    case OBJECT_ID_VALUE_LIST:
-                        hex = TestHelper.randomObjectIdHexString();
+                    case OBJECT_ID_VALUE_LIST:{
+                        String hex = TestHelper.randomObjectIdHexString();
                         collection.setList("field_object_id_list", new RealmList<>(new ObjectId(hex)));
                         assertElements(collection, obj -> {
                             RealmList<ObjectId> list = obj.getList("field_object_id_list", ObjectId.class);
@@ -1837,6 +1915,17 @@ public class RealmResultsTests extends CollectionTests {
                             assertEquals(new ObjectId(hex), list.first());
                         });
                         break;
+                    }
+                    case UUID_VALUE_LIST:{
+                        String uuid = UUID.randomUUID().toString();
+                        collection.setList("field_uuid_list", new RealmList<>(UUID.fromString(uuid)));
+                        assertElements(collection, obj -> {
+                            RealmList<UUID> list = obj.getList("field_uuid_list", UUID.class);
+                            assertEquals(1, list.size());
+                            assertEquals(UUID.fromString(uuid), list.first());
+                        });
+                        break;
+                    }
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -1893,6 +1982,7 @@ public class RealmResultsTests extends CollectionTests {
         allTypes.setColumnDate(date);
         allTypes.setColumnDecimal128(new Decimal128(new BigDecimal("0.123456789")));
         allTypes.setColumnObjectId(new ObjectId(TestHelper.generateObjectIdHexString(7)));
+        allTypes.setColumnUUID(UUID.fromString(uuid1));
         allTypes.setColumnBinary(new byte[]{1, 2, 3});
         allTypes.setColumnMutableRealmInteger(0);
         allTypes.setColumnRealmObject(dog1);
@@ -1918,6 +2008,8 @@ public class RealmResultsTests extends CollectionTests {
         allTypes.getColumnDecimal128List().add(Decimal128.POSITIVE_INFINITY);
         allTypes.getColumnObjectIdList().add(new ObjectId(TestHelper.generateObjectIdHexString(1)));
         allTypes.getColumnObjectIdList().add(new ObjectId(TestHelper.generateObjectIdHexString(2)));
+        allTypes.getColumnUUIDList().add(UUID.fromString(uuid1));
+        allTypes.getColumnUUIDList().add(UUID.fromString(uuid2));
 
         AllTypes allTypes2 = realm.createObject(AllTypes.class);
         allTypes2.setColumnString("alltypes2");
@@ -1940,6 +2032,7 @@ public class RealmResultsTests extends CollectionTests {
                 "      \"columnBinary\":\"AQID\",\n" +
                 "      \"columnDecimal128\":\"1.23456789E-1\",\n" +
                 "      \"columnObjectId\":\"789abcdef0123456789abcde\",\n" +
+                "      \"columnUUID\":\""+ uuid1 +"\",\n" +
                 "      \"columnMutableRealmInteger\":0,\n" +
                 "      \"columnRealmObject\":{\n" +
                 "         \"_key\":100,\n" +
@@ -2018,6 +2111,10 @@ public class RealmResultsTests extends CollectionTests {
                 "      \"columnObjectIdList\":[\n" +
                 "         \"123456789abcdef012345678\",\n" +
                 "         \"23456789abcdef0123456789\"\n" +
+                "      ],\n" +
+                "      \"columnUUIDList\":[\n" +
+                "         \""+ uuid1 +"\",\n" +
+                "         \""+ uuid2 +"\"\n" +
                 "      ]\n" +
                 "   }\n" +
                 "]";

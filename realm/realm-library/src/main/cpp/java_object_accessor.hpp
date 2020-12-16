@@ -42,6 +42,7 @@ using namespace realm::_impl;
     X(Double) \
     X(Date) \
     X(ObjectId) \
+    X(UUID) \
     X(Decimal) \
     X(Mixed) \
     X(Binary) \
@@ -81,6 +82,7 @@ template <> struct JavaValueTypeRepr<JavaValueType::Date>          { using Type 
 template <> struct JavaValueTypeRepr<JavaValueType::ObjectId>      { using Type = ObjectId; };
 template <> struct JavaValueTypeRepr<JavaValueType::Decimal>       { using Type = Decimal128; };
 template <> struct JavaValueTypeRepr<JavaValueType::Mixed>         { using Type = Mixed; };
+template <> struct JavaValueTypeRepr<JavaValueType::UUID>          { using Type = UUID; };
 template <> struct JavaValueTypeRepr<JavaValueType::Binary>        { using Type = OwnedBinaryData; };
 template <> struct JavaValueTypeRepr<JavaValueType::Object>        { using Type = Obj*; };
 template <> struct JavaValueTypeRepr<JavaValueType::List>          { using Type = std::vector<JavaValue>; };
@@ -237,6 +239,11 @@ struct JavaValue {
         return get_as<JavaValueType::ObjectId>();
     }
 
+    auto& get_uuid() const noexcept
+    {
+        return get_as<JavaValueType::UUID>();
+    }
+
     auto& get_decimal128() const noexcept
     {
         return get_as<JavaValueType::Decimal>();
@@ -298,6 +305,8 @@ struct JavaValue {
                 return std::string(ss.str());
             case JavaValueType::ObjectId:
                 return get_object_id().to_string();
+            case JavaValueType::UUID:
+                return get_uuid().to_string();
             case JavaValueType::Decimal:
                 return get_decimal128().to_string();
             case JavaValueType::Mixed:
@@ -578,6 +587,12 @@ inline ObjectId JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) con
 }
 
 template <>
+inline UUID JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
+{
+    return v.has_value() ? v.get_uuid() : UUID();
+}
+
+template <>
 inline Obj JavaContext::unbox(JavaValue const& v, CreatePolicy policy, ObjKey current_row) const
 {
     if (v.get_type() == JavaValueType::Object) {
@@ -617,6 +632,12 @@ template <>
 inline util::Optional<ObjectId> JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? util::make_optional(v.get_object_id()) : util::none;
+}
+
+template <>
+inline util::Optional<UUID> JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
+{
+    return v.has_value() ? util::make_optional(v.get_uuid()) : util::none;
 }
 
 template <>

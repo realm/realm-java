@@ -65,7 +65,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             typeMirrors.PRIMITIVE_INT_MIRROR,
             typeMirrors.PRIMITIVE_SHORT_MIRROR,
             typeMirrors.PRIMITIVE_BYTE_MIRROR,
-            typeMirrors.OBJECT_ID_MIRROR
+            typeMirrors.OBJECT_ID_MIRROR,
+            typeMirrors.UUID_MIRROR
     )
     private val validListValueTypes: List<TypeMirror> = Arrays.asList(
             typeMirrors.STRING_MIRROR,
@@ -80,6 +81,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             typeMirrors.DATE_MIRROR,
             typeMirrors.DECIMAL128_MIRROR,
             typeMirrors.OBJECT_ID_MIRROR,
+            typeMirrors.UUID_MIRROR,
             typeMirrors.MIXED_MIRROR
     )
     private val stringType = typeMirrors.STRING_MIRROR
@@ -632,7 +634,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     }
 
     // The field has the @Index annotation. It's only valid for column types:
-    // STRING, DATE, INTEGER, BOOLEAN, RealmMutableInteger, OBJECT_ID and MIXED
+    // STRING, DATE, INTEGER, BOOLEAN, RealmMutableInteger, OBJECT_ID, UUID and MIXED
     private fun categorizeIndexField(element: Element, fieldElement: RealmFieldElement): Boolean {
         var indexable = false
 
@@ -644,7 +646,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
                 Constants.RealmFieldType.DATE,
                 Constants.RealmFieldType.INTEGER,
                 Constants.RealmFieldType.BOOLEAN,
-                Constants.RealmFieldType.OBJECT_ID -> { indexable = true }
+                Constants.RealmFieldType.OBJECT_ID,
+                Constants.RealmFieldType.UUID -> { indexable = true }
                 else -> { /* Ignore */ }
             }
         }
