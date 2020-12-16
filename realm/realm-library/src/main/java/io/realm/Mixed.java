@@ -174,7 +174,18 @@ public abstract class Mixed implements ManageableObject {
      * @return a new, unmanaged {@link Mixed} of a Long
      */
     public static Mixed valueOf(@Nullable Byte value) {
-        return new Unmanaged(value.longValue(), MixedType.INTEGER);
+        return new Unmanaged(value, MixedType.INTEGER);
+    }
+
+    /**
+     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
+     *
+     * @param value initial value
+     * @return a new, unmanaged {@link Mixed} of a Long
+     */
+    public static Mixed valueOf(@Nullable Short value) {
+        return new Unmanaged(value, MixedType.INTEGER);
     }
 
     /**
@@ -185,7 +196,7 @@ public abstract class Mixed implements ManageableObject {
      * @return a new, unmanaged {@link Mixed} of a Long
      */
     public static Mixed valueOf(@Nullable Integer value) {
-        return new Unmanaged(value.longValue(), MixedType.INTEGER);
+        return new Unmanaged(value, MixedType.INTEGER);
     }
 
     /**
@@ -311,13 +322,47 @@ public abstract class Mixed implements ManageableObject {
     public abstract MixedType getType();
 
     /**
+     * Gets this value as a Byte if it is one, otherwise throws exception.
+     *
+     * @return a Byte
+     * @throws java.lang.ClassCastException if this value is not of the expected type
+     */
+    public Byte asByte() {
+        Number value = get(Number.class, MixedType.INTEGER);
+        return (value == null) ? null : get(Number.class, MixedType.INTEGER).byteValue();
+    }
+
+    /**
+     * Gets this value as a Short if it is one, otherwise throws exception.
+     *
+     * @return a Short
+     * @throws java.lang.ClassCastException if this value is not of the expected type
+     */
+    public Short asShort() {
+        Number value = get(Number.class, MixedType.INTEGER);
+        return (value == null) ? null : get(Number.class, MixedType.INTEGER).shortValue();
+    }
+
+    /**
+     * Gets this value as a Integer if it is one, otherwise throws exception.
+     *
+     * @return a Integer
+     * @throws java.lang.ClassCastException if this value is not of the expected type
+     */
+    public Integer asInteger() {
+        Number value = get(Number.class, MixedType.INTEGER);
+        return (value == null) ? null : get(Number.class, MixedType.INTEGER).intValue();
+    }
+
+    /**
      * Gets this value as a Long if it is one, otherwise throws exception.
      *
      * @return a Long
      * @throws java.lang.ClassCastException if this value is not of the expected type
      */
-    public Long asInteger() {
-        return get(Long.class, MixedType.INTEGER);
+    public Long asLong() {
+        Number value = get(Number.class, MixedType.INTEGER);
+        return (value == null) ? null : get(Number.class, MixedType.INTEGER).longValue();
     }
 
     /**

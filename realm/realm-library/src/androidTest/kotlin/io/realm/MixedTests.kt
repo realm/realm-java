@@ -52,11 +52,38 @@ class MixedTests {
 
     // Unmanaged
     @Test
-    fun unmanaged_longValue() {
-        val mixed = Mixed.valueOf(10L)
+    fun unmanaged_byteValue() {
+        val mixed = Mixed.valueOf(10.toByte())
+
+        assertFalse(mixed.isManaged)
+        assertEquals(10, mixed.asByte())
+        assertEquals(MixedType.INTEGER, mixed.type)
+    }
+
+    @Test
+    fun unmanaged_shortValue() {
+        val mixed = Mixed.valueOf(10.toShort())
+
+        assertFalse(mixed.isManaged)
+        assertEquals(10, mixed.asShort())
+        assertEquals(MixedType.INTEGER, mixed.type)
+    }
+
+    @Test
+    fun unmanaged_integerValue() {
+        val mixed = Mixed.valueOf(10.toInt())
 
         assertFalse(mixed.isManaged)
         assertEquals(10, mixed.asInteger())
+        assertEquals(MixedType.INTEGER, mixed.type)
+    }
+
+    @Test
+    fun unmanaged_longValue() {
+        val mixed = Mixed.valueOf(10.toLong())
+
+        assertFalse(mixed.isManaged)
+        assertEquals(10, mixed.asLong())
         assertEquals(MixedType.INTEGER, mixed.type)
     }
 
