@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.UUID;
 
+import io.realm.Mixed;
 import io.realm.MutableRealmInteger;
 import io.realm.RealmList;
 import io.realm.RealmObject;
@@ -45,6 +46,7 @@ public class AllTypes extends RealmObject {
     public static final String FIELD_DECIMAL128 = "columnDecimal128";
     public static final String FIELD_OBJECT_ID = "columnObjectId";
     public static final String FIELD_UUID = "columnUUID";
+    public static final String FIELD_MIXED = "columnMixed";
     public static final String FIELD_REALMOBJECT = "columnRealmObject";
     public static final String FIELD_REALMLINK = "columnRealmLink";
     public static final String FIELD_REALMBACKLINK = "columnRealmBackLink";
@@ -79,6 +81,8 @@ public class AllTypes extends RealmObject {
     private ObjectId columnObjectId = new ObjectId(TestHelper.randomObjectIdHexString());
     @Required
     private UUID columnUUID = UUID.randomUUID();
+
+    private Mixed columnMixed = Mixed.valueOf(0);
 
     private final MutableRealmInteger columnMutableRealmInteger = MutableRealmInteger.ofNull();
 
@@ -272,6 +276,14 @@ public class AllTypes extends RealmObject {
 
     public void setColumnUUID(UUID columnUUID) {
         this.columnUUID = columnUUID;
+    }
+
+    public Mixed getColumnMixed() {
+        return columnMixed;
+    }
+
+    public void setColumnMixed(Mixed columnMixed) {
+        this.columnMixed = columnMixed;
     }
 
     public RealmList<Decimal128> getColumnDecimal128List() {

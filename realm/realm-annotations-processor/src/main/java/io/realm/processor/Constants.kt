@@ -103,8 +103,7 @@ object Constants {
         DOUBLE_LIST("DOUBLE_LIST", "List"),
         DECIMAL128_LIST("DECIMAL128_LIST", "List"),
         OBJECT_ID_LIST("OBJECT_ID_LIST", "List"),
-        UUID_LIST("UUID_LIST", "List"),
-        MIXED_LIST("MIXED_LIST", "List");
+        UUID_LIST("UUID_LIST", "List");
 
         /**
          * The name of the enum, used in the Java bindings, used to represent the corresponding type.

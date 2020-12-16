@@ -53,7 +53,7 @@ class MixedTests {
     // Unmanaged
     @Test
     fun unmanaged_longValue() {
-        val mixed = Mixed.valueOf(10)
+        val mixed = Mixed.valueOf(10L)
 
         assertFalse(mixed.isManaged)
         assertEquals(10, mixed.asInteger())
@@ -148,7 +148,7 @@ class MixedTests {
     fun managed_longValue() {
         realm.executeTransaction {
             val mixedObject = realm.createObject<MixedNotIndexed>()
-            mixedObject.mixed = Mixed.valueOf(10)
+            mixedObject.mixed = Mixed.valueOf(10L)
         }
 
         val mixedObject = realm.where<MixedNotIndexed>().findFirst()

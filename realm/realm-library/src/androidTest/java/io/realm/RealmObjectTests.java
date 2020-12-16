@@ -16,9 +16,6 @@
 
 package io.realm;
 
-import androidx.test.rule.UiThreadTestRule;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
@@ -41,6 +38,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.rule.UiThreadTestRule;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
@@ -119,7 +118,7 @@ public class RealmObjectTests {
         realm.commitTransaction();
 
         assertNotNull("RealmObject.realmGetRow returns zero ", row);
-        assertEquals(24, row.getColumnCount());
+        assertEquals(25, row.getColumnCount());
     }
 
     @Test

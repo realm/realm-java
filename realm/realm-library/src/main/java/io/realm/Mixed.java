@@ -173,6 +173,28 @@ public abstract class Mixed implements ManageableObject {
      * @param value initial value
      * @return a new, unmanaged {@link Mixed} of a Long
      */
+    public static Mixed valueOf(@Nullable Byte value) {
+        return new Unmanaged(value.longValue(), MixedType.INTEGER);
+    }
+
+    /**
+     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
+     *
+     * @param value initial value
+     * @return a new, unmanaged {@link Mixed} of a Long
+     */
+    public static Mixed valueOf(@Nullable Integer value) {
+        return new Unmanaged(value.longValue(), MixedType.INTEGER);
+    }
+
+    /**
+     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
+     *
+     * @param value initial value
+     * @return a new, unmanaged {@link Mixed} of a Long
+     */
     public static Mixed valueOf(@Nullable Long value) {
         return new Unmanaged(value, MixedType.INTEGER);
     }

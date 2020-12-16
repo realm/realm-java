@@ -50,6 +50,7 @@ public class AllJavaTypes extends RealmObject {
     public static final String FIELD_DECIMAL128 = "fieldDecimal128";
     public static final String FIELD_OBJECT_ID = "fieldObjectId";
     public static final String FIELD_UUID = "fieldUUID";
+    public static final String FIELD_MIXED = "fieldMixed";
     public static final String FIELD_OBJECT = "fieldObject";
     public static final String FIELD_LIST = "fieldList";
 
@@ -105,6 +106,7 @@ public class AllJavaTypes extends RealmObject {
     private Decimal128 fieldDecimal128;
     private ObjectId fieldObjectId;
     private UUID fieldUUID;
+    private UUID fieldMixed;
     private AllJavaTypes fieldObject;
     private RealmList<AllJavaTypes> fieldList;
 
@@ -350,6 +352,14 @@ public class AllJavaTypes extends RealmObject {
 
     public void setFieldUUID(UUID fieldUUID) {
         this.fieldUUID = fieldUUID;
+    }
+
+    public UUID getFieldMixed() {
+        return fieldMixed;
+    }
+
+    public void setFieldMixed(UUID fieldMixed) {
+        this.fieldMixed = fieldMixed;
     }
 
     public RealmList<Decimal128> getFieldDecimal128List() {

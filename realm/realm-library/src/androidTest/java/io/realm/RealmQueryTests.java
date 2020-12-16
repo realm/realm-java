@@ -2911,6 +2911,9 @@ public class RealmQueryTests extends QueryTests {
                     case UUID:
                         realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_UUID).findAll();
                         break;
+                    case MIXED:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_MIXED).findAll();
+                        break;
                     case INTEGER_LIST:
                         realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_INTEGER_LIST).findAll();
                         break;
@@ -3062,6 +3065,9 @@ public class RealmQueryTests extends QueryTests {
                         break;
                     case UUID:
                         realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_UUID).findAll();
+                        break;
+                    case MIXED:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_MIXED).findAll();
                         break;
                     case INTEGER_LIST:
                         realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_INTEGER_LIST).findAll();
@@ -4107,9 +4113,9 @@ public class RealmQueryTests extends QueryTests {
             case DECIMAL128:
             case OBJECT_ID:
             case UUID:
-            case MIXED:
             case LINKING_OBJECTS:
                 return true;
+            case MIXED:
             case LIST:
             case INTEGER_LIST:
             case BOOLEAN_LIST:
@@ -4121,7 +4127,6 @@ public class RealmQueryTests extends QueryTests {
             case DECIMAL128_LIST:
             case OBJECT_ID_LIST:
             case UUID_LIST:
-            case MIXED_LIST:
                 return false;
         }
         // Should never reach here as the above switch is exhaustive
