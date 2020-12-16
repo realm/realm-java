@@ -147,7 +147,7 @@ class MixedTests {
     @Test
     fun managed_longValue() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.valueOf(10L)
         }
 
@@ -161,7 +161,7 @@ class MixedTests {
     @Test
     fun managed_booleanValue() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.valueOf(true)
         }
 
@@ -175,7 +175,7 @@ class MixedTests {
     @Test
     fun managed_stringValue() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.valueOf("hello world")
         }
 
@@ -189,7 +189,7 @@ class MixedTests {
     @Test
     fun managed_binaryValue() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.valueOf(byteArrayOf(0, 1, 0))
         }
 
@@ -203,7 +203,7 @@ class MixedTests {
     @Test
     fun managed_dateValue() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.valueOf(Date(10))
         }
 
@@ -217,7 +217,7 @@ class MixedTests {
     @Test
     fun managed_decimal128Value() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.valueOf(Decimal128(10))
         }
 
@@ -231,7 +231,7 @@ class MixedTests {
     @Test
     fun managed_doubleValue() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.valueOf(10.0)
         }
 
@@ -245,7 +245,7 @@ class MixedTests {
     @Test
     fun managed_floatValue() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.valueOf(10f)
         }
 
@@ -259,7 +259,7 @@ class MixedTests {
     @Test
     fun managed_objectIdValue() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.valueOf(ObjectId(TestHelper.generateObjectIdHexString(0)))
         }
 
@@ -273,7 +273,7 @@ class MixedTests {
     @Test
     fun managed_null() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = null
         }
 
@@ -287,7 +287,7 @@ class MixedTests {
     @Test
     fun managed_nullMixed() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.nullValue()
         }
 
@@ -301,7 +301,7 @@ class MixedTests {
     @Test
     fun managed_validity() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.nullValue()
         }
 
@@ -319,7 +319,7 @@ class MixedTests {
     @Test
     fun managed_frozen() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.nullValue()
         }
 
@@ -334,7 +334,7 @@ class MixedTests {
     @Test
     fun managed_notFrozen() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.nullValue()
         }
 
