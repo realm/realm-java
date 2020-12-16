@@ -1,25 +1,10 @@
-/*
- * Copyright 2020 Realm Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package io.realm.rule
 
 import android.os.Handler
 import android.os.Looper
 import io.realm.TestHelper
-import io.realm.TestHelper.LooperTest
 import io.realm.internal.android.AndroidCapabilities
+import kotlinx.coroutines.android.asCoroutineDispatcher
 import org.junit.runners.model.MultipleFailureException
 import java.io.Closeable
 import java.io.PrintStream
@@ -30,6 +15,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.collections.ArrayList
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Helper class that makes it easier to run a piece of code inside a Looper Thread. This is done by
@@ -38,7 +24,7 @@ import kotlin.collections.ArrayList
  *
  * Usage:
  * ```
- * val lopperThread = LooperThreadTest()
+ * val lopperThread = BlockingLooperThread()
  *
  * @Before
  * fun setUp() {
@@ -51,7 +37,7 @@ import kotlin.collections.ArrayList
  * }
  *
  * @Test
- * fun myTest() = looperThread.run {
+ * fun myTest() = looperThread.runBlocking {
  *     // test code
  * }
  * ```
@@ -222,6 +208,11 @@ class BlockingLooperThread {
         }
     }
 
+    fun asDispatcher(): CoroutineContext {
+        return backgroundHandler?.asCoroutineDispatcher("TestLooperDispatcher")
+                ?: throw IllegalStateException("Dispatcher is only available inside 'runBlocking { .. }'.")
+    }
+
     inner class RunInLooperThreadStatement(private val threadName: String,
                                            private val emulateMainThread: Boolean,
                                            private val test: () -> Unit) {
@@ -295,7 +286,7 @@ class BlockingLooperThread {
     inner class Condition(private val threadStatement: RunInLooperThreadStatement,
                           private val executorService: ExecutorService,
                           private val signalTestCompleted: CountDownLatch,
-                          private val test: LooperTest) {
+                          private val test: TestHelper.LooperTest) {
 
         fun await() {
             var failure: Throwable? = null
@@ -318,7 +309,7 @@ class BlockingLooperThread {
         }
     }
 
-    private inner class TestThread(private val test: () -> Unit) : Runnable, LooperTest {
+    private inner class TestThread(private val test: () -> Unit) : Runnable, TestHelper.LooperTest {
         private var threadAssertionError: Throwable? = null
         private var looper: Looper? = null
 
