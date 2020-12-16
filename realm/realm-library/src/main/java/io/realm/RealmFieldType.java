@@ -99,7 +99,8 @@ public enum RealmFieldType {
     OBJECT_ID_LIST(CORE_TYPE_VALUE_OBJECTID + LIST_OFFSET),
     MIXED_LIST(CORE_TYPE_VALUE_MIXED + LIST_OFFSET),
 
-    STRING_TO_MIXED_MAP(CORE_TYPE_VALUE_MIXED + DICTIONARY_OFFSET);     // FIXME: is this correct?
+    // TODO: add more map times ad-hoc
+    STRING_TO_MIXED_MAP(CORE_TYPE_VALUE_MIXED + DICTIONARY_OFFSET);
 
     // Primitive array for fast mapping between between native values and their Realm type.
     private static final RealmFieldType[] basicTypes = new RealmFieldType[MAX_CORE_TYPE_VALUE + 1];
@@ -197,7 +198,7 @@ public enum RealmFieldType {
                 return e;
             }
         }
-        if (LIST_OFFSET <= value) {
+        if (LIST_OFFSET <= value && value < DICTIONARY_OFFSET) {
             final int elementValue = value - LIST_OFFSET;
             if (elementValue < listTypes.length) {
                 RealmFieldType e = listTypes[elementValue];
@@ -206,7 +207,15 @@ public enum RealmFieldType {
                 }
             }
         }
-        // FIXME: dictionary
+        if (DICTIONARY_OFFSET <= value) {
+            final int elementValue = value - DICTIONARY_OFFSET;
+            if (elementValue < mapTypes.length) {
+                RealmFieldType e = mapTypes[elementValue];
+                if (e != null) {
+                    return e;
+                }
+            }
+        }
         throw new IllegalArgumentException("Invalid native Realm type: " + value);
     }
 }

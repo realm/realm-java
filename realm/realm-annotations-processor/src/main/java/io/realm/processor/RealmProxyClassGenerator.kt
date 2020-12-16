@@ -823,7 +823,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         }
                         Constants.RealmFieldType.STRING_TO_MIXED_MAP -> {
                             // TODO: do this properly once nullable and required are clear
-                            val requiredFlag = "!Property.REQUIRED"
+                            val requiredFlag = "Property.REQUIRED"     // schema creation fails if set to false
                             emitStatement("""builder.addPersistedMapProperty("%s", %s, %s)""", fieldName, fieldType.realmType, requiredFlag)
                         }
                     }

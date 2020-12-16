@@ -17,6 +17,11 @@
 package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import io.realm.annotations.RealmModule
+import io.realm.entities.MapClass
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.*
@@ -191,5 +196,36 @@ class MapTests {
     // Managed map - TBD
     // ------------------------------------------
 
-    // FIXME: TBD
+    // FIXME: temporary methods
+
+    private lateinit var config: RealmConfiguration
+    private lateinit var realm: Realm
+
+    @Before
+    fun setUp() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().context)
+        config = RealmConfiguration.Builder()
+                .modules(MapModule())
+                .allowQueriesOnUiThread(true)
+                .allowWritesOnUiThread(true)
+                .build()
+    }
+
+    @After
+    fun tearDown() {
+        realm.close()
+        Realm.deleteRealm(config)
+    }
+
+    @Test
+    fun schemaTest() {
+        realm = Realm.getInstance(config)
+        val objectSchema = realm.schema.get("MapClass")
+        assertNotNull(objectSchema)
+        assertTrue(objectSchema.hasField("myMap"))
+        assertEquals(objectSchema.getFieldType("myMap"), RealmFieldType.STRING_TO_MIXED_MAP)
+    }
 }
+
+@RealmModule(classes = [MapClass::class])
+class MapModule

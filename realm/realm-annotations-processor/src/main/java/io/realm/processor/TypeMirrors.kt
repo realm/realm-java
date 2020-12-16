@@ -91,7 +91,7 @@ class TypeMirrors(env: ProcessingEnvironment) {
         }
 
         /**
-         * FIXME
+         * @return [Pair] containing the [TypeMirrors] of the key and value of a `RealmMap`.
          */
         @JvmStatic
         fun getRealmMapTypeMirrors(field: VariableElement): Pair<TypeMirror, TypeMirror>? {

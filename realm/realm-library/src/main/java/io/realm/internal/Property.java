@@ -30,6 +30,7 @@ import static io.realm.RealmFieldType.FLOAT_LIST;
 import static io.realm.RealmFieldType.INTEGER_LIST;
 import static io.realm.RealmFieldType.OBJECT_ID_LIST;
 import static io.realm.RealmFieldType.STRING_LIST;
+import static io.realm.RealmFieldType.STRING_TO_MIXED_MAP;
 
 
 /**
@@ -212,6 +213,8 @@ public class Property implements NativeObject {
                 return DECIMAL128_LIST;
             case TYPE_OBJECT_ID | TYPE_ARRAY:
                 return OBJECT_ID_LIST;
+            case TYPE_MIXED | TYPE_DICTIONARY:
+                return STRING_TO_MIXED_MAP;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported property type: '%d'", propertyType));
