@@ -20,6 +20,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
 import io.realm.Mixed;
 import io.realm.MutableRealmInteger;
@@ -46,6 +47,8 @@ public class AllTypes extends RealmObject {
     private Decimal128 columnDecimal128;
     @Required
     private ObjectId columnObjectId;
+    @Required
+    private UUID columnUUID;
 
     @Required
     private Date columnDate;
@@ -74,6 +77,7 @@ public class AllTypes extends RealmObject {
     private RealmList<Date> columnDateList;
     private RealmList<Decimal128> columnDecimal128List;
     private RealmList<ObjectId> columnObjectIdList;
+    private RealmList<UUID> columnUUIDList;
 
     @LinkingObjects(FIELD_PARENTS)
     private final RealmResults<AllTypes> parentObjects = null;

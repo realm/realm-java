@@ -195,6 +195,10 @@ public:
     {
         return JavaClassGlobalDef::new_object_id(m_env, v);
     }
+    util::Any box(UUID v) const
+    {
+        return JavaClassGlobalDef::new_uuid(m_env, v);
+    }
     util::Any box(bool v) const
     {
         return _impl::JavaClassGlobalDef::new_boolean(m_env, v);
@@ -234,6 +238,10 @@ public:
     util::Any box(util::Optional<ObjectId> v) const
     {
         return v ? _impl::JavaClassGlobalDef::new_object_id(m_env, v.value()) : nullptr;
+    }
+    util::Any box(util::Optional<UUID> v) const
+    {
+        return v ? _impl::JavaClassGlobalDef::new_uuid(m_env, v.value()) : nullptr;
     }
     util::Any box(Obj) const
     {
@@ -421,6 +429,12 @@ template <>
 inline util::Optional<ObjectId> JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ?  util::make_optional(util::any_cast<ObjectId&>(v)) : util::none;
+}
+
+template <>
+inline util::Optional<UUID> JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
+{
+    return v.has_value() ?  util::make_optional(util::any_cast<UUID&>(v)) : util::none;
 }
 
 template <>

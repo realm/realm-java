@@ -479,7 +479,7 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<Re
         private final Class<K> keyClass;
         private final Class<V> valueClass;
 
-        public RealmClassManager(Class<K> keyClass, Class<V> valueClass) {
+        RealmClassManager(Class<K> keyClass, Class<V> valueClass) {
             this.keyClass = keyClass;
             this.valueClass = valueClass;
         }
@@ -503,7 +503,7 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<Re
         private final String keyClass;
         private final String valueClass;
 
-        public DynamicRealmClassManager(String keyClass, String valueClass) {
+        DynamicRealmClassManager(String keyClass, String valueClass) {
             this.keyClass = keyClass;
             this.valueClass = valueClass;
         }

@@ -20,6 +20,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -110,6 +111,7 @@ public class Table implements NativeObject {
             case DOUBLE:
             case DECIMAL128:
             case OBJECT_ID:
+            case UUID:
                 return nativeAddColumn(nativeTableRefPtr, type.getNativeValue(), name, isNullable);
 
             case INTEGER_LIST:
@@ -121,6 +123,7 @@ public class Table implements NativeObject {
             case DOUBLE_LIST:
             case DECIMAL128_LIST:
             case OBJECT_ID_LIST:
+            case UUID_LIST:
                 return nativeAddPrimitiveListColumn(nativeTableRefPtr, type.getNativeValue() - 128, name, isNullable);
 
             default:
@@ -550,6 +553,15 @@ public class Table implements NativeObject {
         }
     }
 
+    public void setUUID(long columnKey, long rowKey, @Nullable UUID value, boolean isDefault) {
+        checkImmutable();
+        if (value == null) {
+            nativeSetNull(nativeTableRefPtr, columnKey, rowKey, isDefault);
+        } else {
+            nativeSetUUID(nativeTableRefPtr, columnKey, rowKey, value.toString(), isDefault);
+        }
+    }
+
     public void setMixed(long columnKey, long rowKey, @Nullable Mixed value, boolean isDefault) {
         checkImmutable();
         setMixed(nativeTableRefPtr, columnKey, rowKey, value, isDefault);
@@ -588,7 +600,7 @@ public class Table implements NativeObject {
                     Decimal128 decimalValue = value.asDecimal128();
                     nativeMixedSetDecimal128(nativeTableRefPtr, columnKey, rowKey, decimalValue.getLow(), decimalValue.getHigh(), isDefault);
                     break;
-                case NO_TYPE:
+                case NULL:
                     nativeMixedSetNull(nativeTableRefPtr, columnKey, rowKey, isDefault);
                     break;
                 default:
@@ -711,6 +723,13 @@ public class Table implements NativeObject {
             throw new IllegalArgumentException("null is not supported");
         }
         return nativeFindFirstObjectId(nativeTableRefPtr, columnKey, value.toString());
+    }
+
+    public long findFirstUUID(long columnKey, UUID value) {
+        if (value == null) {
+            throw new IllegalArgumentException("null is not supported");
+        }
+        return nativeFindFirstUUID(nativeTableRefPtr, columnKey, value.toString());
     }
 
     /**
@@ -915,6 +934,8 @@ public class Table implements NativeObject {
 
     public static native void nativeSetObjectId(long nativeTableRefPtr, long columnKey, long rowKey, String data, boolean isDefault);
 
+    public static native void nativeSetUUID(long nativeTableRefPtr, long columnKey, long rowKey, String data, boolean isDefault);
+
     public static native void nativeSetLink(long nativeTableRefPtr, long columnKey, long rowKey, long value, boolean isDefault);
 
     public static native int nativeMixedGetType(long nativeTableRefPtr, long columnKey, long rowKey);
@@ -996,6 +1017,8 @@ public class Table implements NativeObject {
     public static native long nativeFindFirstDecimal128(long nativeTableRefPtr, long columnKey, long low, long high);
 
     public static native long nativeFindFirstObjectId(long nativeTableRefPtr, long columnKey, String value);
+
+    public static native long nativeFindFirstUUID(long nativeTableRefPtr, long columnKey, String value);
 
     public static native long nativeFindFirstNull(long nativeTableRefPtr, long columnKey);
 

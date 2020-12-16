@@ -24,6 +24,7 @@ import org.bson.types.ObjectId;
 
 import java.util.Date;
 import java.util.Locale;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -205,6 +206,9 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> implements Fr
                 case OBJECT_ID:
                     value = new ObjectId(strValue);
                     break;
+                case UUID:
+                    value = UUID.fromString(strValue);
+                    break;
                 default:
                     throw new IllegalArgumentException(String.format(Locale.US,
                             "Field %s is not a String field, " +
@@ -238,6 +242,8 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> implements Fr
             setDecimal128(fieldName, (Decimal128) value);
         } else if (value instanceof ObjectId) {
             setObjectId(fieldName, (ObjectId) value);
+        } else if (value instanceof UUID) {
+            setUUID(fieldName, (UUID) value);
         } else if (value instanceof byte[]) {
             setBlob(fieldName, (byte[]) value);
         } else if (value instanceof RealmModel) {
@@ -459,6 +465,21 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> implements Fr
         osResults.setObjectId(fieldName, value);
     }
 
+    /**
+     * Sets the {@code UUID} value of the given field in all of the objects in the collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a {@code UUID} field.
+     */
+    public void setUUID(String fieldName, @Nullable UUID value) {
+        checkNonEmptyFieldName(fieldName);
+        baseRealm.checkIfValidAndInTransaction();
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.UUID);
+        osResults.setUUID(fieldName, value);
+    }
+
     private Row checkRealmObjectConstraints(String fieldName, @Nullable RealmModel value) {
         if (value != null) {
             if (!(RealmObject.isManaged(value) && RealmObject.isValid(value))) {
@@ -556,6 +577,10 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> implements Fr
             case OBJECT_ID_LIST:
                 checkTypeOfListElements(list, ObjectId.class);
                 osResults.setObjectIdList(fieldName, (RealmList<ObjectId>) list);
+                break;
+            case UUID_LIST:
+                checkTypeOfListElements(list, UUID.class);
+                osResults.setUUIDList(fieldName, (RealmList<UUID>) list);
                 break;
             case FLOAT_LIST:
                 checkTypeOfListElements(list, Float.class);
