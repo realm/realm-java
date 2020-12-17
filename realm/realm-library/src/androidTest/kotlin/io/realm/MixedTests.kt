@@ -181,16 +181,58 @@ class MixedTests {
 
     // Managed
     @Test
-    fun managed_longValue() {
+    fun managed_byteValue() {
         realm.executeTransaction {
             val mixedObject = it.createObject<MixedNotIndexed>()
-            mixedObject.mixed = Mixed.valueOf(10L)
+            mixedObject.mixed = Mixed.valueOf(10.toByte())
+        }
+
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+
+        assertTrue(mixedObject!!.isManaged)
+        assertEquals(10, mixedObject.mixed?.asByte())
+        assertEquals(MixedType.INTEGER, mixedObject.mixed?.type)
+    }
+
+    @Test
+    fun managed_shortValue() {
+        realm.executeTransaction {
+            val mixedObject = it.createObject<MixedNotIndexed>()
+            mixedObject.mixed = Mixed.valueOf(10.toShort())
+        }
+
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+
+        assertTrue(mixedObject!!.isManaged)
+        assertEquals(10, mixedObject.mixed?.asShort())
+        assertEquals(MixedType.INTEGER, mixedObject.mixed?.type)
+    }
+
+    @Test
+    fun managed_integerValue() {
+        realm.executeTransaction {
+            val mixedObject = it.createObject<MixedNotIndexed>()
+            mixedObject.mixed = Mixed.valueOf(10.toInt())
         }
 
         val mixedObject = realm.where<MixedNotIndexed>().findFirst()
 
         assertTrue(mixedObject!!.isManaged)
         assertEquals(10, mixedObject.mixed?.asInteger())
+        assertEquals(MixedType.INTEGER, mixedObject.mixed?.type)
+    }
+
+    @Test
+    fun managed_longValue() {
+        realm.executeTransaction {
+            val mixedObject = it.createObject<MixedNotIndexed>()
+            mixedObject.mixed = Mixed.valueOf(10.toLong())
+        }
+
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+
+        assertTrue(mixedObject!!.isManaged)
+        assertEquals(10, mixedObject.mixed?.asLong())
         assertEquals(MixedType.INTEGER, mixedObject.mixed?.type)
     }
 
