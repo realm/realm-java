@@ -754,6 +754,20 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMixedSetObjectId(JNIEn
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMixedSetUUID(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                      jlong columnKey, jlong rowKey, jstring j_value,
+                                                                      jboolean isDefault)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return;
+    }
+    try {
+        JStringAccessor value(env, j_value);
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), Mixed(UUID(StringData(value).data())), B(isDefault));
+    }
+    CATCH_STD()
+}
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMixedSetNull(JNIEnv* env, jclass, jlong nativeTableRefPtr,
                                                                   jlong columnKey, jlong rowKey,
