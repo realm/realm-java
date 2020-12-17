@@ -20,6 +20,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -184,6 +185,11 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
+    public UUID getUUID(long columnKey) {
+        return UUID.fromString(nativeGetUUID(nativePtr, columnKey));
+    }
+
+    @Override
     public long getLink(long columnKey) {
         return nativeGetLink(nativePtr, columnKey);
     }
@@ -279,6 +285,9 @@ public class UncheckedRow implements NativeObject, Row {
                 Decimal128 decimalValue = value.asDecimal128();
                 nativeMixedSetDecimal128(nativePtr, columnKey, decimalValue.getLow(), decimalValue.getHigh());
                 break;
+            case UUID:
+                nativeMixedSetUUID(nativePtr, columnKey, value.asUUID().toString());
+                break;
             case OBJECT:
                 RealmModel model = value.asRealmModel(RealmModel.class);
 
@@ -368,6 +377,16 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
+    public void setUUID(long columnKey, @Nullable UUID value) {
+        parent.checkImmutable();
+        if (value == null) {
+            nativeSetNull(nativePtr, columnKey);
+        } else {
+            nativeSetUUID(nativePtr, columnKey, value.toString());
+        }
+    }
+
+    @Override
     public long createEmbeddedObject(long columnKey, RealmFieldType parentPropertyType) {
         switch (parentPropertyType) {
             case OBJECT:
@@ -450,6 +469,8 @@ public class UncheckedRow implements NativeObject, Row {
 
     protected native String nativeGetObjectId(long nativePtr, long columnKey);
 
+    protected native String nativeGetUUID(long nativePtr, long columnKey);
+
     protected native void nativeSetLong(long nativeRowPtr, long columnKey, long value);
 
     protected native void nativeSetBoolean(long nativeRowPtr, long columnKey, boolean value);
@@ -469,6 +490,8 @@ public class UncheckedRow implements NativeObject, Row {
     protected native void nativeSetDecimal128(long nativePtr, long columnKey, long low, long high);
 
     protected native void nativeSetObjectId(long nativePtr, long columnKey, String value);
+
+    protected native void nativeSetUUID(long nativePtr, long columnKey, String value);
 
     protected native void nativeSetLink(long nativeRowPtr, long columnKey, long value);
 
@@ -507,6 +530,8 @@ public class UncheckedRow implements NativeObject, Row {
     public static native void nativeMixedSetObjectId(long nativeRowPtr, long columnKey, String data);
 
     public static native void nativeMixedSetLink(long nativeRowPtr, long columnKey, long targetTableRef, long targetObjectKey);
+
+    public static native void nativeMixedSetUUID(long nativeRowPtr, long columnKey, String data);
 
     public static native void nativeMixedSetNull(long nativeRowPtr, long columnKey);
 }

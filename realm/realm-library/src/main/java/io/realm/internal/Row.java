@@ -20,6 +20,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -88,6 +89,8 @@ public interface Row {
 
     ObjectId getObjectId(long columnKey);
 
+    UUID getUUID(long columnKey);
+
     long getLink(long columnKey);
 
     boolean isNullLink(long columnKey);
@@ -121,6 +124,8 @@ public interface Row {
     void setDecimal128(long columnKey, Decimal128 value);
 
     void setObjectId(long columnKey, ObjectId value);
+
+    void setUUID(long columnKey, UUID value);
 
     void setMixed(long columnKey, Mixed value);
 

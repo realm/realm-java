@@ -1226,6 +1226,133 @@ static void TableQuery_StringPredicate(JNIEnv* env, jlong nativeQueryPtr, jlongA
     CATCH_STD()
 }
 
+// UUID
+enum UUIDPredicate { UUIDEqual, UUIDNotEqual, UUIDLess, UUIDLessEqual, UUIDGreater, UUIDGreaterEqual };
+static void TableQuery_UUIDPredicate(JNIEnv* env, jlong nativeQueryPtr, jlongArray columnKeys,
+                                         jlongArray tablePointers, jstring j_data, UUIDPredicate predicate)
+{
+    try {
+        JStringAccessor data(env, j_data);
+        JLongArrayAccessor table_arr(env, tablePointers);
+        JLongArrayAccessor col_key_arr(env, columnKeys);
+        jsize arr_len = col_key_arr.size();
+
+        UUID uuid = UUID(StringData(data).data());
+        if (arr_len == 1) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_UUID)) {
+                return;
+            }
+
+            switch (predicate) {
+                case UUIDEqual:
+                    Q(nativeQueryPtr)->equal(ColKey(col_key_arr[0]), uuid);
+                    break;
+                case UUIDNotEqual:
+                    Q(nativeQueryPtr)->not_equal(ColKey(col_key_arr[0]), uuid);
+                    break;
+                case UUIDLess:
+                    Q(nativeQueryPtr)->less(ColKey(col_key_arr[0]), uuid);
+                    break;
+                case UUIDLessEqual:
+                    Q(nativeQueryPtr)->less_equal(ColKey(col_key_arr[0]), uuid);
+                    break;
+                case UUIDGreater:
+                    Q(nativeQueryPtr)->greater(ColKey(col_key_arr[0]), uuid);
+                    break;
+                case UUIDGreaterEqual:
+                    Q(nativeQueryPtr)->greater_equal(ColKey(col_key_arr[0]), uuid);
+                    break;
+            }
+        }
+        else {
+            LinkChain linkChain = getTableForLinkQuery(nativeQueryPtr, table_arr, col_key_arr);
+            switch (predicate) {
+                case UUIDEqual:
+                    Q(nativeQueryPtr)
+                            ->and_query(linkChain.column<UUID>(ColKey(col_key_arr[arr_len - 1])) ==
+                                        uuid);
+                    break;
+                case UUIDNotEqual:
+                    Q(nativeQueryPtr)
+                            ->and_query(linkChain.column<UUID>(ColKey(col_key_arr[arr_len - 1])) !=
+                                        uuid);
+                    break;
+                case UUIDLess:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_less<UUID, UUID, UUID>(linkChain, col_key_arr[arr_len - 1], uuid));
+                    break;
+                case UUIDLessEqual:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_lessequal<UUID, UUID, UUID>(linkChain, col_key_arr[arr_len - 1], uuid));
+                    break;
+                case UUIDGreater:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_greater<UUID, UUID, UUID>(linkChain, col_key_arr[arr_len - 1], uuid));
+                    break;
+                case UUIDGreaterEqual:
+                    Q(nativeQueryPtr)
+                            ->and_query(numeric_link_greaterequal<UUID, UUID, UUID>(linkChain, col_key_arr[arr_len - 1], uuid));
+                    break;
+            }
+        }
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualUUID(JNIEnv* env, jobject,
+                                                                         jlong nativeQueryPtr,
+                                                                         jlongArray columnKeys,
+                                                                         jlongArray tablePointers,
+                                                                         jstring j_data)
+{
+    TableQuery_UUIDPredicate(env, nativeQueryPtr, columnKeys, tablePointers, j_data, UUIDEqual);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualUUID(JNIEnv* env, jobject,
+                                                                            jlong nativeQueryPtr,
+                                                                            jlongArray columnKeys,
+                                                                            jlongArray tablePointers,
+                                                                            jstring j_data)
+{
+    TableQuery_UUIDPredicate(env, nativeQueryPtr, columnKeys, tablePointers, j_data, UUIDNotEqual);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessUUID(JNIEnv* env, jobject,
+                                                                        jlong nativeQueryPtr,
+                                                                        jlongArray columnKeys,
+                                                                        jlongArray tablePointers,
+                                                                        jstring j_data)
+{
+    TableQuery_UUIDPredicate(env, nativeQueryPtr, columnKeys, tablePointers, j_data, UUIDLess);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqualUUID(JNIEnv* env, jobject,
+                                                                             jlong nativeQueryPtr,
+                                                                             jlongArray columnKeys,
+                                                                             jlongArray tablePointers,
+                                                                             jstring j_data)
+{
+    TableQuery_UUIDPredicate(env, nativeQueryPtr, columnKeys, tablePointers, j_data, UUIDLessEqual);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterUUID(JNIEnv* env, jobject,
+                                                                           jlong nativeQueryPtr,
+                                                                           jlongArray columnKeys,
+                                                                           jlongArray tablePointers,
+                                                                           jstring j_data)
+{
+    TableQuery_UUIDPredicate(env, nativeQueryPtr, columnKeys, tablePointers, j_data, UUIDGreater);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqualUUID(JNIEnv* env, jobject,
+                                                                                jlong nativeQueryPtr,
+                                                                                jlongArray columnKeys,
+                                                                                jlongArray tablePointers,
+                                                                                jstring j_data)
+{
+    TableQuery_UUIDPredicate(env, nativeQueryPtr, columnKeys, tablePointers, j_data, UUIDGreaterEqual);
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3J_3JLjava_lang_String_2Z(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnKeys,
     jlongArray tablePointers, jstring value, jboolean caseSensitive)
@@ -1786,6 +1913,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
                 case type_Timestamp:
                 case type_Decimal:
                 case type_ObjectId:
+                case type_UUID:
                     Q(nativeQueryPtr)->equal(ColKey(column_idx), realm::null());
                     break;
                 default:
@@ -1827,6 +1955,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(JNIEnv* en
                     break;
                 case type_ObjectId:
                     pQuery->and_query(linkChain.column<ObjectId>(ColKey(column_idx)) == realm::null());
+                    break;
+                case type_UUID:
+                    pQuery->and_query(linkChain.column<UUID>(ColKey(column_idx)) == realm::null());
                     break;
                 default:
                     REALM_UNREACHABLE();
@@ -1874,6 +2005,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull(JNIEnv*
                 case type_Timestamp:
                 case type_Decimal:
                 case type_ObjectId:
+                case type_UUID:
                     pQuery->not_equal(ColKey(column_idx), realm::null());
                     break;
                 default:
@@ -1916,6 +2048,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull(JNIEnv*
                     break;
                 case type_ObjectId:
                     pQuery->and_query(linkChain.column<ObjectId>(ColKey(column_idx)) != realm::null());
+                    break;
+                case type_UUID:
+                    pQuery->and_query(linkChain.column<UUID>(ColKey(column_idx)) != realm::null());
                     break;
                 default:
                     REALM_UNREACHABLE();

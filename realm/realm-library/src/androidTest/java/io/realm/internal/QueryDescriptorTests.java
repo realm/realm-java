@@ -16,8 +16,6 @@
 
 package io.realm.internal;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -28,6 +26,7 @@ import org.junit.runner.RunWith;
 import java.util.HashSet;
 import java.util.Set;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.Sort;
@@ -253,6 +252,8 @@ public class QueryDescriptorTests {
         for (RealmFieldType type : RealmFieldType.values()) {
             if (!filter.contains(type)) {
                 switch (type) {
+                    case MIXED:// FIXME: MIXED IGNORED.
+                    case TYPED_LINK:
                     case LINKING_OBJECTS:
                         break;
                     case LIST:

@@ -278,7 +278,7 @@ public class RealmProcessorTest {
     @Test
     public void compileIndexTypes() throws IOException {
         final String[] validIndexFieldTypes = {"byte", "short", "int", "long", "boolean", "String", "java.util.Date",
-                "Byte", "Short", "Integer", "Long", "Boolean"};
+                "Byte", "Short", "Integer", "Long", "Boolean", "org.bson.types.ObjectId", "java.util.UUID"};
 
         for (String fieldType : validIndexFieldTypes) {
             RealmSyntheticTestClass javaFileObject =
@@ -293,7 +293,7 @@ public class RealmProcessorTest {
     // Unsupported "Index" annotation types
     @Test
     public void compileInvalidIndexTypes() throws IOException {
-        final String[] invalidIndexFieldTypes = {"float", "double", "byte[]", "Simple", "RealmList", "Float", "Double"};
+        final String[] invalidIndexFieldTypes = {"float", "double", "byte[]", "Simple", "RealmList", "Float", "Double", "org.bson.types.Decimal128"};
 
         for (String fieldType : invalidIndexFieldTypes) {
             RealmSyntheticTestClass javaFileObject =
@@ -308,7 +308,7 @@ public class RealmProcessorTest {
     // Supported "PrimaryKey" annotation types
     @Test
     public void compilePrimaryKeyTypes() throws IOException {
-        final String[] validPrimaryKeyFieldTypes = {"byte", "short", "int", "long", "String", "Byte", "Short", "Integer", "Long"};
+        final String[] validPrimaryKeyFieldTypes = {"byte", "short", "int", "long", "String", "Byte", "Short", "Integer", "Long", "org.bson.types.ObjectId", "java.util.UUID"};
 
         for (String fieldType : validPrimaryKeyFieldTypes) {
             RealmSyntheticTestClass javaFileObject =
@@ -323,7 +323,7 @@ public class RealmProcessorTest {
     // Unsupported "PrimaryKey" annotation types
     @Test
     public void compileInvalidPrimaryKeyTypes() throws IOException {
-        final String[] invalidPrimaryKeyFieldTypes = {"boolean", "java.util.Date", "Simple", "RealmList<Simple>", "Boolean"};
+        final String[] invalidPrimaryKeyFieldTypes = {"boolean", "java.util.Date", "Simple", "RealmList<Simple>", "Boolean", "org.bson.types.Decimal128"};
 
         for (String fieldType : invalidPrimaryKeyFieldTypes) {
             RealmSyntheticTestClass javaFileObject =
@@ -339,7 +339,7 @@ public class RealmProcessorTest {
     @Test
     public void compileRequiredTypes() throws IOException {
         final String[] validPrimaryKeyFieldTypes = {"Byte", "Short", "Integer", "Long", "String",
-                "Float", "Double", "Boolean", "java.util.Date"};
+                "Float", "Double", "Boolean", "java.util.Date", "org.bson.types.ObjectId", "org.bson.types.Decimal128", "java.util.UUID"};
 
         for (String fieldType : validPrimaryKeyFieldTypes) {
             RealmSyntheticTestClass javaFileObject =
