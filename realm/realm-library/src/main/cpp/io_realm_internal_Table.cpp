@@ -573,6 +573,20 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeMixedAsObjectId(JNI
     return nullptr;
 }
 
+JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeMixedAsUUID(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                       jlong columnKey, jlong rowKey)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return nullptr;
+    }
+    try {
+        return to_jstring(env, table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey)).get<UUID>().to_string().data());
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
 JNIEXPORT jlongArray JNICALL Java_io_realm_internal_Table_nativeMixedAsDecimal128(JNIEnv* env, jclass, jlong nativeTableRefPtr,
                                                                        jlong columnKey, jlong rowKey)
 {

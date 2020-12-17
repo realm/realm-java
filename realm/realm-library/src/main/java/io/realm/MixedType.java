@@ -15,6 +15,7 @@ public enum MixedType {
     OBJECT(RealmFieldType.OBJECT),
     DECIMAL128(RealmFieldType.DECIMAL128),
     OBJECT_ID(RealmFieldType.OBJECT_ID),
+    UUID(RealmFieldType.UUID),
     NULL(null);
 
     private static final MixedType[] realmFieldToMixedTypeMap = new MixedType[MAX_CORE_TYPE_VALUE + 1];

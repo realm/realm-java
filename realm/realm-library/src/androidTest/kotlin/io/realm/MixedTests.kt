@@ -160,6 +160,15 @@ class MixedTests {
     }
 
     @Test
+    fun unmanaged_UUIDValue() {
+        val mixed = Mixed.valueOf(UUID.fromString(TestHelper.generateUUIDString(0)))
+
+        assertFalse(mixed.isManaged)
+        assertEquals(UUID.fromString(TestHelper.generateUUIDString(0)), mixed.asUUID())
+        assertEquals(MixedType.UUID, mixed.type)
+    }
+
+    @Test
     fun unmanaged_null() {
         val aLong: Long? = null
 
@@ -295,6 +304,20 @@ class MixedTests {
         assertTrue(mixedObject!!.isManaged)
         assertEquals(ObjectId(TestHelper.generateObjectIdHexString(0)), mixedObject.mixed!!.asObjectId())
         assertEquals(MixedType.OBJECT_ID, mixedObject.mixed!!.type)
+    }
+
+    @Test
+    fun managed_UUIDvalue() {
+        realm.executeTransaction {
+            val mixedObject = it.createObject<MixedNotIndexed>()
+            mixedObject.mixed = Mixed.valueOf(UUID.fromString(TestHelper.generateUUIDString(0)))
+        }
+
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+
+        assertTrue(mixedObject!!.isManaged)
+        assertEquals(UUID.fromString(TestHelper.generateUUIDString(0)), mixedObject.mixed!!.asUUID())
+        assertEquals(MixedType.UUID, mixedObject.mixed!!.type)
     }
 
     @Test

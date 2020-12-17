@@ -478,6 +478,10 @@ public class Table implements NativeObject {
         return Decimal128.fromIEEE754BIDEncoding(longs[0], longs[1]);
     }
 
+    public UUID mixedAsUUID(long columnKey, long rowKey) {
+        return UUID.fromString(nativeMixedAsUUID(nativeTableRefPtr, columnKey, rowKey));
+    }
+
     //
     // Setters
     //
@@ -957,6 +961,8 @@ public class Table implements NativeObject {
     public static native long[] nativeMixedAsDecimal128(long nativeTableRefPtr, long columnKey, long rowKey);
 
     public static native String nativeMixedAsObjectId(long nativeTableRefPtr, long columnKey, long rowKey);
+
+    public static native String nativeMixedAsUUID(long nativeTableRefPtr, long columnKey, long rowKey);
 
     public static native boolean nativeMixedIsNull(long nativeTableRefPtr, long columnKey, long rowKey);
 

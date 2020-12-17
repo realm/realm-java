@@ -20,6 +20,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -134,6 +135,8 @@ public abstract class Mixed implements ManageableObject {
                     return clazz.cast(table.mixedAsObjectId(columnIndex, rowIndex));
                 case DECIMAL128:
                     return clazz.cast(table.mixedAsDecimal128(columnIndex, rowIndex));
+                case UUID:
+                    return clazz.cast(table.mixedAsUUID(columnIndex, rowIndex));
                 default:
                     throw new ClassCastException("Couldn't cast to " + fieldType);
             }
@@ -171,7 +174,7 @@ public abstract class Mixed implements ManageableObject {
      * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Long
+     * @return a new, unmanaged {@link Mixed} of a Byte
      */
     public static Mixed valueOf(@Nullable Byte value) {
         return new Unmanaged(value, MixedType.INTEGER);
@@ -182,7 +185,7 @@ public abstract class Mixed implements ManageableObject {
      * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Long
+     * @return a new, unmanaged {@link Mixed} of a Short
      */
     public static Mixed valueOf(@Nullable Short value) {
         return new Unmanaged(value, MixedType.INTEGER);
@@ -193,7 +196,7 @@ public abstract class Mixed implements ManageableObject {
      * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Long
+     * @return a new, unmanaged {@link Mixed} of a Integer
      */
     public static Mixed valueOf(@Nullable Integer value) {
         return new Unmanaged(value, MixedType.INTEGER);
@@ -281,7 +284,7 @@ public abstract class Mixed implements ManageableObject {
      * If the value is not null the type will be {@link MixedType#OBJECT_ID}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a ObjectId
+     * @return a new, unmanaged {@link Mixed} of an ObjectId
      */
     public static Mixed valueOf(@Nullable ObjectId value) {
         return new Unmanaged(value, MixedType.OBJECT_ID);
@@ -296,6 +299,17 @@ public abstract class Mixed implements ManageableObject {
      */
     public static Mixed valueOf(@Nullable Decimal128 value) {
         return new Unmanaged(value, MixedType.DECIMAL128);
+    }
+
+    /**
+     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * If the value is not null the type will be {@link MixedType#UUID}, {@link MixedType#NULL} otherwise.
+     *
+     * @param value initial value
+     * @return a new, unmanaged {@link Mixed} of an UUID
+     */
+    public static Mixed valueOf(@Nullable UUID value) {
+        return new Unmanaged(value, MixedType.UUID);
     }
 
     /**
@@ -428,11 +442,21 @@ public abstract class Mixed implements ManageableObject {
     /**
      * Gets this value as a ObjectId if it is one, otherwise throws exception.
      *
-     * @return a ObjectId
+     * @return an ObjectId
      * @throws java.lang.ClassCastException if this value is not of the expected type
      */
     public ObjectId asObjectId() {
         return get(ObjectId.class, MixedType.OBJECT_ID);
+    }
+
+    /**
+     * Gets this value as a UUID if it is one, otherwise throws exception.
+     *
+     * @return an UUID
+     * @throws java.lang.ClassCastException if this value is not of the expected type
+     */
+    public UUID asUUID() {
+        return get(UUID.class, MixedType.UUID);
     }
 
     /**
