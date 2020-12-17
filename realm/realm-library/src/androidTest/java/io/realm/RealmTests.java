@@ -134,7 +134,6 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@Ignore("Tests crash due to bug in core, see https://jira.mongodb.org/browse/RCORE-435")
 @RunWith(AndroidJUnit4.class)
 @Ignore("Tests crash due to bug in core, see https://jira.mongodb.org/browse/RCORE-435")
 public class RealmTests {

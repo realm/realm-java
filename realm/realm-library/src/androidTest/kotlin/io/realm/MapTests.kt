@@ -19,7 +19,7 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.annotations.RealmModule
-import io.realm.entities.MapClass
+import io.realm.entities.*
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -209,6 +209,7 @@ class MapTests {
                 .allowQueriesOnUiThread(true)
                 .allowWritesOnUiThread(true)
                 .build()
+        realm = Realm.getInstance(config)
     }
 
     @After
@@ -219,7 +220,6 @@ class MapTests {
 
     @Test
     fun schemaTest() {
-        realm = Realm.getInstance(config)
         val objectSchema = realm.schema.get("MapClass")
         assertNotNull(objectSchema)
         assertTrue(objectSchema.hasField("myMap"))
@@ -227,5 +227,5 @@ class MapTests {
     }
 }
 
-@RealmModule(classes = [MapClass::class])
+@RealmModule(classes = [MapClass::class, Dog::class, Cat::class, Owner::class, DogPrimaryKey::class])
 class MapModule
