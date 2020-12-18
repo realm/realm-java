@@ -281,6 +281,9 @@ public class UncheckedRow implements NativeObject, Row {
                     Decimal128 decimalValue = value.asDecimal128();
                     nativeMixedSetDecimal128(nativePtr, columnKey, decimalValue.getLow(), decimalValue.getHigh());
                     break;
+                case UUID:
+                    nativeMixedSetUUID(nativePtr, columnKey, value.asUUID().toString());
+                    break;
                 case NULL:
                     nativeMixedSetNull(nativePtr, columnKey);
                     break;
@@ -512,6 +515,8 @@ public class UncheckedRow implements NativeObject, Row {
     public static native void nativeMixedSetDecimal128(long nativeRowPtr, long columnKey, long low, long high);
 
     public static native void nativeMixedSetObjectId(long nativeRowPtr, long columnKey, String data);
+
+    public static native void nativeMixedSetUUID(long nativeRowPtr, long columnKey, String data);
 
     public static native void nativeMixedSetNull(long nativeRowPtr, long columnKey);
 }

@@ -52,11 +52,38 @@ class MixedTests {
 
     // Unmanaged
     @Test
-    fun unmanaged_longValue() {
-        val mixed = Mixed.valueOf(10L)
+    fun unmanaged_byteValue() {
+        val mixed = Mixed.valueOf(10.toByte())
+
+        assertFalse(mixed.isManaged)
+        assertEquals(10, mixed.asByte())
+        assertEquals(MixedType.INTEGER, mixed.type)
+    }
+
+    @Test
+    fun unmanaged_shortValue() {
+        val mixed = Mixed.valueOf(10.toShort())
+
+        assertFalse(mixed.isManaged)
+        assertEquals(10, mixed.asShort())
+        assertEquals(MixedType.INTEGER, mixed.type)
+    }
+
+    @Test
+    fun unmanaged_integerValue() {
+        val mixed = Mixed.valueOf(10.toInt())
 
         assertFalse(mixed.isManaged)
         assertEquals(10, mixed.asInteger())
+        assertEquals(MixedType.INTEGER, mixed.type)
+    }
+
+    @Test
+    fun unmanaged_longValue() {
+        val mixed = Mixed.valueOf(10.toLong())
+
+        assertFalse(mixed.isManaged)
+        assertEquals(10, mixed.asLong())
         assertEquals(MixedType.INTEGER, mixed.type)
     }
 
@@ -133,6 +160,15 @@ class MixedTests {
     }
 
     @Test
+    fun unmanaged_UUIDValue() {
+        val mixed = Mixed.valueOf(UUID.fromString(TestHelper.generateUUIDString(0)))
+
+        assertFalse(mixed.isManaged)
+        assertEquals(UUID.fromString(TestHelper.generateUUIDString(0)), mixed.asUUID())
+        assertEquals(MixedType.UUID, mixed.type)
+    }
+
+    @Test
     fun unmanaged_null() {
         val aLong: Long? = null
 
@@ -145,10 +181,38 @@ class MixedTests {
 
     // Managed
     @Test
-    fun managed_longValue() {
+    fun managed_byteValue() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
-            mixedObject.mixed = Mixed.valueOf(10L)
+            val mixedObject = it.createObject<MixedNotIndexed>()
+            mixedObject.mixed = Mixed.valueOf(10.toByte())
+        }
+
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+
+        assertTrue(mixedObject!!.isManaged)
+        assertEquals(10, mixedObject.mixed?.asByte())
+        assertEquals(MixedType.INTEGER, mixedObject.mixed?.type)
+    }
+
+    @Test
+    fun managed_shortValue() {
+        realm.executeTransaction {
+            val mixedObject = it.createObject<MixedNotIndexed>()
+            mixedObject.mixed = Mixed.valueOf(10.toShort())
+        }
+
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+
+        assertTrue(mixedObject!!.isManaged)
+        assertEquals(10, mixedObject.mixed?.asShort())
+        assertEquals(MixedType.INTEGER, mixedObject.mixed?.type)
+    }
+
+    @Test
+    fun managed_integerValue() {
+        realm.executeTransaction {
+            val mixedObject = it.createObject<MixedNotIndexed>()
+            mixedObject.mixed = Mixed.valueOf(10.toInt())
         }
 
         val mixedObject = realm.where<MixedNotIndexed>().findFirst()
@@ -159,9 +223,23 @@ class MixedTests {
     }
 
     @Test
+    fun managed_longValue() {
+        realm.executeTransaction {
+            val mixedObject = it.createObject<MixedNotIndexed>()
+            mixedObject.mixed = Mixed.valueOf(10.toLong())
+        }
+
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+
+        assertTrue(mixedObject!!.isManaged)
+        assertEquals(10, mixedObject.mixed?.asLong())
+        assertEquals(MixedType.INTEGER, mixedObject.mixed?.type)
+    }
+
+    @Test
     fun managed_booleanValue() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.valueOf(true)
         }
 
@@ -175,7 +253,7 @@ class MixedTests {
     @Test
     fun managed_stringValue() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.valueOf("hello world")
         }
 
@@ -189,7 +267,7 @@ class MixedTests {
     @Test
     fun managed_binaryValue() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.valueOf(byteArrayOf(0, 1, 0))
         }
 
@@ -203,7 +281,7 @@ class MixedTests {
     @Test
     fun managed_dateValue() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.valueOf(Date(10))
         }
 
@@ -217,7 +295,7 @@ class MixedTests {
     @Test
     fun managed_decimal128Value() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.valueOf(Decimal128(10))
         }
 
@@ -231,7 +309,7 @@ class MixedTests {
     @Test
     fun managed_doubleValue() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.valueOf(10.0)
         }
 
@@ -245,7 +323,7 @@ class MixedTests {
     @Test
     fun managed_floatValue() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.valueOf(10f)
         }
 
@@ -259,7 +337,7 @@ class MixedTests {
     @Test
     fun managed_objectIdValue() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.valueOf(ObjectId(TestHelper.generateObjectIdHexString(0)))
         }
 
@@ -271,9 +349,23 @@ class MixedTests {
     }
 
     @Test
+    fun managed_UUIDvalue() {
+        realm.executeTransaction {
+            val mixedObject = it.createObject<MixedNotIndexed>()
+            mixedObject.mixed = Mixed.valueOf(UUID.fromString(TestHelper.generateUUIDString(0)))
+        }
+
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+
+        assertTrue(mixedObject!!.isManaged)
+        assertEquals(UUID.fromString(TestHelper.generateUUIDString(0)), mixedObject.mixed!!.asUUID())
+        assertEquals(MixedType.UUID, mixedObject.mixed!!.type)
+    }
+
+    @Test
     fun managed_null() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = null
         }
 
@@ -287,7 +379,7 @@ class MixedTests {
     @Test
     fun managed_nullMixed() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.nullValue()
         }
 
@@ -301,7 +393,7 @@ class MixedTests {
     @Test
     fun managed_validity() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.nullValue()
         }
 
@@ -319,7 +411,7 @@ class MixedTests {
     @Test
     fun managed_frozen() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.nullValue()
         }
 
@@ -334,7 +426,7 @@ class MixedTests {
     @Test
     fun managed_notFrozen() {
         realm.executeTransaction {
-            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.nullValue()
         }
 
