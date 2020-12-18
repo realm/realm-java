@@ -478,6 +478,10 @@ public class Table implements NativeObject {
         return Decimal128.fromIEEE754BIDEncoding(longs[0], longs[1]);
     }
 
+    public UUID mixedAsUUID(long columnKey, long rowKey) {
+        return UUID.fromString(nativeMixedAsUUID(nativeTableRefPtr, columnKey, rowKey));
+    }
+
     //
     // Setters
     //
@@ -599,6 +603,10 @@ public class Table implements NativeObject {
                 case DECIMAL128:
                     Decimal128 decimalValue = value.asDecimal128();
                     nativeMixedSetDecimal128(nativeTableRefPtr, columnKey, rowKey, decimalValue.getLow(), decimalValue.getHigh(), isDefault);
+                    break;
+                case UUID:
+                    UUID uuidValue = value.asUUID();
+                    nativeMixedSetUUID(nativeTableRefPtr, columnKey, rowKey, uuidValue.toString(), isDefault);
                     break;
                 case NULL:
                     nativeMixedSetNull(nativeTableRefPtr, columnKey, rowKey, isDefault);
@@ -958,6 +966,8 @@ public class Table implements NativeObject {
 
     public static native String nativeMixedAsObjectId(long nativeTableRefPtr, long columnKey, long rowKey);
 
+    public static native String nativeMixedAsUUID(long nativeTableRefPtr, long columnKey, long rowKey);
+
     public static native boolean nativeMixedIsNull(long nativeTableRefPtr, long columnKey, long rowKey);
 
     public static native void nativeMixedSetLong(long nativeTableRefPtr, long columnKey, long rowKey, long value, boolean isDefault);
@@ -979,6 +989,8 @@ public class Table implements NativeObject {
     public static native void nativeMixedSetDecimal128(long nativeTableRefPtr, long columnKey, long rowKey, long low, long high, boolean isDefault);
 
     public static native void nativeMixedSetObjectId(long nativeTableRefPtr, long columnKey, long rowKey, String data, boolean isDefault);
+
+    public static native void nativeMixedSetUUID(long nativeTableRefPtr, long columnKey, long rowKey, String data, boolean isDefault);
 
     public static native void nativeMixedSetLink(long nativeTableRefPtr, long columnKey, long rowKey, long value, boolean isDefault);
 

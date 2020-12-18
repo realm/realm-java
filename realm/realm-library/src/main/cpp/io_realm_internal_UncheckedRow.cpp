@@ -349,6 +349,20 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeMixedSetObjectI
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeMixedSetUUID(JNIEnv* env, jclass, jlong nativeRowPtr,
+                                                                                  jlong columnKey, jstring value)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return;
+    }
+
+    try {
+        JStringAccessor accessor(env, value);
+        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), Mixed(UUID(StringData(accessor).data())));
+    }
+    CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeMixedSetNull(JNIEnv* env, jclass, jlong nativeRowPtr,
                                                                                   jlong columnKey)
 {

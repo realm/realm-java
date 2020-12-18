@@ -187,6 +187,8 @@ public class RealmObjectSchemaTests {
         LONG(Long.class, true), PRIMITIVE_LONG(long.class, false),
         BYTE(Byte.class, true), PRIMITIVE_BYTE(byte.class, false),
         BOOLEAN(Boolean.class, true), PRIMITIVE_BOOLEAN(boolean.class, false),
+        OBJECT_ID(ObjectId.class, true),
+        UUID(UUID.class, true),
         DATE(Date.class, true);
 
         private final Class<?> clazz;
@@ -230,7 +232,9 @@ public class RealmObjectSchemaTests {
         SHORT(Short.class, true), PRIMITIVE_SHORT(short.class, false),
         INT(Integer.class, true), PRIMITIVE_INT(int.class, false),
         LONG(Long.class, true), PRIMITIVE_LONG(long.class, false),
-        BYTE(Byte.class, true), PRIMITIVE_BYTE(byte.class, false);
+        BYTE(Byte.class, true), PRIMITIVE_BYTE(byte.class, false),
+        OBJECT_ID(ObjectId.class, true),
+        UUID(UUID.class, true);
 
         private final Class<?> clazz;
         private final boolean nullable;
@@ -255,6 +259,7 @@ public class RealmObjectSchemaTests {
         DOUBLE(Double.class), PRIMITIVE_DOUBLE(double.class),
         BLOB(byte[].class),
         DATE(Date.class),
+        DECIMAL128(Decimal128.class),
         OBJECT(RealmObject.class),
         LIST(RealmList.class);
 
@@ -498,6 +503,8 @@ public class RealmObjectSchemaTests {
                 case SHORT:
                 case INT:
                 case LONG:
+                case OBJECT_ID:
+                case UUID:
                 case STRING:
                     assertTrue(schema.isNullable(fieldName));
                     break;
@@ -949,8 +956,18 @@ public class RealmObjectSchemaTests {
             } else {
                 schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY, FieldAttribute.REQUIRED);
             }
-            ((DynamicRealm)realm).createObject(schema.getClassName(), "1");
-            ((DynamicRealm)realm).createObject(schema.getClassName(), "2");
+
+            if(fieldType == PrimaryKeyFieldType.OBJECT_ID){
+                ((DynamicRealm)realm).createObject(schema.getClassName(), TestHelper.generateObjectIdHexString(1));
+                ((DynamicRealm)realm).createObject(schema.getClassName(), TestHelper.generateObjectIdHexString(2));
+            } else if(fieldType == PrimaryKeyFieldType.UUID){
+                ((DynamicRealm)realm).createObject(schema.getClassName(), TestHelper.generateUUIDString(1));
+                ((DynamicRealm)realm).createObject(schema.getClassName(), TestHelper.generateUUIDString(2));
+            } else {
+                ((DynamicRealm)realm).createObject(schema.getClassName(), "1");
+                ((DynamicRealm)realm).createObject(schema.getClassName(), "2");
+            }
+
             assertTrue(schema.hasPrimaryKey());
             assertFalse(schema.hasIndex(fieldName));
 
@@ -963,6 +980,12 @@ public class RealmObjectSchemaTests {
             if (fieldType == PrimaryKeyFieldType.STRING) {
                 assertEquals("1", results.get(0).getString(fieldName));
                 assertEquals("2", results.get(1).getString(fieldName));
+            } else if (fieldType == PrimaryKeyFieldType.OBJECT_ID) {
+                assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(1)), results.get(0).getObjectId(fieldName));
+                assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(2)), results.get(1).getObjectId(fieldName));
+            } else if (fieldType == PrimaryKeyFieldType.UUID) {
+                assertEquals(UUID.fromString(TestHelper.generateUUIDString(1)), results.get(0).getUUID(fieldName));
+                assertEquals(UUID.fromString(TestHelper.generateUUIDString(2)), results.get(1).getUUID(fieldName));
             } else {
                 assertEquals(1, results.get(0).getLong(fieldName));
                 assertEquals(2, results.get(1).getLong(fieldName));
@@ -1421,7 +1444,17 @@ public class RealmObjectSchemaTests {
 
             // Hackish way to add sample data, only treat string differently
             for (int i = 0; i < 5; i++) {
-                Object primaryKeyValue = (fieldType.getType() == String.class) ? Integer.toString(i) : i;
+                Object primaryKeyValue;
+                if (fieldType == PrimaryKeyFieldType.STRING) {
+                    primaryKeyValue = Integer.toString(i);
+                } else if (fieldType == PrimaryKeyFieldType.OBJECT_ID) {
+                    primaryKeyValue = new ObjectId(TestHelper.generateObjectIdHexString(i));
+                } else if (fieldType == PrimaryKeyFieldType.UUID) {
+                    primaryKeyValue = UUID.fromString(TestHelper.generateUUIDString(i));
+                } else {
+                    primaryKeyValue = i;
+                }
+
                 dynRealm.createObject(className, primaryKeyValue);
             }
 
