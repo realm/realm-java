@@ -92,6 +92,7 @@ set(classes_LIST
     io.realm.internal.OsObjectSchemaInfo io.realm.internal.OsResults
     io.realm.internal.NativeObjectReference io.realm.internal.OsCollectionChangeSet
     io.realm.internal.OsObject io.realm.internal.OsRealmConfig io.realm.internal.OsList
+    io.realm.internal.OsMap
     io.realm.internal.OsObjectStore
     io.realm.internal.core.DescriptorOrdering io.realm.internal.core.IncludeDescriptor
     io.realm.internal.objectstore.OsObjectBuilder

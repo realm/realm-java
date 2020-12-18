@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
+import io.realm.internal.Freezable;
 import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -67,7 +68,7 @@ import io.realm.rx.CollectionChange;
  * @see RealmQuery#findAll()
  * @see Realm#executeTransaction(Realm.Transaction)
  */
-public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
+public class RealmResults<E> extends OrderedRealmCollectionImpl<E> implements Freezable<RealmResults<E>> {
 
     // Called from Realm Proxy classes
     @SuppressLint("unused")

@@ -773,7 +773,6 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
                 case IS_VALID:
                 case IS_MANAGED:
                 case IS_FROZEN:
-                case FREEZE:
                     realm.cancelTransaction();
                     continue;
 

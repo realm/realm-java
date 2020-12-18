@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
+import io.realm.internal.Freezable;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.OsList;
 import io.realm.internal.OsResults;
@@ -61,7 +62,7 @@ import io.realm.rx.CollectionChange;
  * @param <E> the class of objects in list.
  */
 
-public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollection<E> {
+public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollection<E>, Freezable<RealmList<E>> {
 
     private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode.";
     static final String ALLOWED_ONLY_FOR_REALM_MODEL_ELEMENT_MESSAGE = "This feature is available only when the element type is implementing RealmModel.";
