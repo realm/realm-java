@@ -88,16 +88,25 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<Re
     // ManageableObject API
     // ------------------------------------------
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isManaged() {
         return mapStrategy.isManaged();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isValid() {
         return mapStrategy.isValid();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isFrozen() {
         return mapStrategy.isFrozen();
@@ -228,7 +237,7 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<Re
      */
     private static class ManagedMapStrategy<K, V> extends MapStrategy<K, V> {
 
-        private final MapOperator<K, V> mapOperator;
+        private final ManagedMapOperator<K, V> managedMapOperator;
 
         ManagedMapStrategy(BaseRealm baseRealm, OsMap osMap, ClassManager classManager) {
             String keyClass = classManager.getKeyClass();
@@ -237,7 +246,7 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<Re
             checkKeyClass(keyClass);
             checkValueClass(valueClass);
 
-            this.mapOperator = MapOperatorFactory.getOperator(keyClass, valueClass, baseRealm, osMap);
+            this.managedMapOperator = MapOperatorFactory.getOperator(keyClass, valueClass, baseRealm, osMap);
         }
 
         // ------------------------------------------
@@ -246,17 +255,17 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<Re
 
         @Override
         public boolean isManaged() {
-            return mapOperator.isManaged();
+            return managedMapOperator.isManaged();
         }
 
         @Override
         public boolean isValid() {
-            return mapOperator.isValid();
+            return managedMapOperator.isValid();
         }
 
         @Override
         public boolean isFrozen() {
-            return mapOperator.isFrozen();
+            return managedMapOperator.isFrozen();
         }
 
         // ------------------------------------------
@@ -265,58 +274,58 @@ public class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<Re
 
         @Override
         public int size() {
-            return mapOperator.size();
+            return managedMapOperator.size();
         }
 
         @Override
         public boolean isEmpty() {
-            return mapOperator.isEmpty();
+            return managedMapOperator.isEmpty();
         }
 
         @Override
         public boolean containsKey(Object key) {
-            return mapOperator.containsKey(key);
+            return managedMapOperator.containsKey(key);
         }
 
         @Override
         public boolean containsValue(Object value) {
             //noinspection SuspiciousMethodCalls
-            return mapOperator.containsKey(value);
+            return managedMapOperator.containsKey(value);
         }
 
         @Override
         public V get(Object key) {
-            return mapOperator.get(key);
+            return managedMapOperator.get(key);
         }
 
         @Override
         public V remove(Object key) {
-            return mapOperator.remove(key);
+            return managedMapOperator.remove(key);
         }
 
         @Override
         public void putAll(Map<? extends K, ? extends V> m) {
-            mapOperator.putAll(m);
+            managedMapOperator.putAll(m);
         }
 
         @Override
         public void clear() {
-            mapOperator.clear();
+            managedMapOperator.clear();
         }
 
         @Override
         public Set<K> keySet() {
-            return mapOperator.keySet();
+            return managedMapOperator.keySet();
         }
 
         @Override
         public Collection<V> values() {
-            return mapOperator.values();
+            return managedMapOperator.values();
         }
 
         @Override
         public Set<Entry<K, V>> entrySet() {
-            return mapOperator.entrySet();
+            return managedMapOperator.entrySet();
         }
 
         // ------------------------------------------

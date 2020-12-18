@@ -25,7 +25,7 @@ import io.realm.internal.OsMap;
 import io.realm.internal.Util;
 
 /**
- * This factory instantiates a {@link MapOperator} matching the map's key and value types.
+ * This factory instantiates a {@link ManagedMapOperator} matching the map's key and value types.
  * <p>
  * Note: at the moment {@link RealmMap}s can only use {@code String}s as keys and primitive, Mixed,
  * RealmList, RealmSet and RealmMap as values
@@ -45,14 +45,14 @@ public class MapOperatorFactory {
      * @param <V>
      * @return
      */
-    public static <K, V> MapOperator<K, V> getOperator(String keyClassString, String valueClassString, BaseRealm baseRealm, OsMap osMap) {
+    public static <K, V> ManagedMapOperator<K, V> getOperator(String keyClassString, String valueClassString, BaseRealm baseRealm, OsMap osMap) {
         // TODO: only String keys for now
         if (!keyClassString.equals(String.class.toString())) {
             throw new IllegalArgumentException("Only String keys are allowed in RealmMaps.");
         } else {
             // TODO: add other types when ready
             if (valueClassString.equals(Integer.class.toString())) {
-                return new MapOperator<>(baseRealm, keyClassString, new IntegerValueOperator(baseRealm, osMap));
+                return new ManagedMapOperator<>(baseRealm, keyClassString, new IntegerValueOperator(baseRealm, osMap));
             } else {
                 throw new IllegalArgumentException("Only Integer values are allowed in RealmMaps.");
             }
@@ -66,13 +66,13 @@ public class MapOperatorFactory {
  * @param <K>
  * @param <V>
  */
-class MapOperator<K, V> implements Map<K, V>, ManageableObject {
+class ManagedMapOperator<K, V> implements Map<K, V>, ManageableObject {
 
     private final BaseRealm baseRealm;
     private final Class<K> keyClass;
     private final MapValueOperator mapValueOperator;
 
-    MapOperator(BaseRealm baseRealm, String keyClass, MapValueOperator mapValueOperator) {
+    ManagedMapOperator(BaseRealm baseRealm, String keyClass, MapValueOperator mapValueOperator) {
         this.baseRealm = baseRealm;
         this.keyClass = getKeyClass(keyClass);
         this.mapValueOperator = mapValueOperator;

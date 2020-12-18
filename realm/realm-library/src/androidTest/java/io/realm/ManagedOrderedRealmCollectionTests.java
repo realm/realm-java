@@ -113,7 +113,6 @@ import static org.junit.Assert.fail;
  * @see UnManagedRealmCollectionTests
  */
 
-@Ignore("Tests crash due to bug in core, see https://jira.mongodb.org/browse/RCORE-435")
 @RunWith(Parameterized.class)
 @Ignore("Tests crash due to bug in core, see https://jira.mongodb.org/browse/RCORE-435")
 public class ManagedOrderedRealmCollectionTests extends CollectionTests {

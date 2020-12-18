@@ -36,19 +36,19 @@ class MapTests {
     // ------------------------------------------
 
     @Test
-    fun unmanagedMap_isManaged() {
+    fun unmanaged_isManaged() {
         val realmMap = RealmMap<String, Int>()
         assertFalse(realmMap.isManaged)
     }
 
     @Test
-    fun unmanagedMap_isValid() {
+    fun unmanaged_isValid() {
         val realmMap = RealmMap<String, Int>()
         assertTrue(realmMap.isValid)
     }
 
     @Test
-    fun unmanagedMap_size() {
+    fun unmanaged_size() {
         val realmMap = RealmMap<String, Int>()
         assertEquals(0, realmMap.size)
         realmMap[KEY] = VALUE
@@ -56,7 +56,7 @@ class MapTests {
     }
 
     @Test
-    fun unmanagedMap_isEmpty() {
+    fun unmanaged_isEmpty() {
         val realmMap = RealmMap<String, Int>()
         assertTrue(realmMap.isEmpty())
         realmMap[KEY] = VALUE
@@ -64,28 +64,28 @@ class MapTests {
     }
 
     @Test
-    fun unmanagedMap_containsKey() {
+    fun unmanaged_containsKey() {
         val realmMap = RealmMap<String, Int>()
         realmMap[KEY] = VALUE
         assertTrue(realmMap.containsKey(KEY))
     }
 
     @Test
-    fun unmanagedMap_containsValue() {
+    fun unmanaged_containsValue() {
         val realmMap = RealmMap<String, Int>()
         realmMap[KEY] = VALUE
         assertTrue(realmMap.containsValue(VALUE))
     }
 
     @Test
-    fun unmanagedMap_get() {
+    fun unmanaged_get() {
         val realmMap = RealmMap<String, Int>()
         realmMap[KEY] = VALUE
         assertEquals(realmMap[KEY], VALUE)
     }
 
     @Test
-    fun unmanagedMap_put() {
+    fun unmanaged_put() {
         val realmMap = RealmMap<String, Int>()
         assertEquals(0, realmMap.size)
         realmMap[KEY] = VALUE
@@ -94,7 +94,7 @@ class MapTests {
     }
 
     @Test
-    fun unmanagedMap_remove() {
+    fun unmanaged_remove() {
         val realmMap = RealmMap<String, Int>()
         realmMap[KEY] = VALUE
         assertEquals(1, realmMap.size)
@@ -104,7 +104,7 @@ class MapTests {
     }
 
     @Test
-    fun unmanagedMap_putAll() {
+    fun unmanaged_putAll() {
         val otherMap = HashMap<String, Int>().apply {
             this[KEY_1] = VALUE_1
             this[KEY_2] = VALUE_2
@@ -119,7 +119,7 @@ class MapTests {
     }
 
     @Test
-    fun unmanagedMap_clear() {
+    fun unmanaged_clear() {
         val realmMap = RealmMap<String, Int>()
         realmMap[KEY] = VALUE
         assertEquals(1, realmMap.size)
@@ -129,7 +129,7 @@ class MapTests {
     }
 
     @Test
-    fun unmanagedMap_constructorWithMap() {
+    fun unmanaged_constructorWithMap() {
         val otherMap = HashMap<String, Int>().apply {
             this[KEY_1] = VALUE_1
             this[KEY_2] = VALUE_2
@@ -143,7 +143,7 @@ class MapTests {
     }
 
     @Test
-    fun unmanagedMap_keySet() {
+    fun unmanaged_keySet() {
         val otherMap = HashMap<String, Int>().apply {
             this[KEY_1] = VALUE_1
             this[KEY_2] = VALUE_2
@@ -154,7 +154,7 @@ class MapTests {
     }
 
     @Test
-    fun unmanagedMap_values() {
+    fun unmanaged_values() {
         val otherMap = HashMap<String, Int>().apply {
             this[KEY_1] = VALUE_1
             this[KEY_2] = VALUE_2
@@ -165,23 +165,17 @@ class MapTests {
     }
 
     @Test
-    fun unmanagedMap_entrySet() {
+    fun unmanaged_entrySet() {
         val otherMap = HashMap<String, Int>().apply {
             this[KEY_1] = VALUE_1
             this[KEY_2] = VALUE_2
         }
         val realmMap = RealmMap<String, Int>(otherMap)
-        val expectedEntries = listOf(
-                Pair(KEY_1, VALUE_1),
-                Pair(KEY_2, VALUE_2)
-        )
-
-        val actualEntries = realmMap.entries.map { it.toPair() }
-        assertEquals(expectedEntries, actualEntries)
+        assertEquals(otherMap.entries, realmMap.entries)
     }
 
     @Test
-    fun unmanagedMap_freeze() {
+    fun unmanaged_freeze() {
         assertFailsWith<UnsupportedOperationException> {
             RealmMap<String, Int>().freeze()
         }
