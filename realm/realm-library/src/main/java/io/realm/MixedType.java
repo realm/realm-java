@@ -5,6 +5,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -22,6 +23,7 @@ public enum MixedType {
     DECIMAL128(RealmFieldType.DECIMAL128, Decimal128.class),
     OBJECT_ID(RealmFieldType.OBJECT_ID, ObjectId.class),
     OBJECT(RealmFieldType.TYPED_LINK, RealmModel.class),
+    UUID(RealmFieldType.UUID, java.util.UUID.class),
     NULL(null, null);
 
     private static final MixedType[] realmFieldToMixedTypeMap = new MixedType[MAX_CORE_TYPE_VALUE + 1];

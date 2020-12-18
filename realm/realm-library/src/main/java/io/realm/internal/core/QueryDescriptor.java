@@ -47,13 +47,13 @@ public class QueryDescriptor {
     //@VisibleForTesting
     public static final Set<RealmFieldType> SORT_VALID_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             RealmFieldType.BOOLEAN, RealmFieldType.INTEGER, RealmFieldType.FLOAT, RealmFieldType.DOUBLE,
-            RealmFieldType.STRING, RealmFieldType.DATE, RealmFieldType.DECIMAL128, RealmFieldType.OBJECT_ID)));
+            RealmFieldType.STRING, RealmFieldType.DATE, RealmFieldType.DECIMAL128, RealmFieldType.OBJECT_ID, RealmFieldType.UUID)));
 
     //@VisibleForTesting
     public static final Set<RealmFieldType> DISTINCT_VALID_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             RealmFieldType.BOOLEAN, RealmFieldType.INTEGER, RealmFieldType.STRING,
             RealmFieldType.BINARY, RealmFieldType.DATE, RealmFieldType.FLOAT, RealmFieldType.DOUBLE,
-            RealmFieldType.DECIMAL128, RealmFieldType.OBJECT_ID, RealmFieldType.OBJECT,
+            RealmFieldType.DECIMAL128, RealmFieldType.OBJECT_ID, RealmFieldType.OBJECT, RealmFieldType.UUID,
             RealmFieldType.LINKING_OBJECTS
     )));
 

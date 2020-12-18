@@ -59,6 +59,16 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
+    public Class<? extends RealmModel> getClazzImpl(String className) {
+        checkClassName(className);
+
+        if (className.equals("AllTypes")) {
+            return some.test.AllTypes.class;
+        }
+        throw getMissingProxyClassException(className);
+    }
+
+    @Override
     public <E extends RealmModel> E newInstance(Class<E> clazz, Object baseRealm, Row row, ColumnInfo columnInfo, boolean acceptDefaultValue, List<String> excludeFields) {
         final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         try {

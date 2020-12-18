@@ -20,11 +20,11 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
 import io.realm.Case;
-import io.realm.Sort;
 import io.realm.log.RealmLog;
 
 
@@ -499,6 +499,44 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
+    // Queries for UUID
+
+    public TableQuery equalTo(long[] columnKeys, long[] tablePtrs, UUID value) {
+        nativeEqualUUID(nativePtr, columnKeys, tablePtrs, value.toString());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery notEqualTo(long[] columnKeys, long[] tablePtrs, UUID value) {
+        nativeNotEqualUUID(nativePtr, columnKeys, tablePtrs, value.toString());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery lessThan(long[] columnKeys, long[] tablePtrs, UUID value) {
+        nativeLessUUID(nativePtr, columnKeys, tablePtrs, value.toString());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery lessThanOrEqual(long[] columnKeys, long[] tablePtrs, UUID value) {
+        nativeLessEqualUUID(nativePtr, columnKeys, tablePtrs, value.toString());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery greaterThan(long[] columnKeys, long[] tablePtrs, UUID value) {
+        nativeGreaterUUID(nativePtr, columnKeys, tablePtrs, value.toString());
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery greaterThanOrEqual(long[] columnKeys, long[] tablePtrs, UUID value) {
+        nativeGreaterEqualUUID(nativePtr, columnKeys, tablePtrs,  value.toString());
+        queryValidated = false;
+        return this;
+    }
+
     // Searching methods.
 
     /**
@@ -790,6 +828,18 @@ public class TableQuery implements NativeObject {
     private native void nativeLessObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
 
     private native void nativeLessEqualObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
+
+    private native void nativeEqualUUID(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
+
+    private native void nativeNotEqualUUID(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
+
+    private native void nativeGreaterUUID(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
+
+    private native void nativeGreaterEqualUUID(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
+
+    private native void nativeLessUUID(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
+
+    private native void nativeLessEqualUUID(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
 
     private native void nativeIsEmpty(long nativePtr, long[] columnKeys, long[] tablePtrs);
 

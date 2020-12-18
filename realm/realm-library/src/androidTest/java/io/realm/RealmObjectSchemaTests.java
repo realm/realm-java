@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
@@ -29,6 +31,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.CyclicType;
@@ -121,6 +124,9 @@ public class RealmObjectSchemaTests {
         DOUBLE(Double.class, true), PRIMITIVE_DOUBLE(double.class, false),
         BLOB(byte[].class, true),
         DATE(Date.class, true),
+        OBJECT_ID(ObjectId.class, true),
+        DECIMAL128(Decimal128.class, true),
+        UUID(UUID.class, true),
         OBJECT(RealmObject.class, false);
 
         final Class<?> clazz;
@@ -152,6 +158,9 @@ public class RealmObjectSchemaTests {
         DOUBLE_LIST(Double.class, true), PRIMITIVE_DOUBLE_LIST(double.class, false),
         BLOB_LIST(byte[].class, true),
         DATE_LIST(Date.class, true),
+        OBJECT_ID_LIST(ObjectId.class, true),
+        DECIMAL128_LIST(Decimal128.class, true),
+        UUID_LIST(UUID.class, true),
         LIST(RealmList.class, false); // List of Realm Objects
 
         final Class<?> clazz;
@@ -178,6 +187,8 @@ public class RealmObjectSchemaTests {
         LONG(Long.class, true), PRIMITIVE_LONG(long.class, false),
         BYTE(Byte.class, true), PRIMITIVE_BYTE(byte.class, false),
         BOOLEAN(Boolean.class, true), PRIMITIVE_BOOLEAN(boolean.class, false),
+        OBJECT_ID(ObjectId.class, true),
+        UUID(UUID.class, true),
         DATE(Date.class, true);
 
         private final Class<?> clazz;
@@ -221,7 +232,9 @@ public class RealmObjectSchemaTests {
         SHORT(Short.class, true), PRIMITIVE_SHORT(short.class, false),
         INT(Integer.class, true), PRIMITIVE_INT(int.class, false),
         LONG(Long.class, true), PRIMITIVE_LONG(long.class, false),
-        BYTE(Byte.class, true), PRIMITIVE_BYTE(byte.class, false);
+        BYTE(Byte.class, true), PRIMITIVE_BYTE(byte.class, false),
+        OBJECT_ID(ObjectId.class, true),
+        UUID(UUID.class, true);
 
         private final Class<?> clazz;
         private final boolean nullable;
@@ -246,6 +259,7 @@ public class RealmObjectSchemaTests {
         DOUBLE(Double.class), PRIMITIVE_DOUBLE(double.class),
         BLOB(byte[].class),
         DATE(Date.class),
+        DECIMAL128(Decimal128.class),
         OBJECT(RealmObject.class),
         LIST(RealmList.class);
 
@@ -489,6 +503,8 @@ public class RealmObjectSchemaTests {
                 case SHORT:
                 case INT:
                 case LONG:
+                case OBJECT_ID:
+                case UUID:
                 case STRING:
                     assertTrue(schema.isNullable(fieldName));
                     break;
@@ -767,6 +783,12 @@ public class RealmObjectSchemaTests {
                         assertEquals(0.0D, object.getDouble(fieldName), 0D);
                     } else if (fieldType == FieldType.DATE) {
                         assertEquals(new Date(0), object.getDate(fieldName));
+                    }  else if (fieldType == FieldType.OBJECT_ID) {
+                        assertEquals(new ObjectId("000000000000000000000000"), object.getObjectId(fieldName));
+                    }  else if (fieldType == FieldType.DECIMAL128) {
+                        assertEquals(Decimal128.parse("0"), object.getDecimal128(fieldName));
+                    } else if (fieldType == FieldType.UUID) {
+                        assertEquals(UUID.fromString("00000000-0000-0000-0000-000000000000"), object.getUUID(fieldName));
                     } else {
                         assertEquals(0, object.getInt(fieldName));
                     }
@@ -807,6 +829,15 @@ public class RealmObjectSchemaTests {
                     break;
                 case DATE_LIST:
                     checkListValueConversionToDefaultValue(Date.class, new Date(0));
+                    break;
+                case OBJECT_ID_LIST:
+                    checkListValueConversionToDefaultValue(ObjectId.class, new ObjectId("000000000000000000000000"));
+                    break;
+                case DECIMAL128_LIST:
+                    checkListValueConversionToDefaultValue(Decimal128.class, Decimal128.parse("0"));
+                    break;
+                case UUID_LIST:
+                    checkListValueConversionToDefaultValue(UUID.class, UUID.fromString("00000000-0000-0000-0000-000000000000"));
                     break;
                 case PRIMITIVE_INT_LIST:
                 case PRIMITIVE_LONG_LIST:
@@ -925,8 +956,18 @@ public class RealmObjectSchemaTests {
             } else {
                 schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY, FieldAttribute.REQUIRED);
             }
-            ((DynamicRealm)realm).createObject(schema.getClassName(), "1");
-            ((DynamicRealm)realm).createObject(schema.getClassName(), "2");
+
+            if(fieldType == PrimaryKeyFieldType.OBJECT_ID){
+                ((DynamicRealm)realm).createObject(schema.getClassName(), TestHelper.generateObjectIdHexString(1));
+                ((DynamicRealm)realm).createObject(schema.getClassName(), TestHelper.generateObjectIdHexString(2));
+            } else if(fieldType == PrimaryKeyFieldType.UUID){
+                ((DynamicRealm)realm).createObject(schema.getClassName(), TestHelper.generateUUIDString(1));
+                ((DynamicRealm)realm).createObject(schema.getClassName(), TestHelper.generateUUIDString(2));
+            } else {
+                ((DynamicRealm)realm).createObject(schema.getClassName(), "1");
+                ((DynamicRealm)realm).createObject(schema.getClassName(), "2");
+            }
+
             assertTrue(schema.hasPrimaryKey());
             assertFalse(schema.hasIndex(fieldName));
 
@@ -939,6 +980,12 @@ public class RealmObjectSchemaTests {
             if (fieldType == PrimaryKeyFieldType.STRING) {
                 assertEquals("1", results.get(0).getString(fieldName));
                 assertEquals("2", results.get(1).getString(fieldName));
+            } else if (fieldType == PrimaryKeyFieldType.OBJECT_ID) {
+                assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(1)), results.get(0).getObjectId(fieldName));
+                assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(2)), results.get(1).getObjectId(fieldName));
+            } else if (fieldType == PrimaryKeyFieldType.UUID) {
+                assertEquals(UUID.fromString(TestHelper.generateUUIDString(1)), results.get(0).getUUID(fieldName));
+                assertEquals(UUID.fromString(TestHelper.generateUUIDString(2)), results.get(1).getUUID(fieldName));
             } else {
                 assertEquals(1, results.get(0).getLong(fieldName));
                 assertEquals(2, results.get(1).getLong(fieldName));
@@ -1299,6 +1346,9 @@ public class RealmObjectSchemaTests {
         assertEquals(RealmFieldType.INTEGER, schema.getFieldType(AllJavaTypes.FIELD_SHORT));
         assertEquals(RealmFieldType.INTEGER, schema.getFieldType(AllJavaTypes.FIELD_INT));
         assertEquals(RealmFieldType.INTEGER, schema.getFieldType(AllJavaTypes.FIELD_LONG));
+        assertEquals(RealmFieldType.OBJECT_ID, schema.getFieldType(AllJavaTypes.FIELD_OBJECT_ID));
+        assertEquals(RealmFieldType.DECIMAL128, schema.getFieldType(AllJavaTypes.FIELD_DECIMAL128));
+        assertEquals(RealmFieldType.UUID, schema.getFieldType(AllJavaTypes.FIELD_UUID));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -1394,7 +1444,17 @@ public class RealmObjectSchemaTests {
 
             // Hackish way to add sample data, only treat string differently
             for (int i = 0; i < 5; i++) {
-                Object primaryKeyValue = (fieldType.getType() == String.class) ? Integer.toString(i) : i;
+                Object primaryKeyValue;
+                if (fieldType == PrimaryKeyFieldType.STRING) {
+                    primaryKeyValue = Integer.toString(i);
+                } else if (fieldType == PrimaryKeyFieldType.OBJECT_ID) {
+                    primaryKeyValue = new ObjectId(TestHelper.generateObjectIdHexString(i));
+                } else if (fieldType == PrimaryKeyFieldType.UUID) {
+                    primaryKeyValue = UUID.fromString(TestHelper.generateUUIDString(i));
+                } else {
+                    primaryKeyValue = i;
+                }
+
                 dynRealm.createObject(className, primaryKeyValue);
             }
 

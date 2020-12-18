@@ -29,6 +29,7 @@ import static io.realm.RealmFieldType.DOUBLE_LIST;
 import static io.realm.RealmFieldType.FLOAT_LIST;
 import static io.realm.RealmFieldType.INTEGER_LIST;
 import static io.realm.RealmFieldType.OBJECT_ID_LIST;
+import static io.realm.RealmFieldType.UUID_LIST;
 import static io.realm.RealmFieldType.STRING_LIST;
 
 
@@ -63,6 +64,8 @@ public class Property implements NativeObject {
     public static final int TYPE_DECIMAL128 = 11;
     @SuppressWarnings("WeakerAccess")
     public static final int TYPE_OBJECT_ID = 10;
+    @SuppressWarnings("WeakerAccess")
+    public static final int TYPE_UUID = 12;
     @SuppressWarnings("WeakerAccess")
     public static final int TYPE_MIXED = 9;
     @SuppressWarnings("WeakerAccess")
@@ -116,6 +119,9 @@ public class Property implements NativeObject {
             case OBJECT_ID:
                 type = TYPE_OBJECT_ID;
                 break;
+            case UUID:
+                type = TYPE_UUID;
+                break;
             case MIXED:
                 type = TYPE_MIXED;
                 break;
@@ -146,6 +152,9 @@ public class Property implements NativeObject {
                 break;
             case OBJECT_ID_LIST:
                 type = TYPE_OBJECT_ID | TYPE_ARRAY;
+                break;
+            case UUID_LIST:
+                type = TYPE_UUID | TYPE_ARRAY;
                 break;
             case DOUBLE_LIST:
                 type = TYPE_DOUBLE | TYPE_ARRAY;
@@ -186,6 +195,8 @@ public class Property implements NativeObject {
                 return RealmFieldType.DECIMAL128;
             case TYPE_OBJECT_ID:
                 return RealmFieldType.OBJECT_ID;
+            case TYPE_UUID:
+                return RealmFieldType.UUID;
             case TYPE_MIXED:
                 return RealmFieldType.MIXED;
             //noinspection PointlessBitwiseExpression
@@ -207,6 +218,8 @@ public class Property implements NativeObject {
                 return DECIMAL128_LIST;
             case TYPE_OBJECT_ID | TYPE_ARRAY:
                 return OBJECT_ID_LIST;
+            case TYPE_UUID | TYPE_ARRAY:
+                return UUID_LIST;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported property type: '%d'", propertyType));

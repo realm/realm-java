@@ -16,13 +16,9 @@
 
 package io.realm;
 
-import androidx.test.annotation.UiThreadTest;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.internal.util.collections.Sets;
@@ -37,9 +33,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import androidx.test.annotation.UiThreadTest;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
@@ -62,13 +61,13 @@ import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class RealmQueryTests extends QueryTests {
-
     private void populateTestRealm(Realm testRealm, int dataSize) {
         testRealm.beginTransaction();
         testRealm.deleteAll();
@@ -83,6 +82,8 @@ public class RealmQueryTests extends QueryTests {
             allTypes.setColumnLong(i);
             allTypes.setColumnObjectId(new ObjectId(TestHelper.generateObjectIdHexString(i)));
             allTypes.setColumnDecimal128(new Decimal128(new BigDecimal(i + ".23456789")));
+            allTypes.setColumnUUID(UUID.fromString(TestHelper.generateUUIDString(i)));
+
             NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
             nonLatinFieldNames.set델타(i);
             nonLatinFieldNames.setΔέλτα(i);
@@ -576,7 +577,7 @@ public class RealmQueryTests extends QueryTests {
         resultList = query.between(AllTypes.FIELD_LONG, 1, 100).findAll();
         assertEquals(1, resultList.size());
     }
-    
+
     @Test
     public void and_explicit() {
         populateTestRealm(realm, 200);
@@ -670,17 +671,96 @@ public class RealmQueryTests extends QueryTests {
     @Test
     public void equalTo_decimal128() {
         populateTestRealm(realm, 10);
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_DECIMAL128, new Decimal128(new BigDecimal( "7.23456789"))).findAll();
-        assertEquals(1, resultList.size());
-        assertEquals(new Decimal128(new BigDecimal( "7.23456789")), resultList.get(0).getColumnDecimal128());
+
+        for (int i = 0; i < 10; i++) {
+            RealmResults<AllTypes> resultList = realm.where(AllTypes.class)
+                    .equalTo(AllTypes.FIELD_DECIMAL128, new Decimal128(new BigDecimal(i + ".23456789")))
+                    .sort(AllTypes.FIELD_DECIMAL128, Sort.ASCENDING)
+                    .findAll();
+
+            assertEquals(1, resultList.size());
+            assertEquals(new Decimal128(new BigDecimal(i + ".23456789")), resultList.get(0).getColumnDecimal128());
+        }
     }
 
     @Test
     public void equalTo_objectId() {
         populateTestRealm(realm, 10);
-        RealmResults<AllTypes> resultList = realm.where(AllTypes.class).sort(AllTypes.FIELD_OBJECT_ID, Sort.ASCENDING).findAll();
+
         for (int i = 0; i < 10; i++) {
-            assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(i)), resultList.get(i).getColumnObjectId());
+            RealmResults<AllTypes> resultList = realm.where(AllTypes.class)
+                    .equalTo(AllTypes.FIELD_OBJECT_ID, new ObjectId(TestHelper.generateObjectIdHexString(i)))
+                    .sort(AllTypes.FIELD_OBJECT_ID, Sort.ASCENDING)
+                    .findAll();
+
+            assertEquals(1, resultList.size());
+            assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(i)), resultList.get(0).getColumnObjectId());
+        }
+    }
+
+    @Test
+    public void equalTo_UUID() {
+        populateTestRealm(realm, 10);
+        for (int i = 0; i < 10; i++) {
+            RealmResults<AllTypes> resultList = realm
+                    .where(AllTypes.class)
+                    .equalTo(AllTypes.FIELD_UUID, UUID.fromString(TestHelper.generateUUIDString(i)))
+                    .sort(AllTypes.FIELD_UUID, Sort.ASCENDING)
+                    .findAll();
+
+            assertEquals(1, resultList.size());
+            assertEquals(UUID.fromString(TestHelper.generateUUIDString(i)), resultList.get(0).getColumnUUID());
+        }
+    }
+
+    @Test
+    public void notEqualTo_objectId() {
+        populateTestRealm(realm, 10);
+
+        RealmResults<AllTypes> resultList = realm
+                .where(AllTypes.class)
+                .notEqualTo(AllTypes.FIELD_OBJECT_ID, new ObjectId(TestHelper.generateObjectIdHexString(0)))
+                .sort(AllTypes.FIELD_OBJECT_ID, Sort.ASCENDING)
+                .findAll();
+
+        assertEquals(9, resultList.size());
+
+        for (int i = 1; i < 10; i++) {
+            assertNotEquals(new ObjectId(TestHelper.generateObjectIdHexString(0)), resultList.get(0).getColumnObjectId());
+        }
+    }
+
+    @Test
+    public void notEqualTo_decimal128() {
+        populateTestRealm(realm, 10);
+
+        RealmResults<AllTypes> resultList = realm
+                .where(AllTypes.class)
+                .notEqualTo(AllTypes.FIELD_DECIMAL128, new Decimal128(new BigDecimal("0.23456789")))
+                .sort(AllTypes.FIELD_UUID, Sort.ASCENDING)
+                .findAll();
+
+        assertEquals(9, resultList.size());
+
+        for (int i = 1; i < 10; i++) {
+            assertNotEquals(new Decimal128(new BigDecimal("0.23456789")), resultList.get(0).getColumnDecimal128());
+        }
+    }
+
+    @Test
+    public void notEqualTo_UUID() {
+        populateTestRealm(realm, 10);
+
+        RealmResults<AllTypes> resultList = realm
+                .where(AllTypes.class)
+                .notEqualTo(AllTypes.FIELD_UUID, UUID.fromString("007ba5ca-aa12-4afa-9219-e20cc3018599"))
+                .sort(AllTypes.FIELD_UUID, Sort.ASCENDING)
+                .findAll();
+
+        assertEquals(10, resultList.size());
+
+        for (int i = 0; i < 10; i++) {
+            assertNotEquals(UUID.fromString("007ba5ca-aa12-4afa-9219-e20cc3018599"), resultList.get(0).getColumnUUID());
         }
     }
 
@@ -2828,6 +2908,12 @@ public class RealmQueryTests extends QueryTests {
                     case OBJECT_ID:
                         realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT_ID).findAll();
                         break;
+                    case UUID:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_UUID).findAll();
+                        break;
+                    case MIXED:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_MIXED).findAll();
+                        break;
                     case INTEGER_LIST:
                         realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_INTEGER_LIST).findAll();
                         break;
@@ -2854,6 +2940,9 @@ public class RealmQueryTests extends QueryTests {
                         break;
                     case OBJECT_ID_LIST:
                         realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT_ID_LIST).findAll();
+                        break;
+                    case UUID_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_UUID_LIST).findAll();
                         break;
                     default:
                         fail("Unknown type: " + type);
@@ -2974,6 +3063,12 @@ public class RealmQueryTests extends QueryTests {
                     case OBJECT_ID:
                         realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT_ID).findAll();
                         break;
+                    case UUID:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_UUID).findAll();
+                        break;
+                    case MIXED:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_MIXED).findAll();
+                        break;
                     case INTEGER_LIST:
                         realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_INTEGER_LIST).findAll();
                         break;
@@ -3000,6 +3095,9 @@ public class RealmQueryTests extends QueryTests {
                         break;
                     case OBJECT_ID_LIST:
                         realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT_ID_LIST).findAll();
+                        break;
+                    case UUID_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_UUID_LIST).findAll();
                         break;
                     default:
                         fail("Unknown type: " + type);
@@ -3148,6 +3246,7 @@ public class RealmQueryTests extends QueryTests {
                 obj.setColumnDate(new Date(1000L * j));
                 obj.setColumnDecimal128(new Decimal128(j));
                 obj.setColumnObjectId(new ObjectId(j, j));
+                obj.setColumnUUID(UUID.fromString(TestHelper.generateUUIDString(j)));
                 obj.setColumnMutableRealmInteger(j);
                 obj.setColumnRealmLink(obj);
                 obj.setColumnRealmObject(dog);
@@ -3215,6 +3314,7 @@ public class RealmQueryTests extends QueryTests {
 
         // Bookkeeping to ensure that we are actually testing all types
         HashSet types = new HashSet(Arrays.asList(RealmFieldType.values()));
+        types.remove(RealmFieldType.TYPED_LINK);
 
         // Iterate all fields of AllTypes table and verify that distinct either:
         // - Returns correct number of entries, or
@@ -4013,9 +4113,10 @@ public class RealmQueryTests extends QueryTests {
             case OBJECT:
             case DECIMAL128:
             case OBJECT_ID:
-            case MIXED:
+            case UUID:
             case LINKING_OBJECTS:
                 return true;
+            case MIXED:
             case LIST:
             case INTEGER_LIST:
             case BOOLEAN_LIST:
@@ -4026,9 +4127,9 @@ public class RealmQueryTests extends QueryTests {
             case DOUBLE_LIST:
             case DECIMAL128_LIST:
             case OBJECT_ID_LIST:
-            case MIXED_LIST:
-            case TYPED_LINK:
+            case UUID_LIST:
                 return false;
+            case TYPED_LINK:
         }
         // Should never reach here as the above switch is exhaustive
         throw new UnsupportedOperationException("Unhandled realm field type " + type);
