@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import io.realm.ImportFlag;
 import io.realm.Mixed;
 import io.realm.MutableRealmInteger;
+import io.realm.RealmDictionary;
 import io.realm.RealmList;
 import io.realm.RealmMap;
 import io.realm.RealmModel;
@@ -465,7 +466,7 @@ public class OsObjectBuilder implements Closeable {
         nativeStopList(builderPtr, columnKey, listPtr);
     }
 
-    public void addStringKeyMixedValueMap(long columnKey, RealmMap<String, Mixed> map) {
+    public void addMixedValueDictionary(long columnKey, RealmDictionary<Mixed> dictionary) {
         // FIXME
     }
 

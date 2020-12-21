@@ -22,6 +22,5 @@ import io.realm.RealmMap
 import io.realm.RealmObject
 
 open class MapClass : RealmObject() {
-    var myList: RealmList<Dog>? = null
     var myMap: RealmMap<String, Mixed>? = null
 }

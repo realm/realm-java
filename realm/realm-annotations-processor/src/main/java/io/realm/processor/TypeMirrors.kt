@@ -93,20 +93,16 @@ class TypeMirrors(env: ProcessingEnvironment) {
         }
 
         /**
-         * @return [Pair] containing the [TypeMirrors] of the key and value of a `RealmMap`.
+         * @return the [TypeMirror] of the elements in `RealmDictionary`.
          */
         @JvmStatic
-        fun getRealmMapTypeMirrors(field: VariableElement): Pair<TypeMirror, TypeMirror>? {
-            if (!Utils.isRealmMap(field)) {
+        fun getRealmDictionaryElementTypeMirror(field: VariableElement): TypeMirror? {
+            if (!Utils.isRealmDictionary(field)) {
                 return null
             }
-            return (field.asType() as DeclaredType).typeArguments
-                    .let { typeArguments ->
-                        when {
-                            typeArguments.isNotEmpty() -> Pair(typeArguments[0], typeArguments[1])
-                            else -> null
-                        }
-                    }
+            val typeArguments = (field.asType() as DeclaredType).typeArguments
+            return if (typeArguments.isNotEmpty()) typeArguments[0] else null
         }
+
     }
 }

@@ -47,14 +47,14 @@ public class MapOperatorFactory {
      */
     public static <K, V> ManagedMapOperator<K, V> getOperator(String keyClassString, String valueClassString, BaseRealm baseRealm, OsMap osMap) {
         // TODO: only String keys for now
-        if (!keyClassString.equals(String.class.toString())) {
+        if (!keyClassString.equals(String.class.getCanonicalName())) {
             throw new IllegalArgumentException("Only String keys are allowed in RealmMaps.");
         } else {
             // TODO: add other types when ready
-            if (valueClassString.equals(Integer.class.toString())) {
-                return new ManagedMapOperator<>(baseRealm, keyClassString, new IntegerValueOperator(baseRealm, osMap));
+            if (valueClassString.equals(Mixed.class.getCanonicalName())) {
+                return new ManagedMapOperator<>(baseRealm, keyClassString, new MixedValueOperator(baseRealm, osMap));
             } else {
-                throw new IllegalArgumentException("Only Integer values are allowed in RealmMaps.");
+                throw new IllegalArgumentException("Only Mixed values are allowed in RealmMaps.");
             }
         }
     }
@@ -71,6 +71,12 @@ class ManagedMapOperator<K, V> implements Map<K, V>, ManageableObject {
     private final BaseRealm baseRealm;
     private final Class<K> keyClass;
     private final MapValueOperator mapValueOperator;
+
+    ManagedMapOperator(BaseRealm baseRealm, Class<K> keyClass, MapValueOperator mapValueOperator) {
+        this.baseRealm = baseRealm;
+        this.keyClass = keyClass;
+        this.mapValueOperator = mapValueOperator;
+    }
 
     ManagedMapOperator(BaseRealm baseRealm, String keyClass, MapValueOperator mapValueOperator) {
         this.baseRealm = baseRealm;
@@ -194,9 +200,9 @@ abstract class MapValueOperator {
 /**
  * FIXME
  */
-class IntegerValueOperator extends MapValueOperator {
+class MixedValueOperator extends MapValueOperator {
 
-    IntegerValueOperator(BaseRealm baseRealm, OsMap osMap) {
+    MixedValueOperator(BaseRealm baseRealm, OsMap osMap) {
         super(baseRealm, osMap);
     }
 }

@@ -19,19 +19,19 @@ package some.test;
 import io.realm.RealmMap;
 import io.realm.RealmObject;
 
-public class RealmMapMissingGenerics extends RealmObject {
+public class RealmDictionaryMissingGenerics extends RealmObject {
 
-    private RealmMap map; // this is an error!
+    private RealmDictionary dictionary; // this is an error!
 
-    public RealmMapMissingGenerics() {
+    public RealmDictionaryMissingGenerics() {
         // no-op
     }
 
-    public RealmMap getMap() {
-        return map;
+    public RealmDictionary getMap() {
+        return dictionary;
     }
 
-    public void setMap(RealmMap map) {
-        this.map = map;
+    public void setDictionary(RealmDictionary dictionary) {
+        this.dictionary = dictionary;
     }
 }

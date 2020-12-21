@@ -58,8 +58,9 @@ public class RealmProcessorTest {
     private final JavaFileObject SimpleRealmModel = JavaFileObjects.forResource("some/test/SimpleRealmModel.java");
     private final JavaFileObject customInterface = JavaFileObjects.forResource("some/test/CustomInterface.java");
     private final JavaFileObject nonLatinName = JavaFileObjects.forResource("some/test/ÁrvíztűrőTükörfúrógép.java");
-    private final JavaFileObject realmMapMissingGenericsModel = JavaFileObjects.forResource("some/test/RealmMapMissingGenerics.java");
-    private final JavaFileObject realmMapModel = JavaFileObjects.forResource("some/test/RealmMapModel.java");
+                                                        private final JavaFileObject realmMapModel = JavaFileObjects.forResource("some/test/RealmMapModel.java");
+    private final JavaFileObject realmDictionaryMissingGenericsModel = JavaFileObjects.forResource("some/test/RealmDictionaryMissingGenerics.java");
+    private final JavaFileObject realmDictionaryModel = JavaFileObjects.forResource("some/test/RealmDictionaryModel.java");
 
     @Test
     public void compileSimpleFile() {
@@ -479,17 +480,25 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileRealmMapMissingGenerics() {
+    public void compileRealmMapModelNotAllowed() {
         ASSERT.about(javaSource())
-                .that(realmMapMissingGenericsModel)
+                .that(realmDictionaryMissingGenericsModel)
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }
 
     @Test
-    public void compileRealmMapModel() {
+    public void compileRealmDictionaryMissingGenerics() {
         ASSERT.about(javaSource())
-                .that(realmMapModel)
+                .that(realmDictionaryMissingGenericsModel)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileRealmDictionaryModel() {
+        ASSERT.about(javaSource())
+                .that(realmDictionaryModel)
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
     }

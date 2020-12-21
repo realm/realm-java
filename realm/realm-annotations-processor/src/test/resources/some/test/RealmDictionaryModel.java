@@ -17,22 +17,22 @@
 package some.test;
 
 import io.realm.Mixed;
-import io.realm.RealmMap;
+import io.realm.RealmDictionary;
 import io.realm.RealmObject;
 
-public class RealmMapModel extends RealmObject {
+public class RealmDictionaryModel extends RealmObject {
 
-    private RealmMap<String, Mixed> myMap;      // this fails in phase 1
+    private RealmDictionary<Mixed> myDictionary;
 
-    public RealmMapModel() {
+    public RealmDictionaryModel() {
         // no-op
     }
 
-    public RealmMap<String, Mixed> getMyMap() {
-        return myMap;
+    public RealmDictionary<Mixed> getMyMap() {
+        return myDictionary;
     }
 
-    public void setMyMap(RealmMap<String, Mixed> map) {
-        this.myMap = map;
+    public void setMyDictionary(RealmDictionary<Mixed> dictionary) {
+        this.myDictionary = dictionary;
     }
 }

@@ -41,7 +41,7 @@ object Utils {
     private lateinit var realmResults: DeclaredType
     private lateinit var markerInterface: DeclaredType
     private lateinit var realmModel: TypeMirror
-    private lateinit var realmMap: DeclaredType
+    private lateinit var realmDictionary: DeclaredType
 
     fun initialize(env: ProcessingEnvironment) {
         val elementUtils = env.elementUtils
@@ -53,11 +53,7 @@ object Utils {
         realmResults = typeUtils.getDeclaredType(env.elementUtils.getTypeElement("io.realm.RealmResults"), typeUtils.getWildcardType(null, null))
         realmModel = elementUtils.getTypeElement("io.realm.RealmModel").asType()
         markerInterface = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmModel"))
-        realmMap = typeUtils.getDeclaredType(
-                elementUtils.getTypeElement("io.realm.RealmMap"),
-                typeUtils.getWildcardType(null, null),
-                typeUtils.getWildcardType(null, null)
-        )
+        realmDictionary = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmDictionary"), typeUtils.getWildcardType(null, null))
     }
 
     /**
@@ -217,8 +213,8 @@ object Utils {
     /**
      * FIXME
      */
-    fun isRealmMap(field: VariableElement): Boolean {
-        return typeUtils.isAssignable(field.asType(), realmMap)
+    fun isRealmDictionary(field: VariableElement): Boolean {
+        return typeUtils.isAssignable(field.asType(), realmDictionary)
     }
 
     /**
@@ -310,13 +306,12 @@ object Utils {
         return QualifiedClassName(type.toString())
     }
 
-    fun getRealmMapTypes(field: VariableElement): Pair<QualifiedClassName, QualifiedClassName>? {
-        if (!isRealmMap(field)) {
+    fun getDictionaryType(field: VariableElement): QualifiedClassName? {
+        if (!isRealmDictionary(field)) {
             return null
         }
-        val keyType = requireNotNull(getMapKeyTypeQualifiedName(field))
-        val valueType = requireNotNull(getMapValueTypeQualifiedName(field))
-        return Pair(keyType, valueType)
+        val type = getGenericTypeForContainer(field) ?: return null
+        return QualifiedClassName(type.toString())
     }
 
     // Note that, because subclassing subclasses of RealmObject is forbidden,
@@ -361,17 +356,8 @@ object Utils {
     /**
      * FIXME
      */
-    fun getMapKeyTypeQualifiedName(field: VariableElement): QualifiedClassName? {
+    fun getDictionaryValueTypeQualifiedName(field: VariableElement): QualifiedClassName? {
         return getGenericTypeQualifiedName(field)
-    }
-
-    /**
-     * FIXME
-     */
-    fun getMapValueTypeQualifiedName(field: VariableElement): QualifiedClassName? {
-        val fieldType = field.asType()
-        val typeArguments = (fieldType as DeclaredType).typeArguments
-        return if (typeArguments.isEmpty()) null else QualifiedClassName(typeArguments[1].toString())
     }
 
     /**

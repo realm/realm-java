@@ -34,7 +34,7 @@ private const val VALUE_1 = 1
 private const val VALUE_2 = 2
 
 @RunWith(AndroidJUnit4::class)
-class MapTests {
+class DictionaryTests {
 
     // ------------------------------------------
     // Unmanaged map
@@ -42,70 +42,70 @@ class MapTests {
 
     @Test
     fun unmanaged_isManaged() {
-        val realmMap = RealmMap<String, Int>()
-        assertFalse(realmMap.isManaged)
+        val realmDictionary = RealmDictionary<Int>()
+        assertFalse(realmDictionary.isManaged)
     }
 
     @Test
     fun unmanaged_isValid() {
-        val realmMap = RealmMap<String, Int>()
-        assertTrue(realmMap.isValid)
+        val realmDictionary = RealmDictionary<Int>()
+        assertTrue(realmDictionary.isValid)
     }
 
     @Test
     fun unmanaged_size() {
-        val realmMap = RealmMap<String, Int>()
-        assertEquals(0, realmMap.size)
-        realmMap[KEY] = VALUE
-        assertEquals(1, realmMap.size)
+        val realmDictionary = RealmDictionary<Int>()
+        assertEquals(0, realmDictionary.size)
+        realmDictionary[KEY] = VALUE
+        assertEquals(1, realmDictionary.size)
     }
 
     @Test
     fun unmanaged_isEmpty() {
-        val realmMap = RealmMap<String, Int>()
-        assertTrue(realmMap.isEmpty())
-        realmMap[KEY] = VALUE
-        assertFalse(realmMap.isEmpty())
+        val realmDictionary = RealmDictionary<Int>()
+        assertTrue(realmDictionary.isEmpty())
+        realmDictionary[KEY] = VALUE
+        assertFalse(realmDictionary.isEmpty())
     }
 
     @Test
     fun unmanaged_containsKey() {
-        val realmMap = RealmMap<String, Int>()
-        realmMap[KEY] = VALUE
-        assertTrue(realmMap.containsKey(KEY))
+        val realmDictionary = RealmDictionary<Int>()
+        realmDictionary[KEY] = VALUE
+        assertTrue(realmDictionary.containsKey(KEY))
     }
 
     @Test
     fun unmanaged_containsValue() {
-        val realmMap = RealmMap<String, Int>()
-        realmMap[KEY] = VALUE
-        assertTrue(realmMap.containsValue(VALUE))
+        val realmDictionary = RealmDictionary<Int>()
+        realmDictionary[KEY] = VALUE
+        assertTrue(realmDictionary.containsValue(VALUE))
     }
 
     @Test
     fun unmanaged_get() {
-        val realmMap = RealmMap<String, Int>()
-        realmMap[KEY] = VALUE
-        assertEquals(realmMap[KEY], VALUE)
+        val realmDictionary = RealmDictionary<Int>()
+        realmDictionary[KEY] = VALUE
+        assertEquals(realmDictionary[KEY], VALUE)
     }
 
     @Test
     fun unmanaged_put() {
-        val realmMap = RealmMap<String, Int>()
-        assertEquals(0, realmMap.size)
-        realmMap[KEY] = VALUE
-        assertEquals(1, realmMap.size)
-        assertEquals(realmMap[KEY], VALUE)
+        val realmDictionary = RealmDictionary<Int>()
+        assertEquals(0, realmDictionary.size)
+        realmDictionary[KEY] = VALUE
+        assertEquals(1, realmDictionary.size)
+        assertEquals(realmDictionary[KEY], VALUE)
     }
 
     @Test
     fun unmanaged_remove() {
-        val realmMap = RealmMap<String, Int>()
-        realmMap[KEY] = VALUE
-        assertEquals(1, realmMap.size)
-        realmMap.remove(KEY)
-        assertEquals(0, realmMap.size)
-        assertNull(realmMap[KEY])
+        val realmDictionary = RealmDictionary<Int>()
+        realmDictionary[KEY] = VALUE
+        assertEquals(1, realmDictionary.size)
+        realmDictionary.remove(KEY)
+        assertEquals(0, realmDictionary.size)
+        assertNull(realmDictionary[KEY])
     }
 
     @Test
@@ -114,75 +114,75 @@ class MapTests {
             this[KEY_1] = VALUE_1
             this[KEY_2] = VALUE_2
         }
-        val realmMap = RealmMap<String, Int>()
-        realmMap.putAll(otherMap)
-        assertEquals(2, realmMap.size)
-        assertTrue(realmMap.containsKey(KEY_1))
-        assertTrue(realmMap.containsKey(KEY_2))
-        assertTrue(realmMap.containsValue(VALUE_1))
-        assertTrue(realmMap.containsValue(VALUE_2))
+        val realmDictionary = RealmDictionary<Int>()
+        realmDictionary.putAll(otherMap)
+        assertEquals(2, realmDictionary.size)
+        assertTrue(realmDictionary.containsKey(KEY_1))
+        assertTrue(realmDictionary.containsKey(KEY_2))
+        assertTrue(realmDictionary.containsValue(VALUE_1))
+        assertTrue(realmDictionary.containsValue(VALUE_2))
     }
 
     @Test
     fun unmanaged_clear() {
-        val realmMap = RealmMap<String, Int>()
-        realmMap[KEY] = VALUE
-        assertEquals(1, realmMap.size)
-        realmMap.clear()
-        assertEquals(0, realmMap.size)
-        assertNull(realmMap[KEY])
+        val realmDictionary = RealmDictionary<Int>()
+        realmDictionary[KEY] = VALUE
+        assertEquals(1, realmDictionary.size)
+        realmDictionary.clear()
+        assertEquals(0, realmDictionary.size)
+        assertNull(realmDictionary[KEY])
     }
 
     @Test
     fun unmanaged_constructorWithMap() {
-        val otherMap = HashMap<String, Int>().apply {
+        val otherDictionary = RealmDictionary<Int>().apply {
             this[KEY_1] = VALUE_1
             this[KEY_2] = VALUE_2
         }
-        val realmMap = RealmMap<String, Int>(otherMap)
-        assertEquals(2, realmMap.size)
-        assertTrue(realmMap.containsKey(KEY_1))
-        assertTrue(realmMap.containsKey(KEY_2))
-        assertTrue(realmMap.containsValue(VALUE_1))
-        assertTrue(realmMap.containsValue(VALUE_2))
+        val realmDictionary = RealmDictionary<Int>(otherDictionary)
+        assertEquals(2, realmDictionary.size)
+        assertTrue(realmDictionary.containsKey(KEY_1))
+        assertTrue(realmDictionary.containsKey(KEY_2))
+        assertTrue(realmDictionary.containsValue(VALUE_1))
+        assertTrue(realmDictionary.containsValue(VALUE_2))
     }
 
     @Test
     fun unmanaged_keySet() {
-        val otherMap = HashMap<String, Int>().apply {
+        val otherDictionary = RealmDictionary<Int>().apply {
             this[KEY_1] = VALUE_1
             this[KEY_2] = VALUE_2
         }
-        val realmMap = RealmMap<String, Int>(otherMap)
+        val realmDictionary = RealmDictionary<Int>(otherDictionary)
         val keySet = setOf(KEY_1, KEY_2)
-        assertEquals(keySet, realmMap.keys)
+        assertEquals(keySet, realmDictionary.keys)
     }
 
     @Test
     fun unmanaged_values() {
-        val otherMap = HashMap<String, Int>().apply {
+        val otherDictionary = RealmDictionary<Int>().apply {
             this[KEY_1] = VALUE_1
             this[KEY_2] = VALUE_2
         }
-        val realmMap = RealmMap<String, Int>(otherMap)
+        val realmDictionary = RealmDictionary<Int>(otherDictionary)
         val valueCollection = listOf(VALUE_1, VALUE_2)
-        assertEquals(valueCollection, realmMap.values.toList())
+        assertEquals(valueCollection, realmDictionary.values.toList())
     }
 
     @Test
     fun unmanaged_entrySet() {
-        val otherMap = HashMap<String, Int>().apply {
+        val otherDictionary = RealmDictionary<Int>().apply {
             this[KEY_1] = VALUE_1
             this[KEY_2] = VALUE_2
         }
-        val realmMap = RealmMap<String, Int>(otherMap)
-        assertEquals(otherMap.entries, realmMap.entries)
+        val realmDictionary = RealmDictionary<Int>(otherDictionary)
+        assertEquals(otherDictionary.entries, realmDictionary.entries)
     }
 
     @Test
     fun unmanaged_freeze() {
         assertFailsWith<UnsupportedOperationException> {
-            RealmMap<String, Int>().freeze()
+            RealmDictionary<Int>().freeze()
         }
     }
 
