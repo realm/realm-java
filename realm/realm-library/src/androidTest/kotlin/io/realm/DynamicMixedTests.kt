@@ -9,6 +9,7 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.util.*
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 
 // FIXME: MIXED PARAMETRIZED TESTS FOR INDEXED AND UNINDEXED
@@ -26,7 +27,7 @@ class DynamicMixedTests {
     }
 
     @Test
-    fun readWrite_primitive() {
+    fun writeRead_primitive() {
         val realm = DynamicRealm.getInstance(configFactory.createConfiguration("Mixed"))
 
         realm.beginTransaction()
@@ -48,7 +49,29 @@ class DynamicMixedTests {
     }
 
     @Test
-    fun readWrite_model() {
+    fun nullify() {
+        val realm = DynamicRealm.getInstance(configFactory.createConfiguration("Mixed"))
+
+        realm.beginTransaction()
+
+        realm.schema
+                .create("MixedObject")
+                .addField("myMixed", Mixed::class.java)
+
+        val anObject = realm.createObject("MixedObject")
+
+        realm.commitTransaction()
+
+        val myMixed = anObject.getMixed("myMixed")
+
+        assertTrue(myMixed.isNull)
+        assertEquals(MixedType.NULL, myMixed.type)
+
+        realm.close()
+    }
+
+    @Test
+    fun writeRead_model() {
         val realm = DynamicRealm.getInstance(configFactory.createConfiguration("Mixed"))
 
         realm.beginTransaction()
