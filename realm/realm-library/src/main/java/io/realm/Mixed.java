@@ -149,7 +149,7 @@ public abstract class Mixed implements ManageableObject {
                 case DECIMAL128:
                     return clazz.cast(table.mixedAsDecimal128(columnIndex, rowIndex));
                 case OBJECT:
-                    return getRealmModel(clazz);
+                    return clazz.cast(getRealmModel(clazz));
                 case UUID:
                     return clazz.cast(table.mixedAsUUID(columnIndex, rowIndex));
                 default:
@@ -161,32 +161,31 @@ public abstract class Mixed implements ManageableObject {
         @Override
         public Class<?> getValueClass() {
             MixedType mixedType = getType();
+            return (mixedType == MixedType.OBJECT) ? getRealmModelClass() : mixedType.getTypedClass();
+        }
 
-            if (mixedType == MixedType.OBJECT) {
-                Row row = getRow();
-                Table table = row.getTable();
-                long rowIndex = row.getObjectKey();
-                long columnIndex = getColumnIndex();
+        private Class<? extends RealmModel> getRealmModelClass() {
+            Row row = getRow();
+            Table table = row.getTable();
+            long rowIndex = row.getObjectKey();
+            long columnIndex = getColumnIndex();
 
-                OsSharedRealm sharedRealm = getProxyState()
-                        .getRealm$realm()
-                        .getSharedRealm();
+            OsSharedRealm sharedRealm = getProxyState()
+                    .getRealm$realm()
+                    .getSharedRealm();
 
-                String className = table.mixedGetClassName(sharedRealm, columnIndex, rowIndex);
+            String className = table.mixedGetClassName(sharedRealm, columnIndex, rowIndex);
 
-                return getProxyState()
-                        .getRealm$realm()
-                        .getConfiguration()
-                        .getSchemaMediator()
-                        .getClazz(className);
-            }
-
-            return mixedType.getTypedClass();
+            return getProxyState()
+                    .getRealm$realm()
+                    .getConfiguration()
+                    .getSchemaMediator()
+                    .getClazz(className);
         }
 
         @Nullable
         @SuppressWarnings({"TypeParameterUnusedInFormals", "unchecked"})
-        private <T extends RealmModel> T getRealmModel(Class<?> clazz) {
+        protected <T extends RealmModel> T getRealmModel(Class<?> clazz) {
             Class<T> modelClazz = (Class<T>) clazz;
 
             Row row = getRow();
@@ -218,7 +217,7 @@ public abstract class Mixed implements ManageableObject {
             return MixedType.fromNativeValue(table.mixedGetType(columnIndex, rowIndex));
         }
 
-        private Row getRow() {
+        protected Row getRow() {
             return getProxyState().getRow$realm();
         }
     }
