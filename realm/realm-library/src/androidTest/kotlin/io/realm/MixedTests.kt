@@ -412,7 +412,7 @@ class MixedTests {
     }
 
     @Test
-    fun managed_realmModelUnmanaged() {
+    fun managed_linkUnmanagedRealmModel() {
         val key = UUID.randomUUID().toString()
 
         realm.executeTransaction {
@@ -431,7 +431,7 @@ class MixedTests {
     }
 
     @Test
-    fun managed_realmModelManaged() {
+    fun managed_linkManagedRealmModel() {
         val key = UUID.randomUUID().toString()
 
         realm.executeTransaction {

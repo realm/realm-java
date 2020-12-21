@@ -46,4 +46,37 @@ class DynamicMixedTests {
 
         realm.close()
     }
+
+    @Test
+    fun readWrite_model() {
+        val realm = DynamicRealm.getInstance(configFactory.createConfiguration("Mixed"))
+
+        realm.beginTransaction()
+
+        realm.schema
+                .create("MixedObject")
+                .addField("myMixed", Mixed::class.java)
+
+        val innerObject = realm.createObject("MixedObject")
+        innerObject.setMixed("myMixed", Mixed.valueOf(Date(10)))
+
+        val outerObject = realm.createObject("MixedObject")
+        outerObject.setMixed("myMixed", Mixed.valueOf(innerObject))
+
+        realm.commitTransaction()
+
+        val innerMixed = innerObject.getMixed("myMixed")
+        val outerMixed = outerObject.getMixed("myMixed")
+
+        assertEquals(Date(10), innerMixed.asDate())
+        assertEquals(DynamicRealmObject::class.java, outerMixed.valueClass)
+
+        val aMixed = outerMixed
+                .asRealmModel(DynamicRealmObject::class.java)
+                .getMixed("myMixed")
+
+        assertEquals(innerMixed.asDate(), aMixed.asDate())
+
+        realm.close()
+    }
 }

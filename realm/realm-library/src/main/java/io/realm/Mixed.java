@@ -158,6 +158,35 @@ public abstract class Mixed implements ManageableObject {
         }
 
         @Nullable
+        @SuppressWarnings({"TypeParameterUnusedInFormals"})
+        protected abstract <T extends RealmModel> T getRealmModel(Class<?> clazz);
+
+        @Override
+        public boolean isNull() {
+            return getType() == MixedType.NULL;
+        }
+
+        private BaseRealm getRealm() {
+            return getProxyState().getRealm$realm();
+        }
+
+        @Override
+        public MixedType getType() {
+            Row row = getRow();
+            Table table = row.getTable();
+            long rowIndex = row.getObjectKey();
+            long columnIndex = getColumnIndex();
+
+            return MixedType.fromNativeValue(table.mixedGetType(columnIndex, rowIndex));
+        }
+
+        protected Row getRow() {
+            return getProxyState().getRow$realm();
+        }
+    }
+
+    abstract static class Inmutable<M extends RealmModel> extends Managed<M> {
+        @Nullable
         @Override
         public Class<?> getValueClass() {
             MixedType mixedType = getType();
@@ -184,6 +213,7 @@ public abstract class Mixed implements ManageableObject {
         }
 
         @Nullable
+        @Override
         @SuppressWarnings({"TypeParameterUnusedInFormals", "unchecked"})
         protected <T extends RealmModel> T getRealmModel(Class<?> clazz) {
             Class<T> modelClazz = (Class<T>) clazz;
@@ -197,28 +227,30 @@ public abstract class Mixed implements ManageableObject {
                     .getRealm$realm()
                     .get(modelClazz, table.mixedGetRowKey(columnIndex, rowIndex), false, Collections.emptyList());
         }
+    }
 
+    abstract static class Mutable<M extends RealmModel> extends Managed<M> {
+        @Nullable
         @Override
-        public boolean isNull() {
-            return getType() == MixedType.NULL;
+        public Class<?> getValueClass() {
+            MixedType mixedType = getType();
+            return (getType() == MixedType.OBJECT) ? DynamicRealmObject.class : mixedType.getTypedClass();
         }
 
-        private BaseRealm getRealm() {
-            return getProxyState().getRealm$realm();
-        }
-
+        @Nullable
         @Override
-        public MixedType getType() {
+        @SuppressWarnings({"TypeParameterUnusedInFormals", "unchecked"})
+        protected <T extends RealmModel> T getRealmModel(Class<?> clazz) {
+            Class<T> modelClazz = (Class<T>) clazz;
+
             Row row = getRow();
             Table table = row.getTable();
             long rowIndex = row.getObjectKey();
             long columnIndex = getColumnIndex();
 
-            return MixedType.fromNativeValue(table.mixedGetType(columnIndex, rowIndex));
-        }
-
-        protected Row getRow() {
-            return getProxyState().getRow$realm();
+            return getProxyState()
+                    .getRealm$realm()
+                    .get(modelClazz, table.getClassName(), table.mixedGetRowKey(columnIndex, rowIndex));
         }
     }
 

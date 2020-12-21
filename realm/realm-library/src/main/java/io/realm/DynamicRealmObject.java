@@ -19,6 +19,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Locale;
@@ -1338,7 +1339,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     }
 
     private Mixed getMixed(long columnKey) {
-        return new Mixed.Managed<DynamicRealmObject>() {
+        return new Mixed.Mutable<DynamicRealmObject>() {
             @Override
             protected ProxyState<DynamicRealmObject> getProxyState() {
                 return proxyState;
