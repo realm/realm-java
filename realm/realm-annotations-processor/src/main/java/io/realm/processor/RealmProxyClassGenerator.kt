@@ -229,7 +229,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     mixedFieldName(variableElement),
                     EnumSet.of(Modifier.PRIVATE, Modifier.FINAL),
                     String.format(
-                            "new Mixed.Inmutable<%1\$s>() {\n"
+                            "new Mixed.Immutable<%1\$s>() {\n"
                                     + "    @Override protected ProxyState<%1\$s> getProxyState() { return proxyState; }\n"
                                     + "    @Override protected long getColumnIndex() { return columnInfo.%2\$s; }\n"
                                     + "}",

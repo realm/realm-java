@@ -185,7 +185,7 @@ public abstract class Mixed implements ManageableObject {
         }
     }
 
-    abstract static class Inmutable<M extends RealmModel> extends Managed<M> {
+    abstract static class Immutable<M extends RealmModel> extends Managed<M> {
         @Nullable
         @Override
         public Class<?> getValueClass() {
