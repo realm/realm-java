@@ -562,7 +562,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMixedAsTimestamp(JNIE
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeMixedAsObjectId(JNIEnv* env, jclass, jlong nativeTableRefPtr,
-                                                                       jlong columnKey, jlong rowKey)
+                                                                             jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
     if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
@@ -570,6 +570,39 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeMixedAsObjectId(JNI
     }
     try {
         return to_jstring(env, table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey)).get<ObjectId>().to_string().data());
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeMixedGetRowKey(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                          jlong columnKey, jlong rowKey)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return -1;
+    }
+    try {
+        auto obj_link = table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey)).get<ObjLink>();
+        return obj_link.get_obj_key().value;
+    }
+    CATCH_STD()
+    return -1;
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeMixedGetTableName(JNIEnv* env, jclass, jlong nativeSharedRealmPtr, jlong nativeTableRefPtr,
+                                                                            jlong columnKey, jlong rowKey)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
+        return nullptr;
+    }
+    try {
+        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(nativeSharedRealmPtr));
+
+        auto obj_link = table->get_object(ObjKey(rowKey)).get<Mixed>(ColKey(columnKey)).get<ObjLink>();
+
+        return to_jstring(env, shared_realm->read_group().get_table(obj_link.get_table_key())->get_name());
     }
     CATCH_STD()
     return nullptr;
@@ -788,14 +821,18 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMixedSetNull(JNIEnv* e
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMixedSetLink(JNIEnv* env, jclass, jlong nativeTableRefPtr,
                                                                   jlong columnKey, jlong rowKey,
-                                                                  jlong targetRowKey, jboolean isDefault)
+                                                                  jlong targetTableRef, jlong targetObjectKey, jboolean isDefault)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Link)) {
+    if (!TYPE_VALID(env, table, columnKey, type_Mixed)) {
         return;
     }
     try {
-        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), Mixed(ObjKey(targetRowKey)), B(isDefault));
+        TableRef target_table = TBL_REF(targetTableRef);
+        ObjKey object_key(targetObjectKey);
+        ObjLink object_link(target_table->get_key(), object_key);
+
+        table->get_object(ObjKey(rowKey)).set(ColKey(columnKey), Mixed(object_link), B(isDefault));
     }
     CATCH_STD()
 }

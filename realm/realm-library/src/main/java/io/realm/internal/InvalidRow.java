@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import io.realm.Mixed;
+import io.realm.Realm;
 import io.realm.RealmFieldType;
 
 

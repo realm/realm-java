@@ -99,6 +99,11 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
+    protected Class<? extends RealmModel> getClazzImpl(String className) {
+        return originalMediator.getClazz(className);
+    }
+
+    @Override
     public <E extends RealmModel> E newInstance(Class<E> clazz,
             Object baseRealm,
             Row row,

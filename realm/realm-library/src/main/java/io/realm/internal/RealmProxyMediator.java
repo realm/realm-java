@@ -82,6 +82,26 @@ public abstract class RealmProxyMediator {
     protected abstract String getSimpleClassNameImpl(Class<? extends RealmModel> clazz);
 
     /**
+     * Returns a reference of the class that represents the specified class name. The returning class reference would be
+     * a realization of {@link RealmModel}.
+     *
+     * @param className the class name.
+     * @return a class reference to the representing class.
+     */
+    public final Class<? extends RealmModel> getClazz(String className) {
+        return getClazzImpl(className);
+    }
+
+    /**
+     * Returns a reference of the class that represents the specified class name. The returning class reference would be
+     * a realization of {@link RealmModel}.
+     *
+     * @param className the class name.
+     * @return a class reference to the representing class.
+     */
+    protected abstract Class<? extends RealmModel> getClazzImpl(String className);
+
+    /**
      * Creates a new instance of an {@link RealmObjectProxy} for the given RealmObject class.
      *
      * @param clazz the {@link RealmObject} to create {@link RealmObjectProxy} for.
@@ -242,6 +262,13 @@ public abstract class RealmProxyMediator {
     protected static void checkClass(Class<? extends RealmModel> clazz) {
         //noinspection ConstantConditions
         if (clazz == null) {
+            throw new NullPointerException("A class extending RealmObject must be provided");
+        }
+    }
+
+    protected static void checkClassName(String className) {
+        //noinspection ConstantConditions
+        if ((className == null) || (className.isEmpty())) {
             throw new NullPointerException("A class extending RealmObject must be provided");
         }
     }

@@ -33,11 +33,12 @@ import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_FLOAT;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_INTEGER;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_LINKING_OBJECTS;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_LIST;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_MIXED;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_OBJECT;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_OBJECTID;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_STRING;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_TYPED_LINK;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_UUID;
-import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_MIXED;
 import static io.realm.RealmFieldTypeConstants.DICTIONARY_OFFSET;
 import static io.realm.RealmFieldTypeConstants.LIST_OFFSET;
 import static io.realm.RealmFieldTypeConstants.MAX_CORE_TYPE_VALUE;
@@ -61,6 +62,7 @@ interface RealmFieldTypeConstants {
     int CORE_TYPE_VALUE_OBJECTID = 15;
     int CORE_TYPE_VALUE_UUID = 17;
     int CORE_TYPE_VALUE_MIXED = 6;
+    int CORE_TYPE_VALUE_TYPED_LINK = 16;
 
     int MAX_CORE_TYPE_VALUE = CORE_TYPE_VALUE_UUID;
 }
@@ -87,6 +89,7 @@ public enum RealmFieldType {
     OBJECT_ID(CORE_TYPE_VALUE_OBJECTID),
     UUID(CORE_TYPE_VALUE_UUID),
     MIXED(CORE_TYPE_VALUE_MIXED),
+    TYPED_LINK(CORE_TYPE_VALUE_TYPED_LINK),
 
     LIST(CORE_TYPE_VALUE_LIST),
     LINKING_OBJECTS(CORE_TYPE_VALUE_LINKING_OBJECTS),
