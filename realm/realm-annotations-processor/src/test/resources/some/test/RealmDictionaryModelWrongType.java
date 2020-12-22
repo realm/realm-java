@@ -19,11 +19,11 @@ package some.test;
 import io.realm.RealmDictionary;
 import io.realm.RealmObject;
 
-public class RealmDictionaryModel extends RealmObject {
+public class RealmDictionaryModelWrongType extends RealmObject {
 
     private RealmDictionary<byte[]> myDictionary;
 
-    public RealmDictionaryModel() {
+    public RealmDictionaryModelWrongType() {
         // no-op
     }
 

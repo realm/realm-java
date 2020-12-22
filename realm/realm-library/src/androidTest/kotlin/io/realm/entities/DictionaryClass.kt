@@ -16,11 +16,17 @@
 
 package io.realm.entities
 
+import io.realm.Mixed
 import io.realm.RealmDictionary
 import io.realm.RealmList
 import io.realm.RealmObject
 
-open class MapClass : RealmObject() {
+open class DictionaryClass : RealmObject() {
     var myList: RealmList<Dog>? = null
-    var myMap: RealmDictionary<String>? = null
+    var myDictionary: RealmDictionary<Mixed>? = null
+
+    companion object {
+        const val CLASS_NAME = "DictionaryClass"
+        const val DICTIONARY_FIELD_NAME = "myDictionary"
+    }
 }

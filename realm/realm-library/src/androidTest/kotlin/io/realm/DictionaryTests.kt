@@ -214,12 +214,12 @@ class DictionaryTests {
 
     @Test
     fun schemaTest() {
-        val objectSchema = realm.schema.get("MapClass")
+        val objectSchema = realm.schema.get(DictionaryClass.CLASS_NAME)
         assertNotNull(objectSchema)
-        assertTrue(objectSchema.hasField("myMap"))
-        assertEquals(objectSchema.getFieldType("myMap"), RealmFieldType.STRING_TO_MIXED_MAP)
+        assertTrue(objectSchema.hasField(DictionaryClass.DICTIONARY_FIELD_NAME))
+        assertEquals(objectSchema.getFieldType(DictionaryClass.DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_MIXED_MAP)
     }
 }
 
-@RealmModule(classes = [MapClass::class, Dog::class, Cat::class, Owner::class, DogPrimaryKey::class])
+@RealmModule(classes = [DictionaryClass::class, Dog::class, Cat::class, Owner::class, DogPrimaryKey::class])
 class MapModule
