@@ -15,8 +15,6 @@
  */
 package io.realm;
 
-import androidx.test.rule.UiThreadTestRule;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -28,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import androidx.test.rule.UiThreadTestRule;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.BacklinksSource;
 import io.realm.entities.BacklinksTarget;
@@ -61,11 +60,13 @@ public abstract class QueryTests {
                 RealmFieldType.BINARY,
                 RealmFieldType.LIST,
                 RealmFieldType.LINKING_OBJECTS));
+
         SUPPORTED_IS_EMPTY_TYPES = Collections.unmodifiableList(list);
         SUPPORTED_IS_NOT_EMPTY_TYPES = Collections.unmodifiableList(list);
 
         list = new ArrayList<>(Arrays.asList(RealmFieldType.values()));
         list.removeAll(SUPPORTED_IS_EMPTY_TYPES);
+        list.remove(RealmFieldType.TYPED_LINK);
 
         NOT_SUPPORTED_IS_EMPTY_TYPES = Collections.unmodifiableList(list);
         NOT_SUPPORTED_IS_NOT_EMPTY_TYPES = Collections.unmodifiableList(list);

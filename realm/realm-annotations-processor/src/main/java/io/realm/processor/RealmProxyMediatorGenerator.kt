@@ -17,18 +17,12 @@
 package io.realm.processor
 
 import com.squareup.javawriter.JavaWriter
-
+import io.realm.annotations.RealmModule
 import java.io.BufferedWriter
 import java.io.IOException
-import java.util.ArrayList
-import java.util.Arrays
-import java.util.EnumSet
-import java.util.Locale
-
+import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Modifier
-
-import io.realm.annotations.RealmModule
 import javax.tools.JavaFileObject
 
 class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingEnvironment,
@@ -93,6 +87,7 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
             emitGetExpectedObjectSchemaInfoMap(this)
             emitCreateColumnInfoMethod(this)
             emitGetSimpleClassNameMethod(this)
+            emitGetClazzClassNameMethod(this)
             emitNewInstanceMethod(this)
             emitGetClassModelList(this)
             emitCopyOrUpdateMethod(this)
@@ -169,9 +164,27 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
                     EnumSet.of(Modifier.PUBLIC),
                     "Class<? extends RealmModel>", "clazz"
             )
-                emitMediatorShortCircuitSwitch(writer, emitStatement = { i: Int ->
-                    emitStatement("return \"%s\"", internalClassNames[i])
-                })
+            emitMediatorShortCircuitSwitch(writer, emitStatement = { i: Int ->
+                emitStatement("return \"%s\"", internalClassNames[i])
+            })
+            endMethod()
+            emitEmptyLine()
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun emitGetClazzClassNameMethod(writer: JavaWriter) {
+        writer.apply {
+            emitAnnotation("Override")
+            beginMethod(
+                    "Class<? extends RealmModel>",
+                    "getClazzImpl",
+                    EnumSet.of(Modifier.PUBLIC),
+                    "String", "className"
+            )
+            emitMediatorInverseShortCircuitSwitch(writer, emitStatement = { i: Int ->
+                emitStatement("return %s.class", qualifiedModelClasses[i])
+            })
             endMethod()
             emitEmptyLine()
         }
@@ -569,6 +582,22 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
                 endControlFlow()
             }
             emitStatement("throw getMissingProxyClassException(clazz)")
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun emitMediatorInverseShortCircuitSwitch(writer: JavaWriter, nullPointerCheck: Boolean = true, emitStatement: (index: Int) -> Unit) {
+        writer.apply {
+            if (nullPointerCheck) {
+                emitStatement("checkClassName(className)")
+                emitEmptyLine()
+            }
+            for (i in qualifiedModelClasses.indices) {
+                beginControlFlow("if (className.equals(\"%s\"))", internalClassNames[i])
+                emitStatement(i)
+                endControlFlow()
+            }
+            emitStatement("throw getMissingProxyClassException(className)")
         }
     }
 

@@ -171,6 +171,9 @@ public class LinkingObjectsDynamicTests {
         dynamicRealm.commitTransaction();
 
         for (RealmFieldType fieldType : RealmFieldType.values()) {
+            if(fieldType == RealmFieldType.TYPED_LINK)
+                continue;
+
             try {
                 switch (fieldType) {
                     // skip valid types
