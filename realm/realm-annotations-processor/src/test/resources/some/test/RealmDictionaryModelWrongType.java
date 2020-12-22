@@ -14,13 +14,24 @@
  * limitations under the License.
  */
 
-package io.realm.entities
+package some.test;
 
-import io.realm.RealmDictionary
-import io.realm.RealmList
-import io.realm.RealmObject
+import io.realm.RealmDictionary;
+import io.realm.RealmObject;
 
-open class MapClass : RealmObject() {
-    var myList: RealmList<Dog>? = null
-    var myMap: RealmDictionary<String>? = null
+public class RealmDictionaryModel extends RealmObject {
+
+    private RealmDictionary<byte[]> myDictionary;
+
+    public RealmDictionaryModel() {
+        // no-op
+    }
+
+    public RealmDictionary<byte[]> getMyMap() {
+        return myDictionary;
+    }
+
+    public void setMyDictionary(RealmDictionary<byte[]> dictionary) {
+        this.myDictionary = dictionary;
+    }
 }

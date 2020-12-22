@@ -59,7 +59,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     lateinit var internalClassName: String
         private set
 
-    private val validPrimaryKeyTypes: List<TypeMirror> = Arrays.asList(
+    private val validPrimaryKeyTypes: List<TypeMirror> = listOf(
             typeMirrors.STRING_MIRROR,
             typeMirrors.PRIMITIVE_LONG_MIRROR,
             typeMirrors.PRIMITIVE_INT_MIRROR,
@@ -68,7 +68,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             typeMirrors.OBJECT_ID_MIRROR,
             typeMirrors.UUID_MIRROR
     )
-    private val validListValueTypes: List<TypeMirror> = Arrays.asList(
+    private val validListValueTypes: List<TypeMirror> = listOf(
             typeMirrors.STRING_MIRROR,
             typeMirrors.BINARY_MIRROR,
             typeMirrors.BOOLEAN_MIRROR,
@@ -82,6 +82,9 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             typeMirrors.DECIMAL128_MIRROR,
             typeMirrors.OBJECT_ID_MIRROR,
             typeMirrors.UUID_MIRROR,
+            typeMirrors.MIXED_MIRROR
+    )
+    private val validDictionaryTypes: List<TypeMirror>  = listOf(
             typeMirrors.MIXED_MIRROR
     )
     private val stringType = typeMirrors.STRING_MIRROR
@@ -303,6 +306,9 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         if (!checkCollectionTypes()) {
             return false
         }
+        if (!checkDictionaryTypes()) {
+            return false
+        }
         if (!checkReferenceTypes()) {
             return false
         }
@@ -356,6 +362,48 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
                     return false
                 }
             }
+        }
+
+        return true
+    }
+
+    private fun checkDictionaryTypes(): Boolean {
+        for (field in fields) {
+            if (Utils.isRealmDictionary(field)) {
+                if (!checkDictionaryValuesType(field)) {
+                    return false
+                }
+            }
+        }
+
+        return true
+    }
+
+    private fun checkDictionaryValuesType(field: VariableElement): Boolean {
+        // Check for missing generic (default back to Object)
+        if (Utils.getGenericTypeQualifiedName(field) == null) {
+            Utils.error(getFieldErrorSuffix(field) + "No generic type supplied for field", field)
+            return false
+        }
+
+        // Check that the referenced type is a concrete class and not an interface
+        val fieldType = field.asType()
+        val elementTypeMirror = (fieldType as DeclaredType).typeArguments[0]
+        if (elementTypeMirror.kind == TypeKind.DECLARED /* class of interface*/) {
+            val elementTypeElement = (elementTypeMirror as DeclaredType).asElement() as TypeElement
+            if (elementTypeElement.superclass.kind == TypeKind.NONE) {
+                Utils.error(
+                        getFieldErrorSuffix(field) + "Only concrete Realm classes are allowed in RealmLists. "
+                                + "Neither interfaces nor abstract classes are allowed.",
+                        field)
+                return false
+            }
+        }
+
+        // Check if the actual value class is acceptable
+        if (!containsType(validDictionaryTypes, elementTypeMirror) && !Utils.isRealmModel(elementTypeMirror)) {
+            Utils.error("""${getFieldErrorSuffix(field)}Element type of RealmDictionary must be of type 'Mixed' or any type that can be boxed as 'Mixed'.""", field)
+            return false
         }
 
         return true
