@@ -21,17 +21,17 @@ import io.realm.RealmObject;
 
 public class RealmDictionaryModelWrongType extends RealmObject {
 
-    private RealmDictionary<byte[]> myDictionary;
+    private RealmDictionary<String> myDictionary;
 
     public RealmDictionaryModelWrongType() {
         // no-op
     }
 
-    public RealmDictionary<byte[]> getMyMap() {
+    public RealmDictionary<String> getMyMap() {
         return myDictionary;
     }
 
-    public void setMyDictionary(RealmDictionary<byte[]> dictionary) {
+    public void setMyDictionary(RealmDictionary<String> dictionary) {
         this.myDictionary = dictionary;
     }
 }

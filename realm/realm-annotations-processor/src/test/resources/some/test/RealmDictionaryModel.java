@@ -22,17 +22,26 @@ import io.realm.RealmObject;
 
 public class RealmDictionaryModel extends RealmObject {
 
-    private RealmDictionary<Mixed> myDictionary;
+    private RealmDictionary<Mixed> myMixedRealmDictionary;
+    private RealmDictionary<Boolean> myBooleanRealmDictionary;
 
     public RealmDictionaryModel() {
         // no-op
     }
 
-    public RealmDictionary<Mixed> getMyMap() {
-        return myDictionary;
+    public RealmDictionary<Mixed> getMyMixedRealmDictionary() {
+        return myMixedRealmDictionary;
     }
 
-    public void setMyDictionary(RealmDictionary<Mixed> dictionary) {
-        this.myDictionary = dictionary;
+    public void setMyMixedRealmDictionary(RealmDictionary<Mixed> mixedRealmDictionary) {
+        this.myMixedRealmDictionary = mixedRealmDictionary;
+    }
+
+    public RealmDictionary<Boolean> getMyBooleanRealmDictionary() {
+        return myBooleanRealmDictionary;
+    }
+
+    public void setMyBooleanRealmDictionary(RealmDictionary<Boolean> booleanRealmDictionary) {
+        this.myBooleanRealmDictionary = booleanRealmDictionary;
     }
 }

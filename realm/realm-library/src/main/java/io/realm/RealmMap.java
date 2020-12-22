@@ -377,22 +377,7 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
 
         @Override
         protected V putInternal(K key, V value) {
-            // FIXME
-            return null;
-        }
-
-        private void checkKeyClass(String keyClass) {
-            // TODO: preliminary implementation
-            if (!keyClass.equals(String.class.getCanonicalName())) {
-                throw new IllegalArgumentException("Only String keys are allowed.");
-            }
-        }
-
-        private void checkValueClass(String valueClass) {
-            // TODO: preliminary implementation
-            if (!valueClass.equals(Mixed.class.getCanonicalName())) {
-                throw new IllegalArgumentException("Only 'Mixed' values are allowed.");
-            }
+            return managedMapOperator.put(key, value);
         }
     }
 

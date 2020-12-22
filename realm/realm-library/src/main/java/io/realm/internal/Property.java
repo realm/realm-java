@@ -32,6 +32,7 @@ import static io.realm.RealmFieldType.OBJECT_ID_LIST;
 import static io.realm.RealmFieldType.UUID_LIST;
 import static io.realm.RealmFieldType.STRING_LIST;
 import static io.realm.RealmFieldType.STRING_TO_MIXED_MAP;
+import static io.realm.RealmFieldType.STRING_TO_BOOLEAN_MAP;
 
 
 /**
@@ -165,6 +166,9 @@ public class Property implements NativeObject {
             case STRING_TO_MIXED_MAP:
                 type = TYPE_MIXED | TYPE_DICTIONARY;
                 break;
+            case STRING_TO_BOOLEAN_MAP:
+                type = TYPE_BOOL | TYPE_DICTIONARY;
+                break;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported filed type: '%s'.", fieldType.name()));
@@ -228,6 +232,8 @@ public class Property implements NativeObject {
                 return UUID_LIST;
             case TYPE_MIXED | TYPE_DICTIONARY:
                 return STRING_TO_MIXED_MAP;
+            case TYPE_BOOL | TYPE_DICTIONARY:
+                return STRING_TO_BOOLEAN_MAP;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported property type: '%d'", propertyType));

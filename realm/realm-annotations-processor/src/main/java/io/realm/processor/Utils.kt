@@ -223,7 +223,17 @@ object Utils {
      */
     fun getValueListFieldType(field: VariableElement): Constants.RealmFieldType {
         val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field)
-        return Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES[elementTypeMirror!!.toString()]!!
+        return Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES[elementTypeMirror!!.toString()]
+                ?: throw IllegalArgumentException("Invalid type mirror for field '$field'")
+    }
+
+    /**
+     * FIXME
+     */
+    fun getValueDictionaryFieldType(field: VariableElement): Constants.RealmFieldType {
+        val elementTypeMirror = TypeMirrors.getRealmDictionaryElementTypeMirror(field)
+        return Constants.DICTIONARY_ELEMENT_TYPE_TO_REALM_TYPES[elementTypeMirror!!.toString()]
+                ?: throw IllegalArgumentException("Invalid type mirror for field '$field'")
     }
 
     /**

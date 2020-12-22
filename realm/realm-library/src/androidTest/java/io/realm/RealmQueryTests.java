@@ -4130,6 +4130,7 @@ public class RealmQueryTests extends QueryTests {
             case MIXED_LIST:
             case UUID_LIST:
             case STRING_TO_MIXED_MAP:
+            case STRING_TO_BOOLEAN_MAP:
                 return false;
             case TYPED_LINK:
         }

@@ -501,24 +501,94 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             fieldTypeCanonicalName: String,
             valueTypeMirror: TypeMirror
     ) {
+        val forMixed = Utils.isMixedType(valueTypeMirror)
+
         with(writer) {
+            val genericType: QualifiedClassName? = Utils.getGenericTypeQualifiedName(field)
+
             // Getter
             emitAnnotation("Override")
             beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
-            // TODO
-            emitSingleLineComment("TODO")
-            emitStatement("""throw new RuntimeException("wip")""")
+                emitStatement("proxyState.getRealm\$realm().checkIfValid()")
+                emitSingleLineComment("use the cached value if available")
+                beginControlFlow("if (${fieldName}RealmDictionary != null)")
+                    emitStatement("return ${fieldName}RealmDictionary")
+                nextControlFlow("else")
+
+                    if (forMixed) {
+                        emitStatement("OsMap osMap = proxyState.getRow\$realm().getMixedMap(%s)", fieldColKeyVariableReference(field))
+                    } else {
+                        emitStatement("OsMap osMap = proxyState.getRow\$realm().getValueMap(%s, RealmFieldType.%s)", fieldColKeyVariableReference(field), Utils.getValueDictionaryFieldType(field).name)
+                    }
+
+                    emitStatement("${fieldName}RealmDictionary = new RealmDictionary<%s>(proxyState.getRealm\$realm(), osMap, %s.class)", genericType, genericType)
+                    emitStatement("return ${fieldName}RealmDictionary")
+                endControlFlow()
             endMethod()
             emitEmptyLine()
 
             // Setter
             emitAnnotation("Override")
             beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value")
-            // TODO
-            emitSingleLineComment("TODO")
-            emitStatement("""throw new RuntimeException("wip")""")
+                emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field)) emitter@{
+                    // check excludeFields
+                    beginControlFlow("if (proxyState.getExcludeFields\$realm().contains(\"%s\"))", field.simpleName.toString())
+                        emitStatement("return")
+                    endControlFlow()
+
+                    // FIXME: should we also consider "forRealmModel"?
+                    if (!forMixed) {
+                        return@emitter
+                    }
+
+                    emitSingleLineComment("if the dictionary contains unmanaged RealmModel instances boxed in Mixed objects, convert them to managed.")
+                    beginControlFlow("if (value != null && !value.isManaged())")
+                        emitStatement("final Realm realm = (Realm) proxyState.getRealm\$realm()")
+                        emitStatement("final RealmDictionary<%s> original = value", genericType)
+                        emitStatement("value = new RealmDictionary<%s>()", genericType)
+                        beginControlFlow("for (java.util.Map.Entry<java.lang.String, %s> item : original.entrySet())", genericType)
+                            emitStatement("String entryKey = item.getKey()")
+                            emitStatement("%s entryValue = item.getValue()", genericType)
+
+                            if (forMixed) {
+                                emitSingleLineComment("ensure (potential) RealmModel instances are copied to Realm if generic type is Mixed")
+                                beginControlFlow("if (entryValue == null || entryValue.isManaged())")
+                                emitStatement("value.put(entryKey, entryValue)")
+                                nextControlFlow("else")
+                                emitStatement("value.put(entryKey, ProxyUtils.copyToRealmIfNeeded(proxyState, entryValue))")
+                                endControlFlow()
+                            } else {
+                                emitStatement("value.put(entryKey, entryValue)")
+                            }
+
+                        endControlFlow()
+                    endControlFlow()
+                }
+
+                emitStatement("proxyState.getRealm\$realm().checkIfValid()")
+
+                if (forMixed) {
+                    emitStatement("OsMap osMap = proxyState.getRow\$realm().getMixedMap(%s)", fieldColKeyVariableReference(field))
+                } else {
+                    emitStatement("OsMap osMap = proxyState.getRow\$realm().getValueMap(%s, RealmFieldType.%s)", fieldColKeyVariableReference(field), Utils.getValueDictionaryFieldType(field).name)
+                }
+
+                beginControlFlow("if (value == null)")
+                    emitStatement("return")
+                endControlFlow()
+                beginControlFlow("for (java.util.Map.Entry<java.lang.String, %s> item : value.entrySet())", genericType)
+                    emitStatement("String entryKey = item.getKey()")
+                    emitStatement("%s entryValue = item.getValue()", genericType)
+
+                    if (forMixed) {
+                        emitStatement("osMap.put(entryKey, entryValue.osMixed)")
+                    } else {
+                        // TODO: missing other accepted types - use getStatementForAppendingValueToOsList for inspiration
+                    }
+
+                endControlFlow()
+
             endMethod()
-            emitEmptyLine()
         }
     }
 
@@ -832,9 +902,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val primaryKeyFlag = (if (metadata.isPrimaryKey(field)) "" else "!") + "Property.PRIMARY_KEY"
                             emitStatement("""builder.addPersistedProperty("%s", %s, %s, %s, %s)""", fieldName, fieldType.realmType, primaryKeyFlag, indexedFlag, nullableFlag)
                         }
+                        Constants.RealmFieldType.STRING_TO_BOOLEAN_MAP,
                         Constants.RealmFieldType.STRING_TO_MIXED_MAP -> {
-                            // TODO: do this properly once nullable and required are clear
-                            val requiredFlag = "Property.REQUIRED"     // schema creation fails if set to false
+                            val requiredFlag = "Property.REQUIRED"
                             emitStatement("""builder.addPersistedMapProperty("%s", %s, %s)""", fieldName, fieldType.realmType, requiredFlag)
                         }
                     }
@@ -2535,8 +2605,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             return Utils.getValueListFieldType(field)
         }
         if (Utils.isRealmDictionary(field)) {
-            // FIXME: temporary setup, first mixed only, later all types under "mixed umbrella"
-            return Constants.RealmFieldType.STRING_TO_MIXED_MAP
+            return Utils.getValueDictionaryFieldType(field)
         }
         return Constants.RealmFieldType.NOTYPE
     }
@@ -2565,6 +2634,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     "io.realm.exceptions.RealmMigrationNeededException",
                     "io.realm.internal.ColumnInfo",
                     "io.realm.internal.OsList",
+                    "io.realm.internal.OsMap",
                     "io.realm.internal.OsObject",
                     "io.realm.internal.OsSchemaInfo",
                     "io.realm.internal.OsObjectSchemaInfo",

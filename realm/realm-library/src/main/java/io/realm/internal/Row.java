@@ -99,6 +99,10 @@ public interface Row {
 
     OsList getValueList(long columnKey, RealmFieldType fieldType);
 
+    OsMap getMixedMap(long columnKey);
+
+    OsMap getValueMap(long columnKey, RealmFieldType fieldType);
+
     void setLong(long columnKey, long value);
 
     void setBoolean(long columnKey, boolean value);

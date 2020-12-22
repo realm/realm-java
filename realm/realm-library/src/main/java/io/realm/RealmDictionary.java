@@ -22,7 +22,7 @@ import java.util.Map;
 import io.realm.internal.OsMap;
 
 /**
- * Specialization for {@link RealmMap}s in which their keys are strings.
+ * Specialization for {@link RealmMap}s whose keys are strings.
  *
  * @param <V> the type of the values stored in this dictionary
  */
@@ -91,17 +91,16 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
     }
 
     private static <V> ManagedMapStrategy<String, V> getStrategy(String valueClass, BaseRealm baseRealm, OsMap osMap) {
-        return new ManagedMapStrategy<>(getOperator(valueClass, baseRealm, osMap));
+        DictionaryManagedMapOperator<V> operator = getOperator(valueClass, baseRealm, osMap);
+        return new ManagedMapStrategy<>(operator);
     }
 
-    private static <V> ManagedMapOperator<String, V> getOperator(Class<V> valueClass, BaseRealm baseRealm, OsMap osMap) {
-        return getOperator(valueClass.getCanonicalName(), baseRealm, osMap);
-    }
-
-    private static <V> ManagedMapOperator<String, V> getOperator(String valueClass, BaseRealm baseRealm, OsMap osMap) {
+    private static <V> DictionaryManagedMapOperator<V> getOperator(String valueClass, BaseRealm baseRealm, OsMap osMap) {
         // TODO: add other types when ready
         if (valueClass.equals(Mixed.class.getCanonicalName())) {
-            return new ManagedMapOperator<>(baseRealm, String.class, new MixedValueOperator(baseRealm, osMap));
+            MapValueOperator<Mixed> mixedValueOperator = new MixedValueOperator(baseRealm, osMap);
+            //noinspection unchecked
+            return new DictionaryManagedMapOperator<>((MapValueOperator<V>) mixedValueOperator);
         } else {
             throw new IllegalArgumentException("Only Mixed values are allowed in RealmMaps.");
         }

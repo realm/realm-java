@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package io.realm.entities
+package io.realm.internal;
 
-import io.realm.Mixed
-import io.realm.RealmDictionary
-import io.realm.RealmList
-import io.realm.RealmObject
+/**
+ * FIXME: temporary hack - remove when mixed objects are also instantiated natively.
+ */
+public class OsMixed implements NativeObject {
 
-open class DictionaryClass : RealmObject() {
+    @Override
+    public long getNativePtr() {
+        return 0;
+    }
 
-    var myMixedDictionary: RealmDictionary<Mixed>? = null
-    var myBooleanDictionary: RealmDictionary<Boolean>? = null
-    var myBooleanList: RealmList<Boolean>? = null
-
-    companion object {
-        const val CLASS_NAME = "DictionaryClass"
-        const val MIXED_DICTIONARY_FIELD_NAME = "myMixedDictionary"
-        const val BOOLEAN_DICTIONARY_FIELD_NAME = "myBooleanDictionary"
+    @Override
+    public long getNativeFinalizerPtr() {
+        return 0;
     }
 }

@@ -471,6 +471,10 @@ public class OsObjectBuilder implements Closeable {
         // FIXME
     }
 
+    public void addBooleanValueDictionary(long columnKey, RealmDictionary<Boolean> dictionary) {
+        // FIXME
+    }
+
     /**
      * Updates any existing object if it exists, otherwise creates a new one.
      * <p>

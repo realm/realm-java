@@ -483,7 +483,7 @@ public class RealmProcessorTest {
     @Test
     public void compileRealmMapModelNotAllowed() {
         ASSERT.about(javaSource())
-                .that(realmDictionaryMissingGenericsModel)
+                .that(realmMapModel)
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }

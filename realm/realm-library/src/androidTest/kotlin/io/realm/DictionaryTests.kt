@@ -190,7 +190,7 @@ class DictionaryTests {
     // Managed map - TBD
     // ------------------------------------------
 
-    // FIXME: temporary methods
+    // TODO: sanity-check tests for temporary schema validation - move to an appropriate place
 
     private lateinit var config: RealmConfiguration
     private lateinit var realm: Realm
@@ -215,9 +215,14 @@ class DictionaryTests {
     @Test
     fun schemaTest() {
         val objectSchema = realm.schema.get(DictionaryClass.CLASS_NAME)
+
         assertNotNull(objectSchema)
-        assertTrue(objectSchema.hasField(DictionaryClass.DICTIONARY_FIELD_NAME))
-        assertEquals(objectSchema.getFieldType(DictionaryClass.DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_MIXED_MAP)
+
+        assertTrue(objectSchema.hasField(DictionaryClass.MIXED_DICTIONARY_FIELD_NAME))
+        assertEquals(objectSchema.getFieldType(DictionaryClass.MIXED_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_MIXED_MAP)
+
+        assertTrue(objectSchema.hasField(DictionaryClass.BOOLEAN_DICTIONARY_FIELD_NAME))
+        assertEquals(objectSchema.getFieldType(DictionaryClass.BOOLEAN_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_BOOLEAN_MAP)
     }
 }
 

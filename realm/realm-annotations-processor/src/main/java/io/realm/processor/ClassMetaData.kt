@@ -84,9 +84,10 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             typeMirrors.UUID_MIRROR,
             typeMirrors.MIXED_MIRROR
     )
-    private val validDictionaryTypes: List<TypeMirror>  = listOf(
-            typeMirrors.MIXED_MIRROR
-    )
+    private val validDictionaryTypes: List<TypeMirror> = validListValueTypes
+//    private val validDictionaryTypes: List<TypeMirror>  = listOf(
+//            typeMirrors.MIXED_MIRROR
+//    )
     private val stringType = typeMirrors.STRING_MIRROR
 
     private val typeUtils: Types = env.typeUtils
@@ -393,7 +394,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             val elementTypeElement = (elementTypeMirror as DeclaredType).asElement() as TypeElement
             if (elementTypeElement.superclass.kind == TypeKind.NONE) {
                 Utils.error(
-                        getFieldErrorSuffix(field) + "Only concrete Realm classes are allowed in RealmLists. "
+                        getFieldErrorSuffix(field) + "Only concrete Realm classes are allowed in RealmDictionary. "
                                 + "Neither interfaces nor abstract classes are allowed.",
                         field)
                 return false
@@ -402,9 +403,24 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
 
         // Check if the actual value class is acceptable
         if (!containsType(validDictionaryTypes, elementTypeMirror) && !Utils.isRealmModel(elementTypeMirror)) {
-            Utils.error("""${getFieldErrorSuffix(field)}Element type of RealmDictionary must be of type 'Mixed' or any type that can be boxed as 'Mixed'.""", field)
+            Utils.error("""${getFieldErrorSuffix(field)}Element type of RealmDictionary must be of type 'Mixed' or any type that can be boxed inside 'Mixed'.""", field)
             return false
         }
+
+//        // Check if the actual value class is acceptable
+//        if (!containsType(validDictionaryTypes, elementTypeMirror) && !Utils.isRealmModel(elementTypeMirror)) {
+//            val messageBuilder = StringBuilder(
+//                    getFieldErrorSuffix(field) + "Element type of RealmDictionary must be a class implementing 'RealmModel' or one of "
+//            )
+//            val separator = ", "
+//            for (type in validListValueTypes) {
+//                messageBuilder.append('\'').append(type.toString()).append('\'').append(separator)
+//            }
+//            messageBuilder.setLength(messageBuilder.length - separator.length)
+//            messageBuilder.append('.')
+//            Utils.error(messageBuilder.toString(), field)
+//            return false
+//        }
 
         return true
     }
@@ -433,7 +449,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         // Check if the actual value class is acceptable
         if (!containsType(validListValueTypes, elementTypeMirror) && !Utils.isRealmModel(elementTypeMirror)) {
             val messageBuilder = StringBuilder(
-                    getFieldErrorSuffix(field) + "Element type of RealmList must be a class implementing 'RealmModel' or one of ")
+                    getFieldErrorSuffix(field) + "Element type of RealmList must be a class implementing 'RealmModel' or one of "
+            )
             val separator = ", "
             for (type in validListValueTypes) {
                 messageBuilder.append('\'').append(type.toString()).append('\'').append(separator)
