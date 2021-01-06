@@ -1,7 +1,0 @@
-<resources>
-    <string name="app_name">NewsReader</string>
-    <!-- API Keys : Note they are throttled, so consider requesting your own: http://developer.nytimes.com/apps/register -->
-    <string name="nyc_top_stories_api_key">YUPmyj0Q09Fm2VlCHmD9FU7rpCcI5dUD</string>
-    <string name="read">READ</string>
-    <string name="no_news">No news</string>
-</resources>

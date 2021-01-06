@@ -18,17 +18,55 @@ package io.realm.examples.coroutinesexample
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
+import io.realm.examples.coroutinesexample.ui.details.DetailsFragment
 import io.realm.examples.coroutinesexample.ui.main.MainFragment
+import kotlin.time.ExperimentalTime
 
-class MainActivity : AppCompatActivity() {
+@ExperimentalTime
+class MainActivity : AppCompatActivity(), MainFragment.OnItemClicked {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.main_activity)
+
+        setContentView(R.layout.activity_main)
+
         if (savedInstanceState == null) {
-            supportFragmentManager.beginTransaction()
-                    .replace(R.id.container, MainFragment.newInstance())
-                    .commitNow()
+            showMainFragment()
+        }
+    }
+
+    override fun onAttachFragment(fragment: Fragment) {
+        when (fragment) {
+            is MainFragment -> fragment.onItemclickedCallback = this
+        }
+    }
+
+    override fun onBackPressed() {
+        val detailsFragment = supportFragmentManager.findFragmentByTag(DetailsFragment.TAG)
+        if (detailsFragment != null) {
+            supportFragmentManager.popBackStackImmediate()
+        } else {
+            super.onBackPressed()
+        }
+    }
+
+    override fun onItemClicked(id: String) {
+        val mainFragment = supportFragmentManager.findFragmentByTag(MainFragment.TAG)
+        val detailsFragment = DetailsFragment.instantiate(DetailsFragment.ArgsBundle(id))
+
+        supportFragmentManager.commit {
+            setCustomAnimations(R.anim.fragment_open_enter, R.anim.fragment_open_exit)
+            add(R.id.container, detailsFragment, DetailsFragment.TAG)
+            hide(requireNotNull(mainFragment))
+            addToBackStack(null)
+        }
+    }
+
+    private fun showMainFragment() {
+        supportFragmentManager.commit {
+            replace(R.id.container, MainFragment.newInstance(), MainFragment.TAG)
         }
     }
 }
