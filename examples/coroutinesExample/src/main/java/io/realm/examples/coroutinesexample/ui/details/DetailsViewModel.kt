@@ -71,10 +71,8 @@ class DetailsViewModel : ViewModel() {
         } else {
             flow<Unit> {
                 delay(2.seconds)
-                if (currentCoroutineContext().isActive) {
-                    repository.updateArticle(viewModelScope, article.url)
-                    _read.postValue(true)
-                }
+                repository.updateArticle(viewModelScope, article.url)
+                _read.postValue(true)
             }.launchIn(viewModelScope)
         }
     }

@@ -32,6 +32,9 @@ import io.realm.examples.coroutinesexample.data.newsreader.network.model.NYTimes
 import io.realm.examples.coroutinesexample.util.NewsReaderFlowFactory
 import kotlinx.coroutines.flow.map
 
+/**
+ * Homemade, simple DI solution - ideally, we should use a proper DI framework instead.
+ */
 object DependencyGraph {
 
     // Repository dependencies

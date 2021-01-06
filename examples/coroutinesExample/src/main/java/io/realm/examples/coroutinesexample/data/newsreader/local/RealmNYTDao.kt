@@ -31,6 +31,12 @@ import kotlinx.coroutines.withContext
 import java.io.Closeable
 import java.util.concurrent.Executors
 
+/**
+ * Data Access Object interface used to gain access to Realm.
+ *
+ * It implements [Closeable] to allow proper Realm instance housekeeping linked to handling the
+ * Android activity/fragment lifecycle.
+ */
 interface RealmNYTDao : Closeable {
     suspend fun insertArticles(articles: List<RealmNYTimesArticle>)
     suspend fun updateArticle(id: String)
@@ -47,8 +53,19 @@ class RealmNYTDaoImpl(
         private val realmConfiguration: RealmConfiguration
 ) : RealmNYTDao {
 
+    /**
+     * Dispatcher used to run suspendable functions that run Realm transactions. This is needed to
+     * confine Realm instances within the same thread as long as the coroutine is running to avoid
+     * accessing said instances from different threads and thus (potentially) triggering a thread
+     * violation.
+     */
     private val monoThreadDispatcher = Executors.newFixedThreadPool(1).asCoroutineDispatcher()
-    private val closeableRealm = Realm.getInstance(realmConfiguration)
+
+    /**
+     * [Realm] instance used to fire queries. It must not be used for other than firing queries and
+     * has to be closed when no longer in use.
+     */
+    private val realm = Realm.getInstance(realmConfiguration)
 
     override suspend fun insertArticles(articles: List<RealmNYTimesArticle>) {
         withContext(monoThreadDispatcher) {
@@ -86,42 +103,46 @@ class RealmNYTDaoImpl(
     }
 
     override fun getArticlesBlocking(section: String): RealmResults<RealmNYTimesArticle> {
-        return closeableRealm.where<RealmNYTimesArticle>()
+        return realm.where<RealmNYTimesArticle>()
                 .equalTo(RealmNYTimesArticle.COLUMN_API_SECTION, section)
                 .findAll()
     }
 
     override fun getArticles(section: String): Flow<List<RealmNYTimesArticle>> {
-        return closeableRealm.where<RealmNYTimesArticle>()
+        return realm.where<RealmNYTimesArticle>()
                 .equalTo(RealmNYTimesArticle.COLUMN_API_SECTION, section)
                 .findAllAsync()
                 .toFlow()
     }
 
     override fun getArticleBlocking(id: String): RealmNYTimesArticle? {
-        return closeableRealm.where<RealmNYTimesArticle>()
+        return realm.where<RealmNYTimesArticle>()
                 .equalTo(RealmNYTimesArticle.COLUMN_URL, id)
                 .findFirst()
     }
 
     override fun getArticle(id: String): Flow<RealmNYTimesArticle?> {
-        return closeableRealm.where<RealmNYTimesArticle>()
+        return realm.where<RealmNYTimesArticle>()
                 .equalTo(RealmNYTimesArticle.COLUMN_URL, id)
                 .findFirstAsync()
                 .toFlow()
     }
 
     override fun countArticles(section: String): Long {
-        return closeableRealm.where<RealmNYTimesArticle>()
+        return realm.where<RealmNYTimesArticle>()
                 .equalTo(RealmNYTimesArticle.COLUMN_API_SECTION, section)
                 .count()
     }
 
     override fun close() {
-        closeableRealm.close()
+        realm.close()
     }
 }
 
+/**
+ * Inserts a [List] of [NYTimesArticle]s after they have been mapped to [RealmNYTimesArticle]
+ * instances.
+ */
 suspend fun RealmNYTDao.insertArticles(apiSection: String, articles: List<NYTimesArticle>) {
     val realmArticles = articles.toRealmArticles(apiSection)
     insertArticles(realmArticles)
