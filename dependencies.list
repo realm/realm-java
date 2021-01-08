@@ -1,5 +1,5 @@
-# Realm Sync release used by Realm Java (This includes Realm Core)
-# https://github.com/realm/realm-sync/releases
+# Realm Core release used by Realm Java
+# https://github.com/realm/realm-core/releases
 REALM_CORE=10.3.3
 
 # Version of MongoDB Realm used by integration tests
