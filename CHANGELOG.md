@@ -4,7 +4,7 @@
 * None.
 
 ### Fixes
-* [RealmApp] Integrating a remote Sync changeset into the local Realm could result on an `Index out of range error`.
+* [RealmApp] Integrating a remote Sync changeset into the local Realm could result in an `Index out of range error`.
 * Change notifications not fired when removing and adding an object with the same PK within a transaction (Issue [#7098](https://github.com/realm/realm-java/issues/7098)).
 
 ### Compatibility
