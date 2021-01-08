@@ -1,4 +1,4 @@
-## 10.3.0 (20201-01-08)
+## 10.3.0 (2021-01-08)
 
 ### Enhancements
 * [RealmApp] Upgraded to OpenSSL 1.1.1g.
