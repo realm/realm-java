@@ -8,6 +8,7 @@
 * Change notifications not firing when removing and adding an object with the same primary key within a transaction (Issue [#7098](https://github.com/realm/realm-java/issues/7098)).
 * Race condition which would lead to "uncaught exception in notifier thread: N5realm15InvalidTableRefE: transaction_ended" and a crash when the source Realm was closed or invalidated at a very specific time during the first run of a collection notifier (Core issue [#3761](https://github.com/realm/realm-core/issues/3761), since v7.0.0).
 * Deleting and recreating objects with embedded objects could fail (Core issue [#4240](https://github.com/realm/realm-core/pull/4240), since v10.0.0)
+* Added `@Nullable` annotation to input parameter in `RealmObject.isValid(item)` to avoid mismatch warnings from Kotlin code (Issue [#7216](https://github.com/realm/realm-java/issues/7216)).
 
 ### Compatibility
 * File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
@@ -28,7 +29,7 @@
 * None.
 
 ### Enhancements
-* [RealmApp] Added `Credentials.google(token: String, authType: GoogleAuthType)`, as MongoDB Realm now supports multiple ways of logging into Google Accounts.
+* [RealmApp] Added `Credentials.google(token: String, authType: GoogleAuthType)`, as MongoDB Realm now supports multiple ways of logging into Google Accounts.  
 
 ### Fixes
 * [RealmApp] Bug that would prevent eventual consistency during conflict resolution. Affected clients would experience data divergence and potentially consistency errors as a result if they experienced conflict resolution between cycles of Create-Erase-Create for objects with primary keys.
@@ -41,7 +42,7 @@
 
 ### Internal
 * Updated to Realm Sync: 10.1.4.
-* Updated to Object Store commit: f838a27402c5b5243280102014defd844420abba66eb93c10334507d9c0fd513..
+* Updated to Object Store commit: f838a27402c5b5243280102014defd844420abba66eb93c10334507d9c0fd513.
 
 
 ## 10.1.2 (2020-12-02)
