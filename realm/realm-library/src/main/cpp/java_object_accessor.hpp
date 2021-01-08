@@ -456,7 +456,7 @@ public:
     bool is_same_list(List const& /*list*/, JavaValue const& /*value*/)
     {
         // Lists from Java are currently never the same as the ones found in Object Store.
-        return true;
+        return false;
     }
 
     bool is_same_dictionary(const object_store::Dictionary&, JavaValue const& /*value*/){
