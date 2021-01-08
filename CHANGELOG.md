@@ -4,7 +4,8 @@
 * None.
 
 ### Fixes
-* None.
+* [RealmApp] Integrating a remote Sync changeset into the local Realm could result on an `Index out of range error`.
+* Change notifications not fired when removing and adding an object with the same PK within a transaction (Issue [#7098](https://github.com/realm/realm-java/issues/7098)).
 
 ### Compatibility
 * File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
@@ -12,8 +13,8 @@
 * Realm Studio 10.0.0 or above is required to open Realms created by this version.
 
 ### Internal
-* Updated to Realm Core: 10.3.2 (Monorepo).
-* Updated to Realm Core commit: 5a46901438b784214cdd8d9376011474595f807f3e46aeed18d32a16fa2e170d..
+* Updated to Realm Core: 10.3.3 (Monorepo).
+* Updated to Realm Core commit: 8af0f8d609491986b49f2c986e771d9dc445664d.
 
 
 ## 10.2.0 (2020-12-02)
