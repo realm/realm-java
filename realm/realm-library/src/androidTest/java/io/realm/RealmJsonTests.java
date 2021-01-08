@@ -75,7 +75,6 @@ import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeThat;
 
 @RunWith(AndroidJUnit4.class)
-//@Ignore("Tests crash due to bug in core, see https://jira.mongodb.org/browse/RCORE-435")
 public class RealmJsonTests {
     private static final Charset UTF_8 = Charset.forName("UTF-8");
 
