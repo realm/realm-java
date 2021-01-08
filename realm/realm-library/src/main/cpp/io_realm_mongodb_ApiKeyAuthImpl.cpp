@@ -21,10 +21,9 @@
 #include "util.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/jni_utils.hpp"
-#include "object-store/src/sync/app.hpp"
 
 #include <realm/util/optional.hpp>
-#include <sync/app.hpp>
+#include <realm/object-store/sync/app.hpp>
 
 using namespace realm;
 using namespace realm::app;

@@ -20,9 +20,6 @@ import android.content.Context;
 import android.os.Build;
 import android.util.Base64;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
-
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.json.JSONArray;
@@ -30,6 +27,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,6 +47,8 @@ import java.util.TimeZone;
 
 import javax.annotation.Nullable;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationTypes;

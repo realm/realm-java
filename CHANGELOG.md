@@ -1,12 +1,13 @@
-## 10.2.1 (YYYY-MM-DD)
-
-### Breaking Changes
-* None.
+## 10.3.0 (YYYY-MM-DD)
 
 ### Enhancements
 * None.
 
 ### Fixes
+* [RealmApp] Integrating a remote Sync changeset into the local Realm could result in an `Index out of range error`.
+* Change notifications not firing when removing and adding an object with the same primary key within a transaction (Issue [#7098](https://github.com/realm/realm-java/issues/7098)).
+* Race condition which would lead to "uncaught exception in notifier thread: N5realm15InvalidTableRefE: transaction_ended" and a crash when the source Realm was closed or invalidated at a very specific time during the first run of a collection notifier (Core issue [#3761](https://github.com/realm/realm-core/issues/3761), since v7.0.0).
+* Deleting and recreating objects with embedded objects could fail (Core issue [#4240](https://github.com/realm/realm-core/pull/4240), since v10.0.0)
 * Added `@Nullable` annotation to input parameter in `RealmObject.isValid(item)` to avoid mismatch warnings from Kotlin code (Issue [#7216](https://github.com/realm/realm-java/issues/7216)).
 
 ### Compatibility
@@ -15,7 +16,8 @@
 * Realm Studio 10.0.0 or above is required to open Realms created by this version.
 
 ### Internal
-* Updated to Object Store commit: fc790d558ddc0e25a50d6b27dadf617532a1bf44.
+* Updated to Realm Core: 10.3.3 (Monorepo).
+* Updated to Realm Core commit: 8af0f8d609491986b49f2c986e771d9dc445664d.
 
 
 ## 10.2.0 (2020-12-02)

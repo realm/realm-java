@@ -19,7 +19,7 @@
 
 #include "java_accessor.hpp"
 #include "util.hpp"
-#include "sync/generic_network_transport.hpp"
+#include <realm/object-store/sync/generic_network_transport.hpp>
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/jni_utils.hpp"

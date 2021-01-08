@@ -16,11 +16,12 @@
 
 #include "io_realm_mongodb_sync_Sync.h"
 
-#include <impl/realm_coordinator.hpp>
-#include <sync/app.hpp>
-#include <sync/sync_manager.hpp>
-#include <sync/sync_session.hpp>
-#include <binding_callback_thread_observer.hpp>
+#include <realm/object-store/impl/realm_coordinator.hpp>
+#include <realm/object-store/sync/app.hpp>
+#include <realm/object-store/sync/sync_manager.hpp>
+#include <realm/object-store/sync/sync_session.hpp>
+#include <realm/sync/protocol.hpp>
+#include <realm/object-store/binding_callback_thread_observer.hpp>
 
 #include "util.hpp"
 #include <jni_util/bson_util.hpp>

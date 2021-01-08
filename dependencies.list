@@ -1,7 +1,6 @@
-# Realm Sync release used by Realm Java (This includes Realm Core)
-# https://github.com/realm/realm-sync/releases
-REALM_SYNC=10.1.4
-REALM_SYNC_SHA256=f838a27402c5b5243280102014defd844420abba66eb93c10334507d9c0fd513
+# Realm Core release used by Realm Java
+# https://github.com/realm/realm-core/releases
+REALM_CORE=10.3.3
 
 # Version of MongoDB Realm used by integration tests
 # See https://github.com/realm/ci/packages/147854 for available versions
@@ -18,6 +17,7 @@ gradle=6.5
 ndkVersion=21.0.6113669
 BUILD_INFO_EXTRACTOR_GRADLE=4.17.0
 GRADLE_BINTRAY_PLUGIN=1.8.5
+CMAKE=3.18.4
 
 # Bson dependency version
 BSON_DEPENDENCY=3.12.1

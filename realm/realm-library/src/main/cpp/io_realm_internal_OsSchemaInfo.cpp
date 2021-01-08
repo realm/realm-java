@@ -16,9 +16,9 @@
 
 #include "io_realm_internal_OsSchemaInfo.h"
 
-#include <schema.hpp>
-#include <object_schema.hpp>
-#include <property.hpp>
+#include <realm/object-store/schema.hpp>
+#include <realm/object-store/object_schema.hpp>
+#include <realm/object-store/property.hpp>
 #include "java_accessor.hpp"
 #include "java_exception_def.hpp"
 #include "util.hpp"

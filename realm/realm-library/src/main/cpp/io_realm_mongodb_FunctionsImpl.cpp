@@ -19,7 +19,7 @@
 #include "util.hpp"
 #include "jni_util/bson_util.hpp"
 #include "java_network_transport.hpp"
-#include "object-store/src/sync/app.hpp"
+#include <realm/object-store/sync/app.hpp>
 
 
 using namespace realm;
