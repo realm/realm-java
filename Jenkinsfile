@@ -78,14 +78,14 @@ try {
         def buildFlags = ""
         def instrumentationTestTarget = "connectedAndroidTest"
         def deviceSerial = ""
-        if (!releaseBranches.contains(currentBranch)) {
-          // Build development branch
-          useEmulator = true
-          emulatorImage = "system-images;android-29;default;x86"
-          buildFlags = "-PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=false"
-          instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
-          deviceSerial = "emulator-5554"
-        } else {
+        // if (!releaseBranches.contains(currentBranch)) {
+        //   // Build development branch
+        //   useEmulator = true
+        //   emulatorImage = "system-images;android-29;default;x86"
+        //   buildFlags = "-PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=false"
+        //   instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
+        //   deviceSerial = "emulator-5554"
+        // } else {
           // Build main/release branch
           // FIXME: Use emulator until we can get reliable devices on CI.
           //  But still build all ABI's and run all types of tests. 
@@ -94,7 +94,7 @@ try {
           buildFlags = "-PenableLTO=true -PbuildCore=true"
           instrumentationTestTarget = "connectedAndroidTest"
           deviceSerial = "emulator-5554"
-        }
+        // }
 
         try {
 
