@@ -6,6 +6,8 @@
 ### Fixes
 * [RealmApp] Integrating a remote Sync changeset into the local Realm could result in an `Index out of range error`.
 * Change notifications not firing when removing and adding an object with the same primary key within a transaction (Issue [#7098](https://github.com/realm/realm-java/issues/7098)).
+* Race condition which would lead to "uncaught exception in notifier thread: N5realm15InvalidTableRefE: transaction_ended" and a crash when the source Realm was closed or invalidated at a very specific time during the first run of a collection notifier (Core issue [#3761](https://github.com/realm/realm-core/issues/3761), since v7.0.0).
+* Deleting and recreating objects with embedded objects could fail (Core issue [#4240](https://github.com/realm/realm-core/pull/4240), since v10.0.0)
 
 ### Compatibility
 * File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
