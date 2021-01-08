@@ -68,7 +68,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-@Ignore("Tests crash due to bug in core, see https://jira.mongodb.org/browse/RCORE-435")
+//@Ignore("Tests crash due to bug in core, see https://jira.mongodb.org/browse/RCORE-435")
 public class RealmResultsTests extends CollectionTests {
 
     private final static int TEST_DATA_SIZE = 100;
