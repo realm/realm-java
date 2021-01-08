@@ -1,7 +1,7 @@
-## 10.3.0 (YYYY-MM-DD)
+## 10.3.0 (20201-01-08)
 
 ### Enhancements
-* None.
+* [RealmApp] Upgraded to OpenSSL 1.1.1g.
 
 ### Fixes
 * [RealmApp] Integrating a remote Sync changeset into the local Realm could result in an `Index out of range error`.
