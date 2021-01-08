@@ -240,38 +240,38 @@ def runBuild(buildFlags, instrumentationTestTarget) {
         storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
       }
     },
-    'Static code analysis' : {
-      try {
-        gradle('realm', "spotbugsMain pmd checkstyle ${buildFlags}")
-      } finally {
-        publishHTML(target: [
-          allowMissing: false, 
-          alwaysLinkToLastBuild: false, 
-          keepAll: true, 
-          reportDir: 'realm/realm-library/build/reports/spotbugs', 
-          reportFiles: 'main.html', 
-          reportName: 'Spotbugs report'
-        ])
+    // 'Static code analysis' : {
+    //   try {
+    //     gradle('realm', "spotbugsMain pmd checkstyle ${buildFlags}")
+    //   } finally {
+    //     publishHTML(target: [
+    //       allowMissing: false, 
+    //       alwaysLinkToLastBuild: false, 
+    //       keepAll: true, 
+    //       reportDir: 'realm/realm-library/build/reports/spotbugs', 
+    //       reportFiles: 'main.html', 
+    //       reportName: 'Spotbugs report'
+    //     ])
 
-        publishHTML(target: [
-          allowMissing: false, 
-          alwaysLinkToLastBuild: false, 
-          keepAll: true, 
-          reportDir: 'realm/realm-library/build/reports/pmd', 
-          reportFiles: 'pmd.html', 
-          reportName: 'PMD report'
-        ])
+    //     publishHTML(target: [
+    //       allowMissing: false, 
+    //       alwaysLinkToLastBuild: false, 
+    //       keepAll: true, 
+    //       reportDir: 'realm/realm-library/build/reports/pmd', 
+    //       reportFiles: 'pmd.html', 
+    //       reportName: 'PMD report'
+    //     ])
         
-        publishHTML(target: [
-          allowMissing: false, 
-          alwaysLinkToLastBuild: false, 
-          keepAll: true, 
-          reportDir: 'realm/realm-library/build/reports/checkstyle', 
-          reportFiles: 'checkstyle.html', 
-          reportName: 'Checkstyle report'
-        ])
-      }
-    },
+    //     publishHTML(target: [
+    //       allowMissing: false, 
+    //       alwaysLinkToLastBuild: false, 
+    //       keepAll: true, 
+    //       reportDir: 'realm/realm-library/build/reports/checkstyle', 
+    //       reportFiles: 'checkstyle.html', 
+    //       reportName: 'Checkstyle report'
+    //     ])
+    //   }
+    // },
     'Instrumentation' : {
       if (enableIntegrationTests) {
         String backgroundPid
