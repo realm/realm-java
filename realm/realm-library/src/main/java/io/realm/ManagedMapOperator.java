@@ -201,7 +201,7 @@ abstract class MapValueOperator<V> {
 }
 
 /**
- * Specialization for {@link MapValueOperator} targeting {@link Mixed} values in {@link RealmMap}s.
+ * {@link MapValueOperator} targeting {@link Mixed} values in {@link RealmMap}s.
  */
 class MixedValueOperator extends MapValueOperator<Mixed> {
 
@@ -226,3 +226,32 @@ class MixedValueOperator extends MapValueOperator<Mixed> {
         osMap.remove(key);
     }
 }
+
+/**
+ * {@link MapValueOperator} targeting {@link Boolean} values in {@link RealmMap}s.
+ */
+class BooleanValueOperator extends MapValueOperator<Boolean> {
+
+    BooleanValueOperator(BaseRealm baseRealm, OsMap osMap) {
+        super(baseRealm, osMap);
+    }
+
+    @Override
+    public Boolean get(Object key) {
+        return (Boolean) osMap.get(key);
+    }
+
+    @Override
+    public Boolean put(Object key, Boolean value) {
+        Boolean original = (Boolean) osMap.get(key);
+        osMap.put(key, value);
+        return original;
+    }
+
+    @Override
+    public void remove(Object key) {
+        osMap.remove(key);
+    }
+}
+
+// TODO: add more value type operators ad-hoc

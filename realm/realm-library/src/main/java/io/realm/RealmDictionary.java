@@ -97,12 +97,18 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
 
     private static <V> DictionaryManagedMapOperator<V> getOperator(String valueClass, BaseRealm baseRealm, OsMap osMap) {
         // TODO: add other types when ready
+        DictionaryManagedMapOperator<V> managedMapOperator;
         if (valueClass.equals(Mixed.class.getCanonicalName())) {
             MapValueOperator<Mixed> mixedValueOperator = new MixedValueOperator(baseRealm, osMap);
             //noinspection unchecked
-            return new DictionaryManagedMapOperator<>((MapValueOperator<V>) mixedValueOperator);
+            managedMapOperator = new DictionaryManagedMapOperator<>((MapValueOperator<V>) mixedValueOperator);
+        } else if (valueClass.equals(Boolean.class.getCanonicalName())) {
+            MapValueOperator<Boolean> mixedValueOperator = new BooleanValueOperator(baseRealm, osMap);
+            //noinspection unchecked
+            managedMapOperator = new DictionaryManagedMapOperator<>((MapValueOperator<V>) mixedValueOperator);
         } else {
             throw new IllegalArgumentException("Only Mixed values are allowed in RealmMaps.");
         }
+        return managedMapOperator;
     }
 }

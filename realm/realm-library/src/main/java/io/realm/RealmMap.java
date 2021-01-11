@@ -64,34 +64,6 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
         this.mapStrategy = mapStrategy;
     }
 
-//    /**
-//     * Constructor used by {@code Realm}s.
-//     * <p>
-//     * TODO: this constructor should NOT be used by the proxy until Phase 2
-//     *
-//     * @param baseRealm
-//     * @param osMap
-//     * @param keyClass
-//     * @param valueClass
-//     */
-//    RealmMap(BaseRealm baseRealm, OsMap osMap, Class<K> keyClass, Class<V> valueClass) {
-//        this.mapStrategy = new ManagedMapStrategy<>(baseRealm, osMap, keyClass, valueClass);
-//    }
-//
-//    /**
-//     * Constructor used by {@code DynamicRealm}s.
-//     * <p>
-//     * TODO: this constructor should NOT be used by the proxy until Phase 2
-//     *
-//     * @param baseRealm
-//     * @param osMap
-//     * @param keyClass
-//     * @param valueClass
-//     */
-//    RealmMap(BaseRealm baseRealm, OsMap osMap, String keyClass, String valueClass) {
-//        this.mapStrategy = new ManagedMapStrategy<>(baseRealm, osMap, keyClass, valueClass);
-//    }
-
     // ------------------------------------------
     // ManageableObject API
     // ------------------------------------------
@@ -255,33 +227,6 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
         ManagedMapStrategy(ManagedMapOperator<K, V> managedMapOperator) {
             this.managedMapOperator = managedMapOperator;
         }
-
-//        /**
-//         * TODO: this constructor should NOT be used until Phase 2
-//         *
-//         * @param baseRealm
-//         * @param osMap
-//         * @param keyClass
-//         * @param valueClass
-//         */
-//        ManagedMapStrategy(BaseRealm baseRealm, OsMap osMap, Class<K> keyClass, Class<V> valueClass) {
-//            this(baseRealm, osMap, keyClass.getCanonicalName(), valueClass.getCanonicalName());
-//        }
-//
-//        /**
-//         * TODO: this constructor should NOT be used until Phase 2
-//         *
-//         * @param baseRealm
-//         * @param osMap
-//         * @param keyClass
-//         * @param valueClass
-//         */
-//        ManagedMapStrategy(BaseRealm baseRealm, OsMap osMap, String keyClass, String valueClass) {
-//            checkKeyClass(keyClass);
-//            checkValueClass(valueClass);
-//
-//            this.managedMapOperator = MapOperatorFactory.getOperator(keyClass, valueClass, baseRealm, osMap);
-//        }
 
         // ------------------------------------------
         // ManageableObject API

@@ -19,7 +19,7 @@ package io.realm.internal;
 import javax.annotation.Nullable;
 
 /**
- * FIXME
+ * Java wrapper of Object Store Dictionary class. This backs managed versions of RealmMaps.
  */
 public class OsMap implements NativeObject {
 
@@ -52,24 +52,28 @@ public class OsMap implements NativeObject {
         nativeClear(nativePtr);
     }
 
+    // ------------------------------------------
+    // TODO: handle other types of keys and avoid
+    //  typecasting directly to string in phase 2
+    //  for put and get methods.
+    // ------------------------------------------
+
     public void put(Object key, boolean value) {
-        // TODO: handle other types of keys and avoid typecasting directly to string in phase 2
         nativePutBoolean(nativePtr, (String) key, value);
     }
 
     public void put(Object key, OsMixed value) {
-        // TODO: handle other types of keys and avoid typecasting directly to string in phase 2
         nativePutMixed(nativePtr, (String) key, value.getNativePtr());
     }
 
+    // TODO: add more put methods for different value types ad-hoc
+
     public void remove(Object key) {
-        // TODO: handle other types of keys and avoid typecasting directly to string in phase 2
         nativeRemove(nativePtr, (String) key);
     }
 
     @Nullable
     public Object get(Object key) {
-        // TODO: handle other types of keys and avoid typecasting directly to string in phase 2
         return nativeGetValue(nativePtr, (String) key);
     }
 
