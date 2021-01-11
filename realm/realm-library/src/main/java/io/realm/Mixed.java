@@ -45,7 +45,7 @@ import io.realm.internal.Table;
  */
 public abstract class Mixed implements ManageableObject {
 
-    // TODO: temporary hack
+    // TODO: temporary hack until a proper OS representation for mixed is added
     OsMixed osMixed;
 
     private static final class Unmanaged extends Mixed {

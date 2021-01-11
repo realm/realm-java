@@ -17,7 +17,7 @@
 package io.realm.internal;
 
 /**
- * FIXME: temporary hack - remove when mixed objects are also instantiated natively.
+ * FIXME: temporary hack until a proper OS representation for mixed is added
  */
 public class OsMixed implements NativeObject {
 

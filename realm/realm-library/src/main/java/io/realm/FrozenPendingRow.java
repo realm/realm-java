@@ -146,8 +146,7 @@ public enum FrozenPendingRow implements Row {
 
     @Override
     public OsMap getValueMap(long columnKey, RealmFieldType fieldType) {
-        // TODO
-        return null;
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
     @Override

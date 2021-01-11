@@ -24,7 +24,6 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.ManageableObject;
 import io.realm.internal.OsMap;
-import io.realm.internal.Util;
 
 /**
  * A {@code ManagedMapOperator} abstracts the different types of keys and values a managed
@@ -40,11 +39,6 @@ abstract class ManagedMapOperator<K, V> implements Map<K, V>, ManageableObject {
 
     ManagedMapOperator(Class<K> keyClass, MapValueOperator<V> mapValueOperator) {
         this.keyClass = keyClass;
-        this.mapValueOperator = mapValueOperator;
-    }
-
-    ManagedMapOperator(String keyClass, MapValueOperator<V> mapValueOperator) {
-        this.keyClass = getKeyClass(keyClass);
         this.mapValueOperator = mapValueOperator;
     }
 
@@ -114,11 +108,6 @@ abstract class ManagedMapOperator<K, V> implements Map<K, V>, ManageableObject {
     public Set<Entry<K, V>> entrySet() {
         // TODO: use operator + do it natively
         return null;
-    }
-
-    private Class<K> getKeyClass(String keyClass) {
-        //noinspection unchecked
-        return (Class<K>) Util.getClassForName(keyClass);
     }
 }
 

@@ -407,21 +407,6 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             return false
         }
 
-//        // Check if the actual value class is acceptable
-//        if (!containsType(validDictionaryTypes, elementTypeMirror) && !Utils.isRealmModel(elementTypeMirror)) {
-//            val messageBuilder = StringBuilder(
-//                    getFieldErrorSuffix(field) + "Element type of RealmDictionary must be a class implementing 'RealmModel' or one of "
-//            )
-//            val separator = ", "
-//            for (type in validListValueTypes) {
-//                messageBuilder.append('\'').append(type.toString()).append('\'').append(separator)
-//            }
-//            messageBuilder.setLength(messageBuilder.length - separator.length)
-//            messageBuilder.append('.')
-//            Utils.error(messageBuilder.toString(), field)
-//            return false
-//        }
-
         return true
     }
 
