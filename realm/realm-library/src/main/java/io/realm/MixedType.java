@@ -1,22 +1,30 @@
 package io.realm;
 
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
+import java.util.Date;
+import java.util.UUID;
+
+import javax.annotation.Nullable;
+
 import static io.realm.RealmFieldTypeConstants.MAX_CORE_TYPE_VALUE;
 
 
 public enum MixedType {
-    INTEGER(RealmFieldType.INTEGER),
-    BOOLEAN(RealmFieldType.BOOLEAN),
-    STRING(RealmFieldType.STRING),
-    BINARY(RealmFieldType.BINARY),
-    DATE(RealmFieldType.DATE),
-    FLOAT(RealmFieldType.FLOAT),
-    DOUBLE(RealmFieldType.DOUBLE),
-    OBJECT(RealmFieldType.OBJECT),
-    DECIMAL128(RealmFieldType.DECIMAL128),
-    OBJECT_ID(RealmFieldType.OBJECT_ID),
-    UUID(RealmFieldType.UUID),
-    NULL(null);
+    INTEGER(RealmFieldType.INTEGER, Long.class),
+    BOOLEAN(RealmFieldType.BOOLEAN, Boolean.class),
+    STRING(RealmFieldType.STRING, String.class),
+    BINARY(RealmFieldType.BINARY, Byte[].class),
+    DATE(RealmFieldType.DATE, Date.class),
+    FLOAT(RealmFieldType.FLOAT, Float.class),
+    DOUBLE(RealmFieldType.DOUBLE, Double.class),
+    DECIMAL128(RealmFieldType.DECIMAL128, Decimal128.class),
+    OBJECT_ID(RealmFieldType.OBJECT_ID, ObjectId.class),
+    OBJECT(RealmFieldType.TYPED_LINK, RealmModel.class),
+    UUID(RealmFieldType.UUID, java.util.UUID.class),
+    NULL(null, null);
 
     private static final MixedType[] realmFieldToMixedTypeMap = new MixedType[MAX_CORE_TYPE_VALUE + 1];
 
@@ -35,13 +43,15 @@ public enum MixedType {
         return realmFieldToMixedTypeMap[realmFieldType];
     }
 
+    private final Class<?> clazz;
     private final RealmFieldType realmFieldType;
 
-    MixedType(RealmFieldType realmFieldType) {
+    MixedType(@Nullable RealmFieldType realmFieldType, @Nullable Class<?> clazz) {
         this.realmFieldType = realmFieldType;
+        this.clazz = clazz;
     }
 
-    RealmFieldType getRealmFieldType() {
-        return this.realmFieldType;
+    public Class<?> getTypedClass() {
+        return clazz;
     }
 }

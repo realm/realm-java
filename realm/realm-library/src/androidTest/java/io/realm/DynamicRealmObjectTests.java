@@ -1901,6 +1901,7 @@ public class DynamicRealmObjectTests {
                 case UUID_LIST:
                     assertNull(allJavaTypes.getList(AllJavaTypes.FIELD_UUID_LIST, UUID.class).get(0));
                     break;
+                case TYPED_LINK:
                 case LIST:
                 case LINKING_OBJECTS:
                     // Realm lists and back links cannot be null

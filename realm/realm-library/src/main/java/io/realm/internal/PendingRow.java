@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import io.realm.FrozenPendingRow;
 import io.realm.Mixed;
+import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmFieldType;
 import io.realm.internal.core.DescriptorOrdering;

@@ -3314,6 +3314,7 @@ public class RealmQueryTests extends QueryTests {
 
         // Bookkeeping to ensure that we are actually testing all types
         HashSet types = new HashSet(Arrays.asList(RealmFieldType.values()));
+        types.remove(RealmFieldType.TYPED_LINK);
 
         // Iterate all fields of AllTypes table and verify that distinct either:
         // - Returns correct number of entries, or
@@ -4128,6 +4129,7 @@ public class RealmQueryTests extends QueryTests {
             case OBJECT_ID_LIST:
             case UUID_LIST:
                 return false;
+            case TYPED_LINK:
         }
         // Should never reach here as the above switch is exhaustive
         throw new UnsupportedOperationException("Unhandled realm field type " + type);

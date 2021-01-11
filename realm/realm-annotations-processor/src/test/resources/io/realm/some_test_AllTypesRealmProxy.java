@@ -417,18 +417,28 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         proxyState.getRealm$realm().checkIfValid();
         return this.columnMixedMixed;
     }
+
+
     @Override
     public void realmSet$columnMixed(Mixed value) {
         if (proxyState.isUnderConstruction()) {
             if (!proxyState.getAcceptDefaultValue$realm()) {
                 return;
             }
+            if (proxyState.getExcludeFields$realm().contains("columnMixed")) {
+                return;
+            }
+
+            value = ProxyUtils.copyToRealmIfNeeded(proxyState, value);
+
             final Row row = proxyState.getRow$realm();
             row.getTable().setMixed(columnInfo.columnMixedColKey, row.getObjectKey(), value, true);
             return;
         }
 
         proxyState.getRealm$realm().checkIfValid();
+
+        value = ProxyUtils.copyToRealmIfNeeded(proxyState, value);
         proxyState.getRow$realm().setMixed(columnInfo.columnMixedColKey, value);
     }
 

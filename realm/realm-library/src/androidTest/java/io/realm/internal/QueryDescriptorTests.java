@@ -253,6 +253,7 @@ public class QueryDescriptorTests {
             if (!filter.contains(type)) {
                 switch (type) {
                     case MIXED:// FIXME: MIXED IGNORED.
+                    case TYPED_LINK:
                     case LINKING_OBJECTS:
                         break;
                     case LIST:
