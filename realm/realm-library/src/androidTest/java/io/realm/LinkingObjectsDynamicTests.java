@@ -210,6 +210,9 @@ public class LinkingObjectsDynamicTests {
                     case UUID:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID);
                         break;
+                    case MIXED:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_MIXED);
+                        break;
                     case INTEGER_LIST:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_INTEGER_LIST);
                         break;

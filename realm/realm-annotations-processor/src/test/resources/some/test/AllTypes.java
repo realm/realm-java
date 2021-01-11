@@ -22,6 +22,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.UUID;
 
+import io.realm.Mixed;
 import io.realm.MutableRealmInteger;
 import io.realm.RealmList;
 import io.realm.RealmObject;
@@ -51,6 +52,8 @@ public class AllTypes extends RealmObject {
 
     @Required
     private Date columnDate;
+
+    private Mixed columnMixed;
 
     @Required
     private byte[] columnBinary;
@@ -229,5 +232,13 @@ public class AllTypes extends RealmObject {
 
     public MutableRealmInteger realmGet$columnMutableRealmInteger() {
         return columnMutableRealmInteger;
+    }
+
+    public Mixed getColumnMixed() {
+        return realmGet$columnMixed();
+    }
+
+    public Mixed realmGet$columnMixed() {
+        return columnMixed;
     }
 }

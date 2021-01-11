@@ -85,6 +85,7 @@ object Constants {
         DATE("DATE", "Date"),
         BINARY("BINARY", "BinaryByteArray"),
         REALM_INTEGER("INTEGER", "Long"),
+        MIXED("MIXED", "Mixed"),
         OBJECT("OBJECT", "Object"),
         LIST("LIST", "List"),
         DECIMAL128("DECIMAL128", "Decimal128"),

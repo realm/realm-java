@@ -1565,7 +1565,7 @@ public class DynamicRealmObjectTests {
                 AllJavaTypes.FIELD_SHORT, AllJavaTypes.FIELD_INT, AllJavaTypes.FIELD_BYTE, AllJavaTypes.FIELD_FLOAT,
                 AllJavaTypes.FIELD_DOUBLE, AllJavaTypes.FIELD_BOOLEAN, AllJavaTypes.FIELD_DATE,
                 AllJavaTypes.FIELD_BINARY, AllJavaTypes.FIELD_DECIMAL128, AllJavaTypes.FIELD_OBJECT_ID, AllJavaTypes.FIELD_UUID,
-                AllJavaTypes.FIELD_OBJECT, AllJavaTypes.FIELD_LIST,
+                AllJavaTypes.FIELD_MIXED, AllJavaTypes.FIELD_OBJECT, AllJavaTypes.FIELD_LIST,
                 AllJavaTypes.FIELD_STRING_LIST, AllJavaTypes.FIELD_BINARY_LIST, AllJavaTypes.FIELD_BOOLEAN_LIST,
                 AllJavaTypes.FIELD_LONG_LIST, AllJavaTypes.FIELD_INTEGER_LIST, AllJavaTypes.FIELD_SHORT_LIST,
                 AllJavaTypes.FIELD_BYTE_LIST, AllJavaTypes.FIELD_DOUBLE_LIST, AllJavaTypes.FIELD_FLOAT_LIST,
@@ -1867,6 +1867,9 @@ public class DynamicRealmObjectTests {
                     break;
                 case UUID:
                     assertNull(primitiveNullables.get(NullablePrimitiveFields.FIELD_UUID));
+                    break;
+                case MIXED:
+                    assertNull(primitiveNullables.get(NullablePrimitiveFields.FIELD_MIXED));
                     break;
                 case INTEGER_LIST:
                     assertNull(allJavaTypes.getList(AllJavaTypes.FIELD_INTEGER_LIST, Integer.class).get(0));

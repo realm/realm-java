@@ -36,6 +36,7 @@ object Utils {
     private lateinit var typeUtils: Types
     private lateinit var messager: Messager
     private lateinit var realmInteger: TypeMirror
+    private lateinit var mixed: TypeMirror
     private lateinit var realmList: DeclaredType
     private lateinit var realmResults: DeclaredType
     private lateinit var markerInterface: DeclaredType
@@ -46,6 +47,7 @@ object Utils {
         typeUtils = env.typeUtils
         messager = env.messager
         realmInteger = elementUtils.getTypeElement("io.realm.MutableRealmInteger").asType()
+        mixed = elementUtils.getTypeElement("io.realm.Mixed").asType()
         realmList = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null))
         realmResults = typeUtils.getDeclaredType(env.elementUtils.getTypeElement("io.realm.RealmResults"), typeUtils.getWildcardType(null, null))
         realmModel = elementUtils.getTypeElement("io.realm.RealmModel").asType()
@@ -190,6 +192,13 @@ object Utils {
      */
     fun isMutableRealmInteger(field: VariableElement): Boolean {
         return typeUtils.isAssignable(field.asType(), realmInteger)
+    }
+
+    /**
+     * @return `true` if a given field type is `Mixed`, `false` otherwise.
+     */
+    fun isMixed(field: VariableElement): Boolean {
+        return typeUtils.isAssignable(field.asType(), mixed)
     }
 
     /**

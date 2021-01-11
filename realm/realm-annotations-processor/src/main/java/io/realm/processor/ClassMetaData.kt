@@ -81,7 +81,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             typeMirrors.DATE_MIRROR,
             typeMirrors.DECIMAL128_MIRROR,
             typeMirrors.OBJECT_ID_MIRROR,
-            typeMirrors.UUID_MIRROR
+            typeMirrors.UUID_MIRROR,
+            typeMirrors.MIXED_MIRROR
     )
     private val stringType = typeMirrors.STRING_MIRROR
 
@@ -633,11 +634,11 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     }
 
     // The field has the @Index annotation. It's only valid for column types:
-    // STRING, DATE, INTEGER, BOOLEAN, RealmMutableInteger, OBJECT_ID and UUID
+    // STRING, DATE, INTEGER, BOOLEAN, RealmMutableInteger, OBJECT_ID, UUID and MIXED
     private fun categorizeIndexField(element: Element, fieldElement: RealmFieldElement): Boolean {
         var indexable = false
 
-        if (Utils.isMutableRealmInteger(fieldElement)) {
+        if (Utils.isMutableRealmInteger(fieldElement) || Utils.isMixed(fieldElement)) {
             indexable = true
         } else {
             when (Constants.JAVA_TO_REALM_TYPES[fieldElement.asType().toString()]) {

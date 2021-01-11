@@ -67,6 +67,8 @@ public class Property implements NativeObject {
     @SuppressWarnings("WeakerAccess")
     public static final int TYPE_UUID = 12;
     @SuppressWarnings("WeakerAccess")
+    public static final int TYPE_MIXED = 9;
+    @SuppressWarnings("WeakerAccess")
     public static final int TYPE_REQUIRED = 0;
     @SuppressWarnings("WeakerAccess")
     public static final int TYPE_NULLABLE = 64;
@@ -119,6 +121,9 @@ public class Property implements NativeObject {
                 break;
             case UUID:
                 type = TYPE_UUID;
+                break;
+            case MIXED:
+                type = TYPE_MIXED;
                 break;
             case DOUBLE:
                 type = TYPE_DOUBLE;
@@ -192,6 +197,8 @@ public class Property implements NativeObject {
                 return RealmFieldType.OBJECT_ID;
             case TYPE_UUID:
                 return RealmFieldType.UUID;
+            case TYPE_MIXED:
+                return RealmFieldType.MIXED;
             //noinspection PointlessBitwiseExpression
             case TYPE_INT | TYPE_ARRAY:
                 return INTEGER_LIST;

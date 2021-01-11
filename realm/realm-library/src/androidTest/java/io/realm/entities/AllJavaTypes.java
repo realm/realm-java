@@ -22,6 +22,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.UUID;
 
+import io.realm.Mixed;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
@@ -50,6 +51,7 @@ public class AllJavaTypes extends RealmObject {
     public static final String FIELD_DECIMAL128 = "fieldDecimal128";
     public static final String FIELD_OBJECT_ID = "fieldObjectId";
     public static final String FIELD_UUID = "fieldUUID";
+    public static final String FIELD_MIXED = "fieldMixed";
     public static final String FIELD_OBJECT = "fieldObject";
     public static final String FIELD_LIST = "fieldList";
 
@@ -105,6 +107,7 @@ public class AllJavaTypes extends RealmObject {
     private Decimal128 fieldDecimal128;
     private ObjectId fieldObjectId;
     private UUID fieldUUID;
+    private Mixed fieldMixed;
     private AllJavaTypes fieldObject;
     private RealmList<AllJavaTypes> fieldList;
 
@@ -350,6 +353,14 @@ public class AllJavaTypes extends RealmObject {
 
     public void setFieldUUID(UUID fieldUUID) {
         this.fieldUUID = fieldUUID;
+    }
+
+    public Mixed getFieldMixed() {
+        return fieldMixed;
+    }
+
+    public void setFieldMixed(Mixed fieldMixed) {
+        this.fieldMixed = fieldMixed;
     }
 
     public RealmList<Decimal128> getFieldDecimal128List() {

@@ -169,6 +169,11 @@ public enum FrozenPendingRow implements Row {
     }
 
     @Override
+    public void setMixed(long columnKey, Mixed value) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
     public void setBinaryByteArray(long columnKey, byte[] data) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }

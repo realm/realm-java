@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import io.realm.FrozenPendingRow;
+import io.realm.Mixed;
 import io.realm.RealmChangeListener;
 import io.realm.RealmFieldType;
 import io.realm.internal.core.DescriptorOrdering;
@@ -189,6 +190,11 @@ public class PendingRow implements Row {
 
     @Override
     public void setString(long columnKey, String value) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public void setMixed(long columnKey, Mixed value) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 

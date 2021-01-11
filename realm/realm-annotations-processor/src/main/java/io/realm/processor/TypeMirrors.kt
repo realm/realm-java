@@ -46,6 +46,7 @@ class TypeMirrors(env: ProcessingEnvironment) {
     @JvmField val DECIMAL128_MIRROR: TypeMirror
     @JvmField val OBJECT_ID_MIRROR: TypeMirror
     @JvmField val UUID_MIRROR: TypeMirror
+    @JvmField val MIXED_MIRROR: TypeMirror
 
     @JvmField val PRIMITIVE_LONG_MIRROR: TypeMirror
     @JvmField val PRIMITIVE_INT_MIRROR: TypeMirror
@@ -69,6 +70,7 @@ class TypeMirrors(env: ProcessingEnvironment) {
         DECIMAL128_MIRROR = elementUtils.getTypeElement(Decimal128::class.javaObjectType.name).asType()
         OBJECT_ID_MIRROR = elementUtils.getTypeElement(ObjectId::class.javaObjectType.name).asType()
         UUID_MIRROR = elementUtils.getTypeElement(UUID::class.javaObjectType.name).asType()
+        MIXED_MIRROR = elementUtils.getTypeElement("io.realm.Mixed").asType()
 
         PRIMITIVE_LONG_MIRROR = typeUtils.getPrimitiveType(TypeKind.LONG)
         PRIMITIVE_INT_MIRROR = typeUtils.getPrimitiveType(TypeKind.INT)
