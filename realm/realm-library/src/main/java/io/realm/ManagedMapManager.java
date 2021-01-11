@@ -32,12 +32,12 @@ import io.realm.internal.OsMap;
  * @param <K> the key type
  * @param <V> the value type
  */
-abstract class ManagedMapOperator<K, V> implements Map<K, V>, ManageableObject {
+abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject {
 
     protected final Class<K> keyClass;
     protected final MapValueOperator<V> mapValueOperator;
 
-    ManagedMapOperator(Class<K> keyClass, MapValueOperator<V> mapValueOperator) {
+    ManagedMapManager(Class<K> keyClass, MapValueOperator<V> mapValueOperator) {
         this.keyClass = keyClass;
         this.mapValueOperator = mapValueOperator;
     }
@@ -112,7 +112,7 @@ abstract class ManagedMapOperator<K, V> implements Map<K, V>, ManageableObject {
 }
 
 /**
- * Specialization for {@link ManagedMapOperator}s targeting {@link RealmDictionary}.
+ * Specialization for {@link ManagedMapManager}s targeting {@link RealmDictionary}.
  * <p>
  * Dictionaries can in turn contain values of type {@link Mixed} and Realm primitive types, i.e.
  * integer, boolean, string, byte array, date, float, double, decimal, object id, UUID and
@@ -123,9 +123,9 @@ abstract class ManagedMapOperator<K, V> implements Map<K, V>, ManageableObject {
  *
  * @param <V> the value type
  */
-class DictionaryManagedMapOperator<V> extends ManagedMapOperator<String, V> {
+class DictionaryManager<V> extends ManagedMapManager<String, V> {
 
-    DictionaryManagedMapOperator(MapValueOperator<V> mapValueOperator) {
+    DictionaryManager(MapValueOperator<V> mapValueOperator) {
         super(String.class, mapValueOperator);
     }
 

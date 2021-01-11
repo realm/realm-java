@@ -217,14 +217,14 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
      */
     protected static class ManagedMapStrategy<K, V> extends MapStrategy<K, V> {
 
-        private final ManagedMapOperator<K, V> managedMapOperator;
+        private final ManagedMapManager<K, V> managedMapOperator;
 
         /**
          * Strategy constructor for managed maps.
          *
          * @param managedMapOperator the operator used by the managed map
          */
-        ManagedMapStrategy(ManagedMapOperator<K, V> managedMapOperator) {
+        ManagedMapStrategy(ManagedMapManager<K, V> managedMapOperator) {
             this.managedMapOperator = managedMapOperator;
         }
 
