@@ -84,10 +84,11 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             typeMirrors.UUID_MIRROR,
             typeMirrors.MIXED_MIRROR
     )
-    private val validDictionaryTypes: List<TypeMirror> = validListValueTypes
-//    private val validDictionaryTypes: List<TypeMirror>  = listOf(
-//            typeMirrors.MIXED_MIRROR
-//    )
+    private val validDictionaryTypes: List<TypeMirror>  = listOf(
+            // TODO: add more ad-hoc
+            typeMirrors.MIXED_MIRROR,
+            typeMirrors.BOOLEAN_MIRROR
+    )
     private val stringType = typeMirrors.STRING_MIRROR
 
     private val typeUtils: Types = env.typeUtils
@@ -403,7 +404,16 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
 
         // Check if the actual value class is acceptable
         if (!containsType(validDictionaryTypes, elementTypeMirror) && !Utils.isRealmModel(elementTypeMirror)) {
-            Utils.error("""${getFieldErrorSuffix(field)}Element type of RealmDictionary must be of type 'Mixed' or any type that can be boxed inside 'Mixed'.""", field)
+            val messageBuilder = StringBuilder(
+                    getFieldErrorSuffix(field) + "Element type of RealmDictionary must be of type 'Mixed' or any type that can be boxed inside 'Mixed': "
+            )
+            val separator = ", "
+            for (type in validDictionaryTypes) {
+                messageBuilder.append('\'').append(type.toString()).append('\'').append(separator)
+            }
+            messageBuilder.setLength(messageBuilder.length - separator.length)
+            messageBuilder.append('.')
+            Utils.error(messageBuilder.toString(), field)
             return false
         }
 

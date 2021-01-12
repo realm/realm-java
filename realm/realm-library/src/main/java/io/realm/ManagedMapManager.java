@@ -26,7 +26,7 @@ import io.realm.internal.ManageableObject;
 import io.realm.internal.OsMap;
 
 /**
- * A {@code ManagedMapOperator} abstracts the different types of keys and values a managed
+ * A {@code ManagedMapManager} abstracts the different types of keys and values a managed
  * {@link RealmMap} can contain.
  *
  * @param <K> the key type

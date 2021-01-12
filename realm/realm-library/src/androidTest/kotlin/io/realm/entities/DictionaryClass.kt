@@ -25,6 +25,8 @@ open class DictionaryClass : RealmObject() {
 
     var myMixedDictionary: RealmDictionary<Mixed>? = null
     var myBooleanDictionary: RealmDictionary<Boolean>? = null
+
+    // FIXME: remove non-dictionary fields, they are only used for inspiration
     var myBooleanList: RealmList<Boolean>? = null
 
     companion object {
