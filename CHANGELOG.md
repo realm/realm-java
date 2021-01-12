@@ -4,7 +4,7 @@
 * None.
 
 ### Fixes
-* RxJava Flowables/Observables and Coroutine Flows would crash if they where created from a `RealmList` and the parent object holding the list was deleted. Now, the stream is disposed/closed instead. (Issue [#7242](https://github.com/realm/realm-java/issues/7242)) 
+* RxJava Flowables/Observables and Coroutine Flows would crash if they were created from a `RealmList` and the parent object holding the list was deleted. Now, the stream is disposed/closed instead. (Issue [#7242](https://github.com/realm/realm-java/issues/7242)) 
 
 ### Compatibility
 * File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
