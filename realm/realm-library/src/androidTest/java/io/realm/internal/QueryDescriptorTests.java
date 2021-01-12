@@ -252,6 +252,9 @@ public class QueryDescriptorTests {
         for (RealmFieldType type : RealmFieldType.values()) {
             if (!filter.contains(type)) {
                 switch (type) {
+                    // TODO: maps not ready to test yet
+                    case STRING_TO_MIXED_MAP:
+                    case STRING_TO_BOOLEAN_MAP:
                     case MIXED:// FIXME: MIXED IGNORED.
                     case TYPED_LINK:
                     case LINKING_OBJECTS:

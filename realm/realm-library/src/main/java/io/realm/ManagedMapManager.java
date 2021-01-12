@@ -43,7 +43,7 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject {
     }
 
     @Override
-    abstract public V put(K key, V value);
+    public abstract V put(K key, V value);
 
     @Override
     public boolean isManaged() {

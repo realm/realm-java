@@ -21,17 +21,17 @@ import io.realm.RealmObject;
 
 public class RealmDictionaryModelWrongType extends RealmObject {
 
-    private RealmDictionary<String> myDictionary;
+    private RealmDictionary<Exception> myDictionary;
 
     public RealmDictionaryModelWrongType() {
         // no-op
     }
 
-    public RealmDictionary<String> getMyMap() {
+    public RealmDictionary<Exception> getMyMap() {
         return myDictionary;
     }
 
-    public void setMyDictionary(RealmDictionary<String> dictionary) {
+    public void setMyDictionary(RealmDictionary<Exception> dictionary) {
         this.myDictionary = dictionary;
     }
 }
