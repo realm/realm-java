@@ -16,67 +16,26 @@
 
 package io.realm.examples.coroutinesexample.ui.main
 
-import androidx.lifecycle.*
-import io.realm.Realm
-import io.realm.examples.coroutinesexample.model.Dog
-import io.realm.examples.coroutinesexample.repository.RealmRepository
-import io.realm.examples.coroutinesexample.repository.Repository
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
+import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import io.realm.examples.coroutinesexample.TAG
+import io.realm.examples.coroutinesexample.di.DependencyGraph
 
 class MainViewModel : ViewModel() {
 
-    private val _count = MutableLiveData<Long>().apply { value = 0 }
-    val count: LiveData<Long>
-        get() = _count
+    private val repository = DependencyGraph.provideNewsReaderRepository()
 
-    private val realm = Realm.getDefaultInstance()
-    private val repository: Repository = RealmRepository(realm)
-
-    private lateinit var insertDogsJob: Job
-    private lateinit var deleteAllDogsJob: Job
-
-    fun insertDogs(number: Int = 10) {
-        insertDogsJob = viewModelScope.launch {
-            repository.insertDogs(number)
-        }
-    }
-
-    fun deleteAll() {
-        deleteAllDogsJob = viewModelScope.launch {
-            repository.deleteDogs()
-        }
-    }
-
-    fun getDogs(): LiveData<List<Dog>> {
-        return liveData {
-            repository.getDogs()
-                    .collect {
-                        emit(it)
-                    }
-        }
-    }
-
-    fun countDogs() {
-        _count.postValue(repository.countDogs())
-    }
-
-    fun cancel() {
-        if (this::insertDogsJob.isInitialized
-                && insertDogsJob.isActive
-                && !insertDogsJob.isCancelled) {
-            insertDogsJob.cancel()
-        }
-        if (this::deleteAllDogsJob.isInitialized
-                && deleteAllDogsJob.isActive
-                && !deleteAllDogsJob.isCancelled) {
-            deleteAllDogsJob.cancel()
-        }
-    }
+    val newsReaderState: LiveData<NewsReaderState>
+        get() = repository.newsReaderState
 
     override fun onCleared() {
-        realm.close()
+        repository.close()
+    }
+
+    fun getTopStories(apiSection: String, refresh: Boolean = false) {
+        Log.d(TAG, "------ apiSection: $apiSection - refresh '$refresh'")
+        repository.getTopStories(viewModelScope, apiSection, refresh)
     }
 }

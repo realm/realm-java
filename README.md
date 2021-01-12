@@ -6,6 +6,10 @@
 Realm is a mobile database that runs directly inside phones, tablets or wearables.
 This repository holds the source code for the Java version of Realm, which currently runs only on Android.
 
+## Realm Kotlin
+
+See [Realm Kotlin](https://github.com/realm/realm-kotlin) for more information about our new SDK written specifically for Kotlin Multiplatform and Android. The SDK is still experimental and the API surface has not been finalized yet, but we highly encourage any feedback you might have.
+
 ## Features
 
 * **Mobile-first:** Realm is the first database built from the ground up to run directly inside phones, tablets, and wearables.
@@ -66,34 +70,24 @@ In case you don't want to use the precompiled version, you can build Realm yours
 ### Prerequisites
 
  * Download the [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
- * The latest stable version of Android Studio. Currently [3.6.2](https://developer.android.com/studio/).
- * Download & install the Android SDK **Build-Tools 28.0.3**, **Android Pie (API 28)** (for example through Android Studio’s **Android SDK Manager**).
+ * The latest stable version of Android Studio. Currently [4.1.1](https://developer.android.com/studio/).
+ * Download & install the Android SDK **Build-Tools 29.0.3**, **Android Pie (API 29)** (for example through Android Studio’s **Android SDK Manager**).
  * Install CMake version 3.18.2 and build Ninja.
- * Install the NDK (currently r21) from the SDK Manager in Android Studio or using the [website](https://developer.android.com/ndk/downloads). If downloaded 
-You may unzip the file wherever you choose.  For macOS, a suggested location is `~/Library`.  The download will unzip as the directory `android-ndk-r21`.
+ * Install the NDK (Side-by-side) **21.0.6113669** from the SDK Manager in Android Studio. Remember to check `☑  Show package details` in the manager to display all available versions.
 
- * If you will be building with Android Studio, you will need to tell it to use the correct NDK.  If you installed it using the SDK Manager, it will automatically be detected. Otherwise, you need to define the variable `ndk.dir` in `realm/local.properties` and assign it the full pathname of the directory that you unzipped above.  Note that there is a `local.properites` in the root directory that is *not* the one that needs to be edited.
-
-    ```
-    ndk.dir=/Users/<username>/Library/android-sdk/ndk/21.0.6113669
+ * Add the Android home environment variable to your profile:
 
     ```
-
- * Add two environment variables to your profile (presuming you installed the NDK using the SDK Manager):
-
-    ```
-    export ANDROID_HOME=~/Library/android-sdk
-    export ANDROID_NDK_HOME=~/Library/android-sdk/ndk/21.0.6113669
+    export ANDROID_HOME=~/Library/Android/sdk
     ```
 
- * If you are launching Android Studio from the macOS Finder, you should also run the following two commands:
+ * If you are launching Android Studio from the macOS Finder, you should also run the following command:
 
     ```
     launchctl setenv ANDROID_HOME "$ANDROID_HOME"
-    launchctl setenv ANDROID_NDK_HOME "$ANDROID_NDK_HOME"
     ```
 
- * If you'd like to specify the location in which to store the archives of Realm Core, define the `REALM_CORE_DOWNLOAD_DIR` environment variable. It enables you to keep Core's archive when executing `git clean -xfd`.
+ * If you'd like to specify the location in which to store the archives of Realm Core, define the `REALM_CORE_DOWNLOAD_DIR` environment variable. It enables caching core release artifacts.
 
    ```
    export REALM_CORE_DOWNLOAD_DIR=~/.realmCore
@@ -109,7 +103,7 @@ It would be a good idea to add all of the symbol definitions (and their accompan
 
  * If you develop Realm Java with Android Studio, we recommend you to exclude some directories from indexing target by executing following steps on Android Studio. It really speeds up indexing phase after the build.
 
-    - Under `/realm/realm-library/`, select `build`, `.externalNativeBuild` and `distribution` folders in `Project` view.
+    - Under `/realm/realm-library/`, select `build`, `.cxx` and `distribution` folders in `Project` view.
     - Press `Command + Shift + A` to open `Find action` dialog. If you are not using default keymap nor using macOS, you can find your shortcut key in `Keymap` preference by searching `Find action`.
     - Search `Excluded` (not `Exclude`) action and select it. Selected folder icons should become orange (in default theme).
     - Restart Android Studio.
@@ -147,22 +141,28 @@ The full build may take an hour or more, to complete.
 
 ### Building from source
 
-It is possible to build Realm Java against a local checked out version of Realm Core. This is done by providing the following parameter when building: `-PcoreSourcePath=<path>`.
-
-E.g in the case where the `realm-java` and `realm-core` repos are checked out next to each other you can build from source using:
+It is possible to build Realm Java with the submodule version of Realm Core. This is done by providing the following parameter when building: `-PbuildCore=true`.
 
 ```
-git clone https://github.com/realm/realm-java.git
-git clone https://github.com/realm/realm-core.git
-cd realm-java/realm
-./gradlew assembleBase -PcoreSourcePath=../../realm-core
+./gradlew assembleBase -PbuildCore=true
 ```
 
-Note: If the `realm-core` project has already been compiled for non-Android builds and CMake files have been generated, this might conflict with `realm-java` trying to build it. Cleanup the `realm-core` project by calling `git clean -xfd` inside it (beware that all unsaved changes will be lost).
+You can turn off interprocedural optimizations with the following parameter: `-PenableLTO=false`. 
 
-Note: Building from source with Realm Sync is not enabled yet. Only building the `Base` variant is supported.
+```
+./gradlew assembleBase -PenableLTO=false`
+```
 
-Note: If you want to build from source inside Android Studio, you need to update the Gradle parameters by going into the Realm projects settings `Settings > Build, Execution, Deployment > Compiler > Command-line options` and add `-PcoreSourcePath=<path>` to it.
+Note: Building the `Base` variant would always build realm-core.
+
+Note: Interprocedural optimizations are enabled by default.
+
+Note: If you want to build from source inside Android Studio, you need to update the Gradle parameters by going into the Realm projects settings `Settings > Build, Execution, Deployment > Compiler > Command-line options` and add `-PbuildCore=true` or `-PenableLTO=false` to it. Alternatively you can add it into your `gradle.properties`:
+
+```
+buildCore=true
+enableLTO=false
+```
 
 Note: If building on OSX you might like to prevent Gatekeeper to block all NDK executables by disabling it: `sudo spctl --master-disable`. Remember to enable it afterwards: `sudo spctl --master-enable`
 
