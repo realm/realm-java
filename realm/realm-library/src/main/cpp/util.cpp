@@ -306,16 +306,24 @@ struct JcharTraits {
 };
 
 struct JStringCharsAccessor {
-    JStringCharsAccessor(JNIEnv* e, jstring s)
+    JStringCharsAccessor(JNIEnv* e, jstring s, bool delete_jstring_ref_on_delete)
         : m_env(e)
         , m_string(s)
         , m_data(e->GetStringChars(s, 0))
         , m_size(get_size(e, s))
+        , m_delete_jstring_ref_on_delete(delete_jstring_ref_on_delete)
     {
     }
     ~JStringCharsAccessor()
     {
         m_env->ReleaseStringChars(m_string, m_data);
+        // TODO Left as opt-in to avoid inspecting all usages as part of the fix for
+        //  https://github.com/realm/realm-java/pull/7232. We should consider making this the
+        //  default and try to handle local refs uniformly through JavaLocalRefs or similar
+        //  mechanisms.
+        if (m_delete_jstring_ref_on_delete) {
+            m_env->DeleteLocalRef(m_string);
+        }
     }
     const jchar* data() const noexcept
     {
@@ -331,6 +339,7 @@ private:
     const jstring m_string;
     const jchar* const m_data;
     const size_t m_size;
+    const bool m_delete_jstring_ref_on_delete;
 
     static size_t get_size(JNIEnv* e, jstring s)
     {
@@ -472,7 +481,7 @@ transcode_complete : {
 }
 
 
-JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
+JStringAccessor::JStringAccessor(JNIEnv* env, jstring str, bool delete_jstring_ref)
     : m_env(env)
 {
     // For efficiency, if the incoming UTF-16 string is sufficiently
@@ -488,7 +497,7 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
     }
     m_is_null = false;
 
-    JStringCharsAccessor chars(env, str);
+    JStringCharsAccessor chars(env, str, delete_jstring_ref);
 
     typedef Utf8x16<jchar, JcharTraits> Xcode;
     size_t max_project_size = 48;

@@ -82,7 +82,7 @@ try {
           // Build development branch
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
-          buildFlags = "-PbuildTargetABIs=x86 -PdisableLTO=1"
+          buildFlags = "-PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=false"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           deviceSerial = "emulator-5554"
         } else {
@@ -91,6 +91,7 @@ try {
           //  But still build all ABI's and run all types of tests. 
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
+          buildFlags = "-PenableLTO=true -PbuildCore=true"
           instrumentationTestTarget = "connectedAndroidTest"
           deviceSerial = "emulator-5554"
         }
@@ -239,38 +240,38 @@ def runBuild(buildFlags, instrumentationTestTarget) {
         storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
       }
     },
-    'Static code analysis' : {
-      try {
-        gradle('realm', "spotbugsMain pmd checkstyle ${buildFlags}")
-      } finally {
-        publishHTML(target: [
-          allowMissing: false, 
-          alwaysLinkToLastBuild: false, 
-          keepAll: true, 
-          reportDir: 'realm/realm-library/build/reports/spotbugs', 
-          reportFiles: 'main.html', 
-          reportName: 'Spotbugs report'
-        ])
+    // 'Static code analysis' : {
+    //   try {
+    //     gradle('realm', "spotbugsMain pmd checkstyle ${buildFlags}")
+    //   } finally {
+    //     publishHTML(target: [
+    //       allowMissing: false, 
+    //       alwaysLinkToLastBuild: false, 
+    //       keepAll: true, 
+    //       reportDir: 'realm/realm-library/build/reports/spotbugs', 
+    //       reportFiles: 'main.html', 
+    //       reportName: 'Spotbugs report'
+    //     ])
 
-        publishHTML(target: [
-          allowMissing: false, 
-          alwaysLinkToLastBuild: false, 
-          keepAll: true, 
-          reportDir: 'realm/realm-library/build/reports/pmd', 
-          reportFiles: 'pmd.html', 
-          reportName: 'PMD report'
-        ])
+    //     publishHTML(target: [
+    //       allowMissing: false, 
+    //       alwaysLinkToLastBuild: false, 
+    //       keepAll: true, 
+    //       reportDir: 'realm/realm-library/build/reports/pmd', 
+    //       reportFiles: 'pmd.html', 
+    //       reportName: 'PMD report'
+    //     ])
         
-        publishHTML(target: [
-          allowMissing: false, 
-          alwaysLinkToLastBuild: false, 
-          keepAll: true, 
-          reportDir: 'realm/realm-library/build/reports/checkstyle', 
-          reportFiles: 'checkstyle.html', 
-          reportName: 'Checkstyle report'
-        ])
-      }
-    },
+    //     publishHTML(target: [
+    //       allowMissing: false, 
+    //       alwaysLinkToLastBuild: false, 
+    //       keepAll: true, 
+    //       reportDir: 'realm/realm-library/build/reports/checkstyle', 
+    //       reportFiles: 'checkstyle.html', 
+    //       reportName: 'Checkstyle report'
+    //     ])
+    //   }
+    // },
     'Instrumentation' : {
       if (enableIntegrationTests) {
         String backgroundPid
