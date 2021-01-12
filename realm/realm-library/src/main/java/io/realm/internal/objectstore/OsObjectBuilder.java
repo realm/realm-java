@@ -242,44 +242,44 @@ public class OsObjectBuilder implements Closeable {
     }
 
     public void addMixed(long columnKey, @Nullable Mixed value) {
-        if (value != null) {
-            switch (value.getType()) {
-                case INTEGER:
-                    nativeMixedAddLong(builderPtr, columnKey, value.asInteger());
-                    break;
-                case BOOLEAN:
-                    nativeMixedAddBoolean(builderPtr, columnKey, value.asBoolean());
-                    break;
-                case FLOAT:
-                    nativeMixedAddFloat(builderPtr, columnKey, value.asFloat());
-                    break;
-                case DOUBLE:
-                    nativeMixedAddDouble(builderPtr, columnKey, value.asDouble());
-                    break;
-                case STRING:
-                    nativeMixedAddString(builderPtr, columnKey, value.asString());
-                    break;
-                case BINARY:
-                    nativeMixedAddByteArray(builderPtr, columnKey, value.asBinary());
-                    break;
-                case DATE:
-                    nativeMixedAddTimestamp(builderPtr, columnKey, value.asDate().getTime());
-                    break;
-                case OBJECT_ID:
-                    nativeMixedAddObjectId(builderPtr, columnKey, value.asObjectId().toString());
-                    break;
-                case DECIMAL128:
-                    Decimal128 decimalValue = value.asDecimal128();
-                    nativeMixedAddDecimal128(builderPtr, columnKey, decimalValue.getLow(), decimalValue.getHigh());
-                    break;
-                case NULL:
-                    nativeMixedAddNull(builderPtr, columnKey);
-                    break;
-                default:
-            }
-        } else {
-            nativeMixedAddNull(builderPtr, columnKey);
-        }
+//        if (value != null) {
+//            switch (value.getType()) {
+//                case INTEGER:
+//                    nativeMixedAddLong(builderPtr, columnKey, value.asInteger());
+//                    break;
+//                case BOOLEAN:
+//                    nativeMixedAddBoolean(builderPtr, columnKey, value.asBoolean());
+//                    break;
+//                case FLOAT:
+//                    nativeMixedAddFloat(builderPtr, columnKey, value.asFloat());
+//                    break;
+//                case DOUBLE:
+//                    nativeMixedAddDouble(builderPtr, columnKey, value.asDouble());
+//                    break;
+//                case STRING:
+//                    nativeMixedAddString(builderPtr, columnKey, value.asString());
+//                    break;
+//                case BINARY:
+//                    nativeMixedAddByteArray(builderPtr, columnKey, value.asBinary());
+//                    break;
+//                case DATE:
+//                    nativeMixedAddTimestamp(builderPtr, columnKey, value.asDate().getTime());
+//                    break;
+//                case OBJECT_ID:
+//                    nativeMixedAddObjectId(builderPtr, columnKey, value.asObjectId().toString());
+//                    break;
+//                case DECIMAL128:
+//                    Decimal128 decimalValue = value.asDecimal128();
+//                    nativeMixedAddDecimal128(builderPtr, columnKey, decimalValue.getLow(), decimalValue.getHigh());
+//                    break;
+//                case NULL:
+//                    nativeMixedAddNull(builderPtr, columnKey);
+//                    break;
+//                default:
+//            }
+//        } else {
+//            nativeMixedAddNull(builderPtr, columnKey);
+//        }
     }
 
     public void addString(long columnKey, @Nullable String val) {

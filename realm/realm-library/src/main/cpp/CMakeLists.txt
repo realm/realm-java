@@ -94,7 +94,7 @@ set(classes_LIST
     io.realm.internal.NativeObjectReference io.realm.internal.OsCollectionChangeSet
     io.realm.internal.OsObject io.realm.internal.OsRealmConfig io.realm.internal.OsList
     io.realm.internal.OsObjectStore
-    io.realm.internal.core.DescriptorOrdering io.realm.internal.core.IncludeDescriptor
+    io.realm.internal.core.DescriptorOrdering io.realm.internal.core.IncludeDescriptor io.realm.internal.core.NativeMixed
     io.realm.internal.objectstore.OsObjectBuilder
 )
 # /./ is the workaround for the problem that AS cannot find the jni headers.
@@ -122,6 +122,7 @@ if (REALM_ENABLE_SYNC)
         io.realm.internal.objectstore.OsSyncUser
         io.realm.mongodb.mongo.iterable.AggregateIterable
         io.realm.mongodb.mongo.iterable.FindIterable
+        io.realm.internal.core.NativeMixed
     )
 endif()
 create_javah(TARGET jni_headers
