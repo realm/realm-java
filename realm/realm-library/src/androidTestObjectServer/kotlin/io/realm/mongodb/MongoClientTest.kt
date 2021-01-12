@@ -36,6 +36,7 @@ import org.bson.codecs.configuration.CodecRegistries
 import org.bson.types.ObjectId
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
@@ -683,6 +684,7 @@ class MongoClientTest {
         }
     }
 
+    @Ignore("https://github.com/realm/realm-java/issues/7238")
     @Test
     fun findOneAndUpdate_emptyCollection() {
         with(getCollectionInternal()) {
@@ -691,6 +693,7 @@ class MongoClientTest {
         }
     }
 
+    @Ignore("https://github.com/realm/realm-java/issues/7238")
     @Test
     fun findOneAndUpdate_noUpdates() {
         with(getCollectionInternal()) {
@@ -699,6 +702,7 @@ class MongoClientTest {
         }
     }
 
+    @Ignore("https://github.com/realm/realm-java/issues/7238")
     @Test
     fun findOneAndUpdate_noUpsert() {
         with(getCollectionInternal()) {
@@ -844,6 +848,7 @@ class MongoClientTest {
         }
     }
 
+    @Ignore("https://github.com/realm/realm-java/issues/7238")
     @Test
     fun findOneAndReplace_noUpdates() {
         with(getCollectionInternal()) {
@@ -855,6 +860,7 @@ class MongoClientTest {
         }
     }
 
+    @Ignore("https://github.com/realm/realm-java/issues/7238")
     @Test
     fun findOneAndReplace_noUpsert() {
         with(getCollectionInternal()) {
@@ -1347,11 +1353,15 @@ class MongoClientTest {
         }
     }
 
+    @Ignore("https://github.com/realm/realm-java/issues/7239")
     @Test
     fun watchError() {
         with(getCollectionInternal()) {
             val watcher = this.watch()
 
+            // This should time out after 60 seconds with no events.
+            // This no longer seems to happen though as pr. https://github.com/realm/realm-java/issues/7239
+            // So we need to find another way to test this.
             assertFailsWith<AppException> {
                 watcher.next
             }

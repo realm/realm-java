@@ -63,18 +63,29 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
         size_t map_size = request.headers.size();
         jobject request_headers = env->NewObject(mapClass, init, (jsize) map_size);
         for (auto header : request.headers) {
-            env->CallObjectMethod(request_headers, put_method, to_jstring(env, header.first), to_jstring(env, header.second));
+            jstring key = to_jstring(env, header.first);
+            jstring value = to_jstring(env, header.second);
+            env->CallObjectMethod(request_headers, put_method, key, value);
+            env->DeleteLocalRef(key);
+            env->DeleteLocalRef(value);
         }
 
         // Execute network request on the Java side
-        jobject response = env->CallObjectMethod(m_java_network_transport_impl,
-                                            m_send_request_method,
-                                            to_jstring(env, method),
-                                            to_jstring(env, request.url),
-                                            static_cast<jlong>(request.timeout_ms),
-                                            request_headers,
-                                            to_jstring(env, request.body)
-                                            );
+        jstring jmethod = to_jstring(env, method);
+        jstring jurl = to_jstring(env, request.url);
+        jstring jbody = to_jstring(env, request.body);
+        jobject response = env->CallObjectMethod(
+                m_java_network_transport_impl,
+                m_send_request_method,
+                jmethod,
+                jurl,
+                static_cast<jlong>(request.timeout_ms),
+                request_headers,
+                jbody
+        );
+        env->DeleteLocalRef(jmethod);
+        env->DeleteLocalRef(jurl);
+        env->DeleteLocalRef(jbody);
         env->DeleteLocalRef(request_headers);
 
         if (env->ExceptionCheck()) {
@@ -92,7 +103,7 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
 
             jint http_code = env->CallIntMethod(response, get_http_code_method);
             jint custom_code = env->CallIntMethod(response, get_custom_code_method);
-            JStringAccessor java_body(env, (jstring) env->CallObjectMethod(response, get_body_method));
+            JStringAccessor java_body(env, (jstring) env->CallObjectMethod(response, get_body_method), true);
             JObjectArrayAccessor<JStringAccessor, jstring> java_headers(env, static_cast<jobjectArray>(env->CallObjectMethod(response, get_headers_method)));
             auto response_headers = std::map<std::string, std::string>();
             for (int i = 0; i < java_headers.size(); i = i + 2) {

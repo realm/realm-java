@@ -321,6 +321,15 @@ object Utils {
     }
 
     /**
+     * Return generic type mirror if any.
+     */
+    fun getGenericType(field: VariableElement): TypeMirror? {
+        val fieldType = field.asType()
+        val typeArguments = (fieldType as DeclaredType).typeArguments
+        return if (typeArguments.isEmpty()) null else typeArguments[0]
+    }
+
+    /**
      * Strips the package name from a fully qualified class name.
      */
     fun stripPackage(fullyQualifiedClassName: String): String {

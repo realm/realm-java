@@ -20,6 +20,8 @@ import android.app.IntentService;
 
 import java.util.Collections;
 
+import javax.annotation.Nullable;
+
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.realm.annotations.RealmClass;
@@ -150,7 +152,7 @@ public abstract class RealmObject implements RealmModel, ManageableObject {
      * @param object RealmObject to check validity for.
      * @return {@code true} if the object is still accessible or an unmanaged object, {@code false} otherwise.
      */
-    public static <E extends RealmModel> boolean isValid(E object) {
+    public static <E extends RealmModel> boolean isValid(@Nullable E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             Row row = proxy.realmGet$proxyState().getRow$realm();
