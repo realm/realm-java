@@ -539,7 +539,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitStatement("return")
                     endControlFlow()
 
-                    // FIXME: should we also consider "forRealmModel"?
+                    // FIXME: should we also consider "forRealmModel", given we could have RealmDictionary<Dog>?
                     if (!forMixed) {
                         return@emitter
                     }
@@ -583,10 +583,11 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement("String entryKey = item.getKey()")
                     emitStatement("%s entryValue = item.getValue()", genericType)
 
+                    // TODO: consider what to do when receiving RealmModels
                     if (forMixed) {
                         emitStatement("osMap.put(entryKey, entryValue.osMixed)")
                     } else {
-                        // TODO: missing other accepted types - use getStatementForAppendingValueToOsList for inspiration
+                        emitStatement("osMap.put(entryKey, entryValue)")
                     }
 
                 endControlFlow()
