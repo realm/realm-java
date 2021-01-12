@@ -16,8 +16,8 @@
 
 #include <jni.h>
 
-#include <sync/app.hpp>
-#include <sync/sync_manager.hpp>
+#include <realm/object-store/sync/app.hpp>
+#include <realm/object-store/sync/sync_manager.hpp>
 
 #include "util.hpp"
 #include "io_realm_mongodb_sync_ClientResetRequiredError.h"

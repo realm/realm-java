@@ -28,8 +28,7 @@
 #include <realm/util/any.hpp>
 #include <realm/util/to_string.hpp>
 
-#include <object_accessor.hpp>
-#include <realm/util/any.hpp>
+#include <realm/object-store/object_accessor.hpp>
 
 #include "java_class_global_def.hpp"
 #include "java_exception_def.hpp"

@@ -15,11 +15,13 @@
 # limitations under the License.
 #
 ###########################################################################
-cmake_minimum_required(VERSION 3.6.0)
+cmake_minimum_required(VERSION 3.15.0)
+project(RealmJava)
 
 # loading dependencies properties
 file(STRINGS "${CMAKE_SOURCE_DIR}/../../../../../dependencies.list" DEPENDENCIES)
 foreach(LINE IN LISTS DEPENDENCIES)
+
     string(REGEX MATCHALL "([^=]+)" KEY_VALUE "${LINE}")
     list(LENGTH KEY_VALUE matches_count)
     if(matches_count STREQUAL 2)
@@ -35,8 +37,6 @@ FUNCTION(capitalizeFirstLetter var value)
     string(REGEX REPLACE "^.(.*)" "${firstLetter}\\1" value "${value}")
     set(${var} "${value}" PARENT_SCOPE)
 ENDFUNCTION(capitalizeFirstLetter)
-
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
 # find javah
 find_package(Java COMPONENTS Development)
@@ -64,11 +64,11 @@ if(NDK_LCACHE)
     set(CMAKE_CXX_CREATE_SHARED_LIBRARY "${NDK_LCACHE} ${CMAKE_CXX_CREATE_SHARED_LIBRARY}")
 endif()
 
-# Set flag build_SYNC
+# Set flag REALM_ENABLE_SYNC
 if (REALM_FLAVOR STREQUAL base)
-    set(build_SYNC OFF)
+    set(REALM_ENABLE_SYNC OFF)
 else()
-    set(build_SYNC ON)
+    set(REALM_ENABLE_SYNC ON)
 endif()
 
 # Format strings used to represent build parameters: Variant and Type
@@ -100,7 +100,7 @@ set(classes_LIST
 # /./ is the workaround for the problem that AS cannot find the jni headers.
 # See https://github.com/googlesamples/android-ndk/issues/319
 set(jni_headers_PATH /./${PROJECT_BINARY_DIR}/jni_include)
-if (build_SYNC)
+if (REALM_ENABLE_SYNC)
     list(APPEND classes_LIST
         io.realm.mongodb.App
         io.realm.mongodb.ApiKeyAuthImpl
@@ -131,32 +131,50 @@ create_javah(TARGET jni_headers
     DEPENDS ${classes_PATH}
 )
 
-include(RealmCore)
-use_realm_core(${build_SYNC} "${REALM_CORE_DIST_DIR}" "${CORE_SOURCE_PATH}")
+# Check if user defined download location
+if(NOT DEFINED ENV{REALM_CORE_DOWNLOAD_DIR})
+    set(REALM_CORE_DOWNLOAD_DIR ${CMAKE_BINARY_DIR})
+else()
+    set(REALM_CORE_DOWNLOAD_DIR $ENV{REALM_CORE_DOWNLOAD_DIR})
+endif()
 
-# Download OpenSSL lib
-# FIXME Read the openssl version from core when the core/sync release has that information.
-set(openssl_VERSION "1.1.1b")
-set(openssl_FILENAME "openssl.tgz")
-set(openssl_URL "https://static.realm.io/downloads/openssl/${openssl_VERSION}/Android/${ANDROID_ABI}/${openssl_FILENAME}")
+if(REALM_JAVA_BUILD_CORE_FROM_SOURCE OR NOT REALM_ENABLE_SYNC)
+    message(STATUS "Building Realm Core from source...")
 
-message(STATUS "Downloading OpenSSL...")
-file(DOWNLOAD "${openssl_URL}" "${PROJECT_BINARY_DIR}/${openssl_FILENAME}")
+    set(REALM_BUILD_LIB_ONLY ON)
+    add_subdirectory(realm-core EXCLUDE_FROM_ALL)
+else()
+    message(STATUS "Using prebuilt Realm Core.")
 
-message(STATUS "Uncompressing OpenSSL: ${PROJECT_BINARY_DIR}/${openssl_FILENAME}")
-execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfz "${openssl_FILENAME}" WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
-message(STATUS "Importing OpenSSL...")
-include(${PROJECT_BINARY_DIR}/lib/cmake/OpenSSL/OpenSSLConfig.cmake)
-get_target_property(openssl_include_DIR OpenSSL::Crypto INTERFACE_INCLUDE_DIRECTORIES)
-get_target_property(crypto_LIB OpenSSL::Crypto IMPORTED_LOCATION)
-get_target_property(ssl_LIB OpenSSL::SSL IMPORTED_LOCATION)
+    # CMAKE_INTERPROCEDURAL_OPTIMIZATION is not compatible with binary artifacts.
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
+
+    execute_process(COMMAND "${CMAKE_COMMAND}" "-E" "environment")
+    set(core_filename "realm-${CMAKE_BUILD_TYPE}-v${DEP_REALM_CORE}-Android-${CMAKE_ANDROID_ARCH_ABI}-devel")
+
+    # Use cached resources if possible
+    if(NOT EXISTS "${REALM_CORE_DOWNLOAD_DIR}/${core_filename}.tar.gz")
+        message(STATUS "Downloading ${core_filename}...")
+        file(DOWNLOAD "https://static.realm.io/downloads/core/${core_filename}.tar.gz" "${REALM_CORE_DOWNLOAD_DIR}/${core_filename}.tar.gz")
+    else()
+        file(TIMESTAMP "${REALM_CORE_DOWNLOAD_DIR}/${core_filename}.tar.gz" CORE_FILE_TIMESTAMP "%b %d %H:%M")
+        message(STATUS "Using cached filename: ${core_filename}.tar.gz : ${CORE_FILE_TIMESTAMP}")
+    endif()
+
+    message(STATUS "Uncompressing realm-core...")
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/${core_filename}")
+
+    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfz "${REALM_CORE_DOWNLOAD_DIR}/${core_filename}.tar.gz"
+            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/${core_filename}")
+
+    include(${CMAKE_BINARY_DIR}/${core_filename}/lib/cmake/Realm/RealmConfig.cmake)
+endif()
 
 # build application's shared lib
 include_directories(
-        ${CMAKE_SOURCE_DIR}
-        ${jni_headers_PATH}
-        ${CMAKE_SOURCE_DIR}/object-store/src
-        ${CMAKE_SOURCE_DIR}/object-store/external/json)
+    ${CMAKE_SOURCE_DIR}
+    ${jni_headers_PATH}
+)
 
 # Hack the memmove bug on Samsung device.
 if (ARMEABI OR ARMEABI_V7A)
@@ -176,10 +194,10 @@ set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wmissing-declarations \
     -Wno-missing-field-initializers -Wno-unevaluated-expression -Wno-unreachable-code \
     -Wno-c99-extensions")
 set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -fdata-sections -pthread -frtti -fvisibility=hidden -fsigned-char -fno-stack-protector -std=c++17")
-if (build_SYNC)
+if (REALM_ENABLE_SYNC)
     set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")
 endif()
-set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -Oz")
+set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O2")
 # -ggdb doesn't play well with -flto
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -glldb -g")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_FLAGS} ${ABI_CXX_FLAGS}")
@@ -188,7 +206,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -Wl,-gc-sections")
 endif()
-if (build_SYNC)
+if (REALM_ENABLE_SYNC)
     set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -lz")
 endif()
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${REALM_LINKER_FLAGS}")
@@ -200,7 +218,7 @@ file(GLOB jni_SRC
     "jni_impl/android_logger.cpp"
 )
 # Those source file are only needed for sync.
-if (NOT build_SYNC)
+if (NOT REALM_ENABLE_SYNC)
     list(REMOVE_ITEM jni_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_User.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_FunctionsImpl.cpp
@@ -225,33 +243,9 @@ if (NOT build_SYNC)
     )
 endif()
 
-# Object Store source files
-file(GLOB objectstore_SRC
-    "object-store/src/*.cpp"
-    "object-store/src/impl/*.cpp"
-    "object-store/src/impl/epoll/*.cpp"
-    "object-store/src/util/*.cpp"
-    "object-store/src/impl/epoll/*.cpp"
-    "object-store/src/util/android/*.cpp")
-
-# Sync needed Object Store files
-if (build_SYNC)
-    file(GLOB objectstore_sync_SRC
-        "object-store/src/results.cpp"
-        "object-store/src/impl/results_notifier.cpp"
-        "object-store/src/sync/*.cpp"
-        "object-store/src/util/bson/*.cpp"        
-        "object-store/src/sync/impl/*.cpp")
-endif()
-
-add_library(realm-jni SHARED ${jni_SRC} ${objectstore_SRC} ${objectstore_sync_SRC})
+add_library(realm-jni SHARED ${jni_SRC})
+target_link_libraries(realm-jni log android Realm::ObjectStore)
 add_dependencies(realm-jni jni_headers)
-
-if (build_SYNC)
-    target_link_libraries(realm-jni log android lib_realm_sync OpenSSL::SSL OpenSSL::Crypto)
-else()
-    target_link_libraries(realm-jni log android lib_realm_core OpenSSL::Crypto)
-endif()
 
 # Strip the release so files and backup the unstripped versions
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
