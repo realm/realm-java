@@ -122,7 +122,6 @@ if (REALM_ENABLE_SYNC)
         io.realm.internal.objectstore.OsSyncUser
         io.realm.mongodb.mongo.iterable.AggregateIterable
         io.realm.mongodb.mongo.iterable.FindIterable
-        io.realm.internal.core.NativeMixed
     )
 endif()
 create_javah(TARGET jni_headers
