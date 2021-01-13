@@ -13,6 +13,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
+import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -165,17 +166,17 @@ class MixedTests {
 //        assertEquals(MixedType.OBJECT_ID, mixed.type)
 //        assertEquals(MixedType.OBJECT_ID.typedClass, mixed.valueClass)
 //    }
-//
-//    @Test
-//    fun unmanaged_realmModel() {
-//        val obj = MixedNotIndexed()
-//        val mixed = Mixed.valueOf(obj)
-//
-//        assertEquals(obj, mixed.asRealmModel(MixedNotIndexed::class.java))
-//        assertEquals(MixedType.OBJECT, mixed.type)
-//        assertEquals(MixedNotIndexed::class.simpleName, mixed.valueClass?.simpleName)
-//    }
-//
+
+    @Test
+    fun unmanaged_realmModel() {
+        val obj = MixedNotIndexed()
+        val mixed = Mixed.valueOf(obj)
+
+        assertEquals(obj, mixed.asRealmModel(MixedNotIndexed::class.java))
+        assertEquals(MixedType.OBJECT, mixed.type)
+        assertEquals(MixedNotIndexed::class.simpleName, mixed.valueClass?.simpleName)
+    }
+
 //    @Test
 //    fun unmanaged_UUIDValue() {
 //        val mixed = Mixed.valueOf(UUID.fromString(TestHelper.generateUUIDString(0)))
@@ -184,7 +185,7 @@ class MixedTests {
 //        assertEquals(UUID.fromString(TestHelper.generateUUIDString(0)), mixed.asUUID())
 //        assertEquals(MixedType.UUID, mixed.type)
 //    }
-//
+
     @Test
     fun unmanaged_null() {
         val aLong: Boolean? = null
@@ -403,45 +404,45 @@ class MixedTests {
         assertEquals(MixedType.NULL, mixedObject.mixed!!.type)
         assertEquals(MixedType.NULL.typedClass, mixedObject.mixed!!.valueClass)
     }
-//
-//    @Test
-//    fun managed_realmModelUnmanaged() {
-//        val key = UUID.randomUUID().toString()
-//
-//        realm.executeTransaction {
-//            val mixedObject = realm.createObject<MixedNotIndexed>()
-//            val innerObject = PrimaryKeyAsString(key)
-//
-//            mixedObject.mixed = Mixed.valueOf(innerObject)
-//        }
-//
-//        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
-//
-//        assertTrue(mixedObject!!.isManaged)
-//        assertEquals(key, mixedObject.mixed!!.asRealmModel(PrimaryKeyAsString::class.java).name)
-//        assertEquals(MixedType.OBJECT, mixedObject.mixed!!.type)
-//        assertEquals(PrimaryKeyAsString::class.simpleName, mixedObject.mixed!!.valueClass?.simpleName)
-//    }
-//
-//    @Test
-//    fun managed_realmModelManaged() {
-//        val key = UUID.randomUUID().toString()
-//
-//        realm.executeTransaction {
-//            val mixedObject = realm.createObject<MixedNotIndexed>()
-//            val innerObject = realm.createObject<PrimaryKeyAsString>(key)
-//
-//            mixedObject.mixed = Mixed.valueOf(innerObject)
-//        }
-//
-//        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
-//
-//        assertTrue(mixedObject!!.isManaged)
-//        assertEquals(key, mixedObject.mixed!!.asRealmModel(PrimaryKeyAsString::class.java).name)
-//        assertEquals(MixedType.OBJECT, mixedObject.mixed!!.type)
-//        assertEquals(PrimaryKeyAsString::class.simpleName, mixedObject.mixed!!.valueClass?.simpleName)
-//    }
-//
+
+    @Test
+    fun managed_realmModelUnmanaged() {
+        val key = UUID.randomUUID().toString()
+
+        realm.executeTransaction {
+            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val innerObject = PrimaryKeyAsString(key)
+
+            mixedObject.mixed = Mixed.valueOf(innerObject)
+        }
+
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+
+        assertTrue(mixedObject!!.isManaged)
+        assertEquals(key, mixedObject.mixed!!.asRealmModel(PrimaryKeyAsString::class.java).name)
+        assertEquals(MixedType.OBJECT, mixedObject.mixed!!.type)
+        assertEquals(PrimaryKeyAsString::class.simpleName, mixedObject.mixed!!.valueClass?.simpleName)
+    }
+
+    @Test
+    fun managed_realmModelManaged() {
+        val key = UUID.randomUUID().toString()
+
+        realm.executeTransaction {
+            val mixedObject = realm.createObject<MixedNotIndexed>()
+            val innerObject = realm.createObject<PrimaryKeyAsString>(key)
+
+            mixedObject.mixed = Mixed.valueOf(innerObject)
+        }
+
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+
+        assertTrue(mixedObject!!.isManaged)
+        assertEquals(key, mixedObject.mixed!!.asRealmModel(PrimaryKeyAsString::class.java).name)
+        assertEquals(MixedType.OBJECT, mixedObject.mixed!!.type)
+        assertEquals(PrimaryKeyAsString::class.simpleName, mixedObject.mixed!!.valueClass?.simpleName)
+    }
+
     @Test
     fun managed_nullMixed() {
         realm.executeTransaction {

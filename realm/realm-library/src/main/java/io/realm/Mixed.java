@@ -18,9 +18,6 @@ package io.realm;
 
 import javax.annotation.Nullable;
 
-import io.realm.internal.NativeContext;
-import io.realm.internal.core.NativeMixed;
-
 
 /**
  * {@link Mixed} is used to represent a polymorphic Realm value.
@@ -41,7 +38,7 @@ public class Mixed {
     }
 
     long getNativePtr() {
-        return this.operator.getNativeMixed(NativeContext.dummyContext).getNativePtr();
+        return this.operator.getNativePtr();
     }
 
     /**
@@ -61,7 +58,11 @@ public class Mixed {
      */
     @Nullable
     public Class<?> getValueClass() {
-        return this.operator.getType().getTypedClass();
+        if (this.operator.getType() == MixedType.OBJECT) {
+            return this.operator.getTypedClass();
+        }
+
+        return this.operator.getTypedClass();
     }
 //    /**
 //     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
@@ -207,6 +208,7 @@ public class Mixed {
 //        return new Unmanaged(value, MixedType.UUID);
 //    }
 //
+
     /**
      * Creates a new, unmanaged {@link Mixed} of a null value
      *
@@ -215,17 +217,22 @@ public class Mixed {
     public static Mixed nullValue() {
         return new Mixed(new NullMixedOperator());
     }
-//
-//    public static Mixed valueOf(@Nullable RealmModel value) {
-//        return new Unmanaged(value, MixedType.OBJECT);
-//    }
-//
+
+    /**
+     * Creates a new, unmanaged {@link Mixed} of a null value
+     *
+     * @return a new, unmanaged {@link Mixed} instance of a null value
+     */
+    public static Mixed valueOf(@Nullable RealmModel value) {
+        return new Mixed((value == null) ? new NullMixedOperator() : new RealmModelOperator(value));
+    }
+
     /**
      * Returns true if the inner value is null, false otherwise.
      *
      * @return true if the inner value is null, false otherwise
      */
-    public boolean isNull(){
+    public boolean isNull() {
         return this.getType() == MixedType.NULL;
     }
 //
@@ -371,14 +378,15 @@ public class Mixed {
 //        return get(Decimal128.class, MixedType.DECIMAL128);
 //    }
 //
-//    /**
-//     * Gets this value as a RealmModel if it is one, otherwise throws exception.
-//     *
-//     * @param <T> the RealmModel type to cast the inner value to
-//     * @return a RealmModel of the T type
-//     * @throws java.lang.ClassCastException if this value is not of the expected type
-//     */
-//    public <T extends RealmModel> T asRealmModel(Class<T> clazz) {
-//        return get(clazz, MixedType.OBJECT);
-//    }
+
+    /**
+     * Gets this value as a RealmModel if it is one, otherwise throws exception.
+     *
+     * @param <T> the RealmModel type to cast the inner value to
+     * @return a RealmModel of the T type
+     * @throws java.lang.ClassCastException if this value is not of the expected type
+     */
+    public <T extends RealmModel> T asRealmModel(Class<T> clazz) {
+        return operator.getValue(clazz);
+    }
 }

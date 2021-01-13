@@ -88,7 +88,7 @@ public abstract class RealmProxyMediator {
      * @param className the class name.
      * @return a class reference to the representing class.
      */
-    public final Class<? extends RealmModel> getClazz(String className) {
+    public final <T extends RealmModel> Class<T> getClazz(String className) {
         return getClazzImpl(className);
     }
 
@@ -99,7 +99,7 @@ public abstract class RealmProxyMediator {
      * @param className the class name.
      * @return a class reference to the representing class.
      */
-    protected abstract Class<? extends RealmModel> getClazzImpl(String className);
+    protected abstract <T extends RealmModel> Class<T> getClazzImpl(String className);
 
     /**
      * Creates a new instance of an {@link RealmObjectProxy} for the given RealmObject class.
