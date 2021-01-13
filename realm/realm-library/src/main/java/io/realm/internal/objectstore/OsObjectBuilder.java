@@ -498,7 +498,7 @@ public class OsObjectBuilder implements Closeable {
             ItemCallback<Map.Entry<String, T>> mapItemCallback
     ) {
         if (dictionary != null) {
-            long dictionaryPtr = nativeStartDictionary(columnKey);
+            long dictionaryPtr = nativeStartDictionary();
             for (Map.Entry<String, T> entry : dictionary.entrySet()) {
                 mapItemCallback.handleItem(dictionaryPtr, entry);
             }
@@ -509,7 +509,7 @@ public class OsObjectBuilder implements Closeable {
     }
 
     private void addEmptyDictionary(long columnKey) {
-        long dictionaryPtr = nativeStartDictionary(0);
+        long dictionaryPtr = nativeStartDictionary();
         nativeStopDictionary(builderPtr, columnKey, dictionaryPtr);
     }
 
@@ -672,7 +672,7 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeAddObjectList(long builderPtr, long columnKey, long[] rowPtrs);
 
     // dictionaries
-    private static native long nativeStartDictionary(long size);
+    private static native long nativeStartDictionary();
 
     private static native void nativeStopDictionary(long builderPtr, long columnKey, long dictionaryPtr);
 
