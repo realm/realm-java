@@ -40,23 +40,29 @@ public class Mixed {
         this.operator = operator;
     }
 
-//    NativeMixed getNativeMixed(NativeContext context) {
-//        return this.operator.getNativeMixed(context);
-//    }
-
     long getNativePtr() {
         return this.operator.getNativeMixed(NativeContext.dummyContext).getNativePtr();
     }
 
-//    /**
-//     * Returns the Java class that represents the inner value wrapped by this Mixed value.
-//     *
-//     * @return the class that represents the inner value wrapped by this Mixed value.
-//     */
-//    @Nullable
-//    public Class<?> getValueClass() {
-//        return null;
-//    }
+    /**
+     * Gets the inner type of this Mixed object.
+     *
+     * @return the inner MixedType
+     */
+    @Nullable
+    public MixedType getType() {
+        return this.operator.getType();
+    }
+
+    /**
+     * Returns the Java class that represents the inner value wrapped by this Mixed value.
+     *
+     * @return the class that represents the inner value wrapped by this Mixed value.
+     */
+    @Nullable
+    public Class<?> getValueClass() {
+        return this.operator.getType().getTypedClass();
+    }
 //    /**
 //     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
 //     * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.

@@ -91,8 +91,8 @@ class MixedTests {
         val mixed = Mixed.valueOf(true)
 
         assertEquals(true, mixed.asBoolean())
-//        assertEquals(MixedType.BOOLEAN, mixed.type)
-//        assertEquals(MixedType.BOOLEAN.typedClass, mixed.valueClass)
+        assertEquals(MixedType.BOOLEAN, mixed.type)
+        assertEquals(MixedType.BOOLEAN.typedClass, mixed.valueClass)
     }
 //
 //    @Test
@@ -263,10 +263,9 @@ class MixedTests {
 
         val mixedObject = realm.where<MixedNotIndexed>().findFirst()
 
-//        assertTrue(mixedObject!!.isManaged)
         assertEquals(true, mixedObject!!.mixed?.asBoolean())
-//        assertEquals(MixedType.BOOLEAN, mixedObject.mixed?.type)
-//        assertEquals(MixedType.BOOLEAN.typedClass, mixedObject.mixed!!.valueClass)
+        assertEquals(MixedType.BOOLEAN, mixedObject.mixed?.type)
+        assertEquals(MixedType.BOOLEAN.typedClass, mixedObject.mixed!!.valueClass)
     }
 //
 //    @Test

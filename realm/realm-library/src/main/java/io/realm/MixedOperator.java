@@ -17,7 +17,9 @@ public abstract class MixedOperator {
     }
 
     private NativeMixed nativeMixed;
+
     private Object value;
+    private MixedType type;
 
     public NativeMixed getNativeMixed(NativeContext context) {
         if (nativeMixed == null) { nativeMixed = createNativeMixed(context); }
@@ -27,27 +29,33 @@ public abstract class MixedOperator {
 
     protected abstract NativeMixed createNativeMixed(NativeContext context);
 
+    protected MixedOperator(Object value, MixedType type, NativeMixed nativeMixed) {
+        this(value, type);
+
+        this.nativeMixed = nativeMixed;
+    }
+
+    protected MixedOperator(Object value, MixedType type) {
+        this.value = value;
+        this.type = type;
+    }
+
     public <T> T getValue(Class<T> clazz) {
         return clazz.cast(value);
     }
 
-    protected MixedOperator(Object value, NativeMixed nativeMixed) {
-        this(value);
-        this.nativeMixed = nativeMixed;
-    }
-
-    protected MixedOperator(Object value) {
-        this.value = value;
+    public MixedType getType() {
+        return type;
     }
 }
 
 final class BooleanMixedOperator extends MixedOperator {
     BooleanMixedOperator(Boolean value) {
-        super(value);
+        super(value, MixedType.BOOLEAN);
     }
 
     BooleanMixedOperator(NativeMixed nativeMixed) {
-        super(nativeMixed.asBoolean(), nativeMixed);
+        super(nativeMixed.asBoolean(), MixedType.BOOLEAN, nativeMixed);
     }
 
     @Override
@@ -58,11 +66,11 @@ final class BooleanMixedOperator extends MixedOperator {
 
 final class NullMixedOperator extends MixedOperator {
     NullMixedOperator() {
-        super(null);
+        super(null, MixedType.NULL);
     }
 
     NullMixedOperator(NativeMixed nativeMixed) {
-        super(null, nativeMixed);
+        super(null, MixedType.NULL, nativeMixed);
     }
 
     @Override
