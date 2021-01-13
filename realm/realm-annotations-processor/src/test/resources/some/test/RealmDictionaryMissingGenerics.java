@@ -16,22 +16,14 @@
 
 package some.test;
 
-import io.realm.RealmMap;
 import io.realm.RealmObject;
 
+/**
+ * Dictionaries must specify a generic type. With this class we check that the annotation processor
+ * detects this class has a RealmDictionary field missing the required type and therefore should
+ * fail in compile time.
+ */
 public class RealmDictionaryMissingGenerics extends RealmObject {
 
     private RealmDictionary dictionary; // this is an error!
-
-    public RealmDictionaryMissingGenerics() {
-        // no-op
-    }
-
-    public RealmDictionary getMap() {
-        return dictionary;
-    }
-
-    public void setDictionary(RealmDictionary dictionary) {
-        this.dictionary = dictionary;
-    }
 }

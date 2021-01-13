@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 @file:JvmName("TypeMirrors")
-
 package io.realm.processor
 
 import org.bson.types.Decimal128

@@ -22,11 +22,13 @@ import io.realm.RealmObject;
 
 public class RealmDictionaryModel extends RealmObject {
 
+    private final RealmDictionary<Boolean> immutableRealmDictionary = new RealmDictionary();
+
     private RealmDictionary<Mixed> myMixedRealmDictionary;
     private RealmDictionary<Boolean> myBooleanRealmDictionary;
 
-    public RealmDictionaryModel() {
-        // no-op
+    public RealmDictionary<Boolean> getImmutableRealmDictionary() {
+        return immutableRealmDictionary;
     }
 
     public RealmDictionary<Mixed> getMyMixedRealmDictionary() {

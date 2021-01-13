@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.Freezable;
 import io.realm.internal.ManageableObject;
 
@@ -30,7 +32,7 @@ import io.realm.internal.ManageableObject;
  * @param <K> the type of the keys stored in this map
  * @param <V> the type of the values stored in this map
  */
-public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<RealmMap<K, V>> {
+abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<RealmMap<K, V>> {
 
     private final MapStrategy<K, V> mapStrategy;
 
@@ -199,7 +201,11 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
             return putInternal(key, value);
         }
 
-        protected void checkValidKey(K key) {
+        protected void checkValidKey(@Nullable K key) {
+            if (key == null) {
+                throw new IllegalArgumentException("Null keys are not allowed.");
+            }
+
             if (key.getClass() == String.class) {
                 String stringKey = (String) key;
                 if (stringKey.contains(".") || stringKey.contains("$")) {

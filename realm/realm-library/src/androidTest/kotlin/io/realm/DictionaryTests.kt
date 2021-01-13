@@ -99,6 +99,15 @@ class DictionaryTests {
     }
 
     @Test
+    fun unmanaged_put_nullKey() {
+        val realmDictionary = RealmDictionary<Int>()
+        assertEquals(0, realmDictionary.size)
+        assertFailsWith<IllegalArgumentException> {
+            realmDictionary[null] = VALUE
+        }
+    }
+
+    @Test
     fun unmanaged_remove() {
         val realmDictionary = RealmDictionary<Int>()
         realmDictionary[KEY] = VALUE

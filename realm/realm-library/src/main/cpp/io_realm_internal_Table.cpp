@@ -271,9 +271,9 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeGetColumnType(JNIEnv*,
     jint column_type = table->get_column_type(column_key);
     if (column_type != type_LinkList && column_key.is_list()) {
         // add the offset so it can be mapped correctly in Java (RealmFieldType#fromNativeValue)
-        column_type += 128;     // PropertyType::Array
+        column_type += jint(PropertyType::Array);
     } else if (column_key.is_dictionary()) {
-        column_type += 512;     // PropertyType::Dictionary
+        column_type += jint(PropertyType::Dictionary);
     }
 
     return column_type;

@@ -31,7 +31,6 @@ import io.realm.Mixed;
 import io.realm.MutableRealmInteger;
 import io.realm.RealmDictionary;
 import io.realm.RealmList;
-import io.realm.RealmMap;
 import io.realm.RealmModel;
 import io.realm.internal.NativeContext;
 import io.realm.internal.OsSharedRealm;

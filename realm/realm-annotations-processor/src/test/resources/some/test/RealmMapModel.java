@@ -20,13 +20,12 @@ import io.realm.Mixed;
 import io.realm.RealmMap;
 import io.realm.RealmObject;
 
+/**
+ * At this moment, RealmMaps aren't supported directly until other keys than String are supported.
+ */
 public class RealmMapModel extends RealmObject {
 
-    private RealmMap<String, Mixed> myMap;      // this fails in phase 1
-
-    public RealmMapModel() {
-        // no-op
-    }
+    private RealmMap<String, Mixed> myMap;      // this currently fails
 
     public RealmMap<String, Mixed> getMyMap() {
         return myMap;
