@@ -526,8 +526,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_objectstore_OsObjectBuilder_nativeStartDictionary(JNIEnv *env, jclass,
-                                                                         jlong j_map_size) {
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeStartDictionary(JNIEnv *env, jclass) {
     try {
         auto dictionary = new std::map<std::string, JavaValue>();
         return reinterpret_cast<jlong>(dictionary);
