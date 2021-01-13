@@ -1,6 +1,11 @@
 package io.realm;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.Collections;
+import java.util.Date;
+import java.util.UUID;
 
 import io.realm.internal.NativeContext;
 import io.realm.internal.OsSharedRealm;
@@ -14,12 +19,30 @@ public abstract class MixedOperator {
         MixedType fieldType = nativeMixed.getType();
 
         switch (fieldType) {
+            case INTEGER:
+                return new IntegerMixedOperator(nativeMixed);
             case BOOLEAN:
                 return new BooleanMixedOperator(nativeMixed);
-            case NULL:
-                return new NullMixedOperator(nativeMixed);
+            case STRING:
+                return new StringMixedOperator(nativeMixed);
+            case BINARY:
+                return new BinaryMixedOperator(nativeMixed);
+            case DATE:
+                return new DateMixedOperator(nativeMixed);
+            case FLOAT:
+                return new FloatMixedOperator(nativeMixed);
+            case DOUBLE:
+                return new DoubleMixedOperator(nativeMixed);
+            case DECIMAL128:
+                return new Decimal128MixedOperator(nativeMixed);
+            case OBJECT_ID:
+                return new ObjectIdMixedOperator(nativeMixed);
+            case UUID:
+                return new UUIDMixedOperator(nativeMixed);
             case OBJECT:
                 return new RealmModelOperator(nativeMixed, proxyState);
+            case NULL:
+                return new NullMixedOperator(nativeMixed);
             default:
                 throw new ClassCastException("Couldn't cast to " + fieldType);
         }
@@ -85,6 +108,153 @@ final class BooleanMixedOperator extends MixedOperator {
     @Override
     protected NativeMixed createNativeMixed(NativeContext context) {
         return NativeMixed.newInstance(context, super.getValue(Boolean.class));
+    }
+}
+
+final class IntegerMixedOperator extends MixedOperator {
+    IntegerMixedOperator(Byte value) {
+        super(value, MixedType.INTEGER);
+    }
+
+    IntegerMixedOperator(Short value) {
+        super(value, MixedType.INTEGER);
+    }
+
+    IntegerMixedOperator(Integer value) {
+        super(value, MixedType.INTEGER);
+    }
+
+    IntegerMixedOperator(Long value) {
+        super(value, MixedType.INTEGER);
+    }
+
+    IntegerMixedOperator(NativeMixed nativeMixed) {
+        super(nativeMixed.asLong(), MixedType.INTEGER, nativeMixed);
+    }
+
+    @Override
+    protected NativeMixed createNativeMixed(NativeContext context) {
+        return NativeMixed.newInstance(context, super.getValue(Number.class));
+    }
+}
+
+final class FloatMixedOperator extends MixedOperator {
+    FloatMixedOperator(Float value) {
+        super(value, MixedType.FLOAT);
+    }
+
+    FloatMixedOperator(NativeMixed nativeMixed) {
+        super(nativeMixed.asFloat(), MixedType.FLOAT, nativeMixed);
+    }
+
+    @Override
+    protected NativeMixed createNativeMixed(NativeContext context) {
+        return NativeMixed.newInstance(context, super.getValue(Float.class));
+    }
+}
+
+final class DoubleMixedOperator extends MixedOperator {
+    DoubleMixedOperator(Double value) {
+        super(value, MixedType.DOUBLE);
+    }
+
+    DoubleMixedOperator(NativeMixed nativeMixed) {
+        super(nativeMixed.asDouble(), MixedType.DOUBLE, nativeMixed);
+    }
+
+    @Override
+    protected NativeMixed createNativeMixed(NativeContext context) {
+        return NativeMixed.newInstance(context, super.getValue(Double.class));
+    }
+}
+
+final class StringMixedOperator extends MixedOperator {
+    StringMixedOperator(String value) {
+        super(value, MixedType.STRING);
+    }
+
+    StringMixedOperator(NativeMixed nativeMixed) {
+        super(nativeMixed.asString(), MixedType.STRING, nativeMixed);
+    }
+
+    @Override
+    protected NativeMixed createNativeMixed(NativeContext context) {
+        return NativeMixed.newInstance(context, super.getValue(String.class));
+    }
+}
+
+final class BinaryMixedOperator extends MixedOperator {
+    BinaryMixedOperator(byte[] value) {
+        super(value, MixedType.BINARY);
+    }
+
+    BinaryMixedOperator(NativeMixed nativeMixed) {
+        super(nativeMixed.asBinary(), MixedType.BINARY, nativeMixed);
+    }
+
+    @Override
+    protected NativeMixed createNativeMixed(NativeContext context) {
+        return NativeMixed.newInstance(context, super.getValue(byte[].class));
+    }
+}
+
+final class DateMixedOperator extends MixedOperator {
+    DateMixedOperator(Date value) {
+        super(value, MixedType.DATE);
+    }
+
+    DateMixedOperator(NativeMixed nativeMixed) {
+        super(nativeMixed.asDate(), MixedType.DATE, nativeMixed);
+    }
+
+    @Override
+    protected NativeMixed createNativeMixed(NativeContext context) {
+        return NativeMixed.newInstance(context, super.getValue(Date.class));
+    }
+}
+
+final class ObjectIdMixedOperator extends MixedOperator {
+    ObjectIdMixedOperator(ObjectId value) {
+        super(value, MixedType.OBJECT_ID);
+    }
+
+    ObjectIdMixedOperator(NativeMixed nativeMixed) {
+        super(nativeMixed.asObjectId(), MixedType.OBJECT_ID, nativeMixed);
+    }
+
+    @Override
+    protected NativeMixed createNativeMixed(NativeContext context) {
+        return NativeMixed.newInstance(context, super.getValue(ObjectId.class));
+    }
+}
+
+final class Decimal128MixedOperator extends MixedOperator {
+    Decimal128MixedOperator(Decimal128 value) {
+        super(value, MixedType.DECIMAL128);
+    }
+
+    Decimal128MixedOperator(NativeMixed nativeMixed) {
+        super(nativeMixed.asDecimal128(), MixedType.DECIMAL128, nativeMixed);
+    }
+
+    @Override
+    protected NativeMixed createNativeMixed(NativeContext context) {
+        return NativeMixed.newInstance(context, super.getValue(Decimal128.class));
+    }
+}
+
+final class UUIDMixedOperator extends MixedOperator {
+    UUIDMixedOperator(UUID value) {
+        super(value, MixedType.UUID);
+    }
+
+    UUIDMixedOperator(NativeMixed nativeMixed) {
+        super(nativeMixed.asUUID(), MixedType.UUID, nativeMixed);
+    }
+
+    @Override
+    protected NativeMixed createNativeMixed(NativeContext context) {
+        return NativeMixed.newInstance(context, super.getValue(UUID.class));
     }
 }
 
