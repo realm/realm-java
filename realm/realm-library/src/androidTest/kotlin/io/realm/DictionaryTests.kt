@@ -20,6 +20,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.annotations.RealmModule
 import io.realm.entities.*
+import io.realm.kotlin.createObject
+import io.realm.kotlin.where
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -35,6 +37,26 @@ private const val VALUE_2 = 2
 
 @RunWith(AndroidJUnit4::class)
 class DictionaryTests {
+
+    private lateinit var config: RealmConfiguration
+    private lateinit var realm: Realm
+
+    @Before
+    fun setUp() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().context)
+        config = RealmConfiguration.Builder()
+                .modules(MapModule())
+                .allowQueriesOnUiThread(true)
+                .allowWritesOnUiThread(true)
+                .build()
+        realm = Realm.getInstance(config)
+    }
+
+    @After
+    fun tearDown() {
+        realm.close()
+        Realm.deleteRealm(config)
+    }
 
     // ------------------------------------------
     // Unmanaged map
@@ -190,27 +212,57 @@ class DictionaryTests {
     // Managed map - TBD
     // ------------------------------------------
 
+    private fun initDictionary() {
+        realm.executeTransaction {
+            val dictionaryObject = it.createObject<DictionaryClass>()
+            val dictionary = RealmDictionary<Boolean>().apply {
+                put("Hello", true)
+                put("Bye", false)
+            }
+            dictionaryObject.myBooleanDictionary = dictionary
+        }
+    }
+
+    @Test
+    fun managed_isManaged() {
+        initDictionary()
+
+        val dictionaryObject = realm.where<DictionaryClass>().findFirst()
+        assertNotNull(dictionaryObject)
+
+        dictionaryObject.myBooleanDictionary.let {
+            assertNotNull(it)
+            assertFalse(it.isEmpty())
+            assertEquals(2, it.size)
+            assertEquals(true, it["Hello"])
+            assertEquals(false, it["Bye"])
+        }
+    }
+
+//    @Test
+//    fun kajshd() {
+//        realm.executeTransaction {
+//            val dictionaryObject = it.createObject<DictionaryClass>()
+//            val dictionary = RealmDictionary<Boolean>().apply {
+//                put("Hello", true)
+//                put("Bye", false)
+//            }
+//            dictionaryObject.myBooleanDictionary = dictionary
+//        }
+//
+//        val dictionaryObject = realm.where<DictionaryClass>().findFirst()
+//        assertNotNull(dictionaryObject)
+//
+//        dictionaryObject.myBooleanDictionary.let {
+//            assertNotNull(it)
+//            assertFalse(it.isEmpty())
+//            assertEquals(2, it.size)
+//            assertEquals(true, it["Hello"])
+//            assertEquals(false, it["Bye"])
+//        }
+//    }
+
     // TODO: sanity-check tests for temporary schema validation - move to an appropriate place
-
-    private lateinit var config: RealmConfiguration
-    private lateinit var realm: Realm
-
-    @Before
-    fun setUp() {
-        Realm.init(InstrumentationRegistry.getInstrumentation().context)
-        config = RealmConfiguration.Builder()
-                .modules(MapModule())
-                .allowQueriesOnUiThread(true)
-                .allowWritesOnUiThread(true)
-                .build()
-        realm = Realm.getInstance(config)
-    }
-
-    @After
-    fun tearDown() {
-        realm.close()
-        Realm.deleteRealm(config)
-    }
 
     @Test
     fun schemaTest() {
@@ -218,8 +270,8 @@ class DictionaryTests {
 
         assertNotNull(objectSchema)
 
-        assertTrue(objectSchema.hasField(DictionaryClass.MIXED_DICTIONARY_FIELD_NAME))
-        assertEquals(objectSchema.getFieldType(DictionaryClass.MIXED_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_MIXED_MAP)
+//        assertTrue(objectSchema.hasField(DictionaryClass.MIXED_DICTIONARY_FIELD_NAME))
+//        assertEquals(objectSchema.getFieldType(DictionaryClass.MIXED_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_MIXED_MAP)
 
         assertTrue(objectSchema.hasField(DictionaryClass.BOOLEAN_DICTIONARY_FIELD_NAME))
         assertEquals(objectSchema.getFieldType(DictionaryClass.BOOLEAN_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_BOOLEAN_MAP)
