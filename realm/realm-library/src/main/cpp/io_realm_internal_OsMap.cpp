@@ -120,7 +120,7 @@ Java_io_realm_internal_OsMap_nativePutMixed(JNIEnv* env, jclass, jlong map_ptr, 
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_OsMap_nativePutBoolean(JNIEnv *env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativePutBoolean(JNIEnv* env, jclass, jlong map_ptr,
                                               jstring j_key, jboolean j_value) {
     try {
         auto &dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);

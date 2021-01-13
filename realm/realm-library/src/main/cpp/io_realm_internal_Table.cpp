@@ -650,8 +650,8 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeMixedIsNull(JNIEnv
 
 // ----------------- Mixed setters
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMixedSetLong(JNIEnv* env, jclass, jlong nativeTableRefPtr,
-                                                                  jlong columnKey, jlong rowKey, jlong value,
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetMixed(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                  jlong columnKey, jlong rowKey, jlong nativePtr,
                                                                   jboolean isDefault)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
@@ -659,7 +659,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMixedSetLong(JNIEnv* e
         return;
     }
     try {
-        table->get_object(ObjKey(rowKey)).set<Mixed>(ColKey(columnKey), Mixed(value), B(isDefault));
+        Mixed mixed = reinterpret_cast<Mixed*>(nativePtr);
+        table->get_object(ObjKey(rowKey)).set<Mixed>(ColKey(columnKey), mixed, B(isDefault));
     }
     CATCH_STD()
 }

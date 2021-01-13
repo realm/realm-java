@@ -62,8 +62,8 @@ public class OsMap implements NativeObject {
         nativePutBoolean(nativePtr, (String) key, value);
     }
 
-    public void put(Object key, OsMixed value) {
-        nativePutMixed(nativePtr, (String) key, value.getNativePtr());
+    public void put(Object key, long mixedPtr) {
+        nativePutMixed(nativePtr, (String) key, mixedPtr);
     }
 
     // TODO: add more put methods for different value types ad-hoc

@@ -109,6 +109,7 @@ public enum RealmFieldType {
     STRING_TO_MIXED_MAP(CORE_TYPE_VALUE_MIXED + DICTIONARY_OFFSET),
     STRING_TO_BOOLEAN_MAP(CORE_TYPE_VALUE_BOOLEAN + DICTIONARY_OFFSET);
 
+
     // Primitive array for fast mapping between between native values and their Realm type.
     private static final RealmFieldType[] basicTypes = new RealmFieldType[MAX_CORE_TYPE_VALUE + 1];
     private static final RealmFieldType[] listTypes = new RealmFieldType[MAX_CORE_TYPE_VALUE + 1];

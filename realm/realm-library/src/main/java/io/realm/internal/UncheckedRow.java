@@ -29,6 +29,7 @@ import io.realm.MixedType;
 import io.realm.Realm;
 import io.realm.RealmFieldType;
 import io.realm.RealmModel;
+import io.realm.internal.core.NativeMixed;
 
 
 /**
@@ -190,6 +191,11 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
+    public NativeMixed getNativeMixed(long columnKey) {
+        return new NativeMixed(nativeGetMixed(nativePtr, columnKey), context);
+    }
+
+    @Override
     public long getLink(long columnKey) {
         return nativeGetLink(nativePtr, columnKey);
     }
@@ -257,63 +263,9 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
-    public void setMixed(long columnKey, Mixed value) {
+    public void setMixed(long columnKey, long mixedNativePtr) {
         parent.checkImmutable();
-
-        if (value == null) {
-            nativeMixedSetNull(nativePtr, columnKey);
-            return;
-        }
-
-        MixedType type = value.getType();
-        switch (type) {
-            case INTEGER:
-                nativeMixedSetLong(nativePtr, columnKey, value.asInteger());
-                break;
-            case BOOLEAN:
-                nativeMixedSetBoolean(nativePtr, columnKey, value.asBoolean());
-                break;
-            case FLOAT:
-                nativeMixedSetFloat(nativePtr, columnKey, value.asFloat());
-                break;
-            case DOUBLE:
-                nativeMixedSetDouble(nativePtr, columnKey, value.asDouble());
-                break;
-            case STRING:
-                nativeMixedSetString(nativePtr, columnKey, value.asString());
-                break;
-            case BINARY:
-                nativeMixedSetByteArray(nativePtr, columnKey, value.asBinary());
-                break;
-            case DATE:
-                nativeMixedSetTimestamp(nativePtr, columnKey, value.asDate().getTime());
-                break;
-            case OBJECT_ID:
-                nativeMixedSetObjectId(nativePtr, columnKey, value.asObjectId().toString());
-                break;
-            case DECIMAL128:
-                Decimal128 decimalValue = value.asDecimal128();
-                nativeMixedSetDecimal128(nativePtr, columnKey, decimalValue.getLow(), decimalValue.getHigh());
-                break;
-            case UUID:
-                nativeMixedSetUUID(nativePtr, columnKey, value.asUUID().toString());
-                break;
-            case OBJECT:
-                RealmModel model = value.asRealmModel(RealmModel.class);
-
-                Row row$realm = ((RealmObjectProxy) model).realmGet$proxyState().getRow$realm();
-
-                long targetTablePtr = row$realm.getTable().getNativePtr();
-                long targetObjectKey = row$realm.getObjectKey();
-
-                nativeMixedSetLink(nativePtr, columnKey, targetTablePtr, targetObjectKey);
-                break;
-            case NULL:
-                nativeMixedSetNull(nativePtr, columnKey);
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid mixed type: " + type);
-        }
+        nativeSetMixed(nativePtr, columnKey, mixedNativePtr);
     }
 
     /**
@@ -481,6 +433,8 @@ public class UncheckedRow implements NativeObject, Row {
 
     protected native String nativeGetUUID(long nativePtr, long columnKey);
 
+    protected native long nativeGetMixed(long nativePtr, long columnKey);
+
     protected native void nativeSetLong(long nativeRowPtr, long columnKey, long value);
 
     protected native void nativeSetBoolean(long nativeRowPtr, long columnKey, boolean value);
@@ -503,6 +457,8 @@ public class UncheckedRow implements NativeObject, Row {
 
     protected native void nativeSetUUID(long nativePtr, long columnKey, String value);
 
+    protected native void nativeSetMixed(long nativeRowPtr, long columnKey, long nativePtr);
+
     protected native void nativeSetLink(long nativeRowPtr, long columnKey, long value);
 
     protected native void nativeNullifyLink(long nativeRowPtr, long columnKey);
@@ -520,28 +476,4 @@ public class UncheckedRow implements NativeObject, Row {
     protected native long nativeCreateEmbeddedObject(long nativeRowPtr, long columnKey);
 
     private static native long nativeGetFinalizerPtr();
-
-    public static native void nativeMixedSetLong(long nativeRowPtr, long columnKey, long value);
-
-    public static native void nativeMixedSetBoolean(long nativeRowPtr, long columnKey, boolean value);
-
-    public static native void nativeMixedSetFloat(long nativeRowPtr, long columnKey, float value);
-
-    public static native void nativeMixedSetDouble(long nativeRowPtr, long columnKey, double value);
-
-    public static native void nativeMixedSetTimestamp(long nativeRowPtr, long columnKey, long dateTimeValue);
-
-    public static native void nativeMixedSetString(long nativeRowPtr, long columnKey, String value);
-
-    public static native void nativeMixedSetByteArray(long nativeRowPtr, long columnKey, byte[] data);
-
-    public static native void nativeMixedSetDecimal128(long nativeRowPtr, long columnKey, long low, long high);
-
-    public static native void nativeMixedSetObjectId(long nativeRowPtr, long columnKey, String data);
-
-    public static native void nativeMixedSetLink(long nativeRowPtr, long columnKey, long targetTableRef, long targetObjectKey);
-
-    public static native void nativeMixedSetUUID(long nativeRowPtr, long columnKey, String data);
-
-    public static native void nativeMixedSetNull(long nativeRowPtr, long columnKey);
 }
