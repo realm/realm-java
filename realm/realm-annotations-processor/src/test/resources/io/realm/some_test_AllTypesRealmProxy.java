@@ -430,6 +430,10 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             value = ProxyUtils.copyToRealmIfNeeded(proxyState, value);
 
             final Row row = proxyState.getRow$realm();
+            if (value == null) {
+                row.getTable().setNull(columnInfo.columnMixedColKey, row.getObjectKey(), true);
+                return;
+            }
             row.getTable().setMixed(columnInfo.columnMixedColKey, row.getObjectKey(), value.getNativePtr(), true);
             return;
         }
@@ -437,6 +441,10 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
 
         proxyState.getRealm$realm().checkIfValid();
 
+        if (value == null) {
+            proxyState.getRow$realm().setNull(columnInfo.columnMixedColKey);
+            return;
+        }
         value = ProxyUtils.copyToRealmIfNeeded(proxyState, value);
         proxyState.getRow$realm().setMixed(columnInfo.columnMixedColKey, value.getNativePtr());
     }

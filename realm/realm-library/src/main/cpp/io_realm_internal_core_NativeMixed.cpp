@@ -31,25 +31,25 @@ Java_io_realm_internal_core_NativeMixed_nativeGetFinalizerPtr(JNIEnv *, jclass) 
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeCreateMixedBoolean(JNIEnv *, jclass, jboolean value) {
-    return reinterpret_cast<jlong>(new Mixed(B(value)));
+Java_io_realm_internal_core_NativeMixed_nativeCreateMixedBoolean(JNIEnv *, jclass, jboolean jvalue) {
+    return reinterpret_cast<jlong>(new Mixed(B(jvalue)));
 }
 
 JNIEXPORT jint JNICALL
 Java_io_realm_internal_core_NativeMixed_nativeGetMixedType(JNIEnv *, jclass, jlong nativePtr) {
-    Mixed mixed = reinterpret_cast<Mixed*>(nativePtr);
+    auto mixed = reinterpret_cast<Mixed *>(nativePtr);
 
-    if(mixed.is_null()){
+    if (mixed->is_null()) {
         return -1;
     } else {
-        return mixed.get_type();
+        return mixed->get_type();
     }
 }
 
 JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_core_NativeMixed_nativeMixedAsBoolean(JNIEnv *, jclass, jlong nativePtr) {
-    Mixed mixed = reinterpret_cast<Mixed*>(nativePtr);
-    return mixed.get<bool>();
+    auto mixed = reinterpret_cast<Mixed *>(nativePtr);
+    return mixed->get<bool>();
 }
 
 JNIEXPORT jlong JNICALL
