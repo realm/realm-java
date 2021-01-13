@@ -21,6 +21,7 @@ import org.bson.types.ObjectId;
 import java.io.Closeable;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -44,8 +45,8 @@ import io.realm.internal.UncheckedRow;
  * This class is a wrapper around building up object data for calling `Object::create()`
  * <p>
  * Fill the object data by calling the various `addX()` methods, then create a new Object or update
- * an existing one by calling {@link #createNewObject()}, {@link #updateExistingTopLevelObject()} or.
- * {@link #updateExistingEmbeddedObject(RealmObjectProxy)}
+ * an existing one by calling {@link #createNewObject()}, {@link #updateExistingTopLevelObject()} or
+ * {@link #updateExistingEmbeddedObject(RealmObjectProxy)}.
  * <p>
  * This class assumes it is only being used from within a write transaction. Using it outside one
  * will result in undefined behaviour.
@@ -78,114 +79,129 @@ public class OsObjectBuilder implements Closeable {
     private final long tablePtr;
     private final NativeContext context;
 
+    // ------------------------------------------
+    // List handlers
+    // ------------------------------------------
+
     private static ItemCallback<? extends RealmModel> objectItemCallback = new ItemCallback<RealmModel>() {
         @Override
-        public void handleItem(long listPtr, RealmModel item) {
+        public void handleItem(long containerPtr, RealmModel item) {
             RealmObjectProxy proxyItem = (RealmObjectProxy) item;
-            nativeAddIntegerListItem(listPtr, ((UncheckedRow) proxyItem.realmGet$proxyState().getRow$realm()).getNativePtr());
+            nativeAddIntegerListItem(containerPtr, ((UncheckedRow) proxyItem.realmGet$proxyState().getRow$realm()).getNativePtr());
         }
     };
 
     private static ItemCallback<String> stringItemCallback = new ItemCallback<String>() {
         @Override
-        public void handleItem(long listPtr, String item) {
-            nativeAddStringListItem(listPtr, item);
+        public void handleItem(long containerPtr, String item) {
+            nativeAddStringListItem(containerPtr, item);
         }
     };
 
     private static ItemCallback<Byte> byteItemCallback = new ItemCallback<Byte>() {
         @Override
-        public void handleItem(long listPtr, Byte item) {
-            nativeAddIntegerListItem(listPtr, item.longValue());
+        public void handleItem(long containerPtr, Byte item) {
+            nativeAddIntegerListItem(containerPtr, item.longValue());
         }
     };
 
     private static ItemCallback<Short> shortItemCallback = new ItemCallback<Short>() {
         @Override
-        public void handleItem(long listPtr, Short item) {
-            nativeAddIntegerListItem(listPtr, item);
+        public void handleItem(long containerPtr, Short item) {
+            nativeAddIntegerListItem(containerPtr, item);
         }
     };
 
     private static ItemCallback<Integer> integerItemCallback = new ItemCallback<Integer>() {
         @Override
-        public void handleItem(long listPtr, Integer item) {
-            nativeAddIntegerListItem(listPtr, item);
+        public void handleItem(long containerPtr, Integer item) {
+            nativeAddIntegerListItem(containerPtr, item);
         }
     };
 
     private static ItemCallback<Long> longItemCallback = new ItemCallback<Long>() {
         @Override
-        public void handleItem(long listPtr, Long item) {
-            nativeAddIntegerListItem(listPtr, item);
+        public void handleItem(long containerPtr, Long item) {
+            nativeAddIntegerListItem(containerPtr, item);
         }
     };
 
     private static ItemCallback<Boolean> booleanItemCallback = new ItemCallback<Boolean>() {
         @Override
-        public void handleItem(long listPtr, Boolean item) {
-            nativeAddBooleanListItem(listPtr, item);
+        public void handleItem(long containerPtr, Boolean item) {
+            nativeAddBooleanListItem(containerPtr, item);
         }
     };
 
     private static ItemCallback<Float> floatItemCallback = new ItemCallback<Float>() {
         @Override
-        public void handleItem(long listPtr, Float item) {
-            nativeAddFloatListItem(listPtr, item);
+        public void handleItem(long containerPtr, Float item) {
+            nativeAddFloatListItem(containerPtr, item);
         }
     };
 
     private static ItemCallback<Double> doubleItemCallback = new ItemCallback<Double>() {
         @Override
-        public void handleItem(long listPtr, Double item) {
-            nativeAddDoubleListItem(listPtr, item);
+        public void handleItem(long containerPtr, Double item) {
+            nativeAddDoubleListItem(containerPtr, item);
         }
     };
 
     private static ItemCallback<Date> dateItemCallback = new ItemCallback<Date>() {
         @Override
-        public void handleItem(long listPtr, Date item) {
-            nativeAddDateListItem(listPtr, item.getTime());
+        public void handleItem(long containerPtr, Date item) {
+            nativeAddDateListItem(containerPtr, item.getTime());
         }
     };
 
     private static ItemCallback<byte[]> byteArrayItemCallback = new ItemCallback<byte[]>() {
         @Override
-        public void handleItem(long listPtr, byte[] item) {
-            nativeAddByteArrayListItem(listPtr, item);
+        public void handleItem(long containerPtr, byte[] item) {
+            nativeAddByteArrayListItem(containerPtr, item);
         }
     };
 
     private static ItemCallback<MutableRealmInteger> mutableRealmIntegerItemCallback = new ItemCallback<MutableRealmInteger>() {
         @Override
-        public void handleItem(long listPtr, MutableRealmInteger item) {
+        public void handleItem(long containerPtr, MutableRealmInteger item) {
             Long value = item.get();
             if (value == null) {
-                nativeAddNullListItem(listPtr);
+                nativeAddNullListItem(containerPtr);
             } else {
-                nativeAddIntegerListItem(listPtr, value);
+                nativeAddIntegerListItem(containerPtr, value);
             }
         }
     };
 
     private static ItemCallback<Decimal128> decimal128ItemCallback = new ItemCallback<Decimal128>() {
         @Override
-        public void handleItem(long listPtr, Decimal128 item) {
-            nativeAddDecimal128ListItem(listPtr, item.getLow(), item.getHigh());
+        public void handleItem(long containerPtr, Decimal128 item) {
+            nativeAddDecimal128ListItem(containerPtr, item.getLow(), item.getHigh());
         }
     };
 
     private static ItemCallback<ObjectId> objectIdItemCallback = new ItemCallback<ObjectId>() {
         @Override
-        public void handleItem(long listPtr, ObjectId item) {
-            nativeAddObjectIdListItem(listPtr, item.toString());
+        public void handleItem(long containerPtr, ObjectId item) {
+            nativeAddObjectIdListItem(containerPtr, item.toString());
         }
     };
 
     private static ItemCallback<UUID> uuidItemCallback = new ItemCallback<UUID>() {
         @Override
-        public void handleItem(long listPtr, UUID item) {
-            nativeAddUUIDListItem(listPtr, item.toString());
+        public void handleItem(long containerPtr, UUID item) {
+            nativeAddUUIDListItem(containerPtr, item.toString());
+        }
+    };
+
+    // ------------------------------------------
+    // Map/Dictionary handlers
+    // ------------------------------------------
+
+    private static ItemCallback<Map.Entry<String, Boolean>> booleanMapItemCallback = new ItemCallback<Map.Entry<String, Boolean>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, Boolean> item) {
+            nativeAddBooleanDictionaryEntry(containerPtr, item.getKey(), item.getValue());
         }
     };
 
@@ -472,7 +488,29 @@ public class OsObjectBuilder implements Closeable {
     }
 
     public void addBooleanValueDictionary(long columnKey, RealmDictionary<Boolean> dictionary) {
-        // FIXME
+        addDictionaryItem(builderPtr, columnKey, dictionary, booleanMapItemCallback);
+    }
+
+    private <T> void addDictionaryItem(
+            long builderPtr,
+            long columnKey,
+            @Nullable RealmDictionary<T> dictionary,
+            ItemCallback<Map.Entry<String, T>> mapItemCallback
+    ) {
+        if (dictionary != null) {
+            long dictionaryPtr = nativeStartDictionary(columnKey);
+            for (Map.Entry<String, T> entry : dictionary.entrySet()) {
+                mapItemCallback.handleItem(dictionaryPtr, entry);
+            }
+            nativeStopDictionary(builderPtr, columnKey, dictionaryPtr);
+        } else {
+            addEmptyDictionary(columnKey);
+        }
+    }
+
+    private void addEmptyDictionary(long columnKey) {
+        long dictionaryPtr = nativeStartDictionary(0);
+        nativeStopDictionary(builderPtr, columnKey, dictionaryPtr);
     }
 
     /**
@@ -536,7 +574,7 @@ public class OsObjectBuilder implements Closeable {
     }
 
     private interface ItemCallback<T> {
-        void handleItem(long listPtr, T item);
+        void handleItem(long containerPtr, T item);
     }
 
     private static native long nativeCreateBuilder();
@@ -544,16 +582,16 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeDestroyBuilder(long builderPtr);
 
     private static native long nativeCreateOrUpdateTopLevelObject(long sharedRealmPtr,
-            long tablePtr,
-            long builderPtr,
-            boolean updateExistingObject,
-            boolean ignoreFieldsWithSameValue);
+                                                                  long tablePtr,
+                                                                  long builderPtr,
+                                                                  boolean updateExistingObject,
+                                                                  boolean ignoreFieldsWithSameValue);
 
     private static native long nativeUpdateEmbeddedObject(long sharedRealmPtr,
-            long tablePtr,
-            long builderPtr,
-            long objKey,
-            boolean ignoreFieldsWithSameValue);
+                                                          long tablePtr,
+                                                          long builderPtr,
+                                                          long objKey,
+                                                          boolean ignoreFieldsWithSameValue);
 
     // Add simple properties
     private static native void nativeAddNull(long builderPtr, long columnKey);
@@ -577,6 +615,7 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeAddDecimal128(long builderPtr, long columnKey, long low, long high);
 
     private static native void nativeAddObjectId(long builderPtr, long columnKey, String data);
+
     private static native void nativeAddUUID(long builderPtr, long columnKey, String data);
 
     // Mixed
@@ -631,4 +670,11 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeAddObjectListItem(long listPtr, long rowPtr);
 
     private static native void nativeAddObjectList(long builderPtr, long columnKey, long[] rowPtrs);
+
+    // dictionaries
+    private static native long nativeStartDictionary(long size);
+
+    private static native void nativeStopDictionary(long builderPtr, long columnKey, long dictionaryPtr);
+
+    private static native void nativeAddBooleanDictionaryEntry(long dictionaryPtr, String key, boolean value);
 }
