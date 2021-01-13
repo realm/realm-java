@@ -11,6 +11,8 @@ public abstract class MixedOperator {
         switch (fieldType) {
             case BOOLEAN:
                 return new BooleanMixedOperator(nativeMixed);
+            case NULL:
+                return new NullMixedOperator(nativeMixed);
             default:
                 throw new ClassCastException("Couldn't cast to " + fieldType);
         }
@@ -18,8 +20,8 @@ public abstract class MixedOperator {
 
     private NativeMixed nativeMixed;
 
-    private Object value;
-    private MixedType type;
+    private final Object value;
+    private final MixedType type;
 
     public NativeMixed getNativeMixed(NativeContext context) {
         if (nativeMixed == null) { nativeMixed = createNativeMixed(context); }

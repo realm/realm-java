@@ -207,25 +207,27 @@ public class Mixed {
 //        return new Unmanaged(value, MixedType.UUID);
 //    }
 //
-//    /**
-//     * Creates a new, unmanaged {@link Mixed} of a null value
-//     *
-//     * @return a new, unmanaged {@link Mixed} instance of a null value
-//     */
-//    public static Mixed nullValue() {
-//        return new Unmanaged();
-//    }
+    /**
+     * Creates a new, unmanaged {@link Mixed} of a null value
+     *
+     * @return a new, unmanaged {@link Mixed} instance of a null value
+     */
+    public static Mixed nullValue() {
+        return new Mixed(new NullMixedOperator());
+    }
 //
 //    public static Mixed valueOf(@Nullable RealmModel value) {
 //        return new Unmanaged(value, MixedType.OBJECT);
 //    }
 //
-//    /**
-//     * Returns true if the inner value is null, false otherwise.
-//     *
-//     * @return true if the inner value is null, false otherwise
-//     */
-//    public abstract boolean isNull();
+    /**
+     * Returns true if the inner value is null, false otherwise.
+     *
+     * @return true if the inner value is null, false otherwise
+     */
+    public boolean isNull(){
+        return this.getType() == MixedType.NULL;
+    }
 //
 //    /**
 //     * Gets the inner type of this Mixed object.

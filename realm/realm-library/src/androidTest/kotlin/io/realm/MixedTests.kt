@@ -14,6 +14,7 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 
 // FIXME: MIXED PARAMETRIZED TESTS FOR INDEXED AND UNINDEXED
@@ -184,17 +185,17 @@ class MixedTests {
 //        assertEquals(MixedType.UUID, mixed.type)
 //    }
 //
-//    @Test
-//    fun unmanaged_null() {
-//        val aLong: Long? = null
-//
-//        val mixed = Mixed.valueOf(aLong)
-//
-//        assertFalse(mixed.isManaged)
-//        assertTrue(mixed.isNull)
-//        assertEquals(MixedType.NULL, mixed.type)
-//        assertEquals(null, mixed.valueClass)
-//    }
+    @Test
+    fun unmanaged_null() {
+        val aLong: Boolean? = null
+
+        val mixed = Mixed.valueOf(aLong)
+
+        assertTrue(mixed.isNull)
+        assertEquals(MixedType.NULL, mixed.type)
+        assertEquals(null, mixed.valueClass)
+    }
+
 //
 //    // Managed Tests
 //    @Test
@@ -263,7 +264,8 @@ class MixedTests {
 
         val mixedObject = realm.where<MixedNotIndexed>().findFirst()
 
-        assertEquals(true, mixedObject!!.mixed?.asBoolean())
+        assertTrue(mixedObject!!.isManaged)
+        assertEquals(true, mixedObject.mixed?.asBoolean())
         assertEquals(MixedType.BOOLEAN, mixedObject.mixed?.type)
         assertEquals(MixedType.BOOLEAN.typedClass, mixedObject.mixed!!.valueClass)
     }
@@ -387,20 +389,20 @@ class MixedTests {
 //        assertEquals(MixedType.UUID, mixedObject.mixed!!.type)
 //    }
 //
-//    @Test
-//    fun managed_null() {
-//        realm.executeTransaction {
-//            val mixedObject = it.createObject<MixedNotIndexed>()
-//            mixedObject.mixed = null
-//        }
-//
-//        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
-//
-//        assertTrue(mixedObject!!.isManaged)
-//        assertTrue(mixedObject.mixed!!.isNull)
-//        assertEquals(MixedType.NULL, mixedObject.mixed!!.type)
-//        assertEquals(MixedType.NULL.typedClass, mixedObject.mixed!!.valueClass)
-//    }
+    @Test
+    fun managed_null() {
+        realm.executeTransaction {
+            val mixedObject = it.createObject<MixedNotIndexed>()
+            mixedObject.mixed = null
+        }
+
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+
+        assertTrue(mixedObject!!.isManaged)
+        assertTrue(mixedObject.mixed!!.isNull)
+        assertEquals(MixedType.NULL, mixedObject.mixed!!.type)
+        assertEquals(MixedType.NULL.typedClass, mixedObject.mixed!!.valueClass)
+    }
 //
 //    @Test
 //    fun managed_realmModelUnmanaged() {
@@ -440,20 +442,20 @@ class MixedTests {
 //        assertEquals(PrimaryKeyAsString::class.simpleName, mixedObject.mixed!!.valueClass?.simpleName)
 //    }
 //
-//    @Test
-//    fun managed_nullMixed() {
-//        realm.executeTransaction {
-//            val mixedObject = it.createObject<MixedNotIndexed>()
-//            mixedObject.mixed = Mixed.nullValue()
-//        }
-//
-//        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
-//
-//        assertTrue(mixedObject!!.isManaged)
-//        assertTrue(mixedObject.mixed!!.isNull)
-//        assertEquals(MixedType.NULL, mixedObject.mixed!!.type)
-//        assertEquals(MixedType.NULL.typedClass, mixedObject.mixed!!.valueClass)
-//    }
+    @Test
+    fun managed_nullMixed() {
+        realm.executeTransaction {
+            val mixedObject = it.createObject<MixedNotIndexed>()
+            mixedObject.mixed = Mixed.nullValue()
+        }
+
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+
+        assertTrue(mixedObject!!.isManaged)
+        assertTrue(mixedObject.mixed!!.isNull)
+        assertEquals(MixedType.NULL, mixedObject.mixed!!.type)
+        assertEquals(MixedType.NULL.typedClass, mixedObject.mixed!!.valueClass)
+    }
 //
 //    @Test
 //    fun managed_validity() {

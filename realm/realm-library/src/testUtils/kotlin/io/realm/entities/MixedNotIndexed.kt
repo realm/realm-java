@@ -8,5 +8,5 @@ open class MixedNotIndexed : RealmObject() {
         const val FIELD_MIXED = "mixed"
     }
 
-    var mixed: Mixed? = null
+    var mixed: Mixed? = Mixed.nullValue()
 }

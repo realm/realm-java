@@ -236,8 +236,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetMixed(JNIEnv
     }
 
     try {
-        Mixed mixed = reinterpret_cast<Mixed*>(nativePtr);
-        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), mixed);
+        auto mixed = reinterpret_cast<Mixed*>(nativePtr);
+        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), *mixed);
     }
     CATCH_STD()
 }
@@ -516,7 +516,7 @@ JNIEXPORT long JNICALL Java_io_realm_internal_UncheckedRow_nativeGetMixed(JNIEnv
     }
 
     try {
-        Mixed mixed = OBJ(nativeRowPtr)->get<Mixed>(ColKey(columnKey));
+        auto mixed = OBJ(nativeRowPtr)->get<Mixed>(ColKey(columnKey));
         return reinterpret_cast<jlong>(new Mixed(mixed));
     }
     CATCH_STD()
