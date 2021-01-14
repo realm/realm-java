@@ -26,15 +26,25 @@ import javax.annotation.Nullable;
 
 
 /**
- * {@link Mixed} is used to represent a polymorphic Realm value.
- * It has two modes: a managed and unmanaged mode. In managed mode contents are persisted inside a Realm, in
- * unmanaged mode contents are persisted in the object instance.
+ * {@link io.realm.Mixed} is used to represent a polymorphic Realm value.
  * <p>
- * Only Realm can create managed Mixed. Managed Mixed will automatically update the content whenever the
- * underlying Realm is updated, and can only be accessed using the getter of a {@link io.realm.Mixed}.
+ * At any particular moment an instance of this class stores a
+ * definite value of a definite type. If, for instance, that is an
+ * double value, you may call asDouble() to extract that value. You
+ * may call getType() to discover what type of value is currently
+ * stored. Calling asDouble() on an instance that does not store an
+ * integer would raise a {@link java.lang.ClassCastException}.
  * <p>
- * Unmanaged Mixed can be created by the user and can contain any Realm value, or both managed and unmanaged RealmObjects.
+ * It is crucial to understand that the act of extracting a value of
+ * a particular type requires definite knowledge about the stored
+ * type. Calling a getter method for any particular type, that is not
+ * the same type as the stored value, would raise an exception.
+ * <p>
+ * getValueClass() returns the Java class that represents the inner
+ * value wrapped by the Mixed instance. It is useful to know what
+ * {@link io.realm.RealmModel} to cast to when calling asRealmModel().
  */
+
 public class Mixed {
 
     private final MixedOperator operator;
@@ -68,44 +78,44 @@ public class Mixed {
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Byte
+     * @return a new Mixed of a Byte
      */
     public static Mixed valueOf(@Nullable Byte value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new IntegerMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Short
+     * @return a new Mixed of a Short
      */
     public static Mixed valueOf(@Nullable Short value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new IntegerMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Integer
+     * @return a new Mixed of a Integer
      */
     public static Mixed valueOf(@Nullable Integer value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new IntegerMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Long
+     * @return a new Mixed of a Long
      */
     public static Mixed valueOf(@Nullable Long value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new IntegerMixedOperator(value));
@@ -113,117 +123,118 @@ public class Mixed {
 
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#BOOLEAN}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Boolean
+     * @return a new Mixed of a Boolean
      */
     public static Mixed valueOf(@Nullable Boolean value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new BooleanMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#FLOAT}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Float
+     * @return a new Mixed of a Float
      */
     public static Mixed valueOf(@Nullable Float value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new FloatMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#DOUBLE}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Double
+     * @return a new Mixed of a Double
      */
     public static Mixed valueOf(@Nullable Double value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new DoubleMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#STRING}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a String
+     * @return a new Mixed of a String
      */
     public static Mixed valueOf(@Nullable String value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new StringMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#BINARY}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a byte[]
+     * @return a new Mixed of a byte[]
      */
     public static Mixed valueOf(@Nullable byte[] value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new BinaryMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#DATE}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Date
+     * @return a new Mixed of a Date
      */
     public static Mixed valueOf(@Nullable Date value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new DateMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#OBJECT_ID}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of an ObjectId
+     * @return a new Mixed of an ObjectId
      */
     public static Mixed valueOf(@Nullable ObjectId value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new ObjectIdMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#DECIMAL128}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Decimal128
+     * @return a new Mixed of a Decimal128
      */
     public static Mixed valueOf(@Nullable Decimal128 value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new Decimal128MixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#UUID}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of an UUID
+     * @return a new Mixed of an UUID
      */
     public static Mixed valueOf(@Nullable UUID value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new UUIDMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} of a null value
+     * Creates a new Mixed of a null value
      *
-     * @return a new, unmanaged {@link Mixed} instance of a null value
+     * @return a new Mixed instance of a null value
      */
     public static Mixed nullValue() {
         return new Mixed(new NullMixedOperator());
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} of a null value
+     * Creates a new Mixed with the specified initial value.
      *
-     * @return a new, unmanaged {@link Mixed} instance of a null value
+     * @param value initial value
+     * @return a new Mixed of a RealmModel
      */
     public static Mixed valueOf(@Nullable RealmModel value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new RealmModelOperator(value));
