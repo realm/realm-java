@@ -24,11 +24,7 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import io.realm.Mixed;
-import io.realm.MixedType;
-import io.realm.Realm;
 import io.realm.RealmFieldType;
-import io.realm.RealmModel;
 import io.realm.internal.core.NativeMixed;
 
 

@@ -24,10 +24,8 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import io.realm.Mixed;
 import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
-import io.realm.internal.core.NativeMixed;
 
 
 /**
@@ -431,64 +429,6 @@ public class Table implements NativeObject {
      */
     public CheckedRow getCheckedRow(long objKey) {
         return CheckedRow.get(context, this, objKey);
-    }
-
-    // Mixed getters
-    public boolean mixedIsNull(long columnKey, long rowKey) {
-        return nativeMixedIsNull(nativeTableRefPtr, columnKey, rowKey);
-    }
-
-    public int mixedGetType(long columnKey, long rowKey) {
-        return nativeMixedGetType(nativeTableRefPtr, columnKey, rowKey);
-    }
-
-    public long mixedAsLong(long columnKey, long rowKey) {
-        return nativeMixedAsLong(nativeTableRefPtr, columnKey, rowKey);
-    }
-
-    public boolean mixedAsBoolean(long columnKey, long rowKey) {
-        return nativeMixedAsBoolean(nativeTableRefPtr, columnKey, rowKey);
-    }
-
-    public float mixedAsFloat(long columnKey, long rowKey) {
-        return nativeMixedAsFloat(nativeTableRefPtr, columnKey, rowKey);
-    }
-
-    public double mixedAsDouble(long columnKey, long rowKey) {
-        return nativeMixedAsDouble(nativeTableRefPtr, columnKey, rowKey);
-    }
-
-    public String mixedAsString(long columnKey, long rowKey) {
-        return nativeMixedAsString(nativeTableRefPtr, columnKey, rowKey);
-    }
-
-    public byte[] mixedAsBinaryByteArray(long columnKey, long rowKey) {
-        return nativeMixedAsByteArray(nativeTableRefPtr, columnKey, rowKey);
-    }
-
-    public Date mixedAsDate(long columnKey, long rowKey) {
-        return new Date(nativeMixedAsTimestamp(nativeTableRefPtr, columnKey, rowKey));
-    }
-
-    public ObjectId mixedAsObjectId(long columnKey, long rowKey) {
-        return new ObjectId(nativeMixedAsObjectId(nativeTableRefPtr, columnKey, rowKey));
-    }
-
-    public Decimal128 mixedAsDecimal128(long columnKey, long rowKey) {
-        long[] longs = nativeMixedAsDecimal128(nativeTableRefPtr, columnKey, rowKey);
-        return Decimal128.fromIEEE754BIDEncoding(longs[0], longs[1]);
-    }
-
-    public long mixedGetRowKey(long columnKey, long rowKey){
-        return nativeMixedGetRowKey(nativeTableRefPtr, columnKey, rowKey);
-    }
-
-    public UUID mixedAsUUID(long columnKey, long rowKey) {
-        return UUID.fromString(nativeMixedAsUUID(nativeTableRefPtr, columnKey, rowKey));
-    }
-
-    public String mixedGetClassName(OsSharedRealm sharedRealm, long columnKey, long rowKey) {
-        return Table.getClassNameForTable(nativeMixedGetTableName(sharedRealm.getNativePtr(), nativeTableRefPtr, columnKey, rowKey));
     }
 
     //
@@ -909,34 +849,6 @@ public class Table implements NativeObject {
     public static native void nativeSetUUID(long nativeTableRefPtr, long columnKey, long rowKey, String data, boolean isDefault);
 
     public static native void nativeSetLink(long nativeTableRefPtr, long columnKey, long rowKey, long value, boolean isDefault);
-
-    public static native int nativeMixedGetType(long nativeTableRefPtr, long columnKey, long rowKey);
-
-    public static native long nativeMixedAsLong(long nativeTableRefPtr, long columnKey, long rowKey);
-
-    public static native boolean nativeMixedAsBoolean(long nativeTableRefPtr, long columnKey, long rowKey);
-
-    public static native float nativeMixedAsFloat(long nativeTableRefPtr, long columnKey, long rowKey);
-
-    public static native double nativeMixedAsDouble(long nativeTableRefPtr, long columnKey, long rowKey);
-
-    public static native long nativeMixedAsTimestamp(long nativeTableRefPtr, long columnKey, long rowKey);
-
-    public static native String nativeMixedAsString(long nativeTableRefPtr, long columnKey, long rowKey);
-
-    public static native byte[] nativeMixedAsByteArray(long nativeTableRefPtr, long columnKey, long rowKey);
-
-    public static native long[] nativeMixedAsDecimal128(long nativeTableRefPtr, long columnKey, long rowKey);
-
-    public static native String nativeMixedAsObjectId(long nativeTableRefPtr, long columnKey, long rowKey);
-
-    public static native long nativeMixedGetRowKey(long nativeTableRefPtr, long columnKey, long rowKey);
-
-    public static native String nativeMixedGetTableName(long sharedRealmPtr, long nativeTableRefPtr, long columnKey, long rowKey);
-
-    public static native String nativeMixedAsUUID(long nativeTableRefPtr, long columnKey, long rowKey);
-
-    public static native boolean nativeMixedIsNull(long nativeTableRefPtr, long columnKey, long rowKey);
 
     public static native void nativeSetMixed(long nativeTableRefPtr, long columnKey, long rowKey, long value, boolean isDefault);
 

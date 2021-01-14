@@ -415,7 +415,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
     public Mixed realmGet$columnMixed() {
         proxyState.getRealm$realm().checkIfValid();
         NativeMixed nativeMixed = proxyState.getRow$realm().getNativeMixed(columnInfo.columnMixedColKey);
-        return new Mixed(MixedOperator.fromNativeMixed(nativeMixed));
+        return new Mixed(MixedOperator.fromNativeMixed(proxyState, nativeMixed));
     }
 
     @Override

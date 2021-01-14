@@ -370,7 +370,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
                 emitStatement("proxyState.getRealm\$realm().checkIfValid()")
                 emitStatement("NativeMixed nativeMixed = proxyState.getRow\$realm().getNativeMixed(%s)", fieldColKeyVariableReference(field))
-            emitStatement("return new Mixed(MixedOperator.fromNativeMixed(nativeMixed))")
+            emitStatement("return new Mixed(MixedOperator.fromNativeMixed(proxyState, nativeMixed))")
             endMethod()
             // Getter - End
 
