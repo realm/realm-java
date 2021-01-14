@@ -89,7 +89,7 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject {
 
     @Override
     public void clear() {
-        // TODO: use operator + do it natively
+        mapValueOperator.clear();
     }
 
     @Override
@@ -186,6 +186,10 @@ abstract class MapValueOperator<V> {
 
     public boolean isFrozen() {
         return (baseRealm != null && baseRealm.isFrozen());
+    }
+
+    public void clear() {
+        osMap.clear();
     }
 }
 

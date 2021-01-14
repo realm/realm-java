@@ -221,35 +221,7 @@ class DictionaryTests {
     // Managed map - TBD
     // ------------------------------------------
 
-    private fun initDictionary() {
-        realm.executeTransaction {
-            val dictionaryObject = it.createObject<DictionaryClass>()
-            val dictionary = RealmDictionary<Boolean>().apply {
-                put("Hello", true)
-                put("Bye", false)
-            }
-            dictionaryObject.myBooleanDictionary = dictionary
-        }
-    }
-
-    @Test
-    fun managed_isManaged() {
-        initDictionary()
-
-        val dictionaryObject = realm.where<DictionaryClass>().findFirst()
-        assertNotNull(dictionaryObject)
-
-        dictionaryObject.myBooleanDictionary.let {
-            assertNotNull(it)
-            assertFalse(it.isEmpty())
-            assertEquals(2, it.size)
-            assertEquals(true, it["Hello"])
-            assertEquals(false, it["Bye"])
-        }
-    }
-
-//    @Test
-//    fun kajshd() {
+//    private fun initDictionary() {
 //        realm.executeTransaction {
 //            val dictionaryObject = it.createObject<DictionaryClass>()
 //            val dictionary = RealmDictionary<Boolean>().apply {
@@ -258,18 +230,120 @@ class DictionaryTests {
 //            }
 //            dictionaryObject.myBooleanDictionary = dictionary
 //        }
-//
-//        val dictionaryObject = realm.where<DictionaryClass>().findFirst()
-//        assertNotNull(dictionaryObject)
-//
-//        dictionaryObject.myBooleanDictionary.let {
-//            assertNotNull(it)
-//            assertFalse(it.isEmpty())
-//            assertEquals(2, it.size)
-//            assertEquals(true, it["Hello"])
-//            assertEquals(false, it["Bye"])
-//        }
 //    }
+
+    private fun baseAssertions(dictionary: RealmDictionary<*>?) {
+        assertNotNull(dictionary)
+        assertFalse(dictionary.isEmpty())
+        assertEquals(2, dictionary.size)
+        assertEquals(true, dictionary["Hello"])
+        assertEquals(false, dictionary["Bye"])
+    }
+
+    private fun initDictionaryAndAssert(): RealmDictionary<*> {
+        realm.executeTransaction {
+            val dictionaryObject = it.createObject<DictionaryClass>()
+            val dictionary = RealmDictionary<Boolean>().apply {
+                put("Hello", true)
+                put("Bye", false)
+            }
+            dictionaryObject.myBooleanDictionary = dictionary
+        }
+
+        val dictionaryObject = realm.where<DictionaryClass>().findFirst()
+        assertNotNull(dictionaryObject)
+
+        return dictionaryObject.myBooleanDictionary!!
+                .also { baseAssertions(it) }
+    }
+
+    @Test
+    fun managed_isManaged() {
+        assertTrue(initDictionaryAndAssert().isManaged)
+    }
+
+    @Test
+    fun managed_isValid() {
+        assertTrue(initDictionaryAndAssert().isValid)
+
+        val dictionaryObject = realm.where<DictionaryClass>().findFirst()
+        assertNotNull(dictionaryObject)
+
+        realm.executeTransaction {
+            it.delete(DictionaryClass::class.java)
+        }
+
+        assertFalse(dictionaryObject.isValid)
+    }
+
+    @Test
+    fun managed_isFrozen() {
+        assertFalse(initDictionaryAndAssert().isFrozen)
+
+        // TODO: add another check when 'freeze' works
+    }
+
+    @Test
+    fun managed_size() {
+        assertEquals(2, initDictionaryAndAssert().size)
+    }
+
+    @Test
+    fun managed_isEmpty() {
+        assertFalse(initDictionaryAndAssert().isEmpty())
+
+        realm.executeTransaction {
+            val dictionaryObject = realm.where<DictionaryClass>().findFirst()
+            assertNotNull(dictionaryObject)
+            dictionaryObject.myBooleanDictionary!!.let { dictionary ->
+                dictionary.clear()
+
+                assertTrue(dictionary.isEmpty())
+            }
+        }
+    }
+
+    @Test
+    fun managed_containsKey() {
+        // TODO
+    }
+
+    @Test
+    fun managed_containsValue() {
+        // TODO
+    }
+
+    @Test
+    fun managed_putAll() {
+        // TODO
+    }
+
+    @Test
+    fun managed_clear() {
+        val dictionary = initDictionaryAndAssert()
+        assertFalse(dictionary.isEmpty())
+
+        realm.executeTransaction {
+            dictionary.clear()
+        }
+
+        assertTrue(dictionary.isEmpty())
+    }
+
+    @Test
+    fun managed_keySet() {
+        // TODO
+    }
+
+    @Test
+    fun managed_values() {
+        // TODO
+    }
+
+    @Test
+    fun managed_entrySet() {
+        // TODO
+    }
 
     // TODO: sanity-check tests for temporary schema validation - move to an appropriate place
 
@@ -279,8 +353,8 @@ class DictionaryTests {
 
         assertNotNull(objectSchema)
 
-//        assertTrue(objectSchema.hasField(DictionaryClass.MIXED_DICTIONARY_FIELD_NAME))
-//        assertEquals(objectSchema.getFieldType(DictionaryClass.MIXED_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_MIXED_MAP)
+        assertTrue(objectSchema.hasField(DictionaryClass.MIXED_DICTIONARY_FIELD_NAME))
+        assertEquals(objectSchema.getFieldType(DictionaryClass.MIXED_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_MIXED_MAP)
 
         assertTrue(objectSchema.hasField(DictionaryClass.BOOLEAN_DICTIONARY_FIELD_NAME))
         assertEquals(objectSchema.getFieldType(DictionaryClass.BOOLEAN_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_BOOLEAN_MAP)

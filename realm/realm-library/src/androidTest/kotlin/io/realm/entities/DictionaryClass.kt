@@ -16,13 +16,14 @@
 
 package io.realm.entities
 
+import io.realm.Mixed
 import io.realm.RealmDictionary
 import io.realm.RealmList
 import io.realm.RealmObject
 
 open class DictionaryClass : RealmObject() {
 
-//    var myMixedDictionary: RealmDictionary<Mixed>? = null
+    var myMixedDictionary: RealmDictionary<Mixed>? = null
     var myBooleanDictionary: RealmDictionary<Boolean>? = null
 
     // FIXME: remove non-dictionary fields, they are only used for inspiration
