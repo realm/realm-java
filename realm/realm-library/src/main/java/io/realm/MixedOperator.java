@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.NativeContext;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmObjectProxy;
@@ -64,9 +66,13 @@ public abstract class MixedOperator {
         }
     }
 
+    @Nullable
     private NativeMixed nativeMixed;
 
+    @Nullable
     private final Object value;
+
+    @Nullable
     private final MixedType type;
 
     private synchronized NativeMixed getNativeMixed() {
@@ -81,7 +87,7 @@ public abstract class MixedOperator {
 
     protected abstract NativeMixed createNativeMixed(NativeContext context);
 
-    protected MixedOperator(Object value, MixedType type, NativeMixed nativeMixed) {
+    protected MixedOperator(@Nullable Object value, @Nullable MixedType type, @Nullable NativeMixed nativeMixed) {
         this.value = value;
         this.type = type;
         this.nativeMixed = nativeMixed;
@@ -93,6 +99,10 @@ public abstract class MixedOperator {
 
     protected MixedOperator(NativeMixed nativeMixed) {
         this(null, null, nativeMixed);
+    }
+
+    protected MixedOperator(MixedType mixedType) {
+        this(null, mixedType, null);
     }
 
     protected MixedOperator() {
@@ -276,7 +286,7 @@ final class UUIDMixedOperator extends MixedOperator {
 
 final class NullMixedOperator extends MixedOperator {
     NullMixedOperator() {
-        super(null, MixedType.NULL);
+        super(MixedType.NULL);
     }
 
     NullMixedOperator(NativeMixed nativeMixed) {

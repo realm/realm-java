@@ -507,7 +507,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_UncheckedRow_nativeGetUUID(JNIE
     return nullptr;
 }
 
-JNIEXPORT long JNICALL Java_io_realm_internal_UncheckedRow_nativeGetMixed(JNIEnv* env, jobject,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetMixed(JNIEnv* env, jobject,
                                                                             jlong nativeRowPtr,
                                                                             jlong columnKey)
 {
