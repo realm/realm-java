@@ -902,8 +902,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         }
                         Constants.RealmFieldType.STRING_TO_BOOLEAN_MAP,
                         Constants.RealmFieldType.STRING_TO_MIXED_MAP -> {
-                            val requiredFlag = "Property.REQUIRED"
-                            emitStatement("""builder.addPersistedMapProperty("%s", %s, %s)""", fieldName, fieldType.realmType, requiredFlag)
+                            emitStatement("""builder.addPersistedMapProperty("%s", %s)""", fieldName, fieldType.realmType)
                         }
                     }
                 }

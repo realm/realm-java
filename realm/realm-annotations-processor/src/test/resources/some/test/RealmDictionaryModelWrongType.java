@@ -23,11 +23,7 @@ public class RealmDictionaryModelWrongType extends RealmObject {
 
     private RealmDictionary<Exception> myDictionary;
 
-    public RealmDictionaryModelWrongType() {
-        // no-op
-    }
-
-    public RealmDictionary<Exception> getMyMap() {
+    public RealmDictionary<Exception> getMyDictionary() {
         return myDictionary;
     }
 

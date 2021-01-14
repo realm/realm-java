@@ -84,16 +84,15 @@ public class OsObjectSchemaInfo implements NativeObject {
         }
 
         /**
-         * TODO: what about isRequired?
+         * Adds a persisted map property to this builder.
          *
-         * @param name
-         * @param type
-         * @param isRequired
-         * @return
+         * @param name the name of the property.
+         * @param type the type of the property. It must be one of value list type.
+         * @return this {@code OsObjectSchemaInfo}.
          */
-        public Builder addPersistedMapProperty(String name, RealmFieldType type, boolean isRequired) {
+        public Builder addPersistedMapProperty(String name, RealmFieldType type) {
             long propertyPtr = Property.nativeCreatePersistedProperty(name,
-                    Property.convertFromRealmFieldType(type, isRequired),
+                    Property.convertFromRealmFieldType(type, Property.REQUIRED),
                     !Property.PRIMARY_KEY,
                     !Property.INDEXED);
             persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;

@@ -23,6 +23,19 @@ import io.realm.internal.OsMap;
 
 /**
  * Specialization for {@link RealmMap}s whose keys are strings.
+ * <p>
+ * Similarly to {@link RealmList}s, a RealmDictionary can operate in managed and unmanaged modes. In
+ * managed mode a RealmDictionary persists all its contents inside a Realm whereas in unmanaged mode
+ * it functions like a {@link HashMap}.
+ * <p>
+ * Managed RealmDictionaries can only be created by Realm and will automatically update its content
+ * whenever the underlying Realm is updated. Managed RealmDictionaries can only be accessed using
+ * the getter that points to a RealmDictionary field of a {@link RealmObject}.
+ * <p>
+ * Unmanaged RealmDictionaries can be created by the user and can contain both managed and unmanaged
+ * RealmObjects. This is useful when dealing with JSON deserializers like GSON or other frameworks
+ * that inject values into a class. Unmanaged elements in this list can be added to a Realm using
+ * the {@link Realm#copyToRealm(Iterable, ImportFlag...)} method.
  *
  * @param <V> the type of the values stored in this dictionary
  */
