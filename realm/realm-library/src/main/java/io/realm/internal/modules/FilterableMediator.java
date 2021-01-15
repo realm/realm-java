@@ -99,11 +99,6 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    protected boolean hasPrimaryKeyImpl(Class<? extends RealmModel> clazz) {
-        return originalMediator.hasPrimaryKey(clazz);
-    }
-
-    @Override
     public <E extends RealmModel> E newInstance(Class<E> clazz,
             Object baseRealm,
             Row row,

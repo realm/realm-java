@@ -34,7 +34,6 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
     private val simpleModelClassNames = ArrayList<SimpleClassName>()
     private val internalClassNames = ArrayList<String>()
     private val embeddedClass = ArrayList<Boolean>()
-    private val primaryKeyClasses = mutableListOf<QualifiedClassName>()
 
     init {
         for (metadata in classesToValidate) {
@@ -44,9 +43,6 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
             simpleModelClassNames.add(metadata.simpleJavaClassName)
             internalClassNames.add(metadata.internalClassName)
             embeddedClass.add(metadata.embedded)
-            metadata.primaryKey?.let {
-                primaryKeyClasses.add(metadata.qualifiedClassName)
-            }
         }
     }
 
@@ -91,7 +87,6 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
             emitGetExpectedObjectSchemaInfoMap(this)
             emitCreateColumnInfoMethod(this)
             emitGetSimpleClassNameMethod(this)
-            emitHasPrimaryKeyMethod(this)
             emitNewInstanceMethod(this)
             emitGetClassModelList(this)
             emitCopyOrUpdateMethod(this)
@@ -171,29 +166,6 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
                 emitMediatorShortCircuitSwitch(writer, emitStatement = { i: Int ->
                     emitStatement("return \"%s\"", internalClassNames[i])
                 })
-            endMethod()
-            emitEmptyLine()
-        }
-    }
-
-    @Throws(IOException::class)
-    private fun emitHasPrimaryKeyMethod(writer: JavaWriter) {
-        writer.apply {
-            emitAnnotation("Override")
-            beginMethod(
-                    "boolean",
-                    "hasPrimaryKeyImpl",
-                    EnumSet.of(Modifier.PUBLIC),
-                    "Class<? extends RealmModel>", "clazz"
-            )
-
-            if (primaryKeyClasses.isEmpty()) {
-                emitStatement("return false")
-            } else {
-                val primaryKeyCondition = primaryKeyClasses.joinToString(".class.isAssignableFrom(clazz)\n|| ", "", ".class.isAssignableFrom(clazz)")
-                emitStatement("return %s", primaryKeyCondition)
-            }
-
             endMethod()
             emitEmptyLine()
         }
@@ -593,4 +565,5 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
             emitStatement("throw getMissingProxyClassException(clazz)")
         }
     }
+
 }
