@@ -103,6 +103,7 @@ public enum RealmFieldType {
     OBJECT_ID_LIST(CORE_TYPE_VALUE_OBJECTID + LIST_OFFSET),
     UUID_LIST(CORE_TYPE_VALUE_UUID + LIST_OFFSET);
 
+
     // Primitive array for fast mapping between between native values and their Realm type.
     private static final RealmFieldType[] basicTypes = new RealmFieldType[MAX_CORE_TYPE_VALUE + 1];
     private static final RealmFieldType[] listTypes = new RealmFieldType[MAX_CORE_TYPE_VALUE + 1];

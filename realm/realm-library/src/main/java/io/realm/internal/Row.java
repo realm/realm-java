@@ -25,8 +25,8 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import io.realm.Mixed;
-import io.realm.Realm;
 import io.realm.RealmFieldType;
+import io.realm.internal.core.NativeMixed;
 
 
 /**
@@ -91,6 +91,8 @@ public interface Row {
 
     UUID getUUID(long columnKey);
 
+    NativeMixed getNativeMixed(long mixedColKey);
+
     long getLink(long columnKey);
 
     boolean isNullLink(long columnKey);
@@ -127,7 +129,7 @@ public interface Row {
 
     void setUUID(long columnKey, UUID value);
 
-    void setMixed(long columnKey, Mixed value);
+    void setMixed(long columnKey, long value);
 
     // Creates a new Embedded object in the given property.
     // This will replace any existing object which will be

@@ -129,7 +129,7 @@ public class RealmJsonNullPrimaryKeyTests {
             assertEquals(Long.valueOf(secondaryFieldValue).longValue(), results.first().getId());
             assertEquals(null, results.first().getName());
 
-            // PrimaryKeyAsObjectId
+            // PrimaryKeyAsUUID
         } else if (clazz.equals(PrimaryKeyAsUUID.class)) {
             RealmResults<PrimaryKeyAsUUID> results = realm.where(PrimaryKeyAsUUID.class).findAll();
             assertEquals(1, results.size());
@@ -161,7 +161,7 @@ public class RealmJsonNullPrimaryKeyTests {
             assertEquals(Long.valueOf(secondaryFieldValue).longValue(), results.first().getId());
             assertEquals(null, results.first().getName());
 
-            // PrimaryKeyAsObjectId
+            // PrimaryKeyAsUUID
         } else if (clazz.equals(PrimaryKeyAsUUID.class)) {
             RealmResults<PrimaryKeyAsUUID> results = realm.where(PrimaryKeyAsUUID.class).findAll();
             assertEquals(1, results.size());

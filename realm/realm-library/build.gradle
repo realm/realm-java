@@ -40,6 +40,9 @@ android {
                     // "armeabi" and "mips" are no longer supported by the NDK
                     abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
                 }
+
+                arguments "-DREALM_JAVA_BUILD_CORE_FROM_SOURCE=${project.hasProperty('buildCore') && project.getProperty('buildCore').toBoolean()}"
+                arguments "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=${!project.hasProperty('enableLTO') || project.getProperty('enableLTO').toBoolean()}"
             }
         }
 
@@ -47,18 +50,18 @@ android {
             debug {
                 javaCompileOptions {
                     annotationProcessorOptions {
-                        arguments += [ 'realm.suppressWarnings' : 'false' ]
+                        arguments += ['realm.suppressWarnings': 'false']
                     }
                 }
             }
         }
     }
 
-    ndkVersion = "21.0.6113669"
+    ndkVersion = '21.0.6113669'
 
     externalNativeBuild {
         cmake {
-            version=properties.getProperty('CMAKE')
+            version = properties.getProperty('CMAKE')
             path 'src/main/cpp/CMakeLists.txt'
         }
     }
@@ -74,10 +77,6 @@ android {
         release {
             externalNativeBuild {
                 cmake {
-                    // LTO is enabled for release builds unless specifically opted out of.
-                    if (!project.hasProperty("disableLTO")) {
-                        arguments "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON"
-                    }
                 }
             }
             // minifyEnabled = true;
@@ -95,7 +94,7 @@ android {
             java.srcDirs += [/* FIXME 'src/syncIntegrationTest/java', */
                              'src/syncIntegrationTest/kotlin',
                              'src/androidTestObjectServer/kotlin', 'src/syncTestUtils/java'
-            , 'src/syncTestUtils/kotlin']
+                             , 'src/syncTestUtils/kotlin']
             assets.srcDirs += ['src/syncIntegrationTest/assets/']
         }
     }
@@ -341,7 +340,7 @@ install {
                 // Add your description here
                 name 'realm-android-library'
                 description 'Realm is a mobile database: a replacement for SQLite & ORMs.'
-                url 'http://realm.io'
+                url 'https://docs.mongodb.com/realm/'
 
                 // Set your license
                 licenses {

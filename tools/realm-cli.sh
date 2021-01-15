@@ -127,6 +127,26 @@ java_clean(){
     popd
 }
 
+java_size(){
+    pushd $REALM_JAVA_PATH/realm/ 1> /dev/null
+    ./gradlew assemble
+    cd realm-library/build/intermediates/cmake/
+    
+    pushd baseRelease/obj 1> /dev/null 
+    echo "Base"
+    find . -name "*.so" -print0 | xargs -0 stat -f '%z %N'
+    echo "-----------"
+    popd 1> /dev/null
+    
+    pushd objectServerRelease/obj 1> /dev/null
+    echo "Object server"
+    find . -name "*.so" -print0 | xargs -0 stat -f '%z %N'
+    echo "-----------"
+    popd 1> /dev/null
+    
+    popd 1> /dev/null
+}
+
 java_help(){
     echo "Try with:
 
@@ -135,6 +155,7 @@ build   - builds realm-java
 test    - runs the realm-java test suite
 check   - runs realm-java spotbugs, checkstyle, pmd
 clean   - cleans realm-java"
+size    - calculates and displays the JNI lib size
 }
 
 java(){
@@ -154,6 +175,9 @@ java(){
             ;;
         clean)
             java_clean
+            ;;
+        size)
+            java_size
             ;;
         *)
             java_help

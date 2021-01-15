@@ -153,6 +153,11 @@ private:
     jsize m_size;
 };
 
+template<>
+inline JStringAccessor JObjectArrayAccessor<JStringAccessor,jstring>::operator[](const int index) const noexcept {
+    return JStringAccessor(m_env, static_cast<jstring>(m_env->GetObjectArrayElement(m_jobject_array, index)), true);
+}
+
 // An object accessor context which can be used to create and access objects
 // using util::Any as the type-erased value type. In addition, this serves as
 // the reference implementation of an accessor context that must be implemented

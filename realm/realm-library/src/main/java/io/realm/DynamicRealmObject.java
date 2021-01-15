@@ -19,7 +19,6 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Locale;
@@ -36,6 +35,7 @@ import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.android.JsonUtils;
+import io.realm.internal.core.NativeMixed;
 
 
 /**
@@ -880,7 +880,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         proxyState.getRealm$realm().checkIfValid();
 
         long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
-        proxyState.getRow$realm().setMixed(columnKey, value);
+        proxyState.getRow$realm().setMixed(columnKey, value.getNativePtr());
     }
 
     /**
@@ -1339,17 +1339,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     }
 
     private Mixed getMixed(long columnKey) {
-        return new Mixed.Mutable<DynamicRealmObject>() {
-            @Override
-            protected ProxyState<DynamicRealmObject> getProxyState() {
-                return proxyState;
-            }
-
-            @Override
-            protected long getColumnIndex() {
-                return columnKey;
-            }
-        };
+        NativeMixed nativeMixed = proxyState.getRow$realm().getNativeMixed(columnKey);
+        return new Mixed(MixedOperator.fromNativeMixed(proxyState, nativeMixed));
     }
 
     /**

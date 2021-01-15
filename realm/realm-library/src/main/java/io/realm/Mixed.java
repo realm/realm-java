@@ -19,243 +19,53 @@ package io.realm;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import io.realm.internal.ManageableObject;
-import io.realm.internal.OsSharedRealm;
-import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.Row;
-import io.realm.internal.Table;
-
 
 /**
- * {@link Mixed} is used to represent a polymorphic Realm value.
- * It has two modes: a managed and unmanaged mode. In managed mode contents are persisted inside a Realm, in
- * unmanaged mode contents are persisted in the object instance.
+ * {@link io.realm.Mixed} is used to represent a polymorphic Realm value.
  * <p>
- * Only Realm can create managed Mixed. Managed Mixed will automatically update the content whenever the
- * underlying Realm is updated, and can only be accessed using the getter of a {@link io.realm.Mixed}.
+ * At any particular moment an instance of this class stores a
+ * definite value of a definite type. If, for instance, that is an
+ * double value, you may call asDouble() to extract that value. You
+ * may call getType() to discover what type of value is currently
+ * stored. Calling asDouble() on an instance that does not store an
+ * integer would raise a {@link java.lang.ClassCastException}.
  * <p>
- * Unmanaged Mixed can be created by the user and can contain any Realm value, or both managed and unmanaged RealmObjects.
+ * It is crucial to understand that the act of extracting a value of
+ * a particular type requires definite knowledge about the stored
+ * type. Calling a getter method for any particular type, that is not
+ * the same type as the stored value, would raise an exception.
+ * <p>
+ * getValueClass() returns the Java class that represents the inner
+ * value wrapped by the Mixed instance. It is useful to know what
+ * {@link io.realm.RealmModel} to cast to when calling asRealmModel().
  */
-public abstract class Mixed implements ManageableObject {
-    private static final class Unmanaged extends Mixed {
-        @Nullable
-        private final Object value;
-        @Nullable
-        private final MixedType mixedType;
 
-        Unmanaged() {
-            this.value = null;
-            this.mixedType = MixedType.NULL;
-        }
+public class Mixed {
 
-        Unmanaged(@Nullable Object value, MixedType mixedType) {
-            this.value = value;
-            this.mixedType = (value == null) ? MixedType.NULL : mixedType;
-        }
+    private final MixedOperator operator;
 
-        @Override
-        public boolean isManaged() {
-            return false;
-        }
-
-        @Override
-        public boolean isValid() {
-            return true;
-        }
-
-        @Override
-        public boolean isFrozen() {
-            return false;
-        }
-
-        @Override
-        @Nullable
-        protected <T> T get(Class<T> clazz, MixedType fieldType) {
-            return clazz.cast(value);
-        }
-
-        @Nullable
-        @Override
-        public Class<?> getValueClass() {
-            if (mixedType == MixedType.OBJECT) {
-                return value.getClass();
-            }
-
-            return mixedType.getTypedClass();
-        }
-
-        @Override
-        public boolean isNull() {
-            return value == null;
-        }
-
-        @Override
-        public MixedType getType() {
-            return mixedType;
-        }
+    Mixed(MixedOperator operator) {
+        this.operator = operator;
     }
 
-    abstract static class Managed<M extends RealmModel> extends Mixed {
-        protected abstract ProxyState<M> getProxyState();
-
-        protected abstract long getColumnIndex();
-
-        @Override
-        public boolean isManaged() {
-            return true;
-        }
-
-        @Override
-        public final boolean isValid() {
-            return !getRealm().isClosed() && getRow().isValid();
-        }
-
-        @Override
-        public boolean isFrozen() {
-            return getRealm().isFrozen();
-        }
-
-        @Override
-        @Nullable
-        protected <T> T get(Class<T> clazz, MixedType fieldType) {
-            Row row = getRow();
-            Table table = row.getTable();
-            long rowIndex = row.getObjectKey();
-            long columnIndex = getColumnIndex();
-
-            switch (fieldType) {
-                case INTEGER:
-                    return clazz.cast(table.mixedAsLong(columnIndex, rowIndex));
-                case BOOLEAN:
-                    return clazz.cast(table.mixedAsBoolean(columnIndex, rowIndex));
-                case FLOAT:
-                    return clazz.cast(table.mixedAsFloat(columnIndex, rowIndex));
-                case DOUBLE:
-                    return clazz.cast(table.mixedAsDouble(columnIndex, rowIndex));
-                case STRING:
-                    return clazz.cast(table.mixedAsString(columnIndex, rowIndex));
-                case BINARY:
-                    return clazz.cast(table.mixedAsBinaryByteArray(columnIndex, rowIndex));
-                case DATE:
-                    return clazz.cast(table.mixedAsDate(columnIndex, rowIndex));
-                case OBJECT_ID:
-                    return clazz.cast(table.mixedAsObjectId(columnIndex, rowIndex));
-                case DECIMAL128:
-                    return clazz.cast(table.mixedAsDecimal128(columnIndex, rowIndex));
-                case OBJECT:
-                    return clazz.cast(getRealmModel(clazz));
-                case UUID:
-                    return clazz.cast(table.mixedAsUUID(columnIndex, rowIndex));
-                default:
-                    throw new ClassCastException("Couldn't cast to " + fieldType);
-            }
-        }
-
-        @Nullable
-        @SuppressWarnings({"TypeParameterUnusedInFormals"})
-        protected abstract <T extends RealmModel> T getRealmModel(Class<?> clazz);
-
-        @Override
-        public boolean isNull() {
-            return getType() == MixedType.NULL;
-        }
-
-        private BaseRealm getRealm() {
-            return getProxyState().getRealm$realm();
-        }
-
-        @Override
-        public MixedType getType() {
-            Row row = getRow();
-            Table table = row.getTable();
-            long rowIndex = row.getObjectKey();
-            long columnIndex = getColumnIndex();
-
-            return MixedType.fromNativeValue(table.mixedGetType(columnIndex, rowIndex));
-        }
-
-        protected Row getRow() {
-            return getProxyState().getRow$realm();
-        }
+    long getNativePtr() {
+        return this.operator.getNativePtr();
     }
 
-    abstract static class Immutable<M extends RealmModel> extends Managed<M> {
-        @Nullable
-        @Override
-        public Class<?> getValueClass() {
-            MixedType mixedType = getType();
-            return (mixedType == MixedType.OBJECT) ? getRealmModelClass() : mixedType.getTypedClass();
-        }
-
-        private Class<? extends RealmModel> getRealmModelClass() {
-            Row row = getRow();
-            Table table = row.getTable();
-            long rowIndex = row.getObjectKey();
-            long columnIndex = getColumnIndex();
-
-            OsSharedRealm sharedRealm = getProxyState()
-                    .getRealm$realm()
-                    .getSharedRealm();
-
-            String className = table.mixedGetClassName(sharedRealm, columnIndex, rowIndex);
-
-            return getProxyState()
-                    .getRealm$realm()
-                    .getConfiguration()
-                    .getSchemaMediator()
-                    .getClazz(className);
-        }
-
-        @Nullable
-        @Override
-        @SuppressWarnings({"TypeParameterUnusedInFormals", "unchecked"})
-        protected <T extends RealmModel> T getRealmModel(Class<?> clazz) {
-            Class<T> modelClazz = (Class<T>) clazz;
-
-            Row row = getRow();
-            Table table = row.getTable();
-            long rowIndex = row.getObjectKey();
-            long columnIndex = getColumnIndex();
-
-            return getProxyState()
-                    .getRealm$realm()
-                    .get(modelClazz, table.mixedGetRowKey(columnIndex, rowIndex), false, Collections.emptyList());
-        }
-    }
-
-    abstract static class Mutable<M extends RealmModel> extends Managed<M> {
-        @Nullable
-        @Override
-        public Class<?> getValueClass() {
-            MixedType mixedType = getType();
-            return (getType() == MixedType.OBJECT) ? DynamicRealmObject.class : mixedType.getTypedClass();
-        }
-
-        @Nullable
-        @Override
-        @SuppressWarnings({"TypeParameterUnusedInFormals", "unchecked"})
-        protected <T extends RealmModel> T getRealmModel(Class<?> clazz) {
-            Class<T> modelClazz = (Class<T>) clazz;
-
-            Row row = getRow();
-            Table table = row.getTable();
-            long rowIndex = row.getObjectKey();
-            long columnIndex = getColumnIndex();
-
-            return getProxyState()
-                    .getRealm$realm()
-                    .get(modelClazz, table.getClassName(), table.mixedGetRowKey(columnIndex, rowIndex));
-        }
-    }
-
+    /**
+     * Gets the inner type of this Mixed object.
+     *
+     * @return the inner MixedType
+     */
     @Nullable
-    protected abstract <T> T get(Class<T> clazz, MixedType fieldType);
+    public MixedType getType() {
+        return this.operator.getType();
+    }
 
     /**
      * Returns the Java class that represents the inner value wrapped by this Mixed value.
@@ -263,162 +73,171 @@ public abstract class Mixed implements ManageableObject {
      * @return the class that represents the inner value wrapped by this Mixed value.
      */
     @Nullable
-    public abstract Class<?> getValueClass();
+    public Class<?> getValueClass() {
+        return this.operator.getTypedClass();
+    }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Byte
+     * @return a new Mixed of a Byte
      */
     public static Mixed valueOf(@Nullable Byte value) {
-        return new Unmanaged(value, MixedType.INTEGER);
+        return new Mixed((value == null) ? new NullMixedOperator() : new IntegerMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Short
+     * @return a new Mixed of a Short
      */
     public static Mixed valueOf(@Nullable Short value) {
-        return new Unmanaged(value, MixedType.INTEGER);
+        return new Mixed((value == null) ? new NullMixedOperator() : new IntegerMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Integer
+     * @return a new Mixed of a Integer
      */
     public static Mixed valueOf(@Nullable Integer value) {
-        return new Unmanaged(value, MixedType.INTEGER);
+        return new Mixed((value == null) ? new NullMixedOperator() : new IntegerMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Long
+     * @return a new Mixed of a Long
      */
     public static Mixed valueOf(@Nullable Long value) {
-        return new Unmanaged(value, MixedType.INTEGER);
+        return new Mixed((value == null) ? new NullMixedOperator() : new IntegerMixedOperator(value));
     }
 
+
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#BOOLEAN}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Boolean
+     * @return a new Mixed of a Boolean
      */
     public static Mixed valueOf(@Nullable Boolean value) {
-        return new Unmanaged(value, MixedType.BOOLEAN);
+        return new Mixed((value == null) ? new NullMixedOperator() : new BooleanMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#FLOAT}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Float
+     * @return a new Mixed of a Float
      */
     public static Mixed valueOf(@Nullable Float value) {
-        return new Unmanaged(value, MixedType.FLOAT);
+        return new Mixed((value == null) ? new NullMixedOperator() : new FloatMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#DOUBLE}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Double
+     * @return a new Mixed of a Double
      */
     public static Mixed valueOf(@Nullable Double value) {
-        return new Unmanaged(value, MixedType.DOUBLE);
+        return new Mixed((value == null) ? new NullMixedOperator() : new DoubleMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#STRING}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a String
+     * @return a new Mixed of a String
      */
     public static Mixed valueOf(@Nullable String value) {
-        return new Unmanaged(value, MixedType.STRING);
+        return new Mixed((value == null) ? new NullMixedOperator() : new StringMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#BINARY}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a byte[]
+     * @return a new Mixed of a byte[]
      */
     public static Mixed valueOf(@Nullable byte[] value) {
-        return new Unmanaged(value, MixedType.BINARY);
+        return new Mixed((value == null) ? new NullMixedOperator() : new BinaryMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#DATE}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Date
+     * @return a new Mixed of a Date
      */
     public static Mixed valueOf(@Nullable Date value) {
-        return new Unmanaged(value, MixedType.DATE);
+        return new Mixed((value == null) ? new NullMixedOperator() : new DateMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#OBJECT_ID}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of an ObjectId
+     * @return a new Mixed of an ObjectId
      */
     public static Mixed valueOf(@Nullable ObjectId value) {
-        return new Unmanaged(value, MixedType.OBJECT_ID);
+        return new Mixed((value == null) ? new NullMixedOperator() : new ObjectIdMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#DECIMAL128}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of a Decimal128
+     * @return a new Mixed of a Decimal128
      */
     public static Mixed valueOf(@Nullable Decimal128 value) {
-        return new Unmanaged(value, MixedType.DECIMAL128);
+        return new Mixed((value == null) ? new NullMixedOperator() : new Decimal128MixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} with the specified initial value.
+     * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#UUID}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new, unmanaged {@link Mixed} of an UUID
+     * @return a new Mixed of an UUID
      */
     public static Mixed valueOf(@Nullable UUID value) {
-        return new Unmanaged(value, MixedType.UUID);
+        return new Mixed((value == null) ? new NullMixedOperator() : new UUIDMixedOperator(value));
     }
 
     /**
-     * Creates a new, unmanaged {@link Mixed} of a null value
+     * Creates a new Mixed of a null value
      *
-     * @return a new, unmanaged {@link Mixed} instance of a null value
+     * @return a new Mixed instance of a null value
      */
     public static Mixed nullValue() {
-        return new Unmanaged();
+        return new Mixed(new NullMixedOperator());
     }
 
+    /**
+     * Creates a new Mixed with the specified initial value.
+     *
+     * @param value initial value
+     * @return a new Mixed of a RealmModel
+     */
     public static Mixed valueOf(@Nullable RealmModel value) {
-        return new Unmanaged(value, MixedType.OBJECT);
+        return new Mixed((value == null) ? new NullMixedOperator() : new RealmModelOperator(value));
     }
 
     /**
@@ -426,14 +245,9 @@ public abstract class Mixed implements ManageableObject {
      *
      * @return true if the inner value is null, false otherwise
      */
-    public abstract boolean isNull();
-
-    /**
-     * Gets the inner type of this Mixed object.
-     *
-     * @return the inner MixedType
-     */
-    public abstract MixedType getType();
+    public boolean isNull() {
+        return this.getType() == MixedType.NULL;
+    }
 
     /**
      * Gets this value as a Byte if it is one, otherwise throws exception.
@@ -442,8 +256,8 @@ public abstract class Mixed implements ManageableObject {
      * @throws java.lang.ClassCastException if this value is not of the expected type
      */
     public Byte asByte() {
-        Number value = get(Number.class, MixedType.INTEGER);
-        return (value == null) ? null : get(Number.class, MixedType.INTEGER).byteValue();
+        Number value = operator.getValue(Number.class);
+        return (value == null) ? null : value.byteValue();
     }
 
     /**
@@ -453,8 +267,8 @@ public abstract class Mixed implements ManageableObject {
      * @throws java.lang.ClassCastException if this value is not of the expected type
      */
     public Short asShort() {
-        Number value = get(Number.class, MixedType.INTEGER);
-        return (value == null) ? null : get(Number.class, MixedType.INTEGER).shortValue();
+        Number value = operator.getValue(Number.class);
+        return (value == null) ? null : value.shortValue();
     }
 
     /**
@@ -464,8 +278,8 @@ public abstract class Mixed implements ManageableObject {
      * @throws java.lang.ClassCastException if this value is not of the expected type
      */
     public Integer asInteger() {
-        Number value = get(Number.class, MixedType.INTEGER);
-        return (value == null) ? null : get(Number.class, MixedType.INTEGER).intValue();
+        Number value = operator.getValue(Number.class);
+        return (value == null) ? null : value.intValue();
     }
 
     /**
@@ -475,8 +289,8 @@ public abstract class Mixed implements ManageableObject {
      * @throws java.lang.ClassCastException if this value is not of the expected type
      */
     public Long asLong() {
-        Number value = get(Number.class, MixedType.INTEGER);
-        return (value == null) ? null : get(Number.class, MixedType.INTEGER).longValue();
+        Number value = operator.getValue(Number.class);
+        return (value == null) ? null : value.longValue();
     }
 
     /**
@@ -486,7 +300,7 @@ public abstract class Mixed implements ManageableObject {
      * @throws java.lang.ClassCastException if this value is not of the expected type
      */
     public Boolean asBoolean() {
-        return get(Boolean.class, MixedType.BOOLEAN);
+        return operator.getValue(Boolean.class);
     }
 
     /**
@@ -496,7 +310,7 @@ public abstract class Mixed implements ManageableObject {
      * @throws java.lang.ClassCastException if this value is not of the expected type
      */
     public Float asFloat() {
-        return get(Float.class, MixedType.FLOAT);
+        return operator.getValue(Float.class);
     }
 
     /**
@@ -506,7 +320,7 @@ public abstract class Mixed implements ManageableObject {
      * @throws java.lang.ClassCastException if this value is not of the expected type
      */
     public Double asDouble() {
-        return get(Double.class, MixedType.DOUBLE);
+        return operator.getValue(Double.class);
     }
 
     /**
@@ -516,7 +330,7 @@ public abstract class Mixed implements ManageableObject {
      * @throws java.lang.ClassCastException if this value is not of the expected type
      */
     public String asString() {
-        return get(String.class, MixedType.STRING);
+        return operator.getValue(String.class);
     }
 
     /**
@@ -526,7 +340,7 @@ public abstract class Mixed implements ManageableObject {
      * @throws java.lang.ClassCastException if this value is not of the expected type
      */
     public byte[] asBinary() {
-        return get(byte[].class, MixedType.BINARY);
+        return operator.getValue(byte[].class);
     }
 
     /**
@@ -536,7 +350,7 @@ public abstract class Mixed implements ManageableObject {
      * @throws java.lang.ClassCastException if this value is not of the expected type
      */
     public Date asDate() {
-        return get(Date.class, MixedType.DATE);
+        return operator.getValue(Date.class);
     }
 
     /**
@@ -546,7 +360,7 @@ public abstract class Mixed implements ManageableObject {
      * @throws java.lang.ClassCastException if this value is not of the expected type
      */
     public ObjectId asObjectId() {
-        return get(ObjectId.class, MixedType.OBJECT_ID);
+        return operator.getValue(ObjectId.class);
     }
 
     /**
@@ -556,7 +370,7 @@ public abstract class Mixed implements ManageableObject {
      * @throws java.lang.ClassCastException if this value is not of the expected type
      */
     public UUID asUUID() {
-        return get(UUID.class, MixedType.UUID);
+        return operator.getValue(UUID.class);
     }
 
     /**
@@ -566,8 +380,9 @@ public abstract class Mixed implements ManageableObject {
      * @throws java.lang.ClassCastException if this value is not of the expected type
      */
     public Decimal128 asDecimal128() {
-        return get(Decimal128.class, MixedType.DECIMAL128);
+        return operator.getValue(Decimal128.class);
     }
+
 
     /**
      * Gets this value as a RealmModel if it is one, otherwise throws exception.
@@ -577,6 +392,6 @@ public abstract class Mixed implements ManageableObject {
      * @throws java.lang.ClassCastException if this value is not of the expected type
      */
     public <T extends RealmModel> T asRealmModel(Class<T> clazz) {
-        return get(clazz, MixedType.OBJECT);
+        return operator.getValue(clazz);
     }
 }
