@@ -32,9 +32,13 @@ import kotlin.test.*
 private const val KEY = "KEY"
 private const val KEY_1 = "KEY_1"
 private const val KEY_2 = "KEY_2"
+private const val KEY_HELLO = "Hello"
+private const val KEY_BYE = "Bye"
 private const val VALUE = 666
 private const val VALUE_1 = 1
 private const val VALUE_2 = 2
+private const val VALUE_HELLO = true
+private const val VALUE_BYE = false
 
 @RunWith(AndroidJUnit4::class)
 class DictionaryTests {
@@ -337,14 +341,24 @@ class DictionaryTests {
         assertEquals(objectSchema.getFieldType(DictionaryClass.BOOLEAN_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_BOOLEAN_MAP)
     }
 
+    private fun createBooleanRealmDictionary(): RealmDictionary<Boolean> {
+        return RealmDictionary<Boolean>().apply {
+            put(KEY_HELLO, VALUE_HELLO)
+            put(KEY_BYE, VALUE_BYE)
+        }
+    }
+
+    private fun createMixedRealmDictionary(): RealmDictionary<Mixed> {
+        return RealmDictionary<Mixed>().apply {
+            put(KEY_HELLO, Mixed.valueOf(VALUE_HELLO))
+            put(KEY_BYE, Mixed.valueOf(VALUE_BYE))
+        }
+    }
+
     private fun initDictionary() {
-        realm.executeTransaction {
-            val dictionaryObject = it.createObject<DictionaryClass>()
-            val dictionary = RealmDictionary<Boolean>().apply {
-                put("Hello", true)
-                put("Bye", false)
-            }
-            dictionaryObject.myBooleanDictionary = dictionary
+        realm.executeTransaction { transactionRealm ->
+            transactionRealm.createObject<DictionaryClass>()
+                    .also { it.myBooleanDictionary = createBooleanRealmDictionary() }
         }
     }
 
@@ -352,8 +366,8 @@ class DictionaryTests {
         assertNotNull(dictionary)
         assertFalse(dictionary.isEmpty())
         assertEquals(2, dictionary.size)
-        assertEquals(true, dictionary["Hello"])
-        assertEquals(false, dictionary["Bye"])
+        assertEquals(VALUE_HELLO, dictionary[KEY_HELLO])
+        assertEquals(VALUE_BYE, dictionary[KEY_BYE])
     }
 
     private fun initDictionaryAndAssert(): RealmDictionary<*> {
@@ -364,6 +378,39 @@ class DictionaryTests {
 
         return dictionaryObject.myBooleanDictionary!!
                 .also { baseAssertions(it) }
+    }
+
+    @Test
+    fun copyToRealm_boolean() {
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myBooleanDictionary = createBooleanRealmDictionary()
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myBooleanDictionary
+            assertNotNull(dictionaryFromRealm)
+
+            assertEquals(VALUE_HELLO, dictionaryFromRealm[KEY_HELLO])
+            assertEquals(VALUE_BYE, dictionaryFromRealm[KEY_BYE])
+        }
+    }
+
+    @Test
+    fun copyToRealm_mixedBoolean() {
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myMixedDictionary = createMixedRealmDictionary()
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myBooleanDictionary
+            assertNotNull(dictionaryFromRealm)
+
+//            val mixedHello = dictionaryFromRealm[KEY_HELLO]
+//            val mixedBye = dictionaryFromRealm[KEY_BYE]
+//            val kajhs = 0
+        }
     }
 }
 

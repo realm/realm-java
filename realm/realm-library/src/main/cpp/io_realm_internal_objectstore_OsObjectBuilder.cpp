@@ -422,9 +422,21 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_objectstore_OsObjectBuilder_nativeStartDictionary(JNIEnv *env, jclass) {
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeStartDictionary(JNIEnv *env,
+                                                                         jclass) {
     try {
         auto dictionary = new std::map<std::string, JavaValue>();
+        return reinterpret_cast<jlong>(dictionary);
+    }
+    CATCH_STD()
+    return realm::npos;
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeStartMixedDictionary(JNIEnv *env,
+                                                                              jclass) {
+    try {
+        auto dictionary = new std::map<std::string, Mixed>();
         return reinterpret_cast<jlong>(dictionary);
     }
     CATCH_STD()
@@ -438,6 +450,21 @@ Java_io_realm_internal_objectstore_OsObjectBuilder_nativeStopDictionary(JNIEnv *
                                                                         jlong dictionary_ptr) {
     try {
         auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        const JavaValue value((*dictionary));
+        add_property(data_ptr, column_key, value);
+        delete dictionary;
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeStopMixedDictionary(JNIEnv *env,
+                                                                             jclass,
+                                                                             jlong data_ptr,
+                                                                             jlong column_key,
+                                                                             jlong dictionary_ptr) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, Mixed>*>(dictionary_ptr);
         const JavaValue value((*dictionary));
         add_property(data_ptr, column_key, value);
         delete dictionary;
@@ -467,10 +494,13 @@ Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddMixedDictionaryEntry
                                                                                  jstring j_key,
                                                                                  jlong mixed_ptr) {
     try {
-        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        // FIXME: is it better to unbox the mixed value and declare the native map as JavaValue
+        //  so that we can add the property seamlessly? this would require a switch case and convert
+        //  to JavaValue based on type à la nativeAddUUIDListItem
+        auto dictionary = reinterpret_cast<std::map<std::string, Mixed>*>(dictionary_ptr);
+        auto mixed = reinterpret_cast<Mixed*>(mixed_ptr);
         JStringAccessor key(env, j_key);
-        const JavaValue value(mixed_ptr);
-        dictionary->insert(std::make_pair(key, value));
+        dictionary->insert(std::make_pair(key, mixed));
     }
     CATCH_STD()
 }

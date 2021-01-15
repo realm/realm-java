@@ -444,6 +444,10 @@ public class OsObjectBuilder implements Closeable {
         nativeStopList(builderPtr, columnKey, listPtr);
     }
 
+    public void addMixedValueDictionary(long columnKey) {
+        addEmptyDictionary(columnKey, true);
+    }
+
     public void addMixedValueDictionary(long columnKey, List<String> keys, List<Long> mixedPointers) {
         addMixedDictionaryItem(builderPtr, columnKey, keys, mixedPointers);
     }
@@ -455,13 +459,13 @@ public class OsObjectBuilder implements Closeable {
             List<Long> mixedPointers
     ) {
         if (keys.isEmpty() && mixedPointers.isEmpty()) {
-            addEmptyDictionary(columnKey);
+            addEmptyDictionary(columnKey, true);
         } else {
             long dictionaryPtr = nativeStartDictionary();
             for (int i = 0; i < keys.size(); i++) {
                 nativeAddMixedDictionaryEntry(dictionaryPtr, keys.get(i), mixedPointers.get(i));
             }
-            nativeStopDictionary(builderPtr, columnKey, dictionaryPtr);
+            nativeStopMixedDictionary(builderPtr, columnKey, dictionaryPtr);
         }
     }
 
@@ -482,12 +486,17 @@ public class OsObjectBuilder implements Closeable {
             }
             nativeStopDictionary(builderPtr, columnKey, dictionaryPtr);
         } else {
-            addEmptyDictionary(columnKey);
+            addEmptyDictionary(columnKey, false);
         }
     }
 
-    private void addEmptyDictionary(long columnKey) {
-        long dictionaryPtr = nativeStartDictionary();
+    private void addEmptyDictionary(long columnKey, boolean isMixed) {
+        long dictionaryPtr;
+        if (isMixed) {
+            dictionaryPtr = nativeStartMixedDictionary();
+        } else {
+            dictionaryPtr = nativeStartDictionary();
+        }
         nativeStopDictionary(builderPtr, columnKey, dictionaryPtr);
     }
 
@@ -631,7 +640,11 @@ public class OsObjectBuilder implements Closeable {
     // dictionaries
     private static native long nativeStartDictionary();
 
+    private static native long nativeStartMixedDictionary();
+
     private static native void nativeStopDictionary(long builderPtr, long columnKey, long dictionaryPtr);
+
+    private static native void nativeStopMixedDictionary(long builderPtr, long columnKey, long dictionaryPtr);
 
     private static native void nativeAddBooleanDictionaryEntry(long dictionaryPtr, String key, boolean value);
 

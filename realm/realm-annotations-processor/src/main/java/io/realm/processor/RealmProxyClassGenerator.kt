@@ -1850,14 +1850,20 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         val genericType = Utils.getGenericTypeQualifiedName(field)
                         if (forMixed) {
                             emitStatement("RealmDictionary<%s> dictionary = unmanagedSource.%s()", genericType, getter)
-                            emitStatement("java.util.Set<java.util.Map.Entry<String, %s>> entries = dictionary.entrySet()", genericType)
-                            emitStatement("java.util.List<String> keys = new java.util.ArrayList<>()")
-                            emitStatement("java.util.List<Long> mixedPointers = new java.util.ArrayList<>()")
-                            beginControlFlow("for (java.util.Map.Entry<String, %s> entry : entries)", genericType)
-                                emitStatement("keys.add(entry.getKey())")
-                                emitStatement("mixedPointers.add(entry.getValue().getNativePtr())")
+                            // Return keys and pointers to mixed instances if dictionary has been set
+                            beginControlFlow("if (dictionary != null)")
+                                emitStatement("java.util.Set<java.util.Map.Entry<String, %s>> entries = dictionary.entrySet()", genericType)
+                                emitStatement("java.util.List<String> keys = new java.util.ArrayList<>()")
+                                emitStatement("java.util.List<Long> mixedPointers = new java.util.ArrayList<>()")
+                                beginControlFlow("for (java.util.Map.Entry<String, %s> entry : entries)", genericType)
+                                    emitStatement("keys.add(entry.getKey())")
+                                    emitStatement("mixedPointers.add(entry.getValue().getNativePtr())")
+                                endControlFlow()
+                                emitStatement("builder.%s(%s, keys, mixedPointers)", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey)
+                            // Otherwise just create a new empty dictionary, no need to pass anything else
+                            nextControlFlow("else")
+                                emitStatement("builder.%s(%s)", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey)
                             endControlFlow()
-                            emitStatement("builder.%s(%s, keys, mixedPointers)", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey)
                         } else {
                             emitStatement("builder.%s(%s, unmanagedSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey, getter)
                         }
