@@ -187,7 +187,7 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
                     "Class<? extends RealmModel>", "clazz"
             )
 
-            if (primaryKeyClasses.size == 0) {
+            if (primaryKeyClasses.isEmpty()) {
                 emitStatement("return false")
             } else {
                 val primaryKeyCondition = primaryKeyClasses.joinToString(".class.isAssignableFrom(clazz)\n|| ", "", ".class.isAssignableFrom(clazz)")
