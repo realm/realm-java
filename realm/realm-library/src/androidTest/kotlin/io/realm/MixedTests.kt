@@ -2,9 +2,7 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.entities.MixedIndexed
-import io.realm.entities.MixedNotIndexed
-import io.realm.entities.PrimaryKeyAsString
+import io.realm.entities.*
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import org.bson.types.Decimal128
@@ -42,6 +40,8 @@ class MixedTests {
                 .directory(folder.newFolder())
                 .schema(MixedNotIndexed::class.java,
                         MixedIndexed::class.java,
+                        MixedDefaultPK::class.java,
+                        MixedDefaultNonPK::class.java,
                         PrimaryKeyAsString::class.java)
                 .build()
 
@@ -495,5 +495,40 @@ class MixedTests {
         assertTrue(mixedObjectFrozen.isValid)
         assertTrue(mixedObjectFrozen.mixed!!.isNull)
         assertEquals(MixedType.NULL, mixedObjectFrozen.mixed!!.type)
+    }
+
+    @Test
+    fun initialize_default_pkRealmModel(){
+        realm.executeTransaction {
+            realm.createObject<PrimaryKeyAsString>(MixedDefaultPK.NAME)
+        }
+
+        realm.executeTransaction {
+            realm.createObject<MixedDefaultPK>()
+        }
+
+        val mixedObject = realm.where<MixedDefaultPK>().findFirst()
+
+        assertTrue(mixedObject!!.isManaged)
+        assertEquals(MixedDefaultPK.NAME, mixedObject.mixed!!.asRealmModel(PrimaryKeyAsString::class.java).name)
+        assertEquals(MixedType.OBJECT, mixedObject.mixed!!.type)
+        assertEquals(PrimaryKeyAsString::class.simpleName, mixedObject.mixed!!.valueClass?.simpleName)
+    }
+
+    @Test
+    fun initialize_default_nonPkRealmModel(){
+        realm.executeTransaction {
+            realm.createObject<MixedNotIndexed>()
+        }
+
+        realm.executeTransaction {
+            realm.createObject<MixedDefaultNonPK>()
+        }
+
+        val mixedObject = realm.where<MixedDefaultNonPK>().findFirst()
+
+        assertTrue(mixedObject!!.isManaged)
+        assertEquals(MixedType.OBJECT, mixedObject.mixed!!.type)
+        assertEquals(MixedNotIndexed::class.simpleName, mixedObject.mixed!!.valueClass?.simpleName)
     }
 }
