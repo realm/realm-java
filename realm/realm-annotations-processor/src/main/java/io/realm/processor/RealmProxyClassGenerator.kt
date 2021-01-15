@@ -370,7 +370,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
                 emitStatement("proxyState.getRealm\$realm().checkIfValid()")
                 emitStatement("NativeMixed nativeMixed = proxyState.getRow\$realm().getNativeMixed(%s)", fieldColKeyVariableReference(field))
-            emitStatement("return new Mixed(MixedOperator.fromNativeMixed(proxyState, nativeMixed))")
+                emitStatement("return new Mixed(MixedOperator.fromNativeMixed(proxyState, nativeMixed))")
             endMethod()
             // Getter - End
 
@@ -548,11 +548,11 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             if (forMixed) {
                                 emitSingleLineComment("ensure (potential) RealmModel instances are copied to Realm if generic type is Mixed")
                                 beginControlFlow("if (entryValue == null || entryValue.getType() == MixedType.OBJECT)")
-//                                emitStatement("value.put(entryKey, ProxyUtils.copyToRealmIfNeeded(proxyState, entryValue))")
-                                // FIXME: add support for RealmModels with this approach
-                                emitSingleLineComment("FIXME: add support for RealmModels with this approach")
+//                                    emitStatement("value.put(entryKey, ProxyUtils.copyToRealmIfNeeded(proxyState, entryValue))")
+                                    // FIXME: add support for RealmModels with this approach
+                                    emitSingleLineComment("FIXME: add support for RealmModels with this approach")
                                 nextControlFlow("else")
-                                emitStatement("value.put(entryKey, entryValue)")
+                                    emitStatement("value.put(entryKey, entryValue)")
                                 endControlFlow()
                             } else {
                                 emitStatement("value.put(entryKey, entryValue)")
