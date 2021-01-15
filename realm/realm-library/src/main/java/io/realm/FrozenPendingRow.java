@@ -27,6 +27,7 @@ import io.realm.internal.OsMap;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
+import io.realm.internal.core.NativeMixed;
 
 
 /**
@@ -120,6 +121,11 @@ public enum FrozenPendingRow implements Row {
     }
 
     @Override
+    public NativeMixed getNativeMixed(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
     public long getLink(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
@@ -180,7 +186,7 @@ public enum FrozenPendingRow implements Row {
     }
 
     @Override
-    public void setMixed(long columnKey, Mixed value) {
+    public void setMixed(long columnKey, long value) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 

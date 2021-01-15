@@ -23,8 +23,8 @@ import java.util.Date;
 import java.util.UUID;
 
 import io.realm.Mixed;
-import io.realm.Realm;
 import io.realm.RealmFieldType;
+import io.realm.internal.core.NativeMixed;
 
 
 /**
@@ -112,6 +112,11 @@ public enum InvalidRow implements Row {
 
     @Override
     public UUID getUUID(long columnKey) {
+        throw getStubException();
+    }
+
+    @Override
+    public NativeMixed getNativeMixed(long columnKey) {
         throw getStubException();
     }
 
@@ -216,7 +221,7 @@ public enum InvalidRow implements Row {
     }
 
     @Override
-    public void setMixed(long columnKey, Mixed value) {
+    public void setMixed(long columnKey, long value) {
         throw getStubException();
     }
 

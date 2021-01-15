@@ -9,6 +9,7 @@ import io.realm.ImportFlag;
 import io.realm.ProxyUtils;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.NativeContext;
 import io.realm.internal.OsList;
 import io.realm.internal.OsMap;
 import io.realm.internal.OsObject;
@@ -20,6 +21,7 @@ import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.android.JsonUtils;
+import io.realm.internal.core.NativeMixed;
 import io.realm.internal.objectstore.OsObjectBuilder;
 import io.realm.log.RealmLog;
 import java.io.IOException;
@@ -152,10 +154,6 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
 
     private AllTypesColumnInfo columnInfo;
     private ProxyState<some.test.AllTypes> proxyState;
-    private final Mixed.Managed columnMixedMixed = new Mixed.Managed<some.test.AllTypes>() {
-        @Override protected ProxyState<some.test.AllTypes> getProxyState() { return proxyState; }
-        @Override protected long getColumnIndex() { return columnInfo.columnMixedColKey; }
-    };
     private final MutableRealmInteger.Managed columnMutableRealmIntegerMutableRealmInteger = new MutableRealmInteger.Managed<some.test.AllTypes>() {
         @Override protected ProxyState<some.test.AllTypes> getProxyState() { return proxyState; }
         @Override protected long getColumnIndex() { return columnInfo.columnMutableRealmIntegerColKey; }
@@ -416,7 +414,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
     @Override
     public Mixed realmGet$columnMixed() {
         proxyState.getRealm$realm().checkIfValid();
-        return this.columnMixedMixed;
+        NativeMixed nativeMixed = proxyState.getRow$realm().getNativeMixed(columnInfo.columnMixedColKey);
+        return new Mixed(MixedOperator.fromNativeMixed(proxyState, nativeMixed));
     }
 
     @Override
@@ -432,15 +431,23 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             value = ProxyUtils.copyToRealmIfNeeded(proxyState, value);
 
             final Row row = proxyState.getRow$realm();
-            row.getTable().setMixed(columnInfo.columnMixedColKey, row.getObjectKey(), value, true);
+            if (value == null) {
+                row.getTable().setNull(columnInfo.columnMixedColKey, row.getObjectKey(), true);
+                return;
+            }
+            row.getTable().setMixed(columnInfo.columnMixedColKey, row.getObjectKey(), value.getNativePtr(), true);
             return;
         }
 
 
         proxyState.getRealm$realm().checkIfValid();
 
+        if (value == null) {
+            proxyState.getRow$realm().setNull(columnInfo.columnMixedColKey);
+            return;
+        }
         value = ProxyUtils.copyToRealmIfNeeded(proxyState, value);
-        proxyState.getRow$realm().setMixed(columnInfo.columnMixedColKey, value);
+        proxyState.getRow$realm().setMixed(columnInfo.columnMixedColKey, value.getNativePtr());
     }
 
     @Override
@@ -1790,7 +1797,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         }
         io.realm.Mixed realmGet$columnMixed = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnMixed();
         if (realmGet$columnMixed != null) {
-            Table.setMixed(tableNativePtr, columnInfo.columnMixedColKey, objKey, realmGet$columnMixed, false);
+            Table.nativeSetMixed(tableNativePtr, columnInfo.columnMixedColKey, objKey, realmGet$columnMixed.getNativePtr(), false);
         }
         byte[] realmGet$columnBinary = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnBinary();
         if (realmGet$columnBinary != null) {
@@ -2042,7 +2049,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
             io.realm.Mixed realmGet$columnMixed = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnMixed();
             if (realmGet$columnMixed != null) {
-                Table.setMixed(tableNativePtr, columnInfo.columnMixedColKey, objKey, realmGet$columnMixed, false);
+                Table.nativeSetMixed(tableNativePtr, columnInfo.columnMixedColKey, objKey, realmGet$columnMixed.getNativePtr(), false);
             }
             byte[] realmGet$columnBinary = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnBinary();
             if (realmGet$columnBinary != null) {
@@ -2293,7 +2300,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         }
         io.realm.Mixed realmGet$columnMixed = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnMixed();
         if (realmGet$columnMixed != null) {
-            Table.setMixed(tableNativePtr, columnInfo.columnMixedColKey, objKey, realmGet$columnMixed, false);
+            Table.nativeSetMixed(tableNativePtr, columnInfo.columnMixedColKey, objKey, realmGet$columnMixed.getNativePtr(), false);
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.columnMixedColKey, objKey, false);
         }
@@ -2615,7 +2622,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
             io.realm.Mixed realmGet$columnMixed = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnMixed();
             if (realmGet$columnMixed != null) {
-                Table.setMixed(tableNativePtr, columnInfo.columnMixedColKey, objKey, realmGet$columnMixed, false);
+                Table.nativeSetMixed(tableNativePtr, columnInfo.columnMixedColKey, objKey, realmGet$columnMixed.getNativePtr(), false);
             } else {
                 Table.nativeSetNull(tableNativePtr, columnInfo.columnMixedColKey, objKey, false);
             }

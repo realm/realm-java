@@ -99,7 +99,7 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    protected Class<? extends RealmModel> getClazzImpl(String className) {
+    protected <T extends RealmModel> Class<T> getClazzImpl(String className) {
         return originalMediator.getClazz(className);
     }
 

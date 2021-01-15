@@ -54,12 +54,10 @@ class MixedTests {
     }
 
     // Unmanaged
-
     @Test
     fun unmanaged_byteValue() {
         val mixed = Mixed.valueOf(10.toByte())
 
-        assertFalse(mixed.isManaged)
         assertEquals(10, mixed.asByte())
         assertEquals(MixedType.INTEGER, mixed.type)
     }
@@ -68,7 +66,6 @@ class MixedTests {
     fun unmanaged_shortValue() {
         val mixed = Mixed.valueOf(10.toShort())
 
-        assertFalse(mixed.isManaged)
         assertEquals(10, mixed.asShort())
         assertEquals(MixedType.INTEGER, mixed.type)
     }
@@ -77,7 +74,6 @@ class MixedTests {
     fun unmanaged_integerValue() {
         val mixed = Mixed.valueOf(10.toInt())
 
-        assertFalse(mixed.isManaged)
         assertEquals(10, mixed.asInteger())
         assertEquals(MixedType.INTEGER, mixed.type)
         assertEquals(MixedType.INTEGER.typedClass, mixed.valueClass)
@@ -87,7 +83,6 @@ class MixedTests {
     fun unmanaged_longValue() {
         val mixed = Mixed.valueOf(10.toLong())
 
-        assertFalse(mixed.isManaged)
         assertEquals(10, mixed.asLong())
         assertEquals(MixedType.INTEGER, mixed.type)
     }
@@ -96,7 +91,6 @@ class MixedTests {
     fun unmanaged_booleanValue() {
         val mixed = Mixed.valueOf(true)
 
-        assertFalse(mixed.isManaged)
         assertEquals(true, mixed.asBoolean())
         assertEquals(MixedType.BOOLEAN, mixed.type)
         assertEquals(MixedType.BOOLEAN.typedClass, mixed.valueClass)
@@ -106,7 +100,6 @@ class MixedTests {
     fun unmanaged_stringValue() {
         val mixed = Mixed.valueOf("hello world")
 
-        assertFalse(mixed.isManaged)
         assertEquals("hello world", mixed.asString())
         assertEquals(MixedType.STRING, mixed.type)
         assertEquals(MixedType.STRING.typedClass, mixed.valueClass)
@@ -116,7 +109,6 @@ class MixedTests {
     fun unmanaged_binaryValue() {
         val mixed = Mixed.valueOf(byteArrayOf(0, 1, 0))
 
-        assertFalse(mixed.isManaged)
         assertTrue(Arrays.equals(byteArrayOf(0, 1, 0), mixed.asBinary()))
         assertEquals(MixedType.BINARY, mixed.type)
         assertEquals(MixedType.BINARY.typedClass, mixed.valueClass)
@@ -126,7 +118,6 @@ class MixedTests {
     fun unmanaged_dateValue() {
         val mixed = Mixed.valueOf(Date(10))
 
-        assertFalse(mixed.isManaged)
         assertEquals(Date(10), mixed.asDate())
         assertEquals(MixedType.DATE, mixed.type)
         assertEquals(MixedType.DATE.typedClass, mixed.valueClass)
@@ -136,7 +127,6 @@ class MixedTests {
     fun unmanaged_decimal128Value() {
         val mixed = Mixed.valueOf(Decimal128.fromIEEE754BIDEncoding(10, 10))
 
-        assertFalse(mixed.isManaged)
         assertEquals(Decimal128.fromIEEE754BIDEncoding(10, 10), mixed.asDecimal128())
         assertEquals(MixedType.DECIMAL128, mixed.type)
         assertEquals(MixedType.DECIMAL128.typedClass, mixed.valueClass)
@@ -146,7 +136,6 @@ class MixedTests {
     fun unmanaged_doubleValue() {
         val mixed = Mixed.valueOf(10.0)
 
-        assertFalse(mixed.isManaged)
         assertEquals(10.0, mixed.asDouble())
         assertEquals(MixedType.DOUBLE, mixed.type)
         assertEquals(MixedType.DOUBLE.typedClass, mixed.valueClass)
@@ -156,7 +145,6 @@ class MixedTests {
     fun unmanaged_floatValue() {
         val mixed = Mixed.valueOf(10.0f)
 
-        assertFalse(mixed.isManaged)
         assertEquals(10.0f, mixed.asFloat())
         assertEquals(MixedType.FLOAT, mixed.type)
         assertEquals(MixedType.FLOAT.typedClass, mixed.valueClass)
@@ -166,7 +154,6 @@ class MixedTests {
     fun unmanaged_objectIdValue() {
         val mixed = Mixed.valueOf(ObjectId(TestHelper.generateObjectIdHexString(0)))
 
-        assertFalse(mixed.isManaged)
         assertEquals(ObjectId(TestHelper.generateObjectIdHexString(0)), mixed.asObjectId())
         assertEquals(MixedType.OBJECT_ID, mixed.type)
         assertEquals(MixedType.OBJECT_ID.typedClass, mixed.valueClass)
@@ -186,25 +173,23 @@ class MixedTests {
     fun unmanaged_UUIDValue() {
         val mixed = Mixed.valueOf(UUID.fromString(TestHelper.generateUUIDString(0)))
 
-        assertFalse(mixed.isManaged)
         assertEquals(UUID.fromString(TestHelper.generateUUIDString(0)), mixed.asUUID())
         assertEquals(MixedType.UUID, mixed.type)
     }
 
     @Test
     fun unmanaged_null() {
-        val aLong: Long? = null
+        val aLong: Boolean? = null
 
         val mixed = Mixed.valueOf(aLong)
 
-        assertFalse(mixed.isManaged)
         assertTrue(mixed.isNull)
         assertEquals(MixedType.NULL, mixed.type)
         assertEquals(null, mixed.valueClass)
     }
 
-    // Managed Tests
 
+    // Managed Tests
     @Test
     fun managed_byteValue() {
         realm.executeTransaction {
@@ -383,7 +368,7 @@ class MixedTests {
     }
 
     @Test
-    fun managed_UUIDvalue() {
+    fun managed_UUIDValue() {
         realm.executeTransaction {
             val mixedObject = it.createObject<MixedNotIndexed>()
             mixedObject.mixed = Mixed.valueOf(UUID.fromString(TestHelper.generateUUIDString(0)))
@@ -505,7 +490,7 @@ class MixedTests {
         }
 
         val mixedObjectFrozen = realm.freeze().where<MixedNotIndexed>().findFirst()
-        
+
         assertTrue(mixedObjectFrozen!!.isFrozen)
         assertTrue(mixedObjectFrozen.isValid)
         assertTrue(mixedObjectFrozen.mixed!!.isNull)

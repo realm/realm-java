@@ -206,7 +206,7 @@ class MixedValueOperator extends MapValueOperator<Mixed> {
     @Override
     public Mixed put(Object key, Mixed value) {
         Mixed original = (Mixed) osMap.get(key);
-        osMap.put(key, value.osMixed);
+        osMap.put(key, value.getNativePtr());
         return original;
     }
 

@@ -82,7 +82,7 @@ public class AllTypes extends RealmObject {
     @Required
     private UUID columnUUID = UUID.randomUUID();
 
-    private Mixed columnMixed = Mixed.valueOf(0);
+    private Mixed columnMixed = Mixed.valueOf(true);
 
     private final MutableRealmInteger columnMutableRealmInteger = MutableRealmInteger.ofNull();
 
