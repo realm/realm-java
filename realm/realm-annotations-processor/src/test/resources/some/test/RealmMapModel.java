@@ -14,15 +14,24 @@
  * limitations under the License.
  */
 
-package io.realm.entities
+package some.test;
 
-import io.realm.RealmMap
-import io.realm.RealmObject
-import io.realm.annotations.Ignore
+import io.realm.Mixed;
+import io.realm.RealmMap;
+import io.realm.RealmObject;
 
-open class MapClass : RealmObject() {
-    var testField: String = ""
+/**
+ * At this moment, RealmMaps aren't supported directly until other keys than String are supported.
+ */
+public class RealmMapModel extends RealmObject {
 
-    @Ignore     // FIXME: this goes when the annotation processor is ready
-    var myMap: RealmMap<String, Int>? = null
+    private RealmMap<String, Mixed> myMap;      // this currently fails
+
+    public RealmMap<String, Mixed> getMyMap() {
+        return myMap;
+    }
+
+    public void setMyMap(RealmMap<String, Mixed> map) {
+        this.myMap = map;
+    }
 }

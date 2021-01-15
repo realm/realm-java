@@ -246,6 +246,14 @@ public class LinkingObjectsDynamicTests {
                     case UUID_LIST:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
                         break;
+                    case STRING_TO_MIXED_MAP:
+                        // TODO: fix this when adding maps to AllJavaTypes
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
+                        break;
+                    case STRING_TO_BOOLEAN_MAP:
+                        // TODO: fix this when adding maps to AllJavaTypes
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
+                        break;
                     default:
                         fail("unknown type: " + fieldType);
                         break;

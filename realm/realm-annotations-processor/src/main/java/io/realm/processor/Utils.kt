@@ -41,6 +41,7 @@ object Utils {
     private lateinit var realmResults: DeclaredType
     private lateinit var markerInterface: DeclaredType
     private lateinit var realmModel: TypeMirror
+    private lateinit var realmDictionary: DeclaredType
 
     fun initialize(env: ProcessingEnvironment) {
         val elementUtils = env.elementUtils
@@ -52,6 +53,7 @@ object Utils {
         realmResults = typeUtils.getDeclaredType(env.elementUtils.getTypeElement("io.realm.RealmResults"), typeUtils.getWildcardType(null, null))
         realmModel = elementUtils.getTypeElement("io.realm.RealmModel").asType()
         markerInterface = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmModel"))
+        realmDictionary = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmDictionary"), typeUtils.getWildcardType(null, null))
     }
 
     /**
@@ -209,12 +211,29 @@ object Utils {
     }
 
     /**
+     * FIXME
+     */
+    fun isRealmDictionary(field: VariableElement): Boolean {
+        return typeUtils.isAssignable(field.asType(), realmDictionary)
+    }
+
+    /**
      * @param field [VariableElement] of a value list field.
      * @return element type of the list field.
      */
     fun getValueListFieldType(field: VariableElement): Constants.RealmFieldType {
         val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field)
-        return Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES[elementTypeMirror!!.toString()]!!
+        return Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES[elementTypeMirror!!.toString()]
+                ?: throw IllegalArgumentException("Invalid type mirror '$elementTypeMirror' for field '$field'")
+    }
+
+    /**
+     * FIXME
+     */
+    fun getValueDictionaryFieldType(field: VariableElement): Constants.RealmFieldType {
+        val elementTypeMirror = TypeMirrors.getRealmDictionaryElementTypeMirror(field)
+        return Constants.DICTIONARY_ELEMENT_TYPE_TO_REALM_TYPES[elementTypeMirror!!.toString()]
+                ?: throw IllegalArgumentException("Invalid type mirror '$elementTypeMirror' for field '$field'")
     }
 
     /**
@@ -268,6 +287,13 @@ object Utils {
         //        return false;
     }
 
+    /**
+     * FIXME
+     */
+    fun isMixedType(type: TypeMirror): Boolean {
+        return typeUtils.isSameType(type, mixed)
+    }
+
     fun isRealmResults(field: VariableElement): Boolean {
         return typeUtils.isAssignable(field.asType(), realmResults)
     }
@@ -284,6 +310,14 @@ object Utils {
     // get the fully-qualified type name for the generic type of a RealmList
     fun getRealmListType(field: VariableElement): QualifiedClassName? {
         if (!isRealmList(field)) {
+            return null
+        }
+        val type = getGenericTypeForContainer(field) ?: return null
+        return QualifiedClassName(type.toString())
+    }
+
+    fun getDictionaryType(field: VariableElement): QualifiedClassName? {
+        if (!isRealmDictionary(field)) {
             return null
         }
         val type = getGenericTypeForContainer(field) ?: return null
@@ -327,6 +361,13 @@ object Utils {
         val fieldType = field.asType()
         val typeArguments = (fieldType as DeclaredType).typeArguments
         return if (typeArguments.isEmpty()) null else QualifiedClassName(typeArguments[0].toString())
+    }
+
+    /**
+     * FIXME
+     */
+    fun getDictionaryValueTypeQualifiedName(field: VariableElement): QualifiedClassName? {
+        return getGenericTypeQualifiedName(field)
     }
 
     /**

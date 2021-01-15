@@ -26,6 +26,7 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import io.realm.internal.ManageableObject;
+import io.realm.internal.OsMixed;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
@@ -43,6 +44,10 @@ import io.realm.internal.Table;
  * Unmanaged Mixed can be created by the user and can contain any Realm value, or both managed and unmanaged RealmObjects.
  */
 public abstract class Mixed implements ManageableObject {
+
+    // TODO: temporary hack until a proper OS representation for mixed is added
+    OsMixed osMixed;
+
     private static final class Unmanaged extends Mixed {
         @Nullable
         private final Object value;

@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import io.realm.ImportFlag;
 import io.realm.Mixed;
 import io.realm.MutableRealmInteger;
+import io.realm.RealmDictionary;
 import io.realm.RealmList;
 import io.realm.RealmModel;
 import io.realm.internal.NativeContext;
@@ -463,6 +464,14 @@ public class OsObjectBuilder implements Closeable {
     private void addEmptyList(long columnKey) {
         long listPtr = nativeStartList(0);
         nativeStopList(builderPtr, columnKey, listPtr);
+    }
+
+    public void addMixedValueDictionary(long columnKey, RealmDictionary<Mixed> dictionary) {
+        // FIXME
+    }
+
+    public void addBooleanValueDictionary(long columnKey, RealmDictionary<Boolean> dictionary) {
+        // FIXME
     }
 
     /**

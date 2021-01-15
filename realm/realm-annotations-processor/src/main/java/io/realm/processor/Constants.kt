@@ -69,6 +69,23 @@ object Constants {
             "java.util.UUID" to RealmFieldType.UUID_LIST
     )
 
+    val DICTIONARY_ELEMENT_TYPE_TO_REALM_TYPES = mapOf(
+//            "java.lang.Byte" to RealmFieldType.INTEGER_LIST,
+//            "java.lang.Short" to RealmFieldType.INTEGER_LIST,
+//            "java.lang.Integer" to RealmFieldType.INTEGER_LIST,
+//            "java.lang.Long" to RealmFieldType.INTEGER_LIST,
+//            "java.lang.Float" to RealmFieldType.FLOAT_LIST,
+//            "java.lang.Double" to RealmFieldType.DOUBLE_LIST,
+            "java.lang.Boolean" to RealmFieldType.STRING_TO_BOOLEAN_MAP,
+//            "java.lang.String" to RealmFieldType.STRING_LIST,
+//            "java.util.Date" to RealmFieldType.DATE_LIST,
+//            "byte[]" to RealmFieldType.BINARY_LIST,
+//            "org.bson.types.Decimal128" to RealmFieldType.DECIMAL128_LIST,
+//            "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID_LIST,
+//            "java.util.UUID" to RealmFieldType.UUID_LIST,
+            "io.realm.Mixed" to RealmFieldType.STRING_TO_MIXED_MAP
+    )
+
     /**
      * Realm types and their corresponding Java types.
      *
@@ -103,7 +120,10 @@ object Constants {
         DOUBLE_LIST("DOUBLE_LIST", "List"),
         DECIMAL128_LIST("DECIMAL128_LIST", "List"),
         OBJECT_ID_LIST("OBJECT_ID_LIST", "List"),
-        UUID_LIST("UUID_LIST", "List");
+        UUID_LIST("UUID_LIST", "List"),
+
+        STRING_TO_MIXED_MAP("STRING_TO_MIXED_MAP", "Map"),
+        STRING_TO_BOOLEAN_MAP("STRING_TO_BOOLEAN_MAP", "Map");
 
         /**
          * The name of the enum, used in the Java bindings, used to represent the corresponding type.

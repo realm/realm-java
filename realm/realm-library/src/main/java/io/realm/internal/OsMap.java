@@ -16,17 +16,22 @@
 
 package io.realm.internal;
 
+import javax.annotation.Nullable;
+
 /**
- * FIXME
+ * Java wrapper of Object Store Dictionary class. This backs managed versions of RealmMaps.
  */
 public class OsMap implements NativeObject {
 
     private final long nativePtr;
+    private final NativeContext context;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
     public OsMap(UncheckedRow row, long columnKey) {
         OsSharedRealm sharedRealm = row.getTable().getSharedRealm();
-        nativePtr = nativeCreate(sharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
+        this.nativePtr = nativeCreate(sharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
+        this.context = sharedRealm.context;
+        context.addReference(this);
     }
 
     @Override
@@ -39,6 +44,52 @@ public class OsMap implements NativeObject {
         return nativeFinalizerPtr;
     }
 
+    public long size() {
+        return nativeSize(nativePtr);
+    }
+
+    public void clear() {
+        nativeClear(nativePtr);
+    }
+
+    // ------------------------------------------
+    // TODO: handle other types of keys and avoid
+    //  typecasting directly to string in phase 2
+    //  for put and get methods.
+    // ------------------------------------------
+
+    public void put(Object key, boolean value) {
+        nativePutBoolean(nativePtr, (String) key, value);
+    }
+
+    public void put(Object key, OsMixed value) {
+        nativePutMixed(nativePtr, (String) key, value.getNativePtr());
+    }
+
+    // TODO: add more put methods for different value types ad-hoc
+
+    public void remove(Object key) {
+        nativeRemove(nativePtr, (String) key);
+    }
+
+    @Nullable
+    public Object get(Object key) {
+        return nativeGetValue(nativePtr, (String) key);
+    }
+
     private static native long nativeGetFinalizerPtr();
+
     private static native long nativeCreate(long nativeSharedRealmPtr, long nativeRowPtr, long columnKey);
+
+    private static native Object nativeGetValue(long nativePtr, String key);
+
+    private static native void nativePutMixed(long nativePtr, String key, long nativeObjectPtr);
+
+    private static native void nativePutBoolean(long nativePtr, String key, boolean value);
+
+    private static native long nativeSize(long nativePtr);
+
+    private static native void nativeClear(long nativePtr);
+
+    private static native void nativeRemove(long nativePtr, String key);
 }

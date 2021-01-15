@@ -90,5 +90,18 @@ class TypeMirrors(env: ProcessingEnvironment) {
             val typeArguments = (field.asType() as DeclaredType).typeArguments
             return if (typeArguments.isNotEmpty()) typeArguments[0] else null
         }
+
+        /**
+         * @return the [TypeMirror] of the elements in `RealmDictionary`.
+         */
+        @JvmStatic
+        fun getRealmDictionaryElementTypeMirror(field: VariableElement): TypeMirror? {
+            if (!Utils.isRealmDictionary(field)) {
+                return null
+            }
+            val typeArguments = (field.asType() as DeclaredType).typeArguments
+            return if (typeArguments.isNotEmpty()) typeArguments[0] else null
+        }
+
     }
 }

@@ -31,6 +31,8 @@ import static io.realm.RealmFieldType.INTEGER_LIST;
 import static io.realm.RealmFieldType.OBJECT_ID_LIST;
 import static io.realm.RealmFieldType.UUID_LIST;
 import static io.realm.RealmFieldType.STRING_LIST;
+import static io.realm.RealmFieldType.STRING_TO_MIXED_MAP;
+import static io.realm.RealmFieldType.STRING_TO_BOOLEAN_MAP;
 
 
 /**
@@ -74,6 +76,8 @@ public class Property implements NativeObject {
     public static final int TYPE_NULLABLE = 64;
     @SuppressWarnings("WeakerAccess")
     public static final int TYPE_ARRAY = 128;
+    @SuppressWarnings("WeakerAccess")
+    public static final int TYPE_DICTIONARY = 512;
 
     private long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
@@ -159,6 +163,12 @@ public class Property implements NativeObject {
             case DOUBLE_LIST:
                 type = TYPE_DOUBLE | TYPE_ARRAY;
                 break;
+            case STRING_TO_MIXED_MAP:
+                type = TYPE_MIXED | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_BOOLEAN_MAP:
+                type = TYPE_BOOL | TYPE_DICTIONARY;
+                break;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported filed type: '%s'.", fieldType.name()));
@@ -220,6 +230,10 @@ public class Property implements NativeObject {
                 return OBJECT_ID_LIST;
             case TYPE_UUID | TYPE_ARRAY:
                 return UUID_LIST;
+            case TYPE_MIXED | TYPE_DICTIONARY:
+                return STRING_TO_MIXED_MAP;
+            case TYPE_BOOL | TYPE_DICTIONARY:
+                return STRING_TO_BOOLEAN_MAP;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported property type: '%d'", propertyType));

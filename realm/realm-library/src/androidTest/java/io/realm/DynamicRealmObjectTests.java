@@ -1906,6 +1906,10 @@ public class DynamicRealmObjectTests {
                 case LINKING_OBJECTS:
                     // Realm lists and back links cannot be null
                     break;
+                case STRING_TO_MIXED_MAP:
+                case STRING_TO_BOOLEAN_MAP:
+                    // TODO
+                    break;
                 default:
                     fail("Not testing all types");
             }

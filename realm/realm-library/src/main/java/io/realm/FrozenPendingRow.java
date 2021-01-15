@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import io.realm.internal.InvalidRow;
 import io.realm.internal.OsList;
+import io.realm.internal.OsMap;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
@@ -135,6 +136,16 @@ public enum FrozenPendingRow implements Row {
 
     @Override
     public OsList getValueList(long columnKey, RealmFieldType fieldType) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public OsMap getMixedMap(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public OsMap getValueMap(long columnKey, RealmFieldType fieldType) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 

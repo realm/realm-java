@@ -783,8 +783,8 @@ public class RealmListTests extends CollectionTests {
                     case MAX_DATE: results.maxDate(CyclicType.FIELD_DATE); break;
                     case DELETE_ALL_FROM_REALM: results.deleteAllFromRealm(); break;
                     case IS_VALID:              // Does not throw.
-                    case IS_MANAGED: continue;  // Does not throw.
-                    case IS_FROZEN: break;      // Does not throw
+                    case IS_MANAGED:            // Does not throw.
+                    case IS_FROZEN: continue;   // Does not throw
                 }
                 fail(method + " should have thrown an Exception.");
             } catch (IllegalStateException ignored) {

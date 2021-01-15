@@ -58,6 +58,10 @@ public class RealmProcessorTest {
     private final JavaFileObject SimpleRealmModel = JavaFileObjects.forResource("some/test/SimpleRealmModel.java");
     private final JavaFileObject customInterface = JavaFileObjects.forResource("some/test/CustomInterface.java");
     private final JavaFileObject nonLatinName = JavaFileObjects.forResource("some/test/ÁrvíztűrőTükörfúrógép.java");
+    private final JavaFileObject realmMapModel = JavaFileObjects.forResource("some/test/RealmMapModel.java");
+    private final JavaFileObject realmDictionaryMissingGenericsModel = JavaFileObjects.forResource("some/test/RealmDictionaryMissingGenerics.java");
+    private final JavaFileObject realmDictionaryModel = JavaFileObjects.forResource("some/test/RealmDictionaryModel.java");
+    private final JavaFileObject realmDictionaryModelWrongType = JavaFileObjects.forResource("some/test/RealmDictionaryModelWrongType.java");
 
     @Test
     public void compileSimpleFile() {
@@ -474,5 +478,37 @@ public class RealmProcessorTest {
                 .that(nonLatinName)
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
+    }
+
+    @Test
+    public void compileRealmMapModelNotAllowed() {
+        ASSERT.about(javaSource())
+                .that(realmMapModel)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileRealmDictionaryMissingGenerics() {
+        ASSERT.about(javaSource())
+                .that(realmDictionaryMissingGenericsModel)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileRealmDictionaryModel() {
+        ASSERT.about(javaSource())
+                .that(realmDictionaryModel)
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileRealmDictionaryModelWrongType() {
+        ASSERT.about(javaSource())
+                .that(realmDictionaryModelWrongType)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
     }
 }

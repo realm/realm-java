@@ -120,6 +120,28 @@ public class CheckedRow extends UncheckedRow {
     }
 
     @Override
+    public OsMap getMixedMap(long columnIndex) {
+        RealmFieldType fieldType = getTable().getColumnType(columnIndex);
+        if (fieldType != RealmFieldType.STRING_TO_MIXED_MAP) {
+            throw new IllegalArgumentException(
+                    String.format(Locale.US, "Field '%s' is not a 'RealmDictionary'.",
+                            getTable().getColumnName(columnIndex)));
+        }
+        return super.getMixedMap(columnIndex);
+    }
+
+    @Override
+    public OsMap getValueMap(long columnIndex, RealmFieldType fieldType) {
+        final RealmFieldType actualFieldType = getTable().getColumnType(columnIndex);
+        if (fieldType != actualFieldType) {
+            throw new IllegalArgumentException(
+                    String.format(Locale.US, "The type of field '%1$s' is not 'RealmFieldType.%2$s'.",
+                            getTable().getColumnName(columnIndex), fieldType.name()));
+        }
+        return super.getValueMap(columnIndex, fieldType);
+    }
+
+    @Override
     public Row freeze(OsSharedRealm frozenRealm) {
         if (!isValid()) {
             return InvalidRow.INSTANCE;
