@@ -444,8 +444,25 @@ public class OsObjectBuilder implements Closeable {
         nativeStopList(builderPtr, columnKey, listPtr);
     }
 
-    public void addMixedValueDictionary(long columnKey, RealmDictionary<Mixed> dictionary) {
-        // FIXME
+    public void addMixedValueDictionary(long columnKey, List<String> keys, List<Long> mixedPointers) {
+        addMixedDictionaryItem(builderPtr, columnKey, keys, mixedPointers);
+    }
+
+    private void addMixedDictionaryItem(
+            long builderPtr,
+            long columnKey,
+            List<String> keys,
+            List<Long> mixedPointers
+    ) {
+        if (keys.isEmpty() && mixedPointers.isEmpty()) {
+            addEmptyDictionary(columnKey);
+        } else {
+            long dictionaryPtr = nativeStartDictionary();
+            for (int i = 0; i < keys.size(); i++) {
+                nativeAddMixedDictionaryEntry(dictionaryPtr, keys.get(i), mixedPointers.get(i));
+            }
+            nativeStopDictionary(builderPtr, columnKey, dictionaryPtr);
+        }
     }
 
     public void addBooleanValueDictionary(long columnKey, RealmDictionary<Boolean> dictionary) {
@@ -617,4 +634,6 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeStopDictionary(long builderPtr, long columnKey, long dictionaryPtr);
 
     private static native void nativeAddBooleanDictionaryEntry(long dictionaryPtr, String key, boolean value);
+
+    private static native void nativeAddMixedDictionaryEntry(long dictionaryPtr, String key, long mixedPtr);
 }

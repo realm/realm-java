@@ -1842,7 +1842,28 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     val fieldColKey = fieldColKeyVariableReference(field)
                     val fieldName = field.simpleName.toString()
                     val getter = metadata.getInternalGetter(fieldName)
-                    emitStatement("builder.%s(%s, unmanagedSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey, getter)
+
+                    // Special treatment for RealmDictionary<Mixed>
+                    if (Utils.isRealmDictionary(field)) {
+                        val valueTypeMirror: TypeMirror? = TypeMirrors.getRealmDictionaryElementTypeMirror(field)
+                        val forMixed = Utils.isMixedType(requireNotNull(valueTypeMirror) { "RealmDictionary '$field' must have a type." })
+                        val genericType = Utils.getGenericTypeQualifiedName(field)
+                        if (forMixed) {
+                            emitStatement("RealmDictionary<%s> dictionary = unmanagedSource.%s()", genericType, getter)
+                            emitStatement("java.util.Set<java.util.Map.Entry<String, %s>> entries = dictionary.entrySet()", genericType)
+                            emitStatement("java.util.List<String> keys = new java.util.ArrayList<>()")
+                            emitStatement("java.util.List<Long> mixedPointers = new java.util.ArrayList<>()")
+                            beginControlFlow("for (java.util.Map.Entry<String, %s> entry : entries)", genericType)
+                                emitStatement("keys.add(entry.getKey())")
+                                emitStatement("mixedPointers.add(entry.getValue().getNativePtr())")
+                            endControlFlow()
+                            emitStatement("builder.%s(%s, keys, mixedPointers)", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey)
+                        } else {
+                            emitStatement("builder.%s(%s, unmanagedSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey, getter)
+                        }
+                    } else {
+                        emitStatement("builder.%s(%s, unmanagedSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey, getter)
+                    }
                 }
 
                 // Create the underlying object
