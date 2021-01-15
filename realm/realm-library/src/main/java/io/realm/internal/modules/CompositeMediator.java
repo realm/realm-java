@@ -101,6 +101,12 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
+    protected boolean hasPrimaryKeyImpl(Class<? extends RealmModel> clazz) {
+        RealmProxyMediator mediator = getMediator(clazz);
+        return mediator.hasPrimaryKey(clazz);
+    }
+
+    @Override
     public <E extends RealmModel> E newInstance(Class<E> clazz,
             Object baseRealm,
             Row row,
