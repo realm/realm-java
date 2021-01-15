@@ -24,6 +24,7 @@ import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.*
@@ -268,16 +269,19 @@ class DictionaryTests {
     }
 
     @Test
+    @Ignore
     fun managed_containsKey() {
         // TODO
     }
 
     @Test
+    @Ignore
     fun managed_containsValue() {
         // TODO
     }
 
     @Test
+    @Ignore
     fun managed_putAll() {
         // TODO
     }
@@ -295,17 +299,26 @@ class DictionaryTests {
     }
 
     @Test
+    @Ignore
     fun managed_keySet() {
         // TODO
     }
 
     @Test
+    @Ignore
     fun managed_values() {
         // TODO
     }
 
     @Test
+    @Ignore
     fun managed_entrySet() {
+        // TODO
+    }
+
+    @Test
+    @Ignore
+    fun managed_freeze() {
         // TODO
     }
 
