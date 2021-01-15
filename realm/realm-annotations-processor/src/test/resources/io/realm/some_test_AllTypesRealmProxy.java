@@ -424,7 +424,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 return;
             }
             if (value != null && !RealmObject.isManaged(value)) {
-                value = realm.copyToRealm(value);
+                value = realm.copyToRealmOrUpdate(value);
             }
             final Row row = proxyState.getRow$realm();
             if (value == null) {
@@ -477,7 +477,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     if (item == null || RealmObject.isManaged(item)) {
                         value.add(item);
                     } else {
-                        value.add(realm.copyToRealm(item));
+                        value.add(realm.copyToRealmOrUpdate(item));
                     }
                 }
             }
@@ -538,7 +538,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     if (item == null || RealmObject.isManaged(item)) {
                         value.add(item);
                     } else {
-                        value.add(realm.copyToRealm(item));
+                        value.add(realm.copyToRealmOrUpdate(item));
                     }
                 }
             }
@@ -1460,7 +1460,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         if (!jsonHasPrimaryKey) {
             throw new IllegalArgumentException("JSON object doesn't have the primary key field 'columnString'.");
         }
-        return realm.copyToRealm(obj);
+        return realm.copyToRealmOrUpdate(obj);
     }
 
     static some_test_AllTypesRealmProxy newProxyInstance(BaseRealm realm, Row row) {

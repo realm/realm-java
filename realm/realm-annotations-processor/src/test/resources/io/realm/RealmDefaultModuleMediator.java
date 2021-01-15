@@ -59,6 +59,11 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
+    public boolean hasPrimaryKeyImpl(Class<? extends RealmModel> clazz) {
+        return some.test.AllTypes.class.isAssignableFrom(clazz);
+    }
+
+    @Override
     public <E extends RealmModel> E newInstance(Class<E> clazz, Object baseRealm, Row row, ColumnInfo columnInfo, boolean acceptDefaultValue, List<String> excludeFields) {
         final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
         try {
