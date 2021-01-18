@@ -34,6 +34,8 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
+import io.realm.internal.core.NativeMixed;
+
 
 /**
  * This class provides facade for against {@link OsList}. {@link OsList} is used for both {@link RealmModel}s
@@ -876,7 +878,8 @@ final class MixedListOperator extends ManagedListOperator<Mixed> {
     @Nullable
     @Override
     public Mixed get(int index) {
-        return (Mixed) osList.getValue(index);
+        NativeMixed nativeMixed = (NativeMixed) osList.getValue(index);
+        return new Mixed(MixedOperator.fromNativeMixed(realm, nativeMixed));
     }
 
     @Override

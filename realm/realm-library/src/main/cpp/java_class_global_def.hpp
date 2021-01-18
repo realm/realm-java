@@ -75,6 +75,7 @@ private:
     jni_util::JavaClass m_bson_decimal128;
     jni_util::JavaClass m_bson_object_id;
     jni_util::JavaClass m_java_util_uuid;
+    jni_util::JavaClass m_io_realm_internal_core_native_mixed;
 
 #if REALM_ENABLE_SYNC
     jni_util::JavaClass m_network_transport_response;
@@ -174,6 +175,8 @@ public:
     static jobject new_object_id(JNIEnv* env, const ObjectId& objectId);
 
     static jobject new_uuid(JNIEnv* env, const UUID& uuid);
+
+    static jobject new_mixed(JNIEnv* env, const Mixed& mixed);
 
     // io.realm.internal.OsSharedRealm.SchemaChangedCallback
     inline static const jni_util::JavaClass& shared_realm_schema_change_callback()

@@ -33,7 +33,7 @@ import io.realm.internal.core.NativeMixed;
 
 
 public abstract class MixedOperator {
-    static MixedOperator fromNativeMixed(ProxyState<? extends RealmModel> proxyState, NativeMixed nativeMixed) {
+    static MixedOperator fromNativeMixed(BaseRealm realm, NativeMixed nativeMixed) {
         MixedType fieldType = nativeMixed.getType();
 
         switch (fieldType) {
@@ -58,10 +58,10 @@ public abstract class MixedOperator {
             case UUID:
                 return new UUIDMixedOperator(nativeMixed);
             case OBJECT:
-                if (proxyState.getRealm$realm() instanceof DynamicRealm) {
-                    return new DynamicRealmModelMixedOperator(proxyState.getRealm$realm(), nativeMixed);
+                if (realm instanceof DynamicRealm) {
+                    return new DynamicRealmModelMixedOperator(realm, nativeMixed);
                 } else {
-                    return new RealmModelOperator(nativeMixed, proxyState);
+                    return new RealmModelOperator(realm, nativeMixed);
                 }
             case NULL:
                 return new NullMixedOperator(nativeMixed);
@@ -309,23 +309,20 @@ final class NullMixedOperator extends MixedOperator {
 }
 
 class RealmModelOperator extends MixedOperator {
-    private static <T extends RealmModel> Class<T> getModelClass(ProxyState<T> proxyState, NativeMixed nativeMixed) {
-        OsSharedRealm sharedRealm = proxyState
-                .getRealm$realm()
+    private static <T extends RealmModel> Class<T> getModelClass(BaseRealm realm, NativeMixed nativeMixed) {
+        OsSharedRealm sharedRealm = realm
                 .getSharedRealm();
 
         String className = Table.getClassNameForTable(nativeMixed.getRealmModelTableName(sharedRealm));
 
-        return proxyState
-                .getRealm$realm()
+        return realm
                 .getConfiguration()
                 .getSchemaMediator()
                 .getClazz(className);
     }
 
-    private static <T extends RealmModel> T getRealmModel(ProxyState<T> proxyState, Class<T> clazz, NativeMixed nativeMixed) {
-        return proxyState
-                .getRealm$realm()
+    private static <T extends RealmModel> T getRealmModel(BaseRealm realm, Class<T> clazz, NativeMixed nativeMixed) {
+        return realm
                 .get(clazz, nativeMixed.getRealmModelRowKey(), false, Collections.emptyList());
     }
 
@@ -337,13 +334,13 @@ class RealmModelOperator extends MixedOperator {
         this.clazz = realmModel.getClass();
     }
 
-    <T extends RealmModel> RealmModelOperator(NativeMixed nativeMixed, ProxyState<T> proxyState) {
+    <T extends RealmModel> RealmModelOperator(BaseRealm realm, NativeMixed nativeMixed) {
         super(nativeMixed);
 
-        Class<T> clazz = getModelClass(proxyState, nativeMixed);
+        Class<T> clazz = getModelClass(realm, nativeMixed);
         this.clazz = clazz;
 
-        this.value = getRealmModel(proxyState, clazz, nativeMixed);
+        this.value = getRealmModel(realm, clazz, nativeMixed);
     }
 
     @Override

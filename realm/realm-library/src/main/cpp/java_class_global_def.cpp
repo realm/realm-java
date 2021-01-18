@@ -64,3 +64,9 @@ jobject JavaClassGlobalDef::new_uuid(JNIEnv* env, const UUID& uuid)
     static jni_util::JavaMethod from_string(env, instance()->m_java_util_uuid, "fromString", "(Ljava/lang/String;)Ljava/util/UUID;", true);
     return env->CallStaticObjectMethod(instance()->m_java_util_uuid, from_string, to_jstring(env, uuid.to_string().data()));
 }
+
+jobject JavaClassGlobalDef::new_mixed(JNIEnv* env, const Mixed& mixed)
+{
+    static jni_util::JavaMethod init(env, instance()->m_io_realm_internal_core_native_mixed, "<init>", "(J)V");
+    return env->NewObject(instance()->m_io_realm_internal_core_native_mixed, init, &mixed);
+}

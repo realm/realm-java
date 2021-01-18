@@ -420,3 +420,15 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
     }
     CATCH_STD()
 }
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddMixedListItem
+        (JNIEnv* env, jclass, jlong list_ptr, long mixed_ptr)
+{
+    try {
+        auto mixed = *reinterpret_cast<Mixed*>(mixed_ptr);
+
+        const JavaValue value(mixed);
+        add_list_element(list_ptr, value);
+    }
+    CATCH_STD()
+}

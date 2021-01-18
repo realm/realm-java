@@ -1340,7 +1340,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
 
     private Mixed getMixed(long columnKey) {
         NativeMixed nativeMixed = proxyState.getRow$realm().getNativeMixed(columnKey);
-        return new Mixed(MixedOperator.fromNativeMixed(proxyState, nativeMixed));
+        return new Mixed(MixedOperator.fromNativeMixed(proxyState.getRealm$realm(), nativeMixed));
     }
 
     /**

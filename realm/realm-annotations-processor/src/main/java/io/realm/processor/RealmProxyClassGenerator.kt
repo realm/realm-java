@@ -363,7 +363,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
                 emitStatement("proxyState.getRealm\$realm().checkIfValid()")
                 emitStatement("NativeMixed nativeMixed = proxyState.getRow\$realm().getNativeMixed(%s)", fieldColKeyVariableReference(field))
-                emitStatement("return new Mixed(MixedOperator.fromNativeMixed(proxyState, nativeMixed))")
+                emitStatement("return new Mixed(MixedOperator.fromNativeMixed(proxyState.getRealm\$realm(), nativeMixed))")
             endMethod()
             // Getter - End
 
@@ -628,6 +628,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         }
         if (typeUtils.isSameType(elementTypeMirror, typeMirrors.UUID_MIRROR)) {
             return "$osListVariableName.addUUID($valueVariableName)"
+        }
+        if (typeUtils.isSameType(elementTypeMirror, typeMirrors.MIXED_MIRROR)) {
+            return "$osListVariableName.addMixed($valueVariableName.getNativePtr())"
         }
         throw RuntimeException("unexpected element type: $elementTypeMirror")
     }
