@@ -101,7 +101,8 @@ public enum RealmFieldType {
     DOUBLE_LIST(CORE_TYPE_VALUE_DOUBLE + LIST_OFFSET),
     DECIMAL128_LIST(CORE_TYPE_VALUE_DECIMAL128 + LIST_OFFSET),
     OBJECT_ID_LIST(CORE_TYPE_VALUE_OBJECTID + LIST_OFFSET),
-    UUID_LIST(CORE_TYPE_VALUE_UUID + LIST_OFFSET);
+    UUID_LIST(CORE_TYPE_VALUE_UUID + LIST_OFFSET),
+    MIXED_LIST(CORE_TYPE_VALUE_MIXED + LIST_OFFSET);
 
 
     // Primitive array for fast mapping between between native values and their Realm type.
@@ -165,7 +166,6 @@ public enum RealmFieldType {
             case CORE_TYPE_VALUE_MIXED:
                 return (obj instanceof Mixed);
             case CORE_TYPE_VALUE_OBJECT:
-                return false;
             case CORE_TYPE_VALUE_LIST:
             case CORE_TYPE_VALUE_LINKING_OBJECTS:
             case CORE_TYPE_VALUE_INTEGER + LIST_OFFSET:
@@ -178,6 +178,7 @@ public enum RealmFieldType {
             case CORE_TYPE_VALUE_DECIMAL128 + LIST_OFFSET:
             case CORE_TYPE_VALUE_OBJECTID + LIST_OFFSET:
             case CORE_TYPE_VALUE_UUID + LIST_OFFSET:
+            case CORE_TYPE_VALUE_MIXED + LIST_OFFSET:
                 return false;
             default:
                 throw new RuntimeException("Unsupported Realm type:  " + this);
