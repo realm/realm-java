@@ -858,3 +858,57 @@ final class UUIDListOperator extends ManagedListOperator<UUID> {
         osList.setUUID(index, (UUID) value);
     }
 }
+
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@link Mixed} list field.
+ */
+final class MixedListOperator extends ManagedListOperator<Mixed> {
+
+    MixedListOperator(BaseRealm realm, OsList osList, Class<Mixed> clazz) {
+        super(realm, osList, clazz);
+    }
+
+    @Override
+    public boolean forRealmModel() {
+        return false;
+    }
+
+    @Nullable
+    @Override
+    public Mixed get(int index) {
+        return (Mixed) osList.getValue(index);
+    }
+
+    @Override
+    protected void checkValidValue(@Nullable Object value) {
+        if (value == null) {
+            // null is always valid (but schema may reject null on insertion).
+            return;
+        }
+        if (!(value instanceof UUID)) {
+            throw new IllegalArgumentException(
+                    String.format(Locale.ENGLISH, INVALID_OBJECT_TYPE_MESSAGE,
+                            "java.util.Mixed",
+                            value.getClass().getName()));
+        }
+    }
+
+    @Override
+    public void appendValue(Object value) {
+        Mixed mixed = (value == null) ? Mixed.nullValue() : (Mixed) value;
+
+        osList.addMixed(mixed.getNativePtr());
+    }
+
+    @Override
+    public void insertValue(int index, Object value) {
+        Mixed mixed = (value == null) ? Mixed.nullValue() : (Mixed) value;
+        osList.insertMixed(index, mixed.getNativePtr());
+    }
+
+    @Override
+    protected void setValue(int index, Object value) {
+        Mixed mixed = (value == null) ? Mixed.nullValue() : (Mixed) value;
+        osList.setMixed(index, mixed.getNativePtr());
+    }
+}
