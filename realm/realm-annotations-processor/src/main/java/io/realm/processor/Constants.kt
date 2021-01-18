@@ -83,7 +83,8 @@ object Constants {
 //            "org.bson.types.Decimal128" to RealmFieldType.DECIMAL128_LIST,
 //            "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID_LIST,
 //            "java.util.UUID" to RealmFieldType.UUID_LIST,
-            "io.realm.Mixed" to RealmFieldType.STRING_TO_MIXED_MAP
+            "io.realm.Mixed" to RealmFieldType.STRING_TO_MIXED_MAP,
+            "java.util.UUID" to RealmFieldType.STRING_TO_UUID_MAP
     )
 
     /**
@@ -123,7 +124,8 @@ object Constants {
         UUID_LIST("UUID_LIST", "List"),
 
         STRING_TO_MIXED_MAP("STRING_TO_MIXED_MAP", "Map"),
-        STRING_TO_BOOLEAN_MAP("STRING_TO_BOOLEAN_MAP", "Map");
+        STRING_TO_BOOLEAN_MAP("STRING_TO_BOOLEAN_MAP", "Map"),
+        STRING_TO_UUID_MAP("STRING_TO_UUID_MAP", "Map");
 
         /**
          * The name of the enum, used in the Java bindings, used to represent the corresponding type.

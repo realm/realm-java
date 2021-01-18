@@ -16,6 +16,8 @@
 
 package some.test;
 
+import java.util.UUID;
+
 import io.realm.Mixed;
 import io.realm.RealmDictionary;
 import io.realm.RealmObject;
@@ -26,6 +28,7 @@ public class RealmDictionaryModel extends RealmObject {
 
     private RealmDictionary<Mixed> myMixedRealmDictionary;
     private RealmDictionary<Boolean> myBooleanRealmDictionary;
+    private RealmDictionary<UUID> myUUIDRealmDictionary;
 
     public RealmDictionary<Boolean> getImmutableRealmDictionaryField() {
         return immutableRealmDictionaryField;
@@ -45,5 +48,13 @@ public class RealmDictionaryModel extends RealmObject {
 
     public void setMyBooleanRealmDictionary(RealmDictionary<Boolean> booleanRealmDictionary) {
         this.myBooleanRealmDictionary = booleanRealmDictionary;
+    }
+
+    public RealmDictionary<UUID> getMyUUIDRealmDictionary() {
+        return myUUIDRealmDictionary;
+    }
+
+    public void setMyUUIDRealmDictionary(RealmDictionary<UUID> myUUIDRealmDictionary) {
+        this.myUUIDRealmDictionary = myUUIDRealmDictionary;
     }
 }

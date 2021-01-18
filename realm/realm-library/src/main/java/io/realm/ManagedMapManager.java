@@ -19,6 +19,7 @@ package io.realm;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -237,6 +238,33 @@ class BooleanValueOperator extends MapValueOperator<Boolean> {
     @Override
     public Boolean put(Object key, Boolean value) {
         Boolean original = (Boolean) osMap.get(key);
+        osMap.put(key, value);
+        return original;
+    }
+
+    @Override
+    public void remove(Object key) {
+        osMap.remove(key);
+    }
+}
+
+/**
+ * {@link MapValueOperator} targeting {@link java.util.UUID} values in {@link RealmMap}s.
+ */
+class UUIDValueOperator extends MapValueOperator<UUID> {
+
+    UUIDValueOperator(BaseRealm baseRealm, OsMap osMap) {
+        super(baseRealm, osMap);
+    }
+
+    @Override
+    public UUID get(Object key) {
+        return (UUID) osMap.get(key);
+    }
+
+    @Override
+    public UUID put(Object key, UUID value) {
+        UUID original = (UUID) osMap.get(key);
         osMap.put(key, value);
         return original;
     }

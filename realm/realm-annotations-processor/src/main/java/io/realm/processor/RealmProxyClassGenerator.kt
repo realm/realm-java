@@ -901,6 +901,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitStatement("""builder.addPersistedProperty("%s", %s, %s, %s, %s)""", fieldName, fieldType.realmType, primaryKeyFlag, indexedFlag, nullableFlag)
                         }
                         Constants.RealmFieldType.STRING_TO_BOOLEAN_MAP,
+                        Constants.RealmFieldType.STRING_TO_UUID_MAP,
                         Constants.RealmFieldType.STRING_TO_MIXED_MAP -> {
                             emitStatement("""builder.addPersistedMapProperty("%s", %s)""", fieldName, fieldType.realmType)
                         }

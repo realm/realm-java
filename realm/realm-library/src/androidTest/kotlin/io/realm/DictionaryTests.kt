@@ -27,6 +27,8 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.*
+import kotlin.collections.HashMap
 import kotlin.test.*
 
 private const val KEY = "KEY"
@@ -341,6 +343,63 @@ class DictionaryTests {
         assertEquals(objectSchema.getFieldType(DictionaryClass.BOOLEAN_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_BOOLEAN_MAP)
     }
 
+    @Test
+    fun copyToRealm_boolean() {
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myBooleanDictionary = createBooleanRealmDictionary()
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myBooleanDictionary
+            assertNotNull(dictionaryFromRealm)
+
+            assertEquals(VALUE_HELLO, dictionaryFromRealm[KEY_HELLO])
+            assertEquals(VALUE_BYE, dictionaryFromRealm[KEY_BYE])
+        }
+    }
+
+    @Test
+    fun copyToRealm_mixedBoolean() {
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myMixedDictionary = createMixedRealmDictionary()
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myMixedDictionary
+            assertNotNull(dictionaryFromRealm)
+
+            val mixedHello = dictionaryFromRealm[KEY_HELLO]
+            val mixedBye = dictionaryFromRealm[KEY_BYE]
+            val kajhs = 0
+        }
+    }
+
+    @Test
+    fun copyToRealm_UUID() {
+        val uuid1 = UUID.randomUUID()
+        val uuid2 = UUID.randomUUID()
+
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myUUIDDictionary = RealmDictionary<UUID>().apply {
+                    put(KEY_HELLO, uuid1)
+                    put(KEY_BYE, uuid2)
+                }
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myUUIDDictionary
+            assertNotNull(dictionaryFromRealm)
+
+            val actual1 = dictionaryFromRealm[KEY_HELLO].toString()
+            assertEquals(uuid1.toString(), actual1)
+            val actual2 = dictionaryFromRealm[KEY_BYE].toString()
+            assertEquals(uuid2.toString(), actual2)
+        }
+    }
+
     private fun createBooleanRealmDictionary(): RealmDictionary<Boolean> {
         return RealmDictionary<Boolean>().apply {
             put(KEY_HELLO, VALUE_HELLO)
@@ -378,39 +437,6 @@ class DictionaryTests {
 
         return dictionaryObject.myBooleanDictionary!!
                 .also { baseAssertions(it) }
-    }
-
-    @Test
-    fun copyToRealm_boolean() {
-        realm.executeTransaction { transactionRealm ->
-            val dictionaryObject = DictionaryClass().apply {
-                myBooleanDictionary = createBooleanRealmDictionary()
-            }
-
-            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
-            val dictionaryFromRealm = dictionaryObjectFromRealm.myBooleanDictionary
-            assertNotNull(dictionaryFromRealm)
-
-            assertEquals(VALUE_HELLO, dictionaryFromRealm[KEY_HELLO])
-            assertEquals(VALUE_BYE, dictionaryFromRealm[KEY_BYE])
-        }
-    }
-
-    @Test
-    fun copyToRealm_mixedBoolean() {
-        realm.executeTransaction { transactionRealm ->
-            val dictionaryObject = DictionaryClass().apply {
-                myMixedDictionary = createMixedRealmDictionary()
-            }
-
-            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
-            val dictionaryFromRealm = dictionaryObjectFromRealm.myBooleanDictionary
-            assertNotNull(dictionaryFromRealm)
-
-//            val mixedHello = dictionaryFromRealm[KEY_HELLO]
-//            val mixedBye = dictionaryFromRealm[KEY_BYE]
-//            val kajhs = 0
-        }
     }
 }
 

@@ -42,8 +42,8 @@ JNIEXPORT jlong JNICALL
 Java_io_realm_internal_OsMap_nativeCreate(JNIEnv* env, jclass, jlong shared_realm_ptr,
                                           jlong obj_ptr, jlong column_key) {
     try {
-        auto &obj = *reinterpret_cast<realm::Obj*>(obj_ptr);
-        auto &shared_realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
+        auto& obj = *reinterpret_cast<realm::Obj*>(obj_ptr);
+        auto& shared_realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
 
         // FIXME: figure out whether or not we need to use something similar to ObservableCollectionWrapper from OsList
         return reinterpret_cast<jlong>(new object_store::Dictionary(shared_realm, obj, ColKey(column_key)));
@@ -56,10 +56,11 @@ JNIEXPORT jobject JNICALL
 Java_io_realm_internal_OsMap_nativeGetValue(JNIEnv* env, jclass, jlong map_ptr,
                                             jstring j_key) {
     try {
-        auto &dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
         JStringAccessor key(env, j_key);
         JavaAccessorContext context(env);
-        return any_cast<jobject>(dictionary.get(context, StringData(key)));
+        auto t = dictionary.get(context, StringData(key));
+        return any_cast<jobject>(t);
     }
     CATCH_STD()
 
@@ -70,8 +71,8 @@ JNIEXPORT void JNICALL
 Java_io_realm_internal_OsMap_nativePutMixed(JNIEnv* env, jclass, jlong map_ptr, jstring j_key,
                                             jlong mixed_ptr) {
     try {
-        auto &dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
-        auto &mixed = *reinterpret_cast<Mixed*>(mixed_ptr);
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& mixed = *reinterpret_cast<Mixed*>(mixed_ptr);
         JStringAccessor key(env, j_key);
 
         switch (mixed.get_type()) {
@@ -123,7 +124,7 @@ JNIEXPORT void JNICALL
 Java_io_realm_internal_OsMap_nativePutBoolean(JNIEnv* env, jclass, jlong map_ptr,
                                               jstring j_key, jboolean j_value) {
     try {
-        auto &dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
         JStringAccessor key(env, j_key);
         JavaAccessorContext context(env);
         dictionary.insert(context, StringData(key).data(), Any(j_value));
@@ -132,9 +133,22 @@ Java_io_realm_internal_OsMap_nativePutBoolean(JNIEnv* env, jclass, jlong map_ptr
 }
 
 JNIEXPORT void JNICALL
+Java_io_realm_internal_OsMap_nativePutUUID(JNIEnv* env, jclass, jlong map_ptr, jstring j_key,
+                                           jstring j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor key(env, j_key);
+        JStringAccessor value(env, j_value);
+        JavaAccessorContext context(env);
+        dictionary.insert(context, StringData(key).data(), Any(UUID(StringData(value).data())));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
 Java_io_realm_internal_OsMap_nativeClear(JNIEnv* env, jclass, jlong map_ptr) {
     try {
-        auto &dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
         dictionary.remove_all();
     }
     CATCH_STD()
@@ -143,7 +157,7 @@ Java_io_realm_internal_OsMap_nativeClear(JNIEnv* env, jclass, jlong map_ptr) {
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_OsMap_nativeSize(JNIEnv* env, jclass, jlong map_ptr) {
     try {
-        auto &dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
         return dictionary.size();
     }
     CATCH_STD()
@@ -154,7 +168,7 @@ JNIEXPORT void JNICALL
 Java_io_realm_internal_OsMap_nativeRemove(JNIEnv* env, jclass, jlong map_ptr,
                                           jstring j_key) {
     try {
-        auto &dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
         JStringAccessor key(env, j_key);
         dictionary.erase(StringData(key));
     }

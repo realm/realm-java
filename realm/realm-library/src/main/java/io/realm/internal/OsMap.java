@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import java.util.UUID;
+
 import javax.annotation.Nullable;
 
 /**
@@ -62,6 +64,10 @@ public class OsMap implements NativeObject {
         nativePutBoolean(nativePtr, (String) key, value);
     }
 
+    public void put(Object key, UUID value) {
+        nativePutUUID(nativePtr, (String) key, value.toString());
+    }
+
     public void put(Object key, long mixedPtr) {
         nativePutMixed(nativePtr, (String) key, mixedPtr);
     }
@@ -86,6 +92,8 @@ public class OsMap implements NativeObject {
     private static native void nativePutMixed(long nativePtr, String key, long nativeObjectPtr);
 
     private static native void nativePutBoolean(long nativePtr, String key, boolean value);
+
+    private static native void nativePutUUID(long nativePtr, String key, String value);
 
     private static native long nativeSize(long nativePtr);
 

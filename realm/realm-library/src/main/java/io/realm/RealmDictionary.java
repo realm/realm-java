@@ -18,6 +18,7 @@ package io.realm;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import io.realm.internal.OsMap;
 
@@ -119,8 +120,12 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
             MapValueOperator<Boolean> mixedValueOperator = new BooleanValueOperator(baseRealm, osMap);
             //noinspection unchecked
             managedMapOperator = new DictionaryManager<>((MapValueOperator<V>) mixedValueOperator);
+        } else if (valueClass.equals(UUID.class.getCanonicalName())) {
+            MapValueOperator<UUID> mixedValueOperator = new UUIDValueOperator(baseRealm, osMap);
+            //noinspection unchecked
+            managedMapOperator = new DictionaryManager<>((MapValueOperator<V>) mixedValueOperator);
         } else {
-            throw new IllegalArgumentException("Only Mixed values are allowed in RealmMaps.");
+            throw new IllegalArgumentException("Only Maps of Mixed or one of the types that can be boxed inside Mixed can be used.");
         }
         return managedMapOperator;
     }

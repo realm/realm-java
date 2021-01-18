@@ -29,6 +29,7 @@ import static io.realm.RealmFieldType.DOUBLE_LIST;
 import static io.realm.RealmFieldType.FLOAT_LIST;
 import static io.realm.RealmFieldType.INTEGER_LIST;
 import static io.realm.RealmFieldType.OBJECT_ID_LIST;
+import static io.realm.RealmFieldType.STRING_TO_UUID_MAP;
 import static io.realm.RealmFieldType.UUID_LIST;
 import static io.realm.RealmFieldType.STRING_LIST;
 import static io.realm.RealmFieldType.STRING_TO_MIXED_MAP;
@@ -169,6 +170,9 @@ public class Property implements NativeObject {
             case STRING_TO_BOOLEAN_MAP:
                 type = TYPE_BOOL | TYPE_DICTIONARY;
                 break;
+            case STRING_TO_UUID_MAP:
+                type = TYPE_UUID | TYPE_DICTIONARY;
+                break;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported filed type: '%s'.", fieldType.name()));
@@ -234,6 +238,8 @@ public class Property implements NativeObject {
                 return STRING_TO_MIXED_MAP;
             case TYPE_BOOL | TYPE_DICTIONARY:
                 return STRING_TO_BOOLEAN_MAP;
+            case TYPE_UUID | TYPE_DICTIONARY:
+                return STRING_TO_UUID_MAP;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported property type: '%d'", propertyType));

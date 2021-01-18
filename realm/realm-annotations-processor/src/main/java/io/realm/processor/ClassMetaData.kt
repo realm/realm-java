@@ -87,7 +87,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     private val validDictionaryTypes: List<TypeMirror>  = listOf(
             // TODO: add more ad-hoc
             typeMirrors.MIXED_MIRROR,
-            typeMirrors.BOOLEAN_MIRROR
+            typeMirrors.BOOLEAN_MIRROR,
+            typeMirrors.UUID_MIRROR
     )
     private val stringType = typeMirrors.STRING_MIRROR
 

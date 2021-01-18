@@ -204,6 +204,13 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
+    private static ItemCallback<Map.Entry<String, UUID>> uuidMapItemCallback = new ItemCallback<Map.Entry<String, UUID>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, UUID> item) {
+            nativeAddUUIDDictionaryEntry(containerPtr, item.getKey(), item.getValue().toString());
+        }
+    };
+
     // If true, fields will not be updated if the same value would be written to it.
     private final boolean ignoreFieldsWithSameValue;
 
@@ -445,7 +452,7 @@ public class OsObjectBuilder implements Closeable {
     }
 
     public void addMixedValueDictionary(long columnKey) {
-        addEmptyDictionary(columnKey, true);
+        addEmptyDictionary(columnKey);
     }
 
     public void addMixedValueDictionary(long columnKey, List<String> keys, List<Long> mixedPointers) {
@@ -459,13 +466,13 @@ public class OsObjectBuilder implements Closeable {
             List<Long> mixedPointers
     ) {
         if (keys.isEmpty() && mixedPointers.isEmpty()) {
-            addEmptyDictionary(columnKey, true);
+            addEmptyDictionary(columnKey);
         } else {
             long dictionaryPtr = nativeStartDictionary();
             for (int i = 0; i < keys.size(); i++) {
                 nativeAddMixedDictionaryEntry(dictionaryPtr, keys.get(i), mixedPointers.get(i));
             }
-            nativeStopMixedDictionary(builderPtr, columnKey, dictionaryPtr);
+            nativeStopDictionary(builderPtr, columnKey, dictionaryPtr);
         }
     }
 
@@ -486,18 +493,16 @@ public class OsObjectBuilder implements Closeable {
             }
             nativeStopDictionary(builderPtr, columnKey, dictionaryPtr);
         } else {
-            addEmptyDictionary(columnKey, false);
+            addEmptyDictionary(columnKey);
         }
     }
 
-    private void addEmptyDictionary(long columnKey, boolean isMixed) {
-        long dictionaryPtr;
-        if (isMixed) {
-            dictionaryPtr = nativeStartMixedDictionary();
-        } else {
-            dictionaryPtr = nativeStartDictionary();
-        }
-        nativeStopDictionary(builderPtr, columnKey, dictionaryPtr);
+    private void addEmptyDictionary(long columnKey) {
+        nativeStopDictionary(builderPtr, columnKey, nativeStartDictionary());
+    }
+
+    public void addUUIDValueDictionary(long columnKey, RealmDictionary<UUID> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, uuidMapItemCallback);
     }
 
     /**
@@ -640,13 +645,11 @@ public class OsObjectBuilder implements Closeable {
     // dictionaries
     private static native long nativeStartDictionary();
 
-    private static native long nativeStartMixedDictionary();
-
     private static native void nativeStopDictionary(long builderPtr, long columnKey, long dictionaryPtr);
 
-    private static native void nativeStopMixedDictionary(long builderPtr, long columnKey, long dictionaryPtr);
-
     private static native void nativeAddBooleanDictionaryEntry(long dictionaryPtr, String key, boolean value);
+
+    private static native void nativeAddUUIDDictionaryEntry(long dictionaryPtr, String key, String value);
 
     private static native void nativeAddMixedDictionaryEntry(long dictionaryPtr, String key, long mixedPtr);
 }
