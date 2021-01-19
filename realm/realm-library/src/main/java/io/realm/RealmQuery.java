@@ -2218,11 +2218,17 @@ public class RealmQuery<E> {
     }
 
     /**
-     * FIXME Add description
-     * FIXME Figure out an API for providing arguments, probably just re-use `String.format()` arguments
+     * Create a text-based predicate using the Realm Query Language. This predicate can be combined
+     * with other raw or type safe predicates using the normal {@code and()} and {@code or()}
+     * operators.
+     * <p>
+     * The string-based predicates can contain placeholders that conform to the syntax supported by
+     * {@link java.util.Formatter}.
+     * <p>
+     * See <a href="https://docs.mongodb.com/realm-sdks/js/latest/tutorial-query-language.html">these docs</a>
+     * for a more detailed description of the Realm Query Language.
      *
-     * @param filter
-     * @return
+     * @param filter A Realm Query Language predicate.
      */
     public RealmQuery<E> rawPredicate(String filter, Object... arguments) {
         realm.checkIfValid();

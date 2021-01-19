@@ -3724,8 +3724,6 @@ public class RealmQueryTests extends QueryTests {
     @Test
     public void rawPredicate_mixedWithTypedPredicates() {
         populateTestRealm();
-        // FIXME We might need to track `or()` in cases such as this so we can add a TRUE_PREDICATE
-        //
         RealmResults<AllTypes> result = realm.where(AllTypes.class)
                 .equalTo("columnString", "test data 0")
                 .or()
@@ -3736,7 +3734,17 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void rawPredicate_withOrdering() {
-        // FIXME
+        // FIXME: Verify that SORT and DISTINCT work correctly
+    }
+
+    @Test
+    public void rawPredicate_useJavaFieldNames() {
+        // FIXME: Verify that field name mapping is used so Java names are used
+    }
+
+    @Test
+    public void rawPredicate_invalidFormatOptions() {
+        // FIXME: Verify that we correctly replace Formatter placeholders
     }
 
     @Test
