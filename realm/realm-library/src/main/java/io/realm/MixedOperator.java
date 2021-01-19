@@ -80,7 +80,7 @@ public abstract class MixedOperator {
     private final MixedType type;
 
     private synchronized NativeMixed getNativeMixed() {
-        if (nativeMixed == null) { nativeMixed = createNativeMixed(NativeContext.dummyContext); }
+        if (nativeMixed == null) { nativeMixed = createNativeMixed(); }
 
         return nativeMixed;
     }
@@ -89,7 +89,7 @@ public abstract class MixedOperator {
         return getNativeMixed().getNativePtr();
     }
 
-    protected abstract NativeMixed createNativeMixed(NativeContext context);
+    protected abstract NativeMixed createNativeMixed();
 
     protected MixedOperator(@Nullable Object value, @Nullable MixedType type, @Nullable NativeMixed nativeMixed) {
         this.value = value;
@@ -136,8 +136,8 @@ final class BooleanMixedOperator extends MixedOperator {
     }
 
     @Override
-    protected NativeMixed createNativeMixed(NativeContext context) {
-        return NativeMixed.newInstance(context, super.getValue(Boolean.class));
+    protected NativeMixed createNativeMixed() {
+        return new NativeMixed(super.getValue(Boolean.class));
     }
 }
 
@@ -163,8 +163,8 @@ final class IntegerMixedOperator extends MixedOperator {
     }
 
     @Override
-    protected NativeMixed createNativeMixed(NativeContext context) {
-        return NativeMixed.newInstance(context, super.getValue(Number.class));
+    protected NativeMixed createNativeMixed() {
+        return new NativeMixed(super.getValue(Number.class));
     }
 }
 
@@ -178,8 +178,8 @@ final class FloatMixedOperator extends MixedOperator {
     }
 
     @Override
-    protected NativeMixed createNativeMixed(NativeContext context) {
-        return NativeMixed.newInstance(context, super.getValue(Float.class));
+    protected NativeMixed createNativeMixed() {
+        return new NativeMixed(super.getValue(Float.class));
     }
 }
 
@@ -193,8 +193,8 @@ final class DoubleMixedOperator extends MixedOperator {
     }
 
     @Override
-    protected NativeMixed createNativeMixed(NativeContext context) {
-        return NativeMixed.newInstance(context, super.getValue(Double.class));
+    protected NativeMixed createNativeMixed() {
+        return new NativeMixed(super.getValue(Double.class));
     }
 }
 
@@ -208,8 +208,8 @@ final class StringMixedOperator extends MixedOperator {
     }
 
     @Override
-    protected NativeMixed createNativeMixed(NativeContext context) {
-        return NativeMixed.newInstance(context, super.getValue(String.class));
+    protected NativeMixed createNativeMixed() {
+        return new NativeMixed(super.getValue(String.class));
     }
 }
 
@@ -223,8 +223,8 @@ final class BinaryMixedOperator extends MixedOperator {
     }
 
     @Override
-    protected NativeMixed createNativeMixed(NativeContext context) {
-        return NativeMixed.newInstance(context, super.getValue(byte[].class));
+    protected NativeMixed createNativeMixed() {
+        return new NativeMixed(super.getValue(byte[].class));
     }
 }
 
@@ -238,8 +238,8 @@ final class DateMixedOperator extends MixedOperator {
     }
 
     @Override
-    protected NativeMixed createNativeMixed(NativeContext context) {
-        return NativeMixed.newInstance(context, super.getValue(Date.class));
+    protected NativeMixed createNativeMixed() {
+        return new NativeMixed(super.getValue(Date.class));
     }
 }
 
@@ -253,8 +253,8 @@ final class ObjectIdMixedOperator extends MixedOperator {
     }
 
     @Override
-    protected NativeMixed createNativeMixed(NativeContext context) {
-        return NativeMixed.newInstance(context, super.getValue(ObjectId.class));
+    protected NativeMixed createNativeMixed() {
+        return new NativeMixed(super.getValue(ObjectId.class));
     }
 }
 
@@ -268,8 +268,8 @@ final class Decimal128MixedOperator extends MixedOperator {
     }
 
     @Override
-    protected NativeMixed createNativeMixed(NativeContext context) {
-        return NativeMixed.newInstance(context, super.getValue(Decimal128.class));
+    protected NativeMixed createNativeMixed() {
+        return new NativeMixed(super.getValue(Decimal128.class));
     }
 }
 
@@ -283,8 +283,8 @@ final class UUIDMixedOperator extends MixedOperator {
     }
 
     @Override
-    protected NativeMixed createNativeMixed(NativeContext context) {
-        return NativeMixed.newInstance(context, super.getValue(UUID.class));
+    protected NativeMixed createNativeMixed() {
+        return new NativeMixed(super.getValue(UUID.class));
     }
 }
 
@@ -298,8 +298,8 @@ final class NullMixedOperator extends MixedOperator {
     }
 
     @Override
-    protected NativeMixed createNativeMixed(NativeContext context) {
-        return NativeMixed.newInstance(context);
+    protected NativeMixed createNativeMixed() {
+        return new NativeMixed();
     }
 
     @Override
@@ -344,8 +344,8 @@ class RealmModelOperator extends MixedOperator {
     }
 
     @Override
-    protected NativeMixed createNativeMixed(NativeContext context) {
-        return NativeMixed.newInstance(context, getValue(RealmObjectProxy.class));
+    protected NativeMixed createNativeMixed() {
+        return new NativeMixed(getValue(RealmObjectProxy.class));
     }
 
     @Override
