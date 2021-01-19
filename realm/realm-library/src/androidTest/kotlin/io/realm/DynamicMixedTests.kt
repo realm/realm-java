@@ -137,6 +137,8 @@ class DynamicMixedTests {
             mixedList.add(Mixed.valueOf(objectId))
             mixedList.add(Mixed.valueOf(decimal128))
             mixedList.add(Mixed.valueOf(uuid))
+            mixedList.add(Mixed.nullValue())
+            mixedList.add(null)
         }
 
         val allJavaTypes= realm.where("MixedListObject").findFirst()
@@ -155,6 +157,8 @@ class DynamicMixedTests {
         assertEquals(objectId, mixedList[10]!!.asObjectId())
         assertEquals(decimal128, mixedList[11]!!.asDecimal128())
         assertEquals(uuid, mixedList[12]!!.asUUID())
+        assertTrue(mixedList[13]!!.isNull)
+        assertTrue(mixedList[14]!!.isNull)
 
         realm.close()
     }

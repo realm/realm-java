@@ -500,7 +500,7 @@ class MixedTests {
     }
 
     @Test
-    fun managed_listsAllTypes(){
+    fun managed_listsAllTypes() {
         val aString = "a string"
         val byteArray = byteArrayOf(0, 1, 0)
         val date = Date()
@@ -524,6 +524,8 @@ class MixedTests {
             allJavaTypes.fieldMixedList.add(Mixed.valueOf(objectId))
             allJavaTypes.fieldMixedList.add(Mixed.valueOf(decimal128))
             allJavaTypes.fieldMixedList.add(Mixed.valueOf(uuid))
+            allJavaTypes.fieldMixedList.add(Mixed.nullValue())
+            allJavaTypes.fieldMixedList.add(null)
         }
 
         val allJavaTypes = realm.where<AllJavaTypes>().findFirst()
@@ -541,5 +543,7 @@ class MixedTests {
         assertEquals(objectId, allJavaTypes.fieldMixedList[10]!!.asObjectId())
         assertEquals(decimal128, allJavaTypes.fieldMixedList[11]!!.asDecimal128())
         assertEquals(uuid, allJavaTypes.fieldMixedList[12]!!.asUUID())
+        assertTrue(allJavaTypes.fieldMixedList[13]!!.isNull)
+        assertTrue(allJavaTypes.fieldMixedList[14]!!.isNull)
     }
 }
