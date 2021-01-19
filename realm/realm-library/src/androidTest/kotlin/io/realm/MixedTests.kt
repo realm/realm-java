@@ -2,6 +2,7 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.realm.entities.AllJavaTypes
 import io.realm.entities.MixedIndexed
 import io.realm.entities.MixedNotIndexed
 import io.realm.entities.PrimaryKeyAsString
@@ -42,6 +43,7 @@ class MixedTests {
                 .directory(folder.newFolder())
                 .schema(MixedNotIndexed::class.java,
                         MixedIndexed::class.java,
+                        AllJavaTypes::class.java,
                         PrimaryKeyAsString::class.java)
                 .build()
 
@@ -495,5 +497,50 @@ class MixedTests {
         assertTrue(mixedObjectFrozen.isValid)
         assertTrue(mixedObjectFrozen.mixed!!.isNull)
         assertEquals(MixedType.NULL, mixedObjectFrozen.mixed!!.type)
+    }
+
+    @Test
+    fun managed_listsAllTypes(){
+        val aString = "a string"
+        val byteArray = byteArrayOf(0, 1, 0)
+        val date = Date()
+        val objectId = ObjectId()
+        val decimal128 = Decimal128(1)
+        val uuid = UUID.randomUUID()
+
+        realm.executeTransaction {
+            val allJavaTypes = it.createObject<AllJavaTypes>(0)
+
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(true))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(1.toByte()))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(2.toShort()))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(3.toInt()))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(4.toLong()))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(5.toFloat()))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(6.toDouble()))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(aString))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(byteArray))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(date))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(objectId))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(decimal128))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(uuid))
+        }
+
+        val allJavaTypes = realm.where<AllJavaTypes>().findFirst()
+
+        assertEquals(true, allJavaTypes!!.fieldMixedList[0]!!.asBoolean())
+        assertEquals(1, allJavaTypes.fieldMixedList[1]!!.asByte())
+        assertEquals(2, allJavaTypes.fieldMixedList[2]!!.asShort())
+        assertEquals(3, allJavaTypes.fieldMixedList[3]!!.asInteger())
+        assertEquals(4, allJavaTypes.fieldMixedList[4]!!.asLong())
+        assertEquals(5.toFloat(), allJavaTypes.fieldMixedList[5]!!.asFloat())
+        assertEquals(6.toDouble(), allJavaTypes.fieldMixedList[6]!!.asDouble())
+        assertEquals(aString, allJavaTypes.fieldMixedList[7]!!.asString())
+        assertTrue(Arrays.equals(byteArray, allJavaTypes.fieldMixedList[8]!!.asBinary()))
+        assertEquals(date, allJavaTypes.fieldMixedList[9]!!.asDate())
+        assertEquals(objectId, allJavaTypes.fieldMixedList[10]!!.asObjectId())
+        assertEquals(decimal128, allJavaTypes.fieldMixedList[11]!!.asDecimal128())
+        assertEquals(uuid, allJavaTypes.fieldMixedList[12]!!.asUUID())
+
     }
 }

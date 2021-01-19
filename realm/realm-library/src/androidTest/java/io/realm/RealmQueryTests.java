@@ -4128,6 +4128,7 @@ public class RealmQueryTests extends QueryTests {
             case DECIMAL128_LIST:
             case OBJECT_ID_LIST:
             case UUID_LIST:
+            case MIXED_LIST:
                 return false;
             case TYPED_LINK:
         }

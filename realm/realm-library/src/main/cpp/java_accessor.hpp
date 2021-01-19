@@ -469,9 +469,9 @@ inline util::Optional<float> JavaAccessorContext::unbox(util::Any& v, CreatePoli
 }
 
 template <>
-inline Mixed JavaAccessorContext::unbox(util::Any&, CreatePolicy, ObjKey) const
+inline Mixed JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
 {
-    REALM_TERMINATE("not supported");
+    return v.has_value() ?  util::any_cast<Mixed&>(v) : Mixed();
 }
 
 } // namespace realm

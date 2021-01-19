@@ -124,6 +124,7 @@ public class AllJavaTypes extends RealmObject {
     private RealmList<Decimal128> fieldDecimal128List;
     private RealmList<ObjectId> fieldObjectIdList;
     private RealmList<UUID> fieldUUIDList;
+    private RealmList<Mixed> fieldMixedList;
 
     @LinkingObjects(FIELD_OBJECT)
     private final RealmResults<AllJavaTypes> objectParents = null;
@@ -385,6 +386,14 @@ public class AllJavaTypes extends RealmObject {
 
     public void setFieldUUIDList(RealmList<UUID> fieldUUIDList) {
         this.fieldUUIDList = fieldUUIDList;
+    }
+
+    public RealmList<Mixed> getFieldMixedList() {
+        return fieldMixedList;
+    }
+
+    public void setFieldMixedList(RealmList<Mixed> fieldMixedList) {
+        this.fieldMixedList = fieldMixedList;
     }
 
     public RealmResults<AllJavaTypes> getObjectParents() {

@@ -888,7 +888,7 @@ final class MixedListOperator extends ManagedListOperator<Mixed> {
             // null is always valid (but schema may reject null on insertion).
             return;
         }
-        if (!(value instanceof UUID)) {
+        if (!(value instanceof Mixed)) {
             throw new IllegalArgumentException(
                     String.format(Locale.ENGLISH, INVALID_OBJECT_TYPE_MESSAGE,
                             "java.util.Mixed",
