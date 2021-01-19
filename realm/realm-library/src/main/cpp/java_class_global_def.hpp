@@ -56,6 +56,7 @@ private:
         , m_bson_decimal128(env, "org/bson/types/Decimal128", false)
         , m_bson_object_id(env, "org/bson/types/ObjectId", false)
         , m_java_util_uuid(env, "java/util/UUID", false)
+        , m_io_realm_internal_core_native_mixed(env, "io/realm/internal/core/NativeMixed", false)
 #if REALM_ENABLE_SYNC
         , m_network_transport_response(env, "io/realm/internal/objectstore/OsJavaNetworkTransport$Response", false)
 #endif

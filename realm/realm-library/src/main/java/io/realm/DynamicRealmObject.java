@@ -501,6 +501,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             return RealmFieldType.OBJECT_ID_LIST;
         } else if (primitiveType.equals(UUID.class)) {
             return RealmFieldType.UUID_LIST;
+        } else if (primitiveType.equals(Mixed.class)) {
+            return RealmFieldType.MIXED_LIST;
         } else {
             throw new IllegalArgumentException("Unsupported element type. Only primitive types supported. Yours was: " + primitiveType);
         }

@@ -68,5 +68,5 @@ jobject JavaClassGlobalDef::new_uuid(JNIEnv* env, const UUID& uuid)
 jobject JavaClassGlobalDef::new_mixed(JNIEnv* env, const Mixed& mixed)
 {
     static jni_util::JavaMethod init(env, instance()->m_io_realm_internal_core_native_mixed, "<init>", "(J)V");
-    return env->NewObject(instance()->m_io_realm_internal_core_native_mixed, init, &mixed);
+    return env->NewObject(instance()->m_io_realm_internal_core_native_mixed, init, new Mixed(mixed));
 }

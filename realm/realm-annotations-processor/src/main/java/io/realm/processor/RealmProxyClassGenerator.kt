@@ -767,6 +767,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Constants.RealmFieldType.DECIMAL128_LIST,
                         Constants.RealmFieldType.OBJECT_ID_LIST,
                         Constants.RealmFieldType.UUID_LIST,
+                        Constants.RealmFieldType.MIXED_LIST,
                         Constants.RealmFieldType.DOUBLE_LIST -> {
                             val requiredFlag = if (metadata.isElementNullable(field)) "!Property.REQUIRED" else "Property.REQUIRED"
                             emitStatement("builder.addPersistedValueListProperty(\"%s\", %s, %s)", fieldName, fieldType.realmType, requiredFlag)

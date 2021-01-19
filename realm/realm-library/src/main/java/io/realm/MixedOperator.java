@@ -25,7 +25,6 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import io.realm.internal.NativeContext;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
