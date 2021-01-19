@@ -31,7 +31,7 @@ class ApiKeyAuthImpl extends ApiKeyAuth {
 
     @Override
     protected void call(int functionType, @Nullable String arg, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback) {
-        nativeCallFunction(functionType, getApp().nativePtr, getUser().osUser.getNativePtr(), arg, callback);
+        nativeCallFunction(functionType, getApp().osApp.getNativePtr(), getUser().osUser.getNativePtr(), arg, callback);
     }
 
     private static native void nativeCallFunction(int functionType, long nativeAppPtr, long nativeUserPtr, @Nullable String arg, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);

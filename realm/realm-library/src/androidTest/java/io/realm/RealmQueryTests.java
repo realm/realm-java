@@ -16,6 +16,7 @@
 
 package io.realm;
 
+import androidx.test.annotation.UiThreadTest;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.bson.types.Decimal128;
@@ -34,6 +35,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -55,6 +57,7 @@ import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
+import io.realm.exceptions.RealmException;
 import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertEquals;
@@ -1561,7 +1564,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     // Queries nullable PrimaryKey.
-    @Ignore("FIXME: https://github.com/realm/realm-object-store/pull/935")
     @Test
     public void equalTo_nullPrimaryKeys() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
@@ -1585,7 +1587,6 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedLong.class).equalTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       (Long) null).findAll().first().getName());
     }
 
-    @Ignore("FIXME: https://github.com/realm/realm-object-store/pull/935")
     @Test
     public void isNull_nullPrimaryKeys() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
@@ -1667,7 +1668,6 @@ public class RealmQueryTests extends QueryTests {
                         .findAll().first().getId());
     }
 
-    @Ignore("FIXME: https://github.com/realm/realm-object-store/pull/935")
     @Test
     public void between_nullPrimaryKeysIsNotZero() {
         // Fills up a realm with one user PrimaryKey value and 9 numeric values, starting from -5.
@@ -1686,7 +1686,6 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(3, realm.where(PrimaryKeyAsBoxedLong.class).between(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       -1, 1).count());
     }
 
-    @Ignore("FIXME: https://github.com/realm/realm-object-store/pull/935")
     @Test
     public void greaterThan_nullPrimaryKeysIsNotZero() {
         // Fills up a realm with one user PrimaryKey value and 9 numeric values, starting from -5.
@@ -1705,7 +1704,6 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(4, realm.where(PrimaryKeyAsBoxedLong.class).greaterThan(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       -1).count());
     }
 
-    @Ignore("FIXME: https://github.com/realm/realm-object-store/pull/935")
     @Test
     public void greaterThanOrEqualTo_nullPrimaryKeysIsNotZero() {
         // Fills up a realm with one user PrimaryKey value and 9 numeric values, starting from -5.
@@ -1724,7 +1722,6 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(5, realm.where(PrimaryKeyAsBoxedLong.class).greaterThanOrEqualTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       -1).count());
     }
 
-    @Ignore("FIXME: https://github.com/realm/realm-object-store/pull/935")
     @Test
     public void lessThan_nullPrimaryKeysIsNotZero() {
         // Fills up a realm with one user PrimaryKey value and 9 numeric values, starting from -5.
@@ -1743,7 +1740,6 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(6, realm.where(PrimaryKeyAsBoxedLong.class).lessThan(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY,       1).count());
     }
 
-    @Ignore("FIXME: https://github.com/realm/realm-object-store/pull/935")
     @Test
     public void lessThanOrEqualTo_nullPrimaryKeysIsNotZero() {
         // Fills up a realm with one user PrimaryKey value and 9 numeric values, starting from -5.
@@ -2832,6 +2828,33 @@ public class RealmQueryTests extends QueryTests {
                     case OBJECT_ID:
                         realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT_ID).findAll();
                         break;
+                    case INTEGER_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_INTEGER_LIST).findAll();
+                        break;
+                    case BOOLEAN_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_BOOLEAN_LIST).findAll();
+                        break;
+                    case STRING_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_STRING_LIST).findAll();
+                        break;
+                    case BINARY_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_BINARY_LIST).findAll();
+                        break;
+                    case DATE_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DATE_LIST).findAll();
+                        break;
+                    case FLOAT_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_FLOAT_LIST).findAll();
+                        break;
+                    case DOUBLE_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DOUBLE_LIST).findAll();
+                        break;
+                    case DECIMAL128_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DECIMAL128_LIST).findAll();
+                        break;
+                    case OBJECT_ID_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT_ID_LIST).findAll();
+                        break;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -2951,6 +2974,33 @@ public class RealmQueryTests extends QueryTests {
                     case OBJECT_ID:
                         realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT_ID).findAll();
                         break;
+                    case INTEGER_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_INTEGER_LIST).findAll();
+                        break;
+                    case BOOLEAN_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_BOOLEAN_LIST).findAll();
+                        break;
+                    case STRING_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_STRING_LIST).findAll();
+                        break;
+                    case BINARY_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_BINARY_LIST).findAll();
+                        break;
+                    case DATE_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_DATE_LIST).findAll();
+                        break;
+                    case FLOAT_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_FLOAT_LIST).findAll();
+                        break;
+                    case DOUBLE_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_DOUBLE_LIST).findAll();
+                        break;
+                    case DECIMAL128_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_DECIMAL128_LIST).findAll();
+                        break;
+                    case OBJECT_ID_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT_ID_LIST).findAll();
+                        break;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -3036,8 +3086,8 @@ public class RealmQueryTests extends QueryTests {
     public void findAll_indexedCaseInsensitiveFields() {
         // Catches https://github.com/realm/realm-java/issues/4788
         realm.beginTransaction();
-        realm.createObject(IndexedFields.class).indexedString = "ROVER";
-        realm.createObject(IndexedFields.class).indexedString = "Rover";
+        realm.createObject(IndexedFields.class, new ObjectId()).indexedString = "ROVER";
+        realm.createObject(IndexedFields.class, new ObjectId()).indexedString = "Rover";
         realm.commitTransaction();
 
         RealmResults<IndexedFields> results = realm.where(IndexedFields.class)
@@ -3779,6 +3829,210 @@ public class RealmQueryTests extends QueryTests {
             query.limit(-1);
             fail();
         } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    @UiThreadTest
+    public void findAll_runOnMainThreadAllowed() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowQueriesOnUiThread(true)
+                .name("ui_realm")
+                .build();
+
+        Realm uiRealm = Realm.getInstance(configuration);
+        uiRealm.where(Dog.class).findAll();
+        uiRealm.close();
+    }
+
+    @Test
+    @UiThreadTest
+    public void findFirst_runOnMainThreadAllowed() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowQueriesOnUiThread(true)
+                .name("ui_realm")
+                .build();
+
+        Realm uiRealm = Realm.getInstance(configuration);
+        uiRealm.where(Dog.class).findFirst();
+        uiRealm.close();
+    }
+
+    @Test
+    @UiThreadTest
+    public void findAll_runOnMainThreadThrows() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowQueriesOnUiThread(false)
+                .name("ui_realm")
+                .build();
+
+        // Try-with-resources
+        try (Realm uiRealm = Realm.getInstance(configuration)) {
+            uiRealm.where(Dog.class).findAll();
+            fail("In this test queries are not allowed to run on the UI thread, so something went awry.");
+        } catch (RealmException e) {
+            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowQueriesOnUiThread"));
+        }
+    }
+
+    @Test
+    @UiThreadTest
+    public void findFirst_runOnMainThreadThrows() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowQueriesOnUiThread(false)
+                .name("ui_realm")
+                .build();
+
+        // Try-with-resources
+        try (Realm uiRealm = Realm.getInstance(configuration)) {
+            uiRealm.where(Dog.class).findFirst();
+            fail("In this test queries are not allowed to run on the UI thread, so something went awry.");
+        } catch (RealmException e) {
+            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowQueriesOnUiThread"));
+        }
+    }
+
+    @Test
+    @UiThreadTest
+    public void asyncQuery_throwsWhenCallingRefresh() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowQueriesOnUiThread(false)
+                .name("ui_realm")
+                .build();
+
+        // Try-with-resources
+        try (Realm uiRealm = Realm.getInstance(configuration)) {
+            uiRealm.refresh();
+
+            fail("In this test queries are not allowed to run on the UI thread, so something went awry.");
+        } catch (RealmException e) {
+            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowQueriesOnUiThread"));
+        }
+    }
+
+    @Test
+    @UiThreadTest
+    public void count_runOnMainThreadThrows() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowQueriesOnUiThread(false)
+                .name("ui_realm")
+                .build();
+
+        // Try-with-resources
+        try (Realm uiRealm = Realm.getInstance(configuration)) {
+            uiRealm.where(Dog.class).count();
+
+            fail("In this test queries are not allowed to run on the UI thread, so something went awry.");
+        } catch (RealmException e) {
+            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowQueriesOnUiThread"));
+        }
+    }
+
+    @Test
+    @UiThreadTest
+    public void max_runOnMainThreadThrows() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowQueriesOnUiThread(false)
+                .name("ui_realm")
+                .build();
+
+        // Try-with-resources
+        try (Realm uiRealm = Realm.getInstance(configuration)) {
+            uiRealm.where(Dog.class).max("age");
+
+            fail("In this test queries are not allowed to run on the UI thread, so something went awry.");
+        } catch (RealmException e) {
+            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowQueriesOnUiThread"));
+        }
+    }
+
+    @Test
+    @UiThreadTest
+    public void min_runOnMainThreadThrows() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowQueriesOnUiThread(false)
+                .name("ui_realm")
+                .build();
+
+        // Try-with-resources
+        try (Realm uiRealm = Realm.getInstance(configuration)) {
+            uiRealm.where(Dog.class).min("age");
+
+            fail("In this test queries are not allowed to run on the UI thread, so something went awry.");
+        } catch (RealmException e) {
+            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowQueriesOnUiThread"));
+        }
+    }
+
+    @Test
+    @UiThreadTest
+    public void average_runOnMainThreadThrows() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowQueriesOnUiThread(false)
+                .name("ui_realm")
+                .build();
+
+        // Try-with-resources
+        try (Realm uiRealm = Realm.getInstance(configuration)) {
+            uiRealm.where(Dog.class).average("age");
+
+            fail("In this test queries are not allowed to run on the UI thread, so something went awry.");
+        } catch (RealmException e) {
+            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowQueriesOnUiThread"));
+        }
+    }
+
+    @Test
+    @UiThreadTest
+    public void averageDecimal128_runOnMainThreadThrows() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowQueriesOnUiThread(false)
+                .name("ui_realm")
+                .build();
+
+        // Try-with-resources
+        try (Realm uiRealm = Realm.getInstance(configuration)) {
+            uiRealm.where(AllTypes.class).averageDecimal128(AllTypes.FIELD_DECIMAL128);
+
+            fail("In this test queries are not allowed to run on the UI thread, so something went awry.");
+        } catch (RealmException e) {
+            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowQueriesOnUiThread"));
+        }
+    }
+
+    @Test
+    @UiThreadTest
+    public void maximumDate_runOnMainThreadThrows() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowQueriesOnUiThread(false)
+                .name("ui_realm")
+                .build();
+
+        // Try-with-resources
+        try (Realm uiRealm = Realm.getInstance(configuration)) {
+            uiRealm.where(Dog.class).maximumDate("birthday");
+
+            fail("In this test queries are not allowed to run on the UI thread, so something went awry.");
+        } catch (RealmException e) {
+            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowQueriesOnUiThread"));
+        }
+    }
+
+    @Test
+    @UiThreadTest
+    public void minimumDate_runOnMainThreadThrows() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowQueriesOnUiThread(false)
+                .name("ui_realm")
+                .build();
+
+        // Try-with-resources
+        try (Realm uiRealm = Realm.getInstance(configuration)) {
+            uiRealm.where(Dog.class).minimumDate("birthday");
+
+            fail("In this test queries are not allowed to run on the UI thread, so something went awry.");
+        } catch (RealmException e) {
+            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowQueriesOnUiThread"));
         }
     }
 

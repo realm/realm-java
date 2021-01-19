@@ -22,10 +22,12 @@ import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.internal.objectstore.OsAppCredentials;
 import io.realm.mongodb.auth.EmailPasswordAuth;
+import io.realm.mongodb.auth.GoogleAuthType;
+
 
 /**
  * Credentials represent a login with a given login provider, and are used by the MongoDB Realm to
- * verify the user and grant access. The {@link IdentityProvider#EMAIL_PASSWORD} provider is enabled
+ * verify the user and grant access. The {@link Provider#EMAIL_PASSWORD} provider is enabled
  * by default. All other providers must be enabled on MongoDB Realm to work.
  * <p>
  * Note that users wanting to login using Email/Password must register first using
@@ -58,7 +60,7 @@ public class Credentials {
 
     OsAppCredentials osCredentials;
 
-    private final IdentityProvider identityProvider;
+    private final Provider identityProvider;
 
     /**
      * Creates credentials representing an anonymous user.
@@ -72,7 +74,7 @@ public class Credentials {
      * {@link App#loginAsync(Credentials, App.Callback)}.
      */
     public static Credentials anonymous() {
-        return new Credentials(OsAppCredentials.anonymous(), IdentityProvider.ANONYMOUS);
+        return new Credentials(OsAppCredentials.anonymous(), Provider.ANONYMOUS);
     }
 
     /**
@@ -86,21 +88,7 @@ public class Credentials {
      */
     public static Credentials apiKey(String key) {
         Util.checkEmpty(key, "key");
-        return new Credentials(OsAppCredentials.apiKey(key), IdentityProvider.API_KEY);
-    }
-
-    /**
-     * Creates credentials representing a login using a server API key.
-     * <p>
-     * This provider must be enabled on MongoDB Realm to work.
-     *
-     * @param key the API key to use for login.
-     * @return a set of credentials that can be used to log into MongoDB Realm using
-     * {@link App#loginAsync(Credentials, App.Callback)}.
-     */
-    public static Credentials serverApiKey(String key) {
-        Util.checkEmpty(key, "key");
-        return new Credentials(OsAppCredentials.serverApiKey(key), IdentityProvider.SERVER_API_KEY);
+        return new Credentials(OsAppCredentials.apiKey(key), Provider.API_KEY);
     }
 
     /**
@@ -114,7 +102,7 @@ public class Credentials {
      */
     public static Credentials apple(String idToken) {
         Util.checkEmpty(idToken, "idToken");
-        return new Credentials(OsAppCredentials.apple(idToken), IdentityProvider.APPLE);
+        return new Credentials(OsAppCredentials.apple(idToken), Provider.APPLE);
     }
 
     /**
@@ -131,7 +119,7 @@ public class Credentials {
     public static Credentials customFunction(Document arguments) {
         Util.checkNull(arguments, "arguments");
         return new Credentials(OsAppCredentials.customFunction(arguments),
-                IdentityProvider.CUSTOM_FUNCTION);
+                Provider.CUSTOM_FUNCTION);
     }
 
     /**
@@ -146,7 +134,7 @@ public class Credentials {
         Util.checkEmpty(email, "email");
         Util.checkEmpty(password, "password");
         return new Credentials(OsAppCredentials.emailPassword(email, password),
-                IdentityProvider.EMAIL_PASSWORD);
+                Provider.EMAIL_PASSWORD);
     }
 
     /**
@@ -160,21 +148,37 @@ public class Credentials {
      */
     public static Credentials facebook(String accessToken) {
         Util.checkEmpty(accessToken, "accessToken");
-        return new Credentials(OsAppCredentials.facebook(accessToken), IdentityProvider.FACEBOOK);
+        return new Credentials(OsAppCredentials.facebook(accessToken), Provider.FACEBOOK);
     }
 
     /**
-     * Creates credentials representing a login using a Google access token.
+     * Creates credentials representing a login using a Google access token of a given {@link GoogleAuthType}.
      * <p>
      * This provider must be enabled on MongoDB Realm to work.
      *
-     * @param googleToken the access token returned when logging in to Google.
+     * @param token the access token returned when logging in to Google.
+     * @param type the access token type
      * @return a set of credentials that can be used to log into MongoDB Realm using
      * {@link App#loginAsync(Credentials, App.Callback)}.
      */
-    public static Credentials google(String googleToken) {
-        Util.checkEmpty(googleToken, "googleToken");
-        return new Credentials(OsAppCredentials.google(googleToken), IdentityProvider.GOOGLE);
+    public static Credentials google(String token, GoogleAuthType type) {
+        Util.checkEmpty(token, "token");
+        return new Credentials(OsAppCredentials.google(token, type), Provider.GOOGLE);
+    }
+
+    /**
+     * Creates credentials representing a login using a {@link GoogleAuthType#AUTH_CODE} Google access token.
+     * <p>
+     * This provider must be enabled on MongoDB Realm to work.
+     *
+     * @param authorizationCode the authorization code returned when logging in to Google.
+     * @return a set of credentials that can be used to log into MongoDB Realm using
+     * {@link App#loginAsync(Credentials, App.Callback)}.
+     * @deprecated Use {@link Credentials#google(String, GoogleAuthType)} instead.
+     */
+    @Deprecated
+    public static Credentials google(String authorizationCode) {
+        return google(authorizationCode, GoogleAuthType.AUTH_CODE);
     }
 
     /**
@@ -189,7 +193,7 @@ public class Credentials {
      */
     public static Credentials jwt(String jwtToken) {
         Util.checkEmpty(jwtToken, "jwtToken");
-        return new Credentials(OsAppCredentials.jwt(jwtToken), IdentityProvider.JWT);
+        return new Credentials(OsAppCredentials.jwt(jwtToken), Provider.JWT);
     }
 
     /**
@@ -197,7 +201,7 @@ public class Credentials {
      *
      * @return the provider identifying the chosen credentials.
      */
-    public IdentityProvider getIdentityProvider() {
+    public Provider getIdentityProvider() {
         String nativeProvider = osCredentials.getProvider();
         String id = identityProvider.getId();
 
@@ -218,7 +222,7 @@ public class Credentials {
         return osCredentials.asJson();
     }
 
-    private Credentials(OsAppCredentials credentials, IdentityProvider identityProvider) {
+    private Credentials(OsAppCredentials credentials, Provider identityProvider) {
         this.osCredentials = credentials;
         this.identityProvider = identityProvider;
     }
@@ -228,12 +232,11 @@ public class Credentials {
      * All of these except {@link #EMAIL_PASSWORD} must be enabled manually on MongoDB Realm to
      * work.
      *
-     * @see <a href="https://docs.mongodb.com/stitch/authentication/providers/">Authentication Providers</a>
+     * @see <a href="https://docs.mongodb.com/realm/authentication/providers/">Authentication Providers</a>
      */
-    public enum IdentityProvider {
+    public enum Provider {
         ANONYMOUS("anon-user"),
-        API_KEY("api-key"),
-        SERVER_API_KEY("api-key"),      // same value as API_KEY as per OS specifications
+        API_KEY("api-key"),    // same value as API_KEY as per OS specifications
         APPLE("oauth2-apple"),
         CUSTOM_FUNCTION("custom-function"),
         EMAIL_PASSWORD("local-userpass"),
@@ -249,8 +252,8 @@ public class Credentials {
          * @return the enum representing the provider or {@link #UNKNOWN} if no matching provider
          * was found.
          */
-        public static IdentityProvider fromId(String id) {
-            for (IdentityProvider value : values()) {
+        public static Provider fromId(String id) {
+            for (Provider value : values()) {
                 if (value.getId().equals(id)) {
                     return value;
                 }
@@ -260,7 +263,7 @@ public class Credentials {
 
         private final String id;
 
-        IdentityProvider(String id) {
+        Provider(String id) {
             this.id = id;
         }
 

@@ -29,31 +29,29 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.BuildConfig;
 import io.realm.Realm;
-import io.realm.annotations.Beta;
-import io.realm.internal.mongodb.Request;
-import io.realm.mongodb.auth.EmailPasswordAuth;
 import io.realm.RealmAsyncTask;
-import io.realm.mongodb.sync.Sync;
+import io.realm.annotations.Beta;
 import io.realm.internal.KeepMember;
-import io.realm.internal.network.ResultHandler;
 import io.realm.internal.Util;
 import io.realm.internal.async.RealmThreadPoolExecutor;
-import io.realm.internal.jni.OsJNIResultCallback;
-import io.realm.internal.network.OkHttpNetworkTransport;
+import io.realm.internal.mongodb.Request;
+import io.realm.internal.objectstore.OsApp;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
+import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.log.RealmLog;
+import io.realm.mongodb.auth.EmailPasswordAuth;
 import io.realm.mongodb.functions.Functions;
+import io.realm.mongodb.sync.Sync;
 
 /**
  * An <i>App</i> is the main client-side entry point for interacting with a <i>MongoDB Realm App</i>.
- *
+ * <p>
  * The <i>App</i> can be used to:
  * <ul>
  *   <li>Register uses and perform various user-related operations through authentication providers
@@ -69,7 +67,7 @@ import io.realm.mongodb.functions.Functions;
  * <pre>
  *    class MyApplication extends Application {
  *
- *         App APP;
+ *         App APP; // The App instance should be a global singleton
  *
  *         \@Override
  *         public void onCreate() {
@@ -93,14 +91,14 @@ import io.realm.mongodb.functions.Functions;
  * show the synchronized APIs which cannot be used from the main thread. For the equivalent
  * asynchronous counterparts. The example project in please see
  * https://github.com/realm/realm-java/tree/v10/examples/mongoDbRealmExample.
- *
+ * <p>
  * To register a new user and/or login with an existing user do as shown below:
  * <pre>
  *     // Register new user
- *     User user = APP.getEmailPasswordAuth().registerUser(username, password);
+ *     APP.getEmailPassword().registerUser(username, password);
  *
  *     // Login with existing user
- *     APP.login(Credentials.emailPassword(username, password))
+ *     User user = APP.login(Credentials.emailPassword(username, password))
  * </pre>
  * <p>
  * With an authorized user you can synchronize data between the local device and the remote Realm
@@ -119,7 +117,7 @@ import io.realm.mongodb.functions.Functions;
  *     instance.close();
  * </pre>
  * <p>
- * You can call remove Realm functions as shown below:
+ * You can call remote Realm functions as shown below:
  * <pre>
  *     Functions functions = user.getFunctions();
  *     Integer sum = functions.callFunction("sum", Arrays.asList(1, 2, 3, 4), Integer.class);
@@ -143,21 +141,14 @@ import io.realm.mongodb.functions.Functions;
 @Beta
 public class App {
 
+    @KeepMember
+    final OsApp osApp;
+
     static final class SyncImpl extends Sync {
         protected SyncImpl(App app) {
-            super(app);
+            super(app, app.osApp.getNativePtr());
         }
     }
-
-    // Implementation notes:
-    // The public API's currently only allow for one App, however this is a restriction
-    // we might want to lift in the future. So any implementation details so ideally be made
-    // with that in mind, i.e. keep static state to minimum.
-
-    // Currently we only allow one instance of App (due to restrictions in ObjectStore that
-    // only allows one underlying SyncClient).
-    // FIXME: Lift this restriction so it is possible to create multiple app instances.
-    public volatile static boolean CREATED = false;
 
     /**
      * Thread pool used when doing network requests against MongoDB Realm.
@@ -169,9 +160,7 @@ public class App {
     public static ThreadPoolExecutor NETWORK_POOL_EXECUTOR = RealmThreadPoolExecutor.newDefaultExecutor();
 
     private final AppConfiguration config;
-    protected OsJavaNetworkTransport networkTransport;
     final Sync syncManager;
-    final long nativePtr;
     private final EmailPasswordAuth emailAuthProvider = new EmailPasswordAuthImpl(this);
     private CopyOnWriteArrayList<AuthenticationListener> authListeners = new CopyOnWriteArrayList<>();
     private Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -184,49 +173,20 @@ public class App {
      * Constructor for creating an <i>App</i> according to the given <i>AppConfiguration</i>.
      *
      * @param config The configuration to use for this <i>App</i> instance.
-     *
      * @see AppConfiguration.Builder
      */
     public App(AppConfiguration config) {
         this.config = config;
-        this.networkTransport = new OkHttpNetworkTransport(config.getHttpLogObfuscator());
-        networkTransport.setAuthorizationHeaderName(config.getAuthorizationHeaderName());
-        for (Map.Entry<String, String> entry : config.getCustomRequestHeaders().entrySet()) {
-            networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());
-        }
+        this.osApp = init(config);
         this.syncManager = new SyncImpl(this);
-        this.nativePtr = init(config);
-
-        // FIXME: Right now we only support one App. This class will throw a
-        // exception if you try to create it twice. This is a really hacky way to do this
-        // Figure out a better API that is always forward compatible
-        synchronized (Sync.class) {
-            if (CREATED) {
-                throw new IllegalStateException("Only one App is currently supported. " +
-                        "This restriction will be lifted soon. Instead, store the App" +
-                        "instance in a shared global variable.");
-            }
-            CREATED = true;
-        }
     }
 
-    private long init(AppConfiguration config) {
+    private OsApp init(AppConfiguration config) {
         String userAgentBindingInfo = getBindingInfo();
         String appDefinedUserAgent = getAppInfo(config);
         String syncDir = getSyncBaseDirectory();
-        return nativeCreate(
-                config.getAppId(),
-                config.getBaseUrl().toString(),
-                config.getAppName(),
-                config.getAppVersion(),
-                config.getRequestTimeoutMs(),
-                config.getEncryptionKey(),
-                syncDir,
-                userAgentBindingInfo,
-                appDefinedUserAgent,
-                "android",
-                android.os.Build.VERSION.RELEASE,
-                io.realm.BuildConfig.VERSION_NAME);
+
+        return new OsApp(config, userAgentBindingInfo, appDefinedUserAgent, syncDir);
     }
 
     private String getSyncBaseDirectory() {
@@ -312,8 +272,8 @@ public class App {
      */
     @Nullable
     public User currentUser() {
-        Long userPtr = nativeCurrentUser(nativePtr);
-        return (userPtr != null) ? new User(userPtr, this) : null;
+        OsSyncUser osSyncUser = osApp.currentUser();
+        return (osSyncUser != null) ? new User(osSyncUser, this) : null;
     }
 
     /**
@@ -325,10 +285,11 @@ public class App {
      * @return a map of user identifiers and users known locally.
      */
     public Map<String, User> allUsers() {
-        long[] nativeUsers = nativeGetAllUsers(nativePtr);
-        HashMap<String, User> users = new HashMap<>(nativeUsers.length);
-        for (int i = 0; i < nativeUsers.length; i++) {
-            User user = new User(nativeUsers[i], this);
+        OsSyncUser[] allUsers = osApp.allUsers();
+
+        HashMap<String, User> users = new HashMap<>(allUsers.length);
+        for (int i = 0; i < allUsers.length; i++) {
+            User user = new User(allUsers[i], this);
             users.put(user.getId(), user);
         }
         return users;
@@ -344,8 +305,37 @@ public class App {
      */
     public User switchUser(User user) {
         Util.checkNull(user, "user");
-        nativeSwitchUser(nativePtr, user.osUser.getNativePtr());
+        osApp.switchUser(user.osUser);
+
         return user;
+    }
+
+    /**
+     * Removes a users credentials from this device. If the user was currently logged in, they
+     * will be logged out as part of the process. This is only a local change and does not
+     * affect the user state on the server.
+     *
+     * @param user to remove
+     * @return user that was removed.
+     * @throws AppException if called from the UI thread or if the user was logged in, but
+     *                      could not be logged out.
+     */
+    public User removeUser(User user) throws AppException {
+        return user.remove();
+    }
+
+    /**
+     * Removes a user's credentials from this device. If the user was currently logged in, they
+     * will be logged out as part of the process. This is only a local change and does not
+     * affect the user state on the server.
+     *
+     * @param user to remove
+     * @param callback callback when removing the user has completed or failed. The callback will always
+     *                 happen on the same thread as this method is called on.
+     * @throws IllegalStateException if called from a non-looper thread.
+     */
+    RealmAsyncTask removeAsync(User user, App.Callback<User> callback) {
+        return user.removeAsync(callback);
     }
 
     /**
@@ -366,16 +356,10 @@ public class App {
      */
     public User login(Credentials credentials) throws AppException {
         Util.checkNull(credentials, "credentials");
-        AtomicReference<User> success = new AtomicReference<>(null);
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        nativeLogin(nativePtr, credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<User>(success, error) {
-            @Override
-            protected User mapSuccess(Object result) {
-                Long nativePtr = (Long) result;
-                return new User(nativePtr, App.this);
-            }
-        });
-        User user = ResultHandler.handleResult(success, error);
+
+        OsSyncUser osSyncUser = osApp.login(credentials.osCredentials);
+        User user = new User(osSyncUser, this);
+
         notifyUserLoggedIn(user);
         return user;
     }
@@ -415,11 +399,11 @@ public class App {
      * {@link #switchUser(User)}.
      *
      * @param credentials the credentials representing the type of login.
-     * @param callback callback when logging in has completed or failed. The callback will always
-     * happen on the same thread as this method is called on.
+     * @param callback    callback when logging in has completed or failed. The callback will always
+     *                    happen on the same thread as this method is called on.
      * @throws IllegalStateException if not called on a looper thread.
      */
-     public RealmAsyncTask loginAsync(Credentials credentials, Callback<User> callback) {
+    public RealmAsyncTask loginAsync(Credentials credentials, Callback<User> callback) {
         Util.checkLooperThread("Asynchronous log in is only possible from looper threads.");
         return new Request<User>(NETWORK_POOL_EXECUTOR, callback) {
             @Override
@@ -431,13 +415,13 @@ public class App {
 
     /**
      * Returns a wrapper for interacting with functionality related to users either being created or
-     * logged in using the {@link Credentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
+     * logged in using the {@link Credentials.Provider#EMAIL_PASSWORD} identity provider.
      *
-     * @return wrapper for interacting with the {@link Credentials.IdentityProvider#EMAIL_PASSWORD} identity provider.
+     * @return wrapper for interacting with the {@link Credentials.Provider#EMAIL_PASSWORD} identity provider.
      */
-    public EmailPasswordAuth getEmailPasswordAuth() {
-         return emailAuthProvider;
-     }
+    public EmailPasswordAuth getEmailPassword() {
+        return emailAuthProvider;
+    }
 
     /**
      * Sets a global authentication listener that will be notified about User events like
@@ -512,17 +496,34 @@ public class App {
 
     /**
      * Exposed for testing.
-     *
+     * <p>
      * Swap the currently configured network transport with the provided one.
      * This should only be done if no network requests are currently running.
      */
-    void setNetworkTransport(OsJavaNetworkTransport transport) {
-        networkTransport = transport;
+    protected void setNetworkTransport(OsJavaNetworkTransport transport) {
+        osApp.setNetworkTransport(transport);
     }
 
-    @KeepMember // Called from JNI
-    OsJavaNetworkTransport getNetworkTransport() {
-        return networkTransport;
+    /**
+     * Two Apps are considered equal and will share their underlying state if they both refer
+     * to the same {@link AppConfiguration#getAppId()}.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        App app = (App) o;
+
+        if (!osApp.equals(app.osApp)) return false;
+        return config.equals(app.config);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = osApp.hashCode();
+        result = 31 * result + config.hashCode();
+        return result;
     }
 
     /**
@@ -633,22 +634,4 @@ public class App {
          */
         void onResult(Result<T> result);
     }
-
-    private native long nativeCreate(String appId,
-                                     String baseUrl,
-                                     String appName,
-                                     String appVersion,
-                                     long requestTimeoutMs,
-                                     byte[] encryptionKey,
-                                     String syncDirPath,
-                                     String bindingUserInfo,
-                                     String appUserInfo,
-                                     String platform,
-                                     String platformVersion,
-                                     String sdkVersion);
-    private static native void nativeLogin(long nativeAppPtr, long nativeCredentialsPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
-    @Nullable
-    private static native Long nativeCurrentUser(long nativePtr);
-    private static native long[] nativeGetAllUsers(long nativePtr);
-    private static native void nativeSwitchUser(long nativeAppPtr, long nativeUserPtr);
 }

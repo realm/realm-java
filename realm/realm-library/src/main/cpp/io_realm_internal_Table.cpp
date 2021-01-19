@@ -22,7 +22,7 @@
 
 #include "java_accessor.hpp"
 #include "java_exception_def.hpp"
-#include "shared_realm.hpp"
+#include <realm/object-store/shared_realm.hpp>
 #include "jni_util/java_exception_thrower.hpp"
 
 #include <realm/util/to_string.hpp>
@@ -40,13 +40,18 @@ static void finalize_table(jlong ptr);
 
 inline static bool is_allowed_to_index(JNIEnv* env, DataType column_type)
 {
-    if (!(column_type == type_String || column_type == type_Int || column_type == type_Bool ||
-          column_type == type_Timestamp || column_type == type_OldDateTime)) {
-        ThrowException(env, IllegalArgument, "This field cannot be indexed - "
-                                             "Only String/byte/short/int/long/boolean/Date fields are supported.");
-        return false;
+    if (column_type == type_String
+           || column_type == type_Int
+           || column_type == type_Bool
+           || column_type == type_Timestamp
+           || column_type == type_OldDateTime
+           || column_type == type_ObjectId) {
+        return true;
     }
-    return true;
+
+    ThrowException(env, IllegalArgument, "This field cannot be indexed - "
+                                         "Only String/byte/short/int/long/boolean/Date/ObjectId fields are supported.");
+    return false;
 }
 
 // Note: Don't modify spec on a table which has a shared_spec.
@@ -96,9 +101,20 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumnLink(JNIEnv*
         return 0;
     }
     try {
-        JStringAccessor name2(env, name); // throws
+        JStringAccessor name_accessor(env, name); // throws
         TableRef table = TBL_REF(nativeTableRefPtr);
-        return static_cast<jlong>(table->add_column_link(DataType(colType), name2, *targetTableRef).value);
+        auto data_type = DataType(colType);
+
+        if (REALM_UNLIKELY(!Table::is_link_type(ColumnType(data_type))))
+            throw LogicError(LogicError::illegal_type);
+
+        if (data_type == type_LinkList) {
+            return static_cast<jlong>(table->add_column_list(*targetTableRef, name_accessor).value);
+        }
+        else {
+            REALM_ASSERT(data_type == type_Link);
+            return static_cast<jlong>(table->add_column(*targetTableRef, name_accessor).value);
+        }
     }
     CATCH_STD()
     return 0;
@@ -849,6 +865,22 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstString(JNIEn
     try {
         JStringAccessor value2(env, value); // throws
         return to_jlong_or_not_found(table->find_first_string(ColKey(columnKey), value2));
+    }
+    CATCH_STD()
+    return -1;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstDecimal128(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                             jlong columnKey, jlong low, jlong high)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, type_Decimal)) {
+        return -1;
+    }
+
+    try {
+        Decimal128::Bid128 raw {static_cast<uint64_t>(low), static_cast<uint64_t>(high)};
+        return to_jlong_or_not_found(table->find_first_decimal(ColKey(columnKey), Decimal128(raw)));
     }
     CATCH_STD()
     return -1;

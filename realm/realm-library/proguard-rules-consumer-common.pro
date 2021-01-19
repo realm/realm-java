@@ -20,3 +20,11 @@
 }
 
 -dontnote rx.Observable
+
+# Referenced from JNI
+-keep class org.bson.types.Decimal128 {
+    public static org.bson.types.Decimal128 fromIEEE754BIDEncoding(...);
+}
+-keep class org.bson.types.ObjectId {
+    <init>(...);
+}

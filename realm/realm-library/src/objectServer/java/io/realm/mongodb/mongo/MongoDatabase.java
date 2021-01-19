@@ -54,8 +54,10 @@ public class MongoDatabase {
      */
     public MongoCollection<Document> getCollection(final String collectionName) {
         Util.checkEmpty(collectionName, "collectionName");
-        return new MongoCollection<>(new MongoNamespace(name, collectionName),
-                osMongoDatabase.getCollection(collectionName));
+        MongoNamespace namespace = new MongoNamespace(name, collectionName);
+
+        return new MongoCollection<>(namespace,
+                osMongoDatabase.getCollection(collectionName, namespace));
     }
 
     /**
@@ -72,7 +74,8 @@ public class MongoDatabase {
     ) {
         Util.checkEmpty(collectionName, "collectionName");
         Util.checkNull(documentClass, "documentClass");
-        return new MongoCollection<>(new MongoNamespace(name, collectionName),
-                osMongoDatabase.getCollection(collectionName, documentClass));
+        MongoNamespace namespace = new MongoNamespace(name, collectionName);
+        return new MongoCollection<>(namespace,
+                osMongoDatabase.getCollection(collectionName, namespace, documentClass));
     }
 }

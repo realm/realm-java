@@ -35,7 +35,7 @@ import static io.realm.mongodb.App.NETWORK_POOL_EXECUTOR;
 
 /**
  * Class encapsulating functionality provided when {@link User}'s are logged in through the
- * {@link Credentials.IdentityProvider#EMAIL_PASSWORD} provider.
+ * {@link Credentials.Provider#EMAIL_PASSWORD} provider.
  */
 @Beta
 public abstract class EmailPasswordAuth {
@@ -46,6 +46,7 @@ public abstract class EmailPasswordAuth {
     private static final int TYPE_SEND_RESET_PASSWORD_EMAIL = 4;
     private static final int TYPE_CALL_RESET_PASSWORD_FUNCTION = 5;
     private static final int TYPE_RESET_PASSWORD = 6;
+    private static final int TYPE_RETRY_CUSTOM_CONFIRMATION = 7;
 
     protected final App app;
 
@@ -165,6 +166,38 @@ public abstract class EmailPasswordAuth {
     }
 
     /**
+     * Retries the custom confirmation on a user for a given email.
+     *
+     * @param email the email of the user.
+     * @throws AppException if the server failed to confirm the user.
+     */
+    public void retryCustomConfirmation(String email) throws AppException {
+        Util.checkEmpty(email, "email");
+        AtomicReference<AppException> error = new AtomicReference<>(null);
+        call(TYPE_RETRY_CUSTOM_CONFIRMATION, new OsJNIVoidResultCallback(error), email);
+        ResultHandler.handleResult(null, error);
+    }
+
+    /**
+     * Retries the custom confirmation on a user for a given email.
+     *
+     * @param email the email of the user.
+     * @param callback callback when retrying the custom confirmation has completed or failed. The callback will
+     * always happen on the same thread as this method is called on.
+     * @throws IllegalStateException if called from a non-looper thread.
+     */
+    public RealmAsyncTask retryCustomConfirmationAsync(String email, App.Callback<Void> callback) {
+        Util.checkLooperThread("Asynchronous retry custom confirmation is only possible from looper threads.");
+        return new Request<Void>(NETWORK_POOL_EXECUTOR, callback) {
+            @Override
+            public Void run() throws AppException {
+                retryCustomConfirmation(email);
+                return null;
+            }
+        }.start();
+    }
+
+    /**
      * Sends a user a password reset email for the given email.
      *
      * @param email the email of the user.
@@ -198,7 +231,7 @@ public abstract class EmailPasswordAuth {
 
     /**
      * Call the reset password function configured to the
-     * {@link Credentials.IdentityProvider#EMAIL_PASSWORD} provider.
+     * {@link Credentials.Provider#EMAIL_PASSWORD} provider.
      *
      * @param email the email of the user.
      * @param newPassword the new password of the user.
@@ -217,7 +250,7 @@ public abstract class EmailPasswordAuth {
 
     /**
      * Call the reset password function configured to the
-     * {@link Credentials.IdentityProvider#EMAIL_PASSWORD} provider.
+     * {@link Credentials.Provider#EMAIL_PASSWORD} provider.
      *
      * @param email the email of the user.
      * @param newPassword the new password of the user.
@@ -252,7 +285,9 @@ public abstract class EmailPasswordAuth {
         Util.checkEmpty(tokenId, "tokenId");
         Util.checkEmpty(newPassword, "newPassword");
         AtomicReference<AppException> error = new AtomicReference<>(null);
-        call(TYPE_RESET_PASSWORD, new OsJNIVoidResultCallback(error), token, tokenId, newPassword);
+        // The order of arguments in ObjectStore is different than the order of arguments in the
+        // Java API. The Java API order came from the old Stitch API.
+        call(TYPE_RESET_PASSWORD, new OsJNIVoidResultCallback(error), newPassword, token, tokenId);
         ResultHandler.handleResult(null, error);
     }
 

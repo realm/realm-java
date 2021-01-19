@@ -16,14 +16,21 @@
 
 package io.realm.entities;
 
+import org.bson.types.ObjectId;
+
 import io.realm.RealmObject;
 import io.realm.annotations.Index;
+import io.realm.annotations.PrimaryKey;
 
 
 public class IndexedFields extends RealmObject {
-
+    public static final String CLASS_NAME = IndexedFields.class.getSimpleName();
+    public static final String FIELD_PRIMARY_STRING = "_id";
     public static final String FIELD_INDEXED_STRING = "indexedString";
     public static final String FIELD_NON_INDEXED_STRING = "nonIndexedString";
+
+    @PrimaryKey
+    public ObjectId _id = new ObjectId();
 
     @Index
     public String indexedString;

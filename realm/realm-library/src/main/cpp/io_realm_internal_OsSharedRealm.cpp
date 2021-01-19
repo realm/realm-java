@@ -16,22 +16,23 @@
 
 #include "io_realm_internal_OsSharedRealm.h"
 #if REALM_ENABLE_SYNC
-#include "object-store/src/sync/sync_manager.hpp"
-#include "object-store/src/sync/sync_config.hpp"
-#include "object-store/src/sync/sync_session.hpp"
-#include "object-store/src/results.hpp"
+#include <realm/sync/config.hpp>
+#include <realm/sync/object.hpp>
+#include <realm/object-store/sync/sync_manager.hpp>
+#include <realm/object-store/sync/sync_session.hpp>
+#include <realm/object-store/results.hpp>
 
 #include "observable_collection_wrapper.hpp"
 #endif
 
 #include <realm/util/assert.hpp>
 
-#include <shared_realm.hpp>
+#include <realm/object-store/shared_realm.hpp>
 
 #include "java_accessor.hpp"
 #include "java_binding_context.hpp"
 #include "java_exception_def.hpp"
-#include "object_store.hpp"
+#include <realm/object-store/object_store.hpp>
 #include "util.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/java_class.hpp"
@@ -275,7 +276,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTable(J
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTableWithPrimaryKeyField(
-    JNIEnv* env, jclass, jlong shared_realm_ptr, jstring j_table_name, jstring j_field_name, jboolean is_string_type,
+    JNIEnv* env, jclass, jlong shared_realm_ptr, jstring j_table_name, jstring j_field_name, jint j_field_type,
     jboolean is_nullable)
 {
     std::string class_name_str;
@@ -285,7 +286,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTableWi
         JStringAccessor field_name(env, j_field_name); // throws
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
         shared_realm->verify_in_write(); // throws
-        DataType pkType = is_string_type ? DataType::type_String : DataType::type_Int;
+
+        DataType pkType = static_cast<DataType>(j_field_type);
         TableRef table;
         auto& group = shared_realm->read_group();
 #if REALM_ENABLE_SYNC
@@ -506,4 +508,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeFreeze(JNIEnv
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeNumberOfVersions(JNIEnv* env, jclass, jlong shared_realm_ptr)
+{
+    try {
+        auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+        return to_jlong_or_not_found(shared_realm->get_number_of_versions());
+    }
+    CATCH_STD()
+    return 0;
 }

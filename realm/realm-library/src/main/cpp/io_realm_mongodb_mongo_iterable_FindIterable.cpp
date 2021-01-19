@@ -22,10 +22,10 @@
 #include "jni_util/java_method.hpp"
 #include "jni_util/jni_utils.hpp"
 #include "jni_util/bson_util.hpp"
-#include "object-store/src/util/bson/bson.hpp"
 
 #include <realm/util/optional.hpp>
-#include <sync/remote_mongo_collection.hpp>
+#include <realm/object-store//util/bson/bson.hpp>
+#include <realm/object-store/sync/mongo_collection.hpp>
 #include <jni_util/bson_util.hpp>
 
 using namespace realm;
@@ -48,7 +48,7 @@ Java_io_realm_mongodb_mongo_iterable_FindIterable_nativeFind(JNIEnv *env,
                                                              jlong j_limit,
                                                              jobject j_callback) {
     try {
-        auto collection = reinterpret_cast<RemoteMongoCollection*>(j_collection_ptr);
+        auto collection = reinterpret_cast<MongoCollection*>(j_collection_ptr);
 
         bson::BsonDocument filter(JniBsonProtocol::parse_checked(env, j_filter, Bson::Type::Document, "BSON filter must be a Document"));
 
@@ -60,7 +60,7 @@ Java_io_realm_mongodb_mongo_iterable_FindIterable_nativeFind(JNIEnv *env,
                 uint64_t limit = std::uint64_t(j_limit);
                 bson::BsonDocument projection(JniBsonProtocol::parse_checked(env, j_projection, Bson::Type::Document, "BSON projection must be a Document"));
                 bson::BsonDocument sort(JniBsonProtocol::parse_checked(env, j_sort, Bson::Type::Document, "BSON sort must be a Document"));
-                RemoteMongoCollection::RemoteFindOptions options = {
+                MongoCollection::FindOptions options = {
                         limit,
                         projection,
                         sort

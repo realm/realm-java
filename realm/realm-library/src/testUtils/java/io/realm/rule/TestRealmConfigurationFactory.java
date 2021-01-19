@@ -179,6 +179,9 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
             builder.encryptionKey(key);
         }
 
+        // Allow writes on UI
+        builder.allowWritesOnUiThread(true);
+
         RealmConfiguration configuration = builder.build();
         configurations.add(configuration);
 

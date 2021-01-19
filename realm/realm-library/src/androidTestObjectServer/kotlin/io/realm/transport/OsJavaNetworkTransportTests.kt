@@ -18,6 +18,7 @@ package io.realm.transport
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
+import io.realm.internal.network.OkHttpNetworkTransport
 import io.realm.internal.objectstore.OsJavaNetworkTransport
 import io.realm.mongodb.*
 import org.junit.After
@@ -58,7 +59,7 @@ class OsJavaNetworkTransportTests {
         app = TestApp(object: OsJavaNetworkTransport() {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
                 var result = ""
-                if (url.endsWith("/providers/${Credentials.IdentityProvider.ANONYMOUS.id}/login")) {
+                if (url.endsWith("/providers/${Credentials.Provider.ANONYMOUS.id}/login")) {
                     result = """
                         {
                             "access_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjVlNjk2M2RmYWZlYTYzMjU0NTgxYzAyNiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODM5NjcyMDgsImlhdCI6MTU4Mzk2NTQwOCwiaXNzIjoiNWU2OTY0ZTBhZmVhNjMyNTQ1ODFjMWEzIiwic3RpdGNoX2RldklkIjoiMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwIiwic3RpdGNoX2RvbWFpbklkIjoiNWU2OTYzZGVhZmVhNjMyNTQ1ODFjMDI1Iiwic3ViIjoiNWU2OTY0ZTBhZmVhNjMyNTQ1ODFjMWExIiwidHlwIjoiYWNjZXNzIn0.J4mp8LnlsxTQRV_7W2Er4qY0tptR76PJGG1k6HSMmUYqgfpJC2Fnbcf1VCoebzoNolH2-sr8AHDVBBCyjxRjqoY9OudFHmWZKmhDV1ysxPP4XmID0nUuN45qJSO8QEAqoOmP1crXjrUZWedFw8aaCZE-bxYfvcDHyjBcbNKZqzawwUw2PyTOlrNjgs01k2J4o5a5XzYkEsJuzr4_8UqKW6zXvYj24UtqnqoYatW5EzpX63m2qig8AcBwPK4ZHb5wEEUdf4QZxkRY5QmTgRHP8SSqVUB_mkHgKaizC_tSB3E0BekaDfLyWVC1taAstXJNfzgFtLI86AzuXS2dCiCfqQ",
@@ -95,7 +96,7 @@ class OsJavaNetworkTransportTests {
                         }
                     """.trimIndent()
                 } else if (url.endsWith("/location")) {
-                    return Response.httpResponse(200, mapOf(), """
+                    return OkHttpNetworkTransport.Response.httpResponse(200, mapOf(), """
                         { "deployment_model" : "GLOBAL",
                           "location": "US-VA", 
                           "hostname": "http://localhost:9090",
@@ -105,7 +106,11 @@ class OsJavaNetworkTransportTests {
                 } else {
                     fail("Unexpected request url: $url")
                 }
-                return Response.httpResponse(200, successHeaders, result)
+                return OkHttpNetworkTransport.Response.httpResponse(200, successHeaders, result)
+            }
+
+            override fun sendStreamingRequest(request: Request): Response {
+                throw IllegalAccessError()
             }
         })
 
@@ -127,7 +132,11 @@ class OsJavaNetworkTransportTests {
                         "link": "http://localhost:9090/some_link"
                     }                
                     """.trimIndent()
-                return Response.httpResponse(200, successHeaders, result)
+                return OkHttpNetworkTransport.Response.httpResponse(200, successHeaders, result)
+            }
+
+            override fun sendStreamingRequest(request: Request): Response {
+                throw IllegalAccessError()
             }
         })
 
@@ -147,7 +156,11 @@ class OsJavaNetworkTransportTests {
     fun requestFailWithHttpError() {
         app = TestApp(object: OsJavaNetworkTransport() {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
-                return Response.httpResponse(500, mapOf(), "Boom!")
+                return OkHttpNetworkTransport.Response.httpResponse(500, mapOf(), "Boom!")
+            }
+
+            override fun sendStreamingRequest(request: Request): Response {
+                throw IllegalAccessError()
             }
         })
 
@@ -166,7 +179,11 @@ class OsJavaNetworkTransportTests {
     fun requestFailWithCustomError() {
         app = TestApp(object: OsJavaNetworkTransport() {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
-                return Response.ioError("Boom!")
+                return OkHttpNetworkTransport.Response.ioError("Boom!")
+            }
+
+            override fun sendStreamingRequest(request: Request): Response {
+                throw IllegalAccessError()
             }
         })
 
@@ -189,6 +206,10 @@ class OsJavaNetworkTransportTests {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
                 throw IllegalStateException("Boom!")
             }
+
+            override fun sendStreamingRequest(request: Request): Response {
+                throw IllegalAccessError()
+            }
         })
 
         val creds = Credentials.anonymous()
@@ -206,6 +227,10 @@ class OsJavaNetworkTransportTests {
         app = TestApp(object: OsJavaNetworkTransport() {
             override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
                 throw Error("Boom!")
+            }
+
+            override fun sendStreamingRequest(request: Request): Response {
+                throw IllegalAccessError()
             }
         })
 

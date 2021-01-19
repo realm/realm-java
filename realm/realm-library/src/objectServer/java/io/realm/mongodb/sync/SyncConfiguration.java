@@ -20,6 +20,7 @@ import android.content.Context;
 
 import org.bson.BsonInt32;
 import org.bson.BsonInt64;
+import org.bson.BsonNull;
 import org.bson.BsonObjectId;
 import org.bson.BsonString;
 import org.bson.BsonValue;
@@ -38,6 +39,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -47,15 +49,18 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
 import io.realm.RealmModel;
+import io.realm.RealmQuery;
 import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
+import io.realm.coroutines.FlowFactory;
+import io.realm.coroutines.RealmFlowFactory;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Util;
 import io.realm.mongodb.App;
-import io.realm.mongodb.User;
 import io.realm.mongodb.Credentials;
+import io.realm.mongodb.User;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 
@@ -97,6 +102,7 @@ public class SyncConfiguration extends RealmConfiguration {
     private final URI serverUrl;
     private final User user;
     private final SyncSession.ErrorHandler errorHandler;
+    private final SyncSession.ClientResetHandler clientResetHandler;
     private final boolean deleteRealmOnLogout;
     private final boolean waitForInitialData;
     private final long initialDataTimeoutMillis;
@@ -114,12 +120,16 @@ public class SyncConfiguration extends RealmConfiguration {
                               OsRealmConfig.Durability durability,
                               RealmProxyMediator schemaMediator,
                               @Nullable RxObservableFactory rxFactory,
+                              @Nullable FlowFactory flowFactory,
                               @Nullable Realm.Transaction initialDataTransaction,
                               boolean readOnly,
                               long maxNumberOfActiveVersions,
+                              boolean allowWritesOnUiThread,
+                              boolean allowQueriesOnUiThread,
                               User user,
                               URI serverUrl,
                               SyncSession.ErrorHandler errorHandler,
+                              SyncSession.ClientResetHandler clientResetHandler,
                               boolean deleteRealmOnLogout,
                               boolean waitForInitialData,
                               long initialDataTimeoutMillis,
@@ -137,16 +147,20 @@ public class SyncConfiguration extends RealmConfiguration {
                 durability,
                 schemaMediator,
                 rxFactory,
+                flowFactory,
                 initialDataTransaction,
                 readOnly,
                 compactOnLaunch,
                 false,
-                maxNumberOfActiveVersions
+                maxNumberOfActiveVersions,
+                allowWritesOnUiThread,
+                allowQueriesOnUiThread
         );
 
         this.user = user;
         this.serverUrl = serverUrl;
         this.errorHandler = errorHandler;
+        this.clientResetHandler = clientResetHandler;
         this.deleteRealmOnLogout = deleteRealmOnLogout;
         this.waitForInitialData = waitForInitialData;
         this.initialDataTimeoutMillis = initialDataTimeoutMillis;
@@ -197,7 +211,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * @return the default configuration for the given user and partition value.
      */
     @Beta
-    public static SyncConfiguration defaultConfig(User user, String partitionValue) {
+    public static SyncConfiguration defaultConfig(User user, @Nullable String partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
@@ -209,7 +223,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * @return the default configuration for the given user and partition value.
      */
     @Beta
-    public static SyncConfiguration defaultConfig(User user, long partitionValue) {
+    public static SyncConfiguration defaultConfig(User user, @Nullable Long partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
@@ -221,7 +235,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * @return the default configuration for the given user and partition value.
      */
     @Beta
-    public static SyncConfiguration defaultConfig(User user, int partitionValue) {
+    public static SyncConfiguration defaultConfig(User user, @Nullable Integer partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
@@ -233,7 +247,7 @@ public class SyncConfiguration extends RealmConfiguration {
      * @return the default configuration for the given user and partition value.
      */
     @Beta
-    public static SyncConfiguration defaultConfig(User user, ObjectId partitionValue) {
+    public static SyncConfiguration defaultConfig(User user, @Nullable ObjectId partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
@@ -356,6 +370,15 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
+     * Returns the Client Reset handler for this <i>SyncConfiguration</i>.
+     *
+     * @return the Client Reset handler.
+     */
+    public SyncSession.ClientResetHandler getClientResetHandler() {
+        return clientResetHandler;
+    }
+
+    /**
      * Returns {@code true} if the Realm file must be deleted once the {@link User} owning it logs out.
      *
      * @return {@code true} if the Realm file must be deleted if the {@link User} logs out. {@code false} if the file
@@ -431,6 +454,11 @@ public class SyncConfiguration extends RealmConfiguration {
         return partitionValue;
     }
 
+    @Override
+    protected boolean realmExists() {
+        return super.realmExists();
+    }
+
     /**
      * Builder used to construct instances of a SyncConfiguration in a fluent manner.
      */
@@ -444,6 +472,8 @@ public class SyncConfiguration extends RealmConfiguration {
         @Nullable
         private RxObservableFactory rxFactory;
         @Nullable
+        private FlowFactory flowFactory;
+        @Nullable
         private Realm.Transaction initialDataTransaction;
         @Nullable
         private String filename;
@@ -456,12 +486,15 @@ public class SyncConfiguration extends RealmConfiguration {
         private URI serverUrl;
         private User user = null;
         private SyncSession.ErrorHandler errorHandler;
+        private SyncSession.ClientResetHandler clientResetHandler;
         private OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy = OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED;
         private CompactOnLaunchCallback compactOnLaunch;
         private String syncUrlPrefix = null;
         @Nullable // null means the user hasn't explicitly set one. An appropriate default is chosen when calling build()
         private ClientResyncMode clientResyncMode = null;
         private long maxNumberOfActiveVersions = Long.MAX_VALUE;
+        private boolean allowWritesOnUiThread;
+        private boolean allowQueriesOnUiThread;
         private final BsonValue partitionValue;
 
         /**
@@ -471,8 +504,8 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
          */
-        public Builder(User user, String partitionValue) {
-            this(user, new BsonString(partitionValue));
+        public Builder(User user, @Nullable String partitionValue) {
+            this(user, (partitionValue == null? new BsonNull() : new BsonString(partitionValue)));
         }
 
         /**
@@ -482,8 +515,8 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
          */
-        public Builder(User user, ObjectId partitionValue) {
-            this(user, new BsonObjectId(partitionValue));
+        public Builder(User user, @Nullable ObjectId partitionValue) {
+            this(user, (partitionValue == null? new BsonNull() : new BsonObjectId(partitionValue)));
         }
 
         /**
@@ -493,8 +526,8 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
          */
-        public Builder(User user, int partitionValue) {
-            this(user, new BsonInt32(partitionValue));
+        public Builder(User user, @Nullable Integer partitionValue) {
+            this(user, (partitionValue == null? new BsonNull() : new BsonInt32(partitionValue)));
         }
 
         /**
@@ -504,8 +537,8 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
          */
-        public Builder(User user, long partitionValue) {
-            this(user, new BsonInt64(partitionValue));
+        public Builder(User user, @Nullable Long partitionValue) {
+            this(user, (partitionValue == null? new BsonNull() : new BsonInt64(partitionValue)));
         }
 
         /**
@@ -531,6 +564,9 @@ public class SyncConfiguration extends RealmConfiguration {
                 this.modules.add(Realm.getDefaultModule());
             }
             this.errorHandler = user.getApp().getConfiguration().getDefaultErrorHandler();
+            this.clientResetHandler = user.getApp().getConfiguration().getDefaultClientResetHandler();
+            this.allowQueriesOnUiThread = true;
+            this.allowWritesOnUiThread = false;
         }
 
         private void validateAndSet(User user) {
@@ -759,8 +795,25 @@ public class SyncConfiguration extends RealmConfiguration {
          *
          * @param factory factory to use.
          */
-        public Builder rxFactory(RxObservableFactory factory) {
+        public Builder rxFactory(@Nonnull RxObservableFactory factory) {
+            if (factory == null) {
+                throw new IllegalArgumentException("The provided Rx Observable factory must not be null.");
+            }
             rxFactory = factory;
+            return this;
+        }
+
+        /**
+         * Sets the {@link FlowFactory} used to create coroutines Flows from Realm objects.
+         * The default factory is {@link RealmFlowFactory}.
+         *
+         * @param factory factory to use.
+         */
+        public Builder flowFactory(@Nonnull FlowFactory factory) {
+            if (factory == null) {
+                throw new IllegalArgumentException("The provided Flow factory must not be null.");
+            }
+            flowFactory = factory;
             return this;
         }
 
@@ -798,11 +851,20 @@ public class SyncConfiguration extends RealmConfiguration {
          * @throws IllegalArgumentException if {@code null} is given as an error handler.
          */
         public Builder errorHandler(SyncSession.ErrorHandler errorHandler) {
-            //noinspection ConstantConditions
-            if (errorHandler == null) {
-                throw new IllegalArgumentException("Non-null 'errorHandler' required.");
-            }
+            Util.checkNull(errorHandler, "handler");
             this.errorHandler = errorHandler;
+            return this;
+        }
+
+        /**
+         * Sets the handler for when a Client Reset occurs. If no handler is set, and error is
+         * logged when a Client Reset occurs.
+         *
+         * @param handler custom handler in case of a Client Reset.
+         */
+        public Builder clientResetHandler(SyncSession.ClientResetHandler handler) {
+            Util.checkNull(handler, "handler");
+            this.clientResetHandler = handler;
             return this;
         }
 
@@ -984,6 +1046,30 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
+         * Sets whether or not calls to {@link Realm#executeTransaction} are allowed from the UI thread.
+         * <p>
+         * <b>WARNING: Realm does not allow synchronous transactions to be run on the main thread unless users explicitly opt in
+         * with this method.</b> We recommend diverting calls to {@code executeTransaction} to non-UI threads or, alternatively,
+         * using {@link Realm#executeTransactionAsync}.
+         */
+        public Builder allowWritesOnUiThread(boolean allowWritesOnUiThread) {
+            this.allowWritesOnUiThread = allowWritesOnUiThread;
+            return this;
+        }
+
+        /**
+         * Sets whether or not {@code RealmQueries} are allowed from the UI thread.
+         * <p>
+         * By default Realm allows queries on the main thread. However, by doing so your application may experience a drop of
+         * frames or even ANRs. We recommend diverting queries to non-UI threads or, alternatively, using
+         * {@link RealmQuery#findAllAsync()} or {@link RealmQuery#findFirstAsync()}.
+         */
+        public Builder allowQueriesOnUiThread(boolean allowQueriesOnUiThread) {
+            this.allowQueriesOnUiThread = allowQueriesOnUiThread;
+            return this;
+        }
+
+        /**
          * Creates the RealmConfiguration based on the builder parameters.
          *
          * @return the created {@link SyncConfiguration}.
@@ -1018,6 +1104,10 @@ public class SyncConfiguration extends RealmConfiguration {
                 rxFactory = new RealmObservableFactory(true);
             }
 
+            if (flowFactory == null && Util.isCoroutinesAvailable()) {
+                flowFactory = new RealmFlowFactory(true);
+            }
+
             URI resolvedServerUrl = serverUrl;
             syncUrlPrefix = String.format("/api/client/v2.0/app/%s/realm-sync", user.getApp().getConfiguration().getAppId());
 
@@ -1034,14 +1124,18 @@ public class SyncConfiguration extends RealmConfiguration {
                     durability,
                     createSchemaMediator(modules, debugSchema),
                     rxFactory,
+                    flowFactory,
                     initialDataTransaction,
                     readOnly,
                     maxNumberOfActiveVersions,
+                    allowWritesOnUiThread,
+                    allowQueriesOnUiThread,
 
                     // Sync Configuration specific
                     user,
                     resolvedServerUrl,
                     errorHandler,
+                    clientResetHandler,
                     deleteRealmOnLogout,
                     waitForServerChanges,
                     initialDataTimeoutMillis,

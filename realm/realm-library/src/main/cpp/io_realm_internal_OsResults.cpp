@@ -16,9 +16,9 @@
 
 #include "io_realm_internal_OsResults.h"
 
-#include <shared_realm.hpp>
-#include <results.hpp>
-#include <list.hpp>
+#include <realm/object-store/shared_realm.hpp>
+#include <realm/object-store/results.hpp>
+#include <realm/object-store/list.hpp>
 #include <realm/util/optional.hpp>
 
 #include "java_class_global_def.hpp"

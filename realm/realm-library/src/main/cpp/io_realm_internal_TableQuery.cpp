@@ -21,9 +21,9 @@
 #include <realm/table.hpp>
 #include <realm/parser/query_builder.hpp>
 
-#include <shared_realm.hpp>
-#include <object_store.hpp>
-#include <results.hpp>
+#include <realm/object-store/shared_realm.hpp>
+#include <realm/object-store/object_store.hpp>
+#include <realm/object-store/results.hpp>
 
 #include "java_accessor.hpp"
 #include "java_class_global_def.hpp"

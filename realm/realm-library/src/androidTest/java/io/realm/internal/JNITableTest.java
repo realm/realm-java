@@ -18,6 +18,8 @@ package io.realm.internal;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -90,9 +92,13 @@ public class JNITableTest {
         long colKey5 = t.getColumnKey("float");
         long colKey6 = t.getColumnKey("long");
         long colKey7 = t.getColumnKey("string");
+        long colKey8 = t.getColumnKey("decimal128");
+        long colKey9 = t.getColumnKey("object_id");
 
         sharedRealm.beginTransaction();
-        TestHelper.addRowWithValues(t, new long[]{colKey1, colKey2, colKey3, colKey4, colKey5, colKey6, colKey7}, new Object[] {new byte[] {1, 2, 3}, true, new Date(1384423149761L), 4.5D, 5.7F, 100, "string"});
+        TestHelper.addRowWithValues(t,
+                new long[]{colKey1, colKey2, colKey3, colKey4, colKey5, colKey6, colKey7, colKey8, colKey9},
+                new Object[] {new byte[] {1, 2, 3}, true, new Date(1384423149761L), 4.5D, 5.7F, 100, "string", new Decimal128(0), new ObjectId(TestHelper.generateObjectIdHexString(0))});
         sharedRealm.commitTransaction();
 
         assertEquals(-1, t.findFirstBoolean(colKey2, false));
@@ -100,6 +106,9 @@ public class JNITableTest {
         assertEquals(-1, t.findFirstDouble(colKey4, 1.0D));
         assertEquals(-1, t.findFirstFloat(colKey5, 1.0F));
         assertEquals(-1, t.findFirstLong(colKey6, 50));
+        assertEquals(-1, t.findFirstString(colKey7, "anotherstring"));
+        assertEquals(-1, t.findFirstDecimal128(colKey8, new Decimal128(1)));
+        assertEquals(-1, t.findFirstObjectId(colKey9, new ObjectId(TestHelper.generateObjectIdHexString(1))));
     }
 
     @Test
@@ -113,11 +122,19 @@ public class JNITableTest {
         long colKey5 = t.getColumnKey("float");
         long colKey6 = t.getColumnKey("long");
         long colKey7 = t.getColumnKey("string");
+        long colKey8 = t.getColumnKey("decimal128");
+        long colKey9 = t.getColumnKey("object_id");
+
         sharedRealm.beginTransaction();
         for (int i = 0; i < TEST_SIZE; i++) {
-            TestHelper.addRowWithValues(t, new long[]{colKey1, colKey2, colKey3, colKey4, colKey5, colKey6, colKey7}, new Object[] {new byte[] {1, 2, 3}, true, new Date(i), (double) i, (float) i, i, "string " + i});
+            TestHelper.addRowWithValues(t,
+                    new long[]{colKey1, colKey2, colKey3, colKey4, colKey5, colKey6, colKey7, colKey8, colKey9},
+                    new Object[] {new byte[] {1, 2, 3}, true, new Date(i), (double) i, (float) i, i, "string " + i, new Decimal128(i), new ObjectId(TestHelper.generateObjectIdHexString(i))});
         }
-        TestHelper.addRowWithValues(t, new long[]{colKey1, colKey2, colKey3, colKey4, colKey5, colKey6, colKey7}, new Object[] {new byte[] {1, 2, 3}, true, new Date(TEST_SIZE), (double) TEST_SIZE, (float) TEST_SIZE, TEST_SIZE, ""});
+        TestHelper.addRowWithValues(t,
+                new long[]{colKey1, colKey2, colKey3, colKey4, colKey5, colKey6, colKey7, colKey8, colKey9},
+                new Object[] {new byte[] {1, 2, 3}, true, new Date(TEST_SIZE), (double) TEST_SIZE, (float) TEST_SIZE, TEST_SIZE, "", new Decimal128(TEST_SIZE), new ObjectId(TestHelper.generateObjectIdHexString(TEST_SIZE))});
+
         sharedRealm.commitTransaction();
 
         assertEquals(0, t.findFirstBoolean(colKey2, true));
@@ -126,6 +143,8 @@ public class JNITableTest {
             assertEquals(i, t.findFirstDouble(colKey4, (double) i));
             assertEquals(i, t.findFirstFloat(colKey5, (float) i));
             assertEquals(i, t.findFirstLong(colKey6, i));
+            assertEquals(i, t.findFirstDecimal128(colKey8, new Decimal128(i)));
+            assertEquals(i, t.findFirstObjectId(colKey9, new ObjectId(TestHelper.generateObjectIdHexString(i))));
         }
 
         try {
@@ -374,14 +393,16 @@ public class JNITableTest {
                     Math.PI,
                     0L};
 
-            RealmFieldType[] types = new RealmFieldType[]{RealmFieldType.STRING,
+            RealmFieldType[] types = new RealmFieldType[]{
+                    RealmFieldType.STRING,
                     RealmFieldType.INTEGER,
                     RealmFieldType.BOOLEAN,
                     RealmFieldType.BINARY,
                     RealmFieldType.DATE,
                     RealmFieldType.FLOAT,
                     RealmFieldType.DOUBLE,
-                    RealmFieldType.OBJECT};
+                    RealmFieldType.OBJECT
+            };
 
             long rowKey = OsObject.createRow(table);
 

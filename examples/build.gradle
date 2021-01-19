@@ -3,6 +3,7 @@ projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
 project.ext.sdkVersion = 29
 project.ext.minSdkVersion = 16
 project.ext.buildTools = projectDependencies.get("ANDROID_BUILD_TOOLS")
+project.ext.kotlinVersion = projectDependencies.get('KOTLIN')
 
 // Don't cache SNAPSHOT (changing) dependencies.
 configurations.all {
@@ -28,6 +29,9 @@ allprojects {
     }
 
     buildscript {
+        ext {
+            kotlin_version = projectDependencies.get('KOTLIN')
+        }
         repositories {
             google()
             mavenLocal()
@@ -38,6 +42,7 @@ allprojects {
             classpath "com.android.tools.build:gradle:${props.get("GRADLE_BUILD_TOOLS")}"
             classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${props.get('GRADLE_BINTRAY_PLUGIN')}"
             classpath "io.realm:realm-gradle-plugin:${currentVersion}"
+            classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         }
     }
 

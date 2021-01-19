@@ -26,16 +26,16 @@
 #include "util.hpp"
 #include "io_realm_internal_Util.h"
 #include "io_realm_internal_OsSharedRealm.h"
-#include "shared_realm.hpp"
-#include "results.hpp"
-#include "list.hpp"
-#include "java_exception_def.hpp"
-#include "java_object_accessor.hpp"
-#include "object.hpp"
+#include <realm/object-store/shared_realm.hpp>
+#include <realm/object-store/results.hpp>
+#include <realm/object-store/list.hpp>
+#include <realm/object-store/object.hpp>
 #if REALM_ENABLE_SYNC
-#include "sync/app.hpp"
+#include <realm/object-store/sync/app.hpp>
 #endif
 
+#include "java_exception_def.hpp"
+#include "java_object_accessor.hpp"
 #include "jni_util/java_exception_thrower.hpp"
 
 using namespace std;
@@ -306,16 +306,24 @@ struct JcharTraits {
 };
 
 struct JStringCharsAccessor {
-    JStringCharsAccessor(JNIEnv* e, jstring s)
+    JStringCharsAccessor(JNIEnv* e, jstring s, bool delete_jstring_ref_on_delete)
         : m_env(e)
         , m_string(s)
         , m_data(e->GetStringChars(s, 0))
         , m_size(get_size(e, s))
+        , m_delete_jstring_ref_on_delete(delete_jstring_ref_on_delete)
     {
     }
     ~JStringCharsAccessor()
     {
         m_env->ReleaseStringChars(m_string, m_data);
+        // TODO Left as opt-in to avoid inspecting all usages as part of the fix for
+        //  https://github.com/realm/realm-java/pull/7232. We should consider making this the
+        //  default and try to handle local refs uniformly through JavaLocalRefs or similar
+        //  mechanisms.
+        if (m_delete_jstring_ref_on_delete) {
+            m_env->DeleteLocalRef(m_string);
+        }
     }
     const jchar* data() const noexcept
     {
@@ -331,6 +339,7 @@ private:
     const jstring m_string;
     const jchar* const m_data;
     const size_t m_size;
+    const bool m_delete_jstring_ref_on_delete;
 
     static size_t get_size(JNIEnv* e, jstring s)
     {
@@ -365,11 +374,29 @@ static string string_to_hex(const string& message, StringData& str, const char* 
     return ret.str();
 }
 
+static string str_to_hex_error_code_to_message(size_t error_code){
+    switch (error_code){
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+            return "Not enough output buffer space";
+        case 5:
+            return "Invalid first half of surrogate pair";
+        case 6:
+            return "Incomplete surrogate pair";
+        case 7:
+            return "Invalid second half of surrogate pair";
+        default:
+            return "Unknown";
+    }
+}
+
 static string string_to_hex(const string& message, const jchar* str, size_t size, size_t error_code)
 {
     ostringstream ret;
 
-    ret << message << "; ";
+    ret << message << ": " << str_to_hex_error_code_to_message(error_code) << "; ";
     ret << "error_code = " << error_code << "; ";
     for (size_t i = 0; i < size; ++i) {
         ret << " 0x" << std::hex << std::setfill('0') << std::setw(4) << (int) str[i];
@@ -454,7 +481,7 @@ transcode_complete : {
 }
 
 
-JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
+JStringAccessor::JStringAccessor(JNIEnv* env, jstring str, bool delete_jstring_ref)
     : m_env(env)
 {
     // For efficiency, if the incoming UTF-16 string is sufficiently
@@ -470,7 +497,7 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
     }
     m_is_null = false;
 
-    JStringCharsAccessor chars(env, str);
+    JStringCharsAccessor chars(env, str, delete_jstring_ref);
 
     typedef Utf8x16<jchar, JcharTraits> Xcode;
     size_t max_project_size = 48;

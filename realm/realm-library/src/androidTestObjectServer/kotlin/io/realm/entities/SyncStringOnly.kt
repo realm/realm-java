@@ -23,13 +23,14 @@ import org.bson.types.ObjectId
 open class SyncStringOnly : RealmObject() {
 
     companion object {
-        const val CLASS_NAME = "StringOnly"
+        const val CLASS_NAME = "SyncStringOnly"
+        const val FIELD_ID = "_id"
         const val FIELD_CHARS = "chars"
     }
 
     @PrimaryKey
     @RealmField(name = "_id")
-    var id = ObjectId()
+    var id: ObjectId = ObjectId()
 
     var chars: String? = null
 

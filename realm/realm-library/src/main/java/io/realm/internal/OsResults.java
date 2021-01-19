@@ -45,7 +45,7 @@ public class OsResults implements NativeObject, ObservableCollection {
             "This Realm instance has already been closed, making it unusable.";
 
     // Custom OsResults iterator. It ensures that we only iterate on a Realm OsResults that hasn't changed.
-    public static abstract class Iterator<T> implements java.util.Iterator<T> {
+    public abstract static class Iterator<T> implements java.util.Iterator<T> {
         OsResults iteratorOsResults;
         protected int pos = -1;
 
@@ -131,7 +131,7 @@ public class OsResults implements NativeObject, ObservableCollection {
     }
 
     // Custom Realm collection list iterator.
-    public static abstract class ListIterator<T> extends Iterator<T> implements java.util.ListIterator<T> {
+    public abstract static class ListIterator<T> extends Iterator<T> implements java.util.ListIterator<T> {
 
         public ListIterator(OsResults osResults, int start) {
             super(osResults);

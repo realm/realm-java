@@ -15,11 +15,14 @@
  */
 package io.realm.internal.objectstore;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.internal.Keep;
 import io.realm.mongodb.AppConfiguration;
+import io.realm.mongodb.AppException;
 
 /**
  * Java implementation of the transport layer exposed by ObjectStore when communicating with
@@ -53,6 +56,19 @@ public abstract class OsJavaNetworkTransport {
      */
     protected abstract Response sendRequest(String method, String url, long timeoutMs, Map<String, String> headers, String body);
 
+    /**
+     * This method is being called from Java when executing streaming requests.
+     * It returns a {@link Response} which body can be access line by line.
+     *
+     * Warning: this method and the returning {@link Response} throws exceptions
+     *
+     * @param request streaming request
+     * @return Result of the request.
+     * @throws IOException if the request fails to execute
+     * @throws AppException on an http error
+     */
+    public abstract Response sendStreamingRequest(Request request) throws IOException, AppException;
+
     public void setAuthorizationHeaderName(String headerName) {
         authorizationHeaderName = headerName;
     }
@@ -78,29 +94,13 @@ public abstract class OsJavaNetworkTransport {
         customHeaders.clear();
     }
 
-    public static class Response {
+    public abstract static class Response {
         private final int httpResponseCode;
         private final int customResponseCode;
         private final Map<String, String> headers;
         private final String body;
 
-        public static Response unknownError(String stacktrace) {
-            return new Response(0, ERROR_UNKNOWN, new HashMap<>(), stacktrace);
-        }
-
-        public static Response ioError(String stackTrace) {
-            return new Response(0, ERROR_IO, new HashMap<>(), stackTrace);
-        }
-
-        public static Response interruptedError(String stackTrace) {
-            return new Response(0, ERROR_INTERRUPTED, new HashMap<>(), stackTrace);
-        }
-
-        public static Response httpResponse(int statusCode, Map<String, String> responseHeaders, String body) {
-            return new Response(statusCode, 0, responseHeaders, body);
-        }
-
-        private Response(int httpResponseCode, int customResponseCode, Map<String, String> headers, String body) {
+        protected Response(int httpResponseCode, int customResponseCode, Map<String, String> headers, String body) {
             this.httpResponseCode = httpResponseCode;
             this.customResponseCode = customResponseCode;
             this.headers = headers;
@@ -136,6 +136,15 @@ public abstract class OsJavaNetworkTransport {
             return body;
         }
 
+        public String readBodyLine() throws IOException {
+            return null;
+        }
+
+        public boolean isOpen() {
+            return false;
+        }
+
+
         @Override
         public String toString() {
             return "Response{" +
@@ -144,6 +153,46 @@ public abstract class OsJavaNetworkTransport {
                     ", headers=" + headers +
                     ", body='" + body + '\'' +
                     '}';
+        }
+
+        /**
+         * Closes the current stream.
+         *
+         * Note: we use a close flag because the underlaying input stream might not be thread safe.
+         * @see <a href="http://google.com">https://github.com/square/okio/issues/163#issuecomment-127052956</a>
+         *
+         * @throws IOException can throw exception if internal buffer not closed properly
+         */
+        public abstract void close();
+    }
+
+    public static class Request {
+        private String method;
+        private String url;
+        private Map<String, String> headers;
+        private String body;
+
+        public Request(String method, String url, Map<String, String> headers, String body) {
+            this.method = method;
+            this.url = url;
+            this.headers = headers;
+            this.body = body;
+        }
+
+        public String getMethod() {
+            return method;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public Map<String, String> getHeaders() {
+            return headers;
+        }
+
+        public String getBody() {
+            return body;
         }
     }
 
@@ -155,7 +204,7 @@ public abstract class OsJavaNetworkTransport {
      */
     // Abstract because these methods needs to be called from JNI and we cannot look up interface methods.
     @Keep
-    public static abstract class NetworkTransportJNIResultCallback {
+    public abstract static class NetworkTransportJNIResultCallback {
         public void onSuccess(Object result) {}
         public void onError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {}
     }

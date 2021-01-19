@@ -23,10 +23,10 @@
 #include "jni_util/jni_utils.hpp"
 
 #include <realm/util/optional.hpp>
-#include <sync/app.hpp>
-#include <sync/sync_user.hpp>
-#include <sync/remote_mongo_database.hpp>
-#include <sync/remote_mongo_collection.hpp>
+#include <realm/object-store/sync/app.hpp>
+#include <realm/object-store/sync/sync_user.hpp>
+#include <realm/object-store/sync/mongo_database.hpp>
+#include <realm/object-store/sync/mongo_collection.hpp>
 
 using namespace realm;
 using namespace realm::app;
@@ -34,7 +34,7 @@ using namespace realm::jni_util;
 using namespace realm::_impl;
 
 static void finalize_database(jlong ptr) {
-    delete reinterpret_cast<RemoteMongoDatabase*>(ptr);
+    delete reinterpret_cast<MongoDatabase*>(ptr);
 }
 
 JNIEXPORT jlong JNICALL
@@ -48,10 +48,10 @@ Java_io_realm_internal_objectstore_OsMongoDatabase_nativeGetCollection(JNIEnv* e
                                                                        jlong j_database_ptr,
                                                                        jstring j_collection_name) {
     try {
-        RemoteMongoDatabase* database = reinterpret_cast<RemoteMongoDatabase*>(j_database_ptr);
+        auto database = reinterpret_cast<MongoDatabase*>(j_database_ptr);
         JStringAccessor name(env, j_collection_name);
-        RemoteMongoCollection collection(database->collection(name));
-        return reinterpret_cast<jlong>(new RemoteMongoCollection(std::move(collection)));
+        MongoCollection collection(database->collection(name));
+        return reinterpret_cast<jlong>(new MongoCollection(std::move(collection)));
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);

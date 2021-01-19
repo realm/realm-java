@@ -6,8 +6,8 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'maven-publish'
-apply plugin: 'findbugs'
-// apply plugin: 'pmd' FIXME Disabled PMD after upgrading Gradle Plugin. It resulted in a ton of false positives. Review those later.
+apply plugin: 'com.github.spotbugs-base'
+apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
@@ -16,26 +16,8 @@ apply plugin: 'net.ltgt.errorprone'
 def properties = new Properties()
 properties.load(new FileInputStream("${projectDir}/../../dependencies.list"))
 
-ext.coreVersion = properties.getProperty('REALM_SYNC_VERSION')
-// empty or comment out this to disable hash checking
-ext.coreSha256Hash = properties.getProperty('REALM_SYNC_SHA256')
-ext.forceDownloadCore = project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
-
-// Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
-// core source code.
-ext.coreSourcePath = project.hasProperty('coreSourcePath') ? file(project.getProperty('coreSourcePath')) : null
-// The location of pre-compiled Realm Core/Sync archive.
-ext.coreArchiveDir = System.getenv("REALM_CORE_DOWNLOAD_DIR")
-if (!ext.coreArchiveDir) {
-    ext.coreArchiveDir = ".."
-}
-ext.coreArchiveFile = rootProject.file("${ext.coreArchiveDir}/realm-sync-android-${project.coreVersion}.tar.gz")
-ext.coreDistributionDir = file("${projectDir}/distribution/realm-core/")
-ext.coreDir = file("${project.coreDistributionDir.getAbsolutePath()}/core-${project.coreVersion}")
 ext.ccachePath = project.findProperty('ccachePath') ?: System.getenv('NDK_CCACHE')
 ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE')
-// Set to true to enable linking with debug core.
-ext.enableDebugCore = project.hasProperty('enableDebugCore') ? project.getProperty('enableDebugCore') : true
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -50,17 +32,17 @@ android {
         multiDexEnabled true
         externalNativeBuild {
             cmake {
-                arguments "-DREALM_CORE_DIST_DIR:STRING=${project.coreDir.getAbsolutePath()}",
-                        "-DENABLE_DEBUG_CORE=$project.enableDebugCore"
                 if (project.ccachePath) arguments "-DNDK_CCACHE=$project.ccachePath"
                 if (project.lcachePath) arguments "-DNDK_LCACHE=$project.lcachePath"
-                if (project.coreSourcePath) arguments "-DCORE_SOURCE_PATH=${project.coreSourcePath.getAbsolutePath()}"
                 if (project.hasProperty('buildTargetABIs') && !project.getProperty('buildTargetABIs').trim().isEmpty()) {
                     abiFilters(*project.getProperty('buildTargetABIs').trim().split('\\s*,\\s*'))
                 } else {
                     // "armeabi" and "mips" are no longer supported by the NDK
                     abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
                 }
+
+                arguments "-DREALM_JAVA_BUILD_CORE_FROM_SOURCE=${project.hasProperty('buildCore') && project.getProperty('buildCore').toBoolean()}"
+                arguments "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=${!project.hasProperty('enableLTO') || project.getProperty('enableLTO').toBoolean()}"
             }
         }
 
@@ -68,17 +50,18 @@ android {
             debug {
                 javaCompileOptions {
                     annotationProcessorOptions {
-                        arguments += [ 'realm.suppressWarnings' : 'false' ]
+                        arguments += ['realm.suppressWarnings': 'false']
                     }
                 }
             }
         }
     }
 
-    ndkVersion = "21.0.6113669"
+    ndkVersion = '21.0.6113669'
 
     externalNativeBuild {
         cmake {
+            version = properties.getProperty('CMAKE')
             path 'src/main/cpp/CMakeLists.txt'
         }
     }
@@ -92,6 +75,10 @@ android {
         }
 
         release {
+            externalNativeBuild {
+                cmake {
+                }
+            }
             // minifyEnabled = true;
         }
     }
@@ -107,7 +94,7 @@ android {
             java.srcDirs += [/* FIXME 'src/syncIntegrationTest/java', */
                              'src/syncIntegrationTest/kotlin',
                              'src/androidTestObjectServer/kotlin', 'src/syncTestUtils/java'
-            , 'src/syncTestUtils/kotlin']
+                             , 'src/syncTestUtils/kotlin']
             assets.srcDirs += ['src/syncIntegrationTest/assets/']
         }
     }
@@ -153,16 +140,8 @@ android {
             proguardFiles 'proguard-rules-build-common.pro', 'proguard-rules-build-objectServer.pro'
         }
     }
-
-    variantFilter { variant ->
-        def names = variant.flavors*.name
-
-        // Ignore the objectServer flavour when building from core source.
-        if (coreSourcePath && names.contains("objectServer")) {
-            variant.ignore = true
-        }
-    }
 }
+
 
 project.afterEvaluate {
     tasks.withType(JavaCompile) {
@@ -206,9 +185,13 @@ repositories {
 }
 
 dependencies {
-
-    compileOnly 'io.reactivex.rxjava2:rxjava:2.1.5'
-    compileOnly 'com.google.code.findbugs:findbugs-annotations:3.0.1'
+    compileOnly "io.reactivex.rxjava2:rxjava:${properties.getProperty('RXJAVA_DEPENDENCY')}"
+    compileOnly 'com.github.spotbugs:spotbugs-annotations:4.1.2'
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_android_version"
+    compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
+    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_android_version"
+    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
 
     testImplementation 'junit:junit:4.12'
     testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -217,22 +200,19 @@ dependencies {
     api "io.realm:realm-annotations:${version}"
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation 'com.getkeepsafe.relinker:relinker:1.4.0'
-    implementation "org.mongodb:bson:${properties.getProperty('BSON_DEPENDENCY_VERSION')}"
-    implementation('io.reactivex.rxjava2:rxandroid:2.1.1') {
+    api "org.mongodb:bson:${properties.getProperty('BSON_DEPENDENCY')}"
+    implementation("io.reactivex.rxjava2:rxandroid:${properties.getProperty('RXANDROID_DEPENDENCY')}") {
         exclude group: 'io.reactivex.rxjava2', module: 'rxjava'
     }
 
-    // TODO: investigate why we can't use the latest multidex version
-    // check baseDebugAndroidTestRuntimeClasspath and objectServerDebugAndroidTestRuntimeClasspath
-    // tasks as they introduce version 2.0.0 strictly, even when specifying 2.0.1 from here
-    androidTestImplementation "androidx.multidex:multidex:2.0.0"
+    androidTestImplementation "androidx.multidex:multidex:2.0.1"
 
     kapt project(':realm-annotations-processor') // See https://github.com/realm/realm-java/issues/5799
     objectServerImplementation 'com.squareup.okhttp3:okhttp:3.12.0' // Going above this requires minSDK 21
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
-    androidTestImplementation 'io.reactivex.rxjava2:rxjava:2.1.5'
-    androidTestImplementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    androidTestImplementation "io.reactivex.rxjava2:rxjava:${properties.getProperty('RXJAVA_DEPENDENCY')}"
+    androidTestImplementation "io.reactivex.rxjava2:rxandroid:${properties.getProperty('RXANDROID_DEPENDENCY')}"
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test:rules:1.2.0'
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
@@ -275,7 +255,7 @@ task javadoc(type: Javadoc) {
         links "https://docs.oracle.com/javase/7/docs/api/"
         links "http://reactivex.io/RxJava/javadoc/"
         // TODO We probably need to add the bson.jar to the classpath for these to work
-        links "https://www.javadoc.io/doc/org.mongodb/bson/${properties.getProperty('BSON_DEPENDENCY_VERSION')}/"
+        links "https://www.javadoc.io/doc/org.mongodb/bson/${properties.getProperty('BSON_DEPENDENCY')}/"
         linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
 
         tags = [betaTag]
@@ -283,6 +263,7 @@ task javadoc(type: Javadoc) {
     exclude '**/internal/**'
     exclude '**/BuildConfig.java'
     exclude '**/R.java'
+    exclude '**/*.kt'
     doLast {
         copy {
             from "src/realm-java-overview.png"
@@ -296,66 +277,59 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
 }
 
-task findbugs(type: FindBugs) {
-    dependsOn assemble
-    group = 'Verification'
-
+// See https://spotbugs-gradle-plugin.netlify.app/com/github/spotbugs/snom/spotbugsextension
+spotbugs {
+    toolVersion = '4.1.1'
     ignoreFailures = false
     effort = "default"
     reportLevel = "medium"
     excludeFilter = file("${projectDir}/../config/findbugs/findbugs-filter.xml")
-    classes = files("${projectDir}/build/intermediates/javac")
-    source = fileTree('src/main/java/')
-    classpath = files()
+}
+
+// See https://spotbugs.readthedocs.io/en/latest/migration.html#findbugs-gradle-plugin
+task spotbugsMain(type: com.github.spotbugs.snom.SpotBugsTask) {
+    dependsOn 'assemble'
+    group = 'verification'
+    classes = fileTree("build/intermediates/javac/")
+
     reports {
         xml.enabled = false
         html.enabled = true
-        xml {
-            destination file("$project.buildDir/findbugs/findbugs-output.xml")
-        }
-        html {
-            destination file("$project.buildDir/findbugs/findbugs-output.html")
-        }
     }
 }
 
-//task pmd(type: Pmd) {
-//    group = 'Verification'
-//
-//    source = fileTree('src/main/java')
-//    ruleSetFiles = files("${projectDir}/../config/pmd/ruleset.xml")
-//
-//    reports {
-//        xml.enabled = false
-//        html.enabled = true
-//    }
-//}
+task pmd(type: Pmd) {
+    group = 'verification'
+
+    source = fileTree('src/main/java') + fileTree('src/objectServer/java')
+    ruleSetFiles = files("${projectDir}/../config/pmd/ruleset.xml")
+
+    ruleSets = []
+
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
 
 // Configure Checkstyle
 // Android sourceSets are not sourceSets, so we can't confgure this with the DSL.
 task checkstyle(type: Checkstyle) {
-    group = 'Verification'
+    group = 'verification'
+    configFile file("${projectDir}/../config/checkstyle/checkstyle.xml")
 
-    source 'src'
-    include '*/java/**/*.java'
-    // Ignore tests for now.
-    exclude '*Test*/**'
+    source fileTree('src/main/java') + fileTree('src/objectServer/java')
+    include '**/*.java'
+    exclude '**/gen/**'
 
     // empty classpath
     classpath = files()
+
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
 }
-
-checkstyle {
-    toolVersion ="7.6"
-
-    configFile = file("${projectDir}/../config/checkstyle/checkstyle.xml")
-
-    def configProps = ['proj.module.dir': projectDir.absolutePath]
-    configProperties configProps
-
-    ignoreFailures = true
-}
-check.dependsOn tasks.checkstyle
 
 install {
     repositories.mavenInstaller {
@@ -366,7 +340,7 @@ install {
                 // Add your description here
                 name 'realm-android-library'
                 description 'Realm is a mobile database: a replacement for SQLite & ORMs.'
-                url 'http://realm.io'
+                url 'https://docs.mongodb.com/realm/'
 
                 // Set your license
                 licenses {
@@ -478,111 +452,7 @@ artifacts {
     archives sourcesJar
 }
 
-
-def coreDownloaded = false
-
-task downloadCore() {
-    group = 'build setup'
-    description = 'Download the latest version of Realm Core'
-    def isHashCheckingEnabled = {
-        return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
-    }
-
-    def calcSha256Hash = { File targetFile ->
-        MessageDigest sha = MessageDigest.getInstance("SHA-256")
-        Formatter hexHash = new Formatter()
-        sha.digest(targetFile.bytes).each { b -> hexHash.format('%02x', b) }
-        return hexHash.toString()
-    }
-
-    def shouldDownloadCore = {
-        if (coreSourcePath) {
-            println "shouldDownloadCore: skipping, using local Core at: ${coreSourcePath}."
-            return false
-        }
-
-        if (!project.coreArchiveFile.exists()) {
-            return true
-        }
-        if (project.forceDownloadCore) {
-            return true
-        }
-        if (!isHashCheckingEnabled()) {
-            println "shouldDownloadCore: skipping hash check(empty \'coreSha256Hash\')."
-            return false
-        }
-
-        def calculatedHash = calcSha256Hash(project.coreArchiveFile)
-        if (project.coreSha256Hash.equalsIgnoreCase(calculatedHash)) {
-            return false
-        }
-
-        println "Existing archive hash mismatch (Expected: ${project.coreSha256Hash.toLowerCase()}" +
-                " but got ${calculatedHash.toLowerCase()}). Download new version."
-        return true
-    }
-
-    doLast {
-        if (shouldDownloadCore()) {
-            download {
-                src "http://static.realm.io/downloads/sync/realm-sync-android-${project.coreVersion}.tar.gz"
-                dest project.coreArchiveFile
-                onlyIfNewer false
-            }
-            coreDownloaded = true
-
-            if (isHashCheckingEnabled()) {
-                def calculatedHash = calcSha256Hash(project.coreArchiveFile)
-                if (!project.coreSha256Hash.equalsIgnoreCase(calculatedHash)) {
-                    throw new GradleException("Invalid checksum for file '" +
-                            "${project.coreArchiveFile.getName()}'. Expected " +
-                            "${project.coreSha256Hash.toLowerCase()} but got " +
-                            "${calculatedHash.toLowerCase()}.")
-                }
-            } else {
-                println 'Skipping hash check (empty \'coreSha256Hash\').'
-            }
-        }
-    }
-}
-
-task deployCore(group: 'build setup', description: 'Deploy the latest version of Realm Core') {
-    dependsOn {
-        downloadCore
-    }
-
-    // Build with the output from core source dir. No need to deploy anything.
-    onlyIf {
-        return !coreSourcePath
-    }
-
-    outputs.upToDateWhen {
-        // Clean up the coreDir if it is newly downloaded
-        if (coreDownloaded) {
-            return false
-        }
-
-        return project.coreDir.exists()
-    }
-
-    doLast {
-        // Delete all files to avoid multiple copies of the same header file in Android Studio.
-        exec {
-            commandLine = [
-                    'rm',
-                    '-rf',
-                    project.coreDistributionDir.getAbsolutePath()
-            ]
-        }
-        copy {
-            from tarTree(project.coreArchiveFile)
-            into project.coreDir
-        }
-    }
-}
-
 publishToMavenLocal.dependsOn assemble
-preBuild.dependsOn deployCore
 
 if (project.hasProperty('dontCleanJniFiles')) {
     project.afterEvaluate {

@@ -31,7 +31,6 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.lang.IllegalStateException
 import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
@@ -58,6 +57,7 @@ class EmailPasswordAuthTests {
         RESEND_CONFIRMATION_EMAIL,
         SEND_RESET_PASSWORD_EMAIL,
         CALL_RESET_PASSWORD_FUNCTION,
+        RETRY_CUSTOM_CONFIRMATION,
         RESET_PASSWORD
     }
 
@@ -82,7 +82,7 @@ class EmailPasswordAuthTests {
     fun registerUser() {
         val email = TestHelper.getRandomEmail()
         val password = "password1234"
-        app.emailPasswordAuth.registerUser(email, password)
+        app.emailPassword.registerUser(email, password)
         val user = app.login(Credentials.emailPassword(email, password))
         assertEquals(User.State.LOGGED_IN, user.state)
     }
@@ -92,7 +92,7 @@ class EmailPasswordAuthTests {
         val email = TestHelper.getRandomEmail()
         val password = "password1234"
         looperThread.runBlocking {
-            app.emailPasswordAuth.registerUserAsync(email, password) { result ->
+            app.emailPassword.registerUserAsync(email, password) { result ->
                 if (result.isSuccess) {
                     val user2 = app.login(Credentials.emailPassword(email, password))
                     assertEquals(User.State.LOGGED_IN, user2.state)
@@ -106,7 +106,7 @@ class EmailPasswordAuthTests {
 
     @Test
     fun registerUser_invalidServerArgsThrows() {
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         try {
             provider.registerUser("invalid-email", "1234")
             fail()
@@ -117,7 +117,7 @@ class EmailPasswordAuthTests {
 
     @Test
     fun registerUserAsync_invalidServerArgsThrows() {
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         looperThread.runBlocking {
             provider.registerUserAsync("invalid-email", "1234") { result ->
                 if (result.isSuccess) {
@@ -132,7 +132,7 @@ class EmailPasswordAuthTests {
 
     @Test
     fun registerUser_invalidArgumentsThrows() {
-        val provider: EmailPasswordAuth = app.emailPasswordAuth
+        val provider: EmailPasswordAuth = app.emailPassword
         assertFailsWith<IllegalArgumentException> { provider.registerUser(TestHelper.getNull(), "123456") }
         assertFailsWith<IllegalArgumentException> { provider.registerUser("foo@bar.baz", TestHelper.getNull()) }
         looperThread.runBlocking {
@@ -157,7 +157,7 @@ class EmailPasswordAuthTests {
 
     @Test
     fun confirmUser_invalidServerArgsThrows() {
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         try {
             provider.confirmUser("invalid-token", "invalid-token-id")
             fail()
@@ -168,7 +168,7 @@ class EmailPasswordAuthTests {
 
     @Test
     fun confirmUserAsync_invalidServerArgsThrows() {
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         looperThread.runBlocking {
             provider.confirmUserAsync("invalid-email", "1234") { result ->
                 if (result.isSuccess) {
@@ -183,7 +183,7 @@ class EmailPasswordAuthTests {
 
     @Test
     fun confirmUser_invalidArgumentsThrows() {
-        val provider: EmailPasswordAuth = app.emailPasswordAuth
+        val provider: EmailPasswordAuth = app.emailPassword
         assertFailsWith<IllegalArgumentException> { provider.confirmUser(TestHelper.getNull(), "token-id") }
         assertFailsWith<IllegalArgumentException> { provider.confirmUser("token", TestHelper.getNull()) }
         looperThread.runBlocking {
@@ -202,7 +202,7 @@ class EmailPasswordAuthTests {
         val email = "test@10gen.com"
         admin.setAutomaticConfirmation(false)
         try {
-            val provider = app.emailPasswordAuth
+            val provider = app.emailPassword
             provider.registerUser(email, "123456")
             provider.resendConfirmationEmail(email)
         } finally {
@@ -218,10 +218,10 @@ class EmailPasswordAuthTests {
         admin.setAutomaticConfirmation(false)
         try {
             looperThread.runBlocking {
-                val provider = app.emailPasswordAuth
+                val provider = app.emailPassword
                 provider.registerUser(email, "123456")
                 provider.resendConfirmationEmailAsync(email) { result ->
-                    when(result.isSuccess) {
+                    when (result.isSuccess) {
                         true -> looperThread.testComplete()
                         false -> fail(result.error.toString())
                     }
@@ -236,7 +236,7 @@ class EmailPasswordAuthTests {
     fun resendConfirmationEmail_invalidServerArgsThrows() {
         val email = "test@10gen.com"
         admin.setAutomaticConfirmation(false)
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         provider.registerUser(email, "123456")
         try {
             provider.resendConfirmationEmail("foo")
@@ -252,7 +252,7 @@ class EmailPasswordAuthTests {
     fun resendConfirmationEmailAsync_invalidServerArgsThrows() {
         val email = "test@10gen.com"
         admin.setAutomaticConfirmation(false)
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         provider.registerUser(email, "123456")
         try {
             looperThread.runBlocking {
@@ -272,7 +272,7 @@ class EmailPasswordAuthTests {
 
     @Test
     fun resendConfirmationEmail_invalidArgumentsThrows() {
-        val provider: EmailPasswordAuth = app.emailPasswordAuth
+        val provider: EmailPasswordAuth = app.emailPassword
         assertFailsWith<IllegalArgumentException> { provider.resendConfirmationEmail(TestHelper.getNull()) }
         looperThread.runBlocking {
             provider.resendConfirmationEmailAsync(TestHelper.getNull(), checkNullArgCallback)
@@ -280,8 +280,116 @@ class EmailPasswordAuthTests {
     }
 
     @Test
+    fun retryCustomConfirmation() {
+        val email = "test_realm_tests_do_autoverify@10gen.com"
+        admin.setAutomaticConfirmation(false)
+        try {
+            val provider = app.emailPassword
+            provider.registerUser(email, "123456")
+            admin.setCustomConfirmation(true)
+
+            provider.retryCustomConfirmation(email)
+        } finally {
+            admin.setCustomConfirmation(false)
+        }
+    }
+
+    @Test
+    fun retryCustomConfirmation_failConfirmation() {
+        // Only emails containing realm_tests_do_autoverify will be confirmed
+        val email = "test@10gen.com"
+        admin.setAutomaticConfirmation(false)
+        try {
+            val provider = app.emailPassword
+            provider.registerUser(email, "123456")
+            admin.setCustomConfirmation(true)
+
+            val exception = assertFailsWith<AppException> {
+                provider.retryCustomConfirmation(email)
+            }
+
+            assertEquals("failed to confirm user test@10gen.com", exception.errorMessage)
+
+        } finally {
+            admin.setCustomConfirmation(false)
+        }
+    }
+
+    @Test
+    fun retryCustomConfirmationAsync() {
+        val email = "test_realm_tests_do_autoverify@10gen.com"
+        admin.setAutomaticConfirmation(false)
+        try {
+            looperThread.runBlocking {
+                val provider = app.emailPassword
+                provider.registerUser(email, "123456")
+                admin.setCustomConfirmation(true)
+
+                provider.retryCustomConfirmationAsync(email) { result ->
+                    when (result.isSuccess) {
+                        true -> looperThread.testComplete()
+                        false -> fail(result.error.toString())
+                    }
+                }
+            }
+        } finally {
+            admin.setCustomConfirmation(false)
+        }
+    }
+
+    @Test
+    fun retryCustomConfirmation_invalidServerArgsThrows() {
+        val email = "test@10gen.com"
+        admin.setAutomaticConfirmation(false)
+        val provider = app.emailPassword
+        provider.registerUser(email, "123456")
+        admin.setCustomConfirmation(true)
+
+        try {
+            provider.retryCustomConfirmation("foo")
+            fail()
+        } catch (error: AppException) {
+            assertEquals(ErrorCode.USER_NOT_FOUND, error.errorCode)
+        } finally {
+            admin.setCustomConfirmation(false)
+        }
+    }
+
+    @Test
+    fun retryCustomConfirmationAsync_invalidServerArgsThrows() {
+        val email = "test@10gen.com"
+        admin.setAutomaticConfirmation(false)
+        val provider = app.emailPassword
+        provider.registerUser(email, "123456")
+        admin.setCustomConfirmation(true)
+        try {
+            looperThread.runBlocking {
+                provider.retryCustomConfirmationAsync("foo") { result ->
+                    if (result.isSuccess) {
+                        fail()
+                    } else {
+                        assertEquals(ErrorCode.USER_NOT_FOUND, result.error.errorCode)
+                        looperThread.testComplete()
+                    }
+                }
+            }
+        } finally {
+            admin.setCustomConfirmation(false)
+        }
+    }
+
+    @Test
+    fun retryCustomConfirmation_invalidArgumentsThrows() {
+        val provider: EmailPasswordAuth = app.emailPassword
+        assertFailsWith<IllegalArgumentException> { provider.retryCustomConfirmation(TestHelper.getNull()) }
+        looperThread.runBlocking {
+            provider.retryCustomConfirmationAsync(TestHelper.getNull(), checkNullArgCallback)
+        }
+    }
+
+    @Test
     fun sendResetPasswordEmail() {
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         val email: String = "test@10gen.com" // Must be a valid email, otherwise the server will fail
         provider.registerUser(email, "123456")
         provider.sendResetPasswordEmail(email)
@@ -289,12 +397,12 @@ class EmailPasswordAuthTests {
 
     @Test
     fun sendResetPasswordEmailAsync() {
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         val email: String = "test@10gen.com" // Must be a valid email, otherwise the server will fail
         provider.registerUser(email, "123456")
         looperThread.runBlocking {
             provider.sendResetPasswordEmailAsync(email) { result ->
-                when(result.isSuccess) {
+                when (result.isSuccess) {
                     true -> looperThread.testComplete()
                     false -> fail(result.error.toString())
                 }
@@ -305,7 +413,7 @@ class EmailPasswordAuthTests {
 
     @Test
     fun sendResetPasswordEmail_invalidServerArgsThrows() {
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         try {
             provider.sendResetPasswordEmail("unknown@10gen.com")
             fail()
@@ -316,7 +424,7 @@ class EmailPasswordAuthTests {
 
     @Test
     fun sendResetPasswordEmailAsync_invalidServerArgsThrows() {
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         looperThread.runBlocking {
             provider.sendResetPasswordEmailAsync("unknown@10gen.com") { result ->
                 if (result.isSuccess) {
@@ -331,7 +439,7 @@ class EmailPasswordAuthTests {
 
     @Test
     fun sendResetPasswordEmail_invalidArgumentsThrows() {
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         assertFailsWith<IllegalArgumentException> { provider.sendResetPasswordEmail(TestHelper.getNull()) }
         looperThread.runBlocking {
             provider.sendResetPasswordEmailAsync(TestHelper.getNull(), checkNullArgCallback)
@@ -340,7 +448,7 @@ class EmailPasswordAuthTests {
 
     @Test
     fun callResetPasswordFunction() {
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         admin.setResetFunction(enabled = true)
         val email = TestHelper.getRandomEmail()
         provider.registerUser(email, "123456")
@@ -355,7 +463,7 @@ class EmailPasswordAuthTests {
 
     @Test
     fun callResetPasswordFunctionAsync() {
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         admin.setResetFunction(enabled = true)
         val email = TestHelper.getRandomEmail()
         provider.registerUser(email, "123456")
@@ -380,7 +488,7 @@ class EmailPasswordAuthTests {
 
     @Test
     fun callResetPasswordFunction_invalidServerArgsThrows() {
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         admin.setResetFunction(enabled = true)
         val email = TestHelper.getRandomEmail()
         provider.registerUser(email, "123456")
@@ -395,7 +503,7 @@ class EmailPasswordAuthTests {
 
     @Test
     fun callResetPasswordFunctionAsync_invalidServerArgsThrows() {
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         admin.setResetFunction(enabled = true)
         val email = TestHelper.getRandomEmail()
         provider.registerUser(email, "123456")
@@ -420,7 +528,7 @@ class EmailPasswordAuthTests {
 
     @Test
     fun callResetPasswordFunction_invalidArgumentsThrows() {
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         assertFailsWith<IllegalArgumentException> { provider.callResetPasswordFunction(TestHelper.getNull(), "password") }
         assertFailsWith<IllegalArgumentException> { provider.callResetPasswordFunction("foo@bar.baz", TestHelper.getNull()) }
         looperThread.runBlocking {
@@ -445,7 +553,7 @@ class EmailPasswordAuthTests {
 
     @Test
     fun resetPassword_invalidServerArgsThrows() {
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         try {
             provider.resetPassword("invalid-token", "invalid-token-id", "new-password")
         } catch (error: AppException) {
@@ -455,7 +563,7 @@ class EmailPasswordAuthTests {
 
     @Test
     fun resetPasswordASync_invalidServerArgsThrows() {
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         looperThread.runBlocking {
             provider.resetPasswordAsync("invalid-token", "invalid-token-id", "new-password") { result ->
                 if (result.isSuccess) {
@@ -470,7 +578,7 @@ class EmailPasswordAuthTests {
 
     @Test
     fun resetPassword_invalidArgumentsThrows() {
-        val provider = app.emailPasswordAuth
+        val provider = app.emailPassword
         assertFailsWith<IllegalArgumentException> { provider.resetPassword(TestHelper.getNull(), "token-id", "password") }
         assertFailsWith<IllegalArgumentException> { provider.resetPassword("token", TestHelper.getNull(), "password") }
         assertFailsWith<IllegalArgumentException> { provider.resetPassword("token", "token-id", TestHelper.getNull()) }
@@ -481,23 +589,24 @@ class EmailPasswordAuthTests {
             provider.resetPasswordAsync("token", TestHelper.getNull(), "password", checkNullArgCallback)
         }
         looperThread.runBlocking {
-            provider.resetPasswordAsync("token","token-id", TestHelper.getNull(), checkNullArgCallback)
+            provider.resetPasswordAsync("token", "token-id", TestHelper.getNull(), checkNullArgCallback)
         }
     }
 
     @Test
     @UiThreadTest
     fun callMethodsOnMainThreadThrows() {
-        val provider: EmailPasswordAuth = app.emailPasswordAuth
+        val provider: EmailPasswordAuth = app.emailPassword
         val email: String = TestHelper.getRandomEmail()
         for (method in Method.values()) {
             try {
-                when(method) {
+                when (method) {
                     Method.REGISTER_USER -> provider.registerUser(email, "123456")
                     Method.CONFIRM_USER -> provider.confirmUser("token", "tokenId")
                     Method.RESEND_CONFIRMATION_EMAIL -> provider.resendConfirmationEmail(email)
                     Method.SEND_RESET_PASSWORD_EMAIL -> provider.sendResetPasswordEmail(email)
                     Method.CALL_RESET_PASSWORD_FUNCTION -> provider.callResetPasswordFunction(email, "123456")
+                    Method.RETRY_CUSTOM_CONFIRMATION -> provider.retryCustomConfirmation(email)
                     Method.RESET_PASSWORD -> provider.resetPassword("token", "token-id", "password")
                 }
                 fail("$method should have thrown an exception")
@@ -509,17 +618,18 @@ class EmailPasswordAuthTests {
 
     @Test
     fun callAsyncMethodsOnNonLooperThreadThrows() {
-        val provider: EmailPasswordAuth = app.emailPasswordAuth
+        val provider: EmailPasswordAuth = app.emailPassword
         val email: String = TestHelper.getRandomEmail()
         val callback = App.Callback<Void> { fail() }
         for (method in Method.values()) {
             try {
-                when(method) {
+                when (method) {
                     Method.REGISTER_USER -> provider.registerUserAsync(email, "123456", callback)
                     Method.CONFIRM_USER -> provider.confirmUserAsync("token", "tokenId", callback)
                     Method.RESEND_CONFIRMATION_EMAIL -> provider.resendConfirmationEmailAsync(email, callback)
                     Method.SEND_RESET_PASSWORD_EMAIL -> provider.sendResetPasswordEmailAsync(email, callback)
                     Method.CALL_RESET_PASSWORD_FUNCTION -> provider.callResetPasswordFunctionAsync(email, "123456", arrayOf(), callback)
+                    Method.RETRY_CUSTOM_CONFIRMATION -> provider.retryCustomConfirmationAsync(email, callback)
                     Method.RESET_PASSWORD -> provider.resetPasswordAsync("token", "token-id", "password", callback)
                 }
                 fail("$method should have thrown an exception")

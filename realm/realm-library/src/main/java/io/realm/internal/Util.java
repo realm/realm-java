@@ -24,6 +24,7 @@ import java.io.StringWriter;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -38,6 +39,7 @@ import io.realm.log.RealmLog;
 public class Util {
 
     private static Boolean rxJavaAvailable;
+    private static Boolean coroutinesAvailable;
 
     public static String getTablePrefix() {
         return nativeGetTablePrefix();
@@ -203,9 +205,9 @@ public class Util {
     }
 
     /**
-     * Checks if RxJava is can be loaded.
+     * Checks if RxJava is present and can be loaded.
      *
-     * @return {@code true} if RxJava dependency exist, {@code false} otherwise.
+     * @return {@code true} if RxJava dependency exists, {@code false} otherwise.
      */
     @SuppressWarnings("LiteralClassName")
     public static synchronized boolean isRxJavaAvailable() {
@@ -220,4 +222,34 @@ public class Util {
         return rxJavaAvailable;
     }
 
+    /**
+     * Checks if the coroutines framework is present and can be loaded.
+     *
+     * @return {@code true} if the coroutines dependency exists, {@code false} otherwise.
+     */
+    public static synchronized boolean isCoroutinesAvailable() {
+        if (coroutinesAvailable == null) {
+            try {
+                Class.forName("kotlinx.coroutines.flow.Flow");
+                coroutinesAvailable = true;
+            } catch (ClassNotFoundException ignore) {
+                coroutinesAvailable = false;
+            }
+        }
+        return coroutinesAvailable;
+    }
+
+    /**
+     * Validates that a key is present in a given map
+     *
+     * @param key the key to expect.
+     * @param map the map to search.
+     * @param argName the map argument name
+     * @throws IllegalArgumentException if key is not present.
+     */
+    public static void checkContainsKey(final String key, final Map<String, ?> map, final String argName) {
+        if (!map.containsKey(key)) {
+            throw new IllegalArgumentException("Key '" + key + "' required in '"+ argName +"'.");
+        }
+    }
 }

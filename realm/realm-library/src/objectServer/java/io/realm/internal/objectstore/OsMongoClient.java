@@ -21,22 +21,32 @@ import org.bson.codecs.configuration.CodecRegistry;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import io.realm.internal.NativeObject;
+import io.realm.internal.network.StreamNetworkTransport;
 
 public class OsMongoClient implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
     private final long nativePtr;
+    private final String serviceName;
+    private final StreamNetworkTransport streamNetworkTransport;
 
-    public OsMongoClient(final long appNativePtr,
-                         final String serviceName) {
-        this.nativePtr = nativeCreate(appNativePtr, serviceName);
+    public OsMongoClient(final OsSyncUser osSyncUser,
+                         final String serviceName,
+                         final StreamNetworkTransport streamNetworkTransport) {
+        this.nativePtr = nativeCreate(osSyncUser.getNativePtr(), serviceName);
+        this.serviceName = serviceName;
+        this.streamNetworkTransport = streamNetworkTransport;
     }
 
     public OsMongoDatabase getDatabase(final String databaseName,
                                        final CodecRegistry codecRegistry) {
         long nativeDatabasePtr = nativeCreateDatabase(nativePtr, databaseName);
-        return new OsMongoDatabase(nativeDatabasePtr, codecRegistry);
+        return new OsMongoDatabase(nativeDatabasePtr, serviceName, codecRegistry, streamNetworkTransport);
+    }
+
+    public String getServiceName() {
+        return serviceName;
     }
 
     @Override
@@ -49,7 +59,9 @@ public class OsMongoClient implements NativeObject {
         return nativeFinalizerPtr;
     }
 
-    private static native long nativeCreate(long nativeAppPtr, String serviceName);
+    private static native long nativeCreate(long nativeUserPtr, String serviceName);
+
     private static native long nativeCreateDatabase(long nativeAppPtr, String databaseName);
+
     private static native long nativeGetFinalizerMethodPtr();
 }

@@ -16,10 +16,12 @@
 
 #include "io_realm_mongodb_sync_Sync.h"
 
-#include <object-store/src/impl/realm_coordinator.hpp>
-#include <sync/sync_manager.hpp>
-#include <sync/sync_session.hpp>
-#include <binding_callback_thread_observer.hpp>
+#include <realm/object-store/impl/realm_coordinator.hpp>
+#include <realm/object-store/sync/app.hpp>
+#include <realm/object-store/sync/sync_manager.hpp>
+#include <realm/object-store/sync/sync_session.hpp>
+#include <realm/sync/protocol.hpp>
+#include <realm/object-store/binding_callback_thread_observer.hpp>
 
 #include "util.hpp"
 #include <jni_util/bson_util.hpp>
@@ -31,23 +33,26 @@ using namespace realm;
 using namespace realm::jni_util;
 using namespace realm::util;
 
-JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeReset(JNIEnv* env, jclass)
+JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeReset(JNIEnv* env, jclass, jlong j_app_ptr)
 {
     try {
-        SyncManager::shared().reset_for_testing();
+        auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
+        app->sync_manager()->reset_for_testing();
+        app::App::clear_cached_apps();
     }
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeSimulateSyncError(JNIEnv* env, jclass, jstring local_realm_path,
+JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeSimulateSyncError(JNIEnv* env, jclass, jlong j_app_ptr, jstring local_realm_path,
                                                                        jint err_code, jstring err_message,
                                                                        jboolean is_fatal)
 {
     try {
+        auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
         JStringAccessor path(env, local_realm_path);
         JStringAccessor message(env, err_message);
 
-        auto session = SyncManager::shared().get_existing_active_session(path);
+        auto session = app->sync_manager()->get_existing_active_session(path);
         if (!session) {
             ThrowException(env, IllegalArgument, concat_stringdata("Session not found: ", path));
             return;
@@ -58,10 +63,11 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeSimulateSyncError(J
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeReconnect(JNIEnv* env, jclass)
+JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeReconnect(JNIEnv* env, jclass, jlong j_app_ptr)
 {
     try {
-        SyncManager::shared().reconnect();
+        auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
+        app->sync_manager()->reconnect();
     }
     CATCH_STD()
 }
@@ -77,6 +83,7 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeCreateSession(JNIEn
 
 JNIEXPORT jstring JNICALL Java_io_realm_mongodb_sync_Sync_nativeGetPathForRealm(JNIEnv* env,
                                                                                 jclass,
+                                                                                jlong j_app_ptr,
                                                                                 jstring j_user_id,
                                                                                 jstring j_encoded_partition_value,
                                                                                 jstring j_override_filename)
@@ -86,8 +93,9 @@ JNIEXPORT jstring JNICALL Java_io_realm_mongodb_sync_Sync_nativeGetPathForRealm(
         // until the Realm is opened, but the Sync API for creating the Realm path require that
         // it is created up front. So we cheat and create a SyncConfig with the minimal values
         // needed for the path to be calculated.
+        auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
         JStringAccessor user_id(env, j_user_id);
-        std::shared_ptr<SyncUser> user = SyncManager::shared().get_existing_logged_in_user(user_id);
+        std::shared_ptr<SyncUser> user = app->sync_manager()->get_existing_logged_in_user(user_id);
         if (!user) {
             throw std::logic_error("User is not logged in");
         }
@@ -100,7 +108,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_mongodb_sync_Sync_nativeGetPathForRealm(
             JStringAccessor override_file_name(env, j_override_filename);
             file_name = std::string(override_file_name);
         }
-        return to_jstring(env, SyncManager::shared().path_for_realm(config, file_name));
+        return to_jstring(env, app->sync_manager()->path_for_realm(config, file_name));
     }
     CATCH_STD()
     return nullptr;

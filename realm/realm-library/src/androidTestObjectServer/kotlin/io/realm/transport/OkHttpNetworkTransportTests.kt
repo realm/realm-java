@@ -19,7 +19,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.Realm
 import io.realm.internal.network.OkHttpNetworkTransport
-import io.realm.internal.network.LoggingInterceptor
 import io.realm.internal.objectstore.OsJavaNetworkTransport
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -117,6 +116,28 @@ class OkHttpNetworkTransportTests {
             assertEquals("${method.name}-success", response.body)
         }
     }
+
+
+    // Validate that we can access a text/event-stream streamed response
+    @Test
+    fun streamRequest() {
+        val url = "$baseUrl/watcher"
+
+        val headers = mapOf(
+                Pair("Accept", "text/event-stream")
+        )
+
+        val request = OsJavaNetworkTransport.Request("get", url, headers, "")
+        val response = transport.sendStreamingRequest(request)
+
+        assertEquals(200, response.httpResponseCode)
+        assertEquals(0, response.customResponseCode)
+        assertEquals("hello world 1", response.readBodyLine())
+        assertEquals("hello world 2", response.readBodyLine())
+
+        response.close()
+    }
+
 
     @Test
     fun requestInterrupted() {

@@ -1,7 +1,7 @@
 {
-    "id": "5ede0729eab8deea4edf057c",
-    "database": "test_data",
     "collection": "custom_user_data",
+    "database": "test_data",
+    "id": "5f8026eb41a54eac4113071f",
     "roles": [
         {
             "name": "default",

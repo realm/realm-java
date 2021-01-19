@@ -16,8 +16,8 @@
 
 #include "io_realm_internal_OsObjectStore.h"
 
-#include <object_store.hpp>
-#include <shared_realm.hpp>
+#include <realm/object-store/object_store.hpp>
+#include <realm/object-store/shared_realm.hpp>
 
 #include "util.hpp"
 #include "jni_util/java_method.hpp"
@@ -61,7 +61,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectStore_nativeSetPrimaryKeyF
 
             // Check valid column type
             auto field_type = table->get_column_type(pk_column_col);
-            if (field_type != type_Int && field_type != type_String) {
+            if (field_type != type_Int && field_type != type_String && field_type != type_ObjectId) {
                 THROW_JAVA_EXCEPTION(
                     env, JavaExceptionDef::IllegalArgument,
                     format("Field '%1' is not a valid primary key type.", StringData(pk_field_name_accessor)));

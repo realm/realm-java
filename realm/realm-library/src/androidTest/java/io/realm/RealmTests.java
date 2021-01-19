@@ -21,10 +21,6 @@ import android.os.Build;
 import android.os.Looper;
 import android.os.SystemClock;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.rule.UiThreadTestRule;
-
 import junit.framework.AssertionFailedError;
 
 import org.bson.types.Decimal128;
@@ -55,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
@@ -69,6 +66,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+import androidx.test.annotation.UiThreadTest;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.rule.UiThreadTestRule;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
@@ -761,6 +762,70 @@ public class RealmTests {
             RealmLog.remove(testLogger);
         }
         assertEquals(0, realm.where(Owner.class).count());
+    }
+
+    @Test
+    @UiThreadTest
+    public void executeTransaction_mainThreadWritesAllowed() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowWritesOnUiThread(true)
+                .name("ui_realm")
+                .build();
+
+        Realm uiRealm = Realm.getInstance(configuration);
+        uiRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.insert(new Dog("Snuffles"));
+            }
+        });
+
+        RealmResults<Dog> results = uiRealm.where(Dog.class).equalTo("name", "Snuffles").findAll();
+        assertEquals(1, results.size());
+        assertNotNull(results.first());
+        assertEquals("Snuffles", Objects.requireNonNull(results.first()).getName());
+
+        uiRealm.close();
+    }
+
+    @Test
+    @UiThreadTest
+    public void executeTransaction_mainThreadWritesNotAllowed() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowWritesOnUiThread(false)
+                .name("ui_realm")
+                .build();
+
+        // Try-with-resources
+        try (Realm uiRealm = Realm.getInstance(configuration)) {
+            uiRealm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    // no-op
+                }
+            });
+            fail("the call to executeTransaction should have failed, this line should not be reached.");
+        } catch (RealmException e) {
+            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowWritesOnUiThread"));
+        }
+    }
+
+    @Test
+    public void executeTransaction_runsOnNonUiThread() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowWritesOnUiThread(false)
+                .name("ui_realm")
+                .build();
+
+        Realm uiRealm = Realm.getInstance(configuration);
+        uiRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                // no-op
+            }
+        });
+
+        uiRealm.close();
     }
 
     @Test
@@ -4608,8 +4673,65 @@ public class RealmTests {
         }
     }
 
+    // Test for https://github.com/realm/realm-java/issues/6977
+    @Test
+    @RunTestInLooperThread
+    public void numberOfVersionsDecreasedOnClose() {
+        realm.close();
+        int count = 50;
+        final CountDownLatch bgThreadDoneLatch = new CountDownLatch(count);
+
+        RealmConfiguration config = configFactory.createConfigurationBuilder()
+                // The multiple embedded threads seems to cause trouble with factory's directory setting
+                .directory(context.getFilesDir())
+                .name("versions-test.realm")
+                .maxNumberOfActiveVersions(5)
+                .build();
+        Realm.deleteRealm(config);
+
+        // Synchronizes between change listener and Background writes so they operate in lockstep.
+        AtomicReference<CountDownLatch> guard = new AtomicReference<>(new CountDownLatch(1));
+
+        Realm realm = Realm.getInstance(config);
+        looperThread.closeAfterTest(realm);
+        realm.addChangeListener(callbackRealm -> {
+            // This test catches a bug that caused ObjectStore to pin Realm versions
+            // if a TableView was created inside a change notification and no elements
+            // in the TableView was accessed.
+            RealmResults<AllJavaTypes> query = realm.where(AllJavaTypes.class).findAll();
+            guard.get().countDown();
+            bgThreadDoneLatch.countDown();
+            if (bgThreadDoneLatch.getCount() == 0) {
+                looperThread.testComplete();
+            }
+        });
+
+        // Write a number of transactions in the background in a serial manner
+        // in order to create a number of different versions. Done in serial
+        // to allow the LooperThread to catch up.
+        new Thread(() -> {
+            for (int i = 0; i < count; i++) {
+                Thread t = new Thread() {
+                    @Override
+                    public void run() {
+                        Realm realm = Realm.getInstance(config);
+                        realm.executeTransaction(bgRealm -> { });
+                        realm.close();
+                    }
+                };
+                t.start();
+                try {
+                    t.join();
+                    TestHelper.awaitOrFail(guard.get());
+                    guard.set(new CountDownLatch(1));
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }).start();
+    }
+
     // Test for https://github.com/realm/realm-java/issues/6152
-    @Ignore("FIXME: https://github.com/realm/realm-java/issues/6792")
     @Test
     @RunTestInLooperThread
     public void encryption_stressTest() {
@@ -4663,5 +4785,38 @@ public class RealmTests {
                 }
             }
         });
+    }
+
+    @Test
+    public void getNumberOfActiveVersions() throws InterruptedException {
+        CountDownLatch bgWritesCompleted = new CountDownLatch(1);
+        CountDownLatch closeBgRealm = new CountDownLatch(1);
+        assertEquals(2, realm.getNumberOfActiveVersions());
+        Thread t = new Thread(() -> {
+            Realm bgRealm = Realm.getInstance(realmConfig);
+            assertEquals(2, bgRealm.getNumberOfActiveVersions());
+            for (int i = 0; i < 5; i++) {
+                bgRealm.executeTransaction(r -> { /* empty */ });
+            }
+            assertEquals(6, bgRealm.getNumberOfActiveVersions());
+            bgWritesCompleted.countDown();
+            TestHelper.awaitOrFail(closeBgRealm);
+            bgRealm.close();
+        });
+        t.start();
+        TestHelper.awaitOrFail(bgWritesCompleted);
+        assertEquals(6, realm.getNumberOfActiveVersions());
+        closeBgRealm.countDown();
+        t.join();
+        realm.refresh(); // Release old versions for GC
+        realm.beginTransaction();
+        realm.commitTransaction(); // Actually release the versions
+        assertEquals(2, realm.getNumberOfActiveVersions());
+        realm.close();
+        try {
+            realm.getNumberOfActiveVersions();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
     }
 }

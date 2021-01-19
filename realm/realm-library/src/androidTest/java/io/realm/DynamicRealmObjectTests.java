@@ -34,6 +34,7 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -42,6 +43,7 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
+import io.realm.entities.NullablePrimitiveFields;
 import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
 import io.realm.entities.PrimaryKeyAsBoxedInteger;
@@ -1727,4 +1729,110 @@ public class DynamicRealmObjectTests {
         thread.start();
         TestHelper.awaitOrFail(threadFinished);
     }
+
+    @Test
+    public void getNullableFields() {
+        realm.executeTransaction(realm -> {
+            NullablePrimitiveFields primitiveNullables = realm.createObject(NullablePrimitiveFields.class);
+            primitiveNullables.setFieldBoolean(null);
+
+            assertNull(primitiveNullables.getFieldBoolean());
+            assertNull(primitiveNullables.getFieldInt());
+            assertNull(primitiveNullables.getFieldFloat());
+            assertNull(primitiveNullables.getFieldDouble());
+            assertNull(primitiveNullables.getFieldString());
+            assertNull(primitiveNullables.getFieldBinary());
+            assertNull(primitiveNullables.getFieldDate());
+
+            realm.delete(AllJavaTypes.class);
+            AllJavaTypes allJavaTypes = realm.createObject(AllJavaTypes.class, UUID.randomUUID().getLeastSignificantBits());
+
+            assertNull(allJavaTypes.getFieldObject());
+            allJavaTypes.getFieldBooleanList().add(null);
+            allJavaTypes.getFieldIntegerList().add(null);
+            allJavaTypes.getFieldFloatList().add(null);
+            allJavaTypes.getFieldDoubleList().add(null);
+            allJavaTypes.getFieldStringList().add(null);
+            allJavaTypes.getFieldBinaryList().add(null);
+            allJavaTypes.getFieldDateList().add(null);
+            allJavaTypes.getFieldObjectIdList().add(null);
+            allJavaTypes.getFieldDecimal128List().add(null);
+
+        });
+        realm.close();
+        dynamicRealm.refresh();
+
+        DynamicRealmObject primitiveNullables = dynamicRealm.where(NullablePrimitiveFields.CLASS_NAME).findFirst();
+        DynamicRealmObject allJavaTypes = dynamicRealm.where(AllJavaTypes.CLASS_NAME).findFirst();
+
+        for (RealmFieldType value : RealmFieldType.values()) {
+            switch (value) {
+                case INTEGER:
+                    assertNull(primitiveNullables.get(NullablePrimitiveFields.FIELD_INT));
+                    break;
+                case BOOLEAN:
+                    assertNull(primitiveNullables.get(NullablePrimitiveFields.FIELD_BOOLEAN));
+                    break;
+                case STRING:
+                    assertNull(primitiveNullables.get(NullablePrimitiveFields.FIELD_STRING));
+                    break;
+                case BINARY:
+                    assertNull(primitiveNullables.get(NullablePrimitiveFields.FIELD_BINARY));
+                    break;
+                case DATE:
+                    assertNull(primitiveNullables.get(NullablePrimitiveFields.FIELD_DATE));
+                    break;
+                case FLOAT:
+                    assertNull(primitiveNullables.get(NullablePrimitiveFields.FIELD_FLOAT));
+                    break;
+                case DOUBLE:
+                    assertNull(primitiveNullables.get(NullablePrimitiveFields.FIELD_DOUBLE));
+                    break;
+                case OBJECT:
+                    assertNull(allJavaTypes.get(AllJavaTypes.FIELD_OBJECT));
+                    break;
+                case DECIMAL128:
+                    assertNull(primitiveNullables.get(NullablePrimitiveFields.FIELD_DECIMAL128));
+                    break;
+                case OBJECT_ID:
+                    assertNull(primitiveNullables.get(NullablePrimitiveFields.FIELD_OBJECT_ID));
+                    break;
+                case INTEGER_LIST:
+                    assertNull(allJavaTypes.getList(AllJavaTypes.FIELD_INTEGER_LIST, Integer.class).get(0));
+                    break;
+                case BOOLEAN_LIST:
+                    assertNull(allJavaTypes.getList(AllJavaTypes.FIELD_BOOLEAN_LIST, Boolean.class).get(0));
+                    break;
+                case STRING_LIST:
+                    assertNull(allJavaTypes.getList(AllJavaTypes.FIELD_STRING_LIST, String.class).get(0));
+                    break;
+                case BINARY_LIST:
+                    assertNull(allJavaTypes.getList(AllJavaTypes.FIELD_BINARY_LIST, byte[].class).get(0));
+                    break;
+                case DATE_LIST:
+                    assertNull(allJavaTypes.getList(AllJavaTypes.FIELD_DATE_LIST, Date.class).get(0));
+                    break;
+                case FLOAT_LIST:
+                    assertNull(allJavaTypes.getList(AllJavaTypes.FIELD_FLOAT_LIST, Float.class).get(0));
+                    break;
+                case DOUBLE_LIST:
+                    assertNull(allJavaTypes.getList(AllJavaTypes.FIELD_DOUBLE_LIST, Double.class).get(0));
+                    break;
+                case DECIMAL128_LIST:
+                    assertNull(allJavaTypes.getList(AllJavaTypes.FIELD_DECIMAL128_LIST, Decimal128.class).get(0));
+                    break;
+                case OBJECT_ID_LIST:
+                    assertNull(allJavaTypes.getList(AllJavaTypes.FIELD_OBJECT_ID_LIST, ObjectId.class).get(0));
+                    break;
+                case LIST:
+                case LINKING_OBJECTS:
+                    // Realm lists and back links cannot be null
+                    break;
+                default:
+                    fail("Not testing all types");
+            }
+        }
+        dynamicRealm.close();
+    }
+
 }

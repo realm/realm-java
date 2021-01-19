@@ -21,7 +21,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.admin.ServerAdmin
 import io.realm.mongodb.*
 import io.realm.mongodb.auth.ApiKeyAuth
-import io.realm.mongodb.auth.UserApiKey
+import io.realm.mongodb.auth.ApiKey
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.ObjectId
 import org.junit.After
@@ -48,7 +48,7 @@ class ApiKeyAuthTests {
         }
     }
 
-    private val checkNullInApiKeyCallback = App.Callback<UserApiKey> { result ->
+    private val checkNullInApiKeyCallback = App.Callback<ApiKey> { result ->
         if (result.isSuccess) {
             fail()
         } else {
@@ -73,7 +73,7 @@ class ApiKeyAuthTests {
         app = TestApp()
         admin = ServerAdmin(app)
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        provider = user.apiKeyAuth
+        provider = user.apiKeys
     }
 
     @After
@@ -94,7 +94,7 @@ class ApiKeyAuthTests {
 
     @Test
     fun createApiKey() {
-        val key: UserApiKey = provider.createApiKey("my-key")
+        val key: ApiKey = provider.create("my-key")
         assertEquals("my-key", key.name)
         assertNotNull("my-key", key.value)
         assertNotNull("my-key", key.id)
@@ -104,7 +104,7 @@ class ApiKeyAuthTests {
     @Test
     fun createApiKey_invalidServerArgsThrows() {
         try {
-            provider.createApiKey("%s")
+            provider.create("%s")
             fail()
         } catch (e: AppException) {
             assertEquals(ErrorCode.INVALID_PARAMETER, e.errorCode)
@@ -113,19 +113,19 @@ class ApiKeyAuthTests {
 
     @Test
     fun createApiKey_invalidArgumentThrows() {
-        testNullArg { provider.createApiKey(TestHelper.getNull()) }
-        testNullArg { provider.createApiKey("") }
+        testNullArg { provider.create(TestHelper.getNull()) }
+        testNullArg { provider.create("") }
         looperThread.runBlocking {
-            provider.createApiKeyAsync(TestHelper.getNull(), checkNullInApiKeyCallback)
+            provider.createAsync(TestHelper.getNull(), checkNullInApiKeyCallback)
         }
         looperThread.runBlocking {
-            provider.createApiKeyAsync("", checkNullInApiKeyCallback)
+            provider.createAsync("", checkNullInApiKeyCallback)
         }
     }
 
     @Test
     fun createApiKeyAsync() = looperThread.runBlocking {
-        provider.createApiKeyAsync("my-key") { result ->
+        provider.createAsync("my-key") { result ->
             val key = result.orThrow
             assertEquals("my-key", key.name)
             assertNotNull("my-key", key.value)
@@ -137,7 +137,7 @@ class ApiKeyAuthTests {
 
     @Test
     fun createApiKeyAsync_invalidServerArgsThrows() = looperThread.runBlocking {
-        provider.createApiKeyAsync("%s") { result ->
+        provider.createAsync("%s") { result ->
             if (result.isSuccess) {
                 fail()
             } else {
@@ -149,8 +149,8 @@ class ApiKeyAuthTests {
 
     @Test
     fun fetchApiKey() {
-        val key1: UserApiKey = provider.createApiKey("my-key")
-        val key2: UserApiKey = provider.fetchApiKey(key1.id)
+        val key1: ApiKey = provider.create("my-key")
+        val key2: ApiKey = provider.fetch(key1.id)
 
         assertEquals(key1.id, key2.id)
         assertEquals(key1.name, key2.name)
@@ -161,7 +161,7 @@ class ApiKeyAuthTests {
     @Test
     fun fetchApiKey_nonExistingKey() {
         try {
-            provider.fetchApiKey(ObjectId())
+            provider.fetch(ObjectId())
             fail()
         } catch (e: AppException) {
             assertEquals(ErrorCode.API_KEY_NOT_FOUND, e.errorCode)
@@ -170,17 +170,17 @@ class ApiKeyAuthTests {
 
     @Test
     fun fetchApiKey_invalidArgumentThrows() {
-        testNullArg { provider.fetchApiKey(TestHelper.getNull()) }
+        testNullArg { provider.fetch(TestHelper.getNull()) }
         looperThread.runBlocking {
-            provider.fetchApiKeyAsync(TestHelper.getNull(), checkNullInApiKeyCallback)
+            provider.fetchAsync(TestHelper.getNull(), checkNullInApiKeyCallback)
         }
     }
 
     @Test
     fun fetchApiKeyAsync() {
-        val key1: UserApiKey = provider.createApiKey("my-key")
+        val key1: ApiKey = provider.create("my-key")
         looperThread.runBlocking {
-            provider.fetchApiKeyAsync(key1.id) { result ->
+            provider.fetchAsync(key1.id) { result ->
                 val key2 = result.orThrow
                 assertEquals(key1.id, key2.id)
                 assertEquals(key1.name, key2.name)
@@ -193,9 +193,9 @@ class ApiKeyAuthTests {
 
     @Test
     fun fetchAllApiKeys() {
-        val key1: UserApiKey = provider.createApiKey("my-key")
-        val key2: UserApiKey = provider.createApiKey("other-key")
-        val allKeys: List<UserApiKey> = provider.fetchAllApiKeys()
+        val key1: ApiKey = provider.create("my-key")
+        val key2: ApiKey = provider.create("other-key")
+        val allKeys: List<ApiKey> = provider.fetchAll()
         assertEquals(2, allKeys.size)
         assertTrue(allKeys.any { it.id == key1.id })
         assertTrue(allKeys.any { it.id == key2.id })
@@ -203,11 +203,11 @@ class ApiKeyAuthTests {
 
     @Test
     fun fetchAllApiKeysAsync() {
-        val key1: UserApiKey = provider.createApiKey("my-key")
-        val key2: UserApiKey = provider.createApiKey("other-key")
+        val key1: ApiKey = provider.create("my-key")
+        val key2: ApiKey = provider.create("other-key")
         looperThread.runBlocking {
-            provider.fetchAllApiKeys() { result ->
-                val keys: List<UserApiKey> = result.orThrow
+            provider.fetchAll() { result ->
+                val keys: List<ApiKey> = result.orThrow
                 assertEquals(2, keys.size)
                 assertTrue(keys.any { it.id == key1.id })
                 assertTrue(keys.any { it.id == key2.id })
@@ -218,11 +218,11 @@ class ApiKeyAuthTests {
 
     @Test
     fun deleteApiKey() {
-        val key1: UserApiKey = provider.createApiKey("my-key")
-        assertNotNull(provider.fetchApiKey(key1.id))
-        provider.deleteApiKey(key1.id)
+        val key1: ApiKey = provider.create("my-key")
+        assertNotNull(provider.fetch(key1.id))
+        provider.delete(key1.id)
         try {
-            provider.fetchApiKey(key1.id)
+            provider.fetch(key1.id)
             fail()
         } catch (e: AppException) {
             assertEquals(ErrorCode.API_KEY_NOT_FOUND, e.errorCode)
@@ -232,7 +232,7 @@ class ApiKeyAuthTests {
     @Test
     fun deleteApiKey_invalidServerArgsThrows() {
         try {
-            provider.deleteApiKey(ObjectId())
+            provider.delete(ObjectId())
             fail()
         } catch (e: AppException) {
             assertEquals(ErrorCode.API_KEY_NOT_FOUND, e.errorCode)
@@ -241,21 +241,21 @@ class ApiKeyAuthTests {
 
     @Test
     fun deleteApiKey_invalidArgumentThrows() {
-        testNullArg { provider.deleteApiKey(TestHelper.getNull()) }
+        testNullArg { provider.delete(TestHelper.getNull()) }
         looperThread.runBlocking {
-            provider.deleteApiKeyAsync(TestHelper.getNull(), checkNullInVoidCallback)
+            provider.deleteAsync(TestHelper.getNull(), checkNullInVoidCallback)
         }
     }
 
     @Test
     fun deleteApiKeyAsync() {
-        val key: UserApiKey = provider.createApiKey("my-key")
-        assertNotNull(provider.fetchApiKey(key.id))
+        val key: ApiKey = provider.create("my-key")
+        assertNotNull(provider.fetch(key.id))
         looperThread.runBlocking {
-            provider.deleteApiKeyAsync(key.id) { result ->
+            provider.deleteAsync(key.id) { result ->
                 if (result.isSuccess) {
                     try {
-                        provider.fetchApiKey(key.id)
+                        provider.fetch(key.id)
                         fail()
                     } catch (e: AppException) {
                         assertEquals(ErrorCode.API_KEY_NOT_FOUND, e.errorCode)
@@ -270,7 +270,7 @@ class ApiKeyAuthTests {
 
     @Test
     fun deleteApiKeyAsync_invalidServerArgsThrows() = looperThread.runBlocking {
-        provider.deleteApiKeyAsync(ObjectId()) { result ->
+        provider.deleteAsync(ObjectId()) { result ->
             if (result.isSuccess) {
                 fail()
             } else {
@@ -282,28 +282,28 @@ class ApiKeyAuthTests {
 
     @Test
     fun enableApiKey() {
-        val key: UserApiKey = provider.createApiKey("my-key")
-        provider.disableApiKey(key.id)
-        assertFalse(provider.fetchApiKey(key.id).isEnabled)
-        provider.enableApiKey(key.id)
-        assertTrue(provider.fetchApiKey(key.id).isEnabled)
+        val key: ApiKey = provider.create("my-key")
+        provider.disable(key.id)
+        assertFalse(provider.fetch(key.id).isEnabled)
+        provider.enable(key.id)
+        assertTrue(provider.fetch(key.id).isEnabled)
     }
 
     @Test
     fun enableApiKey_alreadyEnabled() {
-        val key: UserApiKey = provider.createApiKey("my-key")
-        provider.disableApiKey(key.id)
-        assertFalse(provider.fetchApiKey(key.id).isEnabled)
-        provider.enableApiKey(key.id)
-        assertTrue(provider.fetchApiKey(key.id).isEnabled)
-        provider.enableApiKey(key.id)
-        assertTrue(provider.fetchApiKey(key.id).isEnabled)
+        val key: ApiKey = provider.create("my-key")
+        provider.disable(key.id)
+        assertFalse(provider.fetch(key.id).isEnabled)
+        provider.enable(key.id)
+        assertTrue(provider.fetch(key.id).isEnabled)
+        provider.enable(key.id)
+        assertTrue(provider.fetch(key.id).isEnabled)
     }
 
     @Test
     fun enableApiKey_invalidServerArgsThrows() {
         try {
-            provider.enableApiKey(ObjectId())
+            provider.enable(ObjectId())
             fail()
         } catch (e: AppException) {
             assertEquals(ErrorCode.API_KEY_NOT_FOUND, e.errorCode)
@@ -312,21 +312,21 @@ class ApiKeyAuthTests {
 
     @Test
     fun enableApiKey_invalidArgumentThrows() {
-        testNullArg { provider.enableApiKey(TestHelper.getNull()) }
+        testNullArg { provider.enable(TestHelper.getNull()) }
         looperThread.runBlocking {
-            provider.enableApiKeyAsync(TestHelper.getNull(), checkNullInVoidCallback)
+            provider.enableAsync(TestHelper.getNull(), checkNullInVoidCallback)
         }
     }
 
     @Test
     fun enableApiKeyAsync() {
-        val key: UserApiKey = provider.createApiKey("my-key")
-        provider.disableApiKey(key.id)
-        assertFalse(provider.fetchApiKey(key.id).isEnabled)
+        val key: ApiKey = provider.create("my-key")
+        provider.disable(key.id)
+        assertFalse(provider.fetch(key.id).isEnabled)
         looperThread.runBlocking {
-            provider.enableApiKeyAsync(key.id) { result ->
+            provider.enableAsync(key.id) { result ->
                 if (result.isSuccess) {
-                    assertTrue(provider.fetchApiKey(key.id).isEnabled)
+                    assertTrue(provider.fetch(key.id).isEnabled)
                     looperThread.testComplete()
                 } else {
                     fail(result.error.toString())
@@ -337,7 +337,7 @@ class ApiKeyAuthTests {
 
     @Test
     fun enableApiKeyAsync_invalidServerArgsThrows() = looperThread.runBlocking {
-        provider.disableApiKeyAsync(ObjectId()) { result ->
+        provider.disableAsync(ObjectId()) { result ->
             if (result.isSuccess) {
                 fail()
             } else {
@@ -349,24 +349,24 @@ class ApiKeyAuthTests {
 
     @Test
     fun disableApiKey() {
-        val key: UserApiKey = provider.createApiKey("my-key")
-        provider.disableApiKey(key.id)
-        assertFalse(provider.fetchApiKey(key.id).isEnabled)
+        val key: ApiKey = provider.create("my-key")
+        provider.disable(key.id)
+        assertFalse(provider.fetch(key.id).isEnabled)
     }
 
     @Test
     fun disableApiKey_alreadyDisabled() {
-        val key: UserApiKey = provider.createApiKey("my-key")
-        provider.disableApiKey(key.id)
-        assertFalse(provider.fetchApiKey(key.id).isEnabled)
-        provider.disableApiKey(key.id)
-        assertFalse(provider.fetchApiKey(key.id).isEnabled)
+        val key: ApiKey = provider.create("my-key")
+        provider.disable(key.id)
+        assertFalse(provider.fetch(key.id).isEnabled)
+        provider.disable(key.id)
+        assertFalse(provider.fetch(key.id).isEnabled)
     }
 
     @Test
     fun disableApiKey_invalidServerArgsThrows() {
         try {
-            provider.disableApiKey(ObjectId())
+            provider.disable(ObjectId())
             fail()
         } catch (e: AppException) {
             assertEquals(ErrorCode.API_KEY_NOT_FOUND, e.errorCode)
@@ -375,20 +375,20 @@ class ApiKeyAuthTests {
 
     @Test
     fun disableApiKey_invalidArgumentThrows() {
-        testNullArg { provider.disableApiKey(TestHelper.getNull()) }
+        testNullArg { provider.disable(TestHelper.getNull()) }
         looperThread.runBlocking {
-            provider.disableApiKeyAsync(TestHelper.getNull(), checkNullInVoidCallback)
+            provider.disableAsync(TestHelper.getNull(), checkNullInVoidCallback)
         }
     }
 
     @Test
     fun disableApiKeyAsync() {
-        val key: UserApiKey = provider.createApiKey("my-key")
+        val key: ApiKey = provider.create("my-key")
         assertTrue(key.isEnabled)
         looperThread.runBlocking {
-            provider.disableApiKeyAsync(key.id) { result ->
+            provider.disableAsync(key.id) { result ->
                 if (result.isSuccess) {
-                    assertFalse(provider.fetchApiKey(key.id).isEnabled)
+                    assertFalse(provider.fetch(key.id).isEnabled)
                     looperThread.testComplete()
                 } else {
                     fail(result.error.toString())
@@ -399,7 +399,7 @@ class ApiKeyAuthTests {
 
     @Test
     fun disableApiKeyAsync_invalidServerArgsThrows() = looperThread.runBlocking {
-        provider.disableApiKeyAsync(ObjectId()) { result ->
+        provider.disableAsync(ObjectId()) { result ->
             if (result.isSuccess) {
                 fail()
             } else {
@@ -415,12 +415,12 @@ class ApiKeyAuthTests {
         for (method in Method.values()) {
             try {
                 when(method) {
-                    Method.CREATE -> provider.createApiKey("name")
-                    Method.FETCH_SINGLE -> provider.fetchApiKey(ObjectId())
-                    Method.FETCH_ALL -> provider.fetchAllApiKeys()
-                    Method.DELETE -> provider.deleteApiKey(ObjectId())
-                    Method.ENABLE -> provider.enableApiKey(ObjectId())
-                    Method.DISABLE -> provider.disableApiKey(ObjectId())
+                    Method.CREATE -> provider.create("name")
+                    Method.FETCH_SINGLE -> provider.fetch(ObjectId())
+                    Method.FETCH_ALL -> provider.fetchAll()
+                    Method.DELETE -> provider.delete(ObjectId())
+                    Method.ENABLE -> provider.enable(ObjectId())
+                    Method.DISABLE -> provider.disable(ObjectId())
                 }
                 fail("$method should have thrown an exception")
             } catch (error: AppException) {
@@ -434,12 +434,12 @@ class ApiKeyAuthTests {
         for (method in Method.values()) {
             try {
                 when(method) {
-                    Method.CREATE -> provider.createApiKeyAsync("key") { fail() }
-                    Method.FETCH_SINGLE -> provider.fetchApiKeyAsync(ObjectId()) { fail() }
-                    Method.FETCH_ALL -> provider.fetchAllApiKeys { fail() }
-                    Method.DELETE -> provider.deleteApiKeyAsync(ObjectId()) { fail() }
-                    Method.ENABLE -> provider.enableApiKeyAsync(ObjectId()) { fail() }
-                    Method.DISABLE -> provider.disableApiKeyAsync(ObjectId()) { fail() }
+                    Method.CREATE -> provider.createAsync("key") { fail() }
+                    Method.FETCH_SINGLE -> provider.fetchAsync(ObjectId()) { fail() }
+                    Method.FETCH_ALL -> provider.fetchAll { fail() }
+                    Method.DELETE -> provider.deleteAsync(ObjectId()) { fail() }
+                    Method.ENABLE -> provider.enableAsync(ObjectId()) { fail() }
+                    Method.DISABLE -> provider.disableAsync(ObjectId()) { fail() }
                 }
                 fail("$method should have thrown an exception")
             } catch (ignore: IllegalStateException) {
@@ -453,16 +453,16 @@ class ApiKeyAuthTests {
         for (method in Method.values()) {
             try {
                 when(method) {
-                    Method.CREATE -> provider.createApiKey("name")
-                    Method.FETCH_SINGLE -> provider.fetchApiKey(ObjectId())
-                    Method.FETCH_ALL -> provider.fetchAllApiKeys()
-                    Method.DELETE -> provider.deleteApiKey(ObjectId())
-                    Method.ENABLE -> provider.enableApiKey(ObjectId())
-                    Method.DISABLE -> provider.disableApiKey(ObjectId())
+                    Method.CREATE -> provider.create("name")
+                    Method.FETCH_SINGLE -> provider.fetch(ObjectId())
+                    Method.FETCH_ALL -> provider.fetchAll()
+                    Method.DELETE -> provider.delete(ObjectId())
+                    Method.ENABLE -> provider.enable(ObjectId())
+                    Method.DISABLE -> provider.disable(ObjectId())
                 }
                 fail("$method should have thrown an exception")
             } catch (error: AppException) {
-                assertEquals(ErrorCode.INVALID_SESSION, error.errorCode)
+                assertEquals(ErrorCode.SERVICE_UNKNOWN, error.errorCode)
             }
         }
     }

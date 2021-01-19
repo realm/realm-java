@@ -68,7 +68,7 @@ class LoginActivity : AppCompatActivity() {
 
 
         if (createUser) {
-            APP.emailPasswordAuth.registerUserAsync(username, password) {
+            APP.emailPassword.registerUserAsync(username, password) {
                 progressDialog.dismiss()
                 binding.buttonCreate.isEnabled = true
                 binding.buttonLogin.isEnabled = true

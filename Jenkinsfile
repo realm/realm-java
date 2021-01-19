@@ -4,16 +4,28 @@
 
 import groovy.json.JsonOutput
 
+// CONSTANTS
+
+// Branches from which we release SNAPSHOT's. Only release branches need to run on actual hardware.
+releaseBranches = ['master', 'next-major', 'v10', 'releases']
+// Branches that are "important", so if they do not compile they will generate a Slack notification
+slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
+// WARNING: Only set to `false` as an absolute last resort. Doing this will disable all integration
+// tests.
+enableIntegrationTests = true
+
+// RUNTIME PROPERTIES
+
+// Will store whether or not this build was successful.
 buildSuccess = false
+// Will be set to `true` if this build is a full release that should be available on Bintray.
+// This is determined by comparing the current git tag to the version number of the build.
+publishBuild = false
 mongoDbRealmContainer = null
 mongoDbRealmCommandServerContainer = null
 emulatorContainer = null
 dockerNetworkId = UUID.randomUUID().toString()
-// Branches from which we release SNAPSHOT's. Only release branches need to run on actual hardware.
-releaseBranches = ['master', 'next-major', 'v10']
-// Branches that are "important", so if they do not compile they will generate a Slack notification
-slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
-currentBranch = env.CHANGE_BRANCH
+currentBranch = env.BRANCH_NAME
 // FIXME: Always used the emulator until we can enable more reliable devices
 // 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen.
 // nodeSelector = (releaseBranches.contains(currentBranch)) ? 'android' : 'docker-cph-03' // Switch to `brix` when all CPH nodes work: https://jira.mongodb.org/browse/RCI-14
@@ -36,6 +48,26 @@ try {
           ])
         }
 
+        // Check type of Build. We are treating this as a release build if we are building
+        // the exact Git SHA that was tagged.
+        gitTag = readGitTag()
+        echo "Git tag: ${gitTag ?: 'none'}"
+        if (!gitTag) {
+          gitSha = sh(returnStdout: true, script: 'git rev-parse HEAD').trim().take(8)
+          echo "Building non-release: ${gitSha}"
+          setBuildName(gitSha)
+          publishBuild = false
+        } else {
+          def version = readFile('version.txt').trim()
+          if (gitTag != "v${version}") {
+            error "Git tag '${gitTag}' does not match v${version}"
+          } else {
+            echo "Building release: '${gitTag}'"
+            setBuildName("Tag ${gitTag}")
+            publishBuild = true
+          }
+        }
+
         // Toggles for PR vs. Master builds.
         // - For PR's, we favor speed > absolute correctness. So we just build for x86, use an
         //   emulator and run unit tests for the ObjectServer variant.
@@ -43,21 +75,23 @@ try {
         //   on an actual device.
         def useEmulator = false
         def emulatorImage = ""
-        def abiFilter = ""
+        def buildFlags = ""
         def instrumentationTestTarget = "connectedAndroidTest"
         def deviceSerial = ""
         if (!releaseBranches.contains(currentBranch)) {
-          // Bui
+          // Build development branch
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
-          abiFilter = "-PbuildTargetABIs=x86"
+          buildFlags = "-PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=false"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           deviceSerial = "emulator-5554"
         } else {
+          // Build main/release branch
           // FIXME: Use emulator until we can get reliable devices on CI.
           //  But still build all ABI's and run all types of tests. 
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
+          buildFlags = "-PenableLTO=true -PbuildCore=true"
           instrumentationTestTarget = "connectedAndroidTest"
           deviceSerial = "emulator-5554"
         }
@@ -66,13 +100,12 @@ try {
 
           def buildEnv = null
           stage('Prepare Docker Images') {
-            // TODO Should be renamed to 'master' when merged there.
             // TODO Caching is currently disabled (with -do-not-cache suffix) due to the upload speed
             //  in Copenhagen being too slow. So the upload times out.
-            buildEnv = buildDockerEnv("ci/realm-java:v10", push: currentBranch == 'v10-do-not-cache')
+            buildEnv = buildDockerEnv("ci/realm-java:master", push: currentBranch == 'master-do-not-cache')
             def props = readProperties file: 'dependencies.list'
-            echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER_VERSION}"
-            def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER_VERSION}")
+            echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER}"
+            def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER}")
             docker.withRegistry('https://docker.pkg.github.com', 'github-packages-token') {
               mdbRealmImage.pull()
             }
@@ -83,7 +116,8 @@ try {
             sh "docker network create ${dockerNetworkId}"
             mongoDbRealmContainer = mdbRealmImage.run("--network ${dockerNetworkId}")
             mongoDbRealmCommandServerContainer = commandServerEnv.run("--network container:${mongoDbRealmContainer.id}")
-            sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config"
+            sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config-testapp1"
+            sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config-testapp2"
             sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmContainer.id}:/tmp/"
             sh "docker exec -i ${mongoDbRealmContainer.id} sh /tmp/setup_mongodb_realm.sh"
           }
@@ -118,12 +152,17 @@ try {
                 // Need to go to ANDROID_HOME due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
                 sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-boot-anim -no-window -wipe-data -noaudio -partition-size 4098 &"
                 try {
-                  runBuild(abiFilter, instrumentationTestTarget)
+                  runBuild(buildFlags, instrumentationTestTarget)
                 } finally {
                   sh "adb emu kill"
                 }
               } else {
-                runBuild(abiFilter, instrumentationTestTarget)
+                runBuild(buildFlags, instrumentationTestTarget)
+              }
+
+              // Release the library if needed
+              if (publishBuild) {
+                runPublish()
               }
             }
           }
@@ -155,33 +194,38 @@ try {
         def payload = null
         if (!buildSuccess) {
           payload = JsonOutput.toJson([
+                  username: "Realm CI",
+                  icon_emoji: ":realm_new:",
                   text: "*The ${currentBranch} branch is broken!*\n<${env.BUILD_URL}|Click here> to check the build."
           ])
-        }
-
-        if (currentBuild.getPreviousBuild() && currentBuild.getPreviousBuild().getResult().toString() != "SUCCESS" && buildSuccess) {
+        } else if (currentBuild.getPreviousBuild() && currentBuild.getPreviousBuild().getResult().toString() != "SUCCESS" && buildSuccess) {
           payload = JsonOutput.toJson([
+                  username: "Realm CI",
+                  icon_emoji: ":realm_new:",
                   text: "*${currentBranch} is back to normal!*\n<${env.BUILD_URL}|Click here> to check the build."
           ])
         }
 
-        sh "curl -X POST --data-urlencode \'payload=${payload}\' ${env.SLACK_URL}"
+        if (payload != null) {
+          sh "curl -X POST --data-urlencode \'payload=${payload}\' ${env.SLACK_URL}"
+        }
       }
     }
   }
 }
 
 // Runs all build steps
-def runBuild(abiFilter, instrumentationTestTarget) {
+def runBuild(buildFlags, instrumentationTestTarget) {
 
   stage('Build') {
-    sh "chmod +x gradlew && ./gradlew assemble javadoc ${abiFilter} --stacktrace"
+    sh "chmod +x gradlew"
+    sh "./gradlew assemble ${buildFlags} --stacktrace"
   }
 
   stage('Tests') {
     parallel 'JVM' : {
       try {
-        sh "chmod +x gradlew && ./gradlew check ${abiFilter} --stacktrace"
+        sh "chmod +x gradlew && ./gradlew check ${buildFlags} --stacktrace"
       } finally {
         storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
         storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
@@ -196,31 +240,52 @@ def runBuild(abiFilter, instrumentationTestTarget) {
         storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
       }
     },
-    'Static code analysis' : {
-      try {
-        gradle('realm', "findbugs ${abiFilter}") // FIXME Renable pmd and checkstyle
-      } finally {
-        publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/findbugs', reportFiles: 'findbugs-output.html', reportName: 'Findbugs issues'])
-  //                  publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'realm/realm-library/build/reports/pmd', reportFiles: 'pmd.html', reportName: 'PMD Issues'])
-  //                  step([$class: 'CheckStylePublisher',
-  //                        canComputeNew: false,
-  //                        defaultEncoding: '',
-  //                        healthy: '',
-  //                        pattern: 'realm/realm-library/build/reports/checkstyle/checkstyle.xml',
-  //                        unHealthy: ''
-  //                  ])
-      }
-    },
+    // 'Static code analysis' : {
+    //   try {
+    //     gradle('realm', "spotbugsMain pmd checkstyle ${buildFlags}")
+    //   } finally {
+    //     publishHTML(target: [
+    //       allowMissing: false, 
+    //       alwaysLinkToLastBuild: false, 
+    //       keepAll: true, 
+    //       reportDir: 'realm/realm-library/build/reports/spotbugs', 
+    //       reportFiles: 'main.html', 
+    //       reportName: 'Spotbugs report'
+    //     ])
+
+    //     publishHTML(target: [
+    //       allowMissing: false, 
+    //       alwaysLinkToLastBuild: false, 
+    //       keepAll: true, 
+    //       reportDir: 'realm/realm-library/build/reports/pmd', 
+    //       reportFiles: 'pmd.html', 
+    //       reportName: 'PMD report'
+    //     ])
+        
+    //     publishHTML(target: [
+    //       allowMissing: false, 
+    //       alwaysLinkToLastBuild: false, 
+    //       keepAll: true, 
+    //       reportDir: 'realm/realm-library/build/reports/checkstyle', 
+    //       reportFiles: 'checkstyle.html', 
+    //       reportName: 'Checkstyle report'
+    //     ])
+    //   }
+    // },
     'Instrumentation' : {
-      String backgroundPid
-      try {
-        backgroundPid = startLogCatCollector()
-        forwardAdbPorts()
-        gradle('realm', "${instrumentationTestTarget} ${abiFilter}")
-      } finally {
-        stopLogCatCollector(backgroundPid)
-        storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
-        storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+      if (enableIntegrationTests) {
+        String backgroundPid
+        try {
+          backgroundPid = startLogCatCollector()
+          forwardAdbPorts()
+          gradle('realm', "${instrumentationTestTarget} ${buildFlags}")
+        } finally {
+          stopLogCatCollector(backgroundPid)
+          storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+          storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+        }
+      } else {
+        echo "Instrumentation tests were disabled."
       }
     },
     'Gradle Plugin' : {
@@ -229,6 +294,9 @@ def runBuild(abiFilter, instrumentationTestTarget) {
       } finally {
         storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
       }
+    },
+    'JavaDoc': {
+      sh "./gradlew javadoc ${buildFlags} --stacktrace"
     }
   }
 
@@ -240,14 +308,36 @@ def runBuild(abiFilter, instrumentationTestTarget) {
     }
   }
 
-  if (releaseBranches.contains(currentBranch)) {
+  if (releaseBranches.contains(currentBranch) && !publishBuild) {
     stage('Publish to OJO') {
       withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
-        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} assemble ojoUpload --stacktrace"
+        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} ojoUpload --stacktrace"
       }
     }
   }
 }
+
+def runPublish() {
+  stage('Publish Release') {
+    withCredentials([
+            [$class: 'StringBinding', credentialsId: 'slack-webhook-java-ci-channel', variable: 'SLACK_URL_CI'],
+            [$class: 'StringBinding', credentialsId: 'slack-webhook-releases-channel', variable: 'SLACK_URL_RELEASE'],
+            [$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER'],
+            [$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'DOCS_S3_ACCESS_KEY', credentialsId: 'mongodb-realm-docs-s3', secretKeyVariable: 'DOCS_S3_SECRET_KEY'],
+            [$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'REALM_S3_ACCESS_KEY', credentialsId: 'realm-s3', secretKeyVariable: 'REALM_S3_SECRET_KEY']
+    ]) {
+      sh """
+        set +x  
+        sh tools/publish_release.sh '$BINTRAY_USER' '$BINTRAY_KEY' \
+        '$REALM_S3_ACCESS_KEY' '$REALM_S3_SECRET_KEY' \
+        '$DOCS_S3_ACCESS_KEY' '$DOCS_S3_SECRET_KEY' \
+        '$SLACK_URL_RELEASE' \
+        '$SLACK_URL_CI'
+      """
+    }
+  }
+}
+
 
 def forwardAdbPorts() {
   sh """ adb reverse tcp:9080 tcp:9080 && adb reverse tcp:9443 tcp:9443 &&
@@ -364,4 +454,13 @@ def gradle(String commands) {
 
 def gradle(String relativePath, String commands) {
   sh "cd ${relativePath} && chmod +x gradlew && ./gradlew ${commands} --stacktrace"
+}
+
+def readGitTag() {
+  def command = 'git describe --exact-match --tags HEAD'
+  def returnStatus = sh(returnStatus: true, script: command)
+  if (returnStatus != 0) {
+    return null
+  }
+  return sh(returnStdout: true, script: command).trim()
 }

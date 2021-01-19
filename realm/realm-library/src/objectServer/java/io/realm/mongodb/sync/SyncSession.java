@@ -62,11 +62,13 @@ import io.realm.mongodb.User;
 @Keep
 @Beta
 public class SyncSession {
-    private final static int DIRECTION_DOWNLOAD = 1;
-    private final static int DIRECTION_UPLOAD = 2;
+    private static final int DIRECTION_DOWNLOAD = 1;
+    private static final int DIRECTION_UPLOAD = 2;
 
+    private final long appNativePointer;
     private final SyncConfiguration configuration;
     private final ErrorHandler errorHandler;
+    private final ClientResetHandler clientResetHandler;
     private volatile boolean isClosed = false;
     private final AtomicReference<WaitForSessionWrapper> waitingForServerChanges = new AtomicReference<>(null);
 
@@ -154,9 +156,11 @@ public class SyncSession {
         }
     }
 
-    SyncSession(SyncConfiguration configuration) {
+    SyncSession(SyncConfiguration configuration, long appNativePointer) {
         this.configuration = configuration;
         this.errorHandler = configuration.getErrorHandler();
+        this.clientResetHandler = configuration.getClientResetHandler();
+        this.appNativePointer = appNativePointer;
     }
 
     /**
@@ -196,8 +200,8 @@ public class SyncSession {
         if (errCode == ErrorCode.CLIENT_RESET) {
             // errorMessage contains the path to the backed up file
             RealmConfiguration backupRealmConfiguration = configuration.forErrorRecovery(errorMessage);
-            errorHandler.onError(this, new ClientResetRequiredError(errCode, "A Client Reset is required. " +
-                    "Read more here: https://realm.io/docs/realm-object-server/#client-recovery-from-a-backup.",
+            clientResetHandler.onClientReset(this, new ClientResetRequiredError(appNativePointer, errCode, "A Client Reset is required. " +
+                    "Read more here: https://docs.realm.io/sync/using-synced-realms/errors#client-reset.",
                     configuration, backupRealmConfiguration));
         } else {
             AppException wrappedError;
@@ -219,7 +223,7 @@ public class SyncSession {
      * @see SyncSession.State
      */
     public State getState() {
-        byte state = nativeGetState(configuration.getPath());
+        byte state = nativeGetState(appNativePointer, configuration.getPath());
         if (state == -1) {
             // session was not found, probably the Realm was closed
             throw new IllegalStateException("Could not find session, Realm was probably closed");
@@ -234,7 +238,7 @@ public class SyncSession {
      * @see ConnectionState
      */
     public ConnectionState getConnectionState() {
-        byte state = nativeGetConnectionState(configuration.getPath());
+        byte state = nativeGetConnectionState(appNativePointer, configuration.getPath());
         if (state == -1) {
             // session was not found, probably the Realm was closed
             throw new IllegalStateException("Could not find session, Realm was probably closed");
@@ -254,7 +258,7 @@ public class SyncSession {
      * if not or if it is in the process of connecting.
      */
     public boolean isConnected() {
-        ConnectionState connectionState = ConnectionState.fromNativeValue(nativeGetConnectionState(configuration.getPath()));
+        ConnectionState connectionState = ConnectionState.fromNativeValue(nativeGetConnectionState(appNativePointer, configuration.getPath()));
         State sessionState = getState();
         return (sessionState == State.ACTIVE || sessionState == State.DYING) && connectionState == ConnectionState.CONNECTED;
     }
@@ -345,7 +349,7 @@ public class SyncSession {
                     break;
                 }
             }
-            nativeRemoveProgressListener(configuration.getPath(), token);
+            nativeRemoveProgressListener(appNativePointer, configuration.getPath(), token);
         }
     }
 
@@ -357,7 +361,7 @@ public class SyncSession {
         // A listener might be triggered immediately as part of `nativeAddProgressListener`, so
         // we need to make sure it can be found by SyncManager.notifyProgressListener()
         listenerIdToProgressListenerMap.put(listenerId, new Pair<ProgressListener, Progress>(listener, null));
-        long listenerToken = nativeAddProgressListener(configuration.getPath(), listenerId , direction, isStreaming);
+        long listenerToken = nativeAddProgressListener(appNativePointer, configuration.getPath(), listenerId , direction, isStreaming);
         if (listenerToken == 0) {
             // ObjectStore did not register the listener. This can happen if a
             // listener is registered with ProgressMode.CURRENT_CHANGES and no changes actually
@@ -386,7 +390,7 @@ public class SyncSession {
     public synchronized void addConnectionChangeListener(ConnectionListener listener) {
         Util.checkNull(listener, "listener");
         if (connectionListeners.isEmpty()) {
-            nativeConnectionListenerToken = nativeAddConnectionListener(configuration.getPath());
+            nativeConnectionListenerToken = nativeAddConnectionListener(appNativePointer, configuration.getPath());
         }
         connectionListeners.add(listener);
     }
@@ -401,7 +405,7 @@ public class SyncSession {
         Util.checkNull(listener, "listener");
         connectionListeners.remove(listener);
         if (connectionListeners.isEmpty()) {
-            nativeRemoveConnectionListener(nativeConnectionListenerToken, configuration.getPath());
+            nativeRemoveConnectionListener(appNativePointer, nativeConnectionListenerToken, configuration.getPath());
         }
     }
 
@@ -417,7 +421,7 @@ public class SyncSession {
     // If the native listener was successfully registered, Object Store guarantees that this method will be called at
     // least once, even if the session is closed.
     @SuppressWarnings("unused")
-    private void notifyAllChangesSent(int callbackId, Long errorcode, String errorMessage) {
+    private void notifyAllChangesSent(int callbackId, String errorCategory, Long errorCode, String errorMessage) {
         WaitForSessionWrapper wrapper = waitingForServerChanges.get();
         if (wrapper != null) {
             // Only react to callback if the callback is "active"
@@ -427,7 +431,7 @@ public class SyncSession {
             // 3. Call `uploadAllLocalChanges()` ( callback = 2)
             // 4. Sync notifies session that callback:1 is done. It should be ignored.
             if (waitCounter.get() == callbackId) {
-                wrapper.handleResult(errorcode, errorMessage);
+                wrapper.handleResult(errorCategory, errorCode, errorMessage);
             }
         }
     }
@@ -554,7 +558,7 @@ public class SyncSession {
      * @see #stop()
      */
     public synchronized void start() {
-        nativeStart(configuration.getPath());
+        nativeStart(appNativePointer, configuration.getPath());
     }
 
     /**
@@ -567,7 +571,7 @@ public class SyncSession {
      */
     public synchronized void stop() {
         close();
-        nativeStop(configuration.getPath());
+        nativeStop(appNativePointer, configuration.getPath());
     }
 
     /**
@@ -590,8 +594,8 @@ public class SyncSession {
             waitingForServerChanges.set(wrapper);
             int callbackId = waitCounter.incrementAndGet();
             boolean listenerRegistered = (direction == DIRECTION_DOWNLOAD)
-                    ? nativeWaitForDownloadCompletion(callbackId, realmPath)
-                    : nativeWaitForUploadCompletion(callbackId, realmPath);
+                    ? nativeWaitForDownloadCompletion(appNativePointer, callbackId, realmPath)
+                    : nativeWaitForUploadCompletion(appNativePointer, callbackId, realmPath);
             if (!listenerRegistered) {
                 waitingForServerChanges.set(null);
                 String errorMsg;
@@ -635,6 +639,10 @@ public class SyncSession {
         }
     }
 
+    void shutdownAndWait() {
+        nativeShutdownAndWait(appNativePointer, configuration.getPath());
+    }
+
     /**
      * Interface used to report any session errors.
      *
@@ -647,46 +655,60 @@ public class SyncSession {
          * When an exception is thrown in the error handler, the occurrence will be logged and the exception
          * will be ignored.
          *
-         * <p>
-         * When the {@code error.getErrorCode()} returns {@link ErrorCode#CLIENT_RESET}, it indicates the Realm
-         * needs to be reset and the {@code error} can be cast to {@link ClientResetRequiredError}.
-         * <p>
-         * A synced Realm may need to be reset because the Realm Object Server encountered an error and had
-         * to be restored from a backup. If the backup copy of the remote Realm is of an earlier version
-         * than the local copy of the Realm, the server will ask the client to reset the Realm.
-         * <p>
-         * The reset process is as follows: the local copy of the Realm is copied into a recovery directory
-         * for safekeeping, and then deleted from the original location. The next time the Realm for that
-         * URL is opened, the Realm will automatically be re-downloaded from the Realm Object Server, and
-         * can be used as normal.
-         * <p>
-         * Data written to the Realm after the local copy of the Realm diverged from the backup remote copy
-         * will be present in the local recovery copy of the Realm file. The re-downloaded Realm will
-         * initially contain only the data present at the time the Realm was backed up on the server.
-         * <p>
-         * The client reset process can be initiated in one of two ways:
-         * <ol>
-         *     <li>
-         *         Run {@link ClientResetRequiredError#executeClientReset()} manually. All Realm instances must be
-         *         closed before this method is called.
-         *     </li>
-         *     <li>
-         *         If Client Reset isn't executed manually, it will automatically be carried out the next time all
-         *         Realm instances have been closed and re-opened. This will most likely be
-         *         when the app is restarted.
-         *     </li>
-         * </ol>
-         *
-         * <b>WARNING:</b>
-         * Any writes to the Realm file between this callback and Client Reset has been executed, will not be
-         * synchronized to the Object Server. Those changes will only be present in the backed up file. It is therefore
-         * recommended to close all open Realm instances as soon as possible.
-         *
-         *
          * @param session {@link SyncSession} this error happened on.
          * @param error type of error.
          */
         void onError(SyncSession session, AppException error);
+    }
+
+    /**
+     * Callback for the specific error event known as a Client Reset, determined by the error code
+     * {@link ErrorCode#CLIENT_RESET}.
+     * <p>
+     * A synced Realm may need to be reset because the MongoDB Realm Server encountered an error and had
+     * to be restored from a backup or because it has been too long since the client connected to the
+     * server so the server has rotated the logs.
+     * <p>
+     * The Client Reset thus occurs because the server does not have the full information required to
+     * bring the Client fully up to date.
+     * <p>
+     * The reset process is as follows: the local copy of the Realm is copied into a recovery directory
+     * for safekeeping, and then deleted from the original location. The next time the Realm for that
+     * URL is opened, the Realm will automatically be re-downloaded from MongoDB Realm, and
+     * can be used as normal.
+     * <p>
+     * Data written to the Realm after the local copy of the Realm diverged from the backup remote copy
+     * will be present in the local recovery copy of the Realm file. The re-downloaded Realm will
+     * initially contain only the data present at the time the Realm was backed up on the server.
+     * <p>
+     * The client reset process can be initiated in one of two ways:
+     * <ol>
+     *     <li>
+     *         Run {@link ClientResetRequiredError#executeClientReset()} manually. All Realm instances must be
+     *         closed before this method is called.
+     *     </li>
+     *     <li>
+     *         If Client Reset isn't executed manually, it will automatically be carried out the next time all
+     *         Realm instances have been closed and re-opened. This will most likely be
+     *         when the app is restarted.
+     *     </li>
+     * </ol>
+     *
+     * <b>WARNING:</b>
+     * Any writes to the Realm file between this callback and Client Reset has been executed, will not be
+     * synchronized to MongoDB Realm. Those changes will only be present in the backed up file. It is therefore
+     * recommended to close all open Realm instances as soon as possible.
+     */
+    public interface ClientResetHandler {
+        /**
+         * Callback that indicates a Client Reset has happened. This should be handled as quickly as
+         * possible as any further changes to the Realm will not be synchronized with the server and
+         * must be moved manually from the backup Realm to the new one.
+         * 
+         * @param session {@link SyncSession} this error happened on.
+         * @param error {@link ClientResetRequiredError} the specific Client Reset error.
+         */
+        void onClientReset(SyncSession session, ClientResetRequiredError error);
     }
 
     // Wrapper class for handling the async operations of the underlying SyncSession calling
@@ -695,6 +717,7 @@ public class SyncSession {
 
         private final CountDownLatch waiter = new CountDownLatch(1);
         private volatile boolean resultReceived = false;
+        private String errorCategory;
         private Long errorCode = null;
         private String errorMessage;
 
@@ -715,7 +738,8 @@ public class SyncSession {
          * @param errorCode error code if an error occurred, {@code null} if changes were successfully downloaded.
          * @param errorMessage error message (if any).
          */
-        public void handleResult(Long errorCode, String errorMessage) {
+        public void handleResult(String errorCategory, Long errorCode, String errorMessage) {
+            this.errorCategory = errorCategory;
             this.errorCode = errorCode;
             this.errorMessage = errorMessage;
             this.resultReceived = true;
@@ -732,20 +756,29 @@ public class SyncSession {
          */
         public void throwExceptionIfNeeded() {
             if (resultReceived && errorCode != null) {
-                throw new AppException(ErrorCode.UNKNOWN,
-                        String.format(Locale.US, "Internal error (%d): %s", errorCode, errorMessage));
+                // Core report errors with int64, so we need to add some extra checks
+                // to make sure the value is within a range of known errors we can map to,
+                // which are all inside Integer range
+                long longErrorCode = errorCode;
+                ErrorCode mappedError = ErrorCode.fromNativeError(errorCategory, (int) longErrorCode);
+                if (longErrorCode >= Integer.MIN_VALUE && longErrorCode <= Integer.MAX_VALUE && mappedError != ErrorCode.UNKNOWN) {
+                    throw new AppException(mappedError, errorMessage);
+                } else {
+                    throw new AppException(mappedError, String.format(Locale.US, "Internal error (%d): %s", errorCode, errorMessage));
+                }
             }
         }
     }
 
-    private native long nativeAddConnectionListener(String localRealmPath);
-    private static native void nativeRemoveConnectionListener(long listenerId, String localRealmPath);
-    private native long nativeAddProgressListener(String localRealmPath, long listenerId, int direction, boolean isStreaming);
-    private static native void nativeRemoveProgressListener(String localRealmPath, long listenerToken);
-    private native boolean nativeWaitForDownloadCompletion(int callbackId, String localRealmPath);
-    private native boolean nativeWaitForUploadCompletion(int callbackId, String localRealmPath);
-    private static native byte nativeGetState(String localRealmPath);
-    private static native byte nativeGetConnectionState(String localRealmPath);
-    private static native void nativeStart(String localRealmPath);
-    private static native void nativeStop(String localRealmPath);
+    private native long nativeAddConnectionListener(long appNativePointer, String localRealmPath);
+    private static native void nativeRemoveConnectionListener(long appNativePointer, long listenerId, String localRealmPath);
+    private native long nativeAddProgressListener(long appNativePointer, String localRealmPath, long listenerId, int direction, boolean isStreaming);
+    private static native void nativeRemoveProgressListener(long appNativePointer, String localRealmPath, long listenerToken);
+    private native boolean nativeWaitForDownloadCompletion(long appNativePointer, int callbackId, String localRealmPath);
+    private native boolean nativeWaitForUploadCompletion(long appNativePointer, int callbackId, String localRealmPath);
+    private static native byte nativeGetState(long appNativePointer, String localRealmPath);
+    private static native byte nativeGetConnectionState(long appNativePointer, String localRealmPath);
+    private static native void nativeStart(long appNativePointer, String localRealmPath);
+    private static native void nativeStop(long appNativePointer, String localRealmPath);
+    private static native void nativeShutdownAndWait(long appNativePointer, String localRealmPath);
 }

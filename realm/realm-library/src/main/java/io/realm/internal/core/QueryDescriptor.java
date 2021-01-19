@@ -45,19 +45,19 @@ import io.realm.internal.fields.FieldDescriptor;
 @Keep
 public class QueryDescriptor {
     //@VisibleForTesting
-    public final static Set<RealmFieldType> SORT_VALID_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+    public static final Set<RealmFieldType> SORT_VALID_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             RealmFieldType.BOOLEAN, RealmFieldType.INTEGER, RealmFieldType.FLOAT, RealmFieldType.DOUBLE,
             RealmFieldType.STRING, RealmFieldType.DATE, RealmFieldType.DECIMAL128, RealmFieldType.OBJECT_ID)));
 
     //@VisibleForTesting
-    public final static Set<RealmFieldType> DISTINCT_VALID_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+    public static final Set<RealmFieldType> DISTINCT_VALID_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             RealmFieldType.BOOLEAN, RealmFieldType.INTEGER, RealmFieldType.STRING,
             RealmFieldType.BINARY, RealmFieldType.DATE, RealmFieldType.FLOAT, RealmFieldType.DOUBLE,
             RealmFieldType.DECIMAL128, RealmFieldType.OBJECT_ID, RealmFieldType.OBJECT,
             RealmFieldType.LINKING_OBJECTS
     )));
 
-    public final static Set<RealmFieldType> DISTINCT_VALID_LINK_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+    public static final Set<RealmFieldType> DISTINCT_VALID_LINK_FIELD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             RealmFieldType.OBJECT, RealmFieldType.LINKING_OBJECTS
     )));
 

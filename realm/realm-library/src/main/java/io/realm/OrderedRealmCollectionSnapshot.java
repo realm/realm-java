@@ -156,7 +156,7 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
      */
     @Override
     public OrderedRealmCollectionSnapshot<E> createSnapshot() {
-        realm.checkIfValid();
+        baseRealm.checkIfValid();
         return this;
     }
 
@@ -178,7 +178,7 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
      */
     @Override
     public void deleteFromRealm(int location) {
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         UncheckedRow row = osResults.getUncheckedRow(location);
         if (row.isValid()) {
             osResults.delete(location);
@@ -193,7 +193,7 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
      */
     @Override
     public boolean deleteFirstFromRealm() {
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         UncheckedRow row = osResults.firstUncheckedRow();
         return row != null && row.isValid() && osResults.deleteFirst();
     }
@@ -206,7 +206,7 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
      */
     @Override
     public boolean deleteLastFromRealm() {
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         UncheckedRow row = osResults.lastUncheckedRow();
         return row != null && row.isValid() && osResults.deleteLast();
     }

@@ -1,7 +1,7 @@
 {
-    "id": "5edea20f0f99fe616bf40add",
-    "database": "test_data",
     "collection": "SyncDog",
+    "database": "test_data",
+    "id": "5f8026eb41a54eac4113071d",
     "roles": [
         {
             "name": "default",

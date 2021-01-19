@@ -27,6 +27,7 @@ import java.util.Locale;
 import javax.annotation.Nullable;
 
 import io.realm.annotations.Required;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.OsList;
 import io.realm.internal.OsResults;
 import io.realm.internal.PendingRow;
@@ -52,6 +53,12 @@ import io.realm.internal.fields.FieldDescriptor;
  * is required.
  * <p>
  * A RealmQuery cannot be passed between different threads.
+ * <p>
+ * Results are obtained quickly most of the times. However, launching heavy queries from the UI thread may result
+ * in a drop of frames or even ANRs. If you want to prevent these behaviors, you can instantiate a Realm using a
+ * {@link RealmConfiguration} that explicitly sets {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)} to
+ * {@code false}. This way queries will be forced to be launched from a non-UI thread. Alternatively, you can also use
+ * {@link #findAllAsync()} or {@link #findFirstAsync()}.
  *
  * @param <E> the class of the objects to be queried.
  * @see <a href="http://en.wikipedia.org/wiki/Builder_pattern">Builder pattern</a>
@@ -124,8 +131,8 @@ public class RealmQuery<E> {
     static <E> RealmQuery<E> createQueryFromList(RealmList<E> list) {
         //noinspection ConstantConditions
         return (list.clazz == null)
-                ? new RealmQuery(list.realm, list.getOsList(), list.className)
-                : new RealmQuery(list.realm, list.getOsList(), list.clazz);
+                ? new RealmQuery(list.baseRealm, list.getOsList(), list.className)
+                : new RealmQuery(list.baseRealm, list.getOsList(), list.clazz);
     }
 
     private static boolean isClassForRealmModel(Class<?> clazz) {
@@ -152,7 +159,7 @@ public class RealmQuery<E> {
     }
 
     private RealmQuery(RealmResults<E> queryResults, Class<E> clazz) {
-        this.realm = queryResults.realm;
+        this.realm = queryResults.baseRealm;
         this.clazz = clazz;
         this.forValues = !isClassForRealmModel(clazz);
         if (forValues) {
@@ -200,7 +207,7 @@ public class RealmQuery<E> {
     }
 
     private RealmQuery(RealmResults<DynamicRealmObject> queryResults, String className) {
-        this.realm = queryResults.realm;
+        this.realm = queryResults.baseRealm;
         this.className = className;
         this.forValues = false;
         this.schema = realm.getSchema().getSchemaForClass(className);
@@ -1826,9 +1833,11 @@ public class RealmQuery<E> {
      * for the given field, {@code 0} will be returned. When computing the sum, objects with {@code null} values
      * are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     public Number sum(String fieldName) {
         realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
 
         long columnKey = schema.getAndCheckFieldColumnKey(fieldName);
         switch (table.getColumnType(columnKey)) {
@@ -1855,9 +1864,11 @@ public class RealmQuery<E> {
      * types of number fields. If no objects exist or they all have {@code null} as the value for the given field,
      * {@code 0} will be returned. When computing the average, objects with {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     public double average(String fieldName) {
         realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
 
         long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
         switch (table.getColumnType(columnIndex)) {
@@ -1880,9 +1891,11 @@ public class RealmQuery<E> {
      * @return the average for the given field amongst objects in query results. This will be of type Decimal128. If no objects exist or they all have {@code null}
      * as the value for the given field {@code 0} will be returned. When computing the average, objects with {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a Decimal128 type.
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     public @Nullable Decimal128 averageDecimal128(String fieldName) {
         realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
 
         long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
         return query.averageDecimal128(columnIndex);
@@ -1895,10 +1908,12 @@ public class RealmQuery<E> {
      * returned. Otherwise the minimum value is returned. When determining the minimum value, objects with {@code null}
      * values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     @Nullable
     public Number min(String fieldName) {
         realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
 
         long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
         switch (table.getColumnType(columnIndex)) {
@@ -1924,10 +1939,12 @@ public class RealmQuery<E> {
      * will be returned. Otherwise the minimum date is returned. When determining the minimum date, objects with
      * {@code null} values are ignored.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     @Nullable
     public Date minimumDate(String fieldName) {
         realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
 
         long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
         return this.query.minimumDate(columnIndex);
@@ -1941,10 +1958,12 @@ public class RealmQuery<E> {
      * returned. Otherwise the maximum value is returned. When determining the maximum value, objects with {@code null}
      * values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     @Nullable
     public Number max(String fieldName) {
         realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
 
         long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
         switch (table.getColumnType(columnIndex)) {
@@ -1974,6 +1993,7 @@ public class RealmQuery<E> {
     @Nullable
     public Date maximumDate(String fieldName) {
         realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
 
         long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
         return this.query.maximumDate(columnIndex);
@@ -1984,9 +2004,12 @@ public class RealmQuery<E> {
      *
      * @return the number of matching objects.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     public long count() {
         realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
+
         // The fastest way of doing `count()` is going through `TableQuery.count()`. Unfortunately
         // doing this does not correctly apply all side effects of queries (like subscriptions). Also
         // some queries constructs, like doing distinct is not easily supported this way.
@@ -1997,14 +2020,23 @@ public class RealmQuery<E> {
 
     /**
      * Finds all objects that fulfill the query conditions.
+     * <p>
+     * Launching heavy queries from the UI thread may result in a drop of frames or even ANRs. <b>We do not recommend
+     * doing so and therefore it is not allowed by default.</b> If you want to prevent these behaviors you can obtain
+     * a Realm using a {@link RealmConfiguration} that explicitly sets
+     * {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)} to {@code false}. This way you will be forced
+     * to launch your queries from a non-UI thread, otherwise calls to this method will throw a {@link RealmException}.
+     * Alternatively, you can use {@link #findAllAsync()}.
      *
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
      * objects is returned.
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      * @see io.realm.RealmResults
      */
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAll() {
         realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
         return createRealmResults(query, queryDescriptors, true);
     }
 
@@ -2249,13 +2281,22 @@ public class RealmQuery<E> {
 
     /**
      * Finds the first object that fulfills the query conditions.
+     * <p>
+     * Launching heavy queries from the UI thread may result in a drop of frames or even ANRs. <b>We do not recommend
+     * doing so, but it is allowed by default.</b> If you want to prevent these behaviors you can obtain a Realm using
+     * a {@link RealmConfiguration} that explicitly sets
+     * {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)} to {@code false}. This way you will be forced
+     * to launch your queries from a non-UI thread, otherwise calls to this method will throw a {@link RealmException}.
+     * Alternatively, you can use {@link #findFirstAsync()}.
      *
      * @return the object found or {@code null} if no object matches the query conditions.
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      * @see io.realm.RealmObject
      */
     @Nullable
     public E findFirst() {
         realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
 
         if (forValues) {
             // TODO implement this;

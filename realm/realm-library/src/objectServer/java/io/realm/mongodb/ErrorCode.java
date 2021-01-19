@@ -20,6 +20,7 @@ package io.realm.mongodb;
 import java.util.Locale;
 
 import io.realm.annotations.Beta;
+import io.realm.internal.Keep;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.log.RealmLog;
 import io.realm.mongodb.sync.SyncConfiguration;
@@ -28,6 +29,7 @@ import io.realm.mongodb.sync.SyncConfiguration;
  * This class enumerate all potential errors related to using the Object Server or synchronizing data.
  */
 @Beta
+@Keep
 public enum ErrorCode {
 
     // See Client::Error in https://github.com/realm/realm-sync/blob/master/src/realm/sync/client.hpp#L1230
@@ -43,10 +45,14 @@ public enum ErrorCode {
     NETWORK_IO_EXCEPTION(Type.JAVA, OsJavaNetworkTransport.ERROR_IO),
     NETWORK_INTERRUPTED(Type.JAVA, OsJavaNetworkTransport.ERROR_INTERRUPTED),
     NETWORK_UNKNOWN(Type.JAVA, OsJavaNetworkTransport.ERROR_UNKNOWN),
+
     // BSON encoding/decoding errors originating from java
     BSON_CODEC_NOT_FOUND(Type.JAVA, 1100),
     BSON_ENCODING(Type.JAVA, 1101),
     BSON_DECODING(Type.JAVA, 1102),
+
+    // Stream serializing errors originated from Java
+    EVENT_DESERIALIZING(Type.JAVA, 1200),
 
     // Custom Object Store errors
     CLIENT_RESET(Type.PROTOCOL, 7),                   // Client Reset required. Don't change this value without modifying io_realm_internal_OsSharedRealm.cpp

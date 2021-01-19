@@ -31,7 +31,11 @@ import io.realm.mongodb.Credentials
 import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
 import io.realm.mongodb.User
 import io.realm.mongodb.close
+import org.bson.BsonNull
+import org.bson.BsonString
+import org.bson.types.ObjectId
 import org.junit.*
+import org.junit.Assert.assertNotEquals
 import org.junit.runner.RunWith
 import java.io.File
 import java.util.*
@@ -71,7 +75,6 @@ class SyncedRealmTests {
 
     // Smoke test for Sync. Waiting for working Sync support.
     @Test
-    @Ignore("FIXME: https://github.com/realm/realm-java/issues/6972")
     fun connectWithInitialSchema() {
         val user: User = createNewUser()
         val config = createDefaultConfig(user)
@@ -195,6 +198,17 @@ class SyncedRealmTests {
     }
 
     @Test
+    fun nullPartition() {
+        val config = configFactory.createSyncConfigurationBuilder(createNewUser(), BsonNull())
+                .modules(DefaultSyncSchema())
+                .build()
+        assertTrue(config.path.endsWith("null.realm"))
+        Realm.getInstance(config).use { realm ->
+            realm.syncSession.uploadAllLocalChanges() // Ensures that we can actually connect
+        }
+    }
+
+    @Test
     @Ignore("FIXME Flaky, seems like Realm.compactRealm(config) sometimes returns false")
     fun compactRealm_populatedRealm() {
         val config = configFactory.createSyncConfigurationBuilder(createNewUser()).build()
@@ -217,13 +231,16 @@ class SyncedRealmTests {
         val user = createTestUser(app)
 
         // Fill Realm with data and record size
-        val config1 = configFactory.createSyncConfigurationBuilder(user).build()
+        val config1 = configFactory.createSyncConfigurationBuilder(user)
+                .testSchema(SyncByteArray::class.java)
+                .build()
+
         var originalSize : Long? = null
         Realm.getInstance(config1).use { realm ->
             val oneMBData = ByteArray(1024 * 1024)
             realm.executeTransaction {
                 for (i in 0..9) {
-                    realm.createObject(AllTypes::class.java).columnBinary = oneMBData
+                    realm.createObject(SyncByteArray::class.java, ObjectId()).columnBinary = oneMBData
                 }
             }
             originalSize = File(realm.path).length()
@@ -232,6 +249,7 @@ class SyncedRealmTests {
         // Open Realm with CompactOnLaunch
         val config2 = configFactory.createSyncConfigurationBuilder(user)
                 .compactOnLaunch { totalBytes, usedBytes -> true }
+                .testSchema(SyncByteArray::class.java)
                 .build()
         Realm.getInstance(config2).use { realm ->
             val compactedSize = File(realm.path).length()
@@ -456,6 +474,40 @@ class SyncedRealmTests {
         }
     }
 
+    // Check that we can create multiple apps that synchronize with each other
+    @Test
+    fun multipleAppsCanSync() {
+        val app2 = TestApp(appName = TEST_APP_2)
+        var realm1: Realm? = null
+        var realm2: Realm? = null
+        try {
+            // Login users on both Realms
+            val app1User = app.login(Credentials.anonymous())
+            val app2User = app2.login(Credentials.anonymous())
+            assertNotEquals(app1User, app2User)
+
+            // Create one Realm against each app
+            val config1 = configFactory.createSyncConfigurationBuilder(app1User, BsonString("foo"))
+                    .modules(DefaultSyncSchema())
+                    .build()
+            val config2 = configFactory.createSyncConfigurationBuilder(app2User, BsonString("foo"))
+                    .modules(DefaultSyncSchema())
+                    .build()
+
+            // Make sure we can synchronize changes
+            realm1 = Realm.getInstance(config1)
+            realm2 = Realm.getInstance(config2)
+            realm1.syncSession.downloadAllServerChanges()
+            realm2.syncSession.downloadAllServerChanges()
+            Assert.assertTrue(realm1.isEmpty)
+            Assert.assertTrue(realm2.isEmpty)
+        } finally {
+            realm1?.close()
+            realm2?.close()
+            app2.close()
+        }
+    }
+
     @Test
     // FIXME Missing test, maybe fitting better in SyncSessionTest.kt...when migrated
     @Ignore("Not implemented yet")
@@ -476,7 +528,7 @@ class SyncedRealmTests {
     private fun createNewUser(): User {
         val email = TestHelper.getRandomEmail()
         val password = "123456"
-        app.emailPasswordAuth.registerUser(email, password)
+        app.emailPassword.registerUser(email, password)
         return app.login(Credentials.emailPassword(email, password))
     }
 

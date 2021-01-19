@@ -1514,16 +1514,23 @@ public class Realm extends BaseRealm {
      * Executes a given transaction on the Realm. {@link #beginTransaction()} and {@link #commitTransaction()} will be
      * called automatically. If any exception is thrown during the transaction {@link #cancelTransaction()} will be
      * called instead of {@link #commitTransaction()}.
+     * <p>
+     * Calling this method from the UI thread will throw a {@link RealmException}. Doing so may result in a drop of frames
+     * or even ANRs. We recommend calling this method from a non-UI thread or using
+     * {@link #executeTransactionAsync(Transaction)} instead.
      *
      * @param transaction the {@link io.realm.Realm.Transaction} to execute.
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}.
      * @throws RealmMigrationNeededException if the latest version contains incompatible schema changes.
+     * @throws RealmException if called from the UI thread, unless an explicit opt-in has been declared in {@link RealmConfiguration.Builder#allowWritesOnUiThread(boolean)}.
      */
     public void executeTransaction(Transaction transaction) {
         //noinspection ConstantConditions
         if (transaction == null) {
             throw new IllegalArgumentException("Transaction should not be null");
         }
+
+        checkAllowWritesOnUiThread();
 
         beginTransaction();
         try {
@@ -1970,7 +1977,7 @@ public class Realm extends BaseRealm {
     /**
      * {@inheritDoc}
      */
-    public static abstract class Callback extends InstanceCallback<Realm> {
+    public abstract static class Callback extends InstanceCallback<Realm> {
         /**
          * {@inheritDoc}
          */

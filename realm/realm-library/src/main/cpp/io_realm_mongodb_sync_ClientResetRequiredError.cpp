@@ -16,7 +16,8 @@
 
 #include <jni.h>
 
-#include <sync/sync_manager.hpp>
+#include <realm/object-store/sync/app.hpp>
+#include <realm/object-store/sync/sync_manager.hpp>
 
 #include "util.hpp"
 #include "io_realm_mongodb_sync_ClientResetRequiredError.h"
@@ -24,11 +25,13 @@
 using namespace realm;
 
 JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_ClientResetRequiredError_nativeExecuteClientReset(JNIEnv* env, jobject,
-                                                                               jstring localRealmPath)
+                                                                                                    jlong j_app_ptr,
+                                                                                                    jstring localRealmPath)
 {
     try {
+        auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
         JStringAccessor local_realm_path(env, localRealmPath);
-        if (!SyncManager::shared().immediately_run_file_actions(std::string(local_realm_path))) {
+        if (!app->sync_manager()->immediately_run_file_actions(std::string(local_realm_path))) {
             ThrowException(
                 env, IllegalState,
                 concat_stringdata("Realm was not configured correctly. Client Reset could not be run for Realm at: ",

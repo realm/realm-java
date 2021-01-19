@@ -17,6 +17,7 @@
 package io.realm.internal.objectstore;
 
 import org.bson.BsonArray;
+import org.bson.BsonDocument;
 import org.bson.BsonNull;
 import org.bson.BsonObjectId;
 import org.bson.BsonValue;
@@ -25,6 +26,8 @@ import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,11 +38,15 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.NativeObject;
 import io.realm.internal.Util;
+import io.realm.internal.events.NetworkEventStream;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.jni.OsJNIResultCallback;
 import io.realm.internal.network.ResultHandler;
+import io.realm.internal.network.StreamNetworkTransport;
+import io.realm.internal.objectserver.EventStream;
 import io.realm.mongodb.App;
 import io.realm.mongodb.AppException;
+import io.realm.mongodb.mongo.MongoNamespace;
 import io.realm.mongodb.mongo.iterable.AggregateIterable;
 import io.realm.mongodb.mongo.iterable.FindIterable;
 import io.realm.mongodb.mongo.options.CountOptions;
@@ -67,6 +74,10 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     private static final int FIND_ONE_AND_DELETE_WITH_OPTIONS = 12;
     private static final int FIND_ONE = 13;
     private static final int FIND_ONE_WITH_OPTIONS = 14;
+    private static final int WATCH = 15;
+    private static final int WATCH_IDS = 16;
+    private static final int WATCH_WITH_FILTER= 17;
+
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
@@ -75,14 +86,23 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
     private final CodecRegistry codecRegistry;
     private final String encodedEmptyDocument;
     private final ThreadPoolExecutor threadPoolExecutor = App.NETWORK_POOL_EXECUTOR;
+    private final String serviceName;
+    private final MongoNamespace namespace;
+    private final StreamNetworkTransport streamNetworkTransport;
 
     OsMongoCollection(final long nativeCollectionPtr,
+                      final MongoNamespace namespace,
+                      final String serviceName,
                       final Class<DocumentT> documentClass,
-                      final CodecRegistry codecRegistry) {
+                      final CodecRegistry codecRegistry,
+                      final StreamNetworkTransport streamNetworkTransport) {
         this.nativePtr = nativeCollectionPtr;
+        this.namespace = namespace;
+        this.serviceName = serviceName;
         this.documentClass = documentClass;
         this.codecRegistry = codecRegistry;
         this.encodedEmptyDocument = JniBsonProtocol.encode(new Document(), codecRegistry);
+        this.streamNetworkTransport = streamNetworkTransport;
     }
 
     @Override
@@ -105,11 +125,11 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
 
     public <NewDocumentT> OsMongoCollection<NewDocumentT> withDocumentClass(
             final Class<NewDocumentT> clazz) {
-        return new OsMongoCollection<>(nativePtr, clazz, codecRegistry);
+        return new OsMongoCollection<>(nativePtr, namespace, serviceName, clazz, codecRegistry, streamNetworkTransport);
     }
 
     public OsMongoCollection<DocumentT> withCodecRegistry(final CodecRegistry codecRegistry) {
-        return new OsMongoCollection<>(nativePtr, documentClass, codecRegistry);
+        return new OsMongoCollection<>(nativePtr, namespace, serviceName, documentClass, codecRegistry, streamNetworkTransport);
     }
 
     public Long count() {
@@ -269,8 +289,8 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         OsJNIResultCallback<InsertOneResult> callback = new OsJNIResultCallback<InsertOneResult>(success, error) {
             @Override
             protected InsertOneResult mapSuccess(Object result) {
-                BsonValue bsonObjectId = new BsonObjectId((ObjectId) result);
-                return new InsertOneResult(bsonObjectId);
+                BsonValue id = JniBsonProtocol.decode((String) result, BsonValue.class, codecRegistry);
+                return new InsertOneResult(id);
             }
         };
 
@@ -288,9 +308,8 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                 Object[] objects = (Object[]) result;
                 Map<Long, BsonValue> insertedIdsMap = new HashMap<>();
                 for (int i = 0; i < objects.length; i++) {
-                    ObjectId objectId = (ObjectId) objects[i];
-                    BsonValue bsonObjectId = new BsonObjectId(objectId);
-                    insertedIdsMap.put((long) i, bsonObjectId);
+                    BsonValue id = JniBsonProtocol.decode((String) objects[i], BsonValue.class, codecRegistry);
+                    insertedIdsMap.put((long) i, id);
                 }
                 return new InsertManyResult(insertedIdsMap);
             }
@@ -459,6 +478,10 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         return findOneAndModify(FIND_ONE_AND_DELETE_WITH_OPTIONS, filter, new Document(), options, resultClass);
     }
 
+    public String getServiceName() {
+        return serviceName;
+    }
+
     private <ResultT> ResultT findOneAndModify(final int type,
                                                final Bson filter,
                                                final Bson update,
@@ -497,7 +520,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                 nativeFindOneAndUpdate(type, nativePtr, encodedFilter, encodedUpdate, encodedProjection, encodedSort, options.isUpsert(), options.isReturnNewDocument(), callback);
                 break;
             case FIND_ONE_AND_REPLACE:
-                nativeFindOneAndReplace(type, nativePtr, encodedFilter, encodedUpdate, encodedProjection, encodedSort, false, false,callback);
+                nativeFindOneAndReplace(type, nativePtr, encodedFilter, encodedUpdate, encodedProjection, encodedSort, false, false, callback);
                 break;
             case FIND_ONE_AND_REPLACE_WITH_OPTIONS:
                 Util.checkNull(options, "options");
@@ -525,11 +548,58 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
         }
     }
 
+    private EventStream<DocumentT> watchInternal(int type, @Nullable List<?> ids, @Nullable BsonDocument matchFilter) throws IOException {
+        List<Document> args = new ArrayList<>();
+
+        Document watchArgs = new Document("database", namespace.getDatabaseName());
+        watchArgs.put("collection", namespace.getCollectionName());
+
+        switch (type) {
+            case WATCH:
+                break;
+            case WATCH_IDS:
+                watchArgs.put("ids", ids);
+                break;
+            case WATCH_WITH_FILTER:
+                watchArgs.put("filter", matchFilter);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid watch type: " + type);
+        }
+
+        args.add(watchArgs);
+
+        String encodedArguments = JniBsonProtocol.encode(args, codecRegistry);
+
+        OsJavaNetworkTransport.Request request = streamNetworkTransport.makeStreamingRequest("watch", encodedArguments, serviceName);
+        OsJavaNetworkTransport.Response response = streamNetworkTransport.sendRequest(request);
+
+        return new NetworkEventStream<>(response, codecRegistry, documentClass);
+    }
+
+    public EventStream<DocumentT> watch() throws IOException {
+        return watchInternal(WATCH, null, null);
+    }
+
+    public EventStream<DocumentT> watch(final List<?> ids) throws IOException {
+        return watchInternal(WATCH_IDS, ids, null);
+    }
+
+    public EventStream<DocumentT> watchWithFilter(Document matchFilter) throws IOException {
+        return watchInternal(WATCH_WITH_FILTER, null, matchFilter.toBsonDocument(getDocumentClass(), getCodecRegistry()));
+    }
+
+    public EventStream<DocumentT> watchWithFilter(BsonDocument matchFilter) throws IOException {
+        return watchInternal(WATCH_WITH_FILTER, null, matchFilter);
+    }
+
     private static native long nativeGetFinalizerMethodPtr();
+
     private static native void nativeCount(long remoteMongoCollectionPtr,
                                            String filter,
                                            long limit,
                                            OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+
     private static native void nativeFindOne(int findOneType,
                                              long nativePtr,
                                              String filter,
@@ -537,22 +607,27 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                                              String sort,
                                              long limit,
                                              OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+
     private static native void nativeInsertOne(long remoteMongoCollectionPtr,
                                                String document,
                                                OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+
     private static native void nativeInsertMany(long remoteMongoCollectionPtr,
                                                 String documents,
                                                 OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+
     private static native void nativeDelete(int deleteType,
                                             long remoteMongoCollectionPtr,
                                             String document,
                                             OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+
     private static native void nativeUpdate(int updateType,
                                             long remoteMongoCollectionPtr,
                                             String filter,
                                             String update,
                                             boolean upsert,
                                             OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+
     private static native void nativeFindOneAndUpdate(int findOneAndUpdateType,
                                                       long remoteMongoCollectionPtr,
                                                       String filter,
@@ -562,6 +637,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                                                       boolean upsert,
                                                       boolean returnNewDocument,
                                                       OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+
     private static native void nativeFindOneAndReplace(int findOneAndReplaceType,
                                                        long remoteMongoCollectionPtr,
                                                        String filter,
@@ -571,6 +647,7 @@ public class OsMongoCollection<DocumentT> implements NativeObject {
                                                        boolean upsert,
                                                        boolean returnNewDocument,
                                                        OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+
     private static native void nativeFindOneAndDelete(int findOneAndDeleteType,
                                                       long remoteMongoCollectionPtr,
                                                       String filter,

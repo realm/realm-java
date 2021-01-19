@@ -65,6 +65,7 @@ class SyncSessionTests {
             val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
             val syncConfiguration = configFactory
                     .createSyncConfigurationBuilder(user)
+                    .testSchema(SyncStringOnly::class.java)
                     .build()
             val realm = Realm.getInstance(syncConfiguration)
             looperThread.closeAfterTest(realm)
@@ -191,28 +192,6 @@ class SyncSessionTests {
         }
     }
 
-    @Test
-    // FIXME Differentiate path for Realms with different partition values
-    @Ignore("Partition value does not generate different paths")
-    fun differentPathsForDifferentPartitionValues() {
-        val syncConfiguration1 = configFactory
-                .createSyncConfigurationBuilder(user, BsonString("partitionvalue1"))
-                .modules(DefaultSyncSchema())
-
-                .build()
-        val syncConfiguration2 = configFactory
-                .createSyncConfigurationBuilder(user, BsonString("partitionvalue2"))
-                .modules(DefaultSyncSchema())
-
-                .build()
-        Realm.getInstance(syncConfiguration1).use { realm1 ->
-            Realm.getInstance(syncConfiguration2).use { realm2 ->
-                assertNotEquals(realm1, realm2)
-                assertNotEquals(realm1.path, realm2.path)
-            }
-        }
-    }
-
     @Test(timeout = 3000)
     fun getState_active() {
         Realm.getInstance(syncConfiguration).use { realm ->
@@ -293,7 +272,7 @@ class SyncSessionTests {
             realm.executeTransaction {
                 realm.createObject(SyncAllTypesWithFloat::class.java, ObjectId())
             }
-            assertFailsWithErrorCode(ErrorCode.UNKNOWN) {
+            assertFailsWithErrorCode(ErrorCode.INVALID_SCHEMA_CHANGE) {
                 realm.syncSession.uploadAllLocalChanges()
             }
         }
@@ -401,8 +380,6 @@ class SyncSessionTests {
     // check that logging out a SyncUser used by different Realm will
     // affect all associated sessions.
     @Test(timeout = 5000)
-    // FIXME Differentiate path for Realms with different partition values, see differentPathsForDifferentPartitionValues
-    @Ignore("Partition value does not generate different paths")
     fun logout_sameSyncUserMultipleSessions() {
         Realm.getInstance(syncConfiguration).use { realm1 ->
             // New partitionValue to differentiate sync session
@@ -432,10 +409,9 @@ class SyncSessionTests {
                 assertEquals(SyncSession.State.INACTIVE, session2.state)
 
                 // Login again
-                app.login(Credentials.emailPassword(user.email!!, SECRET_PASSWORD))
+                app.login(Credentials.emailPassword(user.profile.email!!, SECRET_PASSWORD))
 
                 // reviving the sessions. The state could be changed concurrently.
-                // FIXME Reavaluate with new sync states
                 assertTrue(
                         //session1.state == SyncSession.State.WAITING_FOR_ACCESS_TOKEN ||
                         session1.state == SyncSession.State.ACTIVE)
@@ -448,12 +424,9 @@ class SyncSessionTests {
 
     // A Realm that was opened before a user logged out should be able to resume uploading if the user logs back in.
     @Test
-    // FIXME Investigate further
-    // FIXME Rewrite to use BlockingLooperThread
-    @Ignore("Re-logging in does not authorize")
     fun logBackResumeUpload() {
         val config1 = configFactory
-                .createSyncConfigurationBuilder(user)
+                .createSyncConfigurationBuilder(user, UUID.randomUUID().toString())
                 .modules(SyncStringOnlyModule())
                 .waitForInitialRemoteData()
                 .build()
@@ -473,11 +446,9 @@ class SyncSessionTests {
             val allResults = AtomicReference<RealmResults<SyncStringOnly>>() // notifier could be GC'ed before it get a chance to trigger the second commit, so declaring it outside the Runnable
             handler.post { // access the Realm from an different path on the device (using admin user), then monitor
                 // when the offline commits get synchronized
-                // FIXME Do we somehow need to extract the refreshtoken...and could it be the reason for app.login not working later on
                 val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
                 val config2: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user2, config1.partitionValue)
                         .modules(SyncStringOnlyModule())
-                        .waitForInitialRemoteData()
                         .build()
                 val realm2 = Realm.getInstance(config2)
 
@@ -501,7 +472,7 @@ class SyncSessionTests {
                 allResults.get().addChangeListener(realmChangeListener)
 
                 // login again to re-activate the user
-                val credentials = Credentials.emailPassword(user.email!!, SECRET_PASSWORD)
+                val credentials = Credentials.emailPassword(user.profile.email!!, SECRET_PASSWORD)
                 // this login will re-activate the logged out user, and resume all it's pending sessions
                 // the OS will trigger bindSessionWithConfig with the new refresh_token, in order to obtain
                 // a new access_token.
@@ -514,15 +485,13 @@ class SyncSessionTests {
     // A Realm that was opened before a user logged out should be able to resume uploading if the user logs back in.
     // this test validate the behaviour of SyncSessionStopPolicy::AfterChangesUploaded
     @Test
-    // FIXME Investigate why it does not terminate...probably rewrite to BlockingLooperThread
-    @Ignore("Does not terminate")
-    fun uploadChangesWhenRealmOutOfScope() {
+    fun uploadChangesWhenRealmOutOfScope() = looperThread.runBlocking {
         val strongRefs: MutableList<Any> = ArrayList()
         val chars = CharArray(1000000) // 2MB
         Arrays.fill(chars, '.')
         val twoMBString = String(chars)
         val config1 = configFactory
-                .createSyncConfigurationBuilder(user)
+                .createSyncConfigurationBuilder(user, UUID.randomUUID().toString())
                 .testSessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED)
                 .modules(SyncStringOnlyModule())
                 .build()
@@ -545,40 +514,37 @@ class SyncSessionTests {
             val config2: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user2, config1.partitionValue)
                     .modules(SyncStringOnlyModule())
                     .build()
-            Realm.getInstance(config2).use { realm2 ->
-                val all = realm2.where(SyncStringOnly::class.java).findAll()
-                if (all.size == 5) {
-                    realm2.close()
-                    testCompleted.countDown()
-                    handlerThread.quit()
-                } else {
-                    strongRefs.add(all)
-                    val realmChangeListener = OrderedRealmCollectionChangeListener { results: RealmResults<SyncStringOnly?>, changeSet: OrderedCollectionChangeSet? ->
-                        if (results.size == 5) {
-                            realm2.close()
-                            testCompleted.countDown()
-                            handlerThread.quit()
-                        }
+            val realm2 = Realm.getInstance(config2)
+            val all = realm2.where(SyncStringOnly::class.java).findAll()
+            if (all.size == 5) {
+                realm2.close()
+                testCompleted.countDown()
+                handlerThread.quit()
+            } else {
+                strongRefs.add(all)
+                val realmChangeListener = OrderedRealmCollectionChangeListener { results: RealmResults<SyncStringOnly?>, changeSet: OrderedCollectionChangeSet? ->
+                    if (results.size == 5) {
+                        realm2.close()
+                        testCompleted.countDown()
+                        handlerThread.quit()
                     }
-                    all.addChangeListener(realmChangeListener)
                 }
+                all.addChangeListener(realmChangeListener)
             }
-            handlerThread.quit()
         }
         TestHelper.awaitOrFail(testCompleted, TestHelper.STANDARD_WAIT_SECS)
         handlerThread.join()
         user.logOut()
+        looperThread.testComplete()
     }
 
     // A Realm that was opened before a user logged out should be able to resume downloading if the user logs back in.
     @Test
-    // FIXME Investigate why it does not terminate...probably rewrite to BlockingLooperThread
-    @Ignore("Does not terminate")
     fun downloadChangesWhenRealmOutOfScope() {
         val uniqueName = UUID.randomUUID().toString()
-        app.emailPasswordAuth.registerUser(uniqueName, "password")
+        app.emailPassword.registerUser(uniqueName, "password")
         val config1 = configFactory
-                .createSyncConfigurationBuilder(user)
+                .createSyncConfigurationBuilder(user, UUID.randomUUID().toString())
                 .modules(SyncStringOnlyModule())
                 .build()
         Realm.getInstance(config1).use { realm ->
@@ -592,16 +558,16 @@ class SyncSessionTests {
             user.logOut()
 
             // Log the user back in.
-            val credentials = Credentials.emailPassword(user.email!!, SECRET_PASSWORD)
+            val credentials = Credentials.emailPassword(user.profile.email!!, SECRET_PASSWORD)
             app.login(credentials)
 
-            // now let the admin upload some commits
+            // Write updates from a different user
             val backgroundUpload = CountDownLatch(1)
             val handlerThread = HandlerThread("HandlerThread")
             handlerThread.start()
             val looper = handlerThread.looper
             val handler = Handler(looper)
-            handler.post { // using an admin user to open the Realm on different path on the device then some commits
+            handler.post { // Using a different user to open the Realm on different path on the device then some commits
                 val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
                 val config2: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user2, config1.partitionValue)
                         .modules(SyncStringOnlyModule())
@@ -634,20 +600,20 @@ class SyncSessionTests {
 
         val configRef = AtomicReference<SyncConfiguration?>(null)
         val config: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
+                .testSchema(SyncStringOnly::class.java)
                 // ClientResyncMode is currently hidden, but MANUAL is the default
                 // .clientResyncMode(ClientResyncMode.MANUAL)
                 // FIXME Is this critical for the test
                 //.directory(looperThread.getRoot())
-                .errorHandler { session, error ->
-                    val handler = error as ClientResetRequiredError
+                .clientResetHandler { session, error ->
                     // Execute Client Reset
                     resources.close()
-                    handler.executeClientReset()
+                    error.executeClientReset()
 
                     // Try to re-open Realm and download it again
                     looperThread.postRunnable(Runnable { // Validate that files have been moved
-                        assertFalse(handler.originalFile.exists())
-                        assertTrue(handler.backupFile.exists())
+                        assertFalse(error.originalFile.exists())
+                        assertTrue(error.backupFile.exists())
                         val config = configRef.get()
                         Realm.getInstance(config!!).use { realm ->
                             realm.syncSession.downloadAllServerChanges()
@@ -742,7 +708,8 @@ class SyncSessionTests {
     @Test
     // FIXME Investigate
     @Ignore("Asserts with no_session when tearing down, meaning that all session are not " +
-            "closed, but realm seems to be closed, so further investigation is needed")
+            "closed, but realm seems to be closed, so further investigation is needed " +
+            "seems to be caused by https://github.com/realm/realm-java/issues/5416")
     fun waitForInitialRemoteData_throwsOnTimeout() = looperThread.runBlocking {
         val syncConfiguration = configFactory
                 .createSyncConfigurationBuilder(user)
@@ -767,6 +734,7 @@ class SyncSessionTests {
     @Test
     fun cachedInstanceShouldNotThrowIfUserTokenIsInvalid() {
         val configuration: RealmConfiguration = configFactory.createSyncConfigurationBuilder(user)
+                .testSchema(SyncStringOnly::class.java)
                 .errorHandler { session, error ->
                     RealmLog.debug("error", error)
                 }

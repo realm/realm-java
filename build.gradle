@@ -11,6 +11,21 @@ apply plugin: 'ch.netzwerg.release'
 
 def currentVersion = file("${projectDir}/version.txt").text.trim()
 
+// Find property in either System environment or Gradle properties.
+// If set in both places, Gradle properties win.
+def getPropertyValueOrThrow(String propertyName) {
+    def value = System.getenv(propertyName)
+    if (project.hasProperty(propertyName)) {
+        value = project.getProperty(propertyName)
+    }
+    if (value == null || value.trim().isEmpty()) {
+        throw new GradleException("Could not find '$propertyName'. " +
+                "Most be provided as either environment variable or " +
+                "a Gradle property.")
+    }
+    return value
+}
+
 // Shared configuration that copies relevant properties from the root level and parse them on to
 // child projects.
 def copyProperties = {
@@ -24,6 +39,9 @@ def copyProperties = {
     }
     if (project.hasProperty('s3cfg')) {
         startParameter.projectProperties += [s3cfg: project.getProperty('s3cfg')]
+    }
+    if (project.hasProperty('enableLTO')) {
+        startParameter.projectProperties += [enableLTO: project.getProperty('enableLTO')]
     }
 }
 
@@ -195,21 +213,66 @@ task javadoc(type:GradleBuild) {
     configure copyProperties
 }
 
-task javadocPackage(type: Zip) {
-    description = 'Generate a Zip file with all SDK docs'
+task createLatestJavadocRedirectFile(type: Copy) {
+    description = 'Redirects from /java/latest/ to correct version'
+    from 'realm/templates'
+    into "$buildDir/outputs/doc_redirects/java_latest"
+    include 'redirect.html.template'
+    rename { file -> 'index.html' }
+    expand(title: "Realm Java ${currentVersion}", url: "../${currentVersion}/index.html")
+}
+
+task createLatestKotlindocRedirectFile(type: Copy) {
+    description = 'Redirects from /kotlin/latest/ to correct version'
+    from 'realm/templates'
+    into "$buildDir/outputs/doc_redirects/kotlin_latest"
+    include 'redirect.html.template'
+    rename { file -> 'index.html' }
+    expand(title: "Kotlin Extensions ${currentVersion}", url: "../${currentVersion}/index.html")
+}
+
+task createKotlinRootRedirectFile(type: Copy) {
+    description = 'Redirects from /kotlin/<version>/ to /kotlin/<version>/kotlin-extensions, which is the real root folder'
+    from 'realm/templates'
+    into "$buildDir/outputs/doc_redirects/kotlin_root"
+    include 'redirect.html.template'
+    rename { file -> 'index.html' }
+    expand(title: "Kotlin Extensions ${currentVersion}", url: "./kotlin-extensions/index.html")
+}
+
+task uploadJavadoc {
+    group = 'Release'
+    description = 'Upload Java and Kotlin docs to S3'
     dependsOn javadoc
+    dependsOn createLatestJavadocRedirectFile
+    dependsOn createLatestKotlindocRedirectFile
+    dependsOn createKotlinRootRedirectFile
 
-    group = 'Artifact'
-    archiveName = "realm-java-${currentVersion}-docs.zip"
-    destinationDir = file("${buildDir}/outputs/docs")
+    doLast {
+        def awsAccessKey = getPropertyValueOrThrow("SDK_DOCS_AWS_ACCESS_KEY")
+        def awsSecretKey = getPropertyValueOrThrow("SDK_DOCS_AWS_SECRET_KEY")
 
-    from('realm/realm-library/build/docs/javadoc') {
-        include '**/*'
-        into 'javadoc'
-    }
-    from('realm/kotlin-extensions/build/docs') {
-        include '**/*'
-        into 'kotlindocs'
+        // Upload the versioned folder of the docs
+        exec {
+            commandLine 's3cmd', 'put', '--recursive', '--acl-public', "--access_key=${awsAccessKey}", "--secret_key=${awsSecretKey}", 'realm/realm-library/build/docs/javadoc/', "s3://realm-sdks/realm-sdks/java/${currentVersion}/"
+        }
+        exec {
+            commandLine 's3cmd', 'put', '--recursive', '--acl-public', "--access_key=${awsAccessKey}", "--secret_key=${awsSecretKey}", 'realm/kotlin-extensions/build/docs/', "s3://realm-sdks/realm-sdks/kotlin/${currentVersion}/"
+        }
+
+        // Upload automatic redirect for Kotlin extensions, since the directory structure created
+        // by Dokka only have a style.css in the root dir.
+        exec {
+            commandLine 's3cmd', 'put', '--acl-public', "--access_key=${awsAccessKey}", "--secret_key=${awsSecretKey}", "$buildDir/outputs/doc_redirects/kotlin_root/index.html", "s3://realm-sdks/realm-sdks/kotlin/${currentVersion}/index.html"
+        }
+
+        // Upload redirects to /latest end point so it points to the just uploaded version
+        exec {
+            commandLine 's3cmd', 'put', '--acl-public', "--access_key=${awsAccessKey}", "--secret_key=${awsSecretKey}", "$buildDir/outputs/doc_redirects/java_latest/index.html", "s3://realm-sdks/realm-sdks/java/latest/index.html"
+        }
+        exec {
+            commandLine 's3cmd', 'put', '--acl-public', "--access_key=${awsAccessKey}", "--secret_key=${awsSecretKey}", "$buildDir/outputs/doc_redirects/kotlin_latest/index.html", "s3://realm-sdks/realm-sdks/kotlin/latest/index.html"
+        }
     }
 }
 
@@ -225,35 +288,6 @@ task assemble {
     group 'Build'
     description = 'Build Realm, the Gradle plugin and the examples'
     dependsOn assembleExamples
-}
-
-task distributionPackage(type:Zip) {
-    description = 'Generate the distribution package'
-    dependsOn assembleRealm
-    dependsOn javadoc
-
-    group = 'Artifact'
-    archiveName = "realm-java-${currentVersion}.zip"
-    destinationDir = file("${buildDir}/outputs/distribution")
-
-    from('changelog.txt')
-    from('LICENSE')
-    from('version.txt')
-    from('realm.properties')
-    from('realm/realm-library/build/libs') {
-        include 'realm-android-${currentVersion}-javadoc.jar'
-        into 'docs'
-    }
-    from('realm/realm-library/build/docs') {
-        include '**/*'
-        into 'docs'
-    }
-    from('examples') {
-        exclude 'local.properties'
-        exclude '**/.gradle'
-        exclude '**/build'
-        into 'examples'
-    }
 }
 
 task distributionJniUnstrippedPackage(type:Zip) {
@@ -340,48 +374,29 @@ task manualClean {
 task uploadDistributionPackage {
     group = 'Release'
     description = 'Upload the distribution package to S3'
-    dependsOn distributionPackage
     dependsOn distributionJniUnstrippedPackage
+    def s3AccessKey = "${ -> getPropertyValueOrThrow('REALM_S3_ACCESS_KEY')}"
+    def s3SecretKey = "${ -> getPropertyValueOrThrow('REALM_S3_SECRET_KEY')}"
     doLast {
         exec {
             workingDir "${buildDir}/outputs/distribution/"
-            commandLine 's3cmd', 'put', "realm-java-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
+            commandLine 's3cmd', "--access_key=${s3AccessKey}", "--secret_key=${s3SecretKey}", 'put', "realm-java-jni-libs-unstripped-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
         }
-        exec {
-            workingDir "${buildDir}/outputs/distribution/"
-            commandLine 's3cmd', 'put', "realm-java-jni-libs-unstripped-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
-        }
-    }
-}
-
-task createEmptyFile(type: Exec) {
-    group = 'Release'
-    description = 'Create an empty file that will serve as a link on S3'
-    dependsOn uploadDistributionPackage
-    commandLine 'touch', 'latest'
-}
-
-['java', 'android'].each() { link ->
-    task "upload${link.capitalize()}LatestLink"(type: Exec) {
-        group = 'Release'
-        description = "Update the link to the latest version for ${link.capitalize()}"
-        dependsOn createEmptyFile
-        commandLine 's3cmd', 'put', 'latest', "--add-header=x-amz-website-redirect-location:/downloads/java/realm-java-${currentVersion}.zip", "s3://static.realm.io/downloads/${link}/latest"
     }
 }
 
 task uploadUpdateVersion(type: Exec) {
     group = 'Release'
     description = 'Update the file on S3 containing the latest version'
-    ['java', 'android'].each() { link ->
-        dependsOn "upload${link.capitalize()}LatestLink"
-    }
-    commandLine 's3cmd', 'put', "${rootDir}/version.txt", 's3://static.realm.io/update/java'
+    def s3AccessKey = "${ -> getPropertyValueOrThrow('REALM_S3_ACCESS_KEY')}"
+    def s3SecretKey = "${ -> getPropertyValueOrThrow('REALM_S3_SECRET_KEY')}"
+    commandLine 's3cmd', "--access_key=${s3AccessKey}", "--secret_key=${s3SecretKey}", 'put', "${rootDir}/version.txt", 's3://static.realm.io/update/java'
 }
 
 task distribute {
     group = 'Release'
     description = 'Distribute release artifacts to S3'
+    dependsOn uploadDistributionPackage
     dependsOn uploadUpdateVersion
 }
 
@@ -418,6 +433,53 @@ task bintrayTransformer(type: GradleBuild) {
     tasks = ['bintrayUpload']
 }
 
+import groovy.json.JsonSlurper
+def checkPackageIsReady(String packageName, String version) {
+    // See https://bintray.com/docs/api/#_get_version
+    def userName = project.findProperty('bintrayUser') ?: 'noUser'
+    def accessKey = project.findProperty('bintrayKey') ?: 'noKey'
+    def result = new ByteArrayOutputStream()
+    exec {
+        commandLine 'curl',
+                '-X',
+                'GET',
+                '-u',
+                "${userName}:${accessKey}",
+                "https://api.bintray.com/packages/realm/maven/$packageName/versions/$version"
+        standardOutput = result
+    }
+    def parser = new JsonSlurper()
+    def commandlineResponse = result.toString()
+    def json = parser.parseText(commandlineResponse)
+    if (json["published"] != false) {
+        throw new GradleException("$packageName was not ready to be published: $commandlineResponse")
+    }
+}
+
+int publishPackage(String packageName, String version) {
+    // See https://bintray.com/docs/api/#_publish_discard_uploaded_content
+    def userName = project.findProperty('bintrayUser') ?: 'noUser'
+    def accessKey = project.findProperty('bintrayKey') ?: 'noKey'
+    def result = new ByteArrayOutputStream()
+    exec {
+        commandLine 'curl',
+                '-X',
+                'POST',
+                '-u',
+                "${userName}:${accessKey}",
+                "https://api.bintray.com/content/realm/maven/$packageName/$version/publish"
+        standardOutput = result
+    }
+    def parser = new JsonSlurper()
+    def commandlineResponse = result.toString()
+    println "$commandlineResponse"
+    def json = parser.parseText(commandlineResponse)
+    if (!json.keySet().contains('files')) {
+        throw new GradleException("$packageName was not correctly published: $commandlineResponse")
+    }
+    return json['files']
+}
+
 task bintrayUpload {
     description = 'Publish all the Realm artifacts to Bintray'
     group = 'Publishing'
@@ -425,6 +487,40 @@ task bintrayUpload {
     dependsOn bintrayAnnotations
     dependsOn bintrayGradlePlugin
     dependsOn bintrayTransformer
+
+    doLast {
+        // All the packages we want to release
+        def packages = [ "realm-annotations",
+                         "realm-transformer",
+                         "realm-annotations-processor",
+                         "realm-android-library",
+                         "realm-android-library-object-server",
+                         "realm-android-kotlin-extensions",
+                         "realm-android-kotlin-extensions-object-server",
+                         "realm-gradle-plugin" ]
+
+        // Number of files we expect to have been released. If this
+        // does not happen, an error is thrown and manual intervention
+        // is needed.
+        def expectedFilesReleasedCount = 24
+
+        // Check that all packages are available on BinTray before publishing them
+        // This makes it possible to quickly release them using the Web UI if
+        // anything goes wrong.
+        packages.each {pckg ->
+            checkPackageIsReady(pckg, currentVersion);
+        }
+
+        // Once we verified all packages are ready, we release them while keeping
+        // track of the number of released files.
+        def releasedFilesCount = 0
+        packages.each {pckg ->
+            releasedFilesCount += publishPackage(pckg, currentVersion);
+        }
+        if (releasedFilesCount != expectedFilesReleasedCount) {
+            throw new GradleException("Something went wrong when releasing on BinTray. Number of files did not match the expected: $releasedFilesCount vs. $expectedFilesReleasedCount")
+        }
+    }
 }
 
 task ojoRealm(type: GradleBuild) {

@@ -17,8 +17,9 @@
 package io.realm;
 
 import android.content.Context;
-import androidx.test.platform.app.InstrumentationRegistry;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.After;
 import org.junit.Before;
@@ -33,9 +34,12 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.realm.coroutines.FlowFactory;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesModelModule;
 import io.realm.entities.AnimalModule;
@@ -57,6 +61,7 @@ import io.realm.rx.CollectionChange;
 import io.realm.rx.ObjectChange;
 import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
+import kotlinx.coroutines.flow.Flow;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -82,7 +87,7 @@ public class RealmConfigurationTests {
     public final ExpectedException thrown = ExpectedException.none();
 
     private Context context;
-    private  RealmConfiguration defaultConfig;
+    private RealmConfiguration defaultConfig;
     private Realm realm;
 
     @Before
@@ -383,8 +388,8 @@ public class RealmConfigurationTests {
         RealmConfiguration.Builder builder = configFactory.createConfigurationBuilder();
         try {
             builder
-                .assetFile("asset_file.realm")
-                .deleteRealmIfMigrationNeeded();
+                    .assetFile("asset_file.realm")
+                    .deleteRealmIfMigrationNeeded();
             fail();
         } catch (IllegalStateException expected) {
             assertEquals("Realm cannot clear its schema when previously configured to use an asset file by calling assetFile().",
@@ -797,6 +802,120 @@ public class RealmConfigurationTests {
     }
 
     @Test
+    public void rxFactory_nullThrows() {
+        RealmConfiguration.Builder builder = configFactory.createConfigurationBuilder();
+        try {
+            builder.rxFactory(null);
+            fail("Setting a null factory from Java should fail.");
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("null"));
+        }
+    }
+
+    @Test
+    public void flowFactory_defaultNotNull() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .build();
+        assertNotNull(configuration.getFlowFactory());
+    }
+
+    @Test
+    public void flowFactory() {
+        final FlowFactory dummyFactory = new FlowFactory() {
+            @Override
+            public Flow<Realm> from(@Nonnull Realm realm) {
+                return null;
+            }
+
+            @Override
+            public Flow<DynamicRealm> from(@Nonnull DynamicRealm dynamicRealm) {
+                return null;
+            }
+
+            @Override
+            public <T> Flow<RealmResults<T>> from(@Nonnull Realm realm, @Nonnull RealmResults<T> results) {
+                return null;
+            }
+
+            @Override
+            public <T> Flow<CollectionChange<RealmResults<T>>> changesetFrom(@Nonnull Realm realm, @Nonnull RealmResults<T> results) {
+                return null;
+            }
+
+            @Override
+            public <T> Flow<RealmResults<T>> from(@Nonnull DynamicRealm dynamicRealm, @Nonnull RealmResults<T> results) {
+                return null;
+            }
+
+            @Override
+            public <T> Flow<CollectionChange<RealmResults<T>>> changesetFrom(@Nonnull DynamicRealm dynamicRealm, @Nonnull RealmResults<T> results) {
+                return null;
+            }
+
+            @Override
+            public <T> Flow<RealmList<T>> from(@Nonnull Realm realm, @Nonnull RealmList<T> realmList) {
+                return null;
+            }
+
+            @Override
+            public <T> Flow<CollectionChange<RealmList<T>>> changesetFrom(@Nonnull Realm realm, @Nonnull RealmList<T> list) {
+                return null;
+            }
+
+            @Override
+            public <T> Flow<RealmList<T>> from(@Nonnull DynamicRealm dynamicRealm, @Nonnull RealmList<T> realmList) {
+                return null;
+            }
+
+            @Override
+            public <T> Flow<CollectionChange<RealmList<T>>> changesetFrom(@Nonnull DynamicRealm dynamicRealm, @Nonnull RealmList<T> list) {
+                return null;
+            }
+
+            @Override
+            public <T extends RealmModel> Flow<T> from(@Nonnull Realm realm, @Nonnull T realmObject) {
+                return null;
+            }
+
+            @Override
+            public <T extends RealmModel> Flow<ObjectChange<T>> changesetFrom(@Nonnull Realm realm, @Nonnull T realmObject) {
+                return null;
+            }
+
+            @Override
+            public Flow<DynamicRealmObject> from(@Nonnull DynamicRealm dynamicRealm, @Nonnull DynamicRealmObject dynamicRealmObject) {
+                return null;
+            }
+
+            @Override
+            public Flow<ObjectChange<DynamicRealmObject>> changesetFrom(@Nonnull DynamicRealm dynamicRealm, @Nonnull DynamicRealmObject dynamicRealmObject) {
+                return null;
+            }
+        };
+
+        RealmConfiguration configuration1 = configFactory.createConfigurationBuilder()
+                .flowFactory(dummyFactory)
+                .build();
+        assertTrue(configuration1.getFlowFactory() == dummyFactory);
+
+        RealmConfiguration configuration2 = configFactory.createConfigurationBuilder()
+                .build();
+        assertNotNull(configuration2.getFlowFactory());
+        assertFalse(configuration2.getFlowFactory() == dummyFactory);
+    }
+
+    @Test
+    public void flowFactory_nullThrows() {
+        try {
+            configFactory.createConfigurationBuilder()
+                    .flowFactory(null);
+            fail("Setting a null factory from Java should fail.");
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("null"));
+        }
+    }
+
+    @Test
     public void initialDataTransactionEqual() {
         final Realm.Transaction transaction = new Realm.Transaction() {
             @Override
@@ -1116,5 +1235,49 @@ public class RealmConfigurationTests {
             builder.maxNumberOfActiveVersions(-1);
         } catch (IllegalArgumentException ignore) {
         }
+    }
+
+    @Test
+    public void allowQueriesOnUiThread_defaultsToTrue() {
+        RealmConfiguration configuration = new RealmConfiguration.Builder().build();
+        assertTrue(configuration.isAllowQueriesOnUiThread());
+    }
+
+    @Test
+    public void allowQueriesOnUiThread_explicitFalse() {
+        RealmConfiguration configuration = new RealmConfiguration.Builder()
+                .allowQueriesOnUiThread(false)
+                .build();
+        assertFalse(configuration.isAllowQueriesOnUiThread());
+    }
+
+    @Test
+    public void allowQueriesOnUiThread_explicitTrue() {
+        RealmConfiguration configuration = new RealmConfiguration.Builder()
+                .allowQueriesOnUiThread(true)
+                .build();
+        assertTrue(configuration.isAllowQueriesOnUiThread());
+    }
+
+    @Test
+    public void allowWritesOnUiThread_defaultsToFalse() {
+        RealmConfiguration configuration = new RealmConfiguration.Builder().build();
+        assertFalse(configuration.isAllowWritesOnUiThread());
+    }
+
+    @Test
+    public void allowWritesOnUiThread_explicitFalse() {
+        RealmConfiguration configuration = new RealmConfiguration.Builder()
+                .allowWritesOnUiThread(false)
+                .build();
+        assertFalse(configuration.isAllowWritesOnUiThread());
+    }
+
+    @Test
+    public void allowWritesOnUiThread_explicitTrue() {
+        RealmConfiguration configuration = new RealmConfiguration.Builder()
+                .allowWritesOnUiThread(true)
+                .build();
+        assertTrue(configuration.isAllowWritesOnUiThread());
     }
 }

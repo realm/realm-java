@@ -21,9 +21,9 @@
 #include "jni_util/java_class.hpp"
 #include "java_network_transport.hpp"
 
-#include <sync/sync_user.hpp>
+#include <realm/object-store/sync/sync_user.hpp>
+#include <realm/object-store/util/bson/bson.hpp>
 #include <jni_util/bson_util.hpp>
-#include <object-store/src/util/bson/bson.hpp>
 
 using namespace realm;
 using namespace realm::_impl;

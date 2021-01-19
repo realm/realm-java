@@ -20,6 +20,7 @@
 #include <jni.h>
 
 #include <vector>
+#include <map>
 
 #include "java_global_ref_by_move.hpp"
 #include "java_global_ref_by_copy.hpp"
@@ -46,6 +47,8 @@ public:
     static void detach_current_thread();
     // Keep the given global reference until JNI_OnUnload is called.
     static void keep_global_ref(JavaGlobalRefByMove& ref);
+    // Transforms a string map into a Java String HashMap
+    static jobject to_hash_map(JNIEnv* env, std::map<std::string, std::string> map);
 
 private:
     JniUtils(JavaVM* vm, jint vm_version) noexcept

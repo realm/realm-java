@@ -22,10 +22,16 @@ import io.realm.internal.UncheckedRow;
  * General implementation for {@link OrderedRealmCollection} which is based on the {@code Collection}.
  */
 abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements OrderedRealmCollection<E> {
-    private final static String NOT_SUPPORTED_MESSAGE = "This method is not supported by 'RealmResults' or" +
+    private static final String NOT_SUPPORTED_MESSAGE = "This method is not supported by 'RealmResults' or" +
             " 'OrderedRealmCollectionSnapshot'.";
 
-    final BaseRealm realm;
+    /**
+     * The {@link BaseRealm} instance in which this collection resides.
+     * <p>
+     * Warning: This field is only exposed for internal usage, and should not be used.
+     */
+    public final BaseRealm baseRealm;
+
     @Nullable final Class<E> classSpec;   // Return type
     @Nullable final String className;     // Class name used by DynamicRealmObjects
     // FIXME implement this
@@ -34,16 +40,16 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
 
     final OsResults osResults;
 
-    OrderedRealmCollectionImpl(BaseRealm realm, OsResults osResults, Class<E> clazz) {
-        this(realm, osResults, clazz, null);
+    OrderedRealmCollectionImpl(BaseRealm baseRealm, OsResults osResults, Class<E> clazz) {
+        this(baseRealm, osResults, clazz, null);
     }
 
-    OrderedRealmCollectionImpl(BaseRealm realm, OsResults osResults, String className) {
-        this(realm, osResults, null, className);
+    OrderedRealmCollectionImpl(BaseRealm baseRealm, OsResults osResults, String className) {
+        this(baseRealm, osResults, null, className);
     }
 
-    private OrderedRealmCollectionImpl(BaseRealm realm, OsResults osResults, @Nullable Class<E> clazz, @Nullable String className) {
-        this.realm = realm;
+    private OrderedRealmCollectionImpl(BaseRealm baseRealm, OsResults osResults, @Nullable Class<E> clazz, @Nullable String className) {
+        this.baseRealm = baseRealm;
         this.osResults = osResults;
         this.classSpec = clazz;
         this.className = className;
@@ -113,14 +119,14 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
     @Override
     @Nullable
     public E get(int location) {
-        realm.checkIfValid();
+        baseRealm.checkIfValid();
         if (forValues) {
             // TODO implement this
             return null;
         }
 
         //noinspection unchecked
-        return (E) realm.get((Class<? extends RealmModel>) classSpec, className, osResults.getUncheckedRow(location));
+        return (E) baseRealm.get((Class<? extends RealmModel>) classSpec, className, osResults.getUncheckedRow(location));
     }
 
     /**
@@ -152,7 +158,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
 
         if (row != null) {
             //noinspection unchecked
-            return (E) realm.get((Class<? extends RealmModel>) classSpec, className, row);
+            return (E) baseRealm.get((Class<? extends RealmModel>) classSpec, className, row);
         } else {
             if (shouldThrow) {
                 throw new IndexOutOfBoundsException("No results were found.");
@@ -192,7 +198,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
 
         if (row != null) {
             //noinspection unchecked
-            return (E) realm.get((Class<? extends RealmModel>) classSpec, className, row);
+            return (E) baseRealm.get((Class<? extends RealmModel>) classSpec, className, row);
         } else {
             if (shouldThrow) {
                 throw new IndexOutOfBoundsException("No results were found.");
@@ -208,7 +214,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
     @Override
     public void deleteFromRealm(int location) {
         // TODO: Implement the delete in OS level and do check there!
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         osResults.delete(location);
     }
 
@@ -217,7 +223,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     @Override
     public boolean deleteAllFromRealm() {
-        realm.checkIfValid();
+        baseRealm.checkIfValid();
         if (size() > 0) {
             osResults.clear();
             return true;
@@ -311,7 +317,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      * {@inheritDoc}
      */
     @Override
-    public RealmResults<E> sort(String fieldNames[], Sort sortOrders[]) {
+    public RealmResults<E> sort(String[] fieldNames, Sort[] sortOrders) {
         QueryDescriptor sortDescriptor =
                 QueryDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldNames, sortOrders);
 
@@ -348,7 +354,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     @Override
     public Number min(String fieldName) {
-        realm.checkIfValid();
+        baseRealm.checkIfValid();
         long columnKey = getColumnKeyForSort(fieldName);
         return osResults.aggregateNumber(OsResults.Aggregate.MINIMUM, columnKey);
     }
@@ -358,7 +364,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     @Override
     public Date minDate(String fieldName) {
-        realm.checkIfValid();
+        baseRealm.checkIfValid();
         long columnIndex = getColumnKeyForSort(fieldName);
         return osResults.aggregateDate(OsResults.Aggregate.MINIMUM, columnIndex);
     }
@@ -368,7 +374,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     @Override
     public Number max(String fieldName) {
-        realm.checkIfValid();
+        baseRealm.checkIfValid();
         long columnIndex = getColumnKeyForSort(fieldName);
         return osResults.aggregateNumber(OsResults.Aggregate.MAXIMUM, columnIndex);
     }
@@ -386,7 +392,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
     @Override
     @Nullable
     public Date maxDate(String fieldName) {
-        realm.checkIfValid();
+        baseRealm.checkIfValid();
         long columnIndex = getColumnKeyForSort(fieldName);
         return osResults.aggregateDate(OsResults.Aggregate.MAXIMUM, columnIndex);
     }
@@ -397,7 +403,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     @Override
     public Number sum(String fieldName) {
-        realm.checkIfValid();
+        baseRealm.checkIfValid();
         long columnIndex = getColumnKeyForSort(fieldName);
         return osResults.aggregateNumber(OsResults.Aggregate.SUM, columnIndex);
     }
@@ -407,7 +413,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     @Override
     public double average(String fieldName) {
-        realm.checkIfValid();
+        baseRealm.checkIfValid();
         long columnIndex = getColumnKeyForSort(fieldName);
 
         Number avg = osResults.aggregateNumber(OsResults.Aggregate.AVERAGE, columnIndex);
@@ -479,7 +485,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
     @Override
     public boolean deleteLastFromRealm() {
         // TODO: Implement the deleteLast in OS level and do check there!
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         return osResults.deleteLast();
     }
 
@@ -491,7 +497,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
     @Override
     public boolean deleteFirstFromRealm() {
         // TODO: Implement the deleteLast in OS level and do check there!
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         return osResults.deleteFirst();
     }
 
@@ -564,18 +570,18 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
                 return null;
             }
             //noinspection unchecked
-            return (E) realm.get((Class<? extends RealmObject>) classSpec, className, row);
+            return (E) baseRealm.get((Class<? extends RealmObject>) classSpec, className, row);
         }
     }
 
     @Override
     public OrderedRealmCollectionSnapshot<E> createSnapshot() {
         if (className != null) {
-            return new OrderedRealmCollectionSnapshot<E>(realm, osResults, className);
+            return new OrderedRealmCollectionSnapshot<E>(baseRealm, osResults, className);
         } else {
             // 'classSpec' is non-null when 'className' is null.
             //noinspection ConstantConditions
-            return new OrderedRealmCollectionSnapshot<E>(realm, osResults, classSpec);
+            return new OrderedRealmCollectionSnapshot<E>(baseRealm, osResults, classSpec);
         }
     }
 
@@ -591,11 +597,11 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      * {@link Realm} was already closed.
      */
     public Realm getRealm() {
-        realm.checkIfValid();
-        if (!(realm instanceof Realm)) {
+        baseRealm.checkIfValid();
+        if (!(baseRealm instanceof Realm)) {
             throw new IllegalStateException("This method is only available for typed Realms");
         }
-        return (Realm) realm;
+        return (Realm) baseRealm;
     }
 
     // Custom RealmResults list iterator.
@@ -611,24 +617,24 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
                 return null;
             }
             //noinspection unchecked
-            return (E) realm.get((Class<? extends RealmObject>) classSpec, className, row);
+            return (E) baseRealm.get((Class<? extends RealmObject>) classSpec, className, row);
         }
     }
 
     RealmResults<E> createLoadedResults(OsResults newOsResults) {
         RealmResults<E> results;
         if (className != null) {
-            results = new RealmResults<E>(realm, newOsResults, className);
+            results = new RealmResults<E>(baseRealm, newOsResults, className);
         } else {
             // 'classSpec' is non-null when 'className' is null.
             //noinspection ConstantConditions
-            results = new RealmResults<E>(realm, newOsResults, classSpec);
+            results = new RealmResults<E>(baseRealm, newOsResults, classSpec);
         }
         results.load();
         return results;
     }
 
     private SchemaConnector getSchemaConnector() {
-        return new SchemaConnector(realm.getSchema());
+        return new SchemaConnector(baseRealm.getSchema());
     }
 }
