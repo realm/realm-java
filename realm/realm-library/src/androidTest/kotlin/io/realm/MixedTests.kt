@@ -541,6 +541,5 @@ class MixedTests {
         assertEquals(objectId, allJavaTypes.fieldMixedList[10]!!.asObjectId())
         assertEquals(decimal128, allJavaTypes.fieldMixedList[11]!!.asDecimal128())
         assertEquals(uuid, allJavaTypes.fieldMixedList[12]!!.asUUID())
-
     }
 }

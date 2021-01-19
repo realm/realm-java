@@ -68,6 +68,7 @@ public class AllJavaTypes extends RealmObject {
     public static final String FIELD_DECIMAL128_LIST = "fieldDecimal128List";
     public static final String FIELD_OBJECT_ID_LIST = "fieldObjectIdList";
     public static final String FIELD_UUID_LIST = "fieldUUIDList";
+    public static final String FIELD_MIXED_LIST = "fieldMixedList";
 
     public static final String FIELD_LO_OBJECT = "objectParents";
     public static final String FIELD_LO_LIST = "listParents";
