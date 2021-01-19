@@ -188,7 +188,7 @@ public class UncheckedRow implements NativeObject, Row {
 
     @Override
     public NativeMixed getNativeMixed(long columnKey) {
-        return new NativeMixed(nativeGetMixed(nativePtr, columnKey), context);
+        return new NativeMixed(nativeGetMixed(nativePtr, columnKey));
     }
 
     @Override

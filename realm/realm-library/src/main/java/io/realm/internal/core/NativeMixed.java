@@ -35,62 +35,66 @@ public class NativeMixed implements NativeObject {
 
     private final long nativePtr;
 
-    public static NativeMixed newInstance(NativeContext context, Boolean value) {
-        return new NativeMixed(nativeCreateMixedBoolean(value), context);
+    public NativeMixed(long nativePtr) {
+        this.nativePtr = nativePtr;
+        NativeContext.dummyContext.addReference(this);
     }
 
-    public static NativeMixed newInstance(NativeContext context, Number value) {
-        return new NativeMixed(nativeCreateMixedLong(value.longValue()), context);
+    public NativeMixed(Boolean value) {
+        this(nativeCreateMixedBoolean(value));
     }
 
-    public static NativeMixed newInstance(NativeContext context, Float value) {
-        return new NativeMixed(nativeCreateMixedFloat(value), context);
+    public NativeMixed(Number value) {
+        this(nativeCreateMixedLong(value.longValue()));
     }
 
-    public static NativeMixed newInstance(NativeContext context, Double value) {
-        return new NativeMixed(nativeCreateMixedDouble(value), context);
+    public NativeMixed(Float value) {
+        this(nativeCreateMixedFloat(value));
     }
 
-    public static NativeMixed newInstance(NativeContext context, String value) {
-        return new NativeMixed(nativeCreateMixedString(value), context);
+    public NativeMixed(Double value) {
+        this(nativeCreateMixedDouble(value));
     }
 
-    public static NativeMixed newInstance(NativeContext context, byte[] value) {
-        return new NativeMixed(nativeCreateMixedBinary(value), context);
+    public NativeMixed(String value) {
+        this(nativeCreateMixedString(value));
     }
 
-    public static NativeMixed newInstance(NativeContext context, Date value) {
-        return new NativeMixed(nativeCreateMixedDate(value.getTime()), context);
+    public NativeMixed(byte[] value) {
+        this(nativeCreateMixedBinary(value));
     }
 
-    public static NativeMixed newInstance(NativeContext context, ObjectId value) {
-        return new NativeMixed(nativeCreateMixedObjectId(value.toString()), context);
+    public NativeMixed(Date value) {
+        this(nativeCreateMixedDate(value.getTime()));
     }
 
-    public static NativeMixed newInstance(NativeContext context, Decimal128 value) {
-        return new NativeMixed(nativeCreateMixedDecimal128(value.getHigh(), value.getLow()), context);
+    public NativeMixed(ObjectId value) {
+        this(nativeCreateMixedObjectId(value.toString()));
     }
 
-    public static NativeMixed newInstance(NativeContext context, UUID value) {
-        return new NativeMixed(nativeCreateMixedUUID(value.toString()), context);
+    public NativeMixed(Decimal128 value) {
+        this(nativeCreateMixedDecimal128(value.getHigh(), value.getLow()));
     }
 
-    public static NativeMixed newInstance(NativeContext context, RealmObjectProxy model) {
+    public NativeMixed(UUID value) {
+        this(nativeCreateMixedUUID(value.toString()));
+    }
+
+    public NativeMixed(RealmObjectProxy model) {
+        this(createMixedLink(model));
+    }
+
+    private static long createMixedLink(RealmObjectProxy model){
         Row row$realm = model.realmGet$proxyState().getRow$realm();
 
         long targetTablePtr = row$realm.getTable().getNativePtr();
         long targetObjectKey = row$realm.getObjectKey();
 
-        return new NativeMixed(nativeCreateMixedLink(targetTablePtr, targetObjectKey), context);
+        return nativeCreateMixedLink(targetTablePtr, targetObjectKey);
     }
 
-    public static NativeMixed newInstance(NativeContext context) {
-        return new NativeMixed(nativeCreateMixedNull(), context);
-    }
-
-    public NativeMixed(long nativePtr, NativeContext context) {
-        this.nativePtr = nativePtr;
-        context.addReference(this);
+    public NativeMixed() {
+        this(nativeCreateMixedNull());
     }
 
     @Override
