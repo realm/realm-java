@@ -500,7 +500,7 @@ class MixedTests {
     }
 
     @Test
-    fun managed_listsAllTypes() {
+    fun managed_listsAddAllTypes() {
         val aString = "a string"
         val byteArray = byteArrayOf(0, 1, 0)
         val date = Date()
@@ -526,6 +526,106 @@ class MixedTests {
             allJavaTypes.fieldMixedList.add(Mixed.valueOf(uuid))
             allJavaTypes.fieldMixedList.add(Mixed.nullValue())
             allJavaTypes.fieldMixedList.add(null)
+        }
+
+        val allJavaTypes = realm.where<AllJavaTypes>().findFirst()
+
+        assertEquals(true, allJavaTypes!!.fieldMixedList[0]!!.asBoolean())
+        assertEquals(1, allJavaTypes.fieldMixedList[1]!!.asByte())
+        assertEquals(2, allJavaTypes.fieldMixedList[2]!!.asShort())
+        assertEquals(3, allJavaTypes.fieldMixedList[3]!!.asInteger())
+        assertEquals(4, allJavaTypes.fieldMixedList[4]!!.asLong())
+        assertEquals(5.toFloat(), allJavaTypes.fieldMixedList[5]!!.asFloat())
+        assertEquals(6.toDouble(), allJavaTypes.fieldMixedList[6]!!.asDouble())
+        assertEquals(aString, allJavaTypes.fieldMixedList[7]!!.asString())
+        assertTrue(Arrays.equals(byteArray, allJavaTypes.fieldMixedList[8]!!.asBinary()))
+        assertEquals(date, allJavaTypes.fieldMixedList[9]!!.asDate())
+        assertEquals(objectId, allJavaTypes.fieldMixedList[10]!!.asObjectId())
+        assertEquals(decimal128, allJavaTypes.fieldMixedList[11]!!.asDecimal128())
+        assertEquals(uuid, allJavaTypes.fieldMixedList[12]!!.asUUID())
+        assertTrue(allJavaTypes.fieldMixedList[13]!!.isNull)
+        assertTrue(allJavaTypes.fieldMixedList[14]!!.isNull)
+    }
+
+    @Test
+    fun managed_listsInsertAllTypes() {
+        val aString = "a string"
+        val byteArray = byteArrayOf(0, 1, 0)
+        val date = Date()
+        val objectId = ObjectId()
+        val decimal128 = Decimal128(1)
+        val uuid = UUID.randomUUID()
+
+        realm.executeTransaction {
+            val allJavaTypes = it.createObject<AllJavaTypes>(0)
+
+            allJavaTypes.fieldMixedList.add(0, Mixed.valueOf(true))
+            allJavaTypes.fieldMixedList.add(0, Mixed.valueOf(1.toByte()))
+            allJavaTypes.fieldMixedList.add(0, Mixed.valueOf(2.toShort()))
+            allJavaTypes.fieldMixedList.add(0, Mixed.valueOf(3.toInt()))
+            allJavaTypes.fieldMixedList.add(0, Mixed.valueOf(4.toLong()))
+            allJavaTypes.fieldMixedList.add(0, Mixed.valueOf(5.toFloat()))
+            allJavaTypes.fieldMixedList.add(0, Mixed.valueOf(6.toDouble()))
+            allJavaTypes.fieldMixedList.add(0, Mixed.valueOf(aString))
+            allJavaTypes.fieldMixedList.add(0, Mixed.valueOf(byteArray))
+            allJavaTypes.fieldMixedList.add(0, Mixed.valueOf(date))
+            allJavaTypes.fieldMixedList.add(0, Mixed.valueOf(objectId))
+            allJavaTypes.fieldMixedList.add(0, Mixed.valueOf(decimal128))
+            allJavaTypes.fieldMixedList.add(0, Mixed.valueOf(uuid))
+            allJavaTypes.fieldMixedList.add(0, Mixed.nullValue())
+            allJavaTypes.fieldMixedList.add(0, null)
+        }
+
+        val allJavaTypes = realm.where<AllJavaTypes>().findFirst()
+
+        assertEquals(true, allJavaTypes!!.fieldMixedList[14]!!.asBoolean())
+        assertEquals(1, allJavaTypes.fieldMixedList[13]!!.asByte())
+        assertEquals(2, allJavaTypes.fieldMixedList[12]!!.asShort())
+        assertEquals(3, allJavaTypes.fieldMixedList[11]!!.asInteger())
+        assertEquals(4, allJavaTypes.fieldMixedList[10]!!.asLong())
+        assertEquals(5.toFloat(), allJavaTypes.fieldMixedList[9]!!.asFloat())
+        assertEquals(6.toDouble(), allJavaTypes.fieldMixedList[8]!!.asDouble())
+        assertEquals(aString, allJavaTypes.fieldMixedList[7]!!.asString())
+        assertTrue(Arrays.equals(byteArray, allJavaTypes.fieldMixedList[6]!!.asBinary()))
+        assertEquals(date, allJavaTypes.fieldMixedList[5]!!.asDate())
+        assertEquals(objectId, allJavaTypes.fieldMixedList[4]!!.asObjectId())
+        assertEquals(decimal128, allJavaTypes.fieldMixedList[3]!!.asDecimal128())
+        assertEquals(uuid, allJavaTypes.fieldMixedList[2]!!.asUUID())
+        assertTrue(allJavaTypes.fieldMixedList[1]!!.isNull)
+        assertTrue(allJavaTypes.fieldMixedList[0]!!.isNull)
+    }
+
+    @Test
+    fun managed_listsSetAllTypes() {
+        val aString = "a string"
+        val byteArray = byteArrayOf(0, 1, 0)
+        val date = Date()
+        val objectId = ObjectId()
+        val decimal128 = Decimal128(1)
+        val uuid = UUID.randomUUID()
+
+        realm.executeTransaction {
+            val allJavaTypes = it.createObject<AllJavaTypes>(0)
+
+            val initialList = RealmList<Mixed>()
+            initialList.addAll(arrayOfNulls(15))
+            allJavaTypes.fieldMixedList = initialList
+
+            allJavaTypes.fieldMixedList[0] = Mixed.valueOf(true)
+            allJavaTypes.fieldMixedList[1] = Mixed.valueOf(1.toByte())
+            allJavaTypes.fieldMixedList[2] = Mixed.valueOf(2.toShort())
+            allJavaTypes.fieldMixedList[3] = Mixed.valueOf(3.toInt())
+            allJavaTypes.fieldMixedList[4] = Mixed.valueOf(4.toLong())
+            allJavaTypes.fieldMixedList[5] = Mixed.valueOf(5.toFloat())
+            allJavaTypes.fieldMixedList[6] = Mixed.valueOf(6.toDouble())
+            allJavaTypes.fieldMixedList[7] = Mixed.valueOf(aString)
+            allJavaTypes.fieldMixedList[8] = Mixed.valueOf(byteArray)
+            allJavaTypes.fieldMixedList[9] = Mixed.valueOf(date)
+            allJavaTypes.fieldMixedList[10] = Mixed.valueOf(objectId)
+            allJavaTypes.fieldMixedList[11] = Mixed.valueOf(decimal128)
+            allJavaTypes.fieldMixedList[12] = Mixed.valueOf(uuid)
+            allJavaTypes.fieldMixedList[13] = Mixed.nullValue()
+            allJavaTypes.fieldMixedList[14] = null
         }
 
         val allJavaTypes = realm.where<AllJavaTypes>().findFirst()

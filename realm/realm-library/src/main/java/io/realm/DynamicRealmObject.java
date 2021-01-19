@@ -547,6 +547,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case DECIMAL128_LIST:
             case OBJECT_ID_LIST:
             case UUID_LIST:
+            case MIXED_LIST:
                 // fall through
             default:
                 return false;
@@ -984,6 +985,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case DECIMAL128_LIST:
             case OBJECT_ID_LIST:
             case UUID_LIST:
+            case MIXED_LIST:
                 setValueList(fieldName, list, columnType);
                 break;
             default:
@@ -1056,6 +1058,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case DECIMAL128_LIST: elementClass = (Class<E>) Decimal128.class; break;
             case OBJECT_ID_LIST: elementClass = (Class<E>) ObjectId.class; break;
             case UUID_LIST: elementClass = (Class<E>) UUID.class; break;
+            case MIXED_LIST: elementClass = (Class<E>) Mixed.class; break;
             default:
                 throw new IllegalArgumentException("Unsupported type: " + primitiveType);
         }
@@ -1117,6 +1120,10 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         if (valueListType == RealmFieldType.UUID_LIST) {
             //noinspection unchecked
             return (ManagedListOperator<E>) new UUIDListOperator(realm, osList, (Class<UUID>) valueClass);
+        }
+        if (valueListType == RealmFieldType.MIXED_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new MixedListOperator(realm, osList, (Class<Mixed>) valueClass);
         }
         throw new IllegalArgumentException("Unexpected list type: " + valueListType.name());
     }
@@ -1328,6 +1335,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     break;
                 case UUID_LIST:
                     sb.append(String.format(Locale.US, "RealmList<UUID>[%s]", proxyState.getRow$realm().getValueList(columnKey, type).size()));
+                    break;
+                case MIXED_LIST:
+                    sb.append(String.format(Locale.US, "RealmList<Mixed>[%s]", proxyState.getRow$realm().getValueList(columnKey, type).size()));
                     break;
                 default:
                     sb.append("?");
