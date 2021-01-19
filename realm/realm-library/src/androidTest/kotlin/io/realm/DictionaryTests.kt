@@ -360,6 +360,24 @@ class DictionaryTests {
     }
 
     @Test
+    @Ignore("Wait until core master (commit ff158d281) has been incorporated in this project")
+    fun copyToRealm_booleanNullValue() {
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myBooleanDictionary = createBooleanRealmDictionary(true)
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myBooleanDictionary
+            assertNotNull(dictionaryFromRealm)
+
+            assertEquals(null, dictionaryFromRealm[KEY_HELLO])
+            assertEquals(null, dictionaryFromRealm[KEY_BYE])
+        }
+    }
+
+    @Test
+    @Ignore("Wait until Clemente is done with Mixed")
     fun copyToRealm_mixedBoolean() {
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
@@ -400,10 +418,17 @@ class DictionaryTests {
         }
     }
 
-    private fun createBooleanRealmDictionary(): RealmDictionary<Boolean> {
+    private fun createBooleanRealmDictionary(
+            withNullValues: Boolean = false
+    ): RealmDictionary<Boolean> {
         return RealmDictionary<Boolean>().apply {
-            put(KEY_HELLO, VALUE_HELLO)
-            put(KEY_BYE, VALUE_BYE)
+            if (withNullValues) {
+                put(KEY_HELLO, null)
+                put(KEY_BYE, null)
+            } else {
+                put(KEY_HELLO, VALUE_HELLO)
+                put(KEY_BYE, VALUE_BYE)
+            }
         }
     }
 

@@ -489,7 +489,11 @@ public class OsObjectBuilder implements Closeable {
         if (dictionary != null) {
             long dictionaryPtr = nativeStartDictionary();
             for (Map.Entry<String, T> entry : dictionary.entrySet()) {
-                mapItemCallback.handleItem(dictionaryPtr, entry);
+                if (entry.getValue() == null) {
+                    nativeAddNullDictionaryEntry(dictionaryPtr, entry.getKey());
+                } else {
+                    mapItemCallback.handleItem(dictionaryPtr, entry);
+                }
             }
             nativeStopDictionary(builderPtr, columnKey, dictionaryPtr);
         } else {
@@ -647,7 +651,9 @@ public class OsObjectBuilder implements Closeable {
 
     private static native void nativeStopDictionary(long builderPtr, long columnKey, long dictionaryPtr);
 
-    private static native void nativeAddBooleanDictionaryEntry(long dictionaryPtr, String key, boolean value);
+    private static native void nativeAddNullDictionaryEntry(long dictionaryPtr, String key);
+
+    private static native void nativeAddBooleanDictionaryEntry(long dictionaryPtr, String key, Boolean value);
 
     private static native void nativeAddUUIDDictionaryEntry(long dictionaryPtr, String key, String value);
 

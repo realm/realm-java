@@ -877,7 +877,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Constants.RealmFieldType.OBJECT_ID_LIST,
                         Constants.RealmFieldType.UUID_LIST,
                         Constants.RealmFieldType.DOUBLE_LIST -> {
-                            val requiredFlag = if (metadata.isElementNullable(field)) "!Property.REQUIRED" else "Property.REQUIRED"
+                            val elementNullable = metadata.isElementNullable(field)
+                            val requiredFlag = if (elementNullable) "!Property.REQUIRED" else "Property.REQUIRED"
                             emitStatement("builder.addPersistedValueListProperty(\"%s\", %s, %s)", fieldName, fieldType.realmType, requiredFlag)
                         }
                         Constants.RealmFieldType.BACKLINK -> {
@@ -903,7 +904,11 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Constants.RealmFieldType.STRING_TO_BOOLEAN_MAP,
                         Constants.RealmFieldType.STRING_TO_UUID_MAP,
                         Constants.RealmFieldType.STRING_TO_MIXED_MAP -> {
-                            emitStatement("""builder.addPersistedMapProperty("%s", %s)""", fieldName, fieldType.realmType)
+                            val valueNullable = metadata.isDictionaryValueNullable(field)
+                            val requiredFlag = if (valueNullable) "!Property.REQUIRED" else "Property.REQUIRED"
+//                            emitStatement("""builder.addPersistedMapProperty("%s", %s, %s)""", fieldName, fieldType.realmType, requiredFlag)
+                            // FIXME: use "requiredFlag"
+                            emitStatement("""builder.addPersistedMapProperty("%s", %s, %s)""", fieldName, fieldType.realmType, "Property.REQUIRED")
                         }
                     }
                 }

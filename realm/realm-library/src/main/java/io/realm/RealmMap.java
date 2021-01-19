@@ -124,7 +124,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
     }
 
     @Override
-    public V put(K key, V value) {
+    public V put(K key, @Nullable V value) {
         return mapStrategy.put(key, value);
     }
 
