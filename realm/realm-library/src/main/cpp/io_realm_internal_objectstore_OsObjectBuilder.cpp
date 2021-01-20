@@ -465,7 +465,7 @@ Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddBooleanDictionaryEnt
                                                                                    jclass,
                                                                                    jlong dictionary_ptr,
                                                                                    jstring j_key,
-                                                                                   jobject j_value) {
+                                                                                   jboolean j_value) {
     try {
         auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
         JStringAccessor key(env, j_key);

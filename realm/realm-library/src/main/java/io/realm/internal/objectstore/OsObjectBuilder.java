@@ -653,7 +653,7 @@ public class OsObjectBuilder implements Closeable {
 
     private static native void nativeAddNullDictionaryEntry(long dictionaryPtr, String key);
 
-    private static native void nativeAddBooleanDictionaryEntry(long dictionaryPtr, String key, Boolean value);
+    private static native void nativeAddBooleanDictionaryEntry(long dictionaryPtr, String key, boolean value);
 
     private static native void nativeAddUUIDDictionaryEntry(long dictionaryPtr, String key, String value);
 
