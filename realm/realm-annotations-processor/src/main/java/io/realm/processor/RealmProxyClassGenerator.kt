@@ -390,7 +390,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitStatement("%s.updateEmbeddedObject(realm, value, proxyObject, new HashMap<RealmModel, RealmObjectProxy>(), Collections.EMPTY_SET)", linkedProxyClass)
                             emitStatement("value = proxyObject")
                         } else {
-                            if(metadata.hasPrimaryKey()){
+                            val linkedMetadata = classCollection.getClassFromQualifiedName(linkedQualifiedClassName)
+                            if (linkedMetadata.hasPrimaryKey()) {
                                 emitStatement("value = realm.copyToRealmOrUpdate(value)")
                             } else {
                                 emitStatement("value = realm.copyToRealm(value)")
@@ -487,7 +488,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         beginControlFlow("if (item == null || RealmObject.isManaged(item))")
                             emitStatement("value.add(item)")
                         nextControlFlow("else")
-                            if(metadata.hasPrimaryKey()){
+                            val genericTypeMetadata = classCollection.getClassFromQualifiedName(genericType!!)
+                            if (genericTypeMetadata.hasPrimaryKey()) {
                                 emitStatement("value.add(realm.copyToRealmOrUpdate(item))")
                             } else {
                                 emitStatement("value.add(realm.copyToRealm(item))");
@@ -2296,7 +2298,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 endControlFlow()
             }
             if (!metadata.embedded) {
-                if(metadata.hasPrimaryKey()){
+                if (metadata.hasPrimaryKey()) {
                     emitStatement("return realm.copyToRealmOrUpdate(obj)")
                 } else {
                     emitStatement("return realm.copyToRealm(obj)")
