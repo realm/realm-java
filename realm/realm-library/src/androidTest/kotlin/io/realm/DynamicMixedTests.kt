@@ -284,4 +284,56 @@ class DynamicMixedTests {
 
         realm.close()
     }
+
+    @Test
+    fun managed_listsRemoveAllTypes() {
+        val aString = "a string"
+        val byteArray = byteArrayOf(0, 1, 0)
+        val date = Date()
+        val objectId = ObjectId()
+        val decimal128 = Decimal128(1)
+        val uuid = UUID.randomUUID()
+
+        val realm = DynamicRealm.getInstance(configFactory.createConfiguration("Mixed"))
+
+        realm.executeTransaction {
+            realm.schema
+                    .create("MixedListObject")
+                    .addRealmListField("aList", Mixed::class.java)
+
+            val allJavaTypes = realm.createObject("MixedListObject")
+
+            val initialList = RealmList<Mixed>()
+            initialList.addAll(arrayOfNulls(15))
+            allJavaTypes.setList("aList", initialList)
+
+            val mixedList = allJavaTypes.getList("aList", Mixed::class.java)
+
+            mixedList.add(Mixed.valueOf(true))
+            mixedList.add(Mixed.valueOf(1.toByte()))
+            mixedList.add(Mixed.valueOf(2.toShort()))
+            mixedList.add(Mixed.valueOf(3.toInt()))
+            mixedList.add(Mixed.valueOf(4.toLong()))
+            mixedList.add(Mixed.valueOf(5.toFloat()))
+            mixedList.add(Mixed.valueOf(6.toDouble()))
+            mixedList.add(Mixed.valueOf(aString))
+            mixedList.add(Mixed.valueOf(byteArray))
+            mixedList.add(Mixed.valueOf(date))
+            mixedList.add(Mixed.valueOf(objectId))
+            mixedList.add(Mixed.valueOf(decimal128))
+            mixedList.add(Mixed.valueOf(uuid))
+            mixedList.add(Mixed.nullValue())
+            mixedList.add(null)
+        }
+
+        realm.executeTransaction {
+            val allJavaTypes= realm.where("MixedListObject").findFirst()
+            val mixedList = allJavaTypes!!.getList("aList", Mixed::class.java)
+
+            for (i in 0..14)
+                mixedList.removeAt(0)
+        }
+
+        realm.close()
+    }
 }

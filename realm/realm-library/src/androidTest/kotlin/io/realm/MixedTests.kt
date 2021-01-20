@@ -646,4 +646,41 @@ class MixedTests {
         assertTrue(allJavaTypes.fieldMixedList[13]!!.isNull)
         assertTrue(allJavaTypes.fieldMixedList[14]!!.isNull)
     }
+
+    @Test
+    fun managed_listsRemoveAllTypes() {
+        val aString = "a string"
+        val byteArray = byteArrayOf(0, 1, 0)
+        val date = Date()
+        val objectId = ObjectId()
+        val decimal128 = Decimal128(1)
+        val uuid = UUID.randomUUID()
+
+        realm.executeTransaction {
+            val allJavaTypes = it.createObject<AllJavaTypes>(0)
+
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(true))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(1.toByte()))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(2.toShort()))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(3.toInt()))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(4.toLong()))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(5.toFloat()))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(6.toDouble()))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(aString))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(byteArray))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(date))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(objectId))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(decimal128))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(uuid))
+            allJavaTypes.fieldMixedList.add(Mixed.nullValue())
+            allJavaTypes.fieldMixedList.add(null)
+        }
+
+        realm.executeTransaction {
+            val allJavaTypes = realm.where<AllJavaTypes>().findFirst()
+
+            for (i in 0..14)
+                allJavaTypes!!.fieldMixedList.removeAt(0)
+        }
+    }
 }
