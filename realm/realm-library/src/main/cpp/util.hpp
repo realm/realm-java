@@ -164,7 +164,7 @@ inline bool RowIsValid(JNIEnv* env, realm::Obj* rowPtr)
 }
 
 template <class T>
-inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnKey, int expectColType)
+inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnKey, realm::ColumnType expectColType)
 {
     realm::ColKey col_key(columnKey);
     auto colType = col_key.get_type();
@@ -176,7 +176,7 @@ inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnKey, int expectColType
     return true;
 }
 
-inline bool TypeValid(JNIEnv* env, realm::ConstTableRef table, jlong columnKey, int expectColType)
+inline bool TypeValid(JNIEnv* env, realm::ConstTableRef table, jlong columnKey, realm::ColumnType expectColType)
 {
     realm::ColKey col_key(columnKey);
     auto colType = col_key.get_type();
@@ -192,7 +192,7 @@ template <class T>
 inline bool ColIsNullable(JNIEnv* env, T table_ref, jlong columnKey)
 {
     realm::ColKey col = realm::ColKey(columnKey);
-    int colType = table_ref->get_column_type(col);
+    realm::DataType colType = table_ref->get_column_type(col);
     if (colType == realm::type_Link) {
         return true;
     }
