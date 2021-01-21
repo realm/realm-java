@@ -190,7 +190,7 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
                     if (item == null || RealmObject.isManaged(item)) {
                         value.add(item);
                     } else {
-                        value.add(realm.copyToRealmOrUpdate(item));
+                        value.add(realm.copyToRealm(item));
                     }
                 }
             }
