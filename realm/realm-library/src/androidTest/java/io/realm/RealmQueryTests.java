@@ -2947,6 +2947,7 @@ public class RealmQueryTests extends QueryTests {
                     case STRING_TO_MIXED_MAP:
                     case STRING_TO_BOOLEAN_MAP:
                     case STRING_TO_UUID_MAP:
+                    case STRING_TO_LINK_MAP:
                         // TODO: fix this when adding maps to AllJavaTypes
                         realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_UUID_LIST).findAll();
                         break;
@@ -3108,6 +3109,7 @@ public class RealmQueryTests extends QueryTests {
                     case STRING_TO_MIXED_MAP:
                     case STRING_TO_BOOLEAN_MAP:
                     case STRING_TO_UUID_MAP:
+                    case STRING_TO_LINK_MAP:
                         // TODO: fix this when adding maps to AllJavaTypes
                         realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_UUID_LIST).findAll();
                         break;
@@ -4149,6 +4151,7 @@ public class RealmQueryTests extends QueryTests {
             case STRING_TO_MIXED_MAP:
             case STRING_TO_BOOLEAN_MAP:
             case STRING_TO_UUID_MAP:
+            case STRING_TO_LINK_MAP:
                 return false;
             case TYPED_LINK:
         }

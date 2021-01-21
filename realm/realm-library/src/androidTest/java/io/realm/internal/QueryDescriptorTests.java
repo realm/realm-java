@@ -256,6 +256,7 @@ public class QueryDescriptorTests {
                     case STRING_TO_MIXED_MAP:
                     case STRING_TO_BOOLEAN_MAP:
                     case STRING_TO_UUID_MAP:
+                    case STRING_TO_LINK_MAP:
                     case MIXED:// FIXME: MIXED IGNORED.
                     case TYPED_LINK:
                     case LINKING_OBJECTS:

@@ -18,13 +18,17 @@ package io.realm.entities
 
 import io.realm.Mixed
 import io.realm.RealmDictionary
+import io.realm.RealmList
 import io.realm.RealmObject
 import java.util.*
 
 open class DictionaryClass : RealmObject() {
 
-    var myUUIDDictionary: RealmDictionary<UUID>? = null
-    var myMixedDictionary: RealmDictionary<Mixed>? = null
+//    var myPrimitiveList: RealmList<Int>? = null
+    var myList: RealmList<DogPrimaryKey>? = null
+    var myDictionary: RealmDictionary<DogPrimaryKey>? = null
+//    var myUUIDDictionary: RealmDictionary<UUID>? = null
+//    var myMixedDictionary: RealmDictionary<Mixed>? = null
     var myBooleanDictionary: RealmDictionary<Boolean>? = null
 
     companion object {

@@ -20,41 +20,61 @@ import java.util.UUID;
 
 import io.realm.Mixed;
 import io.realm.RealmDictionary;
+import io.realm.RealmList;
 import io.realm.RealmObject;
 
 public class RealmDictionaryModel extends RealmObject {
 
-    private final RealmDictionary<Boolean> immutableRealmDictionaryField = new RealmDictionary();
+//    private final RealmDictionary<Boolean> immutableRealmDictionaryField = new RealmDictionary();
+//
+//    private RealmDictionary<Mixed> myMixedRealmDictionary;
+//    private RealmDictionary<Boolean> myBooleanRealmDictionary;
+//    private RealmDictionary<UUID> myUUIDRealmDictionary;
 
-    private RealmDictionary<Mixed> myMixedRealmDictionary;
-    private RealmDictionary<Boolean> myBooleanRealmDictionary;
-    private RealmDictionary<UUID> myUUIDRealmDictionary;
+    private RealmList<AllTypes> myRealmModelList;
+    private RealmDictionary<AllTypes> myRealmModelDictionary;
 
-    public RealmDictionary<Boolean> getImmutableRealmDictionaryField() {
-        return immutableRealmDictionaryField;
+//    public RealmDictionary<Boolean> getImmutableRealmDictionaryField() {
+//        return immutableRealmDictionaryField;
+//    }
+//
+//    public RealmDictionary<Mixed> getMyMixedRealmDictionary() {
+//        return myMixedRealmDictionary;
+//    }
+//
+//    public void setMyMixedRealmDictionary(RealmDictionary<Mixed> myMixedRealmDictionary) {
+//        this.myMixedRealmDictionary = myMixedRealmDictionary;
+//    }
+//
+//    public RealmDictionary<Boolean> getMyBooleanRealmDictionary() {
+//        return myBooleanRealmDictionary;
+//    }
+//
+//    public void setMyBooleanRealmDictionary(RealmDictionary<Boolean> myBooleanRealmDictionary) {
+//        this.myBooleanRealmDictionary = myBooleanRealmDictionary;
+//    }
+//
+//    public RealmDictionary<UUID> getMyUUIDRealmDictionary() {
+//        return myUUIDRealmDictionary;
+//    }
+//
+//    public void setMyUUIDRealmDictionary(RealmDictionary<UUID> myUUIDRealmDictionary) {
+//        this.myUUIDRealmDictionary = myUUIDRealmDictionary;
+//    }
+
+    public RealmList<AllTypes> getMyRealmModelList() {
+        return myRealmModelList;
     }
 
-    public RealmDictionary<Mixed> getMyMixedRealmDictionary() {
-        return myMixedRealmDictionary;
+    public void setMyRealmModelList(RealmList<AllTypes> myRealmModelList) {
+        this.myRealmModelList = myRealmModelList;
     }
 
-    public void setMyMixedRealmDictionary(RealmDictionary<Mixed> mixedRealmDictionary) {
-        this.myMixedRealmDictionary = mixedRealmDictionary;
+    public RealmDictionary<AllTypes> getMyRealmModelDictionary() {
+        return myRealmModelDictionary;
     }
 
-    public RealmDictionary<Boolean> getMyBooleanRealmDictionary() {
-        return myBooleanRealmDictionary;
-    }
-
-    public void setMyBooleanRealmDictionary(RealmDictionary<Boolean> booleanRealmDictionary) {
-        this.myBooleanRealmDictionary = booleanRealmDictionary;
-    }
-
-    public RealmDictionary<UUID> getMyUUIDRealmDictionary() {
-        return myUUIDRealmDictionary;
-    }
-
-    public void setMyUUIDRealmDictionary(RealmDictionary<UUID> myUUIDRealmDictionary) {
-        this.myUUIDRealmDictionary = myUUIDRealmDictionary;
+    public void setMyRealmModelDictionary(RealmDictionary<AllTypes> myRealmModelDictionary) {
+        this.myRealmModelDictionary = myRealmModelDictionary;
     }
 }

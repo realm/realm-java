@@ -217,6 +217,11 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
+    public OsMap getModelMap(long columnKey) {
+        return new OsMap(this, columnKey);
+    }
+
+    @Override
     public OsMap getValueMap(long columnKey, RealmFieldType fieldType) {
         return new OsMap(this, columnKey);
     }

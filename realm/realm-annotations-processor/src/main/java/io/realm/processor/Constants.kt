@@ -123,6 +123,7 @@ object Constants {
         OBJECT_ID_LIST("OBJECT_ID_LIST", "List"),
         UUID_LIST("UUID_LIST", "List"),
 
+        STRING_TO_LINK_MAP("STRING_TO_LINK_MAP", "Map"),
         STRING_TO_MIXED_MAP("STRING_TO_MIXED_MAP", "Map"),
         STRING_TO_BOOLEAN_MAP("STRING_TO_BOOLEAN_MAP", "Map"),
         STRING_TO_UUID_MAP("STRING_TO_UUID_MAP", "Map");

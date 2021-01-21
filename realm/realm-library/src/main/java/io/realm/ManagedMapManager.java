@@ -168,7 +168,9 @@ abstract class MapValueOperator<V> {
 
     public abstract V put(Object key, V value);
 
-    public abstract void remove(Object key);
+    public void remove(Object key) {
+        osMap.remove(key);
+    }
 
     public int size() {
         return (int) osMap.size();
@@ -214,11 +216,6 @@ class MixedValueOperator extends MapValueOperator<Mixed> {
         osMap.put(key, value.getNativePtr());
         return original;
     }
-
-    @Override
-    public void remove(Object key) {
-        osMap.remove(key);
-    }
 }
 
 /**
@@ -241,11 +238,6 @@ class BooleanValueOperator extends MapValueOperator<Boolean> {
         osMap.put(key, value);
         return original;
     }
-
-    @Override
-    public void remove(Object key) {
-        osMap.remove(key);
-    }
 }
 
 /**
@@ -267,11 +259,6 @@ class UUIDValueOperator extends MapValueOperator<UUID> {
         UUID original = (UUID) osMap.get(key);
         osMap.put(key, value);
         return original;
-    }
-
-    @Override
-    public void remove(Object key) {
-        osMap.remove(key);
     }
 }
 

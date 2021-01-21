@@ -73,8 +73,24 @@ object Utils {
         }
     }
 
+    fun getDictionaryGenericProxyClassSimpleName(field: VariableElement): SimpleClassName {
+        return if (typeUtils.isAssignable(field.asType(), realmDictionary)) {
+            getProxyClassName(getGenericTypeQualifiedName(field)!!)
+        } else {
+            getProxyClassName(getFieldTypeQualifiedName(field))
+        }
+    }
+
     fun getModelClassQualifiedName(field: VariableElement): QualifiedClassName {
         return if (typeUtils.isAssignable(field.asType(), realmList)) {
+            getGenericTypeQualifiedName(field)!!
+        } else {
+            getFieldTypeQualifiedName(field)
+        }
+    }
+
+    fun getDictionaryGenericModelClassQualifiedName(field: VariableElement): QualifiedClassName {
+        return if (typeUtils.isAssignable(field.asType(), realmDictionary)) {
             getGenericTypeQualifiedName(field)!!
         } else {
             getFieldTypeQualifiedName(field)
@@ -215,6 +231,14 @@ object Utils {
      */
     fun isRealmDictionary(field: VariableElement): Boolean {
         return typeUtils.isAssignable(field.asType(), realmDictionary)
+    }
+
+    /**
+     * FIXME
+     */
+    fun isRealmModelDictionary(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmDictionaryElementTypeMirror(field) ?: return false
+        return isRealmModel(elementTypeMirror)
     }
 
     /**

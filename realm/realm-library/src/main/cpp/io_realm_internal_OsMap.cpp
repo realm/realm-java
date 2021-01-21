@@ -59,6 +59,7 @@ Java_io_realm_internal_OsMap_nativeGetValue(JNIEnv* env, jclass, jlong map_ptr,
         auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
         JStringAccessor key(env, j_key);
         JavaAccessorContext context(env);
+        // FIXME: use "try_get" instead when present - calling "get" throws if key doesn't exist
         auto t = dictionary.get(context, StringData(key));
         return any_cast<jobject>(t);
     }
