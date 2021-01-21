@@ -267,13 +267,13 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeGetColumnType(JNIEnv*,
 {
     ColKey column_key (columnKey);
     TableRef table = TBL_REF(nativeTableRefPtr);
-    jint column_type = table->get_column_type(column_key);
+    DataType column_type = table->get_column_type(column_key);
     if (column_type != type_LinkList &&  table->is_list(column_key)) {
         // add the offset so it can be mapped correctly in Java (RealmFieldType#fromNativeValue)
-        column_type += 128;
+        return int(column_type) + int(PropertyType::Array);
     }
 
-    return column_type;
+    return int(column_type);
     // For primitive list
     // FIXME: Add test in https://github.com/realm/realm-java/pull/5221 before merging to master
     // FIXME: Add method in Object Store to return a PropertyType.
@@ -298,7 +298,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLong(JNIEnv* env, 
                                                                    jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Int)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Int)) {
         return 0;
     }
     return table->get_object(ObjKey(rowKey)).get<Int>(ColKey(columnKey)); // noexcept
@@ -308,7 +308,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeGetBoolean(JNIEnv*
                                                                          jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Bool)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Bool)) {
         return JNI_FALSE;
     }
 
@@ -319,7 +319,7 @@ JNIEXPORT jfloat JNICALL Java_io_realm_internal_Table_nativeGetFloat(JNIEnv* env
                                                                      jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Float)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Float)) {
         return 0;
     }
 
@@ -330,7 +330,7 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_Table_nativeGetDouble(JNIEnv* e
                                                                        jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Double)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Double)) {
         return 0;
     }
 
@@ -341,7 +341,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetTimestamp(JNIEnv* 
                                                                         jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Timestamp)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Timestamp)) {
         return 0;
     }
     try {
@@ -355,7 +355,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetString(JNIEnv* e
                                                                        jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_String)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_String)) {
         return nullptr;
     }
     try {
@@ -369,7 +369,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_Table_nativeGetDecimal128(JN
                                                                        jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Decimal)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Decimal)) {
         return nullptr;
     }
     try {
@@ -384,7 +384,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetObjectId(JNIEnv*
                                                                        jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_ObjectId)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_ObjectId)) {
         return nullptr;
     }
     try {
@@ -399,7 +399,7 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Table_nativeGetByteArray(JNI
                                                                              jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Binary)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Binary)) {
         return nullptr;
     }
     try {
@@ -414,7 +414,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetLink(JNIEnv* env, 
                                                                    jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Link)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Link)) {
         return 0;
     }
     return static_cast<jlong>(table->get_object(ObjKey(rowKey)).get<ObjKey>(ColKey(columnKey)).value); // noexcept
@@ -445,7 +445,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetLink(JNIEnv* env, j
                                                                   jlong targetRowKey, jboolean isDefault)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Link)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Link)) {
         return;
     }
     try {
@@ -459,7 +459,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetLong(JNIEnv* env, j
                                                                   jboolean isDefault)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Int)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Int)) {
         return;
     }
     try {
@@ -473,7 +473,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeIncrementLong(JNIEnv* 
 {
 
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Int)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Int)) {
         return;
     }
 
@@ -494,7 +494,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetBoolean(JNIEnv* env
                                                                      jboolean value, jboolean isDefault)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Bool)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Bool)) {
         return;
     }
     try {
@@ -508,7 +508,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetFloat(JNIEnv* env, 
                                                                    jboolean isDefault)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Float)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Float)) {
         return;
     }
     try {
@@ -522,7 +522,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDouble(JNIEnv* env,
                                                                     jboolean isDefault)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Double)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Double)) {
         return;
     }
     try {
@@ -536,7 +536,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetString(JNIEnv* env,
                                                                     jboolean isDefault)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_String)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_String)) {
         return;
     }
     try {
@@ -556,7 +556,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetTimestamp(JNIEnv* e
                                                                        jlong timestampValue, jboolean isDefault)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Timestamp)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Timestamp)) {
         return;
     }
     try {
@@ -570,7 +570,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(JNIEnv* e
                                                                        jbyteArray dataArray, jboolean isDefault)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Binary)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Binary)) {
         return;
     }
     try {
@@ -589,7 +589,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDecimal128(JNIEnv* 
                                                                     jlong high, jboolean isDefault)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Decimal)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Decimal)) {
         return;
     }
     try {
@@ -604,7 +604,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetObjectId(JNIEnv* en
                                                                     jboolean isDefault)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_ObjectId)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_ObjectId)) {
         return;
     }
     try {
@@ -690,7 +690,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsNullLink(JNIEnv*
                                                                          jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Link)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Link)) {
         return JNI_FALSE;
     }
 
@@ -701,7 +701,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeNullifyLink(JNIEnv* en
                                                                       jlong columnKey, jlong rowKey)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Link)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Link)) {
         return;
     }
     try {
@@ -716,7 +716,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeCountLong(JNIEnv* env
                                                                      jlong columnKey, jlong value)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Int)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Int)) {
         return 0;
     }
     try {
@@ -730,7 +730,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeCountFloat(JNIEnv* en
                                                                       jlong columnKey, jfloat value)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Float)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Float)) {
         return 0;
     }
     try {
@@ -744,7 +744,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeCountDouble(JNIEnv* e
                                                                        jlong columnKey, jdouble value)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Double)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Double)) {
         return 0;
     }
     try {
@@ -758,7 +758,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeCountString(JNIEnv* e
                                                                        jlong columnKey, jstring value)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_String)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_String)) {
         return 0;
     }
     try {
@@ -787,7 +787,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstInt(JNIEnv* 
                                                                         jlong columnKey, jlong value)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Int)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Int)) {
         return -1;
     }
     try {
@@ -801,7 +801,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstBool(JNIEnv*
                                                                          jlong columnKey, jboolean value)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Bool)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Bool)) {
         return -1;
     }
     try {
@@ -815,7 +815,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstFloat(JNIEnv
                                                                           jlong columnKey, jfloat value)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Float)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Float)) {
         return -1;
     }
     try {
@@ -829,7 +829,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstDouble(JNIEn
                                                                            jlong columnKey, jdouble value)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Double)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Double)) {
         return -1;
     }
     try {
@@ -844,7 +844,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstTimestamp(JN
                                                                               jlong dateTimeValue)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Timestamp)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Timestamp)) {
         return -1;
     }
     try {
@@ -858,7 +858,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstString(JNIEn
                                                                            jlong columnKey, jstring value)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_String)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_String)) {
         return -1;
     }
 
@@ -874,7 +874,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstDecimal128(J
                                                                              jlong columnKey, jlong low, jlong high)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_Decimal)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_Decimal)) {
         return -1;
     }
 
@@ -890,7 +890,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstObjectId(JNI
                                                                            jlong columnKey, jstring j_value)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
-    if (!TYPE_VALID(env, table, columnKey, type_ObjectId)) {
+    if (!TYPE_VALID(env, table, columnKey, col_type_ObjectId)) {
         return -1;
     }
 
