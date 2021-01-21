@@ -112,9 +112,7 @@ Java_io_realm_internal_OsMap_nativePutMixed(JNIEnv* env, jclass, jlong map_ptr, 
                 break;
             case type_TypedLink:
             case type_LinkList:
-            case type_OldTable:
             case type_Mixed:
-            case type_OldDateTime:
                 throw std::logic_error(util::format("Invalid data type used for mixed: %1", mixed.get_type()));
         }
     }

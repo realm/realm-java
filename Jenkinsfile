@@ -82,13 +82,14 @@ try {
           // Build development branch
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
-          buildFlags = "-PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=false"
+          // Build core from source instead of doing it from binary
+          buildFlags = "-PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           deviceSerial = "emulator-5554"
         } else {
           // Build main/release branch
           // FIXME: Use emulator until we can get reliable devices on CI.
-          //  But still build all ABI's and run all types of tests. 
+          //  But still build all ABI's and run all types of tests.
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
           buildFlags = "-PenableLTO=true -PbuildCore=true"
@@ -232,7 +233,7 @@ def runBuild(buildFlags, instrumentationTestTarget) {
         storeJunitResults 'realm/realm-library/build/test-results/**/TEST-*.xml'
         step([$class: 'LintPublisher'])
       }
-    }, 
+    },
     'Realm Transformer' : {
       try {
         gradle('realm-transformer', 'check')
@@ -245,29 +246,29 @@ def runBuild(buildFlags, instrumentationTestTarget) {
     //     gradle('realm', "spotbugsMain pmd checkstyle ${buildFlags}")
     //   } finally {
     //     publishHTML(target: [
-    //       allowMissing: false, 
-    //       alwaysLinkToLastBuild: false, 
-    //       keepAll: true, 
-    //       reportDir: 'realm/realm-library/build/reports/spotbugs', 
-    //       reportFiles: 'main.html', 
+    //       allowMissing: false,
+    //       alwaysLinkToLastBuild: false,
+    //       keepAll: true,
+    //       reportDir: 'realm/realm-library/build/reports/spotbugs',
+    //       reportFiles: 'main.html',
     //       reportName: 'Spotbugs report'
     //     ])
 
     //     publishHTML(target: [
-    //       allowMissing: false, 
-    //       alwaysLinkToLastBuild: false, 
-    //       keepAll: true, 
-    //       reportDir: 'realm/realm-library/build/reports/pmd', 
-    //       reportFiles: 'pmd.html', 
+    //       allowMissing: false,
+    //       alwaysLinkToLastBuild: false,
+    //       keepAll: true,
+    //       reportDir: 'realm/realm-library/build/reports/pmd',
+    //       reportFiles: 'pmd.html',
     //       reportName: 'PMD report'
     //     ])
-        
+
     //     publishHTML(target: [
-    //       allowMissing: false, 
-    //       alwaysLinkToLastBuild: false, 
-    //       keepAll: true, 
-    //       reportDir: 'realm/realm-library/build/reports/checkstyle', 
-    //       reportFiles: 'checkstyle.html', 
+    //       allowMissing: false,
+    //       alwaysLinkToLastBuild: false,
+    //       keepAll: true,
+    //       reportDir: 'realm/realm-library/build/reports/checkstyle',
+    //       reportFiles: 'checkstyle.html',
     //       reportName: 'Checkstyle report'
     //     ])
     //   }
@@ -327,7 +328,7 @@ def runPublish() {
             [$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'REALM_S3_ACCESS_KEY', credentialsId: 'realm-s3', secretKeyVariable: 'REALM_S3_SECRET_KEY']
     ]) {
       sh """
-        set +x  
+        set +x
         sh tools/publish_release.sh '$BINTRAY_USER' '$BINTRAY_KEY' \
         '$REALM_S3_ACCESS_KEY' '$REALM_S3_SECRET_KEY' \
         '$DOCS_S3_ACCESS_KEY' '$DOCS_S3_SECRET_KEY' \
@@ -352,7 +353,7 @@ String startLogCatCollector() {
     // Need ADB as root to clear all buffers: https://stackoverflow.com/a/47686978/1389357
     sh 'adb devices'
     sh """adb root
-      adb logcat -b all -c 
+      adb logcat -b all -c
       adb logcat -v time > 'logcat.txt' &
       echo \$! > pid
     """

@@ -43,6 +43,9 @@ def copyProperties = {
     if (project.hasProperty('enableLTO')) {
         startParameter.projectProperties += [enableLTO: project.getProperty('enableLTO')]
     }
+    if (project.hasProperty('buildCore')) {
+        startParameter.projectProperties += [buildCore: project.getProperty('buildCore')]
+    }
 }
 
 task assembleAnnotations(type:GradleBuild) {
