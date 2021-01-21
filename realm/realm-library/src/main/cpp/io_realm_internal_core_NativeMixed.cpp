@@ -190,7 +190,7 @@ Java_io_realm_internal_core_NativeMixed_nativeGetMixedType(JNIEnv *, jclass, jlo
     if (mixed->is_null()) {
         return -1;
     } else {
-        return mixed->get_type();
+        return jint(mixed->get_type());
     }
 }
 
