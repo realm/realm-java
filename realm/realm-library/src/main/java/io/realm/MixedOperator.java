@@ -21,6 +21,7 @@ import org.bson.types.ObjectId;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.Objects;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
@@ -131,6 +132,20 @@ abstract class PrimitiveMixedOperator extends MixedOperator {
     Class<?> getTypedClass() {
         return type.getTypedClass();
     }
+
+    @Override
+    public final int hashCode() {
+        return this.value.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == null) { return false; }
+        if (!getClass().equals(other.getClass())) { return false; }
+
+        PrimitiveMixedOperator otherOperator = (PrimitiveMixedOperator) other;
+        return (this.value == null) ? (otherOperator.value == null) : this.value.equals(otherOperator.value);
+    }
 }
 
 final class BooleanMixedOperator extends PrimitiveMixedOperator {
@@ -172,6 +187,14 @@ final class IntegerMixedOperator extends PrimitiveMixedOperator {
     @Override
     protected NativeMixed createNativeMixed() {
         return new NativeMixed(super.getValue(Number.class));
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!getClass().equals(other.getClass())) { return false; }
+
+        MixedOperator otherOperator = (MixedOperator) other;
+        return this.getValue(Number.class).longValue() == otherOperator.getValue(Number.class).longValue();
     }
 }
 
@@ -368,6 +391,19 @@ class RealmModelOperator extends MixedOperator {
     @Override
     Class<?> getTypedClass() {
         return clazz;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.value.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!getClass().equals(other.getClass())) { return false; }
+
+        RealmModelOperator otherOperator = (RealmModelOperator) other;
+        return (this.value == null) ? (otherOperator.value == null) : this.value.equals(otherOperator.value);
     }
 }
 

@@ -47,6 +47,7 @@ class DynamicMixedTests {
         val myMixed = anObject.getMixed("myMixed")
 
         assertEquals(Date(10), myMixed.asDate())
+        assertEquals(Mixed.valueOf(Date(10)), myMixed)
 
         realm.close()
     }
@@ -68,6 +69,8 @@ class DynamicMixedTests {
         val myMixed = anObject.getMixed("myMixed")
 
         assertTrue(myMixed.isNull)
+        assertTrue(myMixed.equals(null))
+        assertEquals(Mixed.nullValue(), myMixed)
         assertEquals(MixedType.NULL, myMixed.type)
 
         realm.close()
