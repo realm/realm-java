@@ -22,6 +22,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 
@@ -46,10 +47,10 @@ import javax.annotation.Nullable;
  */
 
 public class Mixed {
-
+    @Nonnull
     private final MixedOperator operator;
 
-    Mixed(MixedOperator operator) {
+    Mixed(@Nonnull MixedOperator operator) {
         this.operator = operator;
     }
 
@@ -62,7 +63,6 @@ public class Mixed {
      *
      * @return the inner MixedType
      */
-    @Nullable
     public MixedType getType() {
         return this.operator.getType();
     }
