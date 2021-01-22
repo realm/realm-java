@@ -605,12 +605,12 @@ public class LinkingObjectsManagedTests {
         // Mock the schema info so the only difference compared with the original schema is that the LinkingObject field
         // points to BacklinksSource.childNotExist.
         OsObjectSchemaInfo targetSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksTarget", false, 1, 1)
-                .addPersistedProperty("id", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED)
+                .addPersistedProperty("id", "",RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED)
                 .addComputedLinkProperty("parents", "BacklinksSource", "childNotExist" /*"child" is the original value*/)
                 .build();
         OsObjectSchemaInfo sourceSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksSource", false, 2, 0)
-                .addPersistedProperty("name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED)
-                .addPersistedLinkProperty("child", RealmFieldType.OBJECT, "BacklinksTarget")
+                .addPersistedProperty("name", "",RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED)
+                .addPersistedLinkProperty("child", "",RealmFieldType.OBJECT, "BacklinksTarget")
                 .build();
         Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap =
                 new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>();
@@ -648,12 +648,11 @@ public class LinkingObjectsManagedTests {
         // Mock the schema info so the only difference compared with the original schema is that BacklinksSource.child
         // type is changed to BacklinksSource from BacklinksTarget.
         OsObjectSchemaInfo targetSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksTarget", false, 1, 1)
-                .addPersistedProperty("id", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED)
                 .addComputedLinkProperty("parents", "BacklinksSource", "child")
                 .build();
         OsObjectSchemaInfo sourceSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksSource", false, 2, 0)
-                .addPersistedProperty("name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED)
-                .addPersistedLinkProperty("child", RealmFieldType.OBJECT,
+                .addPersistedProperty("", "name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED)
+                .addPersistedLinkProperty("","child", RealmFieldType.OBJECT,
                         "BacklinksSource"/*"BacklinksTarget" is the original value*/)
                 .build();
         Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap =

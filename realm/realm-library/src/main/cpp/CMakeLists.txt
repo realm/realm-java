@@ -96,6 +96,7 @@ set(classes_LIST
     io.realm.internal.OsObjectStore
     io.realm.internal.core.DescriptorOrdering io.realm.internal.core.IncludeDescriptor
     io.realm.internal.objectstore.OsObjectBuilder
+    io.realm.internal.objectstore.OsKeyPathMapping
 )
 # /./ is the workaround for the problem that AS cannot find the jni headers.
 # See https://github.com/googlesamples/android-ndk/issues/319

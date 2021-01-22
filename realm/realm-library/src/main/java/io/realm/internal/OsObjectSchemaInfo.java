@@ -51,16 +51,17 @@ public class OsObjectSchemaInfo implements NativeObject {
         /**
          * Adds a persisted non-link, non value list property to this builder.
          *
-         * @param name the name of the property.
+         * @param publicName the name of the property as defined in the Java/Kotlin model class.
+         * @param internalName the internal name of the property if different from the public name, otherwise "".
          * @param type the type of the property.
          * @param isPrimaryKey set to true if this property is the primary key.
          * @param isIndexed set to true if this property needs an index.
          * @param isRequired set to true if this property is not nullable.
          * @return this {@code OsObjectSchemaInfo}.
          */
-        public Builder addPersistedProperty(String name, RealmFieldType type, boolean isPrimaryKey, boolean isIndexed,
+        public Builder addPersistedProperty(String publicName, String internalName, RealmFieldType type, boolean isPrimaryKey, boolean isIndexed,
                 boolean isRequired) {
-            long propertyPtr = Property.nativeCreatePersistedProperty(name,
+            long propertyPtr = Property.nativeCreatePersistedProperty(internalName, publicName,
                     Property.convertFromRealmFieldType(type, isRequired), isPrimaryKey, isIndexed);
             persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
             persistedPropertyPtrCurPos++;
@@ -70,13 +71,14 @@ public class OsObjectSchemaInfo implements NativeObject {
         /**
          * Adds a persisted value list property to this builder.
          *
-         * @param name the name of the property.
+         * @param publicName the name of the property as defined in the Java/Kotlin model class.
+         * @param internalName the internal name of the property if different from the public name, otherwise "".
          * @param type the type of the property. It must be one of value list type.
          * @param isRequired set to true if this property is not nullable.
          * @return this {@code OsObjectSchemaInfo}.
          */
-        public Builder addPersistedValueListProperty(String name, RealmFieldType type, boolean isRequired) {
-            long propertyPtr = Property.nativeCreatePersistedProperty(name,
+        public Builder addPersistedValueListProperty(String publicName, String internalName, RealmFieldType type, boolean isRequired) {
+            long propertyPtr = Property.nativeCreatePersistedProperty(internalName, publicName,
                     Property.convertFromRealmFieldType(type, isRequired), !Property.PRIMARY_KEY, !Property.INDEXED);
             persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
             persistedPropertyPtrCurPos++;
@@ -87,13 +89,14 @@ public class OsObjectSchemaInfo implements NativeObject {
          * Adds a persisted link property to this {@code OsObjectSchemaInfo}. A persisted link property will be stored
          * in the Realm file's schema.
          *
-         * @param name the name of the link property.
+         * @param publicName the name of the property as defined in the Java/Kotlin model class.
+         * @param internalName the internal name of the property if different from the public name, otherwise "".
          * @param type the type of the link property. Can only be {@link RealmFieldType#OBJECT} or
          * {@link RealmFieldType#LIST}.
          * @return this {@code OsObjectSchemaInfo.Builder}.
          */
-        public Builder addPersistedLinkProperty(String name, RealmFieldType type, String linkedClassName) {
-            long propertyPtr = Property.nativeCreatePersistedLinkProperty(name,
+        public Builder addPersistedLinkProperty(String publicName, String internalName, RealmFieldType type, String linkedClassName) {
+            long propertyPtr = Property.nativeCreatePersistedLinkProperty(internalName, publicName,
                     Property.convertFromRealmFieldType(type, false), linkedClassName);
             persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
             persistedPropertyPtrCurPos++;

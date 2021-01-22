@@ -22,7 +22,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.internal.util.collections.Sets;
@@ -57,6 +56,7 @@ import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
+import io.realm.entities.realmname.ClassWithValueDefinedNames;
 import io.realm.exceptions.RealmException;
 import io.realm.rule.RunTestInLooperThread;
 
@@ -3711,13 +3711,23 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    public void rawPredicate_invalidFieldName() {
+    public void rawPredicate_invalidFieldNameThrows() {
         try {
             realm.where(AllTypes.class).rawPredicate("foo = 'test data 0'");
             fail();
         } catch (IllegalStateException e) {
             // FIXME: This should be IllegalArgumentException instead
             assertEquals("No property 'foo' on object of type 'AllTypes'", e.getMessage());
+        }
+    }
+
+    @Test
+    public void rawPredicate_invalidTypeThrows() {
+        try {
+            realm.where(AllTypes.class).rawPredicate("columnString = 42");
+            fail();
+        } catch (IllegalStateException ex) {
+            assertTrue("Error message was: " + ex.getMessage(), ex.getMessage().contains("Attempting to compare String property to a non-String value"));
         }
     }
 
@@ -3738,8 +3748,47 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    public void rawPredicate_dynamicRealmQueries() {
+        // FIXME: Smoke test as dynamic Realms hit a different code paths towards Core.
+    }
+
+    @Test
     public void rawPredicate_useJavaFieldNames() {
-        // FIXME: Verify that field name mapping is used so Java names are used
+
+        // Java Field names
+        RealmResults<ClassWithValueDefinedNames> results = realm.where(ClassWithValueDefinedNames.class)
+                .rawPredicate("field = 'Foo'")
+                .findAll();
+        assertTrue(results.isEmpty());
+
+        // Internal field name
+        results = realm.where(ClassWithValueDefinedNames.class)
+                .rawPredicate("my-field-name = 'Foo'")
+                .findAll();
+        assertTrue(results.isEmpty());
+
+        // Linking Objects using the computed field
+        results = realm.where(ClassWithValueDefinedNames.class)
+                .rawPredicate("parents.@count = 0")
+                .findAll();
+        assertTrue(results.isEmpty());
+
+        // Linking Objects using dynamic query must use the internal class-name
+        results = realm.where(ClassWithValueDefinedNames.class)
+                .rawPredicate("@links.my-class-name.object-link.@count = 0")
+                .findAll();
+        assertTrue(results.isEmpty());
+
+        // Linking Objects queries do not support mapped names currently
+        // See https://github.com/realm/realm-core/issues/4326
+        try {
+            realm.where(ClassWithValueDefinedNames.class)
+                    .rawPredicate("@links.ClassWithValueDefinedNames.objectLink.@count = 0")
+                    .findAll();
+            fail();
+        } catch (IllegalStateException ex) {
+            assertTrue("Error message was: " + ex.getMessage(), ex.getMessage().contains("No property 'objectLink' found in type 'ClassWithValueDefinedNames'"));
+        }
     }
 
     @Test

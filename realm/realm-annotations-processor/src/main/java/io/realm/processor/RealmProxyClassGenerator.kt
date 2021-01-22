@@ -684,7 +684,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                 // For each field generate corresponding table index constant
                 for (field in metadata.fields) {
-                    val fieldName = field.internalFieldName
+                    val internalFieldName = field.internalFieldName
+                    val publicFieldName = if (field.javaName == internalFieldName) "" else field.javaName
 
                     when (val fieldType = getRealmTypeChecked(field)) {
                         Constants.RealmFieldType.NOTYPE -> {
@@ -693,12 +694,12 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Constants.RealmFieldType.OBJECT -> {
                             val fieldTypeQualifiedName = Utils.getFieldTypeQualifiedName(field)
                             val internalClassName = Utils.getReferencedTypeInternalClassNameStatement(fieldTypeQualifiedName, classCollection)
-                            emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.OBJECT, %s)", fieldName, internalClassName)
+                            emitStatement("builder.addPersistedLinkProperty(\"%s\", \"%s\", RealmFieldType.OBJECT, %s)", publicFieldName, internalFieldName, internalClassName)
                         }
                         Constants.RealmFieldType.LIST -> {
                             val genericTypeQualifiedName = Utils.getGenericTypeQualifiedName(field)
                             val internalClassName = Utils.getReferencedTypeInternalClassNameStatement(genericTypeQualifiedName, classCollection)
-                            emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.LIST, %s)", fieldName, internalClassName)
+                            emitStatement("builder.addPersistedLinkProperty(\"%s\", \"%s\", RealmFieldType.LIST, %s)", publicFieldName, internalFieldName, internalClassName)
                         }
                         Constants.RealmFieldType.INTEGER_LIST,
                         Constants.RealmFieldType.BOOLEAN_LIST,
@@ -710,7 +711,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Constants.RealmFieldType.OBJECT_ID_LIST,
                         Constants.RealmFieldType.DOUBLE_LIST -> {
                             val requiredFlag = if (metadata.isElementNullable(field)) "!Property.REQUIRED" else "Property.REQUIRED"
-                            emitStatement("builder.addPersistedValueListProperty(\"%s\", %s, %s)", fieldName, fieldType.realmType, requiredFlag)
+                            emitStatement("builder.addPersistedValueListProperty(\"%s\", \"%s\", %s, %s)", publicFieldName, internalFieldName, fieldType.realmType, requiredFlag)
                         }
                         Constants.RealmFieldType.BACKLINK -> {
                             throw IllegalArgumentException("LinkingObject field should not be added to metadata")
@@ -728,7 +729,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val nullableFlag = (if (metadata.isNullable(field)) "!" else "") + "Property.REQUIRED"
                             val indexedFlag = (if (metadata.isIndexed(field)) "" else "!") + "Property.INDEXED"
                             val primaryKeyFlag = (if (metadata.isPrimaryKey(field)) "" else "!") + "Property.PRIMARY_KEY"
-                            emitStatement("builder.addPersistedProperty(\"%s\", %s, %s, %s, %s)", fieldName, fieldType.realmType, primaryKeyFlag, indexedFlag, nullableFlag)
+                            emitStatement("builder.addPersistedProperty(\"%s\", \"%s\", %s, %s, %s, %s)", publicFieldName, internalFieldName, fieldType.realmType, primaryKeyFlag, indexedFlag, nullableFlag)
                         }
                     }
                 }

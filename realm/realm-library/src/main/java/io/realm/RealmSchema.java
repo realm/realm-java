@@ -26,6 +26,7 @@ import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
+import io.realm.internal.objectstore.OsKeyPathMapping;
 
 /**
  * Class for interacting with the Realm schema. This makes it possible to inspect, add, delete and change the classes in
@@ -41,6 +42,9 @@ import io.realm.internal.Util;
 public abstract class RealmSchema {
     static final String EMPTY_STRING_MSG = "Null or empty class names are not allowed";
 
+    // Set whether or not we should create the KeyPathMapping.
+    private final boolean createKeyPathMapping;
+
     // Caches Dynamic Class objects given as Strings to Realm Tables
     private final Map<String, Table> dynamicClassToTable = new HashMap<>();
     // Caches Class objects (both model classes and proxy classes) to Realm Tables
@@ -49,7 +53,8 @@ public abstract class RealmSchema {
     private final Map<Class<? extends RealmModel>, RealmObjectSchema> classToSchema = new HashMap<>();
     // Caches Class Strings to their Schema object
     private final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<>();
-
+    // Native pointer
+    private OsKeyPathMapping keyPathMapping = null;
     final BaseRealm realm;
     // Cached field look up
     private final ColumnIndices columnIndices;
@@ -57,9 +62,13 @@ public abstract class RealmSchema {
     /**
      * Creates a wrapper to easily manipulate the current schema of a Realm.
      */
-    RealmSchema(BaseRealm realm, @Nullable ColumnIndices columnIndices) {
+    RealmSchema(BaseRealm realm, @Nullable ColumnIndices columnIndices, boolean createKeyPathMapping) {
         this.realm = realm;
         this.columnIndices = columnIndices;
+        this.createKeyPathMapping = createKeyPathMapping;
+        if (createKeyPathMapping) {
+            this.keyPathMapping = new OsKeyPathMapping(realm.sharedRealm.getNativePtr());
+        }
     }
 
     /**
@@ -246,6 +255,10 @@ public abstract class RealmSchema {
         return dynamicClassToSchema.remove(name);
     }
 
+    final OsKeyPathMapping getKeyPathMapping() {
+        return keyPathMapping;
+    }
+
     private void checkColumnKeys() {
         if (!haveColumnInfo()) {
             throw new IllegalStateException("Attempt to use column key before set.");
@@ -263,5 +276,8 @@ public abstract class RealmSchema {
         classToTable.clear();
         classToSchema.clear();
         dynamicClassToSchema.clear();
+        if (createKeyPathMapping) {
+            keyPathMapping = new OsKeyPathMapping(realm.sharedRealm.getNativePtr());
+        }
     }
 }
