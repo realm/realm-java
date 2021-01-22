@@ -53,7 +53,7 @@ class DynamicMixedTests {
     }
 
     @Test
-    fun nullify() {
+    fun defaultNullValue() {
         val realm = DynamicRealm.getInstance(configFactory.createConfiguration("Mixed"))
 
         realm.beginTransaction()
@@ -71,6 +71,29 @@ class DynamicMixedTests {
         assertTrue(myMixed.isNull)
         assertTrue(myMixed.equals(null))
         assertEquals(Mixed.nullValue(), myMixed)
+        assertEquals(MixedType.NULL, myMixed.type)
+
+        realm.close()
+    }
+
+    @Test
+    fun setNullValue() {
+        val realm = DynamicRealm.getInstance(configFactory.createConfiguration("Mixed"))
+
+        realm.beginTransaction()
+
+        realm.schema
+                .create("MixedObject")
+                .addField("myMixed", Mixed::class.java)
+
+        val anObject = realm.createObject("MixedObject")
+        anObject.setMixed("myMixed", Mixed.nullValue())
+
+        realm.commitTransaction()
+
+        val myMixed = anObject.getMixed("myMixed")
+
+        assertTrue(myMixed.isNull)
         assertEquals(MixedType.NULL, myMixed.type)
 
         realm.close()
