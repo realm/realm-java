@@ -135,7 +135,7 @@ abstract class PrimitiveMixedOperator extends MixedOperator {
 
     @Override
     public final int hashCode() {
-        return this.value.hashCode();
+        return this.value == null ? 0 : this.value.hashCode();
     }
 
     @Override
