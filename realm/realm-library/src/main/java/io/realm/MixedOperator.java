@@ -140,8 +140,7 @@ abstract class PrimitiveMixedOperator extends MixedOperator {
 
     @Override
     public boolean equals(Object other) {
-        if (other == null) { return false; }
-        if (!getClass().equals(other.getClass())) { return false; }
+        if ((other == null) || !getClass().equals(other.getClass())) { return false; }
 
         PrimitiveMixedOperator otherOperator = (PrimitiveMixedOperator) other;
         return (this.value == null) ? (otherOperator.value == null) : this.value.equals(otherOperator.value);
@@ -191,7 +190,7 @@ final class IntegerMixedOperator extends PrimitiveMixedOperator {
 
     @Override
     public boolean equals(Object other) {
-        if (!getClass().equals(other.getClass())) { return false; }
+        if ((other == null) || !getClass().equals(other.getClass())) { return false; }
 
         MixedOperator otherOperator = (MixedOperator) other;
         return this.getValue(Number.class).longValue() == otherOperator.getValue(Number.class).longValue();
@@ -400,7 +399,7 @@ class RealmModelOperator extends MixedOperator {
 
     @Override
     public boolean equals(Object other) {
-        if (!getClass().equals(other.getClass())) { return false; }
+        if ((other == null) || !getClass().equals(other.getClass())) { return false; }
 
         RealmModelOperator otherOperator = (RealmModelOperator) other;
         return (this.value == null) ? (otherOperator.value == null) : this.value.equals(otherOperator.value);
