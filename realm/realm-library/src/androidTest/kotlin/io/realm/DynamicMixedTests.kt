@@ -5,6 +5,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.rule.TestRealmConfigurationFactory
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -223,6 +224,7 @@ class DynamicMixedTests {
     }
 
     @Test
+    @Ignore("FIXME: See: https://github.com/realm/realm-core/issues/4304")
     fun managed_listsSetAllTypes() {
         val aString = "a string"
         val byteArray = byteArrayOf(0, 1, 0)
@@ -286,6 +288,7 @@ class DynamicMixedTests {
     }
 
     @Test
+    @Ignore("FIXME: See: https://github.com/realm/realm-core/issues/4304")
     fun managed_listsRemoveAllTypes() {
         val aString = "a string"
         val byteArray = byteArrayOf(0, 1, 0)
