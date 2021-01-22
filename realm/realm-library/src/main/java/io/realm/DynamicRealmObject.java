@@ -880,7 +880,11 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         proxyState.getRealm$realm().checkIfValid();
 
         long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
-        proxyState.getRow$realm().setMixed(columnKey, value.getNativePtr());
+        if (value == null) {
+            proxyState.getRow$realm().setNull(columnKey);
+        } else {
+            proxyState.getRow$realm().setMixed(columnKey, value.getNativePtr());
+        }
     }
 
     /**
