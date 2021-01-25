@@ -25,6 +25,9 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.ManageableObject;
 import io.realm.internal.OsMap;
+import io.realm.internal.OsObjectStore;
+import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.core.NativeMixed;
 
 /**
  * A {@code ManagedMapManager} abstracts the different types of keys and values a managed
@@ -158,10 +161,12 @@ abstract class MapValueOperator<V> {
 
     protected final BaseRealm baseRealm;
     protected final OsMap osMap;
+    protected final ClassContainer classContainer;
 
-    MapValueOperator(@Nullable BaseRealm baseRealm, OsMap osMap) {
+    MapValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
         this.baseRealm = baseRealm;
         this.osMap = osMap;
+        this.classContainer = classContainer;
     }
 
     public abstract V get(Object key);
@@ -181,18 +186,27 @@ abstract class MapValueOperator<V> {
     }
 
     public boolean isValid() {
-        if (baseRealm == null) {
-            return true;
-        }
         return !baseRealm.isClosed();
     }
 
     public boolean isFrozen() {
-        return (baseRealm != null && baseRealm.isFrozen());
+        return baseRealm.isFrozen();
     }
 
     public void clear() {
         osMap.clear();
+    }
+
+    protected <E extends RealmModel> E copyToRealm(E object) {
+        // TODO: support dynamic Realms
+        // At this point the object can only be a typed object, so the backing Realm cannot be a DynamicRealm.
+        Realm realm = (Realm) baseRealm;
+        String simpleClassName = realm.getConfiguration().getSchemaMediator().getSimpleClassName(object.getClass());
+        if (OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), simpleClassName) != null) {
+            return realm.copyToRealmOrUpdate(object);
+        } else {
+            return realm.copyToRealm(object);
+        }
     }
 }
 
@@ -201,12 +215,14 @@ abstract class MapValueOperator<V> {
  */
 class MixedValueOperator extends MapValueOperator<Mixed> {
 
-    MixedValueOperator(BaseRealm baseRealm, OsMap osMap) {
-        super(baseRealm, osMap);
+    MixedValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
+        super(baseRealm, osMap, classContainer);
     }
 
     @Override
     public Mixed get(Object key) {
+        long mixedPtr = osMap.getMixedPtr(key);
+        NativeMixed nativeMixed = new NativeMixed(mixedPtr);
         return (Mixed) osMap.get(key);
     }
 
@@ -219,47 +235,177 @@ class MixedValueOperator extends MapValueOperator<Mixed> {
 }
 
 /**
- * {@link MapValueOperator} targeting {@link Boolean} values in {@link RealmMap}s.
+ * {@link MapValueOperator} targeting boxable values in {@link RealmMap}s.
  */
-class BooleanValueOperator extends MapValueOperator<Boolean> {
+class BoxableValueOperator<T> extends MapValueOperator<T> {
 
-    BooleanValueOperator(BaseRealm baseRealm, OsMap osMap) {
-        super(baseRealm, osMap);
+    BoxableValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
+        super(baseRealm, osMap, classContainer);
     }
 
     @Override
-    public Boolean get(Object key) {
-        return (Boolean) osMap.get(key);
+    public T get(Object key) {
+        //noinspection unchecked
+        return (T) osMap.get(key);
     }
 
     @Override
-    public Boolean put(Object key, Boolean value) {
-        Boolean original = (Boolean) osMap.get(key);
+    public T put(Object key, T value) {
+        //noinspection unchecked
+        T original = (T) osMap.get(key);
         osMap.put(key, value);
         return original;
     }
 }
 
 /**
- * {@link MapValueOperator} targeting {@link java.util.UUID} values in {@link RealmMap}s.
+ * {@link MapValueOperator} targeting {@link RealmModel}s values in {@link RealmMap}s.
  */
-class UUIDValueOperator extends MapValueOperator<UUID> {
+class RealmModelValueOperator<T> extends MapValueOperator<T> {
 
-    UUIDValueOperator(BaseRealm baseRealm, OsMap osMap) {
-        super(baseRealm, osMap);
+    RealmModelValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
+        super(baseRealm, osMap, classContainer);
     }
 
     @Override
-    public UUID get(Object key) {
-        return (UUID) osMap.get(key);
+    public T get(Object key) {
+        long realmModelKey = osMap.getRealmModelKey(key);
+        //noinspection unchecked
+        return (T) baseRealm.get((Class<? extends RealmModel>) classContainer.getClazz(), classContainer.getClassName(), realmModelKey);
     }
 
     @Override
-    public UUID put(Object key, UUID value) {
-        UUID original = (UUID) osMap.get(key);
-        osMap.put(key, value);
-        return original;
+    public T put(Object key, T value) {
+        //noinspection unchecked
+        Class<T> clazz = (Class<T>) classContainer.getClazz();
+        String className = classContainer.getClassName();
+        long rowModelKey = osMap.getModelRowKey(key);
+
+        RealmModel realmObject = (RealmModel) value;
+//        boolean copyObject = checkCanObjectBeCopied(baseRealm, realmObject);
+        boolean copyObject = false;     // FIXME
+
+        RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? copyToRealm((RealmModel) value) : realmObject);
+        osMap.putRow(key, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
+
+        if (rowModelKey == 0) {
+            return null;
+        } else {
+            //noinspection unchecked
+            return (T) baseRealm.get((Class<? extends RealmModel>) clazz, className, rowModelKey);
+        }
+    }
+
+    // FIXME: check how it's done in RealmModelListOperator
+    private boolean checkCanObjectBeCopied(BaseRealm baseRealm, RealmModel realmObject) {
+//        if (object instanceof RealmObjectProxy) {
+//            RealmObjectProxy proxy = (RealmObjectProxy) object;
+//
+//            if (proxy instanceof DynamicRealmObject) {
+//                //noinspection ConstantConditions
+//                @Nonnull
+//                String listClassName = className;
+//                if (proxy.realmGet$proxyState().getRealm$realm() == realm) {
+//                    String objectClassName = ((DynamicRealmObject) object).getType();
+//                    if (listClassName.equals(objectClassName)) {
+//                        // Same Realm instance and same target table
+//                        return false;
+//                    } else {
+//                        // Different target table
+//                        throw new IllegalArgumentException(String.format(Locale.US,
+//                                "The object has a different type from list's." +
+//                                        " Type of the list is '%s', type of object is '%s'.", listClassName, objectClassName));
+//                    }
+//                } else if (realm.threadId == proxy.realmGet$proxyState().getRealm$realm().threadId) {
+//                    // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as
+//                    // you have to run a full schema validation for each object.
+//                    // And copying from another Realm instance pointed to the same Realm file is not supported as well.
+//                    throw new IllegalArgumentException("Cannot copy DynamicRealmObject between Realm instances.");
+//                } else {
+//                    throw new IllegalStateException("Cannot copy an object to a Realm instance created in another thread.");
+//                }
+//            } else {
+//                // Object is already in this realm
+//                if (proxy.realmGet$proxyState().getRow$realm() != null && proxy.realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+//                    if (realm != proxy.realmGet$proxyState().getRealm$realm()) {
+//                        throw new IllegalArgumentException("Cannot copy an object from another Realm instance.");
+//                    }
+//                    return false;
+//                }
+//            }
+//        }
+        return true;
     }
 }
 
+///**
+// * {@link MapValueOperator} targeting {@link Boolean} values in {@link RealmMap}s.
+// */
+//class BooleanValueOperator extends MapValueOperator<Boolean> {
+//
+//    BooleanValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
+//        super(baseRealm, osMap, classContainer);
+//    }
+//
+//    @Override
+//    public Boolean get(Object key) {
+//        return (Boolean) osMap.get(key);
+//    }
+//
+//    @Override
+//    public Boolean put(Object key, Boolean value) {
+//        Boolean original = (Boolean) osMap.get(key);
+//        osMap.put(key, value);
+//        return original;
+//    }
+//}
+//
+///**
+// * {@link MapValueOperator} targeting {@link java.util.UUID} values in {@link RealmMap}s.
+// */
+//class UUIDValueOperator extends MapValueOperator<UUID> {
+//
+//    UUIDValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
+//        super(baseRealm, osMap, classContainer);
+//    }
+//
+//    @Override
+//    public UUID get(Object key) {
+//        return (UUID) osMap.get(key);
+//    }
+//
+//    @Override
+//    public UUID put(Object key, UUID value) {
+//        UUID original = (UUID) osMap.get(key);
+//        osMap.put(key, value);
+//        return original;
+//    }
+//}
+
 // TODO: add more value type operators ad-hoc
+
+/**
+ * FIXME
+ */
+class ClassContainer {
+
+    @Nullable
+    private final Class<?> clazz;
+    @Nullable
+    private final String className;
+
+    public ClassContainer(@Nullable Class<?> clazz, @Nullable String className) {
+        this.clazz = clazz;
+        this.className = className;
+    }
+
+    @Nullable
+    public Class<?> getClazz() {
+        return clazz;
+    }
+
+    @Nullable
+    public String getClassName() {
+        return className;
+    }
+}

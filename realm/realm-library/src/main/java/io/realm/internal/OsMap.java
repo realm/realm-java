@@ -20,6 +20,11 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import io.realm.Mixed;
+import io.realm.MixedType;
+import io.realm.RealmModel;
+import io.realm.internal.core.NativeMixed;
+
 /**
  * Java wrapper of Object Store Dictionary class. This backs managed versions of RealmMaps.
  */
@@ -60,16 +65,36 @@ public class OsMap implements NativeObject {
     //  for put and get methods.
     // ------------------------------------------
 
-    public void put(Object key, boolean value) {
-        nativePutBoolean(nativePtr, (String) key, value);
+    public void put(Object key, Object value) {
+        String valueClassName = value.getClass().getCanonicalName();
+        if (Boolean.class.getCanonicalName().equals(valueClassName)) {
+            nativePutBoolean(nativePtr, (String) key, (Boolean) value);
+        } else if (UUID.class.getCanonicalName().equals(valueClassName)) {
+            nativePutUUID(nativePtr, (String) key, value.toString());
+        } else {
+            // TODO: add more types ad-hoc
+            throw new UnsupportedOperationException("Missing 'put' for '" + valueClassName.getClass().getCanonicalName() + "'.");
+        }
     }
 
-    public void put(Object key, UUID value) {
-        nativePutUUID(nativePtr, (String) key, value.toString());
-    }
+//    public void put(Object key, boolean value) {
+//        nativePutBoolean(nativePtr, (String) key, value);
+//    }
+
+//    public void put(Object key, UUID value) {
+//        nativePutUUID(nativePtr, (String) key, value.toString());
+//    }
 
     public void put(Object key, long mixedPtr) {
         nativePutMixed(nativePtr, (String) key, mixedPtr);
+    }
+
+    public void put(Object key, RealmModel value) {
+        // FIXME
+    }
+
+    public void putRow(Object key, long objKey) {
+        nativePutRow(nativePtr, (String) key, objKey);
     }
 
     // TODO: add more put methods for different value types ad-hoc
@@ -78,9 +103,35 @@ public class OsMap implements NativeObject {
         nativeRemove(nativePtr, (String) key);
     }
 
+    public long getModelRowKey(Object key) {
+        // Values are returned as a Mixed object by try_get_any
+        long valuePtr = nativeGetValuePtr(nativePtr, (String) key);
+        if (valuePtr == 0) {
+            return 0;
+        }
+
+        NativeMixed nativeMixed = new NativeMixed(valuePtr);
+
+        return nativeMixed.getRealmModelRowKey();
+    }
+
     @Nullable
     public Object get(Object key) {
         return nativeGetValue(nativePtr, (String) key);
+    }
+
+//    @Nullable
+//    public Mixed getMixed(Object key) {
+//        long mixedPtr = nativeGetMixedPtr(nativePtr, (String) key);
+//        return nativeGetValue(nativePtr, (String) key);
+//    }
+
+    public long getMixedPtr(Object key) {
+        return nativeGetMixedPtr(nativePtr, (String) key);
+    }
+
+    public long getRealmModelKey(Object key) {
+        return nativeGetRealmModelKey(nativePtr, (String) key);
     }
 
     private static native long nativeGetFinalizerPtr();
@@ -89,11 +140,19 @@ public class OsMap implements NativeObject {
 
     private static native Object nativeGetValue(long nativePtr, String key);
 
-    private static native void nativePutMixed(long nativePtr, String key, long nativeObjectPtr);
+    private static native long nativeGetMixedPtr(long nativePtr, String key);
+
+    private static native long nativeGetRealmModelKey(long nativePtr, String key);
+
+    private static native long nativeGetValuePtr(long nativePtr, String key);
 
     private static native void nativePutBoolean(long nativePtr, String key, boolean value);
 
     private static native void nativePutUUID(long nativePtr, String key, String value);
+
+    private static native void nativePutMixed(long nativePtr, String key, long nativeObjectPtr);
+
+    private static native void nativePutRow(long nativePtr, String key, long objKey);
 
     private static native long nativeSize(long nativePtr);
 

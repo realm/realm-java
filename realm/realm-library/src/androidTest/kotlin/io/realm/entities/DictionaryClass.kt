@@ -16,23 +16,21 @@
 
 package io.realm.entities
 
-import io.realm.Mixed
-import io.realm.RealmDictionary
-import io.realm.RealmList
-import io.realm.RealmObject
+import io.realm.*
 import java.util.*
 
 open class DictionaryClass : RealmObject() {
 
-//    var myPrimitiveList: RealmList<Int>? = null
-    var myList: RealmList<DogPrimaryKey>? = null
-    var myDictionary: RealmDictionary<DogPrimaryKey>? = null
-//    var myUUIDDictionary: RealmDictionary<UUID>? = null
-//    var myMixedDictionary: RealmDictionary<Mixed>? = null
+    var myDogDictionary: RealmDictionary<MyDog>? = null
+    var myUUIDDictionary: RealmDictionary<UUID>? = null
+    var myMixedDictionary: RealmDictionary<Mixed>? = null
     var myBooleanDictionary: RealmDictionary<Boolean>? = null
+    var myBooleanList: RealmList<Boolean>? = null
 
     companion object {
         const val CLASS_NAME = "DictionaryClass"
+        const val REALMMODEL_DICTIONARY_FIELD_NAME = "myDogDictionary"
+        const val UUID_DICTIONARY_FIELD_NAME = "myUUIDDictionary"
         const val MIXED_DICTIONARY_FIELD_NAME = "myMixedDictionary"
         const val BOOLEAN_DICTIONARY_FIELD_NAME = "myBooleanDictionary"
     }

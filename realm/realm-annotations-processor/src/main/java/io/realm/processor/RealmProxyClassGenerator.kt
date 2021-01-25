@@ -591,9 +591,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement("String entryKey = item.getKey()")
                     emitStatement("%s entryValue = item.getValue()", genericType)
 
-                    // TODO: consider what to do when receiving RealmModels
                     if (forMixed) {
                         emitStatement("osMap.put(entryKey, entryValue.getNativePtr())")
+                    } else if (forRealmModel) {
+                        emitStatement("osMap.putRow(entryKey, ((RealmObjectProxy) entryValue).realmGet\$proxyState().getRow\$realm().getObjectKey())")
                     } else {
                         emitStatement("osMap.put(entryKey, entryValue)")
                     }
@@ -915,15 +916,19 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val primaryKeyFlag = (if (metadata.isPrimaryKey(field)) "" else "!") + "Property.PRIMARY_KEY"
                             emitStatement("""builder.addPersistedProperty("%s", %s, %s, %s, %s)""", fieldName, fieldType.realmType, primaryKeyFlag, indexedFlag, nullableFlag)
                         }
-                        Constants.RealmFieldType.STRING_TO_LINK_MAP,
                         Constants.RealmFieldType.STRING_TO_BOOLEAN_MAP,
                         Constants.RealmFieldType.STRING_TO_UUID_MAP,
                         Constants.RealmFieldType.STRING_TO_MIXED_MAP -> {
                             val valueNullable = metadata.isDictionaryValueNullable(field)
                             val requiredFlag = if (valueNullable) "!Property.REQUIRED" else "Property.REQUIRED"
-//                            emitStatement("""builder.addPersistedMapProperty("%s", %s, %s)""", fieldName, fieldType.realmType, requiredFlag)
-                            // FIXME: use "requiredFlag" when the bug in core for nullable values is added
-                            emitStatement("""builder.addPersistedMapProperty("%s", %s, %s)""", fieldName, fieldType.realmType, "Property.REQUIRED")
+                            emitStatement("""builder.addPersistedMapProperty("%s", %s, %s)""", fieldName, fieldType.realmType, requiredFlag)
+//                            // FIXME: use "requiredFlag" when the bug in core for nullable values is added
+//                            emitStatement("""builder.addPersistedMapProperty("%s", %s, %s)""", fieldName, fieldType.realmType, "Property.REQUIRED")
+                        }
+                        Constants.RealmFieldType.STRING_TO_LINK_MAP -> {
+                            val genericTypeQualifiedName = Utils.getGenericTypeQualifiedName(field)
+                            val internalClassName = Utils.getReferencedTypeInternalClassNameStatement(genericTypeQualifiedName, classCollection)
+                            emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.STRING_TO_LINK_MAP, %s)", fieldName, internalClassName)
                         }
                     }
                 }
@@ -1999,7 +2004,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 beginControlFlow("for (java.util.Map.Entry<String, %s> entry : entries)", genericType)
                                     emitStatement("String entryKey = entry.getKey()")
                                     emitStatement("%s %sUnmanagedEntryValue = entry.getValue()", genericType, fieldName)
-                                    emitStatement("%s cache%s = (%s) cache.get(entryKey)", genericType, fieldName, genericType)
+                                    emitStatement("%s cache%s = (%s) cache.get(%sUnmanagedEntryValue)", genericType, fieldName, genericType, fieldName)
                                     beginControlFlow("if (cache%s != null)", fieldName)
                                         emitStatement("%sManagedDictionary.put(entryKey, cache%s)", fieldName, fieldName)
                                     nextControlFlow("else")

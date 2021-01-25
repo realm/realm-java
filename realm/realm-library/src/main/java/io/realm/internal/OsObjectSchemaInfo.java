@@ -61,7 +61,9 @@ public class OsObjectSchemaInfo implements NativeObject {
         public Builder addPersistedProperty(String name, RealmFieldType type, boolean isPrimaryKey, boolean isIndexed,
                                             boolean isRequired) {
             long propertyPtr = Property.nativeCreatePersistedProperty(name,
-                    Property.convertFromRealmFieldType(type, isRequired), isPrimaryKey, isIndexed);
+                    Property.convertFromRealmFieldType(type, isRequired),
+                    isPrimaryKey,
+                    isIndexed);
             persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
             persistedPropertyPtrCurPos++;
             return this;
@@ -77,7 +79,9 @@ public class OsObjectSchemaInfo implements NativeObject {
          */
         public Builder addPersistedValueListProperty(String name, RealmFieldType type, boolean isRequired) {
             long propertyPtr = Property.nativeCreatePersistedProperty(name,
-                    Property.convertFromRealmFieldType(type, isRequired), !Property.PRIMARY_KEY, !Property.INDEXED);
+                    Property.convertFromRealmFieldType(type, isRequired),
+                    !Property.PRIMARY_KEY,
+                    !Property.INDEXED);
             persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
             persistedPropertyPtrCurPos++;
             return this;

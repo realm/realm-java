@@ -58,14 +58,97 @@ Java_io_realm_internal_OsMap_nativeGetValue(JNIEnv* env, jclass, jlong map_ptr,
     try {
         auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
         JStringAccessor key(env, j_key);
-        JavaAccessorContext context(env);
-        // FIXME: use "try_get" instead when present - calling "get" throws if key doesn't exist
-        auto t = dictionary.get(context, StringData(key));
-        return any_cast<jobject>(t);
+        const Optional<Mixed>& optional_result = dictionary.try_get_any(StringData(key));
+        if (optional_result) {
+            const Mixed& value = optional_result.value();
+            if (value.is_null()) {
+                return nullptr;
+            } else {
+                const DataType& type = value.get_type();
+                switch (type) {
+                    case DataType::Type::Int:
+                        return _impl::JavaClassGlobalDef::new_long(env, value.get_int());
+                    case DataType::Type::Double:
+                        return _impl::JavaClassGlobalDef::new_double(env, value.get_double());
+                    case DataType::Type::Bool:
+                        return _impl::JavaClassGlobalDef::new_boolean(env, value.get_bool());
+                    case DataType::Type::String:
+                        return to_jstring(env, value.get_string());
+                    case DataType::Type::Binary:
+                        return _impl::JavaClassGlobalDef::new_byte_array(env, value.get_binary());
+                    case DataType::Type::Float:
+                        return _impl::JavaClassGlobalDef::new_float(env, value.get_float());
+                    case DataType::Type::UUID:
+                        return _impl::JavaClassGlobalDef::new_uuid(env, value.get_uuid());
+                    case DataType::Type::ObjectId:
+                        return _impl::JavaClassGlobalDef::new_object_id(env, value.get_object_id());
+                    default:
+                        // FIXME: double-check types
+                        throw std::logic_error(
+                                "'getValue' method only suitable for int, double, boolean, String, byte[], float, UUID and ObjectId.");
+                }
+            }
+        }
     }
     CATCH_STD()
 
     return nullptr;
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_OsMap_nativeGetMixedPtr(JNIEnv *env, jclass, jlong map_ptr,
+                                                 jstring j_key) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor key(env, j_key);
+        const Optional<Mixed>& optional_result = dictionary.try_get_any(StringData(key));
+        if (optional_result) {
+            return reinterpret_cast<jlong>(new Mixed(optional_result.value()));
+        }
+    }
+    CATCH_STD();
+    return -1;
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_OsMap_nativeGetRealmModelKey(JNIEnv* env, jclass, jlong map_ptr,
+                                                    jstring j_key) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor key(env, j_key);
+        const Optional<Mixed>& optional_result = dictionary.try_get_any(StringData(key));
+        if (optional_result) {
+            const Mixed& value = optional_result.value();
+            switch (value.get_type()) {
+                case DataType::Type::Link: {
+                    const ObjLink& link = value.get_link();
+                    const ObjKey& obj_key = link.get_obj_key();
+                    return static_cast<jlong>(obj_key.value);
+                }
+                default:
+                    throw std::logic_error("'getRealmModelKey' method only suitable for Realm model objects.");
+            }
+        }
+    }
+    CATCH_STD()
+
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_OsMap_nativeGetValuePtr(JNIEnv* env, jclass, jlong map_ptr,
+                                               jstring j_key) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor key(env, j_key);
+        const Optional<Mixed>& result = dictionary.try_get_any(StringData(key));
+        if (result) {
+            return reinterpret_cast<jlong>(new Mixed(result.value()));
+        }
+    }
+    CATCH_STD()
+
+    return reinterpret_cast<jlong>(nullptr);
 }
 
 JNIEXPORT void JNICALL
@@ -140,6 +223,17 @@ Java_io_realm_internal_OsMap_nativePutUUID(JNIEnv* env, jclass, jlong map_ptr, j
         JStringAccessor value(env, j_value);
         JavaAccessorContext context(env);
         dictionary.insert(context, StringData(key).data(), Any(UUID(StringData(value).data())));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_OsMap_nativePutRow(JNIEnv* env, jclass, jlong map_ptr, jstring j_key,
+                                          jlong j_obj_key) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor key(env, j_key);
+        dictionary.insert(StringData(key).data(), ObjKey(j_obj_key));
     }
     CATCH_STD()
 }
