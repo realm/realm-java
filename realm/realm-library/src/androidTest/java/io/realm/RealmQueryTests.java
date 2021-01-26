@@ -3334,6 +3334,7 @@ public class RealmQueryTests extends QueryTests {
         types.remove(RealmFieldType.STRING_TO_MIXED_MAP);
         types.remove(RealmFieldType.STRING_TO_BOOLEAN_MAP);
         types.remove(RealmFieldType.STRING_TO_UUID_MAP);
+        types.remove(RealmFieldType.STRING_TO_LINK_MAP);
 
 
         // Iterate all fields of AllTypes table and verify that distinct either:
