@@ -176,9 +176,9 @@ public class Property implements NativeObject {
                 type = TYPE_UUID | TYPE_DICTIONARY;
                 break;
             case STRING_TO_LINK_MAP:
+                // Objects are nullable by default so ignore applying "required"
                 type = TYPE_OBJECT | TYPE_DICTIONARY;
                 return type;
-//                break;        // FIXME: schema validation crashes if we add TYPE_NULLABLE
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported filed type: '%s'.", fieldType.name()));

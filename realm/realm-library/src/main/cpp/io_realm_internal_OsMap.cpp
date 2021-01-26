@@ -67,25 +67,24 @@ Java_io_realm_internal_OsMap_nativeGetValue(JNIEnv* env, jclass, jlong map_ptr,
                 const DataType& type = value.get_type();
                 switch (type) {
                     case DataType::Type::Int:
-                        return _impl::JavaClassGlobalDef::new_long(env, value.get_int());
+                        return JavaClassGlobalDef::new_long(env, value.get_int());
                     case DataType::Type::Double:
-                        return _impl::JavaClassGlobalDef::new_double(env, value.get_double());
+                        return JavaClassGlobalDef::new_double(env, value.get_double());
                     case DataType::Type::Bool:
-                        return _impl::JavaClassGlobalDef::new_boolean(env, value.get_bool());
+                        return JavaClassGlobalDef::new_boolean(env, value.get_bool());
                     case DataType::Type::String:
                         return to_jstring(env, value.get_string());
                     case DataType::Type::Binary:
-                        return _impl::JavaClassGlobalDef::new_byte_array(env, value.get_binary());
+                        return JavaClassGlobalDef::new_byte_array(env, value.get_binary());
                     case DataType::Type::Float:
-                        return _impl::JavaClassGlobalDef::new_float(env, value.get_float());
+                        return JavaClassGlobalDef::new_float(env, value.get_float());
                     case DataType::Type::UUID:
-                        return _impl::JavaClassGlobalDef::new_uuid(env, value.get_uuid());
+                        return JavaClassGlobalDef::new_uuid(env, value.get_uuid());
                     case DataType::Type::ObjectId:
-                        return _impl::JavaClassGlobalDef::new_object_id(env, value.get_object_id());
+                        return JavaClassGlobalDef::new_object_id(env, value.get_object_id());
                     default:
                         // FIXME: double-check types
-                        throw std::logic_error(
-                                "'getValue' method only suitable for int, double, boolean, String, byte[], float, UUID and ObjectId.");
+                        throw std::logic_error("'getValue' method only suitable for int, double, boolean, String, byte[], float, UUID and ObjectId.");
                 }
             }
         }
@@ -111,39 +110,14 @@ Java_io_realm_internal_OsMap_nativeGetMixedPtr(JNIEnv *env, jclass, jlong map_pt
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_OsMap_nativeGetRealmModelKey(JNIEnv* env, jclass, jlong map_ptr,
-                                                    jstring j_key) {
+Java_io_realm_internal_OsMap_nativeGetRow(JNIEnv* env, jclass, jlong map_ptr,
+                                          jstring j_key) {
     try {
         auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
         JStringAccessor key(env, j_key);
         const Optional<Mixed>& optional_result = dictionary.try_get_any(StringData(key));
         if (optional_result) {
-            const Mixed& value = optional_result.value();
-            switch (value.get_type()) {
-                case DataType::Type::Link: {
-                    const ObjLink& link = value.get_link();
-                    const ObjKey& obj_key = link.get_obj_key();
-                    return static_cast<jlong>(obj_key.value);
-                }
-                default:
-                    throw std::logic_error("'getRealmModelKey' method only suitable for Realm model objects.");
-            }
-        }
-    }
-    CATCH_STD()
-
-    return reinterpret_cast<jlong>(nullptr);
-}
-
-JNIEXPORT jlong JNICALL
-Java_io_realm_internal_OsMap_nativeGetValuePtr(JNIEnv* env, jclass, jlong map_ptr,
-                                               jstring j_key) {
-    try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
-        JStringAccessor key(env, j_key);
-        const Optional<Mixed>& result = dictionary.try_get_any(StringData(key));
-        if (result) {
-            return reinterpret_cast<jlong>(new Mixed(result.value()));
+            return reinterpret_cast<jlong>(new Mixed(optional_result.value()));
         }
     }
     CATCH_STD()

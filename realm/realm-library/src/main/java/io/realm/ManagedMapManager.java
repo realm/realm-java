@@ -19,7 +19,6 @@ package io.realm;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -252,7 +251,7 @@ class BoxableValueOperator<T> extends MapValueOperator<T> {
     @Override
     public T put(Object key, T value) {
         //noinspection unchecked
-        T original = (T) osMap.get(key);
+        T original = get(key);
         osMap.put(key, value);
         return original;
     }
@@ -269,7 +268,7 @@ class RealmModelValueOperator<T> extends MapValueOperator<T> {
 
     @Override
     public T get(Object key) {
-        long realmModelKey = osMap.getRealmModelKey(key);
+        long realmModelKey = osMap.getModelRowKey(key);
         //noinspection unchecked
         return (T) baseRealm.get((Class<? extends RealmModel>) classContainer.getClazz(), classContainer.getClassName(), realmModelKey);
     }
@@ -338,54 +337,8 @@ class RealmModelValueOperator<T> extends MapValueOperator<T> {
     }
 }
 
-///**
-// * {@link MapValueOperator} targeting {@link Boolean} values in {@link RealmMap}s.
-// */
-//class BooleanValueOperator extends MapValueOperator<Boolean> {
-//
-//    BooleanValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
-//        super(baseRealm, osMap, classContainer);
-//    }
-//
-//    @Override
-//    public Boolean get(Object key) {
-//        return (Boolean) osMap.get(key);
-//    }
-//
-//    @Override
-//    public Boolean put(Object key, Boolean value) {
-//        Boolean original = (Boolean) osMap.get(key);
-//        osMap.put(key, value);
-//        return original;
-//    }
-//}
-//
-///**
-// * {@link MapValueOperator} targeting {@link java.util.UUID} values in {@link RealmMap}s.
-// */
-//class UUIDValueOperator extends MapValueOperator<UUID> {
-//
-//    UUIDValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
-//        super(baseRealm, osMap, classContainer);
-//    }
-//
-//    @Override
-//    public UUID get(Object key) {
-//        return (UUID) osMap.get(key);
-//    }
-//
-//    @Override
-//    public UUID put(Object key, UUID value) {
-//        UUID original = (UUID) osMap.get(key);
-//        osMap.put(key, value);
-//        return original;
-//    }
-//}
-
-// TODO: add more value type operators ad-hoc
-
 /**
- * FIXME
+ * Used to avoid passing a {@link Class} and a {@link String} via parameters to the value operators.
  */
 class ClassContainer {
 

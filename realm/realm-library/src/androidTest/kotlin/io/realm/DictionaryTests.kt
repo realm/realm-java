@@ -359,14 +359,6 @@ class DictionaryTests {
             assertEquals(VALUE_HELLO, dictionaryFromRealm[KEY_HELLO])
             assertEquals(VALUE_BYE, dictionaryFromRealm[KEY_BYE])
         }
-
-        val dictionaryObjectFromRealm = realm.where<DictionaryClass>()
-                .findFirst()
-        assertNotNull(dictionaryObjectFromRealm)
-        val dictionaryFromRealm = dictionaryObjectFromRealm.myBooleanDictionary
-        assertNotNull(dictionaryFromRealm)
-        assertEquals(VALUE_HELLO, dictionaryFromRealm[KEY_HELLO])
-        assertEquals(VALUE_BYE, dictionaryFromRealm[KEY_BYE])
     }
 
     @Test
@@ -383,33 +375,6 @@ class DictionaryTests {
             assertEquals(VALUE_HELLO, dictionaryFromRealm[KEY_HELLO])
             assertEquals(VALUE_BYE, dictionaryFromRealm[KEY_BYE])
             assertNull(dictionaryFromRealm[KEY_NULL])
-        }
-
-        val dictionaryObjectFromRealm = realm.where<DictionaryClass>()
-                .findFirst()
-        assertNotNull(dictionaryObjectFromRealm)
-        val dictionaryFromRealm = dictionaryObjectFromRealm.myBooleanDictionary
-        assertNotNull(dictionaryFromRealm)
-        assertEquals(VALUE_HELLO, dictionaryFromRealm[KEY_HELLO])
-        assertEquals(VALUE_BYE, dictionaryFromRealm[KEY_BYE])
-        assertNull(dictionaryFromRealm[KEY_NULL])
-    }
-
-    @Test
-//    @Ignore("Wait until Clemente is done with Mixed")
-    fun copyToRealm_mixedBoolean() {
-        realm.executeTransaction { transactionRealm ->
-            val dictionaryObject = DictionaryClass().apply {
-                myMixedDictionary = createMixedRealmDictionary()
-            }
-
-            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
-            val dictionaryFromRealm = dictionaryObjectFromRealm.myMixedDictionary
-            assertNotNull(dictionaryFromRealm)
-
-            val mixedHello = dictionaryFromRealm[KEY_HELLO]
-            val mixedBye = dictionaryFromRealm[KEY_BYE]
-            val kajhs = 0
         }
     }
 
@@ -430,10 +395,8 @@ class DictionaryTests {
             val dictionaryFromRealm = dictionaryObjectFromRealm.myUUIDDictionary
             assertNotNull(dictionaryFromRealm)
 
-            val actual1 = dictionaryFromRealm[KEY_HELLO].toString()
-            assertEquals(uuid1.toString(), actual1)
-            val actual2 = dictionaryFromRealm[KEY_BYE].toString()
-            assertEquals(uuid2.toString(), actual2)
+            assertEquals(uuid1.toString(), dictionaryFromRealm[KEY_HELLO].toString())
+            assertEquals(uuid2.toString(), dictionaryFromRealm[KEY_BYE].toString())
         }
     }
 
@@ -458,6 +421,24 @@ class DictionaryTests {
             assertEquals(myDog1, actual1)
             val actual2 = dictionaryFromRealm[KEY_BYE]
             assertEquals(myDog2, actual2)
+        }
+    }
+
+    @Test
+    @Ignore("Wait until Clemente is done with Mixed")
+    fun copyToRealm_mixedBoolean() {
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myMixedDictionary = createMixedRealmDictionary()
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myMixedDictionary
+            assertNotNull(dictionaryFromRealm)
+
+            val mixedHello = dictionaryFromRealm[KEY_HELLO]
+            val mixedBye = dictionaryFromRealm[KEY_BYE]
+            val kajhs = 0
         }
     }
 
