@@ -50,7 +50,10 @@ public class OsRealmConfig implements NativeObject {
         SCHEMA_MODE_IMMUTABLE(SCHEMA_MODE_VALUE_IMMUTABLE),
         SCHEMA_MODE_READONLY(SCHEMA_MODE_VALUE_READONLY),
         SCHEMA_MODE_RESET_FILE(SCHEMA_MODE_VALUE_RESET_FILE),
-        SCHEMA_MODE_ADDITIVE(SCHEMA_MODE_VALUE_ADDITIVE),
+        SCHEMA_MODE_ADDITIVE_DISCOVERED(SCHEMA_MODE_VALUE_ADDITIVE_DISCOVERED),
+
+        // TODO: implement AdditiveExplicit
+
         SCHEMA_MODE_MANUAL(SCHEMA_MODE_VALUE_MANUAL);
 
         final byte value;
@@ -162,8 +165,9 @@ public class OsRealmConfig implements NativeObject {
     private static final byte SCHEMA_MODE_VALUE_IMMUTABLE = 1;
     private static final byte SCHEMA_MODE_VALUE_READONLY = 2;
     private static final byte SCHEMA_MODE_VALUE_RESET_FILE = 3;
-    private static final byte SCHEMA_MODE_VALUE_ADDITIVE = 4;
-    private static final byte SCHEMA_MODE_VALUE_MANUAL = 5;
+    private static final byte SCHEMA_MODE_VALUE_ADDITIVE_DISCOVERED = 4;
+    private static final byte SCHEMA_MODE_VALUE_ADDITIVE_EXPLICIT = 5;
+    private static final byte SCHEMA_MODE_VALUE_MANUAL = 6;
     private static final byte SYNCSESSION_STOP_POLICY_VALUE_IMMEDIATELY = 0;
     private static final byte SYNCSESSION_STOP_POLICY_VALUE_LIVE_INDEFINETELY = 1;
     private static final byte SYNCSESSION_STOP_POLICY_VALUE_AFTER_CHANGES_UPLOADED = 2;
@@ -255,7 +259,7 @@ public class OsRealmConfig implements NativeObject {
         } else if (config.isReadOnly()) {
             schemaMode = SchemaMode.SCHEMA_MODE_READONLY;
         } else if (syncRealmUrl != null) {
-            schemaMode = SchemaMode.SCHEMA_MODE_ADDITIVE;
+            schemaMode = SchemaMode.SCHEMA_MODE_ADDITIVE_DISCOVERED;
         } else if (config.shouldDeleteRealmIfMigrationNeeded()) {
             schemaMode = SchemaMode.SCHEMA_MODE_RESET_FILE;
         }
