@@ -17,9 +17,11 @@
 package io.realm;
 
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import io.realm.internal.ManageableObject;
@@ -269,6 +271,10 @@ class RealmModelValueOperator<T> extends MapValueOperator<T> {
     @Override
     public T get(Object key) {
         long realmModelKey = osMap.getModelRowKey(key);
+        if (realmModelKey == -1) {
+            return null;
+        }
+
         //noinspection unchecked
         return (T) baseRealm.get((Class<? extends RealmModel>) classContainer.getClazz(), classContainer.getClassName(), realmModelKey);
     }
@@ -281,13 +287,12 @@ class RealmModelValueOperator<T> extends MapValueOperator<T> {
         long rowModelKey = osMap.getModelRowKey(key);
 
         RealmModel realmObject = (RealmModel) value;
-//        boolean copyObject = checkCanObjectBeCopied(baseRealm, realmObject);
-        boolean copyObject = false;     // FIXME
+        boolean copyObject = checkCanObjectBeCopied(baseRealm, realmObject, classContainer);
 
         RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? copyToRealm((RealmModel) value) : realmObject);
         osMap.putRow(key, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
 
-        if (rowModelKey == 0) {
+        if (rowModelKey == -1) {
             return null;
         } else {
             //noinspection unchecked
@@ -295,44 +300,46 @@ class RealmModelValueOperator<T> extends MapValueOperator<T> {
         }
     }
 
-    // FIXME: check how it's done in RealmModelListOperator
-    private boolean checkCanObjectBeCopied(BaseRealm baseRealm, RealmModel realmObject) {
-//        if (object instanceof RealmObjectProxy) {
-//            RealmObjectProxy proxy = (RealmObjectProxy) object;
-//
-//            if (proxy instanceof DynamicRealmObject) {
-//                //noinspection ConstantConditions
-//                @Nonnull
-//                String listClassName = className;
-//                if (proxy.realmGet$proxyState().getRealm$realm() == realm) {
-//                    String objectClassName = ((DynamicRealmObject) object).getType();
-//                    if (listClassName.equals(objectClassName)) {
-//                        // Same Realm instance and same target table
-//                        return false;
-//                    } else {
-//                        // Different target table
-//                        throw new IllegalArgumentException(String.format(Locale.US,
-//                                "The object has a different type from list's." +
-//                                        " Type of the list is '%s', type of object is '%s'.", listClassName, objectClassName));
-//                    }
-//                } else if (realm.threadId == proxy.realmGet$proxyState().getRealm$realm().threadId) {
-//                    // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as
-//                    // you have to run a full schema validation for each object.
-//                    // And copying from another Realm instance pointed to the same Realm file is not supported as well.
-//                    throw new IllegalArgumentException("Cannot copy DynamicRealmObject between Realm instances.");
-//                } else {
-//                    throw new IllegalStateException("Cannot copy an object to a Realm instance created in another thread.");
-//                }
-//            } else {
-//                // Object is already in this realm
-//                if (proxy.realmGet$proxyState().getRow$realm() != null && proxy.realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
-//                    if (realm != proxy.realmGet$proxyState().getRealm$realm()) {
-//                        throw new IllegalArgumentException("Cannot copy an object from another Realm instance.");
-//                    }
-//                    return false;
-//                }
-//            }
-//        }
+    private boolean checkCanObjectBeCopied(BaseRealm realm, RealmModel object, ClassContainer classContainer) {
+        if (object instanceof RealmObjectProxy) {
+            RealmObjectProxy proxy = (RealmObjectProxy) object;
+
+            if (proxy instanceof DynamicRealmObject) {
+                if (classContainer.getClassName() == null) {
+                    throw new IllegalStateException("A 'className' must be passed to the value operator when working with Dynamic Realms.");
+                }
+
+                @Nonnull
+                String listClassName = classContainer.getClassName();
+                if (proxy.realmGet$proxyState().getRealm$realm() == realm) {
+                    String objectClassName = ((DynamicRealmObject) object).getType();
+                    if (listClassName.equals(objectClassName)) {
+                        // Same Realm instance and same target table
+                        return false;
+                    } else {
+                        // Different target table
+                        throw new IllegalArgumentException(String.format(Locale.US,
+                                "The object has a different type from list's." +
+                                        " Type of the list is '%s', type of object is '%s'.", listClassName, objectClassName));
+                    }
+                } else if (realm.threadId == proxy.realmGet$proxyState().getRealm$realm().threadId) {
+                    // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as
+                    // you have to run a full schema validation for each object.
+                    // And copying from another Realm instance pointed to the same Realm file is not supported as well.
+                    throw new IllegalArgumentException("Cannot copy DynamicRealmObject between Realm instances.");
+                } else {
+                    throw new IllegalStateException("Cannot copy an object to a Realm instance created in another thread.");
+                }
+            } else {
+                // Object is already in this realm
+                if (proxy.realmGet$proxyState().getRow$realm() != null && proxy.realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+                    if (realm != proxy.realmGet$proxyState().getRealm$realm()) {
+                        throw new IllegalArgumentException("Cannot copy an object from another Realm instance.");
+                    }
+                    return false;
+                }
+            }
+        }
         return true;
     }
 }

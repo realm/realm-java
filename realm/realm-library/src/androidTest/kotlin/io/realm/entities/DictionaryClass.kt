@@ -21,11 +21,11 @@ import java.util.*
 
 open class DictionaryClass : RealmObject() {
 
+    // TODO: ObjectId and other Java primitives
     var myDogDictionary: RealmDictionary<MyDog>? = null
     var myUUIDDictionary: RealmDictionary<UUID>? = null
     var myMixedDictionary: RealmDictionary<Mixed>? = null
     var myBooleanDictionary: RealmDictionary<Boolean>? = null
-    var myBooleanList: RealmList<Boolean>? = null
 
     companion object {
         const val CLASS_NAME = "DictionaryClass"

@@ -89,15 +89,7 @@ public class OsMap implements NativeObject {
     }
 
     public long getModelRowKey(Object key) {
-        // Values are returned as a Mixed object by try_get_any
-        long rowPtr = nativeGetRow(nativePtr, (String) key);
-        if (rowPtr == 0) {
-            return 0;
-        }
-
-        NativeMixed nativeMixed = new NativeMixed(rowPtr);
-
-        return nativeMixed.getRealmModelRowKey();
+        return nativeGetRow(nativePtr, (String) key);
     }
 
     @Nullable

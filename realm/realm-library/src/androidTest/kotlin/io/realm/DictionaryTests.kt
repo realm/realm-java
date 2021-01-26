@@ -402,8 +402,10 @@ class DictionaryTests {
 
     @Test
     fun copyToRealm_realmModel() {
-        val myDog1 = MyDog().apply { id = "Dog 1" }
-        val myDog2 = MyDog().apply { id = "Dog 2" }
+        val helloDogId = "Hello Dog"
+        val byeDogId = "Bye Dog"
+        val myDog1 = MyDog().apply { id = helloDogId }
+        val myDog2 = MyDog().apply { id = byeDogId }
 
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
@@ -417,10 +419,14 @@ class DictionaryTests {
             val dictionaryFromRealm = dictionaryObjectFromRealm.myDogDictionary
             assertNotNull(dictionaryFromRealm)
 
-            val actual1 = dictionaryFromRealm[KEY_HELLO]
-            assertEquals(myDog1, actual1)
-            val actual2 = dictionaryFromRealm[KEY_BYE]
-            assertEquals(myDog2, actual2)
+            dictionaryFromRealm[KEY_HELLO].let { helloDog ->
+                assertNotNull(helloDog)
+                assertEquals(helloDogId, helloDog.id)
+            }
+            dictionaryFromRealm[KEY_BYE].let { byeDog ->
+                assertNotNull(byeDog)
+                assertEquals(byeDogId, byeDog.id)
+            }
         }
     }
 

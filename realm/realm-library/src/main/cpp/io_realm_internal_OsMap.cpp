@@ -117,12 +117,12 @@ Java_io_realm_internal_OsMap_nativeGetRow(JNIEnv* env, jclass, jlong map_ptr,
         JStringAccessor key(env, j_key);
         const Optional<Mixed>& optional_result = dictionary.try_get_any(StringData(key));
         if (optional_result) {
-            return reinterpret_cast<jlong>(new Mixed(optional_result.value()));
+            return optional_result.value().get<ObjKey>().value;
         }
     }
     CATCH_STD()
 
-    return reinterpret_cast<jlong>(nullptr);
+    return -1;
 }
 
 JNIEXPORT void JNICALL
