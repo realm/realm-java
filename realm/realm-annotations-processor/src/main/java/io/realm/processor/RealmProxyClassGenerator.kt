@@ -2014,7 +2014,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                                 "%sManagedDictionary.put(entryKey, %s.copyOrUpdate(realm, (%s) realm.getSchema().getColumnInfo(%s.class), %sUnmanagedEntryValue, update, cache, flags))",
                                                 fieldName,
                                                 Utils.getDictionaryGenericProxyClassSimpleName(field),
-//                                                Utils.getDictionaryGenericProxyClassSimpleName(field),
                                                 columnInfoClassNameDictionaryGeneric(field),
                                                 Utils.getGenericTypeQualifiedName(field),
                                                 fieldName

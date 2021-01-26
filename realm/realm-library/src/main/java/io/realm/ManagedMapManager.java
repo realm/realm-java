@@ -300,6 +300,7 @@ class RealmModelValueOperator<T> extends MapValueOperator<T> {
         }
     }
 
+    // TODO: unify this method and the one in RealmModelListOperator
     private boolean checkCanObjectBeCopied(BaseRealm realm, RealmModel object, ClassContainer classContainer) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;

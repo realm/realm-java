@@ -605,13 +605,13 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             val containsRealmModelClasses = (listGenericType.isNotEmpty() && Utils.isRealmModel(listGenericType[0]))
             val containsMixed = (listGenericType.isNotEmpty() && Utils.isMixedType(listGenericType[0]))
 
-            // @Required not allowed if the list contains Realm model classes
+            // @Required not allowed if the dictionary contains Realm model classes
             if (hasRequiredAnnotation && (containsRealmModelClasses || containsMixed)) {
                 Utils.error("@Required not allowed on RealmDictionaries that contain other Realm model classes and Mixed.")
                 return false
             }
 
-            // @Required thus only makes sense for RealmLists with primitive types
+            // @Required thus only makes sense for RealmDictionaries with primitive types
             // We only check @Required annotation. @org.jetbrains.annotations.NotNull annotation should not affect nullability of the list values.
             if (!hasRequiredAnnotation) {
                 if (!containsRealmModelClasses) {

@@ -319,6 +319,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
 
         @Override
         public RealmMap<K, V> freeze() {
+            // TODO
             throw new UnsupportedOperationException("Freeze not ready yet.");
         }
 

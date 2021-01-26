@@ -227,14 +227,14 @@ object Utils {
     }
 
     /**
-     * FIXME
+     * @return `true` if a given field type is `RealmDictionary`, `false` otherwise.
      */
     fun isRealmDictionary(field: VariableElement): Boolean {
         return typeUtils.isAssignable(field.asType(), realmDictionary)
     }
 
     /**
-     * FIXME
+     * @return `true` if a given field type is `RealmDictionary<RealmModel>`, `false` otherwise.
      */
     fun isRealmModelDictionary(field: VariableElement): Boolean {
         val elementTypeMirror = TypeMirrors.getRealmDictionaryElementTypeMirror(field) ?: return false
@@ -252,7 +252,8 @@ object Utils {
     }
 
     /**
-     * FIXME
+     * @param field [VariableElement] of a value dictionary field.
+     * @return element type of the dictionary field.
      */
     fun getValueDictionaryFieldType(field: VariableElement): Constants.RealmFieldType {
         val elementTypeMirror = TypeMirrors.getRealmDictionaryElementTypeMirror(field)
@@ -311,9 +312,6 @@ object Utils {
         //        return false;
     }
 
-    /**
-     * FIXME
-     */
     fun isMixedType(type: TypeMirror): Boolean {
         return typeUtils.isSameType(type, mixed)
     }
@@ -388,7 +386,8 @@ object Utils {
     }
 
     /**
-     * FIXME
+     * @return the generic type for Dictionaries of the form `RealmDictionary<type>`
+     * Note: it applies to same types as RealmList.
      */
     fun getDictionaryValueTypeQualifiedName(field: VariableElement): QualifiedClassName? {
         return getGenericTypeQualifiedName(field)
