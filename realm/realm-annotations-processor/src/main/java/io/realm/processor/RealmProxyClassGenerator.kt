@@ -922,8 +922,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val valueNullable = metadata.isDictionaryValueNullable(field)
                             val requiredFlag = if (valueNullable) "!Property.REQUIRED" else "Property.REQUIRED"
                             emitStatement("""builder.addPersistedMapProperty("%s", %s, %s)""", fieldName, fieldType.realmType, requiredFlag)
-//                            // FIXME: use "requiredFlag" when the bug in core for nullable values is added
-//                            emitStatement("""builder.addPersistedMapProperty("%s", %s, %s)""", fieldName, fieldType.realmType, "Property.REQUIRED")
                         }
                         Constants.RealmFieldType.STRING_TO_LINK_MAP -> {
                             val genericTypeQualifiedName = Utils.getGenericTypeQualifiedName(field)
@@ -1355,6 +1353,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     }
                     Utils.isRealmDictionary(field) -> {
                         // TODO: maps
+                        emitSingleLineComment("TODO: Dictionary")
                     }
                     else -> {
                         if (metadata.primaryKey !== field) {
@@ -1471,6 +1470,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                         } else if (Utils.isRealmDictionary(field)) {
                             // TODO: maps
+                            emitSingleLineComment("TODO: Dictionary")
                         } else {
                             if (metadata.primaryKey !== field) {
                                 setTableValues(writer, fieldType.toString(), fieldName, interfaceName, getter, false)
@@ -1602,6 +1602,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitEmptyLine()
                 } else if (Utils.isRealmDictionary(field)) {
                     // TODO: maps
+                    emitSingleLineComment("TODO: Dictionary")
                 } else {
                     if (metadata.primaryKey !== field) {
                         setTableValues(writer, fieldType.toString(), fieldName, interfaceName, getter, true)
@@ -1744,7 +1745,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitEmptyLine()
                             }
                             Utils.isRealmDictionary(field) -> {
-                                // TODO: does this belong in here or should it be its own method?
+                                // TODO: Dictionary
+                                emitSingleLineComment("TODO: Dictionary")
                             }
                             else -> {
                                 if (metadata.primaryKey !== field) {
@@ -2093,6 +2095,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitStatement("unmanagedCopy.%s().set(realmSource.%s().get())", getter, getter)
                         Utils.isRealmDictionary(field) -> {
                             // TODO: maps
+                            emitSingleLineComment("TODO: Dictionary")
                         }
                         else -> {
                             emitStatement("unmanagedCopy.%s(realmSource.%s())", setter, getter)
@@ -2217,6 +2220,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         }
                         Utils.isRealmDictionary(field) -> {
                             // TODO: maps
+                            emitSingleLineComment("TODO: Dictionary")
                         }
                         else -> {
                             emitStatement("builder.%s(%s, realmObjectSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey, getter)
@@ -2295,6 +2299,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         }
                         Utils.isRealmDictionary(field) -> {
                             // TODO: maps
+                            emitSingleLineComment("TODO: Dictionary")
                         }
                         else -> {
                             if (metadata.isNullable(field)) {
@@ -2503,6 +2508,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 writer)
                         Utils.isRealmDictionary(field) -> {
                             // TODO: maps
+                            emitSingleLineComment("TODO: Dictionary")
                         }
                         else -> RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
                                 "objProxy",
@@ -2588,6 +2594,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         }
                         Utils.isRealmDictionary(field) -> {
                             // TODO: add support for maps
+                            emitSingleLineComment("TODO: Dictionary")
                         }
                         else -> {
                             RealmJsonTypeHelper.emitFillJavaTypeFromStream(

@@ -27,6 +27,10 @@ open class DictionaryClass : RealmObject() {
     var myMixedDictionary: RealmDictionary<Mixed>? = null
     var myBooleanDictionary: RealmDictionary<Boolean>? = null
 
+    // TODO: remove these, only used for inspiration for the proxy generator
+    var myBooleanList: RealmList<Boolean>? = null
+    var myDogList: RealmList<MyDog>? = null
+
     companion object {
         const val CLASS_NAME = "DictionaryClass"
         const val REALMMODEL_DICTIONARY_FIELD_NAME = "myDogDictionary"
