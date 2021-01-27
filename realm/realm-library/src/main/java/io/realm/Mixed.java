@@ -34,7 +34,7 @@ import javax.annotation.Nullable;
  * double value, you may call asDouble() to extract that value. You
  * may call getType() to discover what type of value is currently
  * stored. Calling asDouble() on an instance that does not store an
- * integer would raise a {@link java.lang.ClassCastException}.
+ * double would raise a {@link java.lang.ClassCastException}.
  * <p>
  * It is crucial to understand that the act of extracting a value of
  * a particular type requires definite knowledge about the stored
