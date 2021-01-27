@@ -429,7 +429,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
 
         @Override
         public RealmMap<K, V> freeze() {
-            throw new UnsupportedOperationException("This method is only available in managed RealmMaps.");
+            throw new UnsupportedOperationException("Unmanaged RealmMaps cannot be frozen.");
         }
 
         // ------------------------------------------
