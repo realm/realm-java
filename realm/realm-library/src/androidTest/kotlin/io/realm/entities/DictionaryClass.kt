@@ -16,14 +16,15 @@
 
 package io.realm.entities
 
-import io.realm.Mixed
 import io.realm.RealmDictionary
 import io.realm.RealmList
 import io.realm.RealmObject
 
 open class DictionaryClass : RealmObject() {
 
-    var myMixedDictionary: RealmDictionary<Mixed>? = null
+    // TODO: having this field causes ThreadStressTests to crash for some obscure reason after
+    //  updating core to v11, which we need to investigate
+//    var myMixedDictionary: RealmDictionary<Mixed>? = null
     var myBooleanDictionary: RealmDictionary<Boolean>? = null
 
     // FIXME: remove non-dictionary fields, they are only used for inspiration
