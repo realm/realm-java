@@ -3724,7 +3724,7 @@ public class RealmQueryTests extends QueryTests {
     @Test
     public void rawPredicate_invalidTypeThrows() {
         try {
-            realm.where(AllTypes.class).rawPredicate("columnString = 42");
+            realm.where(AllTypes.class).rawPredicate("columnString = 42.0");
             fail();
         } catch (IllegalStateException ex) {
             assertTrue("Error message was: " + ex.getMessage(), ex.getMessage().contains("Attempting to compare String property to a non-String value"));
@@ -3744,6 +3744,7 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void rawPredicate_withOrdering() {
+
         // FIXME: Verify that SORT and DISTINCT work correctly
     }
 
@@ -3793,7 +3794,27 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void rawPredicate_invalidFormatOptions() {
-        // FIXME: Verify that we correctly replace Formatter placeholders
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class);
+        try {
+            // Argument type not valid
+            query.rawPredicate("columnString = '$d'", "foo");
+            fail();
+        } catch (IllegalArgumentException ex) {
+        }
+
+        try {
+            // Missing number of arguments
+            query.rawPredicate("columnString = '%1$s' AND columnString  = '%2$s'", "foo");
+            fail();
+        } catch (IllegalArgumentException ex) {
+        }
+
+        try {
+            // Wrong syntax for argument substituation
+            query.rawPredicate("columnString = '$1'", "foo");
+            fail();
+        } catch (IllegalArgumentException ex) {
+        }
     }
 
     @Test

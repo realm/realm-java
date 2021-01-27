@@ -25,6 +25,8 @@ import javax.annotation.Nullable;
 
 import io.realm.Case;
 import io.realm.Sort;
+import io.realm.internal.core.DescriptorOrdering;
+import io.realm.internal.core.QueryDescriptor;
 import io.realm.internal.objectstore.OsKeyPathMapping;
 import io.realm.log.RealmLog;
 
@@ -664,11 +666,11 @@ public class TableQuery implements NativeObject {
         return nativeCount(nativePtr);
     }
 
-    public void rawPredicate(String filter, @Nullable OsKeyPathMapping mapping) {
+    public void rawPredicate(String filter, @Nullable OsKeyPathMapping mapping, DescriptorOrdering descriptors) {
         if (mapping != null) {
-            nativePredicateWithMapping(nativePtr, filter, mapping.getNativePtr());
+            nativePredicateWithMapping(nativePtr, filter, mapping.getNativePtr(), descriptors.getNativePtr());
         } else{
-            nativePredicate(nativePtr, filter);
+            nativePredicate(nativePtr, filter, descriptors.getNativePtr());
         }
     }
 
@@ -854,9 +856,9 @@ public class TableQuery implements NativeObject {
 
     private native long nativeRemove(long nativeQueryPtr);
 
-    private native void nativePredicate(long nativeQueryPtr, String filter);
+    private native void nativePredicate(long nativeQueryPtr, String filter, long descriptorsPointer);
 
-    private native void nativePredicateWithMapping(long nativeQueryPtr, String filter, long mapppingPtr);
+    private native void nativePredicateWithMapping(long nativeQueryPtr, String filter, long mapppingPtr, long descriptorsPointer);
 
     private static native long nativeGetFinalizerPtr();
 }

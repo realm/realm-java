@@ -2236,7 +2236,7 @@ public class RealmQuery<E> {
             throw new IllegalArgumentException("Non-null 'filter' required.");
         }
         String formattedFilter = String.format(filter, arguments);
-        query.rawPredicate(formattedFilter, realm.getSchema().getKeyPathMapping());
+        query.rawPredicate(formattedFilter, realm.getSchema().getKeyPathMapping(), queryDescriptors);
         return this;
     }
 

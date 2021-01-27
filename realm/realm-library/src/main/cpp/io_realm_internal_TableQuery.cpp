@@ -2097,10 +2097,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetFinalizerPtr(
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_TableQuery_nativePredicate(JNIEnv *env, jobject, jlong nativeQueryPtr, jstring j_filter)
+Java_io_realm_internal_TableQuery_nativePredicate(JNIEnv *env,
+                                                  jobject,
+                                                  jlong nativeQueryPtr,
+                                                  jstring j_filter,
+                                                  jlong j_descriptor_ptr)
 {
     try {
-        Query* query = reinterpret_cast<Query *>(nativeQueryPtr);
+        auto query = reinterpret_cast<Query*>(nativeQueryPtr);
         JStringAccessor filter(env, j_filter); // throws
         query_builder::NoArguments no_args;
         parser::ParserResult parser_result = realm::parser::parse(static_cast<std::string>(filter));
@@ -2114,10 +2118,16 @@ Java_io_realm_internal_TableQuery_nativePredicate(JNIEnv *env, jobject, jlong na
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_TableQuery_nativePredicateWithMapping(JNIEnv *env, jobject, jlong j_query_ptr, jstring j_filter, jlong j_mapping_ptr)
+Java_io_realm_internal_TableQuery_nativePredicateWithMapping(JNIEnv *env,
+                                                             jobject,
+                                                             jlong j_query_ptr,
+                                                             jstring j_filter,
+                                                             jlong j_mapping_ptr,
+                                                             jlong j_descriptor_ptr)
 {
     try {
-        Query* query = reinterpret_cast<Query *>(j_query_ptr);
+        auto query = reinterpret_cast<Query*>(j_query_ptr);
+        auto descriptor = reinterpret_cast<DescriptorOrdering *>(j_descriptor_ptr);
         parser::KeyPathMapping* mapping = reinterpret_cast<parser::KeyPathMapping*>(j_mapping_ptr);
         JStringAccessor filter(env, j_filter); // throws
         query_builder::NoArguments no_args;
