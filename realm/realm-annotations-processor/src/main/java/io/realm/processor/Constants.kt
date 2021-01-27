@@ -77,6 +77,7 @@ object Constants {
 //            "java.lang.Float" to RealmFieldType.FLOAT_LIST,
 //            "java.lang.Double" to RealmFieldType.DOUBLE_LIST,
             "java.lang.Boolean" to RealmFieldType.STRING_TO_BOOLEAN_MAP,
+            "java.lang.Integer" to RealmFieldType.STRING_TO_INTEGER_MAP,
 //            "java.lang.String" to RealmFieldType.STRING_LIST,
 //            "java.util.Date" to RealmFieldType.DATE_LIST,
 //            "byte[]" to RealmFieldType.BINARY_LIST,
@@ -126,6 +127,7 @@ object Constants {
         STRING_TO_LINK_MAP("STRING_TO_LINK_MAP", "Map"),
         STRING_TO_MIXED_MAP("STRING_TO_MIXED_MAP", "Map"),
         STRING_TO_BOOLEAN_MAP("STRING_TO_BOOLEAN_MAP", "Map"),
+        STRING_TO_INTEGER_MAP("STRING_TO_INTEGER_MAP", "Map"),
         STRING_TO_UUID_MAP("STRING_TO_UUID_MAP", "Map");
 
         /**

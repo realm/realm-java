@@ -917,6 +917,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitStatement("""builder.addPersistedProperty("%s", %s, %s, %s, %s)""", fieldName, fieldType.realmType, primaryKeyFlag, indexedFlag, nullableFlag)
                         }
                         Constants.RealmFieldType.STRING_TO_BOOLEAN_MAP,
+                        Constants.RealmFieldType.STRING_TO_INTEGER_MAP,
                         Constants.RealmFieldType.STRING_TO_UUID_MAP,
                         Constants.RealmFieldType.STRING_TO_MIXED_MAP -> {
                             val valueNullable = metadata.isDictionaryValueNullable(field)
@@ -1875,7 +1876,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     if (Utils.isRealmDictionary(field)) {
                         val valueTypeMirror: TypeMirror? = TypeMirrors.getRealmDictionaryElementTypeMirror(field)
                         val forMixed = Utils.isMixedType(requireNotNull(valueTypeMirror) { "RealmDictionary '$field' must have a type." })
-                        val forRealmModel = Utils.isRealmModel(valueTypeMirror)
                         val genericType = Utils.getGenericTypeQualifiedName(field)
                         if (forMixed) {
                             emitStatement("RealmDictionary<%s> dictionary = unmanagedSource.%s()", genericType, getter)

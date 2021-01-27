@@ -28,6 +28,7 @@ public class RealmDictionaryModel extends RealmObject {
 
     private RealmDictionary<Mixed> myMixedRealmDictionary;
     private RealmDictionary<Boolean> myBooleanRealmDictionary;
+    private RealmDictionary<Integer> myIntegerRealmDictionary;
     private RealmDictionary<UUID> myUUIDRealmDictionary;
 
     // TODO: add RealmDictionary<RealmModel>
@@ -50,6 +51,14 @@ public class RealmDictionaryModel extends RealmObject {
 
     public void setMyBooleanRealmDictionary(RealmDictionary<Boolean> myBooleanRealmDictionary) {
         this.myBooleanRealmDictionary = myBooleanRealmDictionary;
+    }
+
+    public RealmDictionary<Integer> getMyIntegerRealmDictionary() {
+        return myIntegerRealmDictionary;
+    }
+
+    public void setMyIntegerRealmDictionary(RealmDictionary<Integer> myIntegerRealmDictionary) {
+        this.myIntegerRealmDictionary = myIntegerRealmDictionary;
     }
 
     public RealmDictionary<UUID> getMyUUIDRealmDictionary() {
