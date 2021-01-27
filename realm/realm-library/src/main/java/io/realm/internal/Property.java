@@ -31,6 +31,7 @@ import static io.realm.RealmFieldType.INTEGER_LIST;
 import static io.realm.RealmFieldType.OBJECT_ID_LIST;
 import static io.realm.RealmFieldType.STRING_TO_INTEGER_MAP;
 import static io.realm.RealmFieldType.STRING_TO_LINK_MAP;
+import static io.realm.RealmFieldType.STRING_TO_STRING_MAP;
 import static io.realm.RealmFieldType.STRING_TO_UUID_MAP;
 import static io.realm.RealmFieldType.TYPED_LINK;
 import static io.realm.RealmFieldType.UUID_LIST;
@@ -169,10 +170,12 @@ public class Property implements NativeObject {
                 break;
             case STRING_TO_MIXED_MAP:
                 type = TYPE_MIXED | TYPE_DICTIONARY;
-//                type = TYPE_MIXED | TYPE_DICTIONARY;
                 break;
             case STRING_TO_BOOLEAN_MAP:
                 type = TYPE_BOOL | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_STRING_MAP:
+                type = TYPE_STRING | TYPE_DICTIONARY;
                 break;
             case STRING_TO_INTEGER_MAP:
                 type = TYPE_INT | TYPE_DICTIONARY;
@@ -249,6 +252,8 @@ public class Property implements NativeObject {
                 return STRING_TO_MIXED_MAP;
             case TYPE_BOOL | TYPE_DICTIONARY:
                 return STRING_TO_BOOLEAN_MAP;
+            case TYPE_STRING | TYPE_DICTIONARY:
+                return STRING_TO_STRING_MAP;
             case TYPE_INT | TYPE_DICTIONARY:
                 return STRING_TO_INTEGER_MAP;
             case TYPE_UUID | TYPE_DICTIONARY:

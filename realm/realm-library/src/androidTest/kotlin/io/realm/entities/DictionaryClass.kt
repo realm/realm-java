@@ -26,11 +26,12 @@ open class DictionaryClass : RealmObject() {
     var myUUIDDictionary: RealmDictionary<UUID>? = null
     var myMixedDictionary: RealmDictionary<Mixed>? = null
     var myBooleanDictionary: RealmDictionary<Boolean>? = null
+    var myStringDictionary: RealmDictionary<String>? = null
     var myIntegerDictionary: RealmDictionary<Int>? = null
 
-//    // TODO: remove these, only used for inspiration for the proxy generator
-//    var myBooleanList: RealmList<Boolean>? = null
-//    var myDogList: RealmList<MyDog>? = null
+    // TODO: remove these, only used for inspiration for the proxy generator
+    var myBooleanList: RealmList<Boolean>? = null
+    var myDogList: RealmList<MyDog>? = null
 
     companion object {
         const val CLASS_NAME = "DictionaryClass"
@@ -38,6 +39,7 @@ open class DictionaryClass : RealmObject() {
         const val UUID_DICTIONARY_FIELD_NAME = "myUUIDDictionary"
         const val MIXED_DICTIONARY_FIELD_NAME = "myMixedDictionary"
         const val BOOLEAN_DICTIONARY_FIELD_NAME = "myBooleanDictionary"
+        const val STRING_DICTIONARY_FIELD_NAME = "myStringDictionary"
         const val INTEGER_DICTIONARY_FIELD_NAME = "myIntegerDictionary"
     }
 }

@@ -118,16 +118,25 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
     private static <V> DictionaryManager<V> getManager(String valueClass, BaseRealm baseRealm, OsMap osMap) {
         // TODO: add other types when ready
         DictionaryManager<V> managedMapOperator;
+        ClassContainer classContainer = new ClassContainer(null, valueClass);
         if (valueClass.equals(Mixed.class.getCanonicalName())) {
-            MapValueOperator<Mixed> mixedValueOperator = new MixedValueOperator(baseRealm, osMap, new ClassContainer(null, valueClass));
+            MapValueOperator<Mixed> mixedValueOperator = new MixedValueOperator(baseRealm, osMap, classContainer);
+            //noinspection unchecked
+            managedMapOperator = new DictionaryManager<>((MapValueOperator<V>) mixedValueOperator);
+        } else if (valueClass.equals(Integer.class.getCanonicalName())) {
+            MapValueOperator<Integer> mixedValueOperator = new IntegerValueOperator(baseRealm, osMap, classContainer);
+            //noinspection unchecked
+            managedMapOperator = new DictionaryManager<>((MapValueOperator<V>) mixedValueOperator);
+        } else if (valueClass.equals(String.class.getCanonicalName())) {
+            MapValueOperator<String> mixedValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
             //noinspection unchecked
             managedMapOperator = new DictionaryManager<>((MapValueOperator<V>) mixedValueOperator);
         } else if (valueClass.equals(Boolean.class.getCanonicalName())) {
-            MapValueOperator<Boolean> mixedValueOperator = new BoxableValueOperator<>(baseRealm, osMap, new ClassContainer(null, valueClass));
+            MapValueOperator<Boolean> mixedValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
             //noinspection unchecked
             managedMapOperator = new DictionaryManager<>((MapValueOperator<V>) mixedValueOperator);
         } else if (valueClass.equals(UUID.class.getCanonicalName())) {
-            MapValueOperator<UUID> mixedValueOperator = new BoxableValueOperator<>(baseRealm, osMap, new ClassContainer(null, valueClass));
+            MapValueOperator<UUID> mixedValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
             //noinspection unchecked
             managedMapOperator = new DictionaryManager<>((MapValueOperator<V>) mixedValueOperator);
         } else {

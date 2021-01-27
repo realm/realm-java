@@ -28,6 +28,7 @@ object OsObjectBuilderTypeHelper {
     private val QUALIFIED_MAP_VALUES: Map<QualifiedClassName, String> = mapOf(
             QualifiedClassName("io.realm.Mixed") to "MixedValueDictionary",
             QualifiedClassName("java.lang.Boolean") to "BooleanValueDictionary",
+            QualifiedClassName("java.lang.String") to "StringValueDictionary",
             QualifiedClassName("java.lang.Integer") to "IntegerValueDictionary",
             QualifiedClassName("java.util.UUID") to "UUIDValueDictionary"
     )

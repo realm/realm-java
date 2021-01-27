@@ -170,8 +170,10 @@ abstract class MapValueOperator<V> {
         this.classContainer = classContainer;
     }
 
+    @Nullable
     public abstract V get(Object key);
 
+    @Nullable
     public abstract V put(Object key, V value);
 
     public void remove(Object key) {
@@ -244,18 +246,53 @@ class BoxableValueOperator<T> extends MapValueOperator<T> {
         super(baseRealm, osMap, classContainer);
     }
 
+    @Nullable
     @Override
     public T get(Object key) {
-        //noinspection unchecked
-        return (T) osMap.get(key);
+        Object value = osMap.get(key);
+        if (value == null) {
+            return null;
+        }
+        return processValue(value);
     }
 
+    @Nullable
     @Override
     public T put(Object key, T value) {
-        //noinspection unchecked
         T original = get(key);
         osMap.put(key, value);
         return original;
+    }
+
+    /**
+     * Normally it is enough with typecasting the value to {@code T}, but e.g. {@link Long} cannot
+     * be cast directly to {@link Integer} so a special operator has to override this method to do
+     * it.
+     *
+     * @param value the value of the dictionary entry as an {@link Object}.
+     * @return the value in its right form
+     */
+    @Nullable
+    protected T processValue(Object value) {
+        //noinspection unchecked
+        return (T) value;
+    }
+}
+
+/**
+ * {@link MapValueOperator} targeting {@link Integer} values in {@link RealmMap}s. Use this one
+ * instead of {@link BoxableValueOperator} to avoid and typecast exception when converting the
+ * {@link Long} result from JNI to {@link Integer}.
+ */
+class IntegerValueOperator extends BoxableValueOperator<Integer> {
+
+    IntegerValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
+        super(baseRealm, osMap, classContainer);
+    }
+
+    @Override
+    protected Integer processValue(Object value) {
+        return ((Long) value).intValue();
     }
 }
 
@@ -268,6 +305,7 @@ class RealmModelValueOperator<T> extends MapValueOperator<T> {
         super(baseRealm, osMap, classContainer);
     }
 
+    @Nullable
     @Override
     public T get(Object key) {
         long realmModelKey = osMap.getModelRowKey(key);
@@ -279,6 +317,7 @@ class RealmModelValueOperator<T> extends MapValueOperator<T> {
         return (T) baseRealm.get((Class<? extends RealmModel>) classContainer.getClazz(), classContainer.getClassName(), realmModelKey);
     }
 
+    @Nullable
     @Override
     public T put(Object key, @Nullable T value) {
         //noinspection unchecked
