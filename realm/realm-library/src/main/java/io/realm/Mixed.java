@@ -82,7 +82,7 @@ public class Mixed {
      * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
      *
      * @param value initial value
-     * @return a new Mixed of a Byte
+     * @return a new Mixed containing a Byte value.
      */
     public static Mixed valueOf(@Nullable Byte value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new IntegerMixedOperator(value));
