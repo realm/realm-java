@@ -36,14 +36,74 @@ import javax.annotation.Nullable;
  * stored. Calling asDouble() on an instance that does not store an
  * double would raise a {@link java.lang.ClassCastException}.
  * <p>
+ * Mixed behaves like a value type on all the supported types except on
+ * Realm objects. It means that Realm will not persist any change to the
+ * Mixed value except when the type is Realm object. Because Mixed
+ * instances are immutable, a new instance is needed to update a Mixed
+ * attribute.
+ * <pre>
+ * <code>
+ *      anObject.mixedAttribute = Mixed.valueOf(5);
+ *      anObject.mixedAttribute = Mixed.valueOf(10.f);
+ * </code>
+ * </pre>
  * It is crucial to understand that the act of extracting a value of
  * a particular type requires definite knowledge about the stored
  * type. Calling a getter method for any particular type, that is not
  * the same type as the stored value, would raise an exception.
  * <p>
+ * Our recommendation to handle the Mixed polymorphism is to write a
+ * switch case around the Mixed type and its inner value class.
+ * <pre>
+ * <code>
+ *      Mixed mixed = aRealmObject.mixedAttribute;
+ *
+ *      switch (mixed.getType()) {
+ *          case OBJECT:
+ *              if (mixed.getValueClass().equals(DogRealmModel.class)) {
+ *                  DogRealmModel value = mixed.asRealmModel(DogRealmModel.class);
+ *              }
+ *          case INTEGER:
+ *              performAction(mixed.asInteger());
+ *              break;
+ *          case BOOLEAN:
+ *              performAction(mixed.asBoolean());
+ *              break;
+ *          case STRING:
+ *              performAction(mixed.asString());
+ *              break;
+ *          case BINARY:
+ *              performAction(mixed.asBinary());
+ *              break;
+ *          case DATE:
+ *              performAction(mixed.asDate());
+ *              break;
+ *          case FLOAT:
+ *              performAction(mixed.asFloat());
+ *              break;
+ *          case DOUBLE:
+ *              performAction(mixed.asDouble());
+ *              break;
+ *          case DECIMAL128:
+ *              performAction(mixed.asDecimal128());
+ *              break;
+ *          case OBJECT_ID:
+ *              performAction(mixed.asObjectId());
+ *              break;
+ *          case UUID:
+ *              performAction(mixed.asUUID());
+ *              break;
+ *          case NULL:
+ *              performNullAction();
+ *              break;
+ *      }
+ * </code>
+ * </pre>
+ * <p>
  * getValueClass() returns the Java class that represents the inner
- * value wrapped by the Mixed instance. It is useful to know what
- * {@link io.realm.RealmModel} to cast to when calling asRealmModel().
+ * value wrapped by the Mixed instance. If the resulting class is
+ * a realization of {@link io.realm.RealmModel} asRealmModel() can be
+ * called to cast the Mixed value to a Realm object reference.
  */
 
 public class Mixed {
