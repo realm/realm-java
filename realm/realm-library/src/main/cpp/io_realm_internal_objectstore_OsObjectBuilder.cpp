@@ -425,10 +425,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
         (JNIEnv* env, jclass, jlong list_ptr, long mixed_ptr)
 {
     try {
-        auto mixed = *reinterpret_cast<Mixed*>(mixed_ptr);
-
-        const JavaValue value(mixed);
-        add_list_element(list_ptr, value);
+        auto java_value = *reinterpret_cast<JavaValue*>(mixed_ptr);
+        add_list_element(list_ptr, java_value);
     }
     CATCH_STD()
 }

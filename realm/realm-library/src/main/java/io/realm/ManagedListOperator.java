@@ -875,10 +875,10 @@ final class MixedListOperator extends ManagedListOperator<Mixed> {
         return false;
     }
 
-    @Nullable
     @Override
     public Mixed get(int index) {
         NativeMixed nativeMixed = (NativeMixed) osList.getValue(index);
+        nativeMixed = (nativeMixed == null) ? new NativeMixed() : nativeMixed;
         return new Mixed(MixedOperator.fromNativeMixed(realm, nativeMixed));
     }
 
@@ -898,20 +898,19 @@ final class MixedListOperator extends ManagedListOperator<Mixed> {
 
     @Override
     public void appendValue(Object value) {
-        Mixed mixed = (value == null) ? Mixed.nullValue() : (Mixed) value;
-
+        Mixed mixed = (Mixed) value;
         osList.addMixed(mixed.getNativePtr());
     }
 
     @Override
     public void insertValue(int index, Object value) {
-        Mixed mixed = (value == null) ? Mixed.nullValue() : (Mixed) value;
+        Mixed mixed = (Mixed) value;
         osList.insertMixed(index, mixed.getNativePtr());
     }
 
     @Override
     protected void setValue(int index, Object value) {
-        Mixed mixed = (value == null) ? Mixed.nullValue() : (Mixed) value;
+        Mixed mixed = (Mixed) value;
         osList.setMixed(index, mixed.getNativePtr());
     }
 }

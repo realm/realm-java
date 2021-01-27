@@ -16,6 +16,7 @@
 
 #include "realm/array_blob.hpp"
 
+#include "java_object_accessor.hpp"
 #include "java_class_global_def.hpp"
 #include "java_exception_def.hpp"
 #include "jni_util/java_exception_thrower.hpp"
@@ -68,5 +69,5 @@ jobject JavaClassGlobalDef::new_uuid(JNIEnv* env, const UUID& uuid)
 jobject JavaClassGlobalDef::new_mixed(JNIEnv* env, const Mixed& mixed)
 {
     static jni_util::JavaMethod init(env, instance()->m_io_realm_internal_core_native_mixed, "<init>", "(J)V");
-    return env->NewObject(instance()->m_io_realm_internal_core_native_mixed, init, new Mixed(mixed));
+    return env->NewObject(instance()->m_io_realm_internal_core_native_mixed, init, new JavaValue(from_mixed(mixed)));
 }

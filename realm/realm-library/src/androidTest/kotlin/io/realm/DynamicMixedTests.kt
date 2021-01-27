@@ -6,6 +6,8 @@ import io.realm.rule.TestRealmConfigurationFactory
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import org.junit.Ignore
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -25,19 +27,35 @@ class DynamicMixedTests {
     @JvmField
     val folder = TemporaryFolder()
 
+    private lateinit var realm: DynamicRealm
+
     init {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
     }
 
+    @Before
+    fun setUp() {
+        realm = DynamicRealm.getInstance(configFactory.createConfiguration("Mixed"))
+
+        realm.executeTransaction {
+            realm.schema
+                    .create("MixedObject")
+                    .addField("myMixed", Mixed::class.java)
+
+            realm.schema
+                    .create("MixedListObject")
+                    .addRealmListField("aList", Mixed::class.java)
+        }
+    }
+
+    @After
+    fun tearDown() {
+        realm.close()
+    }
+
     @Test
     fun writeRead_primitive() {
-        val realm = DynamicRealm.getInstance(configFactory.createConfiguration("Mixed"))
-
         realm.beginTransaction()
-
-        realm.schema
-                .create("MixedObject")
-                .addField("myMixed", Mixed::class.java)
 
         val anObject = realm.createObject("MixedObject")
         anObject.setMixed("myMixed", Mixed.valueOf(Date(10)))
@@ -47,19 +65,11 @@ class DynamicMixedTests {
         val myMixed = anObject.getMixed("myMixed")
 
         assertEquals(Date(10), myMixed.asDate())
-
-        realm.close()
     }
 
     @Test
     fun defaultNullValue() {
-        val realm = DynamicRealm.getInstance(configFactory.createConfiguration("Mixed"))
-
         realm.beginTransaction()
-
-        realm.schema
-                .create("MixedObject")
-                .addField("myMixed", Mixed::class.java)
 
         val anObject = realm.createObject("MixedObject")
 
@@ -69,19 +79,11 @@ class DynamicMixedTests {
 
         assertTrue(myMixed.isNull)
         assertEquals(MixedType.NULL, myMixed.type)
-
-        realm.close()
     }
 
     @Test
     fun setNullValue() {
-        val realm = DynamicRealm.getInstance(configFactory.createConfiguration("Mixed"))
-
         realm.beginTransaction()
-
-        realm.schema
-                .create("MixedObject")
-                .addField("myMixed", Mixed::class.java)
 
         val anObject = realm.createObject("MixedObject")
         anObject.setMixed("myMixed", Mixed.nullValue())
@@ -92,19 +94,11 @@ class DynamicMixedTests {
 
         assertTrue(myMixed.isNull)
         assertEquals(MixedType.NULL, myMixed.type)
-
-        realm.close()
     }
 
     @Test
     fun writeRead_model() {
-        val realm = DynamicRealm.getInstance(configFactory.createConfiguration("Mixed"))
-
         realm.beginTransaction()
-
-        realm.schema
-                .create("MixedObject")
-                .addField("myMixed", Mixed::class.java)
 
         val innerObject = realm.createObject("MixedObject")
         innerObject.setMixed("myMixed", Mixed.valueOf(Date(10)))
@@ -125,8 +119,6 @@ class DynamicMixedTests {
                 .getMixed("myMixed")
 
         assertEquals(innerMixed.asDate(), aMixed.asDate())
-
-        realm.close()
     }
 
     @Test
@@ -138,13 +130,7 @@ class DynamicMixedTests {
         val decimal128 = Decimal128(1)
         val uuid = UUID.randomUUID()
 
-        val realm = DynamicRealm.getInstance(configFactory.createConfiguration("Mixed"))
-
         realm.executeTransaction {
-            realm.schema
-                    .create("MixedListObject")
-                    .addRealmListField("aList", Mixed::class.java)
-
             val allJavaTypes = realm.createObject("MixedListObject")
             val mixedList = allJavaTypes.getList("aList", Mixed::class.java)
 
@@ -197,13 +183,7 @@ class DynamicMixedTests {
         val decimal128 = Decimal128(1)
         val uuid = UUID.randomUUID()
 
-        val realm = DynamicRealm.getInstance(configFactory.createConfiguration("Mixed"))
-
         realm.executeTransaction {
-            realm.schema
-                    .create("MixedListObject")
-                    .addRealmListField("aList", Mixed::class.java)
-
             val allJavaTypes = realm.createObject("MixedListObject")
             val mixedList = allJavaTypes.getList("aList", Mixed::class.java)
 
@@ -256,13 +236,7 @@ class DynamicMixedTests {
         val decimal128 = Decimal128(1)
         val uuid = UUID.randomUUID()
 
-        val realm = DynamicRealm.getInstance(configFactory.createConfiguration("Mixed"))
-
         realm.executeTransaction {
-            realm.schema
-                    .create("MixedListObject")
-                    .addRealmListField("aList", Mixed::class.java)
-
             val allJavaTypes = realm.createObject("MixedListObject")
 
             val initialList = RealmList<Mixed>()
@@ -320,13 +294,7 @@ class DynamicMixedTests {
         val decimal128 = Decimal128(1)
         val uuid = UUID.randomUUID()
 
-        val realm = DynamicRealm.getInstance(configFactory.createConfiguration("Mixed"))
-
         realm.executeTransaction {
-            realm.schema
-                    .create("MixedListObject")
-                    .addRealmListField("aList", Mixed::class.java)
-
             val allJavaTypes = realm.createObject("MixedListObject")
 
             val initialList = RealmList<Mixed>()
