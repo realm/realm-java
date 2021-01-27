@@ -78,7 +78,10 @@ try {
         def buildFlags = ""
         def instrumentationTestTarget = "connectedAndroidTest"
         def deviceSerial = ""
-        if (!releaseBranches.contains(currentBranch)) {
+
+        // TODO: revert once confirmed the LTO fix in core works
+        // if (!releaseBranches.contains(currentBranch)) {
+        if (releaseBranches.contains(currentBranch)) {
           // Build development branch
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
