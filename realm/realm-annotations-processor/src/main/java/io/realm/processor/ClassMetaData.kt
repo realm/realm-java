@@ -94,7 +94,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
 //            typeMirrors.SHORT_MIRROR,
 //            typeMirrors.BYTE_MIRROR,
 //            typeMirrors.DOUBLE_MIRROR,
-//            typeMirrors.FLOAT_MIRROR,
+            typeMirrors.FLOAT_MIRROR,
 //            typeMirrors.DATE_MIRROR,
 //            typeMirrors.DECIMAL128_MIRROR,
 //            typeMirrors.OBJECT_ID_MIRROR,

@@ -218,6 +218,13 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
+    private static ItemCallback<Map.Entry<String, Float>> floatMapItemCallback = new ItemCallback<Map.Entry<String, Float>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, Float> item) {
+            nativeAddFloatDictionaryEntry(containerPtr, item.getKey(), item.getValue());
+        }
+    };
+
     private static ItemCallback<Map.Entry<String, UUID>> uuidMapItemCallback = new ItemCallback<Map.Entry<String, UUID>>() {
         @Override
         public void handleItem(long containerPtr, Map.Entry<String, UUID> item) {
@@ -498,6 +505,10 @@ public class OsObjectBuilder implements Closeable {
         addDictionaryItem(builderPtr, columnKey, dictionary, integerMapItemCallback);
     }
 
+    public void addFloatValueDictionary(long columnKey, RealmDictionary<Float> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, floatMapItemCallback);
+    }
+
     public void addStringValueDictionary(long columnKey, RealmDictionary<String> dictionary) {
         addDictionaryItem(builderPtr, columnKey, dictionary, stringMapItemCallback);
     }
@@ -680,6 +691,8 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeAddStringDictionaryEntry(long dictionaryPtr, String key, String value);
 
     private static native void nativeAddIntegerDictionaryEntry(long dictionaryPtr, String key, long value);
+
+    private static native void nativeAddFloatDictionaryEntry(long dictionaryPtr, String key, float value);
 
     private static native void nativeAddUUIDDictionaryEntry(long dictionaryPtr, String key, String value);
 

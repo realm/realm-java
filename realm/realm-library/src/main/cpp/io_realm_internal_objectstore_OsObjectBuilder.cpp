@@ -507,6 +507,21 @@ Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddIntegerDictionaryEnt
 }
 
 JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddFloatDictionaryEntry(JNIEnv* env,
+                                                                                 jclass,
+                                                                                 jlong dictionary_ptr,
+                                                                                 jstring j_key,
+                                                                                 jfloat j_value) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        JStringAccessor key(env, j_key);
+        const JavaValue value(j_value);
+        dictionary->insert(std::make_pair(key, value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddUUIDDictionaryEntry(JNIEnv* env,
                                                                                 jclass,
                                                                                 jlong dictionary_ptr,

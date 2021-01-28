@@ -46,6 +46,8 @@ private const val VALUE_HELLO_STRING = "HELLO"
 private const val VALUE_BYE_STRING = "BYE"
 private const val VALUE_HELLO_INTEGER = 42
 private const val VALUE_BYE_INTEGER = 666
+private const val VALUE_HELLO_FLOAT = 42F
+private const val VALUE_BYE_FLOAT = 666F
 private val VALUE_NULL = null
 
 @RunWith(AndroidJUnit4::class)
@@ -336,27 +338,30 @@ class DictionaryTests {
 
     // TODO: sanity-check tests for temporary schema validation - move to an appropriate place
 
-//    @Test
-//    fun schemaTest() {
-//        val objectSchema = realm.schema.get(DictionaryClass.CLASS_NAME)
-//
-//        assertNotNull(objectSchema)
-//
-//        assertTrue(objectSchema.hasField(DictionaryClass.UUID_DICTIONARY_FIELD_NAME))
-//        assertEquals(objectSchema.getFieldType(DictionaryClass.UUID_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_UUID_MAP)
-//
-//        assertTrue(objectSchema.hasField(DictionaryClass.MIXED_DICTIONARY_FIELD_NAME))
-//        assertEquals(objectSchema.getFieldType(DictionaryClass.MIXED_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_MIXED_MAP)
-//
-//        assertTrue(objectSchema.hasField(DictionaryClass.BOOLEAN_DICTIONARY_FIELD_NAME))
-//        assertEquals(objectSchema.getFieldType(DictionaryClass.BOOLEAN_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_BOOLEAN_MAP)
-//
-//        assertTrue(objectSchema.hasField(DictionaryClass.STRING_DICTIONARY_FIELD_NAME))
-//        assertEquals(objectSchema.getFieldType(DictionaryClass.STRING_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_STRING_MAP)
-//
-//        assertTrue(objectSchema.hasField(DictionaryClass.INTEGER_DICTIONARY_FIELD_NAME))
-//        assertEquals(objectSchema.getFieldType(DictionaryClass.INTEGER_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_INTEGER_MAP)
-//    }
+    @Test
+    fun schemaTest() {
+        val objectSchema = realm.schema.get(DictionaryClass.CLASS_NAME)
+
+        assertNotNull(objectSchema)
+
+        assertTrue(objectSchema.hasField(DictionaryClass.UUID_DICTIONARY_FIELD_NAME))
+        assertEquals(objectSchema.getFieldType(DictionaryClass.UUID_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_UUID_MAP)
+
+        assertTrue(objectSchema.hasField(DictionaryClass.MIXED_DICTIONARY_FIELD_NAME))
+        assertEquals(objectSchema.getFieldType(DictionaryClass.MIXED_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_MIXED_MAP)
+
+        assertTrue(objectSchema.hasField(DictionaryClass.BOOLEAN_DICTIONARY_FIELD_NAME))
+        assertEquals(objectSchema.getFieldType(DictionaryClass.BOOLEAN_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_BOOLEAN_MAP)
+
+        assertTrue(objectSchema.hasField(DictionaryClass.STRING_DICTIONARY_FIELD_NAME))
+        assertEquals(objectSchema.getFieldType(DictionaryClass.STRING_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_STRING_MAP)
+
+        assertTrue(objectSchema.hasField(DictionaryClass.INTEGER_DICTIONARY_FIELD_NAME))
+        assertEquals(objectSchema.getFieldType(DictionaryClass.INTEGER_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_INTEGER_MAP)
+
+        assertTrue(objectSchema.hasField(DictionaryClass.FLOAT_DICTIONARY_FIELD_NAME))
+        assertEquals(objectSchema.getFieldType(DictionaryClass.FLOAT_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_FLOAT_MAP)
+    }
 
     @Test
     fun copyToRealm_realmModel() {
@@ -486,6 +491,29 @@ class DictionaryTests {
             assertEquals(VALUE_HELLO_INTEGER, actual)
             val actual1 = dictionaryFromRealm[KEY_BYE]
             assertEquals(VALUE_BYE_INTEGER, actual1)
+            assertNull(dictionaryFromRealm[KEY_NULL])
+        }
+    }
+
+    @Test
+    fun copyToRealm_float() {
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myFloatDictionary = RealmDictionary<Float>().apply {
+                    put(KEY_HELLO, VALUE_HELLO_FLOAT)
+                    put(KEY_BYE, VALUE_BYE_FLOAT)
+                    put(KEY_NULL, null)
+                }
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myFloatDictionary
+            assertNotNull(dictionaryFromRealm)
+
+            val actual = dictionaryFromRealm[KEY_HELLO]
+            assertEquals(VALUE_HELLO_FLOAT, actual)
+            val actual1 = dictionaryFromRealm[KEY_BYE]
+            assertEquals(VALUE_BYE_FLOAT, actual1)
             assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }

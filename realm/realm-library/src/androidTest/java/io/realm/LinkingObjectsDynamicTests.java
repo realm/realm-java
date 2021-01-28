@@ -262,6 +262,10 @@ public class LinkingObjectsDynamicTests {
                         // TODO: fix this when adding maps to AllJavaTypes
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
                         break;
+                    case STRING_TO_FLOAT_MAP:
+                        // TODO: fix this when adding maps to AllJavaTypes
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
+                        break;
                     case STRING_TO_UUID_MAP:
                         // TODO: fix this when adding maps to AllJavaTypes
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);

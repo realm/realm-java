@@ -30,6 +30,7 @@ public class RealmDictionaryModel extends RealmObject {
     private RealmDictionary<Boolean> myBooleanRealmDictionary;
     private RealmDictionary<String> myStringRealmDictionary;
     private RealmDictionary<Integer> myIntegerRealmDictionary;
+    private RealmDictionary<Float> myFloatRealmDictionary;
     private RealmDictionary<UUID> myUUIDRealmDictionary;
 
     // TODO: add RealmDictionary<RealmModel>
@@ -68,6 +69,14 @@ public class RealmDictionaryModel extends RealmObject {
 
     public void setMyIntegerRealmDictionary(RealmDictionary<Integer> myIntegerRealmDictionary) {
         this.myIntegerRealmDictionary = myIntegerRealmDictionary;
+    }
+
+    public RealmDictionary<Float> getMyFloatRealmDictionary() {
+        return myFloatRealmDictionary;
+    }
+
+    public void setMyFloatRealmDictionary(RealmDictionary<Float> myFloatRealmDictionary) {
+        this.myFloatRealmDictionary = myFloatRealmDictionary;
     }
 
     public RealmDictionary<UUID> getMyUUIDRealmDictionary() {
