@@ -48,6 +48,8 @@ private const val VALUE_HELLO_INTEGER = 42
 private const val VALUE_BYE_INTEGER = 666
 private const val VALUE_HELLO_FLOAT = 42F
 private const val VALUE_BYE_FLOAT = 666F
+private const val VALUE_HELLO_LONG = 42L
+private const val VALUE_BYE_LONG = 666L
 private val VALUE_NULL = null
 
 @RunWith(AndroidJUnit4::class)
@@ -514,6 +516,29 @@ class DictionaryTests {
             assertEquals(VALUE_HELLO_FLOAT, actual)
             val actual1 = dictionaryFromRealm[KEY_BYE]
             assertEquals(VALUE_BYE_FLOAT, actual1)
+            assertNull(dictionaryFromRealm[KEY_NULL])
+        }
+    }
+
+    @Test
+    fun copyToRealm_long() {
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myLongDictionary = RealmDictionary<Long>().apply {
+                    put(KEY_HELLO, VALUE_HELLO_LONG)
+                    put(KEY_BYE, VALUE_BYE_LONG)
+                    put(KEY_NULL, null)
+                }
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myLongDictionary
+            assertNotNull(dictionaryFromRealm)
+
+            val actual = dictionaryFromRealm[KEY_HELLO]
+            assertEquals(VALUE_HELLO_LONG, actual)
+            val actual1 = dictionaryFromRealm[KEY_BYE]
+            assertEquals(VALUE_BYE_LONG, actual1)
             assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }

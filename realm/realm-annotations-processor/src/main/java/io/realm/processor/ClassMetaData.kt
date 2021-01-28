@@ -89,7 +89,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             typeMirrors.STRING_MIRROR,
 //            typeMirrors.BINARY_MIRROR,
             typeMirrors.BOOLEAN_MIRROR,
-//            typeMirrors.LONG_MIRROR,
+            typeMirrors.LONG_MIRROR,
             typeMirrors.INTEGER_MIRROR,
 //            typeMirrors.SHORT_MIRROR,
 //            typeMirrors.BYTE_MIRROR,

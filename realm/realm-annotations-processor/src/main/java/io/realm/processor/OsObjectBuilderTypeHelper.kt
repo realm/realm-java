@@ -31,6 +31,7 @@ object OsObjectBuilderTypeHelper {
             QualifiedClassName("java.lang.String") to "StringValueDictionary",
             QualifiedClassName("java.lang.Integer") to "IntegerValueDictionary",
             QualifiedClassName("java.lang.Float") to "FloatValueDictionary",
+            QualifiedClassName("java.lang.Long") to "LongValueDictionary",
             QualifiedClassName("java.util.UUID") to "UUIDValueDictionary"
     )
 

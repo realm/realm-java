@@ -73,7 +73,7 @@ object Constants {
 //            "java.lang.Byte" to RealmFieldType.STRING_TO_INTEGER_MAP,
 //            "java.lang.Short" to RealmFieldType.STRING_TO_INTEGER_MAP,
             "java.lang.Integer" to RealmFieldType.STRING_TO_INTEGER_MAP,
-//            "java.lang.Long" to RealmFieldType.STRING_TO_INTEGER_MAP,
+            "java.lang.Long" to RealmFieldType.STRING_TO_INTEGER_MAP,
             "java.lang.Float" to RealmFieldType.STRING_TO_FLOAT_MAP,
 //            "java.lang.Double" to RealmFieldType.STRING_TO_DOUBLE_MAP,
             "java.lang.Boolean" to RealmFieldType.STRING_TO_BOOLEAN_MAP,
