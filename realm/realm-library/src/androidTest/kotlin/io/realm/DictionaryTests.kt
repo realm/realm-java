@@ -42,6 +42,10 @@ private const val VALUE_1 = 1
 private const val VALUE_2 = 2
 private const val VALUE_HELLO = true
 private const val VALUE_BYE = false
+private const val VALUE_HELLO_STRING = "HELLO"
+private const val VALUE_BYE_STRING = "BYE"
+private const val VALUE_HELLO_INTEGER = 42
+private const val VALUE_BYE_INTEGER = 666
 private val VALUE_NULL = null
 
 @RunWith(AndroidJUnit4::class)
@@ -338,43 +342,44 @@ class DictionaryTests {
 //
 //        assertNotNull(objectSchema)
 //
+//        assertTrue(objectSchema.hasField(DictionaryClass.UUID_DICTIONARY_FIELD_NAME))
+//        assertEquals(objectSchema.getFieldType(DictionaryClass.UUID_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_UUID_MAP)
+//
 //        assertTrue(objectSchema.hasField(DictionaryClass.MIXED_DICTIONARY_FIELD_NAME))
 //        assertEquals(objectSchema.getFieldType(DictionaryClass.MIXED_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_MIXED_MAP)
 //
 //        assertTrue(objectSchema.hasField(DictionaryClass.BOOLEAN_DICTIONARY_FIELD_NAME))
 //        assertEquals(objectSchema.getFieldType(DictionaryClass.BOOLEAN_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_BOOLEAN_MAP)
+//
+//        assertTrue(objectSchema.hasField(DictionaryClass.STRING_DICTIONARY_FIELD_NAME))
+//        assertEquals(objectSchema.getFieldType(DictionaryClass.STRING_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_STRING_MAP)
+//
+//        assertTrue(objectSchema.hasField(DictionaryClass.INTEGER_DICTIONARY_FIELD_NAME))
+//        assertEquals(objectSchema.getFieldType(DictionaryClass.INTEGER_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_INTEGER_MAP)
 //    }
 
     @Test
-    fun copyToRealm_boolean() {
+    fun copyToRealm_realmModel() {
+        val helloDogId = "Hello Dog"
+        val myDog = MyDog().apply { id = helloDogId }
+
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
-                myBooleanDictionary = createBooleanRealmDictionary()
+                myDogDictionary = RealmDictionary<MyDog>().apply {
+                    put(KEY_HELLO, myDog)
+//                    put(KEY_NULL, null)
+                }
             }
 
             val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
-            val dictionaryFromRealm = dictionaryObjectFromRealm.myBooleanDictionary
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myDogDictionary
             assertNotNull(dictionaryFromRealm)
 
-            assertEquals(VALUE_HELLO, dictionaryFromRealm[KEY_HELLO])
-            assertEquals(VALUE_BYE, dictionaryFromRealm[KEY_BYE])
-        }
-    }
-
-    @Test
-    fun copyToRealm_booleanNullValue() {
-        realm.executeTransaction { transactionRealm ->
-            val dictionaryObject = DictionaryClass().apply {
-                myBooleanDictionary = createBooleanRealmDictionary(true)
+            dictionaryFromRealm[KEY_HELLO].let { helloDog ->
+                assertNotNull(helloDog)
+                assertEquals(helloDogId, helloDog.id)
             }
-
-            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
-            val dictionaryFromRealm = dictionaryObjectFromRealm.myBooleanDictionary
-            assertNotNull(dictionaryFromRealm)
-
-            assertEquals(VALUE_HELLO, dictionaryFromRealm[KEY_HELLO])
-            assertEquals(VALUE_BYE, dictionaryFromRealm[KEY_BYE])
-            assertNull(dictionaryFromRealm[KEY_NULL])
+//            assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
 
@@ -388,6 +393,7 @@ class DictionaryTests {
                 myUUIDDictionary = RealmDictionary<UUID>().apply {
                     put(KEY_HELLO, uuid1)
                     put(KEY_BYE, uuid2)
+                    put(KEY_NULL, null)
                 }
             }
 
@@ -397,36 +403,7 @@ class DictionaryTests {
 
             assertEquals(uuid1.toString(), dictionaryFromRealm[KEY_HELLO].toString())
             assertEquals(uuid2.toString(), dictionaryFromRealm[KEY_BYE].toString())
-        }
-    }
-
-    @Test
-    fun copyToRealm_realmModel() {
-        val helloDogId = "Hello Dog"
-        val byeDogId = "Bye Dog"
-        val myDog1 = MyDog().apply { id = helloDogId }
-        val myDog2 = MyDog().apply { id = byeDogId }
-
-        realm.executeTransaction { transactionRealm ->
-            val dictionaryObject = DictionaryClass().apply {
-                myDogDictionary = RealmDictionary<MyDog>().apply {
-                    put(KEY_HELLO, myDog1)
-                    put(KEY_BYE, myDog2)
-                }
-            }
-
-            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
-            val dictionaryFromRealm = dictionaryObjectFromRealm.myDogDictionary
-            assertNotNull(dictionaryFromRealm)
-
-            dictionaryFromRealm[KEY_HELLO].let { helloDog ->
-                assertNotNull(helloDog)
-                assertEquals(helloDogId, helloDog.id)
-            }
-            dictionaryFromRealm[KEY_BYE].let { byeDog ->
-                assertNotNull(byeDog)
-                assertEquals(byeDogId, byeDog.id)
-            }
+            assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
 
@@ -447,6 +424,69 @@ class DictionaryTests {
             val kajhs = 0
         }
     }
+
+    @Test
+    fun copyToRealm_boolean() {
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myBooleanDictionary = RealmDictionary<Boolean>().apply {
+                    put(KEY_HELLO, VALUE_HELLO)
+                    put(KEY_BYE, VALUE_BYE)
+                    put(KEY_NULL, null)
+                }
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myBooleanDictionary
+            assertNotNull(dictionaryFromRealm)
+
+            assertEquals(VALUE_HELLO, dictionaryFromRealm[KEY_HELLO])
+            assertEquals(VALUE_BYE, dictionaryFromRealm[KEY_BYE])
+            assertNull(dictionaryFromRealm[KEY_NULL])
+        }
+    }
+
+//    @Test
+//    fun copyToRealm_string() {
+//        realm.executeTransaction { transactionRealm ->
+//            val dictionaryObject = DictionaryClass().apply {
+//                myStringDictionary = RealmDictionary<String>().apply {
+//                    put(KEY_HELLO, VALUE_HELLO_STRING)
+//                    put(KEY_BYE, VALUE_BYE_STRING)
+//                    put(KEY_NULL, null)
+//                }
+//            }
+//
+//            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+//            val dictionaryFromRealm = dictionaryObjectFromRealm.myStringDictionary
+//            assertNotNull(dictionaryFromRealm)
+//
+//            assertEquals(VALUE_HELLO_STRING, dictionaryFromRealm[KEY_HELLO])
+//            assertEquals(VALUE_BYE_STRING, dictionaryFromRealm[KEY_BYE])
+//            assertNull(dictionaryFromRealm[KEY_NULL])
+//        }
+//    }
+
+//    @Test
+//    fun copyToRealm_integer() {
+//        realm.executeTransaction { transactionRealm ->
+//            val dictionaryObject = DictionaryClass().apply {
+//                myIntegerDictionary = RealmDictionary<Int>().apply {
+//                    put(KEY_HELLO, VALUE_HELLO_INTEGER)
+//                    put(KEY_BYE, VALUE_BYE_INTEGER)
+//                    put(KEY_NULL, null)
+//                }
+//            }
+//
+//            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+//            val dictionaryFromRealm = dictionaryObjectFromRealm.myIntegerDictionary
+//            assertNotNull(dictionaryFromRealm)
+//
+//            assertEquals(VALUE_HELLO_INTEGER, dictionaryFromRealm[KEY_HELLO])
+//            assertEquals(VALUE_BYE_INTEGER, dictionaryFromRealm[KEY_BYE])
+//            assertNull(dictionaryFromRealm[KEY_NULL])
+//        }
+//    }
 
     private fun createBooleanRealmDictionary(
             withNullValues: Boolean = false

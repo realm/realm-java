@@ -280,17 +280,21 @@ class RealmModelValueOperator<T> extends MapValueOperator<T> {
     }
 
     @Override
-    public T put(Object key, T value) {
+    public T put(Object key, @Nullable T value) {
         //noinspection unchecked
         Class<T> clazz = (Class<T>) classContainer.getClazz();
         String className = classContainer.getClassName();
         long rowModelKey = osMap.getModelRowKey(key);
 
         RealmModel realmObject = (RealmModel) value;
-        boolean copyObject = checkCanObjectBeCopied(baseRealm, realmObject, classContainer);
-
-        RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? copyToRealm((RealmModel) value) : realmObject);
-        osMap.putRow(key, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
+        boolean copyObject;
+        if (value == null) {
+            osMap.put(key, null);
+        } else {
+            copyObject = checkCanObjectBeCopied(baseRealm, realmObject, classContainer);
+            RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? copyToRealm((RealmModel) value) : realmObject);
+            osMap.putRow(key, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
+        }
 
         if (rowModelKey == -1) {
             return null;

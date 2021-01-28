@@ -2010,14 +2010,18 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     beginControlFlow("if (cache%s != null)", fieldName)
                                         emitStatement("%sManagedDictionary.put(entryKey, cache%s)", fieldName, fieldName)
                                     nextControlFlow("else")
-                                        emitStatement(
-                                                "%sManagedDictionary.put(entryKey, %s.copyOrUpdate(realm, (%s) realm.getSchema().getColumnInfo(%s.class), %sUnmanagedEntryValue, update, cache, flags))",
-                                                fieldName,
-                                                Utils.getDictionaryGenericProxyClassSimpleName(field),
-                                                columnInfoClassNameDictionaryGeneric(field),
-                                                Utils.getGenericTypeQualifiedName(field),
-                                                fieldName
-                                        )
+                                        beginControlFlow("if (%sUnmanagedEntryValue == null)", fieldName)
+                                            emitStatement("%sManagedDictionary.put(entryKey, null)", fieldName)
+                                        nextControlFlow("else")
+                                            emitStatement(
+                                                    "%sManagedDictionary.put(entryKey, %s.copyOrUpdate(realm, (%s) realm.getSchema().getColumnInfo(%s.class), %sUnmanagedEntryValue, update, cache, flags))",
+                                                    fieldName,
+                                                    Utils.getDictionaryGenericProxyClassSimpleName(field),
+                                                    columnInfoClassNameDictionaryGeneric(field),
+                                                    Utils.getGenericTypeQualifiedName(field),
+                                                    fieldName
+                                            )
+                                        endControlFlow()
                                     endControlFlow()
                                 endControlFlow()
                             endControlFlow()

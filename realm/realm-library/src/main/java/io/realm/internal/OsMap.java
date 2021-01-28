@@ -62,15 +62,19 @@ public class OsMap implements NativeObject {
     //  for put and get methods.
     // ------------------------------------------
 
-    public void put(Object key, Object value) {
-        String valueClassName = value.getClass().getCanonicalName();
-        if (Boolean.class.getCanonicalName().equals(valueClassName)) {
-            nativePutBoolean(nativePtr, (String) key, (Boolean) value);
-        } else if (UUID.class.getCanonicalName().equals(valueClassName)) {
-            nativePutUUID(nativePtr, (String) key, value.toString());
+    public void put(Object key, @Nullable Object value) {
+        if (value == null) {
+            nativePutNull(nativePtr, (String) key);
         } else {
-            // TODO: add more types ad-hoc
-            throw new UnsupportedOperationException("Missing 'put' for '" + valueClassName.getClass().getCanonicalName() + "'.");
+            String valueClassName = value.getClass().getCanonicalName();
+            if (Boolean.class.getCanonicalName().equals(valueClassName)) {
+                nativePutBoolean(nativePtr, (String) key, (Boolean) value);
+            } else if (UUID.class.getCanonicalName().equals(valueClassName)) {
+                nativePutUUID(nativePtr, (String) key, value.toString());
+            } else {
+                // TODO: add more types ad-hoc
+                throw new UnsupportedOperationException("Missing 'put' for '" + valueClassName.getClass().getCanonicalName() + "'.");
+            }
         }
     }
 
@@ -110,6 +114,8 @@ public class OsMap implements NativeObject {
     private static native long nativeGetMixedPtr(long nativePtr, String key);
 
     private static native long nativeGetRow(long nativePtr, String key);
+
+    private static native void nativePutNull(long nativePtr, String key);
 
     private static native void nativePutBoolean(long nativePtr, String key, boolean value);
 
