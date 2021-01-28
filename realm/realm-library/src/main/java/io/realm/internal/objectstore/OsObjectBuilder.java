@@ -232,6 +232,13 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
+    private static ItemCallback<Map.Entry<String, Short>> shortMapItemCallback = new ItemCallback<Map.Entry<String, Short>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, Short> item) {
+            nativeAddIntegerDictionaryEntry(containerPtr, item.getKey(), item.getValue());
+        }
+    };
+
     private static ItemCallback<Map.Entry<String, UUID>> uuidMapItemCallback = new ItemCallback<Map.Entry<String, UUID>>() {
         @Override
         public void handleItem(long containerPtr, Map.Entry<String, UUID> item) {
@@ -518,6 +525,10 @@ public class OsObjectBuilder implements Closeable {
 
     public void addLongValueDictionary(long columnKey, RealmDictionary<Long> dictionary) {
         addDictionaryItem(builderPtr, columnKey, dictionary, longMapItemCallback);
+    }
+
+    public void addShortValueDictionary(long columnKey, RealmDictionary<Short> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, shortMapItemCallback);
     }
 
     public void addStringValueDictionary(long columnKey, RealmDictionary<String> dictionary) {

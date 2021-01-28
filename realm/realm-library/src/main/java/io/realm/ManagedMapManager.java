@@ -297,6 +297,23 @@ class IntegerValueOperator extends BoxableValueOperator<Integer> {
 }
 
 /**
+ * {@link MapValueOperator} targeting {@link Short} values in {@link RealmMap}s. Use this one
+ * instead of {@link BoxableValueOperator} to avoid and typecast exception when converting the
+ * {@link Long} result from JNI to {@link Short}.
+ */
+class ShortValueOperator extends BoxableValueOperator<Short> {
+
+    ShortValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
+        super(baseRealm, osMap, classContainer);
+    }
+
+    @Override
+    protected Short processValue(Object value) {
+        return ((Long) value).shortValue();
+    }
+}
+
+/**
  * {@link MapValueOperator} targeting {@link RealmModel}s values in {@link RealmMap}s.
  */
 class RealmModelValueOperator<T> extends MapValueOperator<T> {

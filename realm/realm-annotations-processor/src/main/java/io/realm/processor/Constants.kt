@@ -71,7 +71,7 @@ object Constants {
 
     val DICTIONARY_ELEMENT_TYPE_TO_REALM_TYPES = mapOf(
 //            "java.lang.Byte" to RealmFieldType.STRING_TO_INTEGER_MAP,
-//            "java.lang.Short" to RealmFieldType.STRING_TO_INTEGER_MAP,
+            "java.lang.Short" to RealmFieldType.STRING_TO_INTEGER_MAP,
             "java.lang.Integer" to RealmFieldType.STRING_TO_INTEGER_MAP,
             "java.lang.Long" to RealmFieldType.STRING_TO_INTEGER_MAP,
             "java.lang.Float" to RealmFieldType.STRING_TO_FLOAT_MAP,

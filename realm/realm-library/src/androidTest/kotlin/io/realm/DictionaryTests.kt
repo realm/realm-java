@@ -44,12 +44,8 @@ private const val VALUE_HELLO = true
 private const val VALUE_BYE = false
 private const val VALUE_HELLO_STRING = "HELLO"
 private const val VALUE_BYE_STRING = "BYE"
-private const val VALUE_HELLO_INTEGER = 42
-private const val VALUE_BYE_INTEGER = 666
-private const val VALUE_HELLO_FLOAT = 42F
-private const val VALUE_BYE_FLOAT = 666F
-private const val VALUE_HELLO_LONG = 42L
-private const val VALUE_BYE_LONG = 666L
+private const val VALUE_HELLO_NUMERIC = 42
+private const val VALUE_BYE_NUMERIC = 666
 private val VALUE_NULL = null
 
 @RunWith(AndroidJUnit4::class)
@@ -363,6 +359,12 @@ class DictionaryTests {
 
         assertTrue(objectSchema.hasField(DictionaryClass.FLOAT_DICTIONARY_FIELD_NAME))
         assertEquals(objectSchema.getFieldType(DictionaryClass.FLOAT_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_FLOAT_MAP)
+
+        assertTrue(objectSchema.hasField(DictionaryClass.LONG_DICTIONARY_FIELD_NAME))
+        assertEquals(objectSchema.getFieldType(DictionaryClass.LONG_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_INTEGER_MAP)
+
+        assertTrue(objectSchema.hasField(DictionaryClass.SHORT_DICTIONARY_FIELD_NAME))
+        assertEquals(objectSchema.getFieldType(DictionaryClass.SHORT_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_INTEGER_MAP)
     }
 
     @Test
@@ -479,8 +481,8 @@ class DictionaryTests {
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
                 myIntegerDictionary = RealmDictionary<Int>().apply {
-                    put(KEY_HELLO, VALUE_HELLO_INTEGER)
-                    put(KEY_BYE, VALUE_BYE_INTEGER)
+                    put(KEY_HELLO, VALUE_HELLO_NUMERIC)
+                    put(KEY_BYE, VALUE_BYE_NUMERIC)
                     put(KEY_NULL, null)
                 }
             }
@@ -490,9 +492,9 @@ class DictionaryTests {
             assertNotNull(dictionaryFromRealm)
 
             val actual = dictionaryFromRealm[KEY_HELLO]
-            assertEquals(VALUE_HELLO_INTEGER, actual)
+            assertEquals(VALUE_HELLO_NUMERIC, actual)
             val actual1 = dictionaryFromRealm[KEY_BYE]
-            assertEquals(VALUE_BYE_INTEGER, actual1)
+            assertEquals(VALUE_BYE_NUMERIC, actual1)
             assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
@@ -502,8 +504,8 @@ class DictionaryTests {
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
                 myFloatDictionary = RealmDictionary<Float>().apply {
-                    put(KEY_HELLO, VALUE_HELLO_FLOAT)
-                    put(KEY_BYE, VALUE_BYE_FLOAT)
+                    put(KEY_HELLO, VALUE_HELLO_NUMERIC.toFloat())
+                    put(KEY_BYE, VALUE_BYE_NUMERIC.toFloat())
                     put(KEY_NULL, null)
                 }
             }
@@ -513,9 +515,9 @@ class DictionaryTests {
             assertNotNull(dictionaryFromRealm)
 
             val actual = dictionaryFromRealm[KEY_HELLO]
-            assertEquals(VALUE_HELLO_FLOAT, actual)
+            assertEquals(VALUE_HELLO_NUMERIC.toFloat(), actual)
             val actual1 = dictionaryFromRealm[KEY_BYE]
-            assertEquals(VALUE_BYE_FLOAT, actual1)
+            assertEquals(VALUE_BYE_NUMERIC.toFloat(), actual1)
             assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
@@ -525,8 +527,8 @@ class DictionaryTests {
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
                 myLongDictionary = RealmDictionary<Long>().apply {
-                    put(KEY_HELLO, VALUE_HELLO_LONG)
-                    put(KEY_BYE, VALUE_BYE_LONG)
+                    put(KEY_HELLO, VALUE_HELLO_NUMERIC.toLong())
+                    put(KEY_BYE, VALUE_BYE_NUMERIC.toLong())
                     put(KEY_NULL, null)
                 }
             }
@@ -536,9 +538,32 @@ class DictionaryTests {
             assertNotNull(dictionaryFromRealm)
 
             val actual = dictionaryFromRealm[KEY_HELLO]
-            assertEquals(VALUE_HELLO_LONG, actual)
+            assertEquals(VALUE_HELLO_NUMERIC.toLong(), actual)
             val actual1 = dictionaryFromRealm[KEY_BYE]
-            assertEquals(VALUE_BYE_LONG, actual1)
+            assertEquals(VALUE_BYE_NUMERIC.toLong(), actual1)
+            assertNull(dictionaryFromRealm[KEY_NULL])
+        }
+    }
+
+    @Test
+    fun copyToRealm_short() {
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myShortDictionary = RealmDictionary<Short>().apply {
+                    put(KEY_HELLO, VALUE_HELLO_NUMERIC.toShort())
+                    put(KEY_BYE, VALUE_BYE_NUMERIC.toShort())
+                    put(KEY_NULL, null)
+                }
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myShortDictionary
+            assertNotNull(dictionaryFromRealm)
+
+            val actual = dictionaryFromRealm[KEY_HELLO]
+            assertEquals(VALUE_HELLO_NUMERIC.toShort(), actual)
+            val actual1 = dictionaryFromRealm[KEY_BYE]
+            assertEquals(VALUE_BYE_NUMERIC.toShort(), actual1)
             assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }

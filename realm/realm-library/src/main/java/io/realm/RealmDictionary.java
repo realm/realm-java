@@ -128,7 +128,11 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
             //noinspection unchecked
             managedMapOperator = new DictionaryManager<>((MapValueOperator<V>) mixedValueOperator);
         } else if (valueClass.equals(Long.class.getCanonicalName())) {
-            MapValueOperator<Integer> mixedValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
+            MapValueOperator<Long> mixedValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
+            //noinspection unchecked
+            managedMapOperator = new DictionaryManager<>((MapValueOperator<V>) mixedValueOperator);
+        } else if (valueClass.equals(Short.class.getCanonicalName())) {
+            MapValueOperator<Short> mixedValueOperator = new ShortValueOperator(baseRealm, osMap, classContainer);
             //noinspection unchecked
             managedMapOperator = new DictionaryManager<>((MapValueOperator<V>) mixedValueOperator);
         } else if (valueClass.equals(Float.class.getCanonicalName())) {
