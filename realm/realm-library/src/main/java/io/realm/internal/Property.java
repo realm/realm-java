@@ -29,6 +29,7 @@ import static io.realm.RealmFieldType.DOUBLE_LIST;
 import static io.realm.RealmFieldType.FLOAT_LIST;
 import static io.realm.RealmFieldType.INTEGER_LIST;
 import static io.realm.RealmFieldType.OBJECT_ID_LIST;
+import static io.realm.RealmFieldType.STRING_TO_DOUBLE_MAP;
 import static io.realm.RealmFieldType.STRING_TO_FLOAT_MAP;
 import static io.realm.RealmFieldType.STRING_TO_INTEGER_MAP;
 import static io.realm.RealmFieldType.STRING_TO_LINK_MAP;
@@ -184,6 +185,9 @@ public class Property implements NativeObject {
             case STRING_TO_FLOAT_MAP:
                 type = TYPE_FLOAT | TYPE_DICTIONARY;
                 break;
+            case STRING_TO_DOUBLE_MAP:
+                type = TYPE_DOUBLE | TYPE_DICTIONARY;
+                break;
             case STRING_TO_UUID_MAP:
                 type = TYPE_UUID | TYPE_DICTIONARY;
                 break;
@@ -262,6 +266,8 @@ public class Property implements NativeObject {
                 return STRING_TO_INTEGER_MAP;
             case TYPE_FLOAT | TYPE_DICTIONARY:
                 return STRING_TO_FLOAT_MAP;
+            case TYPE_DOUBLE | TYPE_DICTIONARY:
+                return STRING_TO_DOUBLE_MAP;
             case TYPE_UUID | TYPE_DICTIONARY:
                 return STRING_TO_UUID_MAP;
             case TYPE_OBJECT | TYPE_DICTIONARY:

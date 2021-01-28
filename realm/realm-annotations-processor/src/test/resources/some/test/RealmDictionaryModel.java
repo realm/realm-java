@@ -33,6 +33,8 @@ public class RealmDictionaryModel extends RealmObject {
     private RealmDictionary<Float> myFloatRealmDictionary;
     private RealmDictionary<Long> myLongRealmDictionary;
     private RealmDictionary<Short> myShortRealmDictionary;
+    private RealmDictionary<Byte> myByteRealmDictionary;
+    private RealmDictionary<Double> myDoubleRealmDictionary;
     private RealmDictionary<UUID> myUUIDRealmDictionary;
 
     // TODO: add RealmDictionary<RealmModel>
@@ -95,6 +97,22 @@ public class RealmDictionaryModel extends RealmObject {
 
     public void setMyShortRealmDictionary(RealmDictionary<Short> myShortRealmDictionary) {
         this.myShortRealmDictionary = myShortRealmDictionary;
+    }
+
+    public RealmDictionary<Byte> getMyByteRealmDictionary() {
+        return myByteRealmDictionary;
+    }
+
+    public void setMyByteRealmDictionary(RealmDictionary<Byte> myByteRealmDictionary) {
+        this.myByteRealmDictionary = myByteRealmDictionary;
+    }
+
+    public RealmDictionary<Double> getMyDoubleRealmDictionary() {
+        return myDoubleRealmDictionary;
+    }
+
+    public void setMyDoubleRealmDictionary(RealmDictionary<Double> myDoubleRealmDictionary) {
+        this.myDoubleRealmDictionary = myDoubleRealmDictionary;
     }
 
     public RealmDictionary<UUID> getMyUUIDRealmDictionary() {

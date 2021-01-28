@@ -239,6 +239,20 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
+    private static ItemCallback<Map.Entry<String, Byte>> byteMapItemCallback = new ItemCallback<Map.Entry<String, Byte>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, Byte> item) {
+            nativeAddIntegerDictionaryEntry(containerPtr, item.getKey(), item.getValue());
+        }
+    };
+
+    private static ItemCallback<Map.Entry<String, Double>> doubleMapItemCallback = new ItemCallback<Map.Entry<String, Double>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, Double> item) {
+            nativeAddDoubleDictionaryEntry(containerPtr, item.getKey(), item.getValue());
+        }
+    };
+
     private static ItemCallback<Map.Entry<String, UUID>> uuidMapItemCallback = new ItemCallback<Map.Entry<String, UUID>>() {
         @Override
         public void handleItem(long containerPtr, Map.Entry<String, UUID> item) {
@@ -531,6 +545,14 @@ public class OsObjectBuilder implements Closeable {
         addDictionaryItem(builderPtr, columnKey, dictionary, shortMapItemCallback);
     }
 
+    public void addByteValueDictionary(long columnKey, RealmDictionary<Byte> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, byteMapItemCallback);
+    }
+
+    public void addDoubleValueDictionary(long columnKey, RealmDictionary<Double> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, doubleMapItemCallback);
+    }
+
     public void addStringValueDictionary(long columnKey, RealmDictionary<String> dictionary) {
         addDictionaryItem(builderPtr, columnKey, dictionary, stringMapItemCallback);
     }
@@ -713,6 +735,8 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeAddStringDictionaryEntry(long dictionaryPtr, String key, String value);
 
     private static native void nativeAddIntegerDictionaryEntry(long dictionaryPtr, String key, long value);
+
+    private static native void nativeAddDoubleDictionaryEntry(long dictionaryPtr, String key, double value);
 
     private static native void nativeAddFloatDictionaryEntry(long dictionaryPtr, String key, float value);
 

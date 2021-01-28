@@ -31,6 +31,8 @@ open class DictionaryClass : RealmObject() {
     var myFloatDictionary: RealmDictionary<Float>? = null
     var myLongDictionary: RealmDictionary<Long>? = null
     var myShortDictionary: RealmDictionary<Short>? = null
+    var myDoubleDictionary: RealmDictionary<Double>? = null
+    var myByteDictionary: RealmDictionary<Byte>? = null
 
     // TODO: remove these, only used for inspiration for the proxy generator
     var myBooleanList: RealmList<Boolean>? = null
@@ -47,5 +49,7 @@ open class DictionaryClass : RealmObject() {
         const val FLOAT_DICTIONARY_FIELD_NAME = "myFloatDictionary"
         const val LONG_DICTIONARY_FIELD_NAME = "myLongDictionary"
         const val SHORT_DICTIONARY_FIELD_NAME = "myShortDictionary"
+        const val DOUBLE_DICTIONARY_FIELD_NAME = "myDoubleDictionary"
+        const val BYTE_DICTIONARY_FIELD_NAME = "myByteDictionary"
     }
 }

@@ -365,6 +365,12 @@ class DictionaryTests {
 
         assertTrue(objectSchema.hasField(DictionaryClass.SHORT_DICTIONARY_FIELD_NAME))
         assertEquals(objectSchema.getFieldType(DictionaryClass.SHORT_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_INTEGER_MAP)
+
+        assertTrue(objectSchema.hasField(DictionaryClass.BYTE_DICTIONARY_FIELD_NAME))
+        assertEquals(objectSchema.getFieldType(DictionaryClass.BYTE_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_INTEGER_MAP)
+
+        assertTrue(objectSchema.hasField(DictionaryClass.DOUBLE_DICTIONARY_FIELD_NAME))
+        assertEquals(objectSchema.getFieldType(DictionaryClass.DOUBLE_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_DOUBLE_MAP)
     }
 
     @Test
@@ -564,6 +570,52 @@ class DictionaryTests {
             assertEquals(VALUE_HELLO_NUMERIC.toShort(), actual)
             val actual1 = dictionaryFromRealm[KEY_BYE]
             assertEquals(VALUE_BYE_NUMERIC.toShort(), actual1)
+            assertNull(dictionaryFromRealm[KEY_NULL])
+        }
+    }
+
+    @Test
+    fun copyToRealm_byte() {
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myByteDictionary = RealmDictionary<Byte>().apply {
+                    put(KEY_HELLO, VALUE_HELLO_NUMERIC.toByte())
+                    put(KEY_BYE, VALUE_BYE_NUMERIC.toByte())
+                    put(KEY_NULL, null)
+                }
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myByteDictionary
+            assertNotNull(dictionaryFromRealm)
+
+            val actual = dictionaryFromRealm[KEY_HELLO]
+            assertEquals(VALUE_HELLO_NUMERIC.toByte(), actual)
+            val actual1 = dictionaryFromRealm[KEY_BYE]
+            assertEquals(VALUE_BYE_NUMERIC.toByte(), actual1)
+            assertNull(dictionaryFromRealm[KEY_NULL])
+        }
+    }
+
+    @Test
+    fun copyToRealm_double() {
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myDoubleDictionary = RealmDictionary<Double>().apply {
+                    put(KEY_HELLO, VALUE_HELLO_NUMERIC.toDouble())
+                    put(KEY_BYE, VALUE_BYE_NUMERIC.toDouble())
+                    put(KEY_NULL, null)
+                }
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myDoubleDictionary
+            assertNotNull(dictionaryFromRealm)
+
+            val actual = dictionaryFromRealm[KEY_HELLO]
+            assertEquals(VALUE_HELLO_NUMERIC.toDouble(), actual)
+            val actual1 = dictionaryFromRealm[KEY_BYE]
+            assertEquals(VALUE_BYE_NUMERIC.toDouble(), actual1)
             assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }

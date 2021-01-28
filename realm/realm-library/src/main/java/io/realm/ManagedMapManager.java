@@ -314,6 +314,23 @@ class ShortValueOperator extends BoxableValueOperator<Short> {
 }
 
 /**
+ * {@link MapValueOperator} targeting {@link Byte} values in {@link RealmMap}s. Use this one
+ * instead of {@link BoxableValueOperator} to avoid and typecast exception when converting the
+ * {@link Long} result from JNI to {@link Byte}.
+ */
+class ByteValueOperator extends BoxableValueOperator<Byte> {
+
+    ByteValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
+        super(baseRealm, osMap, classContainer);
+    }
+
+    @Override
+    protected Byte processValue(Object value) {
+        return ((Long) value).byteValue();
+    }
+}
+
+/**
  * {@link MapValueOperator} targeting {@link RealmModel}s values in {@link RealmMap}s.
  */
 class RealmModelValueOperator<T> extends MapValueOperator<T> {

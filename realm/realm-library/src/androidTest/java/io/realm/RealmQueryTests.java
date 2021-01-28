@@ -2949,6 +2949,7 @@ public class RealmQueryTests extends QueryTests {
                     case STRING_TO_STRING_MAP:
                     case STRING_TO_INTEGER_MAP:
                     case STRING_TO_FLOAT_MAP:
+                    case STRING_TO_DOUBLE_MAP:
                     case STRING_TO_UUID_MAP:
                     case STRING_TO_LINK_MAP:
                         // TODO: fix this when adding maps to AllJavaTypes
@@ -3114,6 +3115,7 @@ public class RealmQueryTests extends QueryTests {
                     case STRING_TO_STRING_MAP:
                     case STRING_TO_INTEGER_MAP:
                     case STRING_TO_FLOAT_MAP:
+                    case STRING_TO_DOUBLE_MAP:
                     case STRING_TO_UUID_MAP:
                     case STRING_TO_LINK_MAP:
                         // TODO: fix this when adding maps to AllJavaTypes
@@ -3342,6 +3344,7 @@ public class RealmQueryTests extends QueryTests {
         types.remove(RealmFieldType.STRING_TO_STRING_MAP);
         types.remove(RealmFieldType.STRING_TO_INTEGER_MAP);
         types.remove(RealmFieldType.STRING_TO_FLOAT_MAP);
+        types.remove(RealmFieldType.STRING_TO_DOUBLE_MAP);
         types.remove(RealmFieldType.STRING_TO_UUID_MAP);
         types.remove(RealmFieldType.STRING_TO_LINK_MAP);
 
@@ -4163,6 +4166,7 @@ public class RealmQueryTests extends QueryTests {
             case STRING_TO_STRING_MAP:
             case STRING_TO_INTEGER_MAP:
             case STRING_TO_FLOAT_MAP:
+            case STRING_TO_DOUBLE_MAP:
             case STRING_TO_UUID_MAP:
             case STRING_TO_LINK_MAP:
                 return false;
