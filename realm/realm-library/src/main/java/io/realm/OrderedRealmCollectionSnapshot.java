@@ -49,7 +49,7 @@ import io.realm.internal.UncheckedRow;
  * }
  * </pre>
  */
-public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImpl<E> implements Freezable<OrderedRealmCollection<E>> {
+public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImpl<E> {
 
     private int size = -1;
 
