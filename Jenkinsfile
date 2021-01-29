@@ -32,7 +32,7 @@ currentBranch = env.BRANCH_NAME
 nodeSelector = 'docker-cph-03'
 try {
   node(nodeSelector) {
-    timeout(time: 90, unit: 'MINUTES') {
+    timeout(time: 150, unit: 'MINUTES') {
       // Allocate a custom workspace to avoid having % in the path (it breaks ld)
       ws('/tmp/realm-java') {
         stage('SCM') {
@@ -81,7 +81,7 @@ try {
 
         // TODO: revert once confirmed the LTO fix in core works
         // if (!releaseBranches.contains(currentBranch)) {
-        if (releaseBranches.contains(currentBranch)) {
+        if (!releaseBranches.contains(currentBranch)) {
           // Build development branch
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
