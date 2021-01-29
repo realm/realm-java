@@ -35,6 +35,10 @@ object OsObjectBuilderTypeHelper {
             QualifiedClassName("java.lang.Short") to "ShortValueDictionary",
             QualifiedClassName("java.lang.Byte") to "ByteValueDictionary",
             QualifiedClassName("java.lang.Double") to "DoubleValueDictionary",
+            QualifiedClassName("byte[]") to "BinaryValueDictionary",
+            QualifiedClassName("java.lang.Byte[]") to "NonPrimitiveBinaryValueDictionary",
+            QualifiedClassName("org.bson.types.ObjectId") to "ObjectIdValueDictionary",
+            QualifiedClassName("java.util.UUID") to "UUIDValueDictionary",
             QualifiedClassName("java.util.UUID") to "UUIDValueDictionary"
     )
 

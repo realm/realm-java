@@ -20,8 +20,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.annotations.RealmModule
 import io.realm.entities.DictionaryClass
+import io.realm.entities.DictJava
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
+import org.bson.types.ObjectId
 import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
@@ -342,9 +344,6 @@ class DictionaryTests {
 
         assertNotNull(objectSchema)
 
-        assertTrue(objectSchema.hasField(DictionaryClass.UUID_DICTIONARY_FIELD_NAME))
-        assertEquals(objectSchema.getFieldType(DictionaryClass.UUID_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_UUID_MAP)
-
         assertTrue(objectSchema.hasField(DictionaryClass.MIXED_DICTIONARY_FIELD_NAME))
         assertEquals(objectSchema.getFieldType(DictionaryClass.MIXED_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_MIXED_MAP)
 
@@ -366,11 +365,20 @@ class DictionaryTests {
         assertTrue(objectSchema.hasField(DictionaryClass.SHORT_DICTIONARY_FIELD_NAME))
         assertEquals(objectSchema.getFieldType(DictionaryClass.SHORT_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_INTEGER_MAP)
 
+        assertTrue(objectSchema.hasField(DictionaryClass.DOUBLE_DICTIONARY_FIELD_NAME))
+        assertEquals(objectSchema.getFieldType(DictionaryClass.DOUBLE_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_DOUBLE_MAP)
+
         assertTrue(objectSchema.hasField(DictionaryClass.BYTE_DICTIONARY_FIELD_NAME))
         assertEquals(objectSchema.getFieldType(DictionaryClass.BYTE_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_INTEGER_MAP)
 
-        assertTrue(objectSchema.hasField(DictionaryClass.DOUBLE_DICTIONARY_FIELD_NAME))
-        assertEquals(objectSchema.getFieldType(DictionaryClass.DOUBLE_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_DOUBLE_MAP)
+        assertTrue(objectSchema.hasField(DictionaryClass.BYTE_ARRAY_DICTIONARY_FIELD_NAME))
+        assertEquals(objectSchema.getFieldType(DictionaryClass.BYTE_ARRAY_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_BINARY_MAP)
+
+        assertTrue(objectSchema.hasField(DictionaryClass.OBJECT_ID_DICTIONARY_FIELD_NAME))
+        assertEquals(objectSchema.getFieldType(DictionaryClass.OBJECT_ID_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_OBJECT_ID_MAP)
+
+        assertTrue(objectSchema.hasField(DictionaryClass.UUID_DICTIONARY_FIELD_NAME))
+        assertEquals(objectSchema.getFieldType(DictionaryClass.UUID_DICTIONARY_FIELD_NAME), RealmFieldType.STRING_TO_UUID_MAP)
     }
 
     @Test
@@ -418,6 +426,30 @@ class DictionaryTests {
 
             assertEquals(uuid1.toString(), dictionaryFromRealm[KEY_HELLO].toString())
             assertEquals(uuid2.toString(), dictionaryFromRealm[KEY_BYE].toString())
+            assertNull(dictionaryFromRealm[KEY_NULL])
+        }
+    }
+
+    @Test
+    fun copyToRealm_objectId() {
+        val objectId1 = ObjectId()
+        val objectId2 = ObjectId()
+
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myObjectIdDictionary = RealmDictionary<ObjectId>().apply {
+                    put(KEY_HELLO, objectId1)
+                    put(KEY_BYE, objectId2)
+                    put(KEY_NULL, null)
+                }
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myObjectIdDictionary
+            assertNotNull(dictionaryFromRealm)
+
+            assertEquals(objectId1, dictionaryFromRealm[KEY_HELLO])
+            assertEquals(objectId2, dictionaryFromRealm[KEY_BYE])
             assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
@@ -575,6 +607,29 @@ class DictionaryTests {
     }
 
     @Test
+    fun copyToRealm_double() {
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myDoubleDictionary = RealmDictionary<Double>().apply {
+                    put(KEY_HELLO, VALUE_HELLO_NUMERIC.toDouble())
+                    put(KEY_BYE, VALUE_BYE_NUMERIC.toDouble())
+                    put(KEY_NULL, null)
+                }
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myDoubleDictionary
+            assertNotNull(dictionaryFromRealm)
+
+            val actual = dictionaryFromRealm[KEY_HELLO]
+            assertEquals(VALUE_HELLO_NUMERIC.toDouble(), actual)
+            val actual1 = dictionaryFromRealm[KEY_BYE]
+            assertEquals(VALUE_BYE_NUMERIC.toDouble(), actual1)
+            assertNull(dictionaryFromRealm[KEY_NULL])
+        }
+    }
+
+    @Test
     fun copyToRealm_byte() {
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
@@ -598,24 +653,38 @@ class DictionaryTests {
     }
 
     @Test
-    fun copyToRealm_double() {
+    fun copyToRealm_byteArray() {
+        val byteArrayHello = ByteArray(2).apply {
+            // 0 is MIN, 1 is MAX
+            set(0, Byte.MIN_VALUE)
+            set(1, Byte.MAX_VALUE)
+        }
+        val byteArrayBye = ByteArray(2).apply {
+            // Opposite of hello
+            set(0, Byte.MAX_VALUE)
+            set(1, Byte.MIN_VALUE)
+        }
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
-                myDoubleDictionary = RealmDictionary<Double>().apply {
-                    put(KEY_HELLO, VALUE_HELLO_NUMERIC.toDouble())
-                    put(KEY_BYE, VALUE_BYE_NUMERIC.toDouble())
+                myByteArrayDictionary = RealmDictionary<ByteArray>().apply {
+                    put(KEY_HELLO, byteArrayHello)
+                    put(KEY_BYE, byteArrayBye)
                     put(KEY_NULL, null)
                 }
             }
 
             val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
-            val dictionaryFromRealm = dictionaryObjectFromRealm.myDoubleDictionary
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myByteArrayDictionary
             assertNotNull(dictionaryFromRealm)
 
-            val actual = dictionaryFromRealm[KEY_HELLO]
-            assertEquals(VALUE_HELLO_NUMERIC.toDouble(), actual)
-            val actual1 = dictionaryFromRealm[KEY_BYE]
-            assertEquals(VALUE_BYE_NUMERIC.toDouble(), actual1)
+            val helloFromDictionary = dictionaryFromRealm[KEY_HELLO]
+            assertNotNull(helloFromDictionary)
+            assertEquals(Byte.MIN_VALUE, helloFromDictionary[0])
+            assertEquals(Byte.MAX_VALUE, helloFromDictionary[1])
+            val byeFromDictionary = dictionaryFromRealm[KEY_BYE]
+            assertNotNull(byeFromDictionary)
+            assertEquals(Byte.MAX_VALUE, byeFromDictionary[0])
+            assertEquals(Byte.MIN_VALUE, byeFromDictionary[1])
             assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
@@ -666,7 +735,7 @@ class DictionaryTests {
     }
 }
 
-@RealmModule(classes = [DictionaryClass::class, MyDog::class])
+@RealmModule(classes = [DictionaryClass::class, MyDog::class, DictJava::class])
 class MapModule
 
 open class MyDog : RealmObject() {

@@ -79,9 +79,10 @@ object Constants {
             "java.lang.Boolean" to RealmFieldType.STRING_TO_BOOLEAN_MAP,
             "java.lang.String" to RealmFieldType.STRING_TO_STRING_MAP,
 //            "java.util.Date" to RealmFieldType.STRING_TO_DATE_MAP,
-//            "byte[]" to RealmFieldType.STRING_TO_BINARY_MAP,
+            "byte[]" to RealmFieldType.STRING_TO_BINARY_MAP,
+            "java.lang.Byte[]" to RealmFieldType.STRING_TO_BINARY_MAP,
 //            "org.bson.types.Decimal128" to RealmFieldType.STRING_TO_DECIMAL128_MAP,
-//            "org.bson.types.ObjectId" to RealmFieldType.STRING_TO_OBJECT_ID_MAP,
+            "org.bson.types.ObjectId" to RealmFieldType.STRING_TO_OBJECT_ID_MAP,
 //            "java.util.UUID" to RealmFieldType.STRING_TO_UUID_MAP,
             "java.util.UUID" to RealmFieldType.STRING_TO_UUID_MAP,
             "io.realm.Mixed" to RealmFieldType.STRING_TO_MIXED_MAP
@@ -130,6 +131,8 @@ object Constants {
         STRING_TO_INTEGER_MAP("STRING_TO_INTEGER_MAP", "Map"),
         STRING_TO_FLOAT_MAP("STRING_TO_FLOAT_MAP", "Map"),
         STRING_TO_DOUBLE_MAP("STRING_TO_DOUBLE_MAP", "Map"),
+        STRING_TO_BINARY_MAP("STRING_TO_BINARY_MAP", "Map"),
+        STRING_TO_OBJECT_ID_MAP("STRING_TO_OBJECT_ID_MAP", "Map"),
         STRING_TO_UUID_MAP("STRING_TO_UUID_MAP", "Map");
 
         /**

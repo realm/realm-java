@@ -253,6 +253,32 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
+    private static ItemCallback<Map.Entry<String, byte[]>> binaryMapItemCallback = new ItemCallback<Map.Entry<String, byte[]>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, byte[]> item) {
+            nativeAddBinaryDictionaryEntry(containerPtr, item.getKey(), item.getValue());
+        }
+    };
+
+    private static ItemCallback<Map.Entry<String, Byte[]>> nonPrimitiveBinaryMapItemCallback = new ItemCallback<Map.Entry<String, Byte[]>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, Byte[]> item) {
+            Byte[] bytes = item.getValue();
+            byte[] transfer = new byte[bytes.length];
+            for (int i = 0; i < bytes.length; i++) {
+                transfer[i] = bytes[i];
+            }
+            nativeAddBinaryDictionaryEntry(containerPtr, item.getKey(), transfer);
+        }
+    };
+
+    private static ItemCallback<Map.Entry<String, ObjectId>> objectIdMapItemCallback = new ItemCallback<Map.Entry<String, ObjectId>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, ObjectId> item) {
+            nativeAddObjectIdDictionaryEntry(containerPtr, item.getKey(), item.getValue().toString());
+        }
+    };
+
     private static ItemCallback<Map.Entry<String, UUID>> uuidMapItemCallback = new ItemCallback<Map.Entry<String, UUID>>() {
         @Override
         public void handleItem(long containerPtr, Map.Entry<String, UUID> item) {
@@ -557,6 +583,22 @@ public class OsObjectBuilder implements Closeable {
         addDictionaryItem(builderPtr, columnKey, dictionary, stringMapItemCallback);
     }
 
+    public void addBinaryValueDictionary(long columnKey, RealmDictionary<byte[]> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, binaryMapItemCallback);
+    }
+
+    public void addNonPrimitiveBinaryValueDictionary(long columnKey, RealmDictionary<Byte[]> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, nonPrimitiveBinaryMapItemCallback);
+    }
+
+    public void addObjectIdValueDictionary(long columnKey, RealmDictionary<ObjectId> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, objectIdMapItemCallback);
+    }
+
+    public void addUUIDValueDictionary(long columnKey, RealmDictionary<UUID> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, uuidMapItemCallback);
+    }
+
     private <T> void addDictionaryItem(
             long builderPtr,
             long columnKey,
@@ -580,10 +622,6 @@ public class OsObjectBuilder implements Closeable {
 
     private void addEmptyDictionary(long columnKey) {
         nativeStopDictionary(builderPtr, columnKey, nativeStartDictionary());
-    }
-
-    public void addUUIDValueDictionary(long columnKey, RealmDictionary<UUID> dictionary) {
-        addDictionaryItem(builderPtr, columnKey, dictionary, uuidMapItemCallback);
     }
 
     /**
@@ -739,6 +777,10 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeAddDoubleDictionaryEntry(long dictionaryPtr, String key, double value);
 
     private static native void nativeAddFloatDictionaryEntry(long dictionaryPtr, String key, float value);
+
+    private static native void nativeAddBinaryDictionaryEntry(long dictionaryPtr, String key, byte[] value);
+
+    private static native void nativeAddObjectIdDictionaryEntry(long dictionaryPtr, String key, String value);
 
     private static native void nativeAddUUIDDictionaryEntry(long dictionaryPtr, String key, String value);
 

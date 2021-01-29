@@ -921,6 +921,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Constants.RealmFieldType.STRING_TO_INTEGER_MAP,
                         Constants.RealmFieldType.STRING_TO_FLOAT_MAP,
                         Constants.RealmFieldType.STRING_TO_DOUBLE_MAP,
+                        Constants.RealmFieldType.STRING_TO_BINARY_MAP,
+                        Constants.RealmFieldType.STRING_TO_OBJECT_ID_MAP,
                         Constants.RealmFieldType.STRING_TO_UUID_MAP,
                         Constants.RealmFieldType.STRING_TO_MIXED_MAP -> {
                             val valueNullable = metadata.isDictionaryValueNullable(field)

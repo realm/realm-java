@@ -35,6 +35,7 @@ class TypeMirrors(env: ProcessingEnvironment) {
 
     @JvmField val STRING_MIRROR: TypeMirror
     @JvmField val BINARY_MIRROR: TypeMirror
+    @JvmField val BINARY_NON_PRIMITIVE_MIRROR: TypeMirror
     @JvmField val BOOLEAN_MIRROR: TypeMirror
     @JvmField val LONG_MIRROR: TypeMirror
     @JvmField val INTEGER_MIRROR: TypeMirror
@@ -59,6 +60,7 @@ class TypeMirrors(env: ProcessingEnvironment) {
 
         STRING_MIRROR = elementUtils.getTypeElement("java.lang.String").asType()
         BINARY_MIRROR = typeUtils.getArrayType(typeUtils.getPrimitiveType(TypeKind.BYTE))
+        BINARY_NON_PRIMITIVE_MIRROR = typeUtils.getArrayType(elementUtils.getTypeElement(Byte::class.javaObjectType.name).asType())
         BOOLEAN_MIRROR = elementUtils.getTypeElement(Boolean::class.javaObjectType.name).asType()
         LONG_MIRROR = elementUtils.getTypeElement(Long::class.javaObjectType.name).asType()
         INTEGER_MIRROR = elementUtils.getTypeElement(Int::class.javaObjectType.name).asType()

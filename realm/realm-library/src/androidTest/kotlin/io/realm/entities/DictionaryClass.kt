@@ -17,13 +17,13 @@
 package io.realm.entities
 
 import io.realm.*
+import org.bson.types.ObjectId
 import java.util.*
 
 open class DictionaryClass : RealmObject() {
 
     // TODO: ObjectId and other Java primitives
     var myDogDictionary: RealmDictionary<MyDog>? = null
-    var myUUIDDictionary: RealmDictionary<UUID>? = null
     var myMixedDictionary: RealmDictionary<Mixed>? = null
     var myBooleanDictionary: RealmDictionary<Boolean>? = null
     var myStringDictionary: RealmDictionary<String>? = null
@@ -33,15 +33,17 @@ open class DictionaryClass : RealmObject() {
     var myShortDictionary: RealmDictionary<Short>? = null
     var myDoubleDictionary: RealmDictionary<Double>? = null
     var myByteDictionary: RealmDictionary<Byte>? = null
+    var myByteArrayDictionary: RealmDictionary<ByteArray>? = null
+    var myObjectIdDictionary: RealmDictionary<ObjectId>? = null
+    var myUUIDDictionary: RealmDictionary<UUID>? = null
 
     // TODO: remove these, only used for inspiration for the proxy generator
-    var myBooleanList: RealmList<Boolean>? = null
-    var myDogList: RealmList<MyDog>? = null
+//    var myByteList: RealmList<Byte>? = null
+//    var myByteArrayList: RealmList<ByteArray>? = null
 
     companion object {
         const val CLASS_NAME = "DictionaryClass"
-        const val REALMMODEL_DICTIONARY_FIELD_NAME = "myDogDictionary"
-        const val UUID_DICTIONARY_FIELD_NAME = "myUUIDDictionary"
+        const val REALM_MODEL_DICTIONARY_FIELD_NAME = "myDogDictionary"
         const val MIXED_DICTIONARY_FIELD_NAME = "myMixedDictionary"
         const val BOOLEAN_DICTIONARY_FIELD_NAME = "myBooleanDictionary"
         const val STRING_DICTIONARY_FIELD_NAME = "myStringDictionary"
@@ -51,5 +53,8 @@ open class DictionaryClass : RealmObject() {
         const val SHORT_DICTIONARY_FIELD_NAME = "myShortDictionary"
         const val DOUBLE_DICTIONARY_FIELD_NAME = "myDoubleDictionary"
         const val BYTE_DICTIONARY_FIELD_NAME = "myByteDictionary"
+        const val BYTE_ARRAY_DICTIONARY_FIELD_NAME = "myByteArrayDictionary"
+        const val OBJECT_ID_DICTIONARY_FIELD_NAME = "myObjectIdDictionary"
+        const val UUID_DICTIONARY_FIELD_NAME = "myUUIDDictionary"
     }
 }

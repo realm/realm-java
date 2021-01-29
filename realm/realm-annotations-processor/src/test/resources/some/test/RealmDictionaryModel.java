@@ -16,6 +16,8 @@
 
 package some.test;
 
+import org.bson.types.ObjectId;
+
 import java.util.UUID;
 
 import io.realm.Mixed;
@@ -35,6 +37,9 @@ public class RealmDictionaryModel extends RealmObject {
     private RealmDictionary<Short> myShortRealmDictionary;
     private RealmDictionary<Byte> myByteRealmDictionary;
     private RealmDictionary<Double> myDoubleRealmDictionary;
+    private RealmDictionary<byte[]> myPrimitiveBinaryRealmDictionary;
+    private RealmDictionary<Byte[]> myBinaryRealmDictionary;
+    private RealmDictionary<ObjectId> myObjectIdRealmDictionary;
     private RealmDictionary<UUID> myUUIDRealmDictionary;
 
     // TODO: add RealmDictionary<RealmModel>
@@ -113,6 +118,30 @@ public class RealmDictionaryModel extends RealmObject {
 
     public void setMyDoubleRealmDictionary(RealmDictionary<Double> myDoubleRealmDictionary) {
         this.myDoubleRealmDictionary = myDoubleRealmDictionary;
+    }
+
+    public RealmDictionary<byte[]> getMyPrimitiveBinaryRealmDictionary() {
+        return myPrimitiveBinaryRealmDictionary;
+    }
+
+    public void setMyPrimitiveBinaryRealmDictionary(RealmDictionary<byte[]> myPrimitiveBinaryRealmDictionary) {
+        this.myPrimitiveBinaryRealmDictionary = myPrimitiveBinaryRealmDictionary;
+    }
+
+    public RealmDictionary<Byte[]> getMyBinaryRealmDictionary() {
+        return myBinaryRealmDictionary;
+    }
+
+    public void setMyBinaryRealmDictionary(RealmDictionary<Byte[]> myBinaryRealmDictionary) {
+        this.myBinaryRealmDictionary = myBinaryRealmDictionary;
+    }
+
+    public RealmDictionary<ObjectId> getMyObjectIdRealmDictionary() {
+        return myObjectIdRealmDictionary;
+    }
+
+    public void setMyObjectIdRealmDictionary(RealmDictionary<ObjectId> myObjectIdRealmDictionary) {
+        this.myObjectIdRealmDictionary = myObjectIdRealmDictionary;
     }
 
     public RealmDictionary<UUID> getMyUUIDRealmDictionary() {

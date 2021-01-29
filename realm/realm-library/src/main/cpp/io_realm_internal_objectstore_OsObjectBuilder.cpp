@@ -537,6 +537,42 @@ Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddFloatDictionaryEntry
 }
 
 JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddBinaryDictionaryEntry(JNIEnv* env,
+                                                                                  jclass,
+                                                                                  jlong dictionary_ptr,
+                                                                                  jstring j_key,
+                                                                                  jbyteArray j_value) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        JStringAccessor key(env, j_key);
+        auto data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
+        const JavaValue value(data);
+        dictionary->insert(std::make_pair(key, value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObjectIdDictionaryEntry(JNIEnv* env,
+                                                                                    jclass,
+                                                                                    jlong dictionary_ptr,
+                                                                                    jstring j_key,
+                                                                                    jstring j_value) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+
+        JStringAccessor key(env, j_key);
+        JStringAccessor data(env, j_value);
+
+        const ObjectId object_id = ObjectId(StringData(data).data());
+        const JavaValue object_id_value(object_id);
+
+        dictionary->insert(std::make_pair(key, object_id_value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddUUIDDictionaryEntry(JNIEnv* env,
                                                                                 jclass,
                                                                                 jlong dictionary_ptr,
