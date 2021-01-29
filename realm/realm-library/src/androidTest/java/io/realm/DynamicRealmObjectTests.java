@@ -1913,6 +1913,7 @@ public class DynamicRealmObjectTests {
                 case STRING_TO_FLOAT_MAP:
                 case STRING_TO_DOUBLE_MAP:
                 case STRING_TO_BINARY_MAP:
+                case STRING_TO_DATE_MAP:
                 case STRING_TO_OBJECT_ID_MAP:
                 case STRING_TO_UUID_MAP:
                 case STRING_TO_LINK_MAP:

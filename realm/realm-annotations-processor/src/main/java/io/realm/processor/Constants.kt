@@ -78,12 +78,11 @@ object Constants {
             "java.lang.Double" to RealmFieldType.STRING_TO_DOUBLE_MAP,
             "java.lang.Boolean" to RealmFieldType.STRING_TO_BOOLEAN_MAP,
             "java.lang.String" to RealmFieldType.STRING_TO_STRING_MAP,
-//            "java.util.Date" to RealmFieldType.STRING_TO_DATE_MAP,
+            "java.util.Date" to RealmFieldType.STRING_TO_DATE_MAP,
             "byte[]" to RealmFieldType.STRING_TO_BINARY_MAP,
             "java.lang.Byte[]" to RealmFieldType.STRING_TO_BINARY_MAP,
 //            "org.bson.types.Decimal128" to RealmFieldType.STRING_TO_DECIMAL128_MAP,
             "org.bson.types.ObjectId" to RealmFieldType.STRING_TO_OBJECT_ID_MAP,
-//            "java.util.UUID" to RealmFieldType.STRING_TO_UUID_MAP,
             "java.util.UUID" to RealmFieldType.STRING_TO_UUID_MAP,
             "io.realm.Mixed" to RealmFieldType.STRING_TO_MIXED_MAP
     )
@@ -125,15 +124,18 @@ object Constants {
         UUID_LIST("UUID_LIST", "List"),
 
         STRING_TO_LINK_MAP("STRING_TO_LINK_MAP", "Map"),
-        STRING_TO_MIXED_MAP("STRING_TO_MIXED_MAP", "Map"),
+        STRING_TO_INTEGER_MAP("STRING_TO_INTEGER_MAP", "Map"),
         STRING_TO_BOOLEAN_MAP("STRING_TO_BOOLEAN_MAP", "Map"),
         STRING_TO_STRING_MAP("STRING_TO_STRING_MAP", "Map"),
-        STRING_TO_INTEGER_MAP("STRING_TO_INTEGER_MAP", "Map"),
+        STRING_TO_BINARY_MAP("STRING_TO_BINARY_MAP", "Map"),
+        STRING_TO_DATE_MAP("STRING_TO_DATE_MAP", "Map"),
         STRING_TO_FLOAT_MAP("STRING_TO_FLOAT_MAP", "Map"),
         STRING_TO_DOUBLE_MAP("STRING_TO_DOUBLE_MAP", "Map"),
-        STRING_TO_BINARY_MAP("STRING_TO_BINARY_MAP", "Map"),
+
         STRING_TO_OBJECT_ID_MAP("STRING_TO_OBJECT_ID_MAP", "Map"),
-        STRING_TO_UUID_MAP("STRING_TO_UUID_MAP", "Map");
+        STRING_TO_UUID_MAP("STRING_TO_UUID_MAP", "Map"),
+        STRING_TO_MIXED_MAP("STRING_TO_MIXED_MAP", "Map");
+
 
         /**
          * The name of the enum, used in the Java bindings, used to represent the corresponding type.

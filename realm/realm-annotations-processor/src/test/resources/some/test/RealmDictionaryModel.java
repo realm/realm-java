@@ -18,6 +18,7 @@ package some.test;
 
 import org.bson.types.ObjectId;
 
+import java.util.Date;
 import java.util.UUID;
 
 import io.realm.Mixed;
@@ -37,6 +38,7 @@ public class RealmDictionaryModel extends RealmObject {
     private RealmDictionary<Short> myShortRealmDictionary;
     private RealmDictionary<Byte> myByteRealmDictionary;
     private RealmDictionary<Double> myDoubleRealmDictionary;
+    private RealmDictionary<Date> myDateRealmDictionary;
     private RealmDictionary<byte[]> myPrimitiveBinaryRealmDictionary;
     private RealmDictionary<Byte[]> myBinaryRealmDictionary;
     private RealmDictionary<ObjectId> myObjectIdRealmDictionary;
@@ -110,6 +112,14 @@ public class RealmDictionaryModel extends RealmObject {
 
     public void setMyByteRealmDictionary(RealmDictionary<Byte> myByteRealmDictionary) {
         this.myByteRealmDictionary = myByteRealmDictionary;
+    }
+
+    public RealmDictionary<Date> getMyDateRealmDictionary() {
+        return myDateRealmDictionary;
+    }
+
+    public void setMyDateRealmDictionary(RealmDictionary<Date> myDateRealmDictionary) {
+        this.myDateRealmDictionary = myDateRealmDictionary;
     }
 
     public RealmDictionary<Double> getMyDoubleRealmDictionary() {

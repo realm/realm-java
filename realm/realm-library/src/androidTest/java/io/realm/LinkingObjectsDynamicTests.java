@@ -274,6 +274,10 @@ public class LinkingObjectsDynamicTests {
                         // TODO: fix this when adding maps to AllJavaTypes
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
                         break;
+                    case STRING_TO_DATE_MAP:
+                        // TODO: fix this when adding maps to AllJavaTypes
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
+                        break;
                     case STRING_TO_OBJECT_ID_MAP:
                         // TODO: fix this when adding maps to AllJavaTypes
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);

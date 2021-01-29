@@ -529,10 +529,8 @@ class DictionaryTests {
             val dictionaryFromRealm = dictionaryObjectFromRealm.myIntegerDictionary
             assertNotNull(dictionaryFromRealm)
 
-            val actual = dictionaryFromRealm[KEY_HELLO]
-            assertEquals(VALUE_HELLO_NUMERIC, actual)
-            val actual1 = dictionaryFromRealm[KEY_BYE]
-            assertEquals(VALUE_BYE_NUMERIC, actual1)
+            assertEquals(VALUE_HELLO_NUMERIC, dictionaryFromRealm[KEY_HELLO])
+            assertEquals(VALUE_BYE_NUMERIC, dictionaryFromRealm[KEY_BYE])
             assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
@@ -552,10 +550,8 @@ class DictionaryTests {
             val dictionaryFromRealm = dictionaryObjectFromRealm.myFloatDictionary
             assertNotNull(dictionaryFromRealm)
 
-            val actual = dictionaryFromRealm[KEY_HELLO]
-            assertEquals(VALUE_HELLO_NUMERIC.toFloat(), actual)
-            val actual1 = dictionaryFromRealm[KEY_BYE]
-            assertEquals(VALUE_BYE_NUMERIC.toFloat(), actual1)
+            assertEquals(VALUE_HELLO_NUMERIC.toFloat(), dictionaryFromRealm[KEY_HELLO])
+            assertEquals(VALUE_BYE_NUMERIC.toFloat(), dictionaryFromRealm[KEY_BYE])
             assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
@@ -575,10 +571,8 @@ class DictionaryTests {
             val dictionaryFromRealm = dictionaryObjectFromRealm.myLongDictionary
             assertNotNull(dictionaryFromRealm)
 
-            val actual = dictionaryFromRealm[KEY_HELLO]
-            assertEquals(VALUE_HELLO_NUMERIC.toLong(), actual)
-            val actual1 = dictionaryFromRealm[KEY_BYE]
-            assertEquals(VALUE_BYE_NUMERIC.toLong(), actual1)
+            assertEquals(VALUE_HELLO_NUMERIC.toLong(), dictionaryFromRealm[KEY_HELLO])
+            assertEquals(VALUE_BYE_NUMERIC.toLong(), dictionaryFromRealm[KEY_BYE])
             assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
@@ -598,10 +592,8 @@ class DictionaryTests {
             val dictionaryFromRealm = dictionaryObjectFromRealm.myShortDictionary
             assertNotNull(dictionaryFromRealm)
 
-            val actual = dictionaryFromRealm[KEY_HELLO]
-            assertEquals(VALUE_HELLO_NUMERIC.toShort(), actual)
-            val actual1 = dictionaryFromRealm[KEY_BYE]
-            assertEquals(VALUE_BYE_NUMERIC.toShort(), actual1)
+            assertEquals(VALUE_HELLO_NUMERIC.toShort(), dictionaryFromRealm[KEY_HELLO])
+            assertEquals(VALUE_BYE_NUMERIC.toShort(), dictionaryFromRealm[KEY_BYE])
             assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
@@ -621,10 +613,8 @@ class DictionaryTests {
             val dictionaryFromRealm = dictionaryObjectFromRealm.myDoubleDictionary
             assertNotNull(dictionaryFromRealm)
 
-            val actual = dictionaryFromRealm[KEY_HELLO]
-            assertEquals(VALUE_HELLO_NUMERIC.toDouble(), actual)
-            val actual1 = dictionaryFromRealm[KEY_BYE]
-            assertEquals(VALUE_BYE_NUMERIC.toDouble(), actual1)
+            assertEquals(VALUE_HELLO_NUMERIC.toDouble(), dictionaryFromRealm[KEY_HELLO])
+            assertEquals(VALUE_BYE_NUMERIC.toDouble(), dictionaryFromRealm[KEY_BYE])
             assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
@@ -644,10 +634,8 @@ class DictionaryTests {
             val dictionaryFromRealm = dictionaryObjectFromRealm.myByteDictionary
             assertNotNull(dictionaryFromRealm)
 
-            val actual = dictionaryFromRealm[KEY_HELLO]
-            assertEquals(VALUE_HELLO_NUMERIC.toByte(), actual)
-            val actual1 = dictionaryFromRealm[KEY_BYE]
-            assertEquals(VALUE_BYE_NUMERIC.toByte(), actual1)
+            assertEquals(VALUE_HELLO_NUMERIC.toByte(), dictionaryFromRealm[KEY_HELLO])
+            assertEquals(VALUE_BYE_NUMERIC.toByte(), dictionaryFromRealm[KEY_BYE])
             assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
@@ -685,6 +673,30 @@ class DictionaryTests {
             assertNotNull(byeFromDictionary)
             assertEquals(Byte.MAX_VALUE, byeFromDictionary[0])
             assertEquals(Byte.MIN_VALUE, byeFromDictionary[1])
+            assertNull(dictionaryFromRealm[KEY_NULL])
+        }
+    }
+
+    @Test
+    fun copyToRealm_date() {
+        val dateHello = Date()
+        val dateBye = Date()
+
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myDateDictionary = RealmDictionary<Date>().apply {
+                    put(KEY_HELLO, dateHello)
+                    put(KEY_BYE, dateBye)
+                    put(KEY_NULL, null)
+                }
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myDateDictionary
+            assertNotNull(dictionaryFromRealm)
+
+            assertEquals(dateHello, dictionaryFromRealm[KEY_HELLO])
+            assertEquals(dateBye, dictionaryFromRealm[KEY_BYE])
             assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }

@@ -18,6 +18,7 @@ package io.realm;
 
 import org.bson.types.ObjectId;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -123,6 +124,7 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
 
         MapValueOperator<?> mapValueOperator;
 
+        // FIXME: simplify this once all types have been added
         if (valueClass.equals(Mixed.class.getCanonicalName())) {
             mapValueOperator = new MixedValueOperator(baseRealm, osMap, classContainer);
         } else if (valueClass.equals(Integer.class.getCanonicalName())) {
@@ -141,8 +143,10 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
             mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
         } else if (valueClass.equals(Boolean.class.getCanonicalName())) {
             mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
-        } else if (valueClass.equals(Byte[].class.getCanonicalName()) || valueClass.equals(byte[].class.getCanonicalName())) {
+        } else if (valueClass.equals(Date.class.getCanonicalName())) {
             // TODO: figure this one out
+            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
+        } else if (valueClass.equals(Byte[].class.getCanonicalName()) || valueClass.equals(byte[].class.getCanonicalName())) {
             mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
         } else if (valueClass.equals(ObjectId.class.getCanonicalName())) {
             mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);

@@ -272,6 +272,13 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
+    private static ItemCallback<Map.Entry<String, Date>> dateMapItemCallback = new ItemCallback<Map.Entry<String, Date>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, Date> item) {
+            nativeAddDateDictionaryEntry(containerPtr, item.getKey(), item.getValue().getTime());
+        }
+    };
+
     private static ItemCallback<Map.Entry<String, ObjectId>> objectIdMapItemCallback = new ItemCallback<Map.Entry<String, ObjectId>>() {
         @Override
         public void handleItem(long containerPtr, Map.Entry<String, ObjectId> item) {
@@ -583,6 +590,10 @@ public class OsObjectBuilder implements Closeable {
         addDictionaryItem(builderPtr, columnKey, dictionary, stringMapItemCallback);
     }
 
+    public void addDateValueDictionary(long columnKey, RealmDictionary<Date> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, dateMapItemCallback);
+    }
+
     public void addBinaryValueDictionary(long columnKey, RealmDictionary<byte[]> dictionary) {
         addDictionaryItem(builderPtr, columnKey, dictionary, binaryMapItemCallback);
     }
@@ -779,6 +790,8 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeAddFloatDictionaryEntry(long dictionaryPtr, String key, float value);
 
     private static native void nativeAddBinaryDictionaryEntry(long dictionaryPtr, String key, byte[] value);
+
+    private static native void nativeAddDateDictionaryEntry(long dictionaryPtr, String key, long value);
 
     private static native void nativeAddObjectIdDictionaryEntry(long dictionaryPtr, String key, String value);
 
