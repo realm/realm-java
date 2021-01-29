@@ -84,6 +84,8 @@ Java_io_realm_internal_OsMap_nativeGetValue(JNIEnv* env, jclass, jlong map_ptr,
                         return JavaClassGlobalDef::new_object_id(env, value.get_object_id());
                     case DataType::Type::Timestamp:
                         return JavaClassGlobalDef::new_date(env, value.get_timestamp());
+                    case DataType::Type::Decimal:
+                        return JavaClassGlobalDef::new_decimal128(env, value.get_decimal());
                     default:
                         // FIXME: double-check types
                         throw std::logic_error("'getValue' method only suitable for int, double, boolean, String, byte[], float, UUID and ObjectId.");

@@ -16,6 +16,7 @@
 
 package some.test;
 
+import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
@@ -43,6 +44,7 @@ public class RealmDictionaryModel extends RealmObject {
     private RealmDictionary<Byte[]> myBinaryRealmDictionary;
     private RealmDictionary<ObjectId> myObjectIdRealmDictionary;
     private RealmDictionary<UUID> myUUIDRealmDictionary;
+    private RealmDictionary<Decimal128> myDecimal128IdRealmDictionary;
 
     // TODO: add RealmDictionary<RealmModel>
 
@@ -160,5 +162,13 @@ public class RealmDictionaryModel extends RealmObject {
 
     public void setMyUUIDRealmDictionary(RealmDictionary<UUID> myUUIDRealmDictionary) {
         this.myUUIDRealmDictionary = myUUIDRealmDictionary;
+    }
+
+    public RealmDictionary<Decimal128> getMyDecimal128IdRealmDictionary() {
+        return myDecimal128IdRealmDictionary;
+    }
+
+    public void setMyDecimal128IdRealmDictionary(RealmDictionary<Decimal128> myDecimal128IdRealmDictionary) {
+        this.myDecimal128IdRealmDictionary = myDecimal128IdRealmDictionary;
     }
 }

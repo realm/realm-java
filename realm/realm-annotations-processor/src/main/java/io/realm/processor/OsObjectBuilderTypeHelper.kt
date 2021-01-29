@@ -39,7 +39,7 @@ object OsObjectBuilderTypeHelper {
             QualifiedClassName("byte[]") to "BinaryValueDictionary",
             QualifiedClassName("java.lang.Byte[]") to "NonPrimitiveBinaryValueDictionary",
             QualifiedClassName("org.bson.types.ObjectId") to "ObjectIdValueDictionary",
-            QualifiedClassName("java.util.UUID") to "UUIDValueDictionary",
+            QualifiedClassName("org.bson.types.Decimal128") to "Decimal128ValueDictionary",
             QualifiedClassName("java.util.UUID") to "UUIDValueDictionary"
     )
 

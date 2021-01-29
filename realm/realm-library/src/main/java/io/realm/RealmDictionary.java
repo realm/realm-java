@@ -16,10 +16,13 @@
 
 package io.realm;
 
+import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -124,42 +127,75 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
 
         MapValueOperator<?> mapValueOperator;
 
-        // FIXME: simplify this once all types have been added
-        if (valueClass.equals(Mixed.class.getCanonicalName())) {
+//        if (valueClass.equals(Mixed.class.getCanonicalName())) {
+//            mapValueOperator = new MixedValueOperator(baseRealm, osMap, classContainer);
+//        } else if (valueClass.equals(Integer.class.getCanonicalName())) {
+//            mapValueOperator = new IntegerValueOperator(baseRealm, osMap, classContainer);
+//        } else if (valueClass.equals(Short.class.getCanonicalName())) {
+//            mapValueOperator = new ShortValueOperator(baseRealm, osMap, classContainer);
+//        } else if (valueClass.equals(Byte.class.getCanonicalName())) {
+//            mapValueOperator = new ByteValueOperator(baseRealm, osMap, classContainer);
+//        } else if (valueClass.equals(Long.class.getCanonicalName())) {
+//            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
+//        } else if (valueClass.equals(Float.class.getCanonicalName())) {
+//            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
+//        } else if (valueClass.equals(Double.class.getCanonicalName())) {
+//            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
+//        } else if (valueClass.equals(String.class.getCanonicalName())) {
+//            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
+//        } else if (valueClass.equals(Boolean.class.getCanonicalName())) {
+//            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
+//        } else if (valueClass.equals(Date.class.getCanonicalName())) {
+//            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
+//        } else if (valueClass.equals(Decimal128.class.getCanonicalName())) {
+//            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
+//        } else if (valueClass.equals(Byte[].class.getCanonicalName()) || valueClass.equals(byte[].class.getCanonicalName())) {
+//            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
+//        } else if (valueClass.equals(ObjectId.class.getCanonicalName())) {
+//            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
+//        } else if (valueClass.equals(UUID.class.getCanonicalName())) {
+//            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
+//        } else {
+//            throw new IllegalArgumentException("Only Maps of Mixed or one of the types that can be boxed inside Mixed can be used.");
+//        }
+
+        if (isClassBoxable(valueClass)) {
+            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
+        } else if (valueClass.equals(Mixed.class.getCanonicalName())) {
             mapValueOperator = new MixedValueOperator(baseRealm, osMap, classContainer);
         } else if (valueClass.equals(Integer.class.getCanonicalName())) {
             mapValueOperator = new IntegerValueOperator(baseRealm, osMap, classContainer);
-        } else if (valueClass.equals(Long.class.getCanonicalName())) {
-            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
         } else if (valueClass.equals(Short.class.getCanonicalName())) {
             mapValueOperator = new ShortValueOperator(baseRealm, osMap, classContainer);
         } else if (valueClass.equals(Byte.class.getCanonicalName())) {
             mapValueOperator = new ByteValueOperator(baseRealm, osMap, classContainer);
-        } else if (valueClass.equals(Float.class.getCanonicalName())) {
-            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
-        } else if (valueClass.equals(Double.class.getCanonicalName())) {
-            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
-        } else if (valueClass.equals(String.class.getCanonicalName())) {
-            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
-        } else if (valueClass.equals(Boolean.class.getCanonicalName())) {
-            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
-        } else if (valueClass.equals(Date.class.getCanonicalName())) {
-            // TODO: figure this one out
-            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
-        } else if (valueClass.equals(Byte[].class.getCanonicalName()) || valueClass.equals(byte[].class.getCanonicalName())) {
-            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
-        } else if (valueClass.equals(ObjectId.class.getCanonicalName())) {
-            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
-        } else if (valueClass.equals(UUID.class.getCanonicalName())) {
-            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
         } else {
             throw new IllegalArgumentException("Only Maps of Mixed or one of the types that can be boxed inside Mixed can be used.");
         }
+
         //noinspection unchecked
         return new DictionaryManager<>((MapValueOperator<V>) mapValueOperator);
+    }
+
+    private static boolean isClassBoxable(String valueClass) {
+        return boxableClasses.contains(valueClass);
     }
 
     private static boolean isClassForRealmModel(Class<?> clazz) {
         return RealmModel.class.isAssignableFrom(clazz);
     }
+
+    private static List<String> boxableClasses = Arrays.asList(
+            Long.class.getCanonicalName(),
+            Float.class.getCanonicalName(),
+            Double.class.getCanonicalName(),
+            String.class.getCanonicalName(),
+            Boolean.class.getCanonicalName(),
+            Date.class.getCanonicalName(),
+            Decimal128.class.getCanonicalName(),
+            Byte[].class.getCanonicalName(),
+            byte[].class.getCanonicalName(),
+            ObjectId.class.getCanonicalName(),
+            UUID.class.getCanonicalName()
+    );
 }

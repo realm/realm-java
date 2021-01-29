@@ -2954,6 +2954,7 @@ public class RealmQueryTests extends QueryTests {
                     case STRING_TO_DATE_MAP:
                     case STRING_TO_OBJECT_ID_MAP:
                     case STRING_TO_UUID_MAP:
+                    case STRING_TO_DECIMAL128_MAP:
                     case STRING_TO_LINK_MAP:
                         // TODO: fix this when adding maps to AllJavaTypes
                         realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_UUID_LIST).findAll();
@@ -3123,6 +3124,7 @@ public class RealmQueryTests extends QueryTests {
                     case STRING_TO_DATE_MAP:
                     case STRING_TO_OBJECT_ID_MAP:
                     case STRING_TO_UUID_MAP:
+                    case STRING_TO_DECIMAL128_MAP:
                     case STRING_TO_LINK_MAP:
                         // TODO: fix this when adding maps to AllJavaTypes
                         realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_UUID_LIST).findAll();
@@ -3355,6 +3357,7 @@ public class RealmQueryTests extends QueryTests {
         types.remove(RealmFieldType.STRING_TO_DATE_MAP);
         types.remove(RealmFieldType.STRING_TO_OBJECT_ID_MAP);
         types.remove(RealmFieldType.STRING_TO_UUID_MAP);
+        types.remove(RealmFieldType.STRING_TO_DECIMAL128_MAP);
         types.remove(RealmFieldType.STRING_TO_LINK_MAP);
 
 
@@ -4180,6 +4183,7 @@ public class RealmQueryTests extends QueryTests {
             case STRING_TO_DATE_MAP:
             case STRING_TO_OBJECT_ID_MAP:
             case STRING_TO_UUID_MAP:
+            case STRING_TO_DECIMAL128_MAP:
             case STRING_TO_LINK_MAP:
                 return false;
             case TYPED_LINK:

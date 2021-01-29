@@ -16,14 +16,16 @@
 
 package io.realm.entities
 
-import io.realm.*
+import io.realm.Mixed
+import io.realm.RealmDictionary
+import io.realm.RealmObject
+import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import java.util.*
 
 open class DictionaryClass : RealmObject() {
 
-    // TODO: ObjectId and other Java primitives
-    var myDogDictionary: RealmDictionary<MyDog>? = null
+    var myRealmModelDictionary: RealmDictionary<MyRealmModel>? = null
     var myMixedDictionary: RealmDictionary<Mixed>? = null
     var myBooleanDictionary: RealmDictionary<Boolean>? = null
     var myStringDictionary: RealmDictionary<String>? = null
@@ -37,14 +39,11 @@ open class DictionaryClass : RealmObject() {
     var myDateDictionary: RealmDictionary<Date>? = null
     var myObjectIdDictionary: RealmDictionary<ObjectId>? = null
     var myUUIDDictionary: RealmDictionary<UUID>? = null
-
-    // TODO: remove these, only used for inspiration for the proxy generator
-//    var myByteList: RealmList<Byte>? = null
-//    var myByteArrayList: RealmList<ByteArray>? = null
+    var myDecimal128Dictionary: RealmDictionary<Decimal128>? = null
 
     companion object {
         const val CLASS_NAME = "DictionaryClass"
-        const val REALM_MODEL_DICTIONARY_FIELD_NAME = "myDogDictionary"
+        const val REALM_MODEL_DICTIONARY_FIELD_NAME = "myRealmModelDictionary"
         const val MIXED_DICTIONARY_FIELD_NAME = "myMixedDictionary"
         const val BOOLEAN_DICTIONARY_FIELD_NAME = "myBooleanDictionary"
         const val STRING_DICTIONARY_FIELD_NAME = "myStringDictionary"
@@ -56,7 +55,12 @@ open class DictionaryClass : RealmObject() {
         const val BYTE_DICTIONARY_FIELD_NAME = "myByteDictionary"
         const val BYTE_ARRAY_DICTIONARY_FIELD_NAME = "myByteArrayDictionary"
         const val DATE_DICTIONARY_FIELD_NAME = "myDateDictionary"
+        const val DECIMAL128_DICTIONARY_FIELD_NAME = "myDecimal128Dictionary"
         const val OBJECT_ID_DICTIONARY_FIELD_NAME = "myObjectIdDictionary"
         const val UUID_DICTIONARY_FIELD_NAME = "myUUIDDictionary"
     }
+}
+
+open class MyRealmModel : RealmObject() {
+    var id: String? = null
 }

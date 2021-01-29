@@ -568,6 +568,27 @@ Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDateDictionaryEntry(
 }
 
 JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDecimal128DictionaryEntry(JNIEnv* env,
+                                                                                      jclass,
+                                                                                      jlong dictionary_ptr,
+                                                                                      jstring j_key,
+                                                                                      jlong j_high_value,
+                                                                                      jlong j_low_value) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+
+        JStringAccessor key(env, j_key);
+
+        Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
+        auto decimal128 = Decimal128(raw);
+        const JavaValue value(decimal128);
+
+        dictionary->insert(std::make_pair(key, value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObjectIdDictionaryEntry(JNIEnv* env,
                                                                                     jclass,
                                                                                     jlong dictionary_ptr,

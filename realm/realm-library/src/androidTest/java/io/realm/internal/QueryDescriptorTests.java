@@ -263,6 +263,7 @@ public class QueryDescriptorTests {
                     case STRING_TO_DATE_MAP:
                     case STRING_TO_OBJECT_ID_MAP:
                     case STRING_TO_UUID_MAP:
+                    case STRING_TO_DECIMAL128_MAP:
                     case STRING_TO_LINK_MAP:
                     case MIXED:// FIXME: MIXED IGNORED.
                     case TYPED_LINK:

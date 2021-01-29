@@ -31,6 +31,7 @@ import static io.realm.RealmFieldType.INTEGER_LIST;
 import static io.realm.RealmFieldType.OBJECT_ID_LIST;
 import static io.realm.RealmFieldType.STRING_TO_BINARY_MAP;
 import static io.realm.RealmFieldType.STRING_TO_DATE_MAP;
+import static io.realm.RealmFieldType.STRING_TO_DECIMAL128_MAP;
 import static io.realm.RealmFieldType.STRING_TO_DOUBLE_MAP;
 import static io.realm.RealmFieldType.STRING_TO_FLOAT_MAP;
 import static io.realm.RealmFieldType.STRING_TO_INTEGER_MAP;
@@ -197,6 +198,9 @@ public class Property implements NativeObject {
             case STRING_TO_DATE_MAP:
                 type = TYPE_DATE | TYPE_DICTIONARY;
                 break;
+            case STRING_TO_DECIMAL128_MAP:
+                type = TYPE_DECIMAL128 | TYPE_DICTIONARY;
+                break;
             case STRING_TO_OBJECT_ID_MAP:
                 type = TYPE_OBJECT_ID | TYPE_DICTIONARY;
                 break;
@@ -284,6 +288,8 @@ public class Property implements NativeObject {
                 return STRING_TO_BINARY_MAP;
             case TYPE_DATE | TYPE_DICTIONARY:
                 return STRING_TO_DATE_MAP;
+            case TYPE_DECIMAL128 | TYPE_DICTIONARY:
+                return STRING_TO_DECIMAL128_MAP;
             case TYPE_OBJECT_ID | TYPE_DICTIONARY:
                 return STRING_TO_OBJECT_ID_MAP;
             case TYPE_UUID | TYPE_DICTIONARY:
