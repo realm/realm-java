@@ -5,11 +5,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.rule.TestRealmConfigurationFactory
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
-import org.junit.Ignore
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.*
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.util.*
@@ -45,6 +41,10 @@ class DynamicMixedTests {
             realm.schema
                     .create("MixedListObject")
                     .addRealmListField("aList", Mixed::class.java)
+
+            realm.schema
+                    .create("ObjectString")
+                    .addField("aString", String::class.java, FieldAttribute.PRIMARY_KEY)
         }
     }
 
@@ -134,6 +134,8 @@ class DynamicMixedTests {
             val allJavaTypes = realm.createObject("MixedListObject")
             val mixedList = allJavaTypes.getList("aList", Mixed::class.java)
 
+            val dynamicRealmObject = realm.createObject("ObjectString", "dynamic")
+
             mixedList.add(Mixed.valueOf(true))
             mixedList.add(Mixed.valueOf(1.toByte()))
             mixedList.add(Mixed.valueOf(2.toShort()))
@@ -149,6 +151,7 @@ class DynamicMixedTests {
             mixedList.add(Mixed.valueOf(uuid))
             mixedList.add(Mixed.nullValue())
             mixedList.add(null)
+            mixedList.add(Mixed.valueOf(dynamicRealmObject))
         }
 
         val allJavaTypes= realm.where("MixedListObject").findFirst()
@@ -170,6 +173,8 @@ class DynamicMixedTests {
         assertTrue(mixedList[13]!!.isNull)
         assertTrue(mixedList[14]!!.isNull)
 
+        assertEquals("dynamic", mixedList[15]!!.asRealmModel(DynamicRealmObject::class.java).getString("aString"))
+
         realm.close()
     }
 
@@ -186,6 +191,7 @@ class DynamicMixedTests {
         realm.executeTransaction {
             val allJavaTypes = realm.createObject("MixedListObject")
             val mixedList = allJavaTypes.getList("aList", Mixed::class.java)
+            val dynamicRealmObject = realm.createObject("ObjectString", "dynamic")
 
             mixedList.add(0, Mixed.valueOf(true))
             mixedList.add(0, Mixed.valueOf(1.toByte()))
@@ -202,26 +208,29 @@ class DynamicMixedTests {
             mixedList.add(0, Mixed.valueOf(uuid))
             mixedList.add(0, Mixed.nullValue())
             mixedList.add(0, null)
+            mixedList.add(0, Mixed.valueOf(dynamicRealmObject))
         }
 
         val allJavaTypes= realm.where("MixedListObject").findFirst()
         val mixedList = allJavaTypes!!.getList("aList", Mixed::class.java)
 
-        assertEquals(true, mixedList[14]!!.asBoolean())
-        assertEquals(1, mixedList[13]!!.asByte())
-        assertEquals(2, mixedList[12]!!.asShort())
-        assertEquals(3, mixedList[11]!!.asInteger())
-        assertEquals(4, mixedList[10]!!.asLong())
-        assertEquals(5.toFloat(), mixedList[9]!!.asFloat())
-        assertEquals(6.toDouble(), mixedList[8]!!.asDouble())
-        assertEquals(aString, mixedList[7]!!.asString())
-        assertTrue(Arrays.equals(byteArray, mixedList[6]!!.asBinary()))
-        assertEquals(date, mixedList[5]!!.asDate())
-        assertEquals(objectId, mixedList[4]!!.asObjectId())
-        assertEquals(decimal128, mixedList[3]!!.asDecimal128())
-        assertEquals(uuid, mixedList[2]!!.asUUID())
+        assertEquals(true, mixedList[15]!!.asBoolean())
+        assertEquals(1, mixedList[14]!!.asByte())
+        assertEquals(2, mixedList[13]!!.asShort())
+        assertEquals(3, mixedList[12]!!.asInteger())
+        assertEquals(4, mixedList[11]!!.asLong())
+        assertEquals(5.toFloat(), mixedList[10]!!.asFloat())
+        assertEquals(6.toDouble(), mixedList[9]!!.asDouble())
+        assertEquals(aString, mixedList[8]!!.asString())
+        assertTrue(Arrays.equals(byteArray, mixedList[7]!!.asBinary()))
+        assertEquals(date, mixedList[6]!!.asDate())
+        assertEquals(objectId, mixedList[5]!!.asObjectId())
+        assertEquals(decimal128, mixedList[4]!!.asDecimal128())
+        assertEquals(uuid, mixedList[3]!!.asUUID())
+        assertTrue(mixedList[2]!!.isNull)
         assertTrue(mixedList[1]!!.isNull)
-        assertTrue(mixedList[0]!!.isNull)
+        assertEquals("dynamic", mixedList[0]!!.asRealmModel(DynamicRealmObject::class.java).getString("aString"))
+
 
         realm.close()
     }
@@ -238,6 +247,7 @@ class DynamicMixedTests {
 
         realm.executeTransaction {
             val allJavaTypes = realm.createObject("MixedListObject")
+            val dynamicRealmObject = realm.createObject("ObjectString", "dynamic")
 
             val initialList = RealmList<Mixed>()
             initialList.addAll(arrayOfNulls(15))
@@ -260,6 +270,7 @@ class DynamicMixedTests {
             mixedList[12] = Mixed.valueOf(uuid)
             mixedList[13] = Mixed.nullValue()
             mixedList[14] = null
+            mixedList.add(Mixed.valueOf(dynamicRealmObject))
         }
 
         val allJavaTypes= realm.where("MixedListObject").findFirst()
@@ -280,6 +291,7 @@ class DynamicMixedTests {
         assertEquals(uuid, mixedList[12]!!.asUUID())
         assertTrue(mixedList[13]!!.isNull)
         assertTrue(mixedList[14]!!.isNull)
+        assertEquals("dynamic", mixedList[15]!!.asRealmModel(DynamicRealmObject::class.java).getString("aString"))
 
         realm.close()
     }
@@ -296,6 +308,7 @@ class DynamicMixedTests {
 
         realm.executeTransaction {
             val allJavaTypes = realm.createObject("MixedListObject")
+            val dynamicRealmObject = realm.createObject("ObjectString", "dynamic")
 
             val initialList = RealmList<Mixed>()
             initialList.addAll(arrayOfNulls(15))
@@ -318,14 +331,17 @@ class DynamicMixedTests {
             mixedList.add(Mixed.valueOf(uuid))
             mixedList.add(Mixed.nullValue())
             mixedList.add(null)
+            mixedList.add(Mixed.valueOf(dynamicRealmObject))
         }
 
         realm.executeTransaction {
             val allJavaTypes= realm.where("MixedListObject").findFirst()
             val mixedList = allJavaTypes!!.getList("aList", Mixed::class.java)
 
-            for (i in 0..14)
+            for (i in 0..15)
                 mixedList.removeAt(0)
+
+            assertEquals(0, mixedList.size)
         }
 
         realm.close()

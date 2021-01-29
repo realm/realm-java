@@ -83,6 +83,13 @@ abstract class ManagedListOperator<T> {
 
     protected abstract void checkValidValue(@Nullable Object value);
 
+    protected void checkInsertIndex(int index) {
+        final int size = size();
+        if (index < 0 || size < index) {
+            throw new IndexOutOfBoundsException("Invalid index " + index + ", size is " + osList.size());
+        }
+    }
+
     @Nullable
     public abstract T get(int index);
 
@@ -102,7 +109,7 @@ abstract class ManagedListOperator<T> {
 
     protected abstract void appendValue(Object value);
 
-    public final void insert(int index, @Nullable Object value) {
+    public final void insert(int index, @Nullable T value) {
         checkValidValue(value);
 
         if (value == null) {
@@ -199,13 +206,6 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
                     String.format(Locale.ENGLISH, INVALID_OBJECT_TYPE_MESSAGE,
                             "java.lang.String",
                             value.getClass().getName()));
-        }
-    }
-
-    private void checkInsertIndex(int index) {
-        final int size = size();
-        if (index < 0 || size < index) {
-            throw new IndexOutOfBoundsException("Invalid index " + index + ", size is " + osList.size());
         }
     }
 
@@ -899,18 +899,60 @@ final class MixedListOperator extends ManagedListOperator<Mixed> {
     @Override
     public void appendValue(Object value) {
         Mixed mixed = (Mixed) value;
+        mixed = copyToRealmIfNeeded(mixed);
         osList.addMixed(mixed.getNativePtr());
     }
 
     @Override
     public void insertValue(int index, Object value) {
+        checkInsertIndex(index);
+
         Mixed mixed = (Mixed) value;
+        mixed = copyToRealmIfNeeded(mixed);
         osList.insertMixed(index, mixed.getNativePtr());
     }
 
     @Override
     protected void setValue(int index, Object value) {
         Mixed mixed = (Mixed) value;
+        mixed = copyToRealmIfNeeded(mixed);
         osList.setMixed(index, mixed.getNativePtr());
+    }
+
+    @SuppressWarnings("unchecked")
+    private Mixed copyToRealmIfNeeded(Mixed mixed) {
+        if (mixed.getType() == MixedType.OBJECT) {
+            Class<? extends RealmModel> objectClass = (Class<? extends RealmModel>) mixed.getValueClass();
+            RealmModel object = mixed.asRealmModel(objectClass);
+
+            if (object instanceof RealmObjectProxy) {
+                RealmObjectProxy proxy = (RealmObjectProxy) object;
+                ProxyState<?> proxyState = proxy.realmGet$proxyState();
+
+                if ((proxyState != null) && !realm.equals(proxyState.getRealm$realm())) {
+                    throw new IllegalArgumentException("The object belongs to a different Realm.");
+                }
+
+                if (!(object instanceof DynamicRealmObject)) {
+                    if (realm.getSchema().getSchemaForClass(objectClass).isEmbedded()) {
+                        throw new IllegalArgumentException("Embedded objects are not supported by Mixed.");
+                    }
+
+                    if (!RealmObject.isManaged(object)) {
+                        if (realm instanceof Realm) {
+                            mixed = Mixed.valueOf(((Realm) realm).copyToRealm(object));
+                        }
+                    } else {
+                        proxyState.checkValidObject(object);
+                    }
+                }
+            } else {
+                if (realm instanceof DynamicRealm) {
+                    throw new IllegalArgumentException("Cannot copy RealmObject to DynamicRealm instances.");
+                }
+            }
+        }
+
+        return mixed;
     }
 }
