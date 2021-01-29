@@ -97,6 +97,7 @@ public class UnManagedRealmCollectionTests extends CollectionTests {
                     case MIN_DATE: collection.minDate(AllJavaTypes.FIELD_DATE); break;
                     case MAX_DATE: collection.maxDate(AllJavaTypes.FIELD_DATE); break;
                     case DELETE_ALL_FROM_REALM: collection.deleteAllFromRealm(); break;
+                    case FREEZE: collection.freeze(); break;
 
                     // Supported methods.
                     case IS_VALID: assertTrue(collection.isValid()); continue;
