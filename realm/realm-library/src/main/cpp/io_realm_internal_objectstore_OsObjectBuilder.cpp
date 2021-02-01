@@ -495,21 +495,21 @@ Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddUUIDDictionaryEntry(
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddMixedDictionaryEntry(JNIEnv* env,
-                                                                                 jclass,
-                                                                                 jlong dictionary_ptr,
-                                                                                 jstring j_key,
-                                                                                 jlong mixed_ptr) {
-    try {
-        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
-        auto mixed = *reinterpret_cast<Mixed*>(mixed_ptr);
-
-        const Mixed& my_mixed(mixed);
-        const JavaValue mixed_value(my_mixed);
-        JStringAccessor key(env, j_key);
-
-        dictionary->insert(std::make_pair(key, mixed_value));
-    }
-    CATCH_STD()
-}
+//JNIEXPORT void JNICALL
+//Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddMixedDictionaryEntry(JNIEnv* env,
+//                                                                                 jclass,
+//                                                                                 jlong dictionary_ptr,
+//                                                                                 jstring j_key,
+//                                                                                 jlong mixed_ptr) {
+//    try {
+//        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+//        auto mixed = *reinterpret_cast<Mixed*>(mixed_ptr);
+//
+//        const Mixed& my_mixed(mixed);
+//        const JavaValue mixed_value(my_mixed);
+//        JStringAccessor key(env, j_key);
+//
+//        dictionary->insert(std::make_pair(key, mixed_value));
+//    }
+//    CATCH_STD()
+//}
