@@ -64,7 +64,9 @@ if(NDK_LCACHE)
     set(CMAKE_CXX_CREATE_SHARED_LIBRARY "${NDK_LCACHE} ${CMAKE_CXX_CREATE_SHARED_LIBRARY}")
 endif()
 
-# Set flag REALM_ENABLE_SYNC
+# Set option flags for Core.
+# See https://github.com/realm/realm-core/blob/master/CMakeLists.txt#L174 for the full list.
+set(REALM_ENABLE_FFI OFF)
 if (REALM_FLAVOR STREQUAL base)
     set(REALM_ENABLE_SYNC OFF)
 else()
