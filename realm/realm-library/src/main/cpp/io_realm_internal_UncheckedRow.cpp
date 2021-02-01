@@ -18,6 +18,7 @@
 #include "io_realm_internal_Property.h"
 
 #include "java_accessor.hpp"
+#include "java_object_accessor.hpp"
 #include "util.hpp"
 
 using namespace realm;
@@ -86,13 +87,13 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnType(J
 {
     ColKey column_key (columnKey);
     auto table = OBJ(nativeRowPtr)->get_table();
-    jint column_type = table->get_column_type(column_key);
+    DataType column_type = table->get_column_type(column_key);
     if (column_type != type_LinkList && table->is_list(column_key)/* && column_type < type_LinkList because type_ObjectId is = 15*/) {
         // add the offset so it can be mapped correctly in Java (RealmFieldType#fromNativeValue)
-        column_type += 128;
+        return int(column_type) + int(PropertyType::Array);
     }
 
-    return column_type;
+    return int(column_type);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetObjectKey(JNIEnv* env, jobject, jlong nativeRowPtr)
@@ -236,8 +237,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetMixed(JNIEnv
     }
 
     try {
-        auto mixed = reinterpret_cast<Mixed*>(nativePtr);
-        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), *mixed);
+        auto java_value = *reinterpret_cast<JavaValue *>(nativePtr);
+        auto mixed = java_value.to_mixed();
+        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), mixed);
     }
     CATCH_STD()
 }
@@ -512,15 +514,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetMixed(JNIEn
                                                                             jlong columnKey)
 {
     if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
-        return -1;
+        return reinterpret_cast<jlong>(nullptr);
     }
 
     try {
         auto mixed = OBJ(nativeRowPtr)->get<Mixed>(ColKey(columnKey));
-        return reinterpret_cast<jlong>(new Mixed(mixed));
+        return reinterpret_cast<jlong>(new JavaValue(from_mixed(mixed)));
     }
     CATCH_STD()
-    return -1;
+    return reinterpret_cast<jlong>(nullptr);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetUUID(JNIEnv* env, jobject,
