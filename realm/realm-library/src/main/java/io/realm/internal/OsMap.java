@@ -57,6 +57,10 @@ public class OsMap implements NativeObject {
         return nativeSize(nativePtr);
     }
 
+    public boolean containsKey(Object key) {
+        return nativeContainsKey(nativePtr, (String) key);
+    }
+
     public void clear() {
         nativeClear(nativePtr);
     }
@@ -171,6 +175,8 @@ public class OsMap implements NativeObject {
     private static native void nativePutRow(long nativePtr, String key, long objKey);
 
     private static native long nativeSize(long nativePtr);
+
+    private static native boolean nativeContainsKey(long nativePtr, String key);
 
     private static native void nativeClear(long nativePtr);
 

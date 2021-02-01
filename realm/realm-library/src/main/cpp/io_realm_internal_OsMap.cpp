@@ -353,6 +353,18 @@ Java_io_realm_internal_OsMap_nativeSize(JNIEnv* env, jclass, jlong map_ptr) {
     return 0;
 }
 
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsKey(JNIEnv* env, jclass, jlong map_ptr,
+                                               jstring j_key) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor key(env, j_key);
+        return dictionary.contains(StringData(key).data());
+    }
+    CATCH_STD()
+    return false;
+}
+
 JNIEXPORT void JNICALL
 Java_io_realm_internal_OsMap_nativeRemove(JNIEnv* env, jclass, jlong map_ptr,
                                           jstring j_key) {

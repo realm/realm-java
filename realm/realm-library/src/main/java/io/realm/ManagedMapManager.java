@@ -24,6 +24,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import io.realm.internal.Freezable;
 import io.realm.internal.ManageableObject;
 import io.realm.internal.OsMap;
 import io.realm.internal.OsObjectStore;
@@ -37,7 +38,7 @@ import io.realm.internal.core.NativeMixed;
  * @param <K> the key type
  * @param <V> the value type
  */
-abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject {
+abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, Freezable<RealmMap<K, V>> {
 
     protected final Class<K> keyClass;
     protected final MapValueOperator<V> mapValueOperator;
@@ -77,8 +78,7 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject {
 
     @Override
     public boolean containsKey(Object key) {
-        // TODO: use operator + do it natively
-        return false;
+        return mapValueOperator.containsKey(key);
     }
 
     @Override
@@ -111,6 +111,12 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject {
 
     @Override
     public Set<Entry<K, V>> entrySet() {
+        // TODO: use operator + do it natively
+        return null;
+    }
+
+    @Override
+    public RealmMap<K, V> freeze() {
         // TODO: use operator + do it natively
         return null;
     }
@@ -186,6 +192,10 @@ abstract class MapValueOperator<V> {
 
     public boolean isEmpty() {
         return osMap.size() == 0;
+    }
+
+    public boolean containsKey(Object key) {
+        return osMap.containsKey(key);
     }
 
     public boolean isValid() {

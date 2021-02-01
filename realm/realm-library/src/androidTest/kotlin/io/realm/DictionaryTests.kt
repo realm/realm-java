@@ -293,9 +293,20 @@ class DictionaryTests {
     }
 
     @Test
-    @Ignore
     fun managed_containsKey() {
-        // TODO
+        val key = "SOME_KEY"
+        initDictionary()
+
+        realm.executeTransaction {
+            val dictionaryObject = realm.where<DictionaryClass>().findFirst()
+            assertNotNull(dictionaryObject)
+            dictionaryObject.myBooleanDictionary.let { dictionary ->
+                assertNotNull(dictionary)
+                dictionary[key] = true
+                assertTrue(dictionary.containsKey(key))
+                assertFalse(dictionary.containsKey("ANOTHER_KEY"))
+            }
+        }
     }
 
     @Test
