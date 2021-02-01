@@ -442,9 +442,42 @@ class DictionaryTests {
     }
 
     @Test
-    @Ignore
     fun managed_values() {
-        // TODO
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myStringList = RealmList<String>().apply {
+                    add("HELLO")
+                    add("BYE")
+                }
+                myStringDictionary = RealmDictionary<String>().apply {
+                    put(KEY_HELLO, VALUE_HELLO_STRING)
+                    put(KEY_BYE, VALUE_BYE_STRING)
+                }
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myStringDictionary
+            assertNotNull(dictionaryFromRealm)
+
+            val realmResults = realm.where<DictionaryClass>()
+                    .findAll()
+            val result0 = realmResults[0]
+            val result1 = realmResults[1]
+
+
+            val values = dictionaryFromRealm.values
+            assertNotNull(values)
+            assertEquals(2, values.size)
+//            assertTrue(values.contains(VALUE_HELLO_STRING))
+//            assertTrue(values.contains(VALUE_BYE_STRING))
+            assertTrue(values is RealmResults)
+            (values as RealmResults).let { results ->
+                val res0 = results[0]
+                val res1 = results[1]
+                val kjashd = 0
+            }
+
+        }
     }
 
     @Test

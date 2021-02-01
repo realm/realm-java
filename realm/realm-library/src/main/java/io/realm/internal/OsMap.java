@@ -25,18 +25,22 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import io.realm.internal.android.TypeUtils;
+import io.realm.internal.util.Pair;
 
 /**
  * Java wrapper of Object Store Dictionary class. This backs managed versions of RealmMaps.
  */
 public class OsMap implements NativeObject {
 
-    private final long nativePtr;
-    private final NativeContext context;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
-    public OsMap(UncheckedRow row, long columnKey) {
+    private final long nativePtr;
+    private final NativeContext context;
+    private final Table table;
+
+    public OsMap(UncheckedRow row, long columnKey, Table table) {
         OsSharedRealm sharedRealm = row.getTable().getSharedRealm();
+        this.table = table;
         this.nativePtr = nativeCreate(sharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
         this.context = sharedRealm.context;
         context.addReference(this);
@@ -62,6 +66,10 @@ public class OsMap implements NativeObject {
 
     public void clear() {
         nativeClear(nativePtr);
+    }
+
+    public Pair<Table, Long> resultsPtr() {
+        return new Pair<>(table, nativeValues(nativePtr));
     }
 
     // ------------------------------------------
@@ -180,4 +188,6 @@ public class OsMap implements NativeObject {
     private static native void nativeClear(long nativePtr);
 
     private static native void nativeRemove(long nativePtr, String key);
+
+    private static native long nativeValues(long nativePtr);
 }

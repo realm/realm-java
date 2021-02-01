@@ -28,8 +28,13 @@ import io.realm.internal.Freezable;
 import io.realm.internal.ManageableObject;
 import io.realm.internal.OsMap;
 import io.realm.internal.OsObjectStore;
+import io.realm.internal.OsResults;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.Table;
+import io.realm.internal.TableQuery;
 import io.realm.internal.core.NativeMixed;
+import io.realm.internal.util.Pair;
 
 /**
  * A {@code ManagedMapManager} abstracts the different types of keys and values a managed
@@ -102,8 +107,7 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
 
     @Override
     public Collection<V> values() {
-        // TODO: use operator + do it natively
-        return null;
+        return mapValueOperator.values();
     }
 
     @Override
@@ -204,6 +208,22 @@ abstract class MapValueOperator<K, V> {
 
     public void clear() {
         osMap.clear();
+    }
+
+    public Collection<V> values() {
+        Pair<Table, Long> tablePointerPair = osMap.resultsPtr();
+        if (baseRealm instanceof Realm) {
+            Realm realm = (Realm) baseRealm;
+            OsResults osResults = OsResults.createFromMap(baseRealm.sharedRealm, tablePointerPair.first, tablePointerPair.second);
+            Class<?> clazz = classContainer.getClazz();
+            if (clazz != null) {
+                //noinspection unchecked
+                return new RealmResults<>(realm, osResults, (Class<V>) clazz);
+            }
+            throw new IllegalStateException("MapValueOperator missing class in 'classContainer'.");
+        }
+
+        throw new UnsupportedOperationException("Add support for 'values' for DynamicRealms.");
     }
 
     public RealmMap<K, V> freeze() {

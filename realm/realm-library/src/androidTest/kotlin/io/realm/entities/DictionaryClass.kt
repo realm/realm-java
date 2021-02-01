@@ -18,6 +18,7 @@ package io.realm.entities
 
 import io.realm.Mixed
 import io.realm.RealmDictionary
+import io.realm.RealmList
 import io.realm.RealmObject
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
@@ -40,6 +41,8 @@ open class DictionaryClass : RealmObject() {
     var myObjectIdDictionary: RealmDictionary<ObjectId>? = null
     var myUUIDDictionary: RealmDictionary<UUID>? = null
     var myDecimal128Dictionary: RealmDictionary<Decimal128>? = null
+
+    var myStringList: RealmList<String>? = null
 
     companion object {
         const val CLASS_NAME = "DictionaryClass"

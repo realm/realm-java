@@ -24,6 +24,7 @@
 #include "java_exception_def.hpp"
 #include "jni_util/java_exception_thrower.hpp"
 #include "util.hpp"
+#include "observable_collection_wrapper.hpp"
 
 using namespace realm;
 using namespace realm::util;
@@ -350,7 +351,7 @@ Java_io_realm_internal_OsMap_nativeSize(JNIEnv* env, jclass, jlong map_ptr) {
         return dictionary.size();
     }
     CATCH_STD()
-    return 0;
+    return reinterpret_cast<jlong>(nullptr);
 }
 
 JNIEXPORT jboolean JNICALL
@@ -374,4 +375,17 @@ Java_io_realm_internal_OsMap_nativeRemove(JNIEnv* env, jclass, jlong map_ptr,
         dictionary.erase(StringData(key));
     }
     CATCH_STD()
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_OsMap_nativeValues(JNIEnv* env, jclass, jlong map_ptr) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        const Results& results = dictionary.as_results();
+        auto wrapper = new ObservableCollectionWrapper(results);
+
+        return reinterpret_cast<jlong>(wrapper);
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
 }

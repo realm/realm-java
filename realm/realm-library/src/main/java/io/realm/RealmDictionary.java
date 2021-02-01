@@ -113,7 +113,9 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
             DictionaryManager<V> dictionaryManager = new DictionaryManager<>(realmModelValueOperator);
             return new ManagedMapStrategy<>(dictionaryManager);
         }
-        return getStrategy(valueClass.getCanonicalName(), baseRealm, osMap);
+
+        DictionaryManager<V> manager = getManager(valueClass, baseRealm, osMap);
+        return new ManagedMapStrategy<>(manager);
     }
 
     private static <V> ManagedMapStrategy<String, V> getStrategy(String valueClass, BaseRealm baseRealm, OsMap osMap) {
@@ -121,8 +123,30 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         return new ManagedMapStrategy<>(manager);
     }
 
+    private static <K, V> DictionaryManager<V> getManager(Class<V> valueClass, BaseRealm baseRealm, OsMap osMap) {
+        ClassContainer classContainer = new ClassContainer(valueClass, null);
+
+        MapValueOperator<?, ?> mapValueOperator;
+
+        if (isClassBoxable(valueClass.getCanonicalName())) {
+            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
+        } else if (valueClass == Mixed.class) {
+            mapValueOperator = new MixedValueOperator<K>(baseRealm, osMap, classContainer);
+        } else if (valueClass == Integer.class) {
+            mapValueOperator = new IntegerValueOperator<K>(baseRealm, osMap, classContainer);
+        } else if (valueClass == Short.class) {
+            mapValueOperator = new ShortValueOperator<K>(baseRealm, osMap, classContainer);
+        } else if (valueClass == Byte.class) {
+            mapValueOperator = new ByteValueOperator<K>(baseRealm, osMap, classContainer);
+        } else {
+            throw new IllegalArgumentException("Only Maps of Mixed or one of the types that can be boxed inside Mixed can be used.");
+        }
+
+        //noinspection unchecked
+        return new DictionaryManager<>((MapValueOperator<String, V>) mapValueOperator);
+    }
+
     private static <K, V> DictionaryManager<V> getManager(String valueClass, BaseRealm baseRealm, OsMap osMap) {
-        // TODO: add other types when ready
         ClassContainer classContainer = new ClassContainer(null, valueClass);
 
         MapValueOperator<?, ?> mapValueOperator;
@@ -142,7 +166,7 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         }
 
         //noinspection unchecked
-        return new DictionaryManager<V>((MapValueOperator<String, V>) mapValueOperator);
+        return new DictionaryManager<>((MapValueOperator<String, V>) mapValueOperator);
     }
 
     private static boolean isClassBoxable(String valueClass) {
