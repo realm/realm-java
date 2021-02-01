@@ -1184,6 +1184,14 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
 
         proxyState.getRealm$realm().checkIfValid();
         OsList osList = proxyState.getRow$realm().getValueList(columnInfo.columnMixedListColKey, RealmFieldType.MIXED_LIST);
+        if (value != null && !value.isManaged()) {
+            final Realm realm = (Realm) proxyState.getRealm$realm();
+            final RealmList<Mixed> original = value;
+            value = new RealmList<Mixed>();
+            for (Mixed item : original) {
+                value.add(ProxyUtils.copyToRealmIfNeeded(proxyState, item));
+            }
+        }
         osList.removeAll();
         if (value == null) {
             return;
@@ -1238,6 +1246,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         builder.addPersistedValueListProperty("columnDecimal128List", RealmFieldType.DECIMAL128_LIST, !Property.REQUIRED);
         builder.addPersistedValueListProperty("columnObjectIdList", RealmFieldType.OBJECT_ID_LIST, !Property.REQUIRED);
         builder.addPersistedValueListProperty("columnUUIDList", RealmFieldType.UUID_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty("columnMixedList", RealmFieldType.MIXED_LIST, !Property.REQUIRED);
         builder.addComputedLinkProperty("parentObjects", "AllTypes", "columnObject");
         return builder.build();
     }
