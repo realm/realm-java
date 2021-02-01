@@ -315,7 +315,7 @@ def runBuild(buildFlags, instrumentationTestTarget) {
   if (releaseBranches.contains(currentBranch) && !publishBuild) {
     stage('Publish to OJO') {
       withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
-        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} ojoUpload --stacktrace"
+        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} ojoUpload ${buildFlags} --stacktrace"
       }
     }
   }
