@@ -127,8 +127,8 @@ public class RealmProcessorTest {
 
     @Test
     public void compileProcessedAllTypesFile() {
-        ASSERT.about(javaSource())
-                .that(allTypesModel)
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, simpleModel))
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
     }
@@ -142,8 +142,8 @@ public class RealmProcessorTest {
 
     @Test
     public void compareProcessedAllTypesFile() {
-        ASSERT.about(javaSource())
-                .that(allTypesModel)
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, simpleModel))
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError()
                 .and()
@@ -154,7 +154,7 @@ public class RealmProcessorTest {
     @Test
     public void compileAppModuleCustomClasses() {
         ASSERT.about(javaSources())
-                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/AppModuleCustomClasses.java")))
+                .that(Arrays.asList(allTypesModel, simpleModel, JavaFileObjects.forResource("some/test/AppModuleCustomClasses.java")))
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
     }
@@ -162,7 +162,7 @@ public class RealmProcessorTest {
     @Test
     public void compileAppModuleAllClasses() {
         ASSERT.about(javaSources())
-                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/AppModuleAllClasses.java")))
+                .that(Arrays.asList(allTypesModel, simpleModel, JavaFileObjects.forResource("some/test/AppModuleAllClasses.java")))
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
     }
@@ -170,7 +170,7 @@ public class RealmProcessorTest {
     @Test
     public void compileLibraryModulesAllClasses() {
         ASSERT.about(javaSources())
-                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/LibraryModuleAllClasses.java")))
+                .that(Arrays.asList(allTypesModel, simpleModel, JavaFileObjects.forResource("some/test/LibraryModuleAllClasses.java")))
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
     }
@@ -178,7 +178,7 @@ public class RealmProcessorTest {
     @Test
     public void compileLibraryModulesCustomClasses() {
         ASSERT.about(javaSources())
-                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/LibraryModuleCustomClasses.java")))
+                .that(Arrays.asList(allTypesModel, simpleModel, JavaFileObjects.forResource("some/test/LibraryModuleCustomClasses.java")))
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
     }
