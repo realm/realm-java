@@ -709,9 +709,7 @@ inline JavaValue from_mixed(realm::Mixed mixed_value){
                 return JavaValue(mixed_value.get<UUID>());
             case type_TypedLink:
                 return JavaValue(mixed_value.get<ObjLink>());
-            case type_OldTable:
             case type_Mixed:
-            case type_OldDateTime:
             case type_Link:
             case type_LinkList:
                 return JavaValue();

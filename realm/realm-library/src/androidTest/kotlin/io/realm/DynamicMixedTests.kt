@@ -122,7 +122,7 @@ class DynamicMixedTests {
     }
 
     @Test
-    fun managed_listsAllTypes(){
+    fun managed_listsAllTypes() {
         val aString = "a string"
         val byteArray = byteArrayOf(0, 1, 0)
         val date = Date()
@@ -154,7 +154,7 @@ class DynamicMixedTests {
             mixedList.add(Mixed.valueOf(dynamicRealmObject))
         }
 
-        val allJavaTypes= realm.where("MixedListObject").findFirst()
+        val allJavaTypes = realm.where("MixedListObject").findFirst()
         val mixedList = allJavaTypes!!.getList("aList", Mixed::class.java)
 
         assertEquals(true, mixedList[0]!!.asBoolean())
@@ -211,7 +211,7 @@ class DynamicMixedTests {
             mixedList.add(0, Mixed.valueOf(dynamicRealmObject))
         }
 
-        val allJavaTypes= realm.where("MixedListObject").findFirst()
+        val allJavaTypes = realm.where("MixedListObject").findFirst()
         val mixedList = allJavaTypes!!.getList("aList", Mixed::class.java)
 
         assertEquals(true, mixedList[15]!!.asBoolean())
@@ -273,7 +273,7 @@ class DynamicMixedTests {
             mixedList.add(Mixed.valueOf(dynamicRealmObject))
         }
 
-        val allJavaTypes= realm.where("MixedListObject").findFirst()
+        val allJavaTypes = realm.where("MixedListObject").findFirst()
         val mixedList = allJavaTypes!!.getList("aList", Mixed::class.java)
 
         assertEquals(true, mixedList[0]!!.asBoolean())
@@ -335,7 +335,7 @@ class DynamicMixedTests {
         }
 
         realm.executeTransaction {
-            val allJavaTypes= realm.where("MixedListObject").findFirst()
+            val allJavaTypes = realm.where("MixedListObject").findFirst()
             val mixedList = allJavaTypes!!.getList("aList", Mixed::class.java)
 
             for (i in 0..15)

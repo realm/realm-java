@@ -258,7 +258,7 @@ Java_io_realm_internal_core_NativeMixed_nativeGetMixedType(JNIEnv *env, jclass, 
         auto java_value = *reinterpret_cast<JavaValue *>(native_ptr);
         auto mixed = java_value.to_mixed();
 
-        return mixed.is_null() ? -1 : mixed.get_type();
+        return mixed.is_null() ? -1 : int(mixed.get_type());
     } CATCH_STD()
 
     return -1;
