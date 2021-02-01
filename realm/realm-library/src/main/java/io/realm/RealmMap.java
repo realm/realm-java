@@ -155,6 +155,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
 
     @Override
     public Set<Entry<K, V>> entrySet() {
+        // TODO: consider throwing until we have sets in place
         return mapStrategy.entrySet();
     }
 
@@ -168,7 +169,6 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
     }
 
     // TODO: should we override any default methods from parent map class?
-    // TODO: add additional map methods ad-hoc
 
     /**
      * Strategy responsible for abstracting the managed/unmanaged logic for maps.

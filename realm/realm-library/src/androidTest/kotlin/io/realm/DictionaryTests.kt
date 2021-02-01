@@ -720,6 +720,7 @@ class DictionaryTests {
                     put(KEY_HELLO, hello)
                     put(KEY_BYE, bye)
 
+                    // FIXME: check is_null in native
                     // Even though we can insert nulls, the property itself
                     // is unboxed as a default Decimal128 instance which will have value 0
                     put(KEY_NULL, null)
