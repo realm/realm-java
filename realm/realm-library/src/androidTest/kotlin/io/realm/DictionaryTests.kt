@@ -719,10 +719,6 @@ class DictionaryTests {
                 myDecimal128Dictionary = RealmDictionary<Decimal128>().apply {
                     put(KEY_HELLO, hello)
                     put(KEY_BYE, bye)
-
-                    // FIXME: check is_null in native
-                    // Even though we can insert nulls, the property itself
-                    // is unboxed as a default Decimal128 instance which will have value 0
                     put(KEY_NULL, null)
                 }
             }
@@ -733,9 +729,7 @@ class DictionaryTests {
 
             assertEquals(hello, dictionaryFromRealm[KEY_HELLO])
             assertEquals(bye, dictionaryFromRealm[KEY_BYE])
-
-            // See comment above
-            assertEquals(Decimal128(0), dictionaryFromRealm[KEY_NULL])
+            assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
 
