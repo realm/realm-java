@@ -364,6 +364,7 @@ class RealmModelValueOperator<T> extends MapValueOperator<T> {
         if (value == null) {
             osMap.put(key, null);
         } else {
+            // TODO: figure out how to do this with Mixed, check Java_io_realm_internal_core_NativeMixed_nativeCreateMixedLink
             copyObject = checkCanObjectBeCopied(baseRealm, realmObject, classContainer);
             RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? copyToRealm((RealmModel) value) : realmObject);
             osMap.putRow(key, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
