@@ -18,6 +18,7 @@
 #include "io_realm_internal_Property.h"
 
 #include "java_accessor.hpp"
+#include "java_object_accessor.hpp"
 #include "util.hpp"
 
 using namespace realm;
@@ -228,168 +229,17 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetLong(JNIEnv*
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeMixedSetLong(JNIEnv* env, jclass, jlong nativeRowPtr,
-                                                                              jlong columnKey, jlong value)
+JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetMixed(JNIEnv* env, jobject, jlong nativeRowPtr,
+                                                                              jlong columnKey, jlong nativePtr)
 {
     if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
         return;
     }
 
     try {
-        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), Mixed(value));
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeMixedSetBoolean(JNIEnv* env, jclass, jlong nativeRowPtr,
-                                                                                 jlong columnKey, jboolean value)
-{
-    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
-        return;
-    }
-
-    try {
-        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), Mixed((bool) value));
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeMixedSetFloat(JNIEnv* env, jclass, jlong nativeRowPtr,
-                                                                               jlong columnKey, jfloat value)
-{
-    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
-        return;
-    }
-
-    try {
-        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), Mixed(value));
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeMixedSetDouble(JNIEnv* env, jclass, jlong nativeRowPtr,
-                                                                                jlong columnKey, jdouble value)
-{
-    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
-        return;
-    }
-
-    try {
-        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), Mixed(value));
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeMixedSetTimestamp(JNIEnv* env, jclass, jlong nativeRowPtr,
-                                                                                   jlong columnKey, jlong value)
-{
-    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
-        return;
-    }
-
-    try {
-        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), Mixed(from_milliseconds(value)));
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeMixedSetString(JNIEnv* env, jclass, jlong nativeRowPtr,
-                                                                                jlong columnKey, jstring value)
-{
-    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
-        return;
-    }
-
-    try {
-        JStringAccessor accessor(env, value);
-        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), Mixed(StringData(accessor).data()));
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeMixedSetByteArray(JNIEnv* env, jclass, jlong nativeRowPtr,
-                                                                                   jlong columnKey, jbyteArray value)
-{
-    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
-        return;
-    }
-
-    try {
-        JByteArrayAccessor accessor(env, value);
-        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), Mixed(accessor.transform<BinaryData>()));
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeMixedSetDecimal128(JNIEnv* env, jclass, jlong nativeRowPtr,
-                                                                                    jlong columnKey, jlong high, jlong low)
-{
-    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
-        return;
-    }
-
-    try {
-        Decimal128::Bid128 raw {static_cast<uint64_t>(low), static_cast<uint64_t>(high)};
-        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), Mixed(Decimal128(raw)));
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeMixedSetObjectId(JNIEnv* env, jclass, jlong nativeRowPtr,
-                                                                                  jlong columnKey, jstring value)
-{
-    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
-        return;
-    }
-
-    try {
-        JStringAccessor accessor(env, value);
-        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), Mixed(ObjectId(StringData(accessor).data())));
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeMixedSetLink(JNIEnv* env, jclass, jlong nativeRowPtr,
-                                                                                  jlong columnKey, jlong targetTableRef,
-                                                                                  jlong targetObjectKey)
-{
-    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
-        return;
-    }
-
-    try {
-        TableRef target_table = TBL_REF(targetTableRef);
-        ObjKey object_key(targetObjectKey);
-        ObjLink object_link(target_table->get_key(), object_key);
-
-        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), Mixed(object_link));
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeMixedSetUUID(JNIEnv* env, jclass, jlong nativeRowPtr,
-                                                                                  jlong columnKey, jstring value)
-{
-    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
-        return;
-    }
-
-    try {
-        JStringAccessor accessor(env, value);
-        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), Mixed(UUID(StringData(accessor).data())));
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeMixedSetNull(JNIEnv* env, jclass, jlong nativeRowPtr,
-                                                                                  jlong columnKey)
-{
-    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
-        return;
-    }
-
-    try {
-        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), Mixed());
+        auto java_value = *reinterpret_cast<JavaValue *>(nativePtr);
+        auto mixed = java_value.to_mixed();
+        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), mixed);
     }
     CATCH_STD()
 }
@@ -657,6 +507,22 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_UncheckedRow_nativeGetUUID(JNIE
     }
     CATCH_STD()
     return nullptr;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetMixed(JNIEnv* env, jobject,
+                                                                            jlong nativeRowPtr,
+                                                                            jlong columnKey)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return reinterpret_cast<jlong>(nullptr);
+    }
+
+    try {
+        auto mixed = OBJ(nativeRowPtr)->get<Mixed>(ColKey(columnKey));
+        return reinterpret_cast<jlong>(new JavaValue(from_mixed(mixed)));
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetUUID(JNIEnv* env, jobject,

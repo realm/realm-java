@@ -101,7 +101,7 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    protected Class<? extends RealmModel> getClazzImpl(String className) {
+    protected <T extends RealmModel> Class<T> getClazzImpl(String className) {
         RealmProxyMediator mediator = getMediator(className);
         return mediator.getClazz(className);
     }
