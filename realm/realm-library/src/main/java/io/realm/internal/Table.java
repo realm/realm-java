@@ -110,6 +110,7 @@ public class Table implements NativeObject {
             case DOUBLE:
             case DECIMAL128:
             case OBJECT_ID:
+            case MIXED:
             case UUID:
                 return nativeAddColumn(nativeTableRefPtr, type.getNativeValue(), name, isNullable);
 

@@ -58,7 +58,11 @@ public abstract class MixedOperator {
             case UUID:
                 return new UUIDMixedOperator(nativeMixed);
             case OBJECT:
-                return new RealmModelOperator(nativeMixed, proxyState);
+                if (proxyState.getRealm$realm() instanceof DynamicRealm) {
+                    return new DynamicRealmModelMixedOperator(proxyState.getRealm$realm(), nativeMixed);
+                } else {
+                    return new RealmModelOperator(nativeMixed, proxyState);
+                }
             case NULL:
                 return new NullMixedOperator(nativeMixed);
             default:
@@ -311,7 +315,7 @@ final class NullMixedOperator extends PrimitiveMixedOperator {
     }
 }
 
-final class RealmModelOperator extends MixedOperator {
+class RealmModelOperator extends MixedOperator {
     private static <T extends RealmModel> Class<T> getModelClass(ProxyState<T> proxyState, NativeMixed nativeMixed) {
         OsSharedRealm sharedRealm = proxyState
                 .getRealm$realm()
@@ -367,5 +371,26 @@ final class RealmModelOperator extends MixedOperator {
     @Override
     Class<?> getTypedClass() {
         return clazz;
+    }
+}
+
+final class DynamicRealmModelMixedOperator extends RealmModelOperator {
+    @SuppressWarnings({"unchecked", "TypeParameterUnusedInFormals"})
+    private static <T extends RealmModel> T getRealmModel(BaseRealm realm, NativeMixed nativeMixed) {
+        OsSharedRealm sharedRealm = realm.getSharedRealm();
+
+        String className = Table.getClassNameForTable(nativeMixed.getRealmModelTableName(sharedRealm));
+
+        return realm
+                .get((Class<T>) DynamicRealmObject.class, className, nativeMixed.getRealmModelRowKey());
+    }
+
+    DynamicRealmModelMixedOperator(BaseRealm realm, NativeMixed nativeMixed) {
+        super(getRealmModel(realm, nativeMixed));
+    }
+
+    @Override
+    Class<?> getTypedClass() {
+        return DynamicRealmObject.class;
     }
 }
