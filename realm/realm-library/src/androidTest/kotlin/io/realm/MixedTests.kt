@@ -22,18 +22,18 @@ import io.realm.entities.AllJavaTypes
 import io.realm.entities.MixedIndexed
 import io.realm.entities.MixedNotIndexed
 import io.realm.entities.PrimaryKeyAsString
+import io.realm.entities.embedded.SimpleEmbeddedObject
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
+import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.*
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.util.*
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -60,6 +60,7 @@ class MixedTests {
                 .schema(MixedNotIndexed::class.java,
                         MixedIndexed::class.java,
                         AllJavaTypes::class.java,
+                        SimpleEmbeddedObject::class.java,
                         PrimaryKeyAsString::class.java)
                 .build()
 
@@ -624,6 +625,7 @@ class MixedTests {
     }
 
     @Test
+    @Ignore("FIXME: See: https://github.com/realm/realm-core/issues/4304")
     fun managed_listsSetAllTypes() {
         val aString = "a string"
         val byteArray = byteArrayOf(0, 1, 0)
@@ -681,6 +683,7 @@ class MixedTests {
     }
 
     @Test
+    @Ignore("FIXME: See: https://github.com/realm/realm-core/issues/4304")
     fun managed_listsRemoveAllTypes() {
         val aString = "a string"
         val byteArray = byteArrayOf(0, 1, 0)
@@ -720,5 +723,103 @@ class MixedTests {
 
             assertEquals(0, allJavaTypes!!.fieldMixedList.size)
         }
+    }
+
+    private val looperThread = BlockingLooperThread()
+
+    @Test
+    fun managed_listThrowsOtherRealm(){
+        realm.beginTransaction()
+
+        val aDog = realm.createObject(PrimaryKeyAsString::class.java, "a dog")
+
+        realm.commitTransaction()
+
+
+        looperThread.runBlocking {
+            val anotherRealm = Realm.getInstance(realm.configuration)
+
+            anotherRealm.beginTransaction()
+
+            val allTypes = anotherRealm.createObject(AllJavaTypes::class.java, 0)
+
+            assertFailsWith<IllegalArgumentException>("Cannot copy an object from another Realm instance."){
+                allTypes.fieldMixedList.add(Mixed.valueOf(aDog))
+            }
+
+            anotherRealm.commitTransaction()
+
+            looperThread.testComplete()
+        }
+    }
+
+    @Test
+    fun managed_listThrowsEmbedded(){
+        looperThread.runBlocking {
+            val anotherRealm = Realm.getInstance(realm.configuration)
+
+            anotherRealm.beginTransaction()
+
+            val allTypes = anotherRealm.createObject(AllJavaTypes::class.java, 0)
+
+            assertFailsWith<IllegalArgumentException>("Embedded objects are not supported by Mixed.") {
+                allTypes.fieldMixedList.add(Mixed.valueOf(SimpleEmbeddedObject()))
+            }
+
+            anotherRealm.commitTransaction()
+
+            looperThread.testComplete()
+        }
+    }
+
+    @Test
+    fun dynamiclists_throwCopyBetweenInstances(){
+        realm.beginTransaction()
+
+        val aDog = realm.createObject(PrimaryKeyAsString::class.java, "a dog")
+
+        realm.commitTransaction()
+
+        val dynDog = DynamicRealmObject(aDog)
+        val dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration())
+
+        dynamicRealm.beginTransaction()
+
+        assertFailsWith<IllegalArgumentException>("Cannot copy DynamicRealmObject between Realm instances.") {
+            dynamicRealm.createObject(AllJavaTypes.CLASS_NAME, 0)
+                    .getList(AllJavaTypes.FIELD_MIXED_LIST, Mixed::class.java)
+                    .add(Mixed.valueOf(dynDog))
+        }
+
+        dynamicRealm.commitTransaction()
+
+        dynamicRealm.close()
+    }
+
+    @Test
+    fun lists_throwCopyBetweenThreads(){
+        realm.executeTransaction {
+            it.createObject(PrimaryKeyAsString::class.java, "a dog")
+        }
+
+        val dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration())
+        val dynDog = dynamicRealm.where(PrimaryKeyAsString.CLASS_NAME).findFirst()
+
+        looperThread.runBlocking {
+            val innerDynamicRealm = DynamicRealm.getInstance(realm.getConfiguration())
+            innerDynamicRealm.beginTransaction()
+
+            assertFailsWith<IllegalStateException>("Cannot copy an object to a Realm instance created in another thread.") {
+                dynamicRealm.createObject(AllJavaTypes.CLASS_NAME, 0)
+                        .getList(AllJavaTypes.FIELD_MIXED_LIST, Mixed::class.java)
+                        .add(Mixed.valueOf(dynDog))
+            }
+
+            innerDynamicRealm.close()
+
+            looperThread.testComplete()
+        }
+
+        dynamicRealm.close()
     }
 }

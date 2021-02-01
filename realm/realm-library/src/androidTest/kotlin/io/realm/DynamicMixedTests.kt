@@ -131,10 +131,10 @@ class DynamicMixedTests {
         val uuid = UUID.randomUUID()
 
         realm.executeTransaction {
-            val allJavaTypes = realm.createObject("MixedListObject")
+            val allJavaTypes = it.createObject("MixedListObject")
             val mixedList = allJavaTypes.getList("aList", Mixed::class.java)
 
-            val dynamicRealmObject = realm.createObject("ObjectString", "dynamic")
+            val dynamicRealmObject = it.createObject("ObjectString", "dynamic")
 
             mixedList.add(Mixed.valueOf(true))
             mixedList.add(Mixed.valueOf(1.toByte()))
@@ -189,9 +189,9 @@ class DynamicMixedTests {
         val uuid = UUID.randomUUID()
 
         realm.executeTransaction {
-            val allJavaTypes = realm.createObject("MixedListObject")
+            val allJavaTypes = it.createObject("MixedListObject")
             val mixedList = allJavaTypes.getList("aList", Mixed::class.java)
-            val dynamicRealmObject = realm.createObject("ObjectString", "dynamic")
+            val dynamicRealmObject = it.createObject("ObjectString", "dynamic")
 
             mixedList.add(0, Mixed.valueOf(true))
             mixedList.add(0, Mixed.valueOf(1.toByte()))
@@ -246,8 +246,8 @@ class DynamicMixedTests {
         val uuid = UUID.randomUUID()
 
         realm.executeTransaction {
-            val allJavaTypes = realm.createObject("MixedListObject")
-            val dynamicRealmObject = realm.createObject("ObjectString", "dynamic")
+            val allJavaTypes = it.createObject("MixedListObject")
+            val dynamicRealmObject = it.createObject("ObjectString", "dynamic")
 
             val initialList = RealmList<Mixed>()
             initialList.addAll(arrayOfNulls(15))
@@ -307,8 +307,8 @@ class DynamicMixedTests {
         val uuid = UUID.randomUUID()
 
         realm.executeTransaction {
-            val allJavaTypes = realm.createObject("MixedListObject")
-            val dynamicRealmObject = realm.createObject("ObjectString", "dynamic")
+            val allJavaTypes = it.createObject("MixedListObject")
+            val dynamicRealmObject = it.createObject("ObjectString", "dynamic")
 
             val initialList = RealmList<Mixed>()
             initialList.addAll(arrayOfNulls(15))
