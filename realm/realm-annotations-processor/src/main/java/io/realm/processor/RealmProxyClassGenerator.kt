@@ -491,6 +491,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
         val genericType: QualifiedClassName? = Utils.getGenericTypeQualifiedName(field)
         val forRealmModel: Boolean = Utils.isRealmModel(elementTypeMirror)
+        val forMixed: Boolean = Utils.isMixed(elementTypeMirror)
 
         writer.apply {
             // Getter - Start
@@ -572,7 +573,17 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         endControlFlow()
                     endControlFlow()
             } else {
-                // Value lists
+                if(forMixed){
+                    beginControlFlow("if (value != null && !value.isManaged())")
+                        emitStatement("final Realm realm = (Realm) proxyState.getRealm\$realm()")
+                        emitStatement("final RealmList<Mixed> original = value")
+                        emitStatement("value = new RealmList<Mixed>()")
+
+                        beginControlFlow("for (Mixed item : original)")
+                            emitStatement("value.add(ProxyUtils.copyToRealmIfNeeded(proxyState, item))")
+                        endControlFlow()
+                    endControlFlow()
+                }                // Value lists
                 emitStatement("osList.removeAll()")
                 beginControlFlow("if (value == null)")
                     emitStatement("return")

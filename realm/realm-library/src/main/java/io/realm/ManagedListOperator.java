@@ -83,6 +83,13 @@ abstract class ManagedListOperator<T> {
 
     protected abstract void checkValidValue(@Nullable Object value);
 
+    protected void checkInsertIndex(int index) {
+        final int size = size();
+        if (index < 0 || size < index) {
+            throw new IndexOutOfBoundsException("Invalid index " + index + ", size is " + osList.size());
+        }
+    }
+
     @Nullable
     public abstract T get(int index);
 
@@ -102,7 +109,7 @@ abstract class ManagedListOperator<T> {
 
     protected abstract void appendValue(Object value);
 
-    public final void insert(int index, @Nullable Object value) {
+    public final void insert(int index, @Nullable T value) {
         checkValidValue(value);
 
         if (value == null) {
@@ -199,13 +206,6 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
                     String.format(Locale.ENGLISH, INVALID_OBJECT_TYPE_MESSAGE,
                             "java.lang.String",
                             value.getClass().getName()));
-        }
-    }
-
-    private void checkInsertIndex(int index) {
-        final int size = size();
-        if (index < 0 || size < index) {
-            throw new IndexOutOfBoundsException("Invalid index " + index + ", size is " + osList.size());
         }
     }
 
@@ -875,10 +875,10 @@ final class MixedListOperator extends ManagedListOperator<Mixed> {
         return false;
     }
 
-    @Nullable
     @Override
     public Mixed get(int index) {
         NativeMixed nativeMixed = (NativeMixed) osList.getValue(index);
+        nativeMixed = (nativeMixed == null) ? new NativeMixed() : nativeMixed;
         return new Mixed(MixedOperator.fromNativeMixed(realm, nativeMixed));
     }
 
@@ -898,20 +898,77 @@ final class MixedListOperator extends ManagedListOperator<Mixed> {
 
     @Override
     public void appendValue(Object value) {
-        Mixed mixed = (value == null) ? Mixed.nullValue() : (Mixed) value;
-
+        Mixed mixed = (Mixed) value;
+        mixed = copyToRealmIfNeeded(mixed);
         osList.addMixed(mixed.getNativePtr());
     }
 
     @Override
     public void insertValue(int index, Object value) {
-        Mixed mixed = (value == null) ? Mixed.nullValue() : (Mixed) value;
+        checkInsertIndex(index);
+
+        Mixed mixed = (Mixed) value;
+        mixed = copyToRealmIfNeeded(mixed);
         osList.insertMixed(index, mixed.getNativePtr());
     }
 
     @Override
     protected void setValue(int index, Object value) {
-        Mixed mixed = (value == null) ? Mixed.nullValue() : (Mixed) value;
+        Mixed mixed = (Mixed) value;
+
+        mixed = copyToRealmIfNeeded(mixed);
         osList.setMixed(index, mixed.getNativePtr());
+    }
+
+    @SuppressWarnings("unchecked")
+    private Mixed copyToRealmIfNeeded(Mixed mixed) {
+        if (mixed.getType() == MixedType.OBJECT) {
+            Class<? extends RealmModel> objectClass = (Class<? extends RealmModel>) mixed.getValueClass();
+            RealmModel object = mixed.asRealmModel(objectClass);
+
+            if (object instanceof RealmObjectProxy) {
+                RealmObjectProxy proxy = (RealmObjectProxy) object;
+                if (proxy instanceof DynamicRealmObject) {
+                    if (proxy.realmGet$proxyState().getRealm$realm() == realm) {
+                        return mixed;
+                    } else if (realm.threadId == proxy.realmGet$proxyState().getRealm$realm().threadId) {
+                        // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as
+                        // you have to run a full schema validation for each object.
+                        // And copying from another Realm instance pointed to the same Realm file is not supported as well.
+                        throw new IllegalArgumentException("Cannot copy DynamicRealmObject between Realm instances.");
+                    } else {
+                        throw new IllegalStateException("Cannot copy an object to a Realm instance created in another thread.");
+                    }
+                } else {
+                    if (realm.getSchema().getSchemaForClass(objectClass).isEmbedded()) {
+                        throw new IllegalArgumentException("Embedded objects are not supported by Mixed.");
+                    }
+
+                    // Object is already in this realm
+                    if ((proxy.realmGet$proxyState().getRow$realm() != null) && proxy.realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+                        if (realm != proxy.realmGet$proxyState().getRealm$realm()) {
+                            throw new IllegalArgumentException("Cannot copy an object from another Realm instance.");
+                        }
+                        return mixed;
+                    }
+                }
+            }
+
+            return Mixed.valueOf(copyToRealm(object));
+        }
+
+        return mixed;
+    }
+
+    // Transparently copies an unmanaged object or managed object from another Realm to the Realm backing this RealmList.
+    private <E extends RealmModel> E copyToRealm(E object) {
+        // At this point the object can only be a typed object, so the backing Realm cannot be a DynamicRealm.
+        Realm realm = (Realm) this.realm;
+        if (OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(),
+                realm.getConfiguration().getSchemaMediator().getSimpleClassName(object.getClass())) != null) {
+            return realm.copyToRealmOrUpdate(object);
+        } else {
+            return realm.copyToRealm(object);
+        }
     }
 }

@@ -35,16 +35,76 @@ import javax.annotation.Nullable;
  * double value, you may call asDouble() to extract that value. You
  * may call getType() to discover what type of value is currently
  * stored. Calling asDouble() on an instance that does not store an
- * integer would raise a {@link java.lang.ClassCastException}.
+ * double would raise a {@link java.lang.ClassCastException}.
  * <p>
+ * Mixed behaves like a value type on all the supported types except on
+ * Realm objects. It means that Realm will not persist any change to the
+ * Mixed value except when the type is Realm object. Because Mixed
+ * instances are immutable, a new instance is needed to update a Mixed
+ * attribute.
+ * <pre>
+ * <code>
+ *      anObject.mixedAttribute = Mixed.valueOf(5);
+ *      anObject.mixedAttribute = Mixed.valueOf(10.f);
+ * </code>
+ * </pre>
  * It is crucial to understand that the act of extracting a value of
  * a particular type requires definite knowledge about the stored
  * type. Calling a getter method for any particular type, that is not
  * the same type as the stored value, would raise an exception.
  * <p>
+ * Our recommendation to handle the Mixed polymorphism is to write a
+ * switch case around the Mixed type and its inner value class.
+ * <pre>
+ * <code>
+ *      Mixed mixed = aRealmObject.mixedAttribute;
+ *
+ *      switch (mixed.getType()) {
+ *          case OBJECT:
+ *              if (mixed.getValueClass().equals(DogRealmModel.class)) {
+ *                  DogRealmModel value = mixed.asRealmModel(DogRealmModel.class);
+ *              }
+ *          case INTEGER:
+ *              performAction(mixed.asInteger());
+ *              break;
+ *          case BOOLEAN:
+ *              performAction(mixed.asBoolean());
+ *              break;
+ *          case STRING:
+ *              performAction(mixed.asString());
+ *              break;
+ *          case BINARY:
+ *              performAction(mixed.asBinary());
+ *              break;
+ *          case DATE:
+ *              performAction(mixed.asDate());
+ *              break;
+ *          case FLOAT:
+ *              performAction(mixed.asFloat());
+ *              break;
+ *          case DOUBLE:
+ *              performAction(mixed.asDouble());
+ *              break;
+ *          case DECIMAL128:
+ *              performAction(mixed.asDecimal128());
+ *              break;
+ *          case OBJECT_ID:
+ *              performAction(mixed.asObjectId());
+ *              break;
+ *          case UUID:
+ *              performAction(mixed.asUUID());
+ *              break;
+ *          case NULL:
+ *              performNullAction();
+ *              break;
+ *      }
+ * </code>
+ * </pre>
+ * <p>
  * getValueClass() returns the Java class that represents the inner
- * value wrapped by the Mixed instance. It is useful to know what
- * {@link io.realm.RealmModel} to cast to when calling asRealmModel().
+ * value wrapped by the Mixed instance. If the resulting class is
+ * a realization of {@link io.realm.RealmModel} asRealmModel() can be
+ * called to cast the Mixed value to a Realm object reference.
  */
 
 public class Mixed {
@@ -82,8 +142,8 @@ public class Mixed {
      * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
      *
-     * @param value initial value
-     * @return a new Mixed of a Byte
+     * @param value initial value.
+     * @return a new Mixed containing a Byte value.
      */
     public static Mixed valueOf(@Nullable Byte value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new IntegerMixedOperator(value));
@@ -93,8 +153,8 @@ public class Mixed {
      * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
      *
-     * @param value initial value
-     * @return a new Mixed of a Short
+     * @param value initial value.
+     * @return a new Mixed of a Short.
      */
     public static Mixed valueOf(@Nullable Short value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new IntegerMixedOperator(value));
@@ -104,8 +164,8 @@ public class Mixed {
      * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
      *
-     * @param value initial value
-     * @return a new Mixed of a Integer
+     * @param value initial value.
+     * @return a new Mixed of a Integer.
      */
     public static Mixed valueOf(@Nullable Integer value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new IntegerMixedOperator(value));
@@ -115,8 +175,8 @@ public class Mixed {
      * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
      *
-     * @param value initial value
-     * @return a new Mixed of a Long
+     * @param value initial value.
+     * @return a new Mixed of a Long.
      */
     public static Mixed valueOf(@Nullable Long value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new IntegerMixedOperator(value));
@@ -127,8 +187,8 @@ public class Mixed {
      * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#BOOLEAN}, {@link MixedType#NULL} otherwise.
      *
-     * @param value initial value
-     * @return a new Mixed of a Boolean
+     * @param value initial value.
+     * @return a new Mixed of a Boolean.
      */
     public static Mixed valueOf(@Nullable Boolean value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new BooleanMixedOperator(value));
@@ -138,8 +198,8 @@ public class Mixed {
      * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#FLOAT}, {@link MixedType#NULL} otherwise.
      *
-     * @param value initial value
-     * @return a new Mixed of a Float
+     * @param value initial value.
+     * @return a new Mixed of a Float.
      */
     public static Mixed valueOf(@Nullable Float value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new FloatMixedOperator(value));
@@ -149,8 +209,8 @@ public class Mixed {
      * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#DOUBLE}, {@link MixedType#NULL} otherwise.
      *
-     * @param value initial value
-     * @return a new Mixed of a Double
+     * @param value initial value.
+     * @return a new Mixed of a Double.
      */
     public static Mixed valueOf(@Nullable Double value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new DoubleMixedOperator(value));
@@ -160,8 +220,8 @@ public class Mixed {
      * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#STRING}, {@link MixedType#NULL} otherwise.
      *
-     * @param value initial value
-     * @return a new Mixed of a String
+     * @param value initial value.
+     * @return a new Mixed of a String.
      */
     public static Mixed valueOf(@Nullable String value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new StringMixedOperator(value));
@@ -171,8 +231,8 @@ public class Mixed {
      * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#BINARY}, {@link MixedType#NULL} otherwise.
      *
-     * @param value initial value
-     * @return a new Mixed of a byte[]
+     * @param value initial value.
+     * @return a new Mixed of a byte[].
      */
     public static Mixed valueOf(@Nullable byte[] value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new BinaryMixedOperator(value));
@@ -182,8 +242,8 @@ public class Mixed {
      * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#DATE}, {@link MixedType#NULL} otherwise.
      *
-     * @param value initial value
-     * @return a new Mixed of a Date
+     * @param value initial value.
+     * @return a new Mixed of a Date.
      */
     public static Mixed valueOf(@Nullable Date value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new DateMixedOperator(value));
@@ -193,8 +253,8 @@ public class Mixed {
      * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#OBJECT_ID}, {@link MixedType#NULL} otherwise.
      *
-     * @param value initial value
-     * @return a new Mixed of an ObjectId
+     * @param value initial value.
+     * @return a new Mixed of an ObjectId.
      */
     public static Mixed valueOf(@Nullable ObjectId value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new ObjectIdMixedOperator(value));
@@ -204,8 +264,8 @@ public class Mixed {
      * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#DECIMAL128}, {@link MixedType#NULL} otherwise.
      *
-     * @param value initial value
-     * @return a new Mixed of a Decimal128
+     * @param value initial value.
+     * @return a new Mixed of a Decimal128.
      */
     public static Mixed valueOf(@Nullable Decimal128 value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new Decimal128MixedOperator(value));
@@ -215,17 +275,17 @@ public class Mixed {
      * Creates a new Mixed with the specified initial value.
      * If the value is not null the type will be {@link MixedType#UUID}, {@link MixedType#NULL} otherwise.
      *
-     * @param value initial value
-     * @return a new Mixed of an UUID
+     * @param value initial value.
+     * @return a new Mixed of an UUID.
      */
     public static Mixed valueOf(@Nullable UUID value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new UUIDMixedOperator(value));
     }
 
     /**
-     * Creates a new Mixed of a null value
+     * Creates a new Mixed of a null value.
      *
-     * @return a new Mixed instance of a null value
+     * @return a new Mixed instance of a null value.
      */
     public static Mixed nullValue() {
         return new Mixed(new NullMixedOperator());
@@ -234,8 +294,8 @@ public class Mixed {
     /**
      * Creates a new Mixed with the specified initial value.
      *
-     * @param value initial value
-     * @return a new Mixed of a RealmModel
+     * @param value initial value.
+     * @return a new Mixed of a RealmModel.
      */
     public static Mixed valueOf(@Nullable RealmModel value) {
         return new Mixed((value == null) ? new NullMixedOperator() : new RealmModelOperator(value));
@@ -244,7 +304,7 @@ public class Mixed {
     /**
      * Returns true if the inner value is null, false otherwise.
      *
-     * @return true if the inner value is null, false otherwise
+     * @return true if the inner value is null, false otherwise.
      */
     public boolean isNull() {
         return this.getType() == MixedType.NULL;
@@ -253,8 +313,8 @@ public class Mixed {
     /**
      * Gets this value as a Byte if it is one, otherwise throws exception.
      *
-     * @return a Byte
-     * @throws java.lang.ClassCastException if this value is not of the expected type
+     * @return a Byte.
+     * @throws java.lang.ClassCastException if this value is not of the expected type.
      */
     public Byte asByte() {
         Number value = operator.getValue(Number.class);
@@ -264,8 +324,8 @@ public class Mixed {
     /**
      * Gets this value as a Short if it is one, otherwise throws exception.
      *
-     * @return a Short
-     * @throws java.lang.ClassCastException if this value is not of the expected type
+     * @return a Short.
+     * @throws java.lang.ClassCastException if this value is not of the expected type.
      */
     public Short asShort() {
         Number value = operator.getValue(Number.class);
@@ -275,8 +335,8 @@ public class Mixed {
     /**
      * Gets this value as a Integer if it is one, otherwise throws exception.
      *
-     * @return a Integer
-     * @throws java.lang.ClassCastException if this value is not of the expected type
+     * @return an Integer.
+     * @throws java.lang.ClassCastException if this value is not of the expected type.
      */
     public Integer asInteger() {
         Number value = operator.getValue(Number.class);
@@ -286,8 +346,8 @@ public class Mixed {
     /**
      * Gets this value as a Long if it is one, otherwise throws exception.
      *
-     * @return a Long
-     * @throws java.lang.ClassCastException if this value is not of the expected type
+     * @return a Long.
+     * @throws java.lang.ClassCastException if this value is not of the expected type.
      */
     public Long asLong() {
         Number value = operator.getValue(Number.class);
@@ -297,8 +357,8 @@ public class Mixed {
     /**
      * Gets this value as a Boolean if it is one, otherwise throws exception.
      *
-     * @return a Boolean
-     * @throws java.lang.ClassCastException if this value is not of the expected type
+     * @return a Boolean.
+     * @throws java.lang.ClassCastException if this value is not of the expected type.
      */
     public Boolean asBoolean() {
         return operator.getValue(Boolean.class);
@@ -307,8 +367,8 @@ public class Mixed {
     /**
      * Gets this value as a Float if it is one, otherwise throws exception.
      *
-     * @return a Float
-     * @throws java.lang.ClassCastException if this value is not of the expected type
+     * @return a Float.
+     * @throws java.lang.ClassCastException if this value is not of the expected type.
      */
     public Float asFloat() {
         return operator.getValue(Float.class);
@@ -317,8 +377,8 @@ public class Mixed {
     /**
      * Gets this value as a Double if it is one, otherwise throws exception.
      *
-     * @return a Double
-     * @throws java.lang.ClassCastException if this value is not of the expected type
+     * @return a Double.
+     * @throws java.lang.ClassCastException if this value is not of the expected type.
      */
     public Double asDouble() {
         return operator.getValue(Double.class);
@@ -327,8 +387,8 @@ public class Mixed {
     /**
      * Gets this value as a String if it is one, otherwise throws exception.
      *
-     * @return a String
-     * @throws java.lang.ClassCastException if this value is not of the expected type
+     * @return a String.
+     * @throws java.lang.ClassCastException if this value is not of the expected type.
      */
     public String asString() {
         return operator.getValue(String.class);
@@ -337,8 +397,8 @@ public class Mixed {
     /**
      * Gets this value as a byte[] if it is one, otherwise throws exception.
      *
-     * @return a byte[]
-     * @throws java.lang.ClassCastException if this value is not of the expected type
+     * @return a byte[].
+     * @throws java.lang.ClassCastException if this value is not of the expected type.
      */
     public byte[] asBinary() {
         return operator.getValue(byte[].class);
@@ -347,8 +407,8 @@ public class Mixed {
     /**
      * Gets this value as a Date if it is one, otherwise throws exception.
      *
-     * @return a Date
-     * @throws java.lang.ClassCastException if this value is not of the expected type
+     * @return a Date.
+     * @throws java.lang.ClassCastException if this value is not of the expected type.
      */
     public Date asDate() {
         return operator.getValue(Date.class);
@@ -357,8 +417,8 @@ public class Mixed {
     /**
      * Gets this value as a ObjectId if it is one, otherwise throws exception.
      *
-     * @return an ObjectId
-     * @throws java.lang.ClassCastException if this value is not of the expected type
+     * @return an ObjectId.
+     * @throws java.lang.ClassCastException if this value is not of the expected type.
      */
     public ObjectId asObjectId() {
         return operator.getValue(ObjectId.class);
@@ -367,8 +427,8 @@ public class Mixed {
     /**
      * Gets this value as a UUID if it is one, otherwise throws exception.
      *
-     * @return an UUID
-     * @throws java.lang.ClassCastException if this value is not of the expected type
+     * @return an UUID.
+     * @throws java.lang.ClassCastException if this value is not of the expected type.
      */
     public UUID asUUID() {
         return operator.getValue(UUID.class);
@@ -377,20 +437,19 @@ public class Mixed {
     /**
      * Gets this value as a Decimal128 if it is one, otherwise throws exception.
      *
-     * @return a Decimal128
-     * @throws java.lang.ClassCastException if this value is not of the expected type
+     * @return a Decimal128.
+     * @throws java.lang.ClassCastException if this value is not of the expected type.
      */
     public Decimal128 asDecimal128() {
         return operator.getValue(Decimal128.class);
     }
 
-
     /**
      * Gets this value as a RealmModel if it is one, otherwise throws exception.
      *
-     * @param <T> the RealmModel type to cast the inner value to
-     * @return a RealmModel of the T type
-     * @throws java.lang.ClassCastException if this value is not of the expected type
+     * @param <T> the RealmModel type to cast the inner value to.
+     * @return a RealmModel of the T type.
+     * @throws java.lang.ClassCastException if this value is not of the expected type.
      */
     public <T extends RealmModel> T asRealmModel(Class<T> clazz) {
         return operator.getValue(clazz);

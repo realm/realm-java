@@ -152,7 +152,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3J_3JJ(J
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Int)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Int)) {
                 return;
             }
             Q(nativeQueryPtr)->equal(ColKey(col_key_arr[0]), static_cast<int64_t>(value));
@@ -176,7 +176,7 @@ JNIEXPORT void JNICALL JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual_
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Int)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Int)) {
                 return;
             }
             Q(nativeQueryPtr)->not_equal(ColKey(col_key_arr[0]), static_cast<int64_t>(value));
@@ -200,7 +200,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreater__J_3J_3JJ
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Int)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Int)) {
                 return;
             }
             Q(nativeQueryPtr)->greater(ColKey(col_key_arr[0]), static_cast<int64_t>(value));
@@ -225,7 +225,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqual__J_3
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Int)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Int)) {
                 return;
             }
             Q(nativeQueryPtr)->greater_equal(ColKey(col_key_arr[0]), static_cast<int64_t>(value));
@@ -248,7 +248,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLess__J_3J_3JJ(JN
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Int)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Int)) {
                 return;
             }
             Q(nativeQueryPtr)->less(ColKey(col_key_arr[0]), static_cast<int64_t>(value));
@@ -271,7 +271,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqual__J_3J_3
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Int)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Int)) {
                 return;
             }
             Q(nativeQueryPtr)->less_equal(ColKey(col_key_arr[0]), static_cast<int64_t>(value));
@@ -294,7 +294,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetween__J_3JJJ(J
     jsize arr_len = arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), arr[0], type_Int)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), arr[0], col_type_Int)) {
                 return;
             }
             try {
@@ -321,7 +321,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3J_3JF(J
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Float)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Float)) {
                 return;
             }
             Q(nativeQueryPtr)->equal(ColKey(col_key_arr[0]), static_cast<float>(value));
@@ -346,7 +346,7 @@ JNIEXPORT void JNICALL JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual_
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Float)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Float)) {
                 return;
             }
             Q(nativeQueryPtr)->not_equal(ColKey(col_key_arr[0]), static_cast<float>(value));
@@ -370,7 +370,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreater__J_3J_3JF
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Float)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Float)) {
                 return;
             }
             Q(nativeQueryPtr)->greater(ColKey(col_key_arr[0]), static_cast<float>(value));
@@ -395,7 +395,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqual__J_3
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Float)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Float)) {
                 return;
             }
             Q(nativeQueryPtr)->greater_equal(ColKey(col_key_arr[0]), static_cast<float>(value));
@@ -418,7 +418,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLess__J_3J_3JF(JN
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Float)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Float)) {
                 return;
             }
             Q(nativeQueryPtr)->less(ColKey(col_key_arr[0]), static_cast<float>(value));
@@ -442,7 +442,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqual__J_3J_3
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Float)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Float)) {
                 return;
             }
             Q(nativeQueryPtr)->less_equal(ColKey(col_key_arr[0]), static_cast<float>(value));
@@ -465,7 +465,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetween__J_3JFF(J
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Float)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Float)) {
                 return;
             }
             Q(nativeQueryPtr)->between(ColKey(col_key_arr[0]), static_cast<float>(value1), static_cast<float>(value2));
@@ -489,7 +489,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3J_3JD(J
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Double)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Double)) {
                 return;
             }
             Q(nativeQueryPtr)->equal(ColKey(col_key_arr[0]), static_cast<double>(value));
@@ -514,7 +514,7 @@ JNIEXPORT void JNICALL JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual_
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Double)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Double)) {
                 return;
             }
             Q(nativeQueryPtr)->not_equal(ColKey(col_key_arr[0]), static_cast<double>(value));
@@ -538,7 +538,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreater__J_3J_3JD
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Double)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Double)) {
                 return;
             }
             Q(nativeQueryPtr)->greater(ColKey(col_key_arr[0]), static_cast<double>(value));
@@ -563,7 +563,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqual__J_3
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Double)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Double)) {
                 return;
             }
             Q(nativeQueryPtr)->greater_equal(ColKey(col_key_arr[0]), static_cast<double>(value));
@@ -586,7 +586,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLess__J_3J_3JD(JN
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Double)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Double)) {
                 return;
             }
             Q(nativeQueryPtr)->less(ColKey(col_key_arr[0]), static_cast<double>(value));
@@ -611,7 +611,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqual__J_3J_3
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Double)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Double)) {
                 return;
             }
             Q(nativeQueryPtr)->less_equal(ColKey(col_key_arr[0]), static_cast<double>(value));
@@ -634,7 +634,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetween__J_3JDD(J
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Double)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Double)) {
                 return;
             }
             Q(nativeQueryPtr)->between(ColKey(col_key_arr[0]), static_cast<double>(value1), static_cast<double>(value2));
@@ -658,7 +658,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualTimestamp(JN
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Timestamp)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Timestamp)) {
                 return;
             }
             Q(nativeQueryPtr)->equal(ColKey(col_key_arr[0]), from_milliseconds(value));
@@ -684,7 +684,7 @@ JNIEXPORT void JNICALL JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualT
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Timestamp)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Timestamp)) {
                 return;
             }
             Q(nativeQueryPtr)->not_equal(ColKey(col_key_arr[0]), from_milliseconds(value));
@@ -709,7 +709,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterTimestamp(
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Timestamp)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Timestamp)) {
                 return;
             }
             Q(nativeQueryPtr)->greater(ColKey(col_key_arr[0]), from_milliseconds(value));
@@ -735,7 +735,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqualTimes
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Timestamp)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Timestamp)) {
                 return;
             }
             Q(nativeQueryPtr)->greater_equal(ColKey(col_key_arr[0]), from_milliseconds(value));
@@ -760,7 +760,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessTimestamp(JNI
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Timestamp)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Timestamp)) {
                 return;
             }
             Q(nativeQueryPtr)->less(ColKey(col_key_arr[0]), from_milliseconds(value));
@@ -786,7 +786,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqualTimestam
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Timestamp)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Timestamp)) {
                 return;
             }
             Q(nativeQueryPtr)->less_equal(ColKey(col_key_arr[0]), from_milliseconds(value));
@@ -810,7 +810,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetweenTimestamp(
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Timestamp)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Timestamp)) {
                 return;
             }
             Q(nativeQueryPtr)
@@ -841,7 +841,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetweenDecimal128
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Decimal)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Decimal)) {
                 return;
             }
             Q(nativeQueryPtr)->between(ColKey(col_key_arr[0]), value1, value2);
@@ -864,7 +864,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3J_3JZ(J
     jsize arr_len = col_key_arr.size();
     try {
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Bool)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Bool)) {
                 return;
             }
             Q(nativeQueryPtr)->equal(ColKey(col_key_arr[0]), to_bool(value));
@@ -892,7 +892,7 @@ static void TableQuery_Decimal128Predicate(JNIEnv* env, jlong nativeQueryPtr, jl
         Decimal128::Bid128 raw = {static_cast<uint64_t>(low), static_cast<uint64_t>(high)};
         Decimal128 decimal128 = Decimal128(raw);
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Decimal)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Decimal)) {
                 return;
             }
             switch (predicate) {
@@ -1027,7 +1027,7 @@ static void TableQuery_ObjectIdPredicate(JNIEnv* env, jlong nativeQueryPtr, jlon
 
         ObjectId objectId = ObjectId(StringData(data).data());
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_ObjectId)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_ObjectId)) {
                 return;
             }
 
@@ -1163,7 +1163,7 @@ static void TableQuery_StringPredicate(JNIEnv* env, jlong nativeQueryPtr, jlongA
         bool is_case_sensitive = to_bool(caseSensitive);
         JStringAccessor value2(env, value); // throws
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_String)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_String)) {
                 return;
             }
             switch (predicate) {
@@ -1239,7 +1239,7 @@ static void TableQuery_UUIDPredicate(JNIEnv* env, jlong nativeQueryPtr, jlongArr
 
         UUID uuid = UUID(StringData(data).data());
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_UUID)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_UUID)) {
                 return;
             }
 
@@ -1417,7 +1417,7 @@ static void TableQuery_BinaryPredicate(JNIEnv* env, jlong nativeQueryPtr, jlongA
 
         JByteArrayAccessor jarray_accessor(env, value);
         if (arr_len == 1) {
-            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], type_Binary)) {
+            if (!TYPE_VALID(env, Q(nativeQueryPtr)->get_table(), col_key_arr[0], col_type_Binary)) {
                 return;
             }
             switch (predicate) {
@@ -1528,7 +1528,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeSumInt(JNIEnv* e
 {
     Query* pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, type_Int)) {
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Int)) {
         return 0;
     }
     try {
@@ -1543,7 +1543,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumInt(JNI
 {
     Query* pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, type_Int)) {
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Int)) {
         return nullptr;
     }
     try {
@@ -1563,7 +1563,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumInt(JNI
 {
     Query* pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, type_Int)) {
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Int)) {
         return nullptr;
     }
     try {
@@ -1582,7 +1582,7 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageInt(JNI
 {
     Query* pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, type_Int)) {
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Int)) {
         return 0;
     }
     try {
@@ -1601,7 +1601,7 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeSumFloat(JNIEn
 {
     Query* pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, type_Float)) {
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Float)) {
         return 0;
     }
     try {
@@ -1617,7 +1617,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumFloat(J
 {
     Query* pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, type_Float)) {
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Float)) {
         return nullptr;
     }
     try {
@@ -1637,7 +1637,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumFloat(J
 {
     Query* pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, type_Float)) {
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Float)) {
         return nullptr;
     }
     try {
@@ -1657,7 +1657,7 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageFloat(J
 {
     Query* pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, type_Float)) {
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Float)) {
         return 0;
     }
     try {
@@ -1674,7 +1674,7 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeSumDouble(JNIE
 {
     Query* pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, type_Double)) {
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Double)) {
         return 0;
     }
     try {
@@ -1690,7 +1690,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDouble(
 {
     Query* pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, type_Double)) {
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Double)) {
         return nullptr;
     }
     try {
@@ -1710,7 +1710,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDeci
 {
     Query* pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, type_Decimal)) {
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Decimal)) {
         return nullptr;
     }
     try {
@@ -1726,7 +1726,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeSumDecimal1
 {
     Query* pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, type_Decimal)) {
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Decimal)) {
         return 0;
     }
     try {
@@ -1745,7 +1745,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(
 {
     Query* pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, type_Double)) {
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Double)) {
         return nullptr;
     }
     try {
@@ -1765,7 +1765,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDeci
 {
     Query* pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, type_Decimal)) {
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Decimal)) {
         return nullptr;
     }
     try {
@@ -1782,7 +1782,7 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble(
 {
     Query* pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, type_Double)) {
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Double)) {
         return 0;
     }
     try {
@@ -1798,7 +1798,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeAverageDeci
 {
     Query* pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, type_Decimal)) {
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Decimal)) {
         return nullptr;
     }
     try {
@@ -1817,7 +1817,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumTimesta
 {
     Query* pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, type_Timestamp)) {
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Timestamp)) {
         return nullptr;
     }
     try {
@@ -1837,7 +1837,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumTimesta
 {
     Query* pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, type_Timestamp)) {
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Timestamp)) {
         return nullptr;
     }
     try {

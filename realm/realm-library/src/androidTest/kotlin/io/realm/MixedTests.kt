@@ -22,8 +22,10 @@ import io.realm.entities.AllJavaTypes
 import io.realm.entities.MixedIndexed
 import io.realm.entities.MixedNotIndexed
 import io.realm.entities.PrimaryKeyAsString
+import io.realm.entities.embedded.SimpleEmbeddedObject
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
+import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import org.junit.*
@@ -31,6 +33,7 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.util.*
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -57,6 +60,7 @@ class MixedTests {
                 .schema(MixedNotIndexed::class.java,
                         MixedIndexed::class.java,
                         AllJavaTypes::class.java,
+                        SimpleEmbeddedObject::class.java,
                         PrimaryKeyAsString::class.java)
                 .build()
 
@@ -568,6 +572,7 @@ class MixedTests {
 
         realm.executeTransaction {
             val allJavaTypes = it.createObject<AllJavaTypes>(0)
+            val managedRealmModel = it.createObject<PrimaryKeyAsString>("managed")
 
             allJavaTypes.fieldMixedList.add(Mixed.valueOf(true))
             allJavaTypes.fieldMixedList.add(Mixed.valueOf(1.toByte()))
@@ -584,6 +589,8 @@ class MixedTests {
             allJavaTypes.fieldMixedList.add(Mixed.valueOf(uuid))
             allJavaTypes.fieldMixedList.add(Mixed.nullValue())
             allJavaTypes.fieldMixedList.add(null)
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(PrimaryKeyAsString("unmanaged")))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(managedRealmModel))
         }
 
         val allJavaTypes = realm.where<AllJavaTypes>().findFirst()
@@ -603,6 +610,9 @@ class MixedTests {
         assertEquals(uuid, allJavaTypes.fieldMixedList[12]!!.asUUID())
         assertTrue(allJavaTypes.fieldMixedList[13]!!.isNull)
         assertTrue(allJavaTypes.fieldMixedList[14]!!.isNull)
+
+        assertEquals("unmanaged", allJavaTypes.fieldMixedList[15]!!.asRealmModel(PrimaryKeyAsString::class.java).name)
+        assertEquals("managed", allJavaTypes.fieldMixedList[16]!!.asRealmModel(PrimaryKeyAsString::class.java).name)
     }
 
     @Test
@@ -616,6 +626,7 @@ class MixedTests {
 
         realm.executeTransaction {
             val allJavaTypes = it.createObject<AllJavaTypes>(0)
+            val managedRealmModel = it.createObject<PrimaryKeyAsString>("managed")
 
             allJavaTypes.fieldMixedList.add(0, Mixed.valueOf(true))
             allJavaTypes.fieldMixedList.add(0, Mixed.valueOf(1.toByte()))
@@ -632,25 +643,30 @@ class MixedTests {
             allJavaTypes.fieldMixedList.add(0, Mixed.valueOf(uuid))
             allJavaTypes.fieldMixedList.add(0, Mixed.nullValue())
             allJavaTypes.fieldMixedList.add(0, null)
+            allJavaTypes.fieldMixedList.add(0, Mixed.valueOf(PrimaryKeyAsString("unmanaged")))
+            allJavaTypes.fieldMixedList.add(0, Mixed.valueOf(managedRealmModel))
         }
 
         val allJavaTypes = realm.where<AllJavaTypes>().findFirst()
 
-        assertEquals(true, allJavaTypes!!.fieldMixedList[14]!!.asBoolean())
-        assertEquals(1, allJavaTypes.fieldMixedList[13]!!.asByte())
-        assertEquals(2, allJavaTypes.fieldMixedList[12]!!.asShort())
-        assertEquals(3, allJavaTypes.fieldMixedList[11]!!.asInteger())
-        assertEquals(4, allJavaTypes.fieldMixedList[10]!!.asLong())
-        assertEquals(5.toFloat(), allJavaTypes.fieldMixedList[9]!!.asFloat())
-        assertEquals(6.toDouble(), allJavaTypes.fieldMixedList[8]!!.asDouble())
-        assertEquals(aString, allJavaTypes.fieldMixedList[7]!!.asString())
-        assertTrue(Arrays.equals(byteArray, allJavaTypes.fieldMixedList[6]!!.asBinary()))
-        assertEquals(date, allJavaTypes.fieldMixedList[5]!!.asDate())
-        assertEquals(objectId, allJavaTypes.fieldMixedList[4]!!.asObjectId())
-        assertEquals(decimal128, allJavaTypes.fieldMixedList[3]!!.asDecimal128())
-        assertEquals(uuid, allJavaTypes.fieldMixedList[2]!!.asUUID())
-        assertTrue(allJavaTypes.fieldMixedList[1]!!.isNull)
-        assertTrue(allJavaTypes.fieldMixedList[0]!!.isNull)
+        assertEquals(true, allJavaTypes!!.fieldMixedList[16]!!.asBoolean())
+        assertEquals(1, allJavaTypes.fieldMixedList[15]!!.asByte())
+        assertEquals(2, allJavaTypes.fieldMixedList[14]!!.asShort())
+        assertEquals(3, allJavaTypes.fieldMixedList[13]!!.asInteger())
+        assertEquals(4, allJavaTypes.fieldMixedList[12]!!.asLong())
+        assertEquals(5.toFloat(), allJavaTypes.fieldMixedList[11]!!.asFloat())
+        assertEquals(6.toDouble(), allJavaTypes.fieldMixedList[10]!!.asDouble())
+        assertEquals(aString, allJavaTypes.fieldMixedList[9]!!.asString())
+        assertTrue(Arrays.equals(byteArray, allJavaTypes.fieldMixedList[8]!!.asBinary()))
+        assertEquals(date, allJavaTypes.fieldMixedList[7]!!.asDate())
+        assertEquals(objectId, allJavaTypes.fieldMixedList[6]!!.asObjectId())
+        assertEquals(decimal128, allJavaTypes.fieldMixedList[5]!!.asDecimal128())
+        assertEquals(uuid, allJavaTypes.fieldMixedList[4]!!.asUUID())
+        assertTrue(allJavaTypes.fieldMixedList[3]!!.isNull)
+        assertTrue(allJavaTypes.fieldMixedList[2]!!.isNull)
+
+        assertEquals("unmanaged", allJavaTypes.fieldMixedList[1]!!.asRealmModel(PrimaryKeyAsString::class.java).name)
+        assertEquals("managed", allJavaTypes.fieldMixedList[0]!!.asRealmModel(PrimaryKeyAsString::class.java).name)
     }
 
     @Test
@@ -665,6 +681,7 @@ class MixedTests {
 
         realm.executeTransaction {
             val allJavaTypes = it.createObject<AllJavaTypes>(0)
+            val managedRealmModel = it.createObject<PrimaryKeyAsString>("managed")
 
             val initialList = RealmList<Mixed>()
             initialList.addAll(arrayOfNulls(15))
@@ -685,6 +702,8 @@ class MixedTests {
             allJavaTypes.fieldMixedList[12] = Mixed.valueOf(uuid)
             allJavaTypes.fieldMixedList[13] = Mixed.nullValue()
             allJavaTypes.fieldMixedList[14] = null
+            allJavaTypes.fieldMixedList[15] = Mixed.valueOf(PrimaryKeyAsString("unmanaged"))
+            allJavaTypes.fieldMixedList[16] = Mixed.valueOf(managedRealmModel)
         }
 
         val allJavaTypes = realm.where<AllJavaTypes>().findFirst()
@@ -704,6 +723,8 @@ class MixedTests {
         assertEquals(uuid, allJavaTypes.fieldMixedList[12]!!.asUUID())
         assertTrue(allJavaTypes.fieldMixedList[13]!!.isNull)
         assertTrue(allJavaTypes.fieldMixedList[14]!!.isNull)
+        assertEquals("unmanaged", allJavaTypes.fieldMixedList[15]!!.asRealmModel(PrimaryKeyAsString::class.java).name)
+        assertEquals("managed", allJavaTypes.fieldMixedList[16]!!.asRealmModel(PrimaryKeyAsString::class.java).name)
     }
 
     @Test
@@ -718,6 +739,7 @@ class MixedTests {
 
         realm.executeTransaction {
             val allJavaTypes = it.createObject<AllJavaTypes>(0)
+            val managedRealmModel = it.createObject<PrimaryKeyAsString>("managed")
 
             allJavaTypes.fieldMixedList.add(Mixed.valueOf(true))
             allJavaTypes.fieldMixedList.add(Mixed.valueOf(1.toByte()))
@@ -734,13 +756,115 @@ class MixedTests {
             allJavaTypes.fieldMixedList.add(Mixed.valueOf(uuid))
             allJavaTypes.fieldMixedList.add(Mixed.nullValue())
             allJavaTypes.fieldMixedList.add(null)
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(PrimaryKeyAsString("unmanaged")))
+            allJavaTypes.fieldMixedList.add(Mixed.valueOf(managedRealmModel))
         }
 
         realm.executeTransaction {
             val allJavaTypes = realm.where<AllJavaTypes>().findFirst()
 
-            for (i in 0..14)
+            for (i in 0..16)
                 allJavaTypes!!.fieldMixedList.removeAt(0)
+
+            assertEquals(0, allJavaTypes!!.fieldMixedList.size)
         }
+    }
+
+    private val looperThread = BlockingLooperThread()
+
+    @Test
+    fun managed_listThrowsOtherRealm(){
+        realm.beginTransaction()
+
+        val aDog = realm.createObject(PrimaryKeyAsString::class.java, "a dog")
+
+        realm.commitTransaction()
+
+
+        looperThread.runBlocking {
+            val anotherRealm = Realm.getInstance(realm.configuration)
+
+            anotherRealm.beginTransaction()
+
+            val allTypes = anotherRealm.createObject(AllJavaTypes::class.java, 0)
+
+            assertFailsWith<IllegalArgumentException>("Cannot copy an object from another Realm instance."){
+                allTypes.fieldMixedList.add(Mixed.valueOf(aDog))
+            }
+
+            anotherRealm.commitTransaction()
+
+            looperThread.testComplete()
+        }
+    }
+
+    @Test
+    fun managed_listThrowsEmbedded(){
+        looperThread.runBlocking {
+            val anotherRealm = Realm.getInstance(realm.configuration)
+
+            anotherRealm.beginTransaction()
+
+            val allTypes = anotherRealm.createObject(AllJavaTypes::class.java, 0)
+
+            assertFailsWith<IllegalArgumentException>("Embedded objects are not supported by Mixed.") {
+                allTypes.fieldMixedList.add(Mixed.valueOf(SimpleEmbeddedObject()))
+            }
+
+            anotherRealm.commitTransaction()
+
+            looperThread.testComplete()
+        }
+    }
+
+    @Test
+    fun dynamiclists_throwCopyBetweenInstances(){
+        realm.beginTransaction()
+
+        val aDog = realm.createObject(PrimaryKeyAsString::class.java, "a dog")
+
+        realm.commitTransaction()
+
+        val dynDog = DynamicRealmObject(aDog)
+        val dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration())
+
+        dynamicRealm.beginTransaction()
+
+        assertFailsWith<IllegalArgumentException>("Cannot copy DynamicRealmObject between Realm instances.") {
+            dynamicRealm.createObject(AllJavaTypes.CLASS_NAME, 0)
+                    .getList(AllJavaTypes.FIELD_MIXED_LIST, Mixed::class.java)
+                    .add(Mixed.valueOf(dynDog))
+        }
+
+        dynamicRealm.commitTransaction()
+
+        dynamicRealm.close()
+    }
+
+    @Test
+    fun lists_throwCopyBetweenThreads(){
+        realm.executeTransaction {
+            it.createObject(PrimaryKeyAsString::class.java, "a dog")
+        }
+
+        val dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration())
+        val dynDog = dynamicRealm.where(PrimaryKeyAsString.CLASS_NAME).findFirst()
+
+        looperThread.runBlocking {
+            val innerDynamicRealm = DynamicRealm.getInstance(realm.getConfiguration())
+            innerDynamicRealm.beginTransaction()
+
+            assertFailsWith<IllegalStateException>("Cannot copy an object to a Realm instance created in another thread.") {
+                dynamicRealm.createObject(AllJavaTypes.CLASS_NAME, 0)
+                        .getList(AllJavaTypes.FIELD_MIXED_LIST, Mixed::class.java)
+                        .add(Mixed.valueOf(dynDog))
+            }
+
+            innerDynamicRealm.close()
+
+            looperThread.testComplete()
+        }
+
+        dynamicRealm.close()
     }
 }

@@ -573,8 +573,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddMixed(JNIEnv* env,
                                                                    jlong mixed_ptr)
 {
     try {
-        auto mixed = reinterpret_cast<Mixed*>(mixed_ptr);
-        add_value(env, list_ptr, Any(*mixed));
+        auto java_value = *reinterpret_cast<JavaValue*>(mixed_ptr);
+        add_value(env, list_ptr, Any(java_value.to_mixed()));
     }
     CATCH_STD()
 }
@@ -583,8 +583,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertMixed(JNIEnv* e
                                                                       jlong pos, jlong mixed_ptr)
 {
     try {
-        auto mixed = reinterpret_cast<Mixed*>(mixed_ptr);
-        insert_value(env, list_ptr, pos, Any(*mixed));
+        auto java_value = *reinterpret_cast<JavaValue*>(mixed_ptr);
+        insert_value(env, list_ptr, pos, Any(java_value.to_mixed()));
     }
     CATCH_STD();
 }
@@ -593,8 +593,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetMixed(JNIEnv* env,
                                                                    jlong mixed_ptr)
 {
     try {
-        auto mixed = reinterpret_cast<Mixed*>(mixed_ptr);
-        set_value(env, list_ptr, pos, Any(*mixed));
+        auto java_value = *reinterpret_cast<JavaValue*>(mixed_ptr);
+        set_value(env, list_ptr, pos, Any(java_value.to_mixed()));
     }
     CATCH_STD()
 }
