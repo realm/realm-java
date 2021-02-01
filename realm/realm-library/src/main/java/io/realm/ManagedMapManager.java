@@ -40,11 +40,9 @@ import io.realm.internal.core.NativeMixed;
  */
 abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, Freezable<RealmMap<K, V>> {
 
-    protected final Class<K> keyClass;
-    protected final MapValueOperator<V> mapValueOperator;
+    protected final MapValueOperator<K, V> mapValueOperator;
 
-    ManagedMapManager(Class<K> keyClass, MapValueOperator<V> mapValueOperator) {
-        this.keyClass = keyClass;
+    ManagedMapManager(MapValueOperator<K, V> mapValueOperator) {
         this.mapValueOperator = mapValueOperator;
     }
 
@@ -83,8 +81,7 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
 
     @Override
     public boolean containsValue(Object value) {
-        // TODO: use operator + do it natively
-        return false;
+        throw new UnsupportedOperationException("Not ready until full support for Mixed is ready");
     }
 
     @Override
@@ -117,8 +114,7 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
 
     @Override
     public RealmMap<K, V> freeze() {
-        // TODO: use operator + do it natively
-        return null;
+        return mapValueOperator.freeze();
     }
 }
 
@@ -136,8 +132,8 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
  */
 class DictionaryManager<V> extends ManagedMapManager<String, V> {
 
-    DictionaryManager(MapValueOperator<V> mapValueOperator) {
-        super(String.class, mapValueOperator);
+    DictionaryManager(MapValueOperator<String, V> mapValueOperator) {
+        super(mapValueOperator);
     }
 
     @Override
@@ -164,7 +160,7 @@ class DictionaryManager<V> extends ManagedMapManager<String, V> {
  *
  * @param <V> the value type
  */
-abstract class MapValueOperator<V> {
+abstract class MapValueOperator<K, V> {
 
     protected final BaseRealm baseRealm;
     protected final OsMap osMap;
@@ -210,6 +206,10 @@ abstract class MapValueOperator<V> {
         osMap.clear();
     }
 
+    public RealmMap<K, V> freeze() {
+        throw new UnsupportedOperationException("Freeze not ready yet.");
+    }
+
     protected <E extends RealmModel> E copyToRealm(E object) {
         // TODO: support dynamic Realms
         // At this point the object can only be a typed object, so the backing Realm cannot be a DynamicRealm.
@@ -226,7 +226,7 @@ abstract class MapValueOperator<V> {
 /**
  * {@link MapValueOperator} targeting {@link Mixed} values in {@link RealmMap}s.
  */
-class MixedValueOperator extends MapValueOperator<Mixed> {
+class MixedValueOperator<K> extends MapValueOperator<K, Mixed> {
 
     MixedValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
         super(baseRealm, osMap, classContainer);
@@ -250,7 +250,7 @@ class MixedValueOperator extends MapValueOperator<Mixed> {
 /**
  * {@link MapValueOperator} targeting boxable values in {@link RealmMap}s.
  */
-class BoxableValueOperator<T> extends MapValueOperator<T> {
+class BoxableValueOperator<K, V> extends MapValueOperator<K, V> {
 
     BoxableValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
         super(baseRealm, osMap, classContainer);
@@ -258,7 +258,7 @@ class BoxableValueOperator<T> extends MapValueOperator<T> {
 
     @Nullable
     @Override
-    public T get(Object key) {
+    public V get(Object key) {
         Object value = osMap.get(key);
         if (value == null) {
             return null;
@@ -268,8 +268,8 @@ class BoxableValueOperator<T> extends MapValueOperator<T> {
 
     @Nullable
     @Override
-    public T put(Object key, T value) {
-        T original = get(key);
+    public V put(Object key, V value) {
+        V original = get(key);
         osMap.put(key, value);
         return original;
     }
@@ -283,9 +283,9 @@ class BoxableValueOperator<T> extends MapValueOperator<T> {
      * @return the value in its right form
      */
     @Nullable
-    protected T processValue(Object value) {
+    protected V processValue(Object value) {
         //noinspection unchecked
-        return (T) value;
+        return (V) value;
     }
 }
 
@@ -294,7 +294,7 @@ class BoxableValueOperator<T> extends MapValueOperator<T> {
  * instead of {@link BoxableValueOperator} to avoid and typecast exception when converting the
  * {@link Long} result from JNI to {@link Integer}.
  */
-class IntegerValueOperator extends BoxableValueOperator<Integer> {
+class IntegerValueOperator<K> extends BoxableValueOperator<K, Integer> {
 
     IntegerValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
         super(baseRealm, osMap, classContainer);
@@ -311,7 +311,7 @@ class IntegerValueOperator extends BoxableValueOperator<Integer> {
  * instead of {@link BoxableValueOperator} to avoid and typecast exception when converting the
  * {@link Long} result from JNI to {@link Short}.
  */
-class ShortValueOperator extends BoxableValueOperator<Short> {
+class ShortValueOperator<K> extends BoxableValueOperator<K, Short> {
 
     ShortValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
         super(baseRealm, osMap, classContainer);
@@ -328,7 +328,7 @@ class ShortValueOperator extends BoxableValueOperator<Short> {
  * instead of {@link BoxableValueOperator} to avoid and typecast exception when converting the
  * {@link Long} result from JNI to {@link Byte}.
  */
-class ByteValueOperator extends BoxableValueOperator<Byte> {
+class ByteValueOperator<K> extends BoxableValueOperator<K, Byte> {
 
     ByteValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
         super(baseRealm, osMap, classContainer);
@@ -343,7 +343,7 @@ class ByteValueOperator extends BoxableValueOperator<Byte> {
 /**
  * {@link MapValueOperator} targeting {@link RealmModel}s values in {@link RealmMap}s.
  */
-class RealmModelValueOperator<T> extends MapValueOperator<T> {
+class RealmModelValueOperator<K, V> extends MapValueOperator<K, V> {
 
     RealmModelValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
         super(baseRealm, osMap, classContainer);
@@ -351,21 +351,21 @@ class RealmModelValueOperator<T> extends MapValueOperator<T> {
 
     @Nullable
     @Override
-    public T get(Object key) {
+    public V get(Object key) {
         long realmModelKey = osMap.getModelRowKey(key);
         if (realmModelKey == -1) {
             return null;
         }
 
         //noinspection unchecked
-        return (T) baseRealm.get((Class<? extends RealmModel>) classContainer.getClazz(), classContainer.getClassName(), realmModelKey);
+        return (V) baseRealm.get((Class<? extends RealmModel>) classContainer.getClazz(), classContainer.getClassName(), realmModelKey);
     }
 
     @Nullable
     @Override
-    public T put(Object key, @Nullable T value) {
+    public V put(Object key, @Nullable V value) {
         //noinspection unchecked
-        Class<T> clazz = (Class<T>) classContainer.getClazz();
+        Class<V> clazz = (Class<V>) classContainer.getClazz();
         String className = classContainer.getClassName();
         long rowModelKey = osMap.getModelRowKey(key);
 
@@ -384,7 +384,7 @@ class RealmModelValueOperator<T> extends MapValueOperator<T> {
             return null;
         } else {
             //noinspection unchecked
-            return (T) baseRealm.get((Class<? extends RealmModel>) clazz, className, rowModelKey);
+            return (V) baseRealm.get((Class<? extends RealmModel>) clazz, className, rowModelKey);
         }
     }
 

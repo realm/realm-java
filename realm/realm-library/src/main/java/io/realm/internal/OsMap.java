@@ -25,7 +25,6 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import io.realm.internal.android.TypeUtils;
-import io.realm.internal.core.NativeMixed;
 
 /**
  * Java wrapper of Object Store Dictionary class. This backs managed versions of RealmMaps.
