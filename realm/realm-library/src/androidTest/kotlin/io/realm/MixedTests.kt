@@ -28,7 +28,10 @@ import io.realm.kotlin.where
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
-import org.junit.*
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.util.*
@@ -625,7 +628,6 @@ class MixedTests {
     }
 
     @Test
-    @Ignore("FIXME: See: https://github.com/realm/realm-core/issues/4304")
     fun managed_listsSetAllTypes() {
         val aString = "a string"
         val byteArray = byteArrayOf(0, 1, 0)
@@ -639,7 +641,7 @@ class MixedTests {
             val managedRealmModel = it.createObject<PrimaryKeyAsString>("managed")
 
             val initialList = RealmList<Mixed>()
-            initialList.addAll(arrayOfNulls(15))
+            initialList.addAll(arrayOfNulls(17))
             allJavaTypes.fieldMixedList = initialList
 
             allJavaTypes.fieldMixedList[0] = Mixed.valueOf(true)
@@ -683,7 +685,6 @@ class MixedTests {
     }
 
     @Test
-    @Ignore("FIXME: See: https://github.com/realm/realm-core/issues/4304")
     fun managed_listsRemoveAllTypes() {
         val aString = "a string"
         val byteArray = byteArrayOf(0, 1, 0)
