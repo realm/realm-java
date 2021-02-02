@@ -110,7 +110,7 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         if (isClassForRealmModel(valueClass)) {
             ClassContainer classContainer = new ClassContainer(valueClass, null);
             MapValueOperator<String, V> realmModelValueOperator = new RealmModelValueOperator<>(baseRealm, osMap, classContainer);
-            DictionaryManager<V> dictionaryManager = new DictionaryManager<>(realmModelValueOperator);
+            DictionaryManager<V> dictionaryManager = new DictionaryManager<>(realmModelValueOperator, classContainer);
             return new ManagedMapStrategy<>(dictionaryManager);
         }
 
@@ -143,7 +143,7 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         }
 
         //noinspection unchecked
-        return new DictionaryManager<>((MapValueOperator<String, V>) mapValueOperator);
+        return new DictionaryManager<>((MapValueOperator<String, V>) mapValueOperator, classContainer);
     }
 
     private static <K, V> DictionaryManager<V> getManager(String valueClass, BaseRealm baseRealm, OsMap osMap) {
@@ -166,7 +166,7 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         }
 
         //noinspection unchecked
-        return new DictionaryManager<>((MapValueOperator<String, V>) mapValueOperator);
+        return new DictionaryManager<>((MapValueOperator<String, V>) mapValueOperator, classContainer);
     }
 
     private static boolean isClassBoxable(String valueClass) {

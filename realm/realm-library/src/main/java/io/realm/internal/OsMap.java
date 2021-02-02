@@ -36,13 +36,20 @@ public class OsMap implements NativeObject {
 
     private final long nativePtr;
     private final NativeContext context;
-    private final Table table;
+    private final Table targetTable;
 
-    public OsMap(UncheckedRow row, long columnKey, Table table) {
-        OsSharedRealm sharedRealm = row.getTable().getSharedRealm();
-        this.table = table;
-        this.nativePtr = nativeCreate(sharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
-        this.context = sharedRealm.context;
+    public OsMap(UncheckedRow row, long columnKey, Table targetTable) {
+        OsSharedRealm osSharedRealm = row.getTable().getSharedRealm();
+        this.targetTable = targetTable;
+        this.nativePtr = nativeCreate(osSharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
+        this.context = osSharedRealm.context;
+        context.addReference(this);
+    }
+
+    private OsMap(OsSharedRealm osSharedRealm, long nativePtr, Table targetTable) {
+        this.nativePtr = nativePtr;
+        this.targetTable = targetTable;
+        this.context = osSharedRealm.context;
         context.addReference(this);
     }
 
@@ -69,7 +76,11 @@ public class OsMap implements NativeObject {
     }
 
     public Pair<Table, Long> resultsPtr() {
-        return new Pair<>(table, nativeValues(nativePtr));
+        return new Pair<>(targetTable, nativeValues(nativePtr));
+    }
+
+    public OsMap freeze(OsSharedRealm osSharedRealm) {
+        return new OsMap(osSharedRealm, nativeFreeze(nativePtr, osSharedRealm.getNativePtr()), targetTable);
     }
 
     // ------------------------------------------
@@ -190,4 +201,6 @@ public class OsMap implements NativeObject {
     private static native void nativeRemove(long nativePtr, String key);
 
     private static native long nativeValues(long nativePtr);
+
+    private static native long nativeFreeze(long nativePtr, long realmPtr);
 }

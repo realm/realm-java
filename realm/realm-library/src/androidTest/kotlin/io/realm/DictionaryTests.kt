@@ -16,6 +16,7 @@
 
 package io.realm
 
+import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.annotations.RealmModule
@@ -462,7 +463,6 @@ class DictionaryTests {
             val realmResults = realm.where<DictionaryClass>()
                     .findAll()
             val result0 = realmResults[0]
-            val result1 = realmResults[1]
 
 
             val values = dictionaryFromRealm.values
@@ -487,9 +487,31 @@ class DictionaryTests {
     }
 
     @Test
-    @Ignore
     fun managed_freeze() {
-        // TODO
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myBooleanDictionary = RealmDictionary<Boolean>().apply {
+                    put(KEY_HELLO, VALUE_HELLO)
+                    put(KEY_BYE, VALUE_BYE)
+                    put(KEY_NULL, null)
+                }
+            }
+
+            transactionRealm.copyToRealm(dictionaryObject)
+        }
+
+        val dictionaryObjectFromRealm = realm.where<DictionaryClass>()
+                .findFirst()
+        assertNotNull(dictionaryObjectFromRealm)
+
+        val dictionaryFromRealm = dictionaryObjectFromRealm.myBooleanDictionary
+        assertNotNull(dictionaryFromRealm)
+        assertFalse(dictionaryFromRealm.isFrozen)
+        val frozenDictionary = dictionaryFromRealm.freeze()
+        assertTrue(frozenDictionary.isFrozen)
+        assertEquals(VALUE_HELLO, frozenDictionary[KEY_HELLO])
+        assertEquals(VALUE_BYE, frozenDictionary[KEY_BYE])
+        assertNull(frozenDictionary[KEY_NULL])
     }
 
     // TODO: sanity-check tests for temporary schema validation - move to an appropriate place

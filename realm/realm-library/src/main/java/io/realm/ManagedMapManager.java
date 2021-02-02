@@ -29,10 +29,8 @@ import io.realm.internal.ManageableObject;
 import io.realm.internal.OsMap;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsResults;
-import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
-import io.realm.internal.TableQuery;
 import io.realm.internal.core.NativeMixed;
 import io.realm.internal.util.Pair;
 
@@ -46,10 +44,14 @@ import io.realm.internal.util.Pair;
 abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, Freezable<RealmMap<K, V>> {
 
     protected final MapValueOperator<K, V> mapValueOperator;
+    protected final ClassContainer classContainer;
 
-    ManagedMapManager(MapValueOperator<K, V> mapValueOperator) {
+    ManagedMapManager(MapValueOperator<K, V> mapValueOperator, ClassContainer classContainer) {
         this.mapValueOperator = mapValueOperator;
+        this.classContainer = classContainer;
     }
+
+    protected abstract RealmMap<K, V> freezeInternal(Pair<BaseRealm, OsMap> frozenBaseRealmMap);
 
     @Override
     public abstract V put(K key, V value);
@@ -90,7 +92,7 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
     }
 
     @Override
-    public void putAll(Map m) {
+    public void putAll(Map<? extends K, ? extends V> m) {
         // TODO: use operator + do it natively
     }
 
@@ -118,7 +120,8 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
 
     @Override
     public RealmMap<K, V> freeze() {
-        return mapValueOperator.freeze();
+        Pair<BaseRealm, OsMap> frozenPair = mapValueOperator.freeze();
+        return freezeInternal(frozenPair);
     }
 }
 
@@ -136,8 +139,27 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
  */
 class DictionaryManager<V> extends ManagedMapManager<String, V> {
 
-    DictionaryManager(MapValueOperator<String, V> mapValueOperator) {
-        super(mapValueOperator);
+    DictionaryManager(MapValueOperator<String, V> mapValueOperator, ClassContainer classContainer) {
+        super(mapValueOperator, classContainer);
+    }
+
+    @Override
+    protected RealmMap<String, V> freezeInternal(Pair<BaseRealm, OsMap> frozenBaseRealmMap) {
+        BaseRealm frozenBaseRealm = frozenBaseRealmMap.first;
+        OsMap osMap = frozenBaseRealmMap.second;
+        Class<?> clazz = classContainer.getClazz();
+        String className = classContainer.getClassName();
+
+        if (clazz != null) {
+            //noinspection unchecked
+            RealmDictionary<V> dictionary = new RealmDictionary<>(frozenBaseRealm, osMap, (Class<V>) clazz);
+            return dictionary;
+        } else if (className != null) {
+            RealmDictionary<V> dictionary = new RealmDictionary<>(frozenBaseRealm, osMap, className);
+            return dictionary;
+        } else {
+            throw new IllegalArgumentException("Either a class or a class string is required.");
+        }
     }
 
     @Override
@@ -226,8 +248,9 @@ abstract class MapValueOperator<K, V> {
         throw new UnsupportedOperationException("Add support for 'values' for DynamicRealms.");
     }
 
-    public RealmMap<K, V> freeze() {
-        throw new UnsupportedOperationException("Freeze not ready yet.");
+    public Pair<BaseRealm, OsMap> freeze() {
+        BaseRealm frozenRealm = baseRealm.freeze();
+        return new Pair<>(frozenRealm, osMap.freeze(frozenRealm.sharedRealm));
     }
 
     protected <E extends RealmModel> E copyToRealm(E object) {

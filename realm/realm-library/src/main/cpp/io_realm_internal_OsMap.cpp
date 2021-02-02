@@ -47,7 +47,8 @@ Java_io_realm_internal_OsMap_nativeCreate(JNIEnv* env, jclass, jlong shared_real
         auto& shared_realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
 
         // FIXME: figure out whether or not we need to use something similar to ObservableCollectionWrapper from OsList
-        return reinterpret_cast<jlong>(new object_store::Dictionary(shared_realm, obj, ColKey(column_key)));
+        object_store::Dictionary* dictionary_ptr = new object_store::Dictionary(shared_realm, obj, ColKey(column_key));
+        return reinterpret_cast<jlong>(dictionary_ptr);
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
@@ -381,10 +382,23 @@ JNIEXPORT jlong JNICALL
 Java_io_realm_internal_OsMap_nativeValues(JNIEnv* env, jclass, jlong map_ptr) {
     try {
         auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
-        const Results& results = dictionary.as_results();
+        const Results& results = dictionary.get_values();
         auto wrapper = new ObservableCollectionWrapper(results);
-
         return reinterpret_cast<jlong>(wrapper);
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_OsMap_nativeFreeze(JNIEnv* env, jclass, jlong map_ptr,
+                                          jlong realm_ptr) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        std::shared_ptr<Realm>& shared_realm_ptr = *reinterpret_cast<std::shared_ptr<Realm>*>(realm_ptr);
+        const object_store::Dictionary& frozen_dictionary = dictionary.freeze(shared_realm_ptr);
+        auto* frozen_dictionary_ptr = new object_store::Dictionary(frozen_dictionary);
+        return reinterpret_cast<jlong>(frozen_dictionary_ptr);
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
