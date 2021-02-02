@@ -18,10 +18,7 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.entities.AllJavaTypes
-import io.realm.entities.MixedIndexed
-import io.realm.entities.MixedNotIndexed
-import io.realm.entities.PrimaryKeyAsString
+import io.realm.entities.*
 import io.realm.entities.embedded.SimpleEmbeddedObject
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
@@ -60,6 +57,7 @@ class MixedTests {
                 .schema(MixedNotIndexed::class.java,
                         MixedIndexed::class.java,
                         AllJavaTypes::class.java,
+                        MixedNotIndexedWithPK::class.java,
                         SimpleEmbeddedObject::class.java,
                         PrimaryKeyAsString::class.java)
                 .build()
@@ -866,5 +864,17 @@ class MixedTests {
         }
 
         dynamicRealm.close()
+    }
+
+    @Test
+    fun freeze() {
+        realm.beginTransaction()
+        val obj = realm.createObject<MixedNotIndexedWithPK>(0)
+        obj.mixed = Mixed.valueOf(10.toInt())
+        realm.commitTransaction()
+
+        val frozen = obj.freeze<MixedNotIndexedWithPK>()
+
+        assertEquals(Mixed.valueOf(10.toInt()), frozen.mixed)
     }
 }

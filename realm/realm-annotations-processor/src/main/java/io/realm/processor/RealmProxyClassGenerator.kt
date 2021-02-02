@@ -1358,7 +1358,17 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitStatement("${fieldName}Mixed = ProxyUtils.insert(${fieldName}Mixed, realm, cache)")
                             emitStatement("Table.nativeSetMixed(tableNativePtr, columnInfo.${fieldName}ColKey, objKey, ${fieldName}Mixed.getNativePtr(), false)")
                         } else if (Utils.isMixedList(field)) {
+                            emitEmptyLine()
 
+                            emitStatement("RealmList<Mixed> ${fieldName}UnmanagedList = ((${interfaceName}) object).${getter}()")
+                            beginControlFlow("if (${fieldName}UnmanagedList != null)")
+                                emitStatement("OsList ${fieldName}OsList = new OsList(table.getUncheckedRow(objKey), columnInfo.${fieldName}ColKey)")
+                                beginControlFlow("for (int i = 0; i < ${fieldName}UnmanagedList.size(); i++)")
+                                    emitStatement("Mixed mixedItem = ${fieldName}UnmanagedList.get(i)")
+                                    emitStatement("mixedItem = ProxyUtils.insert(mixedItem, realm, cache)")
+                                    emitStatement("${fieldName}OsList.addMixed(mixedItem.getNativePtr())")
+                                endControlFlow()
+                            endControlFlow()
                         } else {
                             if (metadata.primaryKey !== field) {
                                 setTableValues(writer, fieldType.toString(), fieldName, interfaceName, getter, false)
@@ -1662,10 +1672,38 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitEmptyLine()
                             }
                             Utils.isMixed(field) -> {
-
+                                emitStatement("Mixed ${fieldName}Mixed = ((${interfaceName}) object).${getter}()")
+                                emitStatement("${fieldName}Mixed = ProxyUtils.insertOrUpdate(${fieldName}Mixed, realm, cache)")
+                                emitStatement("Table.nativeSetMixed(tableNativePtr, columnInfo.${fieldName}ColKey, objKey, ${fieldName}Mixed.getNativePtr(), false)")
                             }
                             Utils.isMixedList(field) -> {
+                                emitEmptyLine()
+                                emitStatement("OsList ${fieldName}OsList = new OsList(table.getUncheckedRow(objKey), columnInfo.${fieldName}ColKey)")
+                                emitStatement("RealmList<Mixed> ${fieldName}List = ((${interfaceName}) object).${getter}()")
 
+                                beginControlFlow("if (${fieldName}List != null && ${fieldName}List.size() == ${fieldName}OsList.size())")
+                                    emitSingleLineComment("For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.")
+                                    emitStatement("int objectCount = ${fieldName}List.size()")
+                                    beginControlFlow("for (int i = 0; i < objectCount; i++)")
+                                        emitStatement("Mixed ${fieldName}Item = ${fieldName}List.get(i)")
+                                        emitStatement("Long cacheItemIndex${fieldName} = cache.get(${fieldName}Item)")
+                                        beginControlFlow("if (cacheItemIndex${fieldName} == null)")
+                                            emitStatement("${fieldName}Item = ProxyUtils.insertOrUpdate(${fieldName}Item, realm, cache)")
+                                        endControlFlow()
+                                        emitStatement("${fieldName}OsList.setMixed(i, ${fieldName}Item.getNativePtr())")
+                                    endControlFlow()
+                                nextControlFlow("else")
+                                    emitStatement("${fieldName}OsList.removeAll()")
+                                    beginControlFlow("if (${fieldName}List != null)")
+                                        beginControlFlow("for (Mixed ${fieldName}Item : ${fieldName}List)")
+                                            emitStatement("Long cacheItemIndex${fieldName} = cache.get(${fieldName}Item)")
+                                            beginControlFlow("if (cacheItemIndex${fieldName} == null)")
+                                                emitStatement("${fieldName}Item = ProxyUtils.insertOrUpdate(${fieldName}Item, realm, cache)")
+                                            endControlFlow()
+                                            emitStatement("${fieldName}OsList.addMixed(${fieldName}Item.getNativePtr())")
+                                        endControlFlow()
+                                    endControlFlow()
+                                endControlFlow()
                             }
                             else -> {
                                 if (metadata.primaryKey !== field) {

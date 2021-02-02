@@ -20,12 +20,12 @@ import io.realm.Mixed
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
 
-open class MixedNotIndexedWithPK : RealmObject() {
+open class MixedNotIndexedWithPK(@PrimaryKey var pk: Long) : RealmObject() {
     companion object {
         const val FIELD_MIXED = "mixed"
     }
 
-    @PrimaryKey
-    var pk: Long = 0
+    constructor(): this(0)
+
     var mixed: Mixed? = Mixed.nullValue()
 }

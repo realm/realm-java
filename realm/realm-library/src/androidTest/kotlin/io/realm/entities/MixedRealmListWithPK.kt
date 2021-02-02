@@ -21,13 +21,13 @@ import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
 
-open class MixedRealmListWithPK : RealmObject() {
+open class MixedRealmListWithPK(@PrimaryKey var pk: Long) : RealmObject() {
     companion object {
         const val FIELD_MIXED = "mixed"
     }
 
-    @PrimaryKey
-    var pk: Long = 0
+    constructor(): this(0)
+
     var mixedList: RealmList<Mixed> = RealmList()
     var modelList: RealmList<MixedRealmListWithPK> = RealmList()
 }

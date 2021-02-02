@@ -31,8 +31,6 @@ import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-
-// FIXME: MIXED PARAMETRIZED TESTS FOR INDEXED AND UNINDEXED
 @RunWith(AndroidJUnit4::class)
 class MixedBulkInsertsTests {
     private lateinit var realmConfiguration: RealmConfiguration
@@ -382,7 +380,7 @@ class MixedBulkInsertsTests {
         }
 
         realm.executeTransaction { realm ->
-            val value = MixedRealmListWithPK()
+            val value = MixedRealmListWithPK(0)
             value.mixedList = mixedAlternativeTestValues()
             value.mixedList.add(Mixed.valueOf(PrimaryKeyAsString("hello world2")))
 
@@ -393,23 +391,262 @@ class MixedBulkInsertsTests {
         assertEquals(1, all.size)
 
         for (i in 0 until mixedTestValues().size) {
-            assertEquals(mixedTestValues()[i], all.first()!!.mixedList[i])
+            assertEquals(mixedAlternativeTestValues()[i], all.first()!!.mixedList[i])
         }
 
         val managedInnerObject = all.first()!!.mixedList.last()!!.asRealmModel(PrimaryKeyAsString::class.java)
         assertTrue(managedInnerObject.isManaged)
-        assertEquals("hello world", managedInnerObject.name)
+        assertEquals("hello world2", managedInnerObject.name)
     }
 
     @Test
-    fun frozen() {
+    fun bulk_copyToRealm_realmModel() {
+        val value1 = MixedNotIndexedWithPK(0)
+        value1.mixed = Mixed.valueOf(PrimaryKeyAsString("hello world1"))
+
+        val value2 = MixedNotIndexedWithPK(1)
+        value2.mixed = Mixed.valueOf(PrimaryKeyAsString("hello world2"))
+
         realm.beginTransaction()
-        val obj = realm.createObject<MixedNotIndexedWithPK>(0)
-        obj.mixed = Mixed.valueOf(10.toInt())
+        val objects = realm.copyToRealm(arrayListOf(value1, value2))
         realm.commitTransaction()
 
-        val frozen = obj.freeze<MixedNotIndexedWithPK>()
+        val managedInnerObject1 = objects[0].mixed!!.asRealmModel(PrimaryKeyAsString::class.java)
+        val managedInnerObject2 = objects[1].mixed!!.asRealmModel(PrimaryKeyAsString::class.java)
 
-        assertEquals(Mixed.valueOf(10.toInt()), frozen.mixed)
+        assertTrue(managedInnerObject1.isManaged)
+        assertTrue(managedInnerObject2.isManaged)
+
+        assertEquals("hello world1", managedInnerObject1.name)
+        assertEquals("hello world2", managedInnerObject2.name)
+    }
+
+    @Test
+    fun bulk_copyToRealm_realmModelList() {
+        val value1 = MixedRealmListWithPK(0)
+        value1.mixedList = mixedTestValues()
+        value1.mixedList.add(Mixed.valueOf(PrimaryKeyAsString("hello world1")))
+
+        val value2 = MixedRealmListWithPK(1)
+        value2.mixedList = mixedTestValues()
+        value2.mixedList.add(Mixed.valueOf(PrimaryKeyAsString("hello world2")))
+
+        realm.beginTransaction()
+        val objects = realm.copyToRealm(arrayListOf(value1, value2))
+        realm.commitTransaction()
+
+        for (i in 0 until mixedTestValues().size) {
+            assertEquals(mixedTestValues()[i], objects[0].mixedList[i])
+            assertEquals(mixedTestValues()[i], objects[1].mixedList[i])
+        }
+
+        val managedInnerObject1 = objects[0].mixedList.last()!!.asRealmModel(PrimaryKeyAsString::class.java)
+        val managedInnerObject2 = objects[1].mixedList.last()!!.asRealmModel(PrimaryKeyAsString::class.java)
+
+        assertTrue(managedInnerObject1.isManaged)
+        assertEquals("hello world1", managedInnerObject1.name)
+
+        assertTrue(managedInnerObject2.isManaged)
+        assertEquals("hello world2", managedInnerObject2.name)
+    }
+
+    @Test
+    fun bulk_copyToRealmOrUpdate_realmModel() {
+        realm.executeTransaction { realm ->
+            val obj1 = realm.createObject<MixedNotIndexedWithPK>(0)
+            obj1.mixed = Mixed.valueOf(PrimaryKeyAsString("hello world1"))
+
+            val obj2 = realm.createObject<MixedNotIndexedWithPK>(1)
+            obj2.mixed = Mixed.valueOf(PrimaryKeyAsString("hello world2"))
+        }
+
+        val value1 = MixedNotIndexedWithPK(0)
+        value1.mixed = Mixed.valueOf(PrimaryKeyAsString("hello world3"))
+
+        val value2 = MixedNotIndexedWithPK(1)
+        value2.mixed = Mixed.valueOf(PrimaryKeyAsString("hello world4"))
+
+        realm.beginTransaction()
+        val objects = realm.copyToRealmOrUpdate(arrayListOf(value1, value2))
+        realm.commitTransaction()
+
+        val managedInnerObject1 = objects[0].mixed!!.asRealmModel(PrimaryKeyAsString::class.java)
+        val managedInnerObject2 = objects[1].mixed!!.asRealmModel(PrimaryKeyAsString::class.java)
+
+        assertTrue(managedInnerObject1.isManaged)
+        assertEquals("hello world3", managedInnerObject1.name)
+
+        assertTrue(managedInnerObject2.isManaged)
+        assertEquals("hello world4", managedInnerObject2.name)
+    }
+
+    @Test
+    fun bulk_copyToRealmOrUpdate_realmModelList() {
+        realm.executeTransaction { realm ->
+            val value1 = realm.createObject<MixedRealmListWithPK>(0)
+            value1.mixedList = mixedTestValues()
+            value1.mixedList.add(Mixed.valueOf(PrimaryKeyAsString("hello world1")))
+
+            val value2 = realm.createObject<MixedRealmListWithPK>(1)
+            value2.mixedList = mixedTestValues()
+            value2.mixedList.add(Mixed.valueOf(PrimaryKeyAsString("hello world1")))
+        }
+
+        val value1 = MixedRealmListWithPK(0)
+        value1.mixedList = mixedAlternativeTestValues()
+        value1.mixedList.add(Mixed.valueOf(PrimaryKeyAsString("hello world3")))
+
+        val value2 = MixedRealmListWithPK(1)
+        value2.mixedList = mixedAlternativeTestValues()
+        value2.mixedList.add(Mixed.valueOf(PrimaryKeyAsString("hello world4")))
+
+        realm.beginTransaction()
+        val objects = realm.copyToRealmOrUpdate(arrayListOf(value1, value2))
+        realm.commitTransaction()
+
+        for (i in 0 until mixedTestValues().size) {
+            assertEquals(mixedAlternativeTestValues()[i], objects[0].mixedList[i])
+            assertEquals(mixedAlternativeTestValues()[i], objects[1].mixedList[i])
+        }
+
+        val managedInnerObject1 = objects[0].mixedList.last()!!.asRealmModel(PrimaryKeyAsString::class.java)
+        val managedInnerObject2 = objects[1].mixedList.last()!!.asRealmModel(PrimaryKeyAsString::class.java)
+
+        assertTrue(managedInnerObject1.isManaged)
+        assertEquals("hello world3", managedInnerObject1.name)
+
+        assertTrue(managedInnerObject2.isManaged)
+        assertEquals("hello world4", managedInnerObject2.name)
+    }
+
+    @Test
+    fun bulk_insert_realmModel() {
+        realm.executeTransaction { realm ->
+            val value1 = MixedNotIndexedWithPK(0)
+            value1.mixed = Mixed.valueOf(PrimaryKeyAsString("hello world1"))
+
+            val value2 = MixedNotIndexedWithPK(1)
+            value2.mixed = Mixed.valueOf(PrimaryKeyAsString("hello world2"))
+
+            realm.insert(arrayListOf(value1, value2))
+        }
+
+        val objects = realm.where<MixedNotIndexedWithPK>().findAll()!!
+
+        val managedInnerObject1 = objects[0]!!.mixed!!.asRealmModel(PrimaryKeyAsString::class.java)
+        val managedInnerObject2 = objects[1]!!.mixed!!.asRealmModel(PrimaryKeyAsString::class.java)
+
+        assertTrue(managedInnerObject1.isManaged)
+        assertEquals("hello world1", managedInnerObject1.name)
+
+        assertTrue(managedInnerObject2.isManaged)
+        assertEquals("hello world2", managedInnerObject2.name)
+    }
+
+    @Test
+    fun bulk_insert_realmModelList() {
+        realm.executeTransaction { realm ->
+            val value1 = MixedRealmListWithPK(0)
+            value1.mixedList = mixedTestValues()
+            value1.mixedList.add(Mixed.valueOf(PrimaryKeyAsString("hello world1")))
+
+            val value2 = MixedRealmListWithPK(1)
+            value2.mixedList = mixedTestValues()
+            value2.mixedList.add(Mixed.valueOf(PrimaryKeyAsString("hello world2")))
+
+            realm.insert(arrayListOf(value1, value2))
+        }
+
+        val objects = realm.where<MixedRealmListWithPK>().findAll()!!
+
+        for (i in 0 until mixedTestValues().size) {
+            assertEquals(mixedTestValues()[i], objects[0]!!.mixedList[i])
+            assertEquals(mixedTestValues()[i], objects[1]!!.mixedList[i])
+        }
+
+        val managedInnerObject1 = objects[0]!!.mixedList.last()!!.asRealmModel(PrimaryKeyAsString::class.java)
+        val managedInnerObject2 = objects[1]!!.mixedList.last()!!.asRealmModel(PrimaryKeyAsString::class.java)
+
+        assertTrue(managedInnerObject1.isManaged)
+        assertEquals("hello world1", managedInnerObject1.name)
+
+        assertTrue(managedInnerObject2.isManaged)
+        assertEquals("hello world2", managedInnerObject2.name)
+    }
+
+    @Test
+    fun bulk_insertOrUpdate_realmModel() {
+        realm.executeTransaction { realm ->
+            val value1 = realm.createObject<MixedNotIndexedWithPK>(0)
+            value1.mixed = Mixed.valueOf(PrimaryKeyAsString("hello world1"))
+
+
+            val value2 = realm.createObject<MixedNotIndexedWithPK>(1)
+            value2.mixed = Mixed.valueOf(PrimaryKeyAsString("hello world2"))
+        }
+
+        realm.executeTransaction { realm ->
+            val value1 = MixedNotIndexedWithPK(0)
+            value1.mixed = Mixed.valueOf(PrimaryKeyAsString("hello world3"))
+
+            val value2 = MixedNotIndexedWithPK(1)
+            value2.mixed = Mixed.valueOf(PrimaryKeyAsString("hello world4"))
+
+            realm.insertOrUpdate(arrayListOf(value1, value2))
+        }
+
+        val all = realm.where<MixedNotIndexedWithPK>().findAll()
+
+        assertEquals(2, all.size)
+
+        val managedInnerObject1 = all[0]!!.mixed!!.asRealmModel(PrimaryKeyAsString::class.java)
+        val managedInnerObject2 = all[1]!!.mixed!!.asRealmModel(PrimaryKeyAsString::class.java)
+
+        assertTrue(managedInnerObject1.isManaged)
+        assertEquals("hello world3", managedInnerObject1.name)
+
+        assertTrue(managedInnerObject2.isManaged)
+        assertEquals("hello world4", managedInnerObject2.name)
+    }
+
+    @Test
+    fun bulk_insertOrUpdate_realmModelList() {
+        realm.executeTransaction { realm ->
+            val value1 = realm.createObject<MixedRealmListWithPK>(0)
+            value1.mixedList = mixedTestValues()
+            value1.mixedList.add(Mixed.valueOf(PrimaryKeyAsString("hello world1")))
+
+            val value2 = realm.createObject<MixedRealmListWithPK>(1)
+            value2.mixedList = mixedTestValues()
+            value2.mixedList.add(Mixed.valueOf(PrimaryKeyAsString("hello world2")))
+        }
+
+        realm.executeTransaction { realm ->
+            val value1 = MixedRealmListWithPK(0)
+            value1.mixedList = mixedAlternativeTestValues()
+            value1.mixedList.add(Mixed.valueOf(PrimaryKeyAsString("hello world3")))
+
+            val value2 = MixedRealmListWithPK(1)
+            value2.mixedList = mixedAlternativeTestValues()
+            value2.mixedList.add(Mixed.valueOf(PrimaryKeyAsString("hello world4")))
+
+            realm.insertOrUpdate(arrayListOf(value1, value2))
+        }
+
+        val all = realm.where<MixedRealmListWithPK>().findAll()
+        assertEquals(2, all.size)
+
+        for (i in 0 until mixedAlternativeTestValues().size) {
+            assertEquals(mixedAlternativeTestValues()[i], all[0]!!.mixedList[i])
+            assertEquals(mixedAlternativeTestValues()[i], all[1]!!.mixedList[i])
+        }
+
+        val managedInnerObject1 = all[0]!!.mixedList.last()!!.asRealmModel(PrimaryKeyAsString::class.java)
+        assertTrue(managedInnerObject1.isManaged)
+        assertEquals("hello world3", managedInnerObject1.name)
+
+        val managedInnerObject2 = all[1]!!.mixedList.last()!!.asRealmModel(PrimaryKeyAsString::class.java)
+        assertTrue(managedInnerObject2.isManaged)
+        assertEquals("hello world4", managedInnerObject2.name)
     }
 }
