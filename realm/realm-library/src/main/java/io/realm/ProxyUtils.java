@@ -271,7 +271,11 @@ class ProxyUtils {
             }
 
             if (!RealmObject.isManaged(mixedRealmModel)) {
-                value = Mixed.valueOf(realm.copyToRealm(mixedRealmModel));
+                if (realm.hasPrimaryKey(mixedRealmModel.getClass())) {
+                    value = Mixed.valueOf(realm.copyToRealmOrUpdate(mixedRealmModel));
+                } else {
+                    value = Mixed.valueOf(realm.copyToRealm(mixedRealmModel));
+                }
             } else {
                 proxyState.checkValidObject(mixedRealmModel);
             }

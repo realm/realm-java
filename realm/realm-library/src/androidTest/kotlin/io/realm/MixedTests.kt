@@ -25,7 +25,10 @@ import io.realm.kotlin.where
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
-import org.junit.*
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.util.*
@@ -59,6 +62,8 @@ class MixedTests {
                         AllJavaTypes::class.java,
                         MixedNotIndexedWithPK::class.java,
                         SimpleEmbeddedObject::class.java,
+                        MixedDefaultPK::class.java,
+                        MixedDefaultNonPK::class.java,
                         PrimaryKeyAsString::class.java)
                 .build()
 
@@ -223,9 +228,9 @@ class MixedTests {
             mixedObject.mixed = Mixed.valueOf(10.toByte())
         }
 
-        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
 
-        assertTrue(mixedObject!!.isManaged)
+        assertTrue(mixedObject.isManaged)
         assertEquals(10, mixedObject.mixed!!.asByte())
         assertEquals(Mixed.valueOf(10.toByte()), mixedObject.mixed)
         assertEquals(MixedType.INTEGER, mixedObject.mixed!!.type)
@@ -238,9 +243,9 @@ class MixedTests {
             mixedObject.mixed = Mixed.valueOf(10.toShort())
         }
 
-        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
 
-        assertTrue(mixedObject!!.isManaged)
+        assertTrue(mixedObject.isManaged)
         assertEquals(10, mixedObject.mixed!!.asShort())
         assertEquals(Mixed.valueOf(10.toShort()), mixedObject.mixed)
         assertEquals(MixedType.INTEGER, mixedObject.mixed!!.type)
@@ -253,9 +258,9 @@ class MixedTests {
             mixedObject.mixed = Mixed.valueOf(10.toInt())
         }
 
-        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
 
-        assertTrue(mixedObject!!.isManaged)
+        assertTrue(mixedObject.isManaged)
         assertEquals(10, mixedObject.mixed!!.asInteger())
         assertEquals(Mixed.valueOf(10.toInt()), mixedObject.mixed)
         assertEquals(MixedType.INTEGER, mixedObject.mixed!!.type)
@@ -268,9 +273,9 @@ class MixedTests {
             mixedObject.mixed = Mixed.valueOf(10.toLong())
         }
 
-        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
 
-        assertTrue(mixedObject!!.isManaged)
+        assertTrue(mixedObject.isManaged)
         assertEquals(10, mixedObject.mixed!!.asLong())
         assertEquals(Mixed.valueOf(10.toLong()), mixedObject.mixed)
         assertEquals(MixedType.INTEGER, mixedObject.mixed!!.type)
@@ -284,9 +289,9 @@ class MixedTests {
             mixedObject.mixed = Mixed.valueOf(true)
         }
 
-        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
 
-        assertTrue(mixedObject!!.isManaged)
+        assertTrue(mixedObject.isManaged)
         assertEquals(true, mixedObject.mixed!!.asBoolean())
         assertEquals(Mixed.valueOf(true), mixedObject.mixed)
         assertEquals(MixedType.BOOLEAN, mixedObject.mixed!!.type)
@@ -300,9 +305,9 @@ class MixedTests {
             mixedObject.mixed = Mixed.valueOf("hello world")
         }
 
-        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
 
-        assertTrue(mixedObject!!.isManaged)
+        assertTrue(mixedObject.isManaged)
         assertEquals("hello world", mixedObject.mixed!!.asString())
         assertEquals(Mixed.valueOf("hello world"), mixedObject.mixed)
         assertEquals(MixedType.STRING, mixedObject.mixed!!.type)
@@ -316,9 +321,9 @@ class MixedTests {
             mixedObject.mixed = Mixed.valueOf(byteArrayOf(0, 1, 0))
         }
 
-        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
 
-        assertTrue(mixedObject!!.isManaged)
+        assertTrue(mixedObject.isManaged)
         assertTrue(Arrays.equals(byteArrayOf(0, 1, 0), mixedObject.mixed!!.asBinary()))
         assertEquals(MixedType.BINARY, mixedObject.mixed!!.type)
         assertEquals(MixedType.BINARY.typedClass, mixedObject.mixed!!.valueClass)
@@ -331,9 +336,9 @@ class MixedTests {
             mixedObject.mixed = Mixed.valueOf(Date(10))
         }
 
-        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
 
-        assertTrue(mixedObject!!.isManaged)
+        assertTrue(mixedObject.isManaged)
         assertEquals(Date(10), mixedObject.mixed!!.asDate())
         assertEquals(Mixed.valueOf(Date(10)), mixedObject.mixed)
         assertEquals(MixedType.DATE, mixedObject.mixed!!.type)
@@ -347,9 +352,9 @@ class MixedTests {
             mixedObject.mixed = Mixed.valueOf(Decimal128(10))
         }
 
-        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
 
-        assertTrue(mixedObject!!.isManaged)
+        assertTrue(mixedObject.isManaged)
         assertEquals(Decimal128(10), mixedObject.mixed!!.asDecimal128())
         assertEquals(Mixed.valueOf(Decimal128(10)), mixedObject.mixed)
         assertEquals(MixedType.DECIMAL128, mixedObject.mixed!!.type)
@@ -363,9 +368,9 @@ class MixedTests {
             mixedObject.mixed = Mixed.valueOf(10.0)
         }
 
-        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
 
-        assertTrue(mixedObject!!.isManaged)
+        assertTrue(mixedObject.isManaged)
         assertEquals(10.0, mixedObject.mixed!!.asDouble())
         assertEquals(Mixed.valueOf(10.0), mixedObject.mixed)
         assertEquals(MixedType.DOUBLE, mixedObject.mixed!!.type)
@@ -379,9 +384,9 @@ class MixedTests {
             mixedObject.mixed = Mixed.valueOf(10f)
         }
 
-        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
 
-        assertTrue(mixedObject!!.isManaged)
+        assertTrue(mixedObject.isManaged)
         assertEquals(10f, mixedObject.mixed!!.asFloat())
         assertEquals(Mixed.valueOf(10f), mixedObject.mixed)
         assertEquals(MixedType.FLOAT, mixedObject.mixed!!.type)
@@ -395,9 +400,9 @@ class MixedTests {
             mixedObject.mixed = Mixed.valueOf(ObjectId(TestHelper.generateObjectIdHexString(0)))
         }
 
-        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
 
-        assertTrue(mixedObject!!.isManaged)
+        assertTrue(mixedObject.isManaged)
         assertEquals(ObjectId(TestHelper.generateObjectIdHexString(0)), mixedObject.mixed!!.asObjectId())
         assertEquals(Mixed.valueOf(ObjectId(TestHelper.generateObjectIdHexString(0))), mixedObject.mixed)
         assertEquals(MixedType.OBJECT_ID, mixedObject.mixed!!.type)
@@ -411,9 +416,9 @@ class MixedTests {
             mixedObject.mixed = Mixed.valueOf(UUID.fromString(TestHelper.generateUUIDString(0)))
         }
 
-        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
 
-        assertTrue(mixedObject!!.isManaged)
+        assertTrue(mixedObject.isManaged)
         assertEquals(UUID.fromString(TestHelper.generateUUIDString(0)), mixedObject.mixed!!.asUUID())
         assertEquals(Mixed.valueOf(UUID.fromString(TestHelper.generateUUIDString(0))), mixedObject.mixed)
         assertEquals(MixedType.UUID, mixedObject.mixed!!.type)
@@ -426,9 +431,9 @@ class MixedTests {
             mixedObject.mixed = null
         }
 
-        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
 
-        assertTrue(mixedObject!!.isManaged)
+        assertTrue(mixedObject.isManaged)
         assertTrue(mixedObject.mixed!!.isNull)
         assertTrue(mixedObject.mixed!!.equals(null))
         assertEquals(Mixed.nullValue(), mixedObject.mixed)
@@ -447,16 +452,16 @@ class MixedTests {
             mixedObject.mixed = Mixed.valueOf(innerObject)
         }
 
-        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
-        val mixedObject2 = realm.where<MixedNotIndexed>().findFirst()
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
+        val mixedObject2 = realm.where<MixedNotIndexed>().findFirst()!!
 
-        val innerObject = realm.where<PrimaryKeyAsString>().findFirst()
+        val innerObject = realm.where<PrimaryKeyAsString>().findFirst()!!
 
-        assertTrue(mixedObject!!.isManaged)
+        assertTrue(mixedObject.isManaged)
 
         assertEquals(
                 mixedObject.mixed!!.asRealmModel(PrimaryKeyAsString::class.java),
-                mixedObject2!!.mixed!!.asRealmModel(PrimaryKeyAsString::class.java)
+                mixedObject2.mixed!!.asRealmModel(PrimaryKeyAsString::class.java)
         )
 
         assertEquals(innerObject, mixedObject.mixed!!.asRealmModel(PrimaryKeyAsString::class.java))
@@ -476,16 +481,16 @@ class MixedTests {
             mixedObject.mixed = Mixed.valueOf(innerObject)
         }
 
-        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
-        val mixedObject2 = realm.where<MixedNotIndexed>().findFirst()
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
+        val mixedObject2 = realm.where<MixedNotIndexed>().findFirst()!!
 
-        val innerObject = realm.where<PrimaryKeyAsString>().findFirst()
+        val innerObject = realm.where<PrimaryKeyAsString>().findFirst()!!
 
-        assertTrue(mixedObject!!.isManaged)
+        assertTrue(mixedObject.isManaged)
 
         assertEquals(
                 mixedObject.mixed!!.asRealmModel(PrimaryKeyAsString::class.java),
-                mixedObject2!!.mixed!!.asRealmModel(PrimaryKeyAsString::class.java)
+                mixedObject2.mixed!!.asRealmModel(PrimaryKeyAsString::class.java)
         )
 
         assertEquals(innerObject, mixedObject.mixed!!.asRealmModel(PrimaryKeyAsString::class.java))
@@ -501,9 +506,9 @@ class MixedTests {
             mixedObject.mixed = Mixed.nullValue()
         }
 
-        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
 
-        assertTrue(mixedObject!!.isManaged)
+        assertTrue(mixedObject.isManaged)
         assertTrue(mixedObject.mixed!!.isNull)
         assertTrue(mixedObject.mixed!!.equals(null))
         assertEquals(Mixed.nullValue(), mixedObject.mixed)
@@ -518,7 +523,7 @@ class MixedTests {
             mixedObject.mixed = Mixed.nullValue()
         }
 
-        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
 
         assertTrue(mixedObject!!.isValid)
 
@@ -536,7 +541,7 @@ class MixedTests {
             mixedObject.mixed = Mixed.nullValue()
         }
 
-        val mixedObject = realm.where<MixedNotIndexed>().findFirst()
+        val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
 
         assertFalse(mixedObject!!.isFrozen)
         assertTrue(mixedObject.isValid)
@@ -551,7 +556,7 @@ class MixedTests {
             mixedObject.mixed = Mixed.nullValue()
         }
 
-        val mixedObjectFrozen = realm.freeze().where<MixedNotIndexed>().findFirst()
+        val mixedObjectFrozen = realm.freeze().where<MixedNotIndexed>().findFirst()!!
 
         assertTrue(mixedObjectFrozen!!.isFrozen)
         assertTrue(mixedObjectFrozen.isValid)
@@ -668,7 +673,6 @@ class MixedTests {
     }
 
     @Test
-    @Ignore("FIXME: See: https://github.com/realm/realm-core/issues/4304")
     fun managed_listsSetAllTypes() {
         val aString = "a string"
         val byteArray = byteArrayOf(0, 1, 0)
@@ -682,7 +686,8 @@ class MixedTests {
             val managedRealmModel = it.createObject<PrimaryKeyAsString>("managed")
 
             val initialList = RealmList<Mixed>()
-            initialList.addAll(arrayOfNulls(15))
+            initialList.addAll(arrayOfNulls(17))
+
             allJavaTypes.fieldMixedList = initialList
 
             allJavaTypes.fieldMixedList[0] = Mixed.valueOf(true)
@@ -726,7 +731,6 @@ class MixedTests {
     }
 
     @Test
-    @Ignore("FIXME: See: https://github.com/realm/realm-core/issues/4304")
     fun managed_listsRemoveAllTypes() {
         val aString = "a string"
         val byteArray = byteArrayOf(0, 1, 0)
@@ -866,6 +870,7 @@ class MixedTests {
         dynamicRealm.close()
     }
 
+
     @Test
     fun freeze() {
         realm.beginTransaction()
@@ -876,5 +881,40 @@ class MixedTests {
         val frozen = obj.freeze<MixedNotIndexedWithPK>()
 
         assertEquals(Mixed.valueOf(10.toInt()), frozen.mixed)
+    }
+
+    @Test
+    fun initialize_default_pkRealmModel() {
+        realm.executeTransaction {
+            realm.createObject<PrimaryKeyAsString>(MixedDefaultPK.NAME)
+        }
+
+        realm.executeTransaction {
+            realm.createObject<MixedDefaultPK>()
+        }
+
+        val mixedObject = realm.where<MixedDefaultPK>().findFirst()!!
+
+        assertTrue(mixedObject.isManaged)
+        assertEquals(MixedDefaultPK.NAME, mixedObject.mixed!!.asRealmModel(PrimaryKeyAsString::class.java).name)
+        assertEquals(MixedType.OBJECT, mixedObject.mixed!!.type)
+        assertEquals(PrimaryKeyAsString::class.simpleName, mixedObject.mixed!!.valueClass?.simpleName)
+    }
+
+    @Test
+    fun initialize_default_nonPkRealmModel() {
+        realm.executeTransaction {
+            realm.createObject<MixedNotIndexed>()
+        }
+
+        realm.executeTransaction {
+            realm.createObject<MixedDefaultNonPK>()
+        }
+
+        val mixedObject = realm.where<MixedDefaultNonPK>().findFirst()!!
+
+        assertTrue(mixedObject.isManaged)
+        assertEquals(MixedType.OBJECT, mixedObject.mixed!!.type)
+        assertEquals(MixedNotIndexed::class.simpleName, mixedObject.mixed!!.valueClass?.simpleName)
     }
 }

@@ -5,7 +5,10 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.rule.TestRealmConfigurationFactory
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
-import org.junit.*
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.util.*
@@ -179,8 +182,6 @@ class DynamicMixedTests {
         assertTrue(mixedList[14]!!.isNull)
 
         assertEquals("dynamic", mixedList[15]!!.asRealmModel(DynamicRealmObject::class.java).getString("aString"))
-
-        realm.close()
     }
 
 
@@ -235,13 +236,9 @@ class DynamicMixedTests {
         assertTrue(mixedList[2]!!.isNull)
         assertTrue(mixedList[1]!!.isNull)
         assertEquals("dynamic", mixedList[0]!!.asRealmModel(DynamicRealmObject::class.java).getString("aString"))
-
-
-        realm.close()
     }
 
     @Test
-    @Ignore("FIXME: See: https://github.com/realm/realm-core/issues/4304")
     fun managed_listsSetAllTypes() {
         val aString = "a string"
         val byteArray = byteArrayOf(0, 1, 0)
@@ -255,7 +252,7 @@ class DynamicMixedTests {
             val dynamicRealmObject = it.createObject("ObjectString", "dynamic")
 
             val initialList = RealmList<Mixed>()
-            initialList.addAll(arrayOfNulls(15))
+            initialList.addAll(arrayOfNulls(16))
             allJavaTypes.setList("aList", initialList)
 
             val mixedList = allJavaTypes.getList("aList", Mixed::class.java)
@@ -275,7 +272,7 @@ class DynamicMixedTests {
             mixedList[12] = Mixed.valueOf(uuid)
             mixedList[13] = Mixed.nullValue()
             mixedList[14] = null
-            mixedList.add(Mixed.valueOf(dynamicRealmObject))
+            mixedList[15] = Mixed.valueOf(dynamicRealmObject)
         }
 
         val allJavaTypes = realm.where("MixedListObject").findFirst()
@@ -297,12 +294,9 @@ class DynamicMixedTests {
         assertTrue(mixedList[13]!!.isNull)
         assertTrue(mixedList[14]!!.isNull)
         assertEquals("dynamic", mixedList[15]!!.asRealmModel(DynamicRealmObject::class.java).getString("aString"))
-
-        realm.close()
     }
 
     @Test
-    @Ignore("FIXME: See: https://github.com/realm/realm-core/issues/4304")
     fun managed_listsRemoveAllTypes() {
         val aString = "a string"
         val byteArray = byteArrayOf(0, 1, 0)
@@ -314,10 +308,6 @@ class DynamicMixedTests {
         realm.executeTransaction {
             val allJavaTypes = it.createObject("MixedListObject")
             val dynamicRealmObject = it.createObject("ObjectString", "dynamic")
-
-            val initialList = RealmList<Mixed>()
-            initialList.addAll(arrayOfNulls(15))
-            allJavaTypes.setList("aList", initialList)
 
             val mixedList = allJavaTypes.getList("aList", Mixed::class.java)
 
@@ -348,7 +338,5 @@ class DynamicMixedTests {
 
             assertEquals(0, mixedList.size)
         }
-
-        realm.close()
     }
 }
