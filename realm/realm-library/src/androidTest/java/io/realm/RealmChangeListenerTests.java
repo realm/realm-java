@@ -16,9 +16,6 @@
 
 package io.realm;
 
-import androidx.test.rule.UiThreadTestRule;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
@@ -26,6 +23,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.annotation.Nullable;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.rule.UiThreadTestRule;
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.BacklinksSource;
 import io.realm.entities.BacklinksTarget;
@@ -207,6 +209,78 @@ public class RealmChangeListenerTests {
         dynamicRealm.beginTransaction();
         allTypes.setString(AllTypes.FIELD_STRING, "test data 1");
         dynamicRealm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void mixedChangeListener_cyclicReferences(){
+        Realm realm = looperThread.getRealm();
+
+        realm.beginTransaction();
+        AllTypesRealmModel all = new AllTypesRealmModel();
+        all.columnLong = 0;
+        all.columnString = "FOO";
+        all.columnMixed = Mixed.valueOf(1);
+        AllTypesRealmModel managedAll = realm.copyToRealm(all);
+        realm.commitTransaction();
+
+        looperThread.keepStrongReference(managedAll);
+
+        RealmObject.addChangeListener(managedAll, new RealmObjectChangeListener<RealmModel>() {
+            @Override
+            public void onChange(RealmModel realmModel, @Nullable ObjectChangeSet changeSet) {
+                assertFalse(changeSet.isFieldChanged(AllTypesRealmModel.FIELD_STRING));
+                assertTrue(changeSet.isFieldChanged(AllTypesRealmModel.FIELD_MIXED));
+                looperThread.testComplete();
+            }
+        });
+
+        realm.beginTransaction();
+        AllTypesRealmModel all2 = new AllTypesRealmModel();
+
+        all2.columnLong = 0;
+        all2.columnString = "FOO";
+        all2.columnMixed = Mixed.valueOf(all);
+
+        realm.copyToRealmOrUpdate(all2, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
+
+        realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void mixedChangeListener_cyclicReferencesList(){
+        Realm realm = looperThread.getRealm();
+
+        realm.beginTransaction();
+        AllTypesRealmModel all = new AllTypesRealmModel();
+        all.columnLong = 0;
+        all.columnString = "FOO";
+        all.columnMixed = Mixed.valueOf(1);
+        AllTypesRealmModel managedAll = realm.copyToRealm(all);
+        realm.commitTransaction();
+
+        looperThread.keepStrongReference(managedAll);
+
+        RealmObject.addChangeListener(managedAll, new RealmObjectChangeListener<RealmModel>() {
+            @Override
+            public void onChange(RealmModel realmModel, @Nullable ObjectChangeSet changeSet) {
+//                assertFalse(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING));
+//                assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED));
+                looperThread.testComplete();
+            }
+        });
+
+        realm.beginTransaction();
+        AllTypesRealmModel all2 = new AllTypesRealmModel();
+
+        all2.columnLong = 0;
+        all2.columnString = "FOO";
+        all2.columnMixed = null;
+
+        realm.copyToRealmOrUpdate(all2, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
+
+        realm.commitTransaction();
     }
 
     @Test
