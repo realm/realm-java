@@ -102,7 +102,7 @@ public abstract class RealmProxyMediator {
     protected abstract <T extends RealmModel> Class<T> getClazzImpl(String className);
 
     /**
-     * Returns if the provided class reference has a primary key defined.
+     * Returns {@code true} true if the provided class reference has a primary key defined.
      *
      * @param clazz the {@link RealmModel} or the Realm object proxy class reference.
      * @return true if the class has a defined primary key, false otherwise.
