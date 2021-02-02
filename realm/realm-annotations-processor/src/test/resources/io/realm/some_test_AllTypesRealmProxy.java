@@ -1188,8 +1188,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             final Realm realm = (Realm) proxyState.getRealm$realm();
             final RealmList<Mixed> original = value;
             value = new RealmList<Mixed>();
-            for (Mixed item : original) {
-                value.add(ProxyUtils.copyToRealmIfNeeded(proxyState, item));
+            for (int i = 0; i < original.size(); i++) {
+                value.add(ProxyUtils.copyToRealmIfNeeded(proxyState, original.get(i)));
             }
         }
         osList.removeAll();
