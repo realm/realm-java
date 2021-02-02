@@ -1770,12 +1770,14 @@ public class Realm extends BaseRealm {
     }
 
     private void checkHasPrimaryKey(Class<? extends RealmModel> clazz) {
-        String className = configuration.getSchemaMediator().getSimpleClassName(clazz);
-        OsObjectSchemaInfo objectSchemaInfo = sharedRealm.getSchemaInfo().getObjectSchemaInfo(className);
-
-        if (objectSchemaInfo.getPrimaryKeyProperty() == null) {
+        if (!hasPrimaryKey(clazz)) {
             throw new IllegalArgumentException("A RealmObject with no @PrimaryKey cannot be updated: " + clazz.toString());
         }
+    }
+
+    // Called from proxy classes.
+    boolean hasPrimaryKey(Class<? extends RealmModel> clazz){
+        return configuration.getSchemaMediator().hasPrimaryKey(clazz);
     }
 
     private void checkMaxDepth(int maxDepth) {
