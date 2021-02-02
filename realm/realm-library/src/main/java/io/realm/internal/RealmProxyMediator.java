@@ -149,7 +149,7 @@ public abstract class RealmProxyMediator {
      * @param object {@link RealmObject} to insert.
      * @param cache the cache for mapping between unmanaged objects and their table row index for eventual reuse.
      */
-    public abstract void insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
+    public abstract Long insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
 
     /**
      * Inserts or updates a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map, Set)}
@@ -160,7 +160,7 @@ public abstract class RealmProxyMediator {
      * @param object {@link RealmObject} to insert.
      * @param cache the cache for mapping between unmanaged objects and their table row index for eventual reuse.
      */
-    public abstract void insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
+    public abstract long insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
 
     /**
      * Inserts or updates a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map, Set)}

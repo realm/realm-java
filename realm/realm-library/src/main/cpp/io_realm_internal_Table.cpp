@@ -21,6 +21,7 @@
 #include "io_realm_internal_Table.h"
 
 #include "java_accessor.hpp"
+#include "java_object_accessor.hpp"
 #include "java_exception_def.hpp"
 #include <realm/object-store/shared_realm.hpp>
 #include "jni_util/java_exception_thrower.hpp"
@@ -448,8 +449,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetMixed(JNIEnv* env, 
         return;
     }
     try {
-        Mixed mixed = reinterpret_cast<Mixed*>(nativePtr);
-        table->get_object(ObjKey(rowKey)).set<Mixed>(ColKey(columnKey), mixed, B(isDefault));
+        auto java_value = *reinterpret_cast<JavaValue *>(nativePtr);
+        table->get_object(ObjKey(rowKey)).set<Mixed>(ColKey(columnKey), java_value.to_mixed(), B(isDefault));
     }
     CATCH_STD()
 }

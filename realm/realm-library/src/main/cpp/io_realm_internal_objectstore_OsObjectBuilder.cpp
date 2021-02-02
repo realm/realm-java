@@ -167,6 +167,18 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddMixed
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jlong native_ptr)
+{
+    try {
+        auto java_value = *reinterpret_cast<JavaValue*>(native_ptr);
+        Mixed mixed = java_value.to_mixed();
+        const JavaValue value(mixed);
+        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObject
         (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jlong row_ptr)
 {

@@ -773,7 +773,7 @@ class MixedTests {
     private val looperThread = BlockingLooperThread()
 
     @Test
-    fun managed_listThrowsOtherRealm(){
+    fun managed_listThrowsOtherRealm() {
         realm.beginTransaction()
 
         val aDog = realm.createObject(PrimaryKeyAsString::class.java, "a dog")
@@ -788,7 +788,7 @@ class MixedTests {
 
             val allTypes = anotherRealm.createObject(AllJavaTypes::class.java, 0)
 
-            assertFailsWith<IllegalArgumentException>("Cannot copy an object from another Realm instance."){
+            assertFailsWith<IllegalArgumentException>("Cannot copy an object from another Realm instance.") {
                 allTypes.fieldMixedList.add(Mixed.valueOf(aDog))
             }
 
@@ -799,7 +799,7 @@ class MixedTests {
     }
 
     @Test
-    fun managed_listThrowsEmbedded(){
+    fun managed_listThrowsEmbedded() {
         looperThread.runBlocking {
             val anotherRealm = Realm.getInstance(realm.configuration)
 
@@ -818,7 +818,7 @@ class MixedTests {
     }
 
     @Test
-    fun dynamiclists_throwCopyBetweenInstances(){
+    fun dynamiclists_throwCopyBetweenInstances() {
         realm.beginTransaction()
 
         val aDog = realm.createObject(PrimaryKeyAsString::class.java, "a dog")
@@ -842,7 +842,7 @@ class MixedTests {
     }
 
     @Test
-    fun lists_throwCopyBetweenThreads(){
+    fun lists_throwCopyBetweenThreads() {
         realm.executeTransaction {
             it.createObject(PrimaryKeyAsString::class.java, "a dog")
         }

@@ -227,12 +227,21 @@ object Utils {
     }
 
     /**
+     * @return `true` if a given field type is `RealmList` and its element type is `Mixed`,
+     * `false` otherwise.
+     */
+    fun isMixedList(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field) ?: return false
+        return isMixed(elementTypeMirror)
+    }
+
+    /**
      * @return `true` if a given field type is `RealmList` and its element type is value type,
      * `false` otherwise.
      */
     fun isRealmValueList(field: VariableElement): Boolean {
         val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field) ?: return false
-        return !isRealmModel(elementTypeMirror)
+        return !isRealmModel(elementTypeMirror) && !isMixed(elementTypeMirror)
     }
 
     /**

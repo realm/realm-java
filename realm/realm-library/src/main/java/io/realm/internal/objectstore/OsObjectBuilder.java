@@ -251,7 +251,8 @@ public class OsObjectBuilder implements Closeable {
         }
     }
 
-    public void addMixed(long columnKey, @Nullable Mixed value) {
+    public void addMixed(long columnKey, long mixedPtr) {
+        nativeAddMixed(builderPtr, columnKey, mixedPtr);
     }
 
     public void addString(long columnKey, @Nullable String val) {
@@ -545,6 +546,8 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeAddObjectId(long builderPtr, long columnKey, String data);
 
     private static native void nativeAddUUID(long builderPtr, long columnKey, String data);
+
+    private static native void nativeAddMixed(long builderPtr, long columnKey, long mixedPtr);
 
     // Methods for adding lists
     // Lists sent across JNI one element at a time
