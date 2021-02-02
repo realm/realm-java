@@ -268,6 +268,11 @@ object Utils {
         //        return false;
     }
 
+    /**
+     * @return `true` if a given type is `Mixed`, `false` otherwise.
+     */
+    fun isMixed(type: TypeMirror?) = typeUtils.isAssignable(type, mixed)
+
     fun isRealmResults(field: VariableElement): Boolean {
         return typeUtils.isAssignable(field.asType(), realmResults)
     }

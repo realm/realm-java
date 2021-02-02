@@ -69,9 +69,10 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         long columnDecimal128ListColKey;
         long columnObjectIdListColKey;
         long columnUUIDListColKey;
+        long columnMixedListColKey;
 
         AllTypesColumnInfo(OsSchemaInfo schemaInfo) {
-            super(28);
+            super(29);
             OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("AllTypes");
             this.columnStringColKey = addColumnDetails("columnString", "columnString", objectSchemaInfo);
             this.columnLongColKey = addColumnDetails("columnLong", "columnLong", objectSchemaInfo);
@@ -101,6 +102,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             this.columnDecimal128ListColKey = addColumnDetails("columnDecimal128List", "columnDecimal128List", objectSchemaInfo);
             this.columnObjectIdListColKey = addColumnDetails("columnObjectIdList", "columnObjectIdList", objectSchemaInfo);
             this.columnUUIDListColKey = addColumnDetails("columnUUIDList", "columnUUIDList", objectSchemaInfo);
+            this.columnMixedListColKey = addColumnDetails("columnMixedList", "columnMixedList", objectSchemaInfo);
             addBacklinkDetails(schemaInfo, "parentObjects", "AllTypes", "columnObject");
         }
 
@@ -146,6 +148,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             dst.columnDecimal128ListColKey = src.columnDecimal128ListColKey;
             dst.columnObjectIdListColKey = src.columnObjectIdListColKey;
             dst.columnUUIDListColKey = src.columnUUIDListColKey;
+            dst.columnMixedListColKey = src.columnMixedListColKey;
         }
     }
 
@@ -172,6 +175,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
     private RealmList<org.bson.types.Decimal128> columnDecimal128ListRealmList;
     private RealmList<org.bson.types.ObjectId> columnObjectIdListRealmList;
     private RealmList<java.util.UUID> columnUUIDListRealmList;
+    private RealmList<Mixed> columnMixedListRealmList;
     private RealmResults<some.test.AllTypes> parentObjectsBacklinks;
 
     some_test_AllTypesRealmProxy() {
@@ -414,7 +418,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
     public Mixed realmGet$columnMixed() {
         proxyState.getRealm$realm().checkIfValid();
         NativeMixed nativeMixed = proxyState.getRow$realm().getNativeMixed(columnInfo.columnMixedColKey);
-        return new Mixed(MixedOperator.fromNativeMixed(proxyState, nativeMixed));
+        return new Mixed(MixedOperator.fromNativeMixed(proxyState.getRealm$realm(), nativeMixed));
     }
 
     @Override
@@ -1155,6 +1159,53 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
     }
 
     @Override
+    public RealmList<Mixed> realmGet$columnMixedList() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (columnMixedListRealmList != null) {
+            return columnMixedListRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getValueList(columnInfo.columnMixedListColKey, RealmFieldType.MIXED_LIST);
+            columnMixedListRealmList = new RealmList<io.realm.Mixed>(io.realm.Mixed.class, osList, proxyState.getRealm$realm());
+            return columnMixedListRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$columnMixedList(RealmList<Mixed> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("columnMixedList")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getValueList(columnInfo.columnMixedListColKey, RealmFieldType.MIXED_LIST);
+        if (value != null && !value.isManaged()) {
+            final Realm realm = (Realm) proxyState.getRealm$realm();
+            final RealmList<Mixed> original = value;
+            value = new RealmList<Mixed>();
+            for (int i = 0; i < original.size(); i++) {
+                value.add(ProxyUtils.copyToRealmIfNeeded(proxyState, original.get(i)));
+            }
+        }
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (io.realm.Mixed item : value) {
+            if (item == null) {
+                osList.addNull();
+            } else {
+                osList.addMixed(item.getNativePtr());
+            }
+        }
+    }
+
+    @Override
     public RealmResults<some.test.AllTypes> realmGet$parentObjects() {
         BaseRealm realm = proxyState.getRealm$realm();
         realm.checkIfValid();
@@ -1166,7 +1217,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
     }
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("AllTypes", false, 28, 1);
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("AllTypes", false, 29, 1);
         builder.addPersistedProperty("columnString", RealmFieldType.STRING, Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         builder.addPersistedProperty("columnLong", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addPersistedProperty("columnFloat", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
@@ -1195,6 +1246,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         builder.addPersistedValueListProperty("columnDecimal128List", RealmFieldType.DECIMAL128_LIST, !Property.REQUIRED);
         builder.addPersistedValueListProperty("columnObjectIdList", RealmFieldType.OBJECT_ID_LIST, !Property.REQUIRED);
         builder.addPersistedValueListProperty("columnUUIDList", RealmFieldType.UUID_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty("columnMixedList", RealmFieldType.MIXED_LIST, !Property.REQUIRED);
         builder.addComputedLinkProperty("parentObjects", "AllTypes", "columnObject");
         return builder.build();
     }
@@ -1218,7 +1270,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
     @SuppressWarnings("cast")
     public static some.test.AllTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
-        final List<String> excludeFields = new ArrayList<String>(16);
+        final List<String> excludeFields = new ArrayList<String>(17);
         some.test.AllTypes obj = null;
         if (update) {
             Table table = realm.getTable(some.test.AllTypes.class);
@@ -1288,6 +1340,9 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
             if (json.has("columnUUIDList")) {
                 excludeFields.add("columnUUIDList");
+            }
+            if (json.has("columnMixedList")) {
+                excludeFields.add("columnMixedList");
             }
             if (json.has("columnString")) {
                 if (json.isNull("columnString")) {
@@ -1440,6 +1495,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnDecimal128List(), json, "columnDecimal128List");
         ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnObjectIdList(), json, "columnObjectIdList");
         ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnUUIDList(), json, "columnUUIDList");
+        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnMixedList(), json, "columnMixedList");
         return obj;
     }
 
@@ -1599,6 +1655,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 objProxy.realmSet$columnObjectIdList(ProxyUtils.createRealmListWithJsonStream(org.bson.types.ObjectId.class, reader));
             } else if (name.equals("columnUUIDList")) {
                 objProxy.realmSet$columnUUIDList(ProxyUtils.createRealmListWithJsonStream(java.util.UUID.class, reader));
+            } else if (name.equals("columnMixedList")) {
+                objProxy.realmSet$columnMixedList(ProxyUtils.createRealmListWithJsonStream(io.realm.Mixed.class, reader));
             } else {
                 reader.skipValue();
             }
@@ -1700,6 +1758,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         builder.addDecimal128List(columnInfo.columnDecimal128ListColKey, unmanagedSource.realmGet$columnDecimal128List());
         builder.addObjectIdList(columnInfo.columnObjectIdListColKey, unmanagedSource.realmGet$columnObjectIdList());
         builder.addUUIDList(columnInfo.columnUUIDListColKey, unmanagedSource.realmGet$columnUUIDList());
+        builder.addMixedList(columnInfo.columnMixedListColKey, unmanagedSource.realmGet$columnMixedList());
 
         // Create the underlying object and cache it before setting any object/objectlist references
         // This will allow us to break any circular dependencies by using the object cache.
@@ -1995,6 +2054,18 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
+        RealmList<io.realm.Mixed> columnMixedListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnMixedList();
+        if (columnMixedListList != null) {
+            OsList columnMixedListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnMixedListColKey);
+            for (io.realm.Mixed columnMixedListItem : columnMixedListList) {
+                if (columnMixedListItem == null) {
+                    columnMixedListOsList.addNull();
+                } else {
+                    columnMixedListOsList.addMixed(columnMixedListItem.getNativePtr());
+                }
+            }
+        }
         return objKey;
     }
 
@@ -2244,6 +2315,18 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                         columnUUIDListOsList.addNull();
                     } else {
                         columnUUIDListOsList.addUUID(columnUUIDListItem);
+                    }
+                }
+            }
+
+            RealmList<io.realm.Mixed> columnMixedListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnMixedList();
+            if (columnMixedListList != null) {
+                OsList columnMixedListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnMixedListColKey);
+                for (io.realm.Mixed columnMixedListItem : columnMixedListList) {
+                    if (columnMixedListItem == null) {
+                        columnMixedListOsList.addNull();
+                    } else {
+                        columnMixedListOsList.addMixed(columnMixedListItem.getNativePtr());
                     }
                 }
             }
@@ -2558,6 +2641,20 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     columnUUIDListOsList.addNull();
                 } else {
                     columnUUIDListOsList.addUUID(columnUUIDListItem);
+                }
+            }
+        }
+
+
+        OsList columnMixedListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnMixedListColKey);
+        columnMixedListOsList.removeAll();
+        RealmList<io.realm.Mixed> columnMixedListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnMixedList();
+        if (columnMixedListList != null) {
+            for (io.realm.Mixed columnMixedListItem : columnMixedListList) {
+                if (columnMixedListItem == null) {
+                    columnMixedListOsList.addNull();
+                } else {
+                    columnMixedListOsList.addMixed(columnMixedListItem.getNativePtr());
                 }
             }
         }
@@ -2884,6 +2981,20 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
 
+
+            OsList columnMixedListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnMixedListColKey);
+            columnMixedListOsList.removeAll();
+            RealmList<io.realm.Mixed> columnMixedListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnMixedList();
+            if (columnMixedListList != null) {
+                for (io.realm.Mixed columnMixedListItem : columnMixedListList) {
+                    if (columnMixedListItem == null) {
+                        columnMixedListOsList.addNull();
+                    } else {
+                        columnMixedListOsList.addMixed(columnMixedListItem.getNativePtr());
+                    }
+                }
+            }
+
         }
     }
 
@@ -2991,6 +3102,9 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         unmanagedCopy.realmSet$columnUUIDList(new RealmList<java.util.UUID>());
         unmanagedCopy.realmGet$columnUUIDList().addAll(realmSource.realmGet$columnUUIDList());
 
+        unmanagedCopy.realmSet$columnMixedList(new RealmList<io.realm.Mixed>());
+        unmanagedCopy.realmGet$columnMixedList().addAll(realmSource.realmGet$columnMixedList());
+
         return unmanagedObject;
     }
 
@@ -3070,6 +3184,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         builder.addDecimal128List(columnInfo.columnDecimal128ListColKey, realmObjectSource.realmGet$columnDecimal128List());
         builder.addObjectIdList(columnInfo.columnObjectIdListColKey, realmObjectSource.realmGet$columnObjectIdList());
         builder.addUUIDList(columnInfo.columnUUIDListColKey, realmObjectSource.realmGet$columnUUIDList());
+        builder.addMixedList(columnInfo.columnMixedListColKey, realmObjectSource.realmGet$columnMixedList());
 
         builder.updateExistingTopLevelObject();
         return realmObject;
@@ -3192,6 +3307,10 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         stringBuilder.append(",");
         stringBuilder.append("{columnUUIDList:");
         stringBuilder.append("RealmList<UUID>[").append(realmGet$columnUUIDList().size()).append("]");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{columnMixedList:");
+        stringBuilder.append("RealmList<Mixed>[").append(realmGet$columnMixedList().size()).append("]");
         stringBuilder.append("}");
         stringBuilder.append("]");
         return stringBuilder.toString();

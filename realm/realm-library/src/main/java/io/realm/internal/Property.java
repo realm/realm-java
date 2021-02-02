@@ -28,6 +28,7 @@ import static io.realm.RealmFieldType.DECIMAL128_LIST;
 import static io.realm.RealmFieldType.DOUBLE_LIST;
 import static io.realm.RealmFieldType.FLOAT_LIST;
 import static io.realm.RealmFieldType.INTEGER_LIST;
+import static io.realm.RealmFieldType.MIXED_LIST;
 import static io.realm.RealmFieldType.OBJECT_ID_LIST;
 import static io.realm.RealmFieldType.UUID_LIST;
 import static io.realm.RealmFieldType.STRING_LIST;
@@ -159,6 +160,9 @@ public class Property implements NativeObject {
             case DOUBLE_LIST:
                 type = TYPE_DOUBLE | TYPE_ARRAY;
                 break;
+            case MIXED_LIST:
+                type = TYPE_MIXED | TYPE_ARRAY;
+                break;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported filed type: '%s'.", fieldType.name()));
@@ -220,6 +224,8 @@ public class Property implements NativeObject {
                 return OBJECT_ID_LIST;
             case TYPE_UUID | TYPE_ARRAY:
                 return UUID_LIST;
+            case TYPE_MIXED | TYPE_ARRAY:
+                return MIXED_LIST;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported property type: '%d'", propertyType));

@@ -246,6 +246,9 @@ public class LinkingObjectsDynamicTests {
                     case UUID_LIST:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
                         break;
+                    case MIXED_LIST:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_MIXED_LIST);
+                        break;
                     default:
                         fail("unknown type: " + fieldType);
                         break;

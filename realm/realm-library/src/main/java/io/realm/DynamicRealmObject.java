@@ -501,6 +501,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             return RealmFieldType.OBJECT_ID_LIST;
         } else if (primitiveType.equals(UUID.class)) {
             return RealmFieldType.UUID_LIST;
+        } else if (primitiveType.equals(Mixed.class)) {
+            return RealmFieldType.MIXED_LIST;
         } else {
             throw new IllegalArgumentException("Unsupported element type. Only primitive types supported. Yours was: " + primitiveType);
         }
@@ -545,6 +547,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case DECIMAL128_LIST:
             case OBJECT_ID_LIST:
             case UUID_LIST:
+            case MIXED_LIST:
                 // fall through
             default:
                 return false;
@@ -986,6 +989,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case DECIMAL128_LIST:
             case OBJECT_ID_LIST:
             case UUID_LIST:
+            case MIXED_LIST:
                 setValueList(fieldName, list, columnType);
                 break;
             default:
@@ -1058,6 +1062,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case DECIMAL128_LIST: elementClass = (Class<E>) Decimal128.class; break;
             case OBJECT_ID_LIST: elementClass = (Class<E>) ObjectId.class; break;
             case UUID_LIST: elementClass = (Class<E>) UUID.class; break;
+            case MIXED_LIST: elementClass = (Class<E>) Mixed.class; break;
             default:
                 throw new IllegalArgumentException("Unsupported type: " + primitiveType);
         }
@@ -1119,6 +1124,10 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         if (valueListType == RealmFieldType.UUID_LIST) {
             //noinspection unchecked
             return (ManagedListOperator<E>) new UUIDListOperator(realm, osList, (Class<UUID>) valueClass);
+        }
+        if (valueListType == RealmFieldType.MIXED_LIST) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new MixedListOperator(realm, osList, (Class<Mixed>) valueClass);
         }
         throw new IllegalArgumentException("Unexpected list type: " + valueListType.name());
     }
@@ -1331,6 +1340,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                 case UUID_LIST:
                     sb.append(String.format(Locale.US, "RealmList<UUID>[%s]", proxyState.getRow$realm().getValueList(columnKey, type).size()));
                     break;
+                case MIXED_LIST:
+                    sb.append(String.format(Locale.US, "RealmList<Mixed>[%s]", proxyState.getRow$realm().getValueList(columnKey, type).size()));
+                    break;
                 default:
                     sb.append("?");
                     break;
@@ -1344,7 +1356,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
 
     private Mixed getMixed(long columnKey) {
         NativeMixed nativeMixed = proxyState.getRow$realm().getNativeMixed(columnKey);
-        return new Mixed(MixedOperator.fromNativeMixed(proxyState, nativeMixed));
+        return new Mixed(MixedOperator.fromNativeMixed(proxyState.getRealm$realm(), nativeMixed));
     }
 
     /**
