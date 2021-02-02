@@ -30,6 +30,7 @@
 #include <realm/object-store/results.hpp>
 #include <realm/object-store/list.hpp>
 #include <realm/object-store/object.hpp>
+#include <realm/parser/query_parser.hpp>
 #if REALM_ENABLE_SYNC
 #include <realm/object-store/sync/app.hpp>
 #endif
@@ -54,6 +55,10 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     }
     catch (JavaExceptionThrower& e) {
         e.throw_java_exception(env);
+    }
+    catch(realm::query_parser::InvalidQueryError& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalArgument, ss.str());
     }
     catch (std::bad_alloc& e) {
         ss << e.what() << " in " << file << " line " << line;
@@ -121,6 +126,14 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     catch (IncorrectThreadException& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalState, ss.str());
+    }
+    catch(query_parser::SyntaxError& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalArgument, ss.str());
+    }
+    catch(std::invalid_argument& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalArgument, ss.str());
     }
     catch (realm::LogicError e) {
         ExceptionKind kind;

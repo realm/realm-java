@@ -3715,9 +3715,8 @@ public class RealmQueryTests extends QueryTests {
         try {
             realm.where(AllTypes.class).rawPredicate("foo = 'test data 0'");
             fail();
-        } catch (IllegalStateException e) {
-            // FIXME: This should be IllegalArgumentException instead
-            assertEquals("No property 'foo' on object of type 'AllTypes'", e.getMessage());
+        } catch (IllegalArgumentException e) {
+            assertEquals("'AllTypes' has no property: 'foo'", e.getMessage());
         }
     }
 
@@ -3726,8 +3725,8 @@ public class RealmQueryTests extends QueryTests {
         try {
             realm.where(AllTypes.class).rawPredicate("columnString = 42.0");
             fail();
-        } catch (IllegalStateException ex) {
-            assertTrue("Error message was: " + ex.getMessage(), ex.getMessage().contains("Attempting to compare String property to a non-String value"));
+        } catch (IllegalArgumentException ex) {
+            assertTrue("Error message was: " + ex.getMessage(), ex.getMessage().contains("Unsupported comparison between type 'string' and type 'double'"));
         }
     }
 

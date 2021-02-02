@@ -28,7 +28,7 @@ using namespace realm::jni_util;
 using namespace realm::_impl;
 
 static void finalize_client(jlong ptr) {
-    delete reinterpret_cast<parser::KeyPathMapping*>(ptr);
+    delete reinterpret_cast<query_parser::KeyPathMapping*>(ptr);
 }
 
 JNIEXPORT jlong JNICALL
@@ -39,7 +39,7 @@ Java_io_realm_internal_objectstore_OsKeyPathMapping_nativeGetFinalizerMethodPtr(
 JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsKeyPathMapping_nativeCreateMapping(JNIEnv* env, jclass, jlong j_shared_realm_ptr) {
     try {
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(j_shared_realm_ptr));
-        auto mapping = new parser::KeyPathMapping;
+        auto mapping = new query_parser::KeyPathMapping;
         realm::populate_keypath_mapping(*mapping, *shared_realm);
         return reinterpret_cast<jlong>(mapping);
     }
