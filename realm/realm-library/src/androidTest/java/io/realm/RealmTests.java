@@ -413,7 +413,7 @@ public class RealmTests {
 
             try {
                 realm.where(AllTypes.class).equalTo(columnData.get(i), UUID.fromString(TestHelper.generateUUIDString(i))).findAll();
-                if (i != 8) {
+                if (i != 9) {
                     fail("Realm.where should fail with illegal argument");
                 }
             } catch (IllegalArgumentException ignored) {
