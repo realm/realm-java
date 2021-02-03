@@ -42,7 +42,7 @@ open class DictionaryClass : RealmObject() {
     var myUUIDDictionary: RealmDictionary<UUID>? = null
     var myDecimal128Dictionary: RealmDictionary<Decimal128>? = null
 
-    var myStringList: RealmList<String>? = null
+    var emptyBooleanDictionary: RealmDictionary<Boolean>? = null
 
     companion object {
         const val CLASS_NAME = "DictionaryClass"

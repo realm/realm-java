@@ -165,8 +165,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
 
     @Override
     public RealmMap<K, V> freeze() {
-        RealmMap<K, V> freeze = mapStrategy.freeze();
-        return freeze;
+        return mapStrategy.freeze();
     }
 
     // TODO: should we override any default methods from parent map class?
@@ -320,8 +319,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
 
         @Override
         public RealmMap<K, V> freeze() {
-            RealmMap<K, V> freeze = managedMapManager.freeze();
-            return freeze;
+            return managedMapManager.freeze();
         }
 
         // ------------------------------------------

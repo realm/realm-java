@@ -418,9 +418,32 @@ class DictionaryTests {
     }
 
     @Test
-    @Ignore
     fun managed_putAll() {
-        // TODO
+        val map = HashMap<String, Boolean>().apply {
+            put(KEY_HELLO, VALUE_HELLO)
+            put(KEY_BYE, VALUE_BYE)
+        }
+        realm.executeTransaction { transactionRealm ->
+            val instance = transactionRealm.copyToRealm(initDictionaryClass(false))
+            instance.myBooleanDictionary.also { dictionary ->
+                assertNotNull(dictionary)
+                assertTrue(dictionary.isEmpty())
+
+                // putAll with unmanaged map
+                dictionary.putAll(map)
+                assertFalse(dictionary.isEmpty())
+                assertEquals(2, dictionary.size)
+                assertEquals(VALUE_HELLO, dictionary[KEY_HELLO])
+                assertEquals(VALUE_BYE, dictionary[KEY_BYE])
+            }
+
+            // TODO: putAll with managed dictionary
+            val emptyDictionary = instance.emptyBooleanDictionary
+            assertNotNull(emptyDictionary)
+            assertTrue(emptyDictionary.isEmpty())
+            val booleanDictionaryAsMap: Map<String, Boolean> = instance.myBooleanDictionary!!
+            emptyDictionary.putAll(booleanDictionaryAsMap)
+        }
     }
 
     @Test
@@ -446,10 +469,6 @@ class DictionaryTests {
     fun managed_values() {
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
-                myStringList = RealmList<String>().apply {
-                    add("HELLO")
-                    add("BYE")
-                }
                 myStringDictionary = RealmDictionary<String>().apply {
                     put(KEY_HELLO, VALUE_HELLO_STRING)
                     put(KEY_BYE, VALUE_BYE_STRING)
@@ -956,6 +975,9 @@ class DictionaryTests {
 
     private fun initDictionaryClass(withDefaultValues: Boolean = false): DictionaryClass {
         return DictionaryClass().apply {
+            // This one will always be empty by default for testing purposes
+            myBooleanDictionary = RealmDictionary<Boolean>()
+
             myBooleanDictionary = RealmDictionary<Boolean>().apply {
                 if (withDefaultValues) {
                     put(KEY_HELLO, VALUE_HELLO)
