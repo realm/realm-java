@@ -104,6 +104,7 @@ public enum RealmFieldType {
     DECIMAL128_LIST(CORE_TYPE_VALUE_DECIMAL128 + LIST_OFFSET),
     OBJECT_ID_LIST(CORE_TYPE_VALUE_OBJECTID + LIST_OFFSET),
     UUID_LIST(CORE_TYPE_VALUE_UUID + LIST_OFFSET),
+    MIXED_LIST(CORE_TYPE_VALUE_MIXED + LIST_OFFSET),
 
     STRING_TO_INTEGER_MAP(CORE_TYPE_VALUE_INTEGER + DICTIONARY_OFFSET),
     STRING_TO_BOOLEAN_MAP(CORE_TYPE_VALUE_BOOLEAN + DICTIONARY_OFFSET),
@@ -183,7 +184,6 @@ public enum RealmFieldType {
             case CORE_TYPE_VALUE_MIXED:
                 return (obj instanceof Mixed);
             case CORE_TYPE_VALUE_OBJECT:
-                return false;
             case CORE_TYPE_VALUE_LIST:
             case CORE_TYPE_VALUE_LINKING_OBJECTS:
             case CORE_TYPE_VALUE_INTEGER + LIST_OFFSET:
@@ -196,6 +196,7 @@ public enum RealmFieldType {
             case CORE_TYPE_VALUE_DECIMAL128 + LIST_OFFSET:
             case CORE_TYPE_VALUE_OBJECTID + LIST_OFFSET:
             case CORE_TYPE_VALUE_UUID + LIST_OFFSET:
+            case CORE_TYPE_VALUE_MIXED + LIST_OFFSET:
                 return false;
             case CORE_TYPE_VALUE_INTEGER + DICTIONARY_OFFSET:
             case CORE_TYPE_VALUE_BOOLEAN + DICTIONARY_OFFSET:

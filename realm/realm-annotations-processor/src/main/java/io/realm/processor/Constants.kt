@@ -66,7 +66,8 @@ object Constants {
             "byte[]" to RealmFieldType.BINARY_LIST,
             "org.bson.types.Decimal128" to RealmFieldType.DECIMAL128_LIST,
             "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID_LIST,
-            "java.util.UUID" to RealmFieldType.UUID_LIST
+            "java.util.UUID" to RealmFieldType.UUID_LIST,
+            "io.realm.Mixed" to RealmFieldType.MIXED_LIST
     )
 
     val DICTIONARY_ELEMENT_TYPE_TO_REALM_TYPES = mapOf(
@@ -122,6 +123,7 @@ object Constants {
         DECIMAL128_LIST("DECIMAL128_LIST", "List"),
         OBJECT_ID_LIST("OBJECT_ID_LIST", "List"),
         UUID_LIST("UUID_LIST", "List"),
+        MIXED_LIST("MIXED_LIST", "List"),
 
         STRING_TO_LINK_MAP("STRING_TO_LINK_MAP", "Map"),
         STRING_TO_INTEGER_MAP("STRING_TO_INTEGER_MAP", "Map"),

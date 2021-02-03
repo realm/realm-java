@@ -2944,6 +2944,9 @@ public class RealmQueryTests extends QueryTests {
                     case UUID_LIST:
                         realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_UUID_LIST).findAll();
                         break;
+                    case MIXED_LIST:
+                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_MIXED_LIST).findAll();
+                        break;
                     case STRING_TO_MIXED_MAP:
                     case STRING_TO_BOOLEAN_MAP:
                     case STRING_TO_STRING_MAP:
@@ -3113,6 +3116,9 @@ public class RealmQueryTests extends QueryTests {
                         break;
                     case UUID_LIST:
                         realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_UUID_LIST).findAll();
+                        break;
+                    case MIXED_LIST:
+                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_MIXED_LIST).findAll();
                         break;
                     case STRING_TO_MIXED_MAP:
                     case STRING_TO_BOOLEAN_MAP:
@@ -3345,6 +3351,7 @@ public class RealmQueryTests extends QueryTests {
         // Bookkeeping to ensure that we are actually testing all types
         HashSet types = new HashSet(Arrays.asList(RealmFieldType.values()));
         types.remove(RealmFieldType.TYPED_LINK);
+        types.remove(RealmFieldType.MIXED_LIST);
 
         // TODO: maps not ready to test yet
         types.remove(RealmFieldType.STRING_TO_MIXED_MAP);
@@ -4173,6 +4180,7 @@ public class RealmQueryTests extends QueryTests {
             case DECIMAL128_LIST:
             case OBJECT_ID_LIST:
             case UUID_LIST:
+            case MIXED_LIST:
             case STRING_TO_MIXED_MAP:
             case STRING_TO_BOOLEAN_MAP:
             case STRING_TO_STRING_MAP:
