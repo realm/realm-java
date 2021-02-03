@@ -207,8 +207,6 @@ abstract class MapValueOperator<K, V> {
     @Nullable
     public abstract V put(Object key, V value);
 
-    public abstract void putAll(Map<K, V> map);
-
     public void remove(Object key) {
         osMap.remove(key);
     }
@@ -235,6 +233,15 @@ abstract class MapValueOperator<K, V> {
 
     public void clear() {
         osMap.clear();
+    }
+
+    public void putAll(Map<K, V> map) {
+        // FIXME: entrySet for managed dictionaries isn't implemented so it will fail in such case
+        for (Map.Entry<K, V> entry: map.entrySet()) {
+            // TODO: inefficient, pass array of keys and array of values to JNI instead,
+            //  which requires operators to implement it as it varies from type to type
+            put(entry.getKey(), entry.getValue());
+        }
     }
 
     public Set<K> keySet() {
@@ -309,11 +316,6 @@ class MixedValueOperator<K> extends MapValueOperator<K, Mixed> {
         osMap.put(key, value.getNativePtr());
         return original;
     }
-
-    @Override
-    public void putAll(Map<K, Mixed> map) {
-        // TODO
-    }
 }
 
 /**
@@ -341,17 +343,6 @@ class BoxableValueOperator<K, V> extends MapValueOperator<K, V> {
         V original = get(key);
         osMap.put(key, value);
         return original;
-    }
-
-    @Override
-    public void putAll(Map<K, V> map) {
-        List<K> keys = new ArrayList<>();
-        List<V> values = new ArrayList<>();
-        for (Map.Entry<? extends K, ? extends V> entry: map.entrySet()) {
-            keys.add(entry.getKey());
-            values.add(entry.getValue());
-        }
-        osMap.putAll(keys, values);
     }
 
     /**
@@ -466,11 +457,6 @@ class RealmModelValueOperator<K, V> extends MapValueOperator<K, V> {
             //noinspection unchecked
             return (V) baseRealm.get((Class<? extends RealmModel>) clazz, className, rowModelKey);
         }
-    }
-
-    @Override
-    public void putAll(Map<K, V> map) {
-        // TODO
     }
 
     // TODO: unify this method and the one in RealmModelListOperator
