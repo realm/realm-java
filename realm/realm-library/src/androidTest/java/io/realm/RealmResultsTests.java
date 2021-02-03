@@ -16,12 +16,14 @@
 
 package io.realm;
 
+import androidx.test.annotation.UiThreadTest;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.json.JSONException;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -41,8 +43,6 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import androidx.test.annotation.UiThreadTest;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
@@ -2117,6 +2117,25 @@ public class RealmResultsTests extends CollectionTests {
                 "      ]\n" +
                 "   }\n" +
                 "]";
+        JSONAssert.assertEquals(expectedJSON, json, false);
+    }
+
+    @Test
+    public void asJSON_withEscaping() throws JSONException {
+        realm.beginTransaction();
+        PrimaryKeyAsLong element = realm.createObject(PrimaryKeyAsLong.class, 1);
+        String value = "\"something\"";
+        element.setName(value);
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsLong> all = realm.where(PrimaryKeyAsLong.class)
+                .equalTo(PrimaryKeyAsString.FIELD_ID, element.getId())
+                .findAll();
+
+        assertEquals(1, all.size());
+
+        String json = all.asJSON();
+        final String expectedJSON = "[{\"_key\":1,\"id\":1,\"name\":\"\\\"something\\\"\"}]";
         JSONAssert.assertEquals(expectedJSON, json, false);
     }
 
