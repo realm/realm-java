@@ -19,6 +19,7 @@ package io.realm.internal;
 import javax.annotation.Nullable;
 
 import io.realm.RealmConfiguration;
+import io.realm.internal.Util;
 
 /**
  * Java wrapper for methods in object_store.hpp.
@@ -40,10 +41,12 @@ public class OsObjectStore {
      */
     public static void setPrimaryKeyForObject(OsSharedRealm sharedRealm, String className,
                                               @Nullable String primaryKeyFieldName) {
+        className = Util.getTablePrefix() + className;
         nativeSetPrimaryKeyForObject(sharedRealm.getNativePtr(), className, primaryKeyFieldName);
     }
 
     public static @Nullable String getPrimaryKeyForObject(OsSharedRealm sharedRealm, String className) {
+        className = Util.getTablePrefix() + className;
         return nativeGetPrimaryKeyForObject(sharedRealm.getNativePtr(), className);
     }
 
