@@ -58,36 +58,8 @@ Java_io_realm_internal_OsMap_nativeGetValue(JNIEnv* env, jclass, jlong map_ptr,
     try {
         auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
         JStringAccessor key(env, j_key);
-        const Optional<Mixed>& optional_result = dictionary.try_get_any(StringData(key));
-        if (optional_result) {
-            const Mixed& value = optional_result.value();
-            if (value.is_null()) {
-                return nullptr;
-            } else {
-                const DataType& type = value.get_type();
-                switch (type) {
-                    case DataType::Type::Int:
-                        return JavaClassGlobalDef::new_long(env, value.get_int());
-                    case DataType::Type::Double:
-                        return JavaClassGlobalDef::new_double(env, value.get_double());
-                    case DataType::Type::Bool:
-                        return JavaClassGlobalDef::new_boolean(env, value.get_bool());
-                    case DataType::Type::String:
-                        return to_jstring(env, value.get_string());
-                    case DataType::Type::Binary:
-                        return JavaClassGlobalDef::new_byte_array(env, value.get_binary());
-                    case DataType::Type::Float:
-                        return JavaClassGlobalDef::new_float(env, value.get_float());
-                    case DataType::Type::UUID:
-                        return JavaClassGlobalDef::new_uuid(env, value.get_uuid());
-                    case DataType::Type::ObjectId:
-                        return JavaClassGlobalDef::new_object_id(env, value.get_object_id());
-                    default:
-                        // FIXME: double-check types
-                        throw std::logic_error("'getValue' method only suitable for int, double, boolean, String, byte[], float, UUID and ObjectId.");
-                }
-            }
-        }
+        JavaAccessorContext context(env);
+        return any_cast<jobject>(dictionary.get(context, StringData(key)));
     }
     CATCH_STD()
 
