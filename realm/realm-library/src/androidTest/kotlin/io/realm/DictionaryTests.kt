@@ -437,12 +437,14 @@ class DictionaryTests {
                 assertEquals(VALUE_BYE, dictionary[KEY_BYE])
             }
 
-            // TODO: putAll with managed dictionary
+            // entrySet for managed maps throws until further notice
             val emptyDictionary = instance.emptyBooleanDictionary
             assertNotNull(emptyDictionary)
             assertTrue(emptyDictionary.isEmpty())
             val booleanDictionaryAsMap: Map<String, Boolean> = instance.myBooleanDictionary!!
-            emptyDictionary.putAll(booleanDictionaryAsMap)
+            assertFailsWith<UnsupportedOperationException> {
+                emptyDictionary.putAll(booleanDictionaryAsMap)
+            }
         }
     }
 

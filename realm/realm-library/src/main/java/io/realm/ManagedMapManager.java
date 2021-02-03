@@ -117,8 +117,8 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
 
     @Override
     public Set<Entry<K, V>> entrySet() {
-        // TODO: use operator + do it natively
-        return null;
+        // Throw until we have sets in place
+        throw new UnsupportedOperationException("Unmanaged maps do not support 'entrySet' yet.");
     }
 
     @Override
