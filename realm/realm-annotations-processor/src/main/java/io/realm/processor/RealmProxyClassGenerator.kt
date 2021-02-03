@@ -370,7 +370,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
                 emitStatement("proxyState.getRealm\$realm().checkIfValid()")
                 emitStatement("NativeMixed nativeMixed = proxyState.getRow\$realm().getNativeMixed(%s)", fieldColKeyVariableReference(field))
-                emitStatement("return new Mixed(MixedOperator.fromNativeMixed(proxyState, nativeMixed))")
+                emitStatement("return new Mixed(MixedOperator.fromNativeMixed(proxyState.getRealm\$realm(), nativeMixed))")
             endMethod()
             // Getter - End
 
@@ -496,7 +496,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             fieldTypeCanonicalName: String,
             valueTypeMirror: TypeMirror
     ) {
-        val forMixed = Utils.isMixedType(valueTypeMirror)
+        val forMixed = Utils.isMixed(valueTypeMirror)
 
         with(writer) {
             val genericType: QualifiedClassName? = Utils.getGenericTypeQualifiedName(field)
@@ -603,6 +603,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
         val genericType: QualifiedClassName? = Utils.getGenericTypeQualifiedName(field)
         val forRealmModel: Boolean = Utils.isRealmModel(elementTypeMirror)
+        val forMixed: Boolean = Utils.isMixed(elementTypeMirror)
 
         writer.apply {
             // Getter - Start
@@ -684,7 +685,17 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         endControlFlow()
                     endControlFlow()
             } else {
-                // Value lists
+                if(forMixed){
+                    beginControlFlow("if (value != null && !value.isManaged())")
+                        emitStatement("final Realm realm = (Realm) proxyState.getRealm\$realm()")
+                        emitStatement("final RealmList<Mixed> original = value")
+                        emitStatement("value = new RealmList<Mixed>()")
+
+                        beginControlFlow("for (int i = 0; i < original.size(); i++)")
+                            emitStatement("value.add(ProxyUtils.copyToRealmIfNeeded(proxyState, original.get(i)))")
+                        endControlFlow()
+                    endControlFlow()
+                }                // Value lists
                 emitStatement("osList.removeAll()")
                 beginControlFlow("if (value == null)")
                     emitStatement("return")
@@ -740,6 +751,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         }
         if (typeUtils.isSameType(elementTypeMirror, typeMirrors.UUID_MIRROR)) {
             return "$osListVariableName.addUUID($valueVariableName)"
+        }
+        if (typeUtils.isSameType(elementTypeMirror, typeMirrors.MIXED_MIRROR)) {
+            return "$osListVariableName.addMixed($valueVariableName.getNativePtr())"
         }
         throw RuntimeException("unexpected element type: $elementTypeMirror")
     }
@@ -876,6 +890,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Constants.RealmFieldType.DECIMAL128_LIST,
                         Constants.RealmFieldType.OBJECT_ID_LIST,
                         Constants.RealmFieldType.UUID_LIST,
+                        Constants.RealmFieldType.MIXED_LIST,
                         Constants.RealmFieldType.DOUBLE_LIST -> {
                             val requiredFlag = if (metadata.isElementNullable(field)) "!Property.REQUIRED" else "Property.REQUIRED"
                             emitStatement("builder.addPersistedValueListProperty(\"%s\", %s, %s)", fieldName, fieldType.realmType, requiredFlag)
