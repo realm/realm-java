@@ -66,7 +66,6 @@ endif()
 
 # Set option flags for Core.
 # See https://github.com/realm/realm-core/blob/master/CMakeLists.txt#L174 for the full list.
-set(REALM_ENABLE_FFI OFF)
 if (REALM_FLAVOR STREQUAL base)
     set(REALM_ENABLE_SYNC OFF)
 else()
