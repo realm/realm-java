@@ -18,6 +18,12 @@
 cmake_minimum_required(VERSION 3.15.0)
 project(RealmJava)
 
+# For debugging: Enable this to output all variables defined for the project
+#get_cmake_property(_variableNames VARIABLES)
+#foreach (_variableName ${_variableNames})
+#    message(STATUS "${_variableName}=${${_variableName}}")
+#endforeach()
+
 # loading dependencies properties
 file(STRINGS "${CMAKE_SOURCE_DIR}/../../../../../dependencies.list" DEPENDENCIES)
 foreach(LINE IN LISTS DEPENDENCIES)
@@ -193,7 +199,7 @@ endif()
 set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wmissing-declarations \
     -Wempty-body -Wparentheses -Wunknown-pragmas -Wunreachable-code \
     -Wno-missing-field-initializers -Wno-unevaluated-expression -Wno-unreachable-code \
-    -Wno-c99-extensions")
+    -Wno-c99-extensions -Wno-dtor-name")
 set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -fdata-sections -pthread -frtti -fvisibility=hidden -fsigned-char -fno-stack-protector -std=c++17")
 if (REALM_ENABLE_SYNC)
     set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")
@@ -211,6 +217,9 @@ if (REALM_ENABLE_SYNC)
     set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -lz")
 endif()
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${REALM_LINKER_FLAGS}")
+# Work-around for gold linker issue when enabling LTO: https://github.com/android/ndk/issues/1444
+# Make the build choose whatever default linker chosen by the NDK.
+STRING(REGEX REPLACE "-fuse-ld=gold" "" CMAKE_CXX_LINK_OPTIONS_IPO ${CMAKE_CXX_LINK_OPTIONS_IPO})
 
 # JNI source files
 file(GLOB jni_SRC

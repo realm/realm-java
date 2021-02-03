@@ -14,7 +14,7 @@ KOTLIN_COROUTINES=1.3.9
 
 # Common classpath dependencies
 gradle=6.5
-ndkVersion=21.0.6113669
+ndkVersion=22.0.7026061
 BUILD_INFO_EXTRACTOR_GRADLE=4.17.0
 GRADLE_BINTRAY_PLUGIN=1.8.5
 CMAKE=3.18.4
