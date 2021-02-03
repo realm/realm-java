@@ -939,12 +939,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitStatement("""builder.addPersistedMapProperty("%s", %s, %s)""", fieldName, fieldType.realmType, requiredFlag)
                         }
                         Constants.RealmFieldType.STRING_TO_LINK_MAP -> {
-                            // TODO: not the best place to check for having an embedded class dictionary...
-                            val dictionaryElementType: TypeMirror = Utils.getGenericType(field)!!
-                            val isEmbedded = isFieldTypeEmbedded(dictionaryElementType)
-                            if (isEmbedded) {
-                                throw IOException("Embedded objects are not allowed in dictionaries yet.")
-                            }
                             val genericTypeQualifiedName = Utils.getGenericTypeQualifiedName(field)
                             val internalClassName = Utils.getReferencedTypeInternalClassNameStatement(genericTypeQualifiedName, classCollection)
                             emitStatement("builder.addPersistedLinkProperty(\"%s\", RealmFieldType.STRING_TO_LINK_MAP, %s)", fieldName, internalClassName)
@@ -2017,6 +2011,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         }
                         Utils.isRealmDictionary(field) -> {
                             val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
+
+                            // TODO: handle embedded objects
 
                             emitStatement("RealmDictionary<%s> %sUnmanagedDictionary = unmanagedSource.%s()", genericType, fieldName, getter)
                             beginControlFlow("if (%sUnmanagedDictionary != null)", fieldName)
