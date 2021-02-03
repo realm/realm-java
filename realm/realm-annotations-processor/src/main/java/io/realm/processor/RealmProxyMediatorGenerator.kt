@@ -290,7 +290,7 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
         writer.apply {
             emitAnnotation("Override")
             beginMethod(
-                    "Long",
+                    "long",
                     "insert",
                     EnumSet.of(Modifier.PUBLIC),
                     "Realm", "realm", "RealmModel", "object", "Map<RealmModel, Long>", "cache")

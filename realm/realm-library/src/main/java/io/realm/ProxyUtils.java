@@ -324,11 +324,11 @@ class ProxyUtils {
             if (cacheRealmObject != null) {
                 mixed = Mixed.valueOf(cacheRealmObject);
             } else {
-                Long index = realm.getConfiguration()
+                long index = realm.getConfiguration()
                         .getSchemaMediator()
                         .insert(realm, mixedRealmObject, cache);
 
-                RealmModel realmModel = (index != null) ? realm.get(mixedValueClass, null, index) : null;
+                RealmModel realmModel = realm.get(mixedValueClass, null, index);
 
                 mixed = Mixed.valueOf(realmModel);
             }
