@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 
 import io.realm.ImportFlag;
 import io.realm.Mixed;
+import io.realm.MixedHandlerImpl;
 import io.realm.MutableRealmInteger;
 import io.realm.RealmDictionary;
 import io.realm.RealmList;
@@ -208,6 +209,15 @@ public class OsObjectBuilder implements Closeable {
         @Override
         public void handleItem(long containerPtr, Map.Entry<String, UUID> item) {
             nativeAddUUIDDictionaryEntry(containerPtr, item.getKey(), item.getValue().toString());
+        }
+    };
+
+    private static ItemCallback<Mixed> mixedItemCallback = new ItemCallback<Mixed>() {
+        private final MixedHandler mixedHandler = new MixedHandlerImpl();
+
+        @Override
+        public void handleItem(long listPtr, Mixed mixed) {
+            mixedHandler.handleItem(listPtr, mixed);
         }
     };
 
@@ -446,6 +456,10 @@ public class OsObjectBuilder implements Closeable {
         addListItem(builderPtr, columnKey, list, uuidItemCallback);
     }
 
+    public void addMixedList(long columnKey, RealmList<Mixed> list) {
+        addListItem(builderPtr, columnKey, list, mixedItemCallback);
+    }
+
     private void addEmptyList(long columnKey) {
         long listPtr = nativeStartList(0);
         nativeStopList(builderPtr, columnKey, listPtr);
@@ -644,6 +658,8 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeAddObjectIdListItem(long listPtr, String data);
 
     private static native void nativeAddUUIDListItem(long listPtr, String data);
+
+    public static native void nativeAddMixedListItem(long listPtr, long mixedPtr);
 
     private static native void nativeAddObjectListItem(long listPtr, long rowPtr);
 

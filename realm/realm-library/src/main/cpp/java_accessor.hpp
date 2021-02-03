@@ -204,6 +204,10 @@ public:
     {
         return JavaClassGlobalDef::new_uuid(m_env, v);
     }
+    util::Any box(Mixed v) const
+    {
+        return JavaClassGlobalDef::new_mixed(m_env, v);
+    }
     util::Any box(bool v) const
     {
         return _impl::JavaClassGlobalDef::new_boolean(m_env, v);
@@ -249,14 +253,6 @@ public:
         return v ? _impl::JavaClassGlobalDef::new_uuid(m_env, v.value()) : nullptr;
     }
     util::Any box(Obj) const
-    {
-        REALM_TERMINATE("not supported");
-    }
-
-    // Any properties are only supported by the Cocoa binding to enable reading
-    // old Realm files that may have used them. Other bindings can safely not
-    // implement this.
-    util::Any box(Mixed) const
     {
         REALM_TERMINATE("not supported");
     }
@@ -473,9 +469,9 @@ inline util::Optional<float> JavaAccessorContext::unbox(util::Any& v, CreatePoli
 }
 
 template <>
-inline Mixed JavaAccessorContext::unbox(util::Any&, CreatePolicy, ObjKey) const
+inline Mixed JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
 {
-    REALM_TERMINATE("not supported");
+    return v.has_value() ?  util::any_cast<Mixed&>(v) : Mixed();
 }
 
 } // namespace realm

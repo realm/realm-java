@@ -1569,7 +1569,8 @@ public class DynamicRealmObjectTests {
                 AllJavaTypes.FIELD_STRING_LIST, AllJavaTypes.FIELD_BINARY_LIST, AllJavaTypes.FIELD_BOOLEAN_LIST,
                 AllJavaTypes.FIELD_LONG_LIST, AllJavaTypes.FIELD_INTEGER_LIST, AllJavaTypes.FIELD_SHORT_LIST,
                 AllJavaTypes.FIELD_BYTE_LIST, AllJavaTypes.FIELD_DOUBLE_LIST, AllJavaTypes.FIELD_FLOAT_LIST,
-                AllJavaTypes.FIELD_DATE_LIST, AllJavaTypes.FIELD_DECIMAL128_LIST, AllJavaTypes.FIELD_OBJECT_ID_LIST, AllJavaTypes.FIELD_UUID_LIST};
+                AllJavaTypes.FIELD_DATE_LIST, AllJavaTypes.FIELD_DECIMAL128_LIST, AllJavaTypes.FIELD_OBJECT_ID_LIST,
+                AllJavaTypes.FIELD_UUID_LIST, AllJavaTypes.FIELD_MIXED_LIST};
         String[] keys = dObjTyped.getFieldNames();
         // After the stable ID support, primary key field will be inserted first before others. So even FIELD_STRING is
         // the first defined field in the class, it will be inserted after FIELD_ID.
@@ -1810,6 +1811,7 @@ public class DynamicRealmObjectTests {
             assertNull(primitiveNullables.getFieldObjectId());
             assertNull(primitiveNullables.getFieldDecimal128());
             assertNull(primitiveNullables.getFieldUUID());
+            assertTrue(primitiveNullables.getFieldMixed().isNull());
 
             realm.delete(AllJavaTypes.class);
             AllJavaTypes allJavaTypes = realm.createObject(AllJavaTypes.class, UUID.randomUUID().getLeastSignificantBits());
@@ -1825,6 +1827,7 @@ public class DynamicRealmObjectTests {
             allJavaTypes.getFieldObjectIdList().add(null);
             allJavaTypes.getFieldDecimal128List().add(null);
             allJavaTypes.getFieldUUIDList().add(null);
+            allJavaTypes.getFieldMixedList().add(null);
 
         });
         realm.close();
@@ -1900,6 +1903,9 @@ public class DynamicRealmObjectTests {
                     break;
                 case UUID_LIST:
                     assertNull(allJavaTypes.getList(AllJavaTypes.FIELD_UUID_LIST, UUID.class).get(0));
+                    break;
+                case MIXED_LIST:
+                    assertTrue(allJavaTypes.getList(AllJavaTypes.FIELD_MIXED_LIST, Mixed.class).get(0).isNull());
                     break;
                 case TYPED_LINK:
                 case LIST:

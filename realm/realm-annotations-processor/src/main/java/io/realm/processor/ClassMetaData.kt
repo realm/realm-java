@@ -603,7 +603,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             val hasRequiredAnnotation = hasRequiredAnnotation(field)
             val listGenericType = (field.asType() as DeclaredType).typeArguments
             val containsRealmModelClasses = (listGenericType.isNotEmpty() && Utils.isRealmModel(listGenericType[0]))
-            val containsMixed = (listGenericType.isNotEmpty() && Utils.isMixedType(listGenericType[0]))
+            val containsMixed = (listGenericType.isNotEmpty() && Utils.isMixed(listGenericType[0]))
 
             // @Required not allowed if the dictionary contains Realm model classes
             if (hasRequiredAnnotation && (containsRealmModelClasses || containsMixed)) {
