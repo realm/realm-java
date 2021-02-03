@@ -39,7 +39,6 @@
 #include "java_object_accessor.hpp"
 #include "jni_util/java_exception_thrower.hpp"
 
-using namespace std;
 using namespace realm;
 using namespace realm::util;
 using namespace realm::jni_util;
@@ -49,16 +48,12 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::Rea
 
 void ConvertException(JNIEnv* env, const char* file, int line)
 {
-    ostringstream ss;
+    std::ostringstream ss;
     try {
         throw;
     }
     catch (JavaExceptionThrower& e) {
         e.throw_java_exception(env);
-    }
-    catch(realm::query_parser::InvalidQueryError& e) {
-        ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, IllegalArgument, ss.str());
     }
     catch (std::bad_alloc& e) {
         ss << e.what() << " in " << file << " line " << line;
@@ -131,11 +126,15 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
     }
+    catch(query_parser::InvalidQueryError& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalArgument, ss.str());
+    }
     catch(std::invalid_argument& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
     }
-    catch (realm::LogicError e) {
+    catch (realm::LogicError& e) {
         ExceptionKind kind;
         if (e.kind() == LogicError::string_too_big || e.kind() == LogicError::binary_too_big ||
             e.kind() == LogicError::column_not_nullable) {
@@ -146,10 +145,10 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         }
         ThrowException(env, kind, e.what());
     }
-    catch(realm::MissingPropertyValueException e) {
+    catch(realm::MissingPropertyValueException& e) {
         ThrowException(env, IllegalArgument, e.what());
     }
-    catch(realm::RequiredFieldValueNotProvidedException e) {
+    catch(realm::RequiredFieldValueNotProvidedException& e) {
         ThrowException(env, IllegalArgument, e.what());
     }
 #if REALM_ENABLE_SYNC
@@ -166,14 +165,14 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         }
     }
 #endif
-    catch (std::logic_error e) {
+    catch (std::logic_error& e) {
         ThrowException(env, IllegalState, e.what());
     }
-    catch (util::runtime_error& e) {
+    catch (std::runtime_error& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, RuntimeError, ss.str());
     }
-    catch (exception& e) {
+    catch (std::exception& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, FatalError, ss.str());
     }
@@ -187,7 +186,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const char* classStr)
 
 void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& classStr, const std::string& itemStr)
 {
-    string message;
+    std::string message;
     jclass jExceptionClass = NULL;
 
     Log::e("jni: ThrowingException %1, %2, %3.", exception, classStr.c_str(), itemStr.c_str());
@@ -365,10 +364,10 @@ private:
 
 } // anonymous namespace
 
-static string string_to_hex(const string& message, StringData& str, const char* in_begin, const char* in_end,
+static std::string string_to_hex(const std::string& message, StringData& str, const char* in_begin, const char* in_end,
                             jchar* out_curr, jchar* out_end, size_t retcode, size_t error_code)
 {
-    ostringstream ret;
+    std::ostringstream ret;
 
     const char* s = str.data();
     ret << message << " ";
@@ -377,7 +376,7 @@ static string string_to_hex(const string& message, StringData& str, const char* 
     ret << "StringData.size = " << str.size() << "; ";
     ret << "StringData.data = " << str << "; ";
     ret << "StringData as hex = ";
-    for (string::size_type i = 0; i < str.size(); ++i)
+    for (std::string::size_type i = 0; i < str.size(); ++i)
         ret << " 0x" << std::hex << std::setfill('0') << std::setw(2) << (int)s[i];
     ret << "; ";
     ret << "in_begin = " << in_begin << "; ";
@@ -387,7 +386,7 @@ static string string_to_hex(const string& message, StringData& str, const char* 
     return ret.str();
 }
 
-static string str_to_hex_error_code_to_message(size_t error_code){
+static std::string str_to_hex_error_code_to_message(size_t error_code){
     switch (error_code){
         case 1:
         case 2:
@@ -405,9 +404,9 @@ static string str_to_hex_error_code_to_message(size_t error_code){
     }
 }
 
-static string string_to_hex(const string& message, const jchar* str, size_t size, size_t error_code)
+static std::string string_to_hex(const std::string& message, const jchar* str, size_t size, size_t error_code)
 {
-    ostringstream ret;
+    std::ostringstream ret;
 
     ret << message << ": " << str_to_hex_error_code_to_message(error_code) << "; ";
     ret << "error_code = " << error_code << "; ";
@@ -417,7 +416,7 @@ static string string_to_hex(const string& message, const jchar* str, size_t size
     return ret.str();
 }
 
-string concat_stringdata(const char* message, StringData strData)
+std::string concat_stringdata(const char* message, StringData strData)
 {
     if (strData.is_null()) {
         return std::string(message);
@@ -472,7 +471,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
             throw util::runtime_error("String size overflow");
         }
         dyn_buf.reset(new jchar[size]);
-        out_curr = copy(out_begin, out_curr, dyn_buf.get());
+        out_curr = std::copy(out_begin, out_curr, dyn_buf.get());
         out_begin = dyn_buf.get();
         out_end = dyn_buf.get() + size;
         size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
@@ -514,7 +513,7 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str, bool delete_jstring_r
 
     typedef Utf8x16<jchar, JcharTraits> Xcode;
     size_t max_project_size = 48;
-    REALM_ASSERT(max_project_size <= numeric_limits<size_t>::max() / 4);
+    REALM_ASSERT(max_project_size <= std::numeric_limits<size_t>::max() / 4);
     size_t buf_size;
     if (chars.size() <= max_project_size) {
         buf_size = chars.size() * 4;
