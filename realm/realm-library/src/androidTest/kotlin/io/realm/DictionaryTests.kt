@@ -16,7 +16,6 @@
 
 package io.realm
 
-import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.annotations.RealmModule
@@ -437,12 +436,13 @@ class DictionaryTests {
     }
 
     @Test
-    @Ignore
+    @Ignore("TODO - bug in core: https://github.com/realm/realm-core/issues/4374")
     fun managed_keySet() {
-        // TODO
+        // TODO - similar to managed_values
     }
 
     @Test
+    @Ignore("TODO - bug in core: https://github.com/realm/realm-core/issues/4374")
     fun managed_values() {
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {

@@ -379,11 +379,23 @@ Java_io_realm_internal_OsMap_nativeRemove(JNIEnv* env, jclass, jlong map_ptr,
 }
 
 JNIEXPORT jlong JNICALL
+Java_io_realm_internal_OsMap_nativeKeys(JNIEnv* env, jclass, jlong map_ptr) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        const Results& key_results = dictionary.get_keys();
+        auto wrapper = new ObservableCollectionWrapper(key_results);
+        return reinterpret_cast<jlong>(wrapper);
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jlong JNICALL
 Java_io_realm_internal_OsMap_nativeValues(JNIEnv* env, jclass, jlong map_ptr) {
     try {
         auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
-        const Results& results = dictionary.get_values();
-        auto wrapper = new ObservableCollectionWrapper(results);
+        const Results& value_results = dictionary.get_values();
+        auto wrapper = new ObservableCollectionWrapper(value_results);
         return reinterpret_cast<jlong>(wrapper);
     }
     CATCH_STD()

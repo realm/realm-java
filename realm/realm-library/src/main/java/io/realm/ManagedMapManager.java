@@ -16,7 +16,10 @@
 
 package io.realm;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -93,7 +96,8 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
 
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {
-        // TODO: use operator + do it natively
+        //noinspection unchecked
+        mapValueOperator.putAll((Map<K, V>) m);
     }
 
     @Override
@@ -103,8 +107,7 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
 
     @Override
     public Set<K> keySet() {
-        // TODO: use operator + do it natively
-        return null;
+        return mapValueOperator.keySet();
     }
 
     @Override
@@ -204,6 +207,8 @@ abstract class MapValueOperator<K, V> {
     @Nullable
     public abstract V put(Object key, V value);
 
+    public abstract void putAll(Map<K, V> map);
+
     public void remove(Object key) {
         osMap.remove(key);
     }
@@ -232,8 +237,24 @@ abstract class MapValueOperator<K, V> {
         osMap.clear();
     }
 
+    public Set<K> keySet() {
+        Pair<Table, Long> tablePointerPair = osMap.keysPtr();
+        if (baseRealm instanceof Realm) {
+            Realm realm = (Realm) baseRealm;
+            OsResults osResults = OsResults.createFromMap(baseRealm.sharedRealm, tablePointerPair.first, tablePointerPair.second);
+            Class<?> clazz = classContainer.getClazz();
+            if (clazz != null) {
+                //noinspection unchecked
+                return new HashSet<>(new RealmResults<>(realm, osResults, (Class<K>) clazz));
+            }
+            throw new IllegalStateException("MapValueOperator missing class in 'classContainer'.");
+        }
+
+        throw new UnsupportedOperationException("Add support for 'values' for DynamicRealms.");
+    }
+
     public Collection<V> values() {
-        Pair<Table, Long> tablePointerPair = osMap.resultsPtr();
+        Pair<Table, Long> tablePointerPair = osMap.valuesPtr();
         if (baseRealm instanceof Realm) {
             Realm realm = (Realm) baseRealm;
             OsResults osResults = OsResults.createFromMap(baseRealm.sharedRealm, tablePointerPair.first, tablePointerPair.second);
@@ -288,6 +309,11 @@ class MixedValueOperator<K> extends MapValueOperator<K, Mixed> {
         osMap.put(key, value.getNativePtr());
         return original;
     }
+
+    @Override
+    public void putAll(Map<K, Mixed> map) {
+        // TODO
+    }
 }
 
 /**
@@ -315,6 +341,17 @@ class BoxableValueOperator<K, V> extends MapValueOperator<K, V> {
         V original = get(key);
         osMap.put(key, value);
         return original;
+    }
+
+    @Override
+    public void putAll(Map<K, V> map) {
+        List<K> keys = new ArrayList<>();
+        List<V> values = new ArrayList<>();
+        for (Map.Entry<? extends K, ? extends V> entry: map.entrySet()) {
+            keys.add(entry.getKey());
+            values.add(entry.getValue());
+        }
+        osMap.putAll(keys, values);
     }
 
     /**
@@ -429,6 +466,11 @@ class RealmModelValueOperator<K, V> extends MapValueOperator<K, V> {
             //noinspection unchecked
             return (V) baseRealm.get((Class<? extends RealmModel>) clazz, className, rowModelKey);
         }
+    }
+
+    @Override
+    public void putAll(Map<K, V> map) {
+        // TODO
     }
 
     // TODO: unify this method and the one in RealmModelListOperator

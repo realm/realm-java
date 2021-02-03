@@ -20,6 +20,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -71,11 +72,19 @@ public class OsMap implements NativeObject {
         return nativeContainsKey(nativePtr, (String) key);
     }
 
+    public void putAll(List<?> keys, List<?> values) {
+
+    }
+
     public void clear() {
         nativeClear(nativePtr);
     }
 
-    public Pair<Table, Long> resultsPtr() {
+    public Pair<Table, Long> keysPtr() {
+        return new Pair<>(targetTable, nativeKeys(nativePtr));
+    }
+
+    public Pair<Table, Long> valuesPtr() {
         return new Pair<>(targetTable, nativeValues(nativePtr));
     }
 
@@ -199,6 +208,8 @@ public class OsMap implements NativeObject {
     private static native void nativeClear(long nativePtr);
 
     private static native void nativeRemove(long nativePtr, String key);
+
+    private static native long nativeKeys(long nativePtr);
 
     private static native long nativeValues(long nativePtr);
 
