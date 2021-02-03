@@ -38,6 +38,7 @@ import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
+import io.realm.internal.android.TypeUtils;
 
 
 /**
@@ -263,12 +264,7 @@ public class OsObjectBuilder implements Closeable {
     private static ItemCallback<Map.Entry<String, Byte[]>> nonPrimitiveBinaryMapItemCallback = new ItemCallback<Map.Entry<String, Byte[]>>() {
         @Override
         public void handleItem(long containerPtr, Map.Entry<String, Byte[]> item) {
-            Byte[] bytes = item.getValue();
-            byte[] transfer = new byte[bytes.length];
-            for (int i = 0; i < bytes.length; i++) {
-                transfer[i] = bytes[i];
-            }
-            nativeAddBinaryDictionaryEntry(containerPtr, item.getKey(), transfer);
+            nativeAddBinaryDictionaryEntry(containerPtr, item.getKey(), TypeUtils.convertNonPrimitiveBinaryToPrimitive(item.getValue()));
         }
     };
 

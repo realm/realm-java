@@ -50,6 +50,14 @@ private const val VALUE_HELLO_STRING = "HELLO"
 private const val VALUE_BYE_STRING = "BYE"
 private const val VALUE_HELLO_NUMERIC = 42
 private const val VALUE_BYE_NUMERIC = 666
+private val VALUE_HELLO_DATE = Date()
+private val VALUE_HELLO_OBJECT_ID = ObjectId()
+private val VALUE_HELLO_UUID = UUID.randomUUID()
+private val VALUE_HELLO_DECIMAL128 = Decimal128(VALUE_HELLO_NUMERIC.toLong())
+private val VALUE_HELLO_BYTE_ARRAY = ByteArray(2).apply {
+    set(0, Byte.MIN_VALUE)
+    set(1, Byte.MAX_VALUE)
+}
 private val VALUE_NULL = null
 
 @RunWith(AndroidJUnit4::class)
@@ -294,6 +302,108 @@ class DictionaryTests {
     @Ignore
     fun managed_containsValue() {
         // TODO
+    }
+
+    @Test
+    fun managed_put() {
+        realm.executeTransaction { transactionRealm ->
+            transactionRealm.copyToRealm(initDictionaryClass())
+
+            val instance = realm.where<DictionaryClass>()
+                    .findFirst()
+            assertNotNull(instance)
+
+            with(instance) {
+                // All types but byte[] can be asserted like this
+                myBooleanDictionary!!.putAndAssert(KEY_HELLO, VALUE_HELLO)
+                myStringDictionary!!.putAndAssert(KEY_HELLO, VALUE_HELLO_STRING)
+                myIntegerDictionary!!.putAndAssert(KEY_HELLO, VALUE_HELLO_NUMERIC)
+                myFloatDictionary!!.putAndAssert(KEY_HELLO, VALUE_HELLO_NUMERIC.toFloat())
+                myLongDictionary!!.putAndAssert(KEY_HELLO, VALUE_HELLO_NUMERIC.toLong())
+                myShortDictionary!!.putAndAssert(KEY_HELLO, VALUE_HELLO_NUMERIC.toShort())
+                myDoubleDictionary!!.putAndAssert(KEY_HELLO, VALUE_HELLO_NUMERIC.toDouble())
+                myByteDictionary!!.putAndAssert(KEY_HELLO, VALUE_HELLO_NUMERIC.toByte())
+                myDateDictionary!!.putAndAssert(KEY_HELLO, Date())
+                myObjectIdDictionary!!.putAndAssert(KEY_HELLO, ObjectId())
+                myUUIDDictionary!!.putAndAssert(KEY_HELLO, UUID.randomUUID())
+                myDecimal128Dictionary!!.putAndAssert(KEY_HELLO, Decimal128(42))
+
+                val previousValue = myByteArrayDictionary!!.put(KEY_HELLO, VALUE_HELLO_BYTE_ARRAY)
+                assertNull(previousValue)
+                val actual = myByteArrayDictionary!![KEY_HELLO]
+                assertEquals(Byte.MIN_VALUE, actual!![0])
+                assertEquals(Byte.MAX_VALUE, actual[1])
+            }
+        }
+    }
+
+    @Test
+    fun managed_get() {
+        realm.executeTransaction { transactionRealm ->
+            transactionRealm.copyToRealm(initDictionaryClass(true))
+        }
+
+        val instance = realm.where<DictionaryClass>()
+                .findFirst()
+        assertNotNull(instance)
+
+        with(instance) {
+            myBooleanDictionary.also {
+                assertNotNull(it)
+                assertEquals(VALUE_HELLO, it[KEY_HELLO])
+            }
+            myStringDictionary.also {
+                assertNotNull(it)
+                assertEquals(VALUE_HELLO_STRING, it[KEY_HELLO])
+            }
+            myIntegerDictionary.also {
+                assertNotNull(it)
+                assertEquals(VALUE_HELLO_NUMERIC, it[KEY_HELLO])
+            }
+            myFloatDictionary.also {
+                assertNotNull(it)
+                assertEquals(VALUE_HELLO_NUMERIC.toFloat(), it[KEY_HELLO])
+            }
+            myLongDictionary.also {
+                assertNotNull(it)
+                assertEquals(VALUE_HELLO_NUMERIC.toLong(), it[KEY_HELLO])
+            }
+            myShortDictionary.also {
+                assertNotNull(it)
+                assertEquals(VALUE_HELLO_NUMERIC.toShort(), it[KEY_HELLO])
+            }
+            myDoubleDictionary.also {
+                assertNotNull(it)
+                assertEquals(VALUE_HELLO_NUMERIC.toDouble(), it[KEY_HELLO])
+            }
+            myByteDictionary.also {
+                assertNotNull(it)
+                assertEquals(VALUE_HELLO_NUMERIC.toByte(), it[KEY_HELLO])
+            }
+            myDateDictionary.also {
+                assertNotNull(it)
+                assertEquals(VALUE_HELLO_DATE, it[KEY_HELLO])
+            }
+            myObjectIdDictionary.also {
+                assertNotNull(it)
+                assertEquals(VALUE_HELLO_OBJECT_ID, it[KEY_HELLO])
+            }
+            myUUIDDictionary.also {
+                assertNotNull(it)
+                assertEquals(VALUE_HELLO_UUID, it[KEY_HELLO])
+            }
+            myDecimal128Dictionary.also {
+                assertNotNull(it)
+                assertEquals(VALUE_HELLO_DECIMAL128, it[KEY_HELLO])
+            }
+            myByteArrayDictionary.also {
+                assertNotNull(it)
+                val actual = it[KEY_HELLO]
+                assertNotNull(actual)
+                assertEquals(VALUE_HELLO_BYTE_ARRAY[0], actual[0])
+                assertEquals(VALUE_HELLO_BYTE_ARRAY[1], actual[1])
+            }
+        }
     }
 
     @Test
@@ -776,6 +886,83 @@ class DictionaryTests {
 
         return dictionaryObject.myBooleanDictionary!!
                 .also { baseAssertions(it) }
+    }
+
+    private fun initDictionaryClass(withDefaultValues: Boolean = false): DictionaryClass {
+        return DictionaryClass().apply {
+            myBooleanDictionary = RealmDictionary<Boolean>().apply {
+                if (withDefaultValues) {
+                    put(KEY_HELLO, VALUE_HELLO)
+                }
+            }
+            myStringDictionary = RealmDictionary<String>().apply {
+                if (withDefaultValues) {
+                    put(KEY_HELLO, VALUE_HELLO_STRING)
+                }
+            }
+            myIntegerDictionary = RealmDictionary<Int>().apply {
+                if (withDefaultValues) {
+                    put(KEY_HELLO, VALUE_HELLO_NUMERIC)
+                }
+            }
+            myFloatDictionary = RealmDictionary<Float>().apply {
+                if (withDefaultValues) {
+                    put(KEY_HELLO, VALUE_HELLO_NUMERIC.toFloat())
+                }
+            }
+            myLongDictionary = RealmDictionary<Long>().apply {
+                if (withDefaultValues) {
+                    put(KEY_HELLO, VALUE_HELLO_NUMERIC.toLong())
+                }
+            }
+            myShortDictionary = RealmDictionary<Short>().apply {
+                if (withDefaultValues) {
+                    put(KEY_HELLO, VALUE_HELLO_NUMERIC.toShort())
+                }
+            }
+            myDoubleDictionary = RealmDictionary<Double>().apply {
+                if (withDefaultValues) {
+                    put(KEY_HELLO, VALUE_HELLO_NUMERIC.toDouble())
+                }
+            }
+            myByteDictionary = RealmDictionary<Byte>().apply {
+                if (withDefaultValues) {
+                    put(KEY_HELLO, VALUE_HELLO_NUMERIC.toByte())
+                }
+            }
+            myDateDictionary = RealmDictionary<Date>().apply {
+                if (withDefaultValues) {
+                    put(KEY_HELLO, VALUE_HELLO_DATE)
+                }
+            }
+            myObjectIdDictionary = RealmDictionary<ObjectId>().apply {
+                if (withDefaultValues) {
+                    put(KEY_HELLO, VALUE_HELLO_OBJECT_ID)
+                }
+            }
+            myUUIDDictionary = RealmDictionary<UUID>().apply {
+                if (withDefaultValues) {
+                    put(KEY_HELLO, VALUE_HELLO_UUID)
+                }
+            }
+            myDecimal128Dictionary = RealmDictionary<Decimal128>().apply {
+                if (withDefaultValues) {
+                    put(KEY_HELLO, VALUE_HELLO_DECIMAL128)
+                }
+            }
+            myByteArrayDictionary = RealmDictionary<ByteArray>().apply {
+                if (withDefaultValues) {
+                    put(KEY_HELLO, VALUE_HELLO_BYTE_ARRAY)
+                }
+            }
+        }
+    }
+
+    private inline fun <reified T : Any> RealmDictionary<T>.putAndAssert(key: String, value: T) {
+        val previousValue = put(key, value)
+        assertNull(previousValue)
+        val actual = get(key)
+        assertEquals(value, actual)
     }
 }
 

@@ -16,10 +16,15 @@
 
 package io.realm.internal;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
+import java.util.Date;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import io.realm.internal.android.TypeUtils;
 import io.realm.internal.core.NativeMixed;
 
 /**
@@ -67,13 +72,37 @@ public class OsMap implements NativeObject {
             nativePutNull(nativePtr, (String) key);
         } else {
             String valueClassName = value.getClass().getCanonicalName();
-            if (Boolean.class.getCanonicalName().equals(valueClassName)) {
+            if (Long.class.getCanonicalName().equals(valueClassName)) {
+                nativePutLong(nativePtr, (String) key, (Long) value);
+            } else if (Integer.class.getCanonicalName().equals(valueClassName)) {
+                nativePutLong(nativePtr, (String) key, (Integer) value);
+            } else if (Short.class.getCanonicalName().equals(valueClassName)) {
+                nativePutLong(nativePtr, (String) key, (Short) value);
+            } else if (Byte.class.getCanonicalName().equals(valueClassName)) {
+                nativePutLong(nativePtr, (String) key, (Byte) value);
+            } else if (Float.class.getCanonicalName().equals(valueClassName)) {
+                nativePutFloat(nativePtr, (String) key, (Float) value);
+            } else if (Double.class.getCanonicalName().equals(valueClassName)) {
+                nativePutDouble(nativePtr, (String) key, (Double) value);
+            } else if (String.class.getCanonicalName().equals(valueClassName)) {
+                nativePutString(nativePtr, (String) key, (String) value);
+            } else if (Boolean.class.getCanonicalName().equals(valueClassName)) {
                 nativePutBoolean(nativePtr, (String) key, (Boolean) value);
+            } else if (Date.class.getCanonicalName().equals(valueClassName)) {
+                nativePutDate(nativePtr, (String) key, ((Date) value).getTime());
+            } else if (Decimal128.class.getCanonicalName().equals(valueClassName)) {
+                Decimal128 decimal128 = (Decimal128) value;
+                nativePutDecimal128(nativePtr, (String) key, decimal128.getHigh(), decimal128.getLow());
+            } else if (Byte[].class.getCanonicalName().equals(valueClassName)) {
+                nativePutBinary(nativePtr, (String) key, TypeUtils.convertNonPrimitiveBinaryToPrimitive((Byte[]) value));
+            } else if (byte[].class.getCanonicalName().equals(valueClassName)) {
+                nativePutBinary(nativePtr, (String) key, (byte[]) value);
+            } else if (ObjectId.class.getCanonicalName().equals(valueClassName)) {
+                nativePutObjectId(nativePtr, (String) key, ((ObjectId) value).toString());
             } else if (UUID.class.getCanonicalName().equals(valueClassName)) {
                 nativePutUUID(nativePtr, (String) key, value.toString());
             } else {
-                // TODO: add more types ad-hoc
-                throw new UnsupportedOperationException("Missing 'put' for '" + valueClassName.getClass().getCanonicalName() + "'.");
+                throw new UnsupportedOperationException("Class '" + valueClassName + "' not supported.");
             }
         }
     }
@@ -117,7 +146,23 @@ public class OsMap implements NativeObject {
 
     private static native void nativePutNull(long nativePtr, String key);
 
+    private static native void nativePutLong(long nativePtr, String key, long value);
+
+    private static native void nativePutFloat(long nativePtr, String key, float value);
+
+    private static native void nativePutDouble(long nativePtr, String key, double value);
+
+    private static native void nativePutString(long nativePtr, String key, String value);
+
     private static native void nativePutBoolean(long nativePtr, String key, boolean value);
+
+    private static native void nativePutDate(long nativePtr, String key, long value);
+
+    private static native void nativePutDecimal128(long nativePtr, String key, long high, long low);
+
+    private static native void nativePutBinary(long nativePtr, String key, byte[] value);
+
+    private static native void nativePutObjectId(long nativePtr, String key, String value);
 
     private static native void nativePutUUID(long nativePtr, String key, String value);
 

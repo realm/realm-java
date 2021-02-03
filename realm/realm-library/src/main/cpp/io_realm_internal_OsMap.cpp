@@ -194,6 +194,55 @@ Java_io_realm_internal_OsMap_nativePutNull(JNIEnv* env, jclass, jlong map_ptr,
 }
 
 JNIEXPORT void JNICALL
+Java_io_realm_internal_OsMap_nativePutLong(JNIEnv* env, jclass, jlong map_ptr,
+                                           jstring j_key, jlong j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor key(env, j_key);
+        JavaAccessorContext context(env);
+        dictionary.insert(context, StringData(key).data(), Any(j_value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_OsMap_nativePutFloat(JNIEnv* env, jclass, jlong map_ptr,
+                                            jstring j_key, jfloat j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor key(env, j_key);
+        JavaAccessorContext context(env);
+        dictionary.insert(context, StringData(key).data(), Any(j_value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_OsMap_nativePutDouble(JNIEnv* env, jclass, jlong map_ptr,
+                                             jstring j_key, jdouble j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor key(env, j_key);
+        JavaAccessorContext context(env);
+        dictionary.insert(context, StringData(key).data(), Any(j_value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_OsMap_nativePutString(JNIEnv* env, jclass, jlong map_ptr,
+                                             jstring j_key, jstring j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor key(env, j_key);
+        JStringAccessor value(env, j_value);
+        JavaAccessorContext context(env);
+        dictionary.insert(context, StringData(key).data(), Any(value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
 Java_io_realm_internal_OsMap_nativePutBoolean(JNIEnv* env, jclass, jlong map_ptr,
                                               jstring j_key, jboolean j_value) {
     try {
@@ -201,6 +250,62 @@ Java_io_realm_internal_OsMap_nativePutBoolean(JNIEnv* env, jclass, jlong map_ptr
         JStringAccessor key(env, j_key);
         JavaAccessorContext context(env);
         dictionary.insert(context, StringData(key).data(), Any(j_value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_OsMap_nativePutDate(JNIEnv* env, jclass, jlong map_ptr,
+                                           jstring j_key, jlong j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor key(env, j_key);
+        JavaAccessorContext context(env);
+        dictionary.insert(context, StringData(key).data(), Any(j_value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_OsMap_nativePutDecimal128(JNIEnv* env, jclass, jlong map_ptr,
+                                                 jstring j_key, jlong j_high_value,
+                                                 jlong j_low_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor key(env, j_key);
+        Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
+        auto decimal128 = Decimal128(raw);
+        JavaAccessorContext context(env);
+        dictionary.insert(context, StringData(key).data(), Any(decimal128));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_OsMap_nativePutBinary(JNIEnv* env, jclass, jlong map_ptr,
+                                             jstring j_key, jbyteArray j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor key(env, j_key);
+        JByteArrayAccessor data(env, j_value);
+        JavaAccessorContext context(env);
+        dictionary.insert(context, StringData(key).data(), Any(data));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_OsMap_nativePutObjectId(JNIEnv* env, jclass, jlong map_ptr, jstring j_key,
+                                               jstring j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor key(env, j_key);
+        JStringAccessor data(env, j_value);
+
+        const ObjectId object_id = ObjectId(StringData(data).data());
+
+        JavaAccessorContext context(env);
+        dictionary.insert(context, StringData(key).data(), Any(object_id));
     }
     CATCH_STD()
 }
