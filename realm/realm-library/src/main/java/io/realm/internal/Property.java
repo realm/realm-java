@@ -241,8 +241,7 @@ public class Property implements NativeObject {
 
     static native long nativeCreatePersistedLinkProperty(String internalName, String publicName, int type, String linkedToName);
 
-    static native long nativeCreateComputedLinkProperty(
-            String name, String sourceClassName, String sourceFieldName);
+    static native long nativeCreateComputedLinkProperty(String name, String sourceClassName, String sourceFieldName);
 
     private static native int nativeGetType(long nativePtr);
 

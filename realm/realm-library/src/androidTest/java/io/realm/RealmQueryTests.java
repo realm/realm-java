@@ -3716,7 +3716,40 @@ public class RealmQueryTests extends QueryTests {
             realm.where(AllTypes.class).rawPredicate("foo = 'test data 0'");
             fail();
         } catch (IllegalArgumentException e) {
-            assertEquals("'AllTypes' has no property: 'foo'", e.getMessage());
+            fail("TODO: This is the correct behavior, but Core exceptions currently bubble up as pure RuntimeExceptions.");
+        } catch(RuntimeException e) {
+            assertTrue(e.getMessage().contains("'AllTypes' has no property: 'foo'"));
+        }
+    }
+
+    @Test
+    public void rawPredicate_invalidLinkedFieldNameThrows() {
+        try {
+            realm.where(AllTypes.class).rawPredicate("columnRealmObject.foo = 'test data 0'");
+            fail();
+        } catch (IllegalArgumentException e) {
+            fail("TODO: This is the correct behavior, but Core exceptions currently bubble up as pure RuntimeExceptions.");
+        } catch (RuntimeException e) {
+            assertTrue(e.getMessage().contains("'Dog' has no property: 'foo'"));
+        }
+
+        try {
+            realm.where(AllTypes.class).rawPredicate("unknownField.foo = 'test data 0'");
+            fail();
+        } catch (IllegalArgumentException e) {
+            fail("TODO: This is the correct behavior, but Core exceptions currently bubble up as pure RuntimeExceptions.");
+        } catch (RuntimeException e) {
+            assertTrue(e.getMessage().contains("class_AllTypes has no property unknownField"));
+        }
+    }
+
+    @Test
+    public void rawPredicate_illegalSyntaxThrows() {
+        try {
+            realm.where(AllTypes.class).rawPredicate("lol");
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("Invalid predicate: 'lol'"));
         }
     }
 
@@ -3786,9 +3819,12 @@ public class RealmQueryTests extends QueryTests {
                     .rawPredicate("@links.ClassWithValueDefinedNames.objectLink.@count = 0")
                     .findAll();
             fail();
-        } catch (IllegalStateException ex) {
+        } catch (IllegalArgumentException e) {
+            fail("TODO: This is the correct behavior, but Core exceptions currently bubble up as pure RuntimeExceptions.");
+        } catch (RuntimeException ex) {
             assertTrue("Error message was: " + ex.getMessage(), ex.getMessage().contains("No property 'objectLink' found in type 'ClassWithValueDefinedNames'"));
         }
+
     }
 
     @Test
@@ -3796,23 +3832,23 @@ public class RealmQueryTests extends QueryTests {
         RealmQuery<AllTypes> query = realm.where(AllTypes.class);
         try {
             // Argument type not valid
-            query.rawPredicate("columnString = '$d'", "foo");
+            query.rawPredicate("columnString = '%d'", "foo");
             fail();
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ignore) {
         }
 
         try {
             // Missing number of arguments
             query.rawPredicate("columnString = '%1$s' AND columnString  = '%2$s'", "foo");
             fail();
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ignore) {
         }
 
         try {
-            // Wrong syntax for argument substituation
-            query.rawPredicate("columnString = '$1'", "foo");
+            // Wrong syntax for argument substitution
+            query.rawPredicate("columnString = '%1'", "foo");
             fail();
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ignore) {
         }
     }
 

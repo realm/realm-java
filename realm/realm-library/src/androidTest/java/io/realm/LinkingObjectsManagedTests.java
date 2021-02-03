@@ -647,7 +647,7 @@ public class LinkingObjectsManagedTests {
 
         // Mock the schema info so the only difference compared with the original schema is that BacklinksSource.child
         // type is changed to BacklinksSource from BacklinksTarget.
-        OsObjectSchemaInfo targetSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksTarget", false, 1, 1)
+        OsObjectSchemaInfo targetSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksTarget", false, 0, 1)
                 .addComputedLinkProperty("parents", "BacklinksSource", "child")
                 .build();
         OsObjectSchemaInfo sourceSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksSource", false, 2, 0)
@@ -665,14 +665,18 @@ public class LinkingObjectsManagedTests {
         RealmConfiguration spyConfig = spy(realmConfig);
         when(spyConfig.getSchemaMediator()).thenReturn(mediator);
 
+        Realm localRealm = null;
         try {
-            Realm localRealm = Realm.getInstance(spyConfig);
-            localRealm.close();
+            localRealm = Realm.getInstance(spyConfig);
             fail();
         } catch (IllegalStateException expected) {
             assertThat(expected.getMessage(), CoreMatchers.containsString(
                     "Property 'BacklinksSource.child' declared as origin of linking objects property 'BacklinksTarget.parents' links to type 'BacklinksSource'"
             ));
+        } finally {
+            if (localRealm != null) {
+                localRealm.close();
+            }
         }
     }
 
