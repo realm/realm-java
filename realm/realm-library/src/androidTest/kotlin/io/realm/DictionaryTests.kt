@@ -20,8 +20,11 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.annotations.RealmModule
 import io.realm.entities.DictionaryClass
+import io.realm.entities.MixedNotIndexed
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
+import org.bson.types.Decimal128
+import org.bson.types.ObjectId
 import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
@@ -408,20 +411,45 @@ class DictionaryTests {
     }
 
     @Test
-    @Ignore("Wait until Clemente is done with Mixed")
-    fun copyToRealm_mixedBoolean() {
+    fun copyToRealm_mixed() {
+        val entries = mapOf<String, Mixed>(
+                "INTEGER" to Mixed.valueOf(42 as Int),
+                "BOOLEAN" to Mixed.valueOf(true),
+                "STRING" to Mixed.valueOf("this is a string"),
+                "BINARY" to Mixed.valueOf(ByteArray(1).apply { set(0, 42) }),
+                "DATE" to Mixed.valueOf(Date()),
+                "FLOAT" to Mixed.valueOf(42F),
+                "DOUBLE" to Mixed.valueOf(42.toDouble()),
+                "SHORT" to Mixed.valueOf(42.toShort()),
+                "BYTE" to Mixed.valueOf(42.toByte()),
+                "DECIMAL128" to Mixed.valueOf(Decimal128(42)),
+                "OBJECT_ID" to Mixed.valueOf(ObjectId()),
+                "UUID" to Mixed.valueOf(UUID.randomUUID()),
+                "NULL" to Mixed.nullValue()
+        )
+
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
-                myMixedDictionary = createMixedRealmDictionary()
+                myMixedDictionary = RealmDictionary<Mixed>().apply {
+                    putAll(entries)
+                }
             }
 
             val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
             val dictionaryFromRealm = dictionaryObjectFromRealm.myMixedDictionary
             assertNotNull(dictionaryFromRealm)
 
-            val mixedHello = dictionaryFromRealm[KEY_HELLO]
-            val mixedBye = dictionaryFromRealm[KEY_BYE]
-            val kajhs = 0
+            // Iterate over all sample entries and compare them to the values we got from realm
+            entries.entries.forEach { entry ->
+                dictionaryFromRealm[entry.key].also { value ->
+                    assertNotNull(value)
+                    if (value.type == MixedType.BINARY) {
+                        assertEquals(entry.value.asBinary()[0], value.asBinary()[0])
+                    } else {
+                        assertEquals(entry.value, value)
+                    }
+                }
+            }
         }
     }
 
@@ -501,12 +529,12 @@ class DictionaryTests {
         }
     }
 
-    private fun createMixedRealmDictionary(): RealmDictionary<Mixed> {
-        return RealmDictionary<Mixed>().apply {
-            put(KEY_HELLO, Mixed.valueOf(VALUE_HELLO))
-            put(KEY_BYE, Mixed.valueOf(VALUE_BYE))
-        }
-    }
+//    private fun createMixedRealmDictionary(): RealmDictionary<Mixed> {
+//        return RealmDictionary<Mixed>().apply {
+//            put(KEY_HELLO, Mixed.valueOf(VALUE_HELLO))
+//            put(KEY_BYE, Mixed.valueOf(VALUE_BYE))
+//        }
+//    }
 
     private fun initDictionary() {
         realm.executeTransaction { transactionRealm ->

@@ -28,6 +28,7 @@ import io.realm.internal.ManageableObject;
 import io.realm.internal.OsMap;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.Row;
 import io.realm.internal.core.NativeMixed;
 
 /**
@@ -224,13 +225,13 @@ class MixedValueOperator extends MapValueOperator<Mixed> {
     public Mixed get(Object key) {
         long mixedPtr = osMap.getMixedPtr(key);
         NativeMixed nativeMixed = new NativeMixed(mixedPtr);
-        return (Mixed) osMap.get(key);
+        return new Mixed(MixedOperator.fromNativeMixed(baseRealm, nativeMixed));
     }
 
     @Override
     public Mixed put(Object key, Mixed value) {
-        Mixed original = (Mixed) osMap.get(key);
-        osMap.put(key, value.getNativePtr());
+        Mixed original = get(key);
+        osMap.putMixed(key, value.getNativePtr());
         return original;
     }
 }
@@ -294,7 +295,7 @@ class RealmModelValueOperator<T> extends MapValueOperator<T> {
             // TODO: figure out how to do this with Mixed, check Java_io_realm_internal_core_NativeMixed_nativeCreateMixedLink
             copyObject = checkCanObjectBeCopied(baseRealm, realmObject, classContainer);
             RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? copyToRealm((RealmModel) value) : realmObject);
-            osMap.putRow(key, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
+            osMap.putMixed(key, new NativeMixed(proxy).getNativePtr());
         }
 
         if (rowModelKey == -1) {

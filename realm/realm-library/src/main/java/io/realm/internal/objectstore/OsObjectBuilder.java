@@ -483,13 +483,13 @@ public class OsObjectBuilder implements Closeable {
         if (keys.isEmpty() && mixedPointers.isEmpty()) {
             addEmptyDictionary(columnKey);
         } else {
-            // FIXME: deal with this once Mixed support for RealmLists is added
-            throw new UnsupportedOperationException("Missing support for mixed.");
-//            long dictionaryPtr = nativeStartDictionary();
-//            for (int i = 0; i < keys.size(); i++) {
-//                nativeAddMixedDictionaryEntry(dictionaryPtr, keys.get(i), mixedPointers.get(i));
-//            }
-//            nativeStopDictionary(builderPtr, columnKey, dictionaryPtr);
+//            // FIXME: deal with this once Mixed support for RealmLists is added
+//            throw new UnsupportedOperationException("Missing support for mixed.");
+            long dictionaryPtr = nativeStartDictionary();
+            for (int i = 0; i < keys.size(); i++) {
+                nativeAddMixedDictionaryEntry(dictionaryPtr, keys.get(i), mixedPointers.get(i));
+            }
+            nativeStopDictionary(builderPtr, columnKey, dictionaryPtr);
 
         }
     }
@@ -679,5 +679,5 @@ public class OsObjectBuilder implements Closeable {
 
     private static native void nativeAddUUIDDictionaryEntry(long dictionaryPtr, String key, String value);
 
-//    private static native void nativeAddMixedDictionaryEntry(long dictionaryPtr, String key, long mixedPtr);
+    private static native void nativeAddMixedDictionaryEntry(long dictionaryPtr, String key, long mixedPtr);
 }
