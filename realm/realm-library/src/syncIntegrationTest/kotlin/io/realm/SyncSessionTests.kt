@@ -262,6 +262,7 @@ class SyncSessionTests {
     //  Once this test fails (meaning that the full schema can be uploaded) the test can be removed
     //  and we can include the float field in SyncAllTypes
     @Test
+    @Ignore("Issue fixed. Disabled until upcomming changes come from datatypes branch.")
     fun uploadDownloadAllChangesWithFloatFails() {
         val config = configFactory
                 .createSyncConfigurationBuilder(user, syncConfiguration.partitionValue)

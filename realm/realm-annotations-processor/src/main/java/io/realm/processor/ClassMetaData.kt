@@ -653,7 +653,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
 
         // Standard field that appears to be valid (more fine grained checks might fail later).
         fields.add(field)
-        if (Utils.isRealmModel(field) || Utils.isRealmModelList(field) || Utils.isRealmModelDictionary(field)) {
+        if (Utils.isRealmModel(field) || Utils.isRealmModelList(field) || Utils.isMixedList(field) || Utils.isMixed(field) || Utils.isRealmModelDictionary(field)) {
             _objectReferenceFields.add(field)
         } else {
             basicTypeFields.add(field)
