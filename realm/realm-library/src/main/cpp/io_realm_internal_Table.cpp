@@ -47,12 +47,13 @@ inline static bool is_allowed_to_index(JNIEnv* env, DataType column_type)
            || column_type == type_Timestamp
            || column_type == type_OldDateTime
            || column_type == type_ObjectId
-           || column_type == type_UUID) {
+           || column_type == type_UUID
+           || column_type == type_Mixed) {
         return true;
     }
 
     ThrowException(env, IllegalArgument, "This field cannot be indexed - "
-                                         "Only String/byte/short/int/long/boolean/Date/ObjectId fields are supported.");
+                                         "Only String/byte/short/int/long/boolean/Date/ObjectId/Mixed fields are supported.");
     return false;
 }
 
