@@ -57,21 +57,33 @@ class MixedChangeListenerTests(private val first: Mixed, private val second: Mix
     companion object {
         @JvmStatic
         @Parameterized.Parameters
-        fun data() = listOf(
-                arrayOf(Mixed.valueOf(false), Mixed.valueOf(true), Mixed.valueOf(0.toInt())),
-                arrayOf(Mixed.valueOf(1.toByte()), Mixed.valueOf(10.toByte()), Mixed.valueOf(true)),
-                arrayOf(Mixed.valueOf(2.toShort()), Mixed.valueOf(20.toShort()), Mixed.valueOf(true)),
-                arrayOf(Mixed.valueOf(3.toInt()), Mixed.valueOf(30.toInt()), Mixed.valueOf(true)),
-                arrayOf(Mixed.valueOf(4.toLong()), Mixed.valueOf(40.toLong()), Mixed.valueOf(true)),
-                arrayOf(Mixed.valueOf(5.toFloat()), Mixed.valueOf(50.toFloat()), Mixed.valueOf(false)),
-                arrayOf(Mixed.valueOf(6.toDouble()), Mixed.valueOf(60.toDouble()), Mixed.valueOf(false)),
-                arrayOf(Mixed.valueOf("hello world1"), Mixed.valueOf("hello world2"), Mixed.valueOf(10.toInt())),               // 7
-                arrayOf(Mixed.valueOf(byteArrayOf(0, 1, 0)), Mixed.valueOf(byteArrayOf(0, 1, 1)), Mixed.valueOf("hello world3")),
-                arrayOf(Mixed.valueOf(Date(0)), Mixed.valueOf(Date(10)), Mixed.valueOf(ObjectId(Date(10)))),                //9
-                arrayOf(Mixed.valueOf(ObjectId(Date(10))), Mixed.valueOf(ObjectId(Date(100))), Mixed.valueOf(Date(100))),
-                arrayOf(Mixed.valueOf(Decimal128(1)), Mixed.valueOf(Decimal128(10)), Mixed.valueOf(10.5.toFloat())),
-                arrayOf(Mixed.valueOf(UUID.randomUUID()), Mixed.valueOf(UUID.randomUUID()), Mixed.valueOf("hello world1"))
-        )
+        fun data(): MutableList<Array<Mixed>> {
+            val list = mutableListOf<Array<Mixed>>()
+
+            for(type in MixedType.values()){
+                when(type){
+                    MixedType.INTEGER -> {
+                        list.add(arrayOf(Mixed.valueOf(1.toByte()), Mixed.valueOf(10.toByte()), Mixed.valueOf(true)))
+                        list.add(arrayOf(Mixed.valueOf(2.toShort()), Mixed.valueOf(20.toShort()), Mixed.valueOf(true)))
+                        list.add(arrayOf(Mixed.valueOf(3.toInt()), Mixed.valueOf(30.toInt()), Mixed.valueOf(true)))
+                        list.add(arrayOf(Mixed.valueOf(4.toLong()), Mixed.valueOf(40.toLong()), Mixed.valueOf(true)))
+                    }
+                    MixedType.BOOLEAN -> list.add(arrayOf(Mixed.valueOf(false), Mixed.valueOf(true), Mixed.valueOf(0.toInt())))
+                    MixedType.STRING -> list.add(arrayOf(Mixed.valueOf("hello world1"), Mixed.valueOf("hello world2"), Mixed.valueOf(10.toInt())))
+                    MixedType.BINARY -> list.add(arrayOf(Mixed.valueOf(byteArrayOf(0, 1, 0)), Mixed.valueOf(byteArrayOf(0, 1, 1)), Mixed.valueOf("hello world3")))
+                    MixedType.DATE -> list.add(arrayOf(Mixed.valueOf(Date(0)), Mixed.valueOf(Date(10)), Mixed.valueOf(ObjectId(Date(10)))))
+                    MixedType.FLOAT -> list.add(arrayOf(Mixed.valueOf(5.toFloat()), Mixed.valueOf(50.toFloat()), Mixed.valueOf(false)))
+                    MixedType.DOUBLE -> list.add(arrayOf(Mixed.valueOf(6.toDouble()), Mixed.valueOf(60.toDouble()), Mixed.valueOf(false)))
+                    MixedType.DECIMAL128 -> list.add(arrayOf(Mixed.valueOf(Decimal128(1)), Mixed.valueOf(Decimal128(10)), Mixed.valueOf(10.5.toFloat())))
+                    MixedType.OBJECT_ID -> list.add(arrayOf(Mixed.valueOf(ObjectId(Date(10))), Mixed.valueOf(ObjectId(Date(100))), Mixed.valueOf(Date(100))))
+                    MixedType.UUID -> list.add(arrayOf(Mixed.valueOf(UUID.randomUUID()), Mixed.valueOf(UUID.randomUUID()), Mixed.valueOf("hello world1")))
+                    MixedType.OBJECT, MixedType.NULL -> {} // Not tested here
+                    else -> throw AssertionError("Missing case for type: ${type.name}")
+                }
+            }
+
+            return list
+        }
     }
 
     @Test
