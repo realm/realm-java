@@ -32,10 +32,7 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.util.*
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 
 // FIXME: MIXED PARAMETRIZED TESTS FOR INDEXED AND UNINDEXED
@@ -433,8 +430,8 @@ class MixedTests {
         val mixedObject = realm.where<MixedNotIndexed>().findFirst()!!
 
         assertTrue(mixedObject.isManaged)
+        assertNotNull(mixedObject.mixed!!)
         assertTrue(mixedObject.mixed!!.isNull)
-        assertTrue(mixedObject.mixed!!.equals(null))
         assertEquals(Mixed.nullValue(), mixedObject.mixed)
         assertEquals(MixedType.NULL, mixedObject.mixed!!.type)
         assertEquals(MixedType.NULL.typedClass, mixedObject.mixed!!.valueClass)
