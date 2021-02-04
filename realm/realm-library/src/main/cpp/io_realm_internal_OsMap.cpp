@@ -133,49 +133,10 @@ Java_io_realm_internal_OsMap_nativePutMixed(JNIEnv* env, jclass, jlong map_ptr, 
                                             jlong mixed_ptr) {
     try {
         auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
-        auto& mixed = *reinterpret_cast<Mixed*>(mixed_ptr);
+        auto mixed_java_value = *reinterpret_cast<JavaValue*>(mixed_ptr);
+        const Mixed& mixed = mixed_java_value.to_mixed();
         JStringAccessor key(env, j_key);
         dictionary.insert(StringData(key), mixed);
-
-//        switch (mixed.get_type()) {
-//            case type_Int:
-//                dictionary.insert(StringData(key).data(), mixed.get_int());
-//                break;
-//            case type_Bool:
-//                dictionary.insert(StringData(key).data(), mixed.get_bool());
-//                break;
-//            case type_String:
-//                dictionary.insert(StringData(key).data(), mixed.get_string());
-//                break;
-//            case type_Binary:
-//                dictionary.insert(StringData(key).data(), mixed.get_binary());
-//                break;
-//            case type_Timestamp:
-//                dictionary.insert(StringData(key).data(), mixed.get_timestamp());
-//                break;
-//            case type_Float:
-//                dictionary.insert(StringData(key).data(), mixed.get_float());
-//                break;
-//            case type_Double:
-//                dictionary.insert(StringData(key).data(), mixed.get_double());
-//                break;
-//            case type_Decimal:
-//                dictionary.insert(StringData(key).data(), mixed.get_decimal());
-//                break;
-//            case type_Link:
-//                dictionary.insert(StringData(key).data(), mixed.get_link());
-//                break;
-//            case type_ObjectId:
-//                dictionary.insert(StringData(key).data(), mixed.get_object_id());
-//                break;
-//            case type_UUID:
-//                dictionary.insert(StringData(key).data(), mixed.get_uuid());
-//                break;
-//            case type_TypedLink:
-//            case type_LinkList:
-//            case type_Mixed:
-//                throw std::logic_error(util::format("Invalid data type used for mixed: %1", mixed.get_type()));
-//        }
     }
     CATCH_STD()
 }
@@ -258,4 +219,25 @@ Java_io_realm_internal_OsMap_nativeRemove(JNIEnv* env, jclass, jlong map_ptr,
         dictionary.erase(StringData(key));
     }
     CATCH_STD()
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_OsMap_nativeCreateAndPutEmbeddedObject(JNIEnv* env, jclass,
+                                                              jlong shared_realm_ptr,
+                                                              jlong map_ptr,
+                                                              jstring j_key) {
+    try {
+        auto& realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& object_schema = dictionary.get_object_schema();
+
+        JStringAccessor key(env, j_key);
+        JavaContext context(env, realm, object_schema);
+
+        dictionary.insert(context, StringData(key), JavaValue(std::map<ColKey, JavaValue>()), CreatePolicy::Skip);
+        const Mixed& mixed = dictionary.get_any(StringData(key));
+        return reinterpret_cast<jlong>(mixed.get_link().get_obj_key().value);
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
 }

@@ -1980,35 +1980,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     val fieldColKey = fieldColKeyVariableReference(field)
                     val fieldName = field.simpleName.toString()
                     val getter = metadata.getInternalGetter(fieldName)
-
-                    // Special treatment for RealmDictionary<Mixed>
-                    if (Utils.isRealmDictionary(field)) {
-                        val valueTypeMirror: TypeMirror? = TypeMirrors.getRealmDictionaryElementTypeMirror(field)
-                        val forMixed = Utils.isMixed(requireNotNull(valueTypeMirror) { "RealmDictionary '$field' must have a type." })
-                        val forRealmModel = Utils.isRealmModel(valueTypeMirror)
-                        val genericType = Utils.getGenericTypeQualifiedName(field)
-                        if (forMixed) {
-                            emitStatement("RealmDictionary<%s> dictionary = unmanagedSource.%s()", genericType, getter)
-                            // Return keys and pointers to mixed instances if dictionary has been set
-                            beginControlFlow("if (dictionary != null)")
-                                emitStatement("java.util.Set<java.util.Map.Entry<String, %s>> entries = dictionary.entrySet()", genericType)
-                                emitStatement("java.util.List<String> keys = new java.util.ArrayList<>()")
-                                emitStatement("java.util.List<Long> mixedPointers = new java.util.ArrayList<>()")
-                                beginControlFlow("for (java.util.Map.Entry<String, %s> entry : entries)", genericType)
-                                    emitStatement("keys.add(entry.getKey())")
-                                    emitStatement("mixedPointers.add(entry.getValue().getNativePtr())")
-                                endControlFlow()
-                                emitStatement("builder.%s(%s, keys, mixedPointers)", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey)
-                            // Otherwise just create a new empty dictionary, no need to pass anything else
-                            nextControlFlow("else")
-                                emitStatement("builder.%s(%s)", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey)
-                            endControlFlow()
-                        } else {
-                            emitStatement("builder.%s(%s, unmanagedSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey, getter)
-                        }
-                    } else {
-                        emitStatement("builder.%s(%s, unmanagedSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey, getter)
-                    }
+                    emitStatement("builder.%s(%s, unmanagedSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey, getter)
                 }
 
                 // Create the underlying object
@@ -2124,37 +2096,70 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                             emitEmptyLine()
                         }
+                        Utils.isMixedDictionary(field) -> {
+                            val genericType = Utils.getGenericTypeQualifiedName(field)
+                            emitStatement("RealmDictionary<Mixed> ${fieldName}UnmanagedDictionary = unmanagedSource.${getter}()")
+                            beginControlFlow("if (${fieldName}UnmanagedDictionary != null)")
+                                emitStatement("RealmDictionary<Mixed> ${fieldName}ManagedDictionary = managedCopy.${getter}()")
+                                emitStatement("java.util.Set<java.util.Map.Entry<String, ${genericType}>> entries = ${fieldName}UnmanagedDictionary.entrySet()")
+                                emitStatement("java.util.List<String> keys = new java.util.ArrayList<>()")
+                                emitStatement("java.util.List<Long> mixedPointers = new java.util.ArrayList<>()")
+                                beginControlFlow("for (java.util.Map.Entry<String, ${genericType}> entry : entries)")
+                                    emitStatement("Mixed mixedItem = entry.getValue()")
+                                    emitStatement("mixedItem = ProxyUtils.copyOrUpdate(mixedItem, realm, update, cache, flags)")
+                                    emitStatement("${fieldName}ManagedDictionary.put(entry.getKey(), mixedItem)")
+                                endControlFlow()
+                            endControlFlow()
+                            emitEmptyLine()
+                        }
                         Utils.isRealmDictionary(field) -> {
                             val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
+                            val listElementType: TypeMirror = Utils.getGenericType(field)!!
+                            val isEmbedded = isFieldTypeEmbedded(listElementType)
+                            val linkedProxyClass: SimpleClassName = Utils.getDictionaryGenericProxyClassSimpleName(field)
 
-                            // TODO: handle embedded objects
-
-                            emitStatement("RealmDictionary<%s> %sUnmanagedDictionary = unmanagedSource.%s()", genericType, fieldName, getter)
-                            beginControlFlow("if (%sUnmanagedDictionary != null)", fieldName)
-                                emitStatement("RealmDictionary<%s> %sManagedDictionary = managedCopy.%s()", genericType, fieldName, getter)
+                            emitStatement("RealmDictionary<${genericType}> ${fieldName}UnmanagedDictionary = unmanagedSource.${getter}()")
+                            beginControlFlow("if (${fieldName}UnmanagedDictionary != null)")
+                                emitStatement("RealmDictionary<${genericType}> ${fieldName}ManagedDictionary = managedCopy.${getter}()")
                                 // Mimicking lists, maybe not needed...?
-                                emitStatement("%sManagedDictionary.clear()", fieldName)
-                                emitStatement("java.util.Set<java.util.Map.Entry<String, %s>> entries = %sUnmanagedDictionary.entrySet()", genericType, fieldName)
-                                beginControlFlow("for (java.util.Map.Entry<String, %s> entry : entries)", genericType)
+                                emitStatement("${fieldName}ManagedDictionary.clear()")
+                                emitStatement("java.util.Set<java.util.Map.Entry<String, ${genericType}>> entries = ${fieldName}UnmanagedDictionary.entrySet()")
+                                beginControlFlow("for (java.util.Map.Entry<String, ${genericType}> entry : entries)")
                                     emitStatement("String entryKey = entry.getKey()")
-                                    emitStatement("%s %sUnmanagedEntryValue = entry.getValue()", genericType, fieldName)
-                                    emitStatement("%s cache%s = (%s) cache.get(%sUnmanagedEntryValue)", genericType, fieldName, genericType, fieldName)
-                                    beginControlFlow("if (cache%s != null)", fieldName)
-                                        emitStatement("%sManagedDictionary.put(entryKey, cache%s)", fieldName, fieldName)
-                                    nextControlFlow("else")
-                                        beginControlFlow("if (%sUnmanagedEntryValue == null)", fieldName)
-                                            emitStatement("%sManagedDictionary.put(entryKey, null)", fieldName)
+                                    emitStatement("$genericType ${fieldName}UnmanagedEntryValue = entry.getValue()")
+                                    emitStatement("$genericType cache${fieldName} = (${genericType}) cache.get(${fieldName}UnmanagedEntryValue)")
+
+                                    // TODO: is this is needed at all? According to the table.cpp
+                                    //  ColKey Table::add_column_dictionary method throws if the
+                                    //  field is an embedded object
+                                    if (isEmbedded) {
+                                        beginControlFlow("if (cache${fieldName} != null)")
+                                            emitStatement("""throw new IllegalArgumentException("Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cache${fieldName}.toString()")""")
                                         nextControlFlow("else")
-                                            emitStatement(
-                                                    "%sManagedDictionary.put(entryKey, %s.copyOrUpdate(realm, (%s) realm.getSchema().getColumnInfo(%s.class), %sUnmanagedEntryValue, update, cache, flags))",
-                                                    fieldName,
-                                                    Utils.getDictionaryGenericProxyClassSimpleName(field),
-                                                    columnInfoClassNameDictionaryGeneric(field),
-                                                    Utils.getGenericTypeQualifiedName(field),
-                                                    fieldName
-                                            )
+                                            emitStatement("long objKey = ${fieldName}ManagedDictionary.getOsMap().createAndPutEmbeddedObject(realm.sharedRealm, entryKey)")
+                                            emitStatement("Row linkedObjectRow = realm.getTable(${genericType}.class).getUncheckedRow(objKey)")
+                                            emitStatement("$genericType linkedObject = ${linkedProxyClass}.newProxyInstance(realm, linkedObjectRow)")
+                                            emitStatement("cache.put(${fieldName}UnmanagedEntryValue, (RealmObjectProxy) linkedObject)")
+                                            emitStatement("${linkedProxyClass}.updateEmbeddedObject(realm, ${fieldName}UnmanagedEntryValue, linkedObject, new HashMap<RealmModel, RealmObjectProxy>(), Collections.EMPTY_SET)")
                                         endControlFlow()
-                                    endControlFlow()
+                                    } else {
+                                        beginControlFlow("if (cache${fieldName} != null)")
+                                            emitStatement("${fieldName}ManagedDictionary.put(entryKey, cache${fieldName})")
+                                        nextControlFlow("else")
+                                            beginControlFlow("if (${fieldName}UnmanagedEntryValue == null)")
+                                                emitStatement("${fieldName}ManagedDictionary.put(entryKey, null)")
+                                            nextControlFlow("else")
+                                                emitStatement(
+                                                        "%sManagedDictionary.put(entryKey, %s.copyOrUpdate(realm, (%s) realm.getSchema().getColumnInfo(%s.class), %sUnmanagedEntryValue, update, cache, flags))",
+                                                        fieldName,
+                                                        Utils.getDictionaryGenericProxyClassSimpleName(field),
+                                                        columnInfoClassNameDictionaryGeneric(field),
+                                                        Utils.getGenericTypeQualifiedName(field),
+                                                        fieldName
+                                                )
+                                            endControlFlow()
+                                        endControlFlow()
+                                    }
                                 endControlFlow()
                             endControlFlow()
                         }

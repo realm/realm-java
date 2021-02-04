@@ -115,6 +115,10 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject {
         // TODO: use operator + do it natively
         return null;
     }
+
+    public OsMap getOsMap() {
+        return mapValueOperator.osMap;
+    }
 }
 
 /**
@@ -171,9 +175,11 @@ abstract class MapValueOperator<V> {
         this.classContainer = classContainer;
     }
 
+    @Nullable
     public abstract V get(Object key);
 
-    public abstract V put(Object key, V value);
+    @Nullable
+    public abstract V put(Object key, @Nullable V value);
 
     public void remove(Object key) {
         osMap.remove(key);
@@ -198,18 +204,6 @@ abstract class MapValueOperator<V> {
     public void clear() {
         osMap.clear();
     }
-
-    protected <E extends RealmModel> E copyToRealm(E object) {
-        // TODO: support dynamic Realms
-        // At this point the object can only be a typed object, so the backing Realm cannot be a DynamicRealm.
-        Realm realm = (Realm) baseRealm;
-        String simpleClassName = realm.getConfiguration().getSchemaMediator().getSimpleClassName(object.getClass());
-        if (OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), simpleClassName) != null) {
-            return realm.copyToRealmOrUpdate(object);
-        } else {
-            return realm.copyToRealm(object);
-        }
-    }
 }
 
 /**
@@ -222,16 +216,26 @@ class MixedValueOperator extends MapValueOperator<Mixed> {
     }
 
     @Override
+    @Nullable
     public Mixed get(Object key) {
         long mixedPtr = osMap.getMixedPtr(key);
+        if (mixedPtr == -1) {
+            return null;
+        }
         NativeMixed nativeMixed = new NativeMixed(mixedPtr);
         return new Mixed(MixedOperator.fromNativeMixed(baseRealm, nativeMixed));
     }
 
     @Override
-    public Mixed put(Object key, Mixed value) {
+    @Nullable
+    public Mixed put(Object key, @Nullable Mixed value) {
         Mixed original = get(key);
-        osMap.putMixed(key, value.getNativePtr());
+
+        if (value == null) {
+            osMap.put(key, null);
+        } else {
+            osMap.putMixed(key, CollectionUtils.copyToRealmIfNeeded(baseRealm, value).getNativePtr());
+        }
         return original;
     }
 }
@@ -246,14 +250,15 @@ class BoxableValueOperator<T> extends MapValueOperator<T> {
     }
 
     @Override
+    @Nullable
     public T get(Object key) {
         //noinspection unchecked
         return (T) osMap.get(key);
     }
 
     @Override
-    public T put(Object key, T value) {
-        //noinspection unchecked
+    @Nullable
+    public T put(Object key, @Nullable T value) {
         T original = get(key);
         osMap.put(key, value);
         return original;
@@ -263,13 +268,14 @@ class BoxableValueOperator<T> extends MapValueOperator<T> {
 /**
  * {@link MapValueOperator} targeting {@link RealmModel}s values in {@link RealmMap}s.
  */
-class RealmModelValueOperator<T> extends MapValueOperator<T> {
+class RealmModelValueOperator<T extends RealmModel> extends MapValueOperator<T> {
 
     RealmModelValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
         super(baseRealm, osMap, classContainer);
     }
 
     @Override
+    @Nullable
     public T get(Object key) {
         long realmModelKey = osMap.getModelRowKey(key);
         if (realmModelKey == -1) {
@@ -277,25 +283,34 @@ class RealmModelValueOperator<T> extends MapValueOperator<T> {
         }
 
         //noinspection unchecked
-        return (T) baseRealm.get((Class<? extends RealmModel>) classContainer.getClazz(), classContainer.getClassName(), realmModelKey);
+        Class<? extends RealmModel> clazz = (Class<? extends RealmModel>) classContainer.getClazz();
+        String className = classContainer.getClassName();
+
+        //noinspection unchecked
+        return (T) baseRealm.get(clazz, className, realmModelKey);
     }
 
     @Override
+    @Nullable
     public T put(Object key, @Nullable T value) {
         //noinspection unchecked
         Class<T> clazz = (Class<T>) classContainer.getClazz();
         String className = classContainer.getClassName();
         long rowModelKey = osMap.getModelRowKey(key);
 
-        RealmModel realmObject = (RealmModel) value;
-        boolean copyObject;
         if (value == null) {
             osMap.put(key, null);
         } else {
-            // TODO: figure out how to do this with Mixed, check Java_io_realm_internal_core_NativeMixed_nativeCreateMixedLink
-            copyObject = checkCanObjectBeCopied(baseRealm, realmObject, classContainer);
-            RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? copyToRealm((RealmModel) value) : realmObject);
-            osMap.putMixed(key, new NativeMixed(proxy).getNativePtr());
+            if (className == null) {
+                if (clazz != null) {
+                    className = clazz.getCanonicalName();
+                } else {
+                    throw new IllegalStateException("Missing className.");
+                }
+            }
+            boolean copyObject = CollectionUtils.checkCanObjectBeCopied(baseRealm, (RealmModel) value, className);
+            RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, (RealmModel) value) : (RealmModel) value);
+            osMap.putRow(key, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
         }
 
         if (rowModelKey == -1) {
@@ -304,50 +319,6 @@ class RealmModelValueOperator<T> extends MapValueOperator<T> {
             //noinspection unchecked
             return (T) baseRealm.get((Class<? extends RealmModel>) clazz, className, rowModelKey);
         }
-    }
-
-    // TODO: unify this method and the one in RealmModelListOperator
-    private boolean checkCanObjectBeCopied(BaseRealm realm, RealmModel object, ClassContainer classContainer) {
-        if (object instanceof RealmObjectProxy) {
-            RealmObjectProxy proxy = (RealmObjectProxy) object;
-
-            if (proxy instanceof DynamicRealmObject) {
-                if (classContainer.getClassName() == null) {
-                    throw new IllegalStateException("A 'className' must be passed to the value operator when working with Dynamic Realms.");
-                }
-
-                @Nonnull
-                String listClassName = classContainer.getClassName();
-                if (proxy.realmGet$proxyState().getRealm$realm() == realm) {
-                    String objectClassName = ((DynamicRealmObject) object).getType();
-                    if (listClassName.equals(objectClassName)) {
-                        // Same Realm instance and same target table
-                        return false;
-                    } else {
-                        // Different target table
-                        throw new IllegalArgumentException(String.format(Locale.US,
-                                "The object has a different type from list's." +
-                                        " Type of the list is '%s', type of object is '%s'.", listClassName, objectClassName));
-                    }
-                } else if (realm.threadId == proxy.realmGet$proxyState().getRealm$realm().threadId) {
-                    // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as
-                    // you have to run a full schema validation for each object.
-                    // And copying from another Realm instance pointed to the same Realm file is not supported as well.
-                    throw new IllegalArgumentException("Cannot copy DynamicRealmObject between Realm instances.");
-                } else {
-                    throw new IllegalStateException("Cannot copy an object to a Realm instance created in another thread.");
-                }
-            } else {
-                // Object is already in this realm
-                if (proxy.realmGet$proxyState().getRow$realm() != null && proxy.realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
-                    if (realm != proxy.realmGet$proxyState().getRealm$realm()) {
-                        throw new IllegalArgumentException("Cannot copy an object from another Realm instance.");
-                    }
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 }
 

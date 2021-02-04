@@ -20,7 +20,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.annotations.RealmModule
 import io.realm.entities.DictionaryClass
-import io.realm.entities.MixedNotIndexed
+import io.realm.entities.embedded.EmbeddedSimpleChild
+import io.realm.entities.embedded.EmbeddedSimpleParent
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import org.bson.types.Decimal128
@@ -370,6 +371,8 @@ class DictionaryTests {
             val dictionaryObject = DictionaryClass().apply {
                 myDogDictionary = RealmDictionary<MyDog>().apply {
                     put(KEY_HELLO, myDog)
+
+                    // TODO: remove comment once https://github.com/realm/realm-core/issues/4374 is fixed
 //                    put(KEY_NULL, null)
                 }
             }
@@ -381,7 +384,9 @@ class DictionaryTests {
             dictionaryFromRealm[KEY_HELLO].let { helloDog ->
                 assertNotNull(helloDog)
                 assertEquals(helloDogId, helloDog.id)
+
             }
+            // TODO: remove comment once https://github.com/realm/realm-core/issues/4374 is fixed
 //            assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
@@ -428,28 +433,65 @@ class DictionaryTests {
                 "NULL" to Mixed.nullValue()
         )
 
+        val unmanagedModel: MyDog = MyDog().apply { id = "unmanaged" }
+        val mixedModel = Mixed.valueOf(unmanagedModel)
+
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
                 myMixedDictionary = RealmDictionary<Mixed>().apply {
                     putAll(entries)
                 }
+                myMixedDictionary!!["NULL_VALUE"] = null
+                myMixedDictionary!!["UNMANAGED_MIXED_MODEL"] = mixedModel
+                val managedModel = transactionRealm.createObject<MyDog>().apply { id = "managed" }
+                myMixedDictionary!!["MANAGED_MIXED_MODEL"] = Mixed.valueOf(managedModel)
             }
+            transactionRealm.copyToRealm(dictionaryObject)
+        }
 
-            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
-            val dictionaryFromRealm = dictionaryObjectFromRealm.myMixedDictionary
-            assertNotNull(dictionaryFromRealm)
+        val dictionaryObjectFromRealm = realm.where<DictionaryClass>()
+                .findFirst()
+        assertNotNull(dictionaryObjectFromRealm)
 
-            // Iterate over all sample entries and compare them to the values we got from realm
-            entries.entries.forEach { entry ->
-                dictionaryFromRealm[entry.key].also { value ->
-                    assertNotNull(value)
-                    if (value.type == MixedType.BINARY) {
-                        assertEquals(entry.value.asBinary()[0], value.asBinary()[0])
-                    } else {
-                        assertEquals(entry.value, value)
-                    }
+        val dictionaryFromRealm = dictionaryObjectFromRealm.myMixedDictionary
+        assertNotNull(dictionaryFromRealm)
+
+        // Iterate over all sample entries and compare them to the values we got from realm
+        entries.entries.forEach { entry ->
+            dictionaryFromRealm[entry.key].also { value ->
+                assertNotNull(value)
+                if (value.type == MixedType.BINARY) {
+                    assertEquals(entry.value.asBinary()[0], value.asBinary()[0])
+                } else {
+                    assertEquals(entry.value, value)
                 }
             }
+        }
+
+        // Finally check the RealmModels we inserted manually are actually there
+        realm.where<MyDog>()
+                .findAll()
+                .let { models ->
+                    assertEquals(2, models.size)
+                }
+
+        dictionaryFromRealm["NULL_VALUE"].also { nullMixed ->
+            assertNotNull(nullMixed)
+            assertEquals(MixedType.NULL, nullMixed.type)
+        }
+
+        // Check the unmanaged model is there
+        dictionaryFromRealm["UNMANAGED_MIXED_MODEL"].also { entry ->
+            assertNotNull(entry)
+            assertEquals(MixedType.OBJECT, entry.type)
+            assertEquals("unmanaged", entry.asRealmModel(MyDog::class.java).id)
+        }
+
+        // And now that the managed model is there too
+        dictionaryFromRealm["MANAGED_MIXED_MODEL"].also { entry ->
+            assertNotNull(entry)
+            assertEquals(MixedType.OBJECT, entry.type)
+            assertEquals("managed", entry.asRealmModel(MyDog::class.java).id)
         }
     }
 
@@ -562,7 +604,7 @@ class DictionaryTests {
     }
 }
 
-@RealmModule(classes = [DictionaryClass::class, MyDog::class])
+@RealmModule(classes = [DictionaryClass::class, MyDog::class, EmbeddedSimpleChild::class, EmbeddedSimpleParent::class])
 class MapModule
 
 open class MyDog : RealmObject() {

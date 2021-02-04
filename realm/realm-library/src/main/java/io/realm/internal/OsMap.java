@@ -20,8 +20,6 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import io.realm.internal.core.NativeMixed;
-
 /**
  * Java wrapper of Object Store Dictionary class. This backs managed versions of RealmMaps.
  */
@@ -109,9 +107,13 @@ public class OsMap implements NativeObject {
         return nativeGetMixedPtr(nativePtr, (String) key);
     }
 
+    public long createAndPutEmbeddedObject(OsSharedRealm sharedRealm, Object key) {
+        return nativeCreateAndPutEmbeddedObject(sharedRealm.getNativePtr(), nativePtr, (String) key);
+    }
+
     private static native long nativeGetFinalizerPtr();
 
-    private static native long nativeCreate(long nativeSharedRealmPtr, long nativeRowPtr, long columnKey);
+    private static native long nativeCreate(long sharedRealmPtr, long nativeRowPtr, long columnKey);
 
     private static native Object nativeGetValue(long nativePtr, String key);
 
@@ -135,4 +137,6 @@ public class OsMap implements NativeObject {
     private static native void nativeClear(long nativePtr);
 
     private static native void nativeRemove(long nativePtr, String key);
+
+    private static native long nativeCreateAndPutEmbeddedObject(long sharedRealmPtr, long nativePtr, String key);
 }

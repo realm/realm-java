@@ -16,20 +16,21 @@
 
 package io.realm.entities
 
-import io.realm.*
+import io.realm.Mixed
+import io.realm.MyDog
+import io.realm.RealmDictionary
+import io.realm.RealmObject
 import java.util.*
 
 open class DictionaryClass : RealmObject() {
+
+//    var myEmbeddedObjectDictionary: RealmDictionary<EmbeddedSimpleChild>? = null
 
     // TODO: ObjectId and other Java primitives
     var myDogDictionary: RealmDictionary<MyDog>? = null
     var myUUIDDictionary: RealmDictionary<UUID>? = null
     var myMixedDictionary: RealmDictionary<Mixed>? = null
     var myBooleanDictionary: RealmDictionary<Boolean>? = null
-
-    // TODO: remove these, only used for inspiration for the proxy generator
-    var myBooleanList: RealmList<Boolean>? = null
-    var myDogList: RealmList<MyDog>? = null
 
     companion object {
         const val CLASS_NAME = "DictionaryClass"
