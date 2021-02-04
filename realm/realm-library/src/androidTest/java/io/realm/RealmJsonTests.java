@@ -27,7 +27,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -386,6 +386,76 @@ public class RealmJsonTests {
 
         AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals(UUID.fromString(uuid), obj.getColumnUUID());
+    }
+
+    @Test
+    public void createObjectFromJson_mixedAsString() throws JSONException {
+        JSONObject json = new JSONObject();
+        String aString = "027ba5ca-aa12-4afa-9219-e20cc3018599";
+        json.put("columnMixed", aString);
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, json);
+        realm.commitTransaction();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(Mixed.valueOf(aString), obj.getColumnMixed());
+    }
+
+    @Test
+    public void createObjectFromJson_mixedAsInteger() throws JSONException {
+        JSONObject json = new JSONObject();
+        int anInteger = 20;
+        json.put("columnMixed", anInteger);
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, json);
+        realm.commitTransaction();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(Mixed.valueOf(anInteger), obj.getColumnMixed());
+    }
+
+    @Test
+    public void createObjectFromJson_mixedAsFloat() throws JSONException {
+        JSONObject json = new JSONObject();
+        float aFloat = 10.f;
+        json.put("columnMixed", aFloat);
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, json);
+        realm.commitTransaction();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(Mixed.valueOf(Double.valueOf(aFloat)), obj.getColumnMixed());
+    }
+
+    @Test
+    public void createObjectFromJson_mixedAsDouble() throws JSONException {
+        JSONObject json = new JSONObject();
+        double aDouble = 20.;
+        json.put("columnMixed", aDouble);
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, json);
+        realm.commitTransaction();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(Mixed.valueOf(aDouble), obj.getColumnMixed());
+    }
+
+    @Test
+    public void createObjectFromJson_mixedAsNull() throws JSONException {
+        JSONObject json = new JSONObject();
+        json.put("columnMixed", null);
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, json);
+        realm.commitTransaction();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(Mixed.nullValue(), obj.getColumnMixed());
+        assertEquals(Mixed.valueOf((Byte) null), obj.getColumnMixed());
     }
 
     @Test
@@ -982,6 +1052,66 @@ public class RealmJsonTests {
 
         AllTypes obj = realm.where(AllTypes.class).findFirst();
         assertEquals(UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599"), obj.getColumnUUID());
+    }
+
+    @Test
+    public void createObjectFromJson_streamMixedAsString() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
+        InputStream in = new ByteArrayInputStream("{\"columnMixed\" : \"hello world\"}".getBytes(StandardCharsets.US_ASCII));
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, in);
+        realm.commitTransaction();
+        in.close();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(Mixed.valueOf("hello world"), obj.getColumnMixed());
+    }
+
+    @Test
+    public void createObjectFromJson_streamMixedAsInteger() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
+        InputStream in = new ByteArrayInputStream("{\"columnMixed\" : 10}".getBytes(StandardCharsets.US_ASCII));
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, in);
+        realm.commitTransaction();
+        in.close();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(Mixed.valueOf(10), obj.getColumnMixed());
+    }
+
+    @Test
+    public void createObjectFromJson_streamMixedAsDouble() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
+        InputStream in = new ByteArrayInputStream("{\"columnMixed\" : 10.0}".getBytes(StandardCharsets.US_ASCII));
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, in);
+        realm.commitTransaction();
+        in.close();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(Mixed.valueOf(10.d), obj.getColumnMixed());
+    }
+
+    @Test
+    public void createObjectFromJson_streamMixedAsNull() throws IOException {
+        assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
+
+        InputStream in = new ByteArrayInputStream("{\"columnMixed\" : null}".getBytes(StandardCharsets.US_ASCII));
+
+        realm.beginTransaction();
+        realm.createObjectFromJson(AllTypes.class, in);
+        realm.commitTransaction();
+        in.close();
+
+        AllTypes obj = realm.where(AllTypes.class).findFirst();
+        assertEquals(Mixed.nullValue(), obj.getColumnMixed());
     }
 
     @Test

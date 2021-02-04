@@ -290,7 +290,7 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
         writer.apply {
             emitAnnotation("Override")
             beginMethod(
-                    "void",
+                    "long",
                     "insert",
                     EnumSet.of(Modifier.PUBLIC),
                     "Realm", "realm", "RealmModel", "object", "Map<RealmModel, Long>", "cache")
@@ -304,7 +304,7 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
                         if (embeddedClass[i]) {
                             emitEmbeddedObjectsCannotBeCopiedException(writer)
                         } else {
-                            emitStatement("%s.insert(realm, (%s) object, cache)", qualifiedProxyClasses[i], qualifiedModelClasses[i])
+                            emitStatement("return %s.insert(realm, (%s) object, cache)", qualifiedProxyClasses[i], qualifiedModelClasses[i])
                         }
                     })
                 } else {
@@ -321,7 +321,7 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
         writer.apply {
             emitAnnotation("Override")
             beginMethod(
-                    "void",
+                    "long",
                     "insertOrUpdate",
                     EnumSet.of(Modifier.PUBLIC),
                     "Realm", "realm", "RealmModel", "obj", "Map<RealmModel, Long>", "cache")
@@ -335,7 +335,7 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
                     if (embeddedClass[i]) {
                         emitEmbeddedObjectsCannotBeCopiedException(writer)
                     } else {
-                        emitStatement("%s.insertOrUpdate(realm, (%s) obj, cache)", qualifiedProxyClasses[i], qualifiedModelClasses[i])
+                        emitStatement("return %s.insertOrUpdate(realm, (%s) obj, cache)", qualifiedProxyClasses[i], qualifiedModelClasses[i])
                     }
                 })
             } else {

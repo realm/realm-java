@@ -18,6 +18,7 @@ package io.realm;
 
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 import java.util.UUID;
@@ -452,5 +453,32 @@ public class Mixed {
      */
     public <T extends RealmModel> T asRealmModel(Class<T> clazz) {
         return operator.getValue(clazz);
+    }
+
+
+    /**
+     * A {@code Mixed}'s hash code is, exactly, the hash code of its value.
+     *
+     * @return true if the target has the same value
+     * @throws NullPointerException if the inner value is null
+     */
+    @Override
+    public final int hashCode() {
+        return this.operator.hashCode();
+    }
+
+    /**
+     * Two {@code Mixed}s are {@code .equals} if and only if their contents are equal.
+     *
+     * @param other compare target
+     * @return true if the target has the same value
+     */
+    @Override
+    public final boolean equals(Object other) {
+        if (other == this) { return true; }
+        if (other == null) { return this.operator instanceof NullMixedOperator; }
+        if (!(other instanceof Mixed)) { return false; }
+        Mixed otherMixed = ((Mixed) other);
+        return this.operator.equals(otherMixed.operator);
     }
 }
