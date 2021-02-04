@@ -1,6 +1,7 @@
 package io.realm.internal.objectstore;
 
 import io.realm.RealmSchema;
+import io.realm.exceptions.RealmError;
 import io.realm.internal.NativeObject;
 
 /**
@@ -17,10 +18,18 @@ import io.realm.internal.NativeObject;
 public class OsKeyPathMapping implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
-    public final long mappingPointer;
+    public long mappingPointer = -1;
 
     public OsKeyPathMapping(long sharedRealmNativePointer) {
-        mappingPointer = nativeCreateMapping(sharedRealmNativePointer);
+        try {
+            // The KeyPathMapping is created before we validated the schema, in some
+            // cases this can cause problems if the keypath mapping point to non-existing
+            // classes or properties. Instead of crashing here, we let the schema validation
+            // throw a better error
+            mappingPointer = nativeCreateMapping(sharedRealmNativePointer);
+        } catch (Exception ignore) {
+        } catch (RealmError ignore) {
+        }
     }
 
     @Override
