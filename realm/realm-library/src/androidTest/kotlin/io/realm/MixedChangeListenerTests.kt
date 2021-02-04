@@ -29,7 +29,7 @@ import java.util.*
 
 
 @RunWith(Parameterized::class)
-class MixedChangeListenerTests(private val first: Mixed, private val second: Mixed, private val third: Mixed) {
+class MixedChangeListenerTests(private val testingType: MixedType, private val first: Any, private val second: Any, private val third: Any) {
     private lateinit var realmConfiguration: RealmConfiguration
     private val looperThread = BlockingLooperThread()
 
@@ -57,27 +57,104 @@ class MixedChangeListenerTests(private val first: Mixed, private val second: Mix
     companion object {
         @JvmStatic
         @Parameterized.Parameters
-        fun data(): MutableList<Array<Mixed>> {
-            val list = mutableListOf<Array<Mixed>>()
+        fun data(): MutableList<Array<Any>> {
+            val list = mutableListOf<Array<Any>>()
 
-            for(type in MixedType.values()){
-                when(type){
+            for (type in MixedType.values()) {
+                when (type) {
                     MixedType.INTEGER -> {
-                        list.add(arrayOf(Mixed.valueOf(1.toByte()), Mixed.valueOf(10.toByte()), Mixed.valueOf(true)))
-                        list.add(arrayOf(Mixed.valueOf(2.toShort()), Mixed.valueOf(20.toShort()), Mixed.valueOf(true)))
-                        list.add(arrayOf(Mixed.valueOf(3.toInt()), Mixed.valueOf(30.toInt()), Mixed.valueOf(true)))
-                        list.add(arrayOf(Mixed.valueOf(4.toLong()), Mixed.valueOf(40.toLong()), Mixed.valueOf(true)))
+                        list.add(arrayOf(MixedType.INTEGER,
+                                Mixed.valueOf(1.toByte()),
+                                Mixed.valueOf(10.toByte()),
+                                Mixed.valueOf(true))
+                        )
+                        list.add(arrayOf(MixedType.INTEGER,
+                                Mixed.valueOf(2.toShort()),
+                                Mixed.valueOf(20.toShort()
+                                ),
+                                Mixed.valueOf(true)))
+                        list.add(arrayOf(MixedType.INTEGER,
+                                Mixed.valueOf(3.toInt()),
+                                Mixed.valueOf(30.toInt()),
+                                Mixed.valueOf(true))
+                        )
+                        list.add(arrayOf(MixedType.INTEGER,
+                                Mixed.valueOf(4.toLong()),
+                                Mixed.valueOf(40.toLong()),
+                                Mixed.valueOf(true))
+                        )
                     }
-                    MixedType.BOOLEAN -> list.add(arrayOf(Mixed.valueOf(false), Mixed.valueOf(true), Mixed.valueOf(0.toInt())))
-                    MixedType.STRING -> list.add(arrayOf(Mixed.valueOf("hello world1"), Mixed.valueOf("hello world2"), Mixed.valueOf(10.toInt())))
-                    MixedType.BINARY -> list.add(arrayOf(Mixed.valueOf(byteArrayOf(0, 1, 0)), Mixed.valueOf(byteArrayOf(0, 1, 1)), Mixed.valueOf("hello world3")))
-                    MixedType.DATE -> list.add(arrayOf(Mixed.valueOf(Date(0)), Mixed.valueOf(Date(10)), Mixed.valueOf(ObjectId(Date(10)))))
-                    MixedType.FLOAT -> list.add(arrayOf(Mixed.valueOf(5.toFloat()), Mixed.valueOf(50.toFloat()), Mixed.valueOf(false)))
-                    MixedType.DOUBLE -> list.add(arrayOf(Mixed.valueOf(6.toDouble()), Mixed.valueOf(60.toDouble()), Mixed.valueOf(false)))
-                    MixedType.DECIMAL128 -> list.add(arrayOf(Mixed.valueOf(Decimal128(1)), Mixed.valueOf(Decimal128(10)), Mixed.valueOf(10.5.toFloat())))
-                    MixedType.OBJECT_ID -> list.add(arrayOf(Mixed.valueOf(ObjectId(Date(10))), Mixed.valueOf(ObjectId(Date(100))), Mixed.valueOf(Date(100))))
-                    MixedType.UUID -> list.add(arrayOf(Mixed.valueOf(UUID.randomUUID()), Mixed.valueOf(UUID.randomUUID()), Mixed.valueOf("hello world1")))
-                    MixedType.OBJECT, MixedType.NULL -> {} // Not tested here
+                    MixedType.BOOLEAN -> list.add(arrayOf(
+                            MixedType.BOOLEAN,
+                            Mixed.valueOf(false),
+                            Mixed.valueOf(true),
+                            Mixed.valueOf(0.toInt()))
+                    )
+                    MixedType.STRING -> list.add(arrayOf(
+                            MixedType.STRING,
+                            Mixed.valueOf("hello world1"),
+                            Mixed.valueOf("hello world2"),
+                            Mixed.valueOf(10.toInt()))
+                    )
+                    MixedType.BINARY -> list.add(arrayOf(
+                            MixedType.BINARY,
+                            Mixed.valueOf(byteArrayOf(0, 1, 0)),
+                            Mixed.valueOf(byteArrayOf(0, 1, 1)),
+                            Mixed.valueOf("hello world3"))
+                    )
+                    MixedType.DATE -> list.add(arrayOf(
+                            MixedType.DATE,
+                            Mixed.valueOf(Date(0)),
+                            Mixed.valueOf(Date(10)),
+                            Mixed.valueOf(ObjectId(Date(10))))
+                    )
+                    MixedType.FLOAT -> list.add(arrayOf(
+                            MixedType.FLOAT,
+                            Mixed.valueOf(5.toFloat()),
+                            Mixed.valueOf(50.toFloat()),
+                            Mixed.valueOf(false))
+                    )
+                    MixedType.DOUBLE -> list.add(arrayOf(
+                            MixedType.DOUBLE,
+                            Mixed.valueOf(6.toDouble()),
+                            Mixed.valueOf(60.toDouble()),
+                            Mixed.valueOf(false)))
+                    MixedType.DECIMAL128 -> list.add(arrayOf(
+                            MixedType.DECIMAL128,
+                            Mixed.valueOf(Decimal128(1)),
+                            Mixed.valueOf(Decimal128(10)),
+                            Mixed.valueOf(10.5.toFloat()))
+                    )
+                    MixedType.OBJECT_ID -> list.add(arrayOf(
+                            MixedType.OBJECT_ID,
+                            Mixed.valueOf(ObjectId(Date(10))),
+                            Mixed.valueOf(ObjectId(Date(100))),
+                            Mixed.valueOf(Date(100)))
+                    )
+                    MixedType.UUID -> list.add(arrayOf(
+                            MixedType.UUID,
+                            Mixed.valueOf(UUID.randomUUID()),
+                            Mixed.valueOf(UUID.randomUUID()),
+                            Mixed.valueOf("hello world1"))
+                    )
+                    MixedType.OBJECT -> {
+                        val first = AllJavaTypes(0)
+                        first.fieldString = "FOO"
+
+                        val second = AllJavaTypes(0)
+                        second.fieldString = "FOO"
+                        second.fieldMixed = Mixed.valueOf(first)
+
+                        list.add(arrayOf(
+                                MixedType.OBJECT,
+                                first,
+                                second,
+                                "hello world1")
+                        )
+                    }
+                    MixedType.NULL -> { // Not tested directly
+                    }
+
                     else -> throw AssertionError("Missing case for type: ${type.name}")
                 }
             }
@@ -88,13 +165,17 @@ class MixedChangeListenerTests(private val first: Mixed, private val second: Mix
 
     @Test
     fun primitives_changeValueKeepType() {
+        // Do not test on object types
+        if (testingType == MixedType.OBJECT)
+            return
+
         looperThread.runBlocking {
             Realm.getInstance(realmConfiguration).use { realm ->
                 realm.beginTransaction()
 
                 val all = AllJavaTypes(0)
                 all.fieldString = "FOO1"
-                all.fieldMixed = first
+                all.fieldMixed = first as Mixed?
                 val managedAll = realm.copyToRealm(all)
 
                 realm.commitTransaction()
@@ -114,7 +195,7 @@ class MixedChangeListenerTests(private val first: Mixed, private val second: Mix
 
                 val updatingModel = AllJavaTypes(0)
                 updatingModel.fieldString = "FOO2"
-                updatingModel.fieldMixed = second
+                updatingModel.fieldMixed = second as Mixed?
 
                 realm.copyToRealmOrUpdate(updatingModel)
 
@@ -125,13 +206,17 @@ class MixedChangeListenerTests(private val first: Mixed, private val second: Mix
 
     @Test
     fun primitives_changeValueChangeType() {
+        // Do not test on object types
+        if (testingType == MixedType.OBJECT)
+            return
+
         looperThread.runBlocking {
             Realm.getInstance(realmConfiguration).use { realm ->
                 realm.beginTransaction()
 
                 val all = AllJavaTypes(0)
                 all.fieldString = "FOO1"
-                all.fieldMixed = first
+                all.fieldMixed = first as Mixed?
                 val managedAll = realm.copyToRealm(all)
 
                 realm.commitTransaction()
@@ -151,7 +236,7 @@ class MixedChangeListenerTests(private val first: Mixed, private val second: Mix
 
                 val updatingModel = AllJavaTypes(0)
                 updatingModel.fieldString = "FOO2"
-                updatingModel.fieldMixed = third
+                updatingModel.fieldMixed = third as Mixed?
 
                 realm.copyToRealmOrUpdate(updatingModel)
 
@@ -162,13 +247,17 @@ class MixedChangeListenerTests(private val first: Mixed, private val second: Mix
 
     @Test
     fun primitives_changeValueChangeType_checkSameValueFlag() {
+        // Do not test on object types
+        if (testingType == MixedType.OBJECT)
+            return
+
         looperThread.runBlocking {
             Realm.getInstance(realmConfiguration).use { realm ->
                 realm.beginTransaction()
 
                 val all = AllJavaTypes(0)
                 all.fieldString = "FOO1"
-                all.fieldMixed = first
+                all.fieldMixed = first as Mixed?
                 val managedAll = realm.copyToRealm(all)
 
                 realm.commitTransaction()
@@ -188,7 +277,7 @@ class MixedChangeListenerTests(private val first: Mixed, private val second: Mix
 
                 val updatingModel = AllJavaTypes(0)
                 updatingModel.fieldString = "FOO2"
-                updatingModel.fieldMixed = third
+                updatingModel.fieldMixed = third as Mixed?
 
                 realm.copyToRealmOrUpdate(updatingModel, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET)
 
@@ -199,13 +288,17 @@ class MixedChangeListenerTests(private val first: Mixed, private val second: Mix
 
     @Test
     fun primitives_keepValues() {
+        // Do not test on object types
+        if (testingType == MixedType.OBJECT)
+            return
+
         looperThread.runBlocking {
             Realm.getInstance(realmConfiguration).use { realm ->
                 realm.beginTransaction()
 
                 val all = AllJavaTypes(0)
                 all.fieldString = "FOO1"
-                all.fieldMixed = first
+                all.fieldMixed = first as Mixed?
                 val managedAll = realm.copyToRealm(all)
 
                 realm.commitTransaction()
@@ -236,13 +329,17 @@ class MixedChangeListenerTests(private val first: Mixed, private val second: Mix
 
     @Test
     fun primitives_keepValues_checkSameValuesFlag() {
+        // Do not test on object types
+        if (testingType == MixedType.OBJECT)
+            return
+
         looperThread.runBlocking {
             Realm.getInstance(realmConfiguration).use { realm ->
                 realm.beginTransaction()
 
                 val all = AllJavaTypes(0)
                 all.fieldString = "FOO1"
-                all.fieldMixed = first
+                all.fieldMixed = first as Mixed?
                 val managedAll = realm.copyToRealm(all)
 
                 realm.commitTransaction()
@@ -273,6 +370,10 @@ class MixedChangeListenerTests(private val first: Mixed, private val second: Mix
 
     @Test
     fun primitives_fromNull() {
+        // Do not test on object types
+        if (testingType == MixedType.OBJECT)
+            return
+
         looperThread.runBlocking {
             Realm.getInstance(realmConfiguration).use { realm ->
                 realm.beginTransaction()
@@ -298,7 +399,7 @@ class MixedChangeListenerTests(private val first: Mixed, private val second: Mix
 
                 val updatingModel = AllJavaTypes(0)
                 updatingModel.fieldString = "FOO2"
-                updatingModel.fieldMixed = first
+                updatingModel.fieldMixed = first as Mixed?
 
                 realm.copyToRealmOrUpdate(updatingModel, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET)
 
@@ -309,13 +410,17 @@ class MixedChangeListenerTests(private val first: Mixed, private val second: Mix
 
     @Test
     fun primitives_toNull() {
+        // Do not test on object types
+        if (testingType == MixedType.OBJECT)
+            return
+
         looperThread.runBlocking {
             Realm.getInstance(realmConfiguration).use { realm ->
                 realm.beginTransaction()
 
                 val all = AllJavaTypes(0)
                 all.fieldString = "FOO1"
-                all.fieldMixed = first
+                all.fieldMixed = first as Mixed?
                 val managedAll = realm.copyToRealm(all)
 
                 realm.commitTransaction()
@@ -338,6 +443,40 @@ class MixedChangeListenerTests(private val first: Mixed, private val second: Mix
                 updatingModel.fieldMixed = Mixed.nullValue()
 
                 realm.copyToRealmOrUpdate(updatingModel, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET)
+
+                realm.commitTransaction()
+            }
+        }
+    }
+
+    @Test
+    fun realmModels_cyclicDependency() {
+        // Do not test on object types
+        if (testingType != MixedType.OBJECT)
+            return
+
+        looperThread.runBlocking {
+            Realm.getInstance(realmConfiguration).use { realm ->
+                realm.beginTransaction()
+
+                val managedAll = realm.copyToRealmOrUpdate(first as RealmModel)
+
+                realm.commitTransaction()
+
+                looperThread.keepStrongReference(managedAll)
+
+                RealmObject.addChangeListener<RealmModel>(managedAll, { _, changeSet ->
+                    changeSet!!
+                    looperThread.postRunnable(Runnable {
+                        Assert.assertFalse(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
+                        Assert.assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
+                        looperThread.testComplete()
+                    })
+                })
+
+                realm.beginTransaction()
+
+                realm.copyToRealmOrUpdate(second as RealmModel, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET)
 
                 realm.commitTransaction()
             }
