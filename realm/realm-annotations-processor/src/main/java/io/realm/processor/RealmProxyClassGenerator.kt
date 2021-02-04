@@ -2020,6 +2020,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Utils.isRealmDictionary(field) -> {
                             val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
 
+                            // TODO: handle embedded objects
+
                             emitStatement("RealmDictionary<%s> %sUnmanagedDictionary = unmanagedSource.%s()", genericType, fieldName, getter)
                             beginControlFlow("if (%sUnmanagedDictionary != null)", fieldName)
                                 emitStatement("RealmDictionary<%s> %sManagedDictionary = managedCopy.%s()", genericType, fieldName, getter)
