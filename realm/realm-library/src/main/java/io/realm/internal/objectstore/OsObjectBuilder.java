@@ -360,7 +360,8 @@ public class OsObjectBuilder implements Closeable {
         }
     }
 
-    public void addMixed(long columnKey, @Nullable Mixed value) {
+    public void addMixed(long columnKey, long mixedPtr) {
+        nativeAddMixed(builderPtr, columnKey, mixedPtr);
     }
 
     public void addString(long columnKey, @Nullable String val) {
@@ -567,13 +568,13 @@ public class OsObjectBuilder implements Closeable {
         if (keys.isEmpty() && mixedPointers.isEmpty()) {
             addEmptyDictionary(columnKey);
         } else {
-            // FIXME: deal with this once Mixed support for RealmLists is added
-            throw new UnsupportedOperationException("Missing support for mixed.");
-//            long dictionaryPtr = nativeStartDictionary();
-//            for (int i = 0; i < keys.size(); i++) {
-//                nativeAddMixedDictionaryEntry(dictionaryPtr, keys.get(i), mixedPointers.get(i));
-//            }
-//            nativeStopDictionary(builderPtr, columnKey, dictionaryPtr);
+//            // FIXME: deal with this once Mixed support for RealmLists is added
+//            throw new UnsupportedOperationException("Missing support for mixed.");
+            long dictionaryPtr = nativeStartDictionary();
+            for (int i = 0; i < keys.size(); i++) {
+                nativeAddMixedDictionaryEntry(dictionaryPtr, keys.get(i), mixedPointers.get(i));
+            }
+            nativeStopDictionary(builderPtr, columnKey, dictionaryPtr);
 
         }
     }
@@ -764,6 +765,8 @@ public class OsObjectBuilder implements Closeable {
 
     private static native void nativeAddUUID(long builderPtr, long columnKey, String data);
 
+    private static native void nativeAddMixed(long builderPtr, long columnKey, long mixedPtr);
+
     // Methods for adding lists
     // Lists sent across JNI one element at a time
     private static native long nativeStartList(long size);
@@ -825,5 +828,5 @@ public class OsObjectBuilder implements Closeable {
 
     private static native void nativeAddUUIDDictionaryEntry(long dictionaryPtr, String key, String value);
 
-//    private static native void nativeAddMixedDictionaryEntry(long dictionaryPtr, String key, long mixedPtr);
+    private static native void nativeAddMixedDictionaryEntry(long dictionaryPtr, String key, long mixedPtr);
 }

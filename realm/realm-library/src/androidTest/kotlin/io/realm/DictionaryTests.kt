@@ -22,6 +22,8 @@ import io.realm.annotations.RealmModule
 import io.realm.entities.DictJava
 import io.realm.entities.DictionaryClass
 import io.realm.entities.MyRealmModel
+import io.realm.entities.embedded.EmbeddedSimpleChild
+import io.realm.entities.embedded.EmbeddedSimpleParent
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import org.bson.types.Decimal128
@@ -522,6 +524,7 @@ class DictionaryTests {
                 assertNotNull(helloFromDictionary)
                 assertEquals(helloId, helloFromDictionary.id)
             }
+
             // TODO: remove comment once https://github.com/realm/realm-core/issues/4374 is fixed
 //            assertNull(dictionaryFromRealm[KEY_NULL])
         }
@@ -644,7 +647,6 @@ class DictionaryTests {
                     put(KEY_NULL, null)
                 }
             }
-
             val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
             val dictionaryFromRealm = dictionaryObjectFromRealm.myObjectIdDictionary
             assertNotNull(dictionaryFromRealm)
@@ -1024,5 +1026,5 @@ class DictionaryTests {
     }
 }
 
-@RealmModule(classes = [DictionaryClass::class, MyRealmModel::class, DictJava::class])
+@RealmModule(classes = [DictionaryClass::class, MyRealmModel::class, DictJava::class, EmbeddedSimpleChild::class, EmbeddedSimpleParent::class])
 class MapModule
