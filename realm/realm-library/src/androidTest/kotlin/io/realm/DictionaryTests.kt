@@ -19,9 +19,7 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.annotations.RealmModule
-import io.realm.entities.DictJava
-import io.realm.entities.DictionaryClass
-import io.realm.entities.MyRealmModel
+import io.realm.entities.*
 import io.realm.entities.embedded.EmbeddedSimpleChild
 import io.realm.entities.embedded.EmbeddedSimpleParent
 import io.realm.kotlin.createObject
@@ -420,6 +418,47 @@ class DictionaryTests {
     }
 
     @Test
+    fun managed_remove() {
+        realm.executeTransaction { transactionRealm ->
+            transactionRealm.copyToRealm(
+                    initDictionaryClass(withDefaultValues = true,withModel = true)
+            )
+
+            val instance = realm.where<DictionaryClass>()
+                    .findFirst()
+            assertNotNull(instance)
+
+            // TODO: parameterize instead of manually testing types
+
+            // Test primitive value
+            with(instance.myBooleanDictionary) {
+                assertNotNull(this)
+                assertFalse(isEmpty())
+                assertEquals(VALUE_HELLO, remove(KEY_HELLO))
+                assertTrue(isEmpty())
+            }
+
+            // Test model value
+            realm.where<MyRealmModel>()
+                    .findFirst()
+                    .also {
+                        assertNotNull(it)
+                    }
+
+            // Remove from dictionary
+            with(instance.myRealmModelDictionary) {
+                assertNotNull(this)
+                assertFalse(isEmpty())
+                remove(KEY_HELLO).also { removedValue ->
+                    assertNotNull(removedValue)
+                    assertEquals(VALUE_HELLO_STRING, removedValue.id)
+                }
+                assertTrue(isEmpty())
+            }
+        }
+    }
+
+    @Test
     fun managed_putAll() {
         val map = HashMap<String, Boolean>().apply {
             put(KEY_HELLO, VALUE_HELLO)
@@ -614,6 +653,58 @@ class DictionaryTests {
 
             // TODO: remove comment once https://github.com/realm/realm-core/issues/4374 is fixed
 //            assertNull(dictionaryFromRealm[KEY_NULL])
+        }
+    }
+
+    @Test
+    fun copyToRealmOrUpdate_realmModel() {
+        val primaryKeyObject = MyPrimaryKeyModel().apply {
+            id = 42
+            name = "John"
+        }
+        val updatedPrimaryKeyObject = MyPrimaryKeyModel().apply {
+            id = 42
+            name = "John Doe"
+        }
+
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myPrimaryKeyModelDictionary = RealmDictionary<MyPrimaryKeyModel>().apply {
+                    put(KEY_HELLO, primaryKeyObject)
+                }
+            }
+
+            // Copy first object and assert the model got inserted too
+            transactionRealm.copyToRealm(dictionaryObject)
+            transactionRealm.where<MyPrimaryKeyModel>()
+                    .findFirst()
+                    .let {
+                        assertNotNull(it)
+                        assertEquals(primaryKeyObject.id, it.id)
+                        assertEquals(primaryKeyObject.name, it.name)
+                    }
+
+            val newDictionaryObject = DictionaryClass().apply {
+                myPrimaryKeyModelDictionary = RealmDictionary<MyPrimaryKeyModel>().apply {
+                    put(KEY_HELLO, updatedPrimaryKeyObject)
+                }
+            }
+
+            // Copy (or update) second object and assert the model got updated
+            val newDictionaryObjectFromRealm = transactionRealm.copyToRealmOrUpdate(newDictionaryObject)
+            transactionRealm.where<MyPrimaryKeyModel>()
+                    .findFirst()
+                    .let {
+                        assertNotNull(it)
+                    }
+
+            val dictionaryFromRealm = newDictionaryObjectFromRealm.myPrimaryKeyModelDictionary
+            assertNotNull(dictionaryFromRealm)
+
+            dictionaryFromRealm[KEY_HELLO].let { helloFromDictionary ->
+                assertNotNull(helloFromDictionary)
+                assertEquals(updatedPrimaryKeyObject.id, helloFromDictionary.id)
+            }
         }
     }
 
@@ -1035,10 +1126,13 @@ class DictionaryTests {
                 .also { baseAssertions(it) }
     }
 
-    private fun initDictionaryClass(withDefaultValues: Boolean = false): DictionaryClass {
+    private fun initDictionaryClass(
+            withDefaultValues: Boolean = false,
+            withModel: Boolean = false
+    ): DictionaryClass {
         return DictionaryClass().apply {
             // This one will always be empty by default for testing purposes
-            myBooleanDictionary = RealmDictionary<Boolean>()
+            emptyBooleanDictionary = RealmDictionary()
 
             myBooleanDictionary = RealmDictionary<Boolean>().apply {
                 if (withDefaultValues) {
@@ -1105,6 +1199,14 @@ class DictionaryTests {
                     put(KEY_HELLO, VALUE_HELLO_BYTE_ARRAY)
                 }
             }
+
+            if (withModel) {
+                myRealmModelDictionary = RealmDictionary<MyRealmModel>().apply {
+                    if (withDefaultValues) {
+                        put(KEY_HELLO, MyRealmModel().apply { id = VALUE_HELLO_STRING })
+                    }
+                }
+            }
         }
     }
 
@@ -1116,5 +1218,12 @@ class DictionaryTests {
     }
 }
 
-@RealmModule(classes = [DictionaryClass::class, MyRealmModel::class, DictJava::class, EmbeddedSimpleChild::class, EmbeddedSimpleParent::class])
+@RealmModule(classes = [
+    DictionaryClass::class,
+    MyRealmModel::class,
+    DictJava::class,
+    MyPrimaryKeyModel::class,
+    EmbeddedSimpleChild::class,
+    EmbeddedSimpleParent::class
+])
 class MapModule

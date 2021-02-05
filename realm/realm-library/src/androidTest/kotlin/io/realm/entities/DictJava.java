@@ -16,27 +16,46 @@
 
 package io.realm.entities;
 
-import io.realm.RealmDictionary;
+import io.realm.RealmList;
 import io.realm.RealmObject;
 
 public class DictJava extends RealmObject {
 
-    private RealmDictionary<byte[]> myByteArrayDictionary;
-    private RealmDictionary<Byte[]> myNonPrimitiveByteArrayDictionary;
+    private RealmList<Integer> myIntegerList;
+    private RealmList<MyRealmModel> myModelList;
 
-    public RealmDictionary<byte[]> getMyByteArrayDictionary() {
-        return myByteArrayDictionary;
+    public RealmList<Integer> getMyIntegerList() {
+        return myIntegerList;
     }
 
-    public void setMyByteArrayDictionary(RealmDictionary<byte[]> myByteArrayDictionary) {
-        this.myByteArrayDictionary = myByteArrayDictionary;
+    public void setMyIntegerList(RealmList<Integer> myIntegerList) {
+        this.myIntegerList = myIntegerList;
     }
 
-    public RealmDictionary<Byte[]> getMyNonPrimitiveByteArrayDictionary() {
-        return myNonPrimitiveByteArrayDictionary;
+    public RealmList<MyRealmModel> getMyModelList() {
+        return myModelList;
     }
 
-    public void setMyNonPrimitiveByteArrayDictionary(RealmDictionary<Byte[]> myNonPrimitiveByteArrayDictionary) {
-        this.myNonPrimitiveByteArrayDictionary = myNonPrimitiveByteArrayDictionary;
+    public void setMyModelList(RealmList<MyRealmModel> myModelList) {
+        this.myModelList = myModelList;
     }
+
+    //    private RealmDictionary<byte[]> myByteArrayDictionary;
+//    private RealmDictionary<Byte[]> myNonPrimitiveByteArrayDictionary;
+//
+//    public RealmDictionary<byte[]> getMyByteArrayDictionary() {
+//        return myByteArrayDictionary;
+//    }
+//
+//    public void setMyByteArrayDictionary(RealmDictionary<byte[]> myByteArrayDictionary) {
+//        this.myByteArrayDictionary = myByteArrayDictionary;
+//    }
+//
+//    public RealmDictionary<Byte[]> getMyNonPrimitiveByteArrayDictionary() {
+//        return myNonPrimitiveByteArrayDictionary;
+//    }
+//
+//    public void setMyNonPrimitiveByteArrayDictionary(RealmDictionary<Byte[]> myNonPrimitiveByteArrayDictionary) {
+//        this.myNonPrimitiveByteArrayDictionary = myNonPrimitiveByteArrayDictionary;
+//    }
 }

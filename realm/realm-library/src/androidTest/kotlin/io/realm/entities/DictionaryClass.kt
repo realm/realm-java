@@ -18,15 +18,19 @@ package io.realm.entities
 
 import io.realm.Mixed
 import io.realm.RealmDictionary
-import io.realm.RealmList
 import io.realm.RealmObject
+import io.realm.annotations.PrimaryKey
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import java.util.*
 
 open class DictionaryClass : RealmObject() {
 
+    @PrimaryKey
+    var id = UUID.randomUUID()
+
     var myRealmModelDictionary: RealmDictionary<MyRealmModel>? = null
+    var myPrimaryKeyModelDictionary: RealmDictionary<MyPrimaryKeyModel>? = null
     var myMixedDictionary: RealmDictionary<Mixed>? = null
     var myBooleanDictionary: RealmDictionary<Boolean>? = null
     var myStringDictionary: RealmDictionary<String>? = null
@@ -66,4 +70,10 @@ open class DictionaryClass : RealmObject() {
 
 open class MyRealmModel : RealmObject() {
     var id: String? = null
+}
+
+open class MyPrimaryKeyModel : RealmObject() {
+    @PrimaryKey
+    var id: Int? = null
+    var name: String? = null
 }
