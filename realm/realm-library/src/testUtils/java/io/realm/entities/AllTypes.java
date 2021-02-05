@@ -82,7 +82,7 @@ public class AllTypes extends RealmObject {
     @Required
     private UUID columnUUID = UUID.randomUUID();
 
-    private Mixed columnMixed = Mixed.valueOf(true);
+    private Mixed columnMixed = Mixed.nullValue();
 
     private final MutableRealmInteger columnMutableRealmInteger = MutableRealmInteger.ofNull();
 
@@ -104,6 +104,7 @@ public class AllTypes extends RealmObject {
     private RealmList<Decimal128> columnDecimal128List;
     private RealmList<ObjectId> columnObjectIdList;
     private RealmList<UUID> columnUUIDList;
+    private RealmList<Mixed> columnMixedList;
 
     public String getColumnString() {
         return columnString;
@@ -308,5 +309,13 @@ public class AllTypes extends RealmObject {
 
     public void setColumnUUIDList(RealmList<UUID> columnUUIDList) {
         this.columnUUIDList = columnUUIDList;
+    }
+
+    public RealmList<Mixed> getColumnMixedList() {
+        return columnMixedList;
+    }
+
+    public void setColumnMixedList(RealmList<Mixed> columnMixedList) {
+        this.columnMixedList = columnMixedList;
     }
 }

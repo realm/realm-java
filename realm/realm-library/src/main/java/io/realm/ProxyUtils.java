@@ -27,26 +27,31 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import io.realm.internal.OsList;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.android.JsonUtils;
+
 
 class ProxyUtils {
 
     /**
      * Called by proxy to set the managed {@link RealmList} according to the given {@link JSONObject}.
      *
-     * @param realmList the managed {@link RealmList}.
+     * @param realmList  the managed {@link RealmList}.
      * @param jsonObject the {@link JSONObject} which may contain the data of the list to be set.
-     * @param fieldName the field name of the {@link RealmList}.
-     * @param <E> type of the {@link RealmList}.
+     * @param fieldName  the field name of the {@link RealmList}.
+     * @param <E>        type of the {@link RealmList}.
      * @throws JSONException if it fails to parse JSON.
      */
     static <E> void setRealmListWithJsonObject(
             RealmList<E> realmList, JSONObject jsonObject, String fieldName) throws JSONException {
-        if (!jsonObject.has(fieldName))  {
+        if (!jsonObject.has(fieldName)) {
             return;
         }
 
@@ -100,11 +105,11 @@ class ProxyUtils {
                     osList.addBinary(JsonUtils.stringToBytes(jsonArray.getString(i)));
                 }
             }
-        } else if (realmList.clazz == Date.class ) {
+        } else if (realmList.clazz == Date.class) {
             for (int i = 0; i < arraySize; i++) {
                 if (jsonArray.isNull(i)) {
-                   osList.addNull();
-                   continue;
+                    osList.addNull();
+                    continue;
                 }
 
                 Object timestamp = jsonArray.get(i);
@@ -132,8 +137,8 @@ class ProxyUtils {
      * Called by proxy to create an unmanaged {@link RealmList} according to the given {@link JsonReader}.
      *
      * @param elementClass the type of the {@link RealmList}.
-     * @param jsonReader the JSON stream to be parsed which may contain the data of the list to be set.
-     * @param <E> type of the {@link RealmList}.
+     * @param jsonReader   the JSON stream to be parsed which may contain the data of the list to be set.
+     * @param <E>          type of the {@link RealmList}.
      * @throws IOException if it fails to parse JSON stream.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -219,7 +224,7 @@ class ProxyUtils {
                     jsonReader.skipValue();
                     realmList.add(null);
                 } else {
-                    realmList.add((int)jsonReader.nextLong());
+                    realmList.add((int) jsonReader.nextLong());
                 }
             }
         } else if (elementClass == Short.class) {
@@ -228,7 +233,7 @@ class ProxyUtils {
                     jsonReader.skipValue();
                     realmList.add(null);
                 } else {
-                    realmList.add((short)jsonReader.nextLong());
+                    realmList.add((short) jsonReader.nextLong());
                 }
             }
         } else if (elementClass == Byte.class) {
@@ -237,7 +242,7 @@ class ProxyUtils {
                     jsonReader.skipValue();
                     realmList.add(null);
                 } else {
-                    realmList.add((byte)jsonReader.nextLong());
+                    realmList.add((byte) jsonReader.nextLong());
                 }
             }
         } else {
@@ -249,7 +254,7 @@ class ProxyUtils {
         return realmList;
     }
 
-    private static void throwWrongElementType(@Nullable  Class clazz) {
+    private static void throwWrongElementType(@Nullable Class clazz) {
         throw new IllegalArgumentException(String.format(Locale.ENGLISH, "Element type '%s' is not handled.",
                 clazz));
     }
@@ -266,7 +271,7 @@ class ProxyUtils {
             }
 
             if (!RealmObject.isManaged(mixedRealmModel)) {
-                if(realm.hasPrimaryKey(mixedRealmModel.getClass())){
+                if (realm.hasPrimaryKey(mixedRealmModel.getClass())) {
                     value = Mixed.valueOf(realm.copyToRealmOrUpdate(mixedRealmModel));
                 } else {
                     value = Mixed.valueOf(realm.copyToRealm(mixedRealmModel));
@@ -277,6 +282,84 @@ class ProxyUtils {
         }
 
         return value;
+    }
+
+    @SuppressWarnings("unchecked")
+    static Mixed copyOrUpdate(Mixed mixed, @Nonnull Realm realm, boolean update, @Nonnull Map<RealmModel, RealmObjectProxy> cache, @Nonnull Set<ImportFlag> flags) {
+        if (mixed == null) {
+            return Mixed.nullValue();
+        }
+
+        if (mixed.getType() == MixedType.OBJECT) {
+            Class<? extends RealmModel> mixedValueClass = (Class<? extends RealmModel>) mixed.getValueClass();
+            RealmModel mixedRealmObject = mixed.asRealmModel(mixedValueClass);
+
+            RealmObjectProxy cacheRealmObject = cache.get(mixedRealmObject);
+            if (cacheRealmObject != null) {
+                mixed = Mixed.valueOf(cacheRealmObject);
+            } else {
+                RealmModel managedMixedRealmObject = realm
+                        .getConfiguration()
+                        .getSchemaMediator()
+                        .copyOrUpdate(realm, mixedRealmObject, update, cache, flags);
+
+                mixed = Mixed.valueOf(managedMixedRealmObject);
+            }
+        }
+
+        return mixed;
+    }
+
+    @SuppressWarnings("unchecked")
+    static Mixed insert(Mixed mixed, @Nonnull Realm realm, @Nonnull Map<RealmModel, Long> cache) {
+        if (mixed == null) {
+            return Mixed.nullValue();
+        }
+
+        if (mixed.getType() == MixedType.OBJECT) {
+            Class<? extends RealmModel> mixedValueClass = (Class<? extends RealmModel>) mixed.getValueClass();
+            RealmModel mixedRealmObject = mixed.asRealmModel(mixedValueClass);
+
+            Long cacheRealmObject = cache.get(mixedRealmObject);
+            if (cacheRealmObject != null) {
+                mixed = Mixed.valueOf(cacheRealmObject);
+            } else {
+                long index = realm.getConfiguration()
+                        .getSchemaMediator()
+                        .insert(realm, mixedRealmObject, cache);
+
+                RealmModel realmModel = realm.get(mixedValueClass, null, index);
+
+                mixed = Mixed.valueOf(realmModel);
+            }
+        }
+
+        return mixed;
+    }
+
+    @SuppressWarnings("unchecked")
+    static Mixed insertOrUpdate(Mixed mixed, @Nonnull Realm realm, @Nonnull Map<RealmModel, Long> cache) {
+        if (mixed == null) {
+            return Mixed.nullValue();
+        }
+
+        if (mixed.getType() == MixedType.OBJECT) {
+            Class<? extends RealmModel> mixedValueClass = (Class<? extends RealmModel>) mixed.getValueClass();
+            RealmModel mixedRealmObject = mixed.asRealmModel(mixedValueClass);
+
+            Long cacheRealmObject = cache.get(mixedRealmObject);
+            if (cacheRealmObject != null) {
+                mixed = Mixed.valueOf(cacheRealmObject);
+            } else {
+                long index = realm.getConfiguration()
+                        .getSchemaMediator()
+                        .insertOrUpdate(realm, mixedRealmObject, cache);
+
+                mixed = Mixed.valueOf(realm.get(mixedValueClass, null, index));
+            }
+        }
+
+        return mixed;
     }
 
 }

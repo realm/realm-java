@@ -44,6 +44,7 @@ using namespace realm::_impl;
     X(ObjectId) \
     X(UUID) \
     X(ObjectLink) \
+    X(Mixed) \
     X(Decimal) \
     X(Binary) \
     X(Object) \
@@ -83,6 +84,7 @@ template <> struct JavaValueTypeRepr<JavaValueType::ObjectId>      { using Type 
 template <> struct JavaValueTypeRepr<JavaValueType::Decimal>       { using Type = Decimal128; };
 template <> struct JavaValueTypeRepr<JavaValueType::UUID>          { using Type = UUID; };
 template <> struct JavaValueTypeRepr<JavaValueType::ObjectLink>    { using Type = ObjLink; };
+template <> struct JavaValueTypeRepr<JavaValueType::Mixed>    { using Type = Mixed; };
 template <> struct JavaValueTypeRepr<JavaValueType::Binary>        { using Type = OwnedBinaryData; };
 template <> struct JavaValueTypeRepr<JavaValueType::Object>        { using Type = Obj*; };
 template <> struct JavaValueTypeRepr<JavaValueType::List>          { using Type = std::vector<JavaValue>; };
@@ -244,6 +246,11 @@ struct JavaValue {
         return get_as<JavaValueType::UUID>();
     }
 
+    auto& get_mixed() const noexcept
+    {
+        return get_as<JavaValueType::Mixed>();
+    }
+
     auto& get_object_link() const noexcept
     {
         return get_as<JavaValueType::ObjectLink>();
@@ -339,7 +346,7 @@ struct JavaValue {
         }
     }
 
-    realm::Mixed to_mixed(){
+    realm::Mixed to_mixed() const {
         switch (this->get_type()) {
             case JavaValueType::Integer:
                 return Mixed(this->get_int());
@@ -363,6 +370,8 @@ struct JavaValue {
                 return Mixed(this->get_binary().get());
             case JavaValueType::ObjectLink:
                 return Mixed(this->get_object_link());
+            case JavaValueType::Mixed:
+                return Mixed(this->get_mixed());
             case JavaValueType::Object:
             case JavaValueType::List:
             case JavaValueType::PropertyList:
@@ -622,6 +631,12 @@ template <>
 inline UUID JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? v.get_uuid() : UUID();
+}
+
+template <>
+inline Mixed JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
+{
+    return v.has_value() ? v.to_mixed() : Mixed();
 }
 
 template <>

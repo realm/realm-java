@@ -25,6 +25,7 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.Freezable;
 import io.realm.internal.ManageableObject;
+import io.realm.internal.OsMap;
 
 /**
  * FIXME
@@ -34,7 +35,7 @@ import io.realm.internal.ManageableObject;
  */
 abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<RealmMap<K, V>> {
 
-    private final MapStrategy<K, V> mapStrategy;
+    protected final MapStrategy<K, V> mapStrategy;
 
     // ------------------------------------------
     // Unmanaged constructors
@@ -52,7 +53,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
      *
      * @param map initial map.
      */
-    protected RealmMap(Map<K, V> map) {
+    RealmMap(Map<K, V> map) {
         this();
 
         mapStrategy.putAll(map);
@@ -167,6 +168,10 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
         return mapStrategy.freeze();
     }
 
+    OsMap getOsMap() {
+        return mapStrategy.getOsMap();
+    }
+
     // TODO: should we override any default methods from parent map class?
 
     /**
@@ -189,6 +194,8 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
          * @return the inserted value.
          */
         protected abstract V putInternal(K key, V value);
+
+        protected abstract OsMap getOsMap();
 
         // ------------------------------------------
         // Map API
@@ -329,6 +336,11 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
         protected V putInternal(K key, V value) {
             return managedMapManager.put(key, value);
         }
+
+        @Override
+        protected OsMap getOsMap() {
+            return managedMapManager.getOsMap();
+        }
     }
 
     /**
@@ -437,6 +449,11 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
         @Override
         protected V putInternal(K key, V value) {
             return unmanagedMap.put(key, value);
+        }
+
+        @Override
+        protected OsMap getOsMap() {
+            throw new UnsupportedOperationException("Unmanaged maps aren't represented in native code.");
         }
     }
 }

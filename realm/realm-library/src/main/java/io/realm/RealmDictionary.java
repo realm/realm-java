@@ -109,9 +109,11 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
     private static <V> ManagedMapStrategy<String, V> getStrategy(Class<V> valueClass, BaseRealm baseRealm, OsMap osMap) {
         if (isClassForRealmModel(valueClass)) {
             ClassContainer classContainer = new ClassContainer(valueClass, null);
-            MapValueOperator<String, V> realmModelValueOperator = new RealmModelValueOperator<>(baseRealm, osMap, classContainer);
-            DictionaryManager<V> dictionaryManager = new DictionaryManager<>(realmModelValueOperator, classContainer);
-            return new ManagedMapStrategy<>(dictionaryManager);
+            RealmModelValueOperator<String, RealmModel> realmModelValueOperator = new RealmModelValueOperator<>(baseRealm, osMap, classContainer);
+            ManagedMapManager<String, RealmModel> dictionaryManager = new DictionaryManager<>(realmModelValueOperator, classContainer);
+
+            //noinspection unchecked
+            return (ManagedMapStrategy<String, V>) new ManagedMapStrategy<>(dictionaryManager);
         }
 
         DictionaryManager<V> manager = getManager(valueClass, baseRealm, osMap);

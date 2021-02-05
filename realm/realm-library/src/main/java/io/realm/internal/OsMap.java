@@ -138,12 +138,12 @@ public class OsMap implements NativeObject {
         }
     }
 
-    public void put(Object key, long mixedPtr) {
-        nativePutMixed(nativePtr, (String) key, mixedPtr);
-    }
-
     public void putRow(Object key, long objKey) {
         nativePutRow(nativePtr, (String) key, objKey);
+    }
+
+    public void putMixed(Object key, long nativeMixedPtr) {
+        nativePutMixed(nativePtr, (String) key, nativeMixedPtr);
     }
 
     // TODO: add more put methods for different value types ad-hoc
@@ -165,9 +165,13 @@ public class OsMap implements NativeObject {
         return nativeGetMixedPtr(nativePtr, (String) key);
     }
 
+    public long createAndPutEmbeddedObject(OsSharedRealm sharedRealm, Object key) {
+        return nativeCreateAndPutEmbeddedObject(sharedRealm.getNativePtr(), nativePtr, (String) key);
+    }
+
     private static native long nativeGetFinalizerPtr();
 
-    private static native long nativeCreate(long nativeSharedRealmPtr, long nativeRowPtr, long columnKey);
+    private static native long nativeCreate(long sharedRealmPtr, long nativeRowPtr, long columnKey);
 
     private static native Object nativeGetValue(long nativePtr, String key);
 
@@ -197,7 +201,7 @@ public class OsMap implements NativeObject {
 
     private static native void nativePutUUID(long nativePtr, String key, String value);
 
-    private static native void nativePutMixed(long nativePtr, String key, long nativeObjectPtr);
+    private static native void nativePutMixed(long nativePtr, String key, long nativeMixedPtr);
 
     private static native void nativePutRow(long nativePtr, String key, long objKey);
 
@@ -214,4 +218,6 @@ public class OsMap implements NativeObject {
     private static native long nativeValues(long nativePtr);
 
     private static native long nativeFreeze(long nativePtr, long realmPtr);
+
+    private static native long nativeCreateAndPutEmbeddedObject(long sharedRealmPtr, long nativePtr, String key);
 }

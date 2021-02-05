@@ -22,6 +22,8 @@ import io.realm.annotations.RealmModule
 import io.realm.entities.DictJava
 import io.realm.entities.DictionaryClass
 import io.realm.entities.MyRealmModel
+import io.realm.entities.embedded.EmbeddedSimpleChild
+import io.realm.entities.embedded.EmbeddedSimpleParent
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import org.bson.types.Decimal128
@@ -595,6 +597,8 @@ class DictionaryTests {
             val dictionaryObject = DictionaryClass().apply {
                 myRealmModelDictionary = RealmDictionary<MyRealmModel>().apply {
                     put(KEY_HELLO, hello)
+
+                    // TODO: remove comment once https://github.com/realm/realm-core/issues/4374 is fixed
 //                    put(KEY_NULL, null)
                 }
             }
@@ -607,20 +611,22 @@ class DictionaryTests {
                 assertNotNull(helloFromDictionary)
                 assertEquals(helloId, helloFromDictionary.id)
             }
+
+            // TODO: remove comment once https://github.com/realm/realm-core/issues/4374 is fixed
 //            assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
 
     @Test
     fun copyToRealm_UUID() {
-        val hello = UUID.randomUUID()
-        val bye = UUID.randomUUID()
+        val uuid1 = UUID.randomUUID()
+        val uuid2 = UUID.randomUUID()
 
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
                 myUUIDDictionary = RealmDictionary<UUID>().apply {
-                    put(KEY_HELLO, hello)
-                    put(KEY_BYE, bye)
+                    put(KEY_HELLO, uuid1)
+                    put(KEY_BYE, uuid2)
                     put(KEY_NULL, null)
                 }
             }
@@ -629,51 +635,112 @@ class DictionaryTests {
             val dictionaryFromRealm = dictionaryObjectFromRealm.myUUIDDictionary
             assertNotNull(dictionaryFromRealm)
 
-            assertEquals(hello.toString(), dictionaryFromRealm[KEY_HELLO].toString())
-            assertEquals(bye.toString(), dictionaryFromRealm[KEY_BYE].toString())
+            assertEquals(uuid1.toString(), dictionaryFromRealm[KEY_HELLO].toString())
+            assertEquals(uuid2.toString(), dictionaryFromRealm[KEY_BYE].toString())
             assertNull(dictionaryFromRealm[KEY_NULL])
+        }
+    }
+
+    @Test
+    fun copyToRealm_mixed() {
+        val entries = mapOf<String, Mixed>(
+                "INTEGER" to Mixed.valueOf(42 as Int),
+                "BOOLEAN" to Mixed.valueOf(true),
+                "STRING" to Mixed.valueOf("this is a string"),
+                "BINARY" to Mixed.valueOf(ByteArray(1).apply { set(0, 42) }),
+                "DATE" to Mixed.valueOf(Date()),
+                "FLOAT" to Mixed.valueOf(42F),
+                "DOUBLE" to Mixed.valueOf(42.toDouble()),
+                "SHORT" to Mixed.valueOf(42.toShort()),
+                "BYTE" to Mixed.valueOf(42.toByte()),
+                "DECIMAL128" to Mixed.valueOf(Decimal128(42)),
+                "OBJECT_ID" to Mixed.valueOf(ObjectId()),
+                "UUID" to Mixed.valueOf(UUID.randomUUID()),
+                "NULL" to Mixed.nullValue()
+        )
+
+        val unmanagedModel: MyRealmModel = MyRealmModel().apply { id = "unmanaged" }
+        val mixedModel = Mixed.valueOf(unmanagedModel)
+
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myMixedDictionary = RealmDictionary<Mixed>().apply {
+                    putAll(entries)
+                }
+                myMixedDictionary!!["NULL_VALUE"] = null
+                myMixedDictionary!!["UNMANAGED_MIXED_MODEL"] = mixedModel
+                val managedModel = transactionRealm.createObject<MyRealmModel>().apply { id = "managed" }
+                myMixedDictionary!!["MANAGED_MIXED_MODEL"] = Mixed.valueOf(managedModel)
+            }
+            transactionRealm.copyToRealm(dictionaryObject)
+        }
+
+        val dictionaryObjectFromRealm = realm.where<DictionaryClass>()
+                .findFirst()
+        assertNotNull(dictionaryObjectFromRealm)
+
+        val dictionaryFromRealm = dictionaryObjectFromRealm.myMixedDictionary
+        assertNotNull(dictionaryFromRealm)
+
+        // Iterate over all sample entries and compare them to the values we got from realm
+        entries.entries.forEach { entry ->
+            dictionaryFromRealm[entry.key].also { value ->
+                assertNotNull(value)
+                if (value.type == MixedType.BINARY) {
+                    assertEquals(entry.value.asBinary()[0], value.asBinary()[0])
+                } else {
+                    assertEquals(entry.value, value)
+                }
+            }
+        }
+
+        // Finally check the RealmModels we inserted manually are actually there
+        realm.where<MyRealmModel>()
+                .findAll()
+                .let { models ->
+                    assertEquals(2, models.size)
+                }
+
+        dictionaryFromRealm["NULL_VALUE"].also { nullMixed ->
+            assertNotNull(nullMixed)
+            assertEquals(MixedType.NULL, nullMixed.type)
+        }
+
+        // Check the unmanaged model is there
+        dictionaryFromRealm["UNMANAGED_MIXED_MODEL"].also { entry ->
+            assertNotNull(entry)
+            assertEquals(MixedType.OBJECT, entry.type)
+            assertEquals("unmanaged", entry.asRealmModel(MyRealmModel::class.java).id)
+        }
+
+        // And now that the managed model is there too
+        dictionaryFromRealm["MANAGED_MIXED_MODEL"].also { entry ->
+            assertNotNull(entry)
+            assertEquals(MixedType.OBJECT, entry.type)
+            assertEquals("managed", entry.asRealmModel(MyRealmModel::class.java).id)
         }
     }
 
     @Test
     fun copyToRealm_objectId() {
-        val hello = ObjectId()
-        val bye = ObjectId()
+        val objectId1 = ObjectId()
+        val objectId2 = ObjectId()
 
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
                 myObjectIdDictionary = RealmDictionary<ObjectId>().apply {
-                    put(KEY_HELLO, hello)
-                    put(KEY_BYE, bye)
+                    put(KEY_HELLO, objectId1)
+                    put(KEY_BYE, objectId2)
                     put(KEY_NULL, null)
                 }
             }
-
             val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
             val dictionaryFromRealm = dictionaryObjectFromRealm.myObjectIdDictionary
             assertNotNull(dictionaryFromRealm)
 
-            assertEquals(hello, dictionaryFromRealm[KEY_HELLO])
-            assertEquals(bye, dictionaryFromRealm[KEY_BYE])
+            assertEquals(objectId1, dictionaryFromRealm[KEY_HELLO])
+            assertEquals(objectId2, dictionaryFromRealm[KEY_BYE])
             assertNull(dictionaryFromRealm[KEY_NULL])
-        }
-    }
-
-    @Test
-    @Ignore("Wait until Clemente is done with Mixed")
-    fun copyToRealm_mixedBoolean() {
-        realm.executeTransaction { transactionRealm ->
-            val dictionaryObject = DictionaryClass().apply {
-                myMixedDictionary = createMixedRealmDictionary()
-            }
-
-            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
-            val dictionaryFromRealm = dictionaryObjectFromRealm.myMixedDictionary
-            assertNotNull(dictionaryFromRealm)
-
-            val mixedHello = dictionaryFromRealm[KEY_HELLO]
-            val mixedBye = dictionaryFromRealm[KEY_BYE]
-            val kajhs = 0
         }
     }
 
@@ -847,12 +914,12 @@ class DictionaryTests {
 
     @Test
     fun copyToRealm_byteArray() {
-        val hello = ByteArray(2).apply {
+        val byteArray1 = ByteArray(2).apply {
             // 0 is MIN, 1 is MAX
             set(0, Byte.MIN_VALUE)
             set(1, Byte.MAX_VALUE)
         }
-        val bye = ByteArray(2).apply {
+        val byteArray2 = ByteArray(2).apply {
             // Opposite of hello
             set(0, Byte.MAX_VALUE)
             set(1, Byte.MIN_VALUE)
@@ -860,8 +927,8 @@ class DictionaryTests {
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
                 myByteArrayDictionary = RealmDictionary<ByteArray>().apply {
-                    put(KEY_HELLO, hello)
-                    put(KEY_BYE, bye)
+                    put(KEY_HELLO, byteArray1)
+                    put(KEY_BYE, byteArray2)
                     put(KEY_NULL, null)
                 }
             }
@@ -870,28 +937,28 @@ class DictionaryTests {
             val dictionaryFromRealm = dictionaryObjectFromRealm.myByteArrayDictionary
             assertNotNull(dictionaryFromRealm)
 
-            val helloFromDictionary = dictionaryFromRealm[KEY_HELLO]
-            assertNotNull(helloFromDictionary)
-            assertEquals(Byte.MIN_VALUE, helloFromDictionary[0])
-            assertEquals(Byte.MAX_VALUE, helloFromDictionary[1])
-            val byeFromDictionary = dictionaryFromRealm[KEY_BYE]
-            assertNotNull(byeFromDictionary)
-            assertEquals(Byte.MAX_VALUE, byeFromDictionary[0])
-            assertEquals(Byte.MIN_VALUE, byeFromDictionary[1])
+            val byteArrayFromDictionary1 = dictionaryFromRealm[KEY_HELLO]
+            assertNotNull(byteArrayFromDictionary1)
+            assertEquals(Byte.MIN_VALUE, byteArrayFromDictionary1[0])
+            assertEquals(Byte.MAX_VALUE, byteArrayFromDictionary1[1])
+            val byteArrayFromDictionary2 = dictionaryFromRealm[KEY_BYE]
+            assertNotNull(byteArrayFromDictionary2)
+            assertEquals(Byte.MAX_VALUE, byteArrayFromDictionary2[0])
+            assertEquals(Byte.MIN_VALUE, byteArrayFromDictionary2[1])
             assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
 
     @Test
     fun copyToRealm_date() {
-        val hello = Date()
-        val bye = Date()
+        val date1 = Date()
+        val date2 = Date()
 
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
                 myDateDictionary = RealmDictionary<Date>().apply {
-                    put(KEY_HELLO, hello)
-                    put(KEY_BYE, bye)
+                    put(KEY_HELLO, date1)
+                    put(KEY_BYE, date2)
                     put(KEY_NULL, null)
                 }
             }
@@ -900,22 +967,22 @@ class DictionaryTests {
             val dictionaryFromRealm = dictionaryObjectFromRealm.myDateDictionary
             assertNotNull(dictionaryFromRealm)
 
-            assertEquals(hello, dictionaryFromRealm[KEY_HELLO])
-            assertEquals(bye, dictionaryFromRealm[KEY_BYE])
+            assertEquals(date1, dictionaryFromRealm[KEY_HELLO])
+            assertEquals(date2, dictionaryFromRealm[KEY_BYE])
             assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
 
     @Test
     fun copyToRealm_decimal128() {
-        val hello = Decimal128(42)
-        val bye = Decimal128(666)
+        val decimal1 = Decimal128(42)
+        val decimal2 = Decimal128(666)
 
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
                 myDecimal128Dictionary = RealmDictionary<Decimal128>().apply {
-                    put(KEY_HELLO, hello)
-                    put(KEY_BYE, bye)
+                    put(KEY_HELLO, decimal1)
+                    put(KEY_BYE, decimal2)
                     put(KEY_NULL, null)
                 }
             }
@@ -924,8 +991,8 @@ class DictionaryTests {
             val dictionaryFromRealm = dictionaryObjectFromRealm.myDecimal128Dictionary
             assertNotNull(dictionaryFromRealm)
 
-            assertEquals(hello, dictionaryFromRealm[KEY_HELLO])
-            assertEquals(bye, dictionaryFromRealm[KEY_BYE])
+            assertEquals(decimal1, dictionaryFromRealm[KEY_HELLO])
+            assertEquals(decimal2, dictionaryFromRealm[KEY_BYE])
             assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
@@ -940,13 +1007,6 @@ class DictionaryTests {
             if (withNullValues) {
                 put(KEY_NULL, VALUE_NULL)
             }
-        }
-    }
-
-    private fun createMixedRealmDictionary(): RealmDictionary<Mixed> {
-        return RealmDictionary<Mixed>().apply {
-            put(KEY_HELLO, Mixed.valueOf(VALUE_HELLO))
-            put(KEY_BYE, Mixed.valueOf(VALUE_BYE))
         }
     }
 
@@ -1056,5 +1116,5 @@ class DictionaryTests {
     }
 }
 
-@RealmModule(classes = [DictionaryClass::class, MyRealmModel::class, DictJava::class])
+@RealmModule(classes = [DictionaryClass::class, MyRealmModel::class, DictJava::class, EmbeddedSimpleChild::class, EmbeddedSimpleParent::class])
 class MapModule
