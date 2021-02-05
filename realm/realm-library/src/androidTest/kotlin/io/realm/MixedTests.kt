@@ -208,8 +208,7 @@ class MixedTests {
         val mixed = Mixed.valueOf(aLong)
 
         assertTrue(mixed.isNull)
-        assertTrue(mixed.equals(null))
-        assertTrue(mixed.equals(Mixed.nullValue()))
+        assertNotNull(mixed)
         assertEquals(Mixed.nullValue(), mixed)
         assertEquals(MixedType.NULL, mixed.type)
         assertEquals(null, mixed.valueClass)
@@ -506,7 +505,7 @@ class MixedTests {
 
         assertTrue(mixedObject.isManaged)
         assertTrue(mixedObject.mixed!!.isNull)
-        assertTrue(mixedObject.mixed!!.equals(null))
+        assertNotNull(mixedObject.mixed)
         assertEquals(Mixed.nullValue(), mixedObject.mixed)
         assertEquals(MixedType.NULL, mixedObject.mixed!!.type)
         assertEquals(MixedType.NULL.typedClass, mixedObject.mixed!!.valueClass)
