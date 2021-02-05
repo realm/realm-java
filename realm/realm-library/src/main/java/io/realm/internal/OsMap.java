@@ -76,10 +76,6 @@ public class OsMap implements NativeObject {
         }
     }
 
-    public void put(Object key, long mixedPtr) {
-//        nativePutMixed(nativePtr, (String) key, mixedPtr);
-    }
-
     public void putRow(Object key, long objKey) {
         nativePutRow(nativePtr, (String) key, objKey);
     }
@@ -127,7 +123,6 @@ public class OsMap implements NativeObject {
 
     private static native void nativePutUUID(long nativePtr, String key, String value);
 
-//    private static native void nativePutMixed(long nativePtr, String key, long nativeObjectPtr);
     private static native void nativePutMixed(long nativePtr, String key, long nativeMixedPtr);
 
     private static native void nativePutRow(long nativePtr, String key, long objKey);

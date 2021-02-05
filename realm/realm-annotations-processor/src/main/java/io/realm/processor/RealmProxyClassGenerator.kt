@@ -592,7 +592,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement("%s entryValue = item.getValue()", genericType)
 
                     if (forMixed) {
-                        emitStatement("osMap.put(entryKey, entryValue.getNativePtr())")
+                        emitStatement("osMap.putMixed(entryKey, entryValue.getNativePtr())")
                     } else if (forRealmModel) {
                         emitStatement("osMap.putRow(entryKey, ((RealmObjectProxy) entryValue).realmGet\$proxyState().getRow\$realm().getObjectKey())")
                     } else {
