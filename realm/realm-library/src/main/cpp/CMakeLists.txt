@@ -18,6 +18,12 @@
 cmake_minimum_required(VERSION 3.15.0)
 project(RealmJava)
 
+# For debugging: Enable this to output all variables defined for the project
+#get_cmake_property(_variableNames VARIABLES)
+#foreach (_variableName ${_variableNames})
+#    message(STATUS "${_variableName}=${${_variableName}}")
+#endforeach()
+
 # loading dependencies properties
 file(STRINGS "${CMAKE_SOURCE_DIR}/../../../../../dependencies.list" DEPENDENCIES)
 foreach(LINE IN LISTS DEPENDENCIES)
@@ -64,7 +70,8 @@ if(NDK_LCACHE)
     set(CMAKE_CXX_CREATE_SHARED_LIBRARY "${NDK_LCACHE} ${CMAKE_CXX_CREATE_SHARED_LIBRARY}")
 endif()
 
-# Set flag REALM_ENABLE_SYNC
+# Set option flags for Core.
+# See https://github.com/realm/realm-core/blob/master/CMakeLists.txt#L174 for the full list.
 if (REALM_FLAVOR STREQUAL base)
     set(REALM_ENABLE_SYNC OFF)
 else()
@@ -205,12 +212,15 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_
 
 # Set Linker flags flags
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -Wl,-gc-sections")
+    set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -Wl,-gc-sections -Wl,--exclude-libs,ALL")
 endif()
 if (REALM_ENABLE_SYNC)
     set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -lz")
 endif()
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${REALM_LINKER_FLAGS}")
+# Work-around for gold linker issue when enabling LTO: https://github.com/android/ndk/issues/1444
+# Make the build choose whatever default linker chosen by the NDK.
+STRING(REGEX REPLACE "-fuse-ld=gold" "" CMAKE_CXX_LINK_OPTIONS_IPO ${CMAKE_CXX_LINK_OPTIONS_IPO})
 
 # JNI source files
 file(GLOB jni_SRC

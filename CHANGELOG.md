@@ -1,3 +1,22 @@
+## 10.4.0 (YYYY-MM-DD)
+
+### Enhancements
+* Reduced un-zipped size of native libraries by ~20%.
+* Added support for the string-based Realm Query Language through `RealmQuery.rawPredicate(...)`. This allows many new type of queries not previously not supported by the typed query API. See the Javadoc on this method for further details. (Issue [#6116](https://github.com/realm/realm-java/pull/6116))
+
+### Fixes
+* None
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core commit: 202cc6ca94be2ebb736a8da9d6d30d112db7a291.
+* Updated to NDK 22.0.7026061.
+
+
 ## 10.3.0 (2021-01-08)
 
 ### Enhancements

@@ -122,6 +122,10 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalState, ss.str());
     }
+    catch(DuplicatePrimaryKeyValueException& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalArgument, ss.str());
+    }
     catch(query_parser::SyntaxError& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
