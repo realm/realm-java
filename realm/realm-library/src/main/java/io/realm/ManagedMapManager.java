@@ -16,25 +16,19 @@
 
 package io.realm;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import io.realm.internal.Freezable;
 import io.realm.internal.ManageableObject;
 import io.realm.internal.OsMap;
-import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
-import io.realm.internal.Row;
 import io.realm.internal.core.NativeMixed;
 import io.realm.internal.util.Pair;
 
@@ -160,11 +154,9 @@ class DictionaryManager<V> extends ManagedMapManager<String, V> {
 
         if (clazz != null) {
             //noinspection unchecked
-            RealmDictionary<V> dictionary = new RealmDictionary<>(frozenBaseRealm, osMap, (Class<V>) clazz);
-            return dictionary;
+            return new RealmDictionary<>(frozenBaseRealm, osMap, (Class<V>) clazz);
         } else if (className != null) {
-            RealmDictionary<V> dictionary = new RealmDictionary<>(frozenBaseRealm, osMap, className);
-            return dictionary;
+            return new RealmDictionary<>(frozenBaseRealm, osMap, className);
         } else {
             throw new IllegalArgumentException("Either a class or a class string is required.");
         }
