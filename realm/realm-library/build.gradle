@@ -43,7 +43,6 @@ android {
 
                 arguments "-DREALM_JAVA_BUILD_CORE_FROM_SOURCE=${project.hasProperty('buildCore') && project.getProperty('buildCore').toBoolean()}"
                 arguments "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=${!project.hasProperty('enableLTO') || project.getProperty('enableLTO').toBoolean()}"
-                arguments "-DANDROID_LD=lld"
                 targets "realm-jni"
             }
         }
@@ -59,7 +58,7 @@ android {
         }
     }
 
-    ndkVersion = '22.0.7026061'
+    ndkVersion = project.findProperty('ndkVersion')
 
     externalNativeBuild {
         cmake {
