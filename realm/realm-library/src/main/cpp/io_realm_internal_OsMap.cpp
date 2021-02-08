@@ -150,9 +150,7 @@ Java_io_realm_internal_OsMap_nativePutNull(JNIEnv* env, jclass, jlong map_ptr,
         auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
         JStringAccessor key(env, j_key);
         JavaAccessorContext context(env);
-//        const JavaValue java_value = JavaValue();
         dictionary.insert(context, StringData(key).data(), Any());
-//        dictionary.insert(context, StringData(key).data(), java_value);
     }
     CATCH_STD()
 }

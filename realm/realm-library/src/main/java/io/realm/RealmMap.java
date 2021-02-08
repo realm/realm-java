@@ -168,6 +168,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
         return mapStrategy.freeze();
     }
 
+    // Needed for embedded objects
     OsMap getOsMap() {
         return mapStrategy.getOsMap();
     }
@@ -195,7 +196,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
          */
         protected abstract V putInternal(K key, V value);
 
-        protected abstract OsMap getOsMap();
+        abstract OsMap getOsMap();
 
         // ------------------------------------------
         // Map API
@@ -338,7 +339,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
         }
 
         @Override
-        protected OsMap getOsMap() {
+        OsMap getOsMap() {
             return managedMapManager.getOsMap();
         }
     }
@@ -452,7 +453,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
         }
 
         @Override
-        protected OsMap getOsMap() {
+        OsMap getOsMap() {
             throw new UnsupportedOperationException("Unmanaged maps aren't represented in native code.");
         }
     }

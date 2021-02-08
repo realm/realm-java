@@ -113,16 +113,15 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
     @Override
     public Set<Entry<K, V>> entrySet() {
         // Throw until we have sets in place
-        throw new UnsupportedOperationException("Unmanaged maps do not support 'entrySet' yet.");
+        throw new UnsupportedOperationException("Managed maps do not support 'entrySet' yet.");
     }
 
     @Override
     public RealmMap<K, V> freeze() {
-        Pair<BaseRealm, OsMap> frozenPair = mapValueOperator.freeze();
-        return freezeInternal(frozenPair);
+        return freezeInternal(mapValueOperator.freeze());
     }
 
-    public OsMap getOsMap() {
+    OsMap getOsMap() {
         return mapValueOperator.osMap;
     }
 }
@@ -242,40 +241,31 @@ abstract class MapValueOperator<K, V> {
     }
 
     public Set<K> keySet() {
-        Pair<Table, Long> tablePointerPair = osMap.keysPtr();
-        if (baseRealm instanceof Realm) {
-            Realm realm = (Realm) baseRealm;
-            OsResults osResults = OsResults.createFromMap(baseRealm.sharedRealm, tablePointerPair.first, tablePointerPair.second);
-            Class<?> clazz = classContainer.getClazz();
-            if (clazz != null) {
-                //noinspection unchecked
-                return new HashSet<>(new RealmResults<>(realm, osResults, (Class<K>) clazz));
-            }
-            throw new IllegalStateException("MapValueOperator missing class in 'classContainer'.");
-        }
-
-        throw new UnsupportedOperationException("Add support for 'values' for DynamicRealms.");
+        return new HashSet<>(produceResults(osMap.valuesPtr()));
     }
 
     public Collection<V> values() {
-        Pair<Table, Long> tablePointerPair = osMap.valuesPtr();
-        if (baseRealm instanceof Realm) {
-            Realm realm = (Realm) baseRealm;
-            OsResults osResults = OsResults.createFromMap(baseRealm.sharedRealm, tablePointerPair.first, tablePointerPair.second);
-            Class<?> clazz = classContainer.getClazz();
-            if (clazz != null) {
-                //noinspection unchecked
-                return new RealmResults<>(realm, osResults, (Class<V>) clazz);
-            }
-            throw new IllegalStateException("MapValueOperator missing class in 'classContainer'.");
-        }
-
-        throw new UnsupportedOperationException("Add support for 'values' for DynamicRealms.");
+        return produceResults(osMap.valuesPtr());
     }
 
     public Pair<BaseRealm, OsMap> freeze() {
         BaseRealm frozenRealm = baseRealm.freeze();
         return new Pair<>(frozenRealm, osMap.freeze(frozenRealm.sharedRealm));
+    }
+
+    private <T> RealmResults<T> produceResults(Pair<Table, Long> tablePointerPair) {
+        if (baseRealm instanceof Realm) {
+            Realm realm = (Realm) baseRealm;
+            OsResults osResults = OsResults.createFromMap(baseRealm.sharedRealm, tablePointerPair.first, tablePointerPair.second);
+            Class<?> clazz = classContainer.getClazz();
+            if (clazz != null) {
+                //noinspection unchecked
+                return new RealmResults<T>(realm, osResults, (Class<T>) clazz);
+            }
+            throw new IllegalStateException("MapValueOperator missing class in 'classContainer'.");
+        }
+
+        throw new UnsupportedOperationException("Add support for 'values' for DynamicRealms.");
     }
 }
 

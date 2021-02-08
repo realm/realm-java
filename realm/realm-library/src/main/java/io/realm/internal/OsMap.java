@@ -21,6 +21,8 @@ import org.bson.types.ObjectId;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -70,10 +72,6 @@ public class OsMap implements NativeObject {
 
     public boolean containsKey(Object key) {
         return nativeContainsKey(nativePtr, (String) key);
-    }
-
-    public void putAll(List<?> keys, List<?> values) {
-
     }
 
     public void clear() {
