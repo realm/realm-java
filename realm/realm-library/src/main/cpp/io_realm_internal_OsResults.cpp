@@ -512,3 +512,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeFreeze(JNIEnv* en
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
 }
+
+//JNIEXPORT jobject JNICALL
+//Java_io_realm_internal_OsResults_nativeGetValue(JNIEnv* env, jclass, jlong native_ptr,
+//                                                jint pos) {
+//    try {
+//        auto& wrapper = *reinterpret_cast<ResultsWrapper*>(native_ptr);
+//        JavaAccessorContext context(env);
+//        const T &t = wrapper.collection().get(context, pos);
+//        return any_cast<jobject>(t);
+//    }
+//    CATCH_STD()
+//
+//    return nullptr;
+//}

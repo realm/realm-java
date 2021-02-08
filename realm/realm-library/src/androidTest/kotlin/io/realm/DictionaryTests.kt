@@ -422,7 +422,7 @@ class DictionaryTests {
     fun managed_remove() {
         realm.executeTransaction { transactionRealm ->
             transactionRealm.copyToRealm(
-                    initDictionaryClass(withDefaultValues = true,withModel = true)
+                    initDictionaryClass(withDefaultValues = true, withModel = true)
             )
 
             val instance = realm.where<DictionaryClass>()
@@ -509,8 +509,33 @@ class DictionaryTests {
     }
 
     @Test
+    fun managed_values_realmModel() {
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myRealmModelDictionary = RealmDictionary<MyRealmModel>().apply {
+                    put(KEY_HELLO, MyRealmModel().apply { id = "42" })
+                    put(KEY_BYE, MyRealmModel().apply { id = "666" })
+                }
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myRealmModelDictionary
+            assertNotNull(dictionaryFromRealm)
+
+            val values = dictionaryFromRealm.values
+            assertNotNull(values)
+            assertEquals(2, values.size)
+            values.map { value -> value.id }
+                    .also { ids ->
+                        assertTrue(ids.contains("42"))
+                        assertTrue(ids.contains("666"))
+                    }
+        }
+    }
+
+    @Test
     @Ignore("TODO - bug in core: https://github.com/realm/realm-core/issues/4374")
-    fun managed_values() {
+    fun managed_values_primitive() {
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
                 myStringDictionary = RealmDictionary<String>().apply {
@@ -523,23 +548,11 @@ class DictionaryTests {
             val dictionaryFromRealm = dictionaryObjectFromRealm.myStringDictionary
             assertNotNull(dictionaryFromRealm)
 
-            val realmResults = realm.where<DictionaryClass>()
-                    .findAll()
-            val result0 = realmResults[0]
-
-
             val values = dictionaryFromRealm.values
             assertNotNull(values)
             assertEquals(2, values.size)
-//            assertTrue(values.contains(VALUE_HELLO_STRING))
-//            assertTrue(values.contains(VALUE_BYE_STRING))
-            assertTrue(values is RealmResults)
-            (values as RealmResults).let { results ->
-                val res0 = results[0]
-                val res1 = results[1]
-                val kjashd = 0
-            }
-
+            assertTrue(values.contains(VALUE_HELLO_STRING))
+            assertTrue(values.contains(VALUE_BYE_STRING))
         }
     }
 
@@ -659,15 +672,6 @@ class DictionaryTests {
 
     @Test
     fun copyToRealmOrUpdate_realmModel() {
-//        val primaryKeyObject = MyPrimaryKeyModel().apply {
-//            id = 42
-//            name = "John"
-//        }
-//        val updatedPrimaryKeyObject = MyPrimaryKeyModel().apply {
-//            id = 42
-//            name = "John Doe"
-//        }
-
         realm.executeTransaction { transactionRealm ->
             val primaryKeyObject = MyPrimaryKeyModel().apply {
                 id = 42
@@ -763,15 +767,15 @@ class DictionaryTests {
                 "NULL" to Mixed.nullValue()
         )
 
-        val unmanagedModel: MyRealmModel = MyRealmModel().apply { id = "unmanaged" }
-        val mixedModel = Mixed.valueOf(unmanagedModel)
-
+        // Create dictionary with all possible mixed types: the ones defined above plus plain null, managed and unmanaged models
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
                 myMixedDictionary = RealmDictionary<Mixed>().apply {
                     putAll(entries)
                 }
                 myMixedDictionary!!["NULL_VALUE"] = null
+                val unmanagedModel: MyRealmModel = MyRealmModel().apply { id = "unmanaged" }
+                val mixedModel = Mixed.valueOf(unmanagedModel)
                 myMixedDictionary!!["UNMANAGED_MIXED_MODEL"] = mixedModel
                 val managedModel = transactionRealm.createObject<MyRealmModel>().apply { id = "managed" }
                 myMixedDictionary!!["MANAGED_MIXED_MODEL"] = Mixed.valueOf(managedModel)

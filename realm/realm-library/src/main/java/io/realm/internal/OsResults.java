@@ -346,6 +346,12 @@ public class OsResults implements NativeObject, ObservableCollection {
         return nativeFinalizerPtr;
     }
 
+    public Object getValue(int index) {
+//        Object value = nativeGetValue(nativePtr, index);
+//        return value;
+        throw new RuntimeException();
+    }
+
     public UncheckedRow getUncheckedRow(int index) {
         return table.getUncheckedRowByPointer(nativeGetRow(nativePtr, index));
     }
@@ -801,4 +807,5 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native void nativeEvaluateQueryIfNeeded(long nativePtr, boolean wantsNotifications);
 
+//    private static native Object nativeGetValue(long nativePtr, int index);
 }

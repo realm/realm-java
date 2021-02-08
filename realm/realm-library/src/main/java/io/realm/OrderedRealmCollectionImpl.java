@@ -121,8 +121,8 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
     public E get(int location) {
         baseRealm.checkIfValid();
         if (forValues) {
-            // TODO implement this
-            return null;
+            //noinspection unchecked
+            return (E) osResults.getValue(location);
         }
 
         //noinspection unchecked
