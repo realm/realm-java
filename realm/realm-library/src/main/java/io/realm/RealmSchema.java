@@ -42,9 +42,6 @@ import io.realm.internal.objectstore.OsKeyPathMapping;
 public abstract class RealmSchema {
     static final String EMPTY_STRING_MSG = "Null or empty class names are not allowed";
 
-    // Set whether or not we should create the KeyPathMapping.
-    private final boolean createKeyPathMapping;
-
     // Caches Dynamic Class objects given as Strings to Realm Tables
     private final Map<String, Table> dynamicClassToTable = new HashMap<>();
     // Caches Class objects (both model classes and proxy classes) to Realm Tables
@@ -62,13 +59,9 @@ public abstract class RealmSchema {
     /**
      * Creates a wrapper to easily manipulate the current schema of a Realm.
      */
-    RealmSchema(BaseRealm realm, @Nullable ColumnIndices columnIndices, boolean createKeyPathMapping) {
+    RealmSchema(BaseRealm realm, @Nullable ColumnIndices columnIndices) {
         this.realm = realm;
         this.columnIndices = columnIndices;
-        this.createKeyPathMapping = createKeyPathMapping;
-        if (createKeyPathMapping) {
-            this.keyPathMapping = new OsKeyPathMapping(realm.sharedRealm.getNativePtr());
-        }
     }
 
     /**
@@ -266,6 +259,13 @@ public abstract class RealmSchema {
     }
 
     /**
+     * Create the underlying keypath mapping. Should only be called by typed Realms.
+     */
+    public void createKeyPathMapping() {
+        this.keyPathMapping = new OsKeyPathMapping(realm.sharedRealm.getNativePtr());
+    }
+
+    /**
      * Called when schema changed. Clear all cached tables and refresh column indices.
      */
     void refresh() {
@@ -276,8 +276,5 @@ public abstract class RealmSchema {
         classToTable.clear();
         classToSchema.clear();
         dynamicClassToSchema.clear();
-        if (createKeyPathMapping) {
-            keyPathMapping = new OsKeyPathMapping(realm.sharedRealm.getNativePtr());
-        }
     }
 }

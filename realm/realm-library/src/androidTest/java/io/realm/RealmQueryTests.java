@@ -3865,7 +3865,7 @@ public class RealmQueryTests extends QueryTests {
                 .findAll();
         assertTrue(results.isEmpty());
 
-        // Linking Objects queries also support mapped class names
+        // Linking Objects queries also support mapped class and property names in combinations
         results = realm.where(ClassWithValueDefinedNames.class)
                     .rawPredicate("@links.ClassWithValueDefinedNames.object-link.@count = 0")
                     .findAll();
@@ -3875,8 +3875,6 @@ public class RealmQueryTests extends QueryTests {
                 .rawPredicate("@links.my-class-name.objectLink.@count = 0")
                 .findAll();
         assertTrue(results.isEmpty());
-
-
     }
 
     @Test

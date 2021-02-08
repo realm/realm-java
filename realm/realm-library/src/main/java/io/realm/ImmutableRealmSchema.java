@@ -34,7 +34,7 @@ class ImmutableRealmSchema extends RealmSchema {
             " Please use 'DynamicRealm.getSchema() to get a mutable instance.";
 
     ImmutableRealmSchema(BaseRealm realm, ColumnIndices columnIndices) {
-        super(realm, columnIndices, true);
+        super(realm, columnIndices);
     }
 
     @Override

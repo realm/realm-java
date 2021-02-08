@@ -21,15 +21,7 @@ public class OsKeyPathMapping implements NativeObject {
     public long mappingPointer = -1;
 
     public OsKeyPathMapping(long sharedRealmNativePointer) {
-        try {
-            // The KeyPathMapping is created before we validated the schema, in some
-            // cases this can cause problems if the keypath mapping point to non-existing
-            // classes or properties. Instead of crashing here, we let the schema validation
-            // throw a better error
-            mappingPointer = nativeCreateMapping(sharedRealmNativePointer);
-        } catch (Exception ignore) {
-        } catch (RealmError ignore) {
-        }
+        mappingPointer = nativeCreateMapping(sharedRealmNativePointer);
     }
 
     @Override
