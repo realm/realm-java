@@ -16,17 +16,18 @@
 
 #include "io_realm_internal_OsRealmConfig.h"
 
-#include <shared_realm.hpp>
+#include <realm/object-store/shared_realm.hpp>
 #if REALM_ENABLE_SYNC
-#include <sync/app.hpp>
-#include <sync/sync_config.hpp>
-#include <sync/sync_manager.hpp>
-#include <sync/sync_session.hpp>
+#include <realm/sync/config.hpp>
+#include <realm/object-store/sync/app.hpp>
+#include <realm/object-store/sync/sync_manager.hpp>
+#include <realm/object-store/sync/sync_session.hpp>
 #include <realm/util/misc_ext_errors.hpp>
 #endif
 
 #include <linux/errno.h>
 #include <jni_util/bson_util.hpp>
+#include <realm/sync/client.hpp>
 
 #include "java_accessor.hpp"
 #include "util.hpp"
@@ -53,8 +54,8 @@ static_assert(SchemaMode::ReadOnlyAlternative ==
 static_assert(SchemaMode::ResetFile ==
                   static_cast<SchemaMode>(io_realm_internal_OsRealmConfig_SCHEMA_MODE_VALUE_RESET_FILE),
               "");
-static_assert(SchemaMode::Additive ==
-                  static_cast<SchemaMode>(io_realm_internal_OsRealmConfig_SCHEMA_MODE_VALUE_ADDITIVE),
+static_assert(SchemaMode::AdditiveDiscovered ==
+                  static_cast<SchemaMode>(io_realm_internal_OsRealmConfig_SCHEMA_MODE_VALUE_ADDITIVE_DISCOVERED),
               "");
 static_assert(SchemaMode::Manual == static_cast<SchemaMode>(io_realm_internal_OsRealmConfig_SCHEMA_MODE_VALUE_MANUAL),
               "");

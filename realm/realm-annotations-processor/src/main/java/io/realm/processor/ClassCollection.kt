@@ -40,6 +40,10 @@ class ClassCollection {
                 ?: throw IllegalArgumentException("Class $className was not found")
     }
 
+    fun getClassFromQualifiedNameOrNull(className: QualifiedClassName): ClassMetaData? {
+        return qualifiedNameClassMap[className]
+    }
+
     fun size(): Int {
         return classSet.size
     }

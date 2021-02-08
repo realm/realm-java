@@ -28,8 +28,7 @@
 #include <realm/util/any.hpp>
 #include <realm/util/to_string.hpp>
 
-#include <object_accessor.hpp>
-#include <realm/util/any.hpp>
+#include <realm/object-store/object_accessor.hpp>
 
 #include "java_class_global_def.hpp"
 #include "java_exception_def.hpp"
@@ -153,6 +152,11 @@ private:
     jobjectArray m_jobject_array;
     jsize m_size;
 };
+
+template<>
+inline JStringAccessor JObjectArrayAccessor<JStringAccessor,jstring>::operator[](const int index) const noexcept {
+    return JStringAccessor(m_env, static_cast<jstring>(m_env->GetObjectArrayElement(m_jobject_array, index)), true);
+}
 
 // An object accessor context which can be used to create and access objects
 // using util::Any as the type-erased value type. In addition, this serves as

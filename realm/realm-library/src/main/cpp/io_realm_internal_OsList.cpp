@@ -16,9 +16,9 @@
 
 #include "io_realm_internal_OsList.h"
 
-#include <list.hpp>
-#include <results.hpp>
-#include <shared_realm.hpp>
+#include <realm/object-store/list.hpp>
+#include <realm/object-store/results.hpp>
+#include <realm/object-store/shared_realm.hpp>
 
 #include "observable_collection_wrapper.hpp"
 #include "java_accessor.hpp"

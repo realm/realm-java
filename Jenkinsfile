@@ -32,7 +32,7 @@ currentBranch = env.BRANCH_NAME
 nodeSelector = 'docker-cph-03'
 try {
   node(nodeSelector) {
-    timeout(time: 90, unit: 'MINUTES') {
+    timeout(time: 150, unit: 'MINUTES') {
       // Allocate a custom workspace to avoid having % in the path (it breaks ld)
       ws('/tmp/realm-java') {
         stage('SCM') {
@@ -75,22 +75,25 @@ try {
         //   on an actual device.
         def useEmulator = false
         def emulatorImage = ""
-        def abiFilter = ""
+        def buildFlags = ""
         def instrumentationTestTarget = "connectedAndroidTest"
         def deviceSerial = ""
+
         if (!releaseBranches.contains(currentBranch)) {
           // Build development branch
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
-          abiFilter = "-PbuildTargetABIs=x86"
+          // Build core from source instead of doing it from binary
+          buildFlags = "-PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           deviceSerial = "emulator-5554"
         } else {
           // Build main/release branch
           // FIXME: Use emulator until we can get reliable devices on CI.
-          //  But still build all ABI's and run all types of tests. 
+          //  But still build all ABI's and run all types of tests.
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
+          buildFlags = "-PenableLTO=true -PbuildCore=true"
           instrumentationTestTarget = "connectedAndroidTest"
           deviceSerial = "emulator-5554"
         }
@@ -151,12 +154,12 @@ try {
                 // Need to go to ANDROID_HOME due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
                 sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-boot-anim -no-window -wipe-data -noaudio -partition-size 4098 &"
                 try {
-                  runBuild(abiFilter, instrumentationTestTarget)
+                  runBuild(buildFlags, instrumentationTestTarget)
                 } finally {
                   sh "adb emu kill"
                 }
               } else {
-                runBuild(abiFilter, instrumentationTestTarget)
+                runBuild(buildFlags, instrumentationTestTarget)
               }
 
               // Release the library if needed
@@ -214,24 +217,24 @@ try {
 }
 
 // Runs all build steps
-def runBuild(abiFilter, instrumentationTestTarget) {
+def runBuild(buildFlags, instrumentationTestTarget) {
 
   stage('Build') {
     sh "chmod +x gradlew"
-    sh "./gradlew assemble ${abiFilter} --stacktrace"
+    sh "./gradlew assemble ${buildFlags} --stacktrace"
   }
 
   stage('Tests') {
     parallel 'JVM' : {
       try {
-        sh "chmod +x gradlew && ./gradlew check ${abiFilter} --stacktrace"
+        sh "chmod +x gradlew && ./gradlew check ${buildFlags} --stacktrace"
       } finally {
         storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
         storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
         storeJunitResults 'realm/realm-library/build/test-results/**/TEST-*.xml'
         step([$class: 'LintPublisher'])
       }
-    }, 
+    },
     'Realm Transformer' : {
       try {
         gradle('realm-transformer', 'check')
@@ -239,45 +242,45 @@ def runBuild(abiFilter, instrumentationTestTarget) {
         storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
       }
     },
-    'Static code analysis' : {
-      try {
-        gradle('realm', "spotbugsMain pmd checkstyle ${abiFilter}")
-      } finally {
-        publishHTML(target: [
-          allowMissing: false, 
-          alwaysLinkToLastBuild: false, 
-          keepAll: true, 
-          reportDir: 'realm/realm-library/build/reports/spotbugs', 
-          reportFiles: 'main.html', 
-          reportName: 'Spotbugs report'
-        ])
+    // 'Static code analysis' : {
+    //   try {
+    //     gradle('realm', "spotbugsMain pmd checkstyle ${buildFlags}")
+    //   } finally {
+    //     publishHTML(target: [
+    //       allowMissing: false,
+    //       alwaysLinkToLastBuild: false,
+    //       keepAll: true,
+    //       reportDir: 'realm/realm-library/build/reports/spotbugs',
+    //       reportFiles: 'main.html',
+    //       reportName: 'Spotbugs report'
+    //     ])
 
-        publishHTML(target: [
-          allowMissing: false, 
-          alwaysLinkToLastBuild: false, 
-          keepAll: true, 
-          reportDir: 'realm/realm-library/build/reports/pmd', 
-          reportFiles: 'pmd.html', 
-          reportName: 'PMD report'
-        ])
-        
-        publishHTML(target: [
-          allowMissing: false, 
-          alwaysLinkToLastBuild: false, 
-          keepAll: true, 
-          reportDir: 'realm/realm-library/build/reports/checkstyle', 
-          reportFiles: 'checkstyle.html', 
-          reportName: 'Checkstyle report'
-        ])
-      }
-    },
+    //     publishHTML(target: [
+    //       allowMissing: false,
+    //       alwaysLinkToLastBuild: false,
+    //       keepAll: true,
+    //       reportDir: 'realm/realm-library/build/reports/pmd',
+    //       reportFiles: 'pmd.html',
+    //       reportName: 'PMD report'
+    //     ])
+
+    //     publishHTML(target: [
+    //       allowMissing: false,
+    //       alwaysLinkToLastBuild: false,
+    //       keepAll: true,
+    //       reportDir: 'realm/realm-library/build/reports/checkstyle',
+    //       reportFiles: 'checkstyle.html',
+    //       reportName: 'Checkstyle report'
+    //     ])
+    //   }
+    // },
     'Instrumentation' : {
       if (enableIntegrationTests) {
         String backgroundPid
         try {
           backgroundPid = startLogCatCollector()
           forwardAdbPorts()
-          gradle('realm', "${instrumentationTestTarget} ${abiFilter}")
+          gradle('realm', "${instrumentationTestTarget} ${buildFlags}")
         } finally {
           stopLogCatCollector(backgroundPid)
           storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
@@ -295,7 +298,7 @@ def runBuild(abiFilter, instrumentationTestTarget) {
       }
     },
     'JavaDoc': {
-      sh "./gradlew javadoc ${abiFilter} --stacktrace"
+      sh "./gradlew javadoc ${buildFlags} --stacktrace"
     }
   }
 
@@ -310,7 +313,7 @@ def runBuild(abiFilter, instrumentationTestTarget) {
   if (releaseBranches.contains(currentBranch) && !publishBuild) {
     stage('Publish to OJO') {
       withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
-        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} ojoUpload --stacktrace"
+        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} ojoUpload ${buildFlags} --stacktrace"
       }
     }
   }
@@ -326,7 +329,7 @@ def runPublish() {
             [$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'REALM_S3_ACCESS_KEY', credentialsId: 'realm-s3', secretKeyVariable: 'REALM_S3_SECRET_KEY']
     ]) {
       sh """
-        set +x  
+        set +x
         sh tools/publish_release.sh '$BINTRAY_USER' '$BINTRAY_KEY' \
         '$REALM_S3_ACCESS_KEY' '$REALM_S3_SECRET_KEY' \
         '$DOCS_S3_ACCESS_KEY' '$DOCS_S3_SECRET_KEY' \
@@ -351,7 +354,7 @@ String startLogCatCollector() {
     // Need ADB as root to clear all buffers: https://stackoverflow.com/a/47686978/1389357
     sh 'adb devices'
     sh """adb root
-      adb logcat -b all -c 
+      adb logcat -b all -c
       adb logcat -v time > 'logcat.txt' &
       echo \$! > pid
     """

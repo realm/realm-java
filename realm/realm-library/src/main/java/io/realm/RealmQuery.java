@@ -130,8 +130,8 @@ public class RealmQuery<E> {
     static <E> RealmQuery<E> createQueryFromList(RealmList<E> list) {
         //noinspection ConstantConditions
         return (list.clazz == null)
-                ? new RealmQuery(list.realm, list.getOsList(), list.className)
-                : new RealmQuery(list.realm, list.getOsList(), list.clazz);
+                ? new RealmQuery(list.baseRealm, list.getOsList(), list.className)
+                : new RealmQuery(list.baseRealm, list.getOsList(), list.clazz);
     }
 
     private static boolean isClassForRealmModel(Class<?> clazz) {
@@ -158,7 +158,7 @@ public class RealmQuery<E> {
     }
 
     private RealmQuery(RealmResults<E> queryResults, Class<E> clazz) {
-        this.realm = queryResults.realm;
+        this.realm = queryResults.baseRealm;
         this.clazz = clazz;
         this.forValues = !isClassForRealmModel(clazz);
         if (forValues) {
@@ -206,7 +206,7 @@ public class RealmQuery<E> {
     }
 
     private RealmQuery(RealmResults<DynamicRealmObject> queryResults, String className) {
-        this.realm = queryResults.realm;
+        this.realm = queryResults.baseRealm;
         this.className = className;
         this.forValues = false;
         this.schema = realm.getSchema().getSchemaForClass(className);

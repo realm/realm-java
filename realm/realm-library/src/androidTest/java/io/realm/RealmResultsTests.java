@@ -2025,6 +2025,25 @@ public class RealmResultsTests extends CollectionTests {
     }
 
     @Test
+    public void asJSON_withEscaping() throws JSONException {
+        realm.beginTransaction();
+        PrimaryKeyAsLong element = realm.createObject(PrimaryKeyAsLong.class, 1);
+        String value = "\"something\"";
+        element.setName(value);
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsLong> all = realm.where(PrimaryKeyAsLong.class)
+                .equalTo(PrimaryKeyAsString.FIELD_ID, element.getId())
+                .findAll();
+
+        assertEquals(1, all.size());
+
+        String json = all.asJSON();
+        final String expectedJSON = "[{\"_key\":1,\"id\":1,\"name\":\"\\\"something\\\"\"}]";
+        JSONAssert.assertEquals(expectedJSON, json, false);
+    }
+
+    @Test
     public void asJSON_cycles() throws JSONException {
         Date date = Calendar.getInstance().getTime();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

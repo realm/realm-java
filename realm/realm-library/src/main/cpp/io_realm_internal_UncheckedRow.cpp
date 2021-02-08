@@ -86,13 +86,13 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnType(J
 {
     ColKey column_key (columnKey);
     auto table = OBJ(nativeRowPtr)->get_table();
-    jint column_type = table->get_column_type(column_key);
+    DataType column_type = table->get_column_type(column_key);
     if (column_type != type_LinkList && table->is_list(column_key)/* && column_type < type_LinkList because type_ObjectId is = 15*/) {
         // add the offset so it can be mapped correctly in Java (RealmFieldType#fromNativeValue)
-        column_type += 128;
+        return int(column_type) + int(PropertyType::Array);
     }
 
-    return column_type;
+    return int(column_type);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetObjectKey(JNIEnv* env, jobject, jlong nativeRowPtr)

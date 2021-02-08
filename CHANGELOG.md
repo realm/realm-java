@@ -1,3 +1,132 @@
+## 10.4.0 (YYYY-MM-DD)
+
+### Enhancements
+* Reduced un-zipped size of native libraries by ~20%.
+
+### Fixes
+* None
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core commit: 202cc6ca94be2ebb736a8da9d6d30d112db7a291.
+* Updated to NDK 22.0.7026061.
+
+
+## 10.3.0 (2021-01-08)
+
+### Enhancements
+* [RealmApp] Upgraded to OpenSSL 1.1.1g.
+
+### Fixes
+* [RealmApp] Integrating a remote Sync changeset into the local Realm could result in an `Index out of range error`.
+* Change notifications not firing when removing and adding an object with the same primary key within a transaction (Issue [#7098](https://github.com/realm/realm-java/issues/7098)).
+* Race condition which would lead to "uncaught exception in notifier thread: N5realm15InvalidTableRefE: transaction_ended" and a crash when the source Realm was closed or invalidated at a very specific time during the first run of a collection notifier (Core issue [#3761](https://github.com/realm/realm-core/issues/3761), since v7.0.0).
+* Deleting and recreating objects with embedded objects could fail (Core issue [#4240](https://github.com/realm/realm-core/pull/4240), since v10.0.0)
+* Added `@Nullable` annotation to input parameter in `RealmObject.isValid(item)` to avoid mismatch warnings from Kotlin code (Issue [#7216](https://github.com/realm/realm-java/issues/7216)).
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core: 10.3.3 (Monorepo).
+* Updated to Realm Core commit: 8af0f8d609491986b49f2c986e771d9dc445664d.
+
+
+## 10.2.0 (2020-12-02)
+
+### Deprecated
+* [RealmApp] `Credentials.google(authenticationCode: String)`. Use `Credentials.google(token: String, authType: GoogleAuthType)` instead.
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* [RealmApp] Added `Credentials.google(token: String, authType: GoogleAuthType)`, as MongoDB Realm now supports multiple ways of logging into Google Accounts.  
+
+### Fixes
+* [RealmApp] Bug that would prevent eventual consistency during conflict resolution. Affected clients would experience data divergence and potentially consistency errors as a result if they experienced conflict resolution between cycles of Create-Erase-Create for objects with primary keys.
+* Clean up JNI references to prevent crash from JNI reference table overflow (Issue [#7217](https://github.com/realm/realm-java/issues/7217))
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Sync: 10.1.4.
+* Updated to Object Store commit: f838a27402c5b5243280102014defd844420abba66eb93c10334507d9c0fd513.
+
+
+## 10.1.2 (2020-12-02)
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* None.
+
+### Fixes
+* Complementary fix for missed edge case in https://github.com/realm/realm-java/pull/7220 where KAPT crash if we process a RealmObject referencing a type in RealmList defined in another module. (Issue [#7213](https://github.com/realm/realm-java/issues/7213), since v10.0.0).
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+
+## 10.1.1 (2020-11-27)
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* None.
+
+### Fixes
+* KAPT crash when processing a RealmObject referenced from another module (changed revealed after we started checking for embedded types). (Issue [#7213](https://github.com/realm/realm-java/issues/7213), since v10.0.0).
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Sync: 10.1.3.
+* Updated to Realm Core: 10.1.3.
+* Updated to Object Store commit: fc6daca61133aa9601e4cb34fbeb9ec7569e162e.
+
+
+## 10.1.0 (2020-11-23)
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* Added `FlowFactory` interface that allows customization of `Flow` emissions, just as we do with `RxObservableFactory`. A default implementation, `RealmFlowFactory`, is provided when building `RealmConfiguration`s.
+* Added `toChangeSetFlow` methods (similar to the Rx `asChangesetFlowable` methods) for `RealmObject`, `RealmResults` and `RealmList`.
+
+### Fixes
+* Fixed crash when adding classes containing an `ObjectId` as primary key to the schema. (Issue [#7189](https://github.com/realm/realm-java/issues/7189), since v10.0.0)
+* Fixed crash when creating proxy classes containing an `ObjectId` as primary key. (Issue [#7197](https://github.com/realm/realm-java/issues/7197), since v10.0.0)
+* Fixed crash where calls to `toFlow` could crash if the Flow job is canceled and object updates are emitted after that happens. (Issue [7211](https://github.com/realm/realm-java/issues/7211), since v10.0.1)
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Sync: 10.1.3.
+* Updated to Realm Core: 10.1.3.
+* Updated to Object Store commit: fc6daca61133aa9601e4cb34fbeb9ec7569e162e.
+
+
 ## 10.0.1 (2020-11-06)
 
 ### Breaking Changes

@@ -16,15 +16,23 @@
 
 package io.realm.examples.coroutinesexample
 
-import android.app.Application
+import androidx.multidex.MultiDexApplication
 import io.realm.Realm
+import io.realm.examples.coroutinesexample.data.newsreader.local.repository.NewsReaderRepository
+import io.realm.examples.coroutinesexample.di.DependencyGraph
 
 const val TAG = "--- CoroutinesExample"
 
-class MainApplication : Application() {
+class MainApplication : MultiDexApplication() {
 
     override fun onCreate() {
         super.onCreate()
         Realm.init(this)
+
+        repository = DependencyGraph.provideNewsReaderRepository()
+    }
+
+    companion object {
+        lateinit var repository: NewsReaderRepository
     }
 }

@@ -48,6 +48,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           virt-manager \
                           wget \
                           zip \
+                          ninja-build \
     && apt-get clean
 
 # Install the Android SDK
@@ -69,13 +70,19 @@ RUN yes | sdkmanager --licenses
 # Please keep all sections in descending order!
 RUN yes | sdkmanager \
     'build-tools;29.0.3' \
-    'cmake;3.6.4111459' \
     'emulator' \
     'extras;android;m2repository' \
     'platforms;android-29' \
     'platform-tools' \
-    'ndk;21.0.6113669' \
+    'ndk;22.0.7026061' \
     'system-images;android-29;default;x86'
 
 # Make the SDK universally writable
 RUN chmod -R a+rwX ${ANDROID_HOME}
+
+# Ensure a new enough version of CMake is available.
+RUN cd /opt \
+    && wget -nv https://cmake.org/files/v3.18/cmake-3.18.4-Linux-x86_64.tar.gz \
+    && tar zxf cmake-3.18.4-Linux-x86_64.tar.gz
+
+ENV PATH "/opt/cmake-3.18.4-Linux-x86_64/bin:$PATH"

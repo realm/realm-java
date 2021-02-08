@@ -20,9 +20,6 @@ import android.content.Context;
 import android.os.Build;
 import android.util.Base64;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
-
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.json.JSONArray;
@@ -30,6 +27,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,6 +47,8 @@ import java.util.TimeZone;
 
 import javax.annotation.Nullable;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationTypes;
@@ -57,6 +57,7 @@ import io.realm.entities.Dog;
 import io.realm.entities.NoPrimaryKeyNullTypes;
 import io.realm.entities.NullTypes;
 import io.realm.entities.OwnerPrimaryKey;
+import io.realm.entities.PrimaryKeyAsObjectId;
 import io.realm.entities.PrimitiveListTypes;
 import io.realm.entities.RandomPrimaryKey;
 import io.realm.exceptions.RealmException;
@@ -1557,6 +1558,20 @@ public class RealmJsonTests {
         realm.commitTransaction();
 
         assertAllTypesPrimaryKeyUpdated();
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_objectIdPK() throws JSONException {
+        String stringId = "789ABCDEF0123456789ABCDE";
+        JSONObject jsonObject = new JSONObject("{\"id\": \""+ stringId + "\", \"name\": \"bar\"}");
+        realm.beginTransaction();
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsObjectId.class, jsonObject);
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsObjectId> owners = realm.where(PrimaryKeyAsObjectId.class).findAll();
+        assertEquals(1, owners.size());
+        assertEquals(new ObjectId(stringId), owners.get(0).getId());
+        assertEquals("bar", owners.get(0).getName());
     }
 
     // Tests creating objects from Json, all nullable fields with null values or non-null values.
