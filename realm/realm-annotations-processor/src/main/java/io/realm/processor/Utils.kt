@@ -234,6 +234,15 @@ object Utils {
     }
 
     /**
+     * @return `true` if a given field type is `RealmDictionary` and its element type is value type,
+     * `false` otherwise.
+     */
+    fun isRealmValueDictionary(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmDictionaryElementTypeMirror(field) ?: return false
+        return !isRealmModel(elementTypeMirror) && !isMixed(elementTypeMirror)
+    }
+
+    /**
      * @return `true` if a given field type is `RealmDictionary<RealmModel>`, `false` otherwise.
      */
     fun isRealmModelDictionary(field: VariableElement): Boolean {
