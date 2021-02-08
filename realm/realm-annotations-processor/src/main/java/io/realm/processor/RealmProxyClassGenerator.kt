@@ -2233,9 +2233,40 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         }
                         Utils.isMutableRealmInteger(field) -> // If the user initializes the unmanaged MutableRealmInteger to null, this will fail mysteriously.
                             emitStatement("unmanagedCopy.%s().set(realmSource.%s().get())", getter, getter)
+                        Utils.isRealmModelDictionary(field) -> {
+                            val proxyClassSimpleName = Utils.getDictionaryGenericProxyClassSimpleName(field)
+                            val valueDictionaryFieldType = Utils.getDictionaryValueTypeQualifiedName(field)
+                            val genericType = requireNotNull(Utils.getGenericTypeQualifiedName(field))
+
+                            emitSingleLineComment("proxyClassSimpleName: $proxyClassSimpleName")
+                            emitSingleLineComment("valueDictionaryFieldType: $valueDictionaryFieldType")
+                            emitSingleLineComment("genericType: $genericType")
+
+                            emitEmptyLine()
+                            emitSingleLineComment("Deep copy of $fieldName")
+                            beginControlFlow("if (currentDepth == maxDepth)")
+                                emitStatement("unmanagedCopy.${setter}(null)")
+                            nextControlFlow("else")
+                                emitStatement("RealmDictionary<${genericType}> managed${fieldName}Dictionary = realmSource.${getter}()")
+                                emitStatement("RealmDictionary<${genericType}> unmanaged${fieldName}Dictionary = new RealmDictionary<${genericType}>()")
+                                emitStatement("unmanagedCopy.${setter}(unmanaged${fieldName}Dictionary)")
+                                emitStatement("int nextDepth = currentDepth + 1")
+                                // TODO: keySet isn't working for managed dictionaries at the moment because we don't support querying on primitive types
+                                emitSingleLineComment("TODO: keySet isn't working for managed dictionaries at the moment because we don't support querying on primitive types")
+                                beginControlFlow("for (String key : managed${fieldName}Dictionary.keySet())")
+                                    emitStatement("$genericType detachedValue = ${proxyClassSimpleName}.createDetachedCopy(managed${fieldName}Dictionary.get(key), nextDepth, maxDepth, cache)")
+                                    emitStatement("unmanaged${fieldName}Dictionary.put(key, detachedValue)")
+                                endControlFlow()
+                            endControlFlow()
+                        }
                         Utils.isRealmDictionary(field) -> {
-                            // TODO: maps
-                            emitSingleLineComment("TODO: Dictionary")
+                            emitEmptyLine()
+                            emitStatement("unmanagedCopy.%1\$s(new RealmDictionary<%2\$s>())", setter, Utils.getDictionaryValueTypeQualifiedName(field))
+                            emitStatement("unmanagedCopy.%1\$s().putAll(realmSource.%1\$s())", getter)
+                        }
+                        Utils.isMixedDictionary(field) -> {
+                            // TODO: mixed dictionary
+                            emitSingleLineComment("TODO: Mixed Dictionary")
                         }
                         else -> {
                             emitStatement("unmanagedCopy.%s(realmSource.%s())", setter, getter)
