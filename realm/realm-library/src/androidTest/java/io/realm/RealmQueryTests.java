@@ -3775,14 +3775,67 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    public void rawPredicate_withOrdering() {
+    public void rawPredicate_rawDescriptors() {
+        realm.beginTransaction();
+        realm.insert(new Dog("Milo"));
+        realm.insert(new Dog("Fido"));
+        realm.insert(new Dog("Bella"));
+        realm.insert(new Dog("Bella"));
+        realm.commitTransaction();
 
-        // FIXME: Verify that SORT and DISTINCT work correctly
+        RealmQuery<Dog> query = realm.where(Dog.class)
+                .rawPredicate("TRUEPREDICATE SORT(name ASC) DISTINCT(name) LIMIT(2)");
+
+        assertEquals("TRUEPREDICATE SORT(name ASC) DISTINCT(name) LIMIT(2)", query.getDescription());
+
+        // Descriptors should be applied in order provided
+        RealmResults<Dog> dogs = query.findAll();
+        assertEquals(2, dogs.size());
+        assertEquals("Bella", dogs.get(0).getName());
+        assertEquals("Fido", dogs.get(1).getName());
     }
 
+    // Descriptors defined by raw predicates can be mixed with typed ones and still be applied in order
+    @Test
+    public void rawPredicate_mixTypedAndRawDescriptors() {
+        realm.beginTransaction();
+        realm.insert(new Dog("Milo", 1));
+        realm.insert(new Dog("Fido", 2));
+        realm.insert(new Dog("Bella", 3));
+        realm.insert(new Dog("Bella", 3));
+        realm.insert(new Dog("Bella", 4));
+        realm.commitTransaction();
+
+        RealmQuery<Dog> query = realm.where(Dog.class)
+                .sort("age", Sort.ASCENDING)
+                .rawPredicate("TRUEPREDICATE SORT(name ASC) DISTINCT(name, age) LIMIT(2)")
+                .distinct("age")
+                .limit(1);
+
+        // Descriptors should be applied in order provided throughout the query
+        assertEquals("TRUEPREDICATE SORT(age ASC) SORT(name ASC) DISTINCT(name, age) LIMIT(2) DISTINCT(age) LIMIT(1)", query.getDescription());
+
+        RealmResults<Dog> dogs = query.findAll();
+        assertEquals(1, dogs.size());
+        assertEquals("Bella", dogs.get(0).getName());
+        assertEquals(3, dogs.get(0).getAge());
+    }
+    
     @Test
     public void rawPredicate_dynamicRealmQueries() {
-        // FIXME: Smoke test as dynamic Realms hit a different code paths towards Core.
+        // DynamicRealm queries hit a slightly different codepath than typed Realms, so this
+        // is just a smoke test.
+        populateTestRealm();
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
+        try {
+            RealmResults<DynamicRealmObject> results = dynamicRealm
+                    .where(AllTypes.CLASS_NAME)
+                    .rawPredicate("%s >= 5", AllTypes.FIELD_LONG)
+                    .findAll();
+            assertEquals(5, results.size());
+        } finally {
+            dynamicRealm.close();
+        }
     }
 
     @Test

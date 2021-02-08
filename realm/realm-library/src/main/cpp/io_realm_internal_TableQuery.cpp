@@ -2106,16 +2106,13 @@ Java_io_realm_internal_TableQuery_nativePredicate(JNIEnv *env,
 {
     try {
         auto query = reinterpret_cast<Query*>(nativeQueryPtr);
+        auto descriptor = reinterpret_cast<DescriptorOrdering *>(j_descriptor_ptr);
         JStringAccessor filter(env, j_filter); // throws
         query_parser::NoArguments no_args;
         query_parser::KeyPathMapping mapping;
         Query predicate = query->get_table()->query(filter, no_args, mapping);
         query->and_query(predicate);
-        (void) j_descriptor_ptr;
-
-        // TODO What about ordering. What does this mean?
-        // DescriptorOrdering ordering;
-        // realm::parser::query_builder::apply_ordering(ordering, table, parser_result.ordering);
+        descriptor->append(*predicate.get_ordering());
     }
     CATCH_STD()
 }
@@ -2137,13 +2134,7 @@ Java_io_realm_internal_TableQuery_nativePredicateWithMapping(JNIEnv *env,
         query_parser::NoArguments no_args;
         Query predicate = query->get_table()->query(filter, no_args, *mapping);
         query->and_query(predicate);
-        (void) descriptor;
-//        parser::ParserResult parser_result = realm::parser::parse(static_cast<std::string>(filter));
-//        query_builder::apply_predicate(*query, parser_result.predicate, no_args, *mapping);
-
-        // TODO What about ordering. What does this mean?
-        // DescriptorOrdering ordering;
-        // realm::parser::query_builder::apply_ordering(ordering, table, parser_result.ordering);
+        descriptor->append(*predicate.get_ordering());
     }
     CATCH_STD()
 }
