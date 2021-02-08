@@ -79,6 +79,7 @@ class MixedTests {
         assertEquals(10, mixed.asByte())
         assertEquals(Mixed.valueOf(10.toByte()), mixed)
         assertEquals(MixedType.INTEGER, mixed.type)
+        assertEquals(MixedType.INTEGER.typedClass, mixed.valueClass)
     }
 
     @Test
@@ -88,6 +89,7 @@ class MixedTests {
         assertEquals(10, mixed.asShort())
         assertEquals(Mixed.valueOf(10.toShort()), mixed)
         assertEquals(MixedType.INTEGER, mixed.type)
+        assertEquals(MixedType.INTEGER.typedClass, mixed.valueClass)
     }
 
     @Test
@@ -95,6 +97,7 @@ class MixedTests {
         val mixed = Mixed.valueOf(10.toInt())
 
         assertEquals(10, mixed.asInteger())
+        assertEquals(Mixed.valueOf(10.toInt()), mixed)
         assertEquals(MixedType.INTEGER, mixed.type)
         assertEquals(MixedType.INTEGER.typedClass, mixed.valueClass)
     }
@@ -104,7 +107,9 @@ class MixedTests {
         val mixed = Mixed.valueOf(10.toLong())
 
         assertEquals(10, mixed.asLong())
+        assertEquals(Mixed.valueOf(10.toLong()), mixed)
         assertEquals(MixedType.INTEGER, mixed.type)
+        assertEquals(MixedType.INTEGER.typedClass, mixed.valueClass)
     }
 
     @Test
@@ -112,6 +117,7 @@ class MixedTests {
         val mixed = Mixed.valueOf(true)
 
         assertEquals(true, mixed.asBoolean())
+        assertEquals(Mixed.valueOf(true), mixed)
         assertEquals(MixedType.BOOLEAN, mixed.type)
         assertEquals(MixedType.BOOLEAN.typedClass, mixed.valueClass)
     }
@@ -121,6 +127,7 @@ class MixedTests {
         val mixed = Mixed.valueOf("hello world")
 
         assertEquals("hello world", mixed.asString())
+        assertEquals(Mixed.valueOf("hello world"), mixed)
         assertEquals(MixedType.STRING, mixed.type)
         assertEquals(MixedType.STRING.typedClass, mixed.valueClass)
     }
@@ -130,6 +137,7 @@ class MixedTests {
         val mixed = Mixed.valueOf(byteArrayOf(0, 1, 0))
 
         assertTrue(Arrays.equals(byteArrayOf(0, 1, 0), mixed.asBinary()))
+        assertEquals(Mixed.valueOf(byteArrayOf(0, 1, 0)), mixed)
         assertEquals(MixedType.BINARY, mixed.type)
         assertEquals(MixedType.BINARY.typedClass, mixed.valueClass)
     }
@@ -139,6 +147,7 @@ class MixedTests {
         val mixed = Mixed.valueOf(Date(10))
 
         assertEquals(Date(10), mixed.asDate())
+        assertEquals(Mixed.valueOf(Date(10)), mixed)
         assertEquals(MixedType.DATE, mixed.type)
         assertEquals(MixedType.DATE.typedClass, mixed.valueClass)
     }
@@ -148,6 +157,7 @@ class MixedTests {
         val mixed = Mixed.valueOf(Decimal128.fromIEEE754BIDEncoding(10, 10))
 
         assertEquals(Decimal128.fromIEEE754BIDEncoding(10, 10), mixed.asDecimal128())
+        assertEquals(Mixed.valueOf(Decimal128.fromIEEE754BIDEncoding(10, 10)), mixed)
         assertEquals(MixedType.DECIMAL128, mixed.type)
         assertEquals(MixedType.DECIMAL128.typedClass, mixed.valueClass)
     }
@@ -157,6 +167,7 @@ class MixedTests {
         val mixed = Mixed.valueOf(10.0)
 
         assertEquals(10.0, mixed.asDouble())
+        assertEquals(Mixed.valueOf(10.0), mixed)
         assertEquals(MixedType.DOUBLE, mixed.type)
         assertEquals(MixedType.DOUBLE.typedClass, mixed.valueClass)
     }
@@ -320,6 +331,7 @@ class MixedTests {
 
         assertTrue(mixedObject.isManaged)
         assertTrue(Arrays.equals(byteArrayOf(0, 1, 0), mixedObject.mixed!!.asBinary()))
+        assertEquals(Mixed.valueOf(byteArrayOf(0, 1, 0)), mixedObject.mixed!!)
         assertEquals(MixedType.BINARY, mixedObject.mixed!!.type)
         assertEquals(MixedType.BINARY.typedClass, mixedObject.mixed!!.valueClass)
     }
