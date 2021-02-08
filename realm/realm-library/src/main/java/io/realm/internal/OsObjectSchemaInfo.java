@@ -28,7 +28,8 @@ import io.realm.RealmFieldType;
 public class OsObjectSchemaInfo implements NativeObject {
 
     public static class Builder {
-        private final String className;
+        private final String internalClassName;
+        private final String publicClassName; // If "", it is equal to the internal class name
         private final long[] persistedPropertyPtrArray;
         private final boolean embedded;
         private int persistedPropertyPtrCurPos = 0;
@@ -39,14 +40,24 @@ public class OsObjectSchemaInfo implements NativeObject {
          * Creates an empty builder for {@code OsObjectSchemaInfo}. This constructor is intended to be used by
          * the validation of schema, object schemas and properties through the object store.
          *
-         * @param className name of the class
+         * @param internalClassName name of the class
          */
-        public Builder(String className, boolean embedded, int persistedPropertyCapacity, int computedPropertyCapacity) {
-            this.className = className;
+        public Builder(String internalClassName, boolean embedded, int persistedPropertyCapacity, int computedPropertyCapacity) {
+            this.publicClassName = "";
+            this.internalClassName = internalClassName;
             this.embedded = embedded;
             this.persistedPropertyPtrArray = new long[persistedPropertyCapacity];
             this.computedPropertyPtrArray = new long[computedPropertyCapacity];
         }
+
+        public Builder(String publicClassName, String internalClassName, boolean embedded, int persistedPropertyCapacity, int computedPropertyCapacity) {
+            this.publicClassName = publicClassName;
+            this.internalClassName = internalClassName;
+            this.embedded = embedded;
+            this.persistedPropertyPtrArray = new long[persistedPropertyCapacity];
+            this.computedPropertyPtrArray = new long[computedPropertyCapacity];
+        }
+
 
         /**
          * Adds a persisted non-link, non value list property to this builder.
@@ -130,7 +141,7 @@ public class OsObjectSchemaInfo implements NativeObject {
             if (persistedPropertyPtrCurPos == -1 || computedPropertyPtrCurPos == -1) {
                 throw new IllegalStateException("'OsObjectSchemaInfo.build()' has been called before on this object.");
             }
-            OsObjectSchemaInfo info = new OsObjectSchemaInfo(className, embedded);
+            OsObjectSchemaInfo info = new OsObjectSchemaInfo(publicClassName, internalClassName, embedded);
             nativeAddProperties(info.nativePtr, persistedPropertyPtrArray, computedPropertyPtrArray);
             persistedPropertyPtrCurPos = -1;
             computedPropertyPtrCurPos = -1;
@@ -147,8 +158,8 @@ public class OsObjectSchemaInfo implements NativeObject {
      *
      * @param className name of the class
      */
-    private OsObjectSchemaInfo(String className, boolean embedded) {
-        this(nativeCreateRealmObjectSchema(className, embedded));
+    private OsObjectSchemaInfo(String publicClassName, String className, boolean embedded) {
+        this(nativeCreateRealmObjectSchema(publicClassName, className, embedded));
     }
 
     /**
@@ -163,7 +174,7 @@ public class OsObjectSchemaInfo implements NativeObject {
     }
 
     /**
-     * @return the class name of this {@code OsObjectSchema} represents for.
+     * @return the internal class name of this {@code OsObjectSchema} represents for.
      */
     public String getClassName() {
         return nativeGetClassName(nativePtr);
@@ -205,7 +216,7 @@ public class OsObjectSchemaInfo implements NativeObject {
         return nativeFinalizerPtr;
     }
 
-    private static native long nativeCreateRealmObjectSchema(String className, boolean embedded);
+    private static native long nativeCreateRealmObjectSchema(String publicClassName, String internalClassName, boolean embedded);
 
     private static native long nativeGetFinalizerPtr();
 

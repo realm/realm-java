@@ -2112,7 +2112,9 @@ Java_io_realm_internal_TableQuery_nativePredicate(JNIEnv *env,
         query_parser::KeyPathMapping mapping;
         Query predicate = query->get_table()->query(filter, no_args, mapping);
         query->and_query(predicate);
-        descriptor->append(*predicate.get_ordering());
+        if (auto parsed_ordering = predicate.get_ordering()) {
+            descriptor->append(*parsed_ordering);
+        }
     }
     CATCH_STD()
 }
@@ -2134,7 +2136,9 @@ Java_io_realm_internal_TableQuery_nativePredicateWithMapping(JNIEnv *env,
         query_parser::NoArguments no_args;
         Query predicate = query->get_table()->query(filter, no_args, *mapping);
         query->and_query(predicate);
-        descriptor->append(*predicate.get_ordering());
+        if (auto parsed_ordering = predicate.get_ordering()) {
+            descriptor->append(*parsed_ordering);
+        }
     }
     CATCH_STD()
 }

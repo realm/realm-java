@@ -679,8 +679,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 val persistedFields = metadata.fields.size
                 val computedFields = metadata.backlinkFields.size
                 val embeddedClass = if (metadata.embedded) "true" else "false"
-
-                emitStatement("OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder(\"%s\", %s, %s, %s)", internalClassName, embeddedClass, persistedFields, computedFields)
+                val publicClassName = if (simpleJavaClassName.name != internalClassName) simpleJavaClassName.name else ""
+                emitStatement("OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder(\"%s\", \"%s\", %s, %s, %s)", publicClassName, internalClassName, embeddedClass, persistedFields, computedFields)
 
                 // For each field generate corresponding table index constant
                 for (field in metadata.fields) {

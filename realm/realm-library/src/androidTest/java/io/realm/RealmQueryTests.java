@@ -3839,7 +3839,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    public void rawPredicate_useJavaFieldNames() {
+    public void rawPredicate_useJavaNames() {
 
         // Java Field names
         RealmResults<ClassWithValueDefinedNames> results = realm.where(ClassWithValueDefinedNames.class)
@@ -3865,18 +3865,17 @@ public class RealmQueryTests extends QueryTests {
                 .findAll();
         assertTrue(results.isEmpty());
 
-        // Linking Objects queries do not support mapped names currently
-        // See https://github.com/realm/realm-core/issues/4326
-        try {
-            realm.where(ClassWithValueDefinedNames.class)
-                    .rawPredicate("@links.ClassWithValueDefinedNames.objectLink.@count = 0")
+        // Linking Objects queries also support mapped class names
+        results = realm.where(ClassWithValueDefinedNames.class)
+                    .rawPredicate("@links.ClassWithValueDefinedNames.object-link.@count = 0")
                     .findAll();
-            fail();
-        } catch (IllegalArgumentException e) {
-            fail("TODO: This is the correct behavior, but Core exceptions currently bubble up as pure RuntimeExceptions.");
-        } catch (RuntimeException ex) {
-            assertTrue("Error message was: " + ex.getMessage(), ex.getMessage().contains("No property 'objectLink' found in type 'ClassWithValueDefinedNames'"));
-        }
+        assertTrue(results.isEmpty());
+
+        results = realm.where(ClassWithValueDefinedNames.class)
+                .rawPredicate("@links.my-class-name.objectLink.@count = 0")
+                .findAll();
+        assertTrue(results.isEmpty());
+
 
     }
 
