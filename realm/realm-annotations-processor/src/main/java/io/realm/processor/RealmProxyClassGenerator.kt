@@ -2259,7 +2259,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 endControlFlow()
                             endControlFlow()
                         }
-                        Utils.isRealmDictionary(field) -> {
+                        Utils.isRealmValueDictionary(field) -> {
                             emitEmptyLine()
                             emitStatement("unmanagedCopy.%1\$s(new RealmDictionary<%2\$s>())", setter, Utils.getDictionaryValueTypeQualifiedName(field))
                             emitStatement("unmanagedCopy.%1\$s().putAll(realmSource.%1\$s())", getter)
