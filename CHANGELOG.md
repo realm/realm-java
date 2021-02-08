@@ -1,7 +1,6 @@
 ## 10.4.0 (YYYY-MM-DD)
 
 ### Enhancements
-* Reduced un-zipped size of native libraries by ~20%.
 * Added support for the string-based Realm Query Language through `RealmQuery.rawPredicate(...)`. This allows many new type of queries not previously not supported by the typed query API. See the Javadoc on this method for further details. (Issue [#6116](https://github.com/realm/realm-java/pull/6116))
 
 ### Fixes
