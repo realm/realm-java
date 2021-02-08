@@ -293,6 +293,7 @@ class DictionaryTests {
     }
 
     @Test
+    @Ignore("Fails due to RealmResults not supporting queries on primitive types")
     fun managed_containsKey() {
         val key = "SOME_KEY"
         initDictionary()
@@ -658,24 +659,30 @@ class DictionaryTests {
 
     @Test
     fun copyToRealmOrUpdate_realmModel() {
-        val primaryKeyObject = MyPrimaryKeyModel().apply {
-            id = 42
-            name = "John"
-        }
-        val updatedPrimaryKeyObject = MyPrimaryKeyModel().apply {
-            id = 42
-            name = "John Doe"
-        }
+//        val primaryKeyObject = MyPrimaryKeyModel().apply {
+//            id = 42
+//            name = "John"
+//        }
+//        val updatedPrimaryKeyObject = MyPrimaryKeyModel().apply {
+//            id = 42
+//            name = "John Doe"
+//        }
 
         realm.executeTransaction { transactionRealm ->
-            val dictionaryObject = DictionaryClass().apply {
-                myPrimaryKeyModelDictionary = RealmDictionary<MyPrimaryKeyModel>().apply {
-                    put(KEY_HELLO, primaryKeyObject)
-                }
+            val primaryKeyObject = MyPrimaryKeyModel().apply {
+                id = 42
+                name = "John"
+            }.let {
+                transactionRealm.copyToRealm(it)
             }
+            transactionRealm.createObject<DictionaryClassWithPk>(UUID.randomUUID())
+                    .apply {
+                        myPrimaryKeyModelDictionary = RealmDictionary<MyPrimaryKeyModel>().apply {
+                            put(KEY_HELLO, primaryKeyObject)
+                        }
+                    }
 
-            // Copy first object and assert the model got inserted too
-            transactionRealm.copyToRealm(dictionaryObject)
+            // Assert the model got inserted too
             transactionRealm.where<MyPrimaryKeyModel>()
                     .findFirst()
                     .let {
@@ -684,7 +691,13 @@ class DictionaryTests {
                         assertEquals(primaryKeyObject.name, it.name)
                     }
 
-            val newDictionaryObject = DictionaryClass().apply {
+            val updatedPrimaryKeyObject = MyPrimaryKeyModel().apply {
+                id = 42
+                name = "John Doe"
+            }.let {
+                transactionRealm.copyToRealmOrUpdate(it)
+            }
+            val newDictionaryObject = DictionaryClassWithPk().apply {
                 myPrimaryKeyModelDictionary = RealmDictionary<MyPrimaryKeyModel>().apply {
                     put(KEY_HELLO, updatedPrimaryKeyObject)
                 }
@@ -1220,6 +1233,7 @@ class DictionaryTests {
 
 @RealmModule(classes = [
     DictionaryClass::class,
+    DictionaryClassWithPk::class,
     MyRealmModel::class,
     DictJava::class,
     MyPrimaryKeyModel::class,

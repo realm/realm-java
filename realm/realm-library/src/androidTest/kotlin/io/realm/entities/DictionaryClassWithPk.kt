@@ -24,7 +24,10 @@ import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import java.util.*
 
-open class DictionaryClass : RealmObject() {
+open class DictionaryClassWithPk : RealmObject() {
+
+    @PrimaryKey
+    var id: UUID? = null
 
     var myRealmModelDictionary: RealmDictionary<MyRealmModel>? = null
     var myPrimaryKeyModelDictionary: RealmDictionary<MyPrimaryKeyModel>? = null
@@ -63,14 +66,4 @@ open class DictionaryClass : RealmObject() {
         const val OBJECT_ID_DICTIONARY_FIELD_NAME = "myObjectIdDictionary"
         const val UUID_DICTIONARY_FIELD_NAME = "myUUIDDictionary"
     }
-}
-
-open class MyRealmModel : RealmObject() {
-    var id: String? = null
-}
-
-open class MyPrimaryKeyModel : RealmObject() {
-    @PrimaryKey
-    var id: Int? = null
-    var name: String? = null
 }
