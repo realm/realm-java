@@ -3820,7 +3820,7 @@ public class RealmQueryTests extends QueryTests {
         assertEquals("Bella", dogs.get(0).getName());
         assertEquals(3, dogs.get(0).getAge());
     }
-    
+
     @Test
     public void rawPredicate_dynamicRealmQueries() {
         // DynamicRealm queries hit a slightly different codepath than typed Realms, so this
