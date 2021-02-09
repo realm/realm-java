@@ -32,7 +32,7 @@ currentBranch = env.BRANCH_NAME
 nodeSelector = 'docker-cph-03'
 try {
   node(nodeSelector) {
-    timeout(time: 90, unit: 'MINUTES') {
+    timeout(time: 150, unit: 'MINUTES') {
       // Allocate a custom workspace to avoid having % in the path (it breaks ld)
       ws('/tmp/realm-java') {
         stage('SCM') {
@@ -78,6 +78,9 @@ try {
         def buildFlags = ""
         def instrumentationTestTarget = "connectedAndroidTest"
         def deviceSerial = ""
+
+        // TODO: revert once confirmed the LTO fix in core works
+        // if (!releaseBranches.contains(currentBranch)) {
         if (!releaseBranches.contains(currentBranch)) {
           // Build development branch
           useEmulator = true
@@ -312,7 +315,7 @@ def runBuild(buildFlags, instrumentationTestTarget) {
   if (releaseBranches.contains(currentBranch) && !publishBuild) {
     stage('Publish to OJO') {
       withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
-        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} ojoUpload --stacktrace"
+        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} ojoUpload ${buildFlags} --stacktrace"
       }
     }
   }
