@@ -378,6 +378,7 @@ public class some_test_EmbeddedClassRealmProxy extends some.test.EmbeddedClass
         }
         some_test_EmbeddedClassRealmProxyInterface unmanagedCopy = (some_test_EmbeddedClassRealmProxyInterface) unmanagedObject;
         some_test_EmbeddedClassRealmProxyInterface realmSource = (some_test_EmbeddedClassRealmProxyInterface) realmObject;
+        Realm objectRealm = (Realm) ((RealmObjectProxy) realmObject).realmGet$proxyState().getRealm$realm()
         unmanagedCopy.realmSet$name(realmSource.realmGet$name());
         unmanagedCopy.realmSet$age(realmSource.realmGet$age());
 

@@ -134,6 +134,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+
 @RunWith(AndroidJUnit4.class)
 public class RealmTests {
     private final static int TEST_DATA_SIZE = 10;

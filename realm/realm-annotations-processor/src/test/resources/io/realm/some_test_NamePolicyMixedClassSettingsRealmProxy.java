@@ -405,6 +405,7 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
         }
         some_test_NamePolicyMixedClassSettingsRealmProxyInterface unmanagedCopy = (some_test_NamePolicyMixedClassSettingsRealmProxyInterface) unmanagedObject;
         some_test_NamePolicyMixedClassSettingsRealmProxyInterface realmSource = (some_test_NamePolicyMixedClassSettingsRealmProxyInterface) realmObject;
+        Realm objectRealm = (Realm) ((RealmObjectProxy) realmObject).realmGet$proxyState().getRealm$realm()
         unmanagedCopy.realmSet$firstName(realmSource.realmGet$firstName());
         unmanagedCopy.realmSet$lastName(realmSource.realmGet$lastName());
 

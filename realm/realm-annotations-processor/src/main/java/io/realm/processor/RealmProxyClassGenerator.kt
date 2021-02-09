@@ -2198,6 +2198,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 // may cause an unused variable warning if the object contains only null lists
                 emitStatement("%1\$s unmanagedCopy = (%1\$s) unmanagedObject", interfaceName)
                 emitStatement("%1\$s realmSource = (%1\$s) realmObject", interfaceName)
+                emitStatement("Realm objectRealm = (Realm) ((RealmObjectProxy) realmObject).realmGet\$proxyState().getRealm\$realm()")
 
                 for (field in metadata.fields) {
                     val fieldName = field.simpleName.toString()
@@ -2233,6 +2234,28 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         }
                         Utils.isMutableRealmInteger(field) -> // If the user initializes the unmanaged MutableRealmInteger to null, this will fail mysteriously.
                             emitStatement("unmanagedCopy.%s().set(realmSource.%s().get())", getter, getter)
+                        Utils.isMixed(field) -> {
+                            emitEmptyLine()
+                            emitSingleLineComment("Deep copy of %s", fieldName)
+                            emitStatement("unmanagedCopy.${setter}(ProxyUtils.createDetachedCopy(realmSource.${getter}(), objectRealm, currentDepth + 1, maxDepth, cache))")
+                        }
+                        Utils.isMixedList(field) -> {
+                            emitEmptyLine()
+                            emitSingleLineComment("Deep copy of %s", fieldName)
+                            beginControlFlow("if (currentDepth == maxDepth)")
+                                emitStatement("unmanagedCopy.%s(null)", setter)
+                            nextControlFlow("else")
+                                emitStatement("RealmList<Mixed> managed${fieldName}List = realmSource.${getter}()", fieldName, getter)
+                                emitStatement("RealmList<Mixed> unmanaged${fieldName}List = new RealmList<Mixed>()")
+                                emitStatement("unmanagedCopy.${setter}(unmanaged${fieldName}List)")
+                                emitStatement("int nextDepth = currentDepth + 1")
+                                emitStatement("int size = managed${fieldName}List.size()")
+                                beginControlFlow("for (int i = 0; i < size; i++)")
+                                    emitStatement("Mixed item = ProxyUtils.createDetachedCopy(managed${fieldName}List.get(i), objectRealm, nextDepth, maxDepth, cache)")
+                                    emitStatement("unmanaged${fieldName}List.add(item)")
+                                endControlFlow()
+                            endControlFlow()
+                        }
                         Utils.isRealmModelDictionary(field) -> {
                             val proxyClassSimpleName = Utils.getDictionaryGenericProxyClassSimpleName(field)
                             val valueDictionaryFieldType = Utils.getDictionaryValueTypeQualifiedName(field)
