@@ -293,7 +293,6 @@ class DictionaryTests {
     }
 
     @Test
-    @Ignore("Fails due to RealmResults not supporting queries on primitive types")
     fun managed_containsKey() {
         val key = "SOME_KEY"
         initDictionary()
@@ -303,6 +302,8 @@ class DictionaryTests {
             assertNotNull(dictionaryObject)
             dictionaryObject.myBooleanDictionary.let { dictionary ->
                 assertNotNull(dictionary)
+                dictionary.containsKey(KEY_HELLO)
+                dictionary.containsKey(KEY_BYE)
                 dictionary[key] = true
                 assertTrue(dictionary.containsKey(key))
                 assertFalse(dictionary.containsKey("ANOTHER_KEY"))
