@@ -2219,23 +2219,50 @@ public class RealmQuery<E> {
 
     /**
      * Create a text-based predicate using the Realm Query Language. This predicate can be combined
-     * with other raw or type safe predicates using the normal {@code and()} and {@code or()}
-     * operators.
+     * with other raw or type safe predicates.
      * <p>
+     * Class and property names used in the raw predicate can be either the names defined in the
+     * Realm Model classes or the internal names defined using the {@link io.realm.annotations.RealmClass}
+     * or {@link io.realm.annotations.RealmField} annotations.
+     * </p>
      * The string-based predicates can contain placeholders that conform to the syntax supported by
      * {@link java.util.Formatter}.
      * <p>
      * See <a href="https://docs.mongodb.com/realm-sdks/js/latest/tutorial-query-language.html">these docs</a>
      * for a more detailed description of the Realm Query Language.
+     * <p>
+     * <pre>
+     * Examples:
+     * {@code
+     * RealmQuery<Person> query = realm.where(Person.class);
      *
-     * @param filter A Realm Query Language predicate.
+     * // Simple query
+     * query.rawPredicate("name = 'Jane'");
+     * query.rawPredicate("name = '%s'", getName());
+     *
+     * // Multiple predicates
+     * query.rawPredicate("name = 'Jane' OR name = 'John'")
+     *
+     * // Collection queries
+     * query.rawPredicate("children.@count > 3")
+     * query.rawPredicate("ALL children.age > 18")
+     *
+     * // Sub queries
+     * query.rawPredicate("SUBQUERY(children, $child, $child.age > 21 AND $child.gender = 'male'").@count > 0');
+     *
+     * // Sort, Distinct, Limit
+     * query.rawPredicate("name = 'Jane' SORT(lastName) DISTINCT(city) LIMIT(5)");
+     * }
+     * </pre>
+     *
+     * @param predicate A Realm Query Language predicate.
      */
-    public RealmQuery<E> rawPredicate(String filter, Object... arguments) {
+    public RealmQuery<E> rawPredicate(String predicate, Object... arguments) {
         realm.checkIfValid();
-        if (Util.isEmptyString(filter)) {
+        if (Util.isEmptyString(predicate)) {
             throw new IllegalArgumentException("Non-null 'filter' required.");
         }
-        String formattedFilter = String.format(Locale.ENGLISH, filter, arguments);
+        String formattedFilter = String.format(Locale.ENGLISH, predicate, arguments);
         query.rawPredicate(formattedFilter, realm.getSchema().getKeyPathMapping(), queryDescriptors);
         return this;
     }

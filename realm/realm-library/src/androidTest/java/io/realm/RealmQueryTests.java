@@ -3866,14 +3866,10 @@ public class RealmQueryTests extends QueryTests {
         assertTrue(results.isEmpty());
 
         // Linking Objects using dynamic query with internal name for class and alias for property
-        try {
-            results = realm.where(ClassWithValueDefinedNames.class)
-                    .rawPredicate("@links.my-class-name.objectLink.@count = 0")
-                    .findAll();
-            assertTrue(results.isEmpty());
-            fail("Waiting for https://github.com/realm/realm-core/pull/4401");
-        } catch (RuntimeException ignore) {
-        }
+        results = realm.where(ClassWithValueDefinedNames.class)
+                .rawPredicate("@links.my-class-name.objectLink.@count = 0")
+                .findAll();
+        assertTrue(results.isEmpty());
 
         // Linking Objects using dynamic query with alias for class and internal name for property
         results = realm.where(ClassWithValueDefinedNames.class)
@@ -3882,14 +3878,10 @@ public class RealmQueryTests extends QueryTests {
         assertTrue(results.isEmpty());
 
         // Linking Objects using dynamic query with alias both class and property
-        try {
-            results = realm.where(ClassWithValueDefinedNames.class)
-                    .rawPredicate("@links.ClassWithValueDefinedNames.objectLink.@count = 0")
-                    .findAll();
-            assertTrue(results.isEmpty());
-            fail("Waiting for https://github.com/realm/realm-core/pull/4401");
-        } catch (RuntimeException ignore) {
-        }
+        results = realm.where(ClassWithValueDefinedNames.class)
+                .rawPredicate("@links.ClassWithValueDefinedNames.objectLink.@count = 0")
+                .findAll();
+        assertTrue(results.isEmpty());
     }
 
     @Test
