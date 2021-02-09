@@ -476,7 +476,6 @@ public class Mixed {
     @Override
     public final boolean equals(Object other) {
         if (other == this) { return true; }
-        if (other == null) { return this.operator instanceof NullMixedOperator; }
         if (!(other instanceof Mixed)) { return false; }
         Mixed otherMixed = ((Mixed) other);
         return this.operator.equals(otherMixed.operator);
