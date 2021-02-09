@@ -3859,22 +3859,37 @@ public class RealmQueryTests extends QueryTests {
                 .findAll();
         assertTrue(results.isEmpty());
 
-        // Linking Objects using dynamic query must use the internal class-name
+        // Linking Objects using dynamic query with internal name for both class and property
         results = realm.where(ClassWithValueDefinedNames.class)
                 .rawPredicate("@links.my-class-name.object-link.@count = 0")
                 .findAll();
         assertTrue(results.isEmpty());
 
-        // Linking Objects queries also support mapped class and property names in combinations
-        results = realm.where(ClassWithValueDefinedNames.class)
-                    .rawPredicate("@links.ClassWithValueDefinedNames.object-link.@count = 0")
+        // Linking Objects using dynamic query with internal name for class and alias for property
+        try {
+            results = realm.where(ClassWithValueDefinedNames.class)
+                    .rawPredicate("@links.my-class-name.objectLink.@count = 0")
                     .findAll();
-        assertTrue(results.isEmpty());
+            assertTrue(results.isEmpty());
+            fail("Waiting for https://github.com/realm/realm-core/pull/4401");
+        } catch (RuntimeException ignore) {
+        }
 
+        // Linking Objects using dynamic query with alias for class and internal name for property
         results = realm.where(ClassWithValueDefinedNames.class)
-                .rawPredicate("@links.my-class-name.objectLink.@count = 0")
+                .rawPredicate("@links.ClassWithValueDefinedNames.object-link.@count = 0")
                 .findAll();
         assertTrue(results.isEmpty());
+
+        // Linking Objects using dynamic query with alias both class and property
+        try {
+            results = realm.where(ClassWithValueDefinedNames.class)
+                    .rawPredicate("@links.ClassWithValueDefinedNames.objectLink.@count = 0")
+                    .findAll();
+            assertTrue(results.isEmpty());
+            fail("Waiting for https://github.com/realm/realm-core/pull/4401");
+        } catch (RuntimeException ignore) {
+        }
     }
 
     @Test

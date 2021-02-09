@@ -221,7 +221,7 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
     }
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("EmbeddedClassSimpleParent", false, 3, 0);
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("", "EmbeddedClassSimpleParent", false, 3, 0);
         builder.addPersistedProperty("", "id", RealmFieldType.STRING, Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         builder.addPersistedLinkProperty("", "child", RealmFieldType.OBJECT, "EmbeddedClass");
         builder.addPersistedLinkProperty("", "children", RealmFieldType.LIST, "EmbeddedClass");

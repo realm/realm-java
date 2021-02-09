@@ -143,7 +143,7 @@ public class some_test_EmbeddedClassRealmProxy extends some.test.EmbeddedClass
     }
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("EmbeddedClass", true, 2, 0);
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("", "EmbeddedClass", true, 2, 0);
         builder.addPersistedProperty("", "name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         builder.addPersistedProperty("", "age", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         return builder.build();

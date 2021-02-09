@@ -1960,7 +1960,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
     }
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("NullTypes", false, 49, 0);
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("", "NullTypes", false, 49, 0);
         builder.addPersistedProperty("", "fieldStringNotNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addPersistedProperty("", "fieldStringNull", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         builder.addPersistedProperty("", "fieldBooleanNotNull", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);

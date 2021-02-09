@@ -961,7 +961,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         return parentObjectsBacklinks;
     }
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("AllTypes", false, 25, 1);
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("", "AllTypes", false, 25, 1);
         builder.addPersistedProperty("", "columnString", RealmFieldType.STRING, Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         builder.addPersistedProperty("", "columnLong", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addPersistedProperty("", "columnFloat", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
