@@ -32,7 +32,7 @@ currentBranch = env.BRANCH_NAME
 nodeSelector = 'docker-cph-03'
 try {
   node(nodeSelector) {
-    timeout(time: 90, unit: 'MINUTES') {
+    timeout(time: 150, unit: 'MINUTES') {
       // Allocate a custom workspace to avoid having % in the path (it breaks ld)
       ws('/tmp/realm-java') {
         stage('SCM') {
@@ -78,19 +78,24 @@ try {
         def buildFlags = ""
         def instrumentationTestTarget = "connectedAndroidTest"
         def deviceSerial = ""
+
+        // TODO: revert once confirmed the LTO fix in core works
+        // if (!releaseBranches.contains(currentBranch)) {
         if (!releaseBranches.contains(currentBranch)) {
           // Build development branch
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
-          buildFlags = "-PbuildTargetABIs=x86 -PdisableLTO=1"
+          // Build core from source instead of doing it from binary
+          buildFlags = "-PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           deviceSerial = "emulator-5554"
         } else {
           // Build main/release branch
           // FIXME: Use emulator until we can get reliable devices on CI.
-          //  But still build all ABI's and run all types of tests. 
+          //  But still build all ABI's and run all types of tests.
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
+          buildFlags = "-PenableLTO=true -PbuildCore=true"
           instrumentationTestTarget = "connectedAndroidTest"
           deviceSerial = "emulator-5554"
         }
@@ -231,7 +236,7 @@ def runBuild(buildFlags, instrumentationTestTarget) {
         storeJunitResults 'realm/realm-library/build/test-results/**/TEST-*.xml'
         step([$class: 'LintPublisher'])
       }
-    }, 
+    },
     'Realm Transformer' : {
       try {
         gradle('realm-transformer', 'check')
@@ -239,38 +244,38 @@ def runBuild(buildFlags, instrumentationTestTarget) {
         storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
       }
     },
-    'Static code analysis' : {
-      try {
-        gradle('realm', "spotbugsMain pmd checkstyle ${buildFlags}")
-      } finally {
-        publishHTML(target: [
-          allowMissing: false, 
-          alwaysLinkToLastBuild: false, 
-          keepAll: true, 
-          reportDir: 'realm/realm-library/build/reports/spotbugs', 
-          reportFiles: 'main.html', 
-          reportName: 'Spotbugs report'
-        ])
+    // 'Static code analysis' : {
+    //   try {
+    //     gradle('realm', "spotbugsMain pmd checkstyle ${buildFlags}")
+    //   } finally {
+    //     publishHTML(target: [
+    //       allowMissing: false,
+    //       alwaysLinkToLastBuild: false,
+    //       keepAll: true,
+    //       reportDir: 'realm/realm-library/build/reports/spotbugs',
+    //       reportFiles: 'main.html',
+    //       reportName: 'Spotbugs report'
+    //     ])
 
-        publishHTML(target: [
-          allowMissing: false, 
-          alwaysLinkToLastBuild: false, 
-          keepAll: true, 
-          reportDir: 'realm/realm-library/build/reports/pmd', 
-          reportFiles: 'pmd.html', 
-          reportName: 'PMD report'
-        ])
-        
-        publishHTML(target: [
-          allowMissing: false, 
-          alwaysLinkToLastBuild: false, 
-          keepAll: true, 
-          reportDir: 'realm/realm-library/build/reports/checkstyle', 
-          reportFiles: 'checkstyle.html', 
-          reportName: 'Checkstyle report'
-        ])
-      }
-    },
+    //     publishHTML(target: [
+    //       allowMissing: false,
+    //       alwaysLinkToLastBuild: false,
+    //       keepAll: true,
+    //       reportDir: 'realm/realm-library/build/reports/pmd',
+    //       reportFiles: 'pmd.html',
+    //       reportName: 'PMD report'
+    //     ])
+
+    //     publishHTML(target: [
+    //       allowMissing: false,
+    //       alwaysLinkToLastBuild: false,
+    //       keepAll: true,
+    //       reportDir: 'realm/realm-library/build/reports/checkstyle',
+    //       reportFiles: 'checkstyle.html',
+    //       reportName: 'Checkstyle report'
+    //     ])
+    //   }
+    // },
     'Instrumentation' : {
       if (enableIntegrationTests) {
         String backgroundPid
@@ -310,7 +315,7 @@ def runBuild(buildFlags, instrumentationTestTarget) {
   if (releaseBranches.contains(currentBranch) && !publishBuild) {
     stage('Publish to OJO') {
       withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
-        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} ojoUpload --stacktrace"
+        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} ojoUpload ${buildFlags} --stacktrace"
       }
     }
   }
@@ -326,7 +331,7 @@ def runPublish() {
             [$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'REALM_S3_ACCESS_KEY', credentialsId: 'realm-s3', secretKeyVariable: 'REALM_S3_SECRET_KEY']
     ]) {
       sh """
-        set +x  
+        set +x
         sh tools/publish_release.sh '$BINTRAY_USER' '$BINTRAY_KEY' \
         '$REALM_S3_ACCESS_KEY' '$REALM_S3_SECRET_KEY' \
         '$DOCS_S3_ACCESS_KEY' '$DOCS_S3_SECRET_KEY' \
@@ -351,7 +356,7 @@ String startLogCatCollector() {
     // Need ADB as root to clear all buffers: https://stackoverflow.com/a/47686978/1389357
     sh 'adb devices'
     sh """adb root
-      adb logcat -b all -c 
+      adb logcat -b all -c
       adb logcat -v time > 'logcat.txt' &
       echo \$! > pid
     """

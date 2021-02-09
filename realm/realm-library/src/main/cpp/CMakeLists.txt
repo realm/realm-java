@@ -21,6 +21,7 @@ project(RealmJava)
 # loading dependencies properties
 file(STRINGS "${CMAKE_SOURCE_DIR}/../../../../../dependencies.list" DEPENDENCIES)
 foreach(LINE IN LISTS DEPENDENCIES)
+
     string(REGEX MATCHALL "([^=]+)" KEY_VALUE "${LINE}")
     list(LENGTH KEY_VALUE matches_count)
     if(matches_count STREQUAL 2)
@@ -63,7 +64,8 @@ if(NDK_LCACHE)
     set(CMAKE_CXX_CREATE_SHARED_LIBRARY "${NDK_LCACHE} ${CMAKE_CXX_CREATE_SHARED_LIBRARY}")
 endif()
 
-# Set flag REALM_ENABLE_SYNC
+# Set option flags for Core.
+# See https://github.com/realm/realm-core/blob/master/CMakeLists.txt#L174 for the full list.
 if (REALM_FLAVOR STREQUAL base)
     set(REALM_ENABLE_SYNC OFF)
 else()
@@ -93,7 +95,7 @@ set(classes_LIST
     io.realm.internal.NativeObjectReference io.realm.internal.OsCollectionChangeSet
     io.realm.internal.OsObject io.realm.internal.OsRealmConfig io.realm.internal.OsList
     io.realm.internal.OsObjectStore
-    io.realm.internal.core.DescriptorOrdering io.realm.internal.core.IncludeDescriptor
+    io.realm.internal.core.DescriptorOrdering
     io.realm.internal.objectstore.OsObjectBuilder
 )
 # /./ is the workaround for the problem that AS cannot find the jni headers.
@@ -130,12 +132,43 @@ create_javah(TARGET jni_headers
     DEPENDS ${classes_PATH}
 )
 
-option(REALM_JAVA_BUILD_CORE_FROM_SOURCE "Build Realm Core from source, as opposed to downloading prebuilt binaries" ON)
-if(REALM_JAVA_BUILD_CORE_FROM_SOURCE)
-    set(REALM_BUILD_LIB_ONLY ON)
-    add_subdirectory(realm-core)
+# Check if user defined download location
+if(NOT DEFINED ENV{REALM_CORE_DOWNLOAD_DIR})
+    set(REALM_CORE_DOWNLOAD_DIR ${CMAKE_BINARY_DIR})
 else()
-    message(FATAL_ERROR "TODO: Implement downloading monorepo release artifacts")
+    set(REALM_CORE_DOWNLOAD_DIR $ENV{REALM_CORE_DOWNLOAD_DIR})
+endif()
+
+if(REALM_JAVA_BUILD_CORE_FROM_SOURCE OR NOT REALM_ENABLE_SYNC)
+    message(STATUS "Building Realm Core from source...")
+
+    set(REALM_BUILD_LIB_ONLY ON)
+    add_subdirectory(realm-core EXCLUDE_FROM_ALL)
+else()
+    message(STATUS "Using prebuilt Realm Core.")
+
+    # CMAKE_INTERPROCEDURAL_OPTIMIZATION is not compatible with binary artifacts.
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
+
+    execute_process(COMMAND "${CMAKE_COMMAND}" "-E" "environment")
+    set(core_filename "realm-${CMAKE_BUILD_TYPE}-v${DEP_REALM_CORE}-Android-${CMAKE_ANDROID_ARCH_ABI}-devel")
+
+    # Use cached resources if possible
+    if(NOT EXISTS "${REALM_CORE_DOWNLOAD_DIR}/${core_filename}.tar.gz")
+        message(STATUS "Downloading ${core_filename}...")
+        file(DOWNLOAD "https://static.realm.io/downloads/core/${core_filename}.tar.gz" "${REALM_CORE_DOWNLOAD_DIR}/${core_filename}.tar.gz")
+    else()
+        file(TIMESTAMP "${REALM_CORE_DOWNLOAD_DIR}/${core_filename}.tar.gz" CORE_FILE_TIMESTAMP "%b %d %H:%M")
+        message(STATUS "Using cached filename: ${core_filename}.tar.gz : ${CORE_FILE_TIMESTAMP}")
+    endif()
+
+    message(STATUS "Uncompressing realm-core...")
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/${core_filename}")
+
+    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfz "${REALM_CORE_DOWNLOAD_DIR}/${core_filename}.tar.gz"
+            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/${core_filename}")
+
+    include(${CMAKE_BINARY_DIR}/${core_filename}/lib/cmake/Realm/RealmConfig.cmake)
 endif()
 
 # build application's shared lib

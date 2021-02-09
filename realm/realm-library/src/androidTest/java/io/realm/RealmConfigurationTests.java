@@ -204,7 +204,7 @@ public class RealmConfigurationTests {
 
     @Test
     public void constructBuilder_wrongKeyLengthThrows() {
-        byte[][] wrongKeys = new byte[][]{
+        byte[][] wrongKeys = new byte[][] {
                 new byte[0],
                 new byte[Realm.ENCRYPTION_KEY_LENGTH - 1],
                 new byte[Realm.ENCRYPTION_KEY_LENGTH + 1]
@@ -235,7 +235,7 @@ public class RealmConfigurationTests {
                 .build());
         realm.close();
 
-        int[] wrongVersions = new int[]{0, 1, 41};
+        int[] wrongVersions = new int[] { 0, 1, 41 };
         for (int version : wrongVersions) {
             try {
                 realm = Realm.getInstance(configFactory.createConfigurationBuilder()
