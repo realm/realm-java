@@ -39,45 +39,21 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectStore_nativeSetPrimaryKeyF
 {
     try {
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        JStringAccessor class_name_accessor(env, j_class_name);
-        JStringAccessor pk_field_name_accessor(env, j_pk_field_name);
+        JStringAccessor class_name(env, j_class_name);
+        JStringAccessor primary_key_field_name(env, j_pk_field_name);
 
-        auto table = ObjectStore::table_for_object_type(shared_realm->read_group(), class_name_accessor);
-        if (!table) {
+        auto& group = shared_realm->read_group();
+        if (!group.has_table(class_name)) {
+            std::string name_str = class_name;
+            if (name_str.find(TABLE_PREFIX) == 0) {
+                name_str = name_str.substr(TABLE_PREFIX.length());
+            }
             THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
-                                 format("Class '%1' doesn't exist.", StringData(class_name_accessor)));
+                                 util::format("The class '%1' doesn't exist in this Realm.", name_str));
         }
+        TableRef table = group.get_table(class_name);
         shared_realm->verify_in_write();
-
-        if (j_pk_field_name) {
-            // Not removal, check the column.
-            ColKey pk_column_col = table->get_column_key(pk_field_name_accessor);
-            if (!table->valid_column(pk_column_col)) {
-
-                THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
-                                     format("Field '%1' doesn't exist in Class '%2'.",
-                                            StringData(pk_field_name_accessor), StringData(class_name_accessor)));
-            }
-
-            // Check valid column type
-            auto field_type = table->get_column_type(pk_column_col);
-            if (field_type != type_Int && field_type != type_String && field_type != type_ObjectId && field_type != type_UUID) {
-                THROW_JAVA_EXCEPTION(
-                    env, JavaExceptionDef::IllegalArgument,
-                    format("Field '%1' is not a valid primary key type.", StringData(pk_field_name_accessor)));
-            }
-
-            // Check duplicated values. The pk field must have been indexed before set as a PK.
-             if (!table->contains_unique_values(pk_column_col)) {
-                THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
-                                     format("Field '%1' cannot be set as primary key since there are duplicated "
-                                            "values for field '%1' in Class '%2'.",
-                                            StringData(pk_field_name_accessor), StringData(class_name_accessor)));
-            }
-        }
-        shared_realm->verify_in_write();
-        ObjectStore::set_primary_key_for_object(shared_realm->read_group(), class_name_accessor,
-                                                pk_field_name_accessor);
+        table->set_primary_key_column(table->get_column_key(primary_key_field_name));
     }
     CATCH_STD()
 }
@@ -88,9 +64,11 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsObjectStore_nativeGetPrimaryK
 {
     try {
         auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        JStringAccessor class_name_accessor(env, j_class_name);
-        StringData pk_field_name = ObjectStore::get_primary_key_for_object(shared_realm->read_group(), class_name_accessor);
-        return pk_field_name.size() == 0 ? nullptr : to_jstring(env, pk_field_name);
+        JStringAccessor class_name(env, j_class_name);
+        TableRef table = shared_realm->read_group().get_table(class_name);
+        auto col = table->get_primary_key_column();
+        std::string primary_key_field_name = (col) ? table->get_column_name(col) : "";
+        return primary_key_field_name.size() == 0 ? nullptr : to_jstring(env, primary_key_field_name);
     }
     CATCH_STD()
     return nullptr;
