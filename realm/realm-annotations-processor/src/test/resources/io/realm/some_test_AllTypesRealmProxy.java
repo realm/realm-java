@@ -3080,6 +3080,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         }
         some_test_AllTypesRealmProxyInterface unmanagedCopy = (some_test_AllTypesRealmProxyInterface) unmanagedObject;
         some_test_AllTypesRealmProxyInterface realmSource = (some_test_AllTypesRealmProxyInterface) realmObject;
+        Realm objectRealm = (Realm) ((RealmObjectProxy) realmObject).realmGet$proxyState().getRealm$realm();
         unmanagedCopy.realmSet$columnString(realmSource.realmGet$columnString());
         unmanagedCopy.realmSet$columnLong(realmSource.realmGet$columnLong());
         unmanagedCopy.realmSet$columnFloat(realmSource.realmGet$columnFloat());
@@ -3089,7 +3090,9 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         unmanagedCopy.realmSet$columnObjectId(realmSource.realmGet$columnObjectId());
         unmanagedCopy.realmSet$columnUUID(realmSource.realmGet$columnUUID());
         unmanagedCopy.realmSet$columnDate(realmSource.realmGet$columnDate());
-        unmanagedCopy.realmSet$columnMixed(realmSource.realmGet$columnMixed());
+
+        // Deep copy of columnMixed
+        unmanagedCopy.realmSet$columnMixed(ProxyUtils.createDetachedCopy(realmSource.realmGet$columnMixed(), objectRealm, currentDepth + 1, maxDepth, cache));
         unmanagedCopy.realmSet$columnBinary(realmSource.realmGet$columnBinary());
         unmanagedCopy.realmGet$columnMutableRealmInteger().set(realmSource.realmGet$columnMutableRealmInteger().get());
 
@@ -3164,7 +3167,21 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
 
         unmanagedCopy.realmSet$columnUUIDList(new RealmList<java.util.UUID>());
         unmanagedCopy.realmGet$columnUUIDList().addAll(realmSource.realmGet$columnUUIDList());
-        unmanagedCopy.realmSet$columnMixedList(realmSource.realmGet$columnMixedList());
+
+        // Deep copy of columnMixedList
+        if (currentDepth == maxDepth) {
+            unmanagedCopy.realmSet$columnMixedList(null);
+        } else {
+            RealmList<Mixed> managedcolumnMixedListList = realmSource.realmGet$columnMixedList();
+            RealmList<Mixed> unmanagedcolumnMixedListList = new RealmList<Mixed>();
+            unmanagedCopy.realmSet$columnMixedList(unmanagedcolumnMixedListList);
+            int nextDepth = currentDepth + 1;
+            int size = managedcolumnMixedListList.size();
+            for (int i = 0; i < size; i++) {
+                Mixed item = ProxyUtils.createDetachedCopy(managedcolumnMixedListList.get(i), objectRealm, nextDepth, maxDepth, cache);
+                unmanagedcolumnMixedListList.add(item);
+            }
+        }
 
         return unmanagedObject;
     }

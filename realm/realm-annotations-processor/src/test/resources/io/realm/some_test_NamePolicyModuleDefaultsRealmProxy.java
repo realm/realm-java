@@ -405,6 +405,7 @@ public class some_test_NamePolicyModuleDefaultsRealmProxy extends some.test.Name
         }
         some_test_NamePolicyModuleDefaultsRealmProxyInterface unmanagedCopy = (some_test_NamePolicyModuleDefaultsRealmProxyInterface) unmanagedObject;
         some_test_NamePolicyModuleDefaultsRealmProxyInterface realmSource = (some_test_NamePolicyModuleDefaultsRealmProxyInterface) realmObject;
+        Realm objectRealm = (Realm) ((RealmObjectProxy) realmObject).realmGet$proxyState().getRealm$realm()
         unmanagedCopy.realmSet$firstName(realmSource.realmGet$firstName());
         unmanagedCopy.realmSet$lastName(realmSource.realmGet$lastName());
 
