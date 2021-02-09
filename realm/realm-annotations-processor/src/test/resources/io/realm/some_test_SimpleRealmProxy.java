@@ -381,6 +381,7 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
         }
         some_test_SimpleRealmProxyInterface unmanagedCopy = (some_test_SimpleRealmProxyInterface) unmanagedObject;
         some_test_SimpleRealmProxyInterface realmSource = (some_test_SimpleRealmProxyInterface) realmObject;
+        Realm objectRealm = (Realm) ((RealmObjectProxy) realmObject).realmGet$proxyState().getRealm$realm()
         unmanagedCopy.realmSet$name(realmSource.realmGet$name());
         unmanagedCopy.realmSet$age(realmSource.realmGet$age());
 

@@ -362,4 +362,24 @@ class ProxyUtils {
         return mixed;
     }
 
+    @SuppressWarnings("unchecked")
+    static Mixed createDetachedCopy(Mixed mixed, @Nonnull Realm realm, int currentDepth, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache) {
+        if (currentDepth > maxDepth || mixed == null) {
+            return Mixed.nullValue();
+        }
+
+        if (mixed.getType() == MixedType.OBJECT) {
+            Class<? extends RealmModel> mixedValueClass = (Class<? extends RealmModel>) mixed.getValueClass();
+            RealmModel mixedRealmObject = mixed.asRealmModel(mixedValueClass);
+
+            RealmModel detachedCopy = realm.getConfiguration()
+                    .getSchemaMediator()
+                    .createDetachedCopy(mixedRealmObject, maxDepth - 1, cache);
+
+            mixed = Mixed.valueOf(detachedCopy);
+        }
+
+        return mixed;
+    }
+
 }
