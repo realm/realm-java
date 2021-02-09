@@ -84,7 +84,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     // Abandon typing information, all ye who enter here
     static RealmResults<DynamicRealmObject> createDynamicBacklinkResults(DynamicRealm realm, UncheckedRow row, Table srcTable, String srcFieldName) {
         final String srcClassName = Table.getClassNameForTable(srcTable.getName());
-        //noinspection ConstantConditions
+        //noinspection ConstantConditionsO
         return new RealmResults<>(
                 realm,
                 OsResults.createForBacklinks(realm.sharedRealm, row, srcTable, srcFieldName),
@@ -92,11 +92,19 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     }
 
     RealmResults(BaseRealm realm, OsResults osResults, Class<E> clazz) {
-        super(realm, osResults, clazz);
+        this(realm, osResults, clazz, false);
+    }
+
+    RealmResults(BaseRealm realm, OsResults osResults, Class<E> clazz, boolean forPrimitives) {
+        super(realm, osResults, clazz, getCollectionOperator(forPrimitives, realm, osResults, clazz, null));
     }
 
     RealmResults(BaseRealm realm, OsResults osResults, String className) {
-        super(realm, osResults, className);
+        this(realm, osResults, className, false);
+    }
+
+    RealmResults(BaseRealm realm, OsResults osResults, String className, boolean forPrimitives) {
+        super(realm, osResults, className, getCollectionOperator(forPrimitives, realm, osResults, null, className));
     }
 
     /**
@@ -550,7 +558,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
                     osResults.setByteList(fieldName, (RealmList<Byte>) list);
                 } else {
                     throw new IllegalArgumentException(String.format("List contained the wrong type of elements. " +
-                            "Elements that can be mapped to Integers was expected, but the actual type is '%s'",
+                                    "Elements that can be mapped to Integers was expected, but the actual type is '%s'",
                             listType));
                 }
                 break;
