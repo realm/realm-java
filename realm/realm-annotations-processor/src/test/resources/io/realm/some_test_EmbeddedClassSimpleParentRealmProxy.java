@@ -713,6 +713,7 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
         }
         some_test_EmbeddedClassSimpleParentRealmProxyInterface unmanagedCopy = (some_test_EmbeddedClassSimpleParentRealmProxyInterface) unmanagedObject;
         some_test_EmbeddedClassSimpleParentRealmProxyInterface realmSource = (some_test_EmbeddedClassSimpleParentRealmProxyInterface) realmObject;
+        Realm objectRealm = (Realm) ((RealmObjectProxy) realmObject).realmGet$proxyState().getRealm$realm()
         unmanagedCopy.realmSet$id(realmSource.realmGet$id());
 
         // Deep copy of child
