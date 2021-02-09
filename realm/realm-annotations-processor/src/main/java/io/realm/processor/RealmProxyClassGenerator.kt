@@ -578,7 +578,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitStatement("final Realm realm = (Realm) proxyState.getRealm\$realm()")
                         emitStatement("final RealmList<Mixed> original = value")
                         emitStatement("value = new RealmList<Mixed>()")
-
                         beginControlFlow("for (int i = 0; i < original.size(); i++)")
                             emitStatement("value.add(ProxyUtils.copyToRealmIfNeeded(proxyState, original.get(i)))")
                         endControlFlow()

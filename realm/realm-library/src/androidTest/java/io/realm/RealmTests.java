@@ -1479,7 +1479,6 @@ public class RealmTests {
 
         assertEquals(1, realmTypes.getColumnUUIDList().size());
         assertEquals(UUID.fromString(TestHelper.generateUUIDString(5)), realmTypes.getColumnUUIDList().get(0));
-
     }
 
     @Test
