@@ -775,7 +775,7 @@ class DictionaryTests {
                     putAll(entries)
                 }
                 myMixedDictionary!!["NULL_VALUE"] = null
-                val unmanagedModel: MyRealmModel = MyRealmModel().apply { id = "unmanaged" }
+                val unmanagedModel = MyRealmModel().apply { id = "unmanaged" }
                 val mixedModel = Mixed.valueOf(unmanagedModel)
                 myMixedDictionary!!["UNMANAGED_MIXED_MODEL"] = mixedModel
                 val managedModel = transactionRealm.createObject<MyRealmModel>().apply { id = "managed" }
@@ -796,7 +796,7 @@ class DictionaryTests {
             dictionaryFromRealm[entry.key].also { value ->
                 assertNotNull(value)
                 if (value.type == MixedType.BINARY) {
-                    assertEquals(entry.value.asBinary()[0], value.asBinary()[0])
+                    Arrays.equals(entry.value.asBinary(), value.asBinary())
                 } else {
                     assertEquals(entry.value, value)
                 }
@@ -1048,12 +1048,10 @@ class DictionaryTests {
 
             val byteArrayFromDictionary1 = dictionaryFromRealm[KEY_HELLO]
             assertNotNull(byteArrayFromDictionary1)
-            assertEquals(Byte.MIN_VALUE, byteArrayFromDictionary1[0])
-            assertEquals(Byte.MAX_VALUE, byteArrayFromDictionary1[1])
+            Arrays.equals(byteArray1, byteArrayFromDictionary1)
             val byteArrayFromDictionary2 = dictionaryFromRealm[KEY_BYE]
             assertNotNull(byteArrayFromDictionary2)
-            assertEquals(Byte.MAX_VALUE, byteArrayFromDictionary2[0])
-            assertEquals(Byte.MIN_VALUE, byteArrayFromDictionary2[1])
+            Arrays.equals(byteArray1, byteArrayFromDictionary1)
             assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
