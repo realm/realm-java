@@ -671,9 +671,11 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
     }
 
     /**
-     * Operator for models.
+     * Operator for models. Results created by queries or snapshots will return 'invalid objects' if
+     * the object is no longer valid, whereas Results created from RealmMap.values() should return
+     * 'null' if the map contains null values.
      *
-     * @param <T> the type of the collection, must extend {@link RealmModel}.
+     * @param <T> the type of the collection, must extend RealmModel.
      */
     static class ModelCollectionOperator<T> extends CollectionOperator<T> {
 
