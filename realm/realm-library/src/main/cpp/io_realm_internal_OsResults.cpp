@@ -94,6 +94,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeGetRow(JNIEnv* en
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
         auto obj = wrapper->collection().get(static_cast<size_t>(index));
+
+        if (obj.get_key().value == -1) {
+            return -1;
+        }
+
         return reinterpret_cast<jlong>(new Obj(std::move(obj)));
     }
     CATCH_STD()

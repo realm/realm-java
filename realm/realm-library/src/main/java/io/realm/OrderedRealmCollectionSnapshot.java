@@ -181,7 +181,7 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
     public void deleteFromRealm(int location) {
         baseRealm.checkIfValidAndInTransaction();
         UncheckedRow row = osResults.getUncheckedRow(location);
-        if (row.isValid()) {
+        if (row != null && row.isValid()) {
             osResults.delete(location);
         }
     }

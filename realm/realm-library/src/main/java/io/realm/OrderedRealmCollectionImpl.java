@@ -107,8 +107,14 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
             }
 
             for (E e : this) {
-                if (e.equals(object)) {
-                    return true;
+                if (e != null) {
+                    if (e.equals(object)) {
+                        return true;
+                    }
+                } else {
+                    if (object == null) {
+                        return true;
+                    }
                 }
             }
         }
@@ -675,8 +681,15 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
 
         @Override
         public T get(int location) {
+            UncheckedRow row = osResults.getUncheckedRow(location);
+
+            if (row == null) {
+                return null;
+            }
+
             //noinspection unchecked
-            return (T) baseRealm.get((Class<? extends RealmModel>) classSpec, className, osResults.getUncheckedRow(location));
+            return (T) baseRealm.get((Class<? extends RealmModel>) classSpec, className, row);
+
         }
 
         @Nullable
@@ -699,7 +712,11 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
 
         @Override
         public T getFromResults(int pos, OsResults iteratorOsResults) {
-            return convertRowToObject(iteratorOsResults.getUncheckedRow(pos));
+            UncheckedRow uncheckedRow = iteratorOsResults.getUncheckedRow(pos);
+            if (uncheckedRow == null) {
+                return null;
+            }
+            return convertRowToObject(uncheckedRow);
         }
     }
 

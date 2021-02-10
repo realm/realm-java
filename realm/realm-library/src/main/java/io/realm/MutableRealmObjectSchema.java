@@ -25,6 +25,7 @@ import io.realm.internal.CheckedRow;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsResults;
 import io.realm.internal.Table;
+import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.fields.FieldDescriptor;
@@ -309,9 +310,12 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
             }
             int size = (int) result.size();
             for (int i = 0; i < size; i++) {
-                DynamicRealmObject obj = new DynamicRealmObject(realm, new CheckedRow(result.getUncheckedRow(i)));
-                if (obj.isValid()) {
-                    function.apply(obj);
+                UncheckedRow uncheckedRow = result.getUncheckedRow(i);
+                if (uncheckedRow != null) {
+                    DynamicRealmObject obj = new DynamicRealmObject(realm, new CheckedRow(uncheckedRow));
+                    if (obj.isValid()) {
+                        function.apply(obj);
+                    }
                 }
             }
         }

@@ -352,8 +352,14 @@ public class OsResults implements NativeObject, ObservableCollection {
         return nativeGetValue(nativePtr, index);
     }
 
+    @Nullable
     public UncheckedRow getUncheckedRow(int index) {
-        return table.getUncheckedRowByPointer(nativeGetRow(nativePtr, index));
+        long rowPointer = nativeGetRow(nativePtr, index);
+        if (rowPointer == -1) {
+            return null;
+        }
+        return table.getUncheckedRowByPointer(rowPointer);
+
     }
 
     public UncheckedRow firstUncheckedRow() {
