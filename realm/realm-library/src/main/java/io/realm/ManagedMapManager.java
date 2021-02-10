@@ -241,11 +241,16 @@ abstract class MapValueOperator<K, V> {
     }
 
     public Set<K> keySet() {
-        return new HashSet<>(produceResults(osMap.tableAndValuesPtr()));
+        return new HashSet<>(produceResults(osMap.tableAndKeyPtrs(), true));
     }
 
     public Collection<V> values() {
-        return produceResults(osMap.tableAndValuesPtr());
+        Class<?> clazz = classContainer.getClazz();
+        if (clazz != null) {
+            boolean forPrimitives = !RealmModel.class.isAssignableFrom(clazz);
+            return produceResults(osMap.tableAndValuePtrs(), forPrimitives);
+        }
+        throw new IllegalStateException("MapValueOperator missing class in 'classContainer'.");
     }
 
     public Pair<BaseRealm, OsMap> freeze() {
@@ -253,7 +258,7 @@ abstract class MapValueOperator<K, V> {
         return new Pair<>(frozenRealm, osMap.freeze(frozenRealm.sharedRealm));
     }
 
-    private <T> RealmResults<T> produceResults(Pair<Table, Long> tableAndValuesPtr) {
+    private <T> RealmResults<T> produceResults(Pair<Table, Long> tableAndValuesPtr, boolean forPrimitives) {
         if (baseRealm instanceof Realm) {
             Realm realm = (Realm) baseRealm;
             Table table = tableAndValuesPtr.first;
@@ -262,7 +267,7 @@ abstract class MapValueOperator<K, V> {
             Class<?> clazz = classContainer.getClazz();
             if (clazz != null) {
                 //noinspection unchecked
-                return new RealmResults<T>(realm, osResults, (Class<T>) clazz);
+                return new RealmResults<>(realm, osResults, (Class<T>) clazz, forPrimitives);
             }
             throw new IllegalStateException("MapValueOperator missing class in 'classContainer'.");
         }

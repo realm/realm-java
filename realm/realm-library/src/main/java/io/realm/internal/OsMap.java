@@ -78,11 +78,11 @@ public class OsMap implements NativeObject {
         nativeClear(nativePtr);
     }
 
-    public Pair<Table, Long> keysPtr() {
+    public Pair<Table, Long> tableAndKeyPtrs() {
         return new Pair<>(targetTable, nativeKeys(nativePtr));
     }
 
-    public Pair<Table, Long> tableAndValuesPtr() {
+    public Pair<Table, Long> tableAndValuePtrs() {
         return new Pair<>(targetTable, nativeValues(nativePtr));
     }
 
