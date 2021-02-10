@@ -241,11 +241,11 @@ abstract class MapValueOperator<K, V> {
     }
 
     public Set<K> keySet() {
-        return new HashSet<>(produceResults(osMap.valuesPtr()));
+        return new HashSet<>(produceResults(osMap.tableAndValuesPtr()));
     }
 
     public Collection<V> values() {
-        return produceResults(osMap.valuesPtr());
+        return produceResults(osMap.tableAndValuesPtr());
     }
 
     public Pair<BaseRealm, OsMap> freeze() {
@@ -253,10 +253,12 @@ abstract class MapValueOperator<K, V> {
         return new Pair<>(frozenRealm, osMap.freeze(frozenRealm.sharedRealm));
     }
 
-    private <T> RealmResults<T> produceResults(Pair<Table, Long> tablePointerPair) {
+    private <T> RealmResults<T> produceResults(Pair<Table, Long> tableAndValuesPtr) {
         if (baseRealm instanceof Realm) {
             Realm realm = (Realm) baseRealm;
-            OsResults osResults = OsResults.createFromMap(baseRealm.sharedRealm, tablePointerPair.first, tablePointerPair.second);
+            Table table = tableAndValuesPtr.first;
+            Long valuesPtr = tableAndValuesPtr.second;
+            OsResults osResults = OsResults.createFromMap(baseRealm.sharedRealm, table, valuesPtr);
             Class<?> clazz = classContainer.getClazz();
             if (clazz != null) {
                 //noinspection unchecked

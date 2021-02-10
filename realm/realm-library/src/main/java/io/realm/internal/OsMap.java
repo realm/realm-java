@@ -82,7 +82,7 @@ public class OsMap implements NativeObject {
         return new Pair<>(targetTable, nativeKeys(nativePtr));
     }
 
-    public Pair<Table, Long> valuesPtr() {
+    public Pair<Table, Long> tableAndValuesPtr() {
         return new Pair<>(targetTable, nativeValues(nativePtr));
     }
 

@@ -47,7 +47,7 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     // Custom OsResults iterator. It ensures that we only iterate on a Realm OsResults that hasn't changed.
     public abstract static class Iterator<T> implements java.util.Iterator<T> {
-        OsResults iteratorOsResults;
+        protected OsResults iteratorOsResults;
         protected int pos = -1;
 
         public Iterator(OsResults osResults) {
@@ -123,12 +123,14 @@ public class OsResults implements NativeObject, ObservableCollection {
 
         @Nullable
         T get(int pos) {
-            return convertRowToObject(iteratorOsResults.getUncheckedRow(pos));
+            return getInternal(pos, iteratorOsResults);
         }
 
         // Returns the RealmModel by given row in this list. This has to be implemented in the upper layer since
         // we don't have information about the object types in the internal package.
         protected abstract T convertRowToObject(UncheckedRow row);
+
+        protected abstract T getInternal(int pos, OsResults iteratorOsResults);
     }
 
     // Custom Realm collection list iterator.
@@ -306,8 +308,8 @@ public class OsResults implements NativeObject, ObservableCollection {
         return createFromQuery(sharedRealm, query, new DescriptorOrdering());
     }
 
-    public static OsResults createFromMap(OsSharedRealm sharedRealm, Table table, long nativePtr) {
-        return new OsResults(sharedRealm, table, nativePtr);
+    public static OsResults createFromMap(OsSharedRealm sharedRealm, Table table, long resultsPtr) {
+        return new OsResults(sharedRealm, table, resultsPtr);
     }
 
     OsResults(OsSharedRealm sharedRealm, Table table, long nativePtr) {
@@ -347,9 +349,7 @@ public class OsResults implements NativeObject, ObservableCollection {
     }
 
     public Object getValue(int index) {
-//        Object value = nativeGetValue(nativePtr, index);
-//        return value;
-        throw new RuntimeException();
+        return nativeGetValue(nativePtr, index);
     }
 
     public UncheckedRow getUncheckedRow(int index) {
@@ -807,5 +807,5 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native void nativeEvaluateQueryIfNeeded(long nativePtr, boolean wantsNotifications);
 
-//    private static native Object nativeGetValue(long nativePtr, int index);
+    private static native Object nativeGetValue(long nativePtr, int index);
 }
