@@ -1,5 +1,14 @@
 #!/usr/bin/python3
 
+#
+# This script allows to extract build ids from binaries published in our realm java S3 bucket.
+#
+# The user can specify an individual version or a set, that will be outputed as a table.
+#
+# The process can be slow and resource consuming, as it needs to download each release, extract it
+# to finally run the readelf tool.
+#
+
 import os
 import sys
 import subprocess
