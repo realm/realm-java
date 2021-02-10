@@ -449,6 +449,11 @@ public class OsResultsTests {
             return null;
         }
 
+        @Override
+        protected Integer getInternal(int pos, OsResults iteratorOsResults) {
+            return null;
+        }
+
         boolean isDetached(OsSharedRealm sharedRealm) {
             for (WeakReference<OsResults.Iterator> iteratorRef : sharedRealm.iterators) {
                 OsResults.Iterator iterator = iteratorRef.get();
