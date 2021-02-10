@@ -6,9 +6,32 @@ import urllib.request
 import zipfile
 import argparse
 
+READELF_TOOL_PATH="/toolchains/llvm/prebuilt/darwin-x86_64/bin/x86_64-linux-android-readelf"
+
 FLAVORS = ['base', 'objectServer']
 ARCHS = ['arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64']
-BUILD_ID_EXTRACT_COMMMAND = '/Users/clemente.tort/Library/Android/sdk/ndk/21.0.6113669/toolchains/llvm/prebuilt/darwin-x86_64/bin/x86_64-linux-android-readelf -n {0} | grep "Build ID" | cut -d ":" -f2'
+
+def file_exists(path):
+    f = None
+    try:
+        f = open(path)
+        return True
+    except IOError:
+        return False
+    finally:
+        if f:
+            f.close()
+
+def find_ndk():
+    PROPS_FILE=f"{os.getcwd()}/../realm/local.properties"
+    if not file_exists(PROPS_FILE):
+        print(f"{PROPS_FILE} not found! NDK location cannot be determined")
+        exit()
+    
+    return subprocess.check_output(f'grep "ndk.dir" "{PROPS_FILE}" | cut -d = -f2', shell=True).decode('ascii').strip()
+
+
+BUILD_ID_EXTRACT_COMMMAND = find_ndk() + READELF_TOOL_PATH + ' -n {0} | grep "Build ID" | cut -d ":" -f2'
 
 def download_file(url, path):
     urllib.request.urlretrieve(url, path)
@@ -21,16 +44,7 @@ def generator(major_range, minor_range, patch_range):
                 yield f"{major}.{minor}.{patch}"
 
 
-def file_exists(path):
-    f = None
-    try:
-        f = open(path)
-        return True
-    except IOError:
-        return False
-    finally:
-        if f:
-            f.close()
+
 
 
 def get_path(path):
@@ -68,6 +82,7 @@ def parse_range(version):
     return [int(version)]
 
 if __name__ == "__main__":
+    print(BUILD_ID_EXTRACT_COMMMAND)
     parser = argparse.ArgumentParser(description='Extract build ids out from S3.')
     parser.add_argument('major', nargs='?', help='specific version: 1 or range: 1-3')
     parser.add_argument('minor', nargs='?', help='specific version: 1 or range: 1-3')
