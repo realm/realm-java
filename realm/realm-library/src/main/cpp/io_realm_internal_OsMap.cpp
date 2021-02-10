@@ -120,7 +120,10 @@ Java_io_realm_internal_OsMap_nativeGetRow(JNIEnv* env, jclass, jlong map_ptr,
         JStringAccessor key(env, j_key);
         const Optional<Mixed>& optional_result = dictionary.try_get_any(StringData(key));
         if (optional_result) {
-            return optional_result.value().get<ObjKey>().value;
+            const Mixed& value = optional_result.value();
+            if (!value.is_null()) {
+                return optional_result.value().get<ObjKey>().value;
+            }
         }
     }
     CATCH_STD()
@@ -147,10 +150,8 @@ Java_io_realm_internal_OsMap_nativePutNull(JNIEnv* env, jclass, jlong map_ptr,
     try {
         auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
         JStringAccessor key(env, j_key);
-        JavaAccessorContext context(env);
-//        const JavaValue java_value = JavaValue();
-        dictionary.insert(context, StringData(key).data(), Any());
-//        dictionary.insert(context, StringData(key).data(), java_value);
+        dictionary.insert(StringData(key).data(), Mixed());
+
     }
     CATCH_STD()
 }
