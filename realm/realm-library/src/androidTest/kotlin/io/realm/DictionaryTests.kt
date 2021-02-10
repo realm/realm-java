@@ -510,9 +510,7 @@ class DictionaryTests {
             val dictionaryObject = DictionaryClass().apply {
                 myRealmModelDictionary = RealmDictionary<MyRealmModel>().apply {
                     put(KEY_HELLO, hello)
-
-                    // TODO: remove comment once https://github.com/realm/realm-core/issues/4374 is fixed
-//                    put(KEY_NULL, null)
+                    put(KEY_NULL, null)
                 }
             }
 
@@ -524,9 +522,7 @@ class DictionaryTests {
                 assertNotNull(helloFromDictionary)
                 assertEquals(helloId, helloFromDictionary.id)
             }
-
-            // TODO: remove comment once https://github.com/realm/realm-core/issues/4374 is fixed
-//            assertNull(dictionaryFromRealm[KEY_NULL])
+            assertNull(dictionaryFromRealm[KEY_NULL])
         }
     }
 
