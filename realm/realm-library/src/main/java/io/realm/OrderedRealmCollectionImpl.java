@@ -38,7 +38,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
     final CollectionOperator<E> operator;
 
     OrderedRealmCollectionImpl(BaseRealm baseRealm, OsResults osResults, Class<E> clazz) {
-        this(baseRealm, osResults, clazz, null, getCollectionOperator(false, baseRealm, osResults, clazz, null));
+        this(baseRealm, osResults, clazz, null, getCollectionOperator(false, false, baseRealm, osResults, clazz, null));
     }
 
     OrderedRealmCollectionImpl(BaseRealm baseRealm, OsResults osResults, Class<E> clazz, CollectionOperator<E> operator) {
@@ -46,7 +46,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
     }
 
     OrderedRealmCollectionImpl(BaseRealm baseRealm, OsResults osResults, String className) {
-        this(baseRealm, osResults, null, className, getCollectionOperator(false, baseRealm, osResults, null, className));
+        this(baseRealm, osResults, null, className, getCollectionOperator(false, false, baseRealm, osResults, null, className));
     }
 
     OrderedRealmCollectionImpl(BaseRealm baseRealm, OsResults osResults, String className, CollectionOperator<E> operator) {
@@ -107,14 +107,11 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
             }
 
             for (E e : this) {
-                if (e != null) {
-                    if (e.equals(object)) {
-                        return true;
-                    }
-                } else {
-                    if (object == null) {
-                        return true;
-                    }
+                if (e != null && e.equals(object)) {
+                    return true;
+                }
+                if (e == null && object == null) {
+                    return true;
                 }
             }
         }
@@ -612,11 +609,16 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
         return new SchemaConnector(baseRealm.getSchema());
     }
 
-    protected static <T> CollectionOperator<T> getCollectionOperator(boolean forPrimitives, BaseRealm baseRealm, OsResults osResults, @Nullable Class<T> clazz, @Nullable String className) {
+    protected static <T> CollectionOperator<T> getCollectionOperator(boolean forPrimitives,
+                                                                     boolean shouldReturnNull,
+                                                                     BaseRealm baseRealm,
+                                                                     OsResults osResults,
+                                                                     @Nullable Class<T> clazz,
+                                                                     @Nullable String className) {
         if (forPrimitives) {
             return new PrimitiveValueOperator<>(baseRealm, osResults, clazz, className);
         } else {
-            return new ModelCollectionOperator<>(baseRealm, osResults, clazz, className);
+            return new ModelCollectionOperator<>(baseRealm, osResults, clazz, className, shouldReturnNull);
         }
     }
 
@@ -675,20 +677,26 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     static class ModelCollectionOperator<T> extends CollectionOperator<T> {
 
-        public ModelCollectionOperator(BaseRealm baseRealm, OsResults osResults, @Nullable Class<T> clazz, @Nullable String className) {
+        private final boolean shouldReturnNull;
+
+        public ModelCollectionOperator(BaseRealm baseRealm,
+                                       OsResults osResults,
+                                       @Nullable Class<T> clazz,
+                                       @Nullable String className,
+                                       boolean shouldReturnNull) {
             super(baseRealm, osResults, clazz, className);
+            this.shouldReturnNull = shouldReturnNull;
         }
 
         @Override
         public T get(int location) {
-            UncheckedRow row = osResults.getUncheckedRow(location);
-
-            if (row == null) {
+            UncheckedRow uncheckedRow = osResults.getUncheckedRow(location);
+            if (shouldReturnNull && !uncheckedRow.isValid()) {
                 return null;
             }
 
             //noinspection unchecked
-            return (T) baseRealm.get((Class<? extends RealmModel>) classSpec, className, row);
+            return (T) baseRealm.get((Class<? extends RealmModel>) classSpec, className, uncheckedRow);
 
         }
 
@@ -713,9 +721,10 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
         @Override
         public T getFromResults(int pos, OsResults iteratorOsResults) {
             UncheckedRow uncheckedRow = iteratorOsResults.getUncheckedRow(pos);
-            if (uncheckedRow == null) {
+            if (shouldReturnNull && !uncheckedRow.isValid()) {
                 return null;
             }
+
             return convertRowToObject(uncheckedRow);
         }
     }

@@ -92,19 +92,19 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     }
 
     RealmResults(BaseRealm realm, OsResults osResults, Class<E> clazz) {
-        this(realm, osResults, clazz, false);
+        this(realm, osResults, clazz, false, false);
     }
 
-    RealmResults(BaseRealm realm, OsResults osResults, Class<E> clazz, boolean forPrimitives) {
-        super(realm, osResults, clazz, getCollectionOperator(forPrimitives, realm, osResults, clazz, null));
+    RealmResults(BaseRealm realm, OsResults osResults, Class<E> clazz, boolean forPrimitives, boolean shouldReturnNull) {
+        super(realm, osResults, clazz, getCollectionOperator(forPrimitives, shouldReturnNull, realm, osResults, clazz, null));
     }
 
     RealmResults(BaseRealm realm, OsResults osResults, String className) {
-        this(realm, osResults, className, false);
+        this(realm, osResults, className, false, false);
     }
 
-    RealmResults(BaseRealm realm, OsResults osResults, String className, boolean forPrimitives) {
-        super(realm, osResults, className, getCollectionOperator(forPrimitives, realm, osResults, null, className));
+    RealmResults(BaseRealm realm, OsResults osResults, String className, boolean forPrimitives, boolean shouldReturnNull) {
+        super(realm, osResults, className, getCollectionOperator(forPrimitives, shouldReturnNull, realm, osResults, null, className));
     }
 
     /**
