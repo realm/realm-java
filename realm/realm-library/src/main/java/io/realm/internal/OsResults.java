@@ -308,8 +308,8 @@ public class OsResults implements NativeObject, ObservableCollection {
         return createFromQuery(sharedRealm, query, new DescriptorOrdering());
     }
 
-    public static OsResults createFromMap(OsSharedRealm sharedRealm, Table table, long nativePtr) {
-        return new OsResults(sharedRealm, table, nativePtr);
+    public static OsResults createFromMap(OsSharedRealm sharedRealm, Table table, long resultsPtr) {
+        return new OsResults(sharedRealm, table, resultsPtr);
     }
 
     OsResults(OsSharedRealm sharedRealm, Table table, long nativePtr) {
