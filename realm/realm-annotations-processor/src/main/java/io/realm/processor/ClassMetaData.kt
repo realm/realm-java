@@ -684,6 +684,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
 
         if (Utils.isMixed(field)) {
             Utils.error(String.format(Locale.US, "Mixed field \"${field}\" cannot be @Required or @NotNull."))
+            return false
         }
 
         // Should never get here - user should remove @Required
