@@ -2274,8 +2274,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitStatement("RealmDictionary<${genericType}> unmanaged${fieldName}Dictionary = new RealmDictionary<${genericType}>()")
                                 emitStatement("unmanagedCopy.${setter}(unmanaged${fieldName}Dictionary)")
                                 emitStatement("int nextDepth = currentDepth + 1")
-                                // TODO: keySet isn't working for managed dictionaries at the moment because we don't support querying on primitive types
-                                emitSingleLineComment("TODO: keySet isn't working for managed dictionaries at the moment because we don't support querying on primitive types")
                                 beginControlFlow("for (String key : managed${fieldName}Dictionary.keySet())")
                                     emitStatement("$genericType detachedValue = ${proxyClassSimpleName}.createDetachedCopy(managed${fieldName}Dictionary.get(key), nextDepth, maxDepth, cache)")
                                     emitStatement("unmanaged${fieldName}Dictionary.put(key, detachedValue)")
@@ -2283,13 +2281,30 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                         }
                         Utils.isRealmValueDictionary(field) -> {
+                            val genericType = requireNotNull(Utils.getGenericTypeQualifiedName(field))
+
                             emitEmptyLine()
                             emitStatement("unmanagedCopy.%1\$s(new RealmDictionary<%2\$s>())", setter, Utils.getDictionaryValueTypeQualifiedName(field))
-                            emitStatement("unmanagedCopy.%1\$s().putAll(realmSource.%1\$s())", getter)
+                            emitStatement("RealmDictionary<${genericType}> managed${fieldName}Dictionary = realmSource.${getter}()")
+                            beginControlFlow("for (String key : managed${fieldName}Dictionary.keySet())")
+                                emitStatement("unmanagedCopy.${getter}().put(key, managed${fieldName}Dictionary.get(key))")
+                            endControlFlow()
                         }
                         Utils.isMixedDictionary(field) -> {
-                            // TODO: mixed dictionary
-                            emitSingleLineComment("TODO: Mixed Dictionary")
+                            emitEmptyLine()
+                            emitSingleLineComment("Deep copy of %s", fieldName)
+                            beginControlFlow("if (currentDepth == maxDepth)")
+                                emitStatement("unmanagedCopy.%s(null)", setter)
+                            nextControlFlow("else")
+                                emitStatement("RealmDictionary<Mixed> managed${fieldName}Dictionary = realmSource.${getter}()")
+                                emitStatement("RealmDictionary<Mixed> unmanaged${fieldName}Dictionary = new RealmDictionary<Mixed>()")
+                                emitStatement("unmanagedCopy.${setter}(unmanaged${fieldName}Dictionary)")
+                                emitStatement("int nextDepth = currentDepth + 1")
+                                beginControlFlow("for (String key : managed${fieldName}Dictionary.keySet())")
+                                    emitStatement("Mixed detachedValue = ProxyUtils.createDetachedCopy(managed${fieldName}Dictionary.get(key), objectRealm, nextDepth, maxDepth, cache)")
+                                    emitStatement("unmanaged${fieldName}Dictionary.put(key, detachedValue)")
+                                endControlFlow()
+                            endControlFlow()
                         }
                         else -> {
                             emitStatement("unmanagedCopy.%s(realmSource.%s())", setter, getter)
