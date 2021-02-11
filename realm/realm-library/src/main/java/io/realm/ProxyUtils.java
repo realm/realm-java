@@ -29,7 +29,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Locale;
-import java.util.UUID;
 
 import javax.annotation.Nullable;
 
