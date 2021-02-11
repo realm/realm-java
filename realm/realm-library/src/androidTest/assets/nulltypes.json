@@ -21,7 +21,11 @@
     "fieldDoubleNull":null,
     "fieldDateNotNull": 0,
     "fieldDateNull": null,
-    "fieldObjectNull": null
+    "fieldObjectNull": null,
+    "fieldDecimal128Null": null,
+    "fieldDecimal128NotNull": -42,
+    "fieldObjectIdNull": null,
+    "fieldObjectIdNotNull": "789ABCDEF0123456789ABCDE"
   },
   {
     "id": 2,
@@ -67,7 +71,15 @@
       "fieldDoubleNull":0,
       "fieldDateNotNull": 0,
       "fieldDateNull": 0,
-      "fieldObjectNull": null
-    }
+      "fieldObjectNull": null,
+      "fieldDecimal128Null": 0,
+      "fieldDecimal128NotNull": 0,
+      "fieldObjectIdNull": "789ABCDEF0123456789ABCDE",
+      "fieldObjectIdNotNull": "789ABCDEF0123456789ABCDE"
+    },
+    "fieldDecimal128Null": 0,
+    "fieldDecimal128NotNull": 0,
+    "fieldObjectIdNull": "789ABCDEF0123456789ABCDE",
+    "fieldObjectIdNotNull": "789ABCDEF0123456789ABCDE"
   }
 ]

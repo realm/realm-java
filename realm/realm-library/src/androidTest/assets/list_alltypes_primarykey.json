@@ -20,7 +20,9 @@
                 "id" : 3,
                 "name" : "Dog3"
             }
-        ]
+        ],
+        "columnDecimal128" : -42,
+        "columnObjectId": "789ABCDEF0123456789ABCDE"
     },
     {
         "columnString" : "Bar",
@@ -43,6 +45,8 @@
                 "id" : 6,
                 "name" : "Dog6"
             }
-        ]
+        ],
+        "columnDecimal128" : -43,
+        "columnObjectId": "789ABCDEF0123456789ABCDA"
     }
 ]
