@@ -1101,7 +1101,6 @@ class DictionaryTests {
     }
 
     @Test
-    @Ignore("keySet isn't ready yet so it's not possible to create detached copies yet")
     fun copyFromRealm_boolean() {
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
@@ -1131,7 +1130,6 @@ class DictionaryTests {
     }
 
     @Test
-    @Ignore("keySet isn't ready yet so it's not possible to create detached copies yet")
     fun copyFromRealm_realmModel() {
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
