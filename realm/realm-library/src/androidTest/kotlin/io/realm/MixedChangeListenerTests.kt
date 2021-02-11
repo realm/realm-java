@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Realm Inc.
+ * Copyright 2021 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,16 @@ import io.realm.entities.AllJavaTypes
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
-import org.junit.*
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.util.*
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 
 @RunWith(Parameterized::class)
@@ -182,14 +187,14 @@ class MixedChangeListenerTests(private val testingType: MixedType, private val f
 
                 looperThread.keepStrongReference(managedAll)
 
-                RealmObject.addChangeListener<RealmModel>(managedAll, { _, changeSet ->
+                managedAll.addChangeListener { _: AllJavaTypes, changeSet ->
                     changeSet!!
                     looperThread.postRunnable(Runnable {
-                        Assert.assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
-                        Assert.assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
                         looperThread.testComplete()
                     })
-                })
+                }
 
                 realm.beginTransaction()
 
@@ -223,14 +228,14 @@ class MixedChangeListenerTests(private val testingType: MixedType, private val f
 
                 looperThread.keepStrongReference(managedAll)
 
-                RealmObject.addChangeListener<RealmModel>(managedAll, { _, changeSet ->
+                managedAll.addChangeListener<RealmModel> { _, changeSet ->
                     changeSet!!
                     looperThread.postRunnable(Runnable {
-                        Assert.assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
-                        Assert.assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
                         looperThread.testComplete()
                     })
-                })
+                }
 
                 realm.beginTransaction()
 
@@ -264,14 +269,14 @@ class MixedChangeListenerTests(private val testingType: MixedType, private val f
 
                 looperThread.keepStrongReference(managedAll)
 
-                RealmObject.addChangeListener<RealmModel>(managedAll, { _, changeSet ->
+                managedAll.addChangeListener { _: AllJavaTypes, changeSet ->
                     changeSet!!
                     looperThread.postRunnable(Runnable {
-                        Assert.assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
-                        Assert.assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
                         looperThread.testComplete()
                     })
-                })
+                }
 
                 realm.beginTransaction()
 
@@ -305,14 +310,14 @@ class MixedChangeListenerTests(private val testingType: MixedType, private val f
 
                 looperThread.keepStrongReference(managedAll)
 
-                RealmObject.addChangeListener<RealmModel>(managedAll, { _, changeSet ->
+                managedAll.addChangeListener { _: AllJavaTypes, changeSet ->
                     changeSet!!
                     looperThread.postRunnable(Runnable {
-                        Assert.assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
-                        Assert.assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
                         looperThread.testComplete()
                     })
-                })
+                }
 
                 realm.beginTransaction()
 
@@ -346,14 +351,14 @@ class MixedChangeListenerTests(private val testingType: MixedType, private val f
 
                 looperThread.keepStrongReference(managedAll)
 
-                RealmObject.addChangeListener<RealmModel>(managedAll, { _, changeSet ->
+                managedAll.addChangeListener { _: AllJavaTypes, changeSet ->
                     changeSet!!
                     looperThread.postRunnable(Runnable {
-                        Assert.assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
-                        Assert.assertFalse(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
+                        assertFalse(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
                         looperThread.testComplete()
                     })
-                })
+                }
 
                 realm.beginTransaction()
 
@@ -386,14 +391,14 @@ class MixedChangeListenerTests(private val testingType: MixedType, private val f
 
                 looperThread.keepStrongReference(managedAll)
 
-                RealmObject.addChangeListener<RealmModel>(managedAll, { _, changeSet ->
+                managedAll.addChangeListener { _: AllJavaTypes, changeSet ->
                     changeSet!!
                     looperThread.postRunnable(Runnable {
-                        Assert.assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
-                        Assert.assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
                         looperThread.testComplete()
                     })
-                })
+                }
 
                 realm.beginTransaction()
 
@@ -427,14 +432,14 @@ class MixedChangeListenerTests(private val testingType: MixedType, private val f
 
                 looperThread.keepStrongReference(managedAll)
 
-                RealmObject.addChangeListener<RealmModel>(managedAll, { _, changeSet ->
+                managedAll.addChangeListener { _: AllJavaTypes, changeSet ->
                     changeSet!!
                     looperThread.postRunnable(Runnable {
-                        Assert.assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
-                        Assert.assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
                         looperThread.testComplete()
                     })
-                })
+                }
 
                 realm.beginTransaction()
 
@@ -459,20 +464,20 @@ class MixedChangeListenerTests(private val testingType: MixedType, private val f
             Realm.getInstance(realmConfiguration).use { realm ->
                 realm.beginTransaction()
 
-                val managedAll = realm.copyToRealmOrUpdate(first as RealmModel)
+                val managedAll = realm.copyToRealmOrUpdate(first as AllJavaTypes)
 
                 realm.commitTransaction()
 
                 looperThread.keepStrongReference(managedAll)
 
-                RealmObject.addChangeListener<RealmModel>(managedAll, { _, changeSet ->
+                RealmObject.addChangeListener(managedAll) { _, changeSet ->
                     changeSet!!
                     looperThread.postRunnable(Runnable {
-                        Assert.assertFalse(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
-                        Assert.assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
+                        assertFalse(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
                         looperThread.testComplete()
                     })
-                })
+                }
 
                 realm.beginTransaction()
 
