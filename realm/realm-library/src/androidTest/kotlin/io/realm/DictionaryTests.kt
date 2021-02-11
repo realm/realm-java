@@ -904,6 +904,72 @@ class DictionaryTests {
         }
     }
 
+    @Test
+    @Ignore("keySet isn't ready yet so it's not possible to create detached copies yet")
+    fun copyFromRealm_boolean() {
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myBooleanDictionary = RealmDictionary<Boolean>().apply {
+                    put(KEY_HELLO, VALUE_HELLO)
+                    put(KEY_BYE, VALUE_BYE)
+                    put(KEY_NULL, null)
+                }
+            }
+            transactionRealm.copyToRealm(dictionaryObject)
+        }
+
+        val dictionaryObjectFromRealm = realm.where<DictionaryClass>()
+                .findFirst()
+        assertNotNull(dictionaryObjectFromRealm)
+        val detachedObject = realm.copyFromRealm(dictionaryObjectFromRealm)
+        detachedObject.myBooleanDictionary.also {
+            assertNotNull(it)
+            assertTrue(it.containsKey(KEY_HELLO))
+            assertTrue(it.containsKey(KEY_BYE))
+            assertTrue(it.containsKey(KEY_NULL))
+            assertTrue(it.containsValue(VALUE_HELLO))
+            assertTrue(it.containsValue(VALUE_BYE))
+            assertTrue(it.containsValue(null))
+        }
+
+    }
+
+    @Test
+    @Ignore("keySet isn't ready yet so it's not possible to create detached copies yet")
+    fun copyFromRealm_realmModel() {
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myRealmModelDictionary = RealmDictionary<MyRealmModel>().apply {
+                    put(KEY_HELLO, MyRealmModel().apply { id = "Hello" })
+                    put(KEY_BYE, MyRealmModel().apply { id = "Bye" })
+                    put(KEY_NULL, null)
+                }
+            }
+            transactionRealm.copyToRealm(dictionaryObject)
+        }
+
+        val dictionaryObjectFromRealm = realm.where<DictionaryClass>()
+                .findFirst()
+        assertNotNull(dictionaryObjectFromRealm)
+        val detachedObject = realm.copyFromRealm(dictionaryObjectFromRealm)
+        detachedObject.myRealmModelDictionary.also {
+            assertNotNull(it)
+            assertTrue(it.containsKey(KEY_HELLO))
+            assertTrue(it.containsKey(KEY_BYE))
+            assertTrue(it.containsKey(KEY_NULL))
+            it[KEY_HELLO].also { model ->
+                assertNotNull(model)
+                assertEquals("Hello", model.id)
+            }
+            it[KEY_BYE].also { model ->
+                assertNotNull(model)
+                assertEquals("Bye", model.id)
+            }
+            assertTrue(it.containsValue(null))
+        }
+
+    }
+
     private fun createBooleanRealmDictionary(
             withNullValues: Boolean = false
     ): RealmDictionary<Boolean> {
