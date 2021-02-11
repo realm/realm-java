@@ -198,11 +198,8 @@ class MixedChangeListenerTests(private val testingType: MixedType, private val f
 
                 realm.beginTransaction()
 
-                val updatingModel = AllJavaTypes(0)
-                updatingModel.fieldString = "FOO2"
-                updatingModel.fieldMixed = second as Mixed?
-
-                realm.copyToRealmOrUpdate(updatingModel)
+                managedAll.fieldString = "FOO2"
+                managedAll.fieldMixed = second as Mixed?
 
                 realm.commitTransaction()
             }
@@ -239,11 +236,8 @@ class MixedChangeListenerTests(private val testingType: MixedType, private val f
 
                 realm.beginTransaction()
 
-                val updatingModel = AllJavaTypes(0)
-                updatingModel.fieldString = "FOO2"
-                updatingModel.fieldMixed = third as Mixed?
-
-                realm.copyToRealmOrUpdate(updatingModel)
+                managedAll.fieldString = "FOO2"
+                managedAll.fieldMixed = third as Mixed?
 
                 realm.commitTransaction()
             }
@@ -321,11 +315,8 @@ class MixedChangeListenerTests(private val testingType: MixedType, private val f
 
                 realm.beginTransaction()
 
-                val updatingModel = AllJavaTypes(0)
-                updatingModel.fieldString = "FOO2"
-                updatingModel.fieldMixed = first
-
-                realm.copyToRealmOrUpdate(updatingModel)
+                managedAll.fieldString = "FOO2"
+                managedAll.fieldMixed = first
 
                 realm.commitTransaction()
             }
@@ -402,11 +393,8 @@ class MixedChangeListenerTests(private val testingType: MixedType, private val f
 
                 realm.beginTransaction()
 
-                val updatingModel = AllJavaTypes(0)
-                updatingModel.fieldString = "FOO2"
-                updatingModel.fieldMixed = first as Mixed?
-
-                realm.copyToRealmOrUpdate(updatingModel, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET)
+                managedAll.fieldString = "FOO2"
+                managedAll.fieldMixed = first as Mixed?
 
                 realm.commitTransaction()
             }
@@ -443,11 +431,8 @@ class MixedChangeListenerTests(private val testingType: MixedType, private val f
 
                 realm.beginTransaction()
 
-                val updatingModel = AllJavaTypes(0)
-                updatingModel.fieldString = "FOO2"
-                updatingModel.fieldMixed = Mixed.nullValue()
-
-                realm.copyToRealmOrUpdate(updatingModel, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET)
+                managedAll.fieldString = "FOO2"
+                managedAll.fieldMixed = Mixed.nullValue()
 
                 realm.commitTransaction()
             }
