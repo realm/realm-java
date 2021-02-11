@@ -232,11 +232,13 @@ abstract class MapValueOperator<K, V> {
     }
 
     public void putAll(Map<K, V> map) {
-        // FIXME: entrySet for managed dictionaries isn't implemented so it will fail in such case
-        for (Map.Entry<K, V> entry : map.entrySet()) {
+        // FIXME: entrySet for managed dictionaries isn't implemented because of missing sets
+        //  Anyhow, see comment below
+        for (K key : map.keySet()) {
             // TODO: inefficient, pass array of keys and array of values to JNI instead,
             //  which requires operators to implement it as it varies from type to type
-            put(entry.getKey(), entry.getValue());
+            V value = map.get(key);
+            put(key, value);
         }
     }
 

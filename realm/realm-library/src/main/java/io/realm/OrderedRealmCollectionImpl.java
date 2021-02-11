@@ -107,7 +107,9 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
             }
 
             for (E e : this) {
-                if (e.equals(object)) {
+                if (e!= null && e.equals(object)) {
+                    return true;
+                } else if (object == null) {
                     return true;
                 }
             }
