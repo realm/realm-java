@@ -1125,7 +1125,7 @@ class DictionaryTests {
             assertTrue(it.containsKey(KEY_NULL))
             assertTrue(it.containsValue(VALUE_HELLO))
             assertTrue(it.containsValue(VALUE_BYE))
-            assertNull(it.containsValue(null))
+            assertTrue(it.containsValue(null))
         }
 
     }
@@ -1161,7 +1161,7 @@ class DictionaryTests {
                 assertNotNull(model)
                 assertEquals("Bye", model.id)
             }
-            assertNull(it.containsValue(null))
+            assertTrue(it.containsValue(null))
         }
 
     }
