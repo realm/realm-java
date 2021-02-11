@@ -53,7 +53,7 @@ inline static bool is_allowed_to_index(JNIEnv* env, DataType column_type)
     }
 
     ThrowException(env, IllegalArgument, "This field cannot be indexed - "
-                                         "Only String/byte/short/int/long/boolean/Date/ObjectId/Mixed fields are supported.");
+                                         "Only String/byte/short/int/long/boolean/Date/ObjectId/UUID/Mixed fields are supported.");
     return false;
 }
 
