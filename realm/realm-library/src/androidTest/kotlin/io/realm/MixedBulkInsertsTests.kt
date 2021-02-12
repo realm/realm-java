@@ -30,10 +30,7 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.util.*
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 @RunWith(AndroidJUnit4::class)
 class MixedBulkInsertsTests {
@@ -118,7 +115,14 @@ class MixedBulkInsertsTests {
         val value = realm.createObject<MixedNotIndexedWithPK>(0)
 
         val inner = MixedNotIndexedWithPK(1)
-        inner.mixed = Mixed.valueOf(PrimaryKeyAsString(TEST_VALUE_1))
+        val allTypes = AllJavaTypes(0)
+        allTypes.fieldString = TEST_VALUE_1
+        val innerAllJavaTypes = AllJavaTypes(1)
+        innerAllJavaTypes.fieldString = TEST_VALUE_2
+
+        allTypes.fieldObject = innerAllJavaTypes
+
+        inner.mixed = Mixed.valueOf(allTypes)
         value.mixed = Mixed.valueOf(inner)
 
         realm.commitTransaction()
@@ -135,8 +139,12 @@ class MixedBulkInsertsTests {
 
         assertEquals(Mixed.nullValue(), copy0.mixed)
         assertEquals(Mixed.nullValue(), copy1.mixed!!.asRealmModel(MixedNotIndexedWithPK::class.java).mixed)
-        assertEquals(TEST_VALUE_1, copy2.mixed!!.asRealmModel(MixedNotIndexedWithPK::class.java).mixed!!.asRealmModel(PrimaryKeyAsString::class.java).name)
-        assertEquals(TEST_VALUE_1, copy3.mixed!!.asRealmModel(MixedNotIndexedWithPK::class.java).mixed!!.asRealmModel(PrimaryKeyAsString::class.java).name)
+        assertEquals(TEST_VALUE_1, copy2.mixed!!.asRealmModel(MixedNotIndexedWithPK::class.java).mixed!!.asRealmModel(AllJavaTypes::class.java).fieldString)
+        assertNull(copy2.mixed!!.asRealmModel(MixedNotIndexedWithPK::class.java).mixed!!.asRealmModel(AllJavaTypes::class.java).fieldObject)
+
+        assertEquals(TEST_VALUE_1, copy3.mixed!!.asRealmModel(MixedNotIndexedWithPK::class.java).mixed!!.asRealmModel(AllJavaTypes::class.java).fieldString)
+        assertNotNull(copy3.mixed!!.asRealmModel(MixedNotIndexedWithPK::class.java).mixed!!.asRealmModel(AllJavaTypes::class.java).fieldObject)
+        assertEquals(TEST_VALUE_2, copy3.mixed!!.asRealmModel(MixedNotIndexedWithPK::class.java).mixed!!.asRealmModel(AllJavaTypes::class.java).fieldObject.fieldString)
     }
 
     @Test
@@ -440,7 +448,7 @@ class MixedBulkInsertsTests {
             realm.insert(arrayListOf(value1, value2))
         }
 
-        val objects = realm.where<MixedNotIndexedWithPK>().findAll()!!
+        val objects = realm.where<MixedNotIndexedWithPK>().findAll()
 
         val managedInnerObject1 = objects[0]!!.mixed!!.asRealmModel(PrimaryKeyAsString::class.java)
         val managedInnerObject2 = objects[1]!!.mixed!!.asRealmModel(PrimaryKeyAsString::class.java)
@@ -466,7 +474,7 @@ class MixedBulkInsertsTests {
             realm.insert(arrayListOf(value1, value2))
         }
 
-        val objects = realm.where<MixedRealmListWithPK>().findAll()!!
+        val objects = realm.where<MixedRealmListWithPK>().findAll()
 
         assertTrue(objects[0]!!.mixedList.containsAll(testList1.asList()))
         assertTrue(objects[1]!!.mixedList.containsAll(testList1.asList()))

@@ -494,10 +494,12 @@ object RealmJsonTypeHelper {
                             emitStatement("mixed = Mixed.valueOf((Double) value)")
                         nextControlFlow("else if (value instanceof Boolean)")
                             emitStatement("mixed = Mixed.valueOf((Boolean) value)")
+                        nextControlFlow("else if (value instanceof Mixed)")
+                            emitStatement("mixed = (io.realm.Mixed) value")
+                            emitStatement("mixed = ProxyUtils.copyOrUpdate(mixed, realm, update, new HashMap<>(), new HashSet<>())")
                         nextControlFlow("else")
                             emitStatement("throw new IllegalArgumentException(String.format(\"Unsupported JSON type: %%s\", value.getClass().getSimpleName()))")
                         endControlFlow()
-
                         emitStatement("${varName}.${accessor}(mixed)")
                     endControlFlow()
                 endControlFlow()
