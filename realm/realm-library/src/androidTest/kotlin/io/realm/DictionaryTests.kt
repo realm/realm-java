@@ -512,7 +512,6 @@ class DictionaryTests {
                 assertNull(dictionary[KEY_NULL])
             }
 
-            // entrySet for managed maps throws until further notice
             val emptyDictionary = instanceFromRealm.emptyBooleanDictionary
             assertNotNull(emptyDictionary)
             assertTrue(emptyDictionary.isEmpty())
@@ -618,17 +617,109 @@ class DictionaryTests {
     }
 
     @Test
-    fun managed_entrySet() {
+    fun managed_entrySet_string() {
         realm.executeTransaction { transactionRealm ->
             val dictionaryObject = DictionaryClass().apply {
-                myStringDictionary = RealmDictionary()
+                myStringDictionary = RealmDictionary<String>().apply {
+                    put(KEY_HELLO, VALUE_HELLO_STRING)
+                    put(KEY_BYE, VALUE_BYE_STRING)
+                    put(KEY_NULL, VALUE_NULL)
+                }
             }
 
             val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
             val dictionaryFromRealm = dictionaryObjectFromRealm.myStringDictionary
             assertNotNull(dictionaryFromRealm)
-            assertFailsWith<UnsupportedOperationException> {
-                dictionaryFromRealm.entries
+
+            val entrySet: Set<Map.Entry<String, String?>> = dictionaryFromRealm.entries
+
+            // Test size
+            assertEquals(3, entrySet.size)
+
+            // Test contains
+            assertTrue(entrySet.contains(AbstractMap.SimpleImmutableEntry(KEY_HELLO, VALUE_HELLO_STRING)))
+            assertTrue(entrySet.contains(AbstractMap.SimpleImmutableEntry(KEY_BYE, VALUE_BYE_STRING)))
+            assertTrue(entrySet.contains(AbstractMap.SimpleImmutableEntry(KEY_NULL, VALUE_NULL)))
+            assertFalse(entrySet.contains(AbstractMap.SimpleImmutableEntry("SOME_KEY", "SOME_VALUE")))
+
+            // Test contains all
+            val sameCollection = setOf<Map.Entry<String, String?>>(
+                    AbstractMap.SimpleImmutableEntry(KEY_HELLO, VALUE_HELLO_STRING),
+                    AbstractMap.SimpleImmutableEntry(KEY_BYE, VALUE_BYE_STRING),
+                    AbstractMap.SimpleImmutableEntry(KEY_NULL, VALUE_NULL)
+            )
+            assertTrue(entrySet.containsAll(sameCollection))
+            val differentCollection = setOf<Map.Entry<String, String?>>(
+                    AbstractMap.SimpleImmutableEntry("SOME_KEY", "SOME_VALUE"),
+                    AbstractMap.SimpleImmutableEntry(KEY_BYE, VALUE_BYE_STRING),
+                    AbstractMap.SimpleImmutableEntry(KEY_NULL, VALUE_NULL)
+            )
+            assertFalse(entrySet.containsAll(differentCollection))
+        }
+    }
+
+    @Test
+    fun managed_entrySet_mixed() {
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myMixedDictionary = RealmDictionary<Mixed>().apply {
+                    put(KEY_HELLO, Mixed.valueOf(VALUE_HELLO_STRING))
+                    put(KEY_BYE, Mixed.valueOf(MyRealmModel().apply { id = VALUE_BYE_STRING }))
+                    put(KEY_NULL, VALUE_NULL)
+                }
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myMixedDictionary
+            assertNotNull(dictionaryFromRealm)
+            val entrySet: Set<Map.Entry<String, Mixed?>> = dictionaryFromRealm.entries
+            assertEquals(3, entrySet.size)
+            assertTrue(entrySet.contains(AbstractMap.SimpleImmutableEntry(KEY_HELLO, Mixed.valueOf(VALUE_HELLO_STRING))))
+            assertTrue(entrySet.contains(AbstractMap.SimpleImmutableEntry(KEY_NULL, Mixed.nullValue())))
+            assertFalse(entrySet.contains(AbstractMap.SimpleImmutableEntry(KEY_HELLO, Mixed.valueOf(true))))
+
+            // Check we got the model too
+            for (entry in entrySet) {
+                val value: Mixed? = entry.value
+                if (value?.type != MixedType.OBJECT) {
+                    continue
+                }
+                val model = value.asRealmModel(MyRealmModel::class.java)
+                assertEquals(VALUE_BYE_STRING, model.id)
+            }
+        }
+    }
+
+    @Test
+    fun managed_entrySet_realmModel() {
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = DictionaryClass().apply {
+                myRealmModelDictionary = RealmDictionary<MyRealmModel>().apply {
+                    put(KEY_HELLO, MyRealmModel().apply { id = VALUE_HELLO_STRING })
+                    put(KEY_BYE, MyRealmModel().apply { id = VALUE_BYE_STRING })
+                    put(KEY_NULL, VALUE_NULL)
+                }
+            }
+
+            val dictionaryObjectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            val dictionaryFromRealm = dictionaryObjectFromRealm.myRealmModelDictionary
+            assertNotNull(dictionaryFromRealm)
+
+            val entrySet: Set<Map.Entry<String, MyRealmModel?>> = dictionaryFromRealm.entries
+            assertEquals(3, entrySet.size)
+            assertTrue(entrySet.contains(AbstractMap.SimpleImmutableEntry(KEY_NULL, VALUE_NULL)))
+            for (entry in entrySet) {
+                val key = entry.key
+                val value = entry.value
+                if (key == KEY_HELLO && value?.id == VALUE_HELLO_STRING) {
+                    continue
+                } else if (key == KEY_BYE && value?.id == VALUE_BYE_STRING) {
+                    continue
+                } else if (key == KEY_NULL && value == null) {
+                    continue
+                } else {
+                    fail("None of the inserted objects could be found.")
+                }
             }
         }
     }

@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import io.realm.internal.ClassContainer;
 import io.realm.internal.OsMap;
 
 /**

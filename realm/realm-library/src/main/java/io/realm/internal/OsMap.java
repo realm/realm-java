@@ -25,6 +25,7 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import io.realm.internal.android.TypeUtils;
+import io.realm.internal.core.NativeMixed;
 import io.realm.internal.util.Pair;
 
 /**
@@ -166,6 +167,31 @@ public class OsMap implements NativeObject {
         return nativeCreateAndPutEmbeddedObject(sharedRealm.getNativePtr(), nativePtr, (String) key);
     }
 
+    public <K> Pair<K, Long> getKeyObjRowPair(int position) {
+        // entry from OsMap is an array: entry[0] is key and entry[1] is the object key
+        Object[] entry = nativeGetEntryForModel(nativePtr, position);
+        String key = (String) entry[0];
+        long objRow = (long) entry[1];
+
+        if (objRow == NOT_FOUND) {
+            //noinspection unchecked
+            return new Pair<>((K) key, (long) NOT_FOUND);
+        }
+
+        //noinspection unchecked
+        return new Pair<>((K) key, objRow);
+    }
+
+    public <K> Pair<K, NativeMixed> getKeyMixedPair(int position) {
+        // entry from OsMap is an array: entry[0] is key and entry[1] is a Mixed value
+        Object[] entry = nativeGetEntryForMixed(nativePtr, position);
+        String key = (String) entry[0];
+        NativeMixed nativeMixed = new NativeMixed((long) entry[1]);
+
+        //noinspection unchecked
+        return new Pair<>((K) key, nativeMixed);
+    }
+
     private static native long nativeGetFinalizerPtr();
 
     private static native long nativeCreate(long sharedRealmPtr, long nativeRowPtr, long columnKey);
@@ -217,4 +243,8 @@ public class OsMap implements NativeObject {
     private static native long nativeFreeze(long nativePtr, long realmPtr);
 
     private static native long nativeCreateAndPutEmbeddedObject(long sharedRealmPtr, long nativePtr, String key);
+
+    private static native Object[] nativeGetEntryForModel(long nativePtr, int position);
+
+    private static native Object[] nativeGetEntryForMixed(long nativePtr, int position);
 }

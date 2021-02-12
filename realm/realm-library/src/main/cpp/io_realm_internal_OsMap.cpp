@@ -397,3 +397,42 @@ Java_io_realm_internal_OsMap_nativeCreateAndPutEmbeddedObject(JNIEnv* env, jclas
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
 }
+
+JNIEXPORT jobjectArray JNICALL
+Java_io_realm_internal_OsMap_nativeGetEntryForModel(JNIEnv* env, jclass, jlong map_ptr, jint j_pos) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        const std::pair<StringData, Mixed>& pair = dictionary.get_pair(j_pos);
+        const StringData& key = pair.first;
+        const Mixed& mixed = pair.second;
+
+        jobjectArray pair_array = env->NewObjectArray(2, JavaClassGlobalDef::java_lang_object(), NULL);
+        env->SetObjectArrayElement(pair_array, 0, to_jstring(env, key));
+        if (mixed.is_null()) {
+            env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_long(env, io_realm_internal_OsMap_NOT_FOUND));
+        } else {
+            env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_long(env, mixed.get<ObjKey>().value));
+        }
+        return pair_array;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jobjectArray JNICALL
+Java_io_realm_internal_OsMap_nativeGetEntryForMixed(JNIEnv* env, jclass, jlong map_ptr, jint j_pos) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        const std::pair<StringData, Mixed>& pair = dictionary.get_pair(j_pos);
+        const StringData& key = pair.first;
+        const Mixed& mixed = pair.second;
+
+        jlong mixed_ptr = reinterpret_cast<jlong>(new JavaValue(from_mixed(mixed)));
+        jobjectArray pair_array = env->NewObjectArray(2, JavaClassGlobalDef::java_lang_object(), NULL);
+        env->SetObjectArrayElement(pair_array, 0, to_jstring(env, key));
+        env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_long(env, mixed_ptr));
+        return pair_array;
+    }
+    CATCH_STD()
+    return nullptr;
+}

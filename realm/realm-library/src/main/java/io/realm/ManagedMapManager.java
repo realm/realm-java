@@ -23,6 +23,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import io.realm.internal.ClassContainer;
 import io.realm.internal.Freezable;
 import io.realm.internal.ManageableObject;
 import io.realm.internal.OsMap;
@@ -55,6 +56,9 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
     public abstract V put(K key, V value);
 
     @Override
+    public abstract Set<Entry<K, V>> entrySet();
+
+    @Override
     public boolean isManaged() {
         return true;
     }
@@ -67,6 +71,13 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
     @Override
     public boolean isFrozen() {
         return mapValueOperator.isFrozen();
+    }
+
+    @Override
+    public V remove(Object key) {
+        V removedValue = mapValueOperator.get(key);
+        mapValueOperator.remove(key);
+        return removedValue;
     }
 
     @Override
@@ -108,12 +119,6 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
     @Override
     public Collection<V> values() {
         return mapValueOperator.values();
-    }
-
-    @Override
-    public Set<Entry<K, V>> entrySet() {
-        // Throw until we have sets in place
-        throw new UnsupportedOperationException("Managed maps do not support 'entrySet' yet.");
     }
 
     @Override
@@ -172,10 +177,8 @@ class DictionaryManager<V> extends ManagedMapManager<String, V> {
     }
 
     @Override
-    public V remove(Object key) {
-        V removedValue = mapValueOperator.get(key);
-        mapValueOperator.remove(key);
-        return removedValue;
+    public Set<Entry<String, V>> entrySet() {
+        return mapValueOperator.entrySet();
     }
 }
 
@@ -202,6 +205,8 @@ abstract class MapValueOperator<K, V> {
 
     @Nullable
     public abstract V put(Object key, @Nullable V value);
+
+    public abstract Set<Map.Entry<K, V>> entrySet();
 
     public void remove(Object key) {
         osMap.remove(key);
@@ -232,13 +237,10 @@ abstract class MapValueOperator<K, V> {
     }
 
     public void putAll(Map<K, V> map) {
-        // FIXME: entrySet for managed dictionaries isn't implemented because of missing sets
-        //  Anyhow, see comment below
-        for (K key : map.keySet()) {
-            // TODO: inefficient, pass array of keys and array of values to JNI instead,
-            //  which requires operators to implement it as it varies from type to type
-            V value = map.get(key);
-            put(key, value);
+        // TODO: inefficient, pass array of keys and array of values to JNI instead,
+        //  which requires operators to implement it as it varies from type to type
+        for (Map.Entry<K, V> entry : map.entrySet()) {
+            put(entry.getKey(), entry.getValue());
         }
     }
 
@@ -310,6 +312,11 @@ class MixedValueOperator<K> extends MapValueOperator<K, Mixed> {
         }
         return original;
     }
+
+    @Override
+    public Set<Map.Entry<K, Mixed>> entrySet() {
+        return new RealmMapEntrySet<>(baseRealm, osMap, RealmMapEntrySet.IteratorType.MIXED, null);
+    }
 }
 
 /**
@@ -338,6 +345,11 @@ class BoxableValueOperator<K, V> extends MapValueOperator<K, V> {
         V original = get(key);
         osMap.put(key, value);
         return original;
+    }
+
+    @Override
+    public Set<Map.Entry<K, V>> entrySet() {
+        return new RealmMapEntrySet<>(baseRealm, osMap, RealmMapEntrySet.IteratorType.PRIMITIVE, null);
     }
 
     /**
@@ -461,30 +473,9 @@ class RealmModelValueOperator<K, V> extends MapValueOperator<K, V> {
             return (V) baseRealm.get((Class<? extends RealmModel>) clazz, className, rowModelKey);
         }
     }
-}
 
-/**
- * Used to avoid passing a {@link Class} and a {@link String} via parameters to the value operators.
- */
-class ClassContainer {
-
-    @Nullable
-    private final Class<?> clazz;
-    @Nullable
-    private final String className;
-
-    public ClassContainer(@Nullable Class<?> clazz, @Nullable String className) {
-        this.clazz = clazz;
-        this.className = className;
-    }
-
-    @Nullable
-    public Class<?> getClazz() {
-        return clazz;
-    }
-
-    @Nullable
-    public String getClassName() {
-        return className;
+    @Override
+    public Set<Map.Entry<K, V>> entrySet() {
+        return new RealmMapEntrySet<>(baseRealm, osMap, RealmMapEntrySet.IteratorType.OBJECT, classContainer);
     }
 }
