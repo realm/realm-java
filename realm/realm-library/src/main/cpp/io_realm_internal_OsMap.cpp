@@ -109,7 +109,7 @@ Java_io_realm_internal_OsMap_nativeGetMixedPtr(JNIEnv *env, jclass, jlong map_pt
         }
     }
     CATCH_STD();
-    return -1;
+    return io_realm_internal_OsMap_NOT_FOUND;
 }
 
 JNIEXPORT jlong JNICALL
@@ -128,7 +128,7 @@ Java_io_realm_internal_OsMap_nativeGetRow(JNIEnv* env, jclass, jlong map_ptr,
     }
     CATCH_STD()
 
-    return -1;
+    return io_realm_internal_OsMap_NOT_FOUND;
 }
 
 JNIEXPORT void JNICALL
