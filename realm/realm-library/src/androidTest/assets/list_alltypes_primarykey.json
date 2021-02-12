@@ -20,7 +20,11 @@
                 "id" : 3,
                 "name" : "Dog3"
             }
-        ]
+        ],
+        "columnDecimal128" : -42,
+        "columnObjectId": "789ABCDEF0123456789ABCDE",
+        "columnUUID": "027ba5ca-aa12-4afa-9219-e20cc3018599",
+        "columnMixed": 5
     },
     {
         "columnString" : "Bar",
@@ -43,6 +47,10 @@
                 "id" : 6,
                 "name" : "Dog6"
             }
-        ]
+        ],
+        "columnDecimal128" : -43,
+        "columnObjectId": "789ABCDEF0123456789ABCDA",
+        "columnUUID": "027ba5ca-aa12-4afa-9219-e20cc3018590",
+        "columnMixed": "hello world"
     }
 ]

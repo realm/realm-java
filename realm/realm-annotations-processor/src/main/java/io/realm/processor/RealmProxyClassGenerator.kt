@@ -2743,7 +2743,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     isFieldTypeEmbedded(fieldType),
                                     writer)
                         }
-                        Utils.isRealmValueList(field) -> emitStatement("ProxyUtils.setRealmListWithJsonObject(objProxy.%1\$s(), json, \"%2\$s\")", metadata.getInternalGetter(fieldName), fieldName)
+                        Utils.isRealmValueList(field) || Utils.isMixedList(field) -> emitStatement("ProxyUtils.setRealmListWithJsonObject(realm, objProxy.%1\$s(), json, \"%2\$s\", update)", metadata.getInternalGetter(fieldName), fieldName)
                         Utils.isMutableRealmInteger(field) -> RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
                                 "objProxy",
                                 metadata.getInternalGetter(fieldName),
@@ -2824,7 +2824,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     Utils.getProxyClassSimpleName(field),
                                     writer)
                         }
-                        Utils.isRealmValueList(field) -> {
+                        Utils.isRealmValueList(field) || Utils.isMixedList(field) -> {
                             emitStatement("objProxy.%1\$s(ProxyUtils.createRealmListWithJsonStream(%2\$s.class, reader))", metadata.getInternalSetter(fieldName), Utils.getRealmListType(field))
                         }
                         Utils.isMutableRealmInteger(field) -> {
@@ -2984,6 +2984,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     "java.util.Date",
                     "java.util.Map",
                     "java.util.HashMap",
+                    "java.util.HashSet",
                     "java.util.Set",
                     "org.json.JSONObject",
                     "org.json.JSONException",
