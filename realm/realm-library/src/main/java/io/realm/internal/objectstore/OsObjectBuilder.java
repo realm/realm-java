@@ -453,9 +453,13 @@ public class OsObjectBuilder implements Closeable {
     private <T> void addListItem(long builderPtr, long columnKey, @Nullable List<T> list, ItemCallback<T> itemCallback) {
         if (list != null) {
             long listPtr = nativeStartList(list.size());
+            boolean isNullable = (columnKey == 0) || table.isColumnNullable(columnKey);
             for (int i = 0; i < list.size(); i++) {
                 T item = list.get(i);
                 if (item == null) {
+                    if (!isNullable) {
+                        throw new IllegalArgumentException("This 'RealmList' is not nullable. A non-null value is expected.");
+                    }
                     nativeAddNullListItem(listPtr);
                 } else {
                     itemCallback.handleItem(listPtr, item);

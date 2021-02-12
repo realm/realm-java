@@ -16,8 +16,13 @@
 
 package io.realm.entities;
 
-import java.util.Date;
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 
+import java.util.Date;
+import java.util.UUID;
+
+import io.realm.Mixed;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
@@ -34,6 +39,10 @@ public class AllTypesPrimaryKey extends RealmObject {
     private DogPrimaryKey columnRealmObject;
     private RealmList<DogPrimaryKey> columnRealmList;
     private Boolean columnBoxedBoolean;
+    private ObjectId columnObjectId;
+    private Decimal128 columnDecimal128;
+    private UUID columnUUID;
+    private Mixed columnMixed;
 
     private RealmList<String> columnStringList;
     private RealmList<byte[]> columnBinaryList;
@@ -42,6 +51,10 @@ public class AllTypesPrimaryKey extends RealmObject {
     private RealmList<Double> columnDoubleList;
     private RealmList<Float> columnFloatList;
     private RealmList<Date> columnDateList;
+    private RealmList<ObjectId> columnObjectIdList;
+    private RealmList<Decimal128> columnDecimal128List;
+    private RealmList<UUID> columnUUIDList;
+    private RealmList<Mixed> columnMixedList;
 
     public String getColumnString() {
         return columnString;
@@ -123,6 +136,38 @@ public class AllTypesPrimaryKey extends RealmObject {
         this.columnBoxedBoolean = columnBoxedBoolean;
     }
 
+    public ObjectId getColumnObjectId() {
+        return columnObjectId;
+    }
+
+    public void setColumnObjectId(ObjectId columnObjectId) {
+        this.columnObjectId = columnObjectId;
+    }
+
+    public Decimal128 getColumnDecimal128() {
+        return columnDecimal128;
+    }
+
+    public void setColumnDecimal128(Decimal128 columnDecimal128) {
+        this.columnDecimal128 = columnDecimal128;
+    }
+
+    public UUID getColumnUUID() {
+        return columnUUID;
+    }
+
+    public void setColumnUUID(UUID columnUUID) {
+        this.columnUUID = columnUUID;
+    }
+
+    public Mixed getColumnMixed() {
+        return columnMixed;
+    }
+
+    public void setColumnMixed(Mixed columnMixed) {
+        this.columnMixed = columnMixed;
+    }
+
     public RealmList<String> getColumnStringList() {
         return columnStringList;
     }
@@ -177,5 +222,37 @@ public class AllTypesPrimaryKey extends RealmObject {
 
     public void setColumnDateList(RealmList<Date> columnDateList) {
         this.columnDateList = columnDateList;
+    }
+
+    public RealmList<ObjectId> getColumnObjectIdList() {
+        return columnObjectIdList;
+    }
+
+    public void setColumnObjectIdList(RealmList<ObjectId> columnObjectIdList) {
+        this.columnObjectIdList = columnObjectIdList;
+    }
+
+    public RealmList<Decimal128> getColumnDecimal128List() {
+        return columnDecimal128List;
+    }
+
+    public void setColumnDecimal128List(RealmList<Decimal128> columnDecimal128List) {
+        this.columnDecimal128List = columnDecimal128List;
+    }
+
+    public RealmList<UUID> getColumnUUIDList() {
+        return columnUUIDList;
+    }
+
+    public void setColumnUUIDList(RealmList<UUID> columnUUIDList) {
+        this.columnUUIDList = columnUUIDList;
+    }
+
+    public RealmList<Mixed> getColumnMixedList() {
+        return columnMixedList;
+    }
+
+    public void setColumnMixedList(RealmList<Mixed> columnMixedList) {
+        this.columnMixedList = columnMixedList;
     }
 }
