@@ -30,6 +30,11 @@ import static io.realm.RealmFieldType.FLOAT_LIST;
 import static io.realm.RealmFieldType.INTEGER_LIST;
 import static io.realm.RealmFieldType.MIXED_LIST;
 import static io.realm.RealmFieldType.OBJECT_ID_LIST;
+import static io.realm.RealmFieldType.TYPED_LINK;
+import static io.realm.RealmFieldType.UUID_LIST;
+import static io.realm.RealmFieldType.STRING_LIST;
+import static io.realm.RealmFieldType.STRING_TO_MIXED_MAP;
+import static io.realm.RealmFieldType.STRING_TO_BOOLEAN_MAP;
 import static io.realm.RealmFieldType.STRING_TO_BINARY_MAP;
 import static io.realm.RealmFieldType.STRING_TO_DATE_MAP;
 import static io.realm.RealmFieldType.STRING_TO_DECIMAL128_MAP;
@@ -40,11 +45,6 @@ import static io.realm.RealmFieldType.STRING_TO_LINK_MAP;
 import static io.realm.RealmFieldType.STRING_TO_OBJECT_ID_MAP;
 import static io.realm.RealmFieldType.STRING_TO_STRING_MAP;
 import static io.realm.RealmFieldType.STRING_TO_UUID_MAP;
-import static io.realm.RealmFieldType.TYPED_LINK;
-import static io.realm.RealmFieldType.UUID_LIST;
-import static io.realm.RealmFieldType.STRING_LIST;
-import static io.realm.RealmFieldType.STRING_TO_MIXED_MAP;
-import static io.realm.RealmFieldType.STRING_TO_BOOLEAN_MAP;
 
 
 /**

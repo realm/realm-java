@@ -291,7 +291,7 @@ class MixedValueOperator<K> extends MapValueOperator<K, Mixed> {
     @Override
     public Mixed get(Object key) {
         long mixedPtr = osMap.getMixedPtr(key);
-        if (mixedPtr == -1) {
+        if (mixedPtr == OsMap.NOT_FOUND) {
             return null;
         }
         NativeMixed nativeMixed = new NativeMixed(mixedPtr);
@@ -419,7 +419,7 @@ class RealmModelValueOperator<K, V> extends MapValueOperator<K, V> {
     @Override
     public V get(Object key) {
         long realmModelKey = osMap.getModelRowKey(key);
-        if (realmModelKey == -1) {
+        if (realmModelKey == OsMap.NOT_FOUND) {
             return null;
         }
 
@@ -454,7 +454,7 @@ class RealmModelValueOperator<K, V> extends MapValueOperator<K, V> {
             osMap.putRow(key, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
         }
 
-        if (rowModelKey == -1) {
+        if (rowModelKey == OsMap.NOT_FOUND) {
             return null;
         } else {
             //noinspection unchecked

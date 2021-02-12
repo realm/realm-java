@@ -20,9 +20,6 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -34,6 +31,8 @@ import io.realm.internal.util.Pair;
  * Java wrapper of Object Store Dictionary class. This backs managed versions of RealmMaps.
  */
 public class OsMap implements NativeObject {
+
+    public static final int NOT_FOUND = -1;
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
