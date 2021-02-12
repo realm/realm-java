@@ -621,7 +621,7 @@ inline Timestamp JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) co
 template <>
 inline Decimal128 JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
-    return v.has_value() ? v.get_decimal128() : Decimal128();
+    return v.has_value() ? v.get_decimal128() : Decimal128(realm::null());
 }
 
 template <>

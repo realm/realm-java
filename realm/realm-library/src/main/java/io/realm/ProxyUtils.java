@@ -20,6 +20,8 @@ import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -117,6 +119,43 @@ class ProxyUtils {
                     osList.addDate(JsonUtils.stringToDate((String) timestamp));
                 } else {
                     osList.addDate(new Date(jsonArray.getLong(i)));
+                }
+            }
+        } else if (realmList.clazz == ObjectId.class) {
+            for (int i = 0; i < arraySize; i++) {
+                if (jsonArray.isNull(i)) {
+                    osList.addNull();
+                    continue;
+                }
+
+                Object id = jsonArray.get(i);
+                if (id instanceof String) {
+                    osList.addObjectId(new ObjectId((String) id));
+                } else {
+                    osList.addObjectId((ObjectId) id);
+                }
+            }
+        } else if (realmList.clazz == Decimal128.class) {
+            for (int i = 0; i < arraySize; i++) {
+                if (jsonArray.isNull(i)) {
+                    osList.addNull();
+                    continue;
+                }
+
+                Object decimal = jsonArray.get(i);
+
+                if (decimal instanceof org.bson.types.Decimal128) {
+                    osList.addDecimal128((org.bson.types.Decimal128) decimal);
+                } else if (decimal instanceof String) {
+                    osList.addDecimal128(org.bson.types.Decimal128.parse((String) decimal));
+                } else if (decimal instanceof Integer) {
+                    osList.addDecimal128(new org.bson.types.Decimal128((Integer) (decimal)));
+                } else if (decimal instanceof Long) {
+                    osList.addDecimal128(new org.bson.types.Decimal128((Long) (decimal)));
+                } else if (decimal instanceof Double) {
+                    osList.addDecimal128(new org.bson.types.Decimal128(new java.math.BigDecimal((Double) (decimal))));
+                } else {
+                    osList.addDecimal128((Decimal128) decimal);
                 }
             }
         } else if (realmList.clazz == Long.class || realmList.clazz == Integer.class ||
@@ -243,6 +282,24 @@ class ProxyUtils {
                     realmList.add(null);
                 } else {
                     realmList.add((byte) jsonReader.nextLong());
+                }
+            }
+        } else if (elementClass == ObjectId.class) {
+            while (jsonReader.hasNext()) {
+                if (jsonReader.peek() == JsonToken.NULL) {
+                    jsonReader.skipValue();
+                    realmList.add(null);
+                } else {
+                    realmList.add(new ObjectId(jsonReader.nextString()));
+                }
+            }
+        } else if (elementClass == Decimal128.class) {
+            while (jsonReader.hasNext()) {
+                if (jsonReader.peek() == JsonToken.NULL) {
+                    jsonReader.skipValue();
+                    realmList.add(null);
+                } else {
+                    realmList.add(org.bson.types.Decimal128.parse(jsonReader.nextString()));
                 }
             }
         } else {
@@ -381,5 +438,5 @@ class ProxyUtils {
 
         return mixed;
     }
-
+    
 }
