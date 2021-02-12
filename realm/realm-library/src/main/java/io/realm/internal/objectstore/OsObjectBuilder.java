@@ -568,8 +568,6 @@ public class OsObjectBuilder implements Closeable {
         if (keys.isEmpty() && mixedPointers.isEmpty()) {
             addEmptyDictionary(columnKey);
         } else {
-//            // FIXME: deal with this once Mixed support for RealmLists is added
-//            throw new UnsupportedOperationException("Missing support for mixed.");
             long dictionaryPtr = nativeStartDictionary();
             for (int i = 0; i < keys.size(); i++) {
                 nativeAddMixedDictionaryEntry(dictionaryPtr, keys.get(i), mixedPointers.get(i));

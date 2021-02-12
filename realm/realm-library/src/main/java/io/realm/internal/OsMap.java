@@ -31,6 +31,8 @@ import io.realm.internal.android.TypeUtils;
  */
 public class OsMap implements NativeObject {
 
+    public static final int NOT_FOUND = -1;
+
     private final long nativePtr;
     private final NativeContext context;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
