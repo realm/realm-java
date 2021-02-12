@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -446,7 +447,7 @@ public class some_test_BooleansRealmProxy extends some.test.Booleans
         }
         some_test_BooleansRealmProxyInterface unmanagedCopy = (some_test_BooleansRealmProxyInterface) unmanagedObject;
         some_test_BooleansRealmProxyInterface realmSource = (some_test_BooleansRealmProxyInterface) realmObject;
-        Realm objectRealm = (Realm) ((RealmObjectProxy) realmObject).realmGet$proxyState().getRealm$realm()
+        Realm objectRealm = (Realm) ((RealmObjectProxy) realmObject).realmGet$proxyState().getRealm$realm();
         unmanagedCopy.realmSet$done(realmSource.realmGet$done());
         unmanagedCopy.realmSet$isReady(realmSource.realmGet$isReady());
         unmanagedCopy.realmSet$mCompleted(realmSource.realmGet$mCompleted());
