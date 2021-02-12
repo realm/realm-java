@@ -67,6 +67,7 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
         }
     }
 
+    private static final String NO_ALIAS = "";
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
 
     private NamePolicyMixedClassSettingsColumnInfo columnInfo;

@@ -31,6 +31,7 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 @SuppressWarnings("all")
 public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         implements RealmObjectProxy, some_test_AllTypesRealmProxyInterface {
@@ -129,6 +130,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             dst.columnObjectIdListColKey = src.columnObjectIdListColKey;
         }
     }
+    private static final String NO_ALIAS = "";
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
     private AllTypesColumnInfo columnInfo;
     private ProxyState<some.test.AllTypes> proxyState;
@@ -961,32 +963,32 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         return parentObjectsBacklinks;
     }
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("", "AllTypes", false, 25, 1);
-        builder.addPersistedProperty("", "columnString", RealmFieldType.STRING, Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        builder.addPersistedProperty("", "columnLong", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addPersistedProperty("", "columnFloat", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addPersistedProperty("", "columnDouble", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addPersistedProperty("", "columnBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addPersistedProperty("", "columnDecimal128", RealmFieldType.DECIMAL128, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addPersistedProperty("", "columnObjectId", RealmFieldType.OBJECT_ID, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addPersistedProperty("", "columnDate", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addPersistedProperty("", "columnBinary", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
-        builder.addPersistedProperty("", "columnMutableRealmInteger", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        builder.addPersistedLinkProperty("", "columnObject", RealmFieldType.OBJECT, "AllTypes");
-        builder.addPersistedLinkProperty("", "columnRealmList", RealmFieldType.LIST, "AllTypes");
-        builder.addPersistedLinkProperty("", "columnRealmFinalList", RealmFieldType.LIST, "AllTypes");
-        builder.addPersistedValueListProperty("", "columnStringList", RealmFieldType.STRING_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("", "columnBinaryList", RealmFieldType.BINARY_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("", "columnBooleanList", RealmFieldType.BOOLEAN_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("", "columnLongList", RealmFieldType.INTEGER_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("", "columnIntegerList", RealmFieldType.INTEGER_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("", "columnShortList", RealmFieldType.INTEGER_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("", "columnByteList", RealmFieldType.INTEGER_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("", "columnDoubleList", RealmFieldType.DOUBLE_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("", "columnFloatList", RealmFieldType.FLOAT_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("", "columnDateList", RealmFieldType.DATE_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("", "columnDecimal128List", RealmFieldType.DECIMAL128_LIST, !Property.REQUIRED);
-        builder.addPersistedValueListProperty("", "columnObjectIdList", RealmFieldType.OBJECT_ID_LIST, !Property.REQUIRED);
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder(NO_ALIAS, "AllTypes", false, 25, 1);
+        builder.addPersistedProperty(NO_ALIAS, "columnString", RealmFieldType.STRING, Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addPersistedProperty(NO_ALIAS, "columnLong", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty(NO_ALIAS, "columnFloat", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty(NO_ALIAS, "columnDouble", RealmFieldType.DOUBLE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty(NO_ALIAS, "columnBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty(NO_ALIAS, "columnDecimal128", RealmFieldType.DECIMAL128, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty(NO_ALIAS, "columnObjectId", RealmFieldType.OBJECT_ID, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty(NO_ALIAS, "columnDate", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty(NO_ALIAS, "columnBinary", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty(NO_ALIAS, "columnMutableRealmInteger", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addPersistedLinkProperty(NO_ALIAS, "columnObject", RealmFieldType.OBJECT, "AllTypes");
+        builder.addPersistedLinkProperty(NO_ALIAS, "columnRealmList", RealmFieldType.LIST, "AllTypes");
+        builder.addPersistedLinkProperty(NO_ALIAS, "columnRealmFinalList", RealmFieldType.LIST, "AllTypes");
+        builder.addPersistedValueListProperty(NO_ALIAS, "columnStringList", RealmFieldType.STRING_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty(NO_ALIAS, "columnBinaryList", RealmFieldType.BINARY_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty(NO_ALIAS, "columnBooleanList", RealmFieldType.BOOLEAN_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty(NO_ALIAS, "columnLongList", RealmFieldType.INTEGER_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty(NO_ALIAS, "columnIntegerList", RealmFieldType.INTEGER_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty(NO_ALIAS, "columnShortList", RealmFieldType.INTEGER_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty(NO_ALIAS, "columnByteList", RealmFieldType.INTEGER_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty(NO_ALIAS, "columnDoubleList", RealmFieldType.DOUBLE_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty(NO_ALIAS, "columnFloatList", RealmFieldType.FLOAT_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty(NO_ALIAS, "columnDateList", RealmFieldType.DATE_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty(NO_ALIAS, "columnDecimal128List", RealmFieldType.DECIMAL128_LIST, !Property.REQUIRED);
+        builder.addPersistedValueListProperty(NO_ALIAS, "columnObjectIdList", RealmFieldType.OBJECT_ID_LIST, !Property.REQUIRED);
         builder.addComputedLinkProperty("parentObjects", "AllTypes", "columnObject");
         return builder.build();
     }

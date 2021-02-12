@@ -25,11 +25,9 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import javax.lang.model.element.Modifier;
-import javax.tools.JavaFileObject;
 
-import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
-import static org.truth0.Truth.ASSERT;
 
 
 public class RealmCounterProcessorTest {
@@ -38,7 +36,7 @@ public class RealmCounterProcessorTest {
     public void compileMutableRealmInteger() throws IOException {
         RealmSyntheticTestClass javaFileObject = createCounterTestClass()
                 .builder().build();
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(javaFileObject))
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
@@ -49,7 +47,7 @@ public class RealmCounterProcessorTest {
         RealmSyntheticTestClass javaFileObject = createCounterTestClass()
                 .annotation("Ignore")
                 .builder().build();
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(javaFileObject))
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
@@ -60,7 +58,7 @@ public class RealmCounterProcessorTest {
         RealmSyntheticTestClass javaFileObject = createCounterTestClass()
                 .annotation("Index")
                 .builder().build();
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(javaFileObject))
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
@@ -71,7 +69,7 @@ public class RealmCounterProcessorTest {
         RealmSyntheticTestClass javaFileObject = createCounterTestClass()
                 .annotation("Required")
                 .builder().build();
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(javaFileObject))
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
@@ -82,7 +80,7 @@ public class RealmCounterProcessorTest {
         RealmSyntheticTestClass javaFileObject = createCounterTestClass()
                 .modifiers(Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
                 .builder().build();
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(javaFileObject))
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
@@ -93,7 +91,7 @@ public class RealmCounterProcessorTest {
         RealmSyntheticTestClass javaFileObject = createCounterTestClass()
                 .annotation("PrimaryKey")
                 .builder().build();
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(javaFileObject))
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
@@ -105,7 +103,7 @@ public class RealmCounterProcessorTest {
         RealmSyntheticTestClass javaFileObject = createCounterTestClass()
                 .modifiers(Modifier.PRIVATE)
                 .builder().build();
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(javaFileObject))
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
