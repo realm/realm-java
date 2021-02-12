@@ -61,7 +61,9 @@ public class OsObjectSchemaInfo implements NativeObject {
         public Builder addPersistedProperty(String name, RealmFieldType type, boolean isPrimaryKey, boolean isIndexed,
                                             boolean isRequired) {
             long propertyPtr = Property.nativeCreatePersistedProperty(name,
-                    Property.convertFromRealmFieldType(type, isRequired), isPrimaryKey, isIndexed);
+                    Property.convertFromRealmFieldType(type, isRequired),
+                    isPrimaryKey,
+                    isIndexed);
             persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
             persistedPropertyPtrCurPos++;
             return this;
@@ -77,7 +79,9 @@ public class OsObjectSchemaInfo implements NativeObject {
          */
         public Builder addPersistedValueListProperty(String name, RealmFieldType type, boolean isRequired) {
             long propertyPtr = Property.nativeCreatePersistedProperty(name,
-                    Property.convertFromRealmFieldType(type, isRequired), !Property.PRIMARY_KEY, !Property.INDEXED);
+                    Property.convertFromRealmFieldType(type, isRequired),
+                    !Property.PRIMARY_KEY,
+                    !Property.INDEXED);
             persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
             persistedPropertyPtrCurPos++;
             return this;
@@ -86,13 +90,14 @@ public class OsObjectSchemaInfo implements NativeObject {
         /**
          * Adds a persisted map property to this builder.
          *
-         * @param name the name of the property.
-         * @param type the type of the property. It must be one of value list type.
+         * @param name       the name of the property.
+         * @param type       the type of the property. It must be one of value list type.
+         * @param isRequired set to true if this property is not nullable.
          * @return this {@code OsObjectSchemaInfo}.
          */
-        public Builder addPersistedMapProperty(String name, RealmFieldType type) {
+        public Builder addPersistedMapProperty(String name, RealmFieldType type, boolean isRequired) {
             long propertyPtr = Property.nativeCreatePersistedProperty(name,
-                    Property.convertFromRealmFieldType(type, Property.REQUIRED),
+                    Property.convertFromRealmFieldType(type, isRequired),
                     !Property.PRIMARY_KEY,
                     !Property.INDEXED);
             persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;

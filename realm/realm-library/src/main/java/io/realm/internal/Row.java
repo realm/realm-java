@@ -103,6 +103,8 @@ public interface Row {
 
     OsMap getMixedMap(long columnKey);
 
+    OsMap getModelMap(long columnKey);
+
     OsMap getValueMap(long columnKey, RealmFieldType fieldType);
 
     void setLong(long columnKey, long value);

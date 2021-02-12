@@ -16,34 +16,47 @@
 
 package some.test;
 
+import java.util.UUID;
+
 import io.realm.Mixed;
 import io.realm.RealmDictionary;
 import io.realm.RealmObject;
 
 public class RealmDictionaryModel extends RealmObject {
 
-    private final RealmDictionary<Boolean> immutableRealmDictionary = new RealmDictionary();
+    private final RealmDictionary<Boolean> immutableRealmDictionaryField = new RealmDictionary();
 
     private RealmDictionary<Mixed> myMixedRealmDictionary;
     private RealmDictionary<Boolean> myBooleanRealmDictionary;
+    private RealmDictionary<UUID> myUUIDRealmDictionary;
 
-    public RealmDictionary<Boolean> getImmutableRealmDictionary() {
-        return immutableRealmDictionary;
+    // TODO: add RealmDictionary<RealmModel>
+
+    public RealmDictionary<Boolean> getImmutableRealmDictionaryField() {
+        return immutableRealmDictionaryField;
     }
 
     public RealmDictionary<Mixed> getMyMixedRealmDictionary() {
         return myMixedRealmDictionary;
     }
 
-    public void setMyMixedRealmDictionary(RealmDictionary<Mixed> mixedRealmDictionary) {
-        this.myMixedRealmDictionary = mixedRealmDictionary;
+    public void setMyMixedRealmDictionary(RealmDictionary<Mixed> myMixedRealmDictionary) {
+        this.myMixedRealmDictionary = myMixedRealmDictionary;
     }
 
     public RealmDictionary<Boolean> getMyBooleanRealmDictionary() {
         return myBooleanRealmDictionary;
     }
 
-    public void setMyBooleanRealmDictionary(RealmDictionary<Boolean> booleanRealmDictionary) {
-        this.myBooleanRealmDictionary = booleanRealmDictionary;
+    public void setMyBooleanRealmDictionary(RealmDictionary<Boolean> myBooleanRealmDictionary) {
+        this.myBooleanRealmDictionary = myBooleanRealmDictionary;
+    }
+
+    public RealmDictionary<UUID> getMyUUIDRealmDictionary() {
+        return myUUIDRealmDictionary;
+    }
+
+    public void setMyUUIDRealmDictionary(RealmDictionary<UUID> myUUIDRealmDictionary) {
+        this.myUUIDRealmDictionary = myUUIDRealmDictionary;
     }
 }

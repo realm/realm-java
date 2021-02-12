@@ -441,3 +441,94 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
     }
     CATCH_STD()
 }
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeStartDictionary(JNIEnv* env,
+                                                                         jclass) {
+    try {
+        auto dictionary = new std::map<std::string, JavaValue>();
+        return reinterpret_cast<jlong>(dictionary);
+    }
+    CATCH_STD()
+    return realm::npos;
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeStopDictionary(JNIEnv* env, jclass,
+                                                                        jlong data_ptr,
+                                                                        jlong column_key,
+                                                                        jlong dictionary_ptr) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        const JavaValue value((*dictionary));
+        add_property(data_ptr, column_key, value);
+        delete dictionary;
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddNullDictionaryEntry(JNIEnv *env,
+                                                                                jclass,
+                                                                                jlong dictionary_ptr,
+                                                                                jstring j_key) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        JStringAccessor key(env, j_key);
+        const JavaValue value = JavaValue();
+        dictionary->insert(std::make_pair(key, value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddBooleanDictionaryEntry(JNIEnv* env,
+                                                                                   jclass,
+                                                                                   jlong dictionary_ptr,
+                                                                                   jstring j_key,
+                                                                                   jboolean j_value) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        JStringAccessor key(env, j_key);
+        const JavaValue value(j_value);
+        dictionary->insert(std::make_pair(key, value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddUUIDDictionaryEntry(JNIEnv* env,
+                                                                                jclass,
+                                                                                jlong dictionary_ptr,
+                                                                                jstring j_key,
+                                                                                jstring j_value) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+
+        JStringAccessor key(env, j_key);
+        JStringAccessor data(env, j_value);
+
+        const UUID uuid = UUID(StringData(data).data());
+        const JavaValue uuid_value(uuid);
+
+        dictionary->insert(std::make_pair(key, uuid_value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddMixedDictionaryEntry(JNIEnv* env,
+                                                                                 jclass,
+                                                                                 jlong dictionary_ptr,
+                                                                                 jstring j_key,
+                                                                                 jlong mixed_ptr) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        auto mixed_java_value = *reinterpret_cast<JavaValue *>(mixed_ptr);
+
+        JStringAccessor key(env, j_key);
+
+        dictionary->insert(std::make_pair(key, std::move(mixed_java_value)));
+    }
+    CATCH_STD()
+}

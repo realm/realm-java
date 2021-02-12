@@ -16,22 +16,26 @@
 
 package io.realm.entities
 
+import io.realm.Mixed
+import io.realm.MyDog
 import io.realm.RealmDictionary
-import io.realm.RealmList
 import io.realm.RealmObject
+import java.util.*
 
 open class DictionaryClass : RealmObject() {
 
-    // TODO: having this field causes ThreadStressTests to crash for some obscure reason after
-    //  updating core to v11, which we need to investigate
-//    var myMixedDictionary: RealmDictionary<Mixed>? = null
-    var myBooleanDictionary: RealmDictionary<Boolean>? = null
+//    var myEmbeddedObjectDictionary: RealmDictionary<EmbeddedSimpleChild>? = null
 
-    // FIXME: remove non-dictionary fields, they are only used for inspiration
-    var myBooleanList: RealmList<Boolean>? = null
+    // TODO: ObjectId and other Java primitives
+    var myDogDictionary: RealmDictionary<MyDog>? = null
+    var myUUIDDictionary: RealmDictionary<UUID>? = null
+    var myMixedDictionary: RealmDictionary<Mixed>? = null
+    var myBooleanDictionary: RealmDictionary<Boolean>? = null
 
     companion object {
         const val CLASS_NAME = "DictionaryClass"
+        const val REALMMODEL_DICTIONARY_FIELD_NAME = "myDogDictionary"
+        const val UUID_DICTIONARY_FIELD_NAME = "myUUIDDictionary"
         const val MIXED_DICTIONARY_FIELD_NAME = "myMixedDictionary"
         const val BOOLEAN_DICTIONARY_FIELD_NAME = "myBooleanDictionary"
     }

@@ -1914,6 +1914,8 @@ public class DynamicRealmObjectTests {
                     break;
                 case STRING_TO_MIXED_MAP:
                 case STRING_TO_BOOLEAN_MAP:
+                case STRING_TO_UUID_MAP:
+                case STRING_TO_LINK_MAP:
                     // TODO
                     break;
                 default:

@@ -2949,6 +2949,8 @@ public class RealmQueryTests extends QueryTests {
                         break;
                     case STRING_TO_MIXED_MAP:
                     case STRING_TO_BOOLEAN_MAP:
+                    case STRING_TO_UUID_MAP:
+                    case STRING_TO_LINK_MAP:
                         // TODO: fix this when adding maps to AllJavaTypes
                         realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_UUID_LIST).findAll();
                         break;
@@ -3111,10 +3113,9 @@ public class RealmQueryTests extends QueryTests {
                         realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_MIXED_LIST).findAll();
                         break;
                     case STRING_TO_MIXED_MAP:
-                        // TODO: fix this when adding maps to AllJavaTypes
-                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_UUID_LIST).findAll();
-                        break;
                     case STRING_TO_BOOLEAN_MAP:
+                    case STRING_TO_UUID_MAP:
+                    case STRING_TO_LINK_MAP:
                         // TODO: fix this when adding maps to AllJavaTypes
                         realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_UUID_LIST).findAll();
                         break;
@@ -3339,6 +3340,8 @@ public class RealmQueryTests extends QueryTests {
         // TODO: maps not ready to test yet
         types.remove(RealmFieldType.STRING_TO_MIXED_MAP);
         types.remove(RealmFieldType.STRING_TO_BOOLEAN_MAP);
+        types.remove(RealmFieldType.STRING_TO_UUID_MAP);
+        types.remove(RealmFieldType.STRING_TO_LINK_MAP);
 
 
         // Iterate all fields of AllTypes table and verify that distinct either:
@@ -4156,6 +4159,8 @@ public class RealmQueryTests extends QueryTests {
             case MIXED_LIST:
             case STRING_TO_MIXED_MAP:
             case STRING_TO_BOOLEAN_MAP:
+            case STRING_TO_UUID_MAP:
+            case STRING_TO_LINK_MAP:
                 return false;
             case TYPED_LINK:
         }

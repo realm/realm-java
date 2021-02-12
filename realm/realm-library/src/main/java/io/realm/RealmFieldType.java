@@ -107,8 +107,10 @@ public enum RealmFieldType {
     MIXED_LIST(CORE_TYPE_VALUE_MIXED + LIST_OFFSET),
 
     // TODO: add more map times ad-hoc
-    STRING_TO_MIXED_MAP(CORE_TYPE_VALUE_MIXED + DICTIONARY_OFFSET),
-    STRING_TO_BOOLEAN_MAP(CORE_TYPE_VALUE_BOOLEAN + DICTIONARY_OFFSET);
+    STRING_TO_MIXED_MAP(CORE_TYPE_VALUE_TYPED_LINK + DICTIONARY_OFFSET),
+    STRING_TO_BOOLEAN_MAP(CORE_TYPE_VALUE_BOOLEAN + DICTIONARY_OFFSET),
+    STRING_TO_UUID_MAP(CORE_TYPE_VALUE_UUID + DICTIONARY_OFFSET),
+    STRING_TO_LINK_MAP(CORE_TYPE_VALUE_OBJECT + DICTIONARY_OFFSET);
 
 
     // Primitive array for fast mapping between between native values and their Realm type.
@@ -190,6 +192,8 @@ public enum RealmFieldType {
             case CORE_TYPE_VALUE_MIXED + LIST_OFFSET:
                 return false;
             case CORE_TYPE_VALUE_MIXED + DICTIONARY_OFFSET:
+            case CORE_TYPE_VALUE_BOOLEAN + DICTIONARY_OFFSET:
+            case CORE_TYPE_VALUE_UUID + DICTIONARY_OFFSET:
                 return false;
             default:
                 throw new RuntimeException("Unsupported Realm type:  " + this);
