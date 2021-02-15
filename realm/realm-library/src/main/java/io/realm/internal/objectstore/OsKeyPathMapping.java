@@ -18,6 +18,7 @@ package io.realm.internal.objectstore;
 
 import io.realm.RealmSchema;
 import io.realm.exceptions.RealmError;
+import io.realm.internal.NativeContext;
 import io.realm.internal.NativeObject;
 
 /**
@@ -38,6 +39,7 @@ public class OsKeyPathMapping implements NativeObject {
 
     public OsKeyPathMapping(long sharedRealmNativePointer) {
         mappingPointer = nativeCreateMapping(sharedRealmNativePointer);
+        NativeContext.dummyContext.addReference(this);
     }
 
     @Override

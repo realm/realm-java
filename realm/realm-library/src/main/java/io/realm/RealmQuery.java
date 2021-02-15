@@ -2225,9 +2225,6 @@ public class RealmQuery<E> {
      * Realm Model classes or the internal names defined using the {@link io.realm.annotations.RealmClass}
      * or {@link io.realm.annotations.RealmField} annotations.
      * </p>
-     * The string-based predicates can contain placeholders that conform to the syntax supported by
-     * {@link java.util.Formatter}.
-     * <p>
      * See <a href="https://docs.mongodb.com/realm-sdks/js/latest/tutorial-query-language.html">these docs</a>
      * for a more detailed description of the Realm Query Language.
      * <p>
@@ -2238,7 +2235,6 @@ public class RealmQuery<E> {
      *
      * // Simple query
      * query.rawPredicate("name = 'Jane'");
-     * query.rawPredicate("name = '%s'", getName());
      *
      * // Multiple predicates
      * query.rawPredicate("name = 'Jane' OR name = 'John'")
@@ -2256,16 +2252,37 @@ public class RealmQuery<E> {
      * </pre>
      *
      * @param predicate A Realm Query Language predicate.
+     * @throws java.lang.IllegalArgumentException if there is an syntax error.
      */
-    public RealmQuery<E> rawPredicate(String predicate, Object... arguments) {
+    public RealmQuery<E> rawPredicate(String predicate) {
+        return rawPredicate(predicate, new String[0]);
+    }
+
+    // TODO: This should be the public API once support for Mixed as been added, so arguments
+    //  can be parsed to C++ using the Mixed wrapper. Change from Object[] to Object...
+    RealmQuery<E> rawPredicate(String predicate, Object[] arguments) {
         realm.checkIfValid();
         if (Util.isEmptyString(predicate)) {
-            throw new IllegalArgumentException("Non-null 'filter' required.");
+            throw new IllegalArgumentException("Non-null 'predicate' required.");
         }
-        String formattedFilter = String.format(Locale.ENGLISH, predicate, arguments);
-        query.rawPredicate(formattedFilter, realm.getSchema().getKeyPathMapping(), queryDescriptors);
+
+        String[] args = new String[arguments.length];
+        for (int i = 0; i < arguments.length; i++) {
+            if (arguments[i] == null) {
+                throw new IllegalArgumentException("Null argument provided at index: " + i);
+            }
+            args[i] = arguments[i].toString();
+        }
+
+        try {
+            query.rawPredicate(predicate, realm.getSchema().getKeyPathMapping(), queryDescriptors, args);
+        } catch (RuntimeException e) {
+            // Work-around for QueryParser not always throwing the correct type of exceptions
+            throw new IllegalArgumentException(e);
+        }
         return this;
     }
+
 
     /**
      * Returns the {@link Realm} instance to which this query belongs.

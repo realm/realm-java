@@ -22,6 +22,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.internal.util.collections.Sets;
@@ -58,6 +59,7 @@ import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
 import io.realm.entities.realmname.ClassWithValueDefinedNames;
 import io.realm.exceptions.RealmException;
+import io.realm.log.RealmLog;
 import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertEquals;
@@ -3716,8 +3718,6 @@ public class RealmQueryTests extends QueryTests {
             realm.where(AllTypes.class).rawPredicate("foo = 'test data 0'");
             fail();
         } catch (IllegalArgumentException e) {
-            fail("TODO: This is the correct behavior, but Core exceptions currently bubble up as pure RuntimeExceptions.");
-        } catch(RuntimeException e) {
             assertTrue(e.getMessage().contains("'AllTypes' has no property: 'foo'"));
         }
     }
@@ -3728,8 +3728,6 @@ public class RealmQueryTests extends QueryTests {
             realm.where(AllTypes.class).rawPredicate("columnRealmObject.foo = 'test data 0'");
             fail();
         } catch (IllegalArgumentException e) {
-            fail("TODO: This is the correct behavior, but Core exceptions currently bubble up as pure RuntimeExceptions.");
-        } catch (RuntimeException e) {
             assertTrue(e.getMessage().contains("'Dog' has no property: 'foo'"));
         }
 
@@ -3737,8 +3735,6 @@ public class RealmQueryTests extends QueryTests {
             realm.where(AllTypes.class).rawPredicate("unknownField.foo = 'test data 0'");
             fail();
         } catch (IllegalArgumentException e) {
-            fail("TODO: This is the correct behavior, but Core exceptions currently bubble up as pure RuntimeExceptions.");
-        } catch (RuntimeException e) {
             assertTrue(e.getMessage().contains("class_AllTypes has no property unknownField"));
         }
     }
@@ -3830,7 +3826,7 @@ public class RealmQueryTests extends QueryTests {
         try {
             RealmResults<DynamicRealmObject> results = dynamicRealm
                     .where(AllTypes.CLASS_NAME)
-                    .rawPredicate("%s >= 5", AllTypes.FIELD_LONG)
+                    .rawPredicate(AllTypes.FIELD_LONG +  " >= 5")
                     .findAll();
             assertEquals(5, results.size());
         } finally {
@@ -3884,26 +3880,40 @@ public class RealmQueryTests extends QueryTests {
         assertTrue(results.isEmpty());
     }
 
+    @Ignore("Re-Enable when support for Mixed as been added.")
+    @Test
+    public void rawPredicate_argumentSubstitution() {
+        populateTestRealm();
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class);
+        query.rawPredicate("columnString = '$1' " +
+                "AND columnBoolean = $2 " +
+                "AND columnFloat = $3 " +
+                "AND columnInteger = $4", new Object[] {"test data 0", true, 1.2345f, 0});
+        RealmResults<AllTypes> results = query.findAll();
+        assertEquals(1, results.size());
+    }
+
+    @Ignore("Re-Enable when support for Mixed as been added.")
     @Test
     public void rawPredicate_invalidFormatOptions() {
         RealmQuery<AllTypes> query = realm.where(AllTypes.class);
         try {
             // Argument type not valid
-            query.rawPredicate("columnString = '%d'", "foo");
+            query.rawPredicate("columnString = '$1'", new Object[] { 42 });
             fail();
         } catch (IllegalArgumentException ignore) {
         }
 
         try {
             // Missing number of arguments
-            query.rawPredicate("columnString = '%1$s' AND columnString  = '%2$s'", "foo");
-            fail();
+            query.rawPredicate("columnString = '$1' AND columnString  = '$2'", new Object[] { "foo" });
+            RealmLog.error(query.getDescription());
         } catch (IllegalArgumentException ignore) {
         }
 
         try {
             // Wrong syntax for argument substitution
-            query.rawPredicate("columnString = '%1'", "foo");
+            query.rawPredicate("columnString = '%1'", new Object[] {"foo" });
             fail();
         } catch (IllegalArgumentException ignore) {
         }

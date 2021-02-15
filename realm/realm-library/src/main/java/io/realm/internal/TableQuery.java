@@ -666,11 +666,11 @@ public class TableQuery implements NativeObject {
         return nativeCount(nativePtr);
     }
 
-    public void rawPredicate(String filter, @Nullable OsKeyPathMapping mapping, DescriptorOrdering descriptors) {
+    public void rawPredicate(String filter, @Nullable OsKeyPathMapping mapping, DescriptorOrdering descriptors, String[] args) {
         if (mapping != null) {
-            nativePredicateWithMapping(nativePtr, filter, mapping.getNativePtr(), descriptors.getNativePtr());
+            nativePredicateWithMapping(nativePtr, filter, mapping.getNativePtr(), descriptors.getNativePtr(), args);
         } else{
-            nativePredicate(nativePtr, filter, descriptors.getNativePtr());
+            nativePredicate(nativePtr, filter, descriptors.getNativePtr(), args);
         }
     }
 
@@ -856,9 +856,9 @@ public class TableQuery implements NativeObject {
 
     private native long nativeRemove(long nativeQueryPtr);
 
-    private native void nativePredicate(long nativeQueryPtr, String filter, long descriptorsPointer);
+    private native void nativePredicate(long nativeQueryPtr, String filter, long descriptorsPointer, String[] args);
 
-    private native void nativePredicateWithMapping(long nativeQueryPtr, String filter, long mapppingPtr, long descriptorsPointer);
+    private native void nativePredicateWithMapping(long nativeQueryPtr, String filter, long mapppingPtr, long descriptorsPointer, String[] args);
 
     private static native long nativeGetFinalizerPtr();
 }

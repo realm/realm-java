@@ -77,9 +77,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Property_nativeCreatePersistedLin
     try {
         JStringAccessor public_name(env, j_public_name);
         JStringAccessor internal_name(env, j_internal_name);
-        JStringAccessor link_name(env, j_target_class_name);
+        JStringAccessor link_class_name(env, j_target_class_name);
         PropertyType p_type = static_cast<PropertyType>(static_cast<int>(type));
-        return reinterpret_cast<jlong>(new Property(internal_name, p_type, link_name, "", public_name));
+        return reinterpret_cast<jlong>(new Property(internal_name, p_type, link_class_name, "", public_name));
     }
     CATCH_STD()
     return 0;
