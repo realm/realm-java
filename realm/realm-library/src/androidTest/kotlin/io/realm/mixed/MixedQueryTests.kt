@@ -1,8 +1,9 @@
 package io.realm.mixed
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
-import io.realm.entities.*
+import io.realm.entities.MixedNotIndexed
 import io.realm.kotlin.where
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
@@ -12,114 +13,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 import java.util.*
 import kotlin.test.assertEquals
 
-@RunWith(Parameterized::class)
-class MixedQueryTests(
-        private val testingType: MixedType,
-        private val first: Mixed,
-        private val second: Mixed,
-        private val third: Mixed
-) {
-    companion object {
-        @JvmStatic
-        @Parameterized.Parameters
-        fun data(): MutableList<Array<Any>> {
-            val list = mutableListOf<Array<Any>>()
-
-            for (type in MixedType.values()) {
-                when (type) {
-                    MixedType.INTEGER -> {
-                        list.add(arrayOf(MixedType.INTEGER,
-                                Mixed.valueOf(0.toByte()),
-                                Mixed.valueOf(15.toByte()),
-                                Mixed.valueOf((-1).toByte())
-                        ))
-                        list.add(arrayOf(MixedType.INTEGER,
-                                Mixed.valueOf(10.toShort()),
-                                Mixed.valueOf(25.toShort()),
-                                Mixed.valueOf((-30).toByte())
-                        ))
-                        list.add(arrayOf(MixedType.INTEGER,
-                                Mixed.valueOf(25.toInt()),
-                                Mixed.valueOf(35.toInt()),
-                                Mixed.valueOf((-20).toByte())
-                        ))
-                        list.add(arrayOf(MixedType.INTEGER,
-                                Mixed.valueOf(10.toLong()),
-                                Mixed.valueOf(39.toLong()),
-                                Mixed.valueOf((-10).toByte())
-                        ))
-                    }
-                    MixedType.BOOLEAN -> list.add(arrayOf(
-                            MixedType.BOOLEAN,
-                            Mixed.valueOf(false),
-                            Mixed.valueOf(true)
-                    ))
-                    MixedType.STRING -> list.add(arrayOf(
-                            MixedType.STRING,
-                            Mixed.valueOf("hello world 3"),
-                            Mixed.valueOf("hello world 6"),
-                            Mixed.valueOf("missing string")
-                    ))
-                    MixedType.BINARY -> list.add(arrayOf(
-                            MixedType.BINARY,
-                            Mixed.valueOf(byteArrayOf(0, 0, 0)),
-                            Mixed.valueOf(byteArrayOf(0, 1, 1)),
-                            Mixed.valueOf(byteArrayOf(1, 1, 1))
-                    ))
-                    MixedType.DATE -> list.add(arrayOf(
-                            MixedType.DATE,
-                            Mixed.valueOf(Date(200)),
-                            Mixed.valueOf(Date(600)),
-                            Mixed.valueOf(Date(100000))
-                    ))
-                    MixedType.FLOAT -> list.add(arrayOf(
-                            MixedType.FLOAT,
-                            Mixed.valueOf(0.3.toFloat()),
-                            Mixed.valueOf(0.7.toFloat()),
-                            Mixed.valueOf(29.toFloat())
-                    ))
-                    MixedType.DOUBLE -> list.add(arrayOf(
-                            MixedType.DOUBLE,
-                            Mixed.valueOf(1.3.toDouble()),
-                            Mixed.valueOf(1.7.toDouble()),
-                            Mixed.valueOf(60.toDouble())
-                    ))
-                    MixedType.DECIMAL128 -> list.add(arrayOf(
-                            MixedType.DECIMAL128,
-                            Mixed.valueOf(Decimal128(5)),
-                            Mixed.valueOf(Decimal128(7)),
-                            Mixed.valueOf(Decimal128(20))
-                    ))
-                    MixedType.OBJECT_ID -> list.add(arrayOf(
-                            MixedType.OBJECT_ID,
-                            Mixed.valueOf(ObjectId(Date(200))),
-                            Mixed.valueOf(ObjectId(Date(500))),
-                            Mixed.valueOf(ObjectId(Date(50000)))
-                    ))
-                    MixedType.UUID -> list.add(arrayOf(
-                            MixedType.UUID,
-                            Mixed.valueOf(TestHelper.generateUUIDString(3)),
-                            Mixed.valueOf(TestHelper.generateUUIDString(6)),
-                            Mixed.valueOf(UUID.randomUUID())
-                    ))
-                    MixedType.OBJECT,   // Not tested in this test suite
-                    MixedType.NULL -> list.add(arrayOf(
-                            MixedType.NULL,
-                            Mixed.nullValue(),
-                            Mixed.nullValue(),
-                            Mixed.nullValue()
-                    ))
-                    else -> throw AssertionError("Missing case for type: ${type.name}")
-                }
-            }
-
-            return list
-        }
-    }
+@RunWith(AndroidJUnit4::class)
+class MixedQueryTests {
 
     private lateinit var realmConfiguration: RealmConfiguration
     private lateinit var realm: Realm
@@ -228,85 +126,352 @@ class MixedQueryTests(
         realm.close()
     }
 
-//    @Test
-//    fun sort() {
-//        val results = realm.where<MixedNotIndexed>().sort("mixed").findAll()
-//
-//        // FIXME: MIXED - VALIDATE ORDER IN RESULTS
-//    }
-
-//    @Test
-//    fun distinct() {
-//        assertEquals(20, realm.where<MixedNotIndexed>().findAll().size)
-//        assertEquals(10, realm.where<MixedNotIndexed>().distinct("mixed").findAll().size)
-//    }
-
-
     @Test
-    fun equalTo() {
-        val results = realm.where<MixedNotIndexed>().equalTo(MixedNotIndexed.FIELD_MIXED, first).findAll()
-
-        if (testingType == MixedType.INTEGER){
-            assertEquals(4, results.size)
-        } else {
-            assertEquals(1, results.size)
-        }
+    fun sort() {
     }
 
     @Test
-    fun notEqualTo() {
-        val results = realm.where<MixedNotIndexed>().equalTo(MixedNotIndexed.FIELD_MIXED, first).findAll()
-
-        if (testingType == MixedType.INTEGER){
-            assertEquals(4, results.size)
-        } else {
-            assertEquals(1, results.size)
-        }
+    fun distinct() {
     }
 
     @Test
-    fun greaterThanOrEqualTo() {
-        // greaterThanOrEqualTo on Mixed fields would compare bool, int, float, double and decimal.
-
-        val results = realm.where<MixedNotIndexed>().greaterThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, first).findAll()
-
-        assertEquals(6, realm.where<MixedNotIndexed>().greaterThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, 1).findAll().size)
-        assertEquals(1, realm.where<MixedNotIndexed>().greaterThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, 6).findAll().size)
-
-        // FIXME: MIXED - VALIDATE OBJECT_ID BEHAVIOUR
+    fun equalTo_boolean() {
     }
 
     @Test
-    fun greaterThan() {
-        // greaterThan on Mixed fields would compare int, float, double, bool and decimal.
-        val results = realm.where<MixedNotIndexed>().greaterThan(MixedNotIndexed.FIELD_MIXED, first).findAll()
-
-        assertEquals(5, realm.where<MixedNotIndexed>().greaterThan(MixedNotIndexed.FIELD_MIXED, 1).findAll().size)
-        assertEquals(0, realm.where<MixedNotIndexed>().greaterThan(MixedNotIndexed.FIELD_MIXED, 6).findAll().size)
-
-        // FIXME: MIXED - VALIDATE OBJECT_ID BEHAVIOUR
+    fun equalTo_byte() {
     }
 
     @Test
-    fun lessThanOrEqualTo() {
-        // lessThanOrEqualTo on Mixed fields would compare int, float, double, bool and decimal.
-        val results = realm.where<MixedNotIndexed>().lessThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, first).findAll()
-
-        assertEquals(6, realm.where<MixedNotIndexed>().lessThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, 6).findAll().size)
-        assertEquals(1, realm.where<MixedNotIndexed>().lessThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, 1).findAll().size)
-
-        // FIXME: MIXED - VALIDATE OBJECT_ID BEHAVIOUR
+    fun equalTo_short() {
     }
 
     @Test
-    fun lessThan() {
-        // lessThan on Mixed fields would compare int, float, double, bool and decimal.
-        val results = realm.where<MixedNotIndexed>().lessThan(MixedNotIndexed.FIELD_MIXED, first).findAll()
+    fun equalTo_int() {
+    }
 
-        assertEquals(5, realm.where<MixedNotIndexed>().lessThan(MixedNotIndexed.FIELD_MIXED, 6).findAll().size)
-        assertEquals(0, realm.where<MixedNotIndexed>().lessThan(MixedNotIndexed.FIELD_MIXED, 1).findAll().size)
+    @Test
+    fun equalTo_long() {
+    }
 
-        // FIXME: MIXED - VALIDATE OBJECT_ID BEHAVIOUR
+    @Test
+    fun equalTo_float() {
+    }
+
+    @Test
+    fun equalTo_double() {
+    }
+
+    @Test
+    fun equalTo_string() {
+    }
+
+    @Test
+    fun equalTo_binary() {
+    }
+
+    @Test
+    fun equalTo_date() {
+    }
+
+    @Test
+    fun equalTo_objectid() {
+    }
+
+    @Test
+    fun equalTo_decimal() {
+    }
+
+    @Test
+    fun equalTo_uuid() {
+    }
+
+    @Test
+    fun notEqualTo_boolean() {
+    }
+
+    @Test
+    fun notEqualTo_byte() {
+    }
+
+    @Test
+    fun notEqualTo_short() {
+    }
+
+    @Test
+    fun notEqualTo_int() {
+    }
+
+    @Test
+    fun notEqualTo_long() {
+    }
+
+    @Test
+    fun notEqualTo_float() {
+    }
+
+    @Test
+    fun notEqualTo_double() {
+    }
+
+    @Test
+    fun notEqualTo_string() {
+    }
+
+    @Test
+    fun notEqualTo_binary() {
+    }
+
+    @Test
+    fun notEqualTo_date() {
+    }
+
+    @Test
+    fun notEqualTo_objectid() {
+    }
+
+    @Test
+    fun notEqualTo_decimal() {
+    }
+
+    @Test
+    fun notEqualTo_uuid() {
+    }
+
+    @Test
+    fun greaterThanOrEqualTo_byte() {
+    }
+
+    @Test
+    fun greaterThanOrEqualTo_short() {
+    }
+
+    @Test
+    fun greaterThanOrEqualTo_int() {
+    }
+
+    @Test
+    fun greaterThanOrEqualTo_long() {
+    }
+
+    @Test
+    fun greaterThanOrEqualTo_float() {
+    }
+
+    @Test
+    fun greaterThanOrEqualTo_double() {
+    }
+
+    @Test
+    fun greaterThanOrEqualTo_date() {
+    }
+
+    @Test
+    fun greaterThanOrEqualTo_objectid() {
+    }
+
+    @Test
+    fun greaterThanOrEqualTo_decimal() {
+    }
+
+    @Test
+    fun greaterThanOrEqualTo_uuid() {
+    }
+
+    @Test
+    fun greaterThan_byte() {
+    }
+
+    @Test
+    fun greaterThan_short() {
+    }
+
+    @Test
+    fun greaterThan_int() {
+    }
+
+    @Test
+    fun greaterThan_long() {
+    }
+
+    @Test
+    fun greaterThan_float() {
+    }
+
+    @Test
+    fun greaterThan_double() {
+    }
+
+    @Test
+    fun greaterThan_date() {
+    }
+
+    @Test
+    fun greaterThan_objectid() {
+    }
+
+    @Test
+    fun greaterThan_decimal() {
+    }
+
+    @Test
+    fun greaterThan_uuid() {
+    }
+
+    @Test
+    fun lessThanOrEqualTo_byte() {
+    }
+
+    @Test
+    fun lessThanOrEqualTo_short() {
+    }
+
+    @Test
+    fun lessThanOrEqualTo_int() {
+    }
+
+    @Test
+    fun lessThanOrEqualTo_long() {
+    }
+
+    @Test
+    fun lessThanOrEqualTo_float() {
+    }
+
+    @Test
+    fun lessThanOrEqualTo_double() {
+    }
+
+    @Test
+    fun lessThanOrEqualTo_date() {
+    }
+
+    @Test
+    fun lessThanOrEqualTo_objectid() {
+    }
+
+    @Test
+    fun lessThanOrEqualTo_decimal() {
+    }
+
+    @Test
+    fun lessThanOrEqualTo_uuid() {
+    }
+
+    @Test
+    fun lessThan_byte() {
+    }
+
+    @Test
+    fun lessThan_short() {
+    }
+
+    @Test
+    fun lessThan_int() {
+    }
+
+    @Test
+    fun lessThan_long() {
+    }
+
+    @Test
+    fun lessThan_float() {
+    }
+
+    @Test
+    fun lessThan_double() {
+    }
+
+    @Test
+    fun lessThan_date() {
+    }
+
+    @Test
+    fun lessThan_objectid() {
+    }
+
+    @Test
+    fun lessThan_decimal() {
+    }
+
+    @Test
+    fun lessThan_uuid() {
+    }
+
+    @Test
+    fun in_boolean() {
+    }
+
+    @Test
+    fun in_byte() {
+    }
+
+    @Test
+    fun in_short() {
+    }
+
+    @Test
+    fun in_int() {
+    }
+
+    @Test
+    fun in_long() {
+    }
+
+    @Test
+    fun in_float() {
+    }
+
+    @Test
+    fun in_double() {
+    }
+
+    @Test
+    fun in_string() {
+    }
+
+    @Test
+    fun in_binary() {
+    }
+
+    @Test
+    fun in_date() {
+    }
+
+    @Test
+    fun between_boolean() {
+    }
+
+    @Test
+    fun between_byte() {
+    }
+
+    @Test
+    fun between_short() {
+    }
+
+    @Test
+    fun between_int() {
+    }
+
+    @Test
+    fun between_long() {
+    }
+
+    @Test
+    fun between_float() {
+    }
+
+    @Test
+    fun between_double() {
+    }
+
+    @Test
+    fun between_date() {
+    }
+
+    @Test
+    fun between_decimal() {
     }
 
     @Test
@@ -337,28 +502,18 @@ class MixedQueryTests(
     }
 
     @Test
-    fun `in`() {
-        realm.where<MixedNotIndexed>().`in`(MixedNotIndexed.FIELD_MIXED, arrayOf(first, second, third)).findAll()
-    }
-
-    @Test
-    fun between() {
-        realm.where<MixedNotIndexed>().between(MixedNotIndexed.FIELD_MIXED, first, second).findAll()
-    }
-
-    @Test
     fun contains_sensitive() {
-        realm.where<MixedNotIndexed>().contains(MixedNotIndexed.FIELD_MIXED, first, Case.SENSITIVE).findAll()
+        realm.where<MixedNotIndexed>().contains(MixedNotIndexed.FIELD_MIXED, "LLO", Case.SENSITIVE).findAll()
     }
 
     @Test
     fun contains_insensitive() {
-        realm.where<MixedNotIndexed>().contains(MixedNotIndexed.FIELD_MIXED, first, Case.INSENSITIVE).findAll()
+        realm.where<MixedNotIndexed>().contains(MixedNotIndexed.FIELD_MIXED, "LLO", Case.INSENSITIVE).findAll()
     }
 
     @Test
     fun beginsWith_sensitive() {
-        realm.where<MixedNotIndexed>().beginsWith(MixedNotIndexed.FIELD_MIXED, "HELL", Case.SENSITIVE).findAll()
+        realm.where<MixedNotIndexed>().beginsWith(MixedNotIndexed.FIELD_MIXED, "hell", Case.SENSITIVE).findAll()
     }
 
     @Test
@@ -368,17 +523,17 @@ class MixedQueryTests(
 
     @Test
     fun endsWith_sensitive() {
-        realm.where<MixedNotIndexed>().endsWith(MixedNotIndexed.FIELD_MIXED, "1", Case.SENSITIVE).findAll()
+        realm.where<MixedNotIndexed>().endsWith(MixedNotIndexed.FIELD_MIXED, "d 1", Case.SENSITIVE).findAll()
     }
 
     @Test
     fun endsWith_insensitive() {
-        realm.where<MixedNotIndexed>().endsWith(MixedNotIndexed.FIELD_MIXED, "1", Case.INSENSITIVE).findAll()
+        realm.where<MixedNotIndexed>().endsWith(MixedNotIndexed.FIELD_MIXED, "D 1", Case.INSENSITIVE).findAll()
     }
 
     @Test
     fun like_sensitive() {
-        realm.where<MixedNotIndexed>().like(MixedNotIndexed.FIELD_MIXED, "*W?RLD*", Case.SENSITIVE).findAll()
+        realm.where<MixedNotIndexed>().like(MixedNotIndexed.FIELD_MIXED, "*w?rld*", Case.SENSITIVE).findAll()
     }
 
     @Test
