@@ -2110,11 +2110,11 @@ Java_io_realm_internal_TableQuery_nativeRawPredicate(JNIEnv *env,
         auto query = reinterpret_cast<Query*>(j_query_ptr);
         auto descriptor = reinterpret_cast<DescriptorOrdering *>(j_descriptor_ptr);
 
-        query_parser::KeyPathMapping* mapping = nullptr;
+        query_parser::KeyPathMapping mapping;
         if (j_mapping_wrapper != nullptr) {
             static JavaMethod value_method(env, JavaClassGlobalDef::java_lang_long(), "longValue", "()J");
             long mapping_ptr = env->CallLongMethod(j_mapping_wrapper, value_method);
-            mapping = reinterpret_cast<query_parser::KeyPathMapping*>(mapping_ptr);
+            mapping = *reinterpret_cast<query_parser::KeyPathMapping*>(mapping_ptr);
         }
 
         JStringAccessor filter(env, j_filter); // throws
@@ -2126,7 +2126,7 @@ Java_io_realm_internal_TableQuery_nativeRawPredicate(JNIEnv *env,
             args[i] = Mixed(static_cast<std::string>(arg));
         }
 
-        Query predicate = query->get_table()->query(filter, args, *mapping);
+        Query predicate = query->get_table()->query(filter, args, mapping);
         query->and_query(predicate);
         if (auto parsed_ordering = predicate.get_ordering()) {
             descriptor->append(*parsed_ordering);
