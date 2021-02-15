@@ -67,6 +67,10 @@ open class DictionaryClass : RealmObject() {
 
 open class MyRealmModel : RealmObject() {
     var id: String? = null
+
+    companion object {
+        const val ID_FIELD_NAME = "id"
+    }
 }
 
 open class MyPrimaryKeyModel : RealmObject() {

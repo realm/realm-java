@@ -436,3 +436,174 @@ Java_io_realm_internal_OsMap_nativeGetEntryForMixed(JNIEnv* env, jclass, jlong m
     CATCH_STD()
     return nullptr;
 }
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsLong(JNIEnv* env, jclass, jlong map_ptr,
+                                                jlong j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        size_t find_result = dictionary.find_any(Mixed(j_value));
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsBoolean(JNIEnv* env, jclass, jlong map_ptr,
+                                                   jboolean j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        size_t find_result = dictionary.find_any(Mixed(bool(j_value)));
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsString(JNIEnv* env, jclass, jlong map_ptr,
+                                                  jstring j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor key(env, j_value);
+        size_t find_result = dictionary.find_any(Mixed(StringData(key)));
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsBinary(JNIEnv* env, jclass, jlong map_ptr,
+                                                  jbyteArray j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        const OwnedBinaryData& data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
+        size_t find_result = dictionary.find_any(Mixed(data.get()));
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsFloat(JNIEnv* env, jclass, jlong map_ptr,
+                                                 jfloat j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        size_t find_result = dictionary.find_any(Mixed(j_value));
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsObjectId(JNIEnv* env, jclass, jlong map_ptr,
+                                                    jstring j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor data(env, j_value);
+        const ObjectId object_id = ObjectId(StringData(data).data());
+        size_t find_result = dictionary.find_any(Mixed(object_id));
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsUUID(JNIEnv* env, jclass, jlong map_ptr,
+                                                jstring j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor value(env, j_value);
+        const UUID& uuid = UUID(StringData(value).data());
+        size_t find_result = dictionary.find_any(Mixed(uuid));
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsDate(JNIEnv* env, jclass, jlong map_ptr,
+                                                jlong j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        realm::Timestamp timestamp = realm::Timestamp(j_value / 1000, j_value * 1000000);
+        size_t find_result = dictionary.find_any(Mixed(timestamp));
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsDecimal128(JNIEnv* env, jclass, jlong map_ptr,
+                                                      jlong j_high_value, jlong j_low_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
+        auto decimal128 = Decimal128(raw);
+        size_t find_result = dictionary.find_any(Mixed(decimal128));
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsMixed(JNIEnv* env, jclass, jlong map_ptr,
+                                                 jlong mixed_ptr) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto mixed_java_value = *reinterpret_cast<JavaValue*>(mixed_ptr);
+        const Mixed& mixed = mixed_java_value.to_mixed();
+        size_t find_result = dictionary.find_any(mixed);
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD();
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsRealmModel(JNIEnv* env, jclass, jlong map_ptr,
+                                                      jlong j_obj_key, jlong j_table_ptr) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+
+        TableRef target_table = TBL_REF(j_table_ptr);
+        ObjKey object_key(j_obj_key);
+        ObjLink object_link(target_table->get_key(), object_key);
+
+        const Mixed& mixed = Mixed(object_link);
+        size_t find_result = dictionary.find_any(mixed);
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD();
+    return false;
+}

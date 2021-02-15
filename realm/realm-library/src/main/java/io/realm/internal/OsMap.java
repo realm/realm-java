@@ -74,6 +74,44 @@ public class OsMap implements NativeObject {
         return nativeContainsKey(nativePtr, (String) key);
     }
 
+    public boolean containsPrimitiveValue(Object value) {
+        if (value instanceof Integer ||
+                value instanceof Long ||
+                value instanceof Double ||
+                value instanceof Short ||
+                value instanceof Byte) {
+            return nativeContainsLong(nativePtr, (long) value);
+        } else if (value instanceof Boolean) {
+            return nativeContainsBoolean(nativePtr, (boolean) value);
+        } else if (value instanceof String) {
+            return nativeContainsString(nativePtr, (String) value);
+        } else if (value instanceof Byte[]) {
+            return nativeContainsBinary(nativePtr, TypeUtils.convertNonPrimitiveBinaryToPrimitive((Byte[]) value));
+        } else if (value instanceof byte[]) {
+            return nativeContainsBinary(nativePtr, (byte[]) value);
+        } else if (value instanceof Float) {
+            return nativeContainsFloat(nativePtr, (float) value);
+        } else if (value instanceof UUID) {
+            return nativeContainsUUID(nativePtr, ((UUID) value).toString());
+        } else if (value instanceof ObjectId) {
+            return nativeContainsObjectId(nativePtr, ((ObjectId) value).toString());
+        } else if (value instanceof Date) {
+            return nativeContainsDate(nativePtr, ((Date) value).getTime());
+        } else if (value instanceof Decimal128) {
+            Decimal128 decimal128 = (Decimal128) value;
+            return nativeContainsDecimal128(nativePtr, decimal128.getHigh(), decimal128.getLow());
+        }
+        throw new IllegalArgumentException("Invalid object type: " + value.getClass().getCanonicalName());
+    }
+
+    public boolean containsMixedValue(long mixedPtr) {
+        return nativeContainsMixed(nativePtr, mixedPtr);
+    }
+
+    public boolean containsRealmModel(long objKey, long tablePtr) {
+        return nativeContainsRealmModel(nativePtr, objKey, tablePtr);
+    }
+
     public void clear() {
         nativeClear(nativePtr);
     }
@@ -247,4 +285,26 @@ public class OsMap implements NativeObject {
     private static native Object[] nativeGetEntryForModel(long nativePtr, int position);
 
     private static native Object[] nativeGetEntryForMixed(long nativePtr, int position);
+
+    private static native boolean nativeContainsLong(long nativePtr, long value);
+
+    private static native boolean nativeContainsBoolean(long nativePtr, boolean value);
+
+    private static native boolean nativeContainsString(long nativePtr, String value);
+
+    private static native boolean nativeContainsBinary(long nativePtr, byte[] value);
+
+    private static native boolean nativeContainsFloat(long nativePtr, float value);
+
+    private static native boolean nativeContainsObjectId(long nativePtr, String value);
+
+    private static native boolean nativeContainsUUID(long nativePtr, String value);
+
+    private static native boolean nativeContainsDate(long nativePtr, long value);
+
+    private static native boolean nativeContainsDecimal128(long nativePtr, long high, long low);
+
+    private static native boolean nativeContainsMixed(long nativePtr, long mixedPtr);
+
+    private static native boolean nativeContainsRealmModel(long nativePtr, long objKey, long tablePtr);
 }

@@ -281,8 +281,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
 
         @Override
         public boolean containsValue(Object value) {
-            //noinspection SuspiciousMethodCalls
-            return managedMapManager.containsKey(value);
+            return managedMapManager.containsValue(value);
         }
 
         @Override

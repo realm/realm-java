@@ -29,6 +29,7 @@ import io.realm.internal.ManageableObject;
 import io.realm.internal.OsMap;
 import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.core.NativeMixed;
 import io.realm.internal.util.Pair;
@@ -97,7 +98,7 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
 
     @Override
     public boolean containsValue(Object value) {
-        throw new UnsupportedOperationException("Not ready until full support for Mixed is ready");
+        return mapValueOperator.containsValue(value);
     }
 
     @Override
@@ -208,6 +209,8 @@ abstract class MapValueOperator<K, V> {
 
     public abstract Set<Map.Entry<K, V>> entrySet();
 
+    public abstract boolean containsValue(Object value);
+
     public void remove(Object key) {
         osMap.remove(key);
     }
@@ -317,6 +320,14 @@ class MixedValueOperator<K> extends MapValueOperator<K, Mixed> {
     public Set<Map.Entry<K, Mixed>> entrySet() {
         return new RealmMapEntrySet<>(baseRealm, osMap, RealmMapEntrySet.IteratorType.MIXED, null);
     }
+
+    @Override
+    public boolean containsValue(Object value) {
+        if (value instanceof Mixed) {
+            return osMap.containsMixedValue(((Mixed) value).getNativePtr());
+        }
+        throw new IllegalArgumentException("This dictionary can only contain 'Mixed' values.");
+    }
 }
 
 /**
@@ -350,6 +361,11 @@ class BoxableValueOperator<K, V> extends MapValueOperator<K, V> {
     @Override
     public Set<Map.Entry<K, V>> entrySet() {
         return new RealmMapEntrySet<>(baseRealm, osMap, RealmMapEntrySet.IteratorType.PRIMITIVE, null);
+    }
+
+    @Override
+    public boolean containsValue(Object value) {
+        return osMap.containsPrimitiveValue(value);
     }
 
     /**
@@ -477,5 +493,15 @@ class RealmModelValueOperator<K, V> extends MapValueOperator<K, V> {
     @Override
     public Set<Map.Entry<K, V>> entrySet() {
         return new RealmMapEntrySet<>(baseRealm, osMap, RealmMapEntrySet.IteratorType.OBJECT, classContainer);
+    }
+
+    @Override
+    public boolean containsValue(Object value) {
+        if (value instanceof RealmObjectProxy) {
+            Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
+            long tablePtr = row$realm.getTable().getNativePtr();
+            return osMap.containsRealmModel(row$realm.getObjectKey(), tablePtr);
+        }
+        throw new IllegalArgumentException("Only managed models can be contained in this dictionary.");
     }
 }
