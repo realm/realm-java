@@ -2343,7 +2343,6 @@ public class RealmJsonTests {
             realm.createObjectFromJson(PrimitiveListTypes.class, jsonObject);
             fail();
         } catch (IllegalArgumentException ignored) {
-            ignored.printStackTrace();
         } finally {
             realm.cancelTransaction();
         }
@@ -2354,7 +2353,6 @@ public class RealmJsonTests {
             realm.createObjectFromJson(PrimitiveListTypes.class, convertJsonObjectToStream(jsonObject));
             fail();
         } catch (IllegalArgumentException ignored) {
-            ignored.printStackTrace();
         } finally {
             realm.cancelTransaction();
         }
