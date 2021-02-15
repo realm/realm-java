@@ -57,7 +57,9 @@ import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
+import io.realm.entities.realmname.ClassWithValueDefinedNames;
 import io.realm.exceptions.RealmException;
+import io.realm.log.RealmLog;
 import io.realm.rule.RunTestInLooperThread;
 
 import static org.junit.Assert.assertEquals;
@@ -3700,6 +3702,220 @@ public class RealmQueryTests extends QueryTests {
             query.getRealm();
             fail();
         } catch (IllegalStateException ignore) {
+        }
+    }
+
+    @Test
+    public void rawPredicate() {
+        populateTestRealm();
+        RealmResults<AllTypes> result = realm.where(AllTypes.class).rawPredicate("columnString = 'test data 0'").findAll();
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    public void rawPredicate_invalidFieldNameThrows() {
+        try {
+            realm.where(AllTypes.class).rawPredicate("foo = 'test data 0'");
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("'AllTypes' has no property: 'foo'"));
+        }
+    }
+
+    @Test
+    public void rawPredicate_invalidLinkedFieldNameThrows() {
+        try {
+            realm.where(AllTypes.class).rawPredicate("columnRealmObject.foo = 'test data 0'");
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("'Dog' has no property: 'foo'"));
+        }
+
+        try {
+            realm.where(AllTypes.class).rawPredicate("unknownField.foo = 'test data 0'");
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("class_AllTypes has no property unknownField"));
+        }
+    }
+
+    @Test
+    public void rawPredicate_illegalSyntaxThrows() {
+        try {
+            realm.where(AllTypes.class).rawPredicate("lol");
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("Invalid predicate: 'lol'"));
+        }
+    }
+
+    @Test
+    public void rawPredicate_invalidTypeThrows() {
+        try {
+            realm.where(AllTypes.class).rawPredicate("columnString = 42.0");
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue("Error message was: " + ex.getMessage(), ex.getMessage().contains("Unsupported comparison between type 'string' and type 'double'"));
+        }
+    }
+
+    @Test
+    public void rawPredicate_mixedWithTypedPredicates() {
+        populateTestRealm();
+        RealmResults<AllTypes> result = realm.where(AllTypes.class)
+                .equalTo("columnString", "test data 0")
+                .or()
+                .rawPredicate("columnString = 'test data 1'")
+                .findAll();
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    public void rawPredicate_rawDescriptors() {
+        realm.beginTransaction();
+        realm.insert(new Dog("Milo"));
+        realm.insert(new Dog("Fido"));
+        realm.insert(new Dog("Bella"));
+        realm.insert(new Dog("Bella"));
+        realm.commitTransaction();
+
+        RealmQuery<Dog> query = realm.where(Dog.class)
+                .rawPredicate("TRUEPREDICATE SORT(name ASC) DISTINCT(name) LIMIT(2)");
+
+        assertEquals("TRUEPREDICATE SORT(name ASC) DISTINCT(name) LIMIT(2)", query.getDescription());
+
+        // Descriptors should be applied in order provided
+        RealmResults<Dog> dogs = query.findAll();
+        assertEquals(2, dogs.size());
+        assertEquals("Bella", dogs.get(0).getName());
+        assertEquals("Fido", dogs.get(1).getName());
+    }
+
+    // Descriptors defined by raw predicates can be mixed with typed ones and still be applied in order
+    @Test
+    public void rawPredicate_mixTypedAndRawDescriptors() {
+        realm.beginTransaction();
+        realm.insert(new Dog("Milo", 1));
+        realm.insert(new Dog("Fido", 2));
+        realm.insert(new Dog("Bella", 3));
+        realm.insert(new Dog("Bella", 3));
+        realm.insert(new Dog("Bella", 4));
+        realm.commitTransaction();
+
+        RealmQuery<Dog> query = realm.where(Dog.class)
+                .sort("age", Sort.ASCENDING)
+                .rawPredicate("TRUEPREDICATE SORT(name ASC) DISTINCT(name, age) LIMIT(2)")
+                .distinct("age")
+                .limit(1);
+
+        // Descriptors should be applied in order provided throughout the query
+        assertEquals("TRUEPREDICATE SORT(age ASC) SORT(name ASC) DISTINCT(name, age) LIMIT(2) DISTINCT(age) LIMIT(1)", query.getDescription());
+
+        RealmResults<Dog> dogs = query.findAll();
+        assertEquals(1, dogs.size());
+        assertEquals("Bella", dogs.get(0).getName());
+        assertEquals(3, dogs.get(0).getAge());
+    }
+
+    @Test
+    public void rawPredicate_dynamicRealmQueries() {
+        // DynamicRealm queries hit a slightly different codepath than typed Realms, so this
+        // is just a smoke test.
+        populateTestRealm();
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
+        try {
+            RealmResults<DynamicRealmObject> results = dynamicRealm
+                    .where(AllTypes.CLASS_NAME)
+                    .rawPredicate(AllTypes.FIELD_LONG +  " >= 5")
+                    .findAll();
+            assertEquals(5, results.size());
+        } finally {
+            dynamicRealm.close();
+        }
+    }
+
+    @Test
+    public void rawPredicate_useJavaNames() {
+
+        // Java Field names
+        RealmResults<ClassWithValueDefinedNames> results = realm.where(ClassWithValueDefinedNames.class)
+                .rawPredicate("field = 'Foo'")
+                .findAll();
+        assertTrue(results.isEmpty());
+
+        // Internal field name
+        results = realm.where(ClassWithValueDefinedNames.class)
+                .rawPredicate("my-field-name = 'Foo'")
+                .findAll();
+        assertTrue(results.isEmpty());
+
+        // Linking Objects using the computed field
+        results = realm.where(ClassWithValueDefinedNames.class)
+                .rawPredicate("parents.@count = 0")
+                .findAll();
+        assertTrue(results.isEmpty());
+
+        // Linking Objects using dynamic query with internal name for both class and property
+        results = realm.where(ClassWithValueDefinedNames.class)
+                .rawPredicate("@links.my-class-name.object-link.@count = 0")
+                .findAll();
+        assertTrue(results.isEmpty());
+
+        // Linking Objects using dynamic query with internal name for class and alias for property
+        results = realm.where(ClassWithValueDefinedNames.class)
+                .rawPredicate("@links.my-class-name.objectLink.@count = 0")
+                .findAll();
+        assertTrue(results.isEmpty());
+
+        // Linking Objects using dynamic query with alias for class and internal name for property
+        results = realm.where(ClassWithValueDefinedNames.class)
+                .rawPredicate("@links.ClassWithValueDefinedNames.object-link.@count = 0")
+                .findAll();
+        assertTrue(results.isEmpty());
+
+        // Linking Objects using dynamic query with alias both class and property
+        results = realm.where(ClassWithValueDefinedNames.class)
+                .rawPredicate("@links.ClassWithValueDefinedNames.objectLink.@count = 0")
+                .findAll();
+        assertTrue(results.isEmpty());
+    }
+
+    @Ignore("Re-Enable when support for Mixed as been added.")
+    @Test
+    public void rawPredicate_argumentSubstitution() {
+        populateTestRealm();
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class);
+        query.rawPredicate("columnString = '$1' " +
+                "AND columnBoolean = $2 " +
+                "AND columnFloat = $3 " +
+                "AND columnInteger = $4", new Object[] {"test data 0", true, 1.2345f, 0});
+        RealmResults<AllTypes> results = query.findAll();
+        assertEquals(1, results.size());
+    }
+
+    @Ignore("Re-Enable when support for Mixed as been added.")
+    @Test
+    public void rawPredicate_invalidFormatOptions() {
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class);
+        try {
+            // Argument type not valid
+            query.rawPredicate("columnString = '$1'", new Object[] { 42 });
+            fail();
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        try {
+            // Missing number of arguments
+            query.rawPredicate("columnString = '$1' AND columnString  = '$2'", new Object[] { "foo" });
+            RealmLog.error(query.getDescription());
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        try {
+            // Wrong syntax for argument substitution
+            query.rawPredicate("columnString = '%1'", new Object[] {"foo" });
+            fail();
+        } catch (IllegalArgumentException ignore) {
         }
     }
 

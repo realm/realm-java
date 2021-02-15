@@ -233,13 +233,15 @@ public class Property implements NativeObject {
 
     // nativeCreateXxxProperty will be called by OsObjectSchemaInfo directly to avoid creating temporary Property
     // objects.
-    static native long nativeCreatePersistedProperty(
-            String name, int type, boolean isPrimary, boolean isIndexed);
+    static native long nativeCreatePersistedProperty(String internalName,
+                                                     String publicName,
+                                                     int type,
+                                                     boolean isPrimary,
+                                                     boolean isIndexed);
 
-    static native long nativeCreatePersistedLinkProperty(String name, int type, String linkedToName);
+    static native long nativeCreatePersistedLinkProperty(String internalName, String publicName, int type, String linkedToName);
 
-    static native long nativeCreateComputedLinkProperty(
-            String name, String sourceClassName, String sourceFieldName);
+    static native long nativeCreateComputedLinkProperty(String name, String sourceClassName, String sourceFieldName);
 
     private static native int nativeGetType(long nativePtr);
 

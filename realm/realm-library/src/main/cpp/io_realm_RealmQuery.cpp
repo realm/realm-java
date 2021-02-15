@@ -30,6 +30,8 @@ JNIEXPORT jstring JNICALL Java_io_realm_RealmQuery_nativeSerializeQuery(JNIEnv* 
         auto query = reinterpret_cast<Query*>(table_query_ptr);
         auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
         std::string serialized_query = query->get_description();
+
+
         std::string serialized_descriptor = descriptor->get_description(query->get_table());
         if (serialized_descriptor.empty()) {
             return to_jstring(env, serialized_query);
