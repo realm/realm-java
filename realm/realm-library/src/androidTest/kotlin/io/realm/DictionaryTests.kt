@@ -28,7 +28,6 @@ import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
@@ -636,13 +635,74 @@ class DictionaryTests {
             // Test size
             assertEquals(3, entrySet.size)
 
+            // Test isEmpty
+            assertFalse(entrySet.isEmpty())
+
             // Test contains
             assertTrue(entrySet.contains(AbstractMap.SimpleImmutableEntry(KEY_HELLO, VALUE_HELLO_STRING)))
             assertTrue(entrySet.contains(AbstractMap.SimpleImmutableEntry(KEY_BYE, VALUE_BYE_STRING)))
             assertTrue(entrySet.contains(AbstractMap.SimpleImmutableEntry(KEY_NULL, VALUE_NULL)))
             assertFalse(entrySet.contains(AbstractMap.SimpleImmutableEntry("SOME_KEY", "SOME_VALUE")))
 
-            // Test contains all
+            // Test iterator
+            val iterator: Iterator<Map.Entry<String, String?>> = entrySet.iterator()
+            assertNotNull(iterator)
+            var iteratorSize = 0
+            while (iterator.hasNext()) {
+                iteratorSize++
+                iterator.next()
+            }
+            assertEquals(entrySet.size, iteratorSize)
+
+            // Test toArray
+            assertTrue(entrySet is RealmMapEntrySet<*, *>)
+            val entrySetObjectArray: Array<Any> = entrySet.toArray()
+            for (entry in entrySetObjectArray) {
+                assertTrue(entry is Map.Entry<*, *>)
+                assertTrue(entry.key is String)
+                assertTrue(entry.value is String?)
+                assertTrue(entrySet.contains(entry))
+            }
+
+            // Test toArray: smaller size, return a new instance
+            val testArraySmaller = arrayOfNulls<Map.Entry<String, String?>>(1)
+            val entrySetSmallerArray: Array<Any> = entrySet.toArray(testArraySmaller)
+            assertNotEquals(testArraySmaller.size, entrySetSmallerArray.size)
+            assertEquals(entrySet.size, entrySetSmallerArray.size)
+            for (entry in entrySetSmallerArray) {
+                assertTrue(entry is Map.Entry<*, *>)
+                assertTrue(entry.key is String)
+                assertTrue(entry.value is String?)
+                assertTrue(entrySet.contains(entry))
+            }
+
+            // Test toArray: same size, return a new instance
+            val testArraySame = arrayOfNulls<Map.Entry<String, String?>>(1)
+            val entrySetSameSizeArray: Array<Any> = entrySet.toArray(testArraySame)
+            assertEquals(entrySet.size, entrySetSameSizeArray.size)
+            for (entry in entrySetSameSizeArray) {
+                assertTrue(entry is Map.Entry<*, *>)
+                assertTrue(entry.key is String)
+                assertTrue(entry.value is String?)
+                assertTrue(entrySet.contains(entry))
+            }
+
+            // Test toArray: bigger size, add null as the last entry
+            val testArrayBigger = arrayOfNulls<Map.Entry<String, String?>>(10)
+            val entrySetBiggerArray: Array<Any> = entrySet.toArray(testArrayBigger)
+            assertTrue(entrySetBiggerArray.size > entrySet.size)
+            for ((index, entry) in entrySetBiggerArray.withIndex()) {
+                if (index >= entrySet.size) {
+                    assertNull(entry)
+                } else {
+                    assertTrue(entry is Map.Entry<*, *>)
+                    assertTrue(entry.key is String)
+                    assertTrue(entry.value is String?)
+                    assertTrue(entrySet.contains(entry))
+                }
+            }
+
+            // Test containsAll
             val sameCollection = setOf<Map.Entry<String, String?>>(
                     AbstractMap.SimpleImmutableEntry(KEY_HELLO, VALUE_HELLO_STRING),
                     AbstractMap.SimpleImmutableEntry(KEY_BYE, VALUE_BYE_STRING),

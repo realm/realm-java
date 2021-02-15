@@ -38,7 +38,7 @@ import io.realm.internal.util.Pair;
  * @param <K>
  * @param <V>
  */
-public class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
+class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     public enum IteratorType {
         PRIMITIVE, MIXED, OBJECT
@@ -61,7 +61,8 @@ public class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     @Override
     public int size() {
-        return (int) osMap.size();
+        final long actualMap = osMap.size();
+        return actualMap < Integer.MAX_VALUE ? (int) actualMap : Integer.MAX_VALUE;
     }
 
     @Override
@@ -104,8 +105,19 @@ public class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
     @NotNull
     @Override
     public <T> T[] toArray(@NotNull T[] a) {
-        //noinspection unchecked
-        T[] array = (T[]) Array.newInstance(Map.Entry.class, (int) osMap.size());
+        T[] array;
+        long mapSize = osMap.size();
+
+        // From docs:
+        // If the set fits in the specified array, it is returned therein.
+        // Otherwise, a new array is allocated with the runtime type of the
+        // specified array and the size of this set.
+        if (a.length == mapSize || a.length > mapSize) {
+            array = a;
+        } else {
+            //noinspection unchecked
+            array = (T[]) Array.newInstance(Map.Entry.class, (int) mapSize);
+        }
 
         int i = 0;
         for (Map.Entry<K, V> entry : this) {
@@ -114,11 +126,19 @@ public class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
             i++;
         }
 
+        // From docs:
+        // If this set fits in the specified array with room to spare
+        // (i.e., the array has more elements than this set), the element in
+        // the array immediately following the end of the set is set to null.
+        if (a.length > mapSize) {
+            array[i] = null;
+        }
+
         return array;
     }
 
     @Override
-    public boolean add(Map.Entry<K, V> kvEntry) {
+    public boolean add(Map.Entry<K, V> entry) {
         throw new UnsupportedOperationException("This set is immutable and cannot be modified.");
     }
 
