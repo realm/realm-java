@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package io.realm
+package io.realm.mixed
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.realm.*
 import io.realm.entities.*
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
@@ -54,15 +55,14 @@ class MixedBulkInsertsTests {
 
     @Before
     fun setUp() {
-        realmConfiguration = RealmConfiguration
-                .Builder(InstrumentationRegistry.getInstrumentation().targetContext)
-                .directory(folder.newFolder())
-                .schema(MixedNotIndexed::class.java,
+        realmConfiguration = RealmDebugConfigurationBuilder(InstrumentationRegistry.getInstrumentation().targetContext)
+                .setSchema(MixedNotIndexed::class.java,
                         MixedIndexed::class.java,
                         AllJavaTypes::class.java,
                         MixedRealmListWithPK::class.java,
                         MixedNotIndexedWithPK::class.java,
                         PrimaryKeyAsString::class.java)
+                .directory(folder.newFolder())
                 .build()
 
         realm = Realm.getInstance(realmConfiguration)
