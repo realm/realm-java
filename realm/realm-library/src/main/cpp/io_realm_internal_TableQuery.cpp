@@ -2098,45 +2098,25 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetFinalizerPtr(
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_TableQuery_nativePredicate(JNIEnv *env,
-                                                  jobject,
-                                                  jlong nativeQueryPtr,
-                                                  jstring j_filter,
-                                                  jlong j_descriptor_ptr,
-                                                  jobjectArray j_args)
-{
-    try {
-        auto query = reinterpret_cast<Query*>(nativeQueryPtr);
-        auto descriptor = reinterpret_cast<DescriptorOrdering *>(j_descriptor_ptr);
-        JStringAccessor filter(env, j_filter); // throws
-        JObjectArrayAccessor<JStringAccessor, jstring> java_args(env, j_args);
-        std::vector<Mixed> args(java_args.size());
-        for (int i = 0; i < java_args.size(); i = i + 1) {
-            JStringAccessor arg = java_args[i];
-            args[i] = Mixed(static_cast<std::string>(arg));
-        }
-        Query predicate = query->get_table()->query(filter, args);
-        query->and_query(predicate);
-        if (auto parsed_ordering = predicate.get_ordering()) {
-            descriptor->append(*parsed_ordering);
-        }
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL
-Java_io_realm_internal_TableQuery_nativePredicateWithMapping(JNIEnv *env,
+Java_io_realm_internal_TableQuery_nativeRawPredicate(JNIEnv *env,
                                                              jobject,
                                                              jlong j_query_ptr,
                                                              jstring j_filter,
-                                                             jlong j_mapping_ptr,
+                                                             jobject j_mapping_wrapper,
                                                              jlong j_descriptor_ptr,
                                                              jobjectArray j_args)
 {
     try {
         auto query = reinterpret_cast<Query*>(j_query_ptr);
         auto descriptor = reinterpret_cast<DescriptorOrdering *>(j_descriptor_ptr);
-        auto mapping = reinterpret_cast<query_parser::KeyPathMapping*>(j_mapping_ptr);
+
+        query_parser::KeyPathMapping* mapping = nullptr;
+        if (j_mapping_wrapper != nullptr) {
+            static JavaMethod value_method(env, JavaClassGlobalDef::java_lang_long(), "longValue", "()J");
+            long mapping_ptr = env->CallLongMethod(j_mapping_wrapper, value_method);
+            mapping = reinterpret_cast<query_parser::KeyPathMapping*>(mapping_ptr);
+        }
+
         JStringAccessor filter(env, j_filter); // throws
 
         JObjectArrayAccessor<JStringAccessor, jstring> java_args(env, j_args);
