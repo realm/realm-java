@@ -102,6 +102,7 @@ import io.realm.entities.PrimaryKeyRequiredAsBoxedInteger;
 import io.realm.entities.PrimaryKeyRequiredAsBoxedLong;
 import io.realm.entities.PrimaryKeyRequiredAsBoxedShort;
 import io.realm.entities.PrimaryKeyRequiredAsString;
+import io.realm.entities.PrimitiveListTypes;
 import io.realm.entities.RandomPrimaryKey;
 import io.realm.entities.StringAndInt;
 import io.realm.entities.StringOnly;

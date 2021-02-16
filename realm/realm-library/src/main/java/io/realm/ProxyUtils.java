@@ -20,15 +20,20 @@ import android.os.Build;
 import android.util.JsonReader;
 import android.util.JsonToken;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -49,8 +54,8 @@ class ProxyUtils {
      * @param <E>        type of the {@link RealmList}.
      * @throws JSONException if it fails to parse JSON.
      */
-    static <E> void setRealmListWithJsonObject(
-            RealmList<E> realmList, JSONObject jsonObject, String fieldName) throws JSONException {
+    static <E> void setRealmListWithJsonObject(Realm realm,
+            RealmList<E> realmList, JSONObject jsonObject, String fieldName, boolean update) throws JSONException {
         if (!jsonObject.has(fieldName)) {
             return;
         }
@@ -118,6 +123,84 @@ class ProxyUtils {
                 } else {
                     osList.addDate(new Date(jsonArray.getLong(i)));
                 }
+            }
+        } else if (realmList.clazz == ObjectId.class) {
+            for (int i = 0; i < arraySize; i++) {
+                if (jsonArray.isNull(i)) {
+                    osList.addNull();
+                    continue;
+                }
+
+                Object id = jsonArray.get(i);
+                if (id instanceof String) {
+                    osList.addObjectId(new ObjectId((String) id));
+                } else {
+                    osList.addObjectId((ObjectId) id);
+                }
+            }
+        } else if (realmList.clazz == Decimal128.class) {
+            for (int i = 0; i < arraySize; i++) {
+                if (jsonArray.isNull(i)) {
+                    osList.addNull();
+                    continue;
+                }
+
+                Object decimal = jsonArray.get(i);
+
+                if (decimal instanceof org.bson.types.Decimal128) {
+                    osList.addDecimal128((org.bson.types.Decimal128) decimal);
+                } else if (decimal instanceof String) {
+                    osList.addDecimal128(org.bson.types.Decimal128.parse((String) decimal));
+                } else if (decimal instanceof Integer) {
+                    osList.addDecimal128(new org.bson.types.Decimal128((Integer) (decimal)));
+                } else if (decimal instanceof Long) {
+                    osList.addDecimal128(new org.bson.types.Decimal128((Long) (decimal)));
+                } else if (decimal instanceof Double) {
+                    osList.addDecimal128(new org.bson.types.Decimal128(new java.math.BigDecimal((Double) (decimal))));
+                } else {
+                    osList.addDecimal128((Decimal128) decimal);
+                }
+            }
+        } else if (realmList.clazz == UUID.class) {
+            for (int i = 0; i < arraySize; i++) {
+                if (jsonArray.isNull(i)) {
+                    osList.addNull();
+                    continue;
+                }
+
+                Object uuid = jsonArray.get(i);
+                if (uuid instanceof java.util.UUID) {
+                    osList.addUUID((java.util.UUID) uuid);
+                } else {
+                    osList.addUUID(java.util.UUID.fromString((String)uuid));
+                }
+            }
+        } else if (realmList.clazz == Mixed.class) {
+            for (int i = 0; i < arraySize; i++) {
+                if (jsonArray.isNull(i)) {
+                    osList.addNull();
+                    continue;
+                }
+
+                Object value = jsonArray.get(i);
+                Mixed mixed;
+                if (value instanceof String) {
+                    mixed = Mixed.valueOf((String) value);
+                } else if (value instanceof Integer) {
+                    mixed = Mixed.valueOf((Integer) value);
+                } else if (value instanceof Long) {
+                    mixed = Mixed.valueOf((Long) value);
+                } else if (value instanceof Double) {
+                    mixed = Mixed.valueOf((Double) value);
+                } else if (value instanceof Boolean) {
+                    mixed = Mixed.valueOf((Boolean) value);
+                } else if (value instanceof Mixed) {
+                    mixed = (io.realm.Mixed) value;
+                    mixed = ProxyUtils.copyOrUpdate(mixed, realm, update, new HashMap<>(), new HashSet<>());
+                } else {
+                    throw new IllegalArgumentException(String.format("Unsupported JSON type: %s", value.getClass().getSimpleName()));
+                }
+                osList.addMixed(mixed.getNativePtr());
             }
         } else if (realmList.clazz == Long.class || realmList.clazz == Integer.class ||
                 realmList.clazz == Short.class || realmList.clazz == Byte.class) {
@@ -245,6 +328,51 @@ class ProxyUtils {
                     realmList.add((byte) jsonReader.nextLong());
                 }
             }
+        } else if (elementClass == ObjectId.class) {
+            while (jsonReader.hasNext()) {
+                if (jsonReader.peek() == JsonToken.NULL) {
+                    jsonReader.skipValue();
+                    realmList.add(null);
+                } else {
+                    realmList.add(new ObjectId(jsonReader.nextString()));
+                }
+            }
+        } else if (elementClass == Decimal128.class) {
+            while (jsonReader.hasNext()) {
+                if (jsonReader.peek() == JsonToken.NULL) {
+                    jsonReader.skipValue();
+                    realmList.add(null);
+                } else {
+                    realmList.add(org.bson.types.Decimal128.parse(jsonReader.nextString()));
+                }
+            }
+        } else if (elementClass == UUID.class) {
+            while (jsonReader.hasNext()) {
+                if (jsonReader.peek() == JsonToken.NULL) {
+                    jsonReader.skipValue();
+                    realmList.add(null);
+                } else {
+                    realmList.add(java.util.UUID.fromString(jsonReader.nextString()));
+                }
+            }
+        } else if (elementClass == Mixed.class) {
+            while (jsonReader.hasNext()) {
+                if (jsonReader.peek() == JsonToken.NULL) {
+                    jsonReader.skipValue();
+                    realmList.add(Mixed.nullValue());
+                } else if (jsonReader.peek() == JsonToken.STRING) {
+                    realmList.add(Mixed.valueOf(jsonReader.nextString()));
+                } else if (jsonReader.peek() == JsonToken.NUMBER) {
+                    String value = jsonReader.nextString();
+                    if (value.contains(".")) {
+                        realmList.add(Mixed.valueOf(Double.parseDouble(value)));
+                    } else {
+                        realmList.add(Mixed.valueOf(Long.parseLong(value)));
+                    }
+                } else if (jsonReader.peek() == JsonToken.BOOLEAN) {
+                    realmList.add(Mixed.valueOf(jsonReader.nextBoolean()));
+                }
+            }
         } else {
             throwWrongElementType(elementClass);
         }
@@ -362,4 +490,43 @@ class ProxyUtils {
         return mixed;
     }
 
+    @SuppressWarnings("unchecked")
+    static Mixed createDetachedCopy(Mixed mixed, @Nonnull Realm realm, int currentDepth, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache) {
+        if (currentDepth > maxDepth || mixed == null) {
+            return Mixed.nullValue();
+        }
+
+        if (mixed.getType() == MixedType.OBJECT) {
+            Class<? extends RealmModel> mixedValueClass = (Class<? extends RealmModel>) mixed.getValueClass();
+            RealmModel mixedRealmObject = mixed.asRealmModel(mixedValueClass);
+
+            RealmModel detachedCopy = realm.getConfiguration()
+                    .getSchemaMediator()
+                    .createDetachedCopy(mixedRealmObject, maxDepth - 1, cache);
+
+            mixed = Mixed.valueOf(detachedCopy);
+        }
+
+        return mixed;
+    }
+
+    @SuppressWarnings("unchecked")
+    static Mixed createOrUpdateUsingJsonObject(Mixed mixed, @Nonnull Realm realm, int currentDepth, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache) {
+        if (currentDepth > maxDepth || mixed == null) {
+            return Mixed.nullValue();
+        }
+
+        if (mixed.getType() == MixedType.OBJECT) {
+            Class<? extends RealmModel> mixedValueClass = (Class<? extends RealmModel>) mixed.getValueClass();
+            RealmModel mixedRealmObject = mixed.asRealmModel(mixedValueClass);
+
+            RealmModel detachedCopy = realm.getConfiguration()
+                    .getSchemaMediator()
+                    .createDetachedCopy(mixedRealmObject, maxDepth - 1, cache);
+
+            mixed = Mixed.valueOf(detachedCopy);
+        }
+
+        return mixed;
+    }
 }

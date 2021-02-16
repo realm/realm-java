@@ -19,6 +19,7 @@ package io.realm;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Objects;
@@ -254,6 +255,14 @@ final class BinaryMixedOperator extends PrimitiveMixedOperator {
     @Override
     protected NativeMixed createNativeMixed() {
         return new NativeMixed(super.getValue(byte[].class));
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if ((other == null) || !getClass().equals(other.getClass())) { return false; }
+
+        MixedOperator otherOperator = (MixedOperator) other;
+        return Arrays.equals(this.getValue(byte[].class), otherOperator.getValue(byte[].class));
     }
 }
 

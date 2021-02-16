@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -404,6 +405,7 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
         }
         some_test_NamePolicyMixedClassSettingsRealmProxyInterface unmanagedCopy = (some_test_NamePolicyMixedClassSettingsRealmProxyInterface) unmanagedObject;
         some_test_NamePolicyMixedClassSettingsRealmProxyInterface realmSource = (some_test_NamePolicyMixedClassSettingsRealmProxyInterface) realmObject;
+        Realm objectRealm = (Realm) ((RealmObjectProxy) realmObject).realmGet$proxyState().getRealm$realm();
         unmanagedCopy.realmSet$firstName(realmSource.realmGet$firstName());
         unmanagedCopy.realmSet$lastName(realmSource.realmGet$lastName());
 
