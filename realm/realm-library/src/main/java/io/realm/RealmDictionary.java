@@ -16,7 +16,13 @@
 
 package io.realm;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -119,26 +125,48 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
 
     private static <V> DictionaryManager<V> getManager(String valueClass, BaseRealm baseRealm, OsMap osMap) {
         // TODO: add other types when ready
-        DictionaryManager<V> managedMapOperator;
-        if (valueClass.equals(Mixed.class.getCanonicalName())) {
-            MapValueOperator<Mixed> mixedValueOperator = new MixedValueOperator(baseRealm, osMap, new ClassContainer(null, valueClass));
-            //noinspection unchecked
-            managedMapOperator = new DictionaryManager<>((MapValueOperator<V>) mixedValueOperator);
-        } else if (valueClass.equals(Boolean.class.getCanonicalName())) {
-            MapValueOperator<Boolean> mixedValueOperator = new BoxableValueOperator<>(baseRealm, osMap, new ClassContainer(null, valueClass));
-            //noinspection unchecked
-            managedMapOperator = new DictionaryManager<>((MapValueOperator<V>) mixedValueOperator);
-        } else if (valueClass.equals(UUID.class.getCanonicalName())) {
-            MapValueOperator<UUID> mixedValueOperator = new BoxableValueOperator<>(baseRealm, osMap, new ClassContainer(null, valueClass));
-            //noinspection unchecked
-            managedMapOperator = new DictionaryManager<>((MapValueOperator<V>) mixedValueOperator);
+        ClassContainer classContainer = new ClassContainer(null, valueClass);
+
+        MapValueOperator<?> mapValueOperator;
+
+        if (isClassBoxable(valueClass)) {
+            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
+        } else if (valueClass.equals(Mixed.class.getCanonicalName())) {
+            mapValueOperator = new MixedValueOperator(baseRealm, osMap, classContainer);
+        } else if (valueClass.equals(Integer.class.getCanonicalName())) {
+            mapValueOperator = new IntegerValueOperator(baseRealm, osMap, classContainer);
+        } else if (valueClass.equals(Short.class.getCanonicalName())) {
+            mapValueOperator = new ShortValueOperator(baseRealm, osMap, classContainer);
+        } else if (valueClass.equals(Byte.class.getCanonicalName())) {
+            mapValueOperator = new ByteValueOperator(baseRealm, osMap, classContainer);
+        } else if (valueClass.equals(Byte[].class.getCanonicalName())) {
+            mapValueOperator = new BoxedByteArrayValueOperator(baseRealm, osMap, classContainer);
         } else {
             throw new IllegalArgumentException("Only Maps of Mixed or one of the types that can be boxed inside Mixed can be used.");
         }
-        return managedMapOperator;
+
+        //noinspection unchecked
+        return new DictionaryManager<>((MapValueOperator<V>) mapValueOperator);
+    }
+
+    private static boolean isClassBoxable(String valueClass) {
+        return boxableClasses.contains(valueClass);
     }
 
     private static boolean isClassForRealmModel(Class<?> clazz) {
         return RealmModel.class.isAssignableFrom(clazz);
     }
+
+    private static final List<String> boxableClasses = Arrays.asList(
+            Long.class.getCanonicalName(),
+            Float.class.getCanonicalName(),
+            Double.class.getCanonicalName(),
+            String.class.getCanonicalName(),
+            Boolean.class.getCanonicalName(),
+            Date.class.getCanonicalName(),
+            Decimal128.class.getCanonicalName(),
+            byte[].class.getCanonicalName(),
+            ObjectId.class.getCanonicalName(),
+            UUID.class.getCanonicalName()
+    );
 }

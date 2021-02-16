@@ -29,6 +29,7 @@ import io.realm.internal.OsMap;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
+import io.realm.internal.android.TypeUtils;
 import io.realm.internal.core.NativeMixed;
 
 /**
@@ -215,8 +216,8 @@ class MixedValueOperator extends MapValueOperator<Mixed> {
         super(baseRealm, osMap, classContainer);
     }
 
-    @Override
     @Nullable
+    @Override
     public Mixed get(Object key) {
         long mixedPtr = osMap.getMixedPtr(key);
         if (mixedPtr == OsMap.NOT_FOUND) {
@@ -226,8 +227,8 @@ class MixedValueOperator extends MapValueOperator<Mixed> {
         return new Mixed(MixedOperator.fromNativeMixed(baseRealm, nativeMixed));
     }
 
-    @Override
     @Nullable
+    @Override
     public Mixed put(Object key, @Nullable Mixed value) {
         Mixed original = get(key);
 
@@ -249,19 +250,104 @@ class BoxableValueOperator<T> extends MapValueOperator<T> {
         super(baseRealm, osMap, classContainer);
     }
 
-    @Override
     @Nullable
+    @Override
     public T get(Object key) {
-        //noinspection unchecked
-        return (T) osMap.get(key);
+        Object value = osMap.get(key);
+        if (value == null) {
+            return null;
+        }
+        return processValue(value);
     }
 
-    @Override
     @Nullable
+    @Override
     public T put(Object key, @Nullable T value) {
         T original = get(key);
         osMap.put(key, value);
         return original;
+    }
+
+    /**
+     * Normally it is enough with typecasting the value to {@code T}, but e.g. {@link Long} cannot
+     * be cast directly to {@link Integer} so a special operator has to override this method to do
+     * it.
+     *
+     * @param value the value of the dictionary entry as an {@link Object}.
+     * @return the value in its right form
+     */
+    @Nullable
+    protected T processValue(Object value) {
+        //noinspection unchecked
+        return (T) value;
+    }
+}
+
+/**
+ * {@link MapValueOperator} targeting {@link Byte[]} values in {@link RealmMap}s. Use this one
+ * instead of {@link BoxableValueOperator} to avoid and typecast exception when converting the
+ * result from JNI to {@link Byte[]}.
+ */
+class BoxedByteArrayValueOperator extends BoxableValueOperator<Byte[]> {
+
+    BoxedByteArrayValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
+        super(baseRealm, osMap, classContainer);
+    }
+
+    @Override
+    protected Byte[] processValue(Object value) {
+        return TypeUtils.convertPrimitiveBinaryToNonPrimitive((byte[]) value);
+    }
+}
+
+/**
+ * {@link MapValueOperator} targeting {@link Integer} values in {@link RealmMap}s. Use this one
+ * instead of {@link BoxableValueOperator} to avoid and typecast exception when converting the
+ * {@link Long} result from JNI to {@link Integer}.
+ */
+class IntegerValueOperator extends BoxableValueOperator<Integer> {
+
+    IntegerValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
+        super(baseRealm, osMap, classContainer);
+    }
+
+    @Override
+    protected Integer processValue(Object value) {
+        return ((Long) value).intValue();
+    }
+}
+
+/**
+ * {@link MapValueOperator} targeting {@link Short} values in {@link RealmMap}s. Use this one
+ * instead of {@link BoxableValueOperator} to avoid and typecast exception when converting the
+ * {@link Long} result from JNI to {@link Short}.
+ */
+class ShortValueOperator extends BoxableValueOperator<Short> {
+
+    ShortValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
+        super(baseRealm, osMap, classContainer);
+    }
+
+    @Override
+    protected Short processValue(Object value) {
+        return ((Long) value).shortValue();
+    }
+}
+
+/**
+ * {@link MapValueOperator} targeting {@link Byte} values in {@link RealmMap}s. Use this one
+ * instead of {@link BoxableValueOperator} to avoid and typecast exception when converting the
+ * {@link Long} result from JNI to {@link Byte}.
+ */
+class ByteValueOperator extends BoxableValueOperator<Byte> {
+
+    ByteValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
+        super(baseRealm, osMap, classContainer);
+    }
+
+    @Override
+    protected Byte processValue(Object value) {
+        return ((Long) value).byteValue();
     }
 }
 
@@ -274,8 +360,8 @@ class RealmModelValueOperator<T extends RealmModel> extends MapValueOperator<T> 
         super(baseRealm, osMap, classContainer);
     }
 
-    @Override
     @Nullable
+    @Override
     public T get(Object key) {
         long realmModelKey = osMap.getModelRowKey(key);
         if (realmModelKey == OsMap.NOT_FOUND) {
@@ -290,8 +376,8 @@ class RealmModelValueOperator<T extends RealmModel> extends MapValueOperator<T> 
         return (T) baseRealm.get(clazz, className, realmModelKey);
     }
 
-    @Override
     @Nullable
+    @Override
     public T put(Object key, @Nullable T value) {
         //noinspection unchecked
         Class<T> clazz = (Class<T>) classContainer.getClazz();

@@ -255,7 +255,15 @@ public class QueryDescriptorTests {
                     // TODO: maps not ready to test yet
                     case STRING_TO_MIXED_MAP:
                     case STRING_TO_BOOLEAN_MAP:
+                    case STRING_TO_STRING_MAP:
+                    case STRING_TO_INTEGER_MAP:
+                    case STRING_TO_FLOAT_MAP:
+                    case STRING_TO_DOUBLE_MAP:
+                    case STRING_TO_BINARY_MAP:
+                    case STRING_TO_DATE_MAP:
+                    case STRING_TO_OBJECT_ID_MAP:
                     case STRING_TO_UUID_MAP:
+                    case STRING_TO_DECIMAL128_MAP:
                     case STRING_TO_LINK_MAP:
                     case MIXED:// FIXME: MIXED IGNORED.
                     case TYPED_LINK:

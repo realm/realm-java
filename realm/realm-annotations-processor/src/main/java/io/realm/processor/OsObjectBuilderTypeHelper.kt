@@ -28,6 +28,18 @@ object OsObjectBuilderTypeHelper {
     private val QUALIFIED_MAP_VALUES: Map<QualifiedClassName, String> = mapOf(
             QualifiedClassName("io.realm.Mixed") to "MixedValueDictionary",
             QualifiedClassName("java.lang.Boolean") to "BooleanValueDictionary",
+            QualifiedClassName("java.lang.String") to "StringValueDictionary",
+            QualifiedClassName("java.lang.Integer") to "IntegerValueDictionary",
+            QualifiedClassName("java.lang.Float") to "FloatValueDictionary",
+            QualifiedClassName("java.lang.Long") to "LongValueDictionary",
+            QualifiedClassName("java.lang.Short") to "ShortValueDictionary",
+            QualifiedClassName("java.lang.Byte") to "ByteValueDictionary",
+            QualifiedClassName("java.lang.Double") to "DoubleValueDictionary",
+            QualifiedClassName("java.util.Date") to "DateValueDictionary",
+            QualifiedClassName("byte[]") to "BinaryValueDictionary",
+            QualifiedClassName("java.lang.Byte[]") to "NonPrimitiveBinaryValueDictionary",
+            QualifiedClassName("org.bson.types.ObjectId") to "ObjectIdValueDictionary",
+            QualifiedClassName("org.bson.types.Decimal128") to "Decimal128ValueDictionary",
             QualifiedClassName("java.util.UUID") to "UUIDValueDictionary"
     )
 

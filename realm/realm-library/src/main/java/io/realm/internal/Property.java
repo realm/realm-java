@@ -30,13 +30,21 @@ import static io.realm.RealmFieldType.FLOAT_LIST;
 import static io.realm.RealmFieldType.INTEGER_LIST;
 import static io.realm.RealmFieldType.MIXED_LIST;
 import static io.realm.RealmFieldType.OBJECT_ID_LIST;
-import static io.realm.RealmFieldType.STRING_TO_LINK_MAP;
-import static io.realm.RealmFieldType.STRING_TO_UUID_MAP;
 import static io.realm.RealmFieldType.TYPED_LINK;
 import static io.realm.RealmFieldType.UUID_LIST;
 import static io.realm.RealmFieldType.STRING_LIST;
 import static io.realm.RealmFieldType.STRING_TO_MIXED_MAP;
 import static io.realm.RealmFieldType.STRING_TO_BOOLEAN_MAP;
+import static io.realm.RealmFieldType.STRING_TO_BINARY_MAP;
+import static io.realm.RealmFieldType.STRING_TO_DATE_MAP;
+import static io.realm.RealmFieldType.STRING_TO_DECIMAL128_MAP;
+import static io.realm.RealmFieldType.STRING_TO_DOUBLE_MAP;
+import static io.realm.RealmFieldType.STRING_TO_FLOAT_MAP;
+import static io.realm.RealmFieldType.STRING_TO_INTEGER_MAP;
+import static io.realm.RealmFieldType.STRING_TO_LINK_MAP;
+import static io.realm.RealmFieldType.STRING_TO_OBJECT_ID_MAP;
+import static io.realm.RealmFieldType.STRING_TO_STRING_MAP;
+import static io.realm.RealmFieldType.STRING_TO_UUID_MAP;
 
 
 /**
@@ -176,6 +184,30 @@ public class Property implements NativeObject {
             case STRING_TO_BOOLEAN_MAP:
                 type = TYPE_BOOL | TYPE_DICTIONARY;
                 break;
+            case STRING_TO_STRING_MAP:
+                type = TYPE_STRING | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_INTEGER_MAP:
+                type = TYPE_INT | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_FLOAT_MAP:
+                type = TYPE_FLOAT | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_DOUBLE_MAP:
+                type = TYPE_DOUBLE | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_BINARY_MAP:
+                type = TYPE_DATA | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_DATE_MAP:
+                type = TYPE_DATE | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_DECIMAL128_MAP:
+                type = TYPE_DECIMAL128 | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_OBJECT_ID_MAP:
+                type = TYPE_OBJECT_ID | TYPE_DICTIONARY;
+                break;
             case STRING_TO_UUID_MAP:
                 type = TYPE_UUID | TYPE_DICTIONARY;
                 break;
@@ -249,6 +281,22 @@ public class Property implements NativeObject {
                 return STRING_TO_MIXED_MAP;
             case TYPE_BOOL | TYPE_DICTIONARY:
                 return STRING_TO_BOOLEAN_MAP;
+            case TYPE_STRING | TYPE_DICTIONARY:
+                return STRING_TO_STRING_MAP;
+            case TYPE_INT | TYPE_DICTIONARY:
+                return STRING_TO_INTEGER_MAP;
+            case TYPE_FLOAT | TYPE_DICTIONARY:
+                return STRING_TO_FLOAT_MAP;
+            case TYPE_DOUBLE | TYPE_DICTIONARY:
+                return STRING_TO_DOUBLE_MAP;
+            case TYPE_DATA | TYPE_DICTIONARY:
+                return STRING_TO_BINARY_MAP;
+            case TYPE_DATE | TYPE_DICTIONARY:
+                return STRING_TO_DATE_MAP;
+            case TYPE_DECIMAL128 | TYPE_DICTIONARY:
+                return STRING_TO_DECIMAL128_MAP;
+            case TYPE_OBJECT_ID | TYPE_DICTIONARY:
+                return STRING_TO_OBJECT_ID_MAP;
             case TYPE_UUID | TYPE_DICTIONARY:
                 return STRING_TO_UUID_MAP;
             case TYPE_OBJECT | TYPE_DICTIONARY:

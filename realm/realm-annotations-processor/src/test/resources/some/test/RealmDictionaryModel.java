@@ -16,6 +16,10 @@
 
 package some.test;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
+import java.util.Date;
 import java.util.UUID;
 
 import io.realm.Mixed;
@@ -28,7 +32,19 @@ public class RealmDictionaryModel extends RealmObject {
 
     private RealmDictionary<Mixed> myMixedRealmDictionary;
     private RealmDictionary<Boolean> myBooleanRealmDictionary;
+    private RealmDictionary<String> myStringRealmDictionary;
+    private RealmDictionary<Integer> myIntegerRealmDictionary;
+    private RealmDictionary<Float> myFloatRealmDictionary;
+    private RealmDictionary<Long> myLongRealmDictionary;
+    private RealmDictionary<Short> myShortRealmDictionary;
+    private RealmDictionary<Byte> myByteRealmDictionary;
+    private RealmDictionary<Double> myDoubleRealmDictionary;
+    private RealmDictionary<Date> myDateRealmDictionary;
+    private RealmDictionary<byte[]> myPrimitiveBinaryRealmDictionary;
+    private RealmDictionary<Byte[]> myBinaryRealmDictionary;
+    private RealmDictionary<ObjectId> myObjectIdRealmDictionary;
     private RealmDictionary<UUID> myUUIDRealmDictionary;
+    private RealmDictionary<Decimal128> myDecimal128IdRealmDictionary;
 
     // TODO: add RealmDictionary<RealmModel>
 
@@ -52,11 +68,107 @@ public class RealmDictionaryModel extends RealmObject {
         this.myBooleanRealmDictionary = myBooleanRealmDictionary;
     }
 
+    public RealmDictionary<String> getMyStringRealmDictionary() {
+        return myStringRealmDictionary;
+    }
+
+    public void setMyStringRealmDictionary(RealmDictionary<String> myStringRealmDictionary) {
+        this.myStringRealmDictionary = myStringRealmDictionary;
+    }
+
+    public RealmDictionary<Integer> getMyIntegerRealmDictionary() {
+        return myIntegerRealmDictionary;
+    }
+
+    public void setMyIntegerRealmDictionary(RealmDictionary<Integer> myIntegerRealmDictionary) {
+        this.myIntegerRealmDictionary = myIntegerRealmDictionary;
+    }
+
+    public RealmDictionary<Float> getMyFloatRealmDictionary() {
+        return myFloatRealmDictionary;
+    }
+
+    public void setMyFloatRealmDictionary(RealmDictionary<Float> myFloatRealmDictionary) {
+        this.myFloatRealmDictionary = myFloatRealmDictionary;
+    }
+
+    public RealmDictionary<Long> getMyLongRealmDictionary() {
+        return myLongRealmDictionary;
+    }
+
+    public void setMyLongRealmDictionary(RealmDictionary<Long> myLongRealmDictionary) {
+        this.myLongRealmDictionary = myLongRealmDictionary;
+    }
+
+    public RealmDictionary<Short> getMyShortRealmDictionary() {
+        return myShortRealmDictionary;
+    }
+
+    public void setMyShortRealmDictionary(RealmDictionary<Short> myShortRealmDictionary) {
+        this.myShortRealmDictionary = myShortRealmDictionary;
+    }
+
+    public RealmDictionary<Byte> getMyByteRealmDictionary() {
+        return myByteRealmDictionary;
+    }
+
+    public void setMyByteRealmDictionary(RealmDictionary<Byte> myByteRealmDictionary) {
+        this.myByteRealmDictionary = myByteRealmDictionary;
+    }
+
+    public RealmDictionary<Date> getMyDateRealmDictionary() {
+        return myDateRealmDictionary;
+    }
+
+    public void setMyDateRealmDictionary(RealmDictionary<Date> myDateRealmDictionary) {
+        this.myDateRealmDictionary = myDateRealmDictionary;
+    }
+
+    public RealmDictionary<Double> getMyDoubleRealmDictionary() {
+        return myDoubleRealmDictionary;
+    }
+
+    public void setMyDoubleRealmDictionary(RealmDictionary<Double> myDoubleRealmDictionary) {
+        this.myDoubleRealmDictionary = myDoubleRealmDictionary;
+    }
+
+    public RealmDictionary<byte[]> getMyPrimitiveBinaryRealmDictionary() {
+        return myPrimitiveBinaryRealmDictionary;
+    }
+
+    public void setMyPrimitiveBinaryRealmDictionary(RealmDictionary<byte[]> myPrimitiveBinaryRealmDictionary) {
+        this.myPrimitiveBinaryRealmDictionary = myPrimitiveBinaryRealmDictionary;
+    }
+
+    public RealmDictionary<Byte[]> getMyBinaryRealmDictionary() {
+        return myBinaryRealmDictionary;
+    }
+
+    public void setMyBinaryRealmDictionary(RealmDictionary<Byte[]> myBinaryRealmDictionary) {
+        this.myBinaryRealmDictionary = myBinaryRealmDictionary;
+    }
+
+    public RealmDictionary<ObjectId> getMyObjectIdRealmDictionary() {
+        return myObjectIdRealmDictionary;
+    }
+
+    public void setMyObjectIdRealmDictionary(RealmDictionary<ObjectId> myObjectIdRealmDictionary) {
+        this.myObjectIdRealmDictionary = myObjectIdRealmDictionary;
+    }
+
     public RealmDictionary<UUID> getMyUUIDRealmDictionary() {
         return myUUIDRealmDictionary;
     }
 
     public void setMyUUIDRealmDictionary(RealmDictionary<UUID> myUUIDRealmDictionary) {
         this.myUUIDRealmDictionary = myUUIDRealmDictionary;
+    }
+
+    public RealmDictionary<Decimal128> getMyDecimal128IdRealmDictionary() {
+        return myDecimal128IdRealmDictionary;
+    }
+
+    public void setMyDecimal128IdRealmDictionary(RealmDictionary<Decimal128> myDecimal128IdRealmDictionary) {
+        this.myDecimal128IdRealmDictionary = myDecimal128IdRealmDictionary;
     }
 }

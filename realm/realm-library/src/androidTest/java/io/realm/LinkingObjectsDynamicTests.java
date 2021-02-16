@@ -257,7 +257,39 @@ public class LinkingObjectsDynamicTests {
                         // TODO: fix this when adding maps to AllJavaTypes
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
                         break;
+                    case STRING_TO_STRING_MAP:
+                        // TODO: fix this when adding maps to AllJavaTypes
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
+                        break;
+                    case STRING_TO_INTEGER_MAP:
+                        // TODO: fix this when adding maps to AllJavaTypes
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
+                        break;
+                    case STRING_TO_FLOAT_MAP:
+                        // TODO: fix this when adding maps to AllJavaTypes
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
+                        break;
+                    case STRING_TO_DOUBLE_MAP:
+                        // TODO: fix this when adding maps to AllJavaTypes
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
+                        break;
+                    case STRING_TO_BINARY_MAP:
+                        // TODO: fix this when adding maps to AllJavaTypes
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
+                        break;
+                    case STRING_TO_DATE_MAP:
+                        // TODO: fix this when adding maps to AllJavaTypes
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
+                        break;
+                    case STRING_TO_OBJECT_ID_MAP:
+                        // TODO: fix this when adding maps to AllJavaTypes
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
+                        break;
                     case STRING_TO_UUID_MAP:
+                        // TODO: fix this when adding maps to AllJavaTypes
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
+                        break;
+                    case STRING_TO_DECIMAL128_MAP:
                         // TODO: fix this when adding maps to AllJavaTypes
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
                         break;

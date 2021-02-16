@@ -587,6 +587,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 beginControlFlow("if (value == null)")
                     emitStatement("return")
                 endControlFlow()
+                emitStatement("osMap.clear()")
                 beginControlFlow("for (java.util.Map.Entry<String, %s> item : value.entrySet())", genericType)
                     emitStatement("String entryKey = item.getKey()")
                     emitStatement("%s entryValue = item.getValue()", genericType)
@@ -933,6 +934,14 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitStatement("""builder.addPersistedProperty("%s", %s, %s, %s, %s)""", fieldName, fieldType.realmType, primaryKeyFlag, indexedFlag, nullableFlag)
                         }
                         Constants.RealmFieldType.STRING_TO_BOOLEAN_MAP,
+                        Constants.RealmFieldType.STRING_TO_STRING_MAP,
+                        Constants.RealmFieldType.STRING_TO_INTEGER_MAP,
+                        Constants.RealmFieldType.STRING_TO_FLOAT_MAP,
+                        Constants.RealmFieldType.STRING_TO_DOUBLE_MAP,
+                        Constants.RealmFieldType.STRING_TO_BINARY_MAP,
+                        Constants.RealmFieldType.STRING_TO_DATE_MAP,
+                        Constants.RealmFieldType.STRING_TO_DECIMAL128_MAP,
+                        Constants.RealmFieldType.STRING_TO_OBJECT_ID_MAP,
                         Constants.RealmFieldType.STRING_TO_UUID_MAP,
                         Constants.RealmFieldType.STRING_TO_MIXED_MAP -> {
                             val valueNullable = metadata.isDictionaryValueNullable(field)
