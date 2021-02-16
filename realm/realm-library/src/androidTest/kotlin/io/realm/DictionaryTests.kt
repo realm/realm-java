@@ -1733,7 +1733,6 @@ class DictionaryTests {
     DictionaryClass::class,
     DictionaryClassWithPk::class,
     MyRealmModel::class,
-    DictJava::class,
     MyPrimaryKeyModel::class,
     EmbeddedSimpleChild::class,
     EmbeddedSimpleParent::class
