@@ -16,9 +16,6 @@
 
 package io.realm;
 
-import androidx.test.rule.UiThreadTestRule;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
@@ -26,6 +23,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.annotation.Nullable;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.rule.UiThreadTestRule;
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.BacklinksSource;
 import io.realm.entities.BacklinksTarget;

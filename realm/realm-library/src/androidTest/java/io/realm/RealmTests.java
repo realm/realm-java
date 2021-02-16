@@ -102,6 +102,7 @@ import io.realm.entities.PrimaryKeyRequiredAsBoxedInteger;
 import io.realm.entities.PrimaryKeyRequiredAsBoxedLong;
 import io.realm.entities.PrimaryKeyRequiredAsBoxedShort;
 import io.realm.entities.PrimaryKeyRequiredAsString;
+import io.realm.entities.PrimitiveListTypes;
 import io.realm.entities.RandomPrimaryKey;
 import io.realm.entities.StringAndInt;
 import io.realm.entities.StringOnly;
@@ -162,6 +163,8 @@ public class RealmTests {
         add(AllTypes.FIELD_BINARY);
         add(AllTypes.FIELD_DECIMAL128);
         add(AllTypes.FIELD_OBJECT_ID);
+        add(AllTypes.FIELD_UUID);
+        add(AllTypes.FIELD_MIXED);
     }};
     private RealmConfiguration realmConfig;
 
@@ -194,6 +197,7 @@ public class RealmTests {
             allTypes.setColumnObjectId(new ObjectId(TestHelper.generateObjectIdHexString(i)));
             allTypes.setColumnDecimal128(new Decimal128(new BigDecimal(i + "12345")));
             allTypes.setColumnUUID(UUID.fromString(TestHelper.generateUUIDString(i)));
+            allTypes.setColumnMixed(Mixed.valueOf(UUID.fromString(TestHelper.generateUUIDString(i))));
 
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
@@ -410,7 +414,7 @@ public class RealmTests {
 
             try {
                 realm.where(AllTypes.class).equalTo(columnData.get(i), UUID.fromString(TestHelper.generateUUIDString(i))).findAll();
-                if (i != 8) {
+                if (i != 9) {
                     fail("Realm.where should fail with illegal argument");
                 }
             } catch (IllegalArgumentException ignored) {
@@ -1391,6 +1395,7 @@ public class RealmTests {
         allTypes.setColumnDecimal128(new Decimal128(new BigDecimal("12345")));
         allTypes.setColumnObjectId(new ObjectId(TestHelper.randomObjectIdHexString()));
         allTypes.setColumnUUID(UUID.randomUUID());
+        allTypes.setColumnMixed(Mixed.valueOf(UUID.randomUUID()));
         realm.commitTransaction();
 
         RealmConfiguration realmConfig = configFactory.createConfiguration("other-realm");
@@ -1423,6 +1428,7 @@ public class RealmTests {
         allTypes.setColumnDecimal128(new Decimal128(new BigDecimal("12345")));
         allTypes.setColumnObjectId(new ObjectId(TestHelper.generateObjectIdHexString(7)));
         allTypes.setColumnUUID(UUID.fromString(TestHelper.generateUUIDString(7)));
+        allTypes.setColumnMixed(Mixed.valueOf(UUID.fromString(TestHelper.generateUUIDString(6))));
         allTypes.setColumnRealmObject(dog);
         allTypes.setColumnRealmList(list);
 
@@ -1436,6 +1442,7 @@ public class RealmTests {
         allTypes.setColumnDecimal128List(new RealmList<Decimal128>(new Decimal128(new BigDecimal("54321"))));
         allTypes.setColumnObjectIdList(new RealmList<ObjectId>(new ObjectId(TestHelper.generateObjectIdHexString(5))));
         allTypes.setColumnUUIDList(new RealmList<>(UUID.fromString(TestHelper.generateUUIDString(5))));
+        allTypes.setColumnMixedList(new RealmList<>(Mixed.valueOf(UUID.fromString(TestHelper.generateUUIDString(7)))));
 
         realm.beginTransaction();
         AllTypes realmTypes = realm.copyToRealm(allTypes);
@@ -1452,6 +1459,7 @@ public class RealmTests {
         assertEquals(allTypes.getColumnDecimal128(), realmTypes.getColumnDecimal128());
         assertEquals(allTypes.getColumnObjectId(), realmTypes.getColumnObjectId());
         assertEquals(allTypes.getColumnUUID(), realmTypes.getColumnUUID());
+        assertEquals(allTypes.getColumnMixed(), realmTypes.getColumnMixed());
         assertEquals(allTypes.getColumnRealmObject().getName(), dog.getName());
         assertEquals(list.size(), realmTypes.getColumnRealmList().size());
         //noinspection ConstantConditions
@@ -1479,6 +1487,9 @@ public class RealmTests {
 
         assertEquals(1, realmTypes.getColumnUUIDList().size());
         assertEquals(UUID.fromString(TestHelper.generateUUIDString(5)), realmTypes.getColumnUUIDList().get(0));
+
+        assertEquals(1, realmTypes.getColumnMixedList().size());
+        assertEquals(Mixed.valueOf(UUID.fromString(TestHelper.generateUUIDString(7))), realmTypes.getColumnMixedList().get(0));
     }
 
     @Test
@@ -3492,6 +3503,7 @@ public class RealmTests {
         assertEquals(realmObject.getColumnObjectId(), unmanagedObject.getColumnObjectId());
         assertEquals(realmObject.getColumnDecimal128(), unmanagedObject.getColumnDecimal128());
         assertEquals(realmObject.getColumnUUID(), unmanagedObject.getColumnUUID());
+        assertEquals(realmObject.getColumnMixed(), unmanagedObject.getColumnMixed());
     }
 
     @Test

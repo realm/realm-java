@@ -449,7 +449,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetMixed(JNIEnv* env, 
         return;
     }
     try {
-        JavaValue java_value = *reinterpret_cast<JavaValue*>(nativePtr);
+        auto java_value = *reinterpret_cast<JavaValue *>(nativePtr);
         table->get_object(ObjKey(rowKey)).set<Mixed>(ColKey(columnKey), java_value.to_mixed(), B(isDefault));
     }
     CATCH_STD()

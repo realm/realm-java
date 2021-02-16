@@ -19,6 +19,7 @@
 #ifndef REALM_JAVA_OBJECT_ACCESSOR
 #define REALM_JAVA_OBJECT_ACCESSOR
 
+#include "util.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <type_traits>
@@ -44,6 +45,7 @@ using namespace realm::_impl;
     X(ObjectId) \
     X(UUID) \
     X(ObjectLink) \
+    X(Mixed) \
     X(Decimal) \
     X(Binary) \
     X(Object) \
@@ -83,6 +85,7 @@ template <> struct JavaValueTypeRepr<JavaValueType::ObjectId>      { using Type 
 template <> struct JavaValueTypeRepr<JavaValueType::Decimal>       { using Type = Decimal128; };
 template <> struct JavaValueTypeRepr<JavaValueType::UUID>          { using Type = UUID; };
 template <> struct JavaValueTypeRepr<JavaValueType::ObjectLink>    { using Type = ObjLink; };
+template <> struct JavaValueTypeRepr<JavaValueType::Mixed>         { using Type = JavaValue*; };
 template <> struct JavaValueTypeRepr<JavaValueType::Binary>        { using Type = OwnedBinaryData; };
 template <> struct JavaValueTypeRepr<JavaValueType::Object>        { using Type = Obj*; };
 template <> struct JavaValueTypeRepr<JavaValueType::List>          { using Type = std::vector<JavaValue>; };
@@ -244,6 +247,11 @@ struct JavaValue {
         return get_as<JavaValueType::UUID>();
     }
 
+    auto& get_mixed() const noexcept
+    {
+        return get_as<JavaValueType::Mixed>();
+    }
+
     auto& get_object_link() const noexcept
     {
         return get_as<JavaValueType::ObjectLink>();
@@ -339,7 +347,7 @@ struct JavaValue {
         }
     }
 
-    realm::Mixed to_mixed(){
+    realm::Mixed to_mixed() const {
         switch (this->get_type()) {
             case JavaValueType::Integer:
                 return Mixed(this->get_int());
@@ -363,6 +371,8 @@ struct JavaValue {
                 return Mixed(this->get_binary().get());
             case JavaValueType::ObjectLink:
                 return Mixed(this->get_object_link());
+            case JavaValueType::Mixed:
+                return reinterpret_cast<JavaValue*>(this->get_mixed())->to_mixed();
             case JavaValueType::Object:
             case JavaValueType::List:
             case JavaValueType::PropertyList:
@@ -370,6 +380,8 @@ struct JavaValue {
             case JavaValueType::NumValueTypes:
             case JavaValueType::Empty:
                 return Mixed();
+            default:
+                throw std::runtime_error(util::format("Cannot convert type %d to Mixed", int(this->get_type())));
         }
     }
 };
@@ -609,7 +621,7 @@ inline Timestamp JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) co
 template <>
 inline Decimal128 JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
-    return v.has_value() ? v.get_decimal128() : Decimal128();
+    return v.has_value() ? v.get_decimal128() : Decimal128(realm::null());
 }
 
 template <>
@@ -622,6 +634,12 @@ template <>
 inline UUID JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
     return v.has_value() ? v.get_uuid() : UUID();
+}
+
+template <>
+inline Mixed JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
+{
+    return v.has_value() ? v.to_mixed() : Mixed();
 }
 
 template <>
