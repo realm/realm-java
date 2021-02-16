@@ -57,6 +57,7 @@ class MixedTests {
                 .schema(MixedNotIndexed::class.java,
                         MixedIndexed::class.java,
                         AllJavaTypes::class.java,
+                        MixedNotIndexedWithPK::class.java,
                         SimpleEmbeddedObject::class.java,
                         MixedDefaultPK::class.java,
                         MixedDefaultNonPK::class.java,
@@ -877,6 +878,20 @@ class MixedTests {
         dynamicRealm.close()
     }
 
+
+    @Test
+    fun freeze() {
+        realm.beginTransaction()
+        val obj = realm.createObject<MixedNotIndexedWithPK>(0)
+        obj.mixed = Mixed.valueOf(10.toInt())
+        realm.commitTransaction()
+
+        val frozen = obj.freeze<MixedNotIndexedWithPK>()
+
+        assertEquals(Mixed.valueOf(10.toInt()), frozen.mixed)
+    }
+
+    @Test
     fun initialize_default_pkRealmModel() {
         realm.executeTransaction {
             realm.createObject<PrimaryKeyAsString>(MixedDefaultPK.NAME)
