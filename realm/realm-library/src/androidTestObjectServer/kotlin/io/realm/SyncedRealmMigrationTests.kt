@@ -130,8 +130,8 @@ class SyncedRealmMigrationTests {
 
         // Setup initial Realm schema (with a different primary key)
         val expectedObjectSchema = OsObjectSchemaInfo.Builder(PrimaryKeyAsString.CLASS_NAME, false, 2, 0)
-                .addPersistedProperty(PrimaryKeyAsString.FIELD_PRIMARY_KEY, RealmFieldType.STRING, false, true, false)
-                .addPersistedProperty("_id", RealmFieldType.INTEGER, true, true, true)
+                .addPersistedProperty("", PrimaryKeyAsString.FIELD_PRIMARY_KEY, RealmFieldType.STRING, false, true, false)
+                .addPersistedProperty("", "_id", RealmFieldType.INTEGER, true, true, true)
                 .build()
         val schemaInfo = OsSchemaInfo(listOf(expectedObjectSchema))
         val configBuilder = OsRealmConfig.Builder(config).schemaInfo(schemaInfo)

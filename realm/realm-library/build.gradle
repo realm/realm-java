@@ -58,7 +58,7 @@ android {
         }
     }
 
-    ndkVersion = '21.0.6113669'
+    ndkVersion = project.findProperty('ndkVersion')
 
     externalNativeBuild {
         cmake {
