@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -1456,6 +1457,9 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     mixed = Mixed.valueOf((Double) value);
                 } else if (value instanceof Boolean) {
                     mixed = Mixed.valueOf((Boolean) value);
+                } else if (value instanceof Mixed) {
+                    mixed = (io.realm.Mixed) value;
+                    mixed = ProxyUtils.copyOrUpdate(mixed, realm, update, new HashMap<>(), new HashSet<>());
                 } else {
                     throw new IllegalArgumentException(String.format("Unsupported JSON type: %s", value.getClass().getSimpleName()));
                 }
@@ -1504,19 +1508,20 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnStringList(), json, "columnStringList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnBinaryList(), json, "columnBinaryList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnBooleanList(), json, "columnBooleanList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnLongList(), json, "columnLongList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnIntegerList(), json, "columnIntegerList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnShortList(), json, "columnShortList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnByteList(), json, "columnByteList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnDoubleList(), json, "columnDoubleList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnFloatList(), json, "columnFloatList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnDateList(), json, "columnDateList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnDecimal128List(), json, "columnDecimal128List");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnObjectIdList(), json, "columnObjectIdList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnUUIDList(), json, "columnUUIDList");
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnStringList(), json, "columnStringList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnBinaryList(), json, "columnBinaryList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnBooleanList(), json, "columnBooleanList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnLongList(), json, "columnLongList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnIntegerList(), json, "columnIntegerList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnShortList(), json, "columnShortList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnByteList(), json, "columnByteList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnDoubleList(), json, "columnDoubleList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnFloatList(), json, "columnFloatList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnDateList(), json, "columnDateList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnDecimal128List(), json, "columnDecimal128List", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnObjectIdList(), json, "columnObjectIdList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnUUIDList(), json, "columnUUIDList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnMixedList(), json, "columnMixedList", update);
         return obj;
     }
 
@@ -1692,6 +1697,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             } else if (name.equals("columnUUIDList")) {
                 objProxy.realmSet$columnUUIDList(ProxyUtils.createRealmListWithJsonStream(java.util.UUID.class, reader));
             } else if (name.equals("columnMixedList")) {
+                objProxy.realmSet$columnMixedList(ProxyUtils.createRealmListWithJsonStream(io.realm.Mixed.class, reader));
             } else {
                 reader.skipValue();
             }
@@ -3079,6 +3085,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         }
         some_test_AllTypesRealmProxyInterface unmanagedCopy = (some_test_AllTypesRealmProxyInterface) unmanagedObject;
         some_test_AllTypesRealmProxyInterface realmSource = (some_test_AllTypesRealmProxyInterface) realmObject;
+        Realm objectRealm = (Realm) ((RealmObjectProxy) realmObject).realmGet$proxyState().getRealm$realm();
         unmanagedCopy.realmSet$columnString(realmSource.realmGet$columnString());
         unmanagedCopy.realmSet$columnLong(realmSource.realmGet$columnLong());
         unmanagedCopy.realmSet$columnFloat(realmSource.realmGet$columnFloat());
@@ -3088,7 +3095,9 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         unmanagedCopy.realmSet$columnObjectId(realmSource.realmGet$columnObjectId());
         unmanagedCopy.realmSet$columnUUID(realmSource.realmGet$columnUUID());
         unmanagedCopy.realmSet$columnDate(realmSource.realmGet$columnDate());
-        unmanagedCopy.realmSet$columnMixed(realmSource.realmGet$columnMixed());
+
+        // Deep copy of columnMixed
+        unmanagedCopy.realmSet$columnMixed(ProxyUtils.createDetachedCopy(realmSource.realmGet$columnMixed(), objectRealm, currentDepth + 1, maxDepth, cache));
         unmanagedCopy.realmSet$columnBinary(realmSource.realmGet$columnBinary());
         unmanagedCopy.realmGet$columnMutableRealmInteger().set(realmSource.realmGet$columnMutableRealmInteger().get());
 
@@ -3163,7 +3172,21 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
 
         unmanagedCopy.realmSet$columnUUIDList(new RealmList<java.util.UUID>());
         unmanagedCopy.realmGet$columnUUIDList().addAll(realmSource.realmGet$columnUUIDList());
-        unmanagedCopy.realmSet$columnMixedList(realmSource.realmGet$columnMixedList());
+
+        // Deep copy of columnMixedList
+        if (currentDepth == maxDepth) {
+            unmanagedCopy.realmSet$columnMixedList(null);
+        } else {
+            RealmList<Mixed> managedcolumnMixedListList = realmSource.realmGet$columnMixedList();
+            RealmList<Mixed> unmanagedcolumnMixedListList = new RealmList<Mixed>();
+            unmanagedCopy.realmSet$columnMixedList(unmanagedcolumnMixedListList);
+            int nextDepth = currentDepth + 1;
+            int size = managedcolumnMixedListList.size();
+            for (int i = 0; i < size; i++) {
+                Mixed item = ProxyUtils.createDetachedCopy(managedcolumnMixedListList.get(i), objectRealm, nextDepth, maxDepth, cache);
+                unmanagedcolumnMixedListList.add(item);
+            }
+        }
 
         return unmanagedObject;
     }
