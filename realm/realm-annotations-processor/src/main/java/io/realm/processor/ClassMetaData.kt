@@ -520,10 +520,11 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             val hasRequiredAnnotation = hasRequiredAnnotation(field)
             val listGenericType = (field.asType() as DeclaredType).typeArguments
             val containsRealmModelClasses = (listGenericType.isNotEmpty() && Utils.isRealmModel(listGenericType[0]))
+            val containsMixed = (listGenericType.isNotEmpty() && Utils.isMixed(listGenericType[0]))
 
             // @Required not allowed if the list contains Realm model classes
-            if (hasRequiredAnnotation && containsRealmModelClasses) {
-                Utils.error("@Required not allowed on RealmList's that contain other Realm model classes.")
+            if (hasRequiredAnnotation && (containsRealmModelClasses || containsMixed)) {
+                Utils.error("@Required not allowed on RealmList's that contain other Realm model classes or Mixed.")
                 return false
             }
 
@@ -679,6 +680,11 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
                         "Field \"%s\" with type \"%s\" cannot be @Required or @NotNull.", field, field.asType()))
                 return false
             }
+        }
+
+        if (Utils.isMixed(field)) {
+            Utils.error(String.format(Locale.US, "Mixed field \"${field}\" cannot be @Required or @NotNull."))
+            return false
         }
 
         // Should never get here - user should remove @Required
