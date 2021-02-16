@@ -587,6 +587,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 beginControlFlow("if (value == null)")
                     emitStatement("return")
                 endControlFlow()
+                emitStatement("osMap.clear()")
                 beginControlFlow("for (java.util.Map.Entry<String, %s> item : value.entrySet())", genericType)
                     emitStatement("String entryKey = item.getKey()")
                     emitStatement("%s entryValue = item.getValue()", genericType)

@@ -20,6 +20,17 @@ public class TypeUtils {
     public static byte[] convertNonPrimitiveBinaryToPrimitive(Byte[] bytes) {
         byte[] transfer = new byte[bytes.length];
         for (int i = 0; i < bytes.length; i++) {
+            if (bytes[i] == null) {
+                throw new IllegalArgumentException("Byte arrays cannot contain null values.");
+            }
+            transfer[i] = bytes[i];
+        }
+        return transfer;
+    }
+
+    public static Byte[] convertPrimitiveBinaryToNonPrimitive(byte[] bytes) {
+        Byte[] transfer = new Byte[bytes.length];
+        for (int i = 0; i < bytes.length; i++) {
             transfer[i] = bytes[i];
         }
         return transfer;

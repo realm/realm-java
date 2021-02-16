@@ -60,6 +60,11 @@ private val VALUE_HELLO_BYTE_ARRAY = ByteArray(2).apply {
     set(0, Byte.MIN_VALUE)
     set(1, Byte.MAX_VALUE)
 }
+private val VALUE_HELLO_BOXED_BYTE_ARRAY = Array<Byte>(2) { index ->
+    if (index == 0) Byte.MIN_VALUE
+    else if (index == 1) Byte.MAX_VALUE
+    else throw IllegalArgumentException("Incorrect array size")
+}
 private val VALUE_NULL = null
 
 @RunWith(AndroidJUnit4::class)
@@ -330,11 +335,17 @@ class DictionaryTests {
                 myUUIDDictionary!!.putAndAssert(KEY_HELLO, UUID.randomUUID())
                 myDecimal128Dictionary!!.putAndAssert(KEY_HELLO, Decimal128(42))
 
-                val previousValue = myByteArrayDictionary!!.put(KEY_HELLO, VALUE_HELLO_BYTE_ARRAY)
-                assertNull(previousValue)
-                val actual = myByteArrayDictionary!![KEY_HELLO]
-                assertEquals(Byte.MIN_VALUE, actual!![0])
-                assertEquals(Byte.MAX_VALUE, actual[1])
+                val previousByteArrayValue = myByteArrayDictionary!!.put(KEY_HELLO, VALUE_HELLO_BYTE_ARRAY)
+                assertNull(previousByteArrayValue)
+                val actualByteArrayValue = myByteArrayDictionary!![KEY_HELLO]
+                assertEquals(Byte.MIN_VALUE, actualByteArrayValue!![0])
+                assertEquals(Byte.MAX_VALUE, actualByteArrayValue[1])
+
+                val previousBoxedByteArrayValue = myBoxedByteArrayDictionary!!.put(KEY_HELLO, VALUE_HELLO_BOXED_BYTE_ARRAY)
+                assertNull(previousBoxedByteArrayValue)
+                val actualBoxedByteArrayValue = myBoxedByteArrayDictionary!![KEY_HELLO]
+                assertEquals(Byte.MIN_VALUE, actualBoxedByteArrayValue!![0])
+                assertEquals(Byte.MAX_VALUE, actualBoxedByteArrayValue[1])
             }
         }
     }
@@ -970,6 +981,93 @@ class DictionaryTests {
 
     }
 
+    @Test
+    @Ignore("Missing contains methods from map interface")
+    fun accessors() {
+        realm.executeTransaction { transactionRealm ->
+            val dictionaryObject = initDictionaryClass(true)
+            val objectFromRealm = transactionRealm.copyToRealm(dictionaryObject)
+            getAccessorAssert(objectFromRealm.myRealmModelDictionary, 1, KEY_HELLO)
+            // TODO: test mixed
+//            getAccessorAssert(objectFromRealm.myMixedDictionary)
+            getAccessorAssert(objectFromRealm.myBooleanDictionary, 1, KEY_HELLO)
+            getAccessorAssert(objectFromRealm.myStringDictionary, 1, KEY_HELLO)
+            getAccessorAssert(objectFromRealm.myIntegerDictionary, 1, KEY_HELLO)
+            getAccessorAssert(objectFromRealm.myFloatDictionary, 1, KEY_HELLO)
+            getAccessorAssert(objectFromRealm.myLongDictionary, 1, KEY_HELLO)
+            getAccessorAssert(objectFromRealm.myShortDictionary, 1, KEY_HELLO)
+            getAccessorAssert(objectFromRealm.myDoubleDictionary, 1, KEY_HELLO)
+            getAccessorAssert(objectFromRealm.myByteDictionary, 1, KEY_HELLO)
+            getAccessorAssert(objectFromRealm.myByteArrayDictionary, 1, KEY_HELLO)
+            getAccessorAssert(objectFromRealm.myDateDictionary, 1, KEY_HELLO)
+            getAccessorAssert(objectFromRealm.myObjectIdDictionary, 1, KEY_HELLO)
+            getAccessorAssert(objectFromRealm.myUUIDDictionary, 1, KEY_HELLO)
+            getAccessorAssert(objectFromRealm.myDecimal128Dictionary, 1, KEY_HELLO)
+
+            val VALUE_BYE_BYTE_ARRAY = ByteArray(2).apply {
+                set(0, Byte.MAX_VALUE)
+                set(1, Byte.MIN_VALUE)
+            }
+            val VALUE_BYE_DATE = Date()
+            val VALUE_BYE_OBJECT_ID = ObjectId()
+            val VALUE_BYE_UUID = UUID.randomUUID()
+            val VALUE_BYE_DECIMAL128 = Decimal128(VALUE_BYE_NUMERIC.toLong())
+
+            val managedModel = transactionRealm.where<MyRealmModel>()
+                    .findFirst()
+                    .also {
+                        it?.id = VALUE_BYE_STRING
+                    }
+            assertNotNull(managedModel)
+
+            objectFromRealm.myRealmModelDictionary = initDictionary(KEY_BYE, managedModel)
+            getAccessorAssert(objectFromRealm.myRealmModelDictionary, 1, KEY_BYE)
+            // TODO: test mixed
+//            objectFromRealm.myMixedDictionary = initDictionary(KEY_BYE, )
+//            getAccessorAssert(objectFromRealm.myMixedDictionary, 1, KEY_BYE)
+            objectFromRealm.myBooleanDictionary = initDictionary(KEY_BYE, VALUE_BYE)
+            getAccessorAssert(objectFromRealm.myBooleanDictionary, 1, KEY_BYE)
+            objectFromRealm.myStringDictionary = initDictionary(KEY_BYE, VALUE_BYE_STRING)
+            getAccessorAssert(objectFromRealm.myStringDictionary, 1, KEY_BYE)
+            objectFromRealm.myIntegerDictionary = initDictionary(KEY_BYE, VALUE_BYE_NUMERIC)
+            getAccessorAssert(objectFromRealm.myIntegerDictionary, 1, KEY_BYE)
+            objectFromRealm.myFloatDictionary = initDictionary(KEY_BYE, VALUE_BYE_NUMERIC.toFloat())
+            getAccessorAssert(objectFromRealm.myFloatDictionary, 1, KEY_BYE)
+            objectFromRealm.myLongDictionary = initDictionary(KEY_BYE, VALUE_BYE_NUMERIC.toLong())
+            getAccessorAssert(objectFromRealm.myLongDictionary, 1, KEY_BYE)
+            objectFromRealm.myShortDictionary = initDictionary(KEY_BYE, VALUE_BYE_NUMERIC.toShort())
+            getAccessorAssert(objectFromRealm.myShortDictionary, 1, KEY_BYE)
+            objectFromRealm.myDoubleDictionary = initDictionary(KEY_BYE, VALUE_BYE_NUMERIC.toDouble())
+            getAccessorAssert(objectFromRealm.myDoubleDictionary, 1, KEY_BYE)
+            objectFromRealm.myByteDictionary = initDictionary(KEY_BYE, VALUE_BYE_NUMERIC.toByte())
+            getAccessorAssert(objectFromRealm.myByteDictionary, 1, KEY_BYE)
+            objectFromRealm.myByteArrayDictionary = initDictionary(KEY_BYE, VALUE_BYE_BYTE_ARRAY)
+            getAccessorAssert(objectFromRealm.myByteArrayDictionary, 1, KEY_BYE)
+            objectFromRealm.myDateDictionary = initDictionary(KEY_BYE, VALUE_BYE_DATE)
+            getAccessorAssert(objectFromRealm.myDateDictionary, 1, KEY_BYE)
+            objectFromRealm.myObjectIdDictionary = initDictionary(KEY_BYE, VALUE_BYE_OBJECT_ID)
+            getAccessorAssert(objectFromRealm.myObjectIdDictionary, 1, KEY_BYE)
+            objectFromRealm.myUUIDDictionary = initDictionary(KEY_BYE, VALUE_BYE_UUID)
+            getAccessorAssert(objectFromRealm.myUUIDDictionary, 1, KEY_BYE)
+            objectFromRealm.myDecimal128Dictionary = initDictionary(KEY_BYE, VALUE_BYE_DECIMAL128)
+            getAccessorAssert(objectFromRealm.myDecimal128Dictionary, 1, KEY_BYE)
+        }
+    }
+
+    private fun getAccessorAssert(dictionary: RealmDictionary<*>?, size: Int, key: String) {
+        assertNotNull(dictionary)
+        assertEquals(dictionary.size, size)
+        assertTrue(dictionary.containsKey(key))
+        assertNotNull(dictionary[key])
+    }
+
+    private inline fun <reified T : Any> initDictionary(
+            key: String,
+            value: T
+    ): RealmDictionary<T> {
+        return RealmDictionary<T>().apply { put(key, value) }
+    }
+
     private fun createBooleanRealmDictionary(
             withNullValues: Boolean = false
     ): RealmDictionary<Boolean> {
@@ -1073,6 +1171,11 @@ class DictionaryTests {
             myByteArrayDictionary = RealmDictionary<ByteArray>().apply {
                 if (withDefaultValues) {
                     put(KEY_HELLO, VALUE_HELLO_BYTE_ARRAY)
+                }
+            }
+            myRealmModelDictionary = RealmDictionary<MyRealmModel>().apply {
+                if (withDefaultValues) {
+                    put(KEY_HELLO, MyRealmModel().apply { id = VALUE_HELLO_STRING })
                 }
             }
         }
