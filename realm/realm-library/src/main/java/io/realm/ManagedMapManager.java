@@ -31,6 +31,7 @@ import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
+import io.realm.internal.android.TypeUtils;
 import io.realm.internal.core.NativeMixed;
 import io.realm.internal.util.Pair;
 
@@ -380,6 +381,23 @@ class BoxableValueOperator<K, V> extends MapValueOperator<K, V> {
     protected V processValue(Object value) {
         //noinspection unchecked
         return (V) value;
+    }
+}
+
+/**
+ * {@link MapValueOperator} targeting {@link Byte[]} values in {@link RealmMap}s. Use this one
+ * instead of {@link BoxableValueOperator} to avoid and typecast exception when converting the
+ * result from JNI to {@link Byte[]}.
+ */
+class BoxedByteArrayValueOperator<K> extends BoxableValueOperator<K, Byte[]> {
+
+    BoxedByteArrayValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
+        super(baseRealm, osMap, classContainer);
+    }
+
+    @Override
+    protected Byte[] processValue(Object value) {
+        return TypeUtils.convertPrimitiveBinaryToNonPrimitive((byte[]) value);
     }
 }
 

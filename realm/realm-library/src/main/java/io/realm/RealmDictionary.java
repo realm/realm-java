@@ -132,7 +132,7 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         MapValueOperator<?, ?> mapValueOperator;
 
         if (isClassBoxable(valueClass.getCanonicalName())) {
-            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
+            mapValueOperator = new BoxableValueOperator<K, V>(baseRealm, osMap, classContainer);
         } else if (valueClass == Mixed.class) {
             mapValueOperator = new MixedValueOperator<K>(baseRealm, osMap, classContainer);
         } else if (valueClass == Integer.class) {
@@ -141,6 +141,8 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
             mapValueOperator = new ShortValueOperator<K>(baseRealm, osMap, classContainer);
         } else if (valueClass == Byte.class) {
             mapValueOperator = new ByteValueOperator<K>(baseRealm, osMap, classContainer);
+        } else if (valueClass == Byte[].class) {
+            mapValueOperator = new BoxedByteArrayValueOperator<K>(baseRealm, osMap, classContainer);
         } else {
             throw new IllegalArgumentException("Only Maps of Mixed or one of the types that can be boxed inside Mixed can be used.");
         }
@@ -155,7 +157,7 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         MapValueOperator<?, ?> mapValueOperator;
 
         if (isClassBoxable(valueClass)) {
-            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
+            mapValueOperator = new BoxableValueOperator<K, V>(baseRealm, osMap, classContainer);
         } else if (valueClass.equals(Mixed.class.getCanonicalName())) {
             mapValueOperator = new MixedValueOperator<K>(baseRealm, osMap, classContainer);
         } else if (valueClass.equals(Integer.class.getCanonicalName())) {
@@ -164,6 +166,8 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
             mapValueOperator = new ShortValueOperator<K>(baseRealm, osMap, classContainer);
         } else if (valueClass.equals(Byte.class.getCanonicalName())) {
             mapValueOperator = new ByteValueOperator<K>(baseRealm, osMap, classContainer);
+        } else if (valueClass.equals(Byte[].class.getCanonicalName())) {
+            mapValueOperator = new BoxedByteArrayValueOperator<K>(baseRealm, osMap, classContainer);
         } else {
             throw new IllegalArgumentException("Only Maps of Mixed or one of the types that can be boxed inside Mixed can be used.");
         }
@@ -188,7 +192,6 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
             Boolean.class.getCanonicalName(),
             Date.class.getCanonicalName(),
             Decimal128.class.getCanonicalName(),
-            Byte[].class.getCanonicalName(),
             byte[].class.getCanonicalName(),
             ObjectId.class.getCanonicalName(),
             UUID.class.getCanonicalName()
