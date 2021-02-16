@@ -23,6 +23,7 @@ import io.realm.annotations.Index
 open class MixedIndexed : RealmObject() {
     companion object {
         const val FIELD_MIXED = "mixed"
+        const val CLASS_NAME = "MixedIndexed"
     }
 
     @Index
