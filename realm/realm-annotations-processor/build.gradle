@@ -18,7 +18,7 @@ dependencies {
     implementation files(Jvm.current().toolsJar)
     testImplementation files('../realm-library/build/intermediates/aar_main_jar/baseRelease/classes.jar') // Java projects cannot depend on AAR files
     testImplementation group:'junit', name:'junit', version:'4.12'
-    testImplementation group:'com.google.testing.compile', name:'compile-testing', version:'0.6'
+    testImplementation group:'com.google.testing.compile', name:'compile-testing', version:'0.19'
     testImplementation files(file("${System.env.ANDROID_HOME}/platforms/android-29/android.jar"))
 }
 

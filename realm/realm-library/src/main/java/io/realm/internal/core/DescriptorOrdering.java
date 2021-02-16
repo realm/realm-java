@@ -16,6 +16,8 @@
 
 package io.realm.internal.core;
 
+import io.realm.Realm;
+import io.realm.internal.NativeContext;
 import io.realm.internal.NativeObject;
 import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.OsSharedRealm;
@@ -48,6 +50,7 @@ public class DescriptorOrdering implements NativeObject {
      */
     public DescriptorOrdering() {
         nativePtr = nativeCreate();
+        NativeContext.dummyContext.addReference(this);
     }
 
     @Override

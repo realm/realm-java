@@ -15,6 +15,8 @@
  */
 package io.realm;
 
+import androidx.test.InstrumentationRegistry;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.rule.UiThreadTestRule;
 
 import org.junit.After;
@@ -75,6 +77,8 @@ public abstract class QueryTests {
 
     @Before
     public void setUp() throws Exception {
+        Realm.init(ApplicationProvider.getApplicationContext());
+        configFactory.create(); // Creates temporary folder (unsure why this is needed when Running RealmQueryTests independently.
         RealmConfiguration realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
     }

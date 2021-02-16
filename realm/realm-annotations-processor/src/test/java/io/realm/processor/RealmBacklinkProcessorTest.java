@@ -25,10 +25,9 @@ import java.util.Arrays;
 import javax.lang.model.element.Modifier;
 import javax.tools.JavaFileObject;
 
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
-import static org.truth0.Truth.ASSERT;
-
 
 public class RealmBacklinkProcessorTest {
     private final JavaFileObject sourceClass = JavaFileObjects.forResource("some/test/BacklinkSource.java");
@@ -37,7 +36,7 @@ public class RealmBacklinkProcessorTest {
 
     @Test
     public void compileBacklinks() {
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(sourceClass, targetClass))
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
@@ -46,7 +45,7 @@ public class RealmBacklinkProcessorTest {
     @Test
     public void compileSyntheticBacklinks() throws IOException {
         RealmSyntheticTestClass targetClass = createBacklinkTestClass().builder().build();
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(sourceClass, targetClass))
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
@@ -57,7 +56,7 @@ public class RealmBacklinkProcessorTest {
         RealmSyntheticTestClass targetClass = createBacklinkTestClass()
                 .type("BacklinkTarget")
                 .builder().build();
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(sourceClass, targetClass))
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
@@ -70,7 +69,7 @@ public class RealmBacklinkProcessorTest {
                 // A field with a @LinkingObjects annotation must be final
                 .modifiers(Modifier.PUBLIC)
                 .builder().build();
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(sourceClass, targetClass))
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
@@ -85,7 +84,7 @@ public class RealmBacklinkProcessorTest {
                 .clearAnnotations()
                 .annotation("LinkingObjects(\"child.id\")")
                 .builder().build();
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(sourceClass, targetClass))
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
@@ -99,7 +98,7 @@ public class RealmBacklinkProcessorTest {
                 .clearAnnotations()
                 .annotation("LinkingObjects")
                 .builder().build();
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(sourceClass, targetClass))
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
@@ -112,7 +111,7 @@ public class RealmBacklinkProcessorTest {
                 // No backlink generic param specified
                 .type("RealmResults")
                 .builder().build();
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(sourceClass, targetClass))
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
@@ -125,7 +124,7 @@ public class RealmBacklinkProcessorTest {
                 // A backlinked field may not be @Required
                 .annotation("Required")
                 .builder().build();
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(sourceClass, targetClass))
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
@@ -138,7 +137,7 @@ public class RealmBacklinkProcessorTest {
                 // An  @Ignored, backlinked field is completely ignored
                 .annotation("Ignore")
                 .builder().build();
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(sourceClass, targetClass))
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
@@ -153,7 +152,7 @@ public class RealmBacklinkProcessorTest {
                 .clearAnnotations()
                 .annotation("LinkingObjects(\"xxx\")")
                 .builder().build();
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(sourceClass, targetClass))
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
@@ -166,7 +165,7 @@ public class RealmBacklinkProcessorTest {
                 .clearAnnotations()
                 .annotation("LinkingObjects(\"xxx\")")
                 .builder().build();
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(sourceClass, targetClass))
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
@@ -180,7 +179,7 @@ public class RealmBacklinkProcessorTest {
                 // the generic type of the annotated field.  BacklinkSource.child is a Backlink,
                 // not a Backlinks_WrongType.
                 .builder().name("BacklinkTarget_WrongType").build();
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(sourceClass, targetClass))
                 .processedWith(new RealmProcessor())
                 .failsToCompile()
@@ -205,7 +204,7 @@ public class RealmBacklinkProcessorTest {
 
     @Test
     public void failToCompileInvalidResultsElementType() {
-        ASSERT.about(javaSource())
+        assertAbout(javaSource())
                 .that(invalidResultsValueType)
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
@@ -213,7 +212,7 @@ public class RealmBacklinkProcessorTest {
 
     @Test
     public void compileBacklinkClassesWithSimpleNameConflicts() {
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(
                         JavaFileObjects.forResource("some/test/BacklinkSelfReference.java"),
                         JavaFileObjects.forResource("some/test/conflict/BacklinkSelfReference.java")

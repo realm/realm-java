@@ -22,8 +22,8 @@ import org.junit.Test;
 
 import javax.tools.JavaFileObject;
 
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
-import static org.truth0.Truth.ASSERT;
 
 
 public class ValueListProcessorTest {
@@ -33,7 +33,7 @@ public class ValueListProcessorTest {
     @Test
     @Ignore("need to implement primitive list support in realm-library")
     public void compileValueList() {
-        ASSERT.about(javaSource())
+        assertAbout(javaSource())
                 .that(valueList)
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
@@ -41,7 +41,7 @@ public class ValueListProcessorTest {
 
     @Test
     public void failToCompileInvalidListElementType() {
-        ASSERT.about(javaSource())
+        assertAbout(javaSource())
                 .that(invalidListValueType)
                 .processedWith(new RealmProcessor())
                 .failsToCompile();

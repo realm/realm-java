@@ -79,8 +79,6 @@ try {
         def instrumentationTestTarget = "connectedAndroidTest"
         def deviceSerial = ""
 
-        // TODO: revert once confirmed the LTO fix in core works
-        // if (!releaseBranches.contains(currentBranch)) {
         if (!releaseBranches.contains(currentBranch)) {
           // Build development branch
           useEmulator = true
