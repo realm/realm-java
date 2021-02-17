@@ -481,7 +481,7 @@ public class RealmProcessorTest {
 
     @Test
     public void compileRealmMapModelNotAllowed() {
-        ASSERT.about(javaSource())
+        assertAbout(javaSource())
                 .that(realmMapModel)
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
@@ -489,7 +489,7 @@ public class RealmProcessorTest {
 
     @Test
     public void compileRealmDictionaryMissingGenerics() {
-        ASSERT.about(javaSource())
+        assertAbout(javaSource())
                 .that(realmDictionaryMissingGenericsModel)
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
@@ -497,7 +497,7 @@ public class RealmProcessorTest {
 
     @Test
     public void compileRealmDictionaryModel() {
-        ASSERT.about(javaSource())
+        assertAbout(javaSource())
                 .that(realmDictionaryModel)
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
@@ -505,7 +505,7 @@ public class RealmProcessorTest {
 
     @Test
     public void compileRealmDictionaryModelWrongType() {
-        ASSERT.about(javaSource())
+        assertAbout(javaSource())
                 .that(realmDictionaryModelWrongType)
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
