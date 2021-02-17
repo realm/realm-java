@@ -71,6 +71,7 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
         }
     }
 
+    private static final String NO_ALIAS = "";
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
 
     private NamePolicyMixedClassSettingsColumnInfo columnInfo;
@@ -155,9 +156,9 @@ public class some_test_NamePolicyMixedClassSettingsRealmProxy extends some.test.
     }
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("customName", false, 2, 0);
-        builder.addPersistedProperty("first_name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        builder.addPersistedProperty("LastName", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("NamePolicyMixedClassSettings", "customName", false, 2, 0);
+        builder.addPersistedProperty("firstName", "first_name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addPersistedProperty("lastName", "LastName", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         return builder.build();
     }
 

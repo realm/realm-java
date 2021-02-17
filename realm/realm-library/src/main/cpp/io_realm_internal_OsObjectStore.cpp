@@ -32,6 +32,23 @@ using namespace realm::_impl;
 static_assert(io_realm_internal_OsObjectStore_SCHEMA_NOT_VERSIONED == static_cast<jlong>(ObjectStore::NotVersioned),
               "");
 
+inline static bool is_allowed_to_primary_key(JNIEnv* env, DataType column_type)
+{
+    if (column_type == type_String
+        || column_type == type_Int
+        || column_type == type_Bool
+        || column_type == type_Timestamp
+        || column_type == type_OldDateTime
+        || column_type == type_ObjectId
+        || column_type == type_UUID) {
+        return true;
+    }
+
+    ThrowException(env, IllegalArgument, "This field cannot be a primary key - "
+                                         "Only String/byte/short/int/long/boolean/Date/ObjectId/UUID fields are supported.");
+    return false;
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectStore_nativeSetPrimaryKeyForObject(JNIEnv* env, jclass,
                                                                                           jlong shared_realm_ptr,
                                                                                           jstring j_class_name,
@@ -52,8 +69,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectStore_nativeSetPrimaryKeyF
                                  util::format("The class '%1' doesn't exist in this Realm.", name_str));
         }
         TableRef table = group.get_table(class_name);
+        auto column_key = table->get_column_key(primary_key_field_name);
+        if (j_pk_field_name && !is_allowed_to_primary_key(env, table->get_column_type(column_key))) {
+            return;
+        }
         shared_realm->verify_in_write();
-        table->set_primary_key_column(table->get_column_key(primary_key_field_name));
+        table->set_primary_key_column(column_key);
     }
     CATCH_STD()
 }

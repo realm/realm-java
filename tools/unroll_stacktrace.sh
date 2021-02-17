@@ -14,13 +14,17 @@ IFS=$'\n\t'
 
 usage() {
 cat <<EOF
-Usage: $0 <flavor> <version> <abi> <stacktrace>
+Usage: $0 ( <buildid> | <flavor> <version> <abi> ) <stacktrace>
+ - buildid: realm java build id
+
  - flavor: base, objectServer
  - version: version number on Bintray
  - abi: armeabi, armeabi-v7a, arm64-v8a, x86, x86_64, mips
+
  - stacktrace: absolute or relative path to file with dump information
 
-Example: $0 base 5.0.0 armeabi-v7a ./dump.txt
+Example with build id:    $0 6ad7f63d64a38561c8e8c41f3d5d36021f8749c5 ./dump.txt
+Example without build id: $0 base 5.0.0 armeabi-v7a ./dump.txt
 EOF
 }
 
@@ -28,17 +32,30 @@ EOF
 # Input Validation
 ######################################
 
-if [ "$#" -eq 0 ] || [ "$#" -lt 4 ] ; then
+if [ "$#" -ne 2 ] && [ "$#" -ne 4 ] ; then
     usage
     exit 1
 fi
 
 HERE=$(pwd)
 REALM_JAVA_TOOLS_DIR=$(dirname "$0")
-FLAVOR="$1"
-VERSION="$2"
-ABI="$3"
-STACKTRACE="$HERE/$4"
+
+if [ "$#" -eq 2 ]; then
+	DATA=`grep $1 buildids.txt | cut -c43-`
+	if [ -z $DATA ]; then 
+		echo "build id not found"
+		exit 1
+	else
+		IFS=' ' read -r VERSION FLAVOR ABI <<< "$DATA"
+		STACKTRACE="$HERE/$2"
+	fi
+elif [ "$#" -eq 4 ]; then
+	FLAVOR="$1"
+	VERSION="$2"
+	ABI="$3"
+	STACKTRACE="$HERE/$4"
+fi
+
 NDK_STACK=""
 STRIPPED_LIBS_DIR=""
 

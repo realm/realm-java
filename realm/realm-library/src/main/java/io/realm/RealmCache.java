@@ -479,6 +479,9 @@ final class RealmCache {
         if (realmClass == Realm.class) {
             // RealmMigrationNeededException might be thrown here.
             realm = Realm.createInstance(this, version);
+            // Only create mappings after the Realm was opened, so schema mismatch is correctly
+            // thrown by ObjectStore when checking the schema.
+            realm.getSchema().createKeyPathMapping();
 
         } else if (realmClass == DynamicRealm.class) {
             realm = DynamicRealm.createInstance(this, version);

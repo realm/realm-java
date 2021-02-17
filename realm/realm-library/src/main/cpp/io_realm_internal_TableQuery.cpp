@@ -19,6 +19,8 @@
 #include <realm.hpp>
 #include <realm/query_expression.hpp>
 #include <realm/table.hpp>
+#include <realm/parser/keypath_mapping.hpp>
+#include <realm/parser/query_parser.hpp>
 
 #include <realm/object-store/shared_realm.hpp>
 #include <realm/object-store/object_store.hpp>
@@ -2228,4 +2230,42 @@ static void finalize_table_query(jlong ptr)
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
     return reinterpret_cast<jlong>(&finalize_table_query);
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_TableQuery_nativeRawPredicate(JNIEnv *env,
+                                                             jobject,
+                                                             jlong j_query_ptr,
+                                                             jstring j_filter,
+                                                             jobject j_mapping_wrapper,
+                                                             jlong j_descriptor_ptr,
+                                                             jobjectArray j_args)
+{
+    try {
+        auto query = reinterpret_cast<Query*>(j_query_ptr);
+        auto descriptor = reinterpret_cast<DescriptorOrdering *>(j_descriptor_ptr);
+
+        query_parser::KeyPathMapping mapping;
+        if (j_mapping_wrapper != nullptr) {
+            static JavaMethod value_method(env, JavaClassGlobalDef::java_lang_long(), "longValue", "()J");
+            long mapping_ptr = env->CallLongMethod(j_mapping_wrapper, value_method);
+            mapping = *reinterpret_cast<query_parser::KeyPathMapping*>(mapping_ptr);
+        }
+
+        JStringAccessor filter(env, j_filter); // throws
+
+        JObjectArrayAccessor<JStringAccessor, jstring> java_args(env, j_args);
+        std::vector<Mixed> args(java_args.size());
+        for (int i = 0; i < java_args.size(); i = i + 1) {
+            JStringAccessor arg = java_args[i];
+            args[i] = Mixed(static_cast<std::string>(arg));
+        }
+
+        Query predicate = query->get_table()->query(filter, args, mapping);
+        query->and_query(predicate);
+        if (auto parsed_ordering = predicate.get_ordering()) {
+            descriptor->append(*parsed_ordering);
+        }
+    }
+    CATCH_STD()
 }

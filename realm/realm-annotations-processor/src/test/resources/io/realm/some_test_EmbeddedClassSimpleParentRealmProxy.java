@@ -74,6 +74,7 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
         }
     }
 
+    private static final String NO_ALIAS = "";
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
 
     private EmbeddedClassSimpleParentColumnInfo columnInfo;
@@ -225,10 +226,10 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
     }
 
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder("EmbeddedClassSimpleParent", false, 3, 0);
-        builder.addPersistedProperty("id", RealmFieldType.STRING, Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
-        builder.addPersistedLinkProperty("child", RealmFieldType.OBJECT, "EmbeddedClass");
-        builder.addPersistedLinkProperty("children", RealmFieldType.LIST, "EmbeddedClass");
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder(NO_ALIAS, "EmbeddedClassSimpleParent", false, 3, 0);
+        builder.addPersistedProperty(NO_ALIAS, "id", RealmFieldType.STRING, Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
+        builder.addPersistedLinkProperty(NO_ALIAS, "child", RealmFieldType.OBJECT, "EmbeddedClass");
+        builder.addPersistedLinkProperty(NO_ALIAS, "children", RealmFieldType.LIST, "EmbeddedClass");
         return builder.build();
     }
 
