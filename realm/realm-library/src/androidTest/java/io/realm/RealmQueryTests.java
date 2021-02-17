@@ -19,7 +19,6 @@ package io.realm;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.internal.util.collections.Sets;
@@ -57,6 +56,8 @@ import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
+import io.realm.entities.embedded.EmbeddedSimpleChild;
+import io.realm.entities.embedded.EmbeddedSimpleParent;
 import io.realm.entities.realmname.ClassWithValueDefinedNames;
 import io.realm.exceptions.RealmException;
 import io.realm.log.RealmLog;
@@ -3998,6 +3999,65 @@ public class RealmQueryTests extends QueryTests {
                 "AND columnLong = $3", "test data 0", true, 1.2345f, 0);
         RealmResults<AllTypes> results = query.findAll();
         assertEquals(1, results.size());
+    }
+
+    @Test
+    public void rawPredicate_realmObjectArgumentSubstitution() {
+        realm.beginTransaction();
+
+        Dog dog = realm.createObject(Dog.class);
+        dog.setName("doggy dog");
+        dog.setAge(1999);
+
+        AllTypes allTypes = realm.createObject(AllTypes.class);
+        allTypes.setColumnRealmObject(dog);
+
+        realm.commitTransaction();
+
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class);
+        query.rawPredicate("columnRealmObject = $0", dog);
+        RealmResults<AllTypes> results = query.findAll();
+        assertEquals(1, results.size());
+    }
+
+    @Test
+    public void rawPredicate_embeddedObjectArgumentSubstitution() {
+        realm.beginTransaction();
+
+        EmbeddedSimpleParent parent = realm.createObject(EmbeddedSimpleParent.class, UUID.randomUUID().toString());
+        parent.setChild(new EmbeddedSimpleChild());
+
+        EmbeddedSimpleChild child = parent.getChild();
+
+        realm.commitTransaction();
+
+        RealmQuery<EmbeddedSimpleParent> query = realm.where(EmbeddedSimpleParent.class);
+        query.rawPredicate("child = $0", child);
+        RealmResults<EmbeddedSimpleParent> results = query.findAll();
+        assertEquals(1, results.size());
+    }
+
+    @Test
+    public void rawPredicate_invalidRealmObjectThrows() {
+        realm.beginTransaction();
+        AllTypes allTypes = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        realm.executeTransaction(r -> allTypes.deleteFromRealm());
+
+        try {
+            realm.where(AllTypes.class).rawPredicate("columnRealmObject = $0", allTypes);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("Argument[0] is not a valid managed object."));
+        }
+
+        try {
+            realm.where(AllTypes.class).rawPredicate("columnRealmObject = $0", new AllTypes());
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("Argument[0] is not a valid managed object."));
+        }
     }
 
     @Test

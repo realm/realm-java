@@ -2376,6 +2376,16 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeAddUUIDArgument
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeAddObjectArgument
+        (JNIEnv* env, jclass, jlong data_ptr, jlong row_ptr)
+{
+    try {
+        const JavaValue value(reinterpret_cast<Obj*>(row_ptr));
+        add_argument(data_ptr, value);
+    }
+    CATCH_STD()
+}
+
 JNIEXPORT void JNICALL
 Java_io_realm_internal_TableQuery_nativeRawPredicate(JNIEnv *env,
                                                      jobject,

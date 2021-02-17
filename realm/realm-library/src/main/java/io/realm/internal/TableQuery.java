@@ -25,6 +25,8 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import io.realm.Case;
+import io.realm.RealmModel;
+import io.realm.RealmObject;
 import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.objectstore.OsKeyPathMapping;
 import io.realm.log.RealmLog;
@@ -734,6 +736,16 @@ public class TableQuery implements NativeObject {
             } else if (argument instanceof UUID) {
                 UUID value = (UUID) argument;
                 nativeAddUUIDArgument(listPtr, value.toString());
+            } else if (argument instanceof RealmModel) {
+                RealmModel value = (RealmModel) argument;
+
+                if (!RealmObject.isValid(value) || !RealmObject.isManaged(value)) {
+                    throw new IllegalArgumentException("Argument[" + i + "] is not a valid managed object.");
+                }
+
+                RealmObjectProxy proxy = (RealmObjectProxy) value;
+                UncheckedRow row = (UncheckedRow) proxy.realmGet$proxyState().getRow$realm();
+                nativeAddObjectArgument(listPtr, row.getNativePtr());
             } else {
                 throw new IllegalArgumentException("Unsupported query argument type: " + argument.getClass().getSimpleName());
             }
@@ -968,7 +980,7 @@ public class TableQuery implements NativeObject {
 
     private static native void nativeAddUUIDArgument(long listPtr, String data);
 
-//    private static native void nativeAddObjectArgument(long listPtr, long rowPtr);
+    private static native void nativeAddObjectArgument(long listPtr, long rowPtr);
 
     private native void nativeRawPredicate(long nativeQueryPtr, String filter, long mapppingPtr, long descriptorsPointer, long argsPtr);
 
