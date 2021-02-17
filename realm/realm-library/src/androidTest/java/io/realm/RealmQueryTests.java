@@ -3988,40 +3988,38 @@ public class RealmQueryTests extends QueryTests {
         assertTrue(results.isEmpty());
     }
 
-    @Ignore("Re-Enable when support for Mixed as been added.")
     @Test
     public void rawPredicate_argumentSubstitution() {
         populateTestRealm();
         RealmQuery<AllTypes> query = realm.where(AllTypes.class);
-        query.rawPredicate("columnString = '$1' " +
-                "AND columnBoolean = $2 " +
-                "AND columnFloat = $3 " +
-                "AND columnInteger = $4", new Object[] {"test data 0", true, 1.2345f, 0});
+        query.rawPredicate("columnString = $0 " +
+                "AND columnBoolean = $1 " +
+                "AND columnFloat = $2 " +
+                "AND columnLong = $3", "test data 0", true, 1.2345f, 0);
         RealmResults<AllTypes> results = query.findAll();
         assertEquals(1, results.size());
     }
 
-    @Ignore("Re-Enable when support for Mixed as been added.")
     @Test
     public void rawPredicate_invalidFormatOptions() {
         RealmQuery<AllTypes> query = realm.where(AllTypes.class);
         try {
             // Argument type not valid
-            query.rawPredicate("columnString = '$1'", new Object[] { 42 });
+            query.rawPredicate("columnString = $0", 42);
             fail();
         } catch (IllegalArgumentException ignore) {
         }
 
         try {
             // Missing number of arguments
-            query.rawPredicate("columnString = '$1' AND columnString  = '$2'", new Object[] { "foo" });
+            query.rawPredicate("columnString = $0 AND columnString  = $1", "foo");
             RealmLog.error(query.getDescription());
         } catch (IllegalArgumentException ignore) {
         }
 
         try {
             // Wrong syntax for argument substitution
-            query.rawPredicate("columnString = '%1'", new Object[] {"foo" });
+            query.rawPredicate("columnString = %0", "foo");
             fail();
         } catch (IllegalArgumentException ignore) {
         }

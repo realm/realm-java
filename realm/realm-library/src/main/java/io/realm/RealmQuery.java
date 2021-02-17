@@ -2322,7 +2322,7 @@ public class RealmQuery<E> {
 
     /**
      * Create a text-based predicate using the Realm Query Language. This predicate can be combined
-     * with other raw or type safe predicates.
+     * with other raw or type safe predicates, it accepts Realm values as arguments.
      * <p>
      * Class and property names used in the raw predicate can be either the names defined in the
      * Realm Model classes or the internal names defined using the {@link io.realm.annotations.RealmClass}
@@ -2351,41 +2351,30 @@ public class RealmQuery<E> {
      *
      * // Sort, Distinct, Limit
      * query.rawPredicate("name = 'Jane' SORT(lastName) DISTINCT(city) LIMIT(5)");
+     *
+     * // Arguments
+     * query.rawPredicate("name = $0 AND age > $1", "Jane", 18);
      * }
      * </pre>
      *
-     * @param predicate A Realm Query Language predicate.
+     * @param predicate a Realm Query Language predicate.
+     * @param arguments Realm values for the predicate.
      * @throws java.lang.IllegalArgumentException if there is an syntax error.
      */
-    public RealmQuery<E> rawPredicate(String predicate) {
-        return rawPredicate(predicate, new String[0]);
-    }
-
-    // TODO: This should be the public API once support for Mixed as been added, so arguments
-    //  can be parsed to C++ using the Mixed wrapper. Change from Object[] to Object...
-    RealmQuery<E> rawPredicate(String predicate, Object[] arguments) {
+    public RealmQuery<E> rawPredicate(String predicate, Object... arguments) {
         realm.checkIfValid();
         if (Util.isEmptyString(predicate)) {
             throw new IllegalArgumentException("Non-null 'predicate' required.");
         }
 
-        String[] args = new String[arguments.length];
-        for (int i = 0; i < arguments.length; i++) {
-            if (arguments[i] == null) {
-                throw new IllegalArgumentException("Null argument provided at index: " + i);
-            }
-            args[i] = arguments[i].toString();
-        }
-
         try {
-            query.rawPredicate(predicate, realm.getSchema().getKeyPathMapping(), queryDescriptors, args);
+            query.rawPredicate(predicate, realm.getSchema().getKeyPathMapping(), queryDescriptors, arguments);
         } catch (RuntimeException e) {
             // Work-around for QueryParser not always throwing the correct type of exceptions
             throw new IllegalArgumentException(e);
         }
         return this;
     }
-
 
     /**
      * Returns the {@link Realm} instance to which this query belongs.
