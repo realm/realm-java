@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.rule.UiThreadTestRule;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.BacklinksSource;
@@ -76,6 +77,8 @@ public abstract class QueryTests {
 
     @Before
     public void setUp() throws Exception {
+        Realm.init(ApplicationProvider.getApplicationContext());
+        configFactory.create(); // Creates temporary folder (unsure why this is needed when Running RealmQueryTests independently.
         RealmConfiguration realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
     }

@@ -3618,6 +3618,13 @@ public class RealmTests {
     }
 
     @Test
+    public void copyFromRealm_emptyList() {
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).alwaysFalse().findAll();
+        List<AllTypes> copy = realm.copyFromRealm(results);
+        assertEquals(0, copy.size());
+    }
+
+    @Test
     public void copyFromRealm_list_invalidDepthThrows() {
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         thrown.expect(IllegalArgumentException.class);

@@ -6,15 +6,15 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
-import static org.truth0.Truth.ASSERT;
 
 public class RealmEmbeddedObjectsTest {
 
     @Test
     public void compileAndCompareEmbeddedObjectFile() {
-        ASSERT.about(javaSource())
+        assertAbout(javaSource())
                 .that(JavaFileObjects.forResource("some/test/EmbeddedClass.java"))
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError()
@@ -24,7 +24,7 @@ public class RealmEmbeddedObjectsTest {
 
     @Test
     public void compileAndCompareParentToEmbeddedObjectFile() {
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(
                         JavaFileObjects.forResource("some/test/EmbeddedClassSimpleParent.java"),
                         JavaFileObjects.forResource("some/test/EmbeddedClass.java")
@@ -37,7 +37,7 @@ public class RealmEmbeddedObjectsTest {
 
     @Test
     public void compileWithSingleRequiredParent() {
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(
                     JavaFileObjects.forResource("some/test/EmbeddedClassParent.java"),
                     JavaFileObjects.forResource("some/test/EmbeddedClass.java"),
@@ -51,7 +51,7 @@ public class RealmEmbeddedObjectsTest {
 
     @Test
     public void compileWithMultipleOptionalParents() {
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(
                         JavaFileObjects.forResource("some/test/EmbeddedClassParent.java"),
                         JavaFileObjects.forResource("some/test/EmbeddedClass.java"),
@@ -64,7 +64,7 @@ public class RealmEmbeddedObjectsTest {
 
     @Test
     public void failToCompileIfSingleParentIsMissingFinal() {
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(
                         JavaFileObjects.forResource("some/test/EmbeddedClassParent.java"),
                         JavaFileObjects.forResource("some/test/EmbeddedClassMissingFinalOnLinkingObjects.java")
@@ -78,7 +78,7 @@ public class RealmEmbeddedObjectsTest {
     // @LinkingObject field in the child must designate the field name in the parent.
     @Test
     public void failToCompileIfMissingFieldDescriptor() {
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(
                         JavaFileObjects.forResource("some/test/EmbeddedClassParent.java"),
                         JavaFileObjects.forResource("some/test/EmbeddedClassMissingFieldDescription.java")
@@ -92,7 +92,7 @@ public class RealmEmbeddedObjectsTest {
     // @PrimaryKey is not allowed inside embedded classes
     @Test
     public void failToCompileWithPrimaryKey() {
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(
                         JavaFileObjects.forResource("some/test/EmbeddedClassPrimaryKey.java")
                 ))
@@ -105,7 +105,7 @@ public class RealmEmbeddedObjectsTest {
     // @Required.
     @Test
     public void failToCompileWithMultipleRequiredParents() {
-        ASSERT.about(javaSources())
+        assertAbout(javaSources())
                 .that(Arrays.asList(
                         JavaFileObjects.forResource("some/test/EmbeddedClassParent.java"),
                         JavaFileObjects.forResource("some/test/EmbeddedClassMultipleRequiredParents.java")

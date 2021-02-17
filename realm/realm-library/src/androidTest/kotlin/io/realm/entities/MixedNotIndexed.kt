@@ -21,6 +21,7 @@ import io.realm.RealmObject
 
 open class MixedNotIndexed : RealmObject() {
     companion object {
+        const val CLASS_NAME = "MixedNotIndexed"
         const val FIELD_MIXED = "mixed"
     }
 
