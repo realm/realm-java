@@ -152,7 +152,7 @@ class DictionaryManager<V> extends ManagedMapManager<String, V> {
     }
 
     @Override
-    protected RealmMap<String, V> freezeInternal(Pair<BaseRealm, OsMap> frozenBaseRealmMap) {
+    protected RealmDictionary<V> freezeInternal(Pair<BaseRealm, OsMap> frozenBaseRealmMap) {
         BaseRealm frozenBaseRealm = frozenBaseRealmMap.first;
         OsMap osMap = frozenBaseRealmMap.second;
         Class<?> clazz = classContainer.getClazz();
