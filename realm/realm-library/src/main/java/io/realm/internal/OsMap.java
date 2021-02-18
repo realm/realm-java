@@ -74,6 +74,10 @@ public class OsMap implements NativeObject {
         return nativeContainsKey(nativePtr, (String) key);
     }
 
+    public boolean isValid() {
+        return nativeIsValid(nativePtr);
+    }
+
     public boolean containsPrimitiveValue(Object value) {
         if (value instanceof Integer ||
                 value instanceof Long ||
@@ -269,6 +273,8 @@ public class OsMap implements NativeObject {
     private static native long nativeSize(long nativePtr);
 
     private static native boolean nativeContainsKey(long nativePtr, String key);
+
+    private static native boolean nativeIsValid(long nativePtr);
 
     private static native void nativeClear(long nativePtr);
 

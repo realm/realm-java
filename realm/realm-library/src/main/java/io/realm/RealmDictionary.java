@@ -129,7 +129,7 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
     private static <K, V> DictionaryManager<V> getManager(Class<V> valueClass, BaseRealm baseRealm, OsMap osMap) {
         ClassContainer classContainer = new ClassContainer(valueClass, null);
 
-        MapValueOperator<?, ?> mapValueOperator;
+        MapValueOperator<K, ?> mapValueOperator;
 
         if (isClassBoxable(valueClass.getCanonicalName())) {
             mapValueOperator = new BoxableValueOperator<K, V>(baseRealm, osMap, classContainer);
@@ -154,7 +154,7 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
     private static <K, V> DictionaryManager<V> getManager(String valueClass, BaseRealm baseRealm, OsMap osMap) {
         ClassContainer classContainer = new ClassContainer(null, valueClass);
 
-        MapValueOperator<?, ?> mapValueOperator;
+        MapValueOperator<K, ?> mapValueOperator;
 
         if (isClassBoxable(valueClass)) {
             mapValueOperator = new BoxableValueOperator<K, V>(baseRealm, osMap, classContainer);
