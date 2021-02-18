@@ -116,7 +116,7 @@ class ParameterizedDictionaryTests(
                 MixedType.OBJECT_ID -> listOf(VALUE_MIXED_OBJECT_ID_HELLO, VALUE_MIXED_OBJECT_ID_BYE)
                 MixedType.OBJECT -> listOf(VALUE_MIXED_LINK_HELLO, VALUE_MIXED_LINK_BYE)
                 MixedType.UUID -> listOf(VALUE_MIXED_UUID_HELLO, VALUE_MIXED_UUID_BYE)
-                MixedType.NULL -> listOf(Mixed.nullValue())
+                MixedType.NULL -> listOf(Mixed.nullValue(), Mixed.valueOf("Not null"))
             }
         }
 
