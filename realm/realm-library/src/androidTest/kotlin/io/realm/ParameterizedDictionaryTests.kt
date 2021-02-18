@@ -42,53 +42,55 @@ class ParameterizedDictionaryTests(
      * Initializer for parameterized tests.
      */
     companion object {
+
+        private val keys = listOf(KEY_HELLO, KEY_BYE, KEY_NULL)
+
         @JvmStatic
         @Parameterized.Parameters(name = "{0}")
         fun testTypes(): List<DictionaryTester> {
             return DictionaryMode.values().map { type ->
                 when (type) {
                     DictionaryMode.UNMANAGED -> unmanagedFactory()
+//                    DictionaryMode.UNMANAGED -> listOf()
                     DictionaryMode.MANAGED -> managedFactory()
                 }
             }.flatten()
         }
 
         private fun unmanagedFactory(): List<DictionaryTester> {
-            val keys = listOf(KEY_HELLO, KEY_BYE)
-
             // Create primitive testers first
             val primitiveTesters = DictionarySupportedType.values().mapNotNull { supportedType ->
                 when (supportedType) {
                     DictionarySupportedType.LONG ->
-                        UnmanagedLong(keys, listOf(VALUE_NUMERIC_HELLO.toLong(), VALUE_NUMERIC_BYE.toLong()))
+                        UnmanagedLong(keys, listOf(VALUE_NUMERIC_HELLO.toLong(), VALUE_NUMERIC_BYE.toLong(), null))
                     DictionarySupportedType.INTEGER ->
-                        UnmanagedInteger(keys, listOf(VALUE_NUMERIC_HELLO, VALUE_NUMERIC_BYE))
+                        UnmanagedInteger(keys, listOf(VALUE_NUMERIC_HELLO, VALUE_NUMERIC_BYE, null))
                     DictionarySupportedType.SHORT ->
-                        UnmanagedShort(keys, listOf(VALUE_NUMERIC_HELLO.toShort(), VALUE_NUMERIC_BYE.toShort()))
+                        UnmanagedShort(keys, listOf(VALUE_NUMERIC_HELLO.toShort(), VALUE_NUMERIC_BYE.toShort(), null))
                     DictionarySupportedType.BYTE ->
-                        UnmanagedByte(keys, listOf(VALUE_NUMERIC_HELLO.toByte(), VALUE_NUMERIC_BYE.toByte()))
+                        UnmanagedByte(keys, listOf(VALUE_NUMERIC_HELLO.toByte(), VALUE_NUMERIC_BYE.toByte(), null))
                     DictionarySupportedType.FLOAT ->
-                        UnmanagedFloat(keys, listOf(VALUE_NUMERIC_HELLO.toFloat(), VALUE_NUMERIC_BYE.toFloat()))
+                        UnmanagedFloat(keys, listOf(VALUE_NUMERIC_HELLO.toFloat(), VALUE_NUMERIC_BYE.toFloat(), null))
                     DictionarySupportedType.DOUBLE ->
-                        UnmanagedDouble(keys, listOf(VALUE_NUMERIC_HELLO.toDouble(), VALUE_NUMERIC_BYE.toDouble()))
+                        UnmanagedDouble(keys, listOf(VALUE_NUMERIC_HELLO.toDouble(), VALUE_NUMERIC_BYE.toDouble(), null))
                     DictionarySupportedType.STRING ->
-                        UnmanagedString(keys, listOf(VALUE_STRING_HELLO, VALUE_STRING_BYE))
+                        UnmanagedString(keys, listOf(VALUE_STRING_HELLO, VALUE_STRING_BYE, null))
                     DictionarySupportedType.BOOLEAN ->
-                        UnmanagedBoolean(keys, listOf(VALUE_BOOLEAN_HELLO, VALUE_BOOLEAN_BYE))
+                        UnmanagedBoolean(keys, listOf(VALUE_BOOLEAN_HELLO, VALUE_BOOLEAN_BYE, null))
                     DictionarySupportedType.DATE ->
-                        UnmanagedDate(keys, listOf(VALUE_DATE_HELLO, VALUE_DATE_BYE))
+                        UnmanagedDate(keys, listOf(VALUE_DATE_HELLO, VALUE_DATE_BYE, null))
                     DictionarySupportedType.DECIMAL128 ->
-                        UnmanagedDecimal128(keys, listOf(VALUE_DECIMAL128_HELLO, VALUE_DECIMAL128_BYE))
+                        UnmanagedDecimal128(keys, listOf(VALUE_DECIMAL128_HELLO, VALUE_DECIMAL128_BYE, null))
                     DictionarySupportedType.BOXED_BYTE_ARRAY ->
-                        UnmanagedBoxedByteArray(keys, listOf(VALUE_BOXED_BYTE_ARRAY_HELLO, VALUE_BOXED_BYTE_ARRAY_BYE))
+                        UnmanagedBoxedByteArray(keys, listOf(VALUE_BOXED_BYTE_ARRAY_HELLO, VALUE_BOXED_BYTE_ARRAY_BYE, null))
                     DictionarySupportedType.BYTE_ARRAY ->
-                        UnmanagedByteArray(keys, listOf(VALUE_BYTE_ARRAY_HELLO, VALUE_BYTE_ARRAY_BYE))
+                        UnmanagedByteArray(keys, listOf(VALUE_BYTE_ARRAY_HELLO, VALUE_BYTE_ARRAY_BYE, null))
                     DictionarySupportedType.OBJECT_ID ->
-                        UnmanagedObjectId(keys, listOf(VALUE_OBJECT_ID_HELLO, VALUE_OBJECT_ID_BYE))
+                        UnmanagedObjectId(keys, listOf(VALUE_OBJECT_ID_HELLO, VALUE_OBJECT_ID_BYE, null))
                     DictionarySupportedType.UUID ->
-                        UnmanagedUUID(keys, listOf(VALUE_UUID_HELLO, VALUE_UUID_BYE))
+                        UnmanagedUUID(keys, listOf(VALUE_UUID_HELLO, VALUE_UUID_BYE, null))
                     DictionarySupportedType.LINK ->
-                        UnmanagedLink(keys, listOf(VALUE_LINK_HELLO, VALUE_LINK_BYE))
+                        UnmanagedLink(keys, listOf(VALUE_LINK_HELLO, VALUE_LINK_BYE, null))
                     // Ignore Mixed in this switch
                     else -> null
                 }
@@ -122,7 +124,10 @@ class ParameterizedDictionaryTests(
 
         private fun managedFactory(): List<DictionaryTester> {
             // TODO: add when ready
-            return listOf()
+            return listOf(
+                    ManagedLong(keys, listOf(VALUE_NUMERIC_HELLO.toLong(), VALUE_NUMERIC_BYE.toLong(), null))
+//                    ManagedString(keys, listOf(VALUE_STRING_HELLO, VALUE_STRING_BYE, null))
+            )
         }
     }
 
@@ -132,11 +137,7 @@ class ParameterizedDictionaryTests(
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().context)
-        config = RealmConfiguration.Builder()
-                .modules(MapModule())
-                .allowQueriesOnUiThread(true)
-                .allowWritesOnUiThread(true)
-                .build()
+        config = Realm.getDefaultConfiguration()!!
         realm = Realm.getInstance(config)
     }
 
@@ -155,92 +156,123 @@ class ParameterizedDictionaryTests(
 
     @Test
     fun isManaged() {
+        addRealmToTesterIfNeeded()
         tester.isManaged()
     }
 
     @Test
     fun isValid() {
+        addRealmToTesterIfNeeded()
         tester.isValid()
     }
 
     @Test
     fun isFrozen() {
+        addRealmToTesterIfNeeded()
         tester.isFrozen()
     }
 
     @Test
     fun size() {
+        addRealmToTesterIfNeeded()
         tester.size()
     }
 
     @Test
     fun isEmpty() {
+        addRealmToTesterIfNeeded()
         tester.isEmpty()
     }
 
     @Test
     fun containsKey() {
+        addRealmToTesterIfNeeded()
         tester.containsKey()
     }
 
     @Test
     fun containsValue() {
+        addRealmToTesterIfNeeded()
         tester.containsValue()
     }
 
     @Test
     fun get() {
+        addRealmToTesterIfNeeded()
         tester.get()
     }
 
     @Test
     fun put() {
+        addRealmToTesterIfNeeded()
         tester.put()
     }
 
     @Test
     fun remove() {
+        addRealmToTesterIfNeeded()
         tester.remove()
     }
 
     @Test
     fun putAll() {
+        addRealmToTesterIfNeeded()
         tester.putAll()
     }
 
     @Test
     fun clear() {
+        addRealmToTesterIfNeeded()
         tester.clear()
     }
 
     @Test
     fun keySet() {
+        addRealmToTesterIfNeeded()
         tester.keySet()
     }
 
     @Test
     fun values() {
+        addRealmToTesterIfNeeded()
         tester.values()
     }
 
     @Test
     fun entrySet() {
+        addRealmToTesterIfNeeded()
         tester.entrySet()
     }
 
     @Test
     fun freeze() {
+        addRealmToTesterIfNeeded()
         tester.freeze()
+    }
+
+    @Test
+    fun copyToRealm() {
+        addRealmToTesterIfNeeded()
+        tester.copyToRealm()
+    }
+
+    @Test
+    fun copyFromRealm() {
+        addRealmToTesterIfNeeded()
+        tester.copyFromRealm()
+    }
+
+    private fun addRealmToTesterIfNeeded() {
+        if (tester.isTesterManaged()) {
+            tester.addRealmInstance(realm)
+        }
     }
 
 //    @Test
 //    fun () {
 //        tester.
 //    }
-//    @Test
-//    fun () {
-//        tester.
-//    }
+
 }
 
 /**
@@ -267,6 +299,7 @@ enum class DictionarySupportedType {
 
 private const val KEY_HELLO = "Hello"
 private const val KEY_BYE = "Bye"
+private const val KEY_NULL = "KeyNull"
 
 private const val VALUE_BOOLEAN_HELLO = true
 private const val VALUE_BOOLEAN_BYE = false

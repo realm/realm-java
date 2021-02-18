@@ -98,7 +98,7 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
     }
 
     @Override
-    public boolean containsValue(Object value) {
+    public boolean containsValue(@Nullable Object value) {
         return mapValueOperator.containsValue(value);
     }
 
@@ -368,7 +368,7 @@ class BoxableValueOperator<K, V> extends MapValueOperator<K, V> {
     }
 
     @Override
-    public boolean containsValue(Object value) {
+    public boolean containsValue(@Nullable Object value) {
         return osMap.containsPrimitiveValue(value);
     }
 

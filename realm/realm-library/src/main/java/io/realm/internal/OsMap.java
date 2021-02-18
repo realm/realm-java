@@ -78,8 +78,10 @@ public class OsMap implements NativeObject {
         return nativeIsValid(nativePtr);
     }
 
-    public boolean containsPrimitiveValue(Object value) {
-        if (value instanceof Integer ||
+    public boolean containsPrimitiveValue(@Nullable Object value) {
+        if (value == null) {
+            return nativeContainsNull(nativePtr);
+        } else if (value instanceof Integer ||
                 value instanceof Long ||
                 value instanceof Double ||
                 value instanceof Short ||
@@ -291,6 +293,8 @@ public class OsMap implements NativeObject {
     private static native Object[] nativeGetEntryForModel(long nativePtr, int position);
 
     private static native Object[] nativeGetEntryForMixed(long nativePtr, int position);
+
+    private static native boolean nativeContainsNull(long nativePtr);
 
     private static native boolean nativeContainsLong(long nativePtr, long value);
 

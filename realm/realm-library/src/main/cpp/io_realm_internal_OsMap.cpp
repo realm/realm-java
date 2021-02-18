@@ -448,6 +448,19 @@ Java_io_realm_internal_OsMap_nativeGetEntryForMixed(JNIEnv* env, jclass, jlong m
 }
 
 JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsNull(JNIEnv* env, jclass, jlong map_ptr) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        size_t find_result = dictionary.find_any(Mixed());
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_OsMap_nativeContainsLong(JNIEnv* env, jclass, jlong map_ptr,
                                                 jlong j_value) {
     try {
