@@ -278,12 +278,14 @@ class DictionaryTests {
 
         val dictionaryObject = realm.where<DictionaryClass>().findFirst()
         assertNotNull(dictionaryObject)
+        val dictionary = dictionaryObject.myBooleanDictionary
+        assertNotNull(dictionary)
 
         realm.executeTransaction {
             it.delete(DictionaryClass::class.java)
         }
 
-        assertFalse(dictionaryObject.isValid)
+        assertFalse(dictionary.isValid)
     }
 
     @Test

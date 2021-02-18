@@ -229,7 +229,10 @@ abstract class MapValueOperator<K, V> {
     }
 
     public boolean isValid() {
-        return !baseRealm.isClosed();
+        if (baseRealm.isClosed()) {
+            return false;
+        }
+        return osMap.isValid();
     }
 
     public boolean isFrozen() {
