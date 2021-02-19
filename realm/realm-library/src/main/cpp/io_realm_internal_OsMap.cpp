@@ -447,6 +447,63 @@ Java_io_realm_internal_OsMap_nativeGetEntryForMixed(JNIEnv* env, jclass, jlong m
     return nullptr;
 }
 
+JNIEXPORT jobjectArray JNICALL
+Java_io_realm_internal_OsMap_nativeGetEntryForPrimitive(JNIEnv* env, jclass, jlong map_ptr,
+                                                        jint j_pos) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        const std::pair<StringData, Mixed>& pair = dictionary.get_pair(j_pos);
+        const StringData& key = pair.first;
+        const Mixed& mixed = pair.second;
+
+        jobjectArray pair_array = env->NewObjectArray(2, JavaClassGlobalDef::java_lang_object(), NULL);
+        env->SetObjectArrayElement(pair_array, 0, to_jstring(env, key));
+
+        if (mixed.is_null()) {
+            env->SetObjectArrayElement(pair_array, 1, NULL);
+        } else {
+            const DataType& type = mixed.get_type();
+            switch (type) {
+                case DataType::Type::Int:
+                    env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_long(env, mixed.get_int()));
+                    break;
+                case DataType::Type::Double:
+                    env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_double(env, mixed.get_double()));
+                    break;
+                case DataType::Type::Bool:
+                    env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_boolean(env, mixed.get_bool()));
+                    break;
+                case DataType::Type::String:
+                    env->SetObjectArrayElement(pair_array, 1, to_jstring(env, mixed.get_string()));
+                    break;
+                case DataType::Type::Binary:
+                    env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_byte_array(env, mixed.get_binary()));
+                    break;
+                case DataType::Type::Float:
+                    env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_float(env, mixed.get_float()));
+                    break;
+                case DataType::Type::UUID:
+                    env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_uuid(env, mixed.get_uuid()));
+                    break;
+                case DataType::Type::ObjectId:
+                    env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_object_id(env, mixed.get_object_id()));
+                    break;
+                case DataType::Type::Timestamp:
+                    env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_date(env, mixed.get_timestamp()));
+                    break;
+                case DataType::Type::Decimal:
+                    env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_decimal128(env, mixed.get_decimal()));
+                    break;
+                default:
+                    throw std::logic_error("'getEntryForPrimitive' method only suitable for int, double, boolean, String, byte[], float, UUID, Decimal128 and ObjectId.");
+            }
+        }
+        return pair_array;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
 JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_OsMap_nativeContainsNull(JNIEnv* env, jclass, jlong map_ptr) {
     try {
@@ -569,7 +626,8 @@ Java_io_realm_internal_OsMap_nativeContainsDate(JNIEnv* env, jclass, jlong map_p
                                                 jlong j_value) {
     try {
         auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
-        realm::Timestamp timestamp = realm::Timestamp(j_value / 1000, j_value * 1000000);
+//        realm::Timestamp timestamp = realm::Timestamp(j_value / 1000, j_value * 1000000);
+        realm::Timestamp timestamp = realm::Timestamp(j_value / 1000, 0);
         size_t find_result = dictionary.find_any(Mixed(timestamp));
         if (find_result != realm::not_found) {
             return true;

@@ -128,7 +128,7 @@ public class AllTypes extends RealmObject {
     private RealmList<UUID> columnUUIDList;
     private RealmList<Mixed> columnMixedList;
 
-    private RealmDictionary<Dog> columnRealmDictionary;
+    private RealmDictionary<DogPrimaryKey> columnRealmDictionary;
 
     private RealmDictionary<Boolean> columnBooleanDictionary;
     private RealmDictionary<String> columnStringDictionary;
@@ -359,11 +359,11 @@ public class AllTypes extends RealmObject {
         this.columnMixedList = columnMixedList;
     }
 
-    public RealmDictionary<Dog> getColumnRealmDictionary() {
+    public RealmDictionary<DogPrimaryKey> getColumnRealmDictionary() {
         return columnRealmDictionary;
     }
 
-    public void setColumnRealmDictionary(RealmDictionary<Dog> columnRealmDictionary) {
+    public void setColumnRealmDictionary(RealmDictionary<DogPrimaryKey> columnRealmDictionary) {
         this.columnRealmDictionary = columnRealmDictionary;
     }
 

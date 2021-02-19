@@ -17,7 +17,7 @@
 package io.realm
 
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.entities.MyRealmModel
+import io.realm.entities.DogPrimaryKey
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import org.junit.After
@@ -43,236 +43,124 @@ class ParameterizedDictionaryTests(
      */
     companion object {
 
-        private val keys = listOf(KEY_HELLO, KEY_BYE, KEY_NULL)
-
         @JvmStatic
         @Parameterized.Parameters(name = "{0}")
         fun testTypes(): List<DictionaryTester> {
             return DictionaryMode.values().map { type ->
                 when (type) {
                     DictionaryMode.UNMANAGED -> unmanagedFactory()
-//                    DictionaryMode.UNMANAGED -> listOf()
                     DictionaryMode.MANAGED -> managedFactory()
                 }
             }.flatten()
         }
-
-        private fun unmanagedFactory(): List<DictionaryTester> {
-            // Create primitive testers first
-            val primitiveTesters = DictionarySupportedType.values().mapNotNull { supportedType ->
-                when (supportedType) {
-                    DictionarySupportedType.LONG ->
-                        UnmanagedLong(keys, listOf(VALUE_NUMERIC_HELLO.toLong(), VALUE_NUMERIC_BYE.toLong(), null))
-                    DictionarySupportedType.INTEGER ->
-                        UnmanagedInteger(keys, listOf(VALUE_NUMERIC_HELLO, VALUE_NUMERIC_BYE, null))
-                    DictionarySupportedType.SHORT ->
-                        UnmanagedShort(keys, listOf(VALUE_NUMERIC_HELLO.toShort(), VALUE_NUMERIC_BYE.toShort(), null))
-                    DictionarySupportedType.BYTE ->
-                        UnmanagedByte(keys, listOf(VALUE_NUMERIC_HELLO.toByte(), VALUE_NUMERIC_BYE.toByte(), null))
-                    DictionarySupportedType.FLOAT ->
-                        UnmanagedFloat(keys, listOf(VALUE_NUMERIC_HELLO.toFloat(), VALUE_NUMERIC_BYE.toFloat(), null))
-                    DictionarySupportedType.DOUBLE ->
-                        UnmanagedDouble(keys, listOf(VALUE_NUMERIC_HELLO.toDouble(), VALUE_NUMERIC_BYE.toDouble(), null))
-                    DictionarySupportedType.STRING ->
-                        UnmanagedString(keys, listOf(VALUE_STRING_HELLO, VALUE_STRING_BYE, null))
-                    DictionarySupportedType.BOOLEAN ->
-                        UnmanagedBoolean(keys, listOf(VALUE_BOOLEAN_HELLO, VALUE_BOOLEAN_BYE, null))
-                    DictionarySupportedType.DATE ->
-                        UnmanagedDate(keys, listOf(VALUE_DATE_HELLO, VALUE_DATE_BYE, null))
-                    DictionarySupportedType.DECIMAL128 ->
-                        UnmanagedDecimal128(keys, listOf(VALUE_DECIMAL128_HELLO, VALUE_DECIMAL128_BYE, null))
-                    DictionarySupportedType.BOXED_BYTE_ARRAY ->
-                        UnmanagedBoxedByteArray(keys, listOf(VALUE_BOXED_BYTE_ARRAY_HELLO, VALUE_BOXED_BYTE_ARRAY_BYE, null))
-                    DictionarySupportedType.BYTE_ARRAY ->
-                        UnmanagedByteArray(keys, listOf(VALUE_BYTE_ARRAY_HELLO, VALUE_BYTE_ARRAY_BYE, null))
-                    DictionarySupportedType.OBJECT_ID ->
-                        UnmanagedObjectId(keys, listOf(VALUE_OBJECT_ID_HELLO, VALUE_OBJECT_ID_BYE, null))
-                    DictionarySupportedType.UUID ->
-                        UnmanagedUUID(keys, listOf(VALUE_UUID_HELLO, VALUE_UUID_BYE, null))
-                    DictionarySupportedType.LINK ->
-                        UnmanagedLink(keys, listOf(VALUE_LINK_HELLO, VALUE_LINK_BYE, null))
-                    // Ignore Mixed in this switch
-                    else -> null
-                }
-            }
-
-            // Create Mixed testers now
-            val mixedTesters = MixedType.values().map {
-                UnmanagedMixed(it.name, keys, getMixedTestValues(it))
-            }
-
-            // Put them together
-            return primitiveTesters.plus(mixedTesters)
-        }
-
-        private fun getMixedTestValues(mixedType: MixedType): List<Mixed> {
-            return when (mixedType) {
-                MixedType.INTEGER -> listOf(VALUE_MIXED_INTEGER_HELLO, VALUE_MIXED_INTEGER_BYE)
-                MixedType.BOOLEAN -> listOf(VALUE_MIXED_BOOLEAN_HELLO, VALUE_MIXED_BOOLEAN_BYE)
-                MixedType.STRING -> listOf(VALUE_MIXED_STRING_HELLO, VALUE_MIXED_STRING_BYE)
-                MixedType.BINARY -> listOf(VALUE_MIXED_BYTE_ARRAY_HELLO, VALUE_MIXED_BYTE_ARRAY_BYE)
-                MixedType.DATE -> listOf(VALUE_MIXED_DATE_HELLO, VALUE_MIXED_DATE_BYE)
-                MixedType.FLOAT -> listOf(VALUE_MIXED_FLOAT_HELLO, VALUE_MIXED_FLOAT_BYE)
-                MixedType.DOUBLE -> listOf(VALUE_MIXED_DOUBLE_HELLO, VALUE_MIXED_DOUBLE_BYE)
-                MixedType.DECIMAL128 -> listOf(VALUE_MIXED_DECIMAL128_HELLO, VALUE_MIXED_DECIMAL128_BYE)
-                MixedType.OBJECT_ID -> listOf(VALUE_MIXED_OBJECT_ID_HELLO, VALUE_MIXED_OBJECT_ID_BYE)
-                MixedType.OBJECT -> listOf(VALUE_MIXED_LINK_HELLO, VALUE_MIXED_LINK_BYE)
-                MixedType.UUID -> listOf(VALUE_MIXED_UUID_HELLO, VALUE_MIXED_UUID_BYE)
-                MixedType.NULL -> listOf(Mixed.nullValue(), Mixed.valueOf("Not null"))
-            }
-        }
-
-        private fun managedFactory(): List<DictionaryTester> {
-            // TODO: add when ready
-            return listOf(
-                    ManagedLong(keys, listOf(VALUE_NUMERIC_HELLO.toLong(), VALUE_NUMERIC_BYE.toLong(), null))
-//                    ManagedString(keys, listOf(VALUE_STRING_HELLO, VALUE_STRING_BYE, null))
-            )
-        }
     }
-
-    private lateinit var config: RealmConfiguration
-    private lateinit var realm: Realm
 
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().context)
-        config = Realm.getDefaultConfiguration()!!
-        realm = Realm.getInstance(config)
+        // TODO: use configuration from test factory
+        tester.setUp(Realm.getDefaultConfiguration()!!)
     }
 
     @After
     fun tearDown() {
-        realm.close()
-        Realm.deleteRealm(config)
+        tester.tearDown()
     }
 
     @Test
     fun constructorWithAnotherMap() {
-        if (!tester.isTesterManaged()) {
-            tester.constructorWithAnotherMap()
-        }
+        tester.constructorWithAnotherMap()
     }
 
     @Test
     fun isManaged() {
-        addRealmToTesterIfNeeded()
         tester.isManaged()
     }
 
     @Test
     fun isValid() {
-        addRealmToTesterIfNeeded()
         tester.isValid()
     }
 
     @Test
     fun isFrozen() {
-        addRealmToTesterIfNeeded()
         tester.isFrozen()
     }
 
     @Test
     fun size() {
-        addRealmToTesterIfNeeded()
         tester.size()
     }
 
     @Test
     fun isEmpty() {
-        addRealmToTesterIfNeeded()
         tester.isEmpty()
     }
 
     @Test
     fun containsKey() {
-        addRealmToTesterIfNeeded()
         tester.containsKey()
     }
 
     @Test
     fun containsValue() {
-        addRealmToTesterIfNeeded()
         tester.containsValue()
     }
 
     @Test
     fun get() {
-        addRealmToTesterIfNeeded()
         tester.get()
     }
 
     @Test
     fun put() {
-        addRealmToTesterIfNeeded()
         tester.put()
     }
 
     @Test
     fun remove() {
-        addRealmToTesterIfNeeded()
         tester.remove()
     }
 
     @Test
     fun putAll() {
-        addRealmToTesterIfNeeded()
         tester.putAll()
     }
 
     @Test
     fun clear() {
-        addRealmToTesterIfNeeded()
         tester.clear()
     }
 
     @Test
     fun keySet() {
-        addRealmToTesterIfNeeded()
         tester.keySet()
     }
 
     @Test
     fun values() {
-        addRealmToTesterIfNeeded()
         tester.values()
     }
 
     @Test
     fun entrySet() {
-        addRealmToTesterIfNeeded()
         tester.entrySet()
     }
 
     @Test
     fun freeze() {
-        addRealmToTesterIfNeeded()
         tester.freeze()
     }
 
     @Test
     fun copyToRealm() {
-        addRealmToTesterIfNeeded()
         tester.copyToRealm()
     }
 
     @Test
     fun copyFromRealm() {
-        addRealmToTesterIfNeeded()
         tester.copyFromRealm()
     }
-
-    private fun addRealmToTesterIfNeeded() {
-        if (tester.isTesterManaged()) {
-            tester.addRealmInstance(realm)
-        }
-    }
-
-//    @Test
-//    fun () {
-//        tester.
-//    }
-
 }
 
 /**
@@ -289,81 +177,187 @@ enum class DictionaryMode {
  * Add new types ad-hoc here.
  */
 enum class DictionarySupportedType {
-    LONG, INTEGER, SHORT, BYTE, FLOAT, DOUBLE, STRING, BOOLEAN, DATE, DECIMAL128, BOXED_BYTE_ARRAY,
-    BYTE_ARRAY, OBJECT_ID, UUID, LINK, MIXED
+    LONG, INTEGER, SHORT, BYTE, FLOAT, DOUBLE, STRING, BOOLEAN, DATE, DECIMAL128, BOXED_BINARY,
+    BINARY, OBJECT_ID, UUID, LINK, MIXED
 }
 
 //-------------------------------------------
 // Test values
 //-------------------------------------------
 
-private const val KEY_HELLO = "Hello"
-private const val KEY_BYE = "Bye"
-private const val KEY_NULL = "KeyNull"
+internal const val KEY_HELLO = "KeyHello"
+internal const val KEY_BYE = "KeyBye"
+internal const val KEY_NULL = "KeyNull"
+internal const val KEY_NOT_PRESENT = "KeyNotPresent"
 
-private const val VALUE_BOOLEAN_HELLO = true
-private const val VALUE_BOOLEAN_BYE = false
+internal const val VALUE_BOOLEAN_HELLO = true
+internal const val VALUE_BOOLEAN_NOT_PRESENT = false
 
-private const val VALUE_STRING_HELLO = "HELLO"
-private const val VALUE_STRING_BYE = "BYE"
+internal const val VALUE_STRING_HELLO = "HELLO"
+internal const val VALUE_STRING_BYE = "BYE"
+internal const val VALUE_STRING_NOT_PRESENT = "NOT PRESENT"
 
-private const val VALUE_NUMERIC_HELLO = 42
-private const val VALUE_NUMERIC_BYE = 666
+internal const val VALUE_NUMERIC_HELLO = 42
+internal const val VALUE_NUMERIC_BYE = -42
+internal const val VALUE_NUMERIC_NOT_PRESENT = 13
 
-private val VALUE_DATE_HELLO = Date(GregorianCalendar(1969, 7, 20).timeInMillis)
-private val VALUE_DATE_BYE = Date()
+internal val VALUE_DATE_HELLO = Calendar.getInstance().apply {
+    set(Calendar.YEAR, 1969)
+    set(Calendar.MONTH, Calendar.JULY)
+    set(Calendar.DAY_OF_MONTH, 20)
+}.time
+internal val VALUE_DATE_BYE = Calendar.getInstance().time
+internal val VALUE_DATE_NOT_PRESENT = Calendar.getInstance().apply {
+    set(Calendar.YEAR, 2000)
+    set(Calendar.MONTH, Calendar.JANUARY)
+    set(Calendar.DAY_OF_MONTH, 1)
+}.time
 
-private val VALUE_DECIMAL128_HELLO = Decimal128(VALUE_NUMERIC_HELLO.toLong())
-private val VALUE_DECIMAL128_BYE = Decimal128(VALUE_NUMERIC_BYE.toLong())
+internal val VALUE_DECIMAL128_HELLO = Decimal128(VALUE_NUMERIC_HELLO.toLong())
+internal val VALUE_DECIMAL128_BYE = Decimal128(VALUE_NUMERIC_BYE.toLong())
+internal val VALUE_DECIMAL128_NOT_PRESENT = Decimal128(VALUE_NUMERIC_NOT_PRESENT.toLong())
 
-private val VALUE_BOXED_BYTE_ARRAY_HELLO = Array<Byte>(2) { index ->
+internal val VALUE_BOXED_BINARY_HELLO = Array<Byte>(2) { index ->
     if (index == 0) Byte.MIN_VALUE
     else if (index == 1) Byte.MAX_VALUE
     else throw IllegalArgumentException("Incorrect array size")
 }
-private val VALUE_BOXED_BYTE_ARRAY_BYE = Array<Byte>(2) { index ->
+internal val VALUE_BOXED_BINARY_BYE = Array<Byte>(2) { index ->
     if (index == 0) Byte.MAX_VALUE
     else if (index == 1) Byte.MIN_VALUE
     else throw IllegalArgumentException("Incorrect array size")
 }
+internal val VALUE_BOXED_BINARY_NOT_PRESENT = Array<Byte>(2) { index ->
+    if (index == 0) VALUE_NUMERIC_NOT_PRESENT.toByte()
+    else if (index == 1) (VALUE_NUMERIC_NOT_PRESENT * -1).toByte()
+    else throw IllegalArgumentException("Incorrect array size")
+}
 
-private val VALUE_BYTE_ARRAY_HELLO = ByteArray(2).apply {
+internal val VALUE_BINARY_HELLO = ByteArray(2).apply {
     set(0, Byte.MIN_VALUE)
     set(1, Byte.MAX_VALUE)
 }
-private val VALUE_BYTE_ARRAY_BYE = ByteArray(2).apply {
+internal val VALUE_BINARY_BYE = ByteArray(2).apply {
     set(0, Byte.MAX_VALUE)
     set(1, Byte.MIN_VALUE)
 }
+internal val VALUE_BINARY_NOT_PRESENT = ByteArray(2).apply {
+    set(0, VALUE_NUMERIC_NOT_PRESENT.toByte())
+    set(1, (VALUE_NUMERIC_NOT_PRESENT * -1).toByte())
+}
 
-private val VALUE_OBJECT_ID_HELLO = ObjectId(VALUE_DATE_HELLO)
-private val VALUE_OBJECT_ID_BYE = ObjectId(VALUE_DATE_BYE)
+internal val VALUE_OBJECT_ID_HELLO = ObjectId(VALUE_DATE_HELLO)
+internal val VALUE_OBJECT_ID_BYE = ObjectId(VALUE_DATE_BYE)
+internal val VALUE_OBJECT_ID_NOT_PRESENT = ObjectId(VALUE_DATE_NOT_PRESENT)
 
-private val VALUE_UUID_HELLO = UUID.nameUUIDFromBytes(VALUE_BYTE_ARRAY_HELLO)
-private val VALUE_UUID_BYE = UUID.nameUUIDFromBytes(VALUE_BYTE_ARRAY_BYE)
+internal val VALUE_UUID_HELLO = UUID.nameUUIDFromBytes(VALUE_BINARY_HELLO)
+internal val VALUE_UUID_BYE = UUID.nameUUIDFromBytes(VALUE_BINARY_BYE)
+internal val VALUE_UUID_NOT_PRESENT = UUID.nameUUIDFromBytes(VALUE_BINARY_NOT_PRESENT)
 
-private val VALUE_LINK_HELLO = MyRealmModel().apply { id = VALUE_STRING_HELLO }
-private val VALUE_LINK_BYE = MyRealmModel().apply { id = VALUE_STRING_BYE }
+internal val VALUE_LINK_HELLO = DogPrimaryKey(42, VALUE_STRING_HELLO)
+internal val VALUE_LINK_BYE = DogPrimaryKey(43, VALUE_STRING_BYE)
+internal val VALUE_LINK_NOT_PRESENT = DogPrimaryKey(44, VALUE_STRING_NOT_PRESENT)
 
-private val VALUE_MIXED_INTEGER_HELLO = Mixed.valueOf(VALUE_NUMERIC_HELLO)
-private val VALUE_MIXED_INTEGER_BYE = Mixed.valueOf(VALUE_NUMERIC_BYE)
-private val VALUE_MIXED_FLOAT_HELLO = Mixed.valueOf(VALUE_NUMERIC_HELLO.toFloat())
-private val VALUE_MIXED_FLOAT_BYE = Mixed.valueOf(VALUE_NUMERIC_BYE.toFloat())
-private val VALUE_MIXED_DOUBLE_HELLO = Mixed.valueOf(VALUE_NUMERIC_HELLO.toDouble())
-private val VALUE_MIXED_DOUBLE_BYE = Mixed.valueOf(VALUE_NUMERIC_BYE.toDouble())
-private val VALUE_MIXED_STRING_HELLO = Mixed.valueOf(VALUE_STRING_HELLO)
-private val VALUE_MIXED_STRING_BYE = Mixed.valueOf(VALUE_STRING_BYE)
-private val VALUE_MIXED_BOOLEAN_HELLO = Mixed.valueOf(VALUE_BOOLEAN_HELLO)
-private val VALUE_MIXED_BOOLEAN_BYE = Mixed.valueOf(VALUE_BOOLEAN_BYE)
-private val VALUE_MIXED_DATE_HELLO = Mixed.valueOf(VALUE_DATE_HELLO)
-private val VALUE_MIXED_DATE_BYE = Mixed.valueOf(VALUE_DATE_BYE)
-private val VALUE_MIXED_DECIMAL128_HELLO = Mixed.valueOf(VALUE_DECIMAL128_HELLO)
-private val VALUE_MIXED_DECIMAL128_BYE = Mixed.valueOf(VALUE_DECIMAL128_BYE)
-private val VALUE_MIXED_BYTE_ARRAY_HELLO = Mixed.valueOf(VALUE_BYTE_ARRAY_HELLO)
-private val VALUE_MIXED_BYTE_ARRAY_BYE = Mixed.valueOf(VALUE_BYTE_ARRAY_BYE)
-private val VALUE_MIXED_OBJECT_ID_HELLO = Mixed.valueOf(VALUE_OBJECT_ID_HELLO)
-private val VALUE_MIXED_OBJECT_ID_BYE = Mixed.valueOf(VALUE_OBJECT_ID_BYE)
-private val VALUE_MIXED_UUID_HELLO = Mixed.valueOf(VALUE_UUID_HELLO)
-private val VALUE_MIXED_UUID_BYE = Mixed.valueOf(VALUE_UUID_BYE)
-private val VALUE_MIXED_LINK_HELLO = Mixed.valueOf(VALUE_LINK_HELLO)
-private val VALUE_MIXED_LINK_BYE = Mixed.valueOf(VALUE_LINK_BYE)
+internal val VALUE_MIXED_INTEGER_HELLO = Mixed.valueOf(VALUE_NUMERIC_HELLO)
+internal val VALUE_MIXED_INTEGER_BYE = Mixed.valueOf(VALUE_NUMERIC_BYE)
+internal val VALUE_MIXED_FLOAT_HELLO = Mixed.valueOf(VALUE_NUMERIC_HELLO.toFloat())
+internal val VALUE_MIXED_FLOAT_BYE = Mixed.valueOf(VALUE_NUMERIC_BYE.toFloat())
+internal val VALUE_MIXED_DOUBLE_HELLO = Mixed.valueOf(VALUE_NUMERIC_HELLO.toDouble())
+internal val VALUE_MIXED_DOUBLE_BYE = Mixed.valueOf(VALUE_NUMERIC_BYE.toDouble())
+internal val VALUE_MIXED_STRING_HELLO = Mixed.valueOf(VALUE_STRING_HELLO)
+internal val VALUE_MIXED_STRING_BYE = Mixed.valueOf(VALUE_STRING_BYE)
+internal val VALUE_MIXED_BOOLEAN_HELLO = Mixed.valueOf(VALUE_BOOLEAN_HELLO)
+internal val VALUE_MIXED_BOOLEAN_NOT_PRESENT = Mixed.valueOf(VALUE_BOOLEAN_NOT_PRESENT)
+internal val VALUE_MIXED_DATE_HELLO = Mixed.valueOf(VALUE_DATE_HELLO)
+internal val VALUE_MIXED_DATE_BYE = Mixed.valueOf(VALUE_DATE_BYE)
+internal val VALUE_MIXED_DECIMAL128_HELLO = Mixed.valueOf(VALUE_DECIMAL128_HELLO)
+internal val VALUE_MIXED_DECIMAL128_BYE = Mixed.valueOf(VALUE_DECIMAL128_BYE)
+internal val VALUE_MIXED_BYTE_ARRAY_HELLO = Mixed.valueOf(VALUE_BINARY_HELLO)
+internal val VALUE_MIXED_BYTE_ARRAY_BYE = Mixed.valueOf(VALUE_BINARY_BYE)
+internal val VALUE_MIXED_OBJECT_ID_HELLO = Mixed.valueOf(VALUE_OBJECT_ID_HELLO)
+internal val VALUE_MIXED_OBJECT_ID_BYE = Mixed.valueOf(VALUE_OBJECT_ID_BYE)
+internal val VALUE_MIXED_UUID_HELLO = Mixed.valueOf(VALUE_UUID_HELLO)
+internal val VALUE_MIXED_UUID_BYE = Mixed.valueOf(VALUE_UUID_BYE)
+internal val VALUE_MIXED_LINK_HELLO = Mixed.valueOf(VALUE_LINK_HELLO)
+internal val VALUE_MIXED_LINK_BYE = Mixed.valueOf(VALUE_LINK_BYE)
+internal val VALUE_MIXED_NOT_PRESENT = Mixed.valueOf(VALUE_STRING_NOT_PRESENT)
+
+fun getMixedKeyValuePairs(
+        mixedType: MixedType,
+        shouldReverseValues: Boolean = false
+): List<Pair<String, Mixed?>> {
+    return when (mixedType) {
+        MixedType.INTEGER ->
+            if (shouldReverseValues) {
+                listOf(KEY_HELLO to VALUE_MIXED_INTEGER_BYE, KEY_BYE to VALUE_MIXED_INTEGER_HELLO, KEY_NULL to null)
+            } else {
+                listOf(KEY_HELLO to VALUE_MIXED_INTEGER_HELLO, KEY_BYE to VALUE_MIXED_INTEGER_BYE, KEY_NULL to null)
+            }
+        MixedType.BOOLEAN ->
+            if (shouldReverseValues) {
+                listOf(KEY_HELLO to VALUE_MIXED_BOOLEAN_NOT_PRESENT, KEY_NULL to null)
+            } else {
+                listOf(KEY_HELLO to VALUE_MIXED_BOOLEAN_HELLO, KEY_NULL to null)
+            }
+        MixedType.STRING ->
+            if (shouldReverseValues) {
+                listOf(KEY_HELLO to VALUE_MIXED_STRING_BYE, KEY_BYE to VALUE_MIXED_STRING_HELLO, KEY_NULL to null)
+            } else {
+                listOf(KEY_HELLO to VALUE_MIXED_STRING_HELLO, KEY_BYE to VALUE_MIXED_STRING_BYE, KEY_NULL to null)
+            }
+        MixedType.BINARY ->
+            if (shouldReverseValues) {
+                listOf(KEY_HELLO to VALUE_MIXED_BYTE_ARRAY_BYE, KEY_BYE to VALUE_MIXED_BYTE_ARRAY_HELLO, KEY_NULL to null)
+            } else {
+                listOf(KEY_HELLO to VALUE_MIXED_BYTE_ARRAY_HELLO, KEY_BYE to VALUE_MIXED_BYTE_ARRAY_BYE, KEY_NULL to null)
+            }
+        MixedType.DATE ->
+            if (shouldReverseValues) {
+                listOf(KEY_HELLO to VALUE_MIXED_DATE_BYE, KEY_BYE to VALUE_MIXED_DATE_HELLO, KEY_NULL to null)
+            } else {
+                listOf(KEY_HELLO to VALUE_MIXED_DATE_HELLO, KEY_BYE to VALUE_MIXED_DATE_BYE, KEY_NULL to null)
+            }
+        MixedType.FLOAT ->
+            if (shouldReverseValues) {
+                listOf(KEY_HELLO to VALUE_MIXED_FLOAT_BYE, KEY_BYE to VALUE_MIXED_FLOAT_HELLO, KEY_NULL to null)
+            } else {
+                listOf(KEY_HELLO to VALUE_MIXED_FLOAT_HELLO, KEY_BYE to VALUE_MIXED_FLOAT_BYE, KEY_NULL to null)
+            }
+        MixedType.DOUBLE ->
+            if (shouldReverseValues) {
+                listOf(KEY_HELLO to VALUE_MIXED_DOUBLE_BYE, KEY_BYE to VALUE_MIXED_DOUBLE_HELLO, KEY_NULL to null)
+            } else {
+                listOf(KEY_HELLO to VALUE_MIXED_DOUBLE_HELLO, KEY_BYE to VALUE_MIXED_DOUBLE_BYE, KEY_NULL to null)
+            }
+        MixedType.DECIMAL128 ->
+            if (shouldReverseValues) {
+                listOf(KEY_HELLO to VALUE_MIXED_DECIMAL128_BYE, KEY_BYE to VALUE_MIXED_DECIMAL128_HELLO, KEY_NULL to null)
+            } else {
+                listOf(KEY_HELLO to VALUE_MIXED_DECIMAL128_HELLO, KEY_BYE to VALUE_MIXED_DECIMAL128_BYE, KEY_NULL to null)
+            }
+        MixedType.OBJECT_ID ->
+            if (shouldReverseValues) {
+                listOf(KEY_HELLO to VALUE_MIXED_OBJECT_ID_BYE, KEY_BYE to VALUE_MIXED_OBJECT_ID_HELLO, KEY_NULL to null)
+            } else {
+                listOf(KEY_HELLO to VALUE_MIXED_OBJECT_ID_HELLO, KEY_BYE to VALUE_MIXED_OBJECT_ID_BYE, KEY_NULL to null)
+            }
+        MixedType.OBJECT ->
+            if (shouldReverseValues) {
+                listOf(KEY_HELLO to VALUE_MIXED_LINK_BYE, KEY_BYE to VALUE_MIXED_LINK_HELLO, KEY_NULL to null)
+            } else {
+                listOf(KEY_HELLO to VALUE_MIXED_LINK_HELLO, KEY_BYE to VALUE_MIXED_LINK_BYE, KEY_NULL to null)
+            }
+        MixedType.UUID ->
+            if (shouldReverseValues) {
+                listOf(KEY_HELLO to VALUE_MIXED_UUID_BYE, KEY_BYE to VALUE_MIXED_UUID_HELLO, KEY_NULL to null)
+            } else {
+                listOf(KEY_HELLO to VALUE_MIXED_UUID_HELLO, KEY_BYE to VALUE_MIXED_UUID_BYE, KEY_NULL to null)
+            }
+        MixedType.NULL ->
+            if (shouldReverseValues) {
+                listOf(KEY_HELLO to Mixed.valueOf("Not null"), KEY_BYE to Mixed.nullValue(), KEY_NULL to null)
+            } else {
+                listOf(KEY_HELLO to Mixed.nullValue(), KEY_BYE to Mixed.valueOf("Not null"), KEY_NULL to null)
+            }
+    }
+}

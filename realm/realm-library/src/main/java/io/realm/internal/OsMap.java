@@ -81,12 +81,16 @@ public class OsMap implements NativeObject {
     public boolean containsPrimitiveValue(@Nullable Object value) {
         if (value == null) {
             return nativeContainsNull(nativePtr);
-        } else if (value instanceof Integer ||
-                value instanceof Long ||
-                value instanceof Double ||
-                value instanceof Short ||
-                value instanceof Byte) {
+        } else if (value instanceof Integer) {
+            return nativeContainsLong(nativePtr, ((Integer) value).longValue());
+        } else if (value instanceof Long) {
             return nativeContainsLong(nativePtr, (long) value);
+        } else if (value instanceof Double) {
+            return nativeContainsLong(nativePtr, ((Double) value).longValue());
+        } else if (value instanceof Short) {
+            return nativeContainsLong(nativePtr, ((Short) value).longValue());
+        } else if (value instanceof Byte) {
+            return nativeContainsLong(nativePtr, ((Byte) value).longValue());
         } else if (value instanceof Boolean) {
             return nativeContainsBoolean(nativePtr, (boolean) value);
         } else if (value instanceof String) {
@@ -98,7 +102,7 @@ public class OsMap implements NativeObject {
         } else if (value instanceof Float) {
             return nativeContainsFloat(nativePtr, (float) value);
         } else if (value instanceof UUID) {
-            return nativeContainsUUID(nativePtr, ((UUID) value).toString());
+            return nativeContainsUUID(nativePtr, value.toString());
         } else if (value instanceof ObjectId) {
             return nativeContainsObjectId(nativePtr, ((ObjectId) value).toString());
         } else if (value instanceof Date) {
@@ -211,6 +215,15 @@ public class OsMap implements NativeObject {
         return nativeCreateAndPutEmbeddedObject(sharedRealm.getNativePtr(), nativePtr, (String) key);
     }
 
+    public <K> Pair<K, Object> getEntryForPrimitive(int position) {
+        // entry from OsMap is an array: entry[0] is key and entry[1] is the object key
+        Object[] entry = nativeGetEntryForPrimitive(nativePtr, position);
+        String key = (String) entry[0];
+
+        //noinspection unchecked
+        return new Pair<>((K) key, entry[1]);
+    }
+
     public <K> Pair<K, Long> getKeyObjRowPair(int position) {
         // entry from OsMap is an array: entry[0] is key and entry[1] is the object key
         Object[] entry = nativeGetEntryForModel(nativePtr, position);
@@ -293,6 +306,8 @@ public class OsMap implements NativeObject {
     private static native Object[] nativeGetEntryForModel(long nativePtr, int position);
 
     private static native Object[] nativeGetEntryForMixed(long nativePtr, int position);
+
+    private static native Object[] nativeGetEntryForPrimitive(long nativePtr, int position);
 
     private static native boolean nativeContainsNull(long nativePtr);
 

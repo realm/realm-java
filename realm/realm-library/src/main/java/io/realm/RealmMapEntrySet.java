@@ -16,19 +16,25 @@
 
 package io.realm;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
 import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.UUID;
 
 import io.realm.internal.ClassContainer;
 import io.realm.internal.OsMap;
+import io.realm.internal.android.TypeUtils;
 import io.realm.internal.core.NativeMixed;
 import io.realm.internal.util.Pair;
 
@@ -41,12 +47,14 @@ import io.realm.internal.util.Pair;
 class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     public enum IteratorType {
-        PRIMITIVE, MIXED, OBJECT
+        LONG, BYTE, SHORT, INTEGER, FLOAT, DOUBLE, STRING, BOOLEAN, DATE, DECIMAL128, BOXED_BINARY,
+        BINARY, OBJECT_ID, UUID, MIXED, OBJECT
     }
 
     private final BaseRealm baseRealm;
     private final OsMap osMap;
     private final IteratorType iteratorType;
+    private final EqualsHelper<K, V> equalsHelper;
     private final ClassContainer classContainer;
 
     public RealmMapEntrySet(BaseRealm baseRealm,
@@ -56,6 +64,19 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
         this.baseRealm = baseRealm;
         this.osMap = osMap;
         this.iteratorType = iteratorType;
+        this.equalsHelper = new GenericEquals<>();
+        this.classContainer = classContainer;
+    }
+
+    public RealmMapEntrySet(BaseRealm baseRealm,
+                            OsMap osMap,
+                            IteratorType iteratorType,
+                            EqualsHelper<K, V> equalsHelper,
+                            @Nullable ClassContainer classContainer) {
+        this.baseRealm = baseRealm;
+        this.osMap = osMap;
+        this.iteratorType = iteratorType;
+        this.equalsHelper = equalsHelper;
         this.classContainer = classContainer;
     }
 
@@ -73,11 +94,33 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
     @Override
     public boolean contains(@Nullable Object o) {
         for (Map.Entry<K, V> entry : this) {
-            if (entry != null && entry.equals(o)) {
+            if (entry == null && o == null) {
                 return true;
-            } else if (entry == null && o == null) {
-                return true;
+            } else if (o instanceof Map.Entry) {
+                //noinspection unchecked
+                if (entry != null && equalsHelper.equalsHelper(entry, ((Map.Entry<K, V>) o))) {
+                    return true;
+                }
+            } else {
+                return false;
             }
+
+//            if (entry != null) {
+//                if (o instanceof Map.Entry) {
+//                    //noinspection unchecked
+//                    return equalsHelper.equalsHelper(entry, ((Map.Entry<K, V>) o));
+//                } else {
+//                    return false;
+//                }
+//            } else if (o == null) {
+//                return true;
+//            }
+
+//            if (entry != null && entry.equals(o)) {
+//                return true;
+//            } else if (entry == null && o == null) {
+//                return true;
+//            }
         }
         return false;
     }
@@ -187,13 +230,53 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
         throw new UnsupportedOperationException("This set is immutable and cannot be modified.");
     }
 
-    private static <K, V> Iterator<Map.Entry<K, V>> iteratorFactory(IteratorType iteratorType,
-                                                                    OsMap osMap,
-                                                                    BaseRealm baseRealm,
-                                                                    @Nullable ClassContainer classContainer) {
+    private static <K, V> EntrySetIterator<K, V> iteratorFactory(IteratorType iteratorType,
+                                                                 OsMap osMap,
+                                                                 BaseRealm baseRealm,
+                                                                 @Nullable ClassContainer classContainer) {
         switch (iteratorType) {
-            case PRIMITIVE:
-                return new PrimitiveValueIterator<>(osMap, baseRealm);
+            case LONG:
+                //noinspection unchecked
+                return (EntrySetIterator<K, V>) new LongValueIterator<>(osMap, baseRealm);
+            case BYTE:
+                //noinspection unchecked
+                return (EntrySetIterator<K, V>) new ByteValueIterator<>(osMap, baseRealm);
+            case SHORT:
+                //noinspection unchecked
+                return (EntrySetIterator<K, V>) new ShortValueIterator<>(osMap, baseRealm);
+            case INTEGER:
+                //noinspection unchecked
+                return (EntrySetIterator<K, V>) new IntegerValueIterator<>(osMap, baseRealm);
+            case FLOAT:
+                //noinspection unchecked
+                return (EntrySetIterator<K, V>) new FloatValueIterator<>(osMap, baseRealm);
+            case DOUBLE:
+                //noinspection unchecked
+                return (EntrySetIterator<K, V>) new DoubleValueIterator<>(osMap, baseRealm);
+            case STRING:
+                //noinspection unchecked
+                return (EntrySetIterator<K, V>) new StringValueIterator<>(osMap, baseRealm);
+            case BOOLEAN:
+                //noinspection unchecked
+                return (EntrySetIterator<K, V>) new BooleanValueIterator<>(osMap, baseRealm);
+            case DATE:
+                //noinspection unchecked
+                return (EntrySetIterator<K, V>) new DateValueIterator<>(osMap, baseRealm);
+            case DECIMAL128:
+                //noinspection unchecked
+                return (EntrySetIterator<K, V>) new Decimal128ValueIterator<>(osMap, baseRealm);
+            case BOXED_BINARY:
+                //noinspection unchecked
+                return (EntrySetIterator<K, V>) new BoxedBinaryValueIterator<>(osMap, baseRealm);
+            case BINARY:
+                //noinspection unchecked
+                return (EntrySetIterator<K, V>) new BinaryValueIterator<>(osMap, baseRealm);
+            case OBJECT_ID:
+                //noinspection unchecked
+                return (EntrySetIterator<K, V>) new ObjectIdValueIterator<>(osMap, baseRealm);
+            case UUID:
+                //noinspection unchecked
+                return (EntrySetIterator<K, V>) new UUIDValueIterator<>(osMap, baseRealm);
             case MIXED:
                 //noinspection unchecked
                 return (EntrySetIterator<K, V>) new MixedValueIterator<K>(osMap, baseRealm);
@@ -201,7 +284,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
                 if (classContainer == null) {
                     throw new IllegalArgumentException("Missing class container when creating RealmModelValueIterator.");
                 }
-                return new RealmMapEntrySet.RealmModelValueIterator<>(osMap, baseRealm, classContainer);
+                return new RealmModelValueIterator<>(osMap, baseRealm, classContainer);
             default:
                 throw new IllegalArgumentException("Invalid iterator type.");
         }
@@ -239,68 +322,250 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
         }
     }
 
-    private static class PrimitiveValueIterator<K, V> extends EntrySetIterator<K, V> {
+    private static class LongValueIterator<K> extends EntrySetIterator<K, Long> {
 
-        public PrimitiveValueIterator(OsMap osMap, BaseRealm baseRealm) {
+        public LongValueIterator(OsMap osMap, BaseRealm baseRealm) {
             super(osMap, baseRealm);
         }
 
         @Override
-        protected Map.Entry<K, V> getEntryInternal(int position) {
-            Pair<K, NativeMixed> pair = osMap.getKeyMixedPair(position);
-            K key = pair.first;
-            NativeMixed value = pair.second;
-            MixedType type = value.getType();
-
-            V returnValue;
-            switch (type) {
-                case INTEGER:
-                    //noinspection unchecked
-                    returnValue = (V) Long.valueOf(value.asLong());
-                    break;
-                case BOOLEAN:
-                    //noinspection unchecked
-                    returnValue = (V) Boolean.valueOf(value.asBoolean());
-                    break;
-                case STRING:
-                    //noinspection unchecked
-                    returnValue = (V) String.valueOf(value.asString());
-                    break;
-                case BINARY:
-                    returnValue = (V) value.asBinary();
-                    break;
-                case DATE:
-                    //noinspection unchecked
-                    returnValue = (V) value.asDate();
-                    break;
-                case FLOAT:
-                    //noinspection unchecked
-                    returnValue = (V) Float.valueOf(value.asFloat());
-                    break;
-                case DOUBLE:
-                    //noinspection unchecked
-                    returnValue = (V) Double.valueOf(value.asDouble());
-                    break;
-                case DECIMAL128:
-                    //noinspection unchecked
-                    returnValue = (V) value.asDecimal128();
-                    break;
-                case OBJECT_ID:
-                    //noinspection unchecked
-                    returnValue = (V) value.asObjectId();
-                    break;
-                case UUID:
-                    //noinspection unchecked
-                    returnValue = (V) value.asUUID();
-                    break;
-                case NULL:
-                    returnValue = null;
-                    break;
-                default:
-                    throw new IllegalStateException("Wrong Mixed type for PrimitiveValueIterator.getValue: " + type.toString());
+        protected Map.Entry<K, Long> getEntryInternal(int position) {
+            Pair<K, Object> pair = osMap.getEntryForPrimitive(position);
+            if (pair.second == null) {
+                return new AbstractMap.SimpleImmutableEntry<>(pair.first, null);
             }
 
-            return new AbstractMap.SimpleImmutableEntry<>(key, returnValue);
+            Long longValue = (Long) pair.second;
+
+            return new AbstractMap.SimpleImmutableEntry<>(pair.first, longValue);
+        }
+    }
+
+    private static class ByteValueIterator<K> extends EntrySetIterator<K, Byte> {
+
+        public ByteValueIterator(OsMap osMap, BaseRealm baseRealm) {
+            super(osMap, baseRealm);
+        }
+
+        @Override
+        protected Map.Entry<K, Byte> getEntryInternal(int position) {
+            Pair<K, Object> pair = osMap.getEntryForPrimitive(position);
+            if (pair.second == null) {
+                return new AbstractMap.SimpleImmutableEntry<>(pair.first, null);
+            }
+
+            Long longValue = (Long) pair.second;
+
+            return new AbstractMap.SimpleImmutableEntry<>(pair.first, longValue.byteValue());
+        }
+    }
+
+    private static class ShortValueIterator<K> extends EntrySetIterator<K, Short> {
+
+        public ShortValueIterator(OsMap osMap, BaseRealm baseRealm) {
+            super(osMap, baseRealm);
+        }
+
+        @Override
+        protected Map.Entry<K, Short> getEntryInternal(int position) {
+            Pair<K, Object> pair = osMap.getEntryForPrimitive(position);
+            if (pair.second == null) {
+                return new AbstractMap.SimpleImmutableEntry<>(pair.first, null);
+            }
+
+            Long longValue = (Long) pair.second;
+
+            return new AbstractMap.SimpleImmutableEntry<>(pair.first, longValue.shortValue());
+        }
+    }
+
+    private static class IntegerValueIterator<K> extends EntrySetIterator<K, Integer> {
+
+        public IntegerValueIterator(OsMap osMap, BaseRealm baseRealm) {
+            super(osMap, baseRealm);
+        }
+
+        @Override
+        protected Map.Entry<K, Integer> getEntryInternal(int position) {
+            Pair<K, Object> pair = osMap.getEntryForPrimitive(position);
+            if (pair.second == null) {
+                return new AbstractMap.SimpleImmutableEntry<>(pair.first, null);
+            }
+
+            Long longValue = (Long) pair.second;
+
+            return new AbstractMap.SimpleImmutableEntry<>(pair.first, longValue.intValue());
+        }
+    }
+
+    private static class FloatValueIterator<K> extends EntrySetIterator<K, Float> {
+
+        public FloatValueIterator(OsMap osMap, BaseRealm baseRealm) {
+            super(osMap, baseRealm);
+        }
+
+        @Override
+        protected Map.Entry<K, Float> getEntryInternal(int position) {
+            Pair<K, Object> pair = osMap.getEntryForPrimitive(position);
+            if (pair.second == null) {
+                return new AbstractMap.SimpleImmutableEntry<>(pair.first, null);
+            }
+
+            return new AbstractMap.SimpleImmutableEntry<>(pair.first, (Float) pair.second);
+        }
+    }
+
+    private static class DoubleValueIterator<K> extends EntrySetIterator<K, Double> {
+
+        public DoubleValueIterator(OsMap osMap, BaseRealm baseRealm) {
+            super(osMap, baseRealm);
+        }
+
+        @Override
+        protected Map.Entry<K, Double> getEntryInternal(int position) {
+            Pair<K, Object> pair = osMap.getEntryForPrimitive(position);
+            if (pair.second == null) {
+                return new AbstractMap.SimpleImmutableEntry<>(pair.first, null);
+            }
+
+            return new AbstractMap.SimpleImmutableEntry<>(pair.first, (Double) pair.second);
+        }
+    }
+
+    private static class StringValueIterator<K> extends EntrySetIterator<K, String> {
+
+        public StringValueIterator(OsMap osMap, BaseRealm baseRealm) {
+            super(osMap, baseRealm);
+        }
+
+        @Override
+        protected Map.Entry<K, String> getEntryInternal(int position) {
+            Pair<K, Object> pair = osMap.getEntryForPrimitive(position);
+            if (pair.second == null) {
+                return new AbstractMap.SimpleImmutableEntry<>(pair.first, null);
+            }
+
+            return new AbstractMap.SimpleImmutableEntry<>(pair.first, (String) pair.second);
+        }
+    }
+
+    private static class BooleanValueIterator<K> extends EntrySetIterator<K, Boolean> {
+
+        public BooleanValueIterator(OsMap osMap, BaseRealm baseRealm) {
+            super(osMap, baseRealm);
+        }
+
+        @Override
+        protected Map.Entry<K, Boolean> getEntryInternal(int position) {
+            Pair<K, Object> pair = osMap.getEntryForPrimitive(position);
+            if (pair.second == null) {
+                return new AbstractMap.SimpleImmutableEntry<>(pair.first, null);
+            }
+
+            return new AbstractMap.SimpleImmutableEntry<>(pair.first, (Boolean) pair.second);
+        }
+    }
+
+    private static class DateValueIterator<K> extends EntrySetIterator<K, Date> {
+
+        public DateValueIterator(OsMap osMap, BaseRealm baseRealm) {
+            super(osMap, baseRealm);
+        }
+
+        @Override
+        protected Map.Entry<K, Date> getEntryInternal(int position) {
+            Pair<K, Object> pair = osMap.getEntryForPrimitive(position);
+            if (pair.second == null) {
+                return new AbstractMap.SimpleImmutableEntry<>(pair.first, null);
+            }
+
+            return new AbstractMap.SimpleImmutableEntry<>(pair.first, (Date) pair.second);
+        }
+    }
+
+    private static class Decimal128ValueIterator<K> extends EntrySetIterator<K, Decimal128> {
+
+        public Decimal128ValueIterator(OsMap osMap, BaseRealm baseRealm) {
+            super(osMap, baseRealm);
+        }
+
+        @Override
+        protected Map.Entry<K, Decimal128> getEntryInternal(int position) {
+            Pair<K, Object> pair = osMap.getEntryForPrimitive(position);
+            if (pair.second == null) {
+                return new AbstractMap.SimpleImmutableEntry<>(pair.first, null);
+            }
+
+            return new AbstractMap.SimpleImmutableEntry<>(pair.first, (Decimal128) pair.second);
+        }
+    }
+
+    private static class BoxedBinaryValueIterator<K> extends EntrySetIterator<K, Byte[]> {
+
+        public BoxedBinaryValueIterator(OsMap osMap, BaseRealm baseRealm) {
+            super(osMap, baseRealm);
+        }
+
+        @Override
+        protected Map.Entry<K, Byte[]> getEntryInternal(int position) {
+            Pair<K, Object> pair = osMap.getEntryForPrimitive(position);
+            if (pair.second == null) {
+                return new AbstractMap.SimpleImmutableEntry<>(pair.first, null);
+            }
+
+            Byte[] bytes = TypeUtils.convertPrimitiveBinaryToNonPrimitive((byte[]) pair.second);
+            return new AbstractMap.SimpleImmutableEntry<>(pair.first, bytes);
+        }
+    }
+
+    private static class BinaryValueIterator<K> extends EntrySetIterator<K, byte[]> {
+
+        public BinaryValueIterator(OsMap osMap, BaseRealm baseRealm) {
+            super(osMap, baseRealm);
+        }
+
+        @Override
+        protected Map.Entry<K, byte[]> getEntryInternal(int position) {
+            Pair<K, Object> pair = osMap.getEntryForPrimitive(position);
+            if (pair.second == null) {
+                return new AbstractMap.SimpleImmutableEntry<>(pair.first, null);
+            }
+
+            return new AbstractMap.SimpleImmutableEntry<>(pair.first, (byte[]) pair.second);
+        }
+    }
+
+    private static class ObjectIdValueIterator<K> extends EntrySetIterator<K, ObjectId> {
+
+        public ObjectIdValueIterator(OsMap osMap, BaseRealm baseRealm) {
+            super(osMap, baseRealm);
+        }
+
+        @Override
+        protected Map.Entry<K, ObjectId> getEntryInternal(int position) {
+            Pair<K, Object> pair = osMap.getEntryForPrimitive(position);
+            if (pair.second == null) {
+                return new AbstractMap.SimpleImmutableEntry<>(pair.first, null);
+            }
+
+            return new AbstractMap.SimpleImmutableEntry<>(pair.first, (ObjectId) pair.second);
+        }
+    }
+
+    private static class UUIDValueIterator<K> extends EntrySetIterator<K, UUID> {
+
+        public UUIDValueIterator(OsMap osMap, BaseRealm baseRealm) {
+            super(osMap, baseRealm);
+        }
+
+        @Override
+        protected Map.Entry<K, UUID> getEntryInternal(int position) {
+            Pair<K, Object> pair = osMap.getEntryForPrimitive(position);
+            if (pair.second == null) {
+                return new AbstractMap.SimpleImmutableEntry<>(pair.first, null);
+            }
+
+            return new AbstractMap.SimpleImmutableEntry<>(pair.first, (UUID) pair.second);
         }
     }
 
@@ -347,6 +612,55 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
             NativeMixed nativeMixed = pair.second;
             Mixed value = new Mixed(MixedOperator.fromNativeMixed(baseRealm, nativeMixed));
             return new AbstractMap.SimpleImmutableEntry<>(key, value);
+        }
+    }
+}
+
+abstract class EqualsHelper<K, V>  {
+
+    boolean equalsHelper(Map.Entry<K, V> entry, Map.Entry<K, V> other) {
+        K otherKey = other.getKey();
+        K key = entry.getKey();
+        if (key.equals(otherKey)) {
+            return compareInternal(entry.getValue(), other.getValue());
+        }
+        return false;
+    }
+
+    abstract protected boolean compareInternal(@Nullable V value, @Nullable V otherValue);
+}
+
+class GenericEquals<K, V> extends EqualsHelper<K, V> {
+    @Override
+    protected boolean compareInternal(@Nullable V value, @Nullable V otherValue) {
+        if (value == null) {
+            return otherValue == null;
+        } else {
+            return value.equals(otherValue);
+        }
+    }
+}
+
+class BinaryEquals<K> extends EqualsHelper<K, byte[]> {
+    @Override
+    protected boolean compareInternal(@Nullable byte[] value, @Nullable byte[] otherValue) {
+        return Arrays.equals(value, otherValue);
+    }
+}
+
+class BoxedBinaryEquals<K> extends EqualsHelper<K, Byte[]> {
+    @Override
+    protected boolean compareInternal(@Nullable Byte[] value, @Nullable Byte[] otherValue) {
+        if (value == null) {
+            return otherValue == null;
+        } else {
+            if (otherValue == null) {
+                return false;
+            } else {
+                byte[] bytes = TypeUtils.convertNonPrimitiveBinaryToPrimitive(value);
+                byte[] otherBytes = TypeUtils.convertNonPrimitiveBinaryToPrimitive(otherValue);
+                return Arrays.equals(bytes, otherBytes);
+            }
         }
     }
 }
