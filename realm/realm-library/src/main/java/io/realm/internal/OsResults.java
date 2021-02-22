@@ -308,8 +308,18 @@ public class OsResults implements NativeObject, ObservableCollection {
         return createFromQuery(sharedRealm, query, new DescriptorOrdering());
     }
 
-    public static OsResults createFromMap(OsSharedRealm sharedRealm, Table table, long resultsPtr) {
-        return new OsResults(sharedRealm, table, resultsPtr);
+    public static OsResults createFromMap(OsSharedRealm sharedRealm, long resultsPtr) {
+        return new OsResults(sharedRealm,resultsPtr);
+    }
+
+    // Use this when we don't have the table, e.g. when calling RealmDictionary.values()
+    OsResults(OsSharedRealm sharedRealm, long nativePtr) {
+        this.sharedRealm = sharedRealm;
+        this.context = sharedRealm.context;
+        this.nativePtr = nativePtr;
+        this.context.addReference(this);
+        this.loaded = getMode() != Mode.QUERY;
+        this.table = new Table(sharedRealm, nativeGetTable(nativePtr));
     }
 
     OsResults(OsSharedRealm sharedRealm, Table table, long nativePtr) {
@@ -792,6 +802,8 @@ public class OsResults implements NativeObject, ObservableCollection {
     private native void nativeStartListening(long nativePtr);
 
     private native void nativeStopListening(long nativePtr);
+
+    private static native long nativeGetTable(long nativePtr);
 
     private static native long nativeWhere(long nativePtr);
 

@@ -77,7 +77,6 @@ class ManagedDictionaryTester<T : Any>(
 }
 
 fun managedFactory(): List<DictionaryTester> {
-    // TODO: add more types
     val primitiveTesters = listOf<DictionaryTester>(
             ManagedDictionaryTester(
                     testerClass = "Long",
@@ -314,7 +313,7 @@ internal fun <E : Any> assertManagedContainsValue(
     val dictionary = dictionaryGetter.call(allTypesObject)
 
     initializedDictionary.forEach { _, value ->
-        // FIXME: BUG IN CORE - m_clusters not initialized
+        // TODO: BUG IN CORE - m_clusters not initialized
 //        assertFalse(dictionary.containsValue(value))
     }
 
@@ -491,8 +490,7 @@ internal fun <E : Any> assertManagedValues(
         } else if (value is DogPrimaryKey) {
             // null entries become "invalid object" when calling dictionary.values()
             if (value.isValid) {
-                // TODO: dog from dictionary comes from "Dog" table but dog from values comes from "AllTypes"
-//                assertTrue(dictionary.containsValue(value))
+                assertTrue(dictionary.containsValue(value))
             } else {
                 assertTrue(dictionary.containsValue(null))
             }

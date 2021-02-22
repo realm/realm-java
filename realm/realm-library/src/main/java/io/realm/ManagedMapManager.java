@@ -284,7 +284,7 @@ abstract class MapValueOperator<K, V> {
             Realm realm = (Realm) baseRealm;
             Table table = tableAndValuesPtr.first;
             Long valuesPtr = tableAndValuesPtr.second;
-            OsResults osResults = OsResults.createFromMap(baseRealm.sharedRealm, table, valuesPtr);
+            OsResults osResults = OsResults.createFromMap(baseRealm.sharedRealm, valuesPtr);
             if (clazz != null) {
                 return new RealmResults<>(realm, osResults, clazz, forPrimitives);
             }

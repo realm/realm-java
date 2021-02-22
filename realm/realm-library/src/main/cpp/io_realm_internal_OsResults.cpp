@@ -249,6 +249,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeGetFinalizerPtr(J
     return reinterpret_cast<jlong>(&finalize_results);
 }
 
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeGetTable(JNIEnv *env, jclass,
+                                                                        jlong native_ptr) {
+    try {
+        auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
+        auto* table_ref = new ConstTableRef(wrapper->collection().get_table());
+        return reinterpret_cast<jlong>(table_ref);
+    }
+    CATCH_STD()
+    return 0;
+}
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeWhere(JNIEnv* env, jclass, jlong native_ptr)
 {
     try {
