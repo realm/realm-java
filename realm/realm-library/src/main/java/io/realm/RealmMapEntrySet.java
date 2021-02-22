@@ -104,23 +104,6 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
             } else {
                 return false;
             }
-
-//            if (entry != null) {
-//                if (o instanceof Map.Entry) {
-//                    //noinspection unchecked
-//                    return equalsHelper.equalsHelper(entry, ((Map.Entry<K, V>) o));
-//                } else {
-//                    return false;
-//                }
-//            } else if (o == null) {
-//                return true;
-//            }
-
-//            if (entry != null && entry.equals(o)) {
-//                return true;
-//            } else if (entry == null && o == null) {
-//                return true;
-//            }
         }
         return false;
     }

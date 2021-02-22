@@ -293,24 +293,6 @@ abstract class MapValueOperator<K, V> {
 
         throw new UnsupportedOperationException("Add support for 'values' for DynamicRealms.");
     }
-
-//    private <T> RealmResults<T> produceResults(Pair<Table, Long> tableAndValuesPtr,
-//                                               boolean forPrimitives) {
-//        if (baseRealm instanceof Realm) {
-//            Realm realm = (Realm) baseRealm;
-//            Table table = tableAndValuesPtr.first;
-//            Long valuesPtr = tableAndValuesPtr.second;
-//            OsResults osResults = OsResults.createFromMap(baseRealm.sharedRealm, table, valuesPtr);
-//            Class<?> clazz = classContainer.getClazz();
-//            if (clazz != null) {
-//                //noinspection unchecked
-//                return new RealmResults<>(realm, osResults, (Class<T>) clazz, forPrimitives);
-//            }
-//            throw new IllegalStateException("MapValueOperator missing class in 'classContainer'.");
-//        }
-//
-//        throw new UnsupportedOperationException("Add support for 'values' for DynamicRealms.");
-//    }
 }
 
 /**
