@@ -2408,6 +2408,7 @@ JNIEXPORT void JNICALL
 Java_io_realm_internal_TableQuery_nativeRawPredicate(JNIEnv *env,
                                                      jclass,
                                                      jlong j_query_ptr,
+                                                     jboolean j_is_or_connected,
                                                      jstring j_filter,
                                                      jlong j_args,
                                                      jlong j_mapping_ptr) {
@@ -2429,7 +2430,13 @@ Java_io_realm_internal_TableQuery_nativeRawPredicate(JNIEnv *env,
         }
 
         Query predicate = query->get_table()->query(filter, args, mapping);
+
+        if(B(j_is_or_connected)){
+            query->Or();
+        }
+
         query->and_query(predicate);
+
         if (auto parsed_ordering = predicate.get_ordering()) {
             auto ordering = query->get_ordering();
             ordering->append(*parsed_ordering);

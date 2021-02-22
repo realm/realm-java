@@ -96,12 +96,14 @@ public class TableQuery implements NativeObject {
     void validateQuery() {
         if (!queryBuilder.isValidated()) {
             String predicate = queryBuilder.build();
+            boolean isOrConnected = queryBuilder.isOrConnected();
             queryBuilder = new QueryBuilder();
 
             // Realm.log
             Log.d("PREDICATE", predicate);
 
             nativeRawPredicate(nativePtr,
+                    isOrConnected,
                     predicate,
                     nativeArgumentList,
                     (mapping != null) ? mapping.getNativePtr() : 0);
@@ -702,6 +704,7 @@ public class TableQuery implements NativeObject {
         }
 
         nativeRawPredicate(nativePtr,
+                false,
                 filter,
                 listPtr,
                 (mapping != null) ? mapping.getNativePtr() : 0
@@ -798,7 +801,7 @@ public class TableQuery implements NativeObject {
 
     private static native long nativeAddObjectArgument(long listPtr, long rowPtr);
 
-    private static native void nativeRawPredicate(long nativeQueryPtr, String filter, long argsPtr, long mappingPtr);
+    private static native void nativeRawPredicate(long nativeQueryPtr, boolean isOrConnected, String filter, long argsPtr, long mappingPtr);
 
     private static native long nativeGetFinalizerPtr();
 }

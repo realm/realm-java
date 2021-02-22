@@ -43,6 +43,7 @@ public class QueryBuilder {
     private String nextPredicateConnector = EMPTY_STRING;
     private String nextDescriptorSeparator = EMPTY_STRING;
     private boolean validated = false;
+    private boolean isOrConnected = false;
 
     private void appendSingleArgumentOperator(String fieldName, String operator, long argPosition) {
         predicate.append(nextPredicateConnector)
@@ -187,7 +188,11 @@ public class QueryBuilder {
     }
 
     public void or() {
-        nextPredicateConnector = OR_CONNECTOR;
+        if(predicate.length() == 0){
+            isOrConnected = true;
+        } else {
+            nextPredicateConnector = OR_CONNECTOR;
+        }
     }
 
     public void not() {
@@ -256,5 +261,9 @@ public class QueryBuilder {
     public String build() {
         validated = true;
         return ((predicate.length() == 0) ? TRUE_PREDICATE : predicate.toString()) + SPACE + descriptor.toString();
+    }
+
+    public boolean isOrConnected() {
+        return isOrConnected;
     }
 }
