@@ -626,8 +626,7 @@ Java_io_realm_internal_OsMap_nativeContainsDate(JNIEnv* env, jclass, jlong map_p
                                                 jlong j_value) {
     try {
         auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
-//        realm::Timestamp timestamp = realm::Timestamp(j_value / 1000, j_value * 1000000);
-        realm::Timestamp timestamp = realm::Timestamp(j_value / 1000, 0);
+        realm::Timestamp timestamp = from_milliseconds(j_value);
         size_t find_result = dictionary.find_any(Mixed(timestamp));
         if (find_result != realm::not_found) {
             return true;

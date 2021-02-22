@@ -46,7 +46,7 @@ class UnmanagedGeneric<E : Any>(
     override fun isEmpty() = assertUnmanagedIsEmpty(keyValuePairs)
     override fun containsKey() = assertUnmanagedContainsKey(keyValuePairs, notPresentKey)
     override fun containsValue() = assertUnmanagedContainsValue(keyValuePairs, notPresentValue)
-    override fun get() = Unit   // testing "put" tests "get" too
+    override fun get() = Unit   // This has already been tested in "get"
     override fun put() = assertUnmanagedPut(keyValuePairs)
     override fun remove() = assertUnmanagedRemove(keyValuePairs)
     override fun putAll() = assertUnmanagedPutAll(keyValuePairs)
@@ -61,6 +61,10 @@ class UnmanagedGeneric<E : Any>(
     override fun copyFromRealm() = Unit
 }
 
+/**
+ * Creates testers for all [DictionarySupportedType]s and initializes them for testing. There are as
+ * many Mixed testers as [MixedType]s.
+ */
 fun unmanagedFactory(): List<DictionaryTester> {
     // Create primitive testers first
     val primitiveTesters: List<DictionaryTester> = DictionarySupportedType.values().mapNotNull { supportedType ->
@@ -193,7 +197,7 @@ fun unmanagedFactory(): List<DictionaryTester> {
 // Unmanaged helpers
 //--------------------------------------------------------------------------------------------------
 
-internal fun <E : Any> assertConstructorWithAnotherMap(keyValuePairs: List<Pair<String, E?>>) {
+private fun <E : Any> assertConstructorWithAnotherMap(keyValuePairs: List<Pair<String, E?>>) {
     val otherDictionary = RealmDictionary<E?>().apply {
         for (keyValuePair in keyValuePairs) {
             this[keyValuePair.first] = keyValuePair.second
@@ -207,22 +211,22 @@ internal fun <E : Any> assertConstructorWithAnotherMap(keyValuePairs: List<Pair<
     }
 }
 
-internal fun <E : Any> assertUnmanagedIsManaged() {
+private fun <E : Any> assertUnmanagedIsManaged() {
     val realmDictionary = RealmDictionary<E>()
     assertFalse(realmDictionary.isManaged)
 }
 
-internal fun <E : Any> assertUnmanagedIsValid() {
+private fun <E : Any> assertUnmanagedIsValid() {
     val realmDictionary = RealmDictionary<E>()
     assertTrue(realmDictionary.isValid)
 }
 
-internal fun <E : Any> assertUnmanagedIsFrozen() {
+private fun <E : Any> assertUnmanagedIsFrozen() {
     val realmDictionary = RealmDictionary<E>()
     assertFalse(realmDictionary.isFrozen)
 }
 
-internal fun <E : Any> assertUnmanagedSize(keyValuePairs: List<Pair<String, E?>>) {
+private fun <E : Any> assertUnmanagedSize(keyValuePairs: List<Pair<String, E?>>) {
     val realmDictionary = RealmDictionary<E>()
     assertEquals(0, realmDictionary.size)
     for (keyValuePair in keyValuePairs) {
@@ -231,7 +235,7 @@ internal fun <E : Any> assertUnmanagedSize(keyValuePairs: List<Pair<String, E?>>
     assertEquals(keyValuePairs.size, realmDictionary.size)
 }
 
-internal fun <E : Any> assertUnmanagedIsEmpty(keyValuePairs: List<Pair<String, E?>>) {
+private fun <E : Any> assertUnmanagedIsEmpty(keyValuePairs: List<Pair<String, E?>>) {
     val realmDictionary = RealmDictionary<E>()
     assertTrue(realmDictionary.isEmpty())
     for (keyValuePair in keyValuePairs) {
@@ -240,7 +244,7 @@ internal fun <E : Any> assertUnmanagedIsEmpty(keyValuePairs: List<Pair<String, E
     assertFalse(realmDictionary.isEmpty())
 }
 
-internal fun <E : Any> assertUnmanagedContainsKey(
+private fun <E : Any> assertUnmanagedContainsKey(
         keyValuePairs: List<Pair<String, E?>>,
         notPresentValue: String
 ) {
@@ -252,7 +256,7 @@ internal fun <E : Any> assertUnmanagedContainsKey(
     assertFalse(realmDictionary.containsKey(notPresentValue))
 }
 
-internal fun <E : Any> assertUnmanagedContainsValue(
+private fun <E : Any> assertUnmanagedContainsValue(
         keyValuePairs: List<Pair<String, E?>>,
         notPresentValue: E
 ) {
@@ -264,7 +268,7 @@ internal fun <E : Any> assertUnmanagedContainsValue(
     assertFalse(realmDictionary.containsValue(notPresentValue))
 }
 
-internal fun <E : Any> assertUnmanagedPut(keyValuePairs: List<Pair<String, E?>>) {
+private fun <E : Any> assertUnmanagedPut(keyValuePairs: List<Pair<String, E?>>) {
     val realmDictionary = RealmDictionary<E?>()
     assertEquals(0, realmDictionary.size)
     for (i in keyValuePairs.indices) {
@@ -281,7 +285,7 @@ internal fun <E : Any> assertUnmanagedPut(keyValuePairs: List<Pair<String, E?>>)
     }
 }
 
-internal fun <E : Any> assertUnmanagedRemove(keyValuePairs: List<Pair<String, E?>>) {
+private fun <E : Any> assertUnmanagedRemove(keyValuePairs: List<Pair<String, E?>>) {
     val realmDictionary = RealmDictionary<E>()
     for (keyValuePair in keyValuePairs) {
         realmDictionary[keyValuePair.first] = keyValuePair.second
@@ -295,7 +299,7 @@ internal fun <E : Any> assertUnmanagedRemove(keyValuePairs: List<Pair<String, E?
     realmDictionary.remove(null)
 }
 
-internal fun <E : Any> assertUnmanagedPutAll(keyValuePairs: List<Pair<String, E?>>) {
+private fun <E : Any> assertUnmanagedPutAll(keyValuePairs: List<Pair<String, E?>>) {
     val otherMap = HashMap<String, E?>().apply {
         for (keyValuePair in keyValuePairs) {
             this[keyValuePair.first] = keyValuePair.second
@@ -310,7 +314,7 @@ internal fun <E : Any> assertUnmanagedPutAll(keyValuePairs: List<Pair<String, E?
     }
 }
 
-internal fun <E : Any> assertUnmanagedClear(keyValuePairs: List<Pair<String, E?>>) {
+private fun <E : Any> assertUnmanagedClear(keyValuePairs: List<Pair<String, E?>>) {
     val realmDictionary = RealmDictionary<E>()
     assertTrue(realmDictionary.isEmpty())
     for (keyValuePair in keyValuePairs) {
@@ -321,7 +325,7 @@ internal fun <E : Any> assertUnmanagedClear(keyValuePairs: List<Pair<String, E?>
     assertTrue(realmDictionary.isEmpty())
 }
 
-internal fun <E : Any> assertUnmanagedKeySet(keyValuePairs: List<Pair<String, E?>>) {
+private fun <E : Any> assertUnmanagedKeySet(keyValuePairs: List<Pair<String, E?>>) {
     val otherDictionary = RealmDictionary<E>().apply {
         for (keyValuePair in keyValuePairs) {
             this[keyValuePair.first] = keyValuePair.second
@@ -332,7 +336,7 @@ internal fun <E : Any> assertUnmanagedKeySet(keyValuePairs: List<Pair<String, E?
     assertEquals(keySet, realmDictionary.keys)
 }
 
-internal fun <E : Any> assertUnmanagedValues(keyValuePairs: List<Pair<String, E?>>) {
+private fun <E : Any> assertUnmanagedValues(keyValuePairs: List<Pair<String, E?>>) {
     val otherDictionary = RealmDictionary<E>().apply {
         for (keyValuePair in keyValuePairs) {
             this[keyValuePair.first] = keyValuePair.second
@@ -347,7 +351,7 @@ internal fun <E : Any> assertUnmanagedValues(keyValuePairs: List<Pair<String, E?
     }
 }
 
-internal fun <E : Any> assertUnmanagedEntrySet(
+private fun <E : Any> assertUnmanagedEntrySet(
         keyValuePairs: List<Pair<String, E?>>
 ) {
     val otherDictionary = RealmDictionary<E>().apply {
@@ -359,7 +363,7 @@ internal fun <E : Any> assertUnmanagedEntrySet(
     assertEquals(otherDictionary.entries, realmDictionary.entries)
 }
 
-internal fun <E : Any> assertUnmanagedFreeze() {
+private fun <E : Any> assertUnmanagedFreeze() {
     val dictionary = RealmDictionary<E>()
     assertFailsWith<UnsupportedOperationException> {
         dictionary.freeze()

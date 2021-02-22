@@ -18,10 +18,12 @@ package io.realm
 
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.DogPrimaryKey
+import io.realm.rule.TestRealmConfigurationFactory
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -32,6 +34,10 @@ import java.util.*
  * [RealmDictionary] types (i.e. all primitive Realm types (see [DictionarySupportedType]) plus
  * [RealmModel] and [Mixed] (and in turn all possible types supported by Mixed) in both `managed`
  * and `unmanaged` modes.
+ *
+ * In order to streamline the testing for managed dictionaries we use Kotlin's reflection API
+ * `KFunction1` and `KFunction2`. These two methods provide access to the Java getters and setters
+ * used to work with each dictionary field.
  */
 @RunWith(Parameterized::class)
 class ParameterizedDictionaryTests(
@@ -55,11 +61,14 @@ class ParameterizedDictionaryTests(
         }
     }
 
+    @Rule
+    @JvmField
+    val configFactory = TestRealmConfigurationFactory()
+
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().context)
-        // TODO: use configuration from test factory
-        tester.setUp(Realm.getDefaultConfiguration()!!)
+        tester.setUp(configFactory.createConfiguration())
     }
 
     @After

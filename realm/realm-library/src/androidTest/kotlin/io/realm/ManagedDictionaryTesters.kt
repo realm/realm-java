@@ -17,7 +17,6 @@
 package io.realm
 
 import io.realm.entities.AllTypes
-import io.realm.entities.Dog
 import io.realm.entities.DogPrimaryKey
 import io.realm.internal.android.TypeUtils
 import io.realm.kotlin.createObject
@@ -31,6 +30,9 @@ import kotlin.test.*
 
 /**
  * Generic tester for all types of managed dictionaries.
+ *
+ * It uses `KFunction1` and `KFunction2` to streamline the access to [RealmDictionary] fields in
+ * [AllTypes]. This way we only need one tester for all supported types.
  */
 class ManagedDictionaryTester<T : Any>(
         private val testerClass: String,
@@ -52,10 +54,9 @@ class ManagedDictionaryTester<T : Any>(
 
     override fun tearDown() {
         realm.close()
-        Realm.deleteRealm(config)
     }
 
-    override fun constructorWithAnotherMap() = Unit     // Not applicable for managed dictionaries
+    override fun constructorWithAnotherMap() = Unit     // Not applicable in managed mode
     override fun isManaged() = assertManagedIsManaged(realm, dictionaryGetter)
     override fun isValid() = assertManagedIsValid(realm, dictionaryGetter)
     override fun isFrozen() = assertManagedIsFrozen(realm, dictionaryGetter)
@@ -71,11 +72,19 @@ class ManagedDictionaryTester<T : Any>(
     override fun keySet() = assertManagedKeySet(realm, dictionaryGetter, initializedDictionary)
     override fun values() = assertManagedValues(realm, dictionaryGetter, initializedDictionary)
     override fun entrySet() = assertManagedEntrySet(realm, dictionaryGetter, initializedDictionary, alternativeDictionary)
-    override fun freeze() = Unit    // No need to test it as it has already been tested in isFrozen
+    override fun freeze() = Unit    // This has already been tested in "isFrozen"
     override fun copyToRealm() = assertCopyToRealm(realm, dictionaryGetter, dictionarySetter, initializedDictionary)
     override fun copyFromRealm() = assertCopyFromRealm(realm, dictionaryGetter, initializedDictionary)
 }
 
+/**
+ * Creates testers for all [DictionarySupportedType]s and initializes them for testing. There are as
+ * many Mixed testers as [MixedType]s.
+ *
+ * The `KFunction1` and `KFunction2` parameters for `dictionaryGetter` and `dictionarySetter`
+ * respectively enables agnostic field processing, making it possible to cover all supported types
+ * with just one tester class.
+ */
 fun managedFactory(): List<DictionaryTester> {
     val primitiveTesters = listOf<DictionaryTester>(
             ManagedDictionaryTester(
@@ -134,14 +143,13 @@ fun managedFactory(): List<DictionaryTester> {
                     initializedDictionary = RealmDictionary<Boolean>().init(listOf(KEY_HELLO to VALUE_BOOLEAN_HELLO, KEY_NULL to null)),
                     alternativeDictionary = RealmDictionary<Boolean>().init(listOf(KEY_HELLO to VALUE_BOOLEAN_NOT_PRESENT, KEY_NULL to null))
             ),
-//            // TODO: containsValue fails for Date, investigate
-//            ManagedDictionaryTester(
-//                    testerClass = "Date",
-//                    dictionaryGetter = AllTypes::getColumnDateDictionary,
-//                    dictionarySetter = AllTypes::setColumnDateDictionary,
-//                    initializedDictionary = RealmDictionary<Date>().init(listOf(KEY_HELLO to VALUE_DATE_HELLO, KEY_BYE to VALUE_DATE_BYE, KEY_NULL to null)),
-//                    alternativeDictionary = RealmDictionary<Date>().init(listOf(KEY_HELLO to VALUE_DATE_BYE, KEY_BYE to VALUE_DATE_HELLO, KEY_NULL to null))
-//            ),
+            ManagedDictionaryTester(
+                    testerClass = "Date",
+                    dictionaryGetter = AllTypes::getColumnDateDictionary,
+                    dictionarySetter = AllTypes::setColumnDateDictionary,
+                    initializedDictionary = RealmDictionary<Date>().init(listOf(KEY_HELLO to VALUE_DATE_HELLO, KEY_BYE to VALUE_DATE_BYE, KEY_NULL to null)),
+                    alternativeDictionary = RealmDictionary<Date>().init(listOf(KEY_HELLO to VALUE_DATE_BYE, KEY_BYE to VALUE_DATE_HELLO, KEY_NULL to null))
+            ),
             ManagedDictionaryTester(
                     testerClass = "Decimal128",
                     dictionaryGetter = AllTypes::getColumnDecimal128Dictionary,
@@ -192,8 +200,8 @@ fun managedFactory(): List<DictionaryTester> {
                 testerClass = "Mixed-${mixedType.name}",
                 dictionaryGetter = AllTypes::getColumnMixedDictionary,
                 dictionarySetter = AllTypes::setColumnMixedDictionary,
-                initializedDictionary = RealmDictionary<Mixed>().init(getMixedKeyValuePairs(MixedType.INTEGER)),
-                alternativeDictionary = RealmDictionary<Mixed>().init(getMixedKeyValuePairs(MixedType.INTEGER, true))
+                initializedDictionary = RealmDictionary<Mixed>().init(getMixedKeyValuePairs(mixedType)),
+                alternativeDictionary = RealmDictionary<Mixed>().init(getMixedKeyValuePairs(mixedType, true))
         )
     }
 
@@ -204,7 +212,7 @@ fun managedFactory(): List<DictionaryTester> {
 // Managed helpers
 //--------------------------------------------------------------------------------------------------
 
-internal fun createAllTypesManagedContainerAndAssert(realm: Realm): AllTypes {
+private fun createAllTypesManagedContainerAndAssert(realm: Realm): AllTypes {
     realm.executeTransaction { transactionRealm ->
         transactionRealm.createObject<AllTypes>()
     }
@@ -213,7 +221,7 @@ internal fun createAllTypesManagedContainerAndAssert(realm: Realm): AllTypes {
     return allTypesObject
 }
 
-internal fun assertManagedIsManaged(
+private fun assertManagedIsManaged(
         realm: Realm,
         dictionaryGetter: KFunction1<AllTypes, RealmDictionary<*>>
 ) {
@@ -223,7 +231,7 @@ internal fun assertManagedIsManaged(
     assertTrue(dictionary.isManaged)
 }
 
-internal fun assertManagedIsValid(
+private fun assertManagedIsValid(
         realm: Realm,
         dictionaryGetter: KFunction1<AllTypes, RealmDictionary<*>>
 ) {
@@ -233,7 +241,7 @@ internal fun assertManagedIsValid(
     assertTrue(dictionary.isValid)
 }
 
-internal fun assertManagedIsFrozen(
+private fun assertManagedIsFrozen(
         realm: Realm,
         dictionaryGetter: KFunction1<AllTypes, RealmDictionary<*>>
 ) {
@@ -245,7 +253,7 @@ internal fun assertManagedIsFrozen(
     assertTrue(frozenDictionary.isFrozen)
 }
 
-internal fun <E : Any> assertManagedSize(
+private fun <E : Any> assertManagedSize(
         realm: Realm,
         dictionaryGetter: KFunction1<AllTypes, RealmDictionary<E>>,
         initializedDictionary: RealmDictionary<E>
@@ -262,7 +270,7 @@ internal fun <E : Any> assertManagedSize(
     assertEquals(initializedDictionary.size, dictionary.size)
 }
 
-internal fun <E : Any> assertManagedIsEmpty(
+private fun <E : Any> assertManagedIsEmpty(
         realm: Realm,
         dictionaryGetter: KFunction1<AllTypes, RealmDictionary<E>>,
         initializedDictionary: RealmDictionary<E>
@@ -279,7 +287,7 @@ internal fun <E : Any> assertManagedIsEmpty(
     assertFalse(dictionary.isEmpty())
 }
 
-internal fun <E : Any> assertManagedContainsKey(
+private fun <E : Any> assertManagedContainsKey(
         realm: Realm,
         dictionaryGetter: KFunction1<AllTypes, RealmDictionary<E>>,
         initializedDictionary: RealmDictionary<E>
@@ -303,7 +311,7 @@ internal fun <E : Any> assertManagedContainsKey(
     }
 }
 
-internal fun <E : Any> assertManagedContainsValue(
+private fun <E : Any> assertManagedContainsValue(
         realm: Realm,
         dictionaryGetter: KFunction1<AllTypes, RealmDictionary<E>>,
         initializedDictionary: RealmDictionary<E>
@@ -328,7 +336,7 @@ internal fun <E : Any> assertManagedContainsValue(
     }
 }
 
-internal fun <E : Any> assertManagedGet(
+private fun <E : Any> assertManagedGet(
         realm: Realm,
         dictionaryGetter: KFunction1<AllTypes, RealmDictionary<E>>,
         initializedDictionary: RealmDictionary<E>
@@ -345,11 +353,11 @@ internal fun <E : Any> assertManagedGet(
         }
     }
     initializedDictionary.forEach { key, value ->
-        assertEqualsHelper(value, dictionary[key])
+        assertEqualsHelper(realm, value, dictionary[key])
     }
 }
 
-internal fun <E : Any> assertManagedPut(
+private fun <E : Any> assertManagedPut(
         realm: Realm,
         dictionaryGetter: KFunction1<AllTypes, RealmDictionary<E>>,
         initializedDictionary: RealmDictionary<E>,
@@ -366,13 +374,13 @@ internal fun <E : Any> assertManagedPut(
         }
     }
     initializedDictionary.forEach { key, value ->
-        assertEqualsHelper(value, dictionary[key])
+        assertEqualsHelper(realm, value, dictionary[key])
     }
 
     // Now check we get the previous value after insertion
     realm.executeTransaction {
         alternativeDictionary.forEach { key, value ->
-            assertEqualsHelper(initializedDictionary[key], dictionary.put(key, value))
+            assertEqualsHelper(realm, initializedDictionary[key], dictionary.put(key, value))
         }
     }
 
@@ -383,7 +391,7 @@ internal fun <E : Any> assertManagedPut(
     }
 }
 
-internal fun <E : Any> assertManagedRemove(
+private fun <E : Any> assertManagedRemove(
         realm: Realm,
         dictionaryGetter: KFunction1<AllTypes, RealmDictionary<E>>,
         initializedDictionary: RealmDictionary<E>
@@ -405,14 +413,14 @@ internal fun <E : Any> assertManagedRemove(
             for (index in pairs.size - 1 downTo 0) {
                 val key = pairs[index].first
                 val value = pairs[index].second
-                assertEqualsHelper(value, dictionary.remove(key))
+                assertEqualsHelper(realm, value, dictionary.remove(key))
                 assertEquals(index, dictionary.size)
             }
         }
     }
 }
 
-internal fun <E : Any> assertManagedPutAll(
+private fun <E : Any> assertManagedPutAll(
         realm: Realm,
         dictionaryGetter: KFunction1<AllTypes, RealmDictionary<E>>,
         initializedDictionary: RealmDictionary<E>
@@ -428,11 +436,11 @@ internal fun <E : Any> assertManagedPutAll(
 
     // Check initialized dictionary got inserted
     initializedDictionary.forEach { key, value ->
-        assertEqualsHelper(value, dictionary[key])
+        assertEqualsHelper(realm, value, dictionary[key])
     }
 }
 
-internal fun <E : Any> assertManagedClear(
+private fun <E : Any> assertManagedClear(
         realm: Realm,
         dictionaryGetter: KFunction1<AllTypes, RealmDictionary<E>>,
         initializedDictionary: RealmDictionary<E>
@@ -450,7 +458,7 @@ internal fun <E : Any> assertManagedClear(
     }
 }
 
-internal fun <E : Any> assertManagedKeySet(
+private fun <E : Any> assertManagedKeySet(
         realm: Realm,
         dictionaryGetter: KFunction1<AllTypes, RealmDictionary<E>>,
         initializedDictionary: RealmDictionary<E>
@@ -469,7 +477,7 @@ internal fun <E : Any> assertManagedKeySet(
     }
 }
 
-internal fun <E : Any> assertManagedValues(
+private fun <E : Any> assertManagedValues(
         realm: Realm,
         dictionaryGetter: KFunction1<AllTypes, RealmDictionary<E>>,
         initializedDictionary: RealmDictionary<E>
@@ -484,25 +492,25 @@ internal fun <E : Any> assertManagedValues(
 
     val values = dictionary.values
     values.forEach { value ->
-        if (value is Array<*>) {
-            val dictionaryBytes = TypeUtils.convertNonPrimitiveBinaryToPrimitive(value as Array<Byte>)
-            assertTrue((values as Collection<ByteArray>).contains(dictionaryBytes))
-        } else if (value is DogPrimaryKey) {
-            // null entries become "invalid object" when calling dictionary.values()
-            if (value.isValid) {
-                assertTrue(dictionary.containsValue(value))
-            } else {
-                assertTrue(dictionary.containsValue(null))
+        when (value) {
+            is Array<*> -> {
+                val dictionaryBytes = TypeUtils.convertNonPrimitiveBinaryToPrimitive(value as Array<Byte>)
+                assertTrue((values as Collection<ByteArray>).contains(dictionaryBytes))
             }
-        } else if (value is Mixed) {
-            assertTrue(dictionary.containsValue(value))
-        } else {
-            assertTrue(dictionary.containsValue(value))
+            is DogPrimaryKey -> {
+                // null entries become "invalid object" when calling dictionary.values()
+                if (value.isValid) {
+                    assertTrue(dictionary.containsValue(value))
+                } else {
+                    assertTrue(dictionary.containsValue(null))
+                }
+            }
+            else -> assertTrue(dictionary.containsValue(value))
         }
     }
 }
 
-internal fun <E : Any> assertManagedEntrySet(
+private fun <E : Any> assertManagedEntrySet(
         realm: Realm,
         dictionaryGetter: KFunction1<AllTypes, RealmDictionary<E>>,
         initializedDictionary: RealmDictionary<E>,
@@ -554,10 +562,11 @@ internal fun <E : Any> assertManagedEntrySet(
                 entrySetArray: Array<Map.Entry<String, E?>?>,
                 biggerSize: Boolean = false
         ) {
-            if (!biggerSize) {
-                assertEquals(entrySet.size, entrySetArray.size)
-            } else {
-                assertTrue(entrySetArray.size > entrySet.size)
+            when {
+                biggerSize -> assertTrue(entrySetArray.size > entrySet.size)
+                else -> {
+                    assertEquals(entrySet.size, entrySetArray.size)
+                }
             }
             for ((index, entry) in entrySetArray.withIndex()) {
                 if (index >= entrySet.size) {
@@ -585,38 +594,42 @@ internal fun <E : Any> assertManagedEntrySet(
         testToArray(entrySetBiggerSizeArray, true)
 
         // Test containsAll
-        if (entrySet.first().value is DogPrimaryKey) {
-            val sameRealmModelCollection = initializedDictionary.map { originalEntry ->
-                AbstractMap.SimpleImmutableEntry(originalEntry.key, dictionary[originalEntry.key])
+        when (entrySet.first().value) {
+            is DogPrimaryKey -> {
+                val sameRealmModelCollection = initializedDictionary.map { originalEntry ->
+                    AbstractMap.SimpleImmutableEntry(originalEntry.key, dictionary[originalEntry.key])
+                }
+                assertTrue(entrySet.containsAll(sameRealmModelCollection))
             }
-            assertTrue(entrySet.containsAll(sameRealmModelCollection))
-        } else if (entrySet.first().value is Mixed) {
-            val sameCollection =
-                    initializedDictionary.map { entry ->
-                        // Realm doesn't deliver "pure null" values for Mixed, but rather Mixed.nullValue()
-                        if (entry.value == null) {
-                            AbstractMap.SimpleImmutableEntry(entry.key, Mixed.nullValue())
-                        } else {
+            is Mixed -> {
+                val sameCollection =
+                        dictionary.map { entry: Map.Entry<String, E?> ->
+                            // Realm doesn't deliver "pure null" values for Mixed, but rather Mixed.nullValue()
+                            when (entry.value) {
+                                null -> AbstractMap.SimpleImmutableEntry(entry.key, Mixed.nullValue())
+                                else -> AbstractMap.SimpleImmutableEntry(entry.key, entry.value)
+                            }
+                        }.toSet() as Set<Map.Entry<String, E>>
+                assertTrue(entrySet.containsAll(sameCollection))
+            }
+            else -> {
+                val sameCollection =
+                        initializedDictionary.map { entry ->
                             AbstractMap.SimpleImmutableEntry(entry.key, entry.value)
-                        }
-                    }.toSet() as Set<Map.Entry<String, E>>
-            assertTrue(entrySet.containsAll(sameCollection))
-        } else {
-            val sameCollection =
-                    initializedDictionary.map { entry ->
-                        AbstractMap.SimpleImmutableEntry(entry.key, entry.value)
-                    }.toSet()
-            assertTrue(entrySet.containsAll(sameCollection))
+                        }.toSet()
+                assertTrue(entrySet.containsAll(sameCollection))
+            }
         }
-        val differentCollection =
-                alternativeDictionary.map { entry ->
-                    AbstractMap.SimpleImmutableEntry(entry.key, entry.value)
-                }.toSet()
+
+        val differentCollection = alternativeDictionary.map { entry ->
+            AbstractMap.SimpleImmutableEntry(entry.key, entry.value)
+        }.toSet()
+
         assertFalse(entrySet.containsAll(differentCollection))
     }
 }
 
-internal fun <E : Any> assertCopyToRealm(
+private fun <E : Any> assertCopyToRealm(
         realm: Realm,
         dictionaryGetter: KFunction1<AllTypes, RealmDictionary<E>>,
         dictionarySetter: KFunction2<AllTypes, RealmDictionary<E>, Unit>,
@@ -639,11 +652,11 @@ internal fun <E : Any> assertCopyToRealm(
     val dictionary = dictionaryGetter.call(allTypesObject)
     assertFalse(dictionary.isEmpty())
     initializedDictionary.forEach { key, value ->
-        assertEqualsHelper(value, dictionary[key])
+        assertEqualsHelper(realm, value, dictionary[key])
     }
 }
 
-internal fun <E : Any> assertCopyFromRealm(
+private fun <E : Any> assertCopyFromRealm(
         realm: Realm,
         dictionaryGetter: KFunction1<AllTypes, RealmDictionary<E>>,
         initializedDictionary: RealmDictionary<E>
@@ -662,11 +675,11 @@ internal fun <E : Any> assertCopyFromRealm(
 
     // Compare elements to the original values
     detachedDictionary.forEach { key, value ->
-        assertEqualsHelper(initializedDictionary[key], value)
+        assertEqualsHelper(realm, value, dictionary[key])
     }
 }
 
-internal fun <E : Any> RealmDictionary<E>.init(
+private fun <E : Any> RealmDictionary<E>.init(
         keyValuePairs: List<Pair<String, E?>>
 ): RealmDictionary<E> {
     return this.apply {
@@ -676,7 +689,7 @@ internal fun <E : Any> RealmDictionary<E>.init(
     }
 }
 
-private fun <E> assertEqualsHelper(value: E?, valueFromRealm: E?) {
+private fun <E> assertEqualsHelper(realm: Realm, value: E?, valueFromRealm: E?) {
     when (valueFromRealm) {
         is Array<*> -> {
             val bytes = TypeUtils.convertNonPrimitiveBinaryToPrimitive(value as Array<Byte>)
@@ -685,10 +698,18 @@ private fun <E> assertEqualsHelper(value: E?, valueFromRealm: E?) {
         }
         is ByteArray -> (value as ByteArray).contentEquals(valueFromRealm as ByteArray)
         is DogPrimaryKey -> assertEquals((value as DogPrimaryKey).name, valueFromRealm.name)
-        is Mixed -> if (value == null) {
-            assertTrue(valueFromRealm.isNull)
-        } else {
-            assertEquals(value, valueFromRealm)
+        is Mixed -> when {
+            // If null, check we have "Mixed.nullValue()"
+            value == null -> assertTrue(valueFromRealm.isNull)
+            (value as Mixed).valueClass == DogPrimaryKey::class.java -> {
+                // If RealmModel, check provided Mixed equals a Mixed containing the managed model
+                val managedRealmModel = realm.where<DogPrimaryKey>()
+                        .equalTo("name", (value as Mixed).asRealmModel(DogPrimaryKey::class.java).name)
+                        .findFirst()
+                val mixedWithManagedModel = Mixed.valueOf(managedRealmModel)
+                assertEquals(valueFromRealm, mixedWithManagedModel)
+            }
+            else -> assertEquals(value as E, valueFromRealm)
         }
         else -> assertEquals(value, valueFromRealm)
     }
@@ -701,19 +722,27 @@ private fun <E : Any> assertContainsValue(
         unmanagedDictionary: RealmDictionary<E>,
         managedDictionary: RealmDictionary<E>
 ) {
-    if (value is DogPrimaryKey) {
-        // Use managed model for containsValue: managed dictionaries can only contain managed models
-        val managedRealmModel = realm.where<DogPrimaryKey>()
-                .equalTo("name", value.name)
-                .findFirst()
-        assertTrue(managedDictionary.containsValue(managedRealmModel as E))
-    } else if (value is Mixed) {
-        if (value.isNull) {
-            assertTrue(managedDictionary.containsValue(Mixed.nullValue() as E))
-        } else {
-            assertTrue(managedDictionary.containsValue(unmanagedDictionary[key]))
+    when (value) {
+        is DogPrimaryKey -> {
+            // Use managed model for containsValue: managed dictionaries can only contain managed models
+            val managedRealmModel = realm.where<DogPrimaryKey>()
+                    .equalTo("name", value.name)
+                    .findFirst()
+            assertTrue(managedDictionary.containsValue(managedRealmModel as E))
         }
-    } else {
-        assertTrue(managedDictionary.containsValue(unmanagedDictionary[key]))
+        is Mixed -> when {
+            // If null, check we have "Mixed.nullValue()"
+            value.isNull -> assertTrue(managedDictionary.containsValue(Mixed.nullValue() as E))
+            value.valueClass == DogPrimaryKey::class.java -> {
+                // If RealmModel, check dictionary contains a Mixed containing the managed model
+                val managedRealmDog = realm.where<DogPrimaryKey>()
+                        .equalTo("name", value.asRealmModel(DogPrimaryKey::class.java).name)
+                        .findFirst()
+                val mixedWithManagedDog = Mixed.valueOf(managedRealmDog)
+                assertTrue(managedDictionary.containsValue(mixedWithManagedDog as E))
+            }
+            else -> assertTrue(managedDictionary.containsValue(unmanagedDictionary[key]))
+        }
+        else -> assertTrue(managedDictionary.containsValue(unmanagedDictionary[key]))
     }
 }
