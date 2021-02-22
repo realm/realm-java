@@ -142,188 +142,212 @@ public class TableQuery implements NativeObject {
 
     // Queries for integer values.
 
-    public void predicate(String fieldName, long value) {
-        long position = nativeAddIntegerArgument(nativeArgumentList, value);
+    private long addLongArgument(@Nullable Number value){
+        return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddIntegerArgument(nativeArgumentList, value.longValue());
+    }
+
+    public void equalTo(String fieldName, @Nullable Number value) {
+        long position = addLongArgument(value);
         queryBuilder.appendEqualTo(fieldName, position);
     }
 
-    public void notEqualTo(String fieldName, long value) {
-        long position = nativeAddIntegerArgument(nativeArgumentList, value);
+    public void notEqualTo(String fieldName, @Nullable Number value) {
+        long position = addLongArgument(value);
         queryBuilder.appendNotEqualTo(fieldName, position);
     }
 
-    public void greaterThan(String fieldName, long value) {
-        long position = nativeAddIntegerArgument(nativeArgumentList, value);
+    public void greaterThan(String fieldName, @Nullable Number value) {
+        long position = addLongArgument(value);
         queryBuilder.appendGreaterThan(fieldName, position);
     }
 
-    public void greaterThanOrEqual(String fieldName, long value) {
-        long position = nativeAddIntegerArgument(nativeArgumentList, value);
+    public void greaterThanOrEqual(String fieldName, @Nullable Number value) {
+        long position = addLongArgument(value);
         queryBuilder.appendGreaterThanEquals(fieldName, position);
     }
 
-    public void lessThan(String fieldName, long value) {
-        long position = nativeAddIntegerArgument(nativeArgumentList, value);
+    public void lessThan(String fieldName, @Nullable Number value) {
+        long position = addLongArgument(value);
         queryBuilder.appendLessThan(fieldName, position);
     }
 
-    public void lessThanOrEqual(String fieldName, long value) {
-        long position = nativeAddIntegerArgument(nativeArgumentList, value);
+    public void lessThanOrEqual(String fieldName, @Nullable Number value) {
+        long position = addLongArgument(value);
         queryBuilder.appendLessThanEquals(fieldName, position);
     }
 
-    public void between(String fieldName, long value1, long value2) {
-        long position1 = nativeAddIntegerArgument(nativeArgumentList, value1);
-        long position2 = nativeAddIntegerArgument(nativeArgumentList, value2);
+    public void between(String fieldName, @Nullable Number value1, @Nullable Number value2) {
+        long position1 = addLongArgument(value1);
+        long position2 = addLongArgument(value2);
 
         queryBuilder.appendBetween(fieldName, position1, position2);
     }
 
     // Queries for float values.
 
-    public void equalTo(String fieldName, float value) {
-        long position = nativeAddFloatArgument(nativeArgumentList, value);
+    private long addFloatArgument(@Nullable Float value){
+        return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddFloatArgument(nativeArgumentList, value);
+    }
+
+    public void equalTo(String fieldName, @Nullable Float value) {
+        long position = addFloatArgument(value);
         queryBuilder.appendEqualTo(fieldName, position);
     }
 
-    public void notEqualTo(String fieldName, float value) {
-        long position = nativeAddFloatArgument(nativeArgumentList, value);
+    public void notEqualTo(String fieldName, @Nullable Float value) {
+        long position = addFloatArgument(value);
         queryBuilder.appendNotEqualTo(fieldName, position);
     }
 
-    public void greaterThan(String fieldName, float value) {
-        long position = nativeAddFloatArgument(nativeArgumentList, value);
+    public void greaterThan(String fieldName, @Nullable Float value) {
+        long position = addFloatArgument(value);
         queryBuilder.appendGreaterThan(fieldName, position);
     }
 
-    public void greaterThanOrEqual(String fieldName, float value) {
-        long position = nativeAddFloatArgument(nativeArgumentList, value);
+    public void greaterThanOrEqual(String fieldName, @Nullable Float value) {
+        long position = addFloatArgument(value);
         queryBuilder.appendGreaterThanEquals(fieldName, position);
     }
 
-    public void lessThan(String fieldName, float value) {
-        long position = nativeAddFloatArgument(nativeArgumentList, value);
+    public void lessThan(String fieldName, @Nullable Float value) {
+        long position = addFloatArgument(value);
         queryBuilder.appendLessThan(fieldName, position);
     }
 
-    public void lessThanOrEqual(String fieldName, float value) {
-        long position = nativeAddFloatArgument(nativeArgumentList, value);
+    public void lessThanOrEqual(String fieldName, @Nullable Float value) {
+        long position = addFloatArgument(value);
         queryBuilder.appendLessThanEquals(fieldName, position);
     }
 
-    public void between(String fieldName, float value1, float value2) {
-        long position1 = nativeAddFloatArgument(nativeArgumentList, value1);
-        long position2 = nativeAddFloatArgument(nativeArgumentList, value2);
+    public void between(String fieldName, @Nullable Float value1, @Nullable Float value2) {
+        long position1 = addFloatArgument(value1);
+        long position2 = addFloatArgument(value2);
         queryBuilder.appendBetween(fieldName, position1, position2);
     }
 
     // Queries for double values.
 
-    public void equalTo(String fieldName, double value) {
-        long position = nativeAddDoubleArgument(nativeArgumentList, value);
+    private long addDoubleArgument(@Nullable Double value){
+        return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddDoubleArgument(nativeArgumentList, value);
+    }
+
+    public void equalTo(String fieldName, @Nullable  Double value) {
+        long position = addDoubleArgument(value);
         queryBuilder.appendEqualTo(fieldName, position);
     }
 
-    public void notEqualTo(String fieldName, double value) {
-        long position = nativeAddDoubleArgument(nativeArgumentList, value);
+    public void notEqualTo(String fieldName, @Nullable  Double value) {
+        long position = addDoubleArgument(value);
         queryBuilder.appendNotEqualTo(fieldName, position);
     }
 
-    public void greaterThan(String fieldName, double value) {
-        long position = nativeAddDoubleArgument(nativeArgumentList, value);
+    public void greaterThan(String fieldName, @Nullable  Double value) {
+        long position = addDoubleArgument(value);
         queryBuilder.appendGreaterThan(fieldName, position);
     }
 
-    public void greaterThanOrEqual(String fieldName, double value) {
-        long position = nativeAddDoubleArgument(nativeArgumentList, value);
+    public void greaterThanOrEqual(String fieldName, @Nullable  Double value) {
+        long position = addDoubleArgument(value);
         queryBuilder.appendGreaterThanEquals(fieldName, position);
     }
 
-    public void lessThan(String fieldName, double value) {
-        long position = nativeAddDoubleArgument(nativeArgumentList, value);
+    public void lessThan(String fieldName, @Nullable  Double value) {
+        long position = addDoubleArgument(value);
         queryBuilder.appendLessThan(fieldName, position);
     }
 
-    public void lessThanOrEqual(String fieldName, double value) {
-        long position = nativeAddDoubleArgument(nativeArgumentList, value);
+    public void lessThanOrEqual(String fieldName, @Nullable  Double value) {
+        long position = addDoubleArgument(value);
         queryBuilder.appendLessThanEquals(fieldName, position);
     }
 
-    public void between(String fieldName, double value1, double value2) {
-        long position1 = nativeAddDoubleArgument(nativeArgumentList, value1);
-        long position2 = nativeAddDoubleArgument(nativeArgumentList, value2);
+    public void between(String fieldName, @Nullable  Double value1, @Nullable  Double value2) {
+        long position1 = addDoubleArgument(value1);
+        long position2 = addDoubleArgument(value2);
 
         queryBuilder.appendBetween(fieldName, position1, position2);
     }
 
     // Query for boolean values.
 
-    public void equalTo(String fieldName, boolean value) {
-        long position = nativeAddBooleanArgument(nativeArgumentList, value);
+    private long addBooleanArgument(@Nullable Boolean value){
+        return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddBooleanArgument(nativeArgumentList, value);
+    }
+
+    public void equalTo(String fieldName, @Nullable Boolean value) {
+        long position = addBooleanArgument(value);
+        queryBuilder.appendEqualTo(fieldName, position);
+    }
+
+    public void notEqualTo(String fieldName, @Nullable Boolean value) {
+        long position = addBooleanArgument(value);
         queryBuilder.appendEqualTo(fieldName, position);
     }
 
     // Queries for Date values.
 
-    private static final String DATE_NULL_ERROR_MESSAGE = "Date value in query criteria must not be null.";
+    private long addDateArgument(@Nullable Date value){
+        return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddDateArgument(nativeArgumentList, value.getTime());
+    }
 
     public void equalTo(String fieldName, @Nullable Date value) {
-        long position = nativeAddDateArgument(nativeArgumentList, value.getTime());
+        long position = addDateArgument(value);
         queryBuilder.appendEqualTo(fieldName, position);
     }
 
     public void notEqualTo(String fieldName, Date value) {
-        long position = nativeAddDateArgument(nativeArgumentList, value.getTime());
+        long position = addDateArgument(value);
         queryBuilder.appendNotEqualTo(fieldName, position);
     }
 
     public void greaterThan(String fieldName, Date value) {
-        long position = nativeAddDateArgument(nativeArgumentList, value.getTime());
+        long position = addDateArgument(value);
         queryBuilder.appendGreaterThan(fieldName, position);
     }
 
     public void greaterThanOrEqual(String fieldName, Date value) {
-        long position = nativeAddDateArgument(nativeArgumentList, value.getTime());
+        long position = addDateArgument(value);
         queryBuilder.appendGreaterThanEquals(fieldName, position);
     }
 
     public void lessThan(String fieldName, Date value) {
-        long position = nativeAddDateArgument(nativeArgumentList, value.getTime());
+        long position = addDateArgument(value);
         queryBuilder.appendLessThan(fieldName, position);
     }
 
     public void lessThanOrEqual(String fieldName, Date value) {
-        long position = nativeAddDateArgument(nativeArgumentList, value.getTime());
+        long position = addDateArgument(value);
         queryBuilder.appendLessThanEquals(fieldName, position);
     }
 
     public void between(String fieldName, Date value1, Date value2) {
-        long position1 = nativeAddDateArgument(nativeArgumentList, value1.getTime());
-        long position2 = nativeAddDateArgument(nativeArgumentList, value2.getTime());
-        queryBuilder.appendBetween(fieldName, position1, position2);
-    }
-
-    public void between(String fieldName, Decimal128 value1, Decimal128 value2) {
-        long position1 = nativeAddDecimal128Argument(nativeArgumentList, value1.getLow(), value1.getHigh());
-        long position2 = nativeAddDecimal128Argument(nativeArgumentList, value2.getLow(), value2.getHigh());
+        long position1 = addDateArgument(value1);
+        long position2 = addDateArgument(value2);
         queryBuilder.appendBetween(fieldName, position1, position2);
     }
 
     // Queries for Binary values.
 
-    public void equalTo(String fieldName, byte[] value) {
-        long position = nativeAddByteArrayArgument(nativeArgumentList, value);
+    private long addByteArrayArgument(@Nullable byte[] value){
+        return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddByteArrayArgument(nativeArgumentList, value);
+    }
+
+    public void equalTo(String fieldName, @Nullable byte[] value) {
+        long position = addByteArrayArgument(value);
         queryBuilder.appendEqualTo(fieldName, position);
     }
 
-    public void notEqualTo(String fieldName, byte[] value) {
-        long position = nativeAddByteArrayArgument(nativeArgumentList, value);
+    public void notEqualTo(String fieldName, @Nullable byte[] value) {
+        long position = addByteArrayArgument(value);
         queryBuilder.appendNotEqualTo(fieldName, position);
     }
 
-    // Equals
+    private long addStringArgument(@Nullable String value){
+        return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddStringArgument(nativeArgumentList, value);
+    }
+
     public void equalTo(String fieldName, @Nullable String value, Case caseSensitive) {
-        long position = nativeAddStringArgument(nativeArgumentList, value);
+        long position = addStringArgument(value);
 
         if (caseSensitive == Case.SENSITIVE) {
             queryBuilder.appendEqualTo(fieldName, position);
@@ -338,7 +362,7 @@ public class TableQuery implements NativeObject {
 
     // Not Equals
     public void notEqualTo(String fieldName, @Nullable String value, Case caseSensitive) {
-        long position = nativeAddStringArgument(nativeArgumentList, value);
+        long position = addStringArgument(value);
 
         if (caseSensitive == Case.SENSITIVE) {
             queryBuilder.appendNotEqualTo(fieldName, position);
@@ -348,7 +372,7 @@ public class TableQuery implements NativeObject {
     }
 
     public void beginsWith(String fieldName, String value, Case caseSensitive) {
-        long position = nativeAddStringArgument(nativeArgumentList, value);
+        long position = addStringArgument(value);
 
         if (caseSensitive == Case.SENSITIVE) {
             queryBuilder.appendBeginsWith(fieldName, position);
@@ -358,7 +382,7 @@ public class TableQuery implements NativeObject {
     }
 
     public void endsWith(String fieldName, String value, Case caseSensitive) {
-        long position = nativeAddStringArgument(nativeArgumentList, value);
+        long position = addStringArgument(value);
 
         if (caseSensitive == Case.SENSITIVE) {
             queryBuilder.appendEndsWith(fieldName, position);
@@ -372,7 +396,7 @@ public class TableQuery implements NativeObject {
     }
 
     public void like(String fieldName, String value, Case caseSensitive) {
-        long position = nativeAddStringArgument(nativeArgumentList, value);
+        long position = addStringArgument(value);
 
         if (caseSensitive == Case.SENSITIVE) {
             queryBuilder.appendLike(fieldName, position);
@@ -382,7 +406,7 @@ public class TableQuery implements NativeObject {
     }
 
     public void contains(String fieldName, String value, Case caseSensitive) {
-        long position = nativeAddStringArgument(nativeArgumentList, value);
+        long position = addStringArgument(value);
 
         if (caseSensitive == Case.SENSITIVE) {
             queryBuilder.appendContains(fieldName, position);
@@ -402,98 +426,116 @@ public class TableQuery implements NativeObject {
 
     // Queries for Decimal128
 
-    public void equalTo(String fieldName, Decimal128 value) {
-        long position = nativeAddDecimal128Argument(nativeArgumentList, value.getLow(), value.getHigh());
+    private long addDecimal128Argument(@Nullable Decimal128 value){
+        return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddDecimal128Argument(nativeArgumentList, value.getLow(), value.getHigh());
+    }
+
+    public void between(String fieldName, @Nullable Decimal128 value1, @Nullable Decimal128 value2) {
+        long position1 = addDecimal128Argument(value1);
+        long position2 = addDecimal128Argument(value2);
+        queryBuilder.appendBetween(fieldName, position1, position2);
+    }
+
+    public void equalTo(String fieldName, @Nullable Decimal128 value) {
+        long position = addDecimal128Argument(value);
         queryBuilder.appendEqualTo(fieldName, position);
     }
 
-    public void notEqualTo(String fieldName, Decimal128 value) {
-        long position = nativeAddDecimal128Argument(nativeArgumentList, value.getLow(), value.getHigh());
+    public void notEqualTo(String fieldName, @Nullable Decimal128 value) {
+        long position = addDecimal128Argument(value);
         queryBuilder.appendNotEqualTo(fieldName, position);
     }
 
-    public void lessThan(String fieldName, Decimal128 value) {
-        long position = nativeAddDecimal128Argument(nativeArgumentList, value.getLow(), value.getHigh());
+    public void lessThan(String fieldName, @Nullable Decimal128 value) {
+        long position = addDecimal128Argument(value);
         queryBuilder.appendLessThan(fieldName, position);
     }
 
-    public void lessThanOrEqual(String fieldName, Decimal128 value) {
-        long position = nativeAddDecimal128Argument(nativeArgumentList, value.getLow(), value.getHigh());
+    public void lessThanOrEqual(String fieldName, @Nullable Decimal128 value) {
+        long position = addDecimal128Argument(value);
         queryBuilder.appendLessThanEquals(fieldName, position);
     }
 
-    public void greaterThan(String fieldName, Decimal128 value) {
-        long position = nativeAddDecimal128Argument(nativeArgumentList, value.getLow(), value.getHigh());
+    public void greaterThan(String fieldName, @Nullable Decimal128 value) {
+        long position = addDecimal128Argument(value);
         queryBuilder.appendGreaterThan(fieldName, position);
     }
 
-    public void greaterThanOrEqual(String fieldName, Decimal128 value) {
-        long position = nativeAddDecimal128Argument(nativeArgumentList, value.getLow(), value.getHigh());
+    public void greaterThanOrEqual(String fieldName, @Nullable Decimal128 value) {
+        long position = addDecimal128Argument(value);
         queryBuilder.appendGreaterThanEquals(fieldName, position);
     }
 
 
     // Queries for ObjectId
 
-    public void equalTo(String fieldName, ObjectId value) {
-        long position = nativeAddObjectIdArgument(nativeArgumentList, value.toString());
+    private long addObjectIdArgument(@Nullable ObjectId value){
+        return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddObjectIdArgument(nativeArgumentList, value.toString());
+    }
+
+    public void equalTo(String fieldName, @Nullable ObjectId value) {
+        long position = addObjectIdArgument(value);
         queryBuilder.appendEqualTo(fieldName, position);
     }
 
-    public void notEqualTo(String fieldName, ObjectId value) {
-        long position = nativeAddObjectIdArgument(nativeArgumentList, value.toString());
+    public void notEqualTo(String fieldName, @Nullable ObjectId value) {
+        long position = addObjectIdArgument(value);
         queryBuilder.appendNotEqualTo(fieldName, position);
     }
 
-    public void lessThan(String fieldName, ObjectId value) {
-        long position = nativeAddObjectIdArgument(nativeArgumentList, value.toString());
+    public void lessThan(String fieldName, @Nullable ObjectId value) {
+        long position = addObjectIdArgument(value);
         queryBuilder.appendLessThan(fieldName, position);
     }
 
-    public void lessThanOrEqual(String fieldName, ObjectId value) {
-        long position = nativeAddObjectIdArgument(nativeArgumentList, value.toString());
+    public void lessThanOrEqual(String fieldName, @Nullable ObjectId value) {
+        long position = addObjectIdArgument(value);
         queryBuilder.appendLessThanEquals(fieldName, position);
     }
 
-    public void greaterThan(String fieldName, ObjectId value) {
-        long position = nativeAddObjectIdArgument(nativeArgumentList, value.toString());
+    public void greaterThan(String fieldName, @Nullable ObjectId value) {
+        long position = addObjectIdArgument(value);
         queryBuilder.appendGreaterThan(fieldName, position);
     }
 
-    public void greaterThanOrEqual(String fieldName, ObjectId value) {
-        long position = nativeAddObjectIdArgument(nativeArgumentList, value.toString());
+    public void greaterThanOrEqual(String fieldName, @Nullable ObjectId value) {
+        long position = addObjectIdArgument(value);
         queryBuilder.appendGreaterThanEquals(fieldName, position);
     }
 
     // Queries for UUID
 
-    public void equalTo(String fieldName, UUID value) {
-        long position = nativeAddUUIDArgument(nativeArgumentList, value.toString());
+    private long addUUIDArgument(@Nullable UUID value){
+        return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddUUIDArgument(nativeArgumentList, value.toString());
+    }
+
+    public void equalTo(String fieldName, @Nullable UUID value) {
+        long position = addUUIDArgument(value);
         queryBuilder.appendEqualTo(fieldName, position);
     }
 
-    public void notEqualTo(String fieldName, UUID value) {
-        long position = nativeAddUUIDArgument(nativeArgumentList, value.toString());
+    public void notEqualTo(String fieldName, @Nullable UUID value) {
+        long position = addUUIDArgument(value);
         queryBuilder.appendNotEqualTo(fieldName, position);
     }
 
-    public void lessThan(String fieldName, UUID value) {
-        long position = nativeAddUUIDArgument(nativeArgumentList, value.toString());
+    public void lessThan(String fieldName, @Nullable UUID value) {
+        long position = addUUIDArgument(value);
         queryBuilder.appendLessThan(fieldName, position);
     }
 
-    public void lessThanOrEqual(String fieldName, UUID value) {
-        long position = nativeAddUUIDArgument(nativeArgumentList, value.toString());
+    public void lessThanOrEqual(String fieldName, @Nullable UUID value) {
+        long position = addUUIDArgument(value);
         queryBuilder.appendLessThanEquals(fieldName, position);
     }
 
-    public void greaterThan(String fieldName, UUID value) {
-        long position = nativeAddUUIDArgument(nativeArgumentList, value.toString());
+    public void greaterThan(String fieldName, @Nullable UUID value) {
+        long position = addUUIDArgument(value);
         queryBuilder.appendGreaterThan(fieldName, position);
     }
 
-    public void greaterThanOrEqual(String fieldName, UUID value) {
-        long position = nativeAddUUIDArgument(nativeArgumentList, value.toString());
+    public void greaterThanOrEqual(String fieldName, @Nullable UUID value) {
+        long position = addUUIDArgument(value);
         queryBuilder.appendGreaterThanEquals(fieldName, position);
     }
 
