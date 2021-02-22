@@ -48,8 +48,7 @@ class ParameterizedDictionaryTests(
         fun testTypes(): List<DictionaryTester> {
             return DictionaryMode.values().map { type ->
                 when (type) {
-                    DictionaryMode.UNMANAGED -> listOf()
-//                    DictionaryMode.UNMANAGED -> unmanagedFactory()
+                    DictionaryMode.UNMANAGED -> unmanagedFactory()
                     DictionaryMode.MANAGED -> managedFactory()
                 }
             }.flatten()
