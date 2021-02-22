@@ -12,7 +12,7 @@
 * Realm Studio 10.0.0 or above is required to open Realms created by this version.
 
 ### Internal
-* Updated to Realm Core commit: b72b5d6897fac5c1029c2a56a87096877fdca766.
+* Updated to Realm Core commit: df57de0101b5b817f8f4158cf45e11985cd640c2.
 * Updated to NDK 22.0.7026061.
 
 
