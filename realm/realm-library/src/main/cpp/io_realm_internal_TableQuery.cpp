@@ -1505,13 +1505,21 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNot(JNIEnv* env, 
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFind(JNIEnv* env, jobject, jlong nativeQueryPtr)
 {
-    Query* pQuery = Q(nativeQueryPtr);
+    Query*pQuery = Q(nativeQueryPtr);
     try {
         auto ordering = pQuery->get_ordering();
-        auto r = ordering ? pQuery->find_all(*ordering).get_key(0) : pQuery->find();
+        ObjKey objKey;
+
+        if (ordering) {
+            auto all = pQuery->find_all(*ordering);
+            objKey = all.size() > 0 ? all.get_key(0) : ObjKey();
+        } else {
+            objKey = pQuery->find();
+        }
+        
         pQuery->set_ordering(std::make_unique<DescriptorOrdering>(*ordering));
 
-        return to_jlong_or_not_found(r);
+        return to_jlong_or_not_found(objKey);
     }
     CATCH_STD()
     return -1;
