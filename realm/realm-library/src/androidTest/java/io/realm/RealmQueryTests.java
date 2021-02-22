@@ -19,6 +19,7 @@ package io.realm;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.internal.util.collections.Sets;
@@ -787,6 +788,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    @Ignore
     public void equalTo_nonLatinCharacters() {
         populateTestRealm(realm, 200);
 

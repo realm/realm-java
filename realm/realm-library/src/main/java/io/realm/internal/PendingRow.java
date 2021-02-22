@@ -43,10 +43,10 @@ public class PendingRow implements Row {
     private WeakReference<FrontEnd> frontEndRef;
     private boolean returnCheckedRow;
 
-    public PendingRow(OsSharedRealm sharedRealm, TableQuery query, DescriptorOrdering queryDescriptors,
+    public PendingRow(OsSharedRealm sharedRealm, TableQuery query,
                       final boolean returnCheckedRow) {
         this.sharedRealm = sharedRealm;
-        pendingOsResults = OsResults.createFromQuery(sharedRealm, query, queryDescriptors);
+        pendingOsResults = OsResults.createFromQuery(sharedRealm, query);
 
         listener = new RealmChangeListener<PendingRow>() {
             @Override

@@ -38,19 +38,9 @@ using namespace realm::_impl;
 static void finalize_table_query(jlong ptr);
 
 
-//-------------------------------------------------------
+typedef std::vector<JavaValue> TableQueryArgumentList;
 
-JNIEXPORT jstring JNICALL Java_io_realm_internal_TableQuery_nativeValidateQuery(JNIEnv* env, jobject,
-                                                                                jlong nativeQueryPtr)
-{
-    try {
-        const std::string str = Q(nativeQueryPtr)->validate();
-        StringData sd(str);
-        return to_jstring(env, sd);
-    }
-    CATCH_STD();
-    return nullptr;
-}
+//-------------------------------------------------------
 
 
 // helper functions
@@ -1517,7 +1507,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFind(JNIEnv* env
 {
     Query* pQuery = Q(nativeQueryPtr);
     try {
-        auto r = pQuery->find();
+        auto ordering = pQuery->get_ordering();
+        auto r = ordering ? pQuery->find_all(*ordering).get_key(0) : pQuery->find();
+        pQuery->set_ordering(std::make_unique<DescriptorOrdering>(*ordering));
+
         return to_jlong_or_not_found(r);
     }
     CATCH_STD()
@@ -2233,8 +2226,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetFinalizerPtr(
     return reinterpret_cast<jlong>(&finalize_table_query);
 }
 
-typedef std::vector<JavaValue> TableQueryArgumentList;
-
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeCreateArgumentList(JNIEnv* env, jclass)
 {
     try {
@@ -2245,10 +2236,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeCreateArgumentLi
     return -1;
 }
 
-static inline void add_argument(jlong data_ptr, JavaValue const& value)
+static inline long add_argument(jlong data_ptr, JavaValue const& value)
 {
     TableQueryArgumentList* data = reinterpret_cast<TableQueryArgumentList*>(data_ptr);
+    long size = data->size();
     (*data).push_back(std::move(value));
+
+    return size;
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeDestroyArgumentList(JNIEnv*, jclass, jlong data_ptr)
@@ -2257,146 +2251,168 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeDestroyArgumentLi
 }
 
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeAddNullArgument
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeAddNullArgument
         (JNIEnv* env, jclass, jlong data_ptr)
 {
     try {
         const JavaValue value = JavaValue();
-        add_argument(data_ptr, value);
+        return add_argument(data_ptr, value);
     }
     CATCH_STD()
+
+    return -1;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeAddStringArgument
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeAddStringArgument
         (JNIEnv* env, jclass, jlong data_ptr, jstring j_value)
 {
     try {
         JStringAccessor value(env, j_value);
         std::string string_value(value);
         const JavaValue wrapped_value(string_value);
-        add_argument(data_ptr, wrapped_value);
+        return add_argument(data_ptr, wrapped_value);
     }
     CATCH_STD()
+
+    return -1;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeAddIntegerArgument
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeAddIntegerArgument
         (JNIEnv* env, jclass, jlong data_ptr, jlong j_value)
 {
     try {
         const JavaValue value(j_value);
-        add_argument(data_ptr, value);
+        return add_argument(data_ptr, value);
     }
     CATCH_STD()
+
+    return -1;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeAddFloatArgument
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeAddFloatArgument
         (JNIEnv* env, jclass, jlong data_ptr, jfloat j_value)
 {
     try {
         const JavaValue value(j_value);
-        add_argument(data_ptr, value);
+        return add_argument(data_ptr, value);
     }
     CATCH_STD()
+
+    return -1;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeAddDoubleArgument
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeAddDoubleArgument
         (JNIEnv* env, jclass, jlong data_ptr, jdouble j_value)
 {
     try {
         const JavaValue value(j_value);
-        add_argument(data_ptr, value);
+        return add_argument(data_ptr, value);
     }
     CATCH_STD()
+
+    return -1;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeAddBooleanArgument
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeAddBooleanArgument
         (JNIEnv* env, jclass, jlong data_ptr, jboolean j_value)
 {
     try {
         const JavaValue value(j_value);
-        add_argument(data_ptr, value);
+        return add_argument(data_ptr, value);
     }
     CATCH_STD()
+
+    return -1;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeAddByteArrayArgument
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeAddByteArrayArgument
         (JNIEnv* env, jclass, jlong data_ptr, jbyteArray j_value)
 {
     try {
         auto data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
         const JavaValue value(data);
-        add_argument(data_ptr, value);
+        return add_argument(data_ptr, value);
     }
     CATCH_STD()
+
+    return -1;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeAddDateArgument
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeAddDateArgument
         (JNIEnv* env, jclass, jlong data_ptr, jlong j_value)
 {
     try {
         const JavaValue value(from_milliseconds(j_value));
-        add_argument(data_ptr, value);
+        return add_argument(data_ptr, value);
     }
     CATCH_STD()
+
+    return -1;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeAddDecimal128Argument
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeAddDecimal128Argument
         (JNIEnv* env, jclass, jlong data_ptr, jlong j_low_value, jlong j_high_value)
 {
     try {
         Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
         Decimal128 decimal128 = Decimal128(raw);
         const JavaValue value(decimal128);
-        add_argument(data_ptr, value);
+        return add_argument(data_ptr, value);
     }
     CATCH_STD()
+
+    return -1;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeAddObjectIdArgument
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeAddObjectIdArgument
         (JNIEnv* env, jclass, jlong data_ptr, jstring j_data)
 {
     try {
         JStringAccessor data(env, j_data);
         ObjectId objectId = ObjectId(StringData(data).data());
         const JavaValue value(objectId);
-        add_argument(data_ptr, value);
+        return add_argument(data_ptr, value);
     }
     CATCH_STD()
+
+    return -1;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeAddUUIDArgument
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeAddUUIDArgument
         (JNIEnv* env, jclass, jlong data_ptr, jstring j_data)
 {
     try {
         JStringAccessor data(env, j_data);
         UUID uuid = UUID(StringData(data).data());
         const JavaValue value(uuid);
-        add_argument(data_ptr, value);
+        return add_argument(data_ptr, value);
     }
     CATCH_STD()
+
+    return -1;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeAddObjectArgument
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeAddObjectArgument
         (JNIEnv* env, jclass, jlong data_ptr, jlong row_ptr)
 {
     try {
         const JavaValue value(reinterpret_cast<Obj*>(row_ptr));
-        add_argument(data_ptr, value);
+        return add_argument(data_ptr, value);
     }
     CATCH_STD()
+
+    return -1;
 }
 
 JNIEXPORT void JNICALL
 Java_io_realm_internal_TableQuery_nativeRawPredicate(JNIEnv *env,
-                                                     jobject,
+                                                     jclass,
                                                      jlong j_query_ptr,
                                                      jstring j_filter,
-                                                     jlong j_mapping_ptr,
-                                                     jlong j_descriptor_ptr,
-                                                     jlong j_args) {
+                                                     jlong j_args,
+                                                     jlong j_mapping_ptr) {
     try {
         auto query = reinterpret_cast<Query *>(j_query_ptr);
-        auto descriptor = reinterpret_cast<DescriptorOrdering *>(j_descriptor_ptr);
 
         query_parser::KeyPathMapping mapping;
         if (j_mapping_ptr) {
@@ -2415,8 +2431,13 @@ Java_io_realm_internal_TableQuery_nativeRawPredicate(JNIEnv *env,
         Query predicate = query->get_table()->query(filter, args, mapping);
         query->and_query(predicate);
         if (auto parsed_ordering = predicate.get_ordering()) {
-            descriptor->append(*parsed_ordering);
+            auto ordering = query->get_ordering();
+            ordering->append(*parsed_ordering);
+
+            query->set_ordering(std::make_unique<DescriptorOrdering>(*ordering));
         }
+
+        query->validate();
     }
     CATCH_STD()
 }

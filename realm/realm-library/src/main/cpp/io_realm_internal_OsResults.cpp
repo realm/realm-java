@@ -42,18 +42,21 @@ static void finalize_results(jlong ptr)
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResults(JNIEnv* env, jclass,
                                                                              jlong shared_realm_ptr,
-                                                                             jlong query_ptr,
-                                                                             jlong descriptor_ordering_ptr)
+                                                                             jlong query_ptr)
 {
     try {
-        auto query = reinterpret_cast<Query*>(query_ptr);
-        if (!TABLE_VALID(env, query->get_table())) {
+        auto& query = *reinterpret_cast<Query*>(query_ptr);
+        if (!TABLE_VALID(env, query.get_table())) {
             return reinterpret_cast<jlong>(nullptr);
         }
 
+        auto ordering = query.get_ordering();
+
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        auto descriptor_ordering = *(reinterpret_cast<DescriptorOrdering*>(descriptor_ordering_ptr));
-        Results results(shared_realm, *query, descriptor_ordering);
+        Results results(shared_realm, query, *ordering);
+
+        query.set_ordering(std::make_unique<DescriptorOrdering>(*ordering));
+
         auto wrapper = new ResultsWrapper(results);
 
         return reinterpret_cast<jlong>(wrapper);
@@ -254,8 +257,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeWhere(JNIEnv* env
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
 
         auto table_view = wrapper->collection().get_tableview();
-        Query* query =
-            new Query(table_view.get_parent(), std::unique_ptr<ConstTableView>(new TableView(std::move(table_view))));
+        Query* query = new Query(table_view.get_parent(), std::unique_ptr<ConstTableView>(new TableView(std::move(table_view))));
+        query->set_ordering(std::make_unique<DescriptorOrdering>());
         return reinterpret_cast<jlong>(query);
     }
     CATCH_STD()

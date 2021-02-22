@@ -26,7 +26,6 @@ import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsResults;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
-import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.fields.FieldDescriptor;
 
 /**
@@ -302,7 +301,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         if (function != null) {
             // Users might delete object being transformed or accidentally delete other objects
             // in the same table. E.g. cascading deletes if it is referenced by an object being deleted.
-            OsResults result = OsResults.createFromQuery(realm.sharedRealm, table.where(), new DescriptorOrdering()).createSnapshot();
+            OsResults result = OsResults.createFromQuery(realm.sharedRealm, table.where()).createSnapshot();
             long original_size = result.size();
             if (original_size > Integer.MAX_VALUE) {
                 throw new UnsupportedOperationException("Too many results to iterate: " + original_size);

@@ -24,15 +24,16 @@
 
 using namespace realm;
 
-JNIEXPORT jstring JNICALL Java_io_realm_RealmQuery_nativeSerializeQuery(JNIEnv* env, jclass, jlong table_query_ptr, jlong descriptor_ptr)
+JNIEXPORT jstring JNICALL Java_io_realm_RealmQuery_nativeSerializeQuery(JNIEnv* env, jclass, jlong table_query_ptr)
 {
     try {
         auto query = reinterpret_cast<Query*>(table_query_ptr);
-        auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
         std::string serialized_query = query->get_description();
-
-
+        auto descriptor = query->get_ordering();
         std::string serialized_descriptor = descriptor->get_description(query->get_table());
+
+        query->set_ordering(std::make_unique<DescriptorOrdering>(*descriptor));
+
         if (serialized_descriptor.empty()) {
             return to_jstring(env, serialized_query);
         } else {

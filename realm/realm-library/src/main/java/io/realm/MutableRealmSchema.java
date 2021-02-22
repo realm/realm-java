@@ -40,7 +40,7 @@ class MutableRealmSchema extends RealmSchema {
 
         String internalClassName = Table.getTableNameForClass(className);
         if (!realm.getSharedRealm().hasTable(internalClassName)) { return null; }
-        Table table = realm.getSharedRealm().getTable(internalClassName);
+        Table table = realm.getSharedRealm().getTable(internalClassName, getKeyPathMapping());
         return new MutableRealmObjectSchema(realm, this, table);
     }
 

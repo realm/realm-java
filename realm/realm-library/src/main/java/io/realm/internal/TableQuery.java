@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import android.util.Log;
+
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
@@ -27,12 +29,14 @@ import javax.annotation.Nullable;
 import io.realm.Case;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
-import io.realm.internal.core.DescriptorOrdering;
+import io.realm.Sort;
 import io.realm.internal.objectstore.OsKeyPathMapping;
 import io.realm.log.RealmLog;
 
 
 public class TableQuery implements NativeObject {
+    private final long nativeArgumentList;
+
     private static final boolean DEBUG = false;
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
@@ -42,22 +46,34 @@ public class TableQuery implements NativeObject {
     private final NativeContext context;
 
     private final Table table;
-    private final long nativePtr;
+    private long nativePtr;
 
-    // All actions (find(), findAll(), sum(), etc.) must call validateQuery() before performing
-    // the actual action. The other methods must set queryValidated to false in order to enforce
-    // the first action to validate the syntax of the query.
-    private boolean queryValidated = true;
+    private QueryBuilder queryBuilder = new QueryBuilder();
+
+    private @Nullable
+    OsKeyPathMapping mapping;
 
     // TODO: Can we protect this?
-    public TableQuery(NativeContext context, Table table, long nativeQueryPtr) {
+    public TableQuery(NativeContext context,
+            Table table,
+            long nativeQueryPtr,
+            @Nullable OsKeyPathMapping mapping) {
         if (DEBUG) {
             RealmLog.debug("New TableQuery: ptr=%x", nativeQueryPtr);
         }
         this.context = context;
         this.table = table;
+        this.mapping = mapping;
         this.nativePtr = nativeQueryPtr;
+        this.nativeArgumentList = nativeCreateArgumentList();
+
         context.addReference(this);
+    }
+
+    public TableQuery(NativeContext context,
+            Table table,
+            long nativeQueryPtr) {
+        this(context, table, nativeQueryPtr, null);
     }
 
     @Override
@@ -78,467 +94,405 @@ public class TableQuery implements NativeObject {
      * Checks in core if query syntax is valid. Throws exception, if not.
      */
     void validateQuery() {
-        if (!queryValidated) { // If not yet validated, checks if syntax is valid
-            String invalidMessage = nativeValidateQuery(nativePtr);
-            if (invalidMessage.equals("")) {
-                queryValidated = true; // If empty string error message, query is valid
-            } else { throw new UnsupportedOperationException(invalidMessage); }
+        if (!queryBuilder.isValidated()) {
+            String predicate = queryBuilder.build();
+            queryBuilder = new QueryBuilder();
+
+            // Realm.log
+            Log.d("PREDICATE", predicate);
+
+            nativeRawPredicate(nativePtr,
+                    predicate,
+                    nativeArgumentList,
+                    (mapping != null) ? mapping.getNativePtr() : 0);
         }
     }
 
     // Grouping
 
-    public TableQuery group() {
-        nativeGroup(nativePtr);
-        queryValidated = false;
-        return this;
+    public void group() {
+        queryBuilder.beingGroup();
     }
 
-    public TableQuery endGroup() {
-        nativeEndGroup(nativePtr);
-        queryValidated = false;
-        return this;
+    public void endGroup() {
+        queryBuilder.endGroup();
     }
 
-    public TableQuery or() {
-        nativeOr(nativePtr);
-        queryValidated = false;
-        return this;
+    public void or() {
+        queryBuilder.or();
     }
 
-    public TableQuery not() {
-        nativeNot(nativePtr);
-        queryValidated = false;
-        return this;
+    public void not() {
+        queryBuilder.not();
+    }
+
+    public void sort(String[] fieldNames, Sort[] sortOrders) {
+        queryBuilder.sort(fieldNames, sortOrders);
+    }
+
+    public void distinct(String[] fieldNames) {
+        queryBuilder.distinct(fieldNames);
+    }
+
+    public void limit(long limit) {
+        queryBuilder.limit(limit);
     }
 
     // Queries for integer values.
 
-    public TableQuery equalTo(long[] columnKeys, long[] tablePtrs, long value) {
-        nativeEqual(nativePtr, columnKeys, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void predicate(String fieldName, long value) {
+        long position = nativeAddIntegerArgument(nativeArgumentList, value);
+        queryBuilder.appendEqualTo(fieldName, position);
     }
 
-    public TableQuery notEqualTo(long[] columnKey, long[] tablePtrs, long value) {
-        nativeNotEqual(nativePtr, columnKey, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void notEqualTo(String fieldName, long value) {
+        long position = nativeAddIntegerArgument(nativeArgumentList, value);
+        queryBuilder.appendNotEqualTo(fieldName, position);
     }
 
-    public TableQuery greaterThan(long[] columnKey, long[] tablePtrs, long value) {
-        nativeGreater(nativePtr, columnKey, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void greaterThan(String fieldName, long value) {
+        long position = nativeAddIntegerArgument(nativeArgumentList, value);
+        queryBuilder.appendGreaterThan(fieldName, position);
     }
 
-    public TableQuery greaterThanOrEqual(long[] columnKey, long[] tablePtrs, long value) {
-        nativeGreaterEqual(nativePtr, columnKey, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void greaterThanOrEqual(String fieldName, long value) {
+        long position = nativeAddIntegerArgument(nativeArgumentList, value);
+        queryBuilder.appendGreaterThanEquals(fieldName, position);
     }
 
-    public TableQuery lessThan(long[] columnKey, long[] tablePtrs, long value) {
-        nativeLess(nativePtr, columnKey, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void lessThan(String fieldName, long value) {
+        long position = nativeAddIntegerArgument(nativeArgumentList, value);
+        queryBuilder.appendLessThan(fieldName, position);
     }
 
-    public TableQuery lessThanOrEqual(long[] columnKey, long[] tablePtrs, long value) {
-        nativeLessEqual(nativePtr, columnKey, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void lessThanOrEqual(String fieldName, long value) {
+        long position = nativeAddIntegerArgument(nativeArgumentList, value);
+        queryBuilder.appendLessThanEquals(fieldName, position);
     }
 
-    public TableQuery between(long[] columnKey, long value1, long value2) {
-        nativeBetween(nativePtr, columnKey, value1, value2);
-        queryValidated = false;
-        return this;
+    public void between(String fieldName, long value1, long value2) {
+        long position1 = nativeAddIntegerArgument(nativeArgumentList, value1);
+        long position2 = nativeAddIntegerArgument(nativeArgumentList, value2);
+
+        queryBuilder.appendBetween(fieldName, position1, position2);
     }
 
     // Queries for float values.
 
-    public TableQuery equalTo(long[] columnKey, long[] tablePtrs, float value) {
-        nativeEqual(nativePtr, columnKey, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void equalTo(String fieldName, float value) {
+        long position = nativeAddFloatArgument(nativeArgumentList, value);
+        queryBuilder.appendEqualTo(fieldName, position);
     }
 
-    public TableQuery notEqualTo(long[] columnKey, long[] tablePtrs, float value) {
-        nativeNotEqual(nativePtr, columnKey, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void notEqualTo(String fieldName, float value) {
+        long position = nativeAddFloatArgument(nativeArgumentList, value);
+        queryBuilder.appendNotEqualTo(fieldName, position);
     }
 
-    public TableQuery greaterThan(long[] columnKey, long[] tablePtrs, float value) {
-        nativeGreater(nativePtr, columnKey, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void greaterThan(String fieldName, float value) {
+        long position = nativeAddFloatArgument(nativeArgumentList, value);
+        queryBuilder.appendGreaterThan(fieldName, position);
     }
 
-    public TableQuery greaterThanOrEqual(long[] columnKey, long[] tablePtrs, float value) {
-        nativeGreaterEqual(nativePtr, columnKey, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void greaterThanOrEqual(String fieldName, float value) {
+        long position = nativeAddFloatArgument(nativeArgumentList, value);
+        queryBuilder.appendGreaterThanEquals(fieldName, position);
     }
 
-    public TableQuery lessThan(long[] columnKey, long[] tablePtrs, float value) {
-        nativeLess(nativePtr, columnKey, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void lessThan(String fieldName, float value) {
+        long position = nativeAddFloatArgument(nativeArgumentList, value);
+        queryBuilder.appendLessThan(fieldName, position);
     }
 
-    public TableQuery lessThanOrEqual(long[] columnKey, long[] tablePtrs, float value) {
-        nativeLessEqual(nativePtr, columnKey, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void lessThanOrEqual(String fieldName, float value) {
+        long position = nativeAddFloatArgument(nativeArgumentList, value);
+        queryBuilder.appendLessThanEquals(fieldName, position);
     }
 
-    public TableQuery between(long[] columnKey, float value1, float value2) {
-        nativeBetween(nativePtr, columnKey, value1, value2);
-        queryValidated = false;
-        return this;
+    public void between(String fieldName, float value1, float value2) {
+        long position1 = nativeAddFloatArgument(nativeArgumentList, value1);
+        long position2 = nativeAddFloatArgument(nativeArgumentList, value2);
+        queryBuilder.appendBetween(fieldName, position1, position2);
     }
 
     // Queries for double values.
 
-    public TableQuery equalTo(long[] columnKey, long[] tablePtrs, double value) {
-        nativeEqual(nativePtr, columnKey, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void equalTo(String fieldName, double value) {
+        long position = nativeAddDoubleArgument(nativeArgumentList, value);
+        queryBuilder.appendEqualTo(fieldName, position);
     }
 
-    public TableQuery notEqualTo(long[] columnKey, long[] tablePtrs, double value) {
-        nativeNotEqual(nativePtr, columnKey, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void notEqualTo(String fieldName, double value) {
+        long position = nativeAddDoubleArgument(nativeArgumentList, value);
+        queryBuilder.appendNotEqualTo(fieldName, position);
     }
 
-    public TableQuery greaterThan(long[] columnKey, long[] tablePtrs, double value) {
-        nativeGreater(nativePtr, columnKey, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void greaterThan(String fieldName, double value) {
+        long position = nativeAddDoubleArgument(nativeArgumentList, value);
+        queryBuilder.appendGreaterThan(fieldName, position);
     }
 
-    public TableQuery greaterThanOrEqual(long[] columnKey, long[] tablePtrs, double value) {
-        nativeGreaterEqual(nativePtr, columnKey, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void greaterThanOrEqual(String fieldName, double value) {
+        long position = nativeAddDoubleArgument(nativeArgumentList, value);
+        queryBuilder.appendGreaterThanEquals(fieldName, position);
     }
 
-    public TableQuery lessThan(long[] columnKey, long[] tablePtrs, double value) {
-        nativeLess(nativePtr, columnKey, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void lessThan(String fieldName, double value) {
+        long position = nativeAddDoubleArgument(nativeArgumentList, value);
+        queryBuilder.appendLessThan(fieldName, position);
     }
 
-    public TableQuery lessThanOrEqual(long[] columnKey, long[] tablePtrs, double value) {
-        nativeLessEqual(nativePtr, columnKey, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void lessThanOrEqual(String fieldName, double value) {
+        long position = nativeAddDoubleArgument(nativeArgumentList, value);
+        queryBuilder.appendLessThanEquals(fieldName, position);
     }
 
-    public TableQuery between(long[] columnKey, double value1, double value2) {
-        nativeBetween(nativePtr, columnKey, value1, value2);
-        queryValidated = false;
-        return this;
+    public void between(String fieldName, double value1, double value2) {
+        long position1 = nativeAddDoubleArgument(nativeArgumentList, value1);
+        long position2 = nativeAddDoubleArgument(nativeArgumentList, value2);
+
+        queryBuilder.appendBetween(fieldName, position1, position2);
     }
 
     // Query for boolean values.
 
-    public TableQuery equalTo(long[] columnKey, long[] tablePtrs, boolean value) {
-        nativeEqual(nativePtr, columnKey, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void equalTo(String fieldName, boolean value) {
+        long position = nativeAddBooleanArgument(nativeArgumentList, value);
+        queryBuilder.appendEqualTo(fieldName, position);
     }
 
     // Queries for Date values.
 
     private static final String DATE_NULL_ERROR_MESSAGE = "Date value in query criteria must not be null.";
 
-    public TableQuery equalTo(long[] columnKey, long[] tablePtrs, @Nullable Date value) {
-        if (value == null) {
-            nativeIsNull(nativePtr, columnKey, tablePtrs);
-        } else {
-            nativeEqualTimestamp(nativePtr, columnKey, tablePtrs, value.getTime());
-        }
-        queryValidated = false;
-        return this;
+    public void equalTo(String fieldName, @Nullable Date value) {
+        long position = nativeAddDateArgument(nativeArgumentList, value.getTime());
+        queryBuilder.appendEqualTo(fieldName, position);
     }
 
-    public TableQuery notEqualTo(long[] columnKey, long[] tablePtrs, Date value) {
-        //noinspection ConstantConditions
-        if (value == null) { throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE); }
-        nativeNotEqualTimestamp(nativePtr, columnKey, tablePtrs, value.getTime());
-        queryValidated = false;
-        return this;
+    public void notEqualTo(String fieldName, Date value) {
+        long position = nativeAddDateArgument(nativeArgumentList, value.getTime());
+        queryBuilder.appendNotEqualTo(fieldName, position);
     }
 
-    public TableQuery greaterThan(long[] columnKey, long[] tablePtrs, Date value) {
-        //noinspection ConstantConditions
-        if (value == null) { throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE); }
-        nativeGreaterTimestamp(nativePtr, columnKey, tablePtrs, value.getTime());
-        queryValidated = false;
-        return this;
+    public void greaterThan(String fieldName, Date value) {
+        long position = nativeAddDateArgument(nativeArgumentList, value.getTime());
+        queryBuilder.appendGreaterThan(fieldName, position);
     }
 
-    public TableQuery greaterThanOrEqual(long[] columnKey, long[] tablePtrs, Date value) {
-        //noinspection ConstantConditions
-        if (value == null) { throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE); }
-        nativeGreaterEqualTimestamp(nativePtr, columnKey, tablePtrs, value.getTime());
-        queryValidated = false;
-        return this;
+    public void greaterThanOrEqual(String fieldName, Date value) {
+        long position = nativeAddDateArgument(nativeArgumentList, value.getTime());
+        queryBuilder.appendGreaterThanEquals(fieldName, position);
     }
 
-    public TableQuery lessThan(long[] columnKey, long[] tablePtrs, Date value) {
-        //noinspection ConstantConditions
-        if (value == null) { throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE); }
-        nativeLessTimestamp(nativePtr, columnKey, tablePtrs, value.getTime());
-        queryValidated = false;
-        return this;
+    public void lessThan(String fieldName, Date value) {
+        long position = nativeAddDateArgument(nativeArgumentList, value.getTime());
+        queryBuilder.appendLessThan(fieldName, position);
     }
 
-    public TableQuery lessThanOrEqual(long[] columnKey, long[] tablePtrs, Date value) {
-        //noinspection ConstantConditions
-        if (value == null) { throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE); }
-        nativeLessEqualTimestamp(nativePtr, columnKey, tablePtrs, value.getTime());
-        queryValidated = false;
-        return this;
+    public void lessThanOrEqual(String fieldName, Date value) {
+        long position = nativeAddDateArgument(nativeArgumentList, value.getTime());
+        queryBuilder.appendLessThanEquals(fieldName, position);
     }
 
-    public TableQuery between(long[] columnKey, Date value1, Date value2) {
-        //noinspection ConstantConditions
-        if (value1 == null || value2 == null) {
-            throw new IllegalArgumentException("Date values in query criteria must not be null."); // Different text
-        }
-        nativeBetweenTimestamp(nativePtr, columnKey, value1.getTime(), value2.getTime());
-        queryValidated = false;
-        return this;
+    public void between(String fieldName, Date value1, Date value2) {
+        long position1 = nativeAddDateArgument(nativeArgumentList, value1.getTime());
+        long position2 = nativeAddDateArgument(nativeArgumentList, value2.getTime());
+        queryBuilder.appendBetween(fieldName, position1, position2);
     }
 
-    public TableQuery between(long[] columnKey, Decimal128 value1, Decimal128 value2) {
-        //noinspection ConstantConditions
-        if (value1 == null || value2 == null) {
-            throw new IllegalArgumentException("Decimal128 values in query criteria must not be null.");
-        }
-        nativeBetweenDecimal128(nativePtr, columnKey, value1.getLow(), value1.getHigh(), value2.getLow(), value2.getHigh());
-        queryValidated = false;
-        return this;
+    public void between(String fieldName, Decimal128 value1, Decimal128 value2) {
+        long position1 = nativeAddDecimal128Argument(nativeArgumentList, value1.getLow(), value1.getHigh());
+        long position2 = nativeAddDecimal128Argument(nativeArgumentList, value2.getLow(), value2.getHigh());
+        queryBuilder.appendBetween(fieldName, position1, position2);
     }
 
     // Queries for Binary values.
 
-    public TableQuery equalTo(long[] columnKeys, long[] tablePtrs, byte[] value) {
-        nativeEqual(nativePtr, columnKeys, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void equalTo(String fieldName, byte[] value) {
+        long position = nativeAddByteArrayArgument(nativeArgumentList, value);
+        queryBuilder.appendEqualTo(fieldName, position);
     }
 
-    public TableQuery notEqualTo(long[] columnKeys, long[] tablePtrs, byte[] value) {
-        nativeNotEqual(nativePtr, columnKeys, tablePtrs, value);
-        queryValidated = false;
-        return this;
+    public void notEqualTo(String fieldName, byte[] value) {
+        long position = nativeAddByteArrayArgument(nativeArgumentList, value);
+        queryBuilder.appendNotEqualTo(fieldName, position);
     }
 
     // Equals
-    public TableQuery equalTo(long[] columnKeys, long[] tablePtrs, @Nullable String value, Case caseSensitive) {
-        nativeEqual(nativePtr, columnKeys, tablePtrs, value, caseSensitive.getValue());
-        queryValidated = false;
-        return this;
+    public void equalTo(String fieldName, @Nullable String value, Case caseSensitive) {
+        long position = nativeAddStringArgument(nativeArgumentList, value);
+
+        if (caseSensitive == Case.SENSITIVE) {
+            queryBuilder.appendEqualTo(fieldName, position);
+        } else {
+            queryBuilder.appendEqualToNotSensitive(fieldName, position);
+        }
     }
 
-    public TableQuery equalTo(long[] columnKeys, long[] tablePtrs, String value) {
-        nativeEqual(nativePtr, columnKeys, tablePtrs, value, true);
-        queryValidated = false;
-        return this;
+    public void equalTo(String fieldName, String value) {
+        equalTo(fieldName, value, Case.SENSITIVE);
     }
 
     // Not Equals
-    public TableQuery notEqualTo(long[] columnIndex, long[] tablePtrs, @Nullable String value, Case caseSensitive) {
-        nativeNotEqual(nativePtr, columnIndex, tablePtrs, value, caseSensitive.getValue());
-        queryValidated = false;
-        return this;
+    public void notEqualTo(String fieldName, @Nullable String value, Case caseSensitive) {
+        long position = nativeAddStringArgument(nativeArgumentList, value);
+
+        if (caseSensitive == Case.SENSITIVE) {
+            queryBuilder.appendNotEqualTo(fieldName, position);
+        } else {
+            queryBuilder.appendNotEqualToNotSensitive(fieldName, position);
+        }
     }
 
-    public TableQuery notEqualTo(long[] columnIndex, long[] tablePtrs, @Nullable String value) {
-        nativeNotEqual(nativePtr, columnIndex, tablePtrs, value, true);
-        queryValidated = false;
-        return this;
+    public void beginsWith(String fieldName, String value, Case caseSensitive) {
+        long position = nativeAddStringArgument(nativeArgumentList, value);
+
+        if (caseSensitive == Case.SENSITIVE) {
+            queryBuilder.appendBeginsWith(fieldName, position);
+        } else {
+            queryBuilder.appendBeginsWithNotSensitive(fieldName, position);
+        }
     }
 
-    public TableQuery beginsWith(long[] columnKeys, long[] tablePtrs, String value, Case caseSensitive) {
-        nativeBeginsWith(nativePtr, columnKeys, tablePtrs, value, caseSensitive.getValue());
-        queryValidated = false;
-        return this;
+    public void endsWith(String fieldName, String value, Case caseSensitive) {
+        long position = nativeAddStringArgument(nativeArgumentList, value);
+
+        if (caseSensitive == Case.SENSITIVE) {
+            queryBuilder.appendEndsWith(fieldName, position);
+        } else {
+            queryBuilder.appendEndsWithNotSensitive(fieldName, position);
+        }
     }
 
-    public TableQuery beginsWith(long[] columnKeys, long[] tablePtrs, String value) {
-        nativeBeginsWith(nativePtr, columnKeys, tablePtrs, value, true);
-        queryValidated = false;
-        return this;
+    public void endsWith(String fieldName, String value) {
+        endsWith(fieldName, value, Case.SENSITIVE);
     }
 
-    public TableQuery endsWith(long[] columnKeys, long[] tablePtrs, String value, Case caseSensitive) {
-        nativeEndsWith(nativePtr, columnKeys, tablePtrs, value, caseSensitive.getValue());
-        queryValidated = false;
-        return this;
+    public void like(String fieldName, String value, Case caseSensitive) {
+        long position = nativeAddStringArgument(nativeArgumentList, value);
+
+        if (caseSensitive == Case.SENSITIVE) {
+            queryBuilder.appendLike(fieldName, position);
+        } else {
+            queryBuilder.appendLikeNotSensitive(fieldName, position);
+        }
     }
 
-    public TableQuery endsWith(long[] columnKeys, long[] tablePtrs, String value) {
-        nativeEndsWith(nativePtr, columnKeys, tablePtrs, value, true);
-        queryValidated = false;
-        return this;
+    public void contains(String fieldName, String value, Case caseSensitive) {
+        long position = nativeAddStringArgument(nativeArgumentList, value);
+
+        if (caseSensitive == Case.SENSITIVE) {
+            queryBuilder.appendContains(fieldName, position);
+        } else {
+            queryBuilder.appendContainsNotSensitive(fieldName, position);
+        }
     }
 
-    public TableQuery like(long[] columnKeys, long[] tablePtrs, String value, Case caseSensitive) {
-        nativeLike(nativePtr, columnKeys, tablePtrs, value, caseSensitive.getValue());
-        queryValidated = false;
-        return this;
+    public void isEmpty(String fieldName) {
+//        nativeIsEmpty(nativePtr, columnKeys, tablePtrs);
+        // TODO: RAW QUERY
     }
 
-    public TableQuery like(long[] columnKeys, long[] tablePtrs, String value) {
-        nativeLike(nativePtr, columnKeys, tablePtrs, value, true);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery contains(long[] columnKeys, long[] tablePtrs, String value, Case caseSensitive) {
-        nativeContains(nativePtr, columnKeys, tablePtrs, value, caseSensitive.getValue());
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery contains(long[] columnKeys, long[] tablePtrs, String value) {
-        nativeContains(nativePtr, columnKeys, tablePtrs, value, true);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery isEmpty(long[] columnKeys, long[] tablePtrs) {
-        nativeIsEmpty(nativePtr, columnKeys, tablePtrs);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery isNotEmpty(long[] columnKeys, long[] tablePtrs) {
-        nativeIsNotEmpty(nativePtr, columnKeys, tablePtrs);
-        queryValidated = false;
-        return this;
+    public void isNotEmpty(String fieldName) {
+        // TODO: RAW QUERY
     }
 
     // Queries for Decimal128
 
-    public TableQuery equalTo(long[] columnKeys, long[] tablePtrs, Decimal128 value) {
-        nativeEqualDecimal128(nativePtr, columnKeys, tablePtrs, value.getLow(), value.getHigh());
-        queryValidated = false;
-        return this;
+    public void equalTo(String fieldName, Decimal128 value) {
+        long position = nativeAddDecimal128Argument(nativeArgumentList, value.getLow(), value.getHigh());
+        queryBuilder.appendEqualTo(fieldName, position);
     }
 
-    public TableQuery notEqualTo(long[] columnKeys, long[] tablePtrs, Decimal128 value) {
-        nativeNotEqualDecimal128(nativePtr, columnKeys, tablePtrs, value.getLow(), value.getHigh());
-        queryValidated = false;
-        return this;
+    public void notEqualTo(String fieldName, Decimal128 value) {
+        long position = nativeAddDecimal128Argument(nativeArgumentList, value.getLow(), value.getHigh());
+        queryBuilder.appendNotEqualTo(fieldName, position);
     }
 
-    public TableQuery lessThan(long[] columnKeys, long[] tablePtrs, Decimal128 value) {
-        nativeLessDecimal128(nativePtr, columnKeys, tablePtrs, value.getLow(), value.getHigh());
-        queryValidated = false;
-        return this;
+    public void lessThan(String fieldName, Decimal128 value) {
+        long position = nativeAddDecimal128Argument(nativeArgumentList, value.getLow(), value.getHigh());
+        queryBuilder.appendLessThan(fieldName, position);
     }
 
-    public TableQuery lessThanOrEqual(long[] columnKeys, long[] tablePtrs, Decimal128 value) {
-        nativeLessEqualDecimal128(nativePtr, columnKeys, tablePtrs, value.getLow(), value.getHigh());
-        queryValidated = false;
-        return this;
+    public void lessThanOrEqual(String fieldName, Decimal128 value) {
+        long position = nativeAddDecimal128Argument(nativeArgumentList, value.getLow(), value.getHigh());
+        queryBuilder.appendLessThanEquals(fieldName, position);
     }
 
-    public TableQuery greaterThan(long[] columnKeys, long[] tablePtrs, Decimal128 value) {
-        nativeGreaterDecimal128(nativePtr, columnKeys, tablePtrs, value.getLow(), value.getHigh());
-        queryValidated = false;
-        return this;
+    public void greaterThan(String fieldName, Decimal128 value) {
+        long position = nativeAddDecimal128Argument(nativeArgumentList, value.getLow(), value.getHigh());
+        queryBuilder.appendGreaterThan(fieldName, position);
     }
 
-    public TableQuery greaterThanOrEqual(long[] columnKeys, long[] tablePtrs, Decimal128 value) {
-        nativeGreaterEqualDecimal128(nativePtr, columnKeys, tablePtrs, value.getLow(), value.getHigh());
-        queryValidated = false;
-        return this;
+    public void greaterThanOrEqual(String fieldName, Decimal128 value) {
+        long position = nativeAddDecimal128Argument(nativeArgumentList, value.getLow(), value.getHigh());
+        queryBuilder.appendGreaterThanEquals(fieldName, position);
     }
 
 
     // Queries for ObjectId
 
-    public TableQuery equalTo(long[] columnKeys, long[] tablePtrs, ObjectId value) {
-        nativeEqualObjectId(nativePtr, columnKeys, tablePtrs, value.toString());
-        queryValidated = false;
-        return this;
+    public void equalTo(String fieldName, ObjectId value) {
+        long position = nativeAddObjectIdArgument(nativeArgumentList, value.toString());
+        queryBuilder.appendEqualTo(fieldName, position);
     }
 
-    public TableQuery notEqualTo(long[] columnKeys, long[] tablePtrs, ObjectId value) {
-        nativeNotEqualObjectId(nativePtr, columnKeys, tablePtrs, value.toString());
-        queryValidated = false;
-        return this;
+    public void notEqualTo(String fieldName, ObjectId value) {
+        long position = nativeAddObjectIdArgument(nativeArgumentList, value.toString());
+        queryBuilder.appendNotEqualTo(fieldName, position);
     }
 
-    public TableQuery lessThan(long[] columnKeys, long[] tablePtrs, ObjectId value) {
-        nativeLessObjectId(nativePtr, columnKeys, tablePtrs, value.toString());
-        queryValidated = false;
-        return this;
+    public void lessThan(String fieldName, ObjectId value) {
+        long position = nativeAddObjectIdArgument(nativeArgumentList, value.toString());
+        queryBuilder.appendLessThan(fieldName, position);
     }
 
-    public TableQuery lessThanOrEqual(long[] columnKeys, long[] tablePtrs, ObjectId value) {
-        nativeLessEqualObjectId(nativePtr, columnKeys, tablePtrs, value.toString());
-        queryValidated = false;
-        return this;
+    public void lessThanOrEqual(String fieldName, ObjectId value) {
+        long position = nativeAddObjectIdArgument(nativeArgumentList, value.toString());
+        queryBuilder.appendLessThanEquals(fieldName, position);
     }
 
-    public TableQuery greaterThan(long[] columnKeys, long[] tablePtrs, ObjectId value) {
-        nativeGreaterObjectId(nativePtr, columnKeys, tablePtrs, value.toString());
-        queryValidated = false;
-        return this;
+    public void greaterThan(String fieldName, ObjectId value) {
+        long position = nativeAddObjectIdArgument(nativeArgumentList, value.toString());
+        queryBuilder.appendGreaterThan(fieldName, position);
     }
 
-    public TableQuery greaterThanOrEqual(long[] columnKeys, long[] tablePtrs, ObjectId value) {
-        nativeGreaterEqualObjectId(nativePtr, columnKeys, tablePtrs, value.toString());
-        queryValidated = false;
-        return this;
+    public void greaterThanOrEqual(String fieldName, ObjectId value) {
+        long position = nativeAddObjectIdArgument(nativeArgumentList, value.toString());
+        queryBuilder.appendGreaterThanEquals(fieldName, position);
     }
 
     // Queries for UUID
 
-    public TableQuery equalTo(long[] columnKeys, long[] tablePtrs, UUID value) {
-        nativeEqualUUID(nativePtr, columnKeys, tablePtrs, value.toString());
-        queryValidated = false;
-        return this;
+    public void equalTo(String fieldName, UUID value) {
+        long position = nativeAddUUIDArgument(nativeArgumentList, value.toString());
+        queryBuilder.appendEqualTo(fieldName, position);
     }
 
-    public TableQuery notEqualTo(long[] columnKeys, long[] tablePtrs, UUID value) {
-        nativeNotEqualUUID(nativePtr, columnKeys, tablePtrs, value.toString());
-        queryValidated = false;
-        return this;
+    public void notEqualTo(String fieldName, UUID value) {
+        long position = nativeAddUUIDArgument(nativeArgumentList, value.toString());
+        queryBuilder.appendNotEqualTo(fieldName, position);
     }
 
-    public TableQuery lessThan(long[] columnKeys, long[] tablePtrs, UUID value) {
-        nativeLessUUID(nativePtr, columnKeys, tablePtrs, value.toString());
-        queryValidated = false;
-        return this;
+    public void lessThan(String fieldName, UUID value) {
+        long position = nativeAddUUIDArgument(nativeArgumentList, value.toString());
+        queryBuilder.appendLessThan(fieldName, position);
     }
 
-    public TableQuery lessThanOrEqual(long[] columnKeys, long[] tablePtrs, UUID value) {
-        nativeLessEqualUUID(nativePtr, columnKeys, tablePtrs, value.toString());
-        queryValidated = false;
-        return this;
+    public void lessThanOrEqual(String fieldName, UUID value) {
+        long position = nativeAddUUIDArgument(nativeArgumentList, value.toString());
+        queryBuilder.appendLessThanEquals(fieldName, position);
     }
 
-    public TableQuery greaterThan(long[] columnKeys, long[] tablePtrs, UUID value) {
-        nativeGreaterUUID(nativePtr, columnKeys, tablePtrs, value.toString());
-        queryValidated = false;
-        return this;
+    public void greaterThan(String fieldName, UUID value) {
+        long position = nativeAddUUIDArgument(nativeArgumentList, value.toString());
+        queryBuilder.appendGreaterThan(fieldName, position);
     }
 
-    public TableQuery greaterThanOrEqual(long[] columnKeys, long[] tablePtrs, UUID value) {
-        nativeGreaterEqualUUID(nativePtr, columnKeys, tablePtrs, value.toString());
-        queryValidated = false;
-        return this;
+    public void greaterThanOrEqual(String fieldName, UUID value) {
+        long position = nativeAddUUIDArgument(nativeArgumentList, value.toString());
+        queryBuilder.appendGreaterThanEquals(fieldName, position);
     }
 
     // Searching methods.
@@ -679,16 +633,12 @@ public class TableQuery implements NativeObject {
     }
 
     // isNull and isNotNull
-    public TableQuery isNull(long[] columnKeys, long[] tablePtrs) {
-        nativeIsNull(nativePtr, columnKeys, tablePtrs);
-        queryValidated = false;
-        return this;
+    public void isNull(String fieldName) {
+        queryBuilder.isNull(fieldName);
     }
 
-    public TableQuery isNotNull(long[] columnKeys, long[] tablePtrs) {
-        nativeIsNotNull(nativePtr, columnKeys, tablePtrs);
-        queryValidated = false;
-        return this;
+    public void isNotNull(String fieldName) {
+        queryBuilder.isNotNull(fieldName);
     }
 
     // Count
@@ -705,7 +655,7 @@ public class TableQuery implements NativeObject {
         return nativeCount(nativePtr);
     }
 
-    public void rawPredicate(String filter, @Nullable OsKeyPathMapping mapping, DescriptorOrdering descriptors, Object[] args) {
+    public void rawPredicate(String filter, @Nullable OsKeyPathMapping mapping, Object[] args) {
         long listPtr = nativeCreateArgumentList();
 
         for (int i = 0; i < args.length; i++) {
@@ -753,9 +703,9 @@ public class TableQuery implements NativeObject {
 
         nativeRawPredicate(nativePtr,
                 filter,
-                (mapping != null) ? mapping.getNativePtr() : 0,
-                descriptors.getNativePtr(),
-                listPtr);
+                listPtr,
+                (mapping != null) ? mapping.getNativePtr() : 0
+        );
 
         nativeDestroyArgumentList(listPtr);
     }
@@ -771,142 +721,12 @@ public class TableQuery implements NativeObject {
     }
 
     public void alwaysTrue() {
-        nativeAlwaysTrue(nativePtr);
+        queryBuilder.alwaysTrue();
     }
 
     public void alwaysFalse() {
-        nativeAlwaysFalse(nativePtr);
+        queryBuilder.alwaysFalse();
     }
-
-    private native String nativeValidateQuery(long nativeQueryPtr);
-
-    private native void nativeGroup(long nativeQueryPtr);
-
-    private native void nativeEndGroup(long nativeQueryPtr);
-
-    private native void nativeOr(long nativeQueryPtr);
-
-    private native void nativeNot(long nativeQueryPtr);
-
-    private native void nativeEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeNotEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeGreater(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeGreaterEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeLess(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeLessEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeBetween(long nativeQueryPtr, long[] columnIndex, long value1, long value2);
-
-    private native void nativeEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, float value);
-
-    private native void nativeNotEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, float value);
-
-    private native void nativeGreater(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, float value);
-
-    private native void nativeGreaterEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, float value);
-
-    private native void nativeLess(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, float value);
-
-    private native void nativeLessEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, float value);
-
-    private native void nativeBetween(long nativeQueryPtr, long[] columnIndex, float value1, float value2);
-
-    private native void nativeEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, double value);
-
-    private native void nativeNotEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, double value);
-
-    private native void nativeGreater(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, double value);
-
-    private native void nativeGreaterEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, double value);
-
-    private native void nativeLess(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, double value);
-
-    private native void nativeLessEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, double value);
-
-    private native void nativeBetween(long nativeQueryPtr, long[] columnIndex, double value1, double value2);
-
-    private native void nativeEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, boolean value);
-
-    private native void nativeEqualTimestamp(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeNotEqualTimestamp(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeGreaterTimestamp(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeGreaterEqualTimestamp(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeLessTimestamp(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeLessEqualTimestamp(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeBetweenTimestamp(long nativeQueryPtr, long[] columnIndex, long value1, long value2);
-
-    private native void nativeBetweenDecimal128(long nativeQueryPtr, long[] columnIndex, long value1Low, long value1How, long value2Low, long value2High);
-
-    private native void nativeEqual(long nativeQueryPtr, long[] columnKeys, long[] tablePtrs, byte[] value);
-
-    private native void nativeNotEqual(long nativeQueryPtr, long[] columnKeys, long[] tablePtrs, byte[] value);
-
-    private native void nativeEqual(long nativeQueryPtr, long[] columnKeys, long[] tablePtrs, @Nullable String value, boolean caseSensitive);
-
-    private native void nativeNotEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, @Nullable String value, boolean caseSensitive);
-
-    private native void nativeBeginsWith(long nativeQueryPtr, long[] columnKeys, long[] tablePtrs, String value, boolean caseSensitive);
-
-    private native void nativeEndsWith(long nativeQueryPtr, long[] columnKeys, long[] tablePtrs, String value, boolean caseSensitive);
-
-    private native void nativeLike(long nativeQueryPtr, long[] columnKeys, long[] tablePtrs, String value, boolean caseSensitive);
-
-    private native void nativeContains(long nativeQueryPtr, long[] columnKeys, long[] tablePtrs, String value, boolean caseSensitive);
-
-    private native void nativeEqualDecimal128(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long low, long high);
-
-    private native void nativeNotEqualDecimal128(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long low, long high);
-
-    private native void nativeGreaterDecimal128(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long low, long high);
-
-    private native void nativeGreaterEqualDecimal128(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long low, long high);
-
-    private native void nativeLessDecimal128(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long low, long high);
-
-    private native void nativeLessEqualDecimal128(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long low, long high);
-
-    private native void nativeEqualObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
-
-    private native void nativeNotEqualObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
-
-    private native void nativeGreaterObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
-
-    private native void nativeGreaterEqualObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
-
-    private native void nativeLessObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
-
-    private native void nativeLessEqualObjectId(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
-
-    private native void nativeEqualUUID(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
-
-    private native void nativeNotEqualUUID(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
-
-    private native void nativeGreaterUUID(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
-
-    private native void nativeGreaterEqualUUID(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
-
-    private native void nativeLessUUID(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
-
-    private native void nativeLessEqualUUID(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, String data);
-
-    private native void nativeIsEmpty(long nativePtr, long[] columnKeys, long[] tablePtrs);
-
-    private native void nativeIsNotEmpty(long nativePtr, long[] columnKeys, long[] tablePtrs);
-
-    private native void nativeAlwaysTrue(long nativeQueryPtr);
-
-    private native void nativeAlwaysFalse(long nativeQueryPtr);
 
     private native long nativeFind(long nativeQueryPtr);
 
@@ -946,10 +766,6 @@ public class TableQuery implements NativeObject {
 
     private native Long nativeMinimumTimestamp(long nativeQueryPtr, long columnKey);
 
-    private native void nativeIsNull(long nativePtr, long[] columnKeys, long[] tablePtrs);
-
-    private native void nativeIsNotNull(long nativePtr, long[] columnIndice, long[] tablePtr);
-
     private native long nativeCount(long nativeQueryPtr);
 
     private native long nativeRemove(long nativeQueryPtr);
@@ -958,31 +774,31 @@ public class TableQuery implements NativeObject {
 
     private static native void nativeDestroyArgumentList(long listPtr);
 
-    private static native void nativeAddNullArgument(long listPtr);
+    private static native long nativeAddNullArgument(long listPtr);
 
-    private static native void nativeAddIntegerArgument(long listPtr, long val);
+    private static native long nativeAddIntegerArgument(long listPtr, long val);
 
-    private static native void nativeAddStringArgument(long listPtr, String val);
+    private static native long nativeAddStringArgument(long listPtr, String val);
 
-    private static native void nativeAddFloatArgument(long listPtr, float val);
+    private static native long nativeAddFloatArgument(long listPtr, float val);
 
-    private static native void nativeAddDoubleArgument(long listPtr, double val);
+    private static native long nativeAddDoubleArgument(long listPtr, double val);
 
-    private static native void nativeAddBooleanArgument(long listPtr, boolean val);
+    private static native long nativeAddBooleanArgument(long listPtr, boolean val);
 
-    private static native void nativeAddByteArrayArgument(long listPtr, byte[] val);
+    private static native long nativeAddByteArrayArgument(long listPtr, byte[] val);
 
-    private static native void nativeAddDateArgument(long listPtr, long val);
+    private static native long nativeAddDateArgument(long listPtr, long val);
 
-    private static native void nativeAddDecimal128Argument(long listPtr, long low, long high);
+    private static native long nativeAddDecimal128Argument(long listPtr, long low, long high);
 
-    private static native void nativeAddObjectIdArgument(long listPtr, String data);
+    private static native long nativeAddObjectIdArgument(long listPtr, String data);
 
-    private static native void nativeAddUUIDArgument(long listPtr, String data);
+    private static native long nativeAddUUIDArgument(long listPtr, String data);
 
-    private static native void nativeAddObjectArgument(long listPtr, long rowPtr);
+    private static native long nativeAddObjectArgument(long listPtr, long rowPtr);
 
-    private native void nativeRawPredicate(long nativeQueryPtr, String filter, long mapppingPtr, long descriptorsPointer, long argsPtr);
+    private static native void nativeRawPredicate(long nativeQueryPtr, String filter, long argsPtr, long mappingPtr);
 
     private static native long nativeGetFinalizerPtr();
 }

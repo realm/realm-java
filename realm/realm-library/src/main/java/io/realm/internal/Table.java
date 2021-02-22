@@ -26,6 +26,8 @@ import javax.annotation.Nullable;
 
 import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
+import io.realm.internal.core.DescriptorOrdering;
+import io.realm.internal.objectstore.OsKeyPathMapping;
 
 
 /**
@@ -52,12 +54,18 @@ public class Table implements NativeObject {
     private final NativeContext context;
 
     private final OsSharedRealm sharedRealm;
+    private final @Nullable OsKeyPathMapping osKeyPathMapping;
 
-    Table(OsSharedRealm sharedRealm, long nativeTableRefPointer) {
+    Table(OsSharedRealm sharedRealm, long nativeTableRefPointer, @Nullable OsKeyPathMapping osKeyPathMapping) {
         this.context = sharedRealm.context;
         this.sharedRealm = sharedRealm;
         this.nativeTableRefPtr = nativeTableRefPointer;
+        this.osKeyPathMapping = osKeyPathMapping;
         context.addReference(this);
+    }
+
+    Table(OsSharedRealm sharedRealm, long nativeTableRefPointer) {
+        this(sharedRealm, nativeTableRefPointer, null);
     }
 
     @Override
@@ -592,7 +600,7 @@ public class Table implements NativeObject {
     public TableQuery where() {
         long nativeQueryPtr = nativeWhere(nativeTableRefPtr);
         // Copies context reference from parent.
-        return new TableQuery(this.context, this, nativeQueryPtr);
+        return new TableQuery(this.context, this, nativeQueryPtr, osKeyPathMapping);
     }
 
     public long findFirstLong(long columnKey, long value) {

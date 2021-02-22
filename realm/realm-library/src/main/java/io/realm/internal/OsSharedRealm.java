@@ -30,6 +30,8 @@ import io.realm.RealmFieldType;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.annotations.ObjectServer;
+import io.realm.internal.objectstore.OsKeyPathMapping;
+
 
 @Keep
 public final class OsSharedRealm implements Closeable, NativeObject {
@@ -291,6 +293,19 @@ public final class OsSharedRealm implements Closeable, NativeObject {
 
     public boolean hasTable(String name) {
         return nativeHasTable(nativePtr, name);
+    }
+
+    /**
+     * Gets an existing {@link Table} with the given name.
+     *
+     * @param name the name of table.
+     * @param osKeyPathMapping internal and public attribute naming map.
+     * @return a {@link Table} object.
+     * @throws IllegalArgumentException if the table doesn't exist.
+     */
+    public Table getTable(String name, OsKeyPathMapping osKeyPathMapping) {
+        long tableRefPtr = nativeGetTableRef(nativePtr, name);
+        return new Table(this, tableRefPtr, osKeyPathMapping);
     }
 
     /**
