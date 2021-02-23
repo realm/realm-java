@@ -410,42 +410,12 @@ public class TableQuery implements NativeObject {
         }
     }
 
-    public void isEmpty(String fieldName, ColumnInfo.ColumnDetails details) {
-        switch (details.columnType) {
-            case BINARY:
-                equalTo(fieldName, new byte[] {});
-                break;
-            case STRING:
-                equalTo(fieldName, "");
-                break;
-            case LINKING_OBJECTS:
-                equalTo("@links." + details.linkedClassName + "." + "fieldObject" + ".@count", 0);
-                break;
-            case LIST:
-                equalTo(fieldName + ".@count", 0);
-                break;
-            default:
-                throw new IllegalArgumentException("isEmpty() only works on String, byte[] and RealmList across links.");
-        }
+    public void isEmpty(String fieldName) {
+        equalTo(fieldName + ".@count", 0);
     }
 
-    public void isNotEmpty(String fieldName, ColumnInfo.ColumnDetails details) {
-        switch (details.columnType) {
-            case BINARY:
-                notEqualTo(fieldName, new byte[] {});
-                break;
-            case STRING:
-                notEqualTo(fieldName, "");
-                break;
-            case LIST:
-                notEqualTo(fieldName + ".@count", 0);
-                break;
-            case LINKING_OBJECTS:
-                notEqualTo("@links." + details.linkedClassName + "." + fieldName + ".@count", 0);
-                break;
-            default:
-                throw new IllegalArgumentException("isNotEmpty() only works on String, byte[] and RealmList.");
-        }
+    public void isNotEmpty(String fieldName) {
+        notEqualTo(fieldName + ".@count", 0);
     }
 
     // Queries for Decimal128

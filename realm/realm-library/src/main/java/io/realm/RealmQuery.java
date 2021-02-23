@@ -1818,10 +1818,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> isEmpty(String fieldName) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.STRING, RealmFieldType.BINARY, RealmFieldType.LIST, RealmFieldType.LINKING_OBJECTS);
-        ColumnInfo.ColumnDetails columnDetails = schema.getSchemaConnector().getColumnInfo(table.getClassName()).getColumnDetails(fieldName);
-        this.query.isEmpty(fieldName, columnDetails);
+        this.query.isEmpty(fieldName);
 
         return this;
     }
@@ -1836,11 +1833,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> isNotEmpty(String fieldName) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.STRING, RealmFieldType.BINARY, RealmFieldType.LIST, RealmFieldType.LINKING_OBJECTS);
-        ColumnInfo.ColumnDetails columnDetails = schema.getSchemaConnector().getColumnInfo(table.getClassName()).getColumnDetails(fieldName);
-
-        this.query.isNotEmpty(fieldName, columnDetails);
+        this.query.isNotEmpty(fieldName);
 
         return this;
     }

@@ -2869,6 +2869,17 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void isEmpty_acrossLink() {
+        @SuppressWarnings("unchecked")
+        RealmConfiguration realmConfiguration = new RealmConfiguration
+                .Builder(InstrumentationRegistry.getInstrumentation().getTargetContext())
+                .directory(realm.getConfiguration().getRealmDirectory())
+                .name(realm.getConfiguration().getRealmFileName())
+                .schema(AllJavaTypes.class)
+                .build();
+
+        realm.close();
+        realm = Realm.getInstance(realmConfiguration);
+
         createIsEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
             switch (type) {
