@@ -82,7 +82,7 @@ public class TableQuery implements NativeObject {
     /**
      * Checks in core if query syntax is valid. Throws exception, if not.
      */
-    void validateQuery() {
+    public void validateQuery() {
         if (!queryBuilder.isValidated()) {
             String predicate = queryBuilder.build();
             boolean isOrConnected = queryBuilder.isOrConnected();
@@ -694,6 +694,8 @@ public class TableQuery implements NativeObject {
     }
 
     public void rawPredicate(String filter, @Nullable OsKeyPathMapping mapping, Object[] args) {
+        validateQuery();
+
         long listPtr = nativeCreateArgumentList();
 
         for (int i = 0; i < args.length; i++) {

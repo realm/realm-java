@@ -2296,6 +2296,7 @@ public class RealmQuery<E> {
      * @return the textual description of the query.
      */
     public String getDescription() {
+        this.query.validateQuery();
         return nativeSerializeQuery(query.getNativePtr());
     }
 

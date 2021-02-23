@@ -42,10 +42,12 @@ public class QueryBuilder {
 
     private String nextPredicateConnector = EMPTY_STRING;
     private String nextDescriptorSeparator = EMPTY_STRING;
-    private boolean validated = false;
+    private boolean validated = true;
     private boolean isOrConnected = false;
 
     private void appendSingleArgumentOperator(String fieldName, String operator, long argPosition) {
+        validated = false;
+
         predicate.append(nextPredicateConnector)
                 .append(fieldName)
                 .append(SPACE)
@@ -122,6 +124,8 @@ public class QueryBuilder {
     }
 
     public void appendBetween(String fieldName, long arg1Position, long arg2Position) {
+        validated = false;
+
         predicate.append(nextPredicateConnector)
                 .append(BEGIN_GROUP)
                 .append(fieldName)
@@ -139,6 +143,8 @@ public class QueryBuilder {
     }
 
     public void isNull(String fieldName) {
+        validated = false;
+
         predicate.append(nextPredicateConnector)
                 .append(fieldName)
                 .append(SPACE)
@@ -150,6 +156,8 @@ public class QueryBuilder {
     }
 
     public void isNotNull(String fieldName) {
+        validated = false;
+
         predicate.append(nextPredicateConnector)
                 .append(fieldName)
                 .append(SPACE)
@@ -161,6 +169,8 @@ public class QueryBuilder {
     }
 
     public void alwaysTrue() {
+        validated = false;
+
         predicate.append(nextPredicateConnector)
                 .append(TRUE_PREDICATE);
 
@@ -168,6 +178,7 @@ public class QueryBuilder {
     }
 
     public void alwaysFalse() {
+        validated = false;
         predicate.append(nextPredicateConnector)
                 .append(FALSE_PREDICATE);
 
@@ -175,6 +186,7 @@ public class QueryBuilder {
     }
 
     public void beingGroup() {
+        validated = false;
         predicate.append(nextPredicateConnector)
                 .append(BEGIN_GROUP);
 
@@ -182,6 +194,7 @@ public class QueryBuilder {
     }
 
     public void endGroup() {
+        validated = false;
         predicate.append(END_GROUP);
 
         nextPredicateConnector = AND_CONNECTOR;
@@ -196,10 +209,16 @@ public class QueryBuilder {
     }
 
     public void not() {
-        nextPredicateConnector = NOT_CONNECTOR;
+        validated = false;
+        predicate
+                .append(nextPredicateConnector)
+                .append(NOT_CONNECTOR);
+
+        nextPredicateConnector = EMPTY_STRING;
     }
 
     public void sort(String[] fieldNames, Sort[] sortOrders) {
+        validated = false;
         descriptor
                 .append(nextDescriptorSeparator)
                 .append(SORT)
@@ -224,6 +243,7 @@ public class QueryBuilder {
     }
 
     public void distinct(String[] fieldNames) {
+        validated = false;
         descriptor
                 .append(nextDescriptorSeparator)
                 .append(DISTINCT)
@@ -244,6 +264,7 @@ public class QueryBuilder {
     }
 
     public void limit(long limit) {
+        validated = false;
         descriptor
                 .append(nextDescriptorSeparator)
                 .append(LIMIT)

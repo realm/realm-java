@@ -3944,7 +3944,7 @@ public class RealmQueryTests extends QueryTests {
                 .limit(1);
 
         // Descriptors should be applied in order provided throughout the query
-        assertEquals("TRUEPREDICATE and TRUEPREDICATE and TRUEPREDICATE SORT(age ASC) SORT(name ASC) DISTINCT(name, age) LIMIT(2) DISTINCT(age) LIMIT(1)", query.getDescription());
+        assertEquals("TRUEPREDICATE SORT(age ASC) SORT(name ASC) DISTINCT(name, age) LIMIT(2) DISTINCT(age) LIMIT(1)", query.getDescription());
 
         RealmResults<Dog> dogs = query.findAll();
         assertEquals(1, dogs.size());
