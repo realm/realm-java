@@ -33,7 +33,7 @@ public class OsList implements NativeObject, ObservableCollection {
         context.addReference(this);
 
         if (ptrs[1] != 0) {
-            targetTable = new Table(sharedRealm, ptrs[1]);
+            targetTable = new Table(sharedRealm, ptrs[1], row.getTable().getOsKeyPathMapping());
         } else {
             targetTable = null;
         }

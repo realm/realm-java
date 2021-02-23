@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 
 import io.realm.annotations.Required;
 import io.realm.exceptions.RealmException;
+import io.realm.internal.ColumnInfo;
 import io.realm.internal.OsList;
 import io.realm.internal.OsResults;
 import io.realm.internal.PendingRow;
@@ -94,7 +95,7 @@ public class RealmQuery<E> {
     /**
      * Creates a query for dynamic objects of a given type from a {@link DynamicRealm}.
      *
-     * @param realm the realm to query within.
+     * @param realm     the realm to query within.
      * @param className the type to query.
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
@@ -285,7 +286,7 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -297,8 +298,8 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
-     * @param casing how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
+     * @param value     the value to compare with.
+     * @param casing    how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -312,7 +313,7 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -325,7 +326,7 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -338,7 +339,7 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -357,7 +358,7 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -377,7 +378,7 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -393,7 +394,7 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -412,7 +413,7 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -432,7 +433,7 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -452,7 +453,7 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -472,7 +473,7 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return The query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -492,7 +493,7 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -512,7 +513,7 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -551,8 +552,8 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a String field.
      */
@@ -564,9 +565,9 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
-     * @param casing how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
+     * @param casing    how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a String field.
      */
@@ -588,8 +589,8 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Byte field.
      */
@@ -612,8 +613,8 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Short field.
      */
@@ -636,8 +637,8 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Integer field.
      */
@@ -660,11 +661,11 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Long field.
-     * empty.
+     *                                            empty.
      */
     public RealmQuery<E> in(String fieldName, @Nullable Long[] values) {
         realm.checkIfValid();
@@ -685,11 +686,11 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Double field.
-     * empty.
+     *                                            empty.
      */
     public RealmQuery<E> in(String fieldName, @Nullable Double[] values) {
         realm.checkIfValid();
@@ -710,8 +711,8 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Float field.
      */
@@ -734,11 +735,11 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Boolean.
-     * or empty.
+     *                                            or empty.
      */
     public RealmQuery<E> in(String fieldName, @Nullable Boolean[] values) {
         realm.checkIfValid();
@@ -760,8 +761,8 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Date field.
      */
@@ -784,7 +785,7 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -796,8 +797,8 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
-     * @param casing how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
+     * @param value     the value to compare with.
+     * @param casing    how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -816,7 +817,7 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -832,7 +833,7 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -847,7 +848,7 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -862,7 +863,7 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -879,7 +880,7 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -896,7 +897,7 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -913,7 +914,7 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -930,7 +931,7 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -947,7 +948,7 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -964,7 +965,7 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -980,7 +981,7 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -997,7 +998,7 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1014,7 +1015,7 @@ public class RealmQuery<E> {
      * Greater-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1029,7 +1030,7 @@ public class RealmQuery<E> {
      * Greater-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1045,7 +1046,7 @@ public class RealmQuery<E> {
      * Greater-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1061,7 +1062,7 @@ public class RealmQuery<E> {
      * Greater-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1077,7 +1078,7 @@ public class RealmQuery<E> {
      * Greater-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1093,7 +1094,7 @@ public class RealmQuery<E> {
      * Greater-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1108,7 +1109,7 @@ public class RealmQuery<E> {
      * Greater-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1123,7 +1124,7 @@ public class RealmQuery<E> {
      * Greater-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1138,7 +1139,7 @@ public class RealmQuery<E> {
      * Greater-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1154,7 +1155,7 @@ public class RealmQuery<E> {
      * Greater-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1170,7 +1171,7 @@ public class RealmQuery<E> {
      * Greater-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1186,7 +1187,7 @@ public class RealmQuery<E> {
      * Greater-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type
      */
@@ -1202,7 +1203,7 @@ public class RealmQuery<E> {
      * Greater-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1218,7 +1219,7 @@ public class RealmQuery<E> {
      * Greater-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1233,7 +1234,7 @@ public class RealmQuery<E> {
      * Greater-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1248,7 +1249,7 @@ public class RealmQuery<E> {
      * Greater-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1263,7 +1264,7 @@ public class RealmQuery<E> {
      * Less-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1279,7 +1280,7 @@ public class RealmQuery<E> {
      * Less-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1295,7 +1296,7 @@ public class RealmQuery<E> {
      * Less-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1310,7 +1311,7 @@ public class RealmQuery<E> {
      * Less-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1325,7 +1326,7 @@ public class RealmQuery<E> {
      * Less-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1340,7 +1341,7 @@ public class RealmQuery<E> {
      * Less-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1356,7 +1357,7 @@ public class RealmQuery<E> {
      * Less-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1372,7 +1373,7 @@ public class RealmQuery<E> {
      * Less-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1387,7 +1388,7 @@ public class RealmQuery<E> {
      * Less-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1403,7 +1404,7 @@ public class RealmQuery<E> {
      * Less-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1418,7 +1419,7 @@ public class RealmQuery<E> {
      * Less-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1433,7 +1434,7 @@ public class RealmQuery<E> {
      * Less-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1448,7 +1449,7 @@ public class RealmQuery<E> {
      * Less-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1463,7 +1464,7 @@ public class RealmQuery<E> {
      * Less-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1479,7 +1480,7 @@ public class RealmQuery<E> {
      * Less-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1495,7 +1496,7 @@ public class RealmQuery<E> {
      * Less-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1511,8 +1512,8 @@ public class RealmQuery<E> {
      * Between condition.
      *
      * @param fieldName the field to compare.
-     * @param from lowest value (inclusive).
-     * @param to highest value (inclusive).
+     * @param from      lowest value (inclusive).
+     * @param to        highest value (inclusive).
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1528,8 +1529,8 @@ public class RealmQuery<E> {
      * Between condition.
      *
      * @param fieldName the field to compare.
-     * @param from lowest value (inclusive).
-     * @param to highest value (inclusive).
+     * @param from      lowest value (inclusive).
+     * @param to        highest value (inclusive).
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1545,8 +1546,8 @@ public class RealmQuery<E> {
      * Between condition.
      *
      * @param fieldName the field to compare.
-     * @param from lowest value (inclusive).
-     * @param to highest value (inclusive).
+     * @param from      lowest value (inclusive).
+     * @param to        highest value (inclusive).
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1562,8 +1563,8 @@ public class RealmQuery<E> {
      * Between condition.
      *
      * @param fieldName the field to compare.
-     * @param from lowest value (inclusive).
-     * @param to highest value (inclusive).
+     * @param from      lowest value (inclusive).
+     * @param to        highest value (inclusive).
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1579,8 +1580,8 @@ public class RealmQuery<E> {
      * Between condition.
      *
      * @param fieldName the field to compare.
-     * @param from lowest value (inclusive).
-     * @param to highest value (inclusive).
+     * @param from      lowest value (inclusive).
+     * @param to        highest value (inclusive).
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1596,8 +1597,8 @@ public class RealmQuery<E> {
      * Between condition.
      *
      * @param fieldName the field to compare.
-     * @param from lowest value (inclusive).
-     * @param to highest value (inclusive).
+     * @param from      lowest value (inclusive).
+     * @param to        highest value (inclusive).
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1613,7 +1614,7 @@ public class RealmQuery<E> {
      * Condition that value of field contains the specified substring.
      *
      * @param fieldName the field to compare.
-     * @param value the substring.
+     * @param value     the substring.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1625,8 +1626,8 @@ public class RealmQuery<E> {
      * Condition that value of field contains the specified substring.
      *
      * @param fieldName the field to compare.
-     * @param value the substring.
-     * @param casing how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
+     * @param value     the substring.
+     * @param casing    how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
      * @return The query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1642,7 +1643,7 @@ public class RealmQuery<E> {
      * Condition that the value of field begins with the specified string.
      *
      * @param fieldName the field to compare.
-     * @param value the string.
+     * @param value     the string.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1654,8 +1655,8 @@ public class RealmQuery<E> {
      * Condition that the value of field begins with the specified substring.
      *
      * @param fieldName the field to compare.
-     * @param value the substring.
-     * @param casing how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
+     * @param value     the substring.
+     * @param casing    how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
      * @return the query object
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1671,7 +1672,7 @@ public class RealmQuery<E> {
      * Condition that the value of field ends with the specified string.
      *
      * @param fieldName the field to compare.
-     * @param value the string.
+     * @param value     the string.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1683,8 +1684,8 @@ public class RealmQuery<E> {
      * Condition that the value of field ends with the specified substring.
      *
      * @param fieldName the field to compare.
-     * @param value the substring.
-     * @param casing how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
+     * @param value     the substring.
+     * @param casing    how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1704,7 +1705,7 @@ public class RealmQuery<E> {
      * </ul>
      *
      * @param fieldName the field to compare.
-     * @param value the wildcard string.
+     * @param value     the wildcard string.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1720,8 +1721,8 @@ public class RealmQuery<E> {
      * </ul>
      *
      * @param fieldName the field to compare.
-     * @param value the wildcard string.
-     * @param casing how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
+     * @param value     the wildcard string.
+     * @param casing    how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1813,13 +1814,14 @@ public class RealmQuery<E> {
      * @param fieldName the field to compare.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field name isn't valid or its type isn't either a RealmList,
-     * String or byte array.
+     *                                            String or byte array.
      */
     public RealmQuery<E> isEmpty(String fieldName) {
         realm.checkIfValid();
 
         FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.STRING, RealmFieldType.BINARY, RealmFieldType.LIST, RealmFieldType.LINKING_OBJECTS);
-        this.query.isEmpty(fieldName);
+        ColumnInfo.ColumnDetails columnDetails = schema.getSchemaConnector().getColumnInfo(table.getClassName()).getColumnDetails(fieldName);
+        this.query.isEmpty(fieldName, columnDetails);
 
         return this;
     }
@@ -1830,13 +1832,15 @@ public class RealmQuery<E> {
      * @param fieldName the field to compare.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field name isn't valid or its type isn't either a RealmList,
-     * String or byte array.
+     *                                            String or byte array.
      */
     public RealmQuery<E> isNotEmpty(String fieldName) {
         realm.checkIfValid();
 
         FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.STRING, RealmFieldType.BINARY, RealmFieldType.LIST, RealmFieldType.LINKING_OBJECTS);
-        this.query.isNotEmpty(fieldName);
+        ColumnInfo.ColumnDetails columnDetails = schema.getSchemaConnector().getColumnInfo(table.getClassName()).getColumnDetails(fieldName);
+
+        this.query.isNotEmpty(fieldName, columnDetails);
 
         return this;
     }
@@ -1849,7 +1853,7 @@ public class RealmQuery<E> {
      * for the given field, {@code 0} will be returned. When computing the sum, objects with {@code null} values
      * are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
+     * @throws RealmException                     if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     public Number sum(String fieldName) {
         realm.checkIfValid();
@@ -1880,7 +1884,7 @@ public class RealmQuery<E> {
      * types of number fields. If no objects exist or they all have {@code null} as the value for the given field,
      * {@code 0} will be returned. When computing the average, objects with {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
+     * @throws RealmException                     if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     public double average(String fieldName) {
         realm.checkIfValid();
@@ -1899,6 +1903,7 @@ public class RealmQuery<E> {
                         TYPE_MISMATCH, fieldName, "int, float or double. For Decimal128 use `averageDecimal128` method."));
         }
     }
+
     /**
      * Returns the average of a given field.
      * Does not support dotted field notation.
@@ -1907,15 +1912,17 @@ public class RealmQuery<E> {
      * @return the average for the given field amongst objects in query results. This will be of type Decimal128. If no objects exist or they all have {@code null}
      * as the value for the given field {@code 0} will be returned. When computing the average, objects with {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a Decimal128 type.
-     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
+     * @throws RealmException                     if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
-    public @Nullable Decimal128 averageDecimal128(String fieldName) {
+    public @Nullable
+    Decimal128 averageDecimal128(String fieldName) {
         realm.checkIfValid();
         realm.checkAllowQueriesOnUiThread();
 
         long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
         return query.averageDecimal128(columnIndex);
     }
+
     /**
      * Finds the minimum value of a field.
      *
@@ -1924,7 +1931,7 @@ public class RealmQuery<E> {
      * returned. Otherwise the minimum value is returned. When determining the minimum value, objects with {@code null}
      * values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
+     * @throws RealmException                     if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     @Nullable
     public Number min(String fieldName) {
@@ -1955,7 +1962,7 @@ public class RealmQuery<E> {
      * will be returned. Otherwise the minimum date is returned. When determining the minimum date, objects with
      * {@code null} values are ignored.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
-     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
+     * @throws RealmException                          if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     @Nullable
     public Date minimumDate(String fieldName) {
@@ -1974,7 +1981,7 @@ public class RealmQuery<E> {
      * returned. Otherwise the maximum value is returned. When determining the maximum value, objects with {@code null}
      * values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
+     * @throws RealmException                     if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     @Nullable
     public Number max(String fieldName) {
@@ -2020,7 +2027,7 @@ public class RealmQuery<E> {
      *
      * @return the number of matching objects.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
-     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
+     * @throws RealmException                          if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     public long count() {
         realm.checkIfValid();
@@ -2059,7 +2066,7 @@ public class RealmQuery<E> {
     /**
      * The same as {@link #findAll()} expect the RealmResult is not forcefully evaluated. This
      * means this method will return a more "pure" wrapper around the Object Store Results class.
-     *
+     * <p>
      * This can be useful for internal usage where we still want to take advantage of optimizations
      * and additional functionality provided by Object Store, but do not wish to trigger the query
      * unless needed.
@@ -2092,7 +2099,7 @@ public class RealmQuery<E> {
      *
      * @param fieldName the field name to sort by.
      * @throws IllegalArgumentException if the field name does not exist.
-     * @throws IllegalStateException if a sorting order was already defined.
+     * @throws IllegalStateException    if a sorting order was already defined.
      */
     public RealmQuery<E> sort(String fieldName) {
         realm.checkIfValid();
@@ -2108,11 +2115,11 @@ public class RealmQuery<E> {
      * @param fieldName the field name to sort by.
      * @param sortOrder how to sort the results.
      * @throws IllegalArgumentException if the field name does not exist.
-     * @throws IllegalStateException if a sorting order was already defined.
+     * @throws IllegalStateException    if a sorting order was already defined.
      */
     public RealmQuery<E> sort(String fieldName, Sort sortOrder) {
         realm.checkIfValid();
-        return sort(new String[] { fieldName}, new Sort[] { sortOrder});
+        return sort(new String[] {fieldName}, new Sort[] {sortOrder});
     }
 
     /**
@@ -2127,11 +2134,11 @@ public class RealmQuery<E> {
      * @param fieldName2 second field name
      * @param sortOrder2 sort order for second field
      * @throws IllegalArgumentException if the field name does not exist.
-     * @throws IllegalStateException if a sorting order was already defined.
+     * @throws IllegalStateException    if a sorting order was already defined.
      */
     public RealmQuery<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
         realm.checkIfValid();
-        return sort(new String[] { fieldName1, fieldName2 }, new Sort[] { sortOrder1, sortOrder2 });
+        return sort(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
     }
 
     /**
@@ -2144,7 +2151,7 @@ public class RealmQuery<E> {
      * @param fieldNames an array of field names to sort by.
      * @param sortOrders how to sort the field names.
      * @throws IllegalArgumentException if the field name does not exist.
-     * @throws IllegalStateException if a sorting order was already defined.
+     * @throws IllegalStateException    if a sorting order was already defined.
      */
     public RealmQuery<E> sort(String[] fieldNames, Sort[] sortOrders) {
         realm.checkIfValid();
@@ -2159,11 +2166,11 @@ public class RealmQuery<E> {
      * matches, it is undefined which object is returned. Unless the result is sorted, then the
      * first object will be returned.
      *
-     * @param firstFieldName first field name to use when finding distinct objects.
+     * @param firstFieldName      first field name to use when finding distinct objects.
      * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
      * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
-     * is an unsupported type, or points to a linked field.
-     * @throws IllegalStateException if distinct field names were already defined.
+     *                                  is an unsupported type, or points to a linked field.
+     * @throws IllegalStateException    if distinct field names were already defined.
      */
     public RealmQuery<E> distinct(String firstFieldName, String... remainingFieldNames) {
         realm.checkIfValid();
@@ -2277,7 +2284,7 @@ public class RealmQuery<E> {
      *
      * @return {@link Realm} instance this query belongs to.
      * @throws IllegalStateException if the Realm is an instance of {@link DynamicRealm} or the
-     * {@link Realm} was already closed.
+     *                               {@link Realm} was already closed.
      */
     public Realm getRealm() {
         if (realm == null) {
@@ -2397,7 +2404,7 @@ public class RealmQuery<E> {
 
 
     private RealmResults<E> createRealmResults(TableQuery query,
-                                               boolean loadResults) {
+            boolean loadResults) {
         RealmResults<E> results;
         OsResults osResults;
         osResults = OsResults.createFromQuery(realm.sharedRealm, query);

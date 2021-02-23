@@ -50,30 +50,19 @@ public class TableQuery implements NativeObject {
 
     private QueryBuilder queryBuilder = new QueryBuilder();
 
-    private @Nullable
-    OsKeyPathMapping mapping;
-
     // TODO: Can we protect this?
     public TableQuery(NativeContext context,
             Table table,
-            long nativeQueryPtr,
-            @Nullable OsKeyPathMapping mapping) {
+            long nativeQueryPtr) {
         if (DEBUG) {
             RealmLog.debug("New TableQuery: ptr=%x", nativeQueryPtr);
         }
         this.context = context;
         this.table = table;
-        this.mapping = mapping;
         this.nativePtr = nativeQueryPtr;
         this.nativeArgumentList = nativeCreateArgumentList();
 
         context.addReference(this);
-    }
-
-    public TableQuery(NativeContext context,
-            Table table,
-            long nativeQueryPtr) {
-        this(context, table, nativeQueryPtr, null);
     }
 
     @Override
@@ -101,6 +90,8 @@ public class TableQuery implements NativeObject {
 
             // Realm.log
             Log.d("PREDICATE", predicate);
+
+            OsKeyPathMapping mapping = table.getOsKeyPathMapping();
 
             nativeRawPredicate(nativePtr,
                     isOrConnected,
@@ -142,7 +133,7 @@ public class TableQuery implements NativeObject {
 
     // Queries for integer values.
 
-    private long addLongArgument(@Nullable Number value){
+    private long addLongArgument(@Nullable Number value) {
         return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddIntegerArgument(nativeArgumentList, value.longValue());
     }
 
@@ -185,7 +176,7 @@ public class TableQuery implements NativeObject {
 
     // Queries for float values.
 
-    private long addFloatArgument(@Nullable Float value){
+    private long addFloatArgument(@Nullable Float value) {
         return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddFloatArgument(nativeArgumentList, value);
     }
 
@@ -227,41 +218,41 @@ public class TableQuery implements NativeObject {
 
     // Queries for double values.
 
-    private long addDoubleArgument(@Nullable Double value){
+    private long addDoubleArgument(@Nullable Double value) {
         return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddDoubleArgument(nativeArgumentList, value);
     }
 
-    public void equalTo(String fieldName, @Nullable  Double value) {
+    public void equalTo(String fieldName, @Nullable Double value) {
         long position = addDoubleArgument(value);
         queryBuilder.appendEqualTo(fieldName, position);
     }
 
-    public void notEqualTo(String fieldName, @Nullable  Double value) {
+    public void notEqualTo(String fieldName, @Nullable Double value) {
         long position = addDoubleArgument(value);
         queryBuilder.appendNotEqualTo(fieldName, position);
     }
 
-    public void greaterThan(String fieldName, @Nullable  Double value) {
+    public void greaterThan(String fieldName, @Nullable Double value) {
         long position = addDoubleArgument(value);
         queryBuilder.appendGreaterThan(fieldName, position);
     }
 
-    public void greaterThanOrEqual(String fieldName, @Nullable  Double value) {
+    public void greaterThanOrEqual(String fieldName, @Nullable Double value) {
         long position = addDoubleArgument(value);
         queryBuilder.appendGreaterThanEquals(fieldName, position);
     }
 
-    public void lessThan(String fieldName, @Nullable  Double value) {
+    public void lessThan(String fieldName, @Nullable Double value) {
         long position = addDoubleArgument(value);
         queryBuilder.appendLessThan(fieldName, position);
     }
 
-    public void lessThanOrEqual(String fieldName, @Nullable  Double value) {
+    public void lessThanOrEqual(String fieldName, @Nullable Double value) {
         long position = addDoubleArgument(value);
         queryBuilder.appendLessThanEquals(fieldName, position);
     }
 
-    public void between(String fieldName, @Nullable  Double value1, @Nullable  Double value2) {
+    public void between(String fieldName, @Nullable Double value1, @Nullable Double value2) {
         long position1 = addDoubleArgument(value1);
         long position2 = addDoubleArgument(value2);
 
@@ -270,7 +261,7 @@ public class TableQuery implements NativeObject {
 
     // Query for boolean values.
 
-    private long addBooleanArgument(@Nullable Boolean value){
+    private long addBooleanArgument(@Nullable Boolean value) {
         return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddBooleanArgument(nativeArgumentList, value);
     }
 
@@ -286,7 +277,7 @@ public class TableQuery implements NativeObject {
 
     // Queries for Date values.
 
-    private long addDateArgument(@Nullable Date value){
+    private long addDateArgument(@Nullable Date value) {
         return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddDateArgument(nativeArgumentList, value.getTime());
     }
 
@@ -328,7 +319,7 @@ public class TableQuery implements NativeObject {
 
     // Queries for Binary values.
 
-    private long addByteArrayArgument(@Nullable byte[] value){
+    private long addByteArrayArgument(@Nullable byte[] value) {
         return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddByteArrayArgument(nativeArgumentList, value);
     }
 
@@ -342,7 +333,7 @@ public class TableQuery implements NativeObject {
         queryBuilder.appendNotEqualTo(fieldName, position);
     }
 
-    private long addStringArgument(@Nullable String value){
+    private long addStringArgument(@Nullable String value) {
         return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddStringArgument(nativeArgumentList, value);
     }
 
@@ -358,6 +349,10 @@ public class TableQuery implements NativeObject {
 
     public void equalTo(String fieldName, String value) {
         equalTo(fieldName, value, Case.SENSITIVE);
+    }
+
+    public void notEqualTo(String fieldName, String value) {
+        notEqualTo(fieldName, value, Case.SENSITIVE);
     }
 
     // Not Equals
@@ -415,18 +410,47 @@ public class TableQuery implements NativeObject {
         }
     }
 
-    public void isEmpty(String fieldName) {
-//        nativeIsEmpty(nativePtr, columnKeys, tablePtrs);
-        // TODO: RAW QUERY
+    public void isEmpty(String fieldName, ColumnInfo.ColumnDetails details) {
+        switch (details.columnType) {
+            case BINARY:
+                equalTo(fieldName, new byte[] {});
+                break;
+            case STRING:
+                equalTo(fieldName, "");
+                break;
+            case LINKING_OBJECTS:
+                equalTo("@links." + details.linkedClassName + "." + "fieldObject" + ".@count", 0);
+                break;
+            case LIST:
+                equalTo(fieldName + ".@count", 0);
+                break;
+            default:
+                throw new IllegalArgumentException("isEmpty() only works on String, byte[] and RealmList across links.");
+        }
     }
 
-    public void isNotEmpty(String fieldName) {
-        // TODO: RAW QUERY
+    public void isNotEmpty(String fieldName, ColumnInfo.ColumnDetails details) {
+        switch (details.columnType) {
+            case BINARY:
+                notEqualTo(fieldName, new byte[] {});
+                break;
+            case STRING:
+                notEqualTo(fieldName, "");
+                break;
+            case LIST:
+                notEqualTo(fieldName + ".@count", 0);
+                break;
+            case LINKING_OBJECTS:
+                notEqualTo("@links." + details.linkedClassName + "." + fieldName + ".@count", 0);
+                break;
+            default:
+                throw new IllegalArgumentException("isNotEmpty() only works on String, byte[] and RealmList.");
+        }
     }
 
     // Queries for Decimal128
 
-    private long addDecimal128Argument(@Nullable Decimal128 value){
+    private long addDecimal128Argument(@Nullable Decimal128 value) {
         return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddDecimal128Argument(nativeArgumentList, value.getLow(), value.getHigh());
     }
 
@@ -469,7 +493,7 @@ public class TableQuery implements NativeObject {
 
     // Queries for ObjectId
 
-    private long addObjectIdArgument(@Nullable ObjectId value){
+    private long addObjectIdArgument(@Nullable ObjectId value) {
         return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddObjectIdArgument(nativeArgumentList, value.toString());
     }
 
@@ -505,7 +529,7 @@ public class TableQuery implements NativeObject {
 
     // Queries for UUID
 
-    private long addUUIDArgument(@Nullable UUID value){
+    private long addUUIDArgument(@Nullable UUID value) {
         return (value == null) ? nativeAddNullArgument(nativeArgumentList) : nativeAddUUIDArgument(nativeArgumentList, value.toString());
     }
 

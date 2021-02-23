@@ -26,7 +26,6 @@ import javax.annotation.Nullable;
 
 import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
-import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.objectstore.OsKeyPathMapping;
 
 
@@ -403,7 +402,7 @@ public class Table implements NativeObject {
     public Table getLinkTarget(long columnKey) {
         long nativeTablePointer = nativeGetLinkTarget(nativeTableRefPtr, columnKey);
         // Copies context reference from parent.
-        return new Table(this.sharedRealm, nativeTablePointer);
+        return new Table(this.sharedRealm, nativeTablePointer, getOsKeyPathMapping());
     }
 
     /**
@@ -600,7 +599,12 @@ public class Table implements NativeObject {
     public TableQuery where() {
         long nativeQueryPtr = nativeWhere(nativeTableRefPtr);
         // Copies context reference from parent.
-        return new TableQuery(this.context, this, nativeQueryPtr, osKeyPathMapping);
+        return new TableQuery(this.context, this, nativeQueryPtr);
+    }
+
+    @Nullable
+    public OsKeyPathMapping getOsKeyPathMapping() {
+        return osKeyPathMapping;
     }
 
     public long findFirstLong(long columnKey, long value) {
@@ -744,7 +748,7 @@ public class Table implements NativeObject {
         if (!frozenRealm.isFrozen()) {
             throw new IllegalArgumentException("Frozen Realm required");
         }
-        return new Table(frozenRealm, nativeFreeze(frozenRealm.getNativePtr(), nativeTableRefPtr));
+        return new Table(frozenRealm, nativeFreeze(frozenRealm.getNativePtr(), nativeTableRefPtr), getOsKeyPathMapping());
     }
 
     public boolean isEmbedded() {

@@ -129,7 +129,8 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     public RealmObjectSchema addRealmObjectField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(RealmFieldType.OBJECT, fieldName, realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
+        table.addColumnLink(RealmFieldType.OBJECT, fieldName,
+                realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName()), schema.getKeyPathMapping()));
         return this;
     }
 
@@ -137,7 +138,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     public RealmObjectSchema addRealmListField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(RealmFieldType.LIST, fieldName, realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
+        table.addColumnLink(RealmFieldType.LIST, fieldName, realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName()), schema.getKeyPathMapping()));
         return this;
     }
 

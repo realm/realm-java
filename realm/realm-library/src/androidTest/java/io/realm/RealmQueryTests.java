@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.internal.util.collections.Sets;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import androidx.test.annotation.UiThreadTest;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
@@ -2830,7 +2832,18 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    public void isEmpty() {
+    public void isEmpty() throws IOException {
+        @SuppressWarnings("unchecked")
+        RealmConfiguration realmConfiguration = new RealmConfiguration
+                .Builder(InstrumentationRegistry.getInstrumentation().getTargetContext())
+                .directory(realm.getConfiguration().getRealmDirectory())
+                .name(realm.getConfiguration().getRealmFileName())
+                .schema(AllJavaTypes.class)
+                .build();
+
+        realm.close();
+        realm = Realm.getInstance(realmConfiguration);
+
         createIsEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
             switch (type) {

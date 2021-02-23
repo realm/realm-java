@@ -518,7 +518,7 @@ public abstract class RealmObjectSchema {
         table.addColumnLink(
                 type,
                 name,
-                realm.getSharedRealm().getTable(Table.getTableNameForClass(linkedTo.getClassName())));
+                realm.getSharedRealm().getTable(Table.getTableNameForClass(linkedTo.getClassName()), schema.getKeyPathMapping()));
         return this;
     }
 

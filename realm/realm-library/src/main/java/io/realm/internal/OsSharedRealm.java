@@ -332,6 +332,18 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     }
 
     /**
+     * Creates a {@link Table} with then given name. Native assertion will happen if the table with the same name
+     * exists.
+     *
+     * @param name the name of table.
+     * @param mapping internal and public attribute naming map.
+     * @return a created {@link Table} object.
+     */
+    public Table createTable(String name, OsKeyPathMapping mapping) {
+        return new Table(this, nativeCreateTable(nativePtr, name), mapping);
+    }
+
+    /**
      * Creates a {@link Table} and adds a primary key field to it. Native assertion will happen if the table with the
      * same name exists.
      *

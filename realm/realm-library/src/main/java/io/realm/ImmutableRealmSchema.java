@@ -43,7 +43,7 @@ class ImmutableRealmSchema extends RealmSchema {
 
         String internalClassName = Table.getTableNameForClass(className);
         if (!realm.getSharedRealm().hasTable(internalClassName)) { return null; }
-        Table table = realm.getSharedRealm().getTable(internalClassName);
+        Table table = realm.getSharedRealm().getTable(internalClassName, realm.getSchema().getKeyPathMapping());
         return new ImmutableRealmObjectSchema(realm, this, table, getColumnInfo(className));
     }
 
