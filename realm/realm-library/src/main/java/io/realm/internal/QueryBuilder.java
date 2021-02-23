@@ -37,8 +37,8 @@ public class QueryBuilder {
     private static final String FALSE_PREDICATE = "FALSEPREDICATE";
     private static final String NULL = "NULL";
 
-    private final StringBuilder predicate = new StringBuilder();
-    private final StringBuilder descriptor = new StringBuilder();
+    private StringBuilder predicateBuilder = new StringBuilder();
+    private StringBuilder descriptorBuilder = new StringBuilder();
 
     private String nextPredicateConnector = EMPTY_STRING;
     private String nextDescriptorSeparator = EMPTY_STRING;
@@ -48,7 +48,7 @@ public class QueryBuilder {
     private void appendSingleArgumentOperator(String fieldName, String operator, long argPosition) {
         validated = false;
 
-        predicate.append(nextPredicateConnector)
+        predicateBuilder.append(nextPredicateConnector)
                 .append(fieldName)
                 .append(SPACE)
                 .append(operator)
@@ -126,7 +126,7 @@ public class QueryBuilder {
     public void appendBetween(String fieldName, long arg1Position, long arg2Position) {
         validated = false;
 
-        predicate.append(nextPredicateConnector)
+        predicateBuilder.append(nextPredicateConnector)
                 .append(BEGIN_GROUP)
                 .append(fieldName)
                 .append(GREATER_THAN_EQUALS_OPERATOR)
@@ -142,10 +142,17 @@ public class QueryBuilder {
         nextPredicateConnector = AND_CONNECTOR;
     }
 
+    public void appendRawPredicate(String filter) {
+        validated = false;
+
+        predicateBuilder.append(nextPredicateConnector)
+                .append(filter);
+    }
+
     public void isNull(String fieldName) {
         validated = false;
 
-        predicate.append(nextPredicateConnector)
+        predicateBuilder.append(nextPredicateConnector)
                 .append(fieldName)
                 .append(SPACE)
                 .append(EQUAL_OPERATOR)
@@ -158,7 +165,7 @@ public class QueryBuilder {
     public void isNotNull(String fieldName) {
         validated = false;
 
-        predicate.append(nextPredicateConnector)
+        predicateBuilder.append(nextPredicateConnector)
                 .append(fieldName)
                 .append(SPACE)
                 .append(NOT_EQUAL_OPERATOR)
@@ -171,7 +178,7 @@ public class QueryBuilder {
     public void alwaysTrue() {
         validated = false;
 
-        predicate.append(nextPredicateConnector)
+        predicateBuilder.append(nextPredicateConnector)
                 .append(TRUE_PREDICATE);
 
         nextPredicateConnector = AND_CONNECTOR;
@@ -179,7 +186,7 @@ public class QueryBuilder {
 
     public void alwaysFalse() {
         validated = false;
-        predicate.append(nextPredicateConnector)
+        predicateBuilder.append(nextPredicateConnector)
                 .append(FALSE_PREDICATE);
 
         nextPredicateConnector = AND_CONNECTOR;
@@ -187,7 +194,7 @@ public class QueryBuilder {
 
     public void beingGroup() {
         validated = false;
-        predicate.append(nextPredicateConnector)
+        predicateBuilder.append(nextPredicateConnector)
                 .append(BEGIN_GROUP);
 
         nextPredicateConnector = EMPTY_STRING;
@@ -195,13 +202,13 @@ public class QueryBuilder {
 
     public void endGroup() {
         validated = false;
-        predicate.append(END_GROUP);
+        predicateBuilder.append(END_GROUP);
 
         nextPredicateConnector = AND_CONNECTOR;
     }
 
     public void or() {
-        if(predicate.length() == 0){
+        if(predicateBuilder.length() == 0){
             isOrConnected = true;
         } else {
             nextPredicateConnector = OR_CONNECTOR;
@@ -210,7 +217,7 @@ public class QueryBuilder {
 
     public void not() {
         validated = false;
-        predicate
+        predicateBuilder
                 .append(nextPredicateConnector)
                 .append(NOT_CONNECTOR);
 
@@ -219,7 +226,7 @@ public class QueryBuilder {
 
     public void sort(String[] fieldNames, Sort[] sortOrders) {
         validated = false;
-        descriptor
+        descriptorBuilder
                 .append(nextDescriptorSeparator)
                 .append(SORT)
                 .append(BEGIN_GROUP);
@@ -229,7 +236,7 @@ public class QueryBuilder {
         for (int i = 0; i < fieldNames.length; i++) {
             String fieldName = fieldNames[i];
 
-            descriptor.append(sortSeparator)
+            descriptorBuilder.append(sortSeparator)
                     .append(fieldName)
                     .append(SPACE)
                     .append((sortOrders[i] == Sort.ASCENDING) ? ASCENDING : DESCENDING);
@@ -237,14 +244,14 @@ public class QueryBuilder {
             sortSeparator = COMMA_SEPARATOR;
         }
 
-        descriptor.append(END_GROUP);
+        descriptorBuilder.append(END_GROUP);
 
         nextDescriptorSeparator = SPACE;
     }
 
     public void distinct(String[] fieldNames) {
         validated = false;
-        descriptor
+        descriptorBuilder
                 .append(nextDescriptorSeparator)
                 .append(DISTINCT)
                 .append(BEGIN_GROUP);
@@ -252,20 +259,20 @@ public class QueryBuilder {
         String distinctSeparator = EMPTY_STRING;
 
         for (String fieldName : fieldNames) {
-            descriptor.append(distinctSeparator)
+            descriptorBuilder.append(distinctSeparator)
                     .append(fieldName);
 
             distinctSeparator = COMMA_SEPARATOR;
         }
 
-        descriptor.append(END_GROUP);
+        descriptorBuilder.append(END_GROUP);
 
         nextDescriptorSeparator = SPACE;
     }
 
     public void limit(long limit) {
         validated = false;
-        descriptor
+        descriptorBuilder
                 .append(nextDescriptorSeparator)
                 .append(LIMIT)
                 .append(BEGIN_GROUP)
@@ -280,8 +287,19 @@ public class QueryBuilder {
     }
 
     public String build() {
+        String descriptor = (descriptorBuilder.length() == 0) ? EMPTY_STRING : (SPACE + descriptorBuilder.toString());
+        String predicate = (predicateBuilder.length() == 0) ? TRUE_PREDICATE : predicateBuilder.toString();
+
+        predicateBuilder = new StringBuilder();
+        descriptorBuilder = new StringBuilder();
+
+        isOrConnected = OR_CONNECTOR.equals(nextPredicateConnector);
+        nextPredicateConnector = EMPTY_STRING;
+        nextDescriptorSeparator = EMPTY_STRING;
+
         validated = true;
-        return ((predicate.length() == 0) ? TRUE_PREDICATE : predicate.toString()) + SPACE + descriptor.toString();
+
+        return predicate + descriptor;
     }
 
     public boolean isOrConnected() {

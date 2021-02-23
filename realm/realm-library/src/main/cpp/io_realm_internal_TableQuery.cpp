@@ -2453,6 +2453,8 @@ Java_io_realm_internal_TableQuery_nativeRawPredicate(JNIEnv *env,
         }
 
         query->validate();
+
+        data.clear();
     }
     CATCH_STD()
 }

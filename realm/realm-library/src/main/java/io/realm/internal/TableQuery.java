@@ -84,9 +84,8 @@ public class TableQuery implements NativeObject {
      */
     public void validateQuery() {
         if (!queryBuilder.isValidated()) {
-            String predicate = queryBuilder.build();
             boolean isOrConnected = queryBuilder.isOrConnected();
-            queryBuilder = new QueryBuilder();
+            String predicate = queryBuilder.build();
 
             // Realm.log
             Log.d("PREDICATE", predicate);
@@ -693,39 +692,37 @@ public class TableQuery implements NativeObject {
         return nativeCount(nativePtr);
     }
 
-    public void rawPredicate(String filter, @Nullable OsKeyPathMapping mapping, Object[] args) {
+    public void rawPredicate(String filter, Object[] args) {
         validateQuery();
-
-        long listPtr = nativeCreateArgumentList();
 
         for (int i = 0; i < args.length; i++) {
             Object argument = args[i];
             if (argument == null) {
-                nativeAddNullArgument(listPtr);
+                nativeAddNullArgument(nativeArgumentList);
             } else if (argument instanceof Boolean) {
-                nativeAddBooleanArgument(listPtr, (Boolean) argument);
+                nativeAddBooleanArgument(nativeArgumentList, (Boolean) argument);
             } else if (argument instanceof Float) {
-                nativeAddFloatArgument(listPtr, (Float) argument);
+                nativeAddFloatArgument(nativeArgumentList, (Float) argument);
             } else if (argument instanceof Double) {
-                nativeAddDoubleArgument(listPtr, (Double) argument);
+                nativeAddDoubleArgument(nativeArgumentList, (Double) argument);
             } else if (argument instanceof Number) {
                 Number value = (Number) argument;
-                nativeAddIntegerArgument(listPtr, value.longValue());
+                nativeAddIntegerArgument(nativeArgumentList, value.longValue());
             } else if (argument instanceof String) {
-                nativeAddStringArgument(listPtr, (String) argument);
+                nativeAddStringArgument(nativeArgumentList, (String) argument);
             } else if (argument instanceof byte[]) {
-                nativeAddByteArrayArgument(listPtr, (byte[]) argument);
+                nativeAddByteArrayArgument(nativeArgumentList, (byte[]) argument);
             } else if (argument instanceof Date) {
-                nativeAddDateArgument(listPtr, ((Date) argument).getTime());
+                nativeAddDateArgument(nativeArgumentList, ((Date) argument).getTime());
             } else if (argument instanceof Decimal128) {
                 Decimal128 value = (Decimal128) argument;
-                nativeAddDecimal128Argument(listPtr, value.getLow(), value.getHigh());
+                nativeAddDecimal128Argument(nativeArgumentList, value.getLow(), value.getHigh());
             } else if (argument instanceof ObjectId) {
                 ObjectId value = (ObjectId) argument;
-                nativeAddObjectIdArgument(listPtr, value.toString());
+                nativeAddObjectIdArgument(nativeArgumentList, value.toString());
             } else if (argument instanceof UUID) {
                 UUID value = (UUID) argument;
-                nativeAddUUIDArgument(listPtr, value.toString());
+                nativeAddUUIDArgument(nativeArgumentList, value.toString());
             } else if (argument instanceof RealmModel) {
                 RealmModel value = (RealmModel) argument;
 
@@ -735,20 +732,15 @@ public class TableQuery implements NativeObject {
 
                 RealmObjectProxy proxy = (RealmObjectProxy) value;
                 UncheckedRow row = (UncheckedRow) proxy.realmGet$proxyState().getRow$realm();
-                nativeAddObjectArgument(listPtr, row.getNativePtr());
+                nativeAddObjectArgument(nativeArgumentList, row.getNativePtr());
             } else {
                 throw new IllegalArgumentException("Unsupported query argument type: " + argument.getClass().getSimpleName());
             }
         }
 
-        nativeRawPredicate(nativePtr,
-                false,
-                filter,
-                listPtr,
-                (mapping != null) ? mapping.getNativePtr() : 0
-        );
+        queryBuilder.appendRawPredicate(filter);
 
-        nativeDestroyArgumentList(listPtr);
+        validateQuery();
     }
 
     public long remove() {

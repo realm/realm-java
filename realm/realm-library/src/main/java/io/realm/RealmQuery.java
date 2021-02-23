@@ -269,8 +269,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> isNotNull(String fieldName) {
         realm.checkIfValid();
-
-        // Checks that fieldName has the correct type is done in C++.
         this.query.isNotNull(fieldName);
         return this;
     }
@@ -298,7 +296,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable String value, Case casing) {
         realm.checkIfValid();
-
         return equalToWithoutThreadValidation(fieldName, value, casing);
     }
 
@@ -356,7 +353,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Byte value) {
         realm.checkIfValid();
-
         return equalToWithoutThreadValidation(fieldName, value);
     }
 
@@ -426,7 +422,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Long value) {
         realm.checkIfValid();
-
         return equalToWithoutThreadValidation(fieldName, value);
     }
 
@@ -445,7 +440,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Double value) {
         realm.checkIfValid();
-
         return equalToWithoutThreadValidation(fieldName, value);
     }
 
@@ -464,7 +458,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Float value) {
         realm.checkIfValid();
-
         return equalToWithoutThreadValidation(fieldName, value);
     }
 
@@ -483,7 +476,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Boolean value) {
         realm.checkIfValid();
-
         return equalToWithoutThreadValidation(fieldName, value);
     }
 
@@ -502,7 +494,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Date value) {
         realm.checkIfValid();
-
         return equalToWithoutThreadValidation(fieldName, value);
     }
 
@@ -576,7 +567,7 @@ public class RealmQuery<E> {
     public RealmQuery<E> in(String fieldName, @Nullable Byte[] values) {
         realm.checkIfValid();
 
-        if (values == null || values.length == 0) {
+        if ((values == null) || (values.length == 0)) {
             alwaysFalse();
             return this;
         } else {
@@ -624,7 +615,7 @@ public class RealmQuery<E> {
     public RealmQuery<E> in(String fieldName, @Nullable Integer[] values) {
         realm.checkIfValid();
 
-        if (values == null || values.length == 0) {
+        if ((values == null) || (values.length == 0)) {
             alwaysFalse();
             return this;
         } else {
@@ -649,7 +640,7 @@ public class RealmQuery<E> {
     public RealmQuery<E> in(String fieldName, @Nullable Long[] values) {
         realm.checkIfValid();
 
-        if (values == null || values.length == 0) {
+        if ((values == null) || (values.length == 0)) {
             alwaysFalse();
             return this;
         } else {
@@ -674,7 +665,7 @@ public class RealmQuery<E> {
     public RealmQuery<E> in(String fieldName, @Nullable Double[] values) {
         realm.checkIfValid();
 
-        if (values == null || values.length == 0) {
+        if ((values == null) || (values.length == 0)) {
             alwaysFalse();
             return this;
         } else {
@@ -723,8 +714,7 @@ public class RealmQuery<E> {
     public RealmQuery<E> in(String fieldName, @Nullable Boolean[] values) {
         realm.checkIfValid();
 
-        //noinspection ConstantConditions
-        if (values == null || values.length == 0) {
+        if ((values == null) || (values.length == 0)) {
             alwaysFalse();
             return this;
         } else {
@@ -748,7 +738,7 @@ public class RealmQuery<E> {
     public RealmQuery<E> in(String fieldName, @Nullable Date[] values) {
         realm.checkIfValid();
 
-        if (values == null || values.length == 0) {
+        if ((values == null) || (values.length == 0)) {
             alwaysFalse();
             return this;
         } else {
@@ -840,9 +830,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Byte value) {
         realm.checkIfValid();
-
         this.query.notEqualTo(fieldName, value);
-
         return this;
     }
 
@@ -857,7 +845,6 @@ public class RealmQuery<E> {
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable byte[] value) {
         realm.checkIfValid();
         this.query.notEqualTo(fieldName, value);
-
         return this;
     }
 
@@ -871,9 +858,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Short value) {
         realm.checkIfValid();
-
         this.query.notEqualTo(fieldName, value);
-
         return this;
     }
 
@@ -887,9 +872,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Integer value) {
         realm.checkIfValid();
-
         this.query.notEqualTo(fieldName, value);
-
         return this;
     }
 
@@ -903,9 +886,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Long value) {
         realm.checkIfValid();
-
         this.query.notEqualTo(fieldName, value);
-
         return this;
     }
 
@@ -919,9 +900,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Double value) {
         realm.checkIfValid();
-
         this.query.notEqualTo(fieldName, value);
-
         return this;
     }
 
@@ -935,7 +914,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Float value) {
         realm.checkIfValid();
-
         this.query.notEqualTo(fieldName, value);
         return this;
     }
@@ -950,9 +928,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Boolean value) {
         realm.checkIfValid();
-
         this.query.notEqualTo(fieldName, value);
-
         return this;
     }
 
@@ -966,9 +942,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Date value) {
         realm.checkIfValid();
-
         this.query.notEqualTo(fieldName, value);
-
         return this;
     }
 
@@ -982,7 +956,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, int value) {
         realm.checkIfValid();
-
         this.query.greaterThan(fieldName, (long) value);
         return this;
     }
@@ -997,7 +970,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, long value) {
         realm.checkIfValid();
-
         this.query.greaterThan(fieldName, value);
         return this;
     }
@@ -1012,7 +984,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, double value) {
         realm.checkIfValid();
-
         this.query.greaterThan(fieldName, value);
         return this;
     }
@@ -1027,7 +998,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, float value) {
         realm.checkIfValid();
-
         this.query.greaterThan(fieldName, value);
         return this;
     }
@@ -1042,7 +1012,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, Date value) {
         realm.checkIfValid();
-
         this.query.greaterThan(fieldName, value);
         return this;
     }
@@ -1099,7 +1068,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, int value) {
         realm.checkIfValid();
-
         this.query.greaterThanOrEqual(fieldName, value);
         return this;
     }
@@ -1114,7 +1082,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, long value) {
         realm.checkIfValid();
-
         this.query.greaterThanOrEqual(fieldName, value);
         return this;
     }
@@ -1129,7 +1096,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, double value) {
         realm.checkIfValid();
-
         this.query.greaterThanOrEqual(fieldName, value);
         return this;
     }
@@ -1144,7 +1110,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, float value) {
         realm.checkIfValid();
-
         this.query.greaterThanOrEqual(fieldName, value);
         return this;
     }
@@ -1159,7 +1124,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, Date value) {
         realm.checkIfValid();
-
         this.query.greaterThanOrEqual(fieldName, value);
         return this;
     }
@@ -1216,7 +1180,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, int value) {
         realm.checkIfValid();
-
         this.query.lessThan(fieldName, value);
         return this;
     }
@@ -1231,7 +1194,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, long value) {
         realm.checkIfValid();
-
         this.query.lessThan(fieldName, value);
         return this;
     }
@@ -1288,7 +1250,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, double value) {
         realm.checkIfValid();
-
         this.query.lessThan(fieldName, value);
         return this;
     }
@@ -1303,7 +1264,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, float value) {
         realm.checkIfValid();
-
         this.query.lessThan(fieldName, value);
         return this;
     }
@@ -1332,7 +1292,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, int value) {
         realm.checkIfValid();
-
         this.query.lessThanOrEqual(fieldName, value);
         return this;
     }
@@ -1403,7 +1362,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, double value) {
         realm.checkIfValid();
-
         this.query.lessThanOrEqual(fieldName, value);
         return this;
     }
@@ -1418,7 +1376,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, float value) {
         realm.checkIfValid();
-
         this.query.lessThanOrEqual(fieldName, value);
         return this;
     }
@@ -1433,7 +1390,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, Date value) {
         realm.checkIfValid();
-
         this.query.lessThanOrEqual(fieldName, value);
         return this;
     }
@@ -1449,7 +1405,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> between(String fieldName, int from, int to) {
         realm.checkIfValid();
-
         this.query.between(fieldName, from, to);
         return this;
     }
@@ -1465,7 +1420,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> between(String fieldName, long from, long to) {
         realm.checkIfValid();
-
         this.query.between(fieldName, from, to);
         return this;
     }
@@ -1481,7 +1435,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> between(String fieldName, double from, double to) {
         realm.checkIfValid();
-
         this.query.between(fieldName, from, to);
         return this;
     }
@@ -1497,7 +1450,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> between(String fieldName, float from, float to) {
         realm.checkIfValid();
-
         this.query.between(fieldName, from, to);
         return this;
     }
@@ -1513,7 +1465,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> between(String fieldName, Date from, Date to) {
         realm.checkIfValid();
-
         this.query.between(fieldName, from, to);
         return this;
     }
@@ -1529,7 +1480,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> between(String fieldName, Decimal128 from, Decimal128 to) {
         realm.checkIfValid();
-
         this.query.between(fieldName, from, to);
         return this;
     }
@@ -1557,9 +1507,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> contains(String fieldName, String value, Case casing) {
         realm.checkIfValid();
-
-        if (value == null) { value = ""; }
-
         this.query.contains(fieldName, value, casing);
         return this;
     }
@@ -1587,9 +1534,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> beginsWith(String fieldName, String value, Case casing) {
         realm.checkIfValid();
-
-        if (value == null) { value = ""; }
-
         this.query.beginsWith(fieldName, value, casing);
         return this;
     }
@@ -1617,9 +1561,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> endsWith(String fieldName, String value, Case casing) {
         realm.checkIfValid();
-
-        if (value == null) { value = ""; }
-
         this.query.endsWith(fieldName, value, casing);
         return this;
     }
@@ -1655,9 +1596,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> like(String fieldName, String value, Case casing) {
         realm.checkIfValid();
-
-        if (value == null) { value = ""; }
-
         this.query.like(fieldName, value, casing);
         return this;
     }
@@ -1671,7 +1609,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> beginGroup() {
         realm.checkIfValid();
-
         return beginGroupWithoutThreadValidation();
     }
 
@@ -1688,7 +1625,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> endGroup() {
         realm.checkIfValid();
-
         return endGroupWithoutThreadValidation();
     }
 
@@ -1704,7 +1640,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> or() {
         realm.checkIfValid();
-
         return orWithoutThreadValidation();
     }
 
@@ -1731,8 +1666,8 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> not() {
         realm.checkIfValid();
-
         this.query.not();
+
         return this;
     }
 
@@ -1747,7 +1682,6 @@ public class RealmQuery<E> {
     public RealmQuery<E> isEmpty(String fieldName) {
         realm.checkIfValid();
         this.query.isEmpty(fieldName);
-
         return this;
     }
 
@@ -1762,7 +1696,6 @@ public class RealmQuery<E> {
     public RealmQuery<E> isNotEmpty(String fieldName) {
         realm.checkIfValid();
         this.query.isNotEmpty(fieldName);
-
         return this;
     }
 
@@ -2188,7 +2121,7 @@ public class RealmQuery<E> {
         }
 
         try {
-            query.rawPredicate(predicate, realm.getSchema().getKeyPathMapping(), arguments);
+            query.rawPredicate(predicate, arguments);
         } catch (RuntimeException e) {
             // Work-around for QueryParser not always throwing the correct type of exceptions
             throw new IllegalArgumentException(e);
