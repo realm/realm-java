@@ -627,13 +627,15 @@ inline Decimal128 JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) c
 template <>
 inline ObjectId JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
-    return v.has_value() ? v.get_object_id() : ObjectId();
+    check_value_not_null(v, "ObjectId");
+    return v.get_object_id();
 }
 
 template <>
 inline UUID JavaContext::unbox(JavaValue const& v, CreatePolicy, ObjKey) const
 {
-    return v.has_value() ? v.get_uuid() : UUID();
+    check_value_not_null(v, "UUID");
+    return v.get_uuid();
 }
 
 template <>

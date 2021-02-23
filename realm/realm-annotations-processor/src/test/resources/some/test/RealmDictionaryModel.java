@@ -25,11 +25,28 @@ import java.util.UUID;
 import io.realm.Mixed;
 import io.realm.RealmDictionary;
 import io.realm.RealmObject;
+import io.realm.annotations.Required;
 
 public class RealmDictionaryModel extends RealmObject {
 
     private final RealmDictionary<Boolean> immutableRealmDictionaryField = new RealmDictionary();
 
+    @Required private RealmDictionary<Boolean> myRequiredBooleanRealmDictionary;
+    @Required private RealmDictionary<String> myRequiredStringRealmDictionary;
+    @Required private RealmDictionary<Integer> myRequiredIntegerRealmDictionary;
+    @Required private RealmDictionary<Float> myRequiredFloatRealmDictionary;
+    @Required private RealmDictionary<Long> myRequiredLongRealmDictionary;
+    @Required private RealmDictionary<Short> myRequiredShortRealmDictionary;
+    @Required private RealmDictionary<Byte> myRequiredByteRealmDictionary;
+    @Required private RealmDictionary<Double> myRequiredDoubleRealmDictionary;
+    @Required private RealmDictionary<Date> myRequiredDateRealmDictionary;
+    @Required private RealmDictionary<byte[]> myRequiredPrimitiveBinaryRealmDictionary;
+    @Required private RealmDictionary<Byte[]> myRequiredBinaryRealmDictionary;
+    @Required private RealmDictionary<ObjectId> myRequiredObjectIdRealmDictionary;
+    @Required private RealmDictionary<UUID> myRequiredUUIDRealmDictionary;
+    @Required private RealmDictionary<Decimal128> myRequiredDecimal128IdRealmDictionary;
+
+    private RealmDictionary<RealmDictionaryModel> myRealmDictionaryModel;
     private RealmDictionary<Mixed> myMixedRealmDictionary;
     private RealmDictionary<Boolean> myBooleanRealmDictionary;
     private RealmDictionary<String> myStringRealmDictionary;
@@ -46,7 +63,125 @@ public class RealmDictionaryModel extends RealmObject {
     private RealmDictionary<UUID> myUUIDRealmDictionary;
     private RealmDictionary<Decimal128> myDecimal128IdRealmDictionary;
 
-    // TODO: add RealmDictionary<RealmModel>
+    public RealmDictionary<Boolean> getMyRequiredBooleanRealmDictionary() {
+        return myRequiredBooleanRealmDictionary;
+    }
+
+    public void setMyRequiredBooleanRealmDictionary(RealmDictionary<Boolean> myRequiredBooleanRealmDictionary) {
+        this.myRequiredBooleanRealmDictionary = myRequiredBooleanRealmDictionary;
+    }
+
+    public RealmDictionary<String> getMyRequiredStringRealmDictionary() {
+        return myRequiredStringRealmDictionary;
+    }
+
+    public void setMyRequiredStringRealmDictionary(RealmDictionary<String> myRequiredStringRealmDictionary) {
+        this.myRequiredStringRealmDictionary = myRequiredStringRealmDictionary;
+    }
+
+    public RealmDictionary<Integer> getMyRequiredIntegerRealmDictionary() {
+        return myRequiredIntegerRealmDictionary;
+    }
+
+    public void setMyRequiredIntegerRealmDictionary(RealmDictionary<Integer> myRequiredIntegerRealmDictionary) {
+        this.myRequiredIntegerRealmDictionary = myRequiredIntegerRealmDictionary;
+    }
+
+    public RealmDictionary<Float> getMyRequiredFloatRealmDictionary() {
+        return myRequiredFloatRealmDictionary;
+    }
+
+    public void setMyRequiredFloatRealmDictionary(RealmDictionary<Float> myRequiredFloatRealmDictionary) {
+        this.myRequiredFloatRealmDictionary = myRequiredFloatRealmDictionary;
+    }
+
+    public RealmDictionary<Long> getMyRequiredLongRealmDictionary() {
+        return myRequiredLongRealmDictionary;
+    }
+
+    public void setMyRequiredLongRealmDictionary(RealmDictionary<Long> myRequiredLongRealmDictionary) {
+        this.myRequiredLongRealmDictionary = myRequiredLongRealmDictionary;
+    }
+
+    public RealmDictionary<Short> getMyRequiredShortRealmDictionary() {
+        return myRequiredShortRealmDictionary;
+    }
+
+    public void setMyRequiredShortRealmDictionary(RealmDictionary<Short> myRequiredShortRealmDictionary) {
+        this.myRequiredShortRealmDictionary = myRequiredShortRealmDictionary;
+    }
+
+    public RealmDictionary<Byte> getMyRequiredByteRealmDictionary() {
+        return myRequiredByteRealmDictionary;
+    }
+
+    public void setMyRequiredByteRealmDictionary(RealmDictionary<Byte> myRequiredByteRealmDictionary) {
+        this.myRequiredByteRealmDictionary = myRequiredByteRealmDictionary;
+    }
+
+    public RealmDictionary<Double> getMyRequiredDoubleRealmDictionary() {
+        return myRequiredDoubleRealmDictionary;
+    }
+
+    public void setMyRequiredDoubleRealmDictionary(RealmDictionary<Double> myRequiredDoubleRealmDictionary) {
+        this.myRequiredDoubleRealmDictionary = myRequiredDoubleRealmDictionary;
+    }
+
+    public RealmDictionary<Date> getMyRequiredDateRealmDictionary() {
+        return myRequiredDateRealmDictionary;
+    }
+
+    public void setMyRequiredDateRealmDictionary(RealmDictionary<Date> myRequiredDateRealmDictionary) {
+        this.myRequiredDateRealmDictionary = myRequiredDateRealmDictionary;
+    }
+
+    public RealmDictionary<byte[]> getMyRequiredPrimitiveBinaryRealmDictionary() {
+        return myRequiredPrimitiveBinaryRealmDictionary;
+    }
+
+    public void setMyRequiredPrimitiveBinaryRealmDictionary(RealmDictionary<byte[]> myRequiredPrimitiveBinaryRealmDictionary) {
+        this.myRequiredPrimitiveBinaryRealmDictionary = myRequiredPrimitiveBinaryRealmDictionary;
+    }
+
+    public RealmDictionary<Byte[]> getMyRequiredBinaryRealmDictionary() {
+        return myRequiredBinaryRealmDictionary;
+    }
+
+    public void setMyRequiredBinaryRealmDictionary(RealmDictionary<Byte[]> myRequiredBinaryRealmDictionary) {
+        this.myRequiredBinaryRealmDictionary = myRequiredBinaryRealmDictionary;
+    }
+
+    public RealmDictionary<ObjectId> getMyRequiredObjectIdRealmDictionary() {
+        return myRequiredObjectIdRealmDictionary;
+    }
+
+    public void setMyRequiredObjectIdRealmDictionary(RealmDictionary<ObjectId> myRequiredObjectIdRealmDictionary) {
+        this.myRequiredObjectIdRealmDictionary = myRequiredObjectIdRealmDictionary;
+    }
+
+    public RealmDictionary<UUID> getMyRequiredUUIDRealmDictionary() {
+        return myRequiredUUIDRealmDictionary;
+    }
+
+    public void setMyRequiredUUIDRealmDictionary(RealmDictionary<UUID> myRequiredUUIDRealmDictionary) {
+        this.myRequiredUUIDRealmDictionary = myRequiredUUIDRealmDictionary;
+    }
+
+    public RealmDictionary<Decimal128> getMyRequiredDecimal128IdRealmDictionary() {
+        return myRequiredDecimal128IdRealmDictionary;
+    }
+
+    public void setMyRequiredDecimal128IdRealmDictionary(RealmDictionary<Decimal128> myRequiredDecimal128IdRealmDictionary) {
+        this.myRequiredDecimal128IdRealmDictionary = myRequiredDecimal128IdRealmDictionary;
+    }
+
+    public RealmDictionary<RealmDictionaryModel> getMyRealmDictionaryModel() {
+        return myRealmDictionaryModel;
+    }
+
+    public void setMyRealmDictionaryModel(RealmDictionary<RealmDictionaryModel> myRealmDictionaryModel) {
+        this.myRealmDictionaryModel = myRealmDictionaryModel;
+    }
 
     public RealmDictionary<Boolean> getImmutableRealmDictionaryField() {
         return immutableRealmDictionaryField;

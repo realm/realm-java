@@ -79,9 +79,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumn(JNIEnv* env
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddPrimitiveListColumn(JNIEnv* env, jobject,
-                                                                                  jlong native_table_ptr, jint j_col_type,
-                                                                                  jstring j_name, jboolean j_is_nullable)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddPrimitiveCollectionColumn(JNIEnv* env,
+                                                                                        jobject,
+                                                                                        jlong native_table_ptr,
+                                                                                        jint j_col_type,
+                                                                                        jstring j_name,
+                                                                                        jboolean j_is_nullable)
 {
     try {
         JStringAccessor name(env, j_name); // throws

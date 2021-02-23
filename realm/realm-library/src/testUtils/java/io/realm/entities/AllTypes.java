@@ -77,15 +77,34 @@ public class AllTypes extends RealmObject {
     public static final String FIELD_DECIMAL128_DICTIONARY = "columnDecimal128Dictionary";
     public static final String FIELD_MIXED_DICTIONARY = "columnMixedDictionary";
 
+    public static final String FIELD_REQUIRED_BOOLEAN_DICTIONARY = "columnRequiredBooleanDictionary";
+    public static final String FIELD_REQUIRED_STRING_DICTIONARY = "columnRequiredStringDictionary";
+    public static final String FIELD_REQUIRED_INTEGER_DICTIONARY = "columnRequiredIntegerDictionary";
+    public static final String FIELD_REQUIRED_FLOAT_DICTIONARY = "columnRequiredFloatDictionary";
+    public static final String FIELD_REQUIRED_LONG_DICTIONARY = "columnRequiredLongDictionary";
+    public static final String FIELD_REQUIRED_SHORT_DICTIONARY = "columnRequiredShortDictionary";
+    public static final String FIELD_REQUIRED_DOUBLE_DICTIONARY = "columnRequiredDoubleDictionary";
+    public static final String FIELD_REQUIRED_BYTE_DICTIONARY = "columnRequiredByteDictionary";
+    public static final String FIELD_REQUIRED_BINARY_DICTIONARY = "columnRequiredBinaryDictionary";
+    public static final String FIELD_REQUIRED_BOXED_BINARY_DICTIONARY = "columnRequiredBoxedBinaryDictionary";
+    public static final String FIELD_REQUIRED_DATE_DICTIONARY = "columnRequiredDateDictionary";
+    public static final String FIELD_REQUIRED_OBJECT_ID_DICTIONARY = "columnRequiredObjectIdDictionary";
+    public static final String FIELD_REQUIRED_UUID_DICTIONARY = "columnRequiredUUIDDictionary";
+    public static final String FIELD_REQUIRED_DECIMAL128_DICTIONARY = "columnRequiredDecimal128Dictionary";
+
     public static final String[] INVALID_TYPES_FIELDS_FOR_DISTINCT
-            = new String[] {FIELD_REALMOBJECT, FIELD_REALMLIST, FIELD_DOUBLE, FIELD_FLOAT,
+            = new String[]{FIELD_REALMOBJECT, FIELD_REALMLIST, FIELD_DOUBLE, FIELD_FLOAT,
             FIELD_STRING_LIST, FIELD_BINARY_LIST, FIELD_BOOLEAN_LIST, FIELD_LONG_LIST,
             FIELD_DOUBLE_LIST, FIELD_FLOAT_LIST, FIELD_DATE_LIST, FIELD_BOOLEAN_DICTIONARY,
             FIELD_STRING_DICTIONARY, FIELD_INTEGER_DICTIONARY, FIELD_FLOAT_DICTIONARY,
             FIELD_LONG_DICTIONARY, FIELD_SHORT_DICTIONARY, FIELD_DOUBLE_DICTIONARY,
             FIELD_BYTE_DICTIONARY, FIELD_BINARY_DICTIONARY, FIELD_BOXED_BINARY_DICTIONARY,
             FIELD_DATE_DICTIONARY, FIELD_OBJECT_ID_DICTIONARY, FIELD_UUID_DICTIONARY,
-            FIELD_DECIMAL128_DICTIONARY, FIELD_MIXED_DICTIONARY};
+            FIELD_DECIMAL128_DICTIONARY, FIELD_MIXED_DICTIONARY, FIELD_REQUIRED_BOOLEAN_DICTIONARY,
+            FIELD_REQUIRED_STRING_DICTIONARY, FIELD_REQUIRED_INTEGER_DICTIONARY, FIELD_REQUIRED_FLOAT_DICTIONARY,
+            FIELD_REQUIRED_LONG_DICTIONARY, FIELD_REQUIRED_SHORT_DICTIONARY, FIELD_REQUIRED_DOUBLE_DICTIONARY,
+            FIELD_REQUIRED_BYTE_DICTIONARY, FIELD_REQUIRED_BINARY_DICTIONARY, FIELD_REQUIRED_BOXED_BINARY_DICTIONARY,
+            FIELD_REQUIRED_DATE_DICTIONARY, FIELD_REQUIRED_OBJECT_ID_DICTIONARY, FIELD_REQUIRED_UUID_DICTIONARY};
 
 
     @Required
@@ -146,6 +165,35 @@ public class AllTypes extends RealmObject {
     private RealmDictionary<UUID> columnUUIDDictionary;
     private RealmDictionary<Decimal128> columnDecimal128Dictionary;
     private RealmDictionary<Mixed> columnMixedDictionary;
+
+    @Required
+    private RealmDictionary<Boolean> columnRequiredBooleanDictionary;
+    @Required
+    private RealmDictionary<String> columnRequiredStringDictionary;
+    @Required
+    private RealmDictionary<Integer> columnRequiredIntegerDictionary;
+    @Required
+    private RealmDictionary<Float> columnRequiredFloatDictionary;
+    @Required
+    private RealmDictionary<Long> columnRequiredLongDictionary;
+    @Required
+    private RealmDictionary<Short> columnRequiredShortDictionary;
+    @Required
+    private RealmDictionary<Double> columnRequiredDoubleDictionary;
+    @Required
+    private RealmDictionary<Byte> columnRequiredByteDictionary;
+    @Required
+    private RealmDictionary<byte[]> columnRequiredBinaryDictionary;
+    @Required
+    private RealmDictionary<Byte[]> columnRequiredBoxedBinaryDictionary;
+    @Required
+    private RealmDictionary<Date> columnRequiredDateDictionary;
+    @Required
+    private RealmDictionary<ObjectId> columnRequiredObjectIdDictionary;
+    @Required
+    private RealmDictionary<UUID> columnRequiredUUIDDictionary;
+    @Required
+    private RealmDictionary<Decimal128> columnRequiredDecimal128Dictionary;
 
     public String getColumnString() {
         return columnString;
@@ -487,5 +535,117 @@ public class AllTypes extends RealmObject {
 
     public void setColumnMixedDictionary(RealmDictionary<Mixed> columnMixedDictionary) {
         this.columnMixedDictionary = columnMixedDictionary;
+    }
+
+    public RealmDictionary<Boolean> getColumnRequiredBooleanDictionary() {
+        return columnRequiredBooleanDictionary;
+    }
+
+    public void setColumnRequiredBooleanDictionary(RealmDictionary<Boolean> columnRequiredBooleanDictionary) {
+        this.columnRequiredBooleanDictionary = columnRequiredBooleanDictionary;
+    }
+
+    public RealmDictionary<String> getColumnRequiredStringDictionary() {
+        return columnRequiredStringDictionary;
+    }
+
+    public void setColumnRequiredStringDictionary(RealmDictionary<String> columnRequiredStringDictionary) {
+        this.columnRequiredStringDictionary = columnRequiredStringDictionary;
+    }
+
+    public RealmDictionary<Integer> getColumnRequiredIntegerDictionary() {
+        return columnRequiredIntegerDictionary;
+    }
+
+    public void setColumnRequiredIntegerDictionary(RealmDictionary<Integer> columnRequiredIntegerDictionary) {
+        this.columnRequiredIntegerDictionary = columnRequiredIntegerDictionary;
+    }
+
+    public RealmDictionary<Float> getColumnRequiredFloatDictionary() {
+        return columnRequiredFloatDictionary;
+    }
+
+    public void setColumnRequiredFloatDictionary(RealmDictionary<Float> columnRequiredFloatDictionary) {
+        this.columnRequiredFloatDictionary = columnRequiredFloatDictionary;
+    }
+
+    public RealmDictionary<Long> getColumnRequiredLongDictionary() {
+        return columnRequiredLongDictionary;
+    }
+
+    public void setColumnRequiredLongDictionary(RealmDictionary<Long> columnRequiredLongDictionary) {
+        this.columnRequiredLongDictionary = columnRequiredLongDictionary;
+    }
+
+    public RealmDictionary<Short> getColumnRequiredShortDictionary() {
+        return columnRequiredShortDictionary;
+    }
+
+    public void setColumnRequiredShortDictionary(RealmDictionary<Short> columnRequiredShortDictionary) {
+        this.columnRequiredShortDictionary = columnRequiredShortDictionary;
+    }
+
+    public RealmDictionary<Double> getColumnRequiredDoubleDictionary() {
+        return columnRequiredDoubleDictionary;
+    }
+
+    public void setColumnRequiredDoubleDictionary(RealmDictionary<Double> columnRequiredDoubleDictionary) {
+        this.columnRequiredDoubleDictionary = columnRequiredDoubleDictionary;
+    }
+
+    public RealmDictionary<Byte> getColumnRequiredByteDictionary() {
+        return columnRequiredByteDictionary;
+    }
+
+    public void setColumnRequiredByteDictionary(RealmDictionary<Byte> columnRequiredByteDictionary) {
+        this.columnRequiredByteDictionary = columnRequiredByteDictionary;
+    }
+
+    public RealmDictionary<byte[]> getColumnRequiredBinaryDictionary() {
+        return columnRequiredBinaryDictionary;
+    }
+
+    public void setColumnRequiredBinaryDictionary(RealmDictionary<byte[]> columnRequiredBinaryDictionary) {
+        this.columnRequiredBinaryDictionary = columnRequiredBinaryDictionary;
+    }
+
+    public RealmDictionary<Byte[]> getColumnRequiredBoxedBinaryDictionary() {
+        return columnRequiredBoxedBinaryDictionary;
+    }
+
+    public void setColumnRequiredBoxedBinaryDictionary(RealmDictionary<Byte[]> columnRequiredBoxedBinaryDictionary) {
+        this.columnRequiredBoxedBinaryDictionary = columnRequiredBoxedBinaryDictionary;
+    }
+
+    public RealmDictionary<Date> getColumnRequiredDateDictionary() {
+        return columnRequiredDateDictionary;
+    }
+
+    public void setColumnRequiredDateDictionary(RealmDictionary<Date> columnRequiredDateDictionary) {
+        this.columnRequiredDateDictionary = columnRequiredDateDictionary;
+    }
+
+    public RealmDictionary<ObjectId> getColumnRequiredObjectIdDictionary() {
+        return columnRequiredObjectIdDictionary;
+    }
+
+    public void setColumnRequiredObjectIdDictionary(RealmDictionary<ObjectId> columnRequiredObjectIdDictionary) {
+        this.columnRequiredObjectIdDictionary = columnRequiredObjectIdDictionary;
+    }
+
+    public RealmDictionary<UUID> getColumnRequiredUUIDDictionary() {
+        return columnRequiredUUIDDictionary;
+    }
+
+    public void setColumnRequiredUUIDDictionary(RealmDictionary<UUID> columnRequiredUUIDDictionary) {
+        this.columnRequiredUUIDDictionary = columnRequiredUUIDDictionary;
+    }
+
+    public RealmDictionary<Decimal128> getColumnRequiredDecimal128Dictionary() {
+        return columnRequiredDecimal128Dictionary;
+    }
+
+    public void setColumnRequiredDecimal128Dictionary(RealmDictionary<Decimal128> columnRequiredDecimal128Dictionary) {
+        this.columnRequiredDecimal128Dictionary = columnRequiredDecimal128Dictionary;
     }
 }
