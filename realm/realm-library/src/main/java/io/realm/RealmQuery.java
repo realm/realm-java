@@ -1634,7 +1634,8 @@ public class RealmQuery<E> {
     public RealmQuery<E> contains(String fieldName, String value, Case casing) {
         realm.checkIfValid();
 
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.STRING);
+        if (value == null) { value = ""; }
+
         this.query.contains(fieldName, value, casing);
         return this;
     }
@@ -1663,7 +1664,8 @@ public class RealmQuery<E> {
     public RealmQuery<E> beginsWith(String fieldName, String value, Case casing) {
         realm.checkIfValid();
 
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.STRING);
+        if (value == null) { value = ""; }
+
         this.query.beginsWith(fieldName, value, casing);
         return this;
     }
@@ -1692,7 +1694,8 @@ public class RealmQuery<E> {
     public RealmQuery<E> endsWith(String fieldName, String value, Case casing) {
         realm.checkIfValid();
 
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.STRING);
+        if (value == null) { value = ""; }
+
         this.query.endsWith(fieldName, value, casing);
         return this;
     }
@@ -1728,6 +1731,8 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> like(String fieldName, String value, Case casing) {
         realm.checkIfValid();
+
+        if (value == null) { value = ""; }
 
         FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.STRING);
         this.query.like(fieldName, value, casing);
