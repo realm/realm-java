@@ -29,17 +29,8 @@ JNIEXPORT jstring JNICALL Java_io_realm_RealmQuery_nativeSerializeQuery(JNIEnv* 
     try {
         auto query = reinterpret_cast<Query*>(table_query_ptr);
         std::string serialized_query = query->get_description();
-        auto descriptor = query->get_ordering();
-        std::string serialized_descriptor = descriptor->get_description(query->get_table());
 
-        query->set_ordering(std::make_unique<DescriptorOrdering>(*descriptor));
-
-        if (serialized_descriptor.empty()) {
-            return to_jstring(env, serialized_query);
-        } else {
-            std::string result = serialized_query + " " + serialized_descriptor;
-            return to_jstring(env, result);
-        }
+        return to_jstring(env, serialized_query);
     }
     CATCH_STD()
     return to_jstring(env, "");
