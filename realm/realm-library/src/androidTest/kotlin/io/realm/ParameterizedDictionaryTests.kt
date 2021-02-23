@@ -127,6 +127,11 @@ class ParameterizedDictionaryTests(
     }
 
     @Test
+    fun putRequired() {
+        tester.putRequired()
+    }
+
+    @Test
     fun remove() {
         tester.remove()
     }

@@ -46,8 +46,9 @@ class UnmanagedGeneric<T : Any>(
     override fun isEmpty() = assertUnmanagedIsEmpty(keyValuePairs)
     override fun containsKey() = assertUnmanagedContainsKey(keyValuePairs, notPresentKey)
     override fun containsValue() = assertUnmanagedContainsValue(keyValuePairs, notPresentValue)
-    override fun get() = Unit   // This has already been tested in "get"
+    override fun get() = Unit                       // This will be tested in "put"
     override fun put() = assertUnmanagedPut(keyValuePairs)
+    override fun putRequired() = Unit               // Not applicable
     override fun remove() = assertUnmanagedRemove(keyValuePairs)
     override fun putAll() = assertUnmanagedPutAll(keyValuePairs)
     override fun clear() = assertUnmanagedClear(keyValuePairs)
@@ -55,10 +56,8 @@ class UnmanagedGeneric<T : Any>(
     override fun values() = assertUnmanagedValues(keyValuePairs)
     override fun entrySet() = assertUnmanagedEntrySet(keyValuePairs)
     override fun freeze() = assertUnmanagedFreeze<T>()
-
-    // Managed-specific tests
-    override fun copyToRealm() = Unit
-    override fun copyFromRealm() = Unit
+    override fun copyToRealm() = Unit               // Not applicable
+    override fun copyFromRealm() = Unit             // Not applicable
 }
 
 /**
