@@ -79,7 +79,22 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumn(JNIEnv* env
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddPrimitiveCollectionColumn(JNIEnv* env,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddPrimitiveListColumn(JNIEnv* env, jobject,
+                                                                                  jlong native_table_ptr, jint j_col_type,
+                                                                                  jstring j_name, jboolean j_is_nullable)
+{
+    try {
+        JStringAccessor name(env, j_name); // throws
+        bool is_column_nullable = to_bool(j_is_nullable);
+        DataType data_type = DataType(j_col_type);
+        TableRef table = TBL_REF(native_table_ptr);
+        return (jlong)(table->add_column_list(data_type, name, is_column_nullable).value);
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddPrimitiveDictionaryColumn(JNIEnv* env,
                                                                                         jobject,
                                                                                         jlong native_table_ptr,
                                                                                         jint j_col_type,
@@ -91,7 +106,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddPrimitiveCollectio
         bool is_column_nullable = to_bool(j_is_nullable);
         DataType data_type = DataType(j_col_type);
         TableRef table = TBL_REF(native_table_ptr);
-        return (jlong)(table->add_column_list(data_type, name, is_column_nullable).value);
+        return (jlong)(table->add_column_dictionary(data_type, name, is_column_nullable).value);
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);

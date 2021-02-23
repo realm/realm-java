@@ -26,9 +26,6 @@ import java.util.*
 
 open class DictionaryClass : RealmObject() {
 
-    var myRealmModelDictionary: RealmDictionary<MyRealmModel>? = null
-    var myPrimaryKeyModelDictionary: RealmDictionary<MyPrimaryKeyModel>? = null
-    var myMixedDictionary: RealmDictionary<Mixed>? = null
     var myBooleanDictionary: RealmDictionary<Boolean>? = null
     var myStringDictionary: RealmDictionary<String>? = null
     var myIntegerDictionary: RealmDictionary<Int>? = null
@@ -37,33 +34,17 @@ open class DictionaryClass : RealmObject() {
     var myShortDictionary: RealmDictionary<Short>? = null
     var myDoubleDictionary: RealmDictionary<Double>? = null
     var myByteDictionary: RealmDictionary<Byte>? = null
-    var myByteArrayDictionary: RealmDictionary<ByteArray>? = null
-    var myBoxedByteArrayDictionary: RealmDictionary<Array<Byte>>? = null
+    var myBinaryDictionary: RealmDictionary<ByteArray>? = null
     var myDateDictionary: RealmDictionary<Date>? = null
     var myObjectIdDictionary: RealmDictionary<ObjectId>? = null
     var myUUIDDictionary: RealmDictionary<UUID>? = null
     var myDecimal128Dictionary: RealmDictionary<Decimal128>? = null
-
-    var emptyBooleanDictionary: RealmDictionary<Boolean>? = null
+    var myMixedDictionary: RealmDictionary<Mixed>? = null
+//    var myRealmModelDictionary: RealmDictionary<MyRealmModel>? = null
+//    var myPrimaryKeyModelDictionary: RealmDictionary<MyPrimaryKeyModel>? = null
 
     companion object {
         const val CLASS_NAME = "DictionaryClass"
-        const val REALM_MODEL_DICTIONARY_FIELD_NAME = "myRealmModelDictionary"
-        const val MIXED_DICTIONARY_FIELD_NAME = "myMixedDictionary"
-        const val BOOLEAN_DICTIONARY_FIELD_NAME = "myBooleanDictionary"
-        const val STRING_DICTIONARY_FIELD_NAME = "myStringDictionary"
-        const val INTEGER_DICTIONARY_FIELD_NAME = "myIntegerDictionary"
-        const val FLOAT_DICTIONARY_FIELD_NAME = "myFloatDictionary"
-        const val LONG_DICTIONARY_FIELD_NAME = "myLongDictionary"
-        const val SHORT_DICTIONARY_FIELD_NAME = "myShortDictionary"
-        const val DOUBLE_DICTIONARY_FIELD_NAME = "myDoubleDictionary"
-        const val BYTE_DICTIONARY_FIELD_NAME = "myByteDictionary"
-        const val BYTE_ARRAY_DICTIONARY_FIELD_NAME = "myByteArrayDictionary"
-        const val BOXED_BYTE_ARRAY_DICTIONARY_FIELD_NAME = "myBoxedByteArrayDictionary"
-        const val DATE_DICTIONARY_FIELD_NAME = "myDateDictionary"
-        const val DECIMAL128_DICTIONARY_FIELD_NAME = "myDecimal128Dictionary"
-        const val OBJECT_ID_DICTIONARY_FIELD_NAME = "myObjectIdDictionary"
-        const val UUID_DICTIONARY_FIELD_NAME = "myUUIDDictionary"
     }
 }
 
