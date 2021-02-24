@@ -151,8 +151,6 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
             mapValueOperator = new ShortValueOperator<>(baseRealm, osMap, classContainer);
         } else if (valueClass == Byte.class) {
             mapValueOperator = new ByteValueOperator<>(baseRealm, osMap, classContainer);
-        } else if (valueClass == Byte[].class) {
-            mapValueOperator = new BoxedBinaryValueOperator<>(baseRealm, osMap, classContainer);
         } else if (valueClass == byte[].class) {
             mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.BINARY, new BinaryEquals<>());
         } else if (valueClass == ObjectId.class) {
@@ -194,8 +192,6 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
             mapValueOperator = new ShortValueOperator<>(baseRealm, osMap, classContainer);
         } else if (valueClass.equals(Byte.class.getCanonicalName())) {
             mapValueOperator = new ByteValueOperator<>(baseRealm, osMap, classContainer);
-        } else if (valueClass.equals(Byte[].class.getCanonicalName())) {
-            mapValueOperator = new BoxedBinaryValueOperator<>(baseRealm, osMap, classContainer);
         } else if (valueClass.equals(byte[].class.getCanonicalName())) {
             mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.BINARY, new BinaryEquals<>());
         } else if (valueClass.equals(ObjectId.class.getCanonicalName())) {

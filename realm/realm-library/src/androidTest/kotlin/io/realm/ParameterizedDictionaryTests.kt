@@ -205,7 +205,8 @@ internal const val KEY_NULL = "KeyNull"
 internal const val KEY_NOT_PRESENT = "KeyNotPresent"
 
 internal const val VALUE_BOOLEAN_HELLO = true
-internal const val VALUE_BOOLEAN_NOT_PRESENT = false
+internal const val VALUE_BOOLEAN_BYE = false
+internal const val VALUE_BOOLEAN_NOT_PRESENT = VALUE_BOOLEAN_BYE
 
 internal const val VALUE_STRING_HELLO = "HELLO"
 internal const val VALUE_STRING_BYE = "BYE"
@@ -281,7 +282,6 @@ internal val VALUE_MIXED_DOUBLE_BYE = Mixed.valueOf(VALUE_NUMERIC_BYE.toDouble()
 internal val VALUE_MIXED_STRING_HELLO = Mixed.valueOf(VALUE_STRING_HELLO)
 internal val VALUE_MIXED_STRING_BYE = Mixed.valueOf(VALUE_STRING_BYE)
 internal val VALUE_MIXED_BOOLEAN_HELLO = Mixed.valueOf(VALUE_BOOLEAN_HELLO)
-internal val VALUE_MIXED_BOOLEAN_NOT_PRESENT = Mixed.valueOf(VALUE_BOOLEAN_NOT_PRESENT)
 internal val VALUE_MIXED_DATE_HELLO = Mixed.valueOf(VALUE_DATE_HELLO)
 internal val VALUE_MIXED_DATE_BYE = Mixed.valueOf(VALUE_DATE_BYE)
 internal val VALUE_MIXED_DECIMAL128_HELLO = Mixed.valueOf(VALUE_DECIMAL128_HELLO)
@@ -309,7 +309,7 @@ fun getMixedKeyValuePairs(
             }
         MixedType.BOOLEAN ->
             if (shouldReverseValues) {
-                listOf(KEY_HELLO to VALUE_MIXED_BOOLEAN_NOT_PRESENT, KEY_NULL to null)
+                listOf(KEY_HELLO to null, KEY_NULL to VALUE_MIXED_BOOLEAN_HELLO)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_BOOLEAN_HELLO, KEY_NULL to null)
             }

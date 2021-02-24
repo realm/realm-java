@@ -47,8 +47,8 @@ import io.realm.internal.util.Pair;
 class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     public enum IteratorType {
-        LONG, BYTE, SHORT, INTEGER, FLOAT, DOUBLE, STRING, BOOLEAN, DATE, DECIMAL128, BOXED_BINARY,
-        BINARY, OBJECT_ID, UUID, MIXED, OBJECT
+        LONG, BYTE, SHORT, INTEGER, FLOAT, DOUBLE, STRING, BOOLEAN, DATE, DECIMAL128, BINARY,
+        OBJECT_ID, UUID, MIXED, OBJECT
     }
 
     private final BaseRealm baseRealm;
@@ -248,9 +248,6 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
             case DECIMAL128:
                 //noinspection unchecked
                 return (EntrySetIterator<K, V>) new Decimal128ValueIterator<>(osMap, baseRealm);
-            case BOXED_BINARY:
-                //noinspection unchecked
-                return (EntrySetIterator<K, V>) new BoxedBinaryValueIterator<>(osMap, baseRealm);
             case BINARY:
                 //noinspection unchecked
                 return (EntrySetIterator<K, V>) new BinaryValueIterator<>(osMap, baseRealm);
@@ -480,24 +477,6 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
             }
 
             return new AbstractMap.SimpleImmutableEntry<>(pair.first, (Decimal128) pair.second);
-        }
-    }
-
-    private static class BoxedBinaryValueIterator<K> extends EntrySetIterator<K, Byte[]> {
-
-        public BoxedBinaryValueIterator(OsMap osMap, BaseRealm baseRealm) {
-            super(osMap, baseRealm);
-        }
-
-        @Override
-        protected Map.Entry<K, Byte[]> getEntryInternal(int position) {
-            Pair<K, Object> pair = osMap.getEntryForPrimitive(position);
-            if (pair.second == null) {
-                return new AbstractMap.SimpleImmutableEntry<>(pair.first, null);
-            }
-
-            Byte[] bytes = TypeUtils.convertPrimitiveBinaryToNonPrimitive((byte[]) pair.second);
-            return new AbstractMap.SimpleImmutableEntry<>(pair.first, bytes);
         }
     }
 

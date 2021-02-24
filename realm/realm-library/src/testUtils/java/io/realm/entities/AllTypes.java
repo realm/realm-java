@@ -159,7 +159,6 @@ public class AllTypes extends RealmObject {
     private RealmDictionary<Double> columnDoubleDictionary;
     private RealmDictionary<Byte> columnByteDictionary;
     private RealmDictionary<byte[]> columnBinaryDictionary;
-    private RealmDictionary<Byte[]> columnBoxedBinaryDictionary;
     private RealmDictionary<Date> columnDateDictionary;
     private RealmDictionary<ObjectId> columnObjectIdDictionary;
     private RealmDictionary<UUID> columnUUIDDictionary;
@@ -184,8 +183,6 @@ public class AllTypes extends RealmObject {
     private RealmDictionary<Byte> columnRequiredByteDictionary;
     @Required
     private RealmDictionary<byte[]> columnRequiredBinaryDictionary;
-    @Required
-    private RealmDictionary<Byte[]> columnRequiredBoxedBinaryDictionary;
     @Required
     private RealmDictionary<Date> columnRequiredDateDictionary;
     @Required
@@ -489,14 +486,6 @@ public class AllTypes extends RealmObject {
         this.columnBinaryDictionary = columnBinaryDictionary;
     }
 
-    public RealmDictionary<Byte[]> getColumnBoxedBinaryDictionary() {
-        return columnBoxedBinaryDictionary;
-    }
-
-    public void setColumnBoxedBinaryDictionary(RealmDictionary<Byte[]> columnBoxedBinaryDictionary) {
-        this.columnBoxedBinaryDictionary = columnBoxedBinaryDictionary;
-    }
-
     public RealmDictionary<Date> getColumnDateDictionary() {
         return columnDateDictionary;
     }
@@ -609,13 +598,6 @@ public class AllTypes extends RealmObject {
         this.columnRequiredBinaryDictionary = columnRequiredBinaryDictionary;
     }
 
-    public RealmDictionary<Byte[]> getColumnRequiredBoxedBinaryDictionary() {
-        return columnRequiredBoxedBinaryDictionary;
-    }
-
-    public void setColumnRequiredBoxedBinaryDictionary(RealmDictionary<Byte[]> columnRequiredBoxedBinaryDictionary) {
-        this.columnRequiredBoxedBinaryDictionary = columnRequiredBoxedBinaryDictionary;
-    }
 
     public RealmDictionary<Date> getColumnRequiredDateDictionary() {
         return columnRequiredDateDictionary;

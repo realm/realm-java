@@ -412,27 +412,6 @@ class GenericPrimitiveValueOperator<K, V> extends MapValueOperator<K, V> {
 }
 
 /**
- * {@link MapValueOperator} targeting {@link Byte[]} values in {@link RealmMap}s. Use this one
- * instead of {@link GenericPrimitiveValueOperator} to avoid and typecast exception when converting the
- * result from JNI to {@link Byte[]}.
- */
-class BoxedBinaryValueOperator<K> extends GenericPrimitiveValueOperator<K, Byte[]> {
-
-    BoxedBinaryValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
-        super(baseRealm,
-                osMap,
-                classContainer,
-                RealmMapEntrySet.IteratorType.BOXED_BINARY,
-                new BoxedBinaryEquals<>());
-    }
-
-    @Override
-    protected Byte[] processValue(Object value) {
-        return TypeUtils.convertPrimitiveBinaryToNonPrimitive((byte[]) value);
-    }
-}
-
-/**
  * {@link MapValueOperator} targeting {@link Integer} values in {@link RealmMap}s. Use this one
  * instead of {@link GenericPrimitiveValueOperator} to avoid and typecast exception when converting the
  * {@link Long} result from JNI to {@link Integer}.
