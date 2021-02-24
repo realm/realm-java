@@ -118,7 +118,7 @@ class ManagedDictionaryTester<T : Any>(
         val dictionary = initAndAssert()
 
         initializedDictionary.values.forEachIndexed { index, value ->
-            typeAsserter.assertContainsValue(realm, dictionary, index, value)
+            typeAsserter.assertContainsValueNotThere(realm, dictionary, index, value)
         }
 
         realm.executeTransaction {
@@ -128,33 +128,7 @@ class ManagedDictionaryTester<T : Any>(
         }
 
         dictionary.forEach { key, value ->
-//            typeAsserter.assertContainsValueHelper(realm, key, value, dictionary, initializedDictionary)
             typeAsserter.assertContainsValueHelper(realm, key, value, initializedDictionary, dictionary)
-
-//            when (value) {
-//                is DogPrimaryKey -> {
-//                    // Use managed model for containsValue: managed dictionaries can only contain managed models
-//                    val managedRealmModel = realm.where<DogPrimaryKey>()
-//                            .equalTo("name", value.name)
-//                            .findFirst()
-//                    assertTrue(dictionary.containsValue(managedRealmModel as T))
-//                }
-//                is Mixed -> when {
-//                    // If null, check we have "Mixed.nullValue()"
-//                    value.isNull -> assertTrue(dictionary.containsValue(Mixed.nullValue() as T))
-//                    value.valueClass == DogPrimaryKey::class.java -> {
-//                        // If RealmModel, check dictionary contains a Mixed containing the managed model
-//                        val managedRealmDog = realm.where<DogPrimaryKey>()
-//                                .equalTo("name", value.asRealmModel(DogPrimaryKey::class.java).name)
-//                                .findFirst()
-//                        val mixedWithManagedDog = Mixed.valueOf(managedRealmDog)
-//                        assertTrue(dictionary.containsValue(mixedWithManagedDog as T))
-//                    }
-//                    else -> assertTrue(dictionary.containsValue(initializedDictionary[key]))
-//                }
-//                else -> assertTrue(dictionary.containsValue(initializedDictionary[key]))
-//            }
-//            assertContainsValueHelper(realm, key, value, initializedDictionary, dictionary)
         }
     }
 
@@ -221,7 +195,7 @@ class ManagedDictionaryTester<T : Any>(
 
                     // Special case for RealmModels: remove the actual object from the Realm and
                     // check how that affects the dictionary
-                    typeAsserter.assertRemove(dictionary, index, key, value)
+                    typeAsserter.assertRemoveRealmModelFromRealm(dictionary, index, key, value)
                 }
             }
         }
@@ -566,16 +540,22 @@ private fun <T : Any> RealmDictionary<T>.init(
 }
 
 /**
- * TODO
+ * Helper to harmonize testing across different types.
  */
 open class TypeAsserter<T> {
 
     // RealmModel and Mixed require different testing here
-    open fun assertContainsValue(realm: Realm, dictionary: RealmDictionary<T>, index: Int, value: T?) =
-            assertFalse(dictionary.containsValue(value))
+    open fun assertContainsValueNotThere(
+            realm: Realm,
+            dictionary: RealmDictionary<T>,
+            index: Int,
+            value: T?
+    ) {
+        assertFalse(dictionary.containsValue(value))
+    }
 
     // RealmModel and Mixed require different testing here
-    open fun assertRemove(dictionary: RealmDictionary<T>, index: Int, key: String, value: T?) =
+    open fun assertRemoveRealmModelFromRealm(dictionary: RealmDictionary<T>, index: Int, key: String, value: T?) =
             Unit
 
     // RealmModel requires different testing here
@@ -612,14 +592,10 @@ open class TypeAsserter<T> {
     }
 
     // ByteArray, RealmModel and Mixed require different testing here
-    open fun assertEqualsHelper(realm: Realm, value: T?, valueFromRealm: T?) {
-        assertEquals(value, valueFromRealm)
-    }
+    open fun assertEqualsHelper(realm: Realm, value: T?, valueFromRealm: T?) =
+            assertEquals(value, valueFromRealm)
 }
 
-/**
- * TODO
- */
 class BinaryAsserter : TypeAsserter<ByteArray>() {
 
     override fun assertEqualsHelper(realm: Realm, value: ByteArray?, valueFromRealm: ByteArray?) {
@@ -629,30 +605,29 @@ class BinaryAsserter : TypeAsserter<ByteArray>() {
 
         assertNotNull(value)
         assertNotNull(valueFromRealm)
+
+        // ByteArrays need to be compared with Arrays.equals
         assertTrue(value.contentEquals(valueFromRealm))
     }
 }
 
-/**
- * TODO
- */
 class RealmModelAsserter : TypeAsserter<DogPrimaryKey>() {
 
-    override fun assertContainsValue(
+    override fun assertContainsValueNotThere(
             realm: Realm,
             dictionary: RealmDictionary<DogPrimaryKey>,
             index: Int,
             value: DogPrimaryKey?
     ) {
-        // Given that only managed models can be contained in a model dictionary, we need to
-        // test containsValue with a dummy model
+        // Given that only managed objects can be contained in a managed RealmModel dictionary, we
+        // need to test containsValue with a dummy model
         realm.executeTransaction { transactionRealm ->
             val dummyRealmModel = transactionRealm.copyToRealm(DogPrimaryKey(666 + index.toLong(), "DUMMY"))
             assertFalse(dictionary.containsValue(dummyRealmModel as DogPrimaryKey))
         }
     }
 
-    override fun assertRemove(
+    override fun assertRemoveRealmModelFromRealm(
             dictionary: RealmDictionary<DogPrimaryKey>,
             index: Int,
             key: String,
@@ -747,18 +722,16 @@ class RealmModelAsserter : TypeAsserter<DogPrimaryKey>() {
     }
 }
 
-/**
- * TODO
- */
 class MixedAsserter : TypeAsserter<Mixed>() {
 
-    override fun assertContainsValue(
+    override fun assertContainsValueNotThere(
             realm: Realm,
             dictionary: RealmDictionary<Mixed>,
             index: Int,
             value: Mixed?
     ) {
         if (value?.valueClass == DogPrimaryKey::class.java) {
+            // Similar to RealmModelAsserter
             realm.executeTransaction { transactionRealm ->
                 val dummyRealmModel = transactionRealm.copyToRealm(DogPrimaryKey(666 + index.toLong(), "DUMMY"))
                 val mixedWithManagedModel = Mixed.valueOf(dummyRealmModel)
@@ -769,7 +742,7 @@ class MixedAsserter : TypeAsserter<Mixed>() {
         }
     }
 
-    override fun assertRemove(dictionary: RealmDictionary<Mixed>, index: Int, key: String, value: Mixed?) {
+    override fun assertRemoveRealmModelFromRealm(dictionary: RealmDictionary<Mixed>, index: Int, key: String, value: Mixed?) {
         // No need to check anything for other types than RealmModel
         if (value is Mixed && value.valueClass == DogPrimaryKey::class.java) {
             // Removal of actual RealmModel to check whether it vanished from the dictionary
@@ -802,7 +775,7 @@ class MixedAsserter : TypeAsserter<Mixed>() {
     ) {
         val sameCollection =
                 dictionary.map { entry: Map.Entry<String, Mixed?> ->
-                    // Realm doesn't deliver "pure null" values for Mixed, but rather Mixed.nullValue()
+                    // Realm doesn't deliver "pure null" values for Mixed, but Mixed.nullValue() instead
                     when (entry.value) {
                         null -> AbstractMap.SimpleImmutableEntry(entry.key, Mixed.nullValue())
                         else -> AbstractMap.SimpleImmutableEntry(entry.key, entry.value)
