@@ -18,7 +18,6 @@ package io.realm
 
 import io.realm.entities.AllTypes
 import io.realm.entities.DogPrimaryKey
-import io.realm.internal.android.TypeUtils
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import org.bson.types.Decimal128
@@ -72,7 +71,7 @@ class ManagedDictionaryTester<T : Any>(
     override fun keySet() = assertManagedKeySet(realm, dictionaryGetter, initializedDictionary)
     override fun values() = assertManagedValues(realm, dictionaryGetter, initializedDictionary)
     override fun entrySet() = assertManagedEntrySet(realm, dictionaryGetter, initializedDictionary, alternativeDictionary)
-    override fun freeze() = Unit    // This has already been tested in "isFrozen"
+    override fun freeze() = Unit                    // This has already been tested in "isFrozen"
     override fun copyToRealm() = assertCopyToRealm(realm, dictionaryGetter, dictionarySetter, initializedDictionary)
     override fun copyFromRealm() = assertCopyFromRealm(realm, dictionaryGetter, initializedDictionary)
 }
@@ -156,13 +155,6 @@ fun managedFactory(): List<DictionaryTester> {
                     dictionarySetter = AllTypes::setColumnDecimal128Dictionary,
                     initializedDictionary = RealmDictionary<Decimal128>().init(listOf(KEY_HELLO to VALUE_DECIMAL128_HELLO, KEY_BYE to VALUE_DECIMAL128_BYE, KEY_NULL to null)),
                     alternativeDictionary = RealmDictionary<Decimal128>().init(listOf(KEY_HELLO to VALUE_DECIMAL128_BYE, KEY_BYE to VALUE_DECIMAL128_HELLO, KEY_NULL to null))
-            ),
-            ManagedDictionaryTester(
-                    testerClass = "BoxedBinary",
-                    dictionaryGetter = AllTypes::getColumnBoxedBinaryDictionary,
-                    dictionarySetter = AllTypes::setColumnBoxedBinaryDictionary,
-                    initializedDictionary = RealmDictionary<Array<Byte>>().init(listOf(KEY_HELLO to VALUE_BOXED_BINARY_HELLO, KEY_BYE to VALUE_BOXED_BINARY_BYE, KEY_NULL to null)),
-                    alternativeDictionary = RealmDictionary<Array<Byte>>().init(listOf(KEY_HELLO to VALUE_BOXED_BINARY_BYE, KEY_BYE to VALUE_BOXED_BINARY_HELLO, KEY_NULL to null))
             ),
             ManagedDictionaryTester(
                     testerClass = "Binary",
@@ -409,6 +401,32 @@ private fun <T : Any> assertManagedPut(
     }
 }
 
+private fun <T : Any> assertManagedPutRequired(
+        realm: Realm,
+        dictionaryGetter: KFunction1<AllTypes, RealmDictionary<T>>?,
+        initializedDictionary: RealmDictionary<T>,
+        alternativeDictionary: RealmDictionary<T>
+) {
+    // RealmModel and Mixed dictionaries are ignored since they cannot be marked with "@Required"
+    if (dictionaryGetter != null) {
+        val allTypesObject = createAllTypesManagedContainerAndAssert(realm)
+        assertNotNull(allTypesObject)
+        val dictionary = dictionaryGetter.call(allTypesObject)
+
+        // Check we can't insert null on a RealmDictionary marked as "@Required"
+        realm.executeTransaction {
+            assertFailsWith<IllegalStateException> {
+                dictionary["requiredKey"] = null
+            }
+        }
+
+        // Now check it works normally for the same field but without inserting null values
+        val initializedNoNull = initializedDictionary.apply { assertNull(remove(KEY_NULL)) }
+        val alternativeNoNull = alternativeDictionary.apply { assertNull(remove(KEY_NULL)) }
+        assertManagedPut(realm, dictionaryGetter, initializedNoNull, alternativeNoNull)
+    }
+}
+
 private fun <T : Any> assertManagedRemove(
         realm: Realm,
         dictionaryGetter: KFunction1<AllTypes, RealmDictionary<T>>,
@@ -424,7 +442,7 @@ private fun <T : Any> assertManagedRemove(
     }
 
     // Remove, assert value and check size
-    realm.executeTransaction {
+    realm.executeTransaction { transactionRealm ->
         initializedDictionary.map {
             Pair(it.key, it.value)
         }.also { pairs ->
@@ -433,6 +451,48 @@ private fun <T : Any> assertManagedRemove(
                 val value = pairs[index].second
                 assertEqualsHelper(realm, value, dictionary.remove(key))
                 assertEquals(index, dictionary.size)
+
+                // Removal actual RealmModel to check whether it vanished from the dictionary
+                if (value is DogPrimaryKey) {
+                    // Insert again - "value" is unmanaged
+                    dictionary[key] = value
+
+                    // Delete from realm and check we get null if we get it from the dictionary
+                    val modelFromRealm = dictionary[key] as DogPrimaryKey
+                    assertTrue(modelFromRealm.isValid)
+
+                    modelFromRealm.deleteFromRealm()
+                    assertFalse(modelFromRealm.isValid)
+
+                    assertNull(dictionary[key])
+
+                    // Check size again (despite object removal, size should remain unchanged)
+                    assertEquals(index + 1, dictionary.size)
+
+                    // Delete it again so that the forEach size check works
+                    dictionary.remove(key)
+                    assertEquals(index, dictionary.size)
+                } else if (value is Mixed && value.valueClass == DogPrimaryKey::class.java) {
+                    // Insert again - "value" is unmanaged
+                    dictionary[key] = value
+
+                    // Delete from realm and check we get null if we get it from the dictionary
+                    val mixedValue = dictionary[key] as Mixed
+                    val modelFromRealm = mixedValue.asRealmModel(DogPrimaryKey::class.java)
+                    assertTrue(modelFromRealm.isValid)
+
+                    modelFromRealm.deleteFromRealm()
+                    assertFalse(modelFromRealm.isValid)
+
+                    assertTrue((dictionary[key] as Mixed).isNull)
+
+                    // Check size again (despite object removal, size should remain unchanged)
+                    assertEquals(index + 1, dictionary.size)
+
+                    // Delete it again so that the forEach size check works
+                    dictionary.remove(key)
+                    assertEquals(index, dictionary.size)
+                }
             }
         }
     }
@@ -511,10 +571,6 @@ private fun <T : Any> assertManagedValues(
     val values = dictionary.values
     values.forEach { value ->
         when (value) {
-            is Array<*> -> {
-                val dictionaryBytes = TypeUtils.convertNonPrimitiveBinaryToPrimitive(value as Array<Byte>)
-                assertTrue((values as Collection<ByteArray>).contains(dictionaryBytes))
-            }
             is DogPrimaryKey -> {
                 // null entries become "invalid object" when calling dictionary.values()
                 if (value.isValid) {
@@ -709,13 +765,14 @@ private fun <T : Any> RealmDictionary<T>.init(
 
 private fun <T> assertEqualsHelper(realm: Realm, value: T?, valueFromRealm: T?) {
     when (valueFromRealm) {
-        is Array<*> -> {
-            val bytes = TypeUtils.convertNonPrimitiveBinaryToPrimitive(value as Array<Byte>)
-            val otherBytes = TypeUtils.convertNonPrimitiveBinaryToPrimitive(valueFromRealm as Array<Byte>)
-            Arrays.equals(bytes, otherBytes)
-        }
         is ByteArray -> (value as ByteArray).contentEquals(valueFromRealm as ByteArray)
-        is DogPrimaryKey -> assertEquals((value as DogPrimaryKey).name, valueFromRealm.name)
+        is DogPrimaryKey -> {
+            val modelFromRealm = realm.where<DogPrimaryKey>()
+                    .equalTo("name", valueFromRealm.name)
+                    .findFirst()
+            assertNotNull(modelFromRealm)
+            assertEquals(modelFromRealm, valueFromRealm)
+        }
         is Mixed -> when {
             // If null, check we have "Mixed.nullValue()"
             value == null -> assertTrue(valueFromRealm.isNull)

@@ -140,7 +140,6 @@ public class AllTypes extends RealmObject {
     private RealmDictionary<Double> columnDoubleDictionary;
     private RealmDictionary<Byte> columnByteDictionary;
     private RealmDictionary<byte[]> columnBinaryDictionary;
-    private RealmDictionary<Byte[]> columnBoxedBinaryDictionary;
     private RealmDictionary<Date> columnDateDictionary;
     private RealmDictionary<ObjectId> columnObjectIdDictionary;
     private RealmDictionary<UUID> columnUUIDDictionary;
@@ -439,14 +438,6 @@ public class AllTypes extends RealmObject {
 
     public void setColumnBinaryDictionary(RealmDictionary<byte[]> columnBinaryDictionary) {
         this.columnBinaryDictionary = columnBinaryDictionary;
-    }
-
-    public RealmDictionary<Byte[]> getColumnBoxedBinaryDictionary() {
-        return columnBoxedBinaryDictionary;
-    }
-
-    public void setColumnBoxedBinaryDictionary(RealmDictionary<Byte[]> columnBoxedBinaryDictionary) {
-        this.columnBoxedBinaryDictionary = columnBoxedBinaryDictionary;
     }
 
     public RealmDictionary<Date> getColumnDateDictionary() {

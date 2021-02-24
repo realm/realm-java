@@ -389,9 +389,11 @@
 //                        if (mixedValue.type != MixedType.OBJECT) {
 //                            assertTrue(dictionary.containsValue(mixedValue))
 //                        } else {
-//                            // Cannot check if an unmanaged Mixed is in the map, it has to be managed
+//                            // Cannot check if an unmanaged RealmObject inside a Mixed instance is in the map
+//                            // We can only add managed Realm objects to Mixed, so this will fail when we try
+//                            // to create the native Mixed instance
 //                            assertFailsWith<ClassCastException> {
-//                                assertTrue(dictionary.containsValue(mixedValue))
+//                                dictionary.containsValue(mixedValue)
 //                            }
 //
 //                            // Get managed model first and then check
@@ -531,13 +533,6 @@
 //                val actualByteArrayValue = myByteArrayDictionary!![KEY_HELLO]
 //                assertEquals(Byte.MIN_VALUE, actualByteArrayValue!![0])
 //                assertEquals(Byte.MAX_VALUE, actualByteArrayValue[1])
-//
-//                val previousBoxedByteArrayValue = myBoxedByteArrayDictionary!!.put(KEY_HELLO, VALUE_HELLO_BOXED_BYTE_ARRAY)
-//                assertNull(previousBoxedByteArrayValue)
-//                val actualBoxedByteArrayValue = myBoxedByteArrayDictionary!![KEY_HELLO]
-//                assertEquals(Byte.MIN_VALUE, actualBoxedByteArrayValue!![0])
-//                assertEquals(Byte.MAX_VALUE, actualBoxedByteArrayValue[1])
-//
 //            }
 //        }
 //    }

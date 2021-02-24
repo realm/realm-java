@@ -46,7 +46,7 @@ class UnmanagedGeneric<T : Any>(
     override fun isEmpty() = assertUnmanagedIsEmpty(keyValuePairs)
     override fun containsKey() = assertUnmanagedContainsKey(keyValuePairs, notPresentKey)
     override fun containsValue() = assertUnmanagedContainsValue(keyValuePairs, notPresentValue)
-    override fun get() = Unit   // This has already been tested in "get"
+    override fun get() = Unit                       // This will be tested in "put"
     override fun put() = assertUnmanagedPut(keyValuePairs)
     override fun remove() = assertUnmanagedRemove(keyValuePairs)
     override fun putAll() = assertUnmanagedPutAll(keyValuePairs)
@@ -55,10 +55,8 @@ class UnmanagedGeneric<T : Any>(
     override fun values() = assertUnmanagedValues(keyValuePairs)
     override fun entrySet() = assertUnmanagedEntrySet(keyValuePairs)
     override fun freeze() = assertUnmanagedFreeze<T>()
-
-    // Managed-specific tests
-    override fun copyToRealm() = Unit
-    override fun copyFromRealm() = Unit
+    override fun copyToRealm() = Unit               // Not applicable
+    override fun copyFromRealm() = Unit             // Not applicable
 }
 
 /**
@@ -138,13 +136,6 @@ fun unmanagedFactory(): List<DictionaryTester> {
                         keyValuePairs = listOf(KEY_HELLO to VALUE_DECIMAL128_HELLO, KEY_BYE to VALUE_DECIMAL128_BYE, KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_DECIMAL128_NOT_PRESENT
-                )
-            DictionarySupportedType.BOXED_BINARY ->
-                UnmanagedGeneric<Array<Byte>>(
-                        testerName = "UnmanagedBoxedBinary",
-                        keyValuePairs = listOf(KEY_HELLO to VALUE_BOXED_BINARY_HELLO, KEY_BYE to VALUE_BOXED_BINARY_BYE, KEY_NULL to null),
-                        notPresentKey = KEY_NOT_PRESENT,
-                        notPresentValue = VALUE_BOXED_BINARY_NOT_PRESENT
                 )
             DictionarySupportedType.BINARY ->
                 UnmanagedGeneric<ByteArray>(
