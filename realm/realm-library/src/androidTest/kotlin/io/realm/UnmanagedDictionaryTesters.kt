@@ -27,7 +27,7 @@ import kotlin.test.assertTrue
 /**
  * Generic tester for all types of unmanaged dictionaries.
  */
-class UnmanagedGeneric<T : Any>(
+class UnmanagedGenericTester<T : Any>(
         private val testerName: String,
         private val keyValuePairs: List<Pair<String, T?>>,
         private val notPresentKey: String,
@@ -220,98 +220,98 @@ fun unmanagedFactory(): List<DictionaryTester> {
     val primitiveTesters: List<DictionaryTester> = DictionarySupportedType.values().mapNotNull { supportedType ->
         when (supportedType) {
             DictionarySupportedType.LONG ->
-                UnmanagedGeneric<Long>(
+                UnmanagedGenericTester<Long>(
                         testerName = "UnmanagedLong",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toLong(), KEY_BYE to VALUE_NUMERIC_BYE.toLong(), KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toLong()
                 )
             DictionarySupportedType.INTEGER ->
-                UnmanagedGeneric<Int>(
+                UnmanagedGenericTester<Int>(
                         testerName = "UnmanagedInteger",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_NUMERIC_HELLO, KEY_BYE to VALUE_NUMERIC_BYE, KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT
                 )
             DictionarySupportedType.SHORT ->
-                UnmanagedGeneric<Short>(
+                UnmanagedGenericTester<Short>(
                         testerName = "UnmanagedShort",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toShort(), KEY_BYE to VALUE_NUMERIC_BYE.toShort(), KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toShort()
                 )
             DictionarySupportedType.BYTE ->
-                UnmanagedGeneric<Byte>(
+                UnmanagedGenericTester<Byte>(
                         testerName = "UnmanagedByte",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toByte(), KEY_BYE to VALUE_NUMERIC_BYE.toByte(), KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toByte()
                 )
             DictionarySupportedType.FLOAT ->
-                UnmanagedGeneric<Float>(
+                UnmanagedGenericTester<Float>(
                         testerName = "UnmanagedFloat",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toFloat(), KEY_BYE to VALUE_NUMERIC_BYE.toFloat(), KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toFloat()
                 )
             DictionarySupportedType.DOUBLE ->
-                UnmanagedGeneric<Double>(
+                UnmanagedGenericTester<Double>(
                         testerName = "UnmanagedDouble",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toDouble(), KEY_BYE to VALUE_NUMERIC_BYE.toDouble(), KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toDouble()
                 )
             DictionarySupportedType.STRING ->
-                UnmanagedGeneric<String>(
+                UnmanagedGenericTester<String>(
                         testerName = "UnmanagedString",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_STRING_HELLO, KEY_BYE to VALUE_STRING_BYE, KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_STRING_NOT_PRESENT
                 )
             DictionarySupportedType.BOOLEAN ->
-                UnmanagedGeneric<Boolean>(
+                UnmanagedGenericTester<Boolean>(
                         testerName = "UnmanagedBoolean",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_BOOLEAN_HELLO, KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_BOOLEAN_NOT_PRESENT
                 )
             DictionarySupportedType.DATE ->
-                UnmanagedGeneric<Date>(
+                UnmanagedGenericTester<Date>(
                         testerName = "UnmanagedDate",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_DATE_HELLO, KEY_BYE to VALUE_DATE_BYE, KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_DATE_NOT_PRESENT
                 )
             DictionarySupportedType.DECIMAL128 ->
-                UnmanagedGeneric<Decimal128>(
+                UnmanagedGenericTester<Decimal128>(
                         testerName = "UnmanagedDecimal128",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_DECIMAL128_HELLO, KEY_BYE to VALUE_DECIMAL128_BYE, KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_DECIMAL128_NOT_PRESENT
                 )
             DictionarySupportedType.BINARY ->
-                UnmanagedGeneric<ByteArray>(
+                UnmanagedGenericTester<ByteArray>(
                         testerName = "UnmanagedBinary",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_BINARY_HELLO, KEY_BYE to VALUE_BINARY_BYE, KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_BINARY_NOT_PRESENT
                 )
             DictionarySupportedType.OBJECT_ID ->
-                UnmanagedGeneric<ObjectId>(
+                UnmanagedGenericTester<ObjectId>(
                         testerName = "UnmanagedObjectId",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_OBJECT_ID_HELLO, KEY_BYE to VALUE_OBJECT_ID_BYE, KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_OBJECT_ID_NOT_PRESENT
                 )
             DictionarySupportedType.UUID ->
-                UnmanagedGeneric<UUID>(
+                UnmanagedGenericTester<UUID>(
                         testerName = "UnmanagedUUID",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_UUID_HELLO, KEY_BYE to VALUE_UUID_BYE, KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_UUID_NOT_PRESENT
                 )
             DictionarySupportedType.LINK ->
-                UnmanagedGeneric<RealmModel>(
+                UnmanagedGenericTester<RealmModel>(
                         testerName = "UnmanagedRealmModel",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_LINK_HELLO, KEY_BYE to VALUE_LINK_BYE, KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
@@ -324,7 +324,7 @@ fun unmanagedFactory(): List<DictionaryTester> {
 
     // Create Mixed testers now
     val mixedTesters = MixedType.values().map { mixedType ->
-        UnmanagedGeneric<Mixed>(
+        UnmanagedGenericTester<Mixed>(
                 "UnmanagedMixed-${mixedType.name}",
                 getMixedKeyValuePairs(mixedType),
                 KEY_NOT_PRESENT,
