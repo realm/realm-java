@@ -16,21 +16,25 @@
 
 package io.realm;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Locale;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import io.realm.internal.ClassContainer;
+import io.realm.internal.Freezable;
 import io.realm.internal.ManageableObject;
 import io.realm.internal.OsMap;
-import io.realm.internal.OsObjectStore;
+import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
+import io.realm.internal.Table;
 import io.realm.internal.android.TypeUtils;
 import io.realm.internal.core.NativeMixed;
+import io.realm.internal.util.Pair;
 
 /**
  * A {@code ManagedMapManager} abstracts the different types of keys and values a managed
@@ -39,18 +43,23 @@ import io.realm.internal.core.NativeMixed;
  * @param <K> the key type
  * @param <V> the value type
  */
-abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject {
+abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, Freezable<RealmMap<K, V>> {
 
-    protected final Class<K> keyClass;
-    protected final MapValueOperator<V> mapValueOperator;
+    protected final MapValueOperator<K, V> mapValueOperator;
+    protected final ClassContainer classContainer;
 
-    ManagedMapManager(Class<K> keyClass, MapValueOperator<V> mapValueOperator) {
-        this.keyClass = keyClass;
+    ManagedMapManager(MapValueOperator<K, V> mapValueOperator, ClassContainer classContainer) {
         this.mapValueOperator = mapValueOperator;
+        this.classContainer = classContainer;
     }
+
+    protected abstract RealmMap<K, V> freezeInternal(Pair<BaseRealm, OsMap> frozenBaseRealmMap);
 
     @Override
     public abstract V put(K key, V value);
+
+    @Override
+    public abstract Set<Entry<K, V>> entrySet();
 
     @Override
     public boolean isManaged() {
@@ -68,6 +77,13 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject {
     }
 
     @Override
+    public V remove(Object key) {
+        V removedValue = mapValueOperator.get(key);
+        mapValueOperator.remove(key);
+        return removedValue;
+    }
+
+    @Override
     public int size() {
         return mapValueOperator.size();
     }
@@ -79,19 +95,18 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject {
 
     @Override
     public boolean containsKey(Object key) {
-        // TODO: use operator + do it natively
-        return false;
+        return mapValueOperator.containsKey(key);
     }
 
     @Override
-    public boolean containsValue(Object value) {
-        // TODO: use operator + do it natively
-        return false;
+    public boolean containsValue(@Nullable Object value) {
+        return mapValueOperator.containsValue(value);
     }
 
     @Override
-    public void putAll(Map m) {
-        // TODO: use operator + do it natively
+    public void putAll(Map<? extends K, ? extends V> m) {
+        //noinspection unchecked
+        mapValueOperator.putAll((Map<K, V>) m);
     }
 
     @Override
@@ -101,23 +116,20 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject {
 
     @Override
     public Set<K> keySet() {
-        // TODO: use operator + do it natively
-        return null;
+        return mapValueOperator.keySet();
     }
 
     @Override
     public Collection<V> values() {
-        // TODO: use operator + do it natively
-        return null;
+        return mapValueOperator.values();
     }
 
     @Override
-    public Set<Entry<K, V>> entrySet() {
-        // TODO: use operator + do it natively
-        return null;
+    public RealmMap<K, V> freeze() {
+        return freezeInternal(mapValueOperator.freeze());
     }
 
-    public OsMap getOsMap() {
+    OsMap getOsMap() {
         return mapValueOperator.osMap;
     }
 }
@@ -136,8 +148,25 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject {
  */
 class DictionaryManager<V> extends ManagedMapManager<String, V> {
 
-    DictionaryManager(MapValueOperator<V> mapValueOperator) {
-        super(String.class, mapValueOperator);
+    DictionaryManager(MapValueOperator<String, V> mapValueOperator, ClassContainer classContainer) {
+        super(mapValueOperator, classContainer);
+    }
+
+    @Override
+    protected RealmDictionary<V> freezeInternal(Pair<BaseRealm, OsMap> frozenBaseRealmMap) {
+        BaseRealm frozenBaseRealm = frozenBaseRealmMap.first;
+        OsMap osMap = frozenBaseRealmMap.second;
+        Class<?> clazz = classContainer.getClazz();
+        String className = classContainer.getClassName();
+
+        if (clazz != null) {
+            //noinspection unchecked
+            return new RealmDictionary<>(frozenBaseRealm, osMap, (Class<V>) clazz);
+        } else if (className != null) {
+            return new RealmDictionary<>(frozenBaseRealm, osMap, className);
+        } else {
+            throw new IllegalArgumentException("Either a class or a class string is required.");
+        }
     }
 
     @Override
@@ -151,10 +180,8 @@ class DictionaryManager<V> extends ManagedMapManager<String, V> {
     }
 
     @Override
-    public V remove(Object key) {
-        V removedValue = mapValueOperator.get(key);
-        mapValueOperator.remove(key);
-        return removedValue;
+    public Set<Entry<String, V>> entrySet() {
+        return mapValueOperator.entrySet();
     }
 }
 
@@ -164,16 +191,21 @@ class DictionaryManager<V> extends ManagedMapManager<String, V> {
  *
  * @param <V> the value type
  */
-abstract class MapValueOperator<V> {
+abstract class MapValueOperator<K, V> {
 
     protected final BaseRealm baseRealm;
     protected final OsMap osMap;
     protected final ClassContainer classContainer;
+    protected final RealmMapEntrySet.IteratorType iteratorType;
 
-    MapValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
+    MapValueOperator(BaseRealm baseRealm,
+                     OsMap osMap,
+                     ClassContainer classContainer,
+                     RealmMapEntrySet.IteratorType iteratorType) {
         this.baseRealm = baseRealm;
         this.osMap = osMap;
         this.classContainer = classContainer;
+        this.iteratorType = iteratorType;
     }
 
     @Nullable
@@ -181,6 +213,10 @@ abstract class MapValueOperator<V> {
 
     @Nullable
     public abstract V put(Object key, @Nullable V value);
+
+    public abstract Set<Map.Entry<K, V>> entrySet();
+
+    public abstract boolean containsValue(@Nullable Object value);
 
     public void remove(Object key) {
         osMap.remove(key);
@@ -194,8 +230,15 @@ abstract class MapValueOperator<V> {
         return osMap.size() == 0;
     }
 
+    public boolean containsKey(Object key) {
+        return osMap.containsKey(key);
+    }
+
     public boolean isValid() {
-        return !baseRealm.isClosed();
+        if (baseRealm.isClosed()) {
+            return false;
+        }
+        return osMap.isValid();
     }
 
     public boolean isFrozen() {
@@ -205,15 +248,60 @@ abstract class MapValueOperator<V> {
     public void clear() {
         osMap.clear();
     }
+
+    public void putAll(Map<K, V> map) {
+        // TODO: inefficient, pass array of keys and array of values to JNI instead,
+        //  which requires operators to implement it as it varies from type to type
+        for (Map.Entry<K, V> entry : map.entrySet()) {
+            put(entry.getKey(), entry.getValue());
+        }
+    }
+
+    public Set<K> keySet() {
+        //noinspection unchecked
+        return new HashSet<>((Collection<K>) produceResults(osMap.tableAndKeyPtrs(), true, String.class));
+    }
+
+    public Collection<V> values() {
+        Class<?> clazz = classContainer.getClazz();
+        if (clazz != null) {
+            boolean forPrimitives = !RealmModel.class.isAssignableFrom(clazz);
+            //noinspection unchecked
+            return (Collection<V>) produceResults(osMap.tableAndValuePtrs(), forPrimitives, classContainer.getClazz());
+        }
+        throw new IllegalStateException("MapValueOperator missing class in 'classContainer'.");
+    }
+
+    public Pair<BaseRealm, OsMap> freeze() {
+        BaseRealm frozenRealm = baseRealm.freeze();
+        return new Pair<>(frozenRealm, osMap.freeze(frozenRealm.sharedRealm));
+    }
+
+    private <T> RealmResults<T> produceResults(Pair<Table, Long> tableAndValuesPtr,
+                                               boolean forPrimitives,
+                                               @Nullable Class<T> clazz) {
+        if (baseRealm instanceof Realm) {
+            Realm realm = (Realm) baseRealm;
+            Table table = tableAndValuesPtr.first;
+            Long valuesPtr = tableAndValuesPtr.second;
+            OsResults osResults = OsResults.createFromMap(baseRealm.sharedRealm, valuesPtr);
+            if (clazz != null) {
+                return new RealmResults<>(realm, osResults, clazz, forPrimitives);
+            }
+            throw new IllegalStateException("MapValueOperator missing class.");
+        }
+
+        throw new UnsupportedOperationException("Add support for 'values' for DynamicRealms.");
+    }
 }
 
 /**
  * {@link MapValueOperator} targeting {@link Mixed} values in {@link RealmMap}s.
  */
-class MixedValueOperator extends MapValueOperator<Mixed> {
+class MixedValueOperator<K> extends MapValueOperator<K, Mixed> {
 
     MixedValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
-        super(baseRealm, osMap, classContainer);
+        super(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.MIXED);
     }
 
     @Nullable
@@ -239,20 +327,47 @@ class MixedValueOperator extends MapValueOperator<Mixed> {
         }
         return original;
     }
+
+    @Override
+    public Set<Map.Entry<K, Mixed>> entrySet() {
+        return new RealmMapEntrySet<>(baseRealm, osMap, RealmMapEntrySet.IteratorType.MIXED, null);
+    }
+
+    @Override
+    public boolean containsValue(@Nullable Object value) {
+        if (value instanceof Mixed) {
+            return osMap.containsMixedValue(((Mixed) value).getNativePtr());
+        }
+        throw new IllegalArgumentException("This dictionary can only contain 'Mixed' values.");
+    }
 }
 
 /**
  * {@link MapValueOperator} targeting boxable values in {@link RealmMap}s.
  */
-class BoxableValueOperator<T> extends MapValueOperator<T> {
+class GenericPrimitiveValueOperator<K, V> extends MapValueOperator<K, V> {
 
-    BoxableValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
-        super(baseRealm, osMap, classContainer);
+    private final EqualsHelper<K, V> equalsHelper;
+
+    GenericPrimitiveValueOperator(BaseRealm baseRealm,
+                                  OsMap osMap,
+                                  ClassContainer classContainer,
+                                  RealmMapEntrySet.IteratorType iteratorType) {
+        this(baseRealm, osMap, classContainer, iteratorType, new GenericEquals<>());
+    }
+
+    GenericPrimitiveValueOperator(BaseRealm baseRealm,
+                                  OsMap osMap,
+                                  ClassContainer classContainer,
+                                  RealmMapEntrySet.IteratorType iteratorType,
+                                  EqualsHelper<K, V> equalsHelper) {
+        super(baseRealm, osMap, classContainer, iteratorType);
+        this.equalsHelper = equalsHelper;
     }
 
     @Nullable
     @Override
-    public T get(Object key) {
+    public V get(Object key) {
         Object value = osMap.get(key);
         if (value == null) {
             return null;
@@ -262,10 +377,20 @@ class BoxableValueOperator<T> extends MapValueOperator<T> {
 
     @Nullable
     @Override
-    public T put(Object key, @Nullable T value) {
-        T original = get(key);
+    public V put(Object key, @Nullable V value) {
+        V original = get(key);
         osMap.put(key, value);
         return original;
+    }
+
+    @Override
+    public Set<Map.Entry<K, V>> entrySet() {
+        return new RealmMapEntrySet<>(baseRealm, osMap, iteratorType, equalsHelper, null);
+    }
+
+    @Override
+    public boolean containsValue(@Nullable Object value) {
+        return osMap.containsPrimitiveValue(value);
     }
 
     /**
@@ -277,38 +402,21 @@ class BoxableValueOperator<T> extends MapValueOperator<T> {
      * @return the value in its right form
      */
     @Nullable
-    protected T processValue(Object value) {
+    protected V processValue(Object value) {
         //noinspection unchecked
-        return (T) value;
-    }
-}
-
-/**
- * {@link MapValueOperator} targeting {@link Byte[]} values in {@link RealmMap}s. Use this one
- * instead of {@link BoxableValueOperator} to avoid and typecast exception when converting the
- * result from JNI to {@link Byte[]}.
- */
-class BoxedByteArrayValueOperator extends BoxableValueOperator<Byte[]> {
-
-    BoxedByteArrayValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
-        super(baseRealm, osMap, classContainer);
-    }
-
-    @Override
-    protected Byte[] processValue(Object value) {
-        return TypeUtils.convertPrimitiveBinaryToNonPrimitive((byte[]) value);
+        return (V) value;
     }
 }
 
 /**
  * {@link MapValueOperator} targeting {@link Integer} values in {@link RealmMap}s. Use this one
- * instead of {@link BoxableValueOperator} to avoid and typecast exception when converting the
+ * instead of {@link GenericPrimitiveValueOperator} to avoid and typecast exception when converting the
  * {@link Long} result from JNI to {@link Integer}.
  */
-class IntegerValueOperator extends BoxableValueOperator<Integer> {
+class IntegerValueOperator<K> extends GenericPrimitiveValueOperator<K, Integer> {
 
     IntegerValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
-        super(baseRealm, osMap, classContainer);
+        super(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.INTEGER);
     }
 
     @Override
@@ -319,13 +427,13 @@ class IntegerValueOperator extends BoxableValueOperator<Integer> {
 
 /**
  * {@link MapValueOperator} targeting {@link Short} values in {@link RealmMap}s. Use this one
- * instead of {@link BoxableValueOperator} to avoid and typecast exception when converting the
+ * instead of {@link GenericPrimitiveValueOperator} to avoid and typecast exception when converting the
  * {@link Long} result from JNI to {@link Short}.
  */
-class ShortValueOperator extends BoxableValueOperator<Short> {
+class ShortValueOperator<K> extends GenericPrimitiveValueOperator<K, Short> {
 
     ShortValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
-        super(baseRealm, osMap, classContainer);
+        super(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.SHORT);
     }
 
     @Override
@@ -336,13 +444,13 @@ class ShortValueOperator extends BoxableValueOperator<Short> {
 
 /**
  * {@link MapValueOperator} targeting {@link Byte} values in {@link RealmMap}s. Use this one
- * instead of {@link BoxableValueOperator} to avoid and typecast exception when converting the
+ * instead of {@link GenericPrimitiveValueOperator} to avoid and typecast exception when converting the
  * {@link Long} result from JNI to {@link Byte}.
  */
-class ByteValueOperator extends BoxableValueOperator<Byte> {
+class ByteValueOperator<K> extends GenericPrimitiveValueOperator<K, Byte> {
 
     ByteValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
-        super(baseRealm, osMap, classContainer);
+        super(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.BYTE);
     }
 
     @Override
@@ -354,15 +462,15 @@ class ByteValueOperator extends BoxableValueOperator<Byte> {
 /**
  * {@link MapValueOperator} targeting {@link RealmModel}s values in {@link RealmMap}s.
  */
-class RealmModelValueOperator<T extends RealmModel> extends MapValueOperator<T> {
+class RealmModelValueOperator<K, V> extends MapValueOperator<K, V> {
 
     RealmModelValueOperator(BaseRealm baseRealm, OsMap osMap, ClassContainer classContainer) {
-        super(baseRealm, osMap, classContainer);
+        super(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.OBJECT);
     }
 
     @Nullable
     @Override
-    public T get(Object key) {
+    public V get(Object key) {
         long realmModelKey = osMap.getModelRowKey(key);
         if (realmModelKey == OsMap.NOT_FOUND) {
             return null;
@@ -373,14 +481,14 @@ class RealmModelValueOperator<T extends RealmModel> extends MapValueOperator<T> 
         String className = classContainer.getClassName();
 
         //noinspection unchecked
-        return (T) baseRealm.get(clazz, className, realmModelKey);
+        return (V) baseRealm.get(clazz, className, realmModelKey);
     }
 
     @Nullable
     @Override
-    public T put(Object key, @Nullable T value) {
+    public V put(Object key, @Nullable V value) {
         //noinspection unchecked
-        Class<T> clazz = (Class<T>) classContainer.getClazz();
+        Class<V> clazz = (Class<V>) classContainer.getClazz();
         String className = classContainer.getClassName();
         long rowModelKey = osMap.getModelRowKey(key);
 
@@ -388,11 +496,10 @@ class RealmModelValueOperator<T extends RealmModel> extends MapValueOperator<T> 
             osMap.put(key, null);
         } else {
             if (className == null) {
-                if (clazz != null) {
-                    className = clazz.getCanonicalName();
-                } else {
-                    throw new IllegalStateException("Missing className.");
+                if (clazz == null) {
+                    throw new IllegalStateException("Missing clazz.");
                 }
+                className = clazz.getCanonicalName();
             }
             boolean copyObject = CollectionUtils.checkCanObjectBeCopied(baseRealm, (RealmModel) value, className);
             RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, (RealmModel) value) : (RealmModel) value);
@@ -402,34 +509,28 @@ class RealmModelValueOperator<T extends RealmModel> extends MapValueOperator<T> 
         if (rowModelKey == OsMap.NOT_FOUND) {
             return null;
         } else {
+            if (clazz == null) {
+                throw new IllegalStateException("Missing clazz.");
+            }
             //noinspection unchecked
-            return (T) baseRealm.get((Class<? extends RealmModel>) clazz, className, rowModelKey);
+            return (V) baseRealm.get((Class<? extends RealmModel>) clazz, rowModelKey, false, new ArrayList<>());
         }
     }
-}
 
-/**
- * Used to avoid passing a {@link Class} and a {@link String} via parameters to the value operators.
- */
-class ClassContainer {
-
-    @Nullable
-    private final Class<?> clazz;
-    @Nullable
-    private final String className;
-
-    public ClassContainer(@Nullable Class<?> clazz, @Nullable String className) {
-        this.clazz = clazz;
-        this.className = className;
+    @Override
+    public Set<Map.Entry<K, V>> entrySet() {
+        return new RealmMapEntrySet<>(baseRealm, osMap, RealmMapEntrySet.IteratorType.OBJECT, classContainer);
     }
 
-    @Nullable
-    public Class<?> getClazz() {
-        return clazz;
-    }
-
-    @Nullable
-    public String getClassName() {
-        return className;
+    @Override
+    public boolean containsValue(@Nullable Object value) {
+        if (value == null) {
+            return osMap.containsPrimitiveValue(null);
+        } else if (value instanceof RealmObjectProxy) {
+            Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
+            long tablePtr = row$realm.getTable().getNativePtr();
+            return osMap.containsRealmModel(row$realm.getObjectKey(), tablePtr);
+        }
+        throw new IllegalArgumentException("Only managed models can be contained in this dictionary.");
     }
 }

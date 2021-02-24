@@ -115,7 +115,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
     }
 
     @Override
-    public boolean containsValue(Object value) {
+    public boolean containsValue(@Nullable Object value) {
         return mapStrategy.containsValue(value);
     }
 
@@ -156,7 +156,6 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
 
     @Override
     public Set<Entry<K, V>> entrySet() {
-        // TODO: consider throwing until we have sets in place
         return mapStrategy.entrySet();
     }
 
@@ -169,6 +168,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
         return mapStrategy.freeze();
     }
 
+    // Needed for embedded objects
     OsMap getOsMap() {
         return mapStrategy.getOsMap();
     }
@@ -196,7 +196,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
          */
         protected abstract V putInternal(K key, V value);
 
-        protected abstract OsMap getOsMap();
+        abstract OsMap getOsMap();
 
         // ------------------------------------------
         // Map API
@@ -280,9 +280,8 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
         }
 
         @Override
-        public boolean containsValue(Object value) {
-            //noinspection SuspiciousMethodCalls
-            return managedMapManager.containsKey(value);
+        public boolean containsValue(@Nullable Object value) {
+            return managedMapManager.containsValue(value);
         }
 
         @Override
@@ -326,8 +325,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
 
         @Override
         public RealmMap<K, V> freeze() {
-            // TODO
-            throw new UnsupportedOperationException("Freeze not ready yet.");
+            return managedMapManager.freeze();
         }
 
         // ------------------------------------------
@@ -340,7 +338,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
         }
 
         @Override
-        protected OsMap getOsMap() {
+        OsMap getOsMap() {
             return managedMapManager.getOsMap();
         }
     }
@@ -454,7 +452,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
         }
 
         @Override
-        protected OsMap getOsMap() {
+        OsMap getOsMap() {
             throw new UnsupportedOperationException("Unmanaged maps aren't represented in native code.");
         }
     }

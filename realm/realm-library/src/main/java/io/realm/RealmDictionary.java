@@ -19,13 +19,12 @@ package io.realm;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import io.realm.internal.ClassContainer;
 import io.realm.internal.OsMap;
 
 /**
@@ -109,13 +108,15 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
     private static <V> ManagedMapStrategy<String, V> getStrategy(Class<V> valueClass, BaseRealm baseRealm, OsMap osMap) {
         if (isClassForRealmModel(valueClass)) {
             ClassContainer classContainer = new ClassContainer(valueClass, null);
-            RealmModelValueOperator<RealmModel> realmModelValueOperator = new RealmModelValueOperator<>(baseRealm, osMap, classContainer);
-            ManagedMapManager<String, RealmModel> dictionaryManager = new DictionaryManager<>(realmModelValueOperator);
+            RealmModelValueOperator<String, RealmModel> realmModelValueOperator = new RealmModelValueOperator<>(baseRealm, osMap, classContainer);
+            ManagedMapManager<String, RealmModel> dictionaryManager = new DictionaryManager<>(realmModelValueOperator, classContainer);
 
             //noinspection unchecked
             return (ManagedMapStrategy<String, V>) new ManagedMapStrategy<>(dictionaryManager);
         }
-        return getStrategy(valueClass.getCanonicalName(), baseRealm, osMap);
+
+        DictionaryManager<V> manager = getManager(valueClass, baseRealm, osMap);
+        return new ManagedMapStrategy<>(manager);
     }
 
     private static <V> ManagedMapStrategy<String, V> getStrategy(String valueClass, BaseRealm baseRealm, OsMap osMap) {
@@ -123,50 +124,89 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         return new ManagedMapStrategy<>(manager);
     }
 
-    private static <V> DictionaryManager<V> getManager(String valueClass, BaseRealm baseRealm, OsMap osMap) {
-        // TODO: add other types when ready
-        ClassContainer classContainer = new ClassContainer(null, valueClass);
+    private static <K, V> DictionaryManager<V> getManager(Class<V> valueClass, BaseRealm baseRealm, OsMap osMap) {
+        ClassContainer classContainer = new ClassContainer(valueClass, null);
 
-        MapValueOperator<?> mapValueOperator;
+        MapValueOperator<K, ?> mapValueOperator;
 
-        if (isClassBoxable(valueClass)) {
-            mapValueOperator = new BoxableValueOperator<>(baseRealm, osMap, classContainer);
-        } else if (valueClass.equals(Mixed.class.getCanonicalName())) {
-            mapValueOperator = new MixedValueOperator(baseRealm, osMap, classContainer);
-        } else if (valueClass.equals(Integer.class.getCanonicalName())) {
-            mapValueOperator = new IntegerValueOperator(baseRealm, osMap, classContainer);
-        } else if (valueClass.equals(Short.class.getCanonicalName())) {
-            mapValueOperator = new ShortValueOperator(baseRealm, osMap, classContainer);
-        } else if (valueClass.equals(Byte.class.getCanonicalName())) {
-            mapValueOperator = new ByteValueOperator(baseRealm, osMap, classContainer);
-        } else if (valueClass.equals(Byte[].class.getCanonicalName())) {
-            mapValueOperator = new BoxedByteArrayValueOperator(baseRealm, osMap, classContainer);
+        if (valueClass == Mixed.class) {
+            mapValueOperator = new MixedValueOperator<>(baseRealm, osMap, classContainer);
+        } else if (valueClass == Long.class) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.LONG);
+        } else if (valueClass == Float.class) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.FLOAT);
+        } else if (valueClass == Double.class) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.DOUBLE);
+        } else if (valueClass == String.class) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.STRING);
+        } else if (valueClass == Boolean.class) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.BOOLEAN);
+        } else if (valueClass == Date.class) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.DATE);
+        } else if (valueClass == Decimal128.class) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.DECIMAL128);
+        } else if (valueClass == Integer.class) {
+            mapValueOperator = new IntegerValueOperator<>(baseRealm, osMap, classContainer);
+        } else if (valueClass == Short.class) {
+            mapValueOperator = new ShortValueOperator<>(baseRealm, osMap, classContainer);
+        } else if (valueClass == Byte.class) {
+            mapValueOperator = new ByteValueOperator<>(baseRealm, osMap, classContainer);
+        } else if (valueClass == byte[].class) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.BINARY, new BinaryEquals<>());
+        } else if (valueClass == ObjectId.class) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.OBJECT_ID);
+        } else if (valueClass == UUID.class) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.UUID);
         } else {
             throw new IllegalArgumentException("Only Maps of Mixed or one of the types that can be boxed inside Mixed can be used.");
         }
 
         //noinspection unchecked
-        return new DictionaryManager<>((MapValueOperator<V>) mapValueOperator);
+        return new DictionaryManager<>((MapValueOperator<String, V>) mapValueOperator, classContainer);
     }
 
-    private static boolean isClassBoxable(String valueClass) {
-        return boxableClasses.contains(valueClass);
+    private static <K, V> DictionaryManager<V> getManager(String valueClass, BaseRealm baseRealm, OsMap osMap) {
+        ClassContainer classContainer = new ClassContainer(null, valueClass);
+
+        MapValueOperator<K, ?> mapValueOperator;
+
+        if (valueClass.equals(Mixed.class.getCanonicalName())) {
+            mapValueOperator = new MixedValueOperator<>(baseRealm, osMap, classContainer);
+        } else if (valueClass.equals(Long.class.getCanonicalName())) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.LONG);
+        } else if (valueClass.equals(Float.class.getCanonicalName())) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.FLOAT);
+        } else if (valueClass.equals(Double.class.getCanonicalName())) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.DOUBLE);
+        } else if (valueClass.equals(String.class.getCanonicalName())) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.STRING);
+        } else if (valueClass.equals(Boolean.class.getCanonicalName())) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.BOOLEAN);
+        } else if (valueClass.equals(Date.class.getCanonicalName())) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.DATE);
+        } else if (valueClass.equals(Decimal128.class.getCanonicalName())) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.DECIMAL128);
+        } else if (valueClass.equals(Integer.class.getCanonicalName())) {
+            mapValueOperator = new IntegerValueOperator<>(baseRealm, osMap, classContainer);
+        } else if (valueClass.equals(Short.class.getCanonicalName())) {
+            mapValueOperator = new ShortValueOperator<>(baseRealm, osMap, classContainer);
+        } else if (valueClass.equals(Byte.class.getCanonicalName())) {
+            mapValueOperator = new ByteValueOperator<>(baseRealm, osMap, classContainer);
+        } else if (valueClass.equals(byte[].class.getCanonicalName())) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.BINARY, new BinaryEquals<>());
+        } else if (valueClass.equals(ObjectId.class.getCanonicalName())) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.OBJECT_ID);
+        } else if (valueClass.equals(UUID.class.getCanonicalName())) {
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, classContainer, RealmMapEntrySet.IteratorType.UUID);
+        } else {
+            throw new IllegalArgumentException("Only Maps of Mixed or one of the types that can be boxed inside Mixed can be used.");
+        }
+
+        //noinspection unchecked
+        return new DictionaryManager<>((MapValueOperator<String, V>) mapValueOperator, classContainer);
     }
 
     private static boolean isClassForRealmModel(Class<?> clazz) {
         return RealmModel.class.isAssignableFrom(clazz);
     }
-
-    private static final List<String> boxableClasses = Arrays.asList(
-            Long.class.getCanonicalName(),
-            Float.class.getCanonicalName(),
-            Double.class.getCanonicalName(),
-            String.class.getCanonicalName(),
-            Boolean.class.getCanonicalName(),
-            Date.class.getCanonicalName(),
-            Decimal128.class.getCanonicalName(),
-            byte[].class.getCanonicalName(),
-            ObjectId.class.getCanonicalName(),
-            UUID.class.getCanonicalName()
-    );
 }

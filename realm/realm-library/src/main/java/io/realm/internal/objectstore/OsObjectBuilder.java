@@ -262,13 +262,6 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
-    private static ItemCallback<Map.Entry<String, Byte[]>> nonPrimitiveBinaryMapItemCallback = new ItemCallback<Map.Entry<String, Byte[]>>() {
-        @Override
-        public void handleItem(long containerPtr, Map.Entry<String, Byte[]> item) {
-            nativeAddBinaryDictionaryEntry(containerPtr, item.getKey(), TypeUtils.convertNonPrimitiveBinaryToPrimitive(item.getValue()));
-        }
-    };
-
     private static ItemCallback<Map.Entry<String, Date>> dateMapItemCallback = new ItemCallback<Map.Entry<String, Date>>() {
         @Override
         public void handleItem(long containerPtr, Map.Entry<String, Date> item) {
@@ -623,10 +616,6 @@ public class OsObjectBuilder implements Closeable {
 
     public void addBinaryValueDictionary(long columnKey, RealmDictionary<byte[]> dictionary) {
         addDictionaryItem(builderPtr, columnKey, dictionary, binaryMapItemCallback);
-    }
-
-    public void addNonPrimitiveBinaryValueDictionary(long columnKey, RealmDictionary<Byte[]> dictionary) {
-        addDictionaryItem(builderPtr, columnKey, dictionary, nonPrimitiveBinaryMapItemCallback);
     }
 
     public void addObjectIdValueDictionary(long columnKey, RealmDictionary<ObjectId> dictionary) {

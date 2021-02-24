@@ -35,9 +35,11 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +49,7 @@ import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import io.realm.entities.DefaultValueOfField;
+import io.realm.entities.DictionaryClass;
 import io.realm.entities.Dog;
 import io.realm.entities.MappedAllJavaTypes;
 import io.realm.entities.NonLatinFieldNames;
@@ -64,6 +67,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -2209,4 +2213,41 @@ public class RealmResultsTests extends CollectionTests {
         JSONAssert.assertEquals(expectedJSON, json, false);
     }
 
+    /**
+     * Test we can also hold primitive values in RealmResults. This is a somewhat concealed feature
+     * since we do not allow queries on primitive types as per version 10.3.1. The only place in
+     * the SDK that returns primitive RealmResults is the {@link RealmDictionary#values()}.
+     */
+    @Test
+    public void canHoldPrimitiveTypes() {
+        String KEY_1 = "KEY_1";
+        String KEY_2 = "KEY_2";
+        String VALUE_1 = "VALUE_1";
+        String VALUE_2 = "VALUE_2";
+
+        RealmDictionary<String> stringDictionary = new RealmDictionary<>();
+        stringDictionary.put(KEY_1, VALUE_1);
+        stringDictionary.put(KEY_2, VALUE_2);
+
+        realm.beginTransaction();
+        DictionaryClass object = new DictionaryClass();
+        object.setMyStringDictionary(stringDictionary);
+        DictionaryClass objectFromRealm = realm.copyToRealm(object);
+        realm.commitTransaction();
+
+        RealmDictionary<String> stringDictionaryFromRealm = objectFromRealm.getMyStringDictionary();
+        assertNotNull(stringDictionaryFromRealm);
+
+        Collection<String> values = stringDictionaryFromRealm.values();
+        assertNotNull(values);
+        assertTrue(values instanceof RealmResults);
+        assertTrue(values.contains(VALUE_1));
+        assertTrue(values.contains(VALUE_2));
+
+        // Not returning RealmResults per se, but rather wrapped in a HashSet
+        Set<String> keySet = stringDictionaryFromRealm.keySet();
+        assertNotNull(keySet);
+        assertTrue(keySet.contains(KEY_1));
+        assertTrue(keySet.contains(KEY_2));
+    }
 }

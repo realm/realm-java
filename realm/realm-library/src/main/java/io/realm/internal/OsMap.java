@@ -25,6 +25,8 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import io.realm.internal.android.TypeUtils;
+import io.realm.internal.core.NativeMixed;
+import io.realm.internal.util.Pair;
 
 /**
  * Java wrapper of Object Store Dictionary class. This backs managed versions of RealmMaps.
@@ -33,14 +35,24 @@ public class OsMap implements NativeObject {
 
     public static final int NOT_FOUND = -1;
 
-    private final long nativePtr;
-    private final NativeContext context;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
-    public OsMap(UncheckedRow row, long columnKey) {
-        OsSharedRealm sharedRealm = row.getTable().getSharedRealm();
-        this.nativePtr = nativeCreate(sharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
-        this.context = sharedRealm.context;
+    private final long nativePtr;
+    private final NativeContext context;
+    private final Table targetTable;
+
+    public OsMap(UncheckedRow row, long columnKey, Table targetTable) {
+        OsSharedRealm osSharedRealm = row.getTable().getSharedRealm();
+        this.targetTable = targetTable;
+        this.nativePtr = nativeCreate(osSharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
+        this.context = osSharedRealm.context;
+        context.addReference(this);
+    }
+
+    private OsMap(OsSharedRealm osSharedRealm, long nativePtr, Table targetTable) {
+        this.nativePtr = nativePtr;
+        this.targetTable = targetTable;
+        this.context = osSharedRealm.context;
         context.addReference(this);
     }
 
@@ -58,8 +70,72 @@ public class OsMap implements NativeObject {
         return nativeSize(nativePtr);
     }
 
+    public boolean containsKey(Object key) {
+        return nativeContainsKey(nativePtr, (String) key);
+    }
+
+    public boolean isValid() {
+        return nativeIsValid(nativePtr);
+    }
+
+    public boolean containsPrimitiveValue(@Nullable Object value) {
+        if (value == null) {
+            return nativeContainsNull(nativePtr);
+        } else if (value instanceof Integer) {
+            return nativeContainsLong(nativePtr, ((Integer) value).longValue());
+        } else if (value instanceof Long) {
+            return nativeContainsLong(nativePtr, (long) value);
+        } else if (value instanceof Double) {
+            return nativeContainsLong(nativePtr, ((Double) value).longValue());
+        } else if (value instanceof Short) {
+            return nativeContainsLong(nativePtr, ((Short) value).longValue());
+        } else if (value instanceof Byte) {
+            return nativeContainsLong(nativePtr, ((Byte) value).longValue());
+        } else if (value instanceof Boolean) {
+            return nativeContainsBoolean(nativePtr, (boolean) value);
+        } else if (value instanceof String) {
+            return nativeContainsString(nativePtr, (String) value);
+        } else if (value instanceof Byte[]) {
+            return nativeContainsBinary(nativePtr, TypeUtils.convertNonPrimitiveBinaryToPrimitive((Byte[]) value));
+        } else if (value instanceof byte[]) {
+            return nativeContainsBinary(nativePtr, (byte[]) value);
+        } else if (value instanceof Float) {
+            return nativeContainsFloat(nativePtr, (float) value);
+        } else if (value instanceof UUID) {
+            return nativeContainsUUID(nativePtr, value.toString());
+        } else if (value instanceof ObjectId) {
+            return nativeContainsObjectId(nativePtr, ((ObjectId) value).toString());
+        } else if (value instanceof Date) {
+            return nativeContainsDate(nativePtr, ((Date) value).getTime());
+        } else if (value instanceof Decimal128) {
+            Decimal128 decimal128 = (Decimal128) value;
+            return nativeContainsDecimal128(nativePtr, decimal128.getHigh(), decimal128.getLow());
+        }
+        throw new IllegalArgumentException("Invalid object type: " + value.getClass().getCanonicalName());
+    }
+
+    public boolean containsMixedValue(long mixedPtr) {
+        return nativeContainsMixed(nativePtr, mixedPtr);
+    }
+
+    public boolean containsRealmModel(long objKey, long tablePtr) {
+        return nativeContainsRealmModel(nativePtr, objKey, tablePtr);
+    }
+
     public void clear() {
         nativeClear(nativePtr);
+    }
+
+    public Pair<Table, Long> tableAndKeyPtrs() {
+        return new Pair<>(targetTable, nativeKeys(nativePtr));
+    }
+
+    public Pair<Table, Long> tableAndValuePtrs() {
+        return new Pair<>(targetTable, nativeValues(nativePtr));
+    }
+
+    public OsMap freeze(OsSharedRealm osSharedRealm) {
+        return new OsMap(osSharedRealm, nativeFreeze(nativePtr, osSharedRealm.getNativePtr()), targetTable);
     }
 
     // ------------------------------------------
@@ -139,6 +215,40 @@ public class OsMap implements NativeObject {
         return nativeCreateAndPutEmbeddedObject(sharedRealm.getNativePtr(), nativePtr, (String) key);
     }
 
+    public <K> Pair<K, Object> getEntryForPrimitive(int position) {
+        // entry from OsMap is an array: entry[0] is key and entry[1] is the object key
+        Object[] entry = nativeGetEntryForPrimitive(nativePtr, position);
+        String key = (String) entry[0];
+
+        //noinspection unchecked
+        return new Pair<>((K) key, entry[1]);
+    }
+
+    public <K> Pair<K, Long> getKeyObjRowPair(int position) {
+        // entry from OsMap is an array: entry[0] is key and entry[1] is the object key
+        Object[] entry = nativeGetEntryForModel(nativePtr, position);
+        String key = (String) entry[0];
+        long objRow = (long) entry[1];
+
+        if (objRow == NOT_FOUND) {
+            //noinspection unchecked
+            return new Pair<>((K) key, (long) NOT_FOUND);
+        }
+
+        //noinspection unchecked
+        return new Pair<>((K) key, objRow);
+    }
+
+    public <K> Pair<K, NativeMixed> getKeyMixedPair(int position) {
+        // entry from OsMap is an array: entry[0] is key and entry[1] is a Mixed value
+        Object[] entry = nativeGetEntryForMixed(nativePtr, position);
+        String key = (String) entry[0];
+        NativeMixed nativeMixed = new NativeMixed((long) entry[1]);
+
+        //noinspection unchecked
+        return new Pair<>((K) key, nativeMixed);
+    }
+
     private static native long nativeGetFinalizerPtr();
 
     private static native long nativeCreate(long sharedRealmPtr, long nativeRowPtr, long columnKey);
@@ -177,9 +287,49 @@ public class OsMap implements NativeObject {
 
     private static native long nativeSize(long nativePtr);
 
+    private static native boolean nativeContainsKey(long nativePtr, String key);
+
+    private static native boolean nativeIsValid(long nativePtr);
+
     private static native void nativeClear(long nativePtr);
 
     private static native void nativeRemove(long nativePtr, String key);
 
+    private static native long nativeKeys(long nativePtr);
+
+    private static native long nativeValues(long nativePtr);
+
+    private static native long nativeFreeze(long nativePtr, long realmPtr);
+
     private static native long nativeCreateAndPutEmbeddedObject(long sharedRealmPtr, long nativePtr, String key);
+
+    private static native Object[] nativeGetEntryForModel(long nativePtr, int position);
+
+    private static native Object[] nativeGetEntryForMixed(long nativePtr, int position);
+
+    private static native Object[] nativeGetEntryForPrimitive(long nativePtr, int position);
+
+    private static native boolean nativeContainsNull(long nativePtr);
+
+    private static native boolean nativeContainsLong(long nativePtr, long value);
+
+    private static native boolean nativeContainsBoolean(long nativePtr, boolean value);
+
+    private static native boolean nativeContainsString(long nativePtr, String value);
+
+    private static native boolean nativeContainsBinary(long nativePtr, byte[] value);
+
+    private static native boolean nativeContainsFloat(long nativePtr, float value);
+
+    private static native boolean nativeContainsObjectId(long nativePtr, String value);
+
+    private static native boolean nativeContainsUUID(long nativePtr, String value);
+
+    private static native boolean nativeContainsDate(long nativePtr, long value);
+
+    private static native boolean nativeContainsDecimal128(long nativePtr, long high, long low);
+
+    private static native boolean nativeContainsMixed(long nativePtr, long mixedPtr);
+
+    private static native boolean nativeContainsRealmModel(long nativePtr, long objKey, long tablePtr);
 }

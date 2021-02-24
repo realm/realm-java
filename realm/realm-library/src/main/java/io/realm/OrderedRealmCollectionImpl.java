@@ -1,6 +1,7 @@
 package io.realm;
 
 import java.util.AbstractList;
+import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.Iterator;
@@ -14,6 +15,7 @@ import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
+import io.realm.internal.core.NativeMixed;
 import io.realm.internal.core.QueryDescriptor;
 
 /**
@@ -107,8 +109,16 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
             }
 
             for (E e : this) {
-                if (e.equals(object)) {
-                    return true;
+                if (e instanceof byte [] && object instanceof byte[]) {
+                    if (Arrays.equals((byte[]) e, (byte[]) object)) {
+                        return true;
+                    }
+                } else {
+                    if (e != null && e.equals(object)) {
+                        return true;
+                    } else if (e == null && object == null) {
+                        return true;
+                    }
                 }
             }
         }
@@ -606,9 +616,27 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
         return new SchemaConnector(baseRealm.getSchema());
     }
 
-    protected static <T> CollectionOperator<T> getCollectionOperator(boolean forPrimitives, BaseRealm baseRealm, OsResults osResults, @Nullable Class<T> clazz, @Nullable String className) {
+    protected static <T> CollectionOperator<T> getCollectionOperator(boolean forPrimitives,
+                                                                     BaseRealm baseRealm,
+                                                                     OsResults osResults,
+                                                                     @Nullable Class<T> clazz,
+                                                                     @Nullable String className) {
         if (forPrimitives) {
-            return new PrimitiveValueOperator<>(baseRealm, osResults, clazz, className);
+            if (clazz == Integer.class) {
+                //noinspection unchecked
+                return (CollectionOperator<T>) new IntegerValueOperator(baseRealm, osResults, Integer.class, className);
+            } else if (clazz == Short.class) {
+                //noinspection unchecked
+                return (CollectionOperator<T>) new ShortValueOperator(baseRealm, osResults, Short.class, className);
+            } else if (clazz == Byte.class) {
+                //noinspection unchecked
+                return (CollectionOperator<T>) new ByteValueOperator(baseRealm, osResults, Byte.class, className);
+            } else if (clazz == Mixed.class) {
+                //noinspection unchecked
+                return (CollectionOperator<T>) new MixedValueOperator(baseRealm, osResults, Mixed.class, className);
+            } else {
+                return new PrimitiveValueOperator<>(baseRealm, osResults, clazz, className);
+            }
         } else {
             return new ModelCollectionOperator<>(baseRealm, osResults, clazz, className);
         }
@@ -629,7 +657,10 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
         @Nullable
         protected final String className;
 
-        public CollectionOperator(BaseRealm baseRealm, OsResults osResults, @Nullable Class<T> classSpec, @Nullable String className) {
+        public CollectionOperator(BaseRealm baseRealm,
+                                  OsResults osResults,
+                                  @Nullable Class<T> classSpec,
+                                  @Nullable String className) {
             this.baseRealm = baseRealm;
             this.osResults = osResults;
             this.classSpec = classSpec;
@@ -648,7 +679,9 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
 
         public abstract T getFromResults(int pos, OsResults iteratorOsResults);
 
-        protected T convertToObject(@Nullable UncheckedRow row, boolean shouldThrow, @Nullable T defaultValue) {
+        protected T convertToObject(@Nullable UncheckedRow row,
+                                    boolean shouldThrow,
+                                    @Nullable T defaultValue) {
             if (row != null) {
                 //noinspection unchecked
                 return (T) baseRealm.get((Class<? extends RealmModel>) classSpec, className, row);
@@ -669,7 +702,10 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     static class ModelCollectionOperator<T> extends CollectionOperator<T> {
 
-        public ModelCollectionOperator(BaseRealm baseRealm, OsResults osResults, @Nullable Class<T> clazz, @Nullable String className) {
+        public ModelCollectionOperator(BaseRealm baseRealm,
+                                       OsResults osResults,
+                                       @Nullable Class<T> clazz,
+                                       @Nullable String className) {
             super(baseRealm, osResults, clazz, className);
         }
 
@@ -710,7 +746,10 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     static class PrimitiveValueOperator<T> extends CollectionOperator<T> {
 
-        public PrimitiveValueOperator(BaseRealm baseRealm, OsResults osResults, @Nullable Class<T> classSpec, @Nullable String className) {
+        public PrimitiveValueOperator(BaseRealm baseRealm,
+                                      OsResults osResults,
+                                      @Nullable Class<T> classSpec,
+                                      @Nullable String className) {
             super(baseRealm, osResults, classSpec, className);
         }
 
@@ -752,6 +791,107 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
         public T getFromResults(int pos, OsResults iteratorOsResults) {
             //noinspection unchecked
             return (T) iteratorOsResults.getValue(pos);
+        }
+    }
+
+    static class IntegerValueOperator extends PrimitiveValueOperator<Integer> {
+
+        public IntegerValueOperator(BaseRealm baseRealm,
+                                    OsResults osResults,
+                                    @Nullable Class<Integer> classSpec,
+                                    @Nullable String className) {
+            super(baseRealm, osResults, classSpec, className);
+        }
+
+        @Override
+        public Integer get(int location) {
+            Object value = osResults.getValue(location);
+            Long longValue = (Long) value;
+            return longValue.intValue();
+        }
+
+        @Override
+        public Integer getFromResults(int pos, OsResults iteratorOsResults) {
+            Long longValue = (Long) iteratorOsResults.getValue(pos);
+            if (longValue == null) {
+                return null;
+            }
+            return longValue.intValue();
+        }
+    }
+
+    static class ShortValueOperator extends PrimitiveValueOperator<Short> {
+
+        public ShortValueOperator(BaseRealm baseRealm,
+                                  OsResults osResults,
+                                  @Nullable Class<Short> classSpec,
+                                  @Nullable String className) {
+            super(baseRealm, osResults, classSpec, className);
+        }
+
+        @Override
+        public Short get(int location) {
+            Object value = osResults.getValue(location);
+            Long longValue = (Long) value;
+            return longValue.shortValue();
+        }
+
+        @Override
+        public Short getFromResults(int pos, OsResults iteratorOsResults) {
+            Long longValue = (Long) iteratorOsResults.getValue(pos);
+            if (longValue == null) {
+                return null;
+            }
+            return longValue.shortValue();
+        }
+    }
+
+    static class ByteValueOperator extends PrimitiveValueOperator<Byte> {
+
+        public ByteValueOperator(BaseRealm baseRealm,
+                                 OsResults osResults,
+                                 @Nullable Class<Byte> classSpec,
+                                 @Nullable String className) {
+            super(baseRealm, osResults, classSpec, className);
+        }
+
+        @Override
+        public Byte get(int location) {
+            Object value = osResults.getValue(location);
+            Long longValue = (Long) value;
+            return longValue.byteValue();
+        }
+
+        @Override
+        public Byte getFromResults(int pos, OsResults iteratorOsResults) {
+            Long longValue = (Long) iteratorOsResults.getValue(pos);
+            if (longValue == null) {
+                return null;
+            }
+            return longValue.byteValue();
+        }
+    }
+
+    static class MixedValueOperator extends PrimitiveValueOperator<Mixed> {
+
+        public MixedValueOperator(BaseRealm baseRealm,
+                                  OsResults osResults,
+                                  @Nullable Class<Mixed> classSpec,
+                                  @Nullable String className) {
+            super(baseRealm, osResults, classSpec, className);
+        }
+
+        @Override
+        public Mixed get(int location) {
+            Object value = osResults.getValue(location);
+            NativeMixed nativeMixed = (NativeMixed) value;
+            return new Mixed(MixedOperator.fromNativeMixed(baseRealm, nativeMixed));
+        }
+
+        @Override
+        public Mixed getFromResults(int pos, OsResults iteratorOsResults) {
+            NativeMixed nativeMixed = (NativeMixed) iteratorOsResults.getValue(pos);
+            return new Mixed(MixedOperator.fromNativeMixed(baseRealm, nativeMixed));
         }
     }
 }

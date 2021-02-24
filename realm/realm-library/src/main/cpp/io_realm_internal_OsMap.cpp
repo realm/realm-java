@@ -24,6 +24,7 @@
 #include "java_exception_def.hpp"
 #include "jni_util/java_exception_thrower.hpp"
 #include "util.hpp"
+#include "observable_collection_wrapper.hpp"
 
 using namespace realm;
 using namespace realm::util;
@@ -46,7 +47,8 @@ Java_io_realm_internal_OsMap_nativeCreate(JNIEnv* env, jclass, jlong shared_real
         auto& shared_realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
 
         // FIXME: figure out whether or not we need to use something similar to ObservableCollectionWrapper from OsList
-        return reinterpret_cast<jlong>(new object_store::Dictionary(shared_realm, obj, ColKey(column_key)));
+        object_store::Dictionary* dictionary_ptr = new object_store::Dictionary(shared_realm, obj, ColKey(column_key));
+        return reinterpret_cast<jlong>(dictionary_ptr);
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
@@ -311,7 +313,29 @@ Java_io_realm_internal_OsMap_nativeSize(JNIEnv* env, jclass, jlong map_ptr) {
         return dictionary.size();
     }
     CATCH_STD()
-    return 0;
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsKey(JNIEnv* env, jclass, jlong map_ptr,
+                                               jstring j_key) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor key(env, j_key);
+        return dictionary.contains(StringData(key).data());
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeIsValid(JNIEnv* env, jclass, jlong map_ptr) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        return dictionary.is_valid();
+    }
+    CATCH_STD()
+    return false;
 }
 
 JNIEXPORT void JNICALL
@@ -323,6 +347,44 @@ Java_io_realm_internal_OsMap_nativeRemove(JNIEnv* env, jclass, jlong map_ptr,
         dictionary.erase(StringData(key));
     }
     CATCH_STD()
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_OsMap_nativeKeys(JNIEnv* env, jclass, jlong map_ptr) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        const Results& key_results = dictionary.get_keys();
+        auto wrapper = new ObservableCollectionWrapper(key_results);
+        return reinterpret_cast<jlong>(wrapper);
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_OsMap_nativeValues(JNIEnv* env, jclass, jlong map_ptr) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        const Results& value_results = dictionary.get_values();
+        auto wrapper = new ObservableCollectionWrapper(value_results);
+        return reinterpret_cast<jlong>(wrapper);
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_OsMap_nativeFreeze(JNIEnv* env, jclass, jlong map_ptr,
+                                          jlong realm_ptr) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        std::shared_ptr<Realm>& shared_realm_ptr = *reinterpret_cast<std::shared_ptr<Realm>*>(realm_ptr);
+        const object_store::Dictionary& frozen_dictionary = dictionary.freeze(shared_realm_ptr);
+        auto* frozen_dictionary_ptr = new object_store::Dictionary(frozen_dictionary);
+        return reinterpret_cast<jlong>(frozen_dictionary_ptr);
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
 }
 
 JNIEXPORT jlong JNICALL
@@ -344,4 +406,284 @@ Java_io_realm_internal_OsMap_nativeCreateAndPutEmbeddedObject(JNIEnv* env, jclas
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jobjectArray JNICALL
+Java_io_realm_internal_OsMap_nativeGetEntryForModel(JNIEnv* env, jclass, jlong map_ptr, jint j_pos) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        const std::pair<StringData, Mixed>& pair = dictionary.get_pair(j_pos);
+        const StringData& key = pair.first;
+        const Mixed& mixed = pair.second;
+
+        jobjectArray pair_array = env->NewObjectArray(2, JavaClassGlobalDef::java_lang_object(), NULL);
+        env->SetObjectArrayElement(pair_array, 0, to_jstring(env, key));
+        if (mixed.is_null()) {
+            env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_long(env, io_realm_internal_OsMap_NOT_FOUND));
+        } else {
+            env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_long(env, mixed.get<ObjKey>().value));
+        }
+        return pair_array;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jobjectArray JNICALL
+Java_io_realm_internal_OsMap_nativeGetEntryForMixed(JNIEnv* env, jclass, jlong map_ptr, jint j_pos) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        const std::pair<StringData, Mixed>& pair = dictionary.get_pair(j_pos);
+        const StringData& key = pair.first;
+        const Mixed& mixed = pair.second;
+
+        jlong mixed_ptr = reinterpret_cast<jlong>(new JavaValue(from_mixed(mixed)));
+        jobjectArray pair_array = env->NewObjectArray(2, JavaClassGlobalDef::java_lang_object(), NULL);
+        env->SetObjectArrayElement(pair_array, 0, to_jstring(env, key));
+        env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_long(env, mixed_ptr));
+        return pair_array;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jobjectArray JNICALL
+Java_io_realm_internal_OsMap_nativeGetEntryForPrimitive(JNIEnv* env, jclass, jlong map_ptr,
+                                                        jint j_pos) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        const std::pair<StringData, Mixed>& pair = dictionary.get_pair(j_pos);
+        const StringData& key = pair.first;
+        const Mixed& mixed = pair.second;
+
+        jobjectArray pair_array = env->NewObjectArray(2, JavaClassGlobalDef::java_lang_object(), NULL);
+        env->SetObjectArrayElement(pair_array, 0, to_jstring(env, key));
+
+        if (mixed.is_null()) {
+            env->SetObjectArrayElement(pair_array, 1, NULL);
+        } else {
+            const DataType& type = mixed.get_type();
+            switch (type) {
+                case DataType::Type::Int:
+                    env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_long(env, mixed.get_int()));
+                    break;
+                case DataType::Type::Double:
+                    env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_double(env, mixed.get_double()));
+                    break;
+                case DataType::Type::Bool:
+                    env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_boolean(env, mixed.get_bool()));
+                    break;
+                case DataType::Type::String:
+                    env->SetObjectArrayElement(pair_array, 1, to_jstring(env, mixed.get_string()));
+                    break;
+                case DataType::Type::Binary:
+                    env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_byte_array(env, mixed.get_binary()));
+                    break;
+                case DataType::Type::Float:
+                    env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_float(env, mixed.get_float()));
+                    break;
+                case DataType::Type::UUID:
+                    env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_uuid(env, mixed.get_uuid()));
+                    break;
+                case DataType::Type::ObjectId:
+                    env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_object_id(env, mixed.get_object_id()));
+                    break;
+                case DataType::Type::Timestamp:
+                    env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_date(env, mixed.get_timestamp()));
+                    break;
+                case DataType::Type::Decimal:
+                    env->SetObjectArrayElement(pair_array, 1, JavaClassGlobalDef::new_decimal128(env, mixed.get_decimal()));
+                    break;
+                default:
+                    throw std::logic_error("'getEntryForPrimitive' method only suitable for int, double, boolean, String, byte[], float, UUID, Decimal128 and ObjectId.");
+            }
+        }
+        return pair_array;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsNull(JNIEnv* env, jclass, jlong map_ptr) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        size_t find_result = dictionary.find_any(Mixed());
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsLong(JNIEnv* env, jclass, jlong map_ptr,
+                                                jlong j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        size_t find_result = dictionary.find_any(Mixed(j_value));
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsBoolean(JNIEnv* env, jclass, jlong map_ptr,
+                                                   jboolean j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        size_t find_result = dictionary.find_any(Mixed(bool(j_value)));
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsString(JNIEnv* env, jclass, jlong map_ptr,
+                                                  jstring j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor key(env, j_value);
+        size_t find_result = dictionary.find_any(Mixed(StringData(key)));
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsBinary(JNIEnv* env, jclass, jlong map_ptr,
+                                                  jbyteArray j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        const OwnedBinaryData& data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
+        size_t find_result = dictionary.find_any(Mixed(data.get()));
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsFloat(JNIEnv* env, jclass, jlong map_ptr,
+                                                 jfloat j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        size_t find_result = dictionary.find_any(Mixed(j_value));
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsObjectId(JNIEnv* env, jclass, jlong map_ptr,
+                                                    jstring j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor data(env, j_value);
+        const ObjectId object_id = ObjectId(StringData(data).data());
+        size_t find_result = dictionary.find_any(Mixed(object_id));
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsUUID(JNIEnv* env, jclass, jlong map_ptr,
+                                                jstring j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        JStringAccessor value(env, j_value);
+        const UUID& uuid = UUID(StringData(value).data());
+        size_t find_result = dictionary.find_any(Mixed(uuid));
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsDate(JNIEnv* env, jclass, jlong map_ptr,
+                                                jlong j_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        realm::Timestamp timestamp = from_milliseconds(j_value);
+        size_t find_result = dictionary.find_any(Mixed(timestamp));
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsDecimal128(JNIEnv* env, jclass, jlong map_ptr,
+                                                      jlong j_high_value, jlong j_low_value) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
+        auto decimal128 = Decimal128(raw);
+        size_t find_result = dictionary.find_any(Mixed(decimal128));
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsMixed(JNIEnv* env, jclass, jlong map_ptr,
+                                                 jlong mixed_ptr) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto mixed_java_value = *reinterpret_cast<JavaValue*>(mixed_ptr);
+        const Mixed& mixed = mixed_java_value.to_mixed();
+        size_t find_result = dictionary.find_any(mixed);
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD();
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsRealmModel(JNIEnv* env, jclass, jlong map_ptr,
+                                                      jlong j_obj_key, jlong j_table_ptr) {
+    try {
+        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+
+        TableRef target_table = TBL_REF(j_table_ptr);
+        ObjKey object_key(j_obj_key);
+        ObjLink object_link(target_table->get_key(), object_key);
+
+        const Mixed& mixed = Mixed(object_link);
+        size_t find_result = dictionary.find_any(mixed);
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD();
+    return false;
 }
