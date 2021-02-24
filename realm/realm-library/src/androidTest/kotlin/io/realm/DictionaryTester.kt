@@ -42,4 +42,5 @@ interface DictionaryTester {
     fun freeze()
     fun copyToRealm()
     fun copyFromRealm()
+    fun fieldAccessors()
 }

@@ -549,10 +549,13 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitStatement("String entryKey = item.getKey()")
                                 emitStatement("%s entryValue = item.getValue()", genericType)
                                 emitSingleLineComment("ensure (potential) RealmModel instances are copied to Realm if generic type is Mixed")
-                                beginControlFlow("if (entryValue == null || entryValue.getType() == MixedType.OBJECT)")
-                                    // FIXME: add support for RealmModels within a Mixed container
-//                                    emitStatement("value.put(entryKey, ProxyUtils.copyToRealmIfNeeded(proxyState, entryValue))")
-                                    emitSingleLineComment("FIXME: add support for RealmModels within a Mixed container")
+//                                beginControlFlow("if (entryValue == null || entryValue.getType() == MixedType.OBJECT)")
+                                beginControlFlow("if (entryValue == null)")
+                                    emitStatement("value.put(entryKey, null)")
+                                nextControlFlow("else if (entryValue.getType() == MixedType.OBJECT)")
+                                    emitStatement("RealmModel realmModel = entryValue.asRealmModel(RealmModel.class)")
+                                    emitStatement("RealmModel modelFromRealm = realm.copyToRealmOrUpdate(realmModel)")
+                                    emitStatement("value.put(entryKey, Mixed.valueOf(modelFromRealm))")
                                 nextControlFlow("else")
                                     emitStatement("value.put(entryKey, entryValue)")
                                 endControlFlow()
@@ -571,7 +574,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 beginControlFlow("if (entryValue == null || RealmObject.isManaged(entryValue))")
                                     emitStatement("value.put(entryKey, entryValue)")
                                 nextControlFlow("else")
-                                    emitStatement("value.put(entryKey, realm.copyToRealm(entryValue))")
+                                    emitStatement("value.put(entryKey, realm.copyToRealmOrUpdate(entryValue))")
                                 endControlFlow()
                             endControlFlow()
                         endControlFlow()
@@ -597,9 +600,17 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement("%s entryValue = item.getValue()", genericType)
 
                     if (forMixed) {
-                        emitStatement("osMap.putMixed(entryKey, entryValue.getNativePtr())")
+                        beginControlFlow("if (entryValue == null)")
+                            emitStatement("osMap.put(entryKey, null)")
+                        nextControlFlow("else")
+                            emitStatement("osMap.putMixed(entryKey, entryValue.getNativePtr())")
+                        endControlFlow()
                     } else if (forRealmModel) {
-                        emitStatement("osMap.putRow(entryKey, ((RealmObjectProxy) entryValue).realmGet\$proxyState().getRow\$realm().getObjectKey())")
+                        beginControlFlow("if (entryValue == null)")
+                            emitStatement("osMap.put(entryKey, null)")
+                        nextControlFlow("else")
+                            emitStatement("osMap.putRow(entryKey, ((RealmObjectProxy) entryValue).realmGet\$proxyState().getRow\$realm().getObjectKey())")
+                        endControlFlow()
                     } else {
                         emitStatement("osMap.put(entryKey, entryValue)")
                     }
