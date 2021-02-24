@@ -43,4 +43,5 @@ interface DictionaryTester : GenericTester{
     fun freeze()
     fun copyToRealm()
     fun copyFromRealm()
+    fun fieldAccessors()
 }

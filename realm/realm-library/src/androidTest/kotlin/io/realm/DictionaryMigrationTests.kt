@@ -18,7 +18,7 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.entities.DictionaryClass
+import io.realm.entities.PopulatedDictionaryClass
 import io.realm.entities.StringOnly
 import io.realm.rule.TestRealmConfigurationFactory
 import org.bson.types.Decimal128
@@ -41,20 +41,20 @@ class DictionaryMigrationTests {
 
     private val dictionaryFields = listOf(
             // The "java.lang" prefix in primitive types is needed or else Kotlin will map it to raw primitives
-            Triple(DictionaryClass::myBooleanDictionary.name, java.lang.Boolean::class.java, RealmFieldType.STRING_TO_BOOLEAN_MAP),
-            Triple(DictionaryClass::myIntegerDictionary.name, java.lang.Integer::class.java, RealmFieldType.STRING_TO_INTEGER_MAP),
-            Triple(DictionaryClass::myFloatDictionary.name, java.lang.Float::class.java, RealmFieldType.STRING_TO_FLOAT_MAP),
-            Triple(DictionaryClass::myLongDictionary.name, java.lang.Long::class.java, RealmFieldType.STRING_TO_INTEGER_MAP),
-            Triple(DictionaryClass::myShortDictionary.name, java.lang.Short::class.java, RealmFieldType.STRING_TO_INTEGER_MAP),
-            Triple(DictionaryClass::myByteDictionary.name, java.lang.Byte::class.java, RealmFieldType.STRING_TO_INTEGER_MAP),
-            Triple(DictionaryClass::myDoubleDictionary.name, java.lang.Double::class.java, RealmFieldType.STRING_TO_DOUBLE_MAP),
-            Triple(DictionaryClass::myStringDictionary.name, String::class.java, RealmFieldType.STRING_TO_STRING_MAP),
-            Triple(DictionaryClass::myBinaryDictionary.name, ByteArray::class.java, RealmFieldType.STRING_TO_BINARY_MAP),
-            Triple(DictionaryClass::myDateDictionary.name, Date::class.java, RealmFieldType.STRING_TO_DATE_MAP),
-            Triple(DictionaryClass::myObjectIdDictionary.name, ObjectId::class.java, RealmFieldType.STRING_TO_OBJECT_ID_MAP),
-            Triple(DictionaryClass::myUUIDDictionary.name, UUID::class.java, RealmFieldType.STRING_TO_UUID_MAP),
-            Triple(DictionaryClass::myDecimal128Dictionary.name, Decimal128::class.java, RealmFieldType.STRING_TO_DECIMAL128_MAP),
-            Triple(DictionaryClass::myMixedDictionary.name, Mixed::class.java, RealmFieldType.STRING_TO_MIXED_MAP)
+            Triple(PopulatedDictionaryClass::populatedBooleanDictionary.name, java.lang.Boolean::class.java, RealmFieldType.STRING_TO_BOOLEAN_MAP),
+            Triple(PopulatedDictionaryClass::populatedIntDictionary.name, java.lang.Integer::class.java, RealmFieldType.STRING_TO_INTEGER_MAP),
+            Triple(PopulatedDictionaryClass::populatedFloatDictionary.name, java.lang.Float::class.java, RealmFieldType.STRING_TO_FLOAT_MAP),
+            Triple(PopulatedDictionaryClass::populatedLongDictionary.name, java.lang.Long::class.java, RealmFieldType.STRING_TO_INTEGER_MAP),
+            Triple(PopulatedDictionaryClass::populatedShortDictionary.name, java.lang.Short::class.java, RealmFieldType.STRING_TO_INTEGER_MAP),
+            Triple(PopulatedDictionaryClass::populatedByteDictionary.name, java.lang.Byte::class.java, RealmFieldType.STRING_TO_INTEGER_MAP),
+            Triple(PopulatedDictionaryClass::populatedDoubleDictionary.name, java.lang.Double::class.java, RealmFieldType.STRING_TO_DOUBLE_MAP),
+            Triple(PopulatedDictionaryClass::populatedStringDictionary.name, String::class.java, RealmFieldType.STRING_TO_STRING_MAP),
+            Triple(PopulatedDictionaryClass::populatedBinaryDictionary.name, ByteArray::class.java, RealmFieldType.STRING_TO_BINARY_MAP),
+            Triple(PopulatedDictionaryClass::populatedDateDictionary.name, Date::class.java, RealmFieldType.STRING_TO_DATE_MAP),
+            Triple(PopulatedDictionaryClass::populatedObjectIdDictionary.name, ObjectId::class.java, RealmFieldType.STRING_TO_OBJECT_ID_MAP),
+            Triple(PopulatedDictionaryClass::populatedUUIDDictionary.name, UUID::class.java, RealmFieldType.STRING_TO_UUID_MAP),
+            Triple(PopulatedDictionaryClass::populatedDecimal128Dictionary.name, Decimal128::class.java, RealmFieldType.STRING_TO_DECIMAL128_MAP),
+            Triple(PopulatedDictionaryClass::populatedMixedDictionary.name, Mixed::class.java, RealmFieldType.STRING_TO_MIXED_MAP)
     )
 
     private lateinit var realm: Realm
@@ -76,10 +76,10 @@ class DictionaryMigrationTests {
         val realmConfig = configFactory
                 .createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(StringOnly::class.java, DictionaryClass::class.java)
+                .schema(StringOnly::class.java, PopulatedDictionaryClass::class.java)
                 .migration { realm, _, _ ->
                     val schema = realm.schema
-                    val realmObjectSchema = schema.create(DictionaryClass.CLASS_NAME)
+                    val realmObjectSchema = schema.create(PopulatedDictionaryClass.CLASS_NAME)
                     dictionaryFields.forEach {
                         realmObjectSchema.addRealmDictionaryField(it.first, it.second)
                     }
@@ -87,7 +87,7 @@ class DictionaryMigrationTests {
 
         realm = Realm.getInstance(realmConfig)
 
-        val objectSchema = realm.schema.get(DictionaryClass.CLASS_NAME)
+        val objectSchema = realm.schema.get(PopulatedDictionaryClass.CLASS_NAME)
         assertNotNull(objectSchema)
         dictionaryFields.forEach {
             assertTrue(objectSchema.hasField(it.first))

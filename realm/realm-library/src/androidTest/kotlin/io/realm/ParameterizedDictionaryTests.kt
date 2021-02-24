@@ -175,6 +175,11 @@ class ParameterizedDictionaryTests(
     fun copyFromRealm() {
         tester.copyFromRealm()
     }
+
+    @Test
+    fun accessors() {
+        tester.fieldAccessors()
+    }
 }
 
 /**
@@ -205,7 +210,8 @@ internal const val KEY_NULL = "KeyNull"
 internal const val KEY_NOT_PRESENT = "KeyNotPresent"
 
 internal const val VALUE_BOOLEAN_HELLO = true
-internal const val VALUE_BOOLEAN_NOT_PRESENT = false
+internal const val VALUE_BOOLEAN_BYE = false
+internal const val VALUE_BOOLEAN_NOT_PRESENT = VALUE_BOOLEAN_BYE
 
 internal const val VALUE_STRING_HELLO = "HELLO"
 internal const val VALUE_STRING_BYE = "BYE"
@@ -281,13 +287,13 @@ internal val VALUE_MIXED_DOUBLE_BYE = Mixed.valueOf(VALUE_NUMERIC_BYE.toDouble()
 internal val VALUE_MIXED_STRING_HELLO = Mixed.valueOf(VALUE_STRING_HELLO)
 internal val VALUE_MIXED_STRING_BYE = Mixed.valueOf(VALUE_STRING_BYE)
 internal val VALUE_MIXED_BOOLEAN_HELLO = Mixed.valueOf(VALUE_BOOLEAN_HELLO)
-internal val VALUE_MIXED_BOOLEAN_NOT_PRESENT = Mixed.valueOf(VALUE_BOOLEAN_NOT_PRESENT)
+internal val VALUE_MIXED_BOOLEAN_BYE = Mixed.valueOf(VALUE_BOOLEAN_BYE)
 internal val VALUE_MIXED_DATE_HELLO = Mixed.valueOf(VALUE_DATE_HELLO)
 internal val VALUE_MIXED_DATE_BYE = Mixed.valueOf(VALUE_DATE_BYE)
 internal val VALUE_MIXED_DECIMAL128_HELLO = Mixed.valueOf(VALUE_DECIMAL128_HELLO)
 internal val VALUE_MIXED_DECIMAL128_BYE = Mixed.valueOf(VALUE_DECIMAL128_BYE)
-internal val VALUE_MIXED_BYTE_ARRAY_HELLO = Mixed.valueOf(VALUE_BINARY_HELLO)
-internal val VALUE_MIXED_BYTE_ARRAY_BYE = Mixed.valueOf(VALUE_BINARY_BYE)
+internal val VALUE_MIXED_BINARY_HELLO = Mixed.valueOf(VALUE_BINARY_HELLO)
+internal val VALUE_MIXED_BINARY_BYE = Mixed.valueOf(VALUE_BINARY_BYE)
 internal val VALUE_MIXED_OBJECT_ID_HELLO = Mixed.valueOf(VALUE_OBJECT_ID_HELLO)
 internal val VALUE_MIXED_OBJECT_ID_BYE = Mixed.valueOf(VALUE_OBJECT_ID_BYE)
 internal val VALUE_MIXED_UUID_HELLO = Mixed.valueOf(VALUE_UUID_HELLO)
@@ -296,82 +302,235 @@ internal val VALUE_MIXED_LINK_HELLO = Mixed.valueOf(VALUE_LINK_HELLO)
 internal val VALUE_MIXED_LINK_BYE = Mixed.valueOf(VALUE_LINK_BYE)
 internal val VALUE_MIXED_NOT_PRESENT = Mixed.valueOf(VALUE_STRING_NOT_PRESENT)
 
+enum class DictionaryKey {
+    KEY_HELLO, KEY_BYE, KEY_NULL
+}
+
+fun getMixedForType(mixedType: MixedType, dictionaryKey: DictionaryKey): Mixed? {
+    return when (mixedType) {
+        MixedType.INTEGER -> when (dictionaryKey) {
+            DictionaryKey.KEY_HELLO -> VALUE_MIXED_INTEGER_HELLO
+            DictionaryKey.KEY_BYE -> VALUE_MIXED_INTEGER_BYE
+            DictionaryKey.KEY_NULL -> null
+        }
+        MixedType.BOOLEAN -> when (dictionaryKey) {
+            DictionaryKey.KEY_HELLO -> VALUE_MIXED_BOOLEAN_HELLO
+            DictionaryKey.KEY_BYE -> VALUE_MIXED_BOOLEAN_BYE
+            DictionaryKey.KEY_NULL -> null
+        }
+        MixedType.STRING -> when (dictionaryKey) {
+            DictionaryKey.KEY_HELLO -> VALUE_MIXED_STRING_HELLO
+            DictionaryKey.KEY_BYE -> VALUE_MIXED_STRING_BYE
+            DictionaryKey.KEY_NULL -> null
+        }
+        MixedType.BINARY -> when (dictionaryKey) {
+            DictionaryKey.KEY_HELLO -> VALUE_MIXED_BINARY_HELLO
+            DictionaryKey.KEY_BYE -> VALUE_MIXED_BINARY_BYE
+            DictionaryKey.KEY_NULL -> null
+        }
+        MixedType.DATE -> when (dictionaryKey) {
+            DictionaryKey.KEY_HELLO -> VALUE_MIXED_DATE_HELLO
+            DictionaryKey.KEY_BYE -> VALUE_MIXED_DATE_BYE
+            DictionaryKey.KEY_NULL -> null
+        }
+        MixedType.FLOAT -> when (dictionaryKey) {
+            DictionaryKey.KEY_HELLO -> VALUE_MIXED_FLOAT_HELLO
+            DictionaryKey.KEY_BYE -> VALUE_MIXED_FLOAT_BYE
+            DictionaryKey.KEY_NULL -> null
+        }
+        MixedType.DOUBLE -> when (dictionaryKey) {
+            DictionaryKey.KEY_HELLO -> VALUE_MIXED_DOUBLE_HELLO
+            DictionaryKey.KEY_BYE -> VALUE_MIXED_DOUBLE_BYE
+            DictionaryKey.KEY_NULL -> null
+        }
+        MixedType.DECIMAL128 -> when (dictionaryKey) {
+            DictionaryKey.KEY_HELLO -> VALUE_MIXED_DECIMAL128_HELLO
+            DictionaryKey.KEY_BYE -> VALUE_MIXED_DECIMAL128_BYE
+            DictionaryKey.KEY_NULL -> null
+        }
+        MixedType.OBJECT_ID -> when (dictionaryKey) {
+            DictionaryKey.KEY_HELLO -> VALUE_MIXED_OBJECT_ID_HELLO
+            DictionaryKey.KEY_BYE -> VALUE_MIXED_OBJECT_ID_BYE
+            DictionaryKey.KEY_NULL -> null
+        }
+        MixedType.OBJECT -> when (dictionaryKey) {
+            DictionaryKey.KEY_HELLO -> VALUE_MIXED_LINK_HELLO
+            DictionaryKey.KEY_BYE -> VALUE_MIXED_LINK_BYE
+            DictionaryKey.KEY_NULL -> null
+        }
+        MixedType.UUID -> when (dictionaryKey) {
+            DictionaryKey.KEY_HELLO -> VALUE_MIXED_UUID_HELLO
+            DictionaryKey.KEY_BYE -> VALUE_MIXED_UUID_BYE
+            DictionaryKey.KEY_NULL -> null
+        }
+        MixedType.NULL -> when (dictionaryKey) {
+            DictionaryKey.KEY_HELLO -> Mixed.valueOf("Not null")
+            DictionaryKey.KEY_BYE -> Mixed.nullValue()
+            DictionaryKey.KEY_NULL -> null
+        }
+    }
+}
+
 fun getMixedKeyValuePairs(
         mixedType: MixedType,
-        shouldReverseValues: Boolean = false
+        shouldSwapValues: Boolean = false
 ): List<Pair<String, Mixed?>> {
     return when (mixedType) {
         MixedType.INTEGER ->
-            if (shouldReverseValues) {
+            if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_INTEGER_BYE, KEY_BYE to VALUE_MIXED_INTEGER_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_INTEGER_HELLO, KEY_BYE to VALUE_MIXED_INTEGER_BYE, KEY_NULL to null)
             }
         MixedType.BOOLEAN ->
-            if (shouldReverseValues) {
-                listOf(KEY_HELLO to VALUE_MIXED_BOOLEAN_NOT_PRESENT, KEY_NULL to null)
+            if (shouldSwapValues) {
+                listOf(KEY_HELLO to null, KEY_NULL to VALUE_MIXED_BOOLEAN_HELLO)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_BOOLEAN_HELLO, KEY_NULL to null)
             }
         MixedType.STRING ->
-            if (shouldReverseValues) {
+            if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_STRING_BYE, KEY_BYE to VALUE_MIXED_STRING_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_STRING_HELLO, KEY_BYE to VALUE_MIXED_STRING_BYE, KEY_NULL to null)
             }
         MixedType.BINARY ->
-            if (shouldReverseValues) {
-                listOf(KEY_HELLO to VALUE_MIXED_BYTE_ARRAY_BYE, KEY_BYE to VALUE_MIXED_BYTE_ARRAY_HELLO, KEY_NULL to null)
+            if (shouldSwapValues) {
+                listOf(KEY_HELLO to VALUE_MIXED_BINARY_BYE, KEY_BYE to VALUE_MIXED_BINARY_HELLO, KEY_NULL to null)
             } else {
-                listOf(KEY_HELLO to VALUE_MIXED_BYTE_ARRAY_HELLO, KEY_BYE to VALUE_MIXED_BYTE_ARRAY_BYE, KEY_NULL to null)
+                listOf(KEY_HELLO to VALUE_MIXED_BINARY_HELLO, KEY_BYE to VALUE_MIXED_BINARY_BYE, KEY_NULL to null)
             }
         MixedType.DATE ->
-            if (shouldReverseValues) {
+            if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_DATE_BYE, KEY_BYE to VALUE_MIXED_DATE_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_DATE_HELLO, KEY_BYE to VALUE_MIXED_DATE_BYE, KEY_NULL to null)
             }
         MixedType.FLOAT ->
-            if (shouldReverseValues) {
+            if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_FLOAT_BYE, KEY_BYE to VALUE_MIXED_FLOAT_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_FLOAT_HELLO, KEY_BYE to VALUE_MIXED_FLOAT_BYE, KEY_NULL to null)
             }
         MixedType.DOUBLE ->
-            if (shouldReverseValues) {
+            if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_DOUBLE_BYE, KEY_BYE to VALUE_MIXED_DOUBLE_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_DOUBLE_HELLO, KEY_BYE to VALUE_MIXED_DOUBLE_BYE, KEY_NULL to null)
             }
         MixedType.DECIMAL128 ->
-            if (shouldReverseValues) {
+            if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_DECIMAL128_BYE, KEY_BYE to VALUE_MIXED_DECIMAL128_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_DECIMAL128_HELLO, KEY_BYE to VALUE_MIXED_DECIMAL128_BYE, KEY_NULL to null)
             }
         MixedType.OBJECT_ID ->
-            if (shouldReverseValues) {
+            if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_OBJECT_ID_BYE, KEY_BYE to VALUE_MIXED_OBJECT_ID_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_OBJECT_ID_HELLO, KEY_BYE to VALUE_MIXED_OBJECT_ID_BYE, KEY_NULL to null)
             }
         MixedType.OBJECT ->
-            if (shouldReverseValues) {
+            if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_LINK_BYE, KEY_BYE to VALUE_MIXED_LINK_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_LINK_HELLO, KEY_BYE to VALUE_MIXED_LINK_BYE, KEY_NULL to null)
             }
         MixedType.UUID ->
-            if (shouldReverseValues) {
+            if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_UUID_BYE, KEY_BYE to VALUE_MIXED_UUID_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_UUID_HELLO, KEY_BYE to VALUE_MIXED_UUID_BYE, KEY_NULL to null)
             }
         MixedType.NULL ->
-            if (shouldReverseValues) {
+            if (shouldSwapValues) {
                 listOf(KEY_HELLO to Mixed.valueOf("Not null"), KEY_BYE to Mixed.nullValue(), KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to Mixed.nullValue(), KEY_BYE to Mixed.valueOf("Not null"), KEY_NULL to null)
             }
+    }
+//    return when (mixedType) {
+//        MixedType.INTEGER ->
+//            if (shouldReverseValues) {
+//                listOf(KEY_HELLO to VALUE_MIXED_INTEGER_BYE, KEY_BYE to VALUE_MIXED_INTEGER_HELLO, KEY_NULL to null)
+//            } else {
+//                listOf(KEY_HELLO to VALUE_MIXED_INTEGER_HELLO, KEY_BYE to VALUE_MIXED_INTEGER_BYE, KEY_NULL to null)
+//            }
+//        MixedType.BOOLEAN ->
+//            if (shouldReverseValues) {
+//                listOf(KEY_HELLO to null, KEY_NULL to VALUE_MIXED_BOOLEAN_HELLO)
+//            } else {
+//                listOf(KEY_HELLO to VALUE_MIXED_BOOLEAN_HELLO, KEY_NULL to null)
+//            }
+//        MixedType.STRING ->
+//            if (shouldReverseValues) {
+//                listOf(KEY_HELLO to VALUE_MIXED_STRING_BYE, KEY_BYE to VALUE_MIXED_STRING_HELLO, KEY_NULL to null)
+//            } else {
+//                listOf(KEY_HELLO to VALUE_MIXED_STRING_HELLO, KEY_BYE to VALUE_MIXED_STRING_BYE, KEY_NULL to null)
+//            }
+//        MixedType.BINARY ->
+//            if (shouldReverseValues) {
+//                listOf(KEY_HELLO to VALUE_MIXED_BYTE_ARRAY_BYE, KEY_BYE to VALUE_MIXED_BYTE_ARRAY_HELLO, KEY_NULL to null)
+//            } else {
+//                listOf(KEY_HELLO to VALUE_MIXED_BYTE_ARRAY_HELLO, KEY_BYE to VALUE_MIXED_BYTE_ARRAY_BYE, KEY_NULL to null)
+//            }
+//        MixedType.DATE ->
+//            if (shouldReverseValues) {
+//                listOf(KEY_HELLO to VALUE_MIXED_DATE_BYE, KEY_BYE to VALUE_MIXED_DATE_HELLO, KEY_NULL to null)
+//            } else {
+//                listOf(KEY_HELLO to VALUE_MIXED_DATE_HELLO, KEY_BYE to VALUE_MIXED_DATE_BYE, KEY_NULL to null)
+//            }
+//        MixedType.FLOAT ->
+//            if (shouldReverseValues) {
+//                listOf(KEY_HELLO to VALUE_MIXED_FLOAT_BYE, KEY_BYE to VALUE_MIXED_FLOAT_HELLO, KEY_NULL to null)
+//            } else {
+//                listOf(KEY_HELLO to VALUE_MIXED_FLOAT_HELLO, KEY_BYE to VALUE_MIXED_FLOAT_BYE, KEY_NULL to null)
+//            }
+//        MixedType.DOUBLE ->
+//            if (shouldReverseValues) {
+//                listOf(KEY_HELLO to VALUE_MIXED_DOUBLE_BYE, KEY_BYE to VALUE_MIXED_DOUBLE_HELLO, KEY_NULL to null)
+//            } else {
+//                listOf(KEY_HELLO to VALUE_MIXED_DOUBLE_HELLO, KEY_BYE to VALUE_MIXED_DOUBLE_BYE, KEY_NULL to null)
+//            }
+//        MixedType.DECIMAL128 ->
+//            if (shouldReverseValues) {
+//                listOf(KEY_HELLO to VALUE_MIXED_DECIMAL128_BYE, KEY_BYE to VALUE_MIXED_DECIMAL128_HELLO, KEY_NULL to null)
+//            } else {
+//                listOf(KEY_HELLO to VALUE_MIXED_DECIMAL128_HELLO, KEY_BYE to VALUE_MIXED_DECIMAL128_BYE, KEY_NULL to null)
+//            }
+//        MixedType.OBJECT_ID ->
+//            if (shouldReverseValues) {
+//                listOf(KEY_HELLO to VALUE_MIXED_OBJECT_ID_BYE, KEY_BYE to VALUE_MIXED_OBJECT_ID_HELLO, KEY_NULL to null)
+//            } else {
+//                listOf(KEY_HELLO to VALUE_MIXED_OBJECT_ID_HELLO, KEY_BYE to VALUE_MIXED_OBJECT_ID_BYE, KEY_NULL to null)
+//            }
+//        MixedType.OBJECT ->
+//            if (shouldReverseValues) {
+//                listOf(KEY_HELLO to VALUE_MIXED_LINK_BYE, KEY_BYE to VALUE_MIXED_LINK_HELLO, KEY_NULL to null)
+//            } else {
+//                listOf(KEY_HELLO to VALUE_MIXED_LINK_HELLO, KEY_BYE to VALUE_MIXED_LINK_BYE, KEY_NULL to null)
+//            }
+//        MixedType.UUID ->
+//            if (shouldReverseValues) {
+//                listOf(KEY_HELLO to VALUE_MIXED_UUID_BYE, KEY_BYE to VALUE_MIXED_UUID_HELLO, KEY_NULL to null)
+//            } else {
+//                listOf(KEY_HELLO to VALUE_MIXED_UUID_HELLO, KEY_BYE to VALUE_MIXED_UUID_BYE, KEY_NULL to null)
+//            }
+//        MixedType.NULL ->
+//            if (shouldReverseValues) {
+//                listOf(KEY_HELLO to Mixed.valueOf("Not null"), KEY_BYE to Mixed.nullValue(), KEY_NULL to null)
+//            } else {
+//                listOf(KEY_HELLO to Mixed.nullValue(), KEY_BYE to Mixed.valueOf("Not null"), KEY_NULL to null)
+//            }
+//    }
+}
+
+fun <T : Any> RealmDictionary<T>.init(
+        keyValuePairs: List<Pair<String, T?>>
+): RealmDictionary<T> {
+    return this.apply {
+        for (keyValuePair in keyValuePairs) {
+            put(keyValuePair.first, keyValuePair.second)
+        }
     }
 }

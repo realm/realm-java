@@ -41,7 +41,6 @@ public class RealmDictionaryModel extends RealmObject {
     @Required private RealmDictionary<Double> myRequiredDoubleRealmDictionary;
     @Required private RealmDictionary<Date> myRequiredDateRealmDictionary;
     @Required private RealmDictionary<byte[]> myRequiredPrimitiveBinaryRealmDictionary;
-    @Required private RealmDictionary<Byte[]> myRequiredBinaryRealmDictionary;
     @Required private RealmDictionary<ObjectId> myRequiredObjectIdRealmDictionary;
     @Required private RealmDictionary<UUID> myRequiredUUIDRealmDictionary;
     @Required private RealmDictionary<Decimal128> myRequiredDecimal128IdRealmDictionary;
@@ -57,8 +56,7 @@ public class RealmDictionaryModel extends RealmObject {
     private RealmDictionary<Byte> myByteRealmDictionary;
     private RealmDictionary<Double> myDoubleRealmDictionary;
     private RealmDictionary<Date> myDateRealmDictionary;
-    private RealmDictionary<byte[]> myPrimitiveBinaryRealmDictionary;
-    private RealmDictionary<Byte[]> myBinaryRealmDictionary;
+    private RealmDictionary<byte[]> myBinaryRealmDictionary;
     private RealmDictionary<ObjectId> myObjectIdRealmDictionary;
     private RealmDictionary<UUID> myUUIDRealmDictionary;
     private RealmDictionary<Decimal128> myDecimal128IdRealmDictionary;
@@ -141,14 +139,6 @@ public class RealmDictionaryModel extends RealmObject {
 
     public void setMyRequiredPrimitiveBinaryRealmDictionary(RealmDictionary<byte[]> myRequiredPrimitiveBinaryRealmDictionary) {
         this.myRequiredPrimitiveBinaryRealmDictionary = myRequiredPrimitiveBinaryRealmDictionary;
-    }
-
-    public RealmDictionary<Byte[]> getMyRequiredBinaryRealmDictionary() {
-        return myRequiredBinaryRealmDictionary;
-    }
-
-    public void setMyRequiredBinaryRealmDictionary(RealmDictionary<Byte[]> myRequiredBinaryRealmDictionary) {
-        this.myRequiredBinaryRealmDictionary = myRequiredBinaryRealmDictionary;
     }
 
     public RealmDictionary<ObjectId> getMyRequiredObjectIdRealmDictionary() {
@@ -267,19 +257,11 @@ public class RealmDictionaryModel extends RealmObject {
         this.myDoubleRealmDictionary = myDoubleRealmDictionary;
     }
 
-    public RealmDictionary<byte[]> getMyPrimitiveBinaryRealmDictionary() {
-        return myPrimitiveBinaryRealmDictionary;
-    }
-
-    public void setMyPrimitiveBinaryRealmDictionary(RealmDictionary<byte[]> myPrimitiveBinaryRealmDictionary) {
-        this.myPrimitiveBinaryRealmDictionary = myPrimitiveBinaryRealmDictionary;
-    }
-
-    public RealmDictionary<Byte[]> getMyBinaryRealmDictionary() {
+    public RealmDictionary<byte[]> getMyBinaryRealmDictionary() {
         return myBinaryRealmDictionary;
     }
 
-    public void setMyBinaryRealmDictionary(RealmDictionary<Byte[]> myBinaryRealmDictionary) {
+    public void setBinaryRealmDictionary(RealmDictionary<byte[]> myBinaryRealmDictionary) {
         this.myBinaryRealmDictionary = myBinaryRealmDictionary;
     }
 
