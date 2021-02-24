@@ -81,7 +81,6 @@ object Constants {
             "java.lang.String" to RealmFieldType.STRING_TO_STRING_MAP,
             "java.util.Date" to RealmFieldType.STRING_TO_DATE_MAP,
             "byte[]" to RealmFieldType.STRING_TO_BINARY_MAP,
-            "java.lang.Byte[]" to RealmFieldType.STRING_TO_BINARY_MAP,
             "org.bson.types.Decimal128" to RealmFieldType.STRING_TO_DECIMAL128_MAP,
             "org.bson.types.ObjectId" to RealmFieldType.STRING_TO_OBJECT_ID_MAP,
             "java.util.UUID" to RealmFieldType.STRING_TO_UUID_MAP,

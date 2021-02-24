@@ -38,7 +38,6 @@ open class DictionaryClass : RealmObject() {
     var myDoubleDictionary: RealmDictionary<Double>? = null
     var myByteDictionary: RealmDictionary<Byte>? = null
     var myByteArrayDictionary: RealmDictionary<ByteArray>? = null
-    var myBoxedByteArrayDictionary: RealmDictionary<Array<Byte>>? = null
     var myDateDictionary: RealmDictionary<Date>? = null
     var myObjectIdDictionary: RealmDictionary<ObjectId>? = null
     var myUUIDDictionary: RealmDictionary<UUID>? = null
@@ -59,7 +58,6 @@ open class DictionaryClass : RealmObject() {
         const val DOUBLE_DICTIONARY_FIELD_NAME = "myDoubleDictionary"
         const val BYTE_DICTIONARY_FIELD_NAME = "myByteDictionary"
         const val BYTE_ARRAY_DICTIONARY_FIELD_NAME = "myByteArrayDictionary"
-        const val BOXED_BYTE_ARRAY_DICTIONARY_FIELD_NAME = "myBoxedByteArrayDictionary"
         const val DATE_DICTIONARY_FIELD_NAME = "myDateDictionary"
         const val DECIMAL128_DICTIONARY_FIELD_NAME = "myDecimal128Dictionary"
         const val OBJECT_ID_DICTIONARY_FIELD_NAME = "myObjectIdDictionary"
