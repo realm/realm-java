@@ -2322,12 +2322,16 @@ public class RealmQuery<E> {
 
     /**
      * Create a text-based predicate using the Realm Query Language. This predicate can be combined
-     * with other raw or type safe predicates, it accepts Realm values as arguments.
+     * with other raw or type safe predicates, it accepts Realm primitives or Realm objects as arguments.
      * <p>
      * Class and property names used in the raw predicate can be either the names defined in the
      * Realm Model classes or the internal names defined using the {@link io.realm.annotations.RealmClass}
      * or {@link io.realm.annotations.RealmField} annotations.
-     * </p>
+     * <p>
+     * Arguments are defined in the string predicate as $argument_index, where $argument_index is a decimal integer that
+     * specifies the position of the argument in the argument list. The first argument is referenced by $0, the second
+     * by $1, etc.  
+     * <p>
      * See <a href="https://docs.mongodb.com/realm-sdks/js/latest/tutorial-query-language.html">these docs</a>
      * for a more detailed description of the Realm Query Language.
      * <p>
@@ -2358,8 +2362,8 @@ public class RealmQuery<E> {
      * </pre>
      *
      * @param predicate a Realm Query Language predicate.
-     * @param arguments Realm values for the predicate.
-     * @throws java.lang.IllegalArgumentException if there is an syntax error.
+     * @param arguments Realm primitives or objects for the predicate.
+     * @throws java.lang.IllegalArgumentException if there is an syntax or type error.
      */
     public RealmQuery<E> rawPredicate(String predicate, Object... arguments) {
         realm.checkIfValid();
