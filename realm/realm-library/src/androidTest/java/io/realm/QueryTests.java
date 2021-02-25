@@ -60,6 +60,18 @@ public abstract class QueryTests {
                 RealmFieldType.STRING,
                 RealmFieldType.BINARY,
                 RealmFieldType.LIST,
+                RealmFieldType.OBJECT,
+                RealmFieldType.INTEGER_LIST,
+                RealmFieldType.BOOLEAN_LIST,
+                RealmFieldType.STRING_LIST,
+                RealmFieldType.BINARY_LIST,
+                RealmFieldType.DATE_LIST,
+                RealmFieldType.FLOAT_LIST,
+                RealmFieldType.DOUBLE_LIST,
+                RealmFieldType.DECIMAL128_LIST,
+                RealmFieldType.OBJECT_ID_LIST,
+                RealmFieldType.UUID_LIST,
+                RealmFieldType.MIXED_LIST,
                 RealmFieldType.LINKING_OBJECTS));
 
         SUPPORTED_IS_EMPTY_TYPES = Collections.unmodifiableList(list);

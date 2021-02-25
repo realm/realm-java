@@ -2008,6 +2008,13 @@ public class RealmQuery<E> {
      * @throws IllegalStateException    if a sorting order was already defined.
      */
     public RealmQuery<E> sort(String[] fieldNames, Sort[] sortOrders) {
+        if ((sortOrders == null) || (sortOrders.length == 0)) {
+            throw new IllegalArgumentException("You must provide at least one sort order.");
+        }
+        if (fieldNames.length != sortOrders.length) {
+            throw new IllegalArgumentException("Number of fields and sort orders do not match.");
+        }
+
         realm.checkIfValid();
 
         this.query.sort(fieldNames, sortOrders);
