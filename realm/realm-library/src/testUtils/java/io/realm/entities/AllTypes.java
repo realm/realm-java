@@ -70,7 +70,6 @@ public class AllTypes extends RealmObject {
     public static final String FIELD_DOUBLE_DICTIONARY = "columnDoubleDictionary";
     public static final String FIELD_BYTE_DICTIONARY = "columnByteDictionary";
     public static final String FIELD_BINARY_DICTIONARY = "columnBinaryDictionary";
-    public static final String FIELD_BOXED_BINARY_DICTIONARY = "columnBoxedBinaryDictionary";
     public static final String FIELD_DATE_DICTIONARY = "columnDateDictionary";
     public static final String FIELD_OBJECT_ID_DICTIONARY = "columnObjectIdDictionary";
     public static final String FIELD_UUID_DICTIONARY = "columnUUIDDictionary";
@@ -83,7 +82,7 @@ public class AllTypes extends RealmObject {
             FIELD_DOUBLE_LIST, FIELD_FLOAT_LIST, FIELD_DATE_LIST, FIELD_BOOLEAN_DICTIONARY,
             FIELD_STRING_DICTIONARY, FIELD_INTEGER_DICTIONARY, FIELD_FLOAT_DICTIONARY,
             FIELD_LONG_DICTIONARY, FIELD_SHORT_DICTIONARY, FIELD_DOUBLE_DICTIONARY,
-            FIELD_BYTE_DICTIONARY, FIELD_BINARY_DICTIONARY, FIELD_BOXED_BINARY_DICTIONARY,
+            FIELD_BYTE_DICTIONARY, FIELD_BINARY_DICTIONARY,
             FIELD_DATE_DICTIONARY, FIELD_OBJECT_ID_DICTIONARY, FIELD_UUID_DICTIONARY,
             FIELD_DECIMAL128_DICTIONARY, FIELD_MIXED_DICTIONARY};
 
