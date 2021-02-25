@@ -609,20 +609,3 @@ class BinaryEquals<K> extends EqualsHelper<K, byte[]> {
         return Arrays.equals(value, otherValue);
     }
 }
-
-class BoxedBinaryEquals<K> extends EqualsHelper<K, Byte[]> {
-    @Override
-    protected boolean compareInternal(@Nullable Byte[] value, @Nullable Byte[] otherValue) {
-        if (value == null) {
-            return otherValue == null;
-        } else {
-            if (otherValue == null) {
-                return false;
-            } else {
-                byte[] bytes = TypeUtils.convertNonPrimitiveBinaryToPrimitive(value);
-                byte[] otherBytes = TypeUtils.convertNonPrimitiveBinaryToPrimitive(otherValue);
-                return Arrays.equals(bytes, otherBytes);
-            }
-        }
-    }
-}

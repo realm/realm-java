@@ -269,10 +269,10 @@ class ManagedDictionaryTester<T : Any>(
             assertEquals(initializedDictionary.size, entrySet.size)
 
             // Test contains
-            entrySet.forEach { entry ->
-                assertTrue(initializedDictionary.containsKey(entry.key))
-
-                typeAsserter.assertEntrySetContains(dictionary, entry)
+            dictionary.keys.forEach { dictionaryKey ->
+                val dictionaryValue = dictionary[dictionaryKey]
+                val otherEntry = AbstractMap.SimpleImmutableEntry(dictionaryKey, dictionaryValue)
+                assertTrue(entrySet.contains(otherEntry))
             }
 
             // Test iterator
@@ -300,9 +300,7 @@ class ManagedDictionaryTester<T : Any>(
             ) {
                 when {
                     biggerSize -> assertTrue(entrySetArray.size > entrySet.size)
-                    else -> {
-                        assertEquals(entrySet.size, entrySetArray.size)
-                    }
+                    else -> assertEquals(entrySet.size, entrySetArray.size)
                 }
                 for ((index, entry) in entrySetArray.withIndex()) {
                     if (index >= entrySet.size) {
@@ -330,7 +328,11 @@ class ManagedDictionaryTester<T : Any>(
             testToArray(entrySetBiggerSizeArray, true)
 
             // Test containsAll
-            typeAsserter.assertEntrySetContainsAll(initializedDictionary, dictionary, entrySet)
+            val otherEntryCollection = dictionary.keys.map { dictionaryKey ->
+                val dictionaryValue = dictionary[dictionaryKey]
+                AbstractMap.SimpleImmutableEntry(dictionaryKey, dictionaryValue)
+            }
+            assertTrue(entrySet.containsAll(otherEntryCollection))
 
             val differentCollection = alternativeDictionary.map { entry ->
                 AbstractMap.SimpleImmutableEntry(entry.key, entry.value)
@@ -615,30 +617,15 @@ open class TypeAsserter<T> {
     }
 
     // RealmModel and Mixed require different testing here
-    open fun assertRemoveRealmModelFromRealm(dictionary: RealmDictionary<T>, index: Int, key: String, value: T?) =
-            Unit
+    open fun assertRemoveRealmModelFromRealm(
+            dictionary: RealmDictionary<T>,
+            index: Int,
+            key: String,value: T?
+    ) = Unit    // Do nothing if we aren't testing a RealmModel or a Mixed wrapping a RealmModel
 
     // RealmModel requires different testing here
     open fun assertValues(dictionary: RealmDictionary<T>, value: T?) =
             assertTrue(dictionary.containsValue(value))
-
-    // RealmModel requires different testing here
-    open fun assertEntrySetContains(
-            dictionary: RealmDictionary<T>,
-            entry: Map.Entry<String, T>
-    ) = assertTrue(dictionary.containsValue(entry.value))
-
-    // RealmModel and Mixed require different testing here
-    open fun assertEntrySetContainsAll(
-            initializedDictionary: RealmDictionary<T>,
-            dictionary: RealmDictionary<T>,
-            entrySet: Set<Map.Entry<String, T?>>
-    ) {
-        val sameCollection = initializedDictionary.map { entry ->
-            AbstractMap.SimpleImmutableEntry(entry.key, entry.value)
-        }.toSet()
-        assertTrue(entrySet.containsAll(sameCollection))
-    }
 
     // RealmModel and Mixed require different testing here
     open fun assertContainsValueHelper(
@@ -726,26 +713,6 @@ class RealmModelAsserter : TypeAsserter<DogPrimaryKey>() {
         }
     }
 
-    override fun assertEntrySetContains(
-            dictionary: RealmDictionary<DogPrimaryKey>,
-            entry: Map.Entry<String, DogPrimaryKey>
-    ) {
-        val dog = dictionary[entry.key]
-        assertEquals(dog, entry.value)
-    }
-
-    override fun assertEntrySetContainsAll(
-            initializedDictionary: RealmDictionary<DogPrimaryKey>,
-            dictionary: RealmDictionary<DogPrimaryKey>,
-            entrySet: Set<Map.Entry<String, DogPrimaryKey?>>
-    ) {
-        val sameRealmModelCollection: List<Map.Entry<String, DogPrimaryKey?>> =
-                initializedDictionary.map { originalEntry ->
-                    AbstractMap.SimpleImmutableEntry(originalEntry.key, dictionary[originalEntry.key])
-                }
-        assertTrue(entrySet.containsAll(sameRealmModelCollection))
-    }
-
     override fun assertContainsValueHelper(
             realm: Realm,
             key: String,
@@ -826,22 +793,6 @@ class MixedAsserter : TypeAsserter<Mixed>() {
             dictionary.remove(key)
             assertEquals(index, dictionary.size)
         }
-    }
-
-    override fun assertEntrySetContainsAll(
-            initializedDictionary: RealmDictionary<Mixed>,
-            dictionary: RealmDictionary<Mixed>,
-            entrySet: Set<Map.Entry<String, Mixed?>>
-    ) {
-        val sameCollection =
-                dictionary.map { entry: Map.Entry<String, Mixed?> ->
-                    // Realm doesn't deliver "pure null" values for Mixed, but Mixed.nullValue() instead
-                    when (entry.value) {
-                        null -> AbstractMap.SimpleImmutableEntry(entry.key, Mixed.nullValue())
-                        else -> AbstractMap.SimpleImmutableEntry(entry.key, entry.value)
-                    }
-                }.toSet() as Set<Map.Entry<String, Mixed>>
-        assertTrue(entrySet.containsAll(sameCollection))
     }
 
     override fun assertContainsValueHelper(
