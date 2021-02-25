@@ -16,8 +16,6 @@
 
 package io.realm.internal;
 
-import android.util.Log;
-
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
@@ -79,9 +77,6 @@ public class TableQuery implements NativeObject {
         if (!queryBuilder.isValidated()) {
             boolean isOrConnected = queryBuilder.isOrConnected();
             String predicate = queryBuilder.build();
-
-            // Realm.log
-            Log.d("PREDICATE", predicate);
 
             OsKeyPathMapping mapping = table.getOsKeyPathMapping();
 
@@ -290,7 +285,7 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
-    public TableQuery notEqualTo(String fieldName, Date value) {
+    public TableQuery notEqualTo(String fieldName, @Nullable Date value) {
         long position = nativeArgumentList.insertDate(value);
         queryBuilder.appendNotEqualTo(fieldName, position);
         return this;

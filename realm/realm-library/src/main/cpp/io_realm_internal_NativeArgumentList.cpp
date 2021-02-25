@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2021 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,8 +47,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_NativeArgumentList_nativeGetFinal
     return reinterpret_cast<jlong>(&finalize_argument_list);
 }
 
-
-
 JNIEXPORT jlong JNICALL Java_io_realm_internal_NativeArgumentList_nativeCreate(JNIEnv* env, jclass)
 {
     try {
@@ -61,20 +59,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_NativeArgumentList_nativeCreate(J
 
 static inline long add_argument(jlong data_ptr, JavaValue const& value)
 {
-    ArgumentList* data = reinterpret_cast<ArgumentList*>(data_ptr);
-    long size = data->size();
-    (*data).push_back(std::move(value));
+    auto &data = *reinterpret_cast<ArgumentList*>(data_ptr);
+    long size = data.size();
+    data.push_back(std::move(value));
 
     return size;
 }
-
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_NativeArgumentList_nativeInsertNull
         (JNIEnv* env, jclass, jlong data_ptr)
 {
     try {
-        const JavaValue value = JavaValue();
-        return add_argument(data_ptr, value);
+        return add_argument(data_ptr, JavaValue());
     }
     CATCH_STD()
 
@@ -87,8 +83,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_NativeArgumentList_nativeInsertSt
     try {
         JStringAccessor value(env, j_value);
         std::string string_value(value);
-        const JavaValue wrapped_value(string_value);
-        return add_argument(data_ptr, wrapped_value);
+        return add_argument(data_ptr, JavaValue(string_value));
     }
     CATCH_STD()
 
@@ -99,8 +94,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_NativeArgumentList_nativeInsertIn
         (JNIEnv* env, jclass, jlong data_ptr, jlong j_value)
 {
     try {
-        const JavaValue value(j_value);
-        return add_argument(data_ptr, value);
+        return add_argument(data_ptr, JavaValue(j_value));
     }
     CATCH_STD()
 
@@ -111,8 +105,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_NativeArgumentList_nativeInsertFl
         (JNIEnv* env, jclass, jlong data_ptr, jfloat j_value)
 {
     try {
-        const JavaValue value(j_value);
-        return add_argument(data_ptr, value);
+        return add_argument(data_ptr, JavaValue(j_value));
     }
     CATCH_STD()
 
@@ -123,8 +116,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_NativeArgumentList_nativeInsertDo
         (JNIEnv* env, jclass, jlong data_ptr, jdouble j_value)
 {
     try {
-        const JavaValue value(j_value);
-        return add_argument(data_ptr, value);
+        return add_argument(data_ptr, JavaValue(j_value));
     }
     CATCH_STD()
 
@@ -135,8 +127,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_NativeArgumentList_nativeInsertBo
         (JNIEnv* env, jclass, jlong data_ptr, jboolean j_value)
 {
     try {
-        const JavaValue value(j_value);
-        return add_argument(data_ptr, value);
+        return add_argument(data_ptr, JavaValue(j_value));
     }
     CATCH_STD()
 
@@ -148,8 +139,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_NativeArgumentList_nativeInsertBy
 {
     try {
         auto data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
-        const JavaValue value(data);
-        return add_argument(data_ptr, value);
+        return add_argument(data_ptr, JavaValue(data));
     }
     CATCH_STD()
 
@@ -161,7 +151,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_NativeArgumentList_nativeInsertDa
 {
     try {
         const JavaValue value(from_milliseconds(j_value));
-        return add_argument(data_ptr, value);
+        return add_argument(data_ptr, JavaValue(j_value));
     }
     CATCH_STD()
 
@@ -173,9 +163,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_NativeArgumentList_nativeInsertDe
 {
     try {
         Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
-        Decimal128 decimal128 = Decimal128(raw);
-        const JavaValue value(decimal128);
-        return add_argument(data_ptr, value);
+        const Decimal128 decimal128(raw);
+        return add_argument(data_ptr, JavaValue(decimal128));
     }
     CATCH_STD()
 
@@ -188,8 +177,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_NativeArgumentList_nativeInsertOb
     try {
         JStringAccessor data(env, j_data);
         ObjectId objectId = ObjectId(StringData(data).data());
-        const JavaValue value(objectId);
-        return add_argument(data_ptr, value);
+        return add_argument(data_ptr, JavaValue(objectId));
     }
     CATCH_STD()
 
@@ -202,8 +190,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_NativeArgumentList_nativeInsertUU
     try {
         JStringAccessor data(env, j_data);
         UUID uuid = UUID(StringData(data).data());
-        const JavaValue value(uuid);
-        return add_argument(data_ptr, value);
+        return add_argument(data_ptr, JavaValue(uuid));
     }
     CATCH_STD()
 

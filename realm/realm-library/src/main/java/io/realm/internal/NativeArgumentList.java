@@ -16,7 +16,6 @@
 
 package io.realm.internal;
 
-
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
@@ -84,7 +83,7 @@ public class NativeArgumentList implements NativeObject {
         return (value == null) ? nativeInsertNull(nativePtr) : nativeInsertUUID(nativePtr, value.toString());
     }
 
-    public long insertObject(long objectPtr){
+    public long insertObject(long objectPtr) {
         return nativeInsertObject(nativePtr, objectPtr);
     }
 
