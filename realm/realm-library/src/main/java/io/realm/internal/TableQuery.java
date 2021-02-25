@@ -374,6 +374,18 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
+    public TableQuery beginsWith(String fieldName, String value) {
+        return beginsWith(fieldName, value, Case.SENSITIVE);
+    }
+
+    public TableQuery like(String fieldName, String value) {
+        return like(fieldName, value, Case.SENSITIVE);
+    }
+
+    public TableQuery contains(String fieldName, String value) {
+        return contains(fieldName, value, Case.SENSITIVE);
+    }
+
     public TableQuery beginsWith(String fieldName, String value, Case caseSensitive) {
         long position = nativeArgumentList.insertString(value);
 
