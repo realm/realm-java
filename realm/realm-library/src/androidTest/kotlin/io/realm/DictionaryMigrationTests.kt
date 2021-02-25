@@ -18,8 +18,9 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.entities.PopulatedDictionaryClass
+import io.realm.entities.DictionaryContainerClass
 import io.realm.entities.StringOnly
+import io.realm.kotlin.createObject
 import io.realm.rule.TestRealmConfigurationFactory
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
@@ -41,20 +42,21 @@ class DictionaryMigrationTests {
 
     private val dictionaryFields = listOf(
             // The "java.lang" prefix in primitive types is needed or else Kotlin will map it to raw primitives
-            Triple(PopulatedDictionaryClass::populatedBooleanDictionary.name, java.lang.Boolean::class.java, RealmFieldType.STRING_TO_BOOLEAN_MAP),
-            Triple(PopulatedDictionaryClass::populatedIntDictionary.name, java.lang.Integer::class.java, RealmFieldType.STRING_TO_INTEGER_MAP),
-            Triple(PopulatedDictionaryClass::populatedFloatDictionary.name, java.lang.Float::class.java, RealmFieldType.STRING_TO_FLOAT_MAP),
-            Triple(PopulatedDictionaryClass::populatedLongDictionary.name, java.lang.Long::class.java, RealmFieldType.STRING_TO_INTEGER_MAP),
-            Triple(PopulatedDictionaryClass::populatedShortDictionary.name, java.lang.Short::class.java, RealmFieldType.STRING_TO_INTEGER_MAP),
-            Triple(PopulatedDictionaryClass::populatedByteDictionary.name, java.lang.Byte::class.java, RealmFieldType.STRING_TO_INTEGER_MAP),
-            Triple(PopulatedDictionaryClass::populatedDoubleDictionary.name, java.lang.Double::class.java, RealmFieldType.STRING_TO_DOUBLE_MAP),
-            Triple(PopulatedDictionaryClass::populatedStringDictionary.name, String::class.java, RealmFieldType.STRING_TO_STRING_MAP),
-            Triple(PopulatedDictionaryClass::populatedBinaryDictionary.name, ByteArray::class.java, RealmFieldType.STRING_TO_BINARY_MAP),
-            Triple(PopulatedDictionaryClass::populatedDateDictionary.name, Date::class.java, RealmFieldType.STRING_TO_DATE_MAP),
-            Triple(PopulatedDictionaryClass::populatedObjectIdDictionary.name, ObjectId::class.java, RealmFieldType.STRING_TO_OBJECT_ID_MAP),
-            Triple(PopulatedDictionaryClass::populatedUUIDDictionary.name, UUID::class.java, RealmFieldType.STRING_TO_UUID_MAP),
-            Triple(PopulatedDictionaryClass::populatedDecimal128Dictionary.name, Decimal128::class.java, RealmFieldType.STRING_TO_DECIMAL128_MAP),
-            Triple(PopulatedDictionaryClass::populatedMixedDictionary.name, Mixed::class.java, RealmFieldType.STRING_TO_MIXED_MAP)
+            Triple(DictionaryContainerClass::myBooleanDictionary, java.lang.Boolean::class.java, RealmFieldType.STRING_TO_BOOLEAN_MAP),
+            Triple(DictionaryContainerClass::myIntDictionary, java.lang.Integer::class.java, RealmFieldType.STRING_TO_INTEGER_MAP),
+            Triple(DictionaryContainerClass::myFloatDictionary, java.lang.Float::class.java, RealmFieldType.STRING_TO_FLOAT_MAP),
+            Triple(DictionaryContainerClass::myLongDictionary, java.lang.Long::class.java, RealmFieldType.STRING_TO_INTEGER_MAP),
+            Triple(DictionaryContainerClass::myShortDictionary, java.lang.Short::class.java, RealmFieldType.STRING_TO_INTEGER_MAP),
+            Triple(DictionaryContainerClass::myByteDictionary, java.lang.Byte::class.java, RealmFieldType.STRING_TO_INTEGER_MAP),
+            Triple(DictionaryContainerClass::myDoubleDictionary, java.lang.Double::class.java, RealmFieldType.STRING_TO_DOUBLE_MAP),
+            Triple(DictionaryContainerClass::myStringDictionary, String::class.java, RealmFieldType.STRING_TO_STRING_MAP),
+            Triple(DictionaryContainerClass::myBinaryDictionary, ByteArray::class.java, RealmFieldType.STRING_TO_BINARY_MAP),
+            Triple(DictionaryContainerClass::myDateDictionary, Date::class.java, RealmFieldType.STRING_TO_DATE_MAP),
+            Triple(DictionaryContainerClass::myObjectIdDictionary, ObjectId::class.java, RealmFieldType.STRING_TO_OBJECT_ID_MAP),
+            Triple(DictionaryContainerClass::myUUIDDictionary, UUID::class.java, RealmFieldType.STRING_TO_UUID_MAP),
+            Triple(DictionaryContainerClass::myDecimal128Dictionary, Decimal128::class.java, RealmFieldType.STRING_TO_DECIMAL128_MAP),
+            Triple(DictionaryContainerClass::myMixedDictionary, Mixed::class.java, RealmFieldType.STRING_TO_MIXED_MAP),
+            Triple(DictionaryContainerClass::myRealmModelDictionary, StringOnly::class.java, RealmFieldType.STRING_TO_LINK_MAP)
     )
 
     private lateinit var realm: Realm
@@ -65,7 +67,7 @@ class DictionaryMigrationTests {
     }
 
     @Test
-    fun migrateRealm_dictionary() {
+    fun migrate_realmDictionary() {
         // Creates v0 of the Realm.
         val originalConfig = configFactory.createConfigurationBuilder()
                 .schema(StringOnly::class.java)
@@ -76,22 +78,37 @@ class DictionaryMigrationTests {
         val realmConfig = configFactory
                 .createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(StringOnly::class.java, PopulatedDictionaryClass::class.java)
+                .schema(StringOnly::class.java, DictionaryContainerClass::class.java)
                 .migration { realm, _, _ ->
-                    val schema = realm.schema
-                    val realmObjectSchema = schema.create(PopulatedDictionaryClass.CLASS_NAME)
+                    val schema = realm.schema.create(DictionaryContainerClass.CLASS_NAME)
+
                     dictionaryFields.forEach {
-                        realmObjectSchema.addRealmDictionaryField(it.first, it.second)
+                        if (it.third == RealmFieldType.STRING_TO_LINK_MAP) {
+                            val realmModelSchema = realm.schema.get(it.second.simpleName)
+                            assertNotNull(realmModelSchema)
+                            schema.addRealmDictionaryField(it.first.name, realmModelSchema)
+                        } else {
+                            schema.addRealmDictionaryField(it.first.name, it.second)
+                        }
                     }
                 }.build()
 
         realm = Realm.getInstance(realmConfig)
 
-        val objectSchema = realm.schema.get(PopulatedDictionaryClass.CLASS_NAME)
+        val objectSchema = realm.schema.get(DictionaryContainerClass.CLASS_NAME)
         assertNotNull(objectSchema)
         dictionaryFields.forEach {
-            assertTrue(objectSchema.hasField(it.first))
-            assertEquals(it.third, objectSchema.getFieldType(it.first))
+            assertTrue(objectSchema.hasField(it.first.name))
+            assertEquals(it.third, objectSchema.getFieldType(it.first.name))
+        }
+
+        realm.executeTransaction { transactionRealm ->
+            val container = transactionRealm.createObject<DictionaryContainerClass>()
+            dictionaryFields.forEach {
+                val dictionary = it.first.get(container)
+                assertNotNull(dictionary)
+                assertTrue(dictionary.isEmpty())
+            }
         }
 
         realm.close()

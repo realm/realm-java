@@ -184,8 +184,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     public RealmObjectSchema addRealmDictionaryField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(RealmFieldType.LIST, fieldName, realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
-//        table.addColumnLink(RealmFieldType.STRING_TO_LINK_MAP, fieldName, realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
+        table.addColumnDictionaryLink(RealmFieldType.STRING_TO_LINK_MAP, fieldName, realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
         return this;
     }
 

@@ -170,6 +170,11 @@ public class Table implements NativeObject {
         return nativeAddColumnLink(nativeTableRefPtr, type.getNativeValue(), name, table.nativeTableRefPtr);
     }
 
+    public long addColumnDictionaryLink(RealmFieldType type, String name, Table table) {
+        verifyColumnName(name);
+        return nativeAddColumnDictionaryLink(nativeTableRefPtr, type.getNativeValue(), name, table.nativeTableRefPtr);
+    }
+
     /**
      * Removes a column in the table dynamically.
      * <p>
@@ -794,6 +799,8 @@ public class Table implements NativeObject {
     private native long nativeAddPrimitiveDictionaryColumn(long nativeTableRefPtr, int type, String name, boolean isNullable);
 
     private native long nativeAddColumnLink(long nativeTableRefPtr, int type, String name, long targetTablePtr);
+
+    private native long nativeAddColumnDictionaryLink(long nativeTableRefPtr, int type, String name, long targetTablePtr);
 
     private native void nativeRenameColumn(long nativeTableRefPtr, long columnKey, String name);
 
