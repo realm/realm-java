@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.content.Context;
+
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.rules.TemporaryFolder;
@@ -38,6 +39,7 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
 
 import static org.junit.Assert.assertTrue;
+
 
 /**
  * Rule that creates the {@link RealmConfiguration } in a temporary directory and deletes the Realm created with that
@@ -190,10 +192,12 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
         // Allow writes on UI
         builder.allowWritesOnUiThread(true);
 
-        if (exclude) {
-            builder.excludeSchema(firstClass, additionalClasses);
-        } else {
-            builder.schema(firstClass, additionalClasses);
+        if (firstClass != null) {
+            if (exclude) {
+                builder.excludeSchema(firstClass, additionalClasses);
+            } else {
+                builder.schema(firstClass, additionalClasses);
+            }
         }
 
         RealmConfiguration configuration = builder.build();
