@@ -37,11 +37,10 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.Sort;
 import io.realm.TestHelper;
-import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.core.QueryDescriptor;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;

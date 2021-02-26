@@ -151,7 +151,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_NativeArgumentList_nativeInsertDa
 {
     try {
         const JavaValue value(from_milliseconds(j_value));
-        return add_argument(data_ptr, JavaValue(j_value));
+        return add_argument(data_ptr, value);
     }
     CATCH_STD()
 

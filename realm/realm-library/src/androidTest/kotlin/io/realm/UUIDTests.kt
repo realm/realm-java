@@ -23,7 +23,6 @@ import io.realm.exceptions.RealmException
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
-import io.realm.rule.TestRealmConfigurationFactory
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before

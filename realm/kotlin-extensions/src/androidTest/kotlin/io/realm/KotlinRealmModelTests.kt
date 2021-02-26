@@ -7,7 +7,6 @@ import io.realm.entities.SimpleClass
 import io.realm.kotlin.*
 import io.realm.rule.RunInLooperThread
 import io.realm.rule.RunTestInLooperThread
-import io.realm.rule.TestRealmConfigurationFactory
 import org.junit.*
 import org.junit.Assert.*
 import org.junit.runner.RunWith

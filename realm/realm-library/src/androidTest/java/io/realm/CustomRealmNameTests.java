@@ -28,7 +28,6 @@ import io.realm.entities.realmname.ClassWithPolicy;
 import io.realm.entities.realmname.ClassWithValueDefinedNames;
 import io.realm.entities.realmname.CustomRealmNamesModule;
 import io.realm.entities.realmname.FieldNameOverrideClassPolicy;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

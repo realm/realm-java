@@ -31,7 +31,7 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.Sort;
 import io.realm.internal.core.QueryDescriptor;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;

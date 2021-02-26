@@ -32,7 +32,6 @@ import io.realm.entities.AllJavaTypes;
 import io.realm.entities.BacklinksSource;
 import io.realm.entities.BacklinksTarget;
 import io.realm.rule.RunInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 
 public abstract class QueryTests {
@@ -91,7 +90,7 @@ public abstract class QueryTests {
     public void setUp() throws Exception {
         Realm.init(ApplicationProvider.getApplicationContext());
         configFactory.create(); // Creates temporary folder (unsure why this is needed when Running RealmQueryTests independently.
-        RealmConfiguration realmConfig = configFactory.createConfiguration();
+        RealmConfiguration realmConfig = configFactory.createSchemaConfiguration(true, io.realm.entities.conflict.AllJavaTypes.class);
         realm = Realm.getInstance(realmConfig);
     }
 
