@@ -174,11 +174,9 @@ public class RealmLinkTests {
         assertEquals(1, owners6.size());
         assertEquals(12, owners6.first().getCat().getAge());
 
-        try {
-            RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.age", 1, 20).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
+        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.age", 1, 20).findAll();
+        assertEquals(1, owners7.size());
+        assertEquals(12, owners7.first().getCat().getAge());
     }
 
     @Test
@@ -213,12 +211,9 @@ public class RealmLinkTests {
         assertEquals(1, owners6.size());
         assertEquals(12, owners6.first().getCat().getAge());
 
-        try {
-            testRealm.where(Owner.class).between("cat.birthday", new Date(1), new Date(10000)).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-            // Between does not support link queries.
-        }
+        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.birthday", new Date(1), new Date(10000)).findAll();
+        assertEquals(1, owners7.size());
+        assertEquals(12, owners7.first().getCat().getAge());
     }
 
     @Test
@@ -247,10 +242,9 @@ public class RealmLinkTests {
         assertEquals(1, owners6.size());
         assertEquals(12, owners6.first().getCat().getAge());
 
-        try {
-            RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.height", 0.2f, 2.2f).findAll();
-        } catch (IllegalArgumentException ignored) {
-        }
+        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.height", 0.2f, 2.2f).findAll();
+        assertEquals(1, owners7.size());
+        assertEquals(12, owners7.first().getCat().getAge());
     }
 
     @Test
@@ -279,11 +273,9 @@ public class RealmLinkTests {
         assertEquals(1, owners6.size());
         assertEquals(12, owners6.first().getCat().getAge());
 
-        try {
-            RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.weight", 0.2, 2.2).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
+        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.weight", 0.2, 2.2).findAll();
+        assertEquals(1, owners7.size());
+        assertEquals(12, owners7.first().getCat().getAge());
     }
 
     @Test
@@ -348,11 +340,8 @@ public class RealmLinkTests {
         RealmResults<Owner> owners6 = testRealm.where(Owner.class).lessThanOrEqualTo("dogs.age", 9).findAll();
         assertEquals(1, owners6.size());
 
-        try {
-            RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.age", 9, 11).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
+        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.age", 9, 11).findAll();
+        assertEquals(1, owners7.size());
     }
 
     @Test
@@ -381,12 +370,8 @@ public class RealmLinkTests {
         RealmResults<Owner> owners6 = testRealm.where(Owner.class).lessThanOrEqualTo("dogs.birthday", new Date(10000)).findAll();
         assertEquals(1, owners6.size());
 
-        try {
-            RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.birthday", new Date(1000), new Date(3000)).findAll();
-            fail();
-        } catch (IllegalArgumentException ignore) {
-            // Between does not support link queries.
-        }
+        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.birthday", new Date(1000), new Date(3000)).findAll();
+        assertEquals(1, owners7.size());
     }
 
     @Test
@@ -415,11 +400,9 @@ public class RealmLinkTests {
         assertEquals(1, owners6.size());
         assertEquals(12, owners6.first().getCat().getAge());
 
-        try {
-            RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.height", 0.2f, 2.2f).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
+        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.height", 0.2f, 2.2f).findAll();
+        assertEquals(1, owners7.size());
+        assertEquals(12, owners7.first().getCat().getAge());
     }
 
     @Test
@@ -448,11 +431,9 @@ public class RealmLinkTests {
         assertEquals(1, owners6.size());
         assertEquals(12, owners6.first().getCat().getAge());
 
-        try {
-            RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.weight", 0.2, 12.2).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
+        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.weight", 0.2, 12.2).findAll();
+        assertEquals(1, owners7.size());
+        assertEquals(12, owners7.first().getCat().getAge());
     }
 
     @Test
@@ -570,15 +551,5 @@ public class RealmLinkTests {
 
         RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNotEmpty("dogs.name").findAll();
         assertEquals(1, owners2.size());
-    }
-
-    @Test
-    public void isNullWrongType() {
-        try {
-            // AllTypes.columnFloat is not nullable.
-            testRealm.where(AllTypes.class).isNull("columnFloat").findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
     }
 }

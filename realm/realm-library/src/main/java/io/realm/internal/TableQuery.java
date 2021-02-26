@@ -273,7 +273,7 @@ public class TableQuery implements NativeObject {
 
     public TableQuery notEqualTo(String fieldName, @Nullable Boolean value) {
         long position = nativeArgumentList.insertBoolean(value);
-        queryBuilder.appendEqualTo(fieldName, position);
+        queryBuilder.appendNotEqualTo(fieldName, position);
         return this;
     }
 

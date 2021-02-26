@@ -274,10 +274,6 @@ class Decimal128Tests {
 
     @Test
     fun linkQueryNotSupported() {
-        assertFailsWith<IllegalArgumentException>("It should not be possible to perform link query on Decimal128") {
-            realm.where<Decimal128RequiredRealmList>().greaterThan("decimals", Decimal128(BigDecimal.ZERO)).findAll()
-        }
-
         realm.beginTransaction()
         val obj = realm.createObject<Decimal128RequiredRealmList>()
         realm.cancelTransaction()
@@ -627,7 +623,7 @@ class Decimal128Tests {
         realm.commitTransaction()
 
         assertFailsWith<IllegalArgumentException>("isEmpty is not supported for Decimal128") {
-            realm.where<Decimal128NotRequired>().isEmpty("decimal")
+            realm.where<Decimal128NotRequired>().isEmpty("decimal").count()
         }
     }
 

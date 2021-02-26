@@ -296,10 +296,6 @@ class ObjectIdTests {
 
     @Test
     fun linkQueryNotSupported() {
-        assertFailsWith<IllegalArgumentException>("It should not be possible to perform link query on ObjectId") {
-            realm.where<ObjectIdRequiredRealmList>().greaterThan("ids", ObjectId(generateObjectIdHexString(0))).findAll()
-        }
-
         realm.beginTransaction()
         val obj = realm.createObject<ObjectIdRequiredRealmList>()
         realm.cancelTransaction()
@@ -534,7 +530,7 @@ class ObjectIdTests {
         realm.commitTransaction()
 
         assertFailsWith<IllegalArgumentException>("isEmpty is not supported for ObjectId") {
-            realm.where<ObjectIdAndString>().isEmpty("id")
+            realm.where<ObjectIdAndString>().isEmpty("id").count()
         }
     }
 

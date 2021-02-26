@@ -733,8 +733,8 @@ public class DynamicRealmTests {
         dynamicRealm.commitTransaction();
 
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Invalid query: field 'nonExisting' not found in table 'NoField'.");
-        dynamicRealm.where(className).equalTo("nonExisting", 1);
+        thrown.expectMessage("Illegal Argument: 'NoField' has no property: 'nonExisting'");
+        dynamicRealm.where(className).equalTo("nonExisting", 1).count();
     }
 
     @Test(expected = IllegalStateException.class)
