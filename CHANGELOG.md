@@ -1,5 +1,35 @@
 ## 10.4.0 (YYYY-MM-DD)
 
+Releases are now found on `mavenCentral()` instead of `jcenter()`. `jcenter()` is still required as
+a configured repository as [`Relinker`](https://github.com/KeepSafe/ReLinker) which Realm depends on,
+are still only on `jcenter()`. As soon as that has [moved](https://github.com/KeepSafe/ReLinker/issues/79),
+`jcenter()`` is no longer required.
+
+A minimal supported setup will therefor now look like this:
+
+```
+allprojects {
+    buildscript {
+        repositories {
+            mavenCentral()
+        }
+        dependencies {
+            classpath "io.realm:realm-gradle-plugin:10.4.0"
+        }
+    }
+
+    repositories {
+        mavenCentral()
+        google()
+        jcenter()
+    }
+}
+```
+
+`SNAPSHOT` releases have also been moved from `http://oss.jfrog.org/artifactory/oss-snapshot-local`
+to `https://oss.sonatype.org/content/repositories/snapshots/`. See [here](https://github.com/realm/realm-java/blob/master/README.md#using-snapshots)
+for more information.
+
 ### Enhancements
 * Added support for the string-based Realm Query Language through `RealmQuery.rawPredicate(...)`. This allows many new type of queries not previously supported by the typed query API. See the Javadoc on this method for further details. (Issue [#6116](https://github.com/realm/realm-java/pull/6116))
 

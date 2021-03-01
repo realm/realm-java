@@ -1,0 +1,25 @@
+// Find property in either System environment or Gradle properties.
+// If set in both places, Gradle properties win.
+def getPropertyValue(String propertyName) {
+    def value = System.getenv(propertyName)
+    if (project.hasProperty(propertyName)) {
+        value = project.getProperty(propertyName)
+    }
+    return value
+}
+
+File secretPropsFile = new File(buildscript.sourceFile.getParent(), 'mavencentral.properties')
+if (secretPropsFile.exists()) {
+    Properties p = new Properties()
+    p.load(new FileInputStream(secretPropsFile))
+    p.each { name, value ->
+        ext[name] = value
+    }
+} else {
+    ext["signing.keyId"] = getPropertyValue('REALM_SIGNING_KEY_ID')
+    ext["signing.password"] = getPropertyValue('REALM_SIGNING_PASSWORD')
+    ext["signing.secretKeyRingFile"] = getPropertyValue('REALM_SIGNING_SECRET_KEY_RING_FILE')
+    ext["ossrhUsername"] = getPropertyValue('REALM_OSSRH_USERNAME')
+    ext["ossrhPassword"] = getPropertyValue('REALM_OSSRH_PASSWORD')
+    ext["sonatypeStagingProfileId"] = getPropertyValue('REALM_SONATYPE_STAGING_PROFILE_ID')
+}

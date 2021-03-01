@@ -1,9 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'com.jfrog.artifactory'
-apply plugin: 'maven-publish'
 apply plugin: 'de.undercouch.download'
 apply plugin: 'org.jetbrains.dokka'
 
@@ -127,68 +124,7 @@ task javadocJar(type: Jar, dependsOn: dokka) {
     from "$buildDir/dokka"
 }
 
-// Deployment
-
-install {
-    repositories.mavenInstaller {
-        pom {
-            project {
-                packaging 'aar'
-
-                // Add your description here
-                name 'realm-kotlin-extensions'
-                description 'Kotlin specific APIs and extension functions for Realm for Android'
-                url 'http://realm.io'
-
-                // Set your license
-                licenses {
-                    license {
-                        name 'The Apache Software License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                        distribution 'repo'
-                    }
-                }
-                issueManagement {
-                    system 'github'
-                    url 'https://github.com/realm/realm-java/issues'
-                }
-                scm {
-                    url 'scm:https://github.com/realm/realm-java'
-                    connection 'scm:git@github.com:realm/realm-java.git'
-                    developerConnection 'scm:git@github.com:realm/realm-java.git'
-                }
-            }
-        }
-    }
-}
-
-// The publications doesn't know about our AAR dependencies, so we have to manually add them to the pom
-// Credit: http://stackoverflow.com/questions/24743562/gradle-not-including-dependencies-in-published-pom-xml
-def createPomDependencies(configurationNames) {
-    return {
-        def dependenciesNode = asNode().appendNode('dependencies')
-        configurationNames.each { configurationName ->
-            configurations[configurationName].allDependencies.each {
-                if (it.group != null && it.name != null && it.name != 'realm-library') {
-                    def dependencyNode = dependenciesNode.appendNode('dependency')
-                    dependencyNode.appendNode('groupId', it.group)
-                    dependencyNode.appendNode('artifactId', it.name)
-                    dependencyNode.appendNode('version', it.version)
-
-                    //If there are any exclusions in dependency
-                    if (it.excludeRules.size() > 0) {
-                        def exclusionsNode = dependencyNode.appendNode('exclusions')
-                        it.excludeRules.each { rule ->
-                            def exclusionNode = exclusionsNode.appendNode('exclusion')
-                            exclusionNode.appendNode('groupId', rule.group)
-                            exclusionNode.appendNode('artifactId', rule.module)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+apply from: "${rootDir}/../mavencentral-publish.gradle"
 
 publishing {
     publications {
@@ -201,8 +137,12 @@ publishing {
             }
             artifact sourcesJar
             artifact javadocJar
-
-            pom.withXml(createPomDependencies(["baseImplementation", "implementation", "baseApi", "api"]))
+            populatePom(
+                    it,
+                    'realm-android-kotlin-extensions',
+                    'Kotlin specific APIs and extension functions for Realm for Android',
+                    createPomDependencies(["baseImplementation", "implementation", "baseApi", "api"])
+            )
         }
 
         objectServerPublication(MavenPublication) {
@@ -214,37 +154,12 @@ publishing {
             }
             artifact sourcesJar
             artifact javadocJar
-
-            pom.withXml(createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"]))
-        }
-    }
-    repositories {
-        maven {
-            credentials(AwsCredentials) {
-                accessKey project.hasProperty('s3AccessKey') ? s3AccessKey : 'noAccessKey'
-                secretKey project.hasProperty('s3SecretKey') ? s3SecretKey : 'noSecretKey'
-            }
-            if (project.version.endsWith('-SNAPSHOT')) {
-                url "s3://realm-ci-artifacts/maven/snapshots/"
-            } else {
-                url "s3://realm-ci-artifacts/maven/releases/"
-            }
-        }
-    }
-}
-
-artifactory {
-    contextUrl = 'https://oss.jfrog.org/artifactory'
-    publish {
-        repository {
-            repoKey = 'oss-snapshot-local'
-            username = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
-            password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
-        }
-        defaults {
-            publications('basePublication'/*, 'objectServerPublication'*/)
-            publishPom = true
-            publishIvy = false
+            populatePom(
+                    it,
+                    'realm-android-kotlin-extensions-object-server',
+                    'Kotlin specific APIs and extension functions for Realm for Android',
+                    createPomDependencies(["objectServerImplementation", "implementation", "objectServerApi", "api"])
+            )
         }
     }
 }
@@ -255,154 +170,3 @@ artifacts {
 }
 
 publishToMavenLocal.dependsOn assemble
-
-android.productFlavors.all { flavor ->
-    def librarySuffix = flavor.name == 'base' ? '' : '-object-server'
-    def userName = project.findProperty('bintrayUser') ?: 'noUser'
-    def accessKey = project.findProperty('bintrayKey') ?: 'noKey'
-    def artifactId = "realm-android-kotlin-extensions${librarySuffix}"
-
-    // BINTRAY
-
-    task("bintrayAar${flavor.name.capitalize()}", type: Exec) {
-        dependsOn "assemble${flavor.name.capitalize()}"
-        group = 'Publishing'
-        commandLine 'curl',
-                '-X',
-                'PUT',
-                '-T',
-                "${buildDir}/outputs/aar/realm-kotlin-extensions-${flavor.name}-release.aar",
-                '-u',
-                "${userName}:${accessKey}",
-                "https://api.bintray.com/content/realm/maven/${artifactId}/${project.version}/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}.aar?publish=0"
-    }
-
-    task("bintraySources${flavor.name.capitalize()}", type: Exec) {
-        dependsOn sourcesJar
-        group = 'Publishing'
-        commandLine 'curl',
-                '-X',
-                'PUT',
-                '-T',
-                "${buildDir}/libs/realm-kotlin-extensions-${project.version}-sources.jar",
-                '-u',
-                "${userName}:${accessKey}",
-                "https://api.bintray.com/content/realm/maven/${artifactId}/${project.version}/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}-sources.jar?publish=0"
-    }
-
-    task("bintrayJavadoc${flavor.name.capitalize()}", type: Exec) {
-        dependsOn javadocJar
-        group = 'Publishing'
-        commandLine 'curl',
-                '-X',
-                'PUT',
-                '-T',
-                "${buildDir}/libs/realm-kotlin-extensions-${project.version}-javadoc.jar",
-                '-u',
-                "${userName}:${accessKey}",
-                "https://api.bintray.com/content/realm/maven/${artifactId}/${project.version}/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}-javadoc.jar?publish=0"
-    }
-
-    task("bintrayPom${flavor.name.capitalize()}", type: Exec) {
-        dependsOn "publish${flavor.name.capitalize()}PublicationPublicationToMavenLocal"
-        group = 'Publishing'
-        commandLine 'curl',
-                '-X',
-                'PUT',
-                '-T',
-                "${buildDir}/publications/${flavor.name}Publication/pom-default.xml",
-                '-u',
-                "${userName}:${accessKey}",
-                "https://api.bintray.com/content/realm/maven/${artifactId}/${project.version}/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}.pom?publish=0"
-    }
-
-    // OJO
-
-    task("ojoAar${flavor.name.capitalize()}", type: Exec) {
-        dependsOn "assemble${flavor.name.capitalize()}"
-        group = 'Publishing'
-        commandLine 'curl',
-                '-X',
-                'PUT',
-                '-T',
-                "${buildDir}/outputs/aar/realm-kotlin-extensions-${flavor.name}-release.aar",
-                '-u',
-                "${userName}:${accessKey}",
-                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}.aar?publish=0"
-    }
-
-    task("ojoSources${flavor.name.capitalize()}", type: Exec) {
-        dependsOn sourcesJar
-        group = 'Publishing'
-        commandLine 'curl',
-                '-X',
-                'PUT',
-                '-T',
-                "${buildDir}/libs/realm-kotlin-extensions-${project.version}-sources.jar",
-                '-u',
-                "${userName}:${accessKey}",
-                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}-sources.jar?publish=0"
-    }
-
-    task("ojoJavadoc${flavor.name.capitalize()}", type: Exec) {
-        dependsOn javadocJar
-        group = 'Publishing'
-        commandLine 'curl',
-                '-X',
-                'PUT',
-                '-T',
-                "${buildDir}/libs/realm-kotlin-extensions-${project.version}-javadoc.jar",
-                '-u',
-                "${userName}:${accessKey}",
-                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}-javadoc.jar?publish=0"
-    }
-
-    task("ojoPom${flavor.name.capitalize()}", type: Exec) {
-        dependsOn "publish${flavor.name.capitalize()}PublicationPublicationToMavenLocal"
-        group = 'Publishing'
-        commandLine 'curl',
-                '-X',
-                'PUT',
-                '-T',
-                "${buildDir}/publications/${flavor.name}Publication/pom-default.xml",
-                '-u',
-                "${userName}:${accessKey}",
-                "https://oss.jfrog.org/artifactory/oss-snapshot-local/io/realm/${artifactId}/${project.version}/${artifactId}-${project.version}.pom?publish=0"
-    }
-
-    task("bintray${flavor.name.capitalize()}") {
-        dependsOn "bintrayAar${flavor.name.capitalize()}"
-        dependsOn "bintraySources${flavor.name.capitalize()}"
-        dependsOn "bintrayJavadoc${flavor.name.capitalize()}"
-        dependsOn "bintrayPom${flavor.name.capitalize()}"
-        group = 'Publishing'
-    }
-
-    task("ojo${flavor.name.capitalize()}") {
-        dependsOn "ojoAar${flavor.name.capitalize()}"
-        dependsOn "ojoSources${flavor.name.capitalize()}"
-        dependsOn "ojoJavadoc${flavor.name.capitalize()}"
-        dependsOn "ojoPom${flavor.name.capitalize()}"
-        group = 'Publishing'
-    }
-}
-
-// Cannot override bintrayUpload in Gradle 4.9. Most likely due to a bug in
-// the gradle-bintray-plugin. So we use `bintrayUploadAll` instead that can
-// then depend on the original bintrayUpload task.
-task bintrayUploadAll() {
-    group = 'Publishing'
-}
-
-project.afterEvaluate {
-    android.productFlavors.all { flavor ->
-        bintrayUploadAll.dependsOn "bintray${flavor.name.capitalize()}"
-    }
-}
-
-task ojoUpload() {
-    android.productFlavors.all { flavor ->
-        dependsOn "ojo${flavor.name.capitalize()}"
-    }
-    group = 'Publishing'
-}

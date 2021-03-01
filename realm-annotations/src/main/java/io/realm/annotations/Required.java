@@ -21,7 +21,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation will mark the field or the element in {@link io.realm.RealmList} as not nullable.
+ * This annotation will mark the field or the element in {@code io.realm.RealmList} as not nullable.
  * <p>
  * When a field of type {@code Boolean, Byte, Short, Integer, Long, Float, Double, String, byte[], Date} is annotated
  * with {@link Required}, it cannot be set to {@code null} and Realm will throw an exception if it happens.
@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
  * annotation are never allowed to hold {@code null} values even if the datatype would otherwise allow it.
  * Realm will throw an exception if you attempt to store null values into a list marked {@code \@Required}.
  * <p>
- * Compiling will fail if the {@link Required} annotation is put an a {@link io.realm.RealmList} containing references to other
+ * Compiling will fail if the {@link Required} annotation is put an a {@code RealmList} containing references to other
  * Realm objects.
  */
 @Retention(RetentionPolicy.RUNTIME)
