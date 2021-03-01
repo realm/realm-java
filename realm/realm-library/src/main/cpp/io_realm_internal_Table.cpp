@@ -1035,7 +1035,8 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeSetEmbedded(JNIEnv
 {
     try {
         TableRef table = TableRef(TBL_REF(j_table_ptr));
-        return to_jbool(table->set_embedded(to_bool(j_embedded)));
+        table->set_embedded(to_bool(j_embedded));
+        return true;
     }
     CATCH_STD()
     return false;
