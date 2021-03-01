@@ -34,9 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
-import io.realm.RealmModel;
+import javax.annotation.Nullable;
 
 import static org.junit.Assert.assertTrue;
 
@@ -143,31 +141,31 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     public RealmConfiguration createSchemaConfiguration(boolean exclude,
             Class<? extends RealmModel> firstClass, Class<? extends RealmModel>... additionalClasses) {
         return createConfiguration(null, null, null, null,
-                true, firstClass, additionalClasses);
+                exclude, firstClass, additionalClasses);
     }
 
     public RealmConfiguration createConfiguration() {
         return createConfiguration(null);
     }
 
-    public RealmConfiguration createConfiguration(String name) {
+    public RealmConfiguration createConfiguration(@Nullable String name) {
         return createConfiguration(null, name);
     }
 
-    public RealmConfiguration createConfiguration(String subDir, String name) {
+    public RealmConfiguration createConfiguration(@Nullable String subDir, @Nullable String name) {
         return createConfiguration(subDir, name, null, null, false, null);
     }
 
-    public RealmConfiguration createConfiguration(String name, byte[] key) {
+    public RealmConfiguration createConfiguration(@Nullable String name, @Nullable byte[] key) {
         return createConfiguration(null, name, null, key, false, null);
     }
 
-    public RealmConfiguration createConfiguration(String name, Object module) {
+    public RealmConfiguration createConfiguration(@Nullable String name, @Nullable Object module) {
         return createConfiguration(null, name, module, null, false, null);
     }
 
-    public RealmConfiguration createConfiguration(String subDir, String name, Object module, byte[] key,
-            boolean exclude, Class<? extends RealmModel> firstClass, Class<? extends RealmModel>... additionalClasses) {
+    public RealmConfiguration createConfiguration(@Nullable String subDir, @Nullable String name, @Nullable Object module, @Nullable byte[] key,
+            boolean exclude, @Nullable Class<? extends RealmModel> firstClass, Class<? extends RealmModel>... additionalClasses) {
         RealmConfiguration.Builder builder = createConfigurationBuilder();
 
         File folder = getRoot();
