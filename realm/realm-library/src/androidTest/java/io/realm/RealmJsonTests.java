@@ -56,6 +56,7 @@ import io.realm.entities.DefaultValueOfField;
 import io.realm.entities.Dog;
 import io.realm.entities.NoPrimaryKeyNullTypes;
 import io.realm.entities.NullTypes;
+import io.realm.entities.Owner;
 import io.realm.entities.OwnerPrimaryKey;
 import io.realm.entities.PrimaryKeyAsObjectId;
 import io.realm.entities.PrimitiveListTypes;
@@ -2103,5 +2104,217 @@ public class RealmJsonTests {
         testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_LONG_LIST);
         testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_DATE_LIST);
         testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_BYTE_LIST);
+    }
+
+    @Test
+    public void jsonRoundTrip() {
+        Date date = new GregorianCalendar(2014, Calendar.FEBRUARY, 11).getTime();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT")); // Core return dates in UTC time
+
+        realm.beginTransaction();
+
+        AllTypes allTypes = realm.createObject(AllTypes.class);
+        Dog dog = realm.createObject(Dog.class);
+
+        dog.setName("dog");
+
+        Owner owner = realm.createObject(Owner.class);
+        owner.setName("owner");
+        dog.setOwner(owner);
+
+        for (RealmFieldType value : RealmFieldType.values()) {
+            switch (value) {
+                case INTEGER:
+                    allTypes.setColumnLong(1337L);
+                    break;
+                case BOOLEAN:
+                    allTypes.setColumnBoolean(false);
+                    break;
+                case STRING:
+                    allTypes.setColumnString("alltypes1");
+                    break;
+                case BINARY:
+                    allTypes.setColumnBinary(new byte[]{1, 2, 3});
+                    break;
+                case DATE:
+                    allTypes.setColumnDate(date);
+                    break;
+                case FLOAT:
+                    allTypes.setColumnFloat(3.14f);
+                    break;
+                case DOUBLE:
+                    allTypes.setColumnDouble(0.89123);
+                    break;
+                case OBJECT:
+                    allTypes.setColumnRealmObject(dog);
+                    break;
+                case DECIMAL128:
+                    allTypes.setColumnDecimal128(new Decimal128(new BigDecimal("0.123456789")));
+                    break;
+                case OBJECT_ID:
+                    allTypes.setColumnObjectId(new ObjectId(TestHelper.generateObjectIdHexString(7)));
+                    break;
+                case LIST:
+                    allTypes.getColumnRealmList().add(dog);
+                    break;
+                case LINKING_OBJECTS:
+                    break;
+                case INTEGER_LIST:
+                    allTypes.getColumnLongList().add(1000L);
+                    break;
+                case BOOLEAN_LIST:
+                    allTypes.getColumnBooleanList().add(false);
+                    break;
+                case STRING_LIST:
+                    allTypes.getColumnStringList().add("Foo");
+                    break;
+                case BINARY_LIST:
+                    allTypes.getColumnBinaryList().add(new byte[]{1, 2,3});
+                    break;
+                case DATE_LIST:
+                    allTypes.getColumnDateList().add(date);
+                    break;
+                case FLOAT_LIST:
+                    allTypes.getColumnFloatList().add(1.123f);
+                    break;
+                case DOUBLE_LIST:
+                    allTypes.getColumnDoubleList().add(1.123);
+                    break;
+                case DECIMAL128_LIST:
+                    allTypes.getColumnDecimal128List().add(new Decimal128(-42));
+                    break;
+                case OBJECT_ID_LIST:
+                    allTypes.getColumnObjectIdList().add(new ObjectId(TestHelper.generateObjectIdHexString(1)));
+                    break;
+                default:
+                    throw new RuntimeException("Untested type for JSON roundtrip: " + value);
+            }
+        }
+
+        realm.commitTransaction();
+
+        RealmResults<AllTypes> all = realm.where(AllTypes.class).findAll();
+        assertEquals(1, all.size());
+        String json = all.asJSON();
+
+        // FIXME The above json cannot be imported due to lack of support for decimal128-lists and objectid-lists, so here is a hardcoded json with these two fields stripped out to validate the other fields until https://github.com/realm/realm-java/pull/7307 in merged
+        json = "[{\"_key\":0,\"columnString\":\"alltypes1\",\"columnLong\":1337,\"columnFloat\":3.1400001e+00,\"columnDouble\":8.9122999999999997e-01,\"columnBoolean\":false,\"columnDate\":\"2014-02-10 23:00:00\",\"columnBinary\":\"AQID\",\"columnDecimal128\":\"1.23456789E-1\",\"columnObjectId\":\"789abcdef0123456789abcde\",\"columnMutableRealmInteger\":null,\"columnRealmObject\":{\"_key\":0,\"name\":\"dog\",\"age\":1,\"height\":1.1000000e+00,\"weight\":1.0100000381469727e+01,\"hasTail\":true,\"birthday\":\"2014-02-10 23:00:00\",\"owner\":{\"_key\":0,\"name\":\"Dog owner\",\"dogs\":[],\"cat\":null}},\"columnRealmLink\":null,\"columnRealmList\":[{\"_key\":0,\"name\":\"dog\",\"age\":1,\"height\":1.1000000e+00,\"weight\":1.0100000381469727e+01,\"hasTail\":true,\"birthday\":\"2014-02-10 23:00:00\",\"owner\":{\"table\": \"class_Owner\", \"key\": 0}}],\"columnStringList\":[\"Foo\"],\"columnBinaryList\":[\"AQID\"],\"columnBooleanList\":[false],\"columnLongList\":[1000],\"columnDoubleList\":[1.1230000000000000e+00],\"columnFloatList\":[1.1230000e+00],\"columnDateList\":[\"2014-02-10 23:00:00\"]}]";
+
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.createAllFromJson(AllTypes.class, json);
+        realm.commitTransaction();
+
+        RealmResults<AllTypes> allImported = realm.where(AllTypes.class).findAll();
+        assertEquals(1, allImported.size());
+        AllTypes imported1 = allImported.get(0);
+
+        for (RealmFieldType value : RealmFieldType.values()) {
+            switch (value) {
+                case INTEGER:
+                    assertEquals(1337L, imported1.getColumnLong());
+                    break;
+                case BOOLEAN:
+                    assertEquals(false, imported1.isColumnBoolean());
+                    break;
+                case STRING:
+                    assertEquals("alltypes1", imported1.getColumnString());
+                    break;
+                case BINARY:
+                    assertArrayEquals(new byte[]{1, 2, 3}, imported1.getColumnBinary());
+                    break;
+                case DATE:
+                    assertEquals(date, imported1.getColumnDate());
+                    break;
+                case FLOAT:
+                    assertEquals(3.14f, imported1.getColumnFloat(), 0.1);
+                    break;
+                case DOUBLE:
+                    assertEquals(0.89123, imported1.getColumnDouble(), 0.1);
+                    break;
+                case OBJECT: {
+                    Dog importedDog = imported1.getColumnRealmObject();
+                    assertEquals("dog", importedDog.getName());
+                    // FIXME It looks like owner is not import??
+//                    assertEquals("Dog owner", importedDog.getOwner().getName());
+                    break;
+                }
+                case DECIMAL128:
+                    assertEquals(new Decimal128(new BigDecimal("0.123456789")), imported1.getColumnDecimal128());
+                    break;
+                case OBJECT_ID:
+                    assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(7)), imported1.getColumnObjectId());
+                    break;
+                case LIST:
+                    RealmList<Dog> columnRealmList = imported1.getColumnRealmList();
+                    assertEquals(1, columnRealmList.size());
+                    Dog importedDog = columnRealmList.get(0);
+                    assertEquals("dog", importedDog.getName());
+                    // FIXME It looks like owner is not import??
+//                    assertEquals("Dog owner", importedDog.getOwner().getName());
+                    break;
+                case LINKING_OBJECTS:
+                    break;
+                case INTEGER_LIST: {
+                    RealmList<Long> list = imported1.getColumnLongList();
+                    assertEquals(1, list.size());
+                    assertEquals(1000L, list.get(0).longValue());
+                    break;
+                }
+                case BOOLEAN_LIST: {
+                    RealmList<Boolean> list = imported1.getColumnBooleanList();
+                    assertEquals(1, list.size());
+                    assertEquals(false, list.get(0));
+                    break;
+                }
+                case STRING_LIST: {
+                    RealmList<String> list = imported1.getColumnStringList();
+                    assertEquals(1, list.size());
+                    assertEquals("Foo", list.get(0));
+                    break;
+                }
+                case BINARY_LIST: {
+                    RealmList<byte[]> list = imported1.getColumnBinaryList();
+                    assertEquals(1, list.size());
+                    assertArrayEquals(new byte[]{1, 2,3}, list.get(0));
+                    break;
+                }
+                case DATE_LIST: {
+                    RealmList<Date> list = imported1.getColumnDateList();
+                    assertEquals(1, list.size());
+                    assertEquals(date, list.get(0));
+                    break;
+                }
+                case FLOAT_LIST: {
+                    RealmList<Float> list = imported1.getColumnFloatList();
+                    assertEquals(1, list.size());
+                    assertEquals(1.123f, list.get(0).floatValue(), 0.1);
+                    break;
+                }
+                case DOUBLE_LIST: {
+                    RealmList<Double> list = imported1.getColumnDoubleList();
+                    assertEquals(1, list.size());
+                    assertEquals(1.123, list.get(0).doubleValue(), 0.1);
+                    break;
+                }
+                case DECIMAL128_LIST: {
+                    // FIXME Not imported until https://github.com/realm/realm-java/pull/7307 is merged
+//                    RealmList<Decimal128> list = imported1.getColumnDecimal128List();
+//                    assertEquals(1, list.size());
+//                    assertEquals(new Decimal128(-42), list.get(0));
+                    break;
+                }
+                case OBJECT_ID_LIST: {
+                    // FIXME Not imported until https://github.com/realm/realm-java/pull/7307 is merged
+//                    RealmList<ObjectId> list = imported1.getColumnObjectIdList();
+//                    assertEquals(1, list.size());
+//                    assertEquals(new Decimal128(-42), list.get(0));
+                    break;
+                }
+                default:
+                    throw new RuntimeException("Untested type for JSON roundtrip: " + value);
+            }
+        }
     }
 }

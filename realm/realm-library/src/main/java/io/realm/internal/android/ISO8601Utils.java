@@ -92,7 +92,8 @@ public class ISO8601Utils {
             int milliseconds = 0; // Always use 0 otherwise returned date will include millis of current time.
 
             // If the value has no time component (and no time zone), we are done.
-            boolean hasT = checkOffset(date, offset, 'T');
+            // If next characters is blank assume that it holds a timestamp as RealmResult.asJson outputs dates this way
+            boolean hasT = checkOffset(date, offset, 'T') ||  checkOffset(date, offset, ' ');
 
             if (!hasT && (date.length() <= offset)) {
                 Calendar calendar = new GregorianCalendar(year, month - 1, day);
@@ -145,12 +146,9 @@ public class ISO8601Utils {
             }
 
             // Extracts timezone.
-            if (date.length() <= offset) {
-                throw new IllegalArgumentException("No time zone indicator");
-            }
-
             TimeZone timezone;
-            char timezoneIndicator = date.charAt(offset);
+            // If not timezone indicator assume GTM as RealmResult.asJson outputs dates this way
+            char timezoneIndicator = date.length() > offset ? date.charAt(offset) : 'Z';
 
             if (timezoneIndicator == 'Z') {
                 timezone = TIMEZONE_Z;
@@ -213,7 +211,7 @@ public class ISO8601Utils {
         } catch (IllegalArgumentException e) {
             fail = e;
         }
-        String input = (date == null) ? null : ('"' + date + "'");
+        String input = (date == null) ? null : ('"' + date + '"');
         String msg = fail.getMessage();
         if (msg == null || msg.isEmpty()) {
             msg = "(" + fail.getClass().getName() + ")";
