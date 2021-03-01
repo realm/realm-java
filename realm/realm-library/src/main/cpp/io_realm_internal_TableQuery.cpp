@@ -35,15 +35,12 @@ using namespace realm;
 using namespace realm::jni_util;
 using namespace realm::_impl;
 
-typedef std::vector<JavaValue> ArgumentList;
-
 static void finalize_table_query(jlong ptr);
 
 // Find --------------------------------------
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFind(JNIEnv* env, jobject, jlong nativeQueryPtr)
-{
-    Query*pQuery = Q(nativeQueryPtr);
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFind(JNIEnv *env, jobject, jlong nativeQueryPtr) {
+    Query *pQuery = Q(nativeQueryPtr);
     try {
         auto ordering = pQuery->get_ordering();
         ObjKey objKey;
@@ -54,7 +51,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFind(JNIEnv* env
         } else {
             objKey = pQuery->find();
         }
-        
+
         pQuery->set_ordering(std::make_unique<DescriptorOrdering>(*ordering));
 
         return to_jlong_or_not_found(objKey);
@@ -65,10 +62,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFind(JNIEnv* env
 
 // Integer Aggregates
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeSumInt(JNIEnv* env, jobject, jlong nativeQueryPtr,
-                                                                       jlong columnKey)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeSumInt(JNIEnv *env, jobject, jlong nativeQueryPtr,
+                                                                       jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Int)) {
         return 0;
@@ -80,10 +76,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeSumInt(JNIEnv* e
     return 0;
 }
 
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumInt(JNIEnv* env, jobject,
-                                                                             jlong nativeQueryPtr, jlong columnKey)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumInt(JNIEnv *env, jobject,
+                                                                             jlong nativeQueryPtr, jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Int)) {
         return nullptr;
@@ -100,10 +95,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumInt(JNI
     return nullptr;
 }
 
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumInt(JNIEnv* env, jobject,
-                                                                             jlong nativeQueryPtr, jlong columnKey)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumInt(JNIEnv *env, jobject,
+                                                                             jlong nativeQueryPtr, jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Int)) {
         return nullptr;
@@ -119,10 +113,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumInt(JNI
     return nullptr;
 }
 
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageInt(JNIEnv* env, jobject,
-                                                                             jlong nativeQueryPtr, jlong columnKey)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageInt(JNIEnv *env, jobject,
+                                                                             jlong nativeQueryPtr, jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Int)) {
         return 0;
@@ -138,10 +131,9 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageInt(JNI
 
 // float Aggregates
 
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeSumFloat(JNIEnv* env, jobject, jlong nativeQueryPtr,
-                                                                           jlong columnKey)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeSumFloat(JNIEnv *env, jobject, jlong nativeQueryPtr,
+                                                                           jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Float)) {
         return 0;
@@ -153,11 +145,10 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeSumFloat(JNIEn
     return 0;
 }
 
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumFloat(JNIEnv* env, jobject,
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumFloat(JNIEnv *env, jobject,
                                                                                jlong nativeQueryPtr,
-                                                                               jlong columnKey)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+                                                                               jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Float)) {
         return nullptr;
@@ -173,11 +164,10 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumFloat(J
     return nullptr;
 }
 
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumFloat(JNIEnv* env, jobject,
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumFloat(JNIEnv *env, jobject,
                                                                                jlong nativeQueryPtr,
-                                                                               jlong columnKey)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+                                                                               jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Float)) {
         return nullptr;
@@ -193,11 +183,10 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumFloat(J
     return nullptr;
 }
 
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageFloat(JNIEnv* env, jobject,
+JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageFloat(JNIEnv *env, jobject,
                                                                                jlong nativeQueryPtr,
-                                                                               jlong columnKey)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+                                                                               jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Float)) {
         return 0;
@@ -211,10 +200,9 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageFloat(J
 
 // double Aggregates
 
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeSumDouble(JNIEnv* env, jobject,
-                                                                            jlong nativeQueryPtr, jlong columnKey)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeSumDouble(JNIEnv *env, jobject,
+                                                                            jlong nativeQueryPtr, jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Double)) {
         return 0;
@@ -226,11 +214,10 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeSumDouble(JNIE
     return 0;
 }
 
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDouble(JNIEnv* env, jobject,
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDouble(JNIEnv *env, jobject,
                                                                                 jlong nativeQueryPtr,
-                                                                                jlong columnKey)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+                                                                                jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Double)) {
         return nullptr;
@@ -246,11 +233,10 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDouble(
     return nullptr;
 }
 
-JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDecimal128(JNIEnv* env, jobject,
-                                                                                jlong nativeQueryPtr,
-                                                                                jlong columnKey)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDecimal128(JNIEnv *env, jobject,
+                                                                                       jlong nativeQueryPtr,
+                                                                                       jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Decimal)) {
         return nullptr;
@@ -263,10 +249,10 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDeci
     return nullptr;
 }
 
-JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeSumDecimal128(JNIEnv* env, jobject,
-                                                                            jlong nativeQueryPtr, jlong columnKey)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeSumDecimal128(JNIEnv *env, jobject,
+                                                                                   jlong nativeQueryPtr,
+                                                                                   jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Decimal)) {
         return 0;
@@ -281,11 +267,10 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeSumDecimal1
     return 0;
 }
 
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(JNIEnv* env, jobject,
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(JNIEnv *env, jobject,
                                                                                 jlong nativeQueryPtr,
-                                                                                jlong columnKey)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+                                                                                jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Double)) {
         return nullptr;
@@ -301,11 +286,10 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(
     return nullptr;
 }
 
-JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDecimal128(JNIEnv* env, jobject,
-                                                                                jlong nativeQueryPtr,
-                                                                                jlong columnKey)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDecimal128(JNIEnv *env, jobject,
+                                                                                       jlong nativeQueryPtr,
+                                                                                       jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Decimal)) {
         return nullptr;
@@ -318,11 +302,10 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDeci
     return nullptr;
 }
 
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble(JNIEnv* env, jobject,
+JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble(JNIEnv *env, jobject,
                                                                                 jlong nativeQueryPtr,
-                                                                                jlong columnKey)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+                                                                                jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Double)) {
         return 0;
@@ -334,11 +317,10 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble(
     return 0;
 }
 
-JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeAverageDecimal128(JNIEnv* env, jobject,
-                                                                                jlong nativeQueryPtr,
-                                                                                jlong columnKey)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeAverageDecimal128(JNIEnv *env, jobject,
+                                                                                       jlong nativeQueryPtr,
+                                                                                       jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Decimal)) {
         return nullptr;
@@ -353,11 +335,10 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeAverageDeci
 
 // date aggregates
 // FIXME: This is a rough workaround while waiting for https://github.com/realm/realm-core/issues/1745 to be solved
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumTimestamp(JNIEnv* env, jobject,
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumTimestamp(JNIEnv *env, jobject,
                                                                                    jlong nativeQueryPtr,
-                                                                                   jlong columnKey)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+                                                                                   jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Timestamp)) {
         return nullptr;
@@ -373,11 +354,10 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumTimesta
     return nullptr;
 }
 
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumTimestamp(JNIEnv* env, jobject,
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumTimestamp(JNIEnv *env, jobject,
                                                                                    jlong nativeQueryPtr,
-                                                                                   jlong columnKey)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+                                                                                   jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Timestamp)) {
         return nullptr;
@@ -395,9 +375,8 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumTimesta
 
 // Count, Remove
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeCount(JNIEnv* env, jobject, jlong nativeQueryPtr)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeCount(JNIEnv *env, jobject, jlong nativeQueryPtr) {
+    Query *pQuery = Q(nativeQueryPtr);
     try {
         return static_cast<jlong>(pQuery->count());
     }
@@ -405,9 +384,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeCount(JNIEnv* en
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeRemove(JNIEnv* env, jobject, jlong nativeQueryPtr)
-{
-    Query* pQuery = Q(nativeQueryPtr);
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeRemove(JNIEnv *env, jobject, jlong nativeQueryPtr) {
+    Query *pQuery = Q(nativeQueryPtr);
     try {
         return static_cast<jlong>(pQuery->remove());
     }
@@ -415,59 +393,130 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeRemove(JNIEnv* e
     return 0;
 }
 
-static void finalize_table_query(jlong ptr)
-{
+static void finalize_table_query(jlong ptr) {
     delete Q(ptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetFinalizerPtr(JNIEnv*, jclass)
-{
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetFinalizerPtr(JNIEnv *, jclass) {
     return reinterpret_cast<jlong>(&finalize_table_query);
+}
+
+void rawQuery(jlong j_query_ptr,
+              const std::string filter,
+              const std::vector<Mixed> &args,
+              jlong j_mapping_ptr,
+              bool onlyOrder = false) {
+    auto& query = *reinterpret_cast<Query *>(j_query_ptr);
+
+    query_parser::KeyPathMapping mapping;
+    if (j_mapping_ptr) {
+        mapping = *reinterpret_cast<query_parser::KeyPathMapping *>(j_mapping_ptr);
+    }
+
+    Query predicate = query.get_table()->query(filter, args, mapping);
+
+    if (!onlyOrder) {
+        query.and_query(predicate);
+    }
+
+    if (auto parsed_ordering = predicate.get_ordering()) {
+        auto ordering = query.get_ordering();
+        ordering->append(*parsed_ordering);
+
+        query.set_ordering(std::make_unique<DescriptorOrdering>(*ordering));
+    }
 }
 
 JNIEXPORT void JNICALL
 Java_io_realm_internal_TableQuery_nativeRawPredicate(JNIEnv *env,
-                                                     jclass,
+                                                     jobject,
                                                      jlong j_query_ptr,
-                                                     jboolean j_is_or_connected,
                                                      jstring j_filter,
-                                                     jlong j_args,
+                                                     jlongArray j_args,
                                                      jlong j_mapping_ptr) {
     try {
-        auto query = reinterpret_cast<Query *>(j_query_ptr);
-
-        query_parser::KeyPathMapping mapping;
-        if (j_mapping_ptr) {
-            mapping = *reinterpret_cast<query_parser::KeyPathMapping *>(j_mapping_ptr);
-        }
-
         JStringAccessor filter(env, j_filter); // throws
 
-        auto data = *reinterpret_cast<ArgumentList *>(j_args);
-        std::vector<Mixed> args(data.size());
+        JLongArrayAccessor arguments(env, j_args);
+        std::vector<Mixed> args;
 
-        for (unsigned long i = 0; i < data.size(); i = i + 1) {
-            args[i] = data[i].to_mixed();
+        for (jsize i = 0; i < arguments.size(); ++i) {
+            auto &value = *reinterpret_cast<JavaValue *>(arguments[i]);
+            args.push_back(value.to_mixed());
         }
 
-        Query predicate = query->get_table()->query(filter, args, mapping);
-
-        if(B(j_is_or_connected)){
-            query->Or();
-        }
-
-        query->and_query(predicate);
-
-        if (auto parsed_ordering = predicate.get_ordering()) {
-            auto ordering = query->get_ordering();
-            ordering->append(*parsed_ordering);
-
-            query->set_ordering(std::make_unique<DescriptorOrdering>(*ordering));
-        }
-
-        query->validate();
-
-        data.clear();
+        rawQuery(j_query_ptr, std::string(filter), args, j_mapping_ptr);
     }
     CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_TableQuery_nativeRawDescriptor(JNIEnv *env,
+                                                      jobject,
+                                                      jlong j_query_ptr,
+                                                      jstring j_descriptor,
+                                                      jlong j_mapping_ptr) {
+    try {
+        JStringAccessor filter(env, j_descriptor); // throws
+        std::vector<Mixed> args(0);
+
+        rawQuery(j_query_ptr, "TRUEPREDICATE " + std::string(filter), args, j_mapping_ptr, true);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_TableQuery_nativeBeginGroup(JNIEnv *env,
+                                                   jobject,
+                                                   jlong j_query_ptr) {
+    try {
+        auto query = reinterpret_cast<Query *>(j_query_ptr);
+        query->group();
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_TableQuery_nativeEndGroup(JNIEnv *env,
+                                                 jobject,
+                                                 jlong j_query_ptr) {
+    try {
+        auto query = reinterpret_cast<Query *>(j_query_ptr);
+        query->end_group();
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_TableQuery_nativeOr(JNIEnv *env,
+                                           jobject,
+                                           jlong j_query_ptr) {
+    try {
+        auto query = reinterpret_cast<Query *>(j_query_ptr);
+        query->Or();
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_TableQuery_nativeNot(JNIEnv *env,
+                                            jobject,
+                                            jlong j_query_ptr) {
+    try {
+        auto query = reinterpret_cast<Query *>(j_query_ptr);
+        query->Not();
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT jstring JNICALL
+Java_io_realm_internal_TableQuery_nativeValidateQuery(JNIEnv *env, jobject,
+                                                      jlong nativeQueryPtr) {
+    try {
+        const std::string str = Q(nativeQueryPtr)->validate();
+        StringData sd(str);
+        return to_jstring(env, sd);
+    }
+    CATCH_STD()
+    return nullptr;
 }

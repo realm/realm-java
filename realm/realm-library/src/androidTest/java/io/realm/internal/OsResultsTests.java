@@ -32,6 +32,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.realm.Mixed;
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
@@ -190,8 +191,8 @@ public class OsResultsTests {
     @Test
     public void where() {
         OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
-        OsResults osResults2 = OsResults.createFromQuery(sharedRealm, osResults.where().equalTo("firstName", "John"));
-        OsResults osResults3 = OsResults.createFromQuery(sharedRealm, osResults2.where().equalTo("lastName",  "Anderson"));
+        OsResults osResults2 = OsResults.createFromQuery(sharedRealm, osResults.where().equalTo("firstName", Mixed.valueOf("John")));
+        OsResults osResults3 = OsResults.createFromQuery(sharedRealm, osResults2.where().equalTo("lastName",  Mixed.valueOf("Anderson")));
 
         // A new native Results should be created.
         assertTrue(osResults.getNativePtr() != osResults2.getNativePtr());
@@ -204,7 +205,7 @@ public class OsResultsTests {
 
     @Test
     public void sort() {
-        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().greaterThan("age", 1));
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().greaterThan("age", Mixed.valueOf(1)));
         QueryDescriptor sortDescriptor = QueryDescriptor.getTestInstance(table, new long[] {colKey2});
 
         OsResults osResults2 = osResults.sort(sortDescriptor);
@@ -244,7 +245,7 @@ public class OsResultsTests {
 
     @Test
     public void distinct() {
-        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().lessThan("age", 4));
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().lessThan("age", Mixed.valueOf(4)));
 
         QueryDescriptor distinctDescriptor = QueryDescriptor.getTestInstance(table, new long[] {colKey2});
         OsResults osResults2 = osResults.distinct(distinctDescriptor);

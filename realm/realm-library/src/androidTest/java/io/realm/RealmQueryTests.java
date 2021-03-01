@@ -734,7 +734,7 @@ public class RealmQueryTests extends QueryTests {
         }
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = UnsupportedOperationException.class)
     public void not_aloneThrows() {
         // a not() alone must fail
         realm.where(AllTypes.class).not().findAll();
@@ -958,6 +958,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    @Ignore
     public void equalTo_nonLatinCharacters() {
         populateTestRealm(realm, 200);
 
@@ -1940,8 +1941,8 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BYTES_NULL, new byte[] {1, 2}).count());
         assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BYTES_NULL, (byte[]) null).count());
         // 3 Boolean
-        assertEquals(1, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BOOLEAN_NULL, false).count());
-        assertEquals(1, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BOOLEAN_NULL, (Boolean) null).count());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BOOLEAN_NULL, false).count());
+        assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BOOLEAN_NULL, (Boolean) null).count());
         // 4 Byte
         assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BYTE_NULL, (byte) 1).count());
         assertEquals(2, realm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BYTE_NULL, (Byte) null).count());
@@ -3566,12 +3567,12 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(values.size(), distinct.size());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = UnsupportedOperationException.class)
     public void beginGroup_missingEndGroup() {
         realm.where(AllTypes.class).beginGroup().findAll();
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = UnsupportedOperationException.class)
     public void endGroup_missingBeginGroup() {
         realm.where(AllTypes.class).endGroup().findAll();
     }
@@ -3732,7 +3733,7 @@ public class RealmQueryTests extends QueryTests {
                 .limit(1);
 
         // Descriptors should be applied in order provided throughout the query
-        assertEquals("TRUEPREDICATE and TRUEPREDICATE and TRUEPREDICATE SORT(age ASC) SORT(name ASC) DISTINCT(name, age) LIMIT(2) DISTINCT(age) LIMIT(1)", query.getDescription());
+        assertEquals("TRUEPREDICATE SORT(age ASC) SORT(name ASC) DISTINCT(name, age) LIMIT(2) DISTINCT(age) LIMIT(1)", query.getDescription());
 
         RealmResults<Dog> dogs = query.findAll();
         assertEquals(1, dogs.size());
@@ -3888,7 +3889,8 @@ public class RealmQueryTests extends QueryTests {
             // Missing number of arguments
             query.rawPredicate("columnString = $0 AND columnString  = $1", "foo");
             RealmLog.error(query.getDescription());
-        } catch (IllegalArgumentException ignore) {
+            fail();
+        } catch (IllegalStateException ignore) {
         }
 
         try {

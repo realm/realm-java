@@ -22,9 +22,8 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.UUID;
 
-import javax.annotation.Nullable;
-
-import io.realm.Case;
+import io.realm.Mixed;
+import io.realm.MixedNativeFunctionsImpl;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.Sort;
@@ -40,8 +39,9 @@ public class TableQuery implements NativeObject {
     private final Table table;
     private final long nativePtr;
 
-    private final QueryBuilder queryBuilder = new QueryBuilder();
-    private final NativeArgumentList nativeArgumentList;
+    private final MixedNativeFunctionsImpl mixedNativeFunctions = new MixedNativeFunctionsImpl();
+
+    private boolean queryValidated = true;
 
     public TableQuery(NativeContext context,
             Table table,
@@ -51,7 +51,6 @@ public class TableQuery implements NativeObject {
         }
         this.table = table;
         this.nativePtr = nativeQueryPtr;
-        this.nativeArgumentList = new NativeArgumentList(context);
 
         context.addReference(this);
     }
@@ -74,566 +73,309 @@ public class TableQuery implements NativeObject {
      * Checks in core if query syntax is valid. Throws exception, if not.
      */
     public void validateQuery() {
-        if (!queryBuilder.isValidated()) {
-            boolean isOrConnected = queryBuilder.isOrConnected();
-            String predicate = queryBuilder.build();
-
-            OsKeyPathMapping mapping = table.getOsKeyPathMapping();
-
-            nativeRawPredicate(nativePtr,
-                    isOrConnected,
-                    predicate,
-                    nativeArgumentList.getNativePtr(),
-                    (mapping != null) ? mapping.getNativePtr() : 0);
+        if (!queryValidated) {
+            String invalidMessage = nativeValidateQuery(nativePtr);
+            if ("".equals(invalidMessage)) {
+                queryValidated = true; // If empty string error message, query is valid
+            } else { throw new UnsupportedOperationException(invalidMessage); }
         }
     }
 
     // Grouping
 
-    public TableQuery group() {
-        queryBuilder.beingGroup();
+    public TableQuery beginGroup() {
+        nativeBeginGroup(nativePtr);
+        queryValidated = false;
         return this;
     }
 
     public TableQuery endGroup() {
-        queryBuilder.endGroup();
+        nativeEndGroup(nativePtr);
+        queryValidated = false;
         return this;
     }
 
     public TableQuery or() {
-        queryBuilder.or();
+        nativeOr(nativePtr);
+        queryValidated = false;
         return this;
     }
 
     public TableQuery not() {
-        queryBuilder.not();
+        nativeNot(nativePtr);
+        queryValidated = false;
         return this;
     }
 
     public TableQuery sort(String[] fieldNames, Sort[] sortOrders) {
-        queryBuilder.sort(fieldNames, sortOrders);
+        StringBuilder descriptorBuilder = new StringBuilder("SORT(");
+
+        String sortSeparator = "";
+        for (int i = 0; i < fieldNames.length; i++) {
+            String fieldName = fieldNames[i];
+
+            descriptorBuilder.append(sortSeparator)
+                    .append(fieldName)
+                    .append(" ")
+                    .append((sortOrders[i] == Sort.ASCENDING) ? "ASC" : "DESC");
+
+            sortSeparator = ", ";
+        }
+
+        descriptorBuilder.append(")");
+
+        rawDescriptor(descriptorBuilder.toString());
         return this;
     }
 
     public TableQuery distinct(String[] fieldNames) {
-        queryBuilder.distinct(fieldNames);
+        StringBuilder descriptorBuilder = new StringBuilder("DISTINCT(");
+
+        String distinctSeparator = "";
+        for (String fieldName : fieldNames) {
+            descriptorBuilder.append(distinctSeparator)
+                    .append(fieldName);
+
+            distinctSeparator = ", ";
+        }
+
+        descriptorBuilder.append(")");
+
+        rawDescriptor(descriptorBuilder.toString());
         return this;
     }
 
     public TableQuery limit(long limit) {
-        queryBuilder.limit(limit);
-        return this;
-    }
-
-    // Queries for integer values.
-
-    public TableQuery equalTo(String fieldName, @Nullable Number value) {
-        long position = nativeArgumentList.insertLong(value);
-        queryBuilder.appendEqualTo(fieldName, position);
-        return this;
-    }
-
-    public TableQuery notEqualTo(String fieldName, @Nullable Number value) {
-        long position = nativeArgumentList.insertLong(value);
-        queryBuilder.appendNotEqualTo(fieldName, position);
-        return this;
-    }
-
-    public TableQuery greaterThan(String fieldName, @Nullable Number value) {
-        long position = nativeArgumentList.insertLong(value);
-        queryBuilder.appendGreaterThan(fieldName, position);
-        return this;
-    }
-
-    public TableQuery greaterThanOrEqual(String fieldName, @Nullable Number value) {
-        long position = nativeArgumentList.insertLong(value);
-        queryBuilder.appendGreaterThanEquals(fieldName, position);
-        return this;
-    }
-
-    public TableQuery lessThan(String fieldName, @Nullable Number value) {
-        long position = nativeArgumentList.insertLong(value);
-        queryBuilder.appendLessThan(fieldName, position);
-        return this;
-    }
-
-    public TableQuery lessThanOrEqual(String fieldName, @Nullable Number value) {
-        long position = nativeArgumentList.insertLong(value);
-        queryBuilder.appendLessThanEquals(fieldName, position);
-        return this;
-    }
-
-    public TableQuery between(String fieldName, @Nullable Number value1, @Nullable Number value2) {
-        long position1 = nativeArgumentList.insertLong(value1);
-        long position2 = nativeArgumentList.insertLong(value2);
-
-        queryBuilder.appendBetween(fieldName, position1, position2);
-        return this;
-    }
-
-    // Queries for float values.
-
-    public TableQuery equalTo(String fieldName, @Nullable Float value) {
-        long position = nativeArgumentList.insertFloat(value);
-        queryBuilder.appendEqualTo(fieldName, position);
-        return this;
-    }
-
-    public TableQuery notEqualTo(String fieldName, @Nullable Float value) {
-        long position = nativeArgumentList.insertFloat(value);
-        queryBuilder.appendNotEqualTo(fieldName, position);
-        return this;
-    }
-
-    public TableQuery greaterThan(String fieldName, @Nullable Float value) {
-        long position = nativeArgumentList.insertFloat(value);
-        queryBuilder.appendGreaterThan(fieldName, position);
-        return this;
-    }
-
-    public TableQuery greaterThanOrEqual(String fieldName, @Nullable Float value) {
-        long position = nativeArgumentList.insertFloat(value);
-        queryBuilder.appendGreaterThanEquals(fieldName, position);
-        return this;
-    }
-
-    public TableQuery lessThan(String fieldName, @Nullable Float value) {
-        long position = nativeArgumentList.insertFloat(value);
-        queryBuilder.appendLessThan(fieldName, position);
-        return this;
-    }
-
-    public TableQuery lessThanOrEqual(String fieldName, @Nullable Float value) {
-        long position = nativeArgumentList.insertFloat(value);
-        queryBuilder.appendLessThanEquals(fieldName, position);
-        return this;
-    }
-
-    public TableQuery between(String fieldName, @Nullable Float value1, @Nullable Float value2) {
-        long position1 = nativeArgumentList.insertFloat(value1);
-        long position2 = nativeArgumentList.insertFloat(value2);
-        queryBuilder.appendBetween(fieldName, position1, position2);
-
-        return this;
-    }
-
-    // Queries for double values.
-
-    public TableQuery equalTo(String fieldName, @Nullable Double value) {
-        long position = nativeArgumentList.insertDouble(value);
-        queryBuilder.appendEqualTo(fieldName, position);
-        return this;
-    }
-
-    public TableQuery notEqualTo(String fieldName, @Nullable Double value) {
-        long position = nativeArgumentList.insertDouble(value);
-        queryBuilder.appendNotEqualTo(fieldName, position);
-        return this;
-    }
-
-    public TableQuery greaterThan(String fieldName, @Nullable Double value) {
-        long position = nativeArgumentList.insertDouble(value);
-        queryBuilder.appendGreaterThan(fieldName, position);
-        return this;
-    }
-
-    public TableQuery greaterThanOrEqual(String fieldName, @Nullable Double value) {
-        long position = nativeArgumentList.insertDouble(value);
-        queryBuilder.appendGreaterThanEquals(fieldName, position);
-        return this;
-    }
-
-    public TableQuery lessThan(String fieldName, @Nullable Double value) {
-        long position = nativeArgumentList.insertDouble(value);
-        queryBuilder.appendLessThan(fieldName, position);
-        return this;
-    }
-
-    public TableQuery lessThanOrEqual(String fieldName, @Nullable Double value) {
-        long position = nativeArgumentList.insertDouble(value);
-        queryBuilder.appendLessThanEquals(fieldName, position);
-        return this;
-    }
-
-    public TableQuery between(String fieldName, @Nullable Double value1, @Nullable Double value2) {
-        long position1 = nativeArgumentList.insertDouble(value1);
-        long position2 = nativeArgumentList.insertDouble(value2);
-
-        queryBuilder.appendBetween(fieldName, position1, position2);
-        return this;
-    }
-
-    // Query for boolean values.
-
-    public TableQuery equalTo(String fieldName, @Nullable Boolean value) {
-        long position = nativeArgumentList.insertBoolean(value);
-        queryBuilder.appendEqualTo(fieldName, position);
-        return this;
-    }
-
-    public TableQuery notEqualTo(String fieldName, @Nullable Boolean value) {
-        long position = nativeArgumentList.insertBoolean(value);
-        queryBuilder.appendNotEqualTo(fieldName, position);
-        return this;
-    }
-
-    // Queries for Date values.
-
-    public TableQuery equalTo(String fieldName, @Nullable Date value) {
-        long position = nativeArgumentList.insertDate(value);
-        queryBuilder.appendEqualTo(fieldName, position);
-        return this;
-    }
-
-    public TableQuery notEqualTo(String fieldName, @Nullable Date value) {
-        long position = nativeArgumentList.insertDate(value);
-        queryBuilder.appendNotEqualTo(fieldName, position);
-        return this;
-    }
-
-    public TableQuery greaterThan(String fieldName, Date value) {
-        long position = nativeArgumentList.insertDate(value);
-        queryBuilder.appendGreaterThan(fieldName, position);
-        return this;
-    }
-
-    public TableQuery greaterThanOrEqual(String fieldName, Date value) {
-        long position = nativeArgumentList.insertDate(value);
-        queryBuilder.appendGreaterThanEquals(fieldName, position);
-        return this;
-    }
-
-    public TableQuery lessThan(String fieldName, Date value) {
-        long position = nativeArgumentList.insertDate(value);
-        queryBuilder.appendLessThan(fieldName, position);
-        return this;
-    }
-
-    public TableQuery lessThanOrEqual(String fieldName, Date value) {
-        long position = nativeArgumentList.insertDate(value);
-        queryBuilder.appendLessThanEquals(fieldName, position);
-        return this;
-    }
-
-    public TableQuery between(String fieldName, Date value1, Date value2) {
-        long position1 = nativeArgumentList.insertDate(value1);
-        long position2 = nativeArgumentList.insertDate(value2);
-        queryBuilder.appendBetween(fieldName, position1, position2);
-        return this;
-    }
-
-    // Queries for Binary values.
-
-    public TableQuery equalTo(String fieldName, @Nullable byte[] value) {
-        long position = nativeArgumentList.insertByteArray(value);
-        queryBuilder.appendEqualTo(fieldName, position);
-        return this;
-    }
-
-    public TableQuery notEqualTo(String fieldName, @Nullable byte[] value) {
-        long position = nativeArgumentList.insertByteArray(value);
-        queryBuilder.appendNotEqualTo(fieldName, position);
-        return this;
-    }
-
-    public TableQuery equalTo(String fieldName, @Nullable String value, Case caseSensitive) {
-        long position = nativeArgumentList.insertString(value);
-
-        if (caseSensitive == Case.SENSITIVE) {
-            queryBuilder.appendEqualTo(fieldName, position);
-        } else {
-            queryBuilder.appendEqualToNotSensitive(fieldName, position);
-        }
-
-        return this;
-    }
-
-    public TableQuery equalTo(String fieldName, String value) {
-        return equalTo(fieldName, value, Case.SENSITIVE);
-    }
-
-    public TableQuery notEqualTo(String fieldName, String value) {
-        return notEqualTo(fieldName, value, Case.SENSITIVE);
-    }
-
-    // Not Equals
-    public TableQuery notEqualTo(String fieldName, @Nullable String value, Case caseSensitive) {
-        long position = nativeArgumentList.insertString(value);
-
-        if (caseSensitive == Case.SENSITIVE) {
-            queryBuilder.appendNotEqualTo(fieldName, position);
-        } else {
-            queryBuilder.appendNotEqualToNotSensitive(fieldName, position);
-        }
-
-        return this;
-    }
-
-    public TableQuery beginsWith(String fieldName, String value) {
-        return beginsWith(fieldName, value, Case.SENSITIVE);
-    }
-
-    public TableQuery like(String fieldName, String value) {
-        return like(fieldName, value, Case.SENSITIVE);
-    }
-
-    public TableQuery contains(String fieldName, String value) {
-        return contains(fieldName, value, Case.SENSITIVE);
-    }
-
-    public TableQuery beginsWith(String fieldName, String value, Case caseSensitive) {
-        long position = nativeArgumentList.insertString(value);
-
-        if (caseSensitive == Case.SENSITIVE) {
-            queryBuilder.appendBeginsWith(fieldName, position);
-        } else {
-            queryBuilder.appendBeginsWithNotSensitive(fieldName, position);
-        }
-
-        return this;
-    }
-
-    public TableQuery endsWith(String fieldName, String value, Case caseSensitive) {
-        long position = nativeArgumentList.insertString(value);
-
-        if (caseSensitive == Case.SENSITIVE) {
-            queryBuilder.appendEndsWith(fieldName, position);
-        } else {
-            queryBuilder.appendEndsWithNotSensitive(fieldName, position);
-        }
-
-        return this;
-    }
-
-    public TableQuery endsWith(String fieldName, String value) {
-        return endsWith(fieldName, value, Case.SENSITIVE);
-    }
-
-    public TableQuery like(String fieldName, String value, Case caseSensitive) {
-        long position = nativeArgumentList.insertString(value);
-
-        if (caseSensitive == Case.SENSITIVE) {
-            queryBuilder.appendLike(fieldName, position);
-        } else {
-            queryBuilder.appendLikeNotSensitive(fieldName, position);
-        }
-
-        return this;
-    }
-
-    public TableQuery contains(String fieldName, String value, Case caseSensitive) {
-        long position = nativeArgumentList.insertString(value);
-
-        if (caseSensitive == Case.SENSITIVE) {
-            queryBuilder.appendContains(fieldName, position);
-        } else {
-            queryBuilder.appendContainsNotSensitive(fieldName, position);
-        }
-
+        rawDescriptor("LIMIT(" + limit + ")");
         return this;
     }
 
     public TableQuery isEmpty(String fieldName) {
-        equalTo(fieldName + ".@count", 0);
+        rawPredicateWithPointers(fieldName + ".@count = 0");
+        queryValidated = false;
         return this;
     }
 
     public TableQuery isNotEmpty(String fieldName) {
-        notEqualTo(fieldName + ".@count", 0);
+        rawPredicateWithPointers(fieldName + ".@count != 0");
+        queryValidated = false;
         return this;
     }
 
-    // Queries for Decimal128
-
-    public TableQuery between(String fieldName, @Nullable Decimal128 value1, @Nullable Decimal128 value2) {
-        long position1 = nativeArgumentList.insertDecimal128(value1);
-        long position2 = nativeArgumentList.insertDecimal128(value2);
-        queryBuilder.appendBetween(fieldName, position1, position2);
-        return this;
-    }
-
-    public TableQuery equalTo(String fieldName, @Nullable Decimal128 value) {
-        long position = nativeArgumentList.insertDecimal128(value);
-        queryBuilder.appendEqualTo(fieldName, position);
-        return this;
-    }
-
-    public TableQuery notEqualTo(String fieldName, @Nullable Decimal128 value) {
-        long position = nativeArgumentList.insertDecimal128(value);
-        queryBuilder.appendNotEqualTo(fieldName, position);
-        return this;
-    }
-
-    public TableQuery lessThan(String fieldName, @Nullable Decimal128 value) {
-        long position = nativeArgumentList.insertDecimal128(value);
-        queryBuilder.appendLessThan(fieldName, position);
-        return this;
-    }
-
-    public TableQuery lessThanOrEqual(String fieldName, @Nullable Decimal128 value) {
-        long position = nativeArgumentList.insertDecimal128(value);
-        queryBuilder.appendLessThanEquals(fieldName, position);
-        return this;
-    }
-
-    public TableQuery greaterThan(String fieldName, @Nullable Decimal128 value) {
-        long position = nativeArgumentList.insertDecimal128(value);
-        queryBuilder.appendGreaterThan(fieldName, position);
-        return this;
-    }
-
-    public TableQuery greaterThanOrEqual(String fieldName, @Nullable Decimal128 value) {
-        long position = nativeArgumentList.insertDecimal128(value);
-        queryBuilder.appendGreaterThanEquals(fieldName, position);
-        return this;
-    }
-
-    // Queries for ObjectId
-
-    public TableQuery equalTo(String fieldName, @Nullable ObjectId value) {
-        long position = nativeArgumentList.insertObjectId(value);
-        queryBuilder.appendEqualTo(fieldName, position);
-        return this;
-    }
-
-    public TableQuery notEqualTo(String fieldName, @Nullable ObjectId value) {
-        long position = nativeArgumentList.insertObjectId(value);
-        queryBuilder.appendNotEqualTo(fieldName, position);
-        return this;
-    }
-
-    public TableQuery lessThan(String fieldName, @Nullable ObjectId value) {
-        long position = nativeArgumentList.insertObjectId(value);
-        queryBuilder.appendLessThan(fieldName, position);
-        return this;
-    }
-
-    public TableQuery lessThanOrEqual(String fieldName, @Nullable ObjectId value) {
-        long position = nativeArgumentList.insertObjectId(value);
-        queryBuilder.appendLessThanEquals(fieldName, position);
-        return this;
-    }
-
-    public TableQuery greaterThan(String fieldName, @Nullable ObjectId value) {
-        long position = nativeArgumentList.insertObjectId(value);
-        queryBuilder.appendGreaterThan(fieldName, position);
-        return this;
-    }
-
-    public TableQuery greaterThanOrEqual(String fieldName, @Nullable ObjectId value) {
-        long position = nativeArgumentList.insertObjectId(value);
-        queryBuilder.appendGreaterThanEquals(fieldName, position);
-        return this;
-    }
-
-    // Queries for UUID
-
-    public TableQuery equalTo(String fieldName, @Nullable UUID value) {
-        long position = nativeArgumentList.insertUUID(value);
-        queryBuilder.appendEqualTo(fieldName, position);
-        return this;
-    }
-
-    public TableQuery notEqualTo(String fieldName, @Nullable UUID value) {
-        long position = nativeArgumentList.insertUUID(value);
-        queryBuilder.appendNotEqualTo(fieldName, position);
-        return this;
-    }
-
-    public TableQuery lessThan(String fieldName, @Nullable UUID value) {
-        long position = nativeArgumentList.insertUUID(value);
-        queryBuilder.appendLessThan(fieldName, position);
-        return this;
-    }
-
-    public TableQuery lessThanOrEqual(String fieldName, @Nullable UUID value) {
-        long position = nativeArgumentList.insertUUID(value);
-        queryBuilder.appendLessThanEquals(fieldName, position);
-        return this;
-    }
-
-    public TableQuery greaterThan(String fieldName, @Nullable UUID value) {
-        long position = nativeArgumentList.insertUUID(value);
-        queryBuilder.appendGreaterThan(fieldName, position);
-        return this;
-    }
-
-    public TableQuery greaterThanOrEqual(String fieldName, @Nullable UUID value) {
-        long position = nativeArgumentList.insertUUID(value);
-        queryBuilder.appendGreaterThanEquals(fieldName, position);
-        return this;
-    }
-
-    // isNull and isNotNull
-    public TableQuery isNull(String fieldName) {
-        queryBuilder.isNull(fieldName);
-        return this;
-    }
-
-    public TableQuery isNotNull(String fieldName) {
-        queryBuilder.isNotNull(fieldName);
-        return this;
-    }
-
-    public TableQuery alwaysTrue() {
-        queryBuilder.alwaysTrue();
-        return this;
-    }
-
-    public TableQuery alwaysFalse() {
-        queryBuilder.alwaysFalse();
-        return this;
-    }
-
-    public TableQuery rawPredicate(String filter, Object[] args) {
-        // Validates any pending query. It is done because the query argument indexes might clash with the raw predicate
-        // ones.
-        validateQuery();
+    public TableQuery rawPredicate(String predicate, Object... args) {
+        Mixed[] mixedArgs = new Mixed[args.length];
 
         for (int i = 0; i < args.length; i++) {
             Object argument = args[i];
             if (argument == null) {
-                nativeArgumentList.insertNull();
+                mixedArgs[i] = Mixed.nullValue();
             } else if (argument instanceof Boolean) {
-                nativeArgumentList.insertBoolean((Boolean) argument);
+                mixedArgs[i] = Mixed.valueOf((Boolean) argument);
+            } else if (argument instanceof Byte) {
+                mixedArgs[i] = Mixed.valueOf((Byte) argument);
+            } else if (argument instanceof Short) {
+                mixedArgs[i] = Mixed.valueOf((Short) argument);
+            } else if (argument instanceof Integer) {
+                mixedArgs[i] = Mixed.valueOf((Integer) argument);
+            } else if (argument instanceof Long) {
+                mixedArgs[i] = Mixed.valueOf((Long) argument);
             } else if (argument instanceof Float) {
-                nativeArgumentList.insertFloat((Float) argument);
+                mixedArgs[i] = Mixed.valueOf((Float) argument);
             } else if (argument instanceof Double) {
-                nativeArgumentList.insertDouble((Double) argument);
+                mixedArgs[i] = Mixed.valueOf((Double) argument);
             } else if (argument instanceof Decimal128) {
-                nativeArgumentList.insertDecimal128((Decimal128) argument);
-            } else if (argument instanceof Number) {
-                nativeArgumentList.insertLong((Number) argument);
+                mixedArgs[i] = Mixed.valueOf((Decimal128) argument);
             } else if (argument instanceof String) {
-                nativeArgumentList.insertString((String) argument);
+                mixedArgs[i] = Mixed.valueOf((String) argument);
             } else if (argument instanceof byte[]) {
-                nativeArgumentList.insertByteArray((byte[]) argument);
+                mixedArgs[i] = Mixed.valueOf((byte[]) argument);
             } else if (argument instanceof Date) {
-                nativeArgumentList.insertDate((Date) argument);
+                mixedArgs[i] = Mixed.valueOf((Date) argument);
             } else if (argument instanceof ObjectId) {
-                nativeArgumentList.insertObjectId((ObjectId) argument);
+                mixedArgs[i] = Mixed.valueOf((ObjectId) argument);
             } else if (argument instanceof UUID) {
-                nativeArgumentList.insertUUID((UUID) argument);
-            } else if (argument instanceof RealmModel) {
+                mixedArgs[i] = Mixed.valueOf((UUID) argument);
+            } else if (RealmModel.class.isAssignableFrom(argument.getClass())) {
                 RealmModel value = (RealmModel) argument;
 
                 if (!RealmObject.isValid(value) || !RealmObject.isManaged(value)) {
                     throw new IllegalArgumentException("Argument[" + i + "] is not a valid managed object.");
                 }
 
-                RealmObjectProxy proxy = (RealmObjectProxy) value;
-                UncheckedRow row = (UncheckedRow) proxy.realmGet$proxyState().getRow$realm();
-                nativeArgumentList.insertObject(row.getNativePtr());
+                mixedArgs[i] = Mixed.valueOf((RealmModel) argument);
             } else {
                 throw new IllegalArgumentException("Unsupported query argument type: " + argument.getClass().getSimpleName());
             }
         }
 
-        queryBuilder.appendRawPredicate(filter);
+        mixedNativeFunctions.callRawPredicate(this, predicate, mixedArgs);
 
-        // Validate current pending to prevent argument clash with a possible upcoming query.
-        validateQuery();
+        return this;
+    }
 
+    public void rawPredicateWithPointers(String predicate, long... values) {
+        OsKeyPathMapping mapping = table.getOsKeyPathMapping();
+
+        nativeRawPredicate(nativePtr,
+                predicate,
+                values,
+                (mapping != null) ? mapping.getNativePtr() : 0);
+    }
+
+    private void rawDescriptor(String descriptor) {
+        OsKeyPathMapping mapping = table.getOsKeyPathMapping();
+
+        nativeRawDescriptor(nativePtr,
+                descriptor,
+                (mapping != null) ? mapping.getNativePtr() : 0);
+    }
+
+    public TableQuery equalTo(String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, fieldName + " = $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery notEqualTo(String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, fieldName + " != $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery equalToInsensitive(String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, fieldName + " =[c] $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery notEqualToInsensitive(String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, fieldName + " !=[c] $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery greaterThan(String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, fieldName + " > $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery greaterThanOrEqual(String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, fieldName + " >= $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery lessThan(String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, fieldName + " < $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery lessThanOrEqual(String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, fieldName + " <= $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery between(String fieldName, Mixed value1, Mixed value2) {
+        mixedNativeFunctions.callRawPredicate(this, "(" + fieldName + " >= $0 AND " + fieldName + " <= $1)", value1, value2);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery beginsWith(String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, fieldName + " BEGINSWITH $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery beginsWithInsensitive(String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, fieldName + " BEGINSWITH[c] $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery endsWith(String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, fieldName + " ENDSWITH $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery endsWithInsensitive(String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, fieldName + " ENDSWITH[c] $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery like(String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, fieldName + " LIKE $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery likeInsensitive(String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, fieldName + " LIKE[c] $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery contains(String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, fieldName + " CONTAINS $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery containsInsensitive(String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, fieldName + " CONTAINS[c] $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    // isNull and isNotNull
+    public TableQuery isNull(String fieldName) {
+        rawPredicateWithPointers(fieldName + " = NULL");
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery isNotNull(String fieldName) {
+        rawPredicateWithPointers(fieldName + " != NULL");
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery alwaysTrue() {
+        rawPredicateWithPointers("TRUEPREDICATE");
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery alwaysFalse() {
+        rawPredicateWithPointers("FALSEPREDICATE");
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery in(String fieldName, Mixed[] values) {
+        beginGroup().equalTo(fieldName, values[0]);
+        for (int i = 1; i < values.length; i++) {
+            or().equalTo(fieldName, values[i]);
+        }
+        endGroup();
+
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery inInsensitive(String fieldName, Mixed[] values) {
+        beginGroup().equalToInsensitive(fieldName, values[0]);
+        for (int i = 1; i < values.length; i++) {
+            or().equalToInsensitive(fieldName, values[i]);
+        }
+        endGroup();
+
+        queryValidated = false;
         return this;
     }
 
@@ -840,7 +582,19 @@ public class TableQuery implements NativeObject {
 
     private native long nativeRemove(long nativeQueryPtr);
 
-    private static native void nativeRawPredicate(long nativeQueryPtr, boolean isOrConnected, String filter, long argsPtr, long mappingPtr);
+    private native void nativeRawPredicate(long nativeQueryPtr, String filter, long[] argsPtr, long mappingPtr);
+
+    private native void nativeRawDescriptor(long nativeQueryPtr, String descriptor, long mappingPtr);
+
+    private native void nativeBeginGroup(long nativeQueryPtr);
+
+    private native void nativeEndGroup(long nativeQueryPtr);
+
+    private native void nativeOr(long nativeQueryPtr);
+
+    private native void nativeNot(long nativeQueryPtr);
+
+    private native String nativeValidateQuery(long nativeQueryPtr);
 
     private static native long nativeGetFinalizerPtr();
 }
