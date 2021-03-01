@@ -115,9 +115,9 @@ create_native_debug_symbols_package() {
 }
 
 upload_to_bintray() {
-  echo "Releasing on Bintray..."
+  echo "Releasing on MavenCentral"
   cd $REALM_JAVA_PATH
-  ./gradlew bintrayUpload -PbintrayUser=$BINTRAY_USER -PbintrayKey=$BINTRAY_KEY
+  ./gradlew mavenCentralUpload closeAndReleaseRepository
   cd $HERE
 }
 
@@ -154,7 +154,7 @@ notify_slack_channels() {
   fi
 
   link_to_changelog="https://github.com/realm/realm-java/blob/$current_commit/CHANGELOG.md#$tag"
-  payload="{ \"username\": \"Realm CI\", \"icon_emoji\": \":realm_new:\", \"text\": \"<$link_to_changelog|*Realm Java $RELEASE_VERSION has been released*>\\nSee the Release Notes for more details.\" }"
+  payload="{ \"username\": \"Realm CI\", \"icon_emoji\": \":realm_new:\", \"text\": \"<$link_to_changelog|*Realm Java $RELEASE_VERSION has been released*>\\nSee the Release Notes for more details. Note, it can take up to 10 minutes before the release is visible on Maven Central.\" }"
   echo $link_to_changelog
   echo "Pinging #realm-releases"
   curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_RELEASES_URL}

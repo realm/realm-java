@@ -84,6 +84,8 @@ publishing {
 }
 
 signing {
+    required { signBuild }
+    useInMemoryPgpKeys(ext["signing.secretKeyRingFile"], ext["signing.password"])
     sign publishing.publications
 }
 

@@ -8,6 +8,11 @@ def getPropertyValue(String propertyName) {
     return value
 }
 
+// Default values
+ext["signing.keyId"] = 'BD9104E9'
+ext["sonatypeStagingProfileId"] = '78c19333e4450f'
+
+// Set properties either from a properties file or environment parameters
 File secretPropsFile = new File(buildscript.sourceFile.getParent(), 'mavencentral.properties')
 if (secretPropsFile.exists()) {
     Properties p = new Properties()
@@ -16,10 +21,9 @@ if (secretPropsFile.exists()) {
         ext[name] = value
     }
 } else {
-    ext["signing.keyId"] = getPropertyValue('REALM_SIGNING_KEY_ID')
-    ext["signing.password"] = getPropertyValue('REALM_SIGNING_PASSWORD')
-    ext["signing.secretKeyRingFile"] = getPropertyValue('REALM_SIGNING_SECRET_KEY_RING_FILE')
-    ext["ossrhUsername"] = getPropertyValue('REALM_OSSRH_USERNAME')
-    ext["ossrhPassword"] = getPropertyValue('REALM_OSSRH_PASSWORD')
-    ext["sonatypeStagingProfileId"] = getPropertyValue('REALM_SONATYPE_STAGING_PROFILE_ID')
+    ext["signBuild"] = getPropertyValue('signBuild')
+    ext["signing.password"] = getPropertyValue('signPassword')
+    ext["signing.secretKeyRingFile"] = getPropertyValue('signSecretRingFile')
+    ext["ossrhUsername"] = getPropertyValue('ossrhUsername')
+    ext["ossrhPassword"] = getPropertyValue('ossrhPassword')
 }

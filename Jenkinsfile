@@ -18,9 +18,10 @@ enableIntegrationTests = true
 
 // Will store whether or not this build was successful.
 buildSuccess = false
-// Will be set to `true` if this build is a full release that should be available on Bintray.
+// Will be set to `true` if this build is a full release that should be available on Maven Central.
 // This is determined by comparing the current git tag to the version number of the build.
 publishBuild = false
+isReleaseBranch = releaseBranches.contains(currentBranch)
 mongoDbRealmContainer = null
 mongoDbRealmCommandServerContainer = null
 emulatorContainer = null
@@ -79,7 +80,7 @@ try {
         def instrumentationTestTarget = "connectedAndroidTest"
         def deviceSerial = ""
 
-        if (!releaseBranches.contains(currentBranch)) {
+        if (!isReleaseBranch) {
           // Build development branch
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
@@ -220,8 +221,17 @@ try {
 def runBuild(buildFlags, instrumentationTestTarget) {
 
   stage('Build') {
-    sh "chmod +x gradlew"
-    sh "./gradlew assemble ${buildFlags} --stacktrace"
+    withCredentials([
+            [$class: 'StringBinding', credentialsId: 'maven-central-java-ring-file', variable: 'SIGN_KEY'],
+            [$class: 'StringBinding', credentialsId: 'maven-central-java-ring-file-password', variable: 'SIGN_KEY_PASSWORD'],
+    ]) {
+      sh "chmod +x gradlew"
+      def signingFlags = ""
+      if (isReleaseBranch) {
+        signingFlags = "-PsignBuild=true -PsignSecretRingFile=\"${SIGN_KEY}\" -PsignPassword=${SIGN_KEY_PASSWORD}"
+      }
+      sh "./gradlew assemble ${buildFlags} ${signingFlags} --stacktrace"
+    }
   }
 
   stage('Tests') {
@@ -310,10 +320,10 @@ def runBuild(buildFlags, instrumentationTestTarget) {
     }
   }
 
-  if (releaseBranches.contains(currentBranch) && !publishBuild) {
-    stage('Publish to OJO') {
+  if (isReleaseBranch && !publishBuild) {
+    stage('Publish SNAPSHOT') {
       withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
-        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} ojoUpload ${buildFlags} --stacktrace"
+        sh "chmod +x gradlew && ./gradlew mavenCentralUpload ${buildFlags} --stacktrace"
       }
     }
   }
