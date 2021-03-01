@@ -168,6 +168,21 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
         return mapStrategy.freeze();
     }
 
+    // ------------------------------------------
+    // Map API
+    // ------------------------------------------
+
+    /**
+     * TODO
+     */
+    public void addChangeListener() {
+        mapStrategy.addChangeListener();
+    }
+
+    public void close() {
+        getOsMap().close();
+    }
+
     // Needed for embedded objects
     OsMap getOsMap() {
         return mapStrategy.getOsMap();
@@ -195,6 +210,8 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
          * @return the inserted value.
          */
         protected abstract V putInternal(K key, V value);
+
+        abstract void addChangeListener();
 
         abstract OsMap getOsMap();
 
@@ -338,6 +355,11 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
         }
 
         @Override
+        void addChangeListener() {
+            managedMapManager.addChangeListener();
+        }
+
+        @Override
         OsMap getOsMap() {
             return managedMapManager.getOsMap();
         }
@@ -449,6 +471,11 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
         @Override
         protected V putInternal(K key, V value) {
             return unmanagedMap.put(key, value);
+        }
+
+        @Override
+        void addChangeListener() {
+            throw new UnsupportedOperationException("Unmanaged RealmMaps do not support change listeners.");
         }
 
         @Override

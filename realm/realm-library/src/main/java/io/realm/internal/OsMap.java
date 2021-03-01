@@ -31,7 +31,7 @@ import io.realm.internal.util.Pair;
 /**
  * Java wrapper of Object Store Dictionary class. This backs managed versions of RealmMaps.
  */
-public class OsMap implements NativeObject {
+public class OsMap implements NativeObject, ObservableCollection {
 
     public static final int NOT_FOUND = -1;
 
@@ -41,14 +41,21 @@ public class OsMap implements NativeObject {
     private final NativeContext context;
     private final Table targetTable;
 
+    // FIXME: remove targetTable
     public OsMap(UncheckedRow row, long columnKey, Table targetTable) {
         OsSharedRealm osSharedRealm = row.getTable().getSharedRealm();
-        this.targetTable = targetTable;
-        this.nativePtr = nativeCreate(osSharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
+        long[] pointers = nativeCreate(osSharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
+        this.nativePtr = pointers[0];
+        if (pointers[1] != NOT_FOUND) {
+            this.targetTable = new Table(osSharedRealm, pointers[1]);
+        } else {
+            this.targetTable = null;
+        }
         this.context = osSharedRealm.context;
         context.addReference(this);
     }
 
+    // Used to freeze maps
     private OsMap(OsSharedRealm osSharedRealm, long nativePtr, Table targetTable) {
         this.nativePtr = nativePtr;
         this.targetTable = targetTable;
@@ -64,6 +71,17 @@ public class OsMap implements NativeObject {
     @Override
     public long getNativeFinalizerPtr() {
         return nativeFinalizerPtr;
+    }
+
+    // Called by JNI
+    @Override
+    public void notifyChangeListeners(long nativeChangeSetPtr) {
+        OsCollectionChangeSet changeSet = new OsCollectionChangeSet(nativeChangeSetPtr, false);
+        if (changeSet.isEmpty()) {
+            // First time "query" returns. Do nothing.
+            return;
+        }
+//        observerPairs.foreach(new Callback(changeSet));
     }
 
     public long size() {
@@ -249,9 +267,20 @@ public class OsMap implements NativeObject {
         return new Pair<>((K) key, nativeMixed);
     }
 
+    public void addChangeListener() {
+//        nativeStartListening(nativePtr);
+
+        // TODO: use OsList approach
+//        if (observerPairs.isEmpty()) {
+//            nativeStartListening(nativePtr);
+//        }
+//        CollectionObserverPair<T> collectionObserverPair = new CollectionObserverPair<T>(observer, listener);
+//        observerPairs.add(collectionObserverPair);
+    }
+
     private static native long nativeGetFinalizerPtr();
 
-    private static native long nativeCreate(long sharedRealmPtr, long nativeRowPtr, long columnKey);
+    private static native long[] nativeCreate(long sharedRealmPtr, long nativeRowPtr, long columnKey);
 
     private static native Object nativeGetValue(long nativePtr, String key);
 
@@ -332,4 +361,12 @@ public class OsMap implements NativeObject {
     private static native boolean nativeContainsMixed(long nativePtr, long mixedPtr);
 
     private static native boolean nativeContainsRealmModel(long nativePtr, long objKey, long tablePtr);
+
+//    private static native void nativeStartListening(long nativePtr);
+
+    public void close() {
+        nativeClose(nativePtr);
+    }
+
+    public static native void nativeClose(long nativePtr);
 }

@@ -129,6 +129,10 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
         return freezeInternal(mapValueOperator.freeze());
     }
 
+    public void addChangeListener() {
+        mapValueOperator.addChangeListener();
+    }
+
     OsMap getOsMap() {
         return mapValueOperator.osMap;
     }
@@ -277,12 +281,15 @@ abstract class MapValueOperator<K, V> {
         return new Pair<>(frozenRealm, osMap.freeze(frozenRealm.sharedRealm));
     }
 
+    public void addChangeListener() {
+        osMap.addChangeListener();
+    }
+
     private <T> RealmResults<T> produceResults(Pair<Table, Long> tableAndValuesPtr,
                                                boolean forPrimitives,
                                                @Nullable Class<T> clazz) {
         if (baseRealm instanceof Realm) {
             Realm realm = (Realm) baseRealm;
-            Table table = tableAndValuesPtr.first;
             Long valuesPtr = tableAndValuesPtr.second;
             OsResults osResults = OsResults.createFromMap(baseRealm.sharedRealm, valuesPtr);
             if (clazz != null) {

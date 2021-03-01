@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import android.util.Log;
+
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
 
@@ -69,6 +71,8 @@ final class NativeObjectReference extends PhantomReference<NativeObject> {
 
     private static ReferencePool referencePool = new ReferencePool();
 
+    private Class<? extends NativeObject> classToFinalize;
+
     NativeObjectReference(NativeContext context,
             NativeObject referent,
             ReferenceQueue<? super NativeObject> referenceQueue) {
@@ -77,6 +81,7 @@ final class NativeObjectReference extends PhantomReference<NativeObject> {
         this.nativeFinalizerPtr = referent.getNativeFinalizerPtr();
         this.context = context;
         referencePool.add(this);
+        this.classToFinalize = referent.getClass();
     }
 
     /**
@@ -84,7 +89,15 @@ final class NativeObjectReference extends PhantomReference<NativeObject> {
      */
     void cleanup() {
         synchronized (context) {
+            Log.e("---", "--- FINALIZING " + classToFinalize.getCanonicalName());
             nativeCleanUp(nativeFinalizerPtr, nativePtr);
+
+//            if (classToFinalize != OsMap.class) {
+//                Log.e("---", "--- FINALIZING " + classToFinalize.getCanonicalName());
+//                nativeCleanUp(nativeFinalizerPtr, nativePtr);
+//            } else {
+//                Log.e("---", "--- SKIPPED FINALIZING OsMap");
+//            }
         }
         // Remove the PhantomReference from the pool to free it.
         referencePool.remove(this);

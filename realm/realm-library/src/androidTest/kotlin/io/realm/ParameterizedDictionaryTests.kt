@@ -54,7 +54,8 @@ class ParameterizedDictionaryTests(
         fun testTypes(): List<DictionaryTester> {
             return DictionaryMode.values().map { type ->
                 when (type) {
-                    DictionaryMode.UNMANAGED -> unmanagedFactory()
+                    DictionaryMode.UNMANAGED -> listOf()
+//                    DictionaryMode.UNMANAGED -> unmanagedFactory()
                     DictionaryMode.MANAGED -> managedFactory()
                 }
             }.flatten()
@@ -177,7 +178,7 @@ class ParameterizedDictionaryTests(
     }
 
     @Test
-    fun accessors() {
+    fun fieldAccessors() {
         tester.fieldAccessors()
     }
 }
@@ -196,8 +197,8 @@ enum class DictionaryMode {
  * Add new types ad-hoc here.
  */
 enum class DictionarySupportedType {
-    LONG, INTEGER, SHORT, BYTE, FLOAT, DOUBLE, STRING, BOOLEAN, DATE, DECIMAL128, BOXED_BINARY,
-    BINARY, OBJECT_ID, UUID, LINK, MIXED
+    LONG, INTEGER, SHORT, BYTE, FLOAT, DOUBLE, STRING, BOOLEAN, DATE, DECIMAL128, BINARY, OBJECT_ID,
+    UUID, LINK, MIXED
 }
 
 //-------------------------------------------
