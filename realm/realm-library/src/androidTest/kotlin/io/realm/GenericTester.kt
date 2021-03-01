@@ -19,29 +19,10 @@ package io.realm
 import io.realm.rule.TestRealmConfigurationFactory
 
 /**
-// * Contains all the methods to test in RealmDictionary plus some other convenience ones.
+ * Generic tester for parameterized tests. Includes two types of `setUp` functions.
  */
-interface DictionaryTester : GenericTester{
-    override fun setUp(configFactory: TestRealmConfigurationFactory) = Unit     // Not needed here
-    fun constructorWithAnotherMap()
-    fun isManaged()
-    fun isValid()
-    fun isFrozen()
-    fun size()
-    fun isEmpty()
-    fun containsKey()
-    fun containsValue()
-    fun get()
-    fun put()
-    fun putRequired()
-    fun remove()
-    fun putAll()
-    fun clear()
-    fun keySet()
-    fun values()
-    fun entrySet()
-    fun freeze()
-    fun copyToRealm()
-    fun copyFromRealm()
-    fun fieldAccessors()
+interface GenericTester {
+    fun setUp(config: RealmConfiguration)
+    fun setUp(configFactory: TestRealmConfigurationFactory)
+    fun tearDown()
 }

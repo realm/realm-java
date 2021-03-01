@@ -49,32 +49,57 @@ import io.realm.internal.fields.FieldDescriptor;
  */
 public abstract class RealmObjectSchema {
 
-    static final Map<Class<?>, FieldMetaData> SUPPORTED_SIMPLE_FIELDS;
+    static final Map<Class<?>, FieldMetaData> SUPPORTED_LIST_SIMPLE_FIELDS;
+    static final Map<Class<?>, FieldMetaData> SUPPORTED_DICTIONARY_SIMPLE_FIELDS;
 
     static {
-        Map<Class<?>, FieldMetaData> m = new HashMap<>();
-        m.put(String.class, new FieldMetaData(RealmFieldType.STRING, RealmFieldType.STRING_LIST, true));
-        m.put(short.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, false));
-        m.put(Short.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, true));
-        m.put(int.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, false));
-        m.put(Integer.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, true));
-        m.put(long.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, false));
-        m.put(Long.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, true));
-        m.put(float.class, new FieldMetaData(RealmFieldType.FLOAT, RealmFieldType.FLOAT_LIST, false));
-        m.put(Float.class, new FieldMetaData(RealmFieldType.FLOAT, RealmFieldType.FLOAT_LIST, true));
-        m.put(double.class, new FieldMetaData(RealmFieldType.DOUBLE, RealmFieldType.DOUBLE_LIST, false));
-        m.put(Double.class, new FieldMetaData(RealmFieldType.DOUBLE, RealmFieldType.DOUBLE_LIST, true));
-        m.put(boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, RealmFieldType.BOOLEAN_LIST, false));
-        m.put(Boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, RealmFieldType.BOOLEAN_LIST, true));
-        m.put(byte.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, false));
-        m.put(Byte.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, true));
-        m.put(byte[].class, new FieldMetaData(RealmFieldType.BINARY, RealmFieldType.BINARY_LIST, true));
-        m.put(Date.class, new FieldMetaData(RealmFieldType.DATE, RealmFieldType.DATE_LIST, true));
-        m.put(ObjectId.class, new FieldMetaData(RealmFieldType.OBJECT_ID, RealmFieldType.OBJECT_ID_LIST, true));
-        m.put(Decimal128.class, new FieldMetaData(RealmFieldType.DECIMAL128, RealmFieldType.DECIMAL128_LIST, true));
-        m.put(UUID.class, new FieldMetaData(RealmFieldType.UUID, RealmFieldType.UUID_LIST, true));
-        m.put(Mixed.class, new FieldMetaData(RealmFieldType.MIXED, RealmFieldType.MIXED_LIST, true));
-        SUPPORTED_SIMPLE_FIELDS = Collections.unmodifiableMap(m);
+        Map<Class<?>, FieldMetaData> listMap = new HashMap<>();
+        listMap.put(String.class, new FieldMetaData(RealmFieldType.STRING, RealmFieldType.STRING_LIST, true));
+        listMap.put(short.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, false));
+        listMap.put(Short.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, true));
+        listMap.put(int.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, false));
+        listMap.put(Integer.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, true));
+        listMap.put(long.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, false));
+        listMap.put(Long.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, true));
+        listMap.put(float.class, new FieldMetaData(RealmFieldType.FLOAT, RealmFieldType.FLOAT_LIST, false));
+        listMap.put(Float.class, new FieldMetaData(RealmFieldType.FLOAT, RealmFieldType.FLOAT_LIST, true));
+        listMap.put(double.class, new FieldMetaData(RealmFieldType.DOUBLE, RealmFieldType.DOUBLE_LIST, false));
+        listMap.put(Double.class, new FieldMetaData(RealmFieldType.DOUBLE, RealmFieldType.DOUBLE_LIST, true));
+        listMap.put(boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, RealmFieldType.BOOLEAN_LIST, false));
+        listMap.put(Boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, RealmFieldType.BOOLEAN_LIST, true));
+        listMap.put(byte.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, false));
+        listMap.put(Byte.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_LIST, true));
+        listMap.put(byte[].class, new FieldMetaData(RealmFieldType.BINARY, RealmFieldType.BINARY_LIST, true));
+        listMap.put(Date.class, new FieldMetaData(RealmFieldType.DATE, RealmFieldType.DATE_LIST, true));
+        listMap.put(ObjectId.class, new FieldMetaData(RealmFieldType.OBJECT_ID, RealmFieldType.OBJECT_ID_LIST, true));
+        listMap.put(Decimal128.class, new FieldMetaData(RealmFieldType.DECIMAL128, RealmFieldType.DECIMAL128_LIST, true));
+        listMap.put(UUID.class, new FieldMetaData(RealmFieldType.UUID, RealmFieldType.UUID_LIST, true));
+        listMap.put(Mixed.class, new FieldMetaData(RealmFieldType.MIXED, RealmFieldType.MIXED_LIST, true));
+        SUPPORTED_LIST_SIMPLE_FIELDS = Collections.unmodifiableMap(listMap);
+
+        Map<Class<?>, FieldMetaData> dictionaryMap = new HashMap<>();
+        dictionaryMap.put(String.class, new FieldMetaData(RealmFieldType.STRING, RealmFieldType.STRING_TO_STRING_MAP, true));
+        dictionaryMap.put(short.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.STRING_TO_INTEGER_MAP, false));
+        dictionaryMap.put(Short.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.STRING_TO_INTEGER_MAP, true));
+        dictionaryMap.put(int.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.STRING_TO_INTEGER_MAP, false));
+        dictionaryMap.put(Integer.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.STRING_TO_INTEGER_MAP, true));
+        dictionaryMap.put(long.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.STRING_TO_INTEGER_MAP, false));
+        dictionaryMap.put(Long.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.STRING_TO_INTEGER_MAP, true));
+        dictionaryMap.put(float.class, new FieldMetaData(RealmFieldType.FLOAT, RealmFieldType.STRING_TO_FLOAT_MAP, false));
+        dictionaryMap.put(Float.class, new FieldMetaData(RealmFieldType.FLOAT, RealmFieldType.STRING_TO_FLOAT_MAP, true));
+        dictionaryMap.put(double.class, new FieldMetaData(RealmFieldType.DOUBLE, RealmFieldType.STRING_TO_DOUBLE_MAP, false));
+        dictionaryMap.put(Double.class, new FieldMetaData(RealmFieldType.DOUBLE, RealmFieldType.STRING_TO_DOUBLE_MAP, true));
+        dictionaryMap.put(boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, RealmFieldType.STRING_TO_BOOLEAN_MAP, false));
+        dictionaryMap.put(Boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, RealmFieldType.STRING_TO_BOOLEAN_MAP, true));
+        dictionaryMap.put(byte.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.STRING_TO_INTEGER_MAP, false));
+        dictionaryMap.put(Byte.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.STRING_TO_INTEGER_MAP, true));
+        dictionaryMap.put(byte[].class, new FieldMetaData(RealmFieldType.BINARY, RealmFieldType.STRING_TO_BINARY_MAP, true));
+        dictionaryMap.put(Date.class, new FieldMetaData(RealmFieldType.DATE, RealmFieldType.STRING_TO_DATE_MAP, true));
+        dictionaryMap.put(ObjectId.class, new FieldMetaData(RealmFieldType.OBJECT_ID, RealmFieldType.STRING_TO_OBJECT_ID_MAP, true));
+        dictionaryMap.put(Decimal128.class, new FieldMetaData(RealmFieldType.DECIMAL128, RealmFieldType.STRING_TO_DECIMAL128_MAP, true));
+        dictionaryMap.put(UUID.class, new FieldMetaData(RealmFieldType.UUID, RealmFieldType.STRING_TO_UUID_MAP, true));
+        dictionaryMap.put(Mixed.class, new FieldMetaData(RealmFieldType.MIXED, RealmFieldType.STRING_TO_MIXED_MAP, true));
+        SUPPORTED_DICTIONARY_SIMPLE_FIELDS = Collections.unmodifiableMap(dictionaryMap);
     }
 
     static final Map<Class<?>, FieldMetaData> SUPPORTED_LINKED_FIELDS;
@@ -83,6 +108,7 @@ public abstract class RealmObjectSchema {
         Map<Class<?>, FieldMetaData> m = new HashMap<>();
         m.put(RealmObject.class, new FieldMetaData(RealmFieldType.OBJECT, null, false));
         m.put(RealmList.class, new FieldMetaData(RealmFieldType.LIST, null, false));
+        m.put(RealmDictionary.class, new FieldMetaData(RealmFieldType.STRING_TO_LINK_MAP, null, false));
         SUPPORTED_LINKED_FIELDS = Collections.unmodifiableMap(m);
     }
 
@@ -202,6 +228,24 @@ public abstract class RealmObjectSchema {
      * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
      */
     public abstract RealmObjectSchema addRealmListField(String fieldName, Class<?> primitiveType);
+
+    /**
+     * TODO
+     *
+     * @param fieldName
+     * @param objectSchema
+     * @return
+     */
+    public abstract RealmObjectSchema addRealmDictionaryField(String fieldName, RealmObjectSchema objectSchema);
+
+    /**
+     * TODO
+     *
+     * @param fieldName
+     * @param primitiveType
+     * @return
+     */
+    public abstract RealmObjectSchema addRealmDictionaryField(String fieldName, Class<?> primitiveType);
 
     /**
      * Removes a field from the class.
@@ -535,7 +579,7 @@ public abstract class RealmObjectSchema {
     }
 
     static final Map<Class<?>, FieldMetaData> getSupportedSimpleFields() {
-        return SUPPORTED_SIMPLE_FIELDS;
+        return SUPPORTED_LIST_SIMPLE_FIELDS;
     }
 
     protected final SchemaConnector getSchemaConnector() {
@@ -632,12 +676,12 @@ public abstract class RealmObjectSchema {
     // Tuple containing data about each supported Java type.
     static final class FieldMetaData {
         final RealmFieldType fieldType; // Underlying Realm type for fields with this type
-        final RealmFieldType listType; // Underlying Realm type for RealmLists containing this type
+        final RealmFieldType collectionType; // Underlying Realm type for RealmLists and RealmDictionaries containing this type
         final boolean defaultNullable;
 
-        FieldMetaData(RealmFieldType fieldType, @Nullable RealmFieldType listType, boolean defaultNullable) {
+        FieldMetaData(RealmFieldType fieldType, @Nullable RealmFieldType collectionType, boolean defaultNullable) {
             this.fieldType = fieldType;
-            this.listType = listType;
+            this.collectionType = collectionType;
             this.defaultNullable = defaultNullable;
         }
     }

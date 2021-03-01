@@ -62,4 +62,8 @@ open class PopulatedDictionaryClass : RealmObject() {
                     .let { keyValuePairs ->
                         RealmDictionary<Mixed>().init(keyValuePairs)
                     }
+
+    companion object {
+        const val CLASS_NAME = "PopulatedDictionaryClass"
+    }
 }

@@ -89,7 +89,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
 
     @Override
     public RealmObjectSchema addField(String fieldName, Class<?> fieldType, FieldAttribute... attributes) {
-        FieldMetaData metadata = SUPPORTED_SIMPLE_FIELDS.get(fieldType);
+        FieldMetaData metadata = SUPPORTED_LIST_SIMPLE_FIELDS.get(fieldType);
         if (metadata == null) {
             if (SUPPORTED_LINKED_FIELDS.containsKey(fieldType)) {
                 throw new IllegalArgumentException("Use addRealmObjectField() instead to add fields that link to other RealmObjects: " + fieldName);
@@ -147,7 +147,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
 
-        FieldMetaData metadata = SUPPORTED_SIMPLE_FIELDS.get(primitiveType);
+        FieldMetaData metadata = SUPPORTED_LIST_SIMPLE_FIELDS.get(primitiveType);
         if (metadata == null) {
             if (primitiveType.equals(RealmObjectSchema.class) || RealmModel.class.isAssignableFrom(primitiveType)) {
                 throw new IllegalArgumentException("Use 'addRealmListField(String name, RealmObjectSchema schema)' instead to add lists that link to other RealmObjects: " + fieldName);
@@ -157,7 +157,34 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
                         fieldName, primitiveType));
             }
         }
-        table.addColumn(metadata.listType, fieldName, metadata.defaultNullable);
+        table.addColumn(metadata.collectionType, fieldName, metadata.defaultNullable);
+        return this;
+    }
+
+    @Override
+    public RealmObjectSchema addRealmDictionaryField(String fieldName, Class<?> primitiveType) {
+        checkLegalName(fieldName);
+        checkFieldNameIsAvailable(fieldName);
+
+        FieldMetaData metadata = SUPPORTED_DICTIONARY_SIMPLE_FIELDS.get(primitiveType);
+        if (metadata == null) {
+            if (primitiveType.equals(RealmObjectSchema.class) || RealmModel.class.isAssignableFrom(primitiveType)) {
+                throw new IllegalArgumentException("Use 'addRealmDictionaryField(String name, RealmObjectSchema schema)' instead to add dictionaries that link to other RealmObjects: " + fieldName);
+            } else {
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        "RealmDictionary does not support dictionaries with this type: %s(%s)",
+                        fieldName, primitiveType));
+            }
+        }
+        table.addColumn(metadata.collectionType, fieldName, metadata.defaultNullable);
+        return this;
+    }
+
+    @Override
+    public RealmObjectSchema addRealmDictionaryField(String fieldName, RealmObjectSchema objectSchema) {
+        checkLegalName(fieldName);
+        checkFieldNameIsAvailable(fieldName);
+        table.addColumnDictionaryLink(RealmFieldType.STRING_TO_LINK_MAP, fieldName, realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
         return this;
     }
 
