@@ -51,6 +51,7 @@ private const val SECRET_PASSWORD = "123456"
  * Catch all class for tests that not naturally fit anywhere else.
  */
 @RunWith(AndroidJUnit4::class)
+@Ignore
 class SyncedRealmIntegrationTests {
 
     private val looperThread = BlockingLooperThread()

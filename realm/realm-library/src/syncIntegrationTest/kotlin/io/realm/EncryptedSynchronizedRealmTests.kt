@@ -37,6 +37,7 @@ import kotlin.test.assertFailsWith
 
 private val SECRET_PASSWORD = "123456"
 
+@Ignore
 class EncryptedSynchronizedRealmTests {
 
     private lateinit var app: App
