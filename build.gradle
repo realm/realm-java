@@ -48,6 +48,9 @@ def copyProperties = {
     if (project.hasProperty('buildCore')) {
         startParameter.projectProperties += [buildCore: project.getProperty('buildCore')]
     }
+    if (project.hasProperty('signBuild')) {
+        startParameter.projectProperties += [signBuild: project.getProperty('signBuild')]
+    }
 }
 
 task assembleAnnotations(type:GradleBuild) {

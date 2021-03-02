@@ -76,8 +76,8 @@ publishing {
             def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
             url = version.endsWith('-SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
             credentials {
-                username = ossrhUsername
-                password = ossrhPassword
+                username = rootProject.ext["ossrhUsername"]
+                password = rootProject.ext["ossrhPassword"]
             }
         }
     }
@@ -85,7 +85,10 @@ publishing {
 
 signing {
     required { signBuild }
-    useInMemoryPgpKeys(ext["signing.secretKeyRingFile"], ext["signing.password"])
+    def keyId = rootProject.ext["signing.keyId"]
+    def ringFile = rootProject.ext["signing.secretKeyRingFile"]
+    def password = rootProject.ext["signing.password"]
+    useInMemoryPgpKeys(keyId, ringFile, password)
     sign publishing.publications
 }
 
@@ -95,3 +98,4 @@ ext {
     createPomDependencies = this.&createPomDependencies
     populatePom = this.&populatePom
 }
+

@@ -9,8 +9,9 @@ def getPropertyValue(String propertyName) {
 }
 
 // Default values
-ext["signing.keyId"] = 'BD9104E9'
-ext["sonatypeStagingProfileId"] = '78c19333e4450f'
+def rootExt = rootProject.ext
+rootExt["signing.keyId"] = 'BD9104E9'
+rootExt["sonatypeStagingProfileId"] = '78c19333e4450f'
 
 // Set properties either from a properties file or environment parameters
 File secretPropsFile = new File(buildscript.sourceFile.getParent(), 'mavencentral.properties')
@@ -18,12 +19,12 @@ if (secretPropsFile.exists()) {
     Properties p = new Properties()
     p.load(new FileInputStream(secretPropsFile))
     p.each { name, value ->
-        ext[name] = value
+        rootExt[name] = value
     }
 } else {
-    ext["signBuild"] = getPropertyValue('signBuild')
-    ext["signing.password"] = getPropertyValue('signPassword')
-    ext["signing.secretKeyRingFile"] = getPropertyValue('signSecretRingFile')
-    ext["ossrhUsername"] = getPropertyValue('ossrhUsername')
-    ext["ossrhPassword"] = getPropertyValue('ossrhPassword')
+    rootExt["signBuild"] = getPropertyValue('signBuild')
+    rootExt["signing.password"] = getPropertyValue('signPassword')
+    rootExt["signing.secretKeyRingFile"] = getPropertyValue('signSecretRingFile')
+    rootExt["ossrhUsername"] = getPropertyValue('ossrhUsername')
+    rootExt["ossrhPassword"] = getPropertyValue('ossrhPassword')
 }
