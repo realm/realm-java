@@ -2250,9 +2250,5 @@ public class RealmQuery<E> {
         return this.query.find();
     }
 
-    private SchemaConnector getSchemaConnector() {
-        return new SchemaConnector(realm.getSchema());
-    }
-
     private static native String nativeSerializeQuery(long tableQueryPtr);
 }

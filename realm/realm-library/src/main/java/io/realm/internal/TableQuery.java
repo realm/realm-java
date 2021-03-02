@@ -107,7 +107,7 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
-    public TableQuery sort(String[] fieldNames, Sort[] sortOrders) {
+    public static String buildSortDescriptor(String[] fieldNames, Sort[] sortOrders){
         StringBuilder descriptorBuilder = new StringBuilder("SORT(");
 
         String sortSeparator = "";
@@ -124,11 +124,16 @@ public class TableQuery implements NativeObject {
 
         descriptorBuilder.append(")");
 
-        rawDescriptor(descriptorBuilder.toString());
+        return descriptorBuilder.toString();
+    }
+
+    public TableQuery sort(String[] fieldNames, Sort[] sortOrders) {
+        String descriptor = buildSortDescriptor(fieldNames, sortOrders);
+        rawDescriptor(descriptor);
         return this;
     }
 
-    public TableQuery distinct(String[] fieldNames) {
+    public static String buildDistinctDescriptor(String[] fieldNames){
         StringBuilder descriptorBuilder = new StringBuilder("DISTINCT(");
 
         String distinctSeparator = "";
@@ -141,7 +146,12 @@ public class TableQuery implements NativeObject {
 
         descriptorBuilder.append(")");
 
-        rawDescriptor(descriptorBuilder.toString());
+        return descriptorBuilder.toString();
+    }
+
+    public TableQuery distinct(String[] fieldNames) {
+        String descriptor = buildDistinctDescriptor(fieldNames);
+        rawDescriptor(descriptor);
         return this;
     }
 

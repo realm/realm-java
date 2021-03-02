@@ -8,10 +8,8 @@ import java.util.Date;
 import java.util.UUID;
 
 import io.realm.FrozenPendingRow;
-import io.realm.Mixed;
 import io.realm.RealmChangeListener;
 import io.realm.RealmFieldType;
-import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.core.NativeMixed;
 
 

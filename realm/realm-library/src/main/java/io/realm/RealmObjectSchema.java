@@ -35,7 +35,6 @@ import io.realm.annotations.Required;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
-import io.realm.internal.fields.FieldDescriptor;
 
 
 /**
@@ -493,15 +492,6 @@ public abstract class RealmObjectSchema {
                 || property == RealmFieldType.LIST;
     }
 
-    /**
-     * Get a parser for a field descriptor.
-     *
-     * @param fieldDescription fieldName or link path to a field name.
-     * @param validColumnTypes valid field type for the last field in a linked field
-     * @return a FieldDescriptor
-     */
-    abstract FieldDescriptor getFieldDescriptors(String fieldDescription, RealmFieldType... validColumnTypes);
-
     RealmObjectSchema add(String name, RealmFieldType type, boolean primary, boolean indexed, boolean required) {
         long columnIndex = table.addColumn(type, name, (required) ? Table.NOT_NULLABLE : Table.NULLABLE);
 
@@ -536,10 +526,6 @@ public abstract class RealmObjectSchema {
 
     static final Map<Class<?>, FieldMetaData> getSupportedSimpleFields() {
         return SUPPORTED_SIMPLE_FIELDS;
-    }
-
-    protected final SchemaConnector getSchemaConnector() {
-        return new SchemaConnector(schema);
     }
 
     /**

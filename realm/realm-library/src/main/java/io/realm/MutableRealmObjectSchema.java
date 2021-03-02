@@ -26,7 +26,6 @@ import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsResults;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
-import io.realm.internal.fields.FieldDescriptor;
 
 /**
  * Mutable {@link RealmObjectSchema}.
@@ -327,19 +326,6 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         }
 
         return linkedClassName;
-    }
-
-    /**
-     * Returns a field descriptor based on the internal field names found in the Realm file.
-     *
-     * @param internalColumnNameDescription internal column name or internal linked column name description.
-     * @param validColumnTypes valid field type for the last field in a linked field
-     * @return the corresponding FieldDescriptor.
-     * @throws IllegalArgumentException if a proper FieldDescriptor could not be created.
-     */
-    @Override
-    FieldDescriptor getFieldDescriptors(String internalColumnNameDescription, RealmFieldType... validColumnTypes) {
-        return FieldDescriptor.createStandardFieldDescriptor(getSchemaConnector(), getTable(), internalColumnNameDescription, validColumnTypes);
     }
 
     // Invariant: Field was just added. This method is responsible for cleaning up attributes if it fails.

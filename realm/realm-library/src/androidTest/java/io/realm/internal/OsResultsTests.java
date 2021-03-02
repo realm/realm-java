@@ -38,7 +38,6 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.Sort;
 import io.realm.TestHelper;
-import io.realm.internal.core.QueryDescriptor;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.TestRealmConfigurationFactory;
@@ -206,9 +205,8 @@ public class OsResultsTests {
     @Test
     public void sort() {
         OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().greaterThan("age", Mixed.valueOf(1)));
-        QueryDescriptor sortDescriptor = QueryDescriptor.getTestInstance(table, new long[] {colKey2});
 
-        OsResults osResults2 = osResults.sort(sortDescriptor);
+        OsResults osResults2 = osResults.sort("age", Sort.ASCENDING);
 
         // A new native Results should be created.
         assertTrue(osResults.getNativePtr() != osResults2.getNativePtr());
@@ -247,8 +245,7 @@ public class OsResultsTests {
     public void distinct() {
         OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().lessThan("age", Mixed.valueOf(4)));
 
-        QueryDescriptor distinctDescriptor = QueryDescriptor.getTestInstance(table, new long[] {colKey2});
-        OsResults osResults2 = osResults.distinct(distinctDescriptor);
+        OsResults osResults2 = osResults.distinct(new String[]{"age"});
 
         // A new native Results should be created.
         assertTrue(osResults.getNativePtr() != osResults2.getNativePtr());
