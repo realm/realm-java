@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.internal.util.collections.Sets;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -250,294 +251,112 @@ public class RealmQueryTests extends QueryTests {
 
     private static void callThreadConfinedMethod(RealmQuery<?> query, ThreadConfinedMethods method) {
         switch (method) {
-            case EQUAL_TO_STRING:
-                query.equalTo(AllJavaTypes.FIELD_STRING, "dummy value");
-                break;
-            case EQUAL_TO_STRING_WITH_CASE:
-                query.equalTo(AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE);
-                break;
-            case EQUAL_TO_BYTE:
-                query.equalTo(AllJavaTypes.FIELD_BYTE, (byte) 1);
-                break;
-            case EQUAL_TO_BYTE_ARRAY:
-                query.equalTo(AllJavaTypes.FIELD_BINARY, new byte[] {0, 1, 2});
-                break;
-            case EQUAL_TO_SHORT:
-                query.equalTo(AllJavaTypes.FIELD_SHORT, (short) 1);
-                break;
-            case EQUAL_TO_INTEGER:
-                query.equalTo(AllJavaTypes.FIELD_INT, 1);
-                break;
-            case EQUAL_TO_LONG:
-                query.equalTo(AllJavaTypes.FIELD_LONG, 1L);
-                break;
-            case EQUAL_TO_DOUBLE:
-                query.equalTo(AllJavaTypes.FIELD_DOUBLE, 1D);
-                break;
-            case EQUAL_TO_FLOAT:
-                query.equalTo(AllJavaTypes.FIELD_FLOAT, 1F);
-                break;
-            case EQUAL_TO_BOOLEAN:
-                query.equalTo(AllJavaTypes.FIELD_BOOLEAN, true);
-                break;
-            case EQUAL_TO_DATE:
-                query.equalTo(AllJavaTypes.FIELD_DATE, new Date(0L));
-                break;
+            case EQUAL_TO_STRING: query.equalTo(           AllJavaTypes.FIELD_STRING,  "dummy value"); break;
+            case EQUAL_TO_STRING_WITH_CASE: query.equalTo( AllJavaTypes.FIELD_STRING,  "dummy value", Case.INSENSITIVE); break;
+            case EQUAL_TO_BYTE: query.equalTo(             AllJavaTypes.FIELD_BYTE,    (byte) 1); break;
+            case EQUAL_TO_BYTE_ARRAY: query.equalTo(       AllJavaTypes.FIELD_BINARY,  new byte[] {0, 1, 2}); break;
+            case EQUAL_TO_SHORT: query.equalTo(            AllJavaTypes.FIELD_SHORT,   (short) 1); break;
+            case EQUAL_TO_INTEGER: query.equalTo(          AllJavaTypes.FIELD_INT,     1); break;
+            case EQUAL_TO_LONG: query.equalTo(             AllJavaTypes.FIELD_LONG,    1L); break;
+            case EQUAL_TO_DOUBLE: query.equalTo(           AllJavaTypes.FIELD_DOUBLE,  1D); break;
+            case EQUAL_TO_FLOAT: query.equalTo(            AllJavaTypes.FIELD_FLOAT,   1F); break;
+            case EQUAL_TO_BOOLEAN: query.equalTo(          AllJavaTypes.FIELD_BOOLEAN, true); break;
+            case EQUAL_TO_DATE: query.equalTo(             AllJavaTypes.FIELD_DATE,    new Date(0L)); break;
 
-            case IN_STRING:
-                query.in(AllJavaTypes.FIELD_STRING, new String[] {"dummy value1", "dummy value2"});
-                break;
-            case IN_STRING_WITH_CASE:
-                query.in(AllJavaTypes.FIELD_STRING, new String[] {"dummy value1", "dummy value2"}, Case.INSENSITIVE);
-                break;
-            case IN_BYTE:
-                query.in(AllJavaTypes.FIELD_BYTE, new Byte[] {1, 2, 3});
-                break;
-            case IN_SHORT:
-                query.in(AllJavaTypes.FIELD_SHORT, new Short[] {1, 2, 3});
-                break;
-            case IN_INTEGER:
-                query.in(AllJavaTypes.FIELD_INT, new Integer[] {1, 2, 3});
-                break;
-            case IN_LONG:
-                query.in(AllJavaTypes.FIELD_LONG, new Long[] {1L, 2L, 3L});
-                break;
-            case IN_DOUBLE:
-                query.in(AllJavaTypes.FIELD_DOUBLE, new Double[] {1D, 2D, 3D});
-                break;
-            case IN_FLOAT:
-                query.in(AllJavaTypes.FIELD_FLOAT, new Float[] {1F, 2F, 3F});
-                break;
-            case IN_BOOLEAN:
-                query.in(AllJavaTypes.FIELD_BOOLEAN, new Boolean[] {true, false});
-                break;
-            case IN_DATE:
-                query.in(AllJavaTypes.FIELD_DATE, new Date[] {new Date(0L)});
-                break;
+            case IN_STRING: query.in(           AllJavaTypes.FIELD_STRING,  new String[] {"dummy value1", "dummy value2"}); break;
+            case IN_STRING_WITH_CASE: query.in( AllJavaTypes.FIELD_STRING,  new String[] {"dummy value1", "dummy value2"}, Case.INSENSITIVE); break;
+            case IN_BYTE: query.in(             AllJavaTypes.FIELD_BYTE,    new Byte[] {1, 2, 3}); break;
+            case IN_SHORT: query.in(            AllJavaTypes.FIELD_SHORT,   new Short[] {1, 2, 3}); break;
+            case IN_INTEGER: query.in(          AllJavaTypes.FIELD_INT,     new Integer[] {1, 2, 3}); break;
+            case IN_LONG: query.in(             AllJavaTypes.FIELD_LONG,    new Long[] {1L, 2L, 3L}); break;
+            case IN_DOUBLE: query.in(           AllJavaTypes.FIELD_DOUBLE,  new Double[] {1D, 2D, 3D}); break;
+            case IN_FLOAT: query.in(            AllJavaTypes.FIELD_FLOAT,   new Float[] {1F, 2F, 3F}); break;
+            case IN_BOOLEAN: query.in(          AllJavaTypes.FIELD_BOOLEAN, new Boolean[] {true, false}); break;
+            case IN_DATE: query.in(             AllJavaTypes.FIELD_DATE,    new Date[] {new Date(0L)}); break;
 
-            case NOT_EQUAL_TO_STRING:
-                query.notEqualTo(AllJavaTypes.FIELD_STRING, "dummy value");
-                break;
-            case NOT_EQUAL_TO_STRING_WITH_CASE:
-                query.notEqualTo(AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE);
-                break;
-            case NOT_EQUAL_TO_BYTE:
-                query.notEqualTo(AllJavaTypes.FIELD_BYTE, (byte) 1);
-                break;
-            case NOT_EQUAL_TO_BYTE_ARRAY:
-                query.notEqualTo(AllJavaTypes.FIELD_BINARY, new byte[] {1, 2, 3});
-                break;
-            case NOT_EQUAL_TO_SHORT:
-                query.notEqualTo(AllJavaTypes.FIELD_SHORT, (short) 1);
-                break;
-            case NOT_EQUAL_TO_INTEGER:
-                query.notEqualTo(AllJavaTypes.FIELD_INT, 1);
-                break;
-            case NOT_EQUAL_TO_LONG:
-                query.notEqualTo(AllJavaTypes.FIELD_LONG, 1L);
-                break;
-            case NOT_EQUAL_TO_DOUBLE:
-                query.notEqualTo(AllJavaTypes.FIELD_DOUBLE, 1D);
-                break;
-            case NOT_EQUAL_TO_FLOAT:
-                query.notEqualTo(AllJavaTypes.FIELD_FLOAT, 1F);
-                break;
-            case NOT_EQUAL_TO_BOOLEAN:
-                query.notEqualTo(AllJavaTypes.FIELD_BOOLEAN, true);
-                break;
-            case NOT_EQUAL_TO_DATE:
-                query.notEqualTo(AllJavaTypes.FIELD_DATE, new Date(0L));
-                break;
+            case NOT_EQUAL_TO_STRING: query.notEqualTo(           AllJavaTypes.FIELD_STRING,  "dummy value"); break;
+            case NOT_EQUAL_TO_STRING_WITH_CASE: query.notEqualTo( AllJavaTypes.FIELD_STRING,  "dummy value", Case.INSENSITIVE); break;
+            case NOT_EQUAL_TO_BYTE: query.notEqualTo(             AllJavaTypes.FIELD_BYTE,    (byte) 1); break;
+            case NOT_EQUAL_TO_BYTE_ARRAY: query.notEqualTo(       AllJavaTypes.FIELD_BINARY,  new byte[] {1,2,3}); break;
+            case NOT_EQUAL_TO_SHORT: query.notEqualTo(            AllJavaTypes.FIELD_SHORT,   (short) 1); break;
+            case NOT_EQUAL_TO_INTEGER: query.notEqualTo(          AllJavaTypes.FIELD_INT,     1); break;
+            case NOT_EQUAL_TO_LONG: query.notEqualTo(             AllJavaTypes.FIELD_LONG,    1L); break;
+            case NOT_EQUAL_TO_DOUBLE: query.notEqualTo(           AllJavaTypes.FIELD_DOUBLE,  1D); break;
+            case NOT_EQUAL_TO_FLOAT: query.notEqualTo(            AllJavaTypes.FIELD_FLOAT,   1F); break;
+            case NOT_EQUAL_TO_BOOLEAN: query.notEqualTo(          AllJavaTypes.FIELD_BOOLEAN, true); break;
+            case NOT_EQUAL_TO_DATE: query.notEqualTo(             AllJavaTypes.FIELD_DATE,    new Date(0L)); break;
 
-            case GREATER_THAN_INTEGER:
-                query.greaterThan(AllJavaTypes.FIELD_INT, 1);
-                break;
-            case GREATER_THAN_LONG:
-                query.greaterThan(AllJavaTypes.FIELD_LONG, 1L);
-                break;
-            case GREATER_THAN_DOUBLE:
-                query.greaterThan(AllJavaTypes.FIELD_DOUBLE, 1D);
-                break;
-            case GREATER_THAN_FLOAT:
-                query.greaterThan(AllJavaTypes.FIELD_FLOAT, 1F);
-                break;
-            case GREATER_THAN_DATE:
-                query.greaterThan(AllJavaTypes.FIELD_DATE, new Date(0L));
-                break;
+            case GREATER_THAN_INTEGER: query.greaterThan( AllJavaTypes.FIELD_INT,    1); break;
+            case GREATER_THAN_LONG: query.greaterThan(    AllJavaTypes.FIELD_LONG,   1L); break;
+            case GREATER_THAN_DOUBLE: query.greaterThan(  AllJavaTypes.FIELD_DOUBLE, 1D); break;
+            case GREATER_THAN_FLOAT: query.greaterThan(   AllJavaTypes.FIELD_FLOAT,  1F); break;
+            case GREATER_THAN_DATE: query.greaterThan(    AllJavaTypes.FIELD_DATE,   new Date(0L)); break;
 
-            case GREATER_THAN_OR_EQUAL_TO_INTEGER:
-                query.greaterThanOrEqualTo(AllJavaTypes.FIELD_INT, 1);
-                break;
-            case GREATER_THAN_OR_EQUAL_TO_LONG:
-                query.greaterThanOrEqualTo(AllJavaTypes.FIELD_LONG, 1L);
-                break;
-            case GREATER_THAN_OR_EQUAL_TO_DOUBLE:
-                query.greaterThanOrEqualTo(AllJavaTypes.FIELD_DOUBLE, 1D);
-                break;
-            case GREATER_THAN_OR_EQUAL_TO_FLOAT:
-                query.greaterThanOrEqualTo(AllJavaTypes.FIELD_FLOAT, 1F);
-                break;
-            case GREATER_THAN_OR_EQUAL_TO_DATE:
-                query.greaterThanOrEqualTo(AllJavaTypes.FIELD_DATE, new Date(0L));
-                break;
+            case GREATER_THAN_OR_EQUAL_TO_INTEGER: query.greaterThanOrEqualTo( AllJavaTypes.FIELD_INT,    1); break;
+            case GREATER_THAN_OR_EQUAL_TO_LONG: query.greaterThanOrEqualTo(    AllJavaTypes.FIELD_LONG,   1L); break;
+            case GREATER_THAN_OR_EQUAL_TO_DOUBLE: query.greaterThanOrEqualTo(  AllJavaTypes.FIELD_DOUBLE, 1D); break;
+            case GREATER_THAN_OR_EQUAL_TO_FLOAT: query.greaterThanOrEqualTo(   AllJavaTypes.FIELD_FLOAT,  1F); break;
+            case GREATER_THAN_OR_EQUAL_TO_DATE: query.greaterThanOrEqualTo(    AllJavaTypes.FIELD_DATE,   new Date(0L)); break;
 
-            case LESS_THAN_INTEGER:
-                query.lessThan(AllJavaTypes.FIELD_INT, 1);
-                break;
-            case LESS_THAN_LONG:
-                query.lessThan(AllJavaTypes.FIELD_LONG, 1L);
-                break;
-            case LESS_THAN_DOUBLE:
-                query.lessThan(AllJavaTypes.FIELD_DOUBLE, 1D);
-                break;
-            case LESS_THAN_FLOAT:
-                query.lessThan(AllJavaTypes.FIELD_FLOAT, 1F);
-                break;
-            case LESS_THAN_DATE:
-                query.lessThan(AllJavaTypes.FIELD_DATE, new Date(0L));
-                break;
+            case LESS_THAN_INTEGER: query.lessThan( AllJavaTypes.FIELD_INT,    1); break;
+            case LESS_THAN_LONG: query.lessThan(    AllJavaTypes.FIELD_LONG,   1L); break;
+            case LESS_THAN_DOUBLE: query.lessThan(  AllJavaTypes.FIELD_DOUBLE, 1D); break;
+            case LESS_THAN_FLOAT: query.lessThan(   AllJavaTypes.FIELD_FLOAT,  1F); break;
+            case LESS_THAN_DATE: query.lessThan(    AllJavaTypes.FIELD_DATE,   new Date(0L)); break;
 
-            case LESS_THAN_OR_EQUAL_TO_INTEGER:
-                query.lessThanOrEqualTo(AllJavaTypes.FIELD_INT, 1);
-                break;
-            case LESS_THAN_OR_EQUAL_TO_LONG:
-                query.lessThanOrEqualTo(AllJavaTypes.FIELD_LONG, 1L);
-                break;
-            case LESS_THAN_OR_EQUAL_TO_DOUBLE:
-                query.lessThanOrEqualTo(AllJavaTypes.FIELD_DOUBLE, 1D);
-                break;
-            case LESS_THAN_OR_EQUAL_TO_FLOAT:
-                query.lessThanOrEqualTo(AllJavaTypes.FIELD_FLOAT, 1F);
-                break;
-            case LESS_THAN_OR_EQUAL_TO_DATE:
-                query.lessThanOrEqualTo(AllJavaTypes.FIELD_DATE, new Date(0L));
-                break;
+            case LESS_THAN_OR_EQUAL_TO_INTEGER: query.lessThanOrEqualTo( AllJavaTypes.FIELD_INT,    1); break;
+            case LESS_THAN_OR_EQUAL_TO_LONG: query.lessThanOrEqualTo(    AllJavaTypes.FIELD_LONG,   1L); break;
+            case LESS_THAN_OR_EQUAL_TO_DOUBLE: query.lessThanOrEqualTo(  AllJavaTypes.FIELD_DOUBLE, 1D); break;
+            case LESS_THAN_OR_EQUAL_TO_FLOAT: query.lessThanOrEqualTo(   AllJavaTypes.FIELD_FLOAT,  1F); break;
+            case LESS_THAN_OR_EQUAL_TO_DATE: query.lessThanOrEqualTo(    AllJavaTypes.FIELD_DATE,   new Date(0L)); break;
 
-            case BETWEEN_INTEGER:
-                query.between(AllJavaTypes.FIELD_INT, 1, 100);
-                break;
-            case BETWEEN_LONG:
-                query.between(AllJavaTypes.FIELD_LONG, 1L, 100L);
-                break;
-            case BETWEEN_DOUBLE:
-                query.between(AllJavaTypes.FIELD_DOUBLE, 1D, 100D);
-                break;
-            case BETWEEN_FLOAT:
-                query.between(AllJavaTypes.FIELD_FLOAT, 1F, 100F);
-                break;
-            case BETWEEN_DATE:
-                query.between(AllJavaTypes.FIELD_DATE, new Date(0L), new Date(10000L));
-                break;
+            case BETWEEN_INTEGER: query.between( AllJavaTypes.FIELD_INT,    1, 100); break;
+            case BETWEEN_LONG: query.between(    AllJavaTypes.FIELD_LONG,   1L, 100L); break;
+            case BETWEEN_DOUBLE: query.between(  AllJavaTypes.FIELD_DOUBLE, 1D, 100D); break;
+            case BETWEEN_FLOAT: query.between(   AllJavaTypes.FIELD_FLOAT,  1F, 100F); break;
+            case BETWEEN_DATE: query.between(    AllJavaTypes.FIELD_DATE,   new Date(0L), new Date(10000L)); break;
 
-            case CONTAINS_STRING:
-                query.contains(AllJavaTypes.FIELD_STRING, "dummy value");
-                break;
-            case CONTAINS_STRING_WITH_CASE:
-                query.contains(AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE);
-                break;
+            case CONTAINS_STRING: query.contains(           AllJavaTypes.FIELD_STRING, "dummy value"); break;
+            case CONTAINS_STRING_WITH_CASE: query.contains( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
 
-            case BEGINS_WITH_STRING:
-                query.beginsWith(AllJavaTypes.FIELD_STRING, "dummy value");
-                break;
-            case BEGINS_WITH_STRING_WITH_CASE:
-                query.beginsWith(AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE);
-                break;
+            case BEGINS_WITH_STRING: query.beginsWith(           AllJavaTypes.FIELD_STRING, "dummy value"); break;
+            case BEGINS_WITH_STRING_WITH_CASE: query.beginsWith( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
 
-            case ENDS_WITH_STRING:
-                query.endsWith(AllJavaTypes.FIELD_STRING, "dummy value");
-                break;
-            case ENDS_WITH_STRING_WITH_CASE:
-                query.endsWith(AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE);
-                break;
+            case ENDS_WITH_STRING: query.endsWith(           AllJavaTypes.FIELD_STRING, "dummy value"); break;
+            case ENDS_WITH_STRING_WITH_CASE: query.endsWith( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
 
-            case LIKE_STRING:
-                query.like(AllJavaTypes.FIELD_STRING, "dummy value");
-                break;
-            case LIKE_STRING_WITH_CASE:
-                query.like(AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE);
-                break;
+            case LIKE_STRING: query.like(           AllJavaTypes.FIELD_STRING, "dummy value"); break;
+            case LIKE_STRING_WITH_CASE: query.like( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
 
-            case BEGIN_GROUP:
-                query.beginGroup();
-                break;
-            case END_GROUP:
-                query.endGroup();
-                break;
-            case OR:
-                query.or();
-                break;
-            case AND:
-                query.and();
-                break;
-            case NOT:
-                query.not();
-                break;
-            case IS_NULL:
-                query.isNull(AllJavaTypes.FIELD_DATE);
-                break;
-            case IS_NOT_NULL:
-                query.isNotNull(AllJavaTypes.FIELD_DATE);
-                break;
-            case IS_EMPTY:
-                query.isEmpty(AllJavaTypes.FIELD_STRING);
-                break;
-            case IS_NOT_EMPTY:
-                query.isNotEmpty(AllJavaTypes.FIELD_STRING);
-                break;
+            case BEGIN_GROUP: query.beginGroup(); break;
+            case END_GROUP: query.endGroup(); break;
+            case OR: query.or(); break;
+            case AND: query.and(); break;
+            case NOT: query.not(); break;
+            case IS_NULL: query.isNull(          AllJavaTypes.FIELD_DATE); break;
+            case IS_NOT_NULL: query.isNotNull(   AllJavaTypes.FIELD_DATE); break;
+            case IS_EMPTY: query.isEmpty(        AllJavaTypes.FIELD_STRING); break;
+            case IS_NOT_EMPTY: query.isNotEmpty( AllJavaTypes.FIELD_STRING); break;
 
-            case IS_VALID:
-                query.isValid();
-                break;
-            case DISTINCT:
-                query.distinct(AllJavaTypes.FIELD_STRING);
-                break;
-            case DISTINCT_BY_MULTIPLE_FIELDS:
-                query.distinct(AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID);
-                break;
+            case IS_VALID: query.isValid(); break;
+            case DISTINCT: query.distinct(                    AllJavaTypes.FIELD_STRING); break;
+            case DISTINCT_BY_MULTIPLE_FIELDS: query.distinct( AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID); break;
 
-            case SUM:
-                query.sum(AllJavaTypes.FIELD_INT);
-                break;
-            case AVERAGE:
-                query.average(AllJavaTypes.FIELD_INT);
-                break;
-            case MIN:
-                query.min(AllJavaTypes.FIELD_INT);
-                break;
-            case MINIMUM_DATE:
-                query.minimumDate(AllJavaTypes.FIELD_INT);
-                break;
-            case MAX:
-                query.max(AllJavaTypes.FIELD_INT);
-                break;
-            case MAXIMUM_DATE:
-                query.maximumDate(AllJavaTypes.FIELD_INT);
-                break;
-            case COUNT:
-                query.count();
-                break;
+            case SUM: query.sum(                  AllJavaTypes.FIELD_INT); break;
+            case AVERAGE: query.average(          AllJavaTypes.FIELD_INT); break;
+            case MIN: query.min(                  AllJavaTypes.FIELD_INT); break;
+            case MINIMUM_DATE: query.minimumDate( AllJavaTypes.FIELD_INT); break;
+            case MAX: query.max(                  AllJavaTypes.FIELD_INT); break;
+            case MAXIMUM_DATE: query.maximumDate( AllJavaTypes.FIELD_INT); break;
+            case COUNT: query.count(); break;
 
-            case FIND_ALL:
-                query.findAll();
-                break;
-            case FIND_ALL_ASYNC:
-                query.findAllAsync();
-                break;
-            case SORT:
-                query.sort(AllJavaTypes.FIELD_STRING);
-                break;
-            case SORT_WITH_ORDER:
-                query.sort(AllJavaTypes.FIELD_STRING, Sort.ASCENDING);
-                break;
-            case SORT_WITH_MANY_ORDERS:
-                query.sort(new String[] {AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID}, new Sort[] {Sort.DESCENDING, Sort.DESCENDING});
-                break;
-            case FIND_FIRST:
-                query.findFirst();
-                break;
-            case FIND_FIRST_ASYNC:
-                query.findFirstAsync();
-                break;
+            case FIND_ALL: query.findAll(); break;
+            case FIND_ALL_ASYNC: query.findAllAsync(); break;
+            case SORT: query.sort(AllJavaTypes.FIELD_STRING); break;
+            case SORT_WITH_ORDER: query.sort(AllJavaTypes.FIELD_STRING, Sort.ASCENDING); break;
+            case SORT_WITH_MANY_ORDERS: query.sort(new String[] {AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID}, new Sort[] {Sort.DESCENDING, Sort.DESCENDING}); break;
+            case FIND_FIRST: query.findFirst(); break;
+            case FIND_FIRST_ASYNC: query.findFirstAsync(); break;
 
             default:
                 throw new AssertionError("missing case for " + method);
@@ -955,7 +774,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4467")
     public void equalTo_nonLatinCharacters() {
         populateTestRealm(realm, 200);
 
@@ -1452,6 +1271,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void equalTo_withNonExistingField() {
         try {
             realm.where(AllTypes.class).equalTo("NotAField", 13).findAll();
@@ -2193,6 +2013,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void equalTo_binary_multiFailures() {
         createBinaryOnlyDataSet();
 
@@ -2227,6 +2048,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void notEqualTo_binary_multiFailures() {
         createBinaryOnlyDataSet();
 
@@ -2773,6 +2595,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void isEmpty_illegalFieldTypeThrows() {
         for (RealmFieldType type : NOT_SUPPORTED_IS_EMPTY_TYPES) {
             try {
@@ -2814,6 +2637,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void isEmpty_invalidFieldNameThrows() {
         String[] fieldNames = new String[] {null, "", "foo", AllJavaTypes.FIELD_OBJECT + ".foo"};
 
@@ -2827,6 +2651,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void isEmpty_acrossLink_wrongTypeThrows() {
         for (RealmFieldType type : RealmFieldType.values()) {
             if (SUPPORTED_IS_EMPTY_TYPES.contains(type)) {
@@ -2964,6 +2789,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void isNotEmpty_illegalFieldTypeThrows() {
         for (RealmFieldType type : NOT_SUPPORTED_IS_NOT_EMPTY_TYPES) {
             try {
@@ -3005,6 +2831,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void isNotEmpty_invalidFieldNameThrows() {
         String[] fieldNames = new String[] {null, "", "foo", AllJavaTypes.FIELD_OBJECT + ".foo"};
 
@@ -3245,7 +3072,7 @@ public class RealmQueryTests extends QueryTests {
             } else {
                 // Test that unsupported types throw exception as expected
                 try {
-                    if (((type.getNativeValue() & RealmFieldTypeConstants.LIST_OFFSET) == 0) && (type != RealmFieldType.LIST)) // FIXME: LISTS CRASHES REALM EXCEPTION
+//                    if (((type.getNativeValue() & RealmFieldTypeConstants.LIST_OFFSET) == 0) && (type != RealmFieldType.LIST)) // FIXME: LISTS CRASHES REALM EXCEPTION
                         realm.where(AllTypes.class)
                                 .distinct(field)
                                 .findAll();
@@ -3260,25 +3087,28 @@ public class RealmQueryTests extends QueryTests {
 
 
         // FIXME: NOT WORKING BACKLINKS
-//        assertEquals(types.toString(), Sets.newSet(RealmFieldType.LINKING_OBJECTS), types);
-//        // So verify Linking explicitly
-//        RealmResults<AllTypes> distinct = realm.where(AllTypes.class)
-//                .distinct(prefix + AllTypes.FIELD_REALMBACKLINK)
-//                .findAll();
-//        assertEquals(numberOfBlocks * numberOfObjects, distinct.size());
+        assertEquals(types.toString(), Sets.newSet(RealmFieldType.LINKING_OBJECTS), types);
+        // So verify Linking explicitly
+        RealmResults<AllTypes> distinct = realm.where(AllTypes.class)
+                .distinct(prefix + AllTypes.FIELD_REALMBACKLINK)
+                .findAll();
+        assertEquals(numberOfBlocks * numberOfObjects, distinct.size());
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4477")
     public void distinct_allFields() {
         distinctAllFields(realm, "");
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4477")
     public void distinct_linkedAllFields() {
         distinctAllFields(realm, AllTypes.FIELD_REALMLINK + ".");
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4477")
     public void distinct_nestedLinkedAllFields() {
         distinctAllFields(realm, AllTypes.FIELD_REALMLINK + "." + AllTypes.FIELD_REALMLINK + ".");
     }
@@ -3634,6 +3464,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void rawPredicate_invalidFieldNameThrows() {
         try {
             realm.where(AllTypes.class).rawPredicate("foo = 'test data 0'");
@@ -3644,6 +3475,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void rawPredicate_invalidLinkedFieldNameThrows() {
         try {
             realm.where(AllTypes.class).rawPredicate("columnRealmObject.foo = 'test data 0'");

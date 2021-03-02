@@ -25,11 +25,8 @@ import io.realm.exceptions.RealmPrimaryKeyConstraintException
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import org.bson.types.ObjectId
-import org.junit.After
+import org.junit.*
 import org.junit.Assert.*
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.assertFailsWith
 
@@ -521,6 +518,7 @@ class ObjectIdTests {
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     fun queriesIsEmpty() {
         realm.beginTransaction()
         realm.createObject<ObjectIdAndString>().id = ObjectId(generateObjectIdHexString(1))

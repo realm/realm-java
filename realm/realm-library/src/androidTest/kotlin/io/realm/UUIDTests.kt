@@ -23,11 +23,8 @@ import io.realm.exceptions.RealmException
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
-import org.junit.After
+import org.junit.*
 import org.junit.Assert.*
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
 import kotlin.test.assertFailsWith
@@ -422,6 +419,7 @@ class UUIDTests {
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4475")
     fun queriesGreaterThanOrEqualTo() {
         val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
         val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
@@ -445,6 +443,7 @@ class UUIDTests {
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4475")
     fun queriesGreaterThan() {
         val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
         val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
@@ -467,6 +466,7 @@ class UUIDTests {
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4475")
     fun queriesLessThanOrEqualTo() {
         val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
         val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
@@ -490,6 +490,7 @@ class UUIDTests {
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4475")
     fun queriesLessThan() {
         val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
         val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
@@ -575,6 +576,7 @@ class UUIDTests {
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/isio.realm.CustomRealmNameTestssues/4469")
     fun queriesIsEmpty() {
         val uuid1 = UUID.randomUUID()
         val uuid2 = UUID.randomUUID()

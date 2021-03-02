@@ -32,6 +32,7 @@ import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -333,6 +334,7 @@ public class RealmTests {
 
     // TODO Move to RealmQueryTests?
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void where_equalTo_wrongFieldTypeAsInput() throws IOException {
         populateTestRealm();
 
@@ -455,6 +457,7 @@ public class RealmTests {
 
     // TODO Move to RealmQueryTests?
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void where_equalTo_requiredFieldWithNullArgument() {
         // String
         try {
