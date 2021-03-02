@@ -42,9 +42,8 @@ class MixedTests {
     private lateinit var realmConfiguration: RealmConfiguration
     private lateinit var realm: Realm
 
-    @Rule
-    @JvmField
-    val folder = TemporaryFolder()
+    @get:Rule
+    val configFactory = TestRealmConfigurationFactory()
 
     init {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
@@ -52,17 +51,16 @@ class MixedTests {
 
     @Before
     fun setUp() {
-        realmConfiguration = RealmDebugConfigurationBuilder(InstrumentationRegistry.getInstrumentation().targetContext)
-                .setSchema(MixedNotIndexed::class.java,
-                        MixedIndexed::class.java,
-                        AllJavaTypes::class.java,
-                        MixedNotIndexedWithPK::class.java,
-                        SimpleEmbeddedObject::class.java,
-                        MixedDefaultPK::class.java,
-                        MixedDefaultNonPK::class.java,
-                        PrimaryKeyAsString::class.java)
-                .directory(folder.newFolder())
-                .build()
+        realmConfiguration = configFactory.createSchemaConfiguration(
+                false,
+                MixedNotIndexed::class.java,
+                MixedIndexed::class.java,
+                AllJavaTypes::class.java,
+                MixedNotIndexedWithPK::class.java,
+                SimpleEmbeddedObject::class.java,
+                MixedDefaultPK::class.java,
+                MixedDefaultNonPK::class.java,
+                PrimaryKeyAsString::class.java)
 
         realm = Realm.getInstance(realmConfiguration)
     }
@@ -803,6 +801,7 @@ class MixedTests {
             }
 
             anotherRealm.commitTransaction()
+            anotherRealm.close()
 
             looperThread.testComplete()
         }
@@ -822,6 +821,7 @@ class MixedTests {
             }
 
             anotherRealm.commitTransaction()
+            anotherRealm.close()
 
             looperThread.testComplete()
         }

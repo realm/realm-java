@@ -3,7 +3,7 @@ package io.realm.mixed
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
-import io.realm.entities.MixedNotIndexed
+import io.realm.entities.*
 import io.realm.kotlin.where
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
@@ -101,9 +101,8 @@ class MixedQueryTests {
         realm.commitTransaction()
     }
 
-    @Rule
-    @JvmField
-    val folder = TemporaryFolder()
+    @get:Rule
+    val configFactory = TestRealmConfigurationFactory()
 
     init {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
@@ -111,10 +110,9 @@ class MixedQueryTests {
 
     @Before
     fun setUp() {
-        realmConfiguration = RealmDebugConfigurationBuilder(InstrumentationRegistry.getInstrumentation().targetContext)
-                .setSchema(MixedNotIndexed::class.java)
-                .directory(folder.newFolder())
-                .build()
+        realmConfiguration = configFactory.createSchemaConfiguration(
+                false,
+                MixedNotIndexed::class.java)
 
         realm = Realm.getInstance(realmConfiguration)
 

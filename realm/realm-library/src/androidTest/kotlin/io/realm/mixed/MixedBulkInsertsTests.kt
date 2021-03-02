@@ -45,9 +45,8 @@ class MixedBulkInsertsTests {
         const val TEST_VALUE_4 = "hello world 4"
     }
 
-    @Rule
-    @JvmField
-    val folder = TemporaryFolder()
+    @get:Rule
+    val configFactory = TestRealmConfigurationFactory()
 
     init {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
@@ -55,15 +54,14 @@ class MixedBulkInsertsTests {
 
     @Before
     fun setUp() {
-        realmConfiguration = RealmDebugConfigurationBuilder(InstrumentationRegistry.getInstrumentation().targetContext)
-                .setSchema(MixedNotIndexed::class.java,
-                        MixedIndexed::class.java,
-                        AllJavaTypes::class.java,
-                        MixedRealmListWithPK::class.java,
-                        MixedNotIndexedWithPK::class.java,
-                        PrimaryKeyAsString::class.java)
-                .directory(folder.newFolder())
-                .build()
+        realmConfiguration = configFactory.createSchemaConfiguration(
+                false,
+                MixedNotIndexed::class.java,
+                MixedIndexed::class.java,
+                AllJavaTypes::class.java,
+                MixedRealmListWithPK::class.java,
+                MixedNotIndexedWithPK::class.java,
+                PrimaryKeyAsString::class.java)
 
         realm = Realm.getInstance(realmConfiguration)
     }

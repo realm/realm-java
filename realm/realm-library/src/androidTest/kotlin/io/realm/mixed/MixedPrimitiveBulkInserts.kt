@@ -127,10 +127,8 @@ class MixedPrimitivesBulkInsertsTests(
     private lateinit var realmConfiguration: RealmConfiguration
     private lateinit var realm: Realm
 
-
-    @Rule
-    @JvmField
-    val folder = TemporaryFolder()
+    @get:Rule
+    val configFactory = TestRealmConfigurationFactory()
 
     init {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
@@ -138,15 +136,14 @@ class MixedPrimitivesBulkInsertsTests(
 
     @Before
     fun setUp() {
-        realmConfiguration = RealmDebugConfigurationBuilder(InstrumentationRegistry.getInstrumentation().targetContext)
-                .setSchema(MixedNotIndexed::class.java,
-                        MixedIndexed::class.java,
-                        AllJavaTypes::class.java,
-                        MixedRealmListWithPK::class.java,
-                        MixedNotIndexedWithPK::class.java,
-                        PrimaryKeyAsString::class.java)
-                .directory(folder.newFolder())
-                .build()
+        realmConfiguration = configFactory.createSchemaConfiguration(
+                false,
+                MixedNotIndexed::class.java,
+                MixedIndexed::class.java,
+                AllJavaTypes::class.java,
+                MixedRealmListWithPK::class.java,
+                MixedNotIndexedWithPK::class.java,
+                PrimaryKeyAsString::class.java)
 
         realm = Realm.getInstance(realmConfiguration)
     }
