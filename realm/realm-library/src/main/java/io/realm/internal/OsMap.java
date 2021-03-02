@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import android.util.Log;
+
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
@@ -46,6 +48,8 @@ public class OsMap implements NativeObject, ObservableCollection {
         OsSharedRealm osSharedRealm = row.getTable().getSharedRealm();
         long[] pointers = nativeCreate(osSharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
         this.nativePtr = pointers[0];
+//        Log.e("ZZZ", ">>>>>>>>>>>>>>>> new OsMap: " + this.nativePtr);
+
         if (pointers[1] != NOT_FOUND) {
             this.targetTable = new Table(osSharedRealm, pointers[1]);
         } else {
@@ -365,7 +369,7 @@ public class OsMap implements NativeObject, ObservableCollection {
 //    private static native void nativeStartListening(long nativePtr);
 
     public void close() {
-        nativeClose(nativePtr);
+//        nativeClose(nativePtr);
     }
 
     public static native void nativeClose(long nativePtr);

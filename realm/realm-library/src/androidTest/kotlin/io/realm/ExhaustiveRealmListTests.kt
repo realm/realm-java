@@ -159,6 +159,11 @@ class ExhaustiveRealmListTests(
     fun size() {
         tester.size()
     }
+
+    @Test
+    fun freeze() {
+        tester.freeze()
+    }
 }
 
 enum class ListSupportedType {
@@ -265,6 +270,11 @@ class ListTester<T>(
                 list.size
             }
         }
+    }
+
+    fun freeze() {
+        val list = initList()
+        list.freeze()
     }
 
     private fun initList(): RealmList<T> {

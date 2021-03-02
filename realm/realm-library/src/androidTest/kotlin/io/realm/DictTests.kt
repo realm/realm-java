@@ -51,29 +51,30 @@ class DictTests {
         realm.close()
     }
 
-    @Test
-    fun asd() {
-        for (i in 1..10000) {
-            realm.executeTransaction {
-                it.createObject<DictionaryClass>()
-            }
-
-            val container = realm.where<DictionaryClass>()
-                    .findFirst()
-
-            realm.executeTransaction {
-                with(container!!.myDictionary) {
-                    put("HELLO", "hi")
-                    put("BYE", "goodbye")
-                    clear()
-                }
-            }
-        }
-    }
+//    @Test
+//    fun test_1() {
+//        for (i in 1..5) {
+//            realm.executeTransaction {
+//                val container = it.createObject<DictionaryClass>()
+//                container.myDictionary.close()
+//            }
+//
+//            val container = realm.where<DictionaryClass>()
+//                    .findFirst()
+//
+//            realm.executeTransaction {
+//                with(container!!.myDictionary) {
+//                    put("HELLO", "hi")
+//                    put("BYE", "goodbye")
+//                    clear()
+//                }
+//            }
+//        }
+//    }
 }
 
 open class DictionaryClass : RealmObject() {
-    val myDictionary = RealmDictionary<String>()
+//    val myDictionary = RealmDictionary<String>()
 
     val myLongList = RealmList<Long>()
     val myIntList = RealmList<Int>()

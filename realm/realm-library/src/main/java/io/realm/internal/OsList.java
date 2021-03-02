@@ -1,5 +1,7 @@
 package io.realm.internal;
 
+import android.util.Log;
+
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
@@ -29,6 +31,9 @@ public class OsList implements NativeObject, ObservableCollection {
         long[] ptrs = nativeCreate(sharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
 
         this.nativePtr = ptrs[0];
+
+        Log.e("ZZZ", ">>>>>>>>>>>>>>>> new OsList: " + this.nativePtr);
+
         this.context = sharedRealm.context;
         context.addReference(this);
 
@@ -42,6 +47,9 @@ public class OsList implements NativeObject, ObservableCollection {
     // Use for creating a copy of the OsList, e.g when freezing it.
     private OsList(OsSharedRealm sharedRealm, long listNativePtr, @Nullable Table targetTable) {
         this.nativePtr = listNativePtr;
+
+        Log.e("ZZZ", ">>>>>>>>>>>>>>>> new (FROZEN) OsList: " + this.nativePtr);
+
         this.targetTable = targetTable;
         this.context = sharedRealm.context;
         context.addReference(this);

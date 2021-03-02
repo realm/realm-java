@@ -31,11 +31,14 @@ using namespace realm;
 using namespace realm::util;
 using namespace realm::_impl;
 
+using namespace realm::jni_util;
+
 typedef ObservableCollectionWrapper<List> ListWrapper;
 
 namespace {
 void finalize_list(jlong ptr)
 {
+    Log::e(">>>>>>>>>>>>>>>> finalizing list wrapper: %1", ptr);
     delete reinterpret_cast<ListWrapper*>(ptr);
 }
 
@@ -91,6 +94,8 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_OsList_nativeCreate(JNIEnv* 
         List list(shared_realm, obj, ColKey(column_key));
         ListWrapper* wrapper_ptr = new ListWrapper(list);
         ret[0] = reinterpret_cast<jlong>(wrapper_ptr);
+
+        Log::e(">>>>>>>>>>>>>>>> created list wrapper: %1", ret[0]);
 
         if (wrapper_ptr->collection().get_type() == PropertyType::Object) {
             auto link_view_ref = obj.get_linklist(ColKey(column_key));

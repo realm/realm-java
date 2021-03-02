@@ -33,9 +33,12 @@ using namespace realm::util;
 using namespace realm::object_store;
 using namespace realm::_impl;
 
+using namespace realm::jni_util;
+
 typedef ObservableCollectionWrapper<object_store::Dictionary> DictionaryWrapper;
 
 void finalize_map(jlong ptr) {
+    Log::e(">>>>>>>>>>>>>>>> finalizing map wrapper: %1", ptr);
     delete reinterpret_cast<DictionaryWrapper*>(ptr);
 }
 
@@ -53,38 +56,33 @@ JNIEXPORT jlongArray JNICALL
 Java_io_realm_internal_OsMap_nativeCreate(JNIEnv* env, jclass, jlong shared_realm_ptr,
                                           jlong obj_ptr, jlong column_key) {
     try {
-        auto& obj = *reinterpret_cast<realm::Obj*>(obj_ptr);
-        auto& shared_realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
+        auto obj = *reinterpret_cast<realm::Obj*>(obj_ptr);
 
-        // Create dictionary
+        auto shared_realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
+        jlong ret[2];
+
         object_store::Dictionary dictionary(shared_realm, obj, ColKey(column_key));
+        auto wrapper_ptr = new DictionaryWrapper(dictionary);
+        ret[0] = reinterpret_cast<jlong>(wrapper_ptr);
 
-        // Create wrapper that handles dictionary and notifications
-        DictionaryWrapper* wrapper_ptr = new DictionaryWrapper(dictionary);
+        Log::e(">>>>>>>>>>>>>>>> created dictionary wrapper: %1", ret[0]);
 
-        // Create array with pointers to both
-        jlong pointers[2];
-
-        // Put wrapper inside the pointer array as the first element
-        pointers[0] = reinterpret_cast<jlong>(wrapper_ptr);
-
-        // Put table reference in the pointer array too only if we are working with Realm models
         if (wrapper_ptr->collection().get_type() == PropertyType::Object) {
             const DictionaryPtr& ptr = obj.get_dictionary_ptr(ColKey(column_key));
-            TableRef* target_table_ptr = new TableRef(ptr->get_target_table());
-            pointers[1] = reinterpret_cast<jlong>(target_table_ptr);
-        } else {
-            // Otherwise we don't need a table
-            pointers[1] = io_realm_internal_OsMap_NOT_FOUND;
+            auto target_table_ptr = new TableRef(ptr->get_target_table());
+            ret[1] = reinterpret_cast<jlong>(target_table_ptr);
+        }
+        else {
+            ret[1] = reinterpret_cast<jlong>(nullptr);
         }
 
-        // Finally create jlongArray to deliver the pointers back to Java
-        jlongArray returned_ptrs = env->NewLongArray(2);
-        if (!returned_ptrs) {
+        jlongArray ret_array = env->NewLongArray(2);
+        if (!ret_array) {
             ThrowException(env, OutOfMemory, "Could not allocate memory to create OsMap.");
+            return nullptr;
         }
-        env->SetLongArrayRegion(returned_ptrs, 0, 2, pointers);
-        return returned_ptrs;
+        env->SetLongArrayRegion(ret_array, 0, 2, ret);
+        return ret_array;
     }
     CATCH_STD()
     return nullptr;

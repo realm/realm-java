@@ -71,17 +71,26 @@ final class NativeObjectReference extends PhantomReference<NativeObject> {
 
     private static ReferencePool referencePool = new ReferencePool();
 
+    // TODO: remove this
     private Class<? extends NativeObject> classToFinalize;
 
     NativeObjectReference(NativeContext context,
-            NativeObject referent,
-            ReferenceQueue<? super NativeObject> referenceQueue) {
+                          NativeObject referent,
+                          ReferenceQueue<? super NativeObject> referenceQueue) {
         super(referent, referenceQueue);
         this.nativePtr = referent.getNativePtr();
         this.nativeFinalizerPtr = referent.getNativeFinalizerPtr();
         this.context = context;
         referencePool.add(this);
+
         this.classToFinalize = referent.getClass();
+        if (classToFinalize == OsMap.class) {
+            if (nativePtr < 125671100000000L) {
+                Log.e("---", ">>>>>>>>>>>>>>>> WEIRD!!! " + classToFinalize.getCanonicalName() + ": " + nativePtr);
+            } else {
+                Log.e("---", ">>>>>>>>>>>>>>>> OK!!!    " + classToFinalize.getCanonicalName() + ": " + nativePtr);
+            }
+        }
     }
 
     /**
@@ -89,15 +98,14 @@ final class NativeObjectReference extends PhantomReference<NativeObject> {
      */
     void cleanup() {
         synchronized (context) {
-            Log.e("---", "--- FINALIZING " + classToFinalize.getCanonicalName());
-            nativeCleanUp(nativeFinalizerPtr, nativePtr);
-
-//            if (classToFinalize != OsMap.class) {
-//                Log.e("---", "--- FINALIZING " + classToFinalize.getCanonicalName());
-//                nativeCleanUp(nativeFinalizerPtr, nativePtr);
+            if (classToFinalize == OsMap.class) {
+                Log.e("---", ">>>>>>>>>>>>>>>> FINALIZING OsMap: " + nativePtr);
+            } if (classToFinalize == OsList.class) {
+                Log.e("---", ">>>>>>>>>>>>>>>> FINALIZING OsList: " + nativePtr);
 //            } else {
-//                Log.e("---", "--- SKIPPED FINALIZING OsMap");
-//            }
+//                Log.e("---", "--- FINALIZING " + classToFinalize.getCanonicalName());
+            }
+            nativeCleanUp(nativeFinalizerPtr, nativePtr);
         }
         // Remove the PhantomReference from the pool to free it.
         referencePool.remove(this);
