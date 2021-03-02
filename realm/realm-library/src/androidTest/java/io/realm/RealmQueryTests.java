@@ -2355,14 +2355,14 @@ public class RealmQueryTests extends QueryTests {
     @Test
     public void isNull_listFieldThrows() {
         try {
-            realm.where(Owner.class).isNull("dogs").count();
+            realm.where(Owner.class).isNull("dogs");
             fail();
         } catch (IllegalArgumentException expected) {
             assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('dogs') with NULL"));
         }
 
         try {
-            realm.where(Cat.class).isNull("owner.dogs").count();
+            realm.where(Cat.class).isNull("owner.dogs");
             fail();
         } catch (IllegalArgumentException expected) {
             assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('owner.dogs') with NULL"));
@@ -2373,14 +2373,14 @@ public class RealmQueryTests extends QueryTests {
     @Test
     public void isNotNull_listFieldThrows() {
         try {
-            realm.where(Owner.class).isNotNull("dogs").count();
+            realm.where(Owner.class).isNotNull("dogs");
             fail();
         } catch (IllegalArgumentException expected) {
             assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('dogs') with NULL"));
         }
 
         try {
-            realm.where(Cat.class).isNotNull("owner.dogs").count();
+            realm.where(Cat.class).isNotNull("owner.dogs");
             fail();
         } catch (IllegalArgumentException expected) {
             assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('owner.dogs') with NULL"));
