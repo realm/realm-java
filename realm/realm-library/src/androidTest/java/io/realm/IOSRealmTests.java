@@ -35,7 +35,6 @@ import io.realm.entities.IOSAllTypes;
 import io.realm.entities.IOSChild;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 import static org.junit.Assert.assertEquals;

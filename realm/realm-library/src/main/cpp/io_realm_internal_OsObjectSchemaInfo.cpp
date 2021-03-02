@@ -36,13 +36,16 @@ static void finalize_object_schema(jlong ptr)
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeCreateRealmObjectSchema(JNIEnv* env, jclass,
-                                                                                                jstring j_name_str,
+                                                                                                jstring j_public_class_name,
+                                                                                                jstring j_internal_class_name,
                                                                                                 jboolean j_embedded)
 {
     try {
-        JStringAccessor name(env, j_name_str);
+        JStringAccessor public_name(env, j_public_class_name);
+        JStringAccessor internal_name(env, j_internal_class_name);
         ObjectSchema* object_schema = new ObjectSchema();
-        object_schema->name = name;
+        object_schema->name = internal_name;
+        object_schema->alias = public_name;
         object_schema->is_embedded = to_bool(j_embedded);
         return reinterpret_cast<jlong>(object_schema);
     }

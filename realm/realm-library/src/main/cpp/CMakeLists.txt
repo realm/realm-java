@@ -18,6 +18,12 @@
 cmake_minimum_required(VERSION 3.15.0)
 project(RealmJava)
 
+# For debugging: Enable this to output all variables defined for the project
+#get_cmake_property(_variableNames VARIABLES)
+#foreach (_variableName ${_variableNames})
+#    message(STATUS "${_variableName}=${${_variableName}}")
+#endforeach()
+
 # loading dependencies properties
 file(STRINGS "${CMAKE_SOURCE_DIR}/../../../../../dependencies.list" DEPENDENCIES)
 foreach(LINE IN LISTS DEPENDENCIES)
@@ -95,8 +101,9 @@ set(classes_LIST
     io.realm.internal.NativeObjectReference io.realm.internal.OsCollectionChangeSet
     io.realm.internal.OsObject io.realm.internal.OsRealmConfig io.realm.internal.OsList
     io.realm.internal.OsObjectStore
-    io.realm.internal.core.DescriptorOrdering io.realm.internal.core.NativeMixed
+    io.realm.internal.core.NativeMixed
     io.realm.internal.objectstore.OsObjectBuilder
+    io.realm.internal.objectstore.OsKeyPathMapping
 )
 # /./ is the workaround for the problem that AS cannot find the jni headers.
 # See https://github.com/googlesamples/android-ndk/issues/319
@@ -205,12 +212,15 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${REALM_COMMON_CXX_FLAGS} ${WARNING_CXX_
 
 # Set Linker flags flags
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -Wl,-gc-sections")
+    set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -Wl,-gc-sections -Wl,--exclude-libs,ALL")
 endif()
 if (REALM_ENABLE_SYNC)
     set(REALM_LINKER_FLAGS "${REALM_LINKER_FLAGS} -lz")
 endif()
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${REALM_LINKER_FLAGS}")
+# Work-around for gold linker issue when enabling LTO: https://github.com/android/ndk/issues/1444
+# Make the build choose whatever default linker chosen by the NDK.
+STRING(REGEX REPLACE "-fuse-ld=gold" "" CMAKE_CXX_LINK_OPTIONS_IPO ${CMAKE_CXX_LINK_OPTIONS_IPO})
 
 # JNI source files
 file(GLOB jni_SRC

@@ -47,12 +47,13 @@ inline static bool is_allowed_to_index(JNIEnv* env, DataType column_type)
            || column_type == type_Timestamp
            || column_type == type_OldDateTime
            || column_type == type_ObjectId
-           || column_type == type_UUID) {
+           || column_type == type_UUID
+           || column_type == type_Mixed) {
         return true;
     }
 
     ThrowException(env, IllegalArgument, "This field cannot be indexed - "
-                                         "Only String/byte/short/int/long/boolean/Date/ObjectId fields are supported.");
+                                         "Only String/byte/short/int/long/boolean/Date/ObjectId/UUID/Mixed fields are supported.");
     return false;
 }
 
@@ -805,6 +806,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeWhere(JNIEnv* env, jo
     try {
         TableRef table = TBL_REF(nativeTableRefPtr);
         Query* queryPtr = new Query(table->where());
+        queryPtr->set_ordering(std::make_unique<DescriptorOrdering>());
         return reinterpret_cast<jlong>(queryPtr);
     }
     CATCH_STD()
@@ -1033,7 +1035,8 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeSetEmbedded(JNIEnv
 {
     try {
         TableRef table = TableRef(TBL_REF(j_table_ptr));
-        return to_jbool(table->set_embedded(to_bool(j_embedded)));
+        table->set_embedded(to_bool(j_embedded));
+        return true;
     }
     CATCH_STD()
     return false;

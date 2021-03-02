@@ -31,11 +31,12 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import io.realm.Mixed;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.TestHelper;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.TestRealmConfigurationFactory;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.fail;
@@ -50,8 +51,6 @@ public class JNIQueryTest {
     private RealmConfiguration config;
     private OsSharedRealm sharedRealm;
     private Table table;
-    private final long[] oneNullTable = new long[]{NativeObject.NULLPTR};
-
 
     @Before
     public void setUp() throws Exception {
@@ -92,9 +91,8 @@ public class JNIQueryTest {
         TableQuery query = table.where();
 
         long colKey1 = table.getColumnKey("number");
-        long colKey2 = table.getColumnKey("name");
 
-        long cnt = query.equalTo(new long[]{colKey2}, oneNullTable, "D").count();
+        long cnt = query.equalTo("name", Mixed.valueOf("D")).count();
         assertEquals(2, cnt);
 
         cnt = query.minimumInt(colKey1);
@@ -118,22 +116,21 @@ public class JNIQueryTest {
         init();
 
         // All the following queries are not valid, e.g contain a group but not a closing group, an or() but not a second filter etc
-        try { table.where().equalTo(new long[]{0}, oneNullTable, 1).or().validateQuery();       fail("missing a second filter"); }      catch (UnsupportedOperationException ignore) {}
-        try { table.where().or().validateQuery();                                 fail("just an or()"); }                 catch (UnsupportedOperationException ignore) {}
-        try { table.where().group().equalTo(new long[]{0}, oneNullTable, 1).validateQuery();    fail("missing a closing group"); }      catch (UnsupportedOperationException ignore) {}
+        try { table.where().equalTo("", Mixed.valueOf(1)).or().validateQuery();       fail("missing a second filter"); }      catch (IllegalArgumentException ignore) {}
+        try { table.where().beginGroup().equalTo("", Mixed.valueOf(1)).validateQuery();    fail("missing a closing group"); }      catch (IllegalArgumentException ignore) {}
 
-        try { table.where().group().count();                                fail(); }                               catch (UnsupportedOperationException ignore) {}
-        try { table.where().group().validateQuery();                              fail(); }                               catch (UnsupportedOperationException ignore) {}
-        try { table.where().group().find();                                 fail(); }                               catch (UnsupportedOperationException ignore) {}
-        try { table.where().group().minimumInt(0);                          fail(); }                               catch (UnsupportedOperationException ignore) {}
-        try { table.where().group().maximumInt(0);                          fail(); }                               catch (UnsupportedOperationException ignore) {}
-        try { table.where().group().sumInt(0);                              fail(); }                               catch (UnsupportedOperationException ignore) {}
-        try { table.where().group().averageInt(0);                          fail(); }                               catch (UnsupportedOperationException ignore) {}
+        try { table.where().beginGroup().count();                                fail(); }                               catch (UnsupportedOperationException ignore) {}
+        try { table.where().beginGroup().validateQuery();                              fail(); }                               catch (UnsupportedOperationException ignore) {}
+        try { table.where().beginGroup().find();                                 fail(); }                               catch (UnsupportedOperationException ignore) {}
+        try { table.where().beginGroup().minimumInt(0);                          fail(); }                               catch (UnsupportedOperationException ignore) {}
+        try { table.where().beginGroup().maximumInt(0);                          fail(); }                               catch (UnsupportedOperationException ignore) {}
+        try { table.where().beginGroup().sumInt(0);                              fail(); }                               catch (UnsupportedOperationException ignore) {}
+        try { table.where().beginGroup().averageInt(0);                          fail(); }                               catch (UnsupportedOperationException ignore) {}
 
-        try { table.where().endGroup().equalTo(new long[]{0}, oneNullTable, 1).validateQuery(); fail("ends group, no start"); }         catch (UnsupportedOperationException ignore) {}
-        try { table.where().equalTo(new long[]{0}, oneNullTable, 1).endGroup().validateQuery(); fail("ends group, no start"); }         catch (UnsupportedOperationException ignore) {}
+        try { table.where().endGroup().equalTo("", Mixed.valueOf(1)).validateQuery(); fail("ends group, no start"); }         catch (IllegalArgumentException ignore) {}
+        try { table.where().equalTo("", Mixed.valueOf(1)).endGroup().validateQuery(); fail("ends group, no start"); }         catch (IllegalArgumentException ignore) {}
 
-        try { table.where().equalTo(new long[]{0}, oneNullTable, 1).endGroup().find();    fail("ends group, no start"); }         catch (UnsupportedOperationException ignore) {}
+        try { table.where().equalTo("", Mixed.valueOf(1)).endGroup().find();    fail("ends group, no start"); }         catch (IllegalArgumentException ignore) {}
     }
 
     @Test
@@ -156,7 +153,7 @@ public class JNIQueryTest {
             }
         });
 
-        TableQuery query = table.where().greaterThan(new long[]{table.getColumnKey("score")}, oneNullTable, 600);
+        TableQuery query = table.where().greaterThan("score", Mixed.valueOf(600));
 
         // Finds first match.
         assertEquals(1, query.find());
@@ -182,7 +179,7 @@ public class JNIQueryTest {
                 new Object[]{new byte[]{1,2,3}, true, new Date(1384423149761L), 4.5d, 5.7f, 100, "string", new Decimal128(0), new ObjectId()});
         sharedRealm.commitTransaction();
 
-        TableQuery q = t.where().greaterThan(new long[]{columnKey6}, oneNullTable, 1000); // No matches
+        TableQuery q = t.where().greaterThan("long", Mixed.valueOf(1000)); // No matches
 
         assertEquals(-1, q.find());
     }
@@ -192,84 +189,74 @@ public class JNIQueryTest {
 
         Table table = TestHelper.createTableWithAllColumnTypes(sharedRealm);
 
-        long columnKey1 = table.getColumnKey("binary");
-        long columnKey2 = table.getColumnKey("boolean");
-        long columnKey3 = table.getColumnKey("date");
-        long columnKey4 = table.getColumnKey("double");
-        long columnKey5 = table.getColumnKey("float");
-        long columnKey6 = table.getColumnKey("long");
-        long columnKey7 = table.getColumnKey("string");
-        long[] columnKeys = new long[]{columnKey1, columnKey2, columnKey3, columnKey4, columnKey5, columnKey6, columnKey7};
+        String[] columnKeys = new String[]{"binary", "boolean", "date", "double", "float", "long", "string"};
 
         // Queries the table.
         TableQuery query = table.where();
 
-        // Compares strings in non string columns.
-        for (int i = 0; i < 6; i++) {
-                try { query.equalTo(new long[]{columnKeys[i]}, oneNullTable, "string");    fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.notEqualTo(new long[]{columnKeys[i]}, oneNullTable, "string"); fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.beginsWith(new long[]{columnKeys[i]}, oneNullTable, "string"); fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.endsWith(new long[]{columnKeys[i]}, oneNullTable, "string");   fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.like(new long[]{columnKeys[i]}, oneNullTable, "string");       fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.contains(new long[]{columnKeys[i]}, oneNullTable, "string");   fail(); } catch(IllegalArgumentException ignore) {}
-        }
-
+        Mixed L123 = Mixed.valueOf(123);
+        Mixed L321 = Mixed.valueOf(321);
+        Mixed F123 = Mixed.valueOf(123.5F);
+        Mixed F321 = Mixed.valueOf(321.5F);
+        Mixed D123 = Mixed.valueOf(123.5D);
+        Mixed D321 = Mixed.valueOf(321.5D);
+        Mixed date = Mixed.valueOf(new Date());
 
         // Compares integer in non integer columns.
         for (int i = 0; i <= 6; i++) {
-            if (i != 5) {
-                try { query.equalTo(new long[]{columnKeys[i]}, oneNullTable, 123);            fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.notEqualTo(new long[]{columnKeys[i]}, oneNullTable, 123);         fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.lessThan(new long[]{columnKeys[i]}, oneNullTable, 123);           fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.lessThanOrEqual(new long[]{columnKeys[i]}, oneNullTable, 123);    fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.greaterThan(new long[]{columnKeys[i]}, oneNullTable, 123);        fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.greaterThanOrEqual(new long[]{columnKeys[i]}, oneNullTable, 123); fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.between(new long[]{columnKeys[i]}, 123, 321);                     fail(); } catch(IllegalArgumentException ignore) {}
+            if ((i != 5) && (i != 1) && (i != 3) && (i != 4)) {
+                try { query.equalTo(columnKeys[i], L123).find();            fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.notEqualTo(columnKeys[i], L123).find();         fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.lessThan(columnKeys[i], L123).find();           fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.lessThanOrEqual(columnKeys[i], L123).find();    fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.greaterThan(columnKeys[i], L123).find();        fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.greaterThanOrEqual(columnKeys[i], L123).find(); fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.between(columnKeys[i], L123, L321).find();                     fail(); } catch(IllegalArgumentException ignore) {}
             }
         }
 
         // Compares float in non float columns.
         for (int i = 0; i <= 6; i++) {
-            if (i != 4) {
-                try { query.equalTo(new long[]{columnKeys[i]}, oneNullTable, 123F);            fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.notEqualTo(new long[]{columnKeys[i]}, oneNullTable, 123F);         fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.lessThan(new long[]{columnKeys[i]}, oneNullTable, 123F);           fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.lessThanOrEqual(new long[]{columnKeys[i]}, oneNullTable, 123F);    fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.greaterThan(new long[]{columnKeys[i]}, oneNullTable, 123F);        fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.greaterThanOrEqual(new long[]{columnKeys[i]}, oneNullTable, 123F); fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.between(new long[]{columnKeys[i]}, 123F, 321F);                    fail(); } catch(IllegalArgumentException ignore) {}
+            if ((i != 5) && (i != 1) && (i != 3) && (i != 4)) {
+                try { query.equalTo(columnKeys[i], F123).find();            fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.notEqualTo(columnKeys[i], F123).find();         fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.lessThan(columnKeys[i], F123).find();           fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.lessThanOrEqual(columnKeys[i], F123).find();    fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.greaterThan(columnKeys[i], F123).find();        fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.greaterThanOrEqual(columnKeys[i], F123).find(); fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.between(columnKeys[i], F123, F321).find();                    fail(); } catch(IllegalArgumentException ignore) {}
             }
         }
 
         // Compares double in non double columns.
         for (int i = 0; i <= 6; i++) {
-            if (i != 3) {
-                try { query.equalTo(new long[]{columnKeys[i]}, oneNullTable, 123D);                     fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.notEqualTo(new long[]{columnKeys[i]}, oneNullTable, 123D);                  fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.lessThan(new long[]{columnKeys[i]}, oneNullTable, 123D);                    fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.lessThanOrEqual(new long[]{columnKeys[i]}, oneNullTable, 123D);             fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.greaterThan(new long[]{columnKeys[i]}, oneNullTable, 123D);                 fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.greaterThanOrEqual(new long[]{columnKeys[i]}, oneNullTable, 123D);          fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.between(new long[]{columnKeys[i]}, 123D, 321D);                             fail(); } catch(IllegalArgumentException ignore) {}
+            if ((i != 5) && (i != 1) && (i != 3) && (i != 4)) {
+                try { query.equalTo(columnKeys[i], D123).find();                     fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.notEqualTo(columnKeys[i], D123).find();                  fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.lessThan(columnKeys[i], D123).find();                    fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.lessThanOrEqual(columnKeys[i], D123).find();             fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.greaterThan(columnKeys[i], D123).find();                 fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.greaterThanOrEqual(columnKeys[i], D123).find();          fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.between(columnKeys[i], D123, D321).find();                             fail(); } catch(IllegalArgumentException ignore) {}
             }
         }
 
         // Compares boolean in non boolean columns.
         for (int i = 0; i <= 6; i++) {
-            if (i != 1) {
-              try { query.equalTo(new long[]{columnKeys[i]}, oneNullTable, true);                       fail(); } catch(IllegalArgumentException ignore) {}
+            if ((i != 5) && (i != 1) && (i != 3) && (i != 4)) {
+              try { query.equalTo(columnKeys[i], Mixed.valueOf(true)).find();                       fail(); } catch(IllegalArgumentException ignore) {}
             }
         }
 
         // Compares date.
         for (int i = 0; i <= 6; i++) {
             if (i != 2) {
-                try { query.equalTo(new long[]{columnKeys[i]}, oneNullTable, new Date());                   fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.lessThan(new long[]{columnKeys[i]}, oneNullTable, new Date());                fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.lessThanOrEqual(new long[]{columnKeys[i]}, oneNullTable, new Date());         fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.greaterThan(new long[]{columnKeys[i]}, oneNullTable, new Date());             fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.greaterThanOrEqual(new long[]{columnKeys[i]}, oneNullTable, new Date());      fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.between(new long[]{columnKeys[i]}, new Date(), new Date());                     fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.equalTo(columnKeys[i], date).find();                   fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.lessThan(columnKeys[i], date).find();                fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.lessThanOrEqual(columnKeys[i], date).find();         fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.greaterThan(columnKeys[i], date).find();             fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.greaterThanOrEqual(columnKeys[i], date).find();      fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.between(columnKeys[i], date, date).find();                     fail(); } catch(IllegalArgumentException ignore) {}
             }
         }
     }
@@ -311,10 +298,12 @@ public class JNIQueryTest {
     @Test
     public void dateQuery() throws Exception {
 
-        final Date past = new Date(TimeUnit.SECONDS.toMillis(Integer.MIN_VALUE - 100L));
-        final Date future = new Date(TimeUnit.SECONDS.toMillis(Integer.MAX_VALUE + 1L));
-        final Date distantPast = new Date(Long.MIN_VALUE);
-        final Date distantFuture = new Date(Long.MAX_VALUE);
+        final Mixed past = Mixed.valueOf(new Date(TimeUnit.SECONDS.toMillis(Integer.MIN_VALUE - 100L)));
+        final Mixed future = Mixed.valueOf(new Date(TimeUnit.SECONDS.toMillis(Integer.MAX_VALUE + 1L)));
+        final Mixed distantPast = Mixed.valueOf(new Date(Long.MIN_VALUE));
+        final Mixed distantFuture = Mixed.valueOf(new Date(Long.MAX_VALUE));
+        final Mixed date0 = Mixed.valueOf(new Date(0));
+        final Mixed date10000 = Mixed.valueOf(new Date(10000));
 
         final AtomicLong columnKey = new AtomicLong(-1);
 
@@ -326,100 +315,100 @@ public class JNIQueryTest {
                 TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{new Date(10000)});
                 TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{new Date(0)});
                 TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{new Date(1000)});
-                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{future});
-                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{distantFuture});
-                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{past});
-                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{distantPast});
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{future.asDate()});
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{distantFuture.asDate()});
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{past.asDate()});
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{distantPast.asDate()});
             }
         });
 
-        assertEquals(1L, table.where().equalTo(new long[]{columnKey.get()}, oneNullTable, distantPast).count());
-        assertEquals(6L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, distantPast).count());
-        assertEquals(0L, table.where().lessThan(new long[]{columnKey.get()}, oneNullTable, distantPast).count());
-        assertEquals(1L, table.where().lessThanOrEqual(new long[]{columnKey.get()}, oneNullTable, distantPast).count());
-        assertEquals(6L, table.where().greaterThan(new long[]{columnKey.get()}, oneNullTable, distantPast).count());
-        assertEquals(7L, table.where().greaterThanOrEqual(new long[]{columnKey.get()}, oneNullTable, distantPast).count());
+        assertEquals(1L, table.where().equalTo("date", distantPast).count());
+        assertEquals(6L, table.where().notEqualTo("date", distantPast).count());
+        assertEquals(0L, table.where().lessThan("date", distantPast).count());
+        assertEquals(1L, table.where().lessThanOrEqual("date", distantPast).count());
+        assertEquals(6L, table.where().greaterThan("date", distantPast).count());
+        assertEquals(7L, table.where().greaterThanOrEqual("date", distantPast).count());
 
-        assertEquals(1L, table.where().equalTo(new long[]{columnKey.get()}, oneNullTable, past).count());
-        assertEquals(6L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, past).count());
-        assertEquals(1L, table.where().lessThan(new long[]{columnKey.get()}, oneNullTable, past).count());
-        assertEquals(2L, table.where().lessThanOrEqual(new long[]{columnKey.get()}, oneNullTable, past).count());
-        assertEquals(5L, table.where().greaterThan(new long[]{columnKey.get()}, oneNullTable, past).count());
-        assertEquals(6L, table.where().greaterThanOrEqual(new long[]{columnKey.get()}, oneNullTable, past).count());
+        assertEquals(1L, table.where().equalTo("date", past).count());
+        assertEquals(6L, table.where().notEqualTo("date", past).count());
+        assertEquals(1L, table.where().lessThan("date", past).count());
+        assertEquals(2L, table.where().lessThanOrEqual("date", past).count());
+        assertEquals(5L, table.where().greaterThan("date", past).count());
+        assertEquals(6L, table.where().greaterThanOrEqual("date", past).count());
 
-        assertEquals(1L, table.where().equalTo(new long[]{columnKey.get()}, oneNullTable, new Date(0)).count());
-        assertEquals(6L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, new Date(0)).count());
-        assertEquals(2L, table.where().lessThan(new long[]{columnKey.get()}, oneNullTable, new Date(0)).count());
-        assertEquals(3L, table.where().lessThanOrEqual(new long[]{columnKey.get()}, oneNullTable, new Date(0)).count());
-        assertEquals(4L, table.where().greaterThan(new long[]{columnKey.get()}, oneNullTable, new Date(0)).count());
-        assertEquals(5L, table.where().greaterThanOrEqual(new long[]{columnKey.get()}, oneNullTable, new Date(0)).count());
+        assertEquals(1L, table.where().equalTo("date", date0).count());
+        assertEquals(6L, table.where().notEqualTo("date", date0).count());
+        assertEquals(2L, table.where().lessThan("date", date0).count());
+        assertEquals(3L, table.where().lessThanOrEqual("date", date0).count());
+        assertEquals(4L, table.where().greaterThan("date", date0).count());
+        assertEquals(5L, table.where().greaterThanOrEqual("date", date0).count());
 
-        assertEquals(1L, table.where().equalTo(new long[]{columnKey.get()}, oneNullTable, future).count());
-        assertEquals(6L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, future).count());
-        assertEquals(5L, table.where().lessThan(new long[]{columnKey.get()}, oneNullTable, future).count());
-        assertEquals(6L, table.where().lessThanOrEqual(new long[]{columnKey.get()}, oneNullTable, future).count());
-        assertEquals(1L, table.where().greaterThan(new long[]{columnKey.get()}, oneNullTable, future).count());
-        assertEquals(2L, table.where().greaterThanOrEqual(new long[]{columnKey.get()}, oneNullTable, future).count());
+        assertEquals(1L, table.where().equalTo("date", future).count());
+        assertEquals(6L, table.where().notEqualTo("date", future).count());
+        assertEquals(5L, table.where().lessThan("date", future).count());
+        assertEquals(6L, table.where().lessThanOrEqual("date", future).count());
+        assertEquals(1L, table.where().greaterThan("date", future).count());
+        assertEquals(2L, table.where().greaterThanOrEqual("date", future).count());
 
-        assertEquals(1L, table.where().equalTo(new long[]{columnKey.get()}, oneNullTable, distantFuture).count());
-        assertEquals(6L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, distantFuture).count());
-        assertEquals(6L, table.where().lessThan(new long[]{columnKey.get()}, oneNullTable, distantFuture).count());
-        assertEquals(7L, table.where().lessThanOrEqual(new long[]{columnKey.get()}, oneNullTable, distantFuture).count());
-        assertEquals(0L, table.where().greaterThan(new long[]{columnKey.get()}, oneNullTable, distantFuture).count());
-        assertEquals(1L, table.where().greaterThanOrEqual(new long[]{columnKey.get()}, oneNullTable, distantFuture).count());
+        assertEquals(1L, table.where().equalTo("date", distantFuture).count());
+        assertEquals(6L, table.where().notEqualTo("date", distantFuture).count());
+        assertEquals(6L, table.where().lessThan("date", distantFuture).count());
+        assertEquals(7L, table.where().lessThanOrEqual("date", distantFuture).count());
+        assertEquals(0L, table.where().greaterThan("date", distantFuture).count());
+        assertEquals(1L, table.where().greaterThanOrEqual("date", distantFuture).count());
 
         // between
 
-        assertEquals(1L, table.where().between(new long[]{columnKey.get()}, distantPast, distantPast).count());
-        assertEquals(2L, table.where().between(new long[]{columnKey.get()}, distantPast, past).count());
-        assertEquals(3L, table.where().between(new long[]{columnKey.get()}, distantPast, new Date(0)).count());
-        assertEquals(5L, table.where().between(new long[]{columnKey.get()}, distantPast, new Date(10000)).count());
-        assertEquals(6L, table.where().between(new long[]{columnKey.get()}, distantPast, future).count());
-        assertEquals(7L, table.where().between(new long[]{columnKey.get()}, distantPast, distantFuture).count());
+        assertEquals(1L, table.where().between("date", distantPast, distantPast).count());
+        assertEquals(2L, table.where().between("date", distantPast, past).count());
+        assertEquals(3L, table.where().between("date", distantPast, date0).count());
+        assertEquals(5L, table.where().between("date", distantPast, date10000).count());
+        assertEquals(6L, table.where().between("date", distantPast, future).count());
+        assertEquals(7L, table.where().between("date", distantPast, distantFuture).count());
 
-        assertEquals(0L, table.where().between(new long[]{columnKey.get()}, past, distantPast).count());
-        assertEquals(1L, table.where().between(new long[]{columnKey.get()}, past, past).count());
-        assertEquals(2L, table.where().between(new long[]{columnKey.get()}, past, new Date(0)).count());
-        assertEquals(4L, table.where().between(new long[]{columnKey.get()}, past, new Date(10000)).count());
-        assertEquals(5L, table.where().between(new long[]{columnKey.get()}, past, future).count());
-        assertEquals(6L, table.where().between(new long[]{columnKey.get()}, past, distantFuture).count());
+        assertEquals(0L, table.where().between("date", past, distantPast).count());
+        assertEquals(1L, table.where().between("date", past, past).count());
+        assertEquals(2L, table.where().between("date", past, date0).count());
+        assertEquals(4L, table.where().between("date", past, date10000).count());
+        assertEquals(5L, table.where().between("date", past, future).count());
+        assertEquals(6L, table.where().between("date", past, distantFuture).count());
 
-        assertEquals(0L, table.where().between(new long[]{columnKey.get()}, new Date(0), distantPast).count());
-        assertEquals(0L, table.where().between(new long[]{columnKey.get()}, new Date(0), past).count());
-        assertEquals(1L, table.where().between(new long[]{columnKey.get()}, new Date(0), new Date(0)).count());
-        assertEquals(3L, table.where().between(new long[]{columnKey.get()}, new Date(0), new Date(10000)).count());
-        assertEquals(4L, table.where().between(new long[]{columnKey.get()}, new Date(0), future).count());
-        assertEquals(5L, table.where().between(new long[]{columnKey.get()}, new Date(0), distantFuture).count());
+        assertEquals(0L, table.where().between("date", date0, distantPast).count());
+        assertEquals(0L, table.where().between("date", date0, past).count());
+        assertEquals(1L, table.where().between("date", date0, date0).count());
+        assertEquals(3L, table.where().between("date", date0, date10000).count());
+        assertEquals(4L, table.where().between("date", date0, future).count());
+        assertEquals(5L, table.where().between("date", date0, distantFuture).count());
 
-        assertEquals(0L, table.where().between(new long[]{columnKey.get()}, new Date(10000), distantPast).count());
-        assertEquals(0L, table.where().between(new long[]{columnKey.get()}, new Date(10000), past).count());
-        assertEquals(0L, table.where().between(new long[]{columnKey.get()}, new Date(10000), new Date(0)).count());
-        assertEquals(1L, table.where().between(new long[]{columnKey.get()}, new Date(10000), new Date(10000)).count());
-        assertEquals(2L, table.where().between(new long[]{columnKey.get()}, new Date(10000), future).count());
-        assertEquals(3L, table.where().between(new long[]{columnKey.get()}, new Date(10000), distantFuture).count());
+        assertEquals(0L, table.where().between("date", date10000, distantPast).count());
+        assertEquals(0L, table.where().between("date", date10000, past).count());
+        assertEquals(0L, table.where().between("date", date10000, date0).count());
+        assertEquals(1L, table.where().between("date", date10000, date10000).count());
+        assertEquals(2L, table.where().between("date", date10000, future).count());
+        assertEquals(3L, table.where().between("date", date10000, distantFuture).count());
 
-        assertEquals(0L, table.where().between(new long[]{columnKey.get()}, future, distantPast).count());
-        assertEquals(0L, table.where().between(new long[]{columnKey.get()}, future, past).count());
-        assertEquals(0L, table.where().between(new long[]{columnKey.get()}, future, new Date(0)).count());
-        assertEquals(0L, table.where().between(new long[]{columnKey.get()}, future, new Date(10000)).count());
-        assertEquals(1L, table.where().between(new long[]{columnKey.get()}, future, future).count());
-        assertEquals(2L, table.where().between(new long[]{columnKey.get()}, future, distantFuture).count());
+        assertEquals(0L, table.where().between("date", future, distantPast).count());
+        assertEquals(0L, table.where().between("date", future, past).count());
+        assertEquals(0L, table.where().between("date", future, date0).count());
+        assertEquals(0L, table.where().between("date", future, date10000).count());
+        assertEquals(1L, table.where().between("date", future, future).count());
+        assertEquals(2L, table.where().between("date", future, distantFuture).count());
 
-        assertEquals(0L, table.where().between(new long[]{columnKey.get()}, distantFuture, distantPast).count());
-        assertEquals(0L, table.where().between(new long[]{columnKey.get()}, distantFuture, past).count());
-        assertEquals(0L, table.where().between(new long[]{columnKey.get()}, distantFuture, new Date(0)).count());
-        assertEquals(0L, table.where().between(new long[]{columnKey.get()}, distantFuture, new Date(10000)).count());
-        assertEquals(0L, table.where().between(new long[]{columnKey.get()}, distantFuture, future).count());
-        assertEquals(1L, table.where().between(new long[]{columnKey.get()}, distantFuture, distantFuture).count());
+        assertEquals(0L, table.where().between("date", distantFuture, distantPast).count());
+        assertEquals(0L, table.where().between("date", distantFuture, past).count());
+        assertEquals(0L, table.where().between("date", distantFuture, date0).count());
+        assertEquals(0L, table.where().between("date", distantFuture, date10000).count());
+        assertEquals(0L, table.where().between("date", distantFuture, future).count());
+        assertEquals(1L, table.where().between("date", distantFuture, distantFuture).count());
     }
 
     @Test
     public void byteArrayQuery() throws Exception {
 
-        final byte[] binary1 = new byte[] {0x01, 0x02, 0x03, 0x04};
-        final byte[] binary2 = new byte[] {0x05, 0x02, 0x03, 0x08};
-        final byte[] binary3 = new byte[] {0x09, 0x0a, 0x0b, 0x04};
-        final byte[] binary4 = new byte[] {0x05, 0x0a, 0x0b, 0x10};
+        final Mixed binary1 = Mixed.valueOf(new byte[] {0x01, 0x02, 0x03, 0x04});
+        final Mixed binary2 = Mixed.valueOf(new byte[] {0x05, 0x02, 0x03, 0x08});
+        final Mixed binary3 = Mixed.valueOf(new byte[] {0x09, 0x0a, 0x0b, 0x04});
+        final Mixed binary4 = Mixed.valueOf(new byte[] {0x05, 0x0a, 0x0b, 0x10});
 
         final AtomicLong columnKey = new AtomicLong(-1);
 
@@ -428,103 +417,103 @@ public class JNIQueryTest {
             public void execute(Table table) {
                 columnKey.set(table.addColumn(RealmFieldType.BINARY, "binary"));
 
-                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{(Object) binary1});
-                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{(Object) binary2});
-                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{(Object) binary3});
-                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{(Object) binary4});
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{(Object) binary1.asBinary()});
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{(Object) binary2.asBinary()});
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{(Object) binary3.asBinary()});
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{(Object) binary4.asBinary()});
             }
         });
 
         // Equal to
 
-        assertEquals(1L, table.where().equalTo(new long[]{columnKey.get()}, oneNullTable, binary1).count());
-        assertEquals(1L, table.where().equalTo(new long[]{columnKey.get()}, oneNullTable, binary3).count());
+        assertEquals(1L, table.where().equalTo("binary", binary1).count());
+        assertEquals(1L, table.where().equalTo("binary", binary3).count());
 
         // Not equal to
 
-        assertEquals(3L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, binary2).count());
-        assertEquals(3L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, binary4).count());
+        assertEquals(3L, table.where().notEqualTo("binary", binary2).count());
+        assertEquals(3L, table.where().notEqualTo("binary", binary4).count());
     }
 
     @Test
     public void decimal128Query() throws Exception {
-        final Decimal128 one = new Decimal128(1);
-        final Decimal128 two = new Decimal128(2);
-        final Decimal128 three = new Decimal128(3);
+        final Mixed one = Mixed.valueOf(new Decimal128(1));
+        final Mixed two = Mixed.valueOf(new Decimal128(2));
+        final Mixed three = Mixed.valueOf(new Decimal128(3));
 
         final AtomicLong columnKey = new AtomicLong(-1);
 
         Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
-                columnKey.set(table.addColumn(RealmFieldType.DECIMAL128, "date"));
+                columnKey.set(table.addColumn(RealmFieldType.DECIMAL128, "decimal128"));
 
-                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{one});
-                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{two});
-                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{three});
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{one.asDecimal128()});
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{two.asDecimal128()});
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{three.asDecimal128()});
             }
         });
 
-        assertEquals(1L, table.where().equalTo(new long[]{columnKey.get()}, oneNullTable, one).count());
-        assertEquals(2L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, one).count());
-        assertEquals(0L, table.where().lessThan(new long[]{columnKey.get()}, oneNullTable, one).count());
-        assertEquals(1L, table.where().lessThanOrEqual(new long[]{columnKey.get()}, oneNullTable, one).count());
-        assertEquals(2L, table.where().greaterThan(new long[]{columnKey.get()}, oneNullTable, one).count());
-        assertEquals(3L, table.where().greaterThanOrEqual(new long[]{columnKey.get()}, oneNullTable, one).count());
+        assertEquals(1L, table.where().equalTo("decimal128", one).count());
+        assertEquals(2L, table.where().notEqualTo("decimal128", one).count());
+        assertEquals(0L, table.where().lessThan("decimal128", one).count());
+        assertEquals(1L, table.where().lessThanOrEqual("decimal128", one).count());
+        assertEquals(2L, table.where().greaterThan("decimal128", one).count());
+        assertEquals(3L, table.where().greaterThanOrEqual("decimal128", one).count());
 
-        assertEquals(1L, table.where().equalTo(new long[]{columnKey.get()}, oneNullTable, two).count());
-        assertEquals(2L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, two).count());
-        assertEquals(1L, table.where().lessThan(new long[]{columnKey.get()}, oneNullTable, two).count());
-        assertEquals(2L, table.where().lessThanOrEqual(new long[]{columnKey.get()}, oneNullTable, two).count());
-        assertEquals(1L, table.where().greaterThan(new long[]{columnKey.get()}, oneNullTable, two).count());
-        assertEquals(2L, table.where().greaterThanOrEqual(new long[]{columnKey.get()}, oneNullTable, two).count());
+        assertEquals(1L, table.where().equalTo("decimal128", two).count());
+        assertEquals(2L, table.where().notEqualTo("decimal128", two).count());
+        assertEquals(1L, table.where().lessThan("decimal128", two).count());
+        assertEquals(2L, table.where().lessThanOrEqual("decimal128", two).count());
+        assertEquals(1L, table.where().greaterThan("decimal128", two).count());
+        assertEquals(2L, table.where().greaterThanOrEqual("decimal128", two).count());
 
-        assertEquals(1L, table.where().equalTo(new long[]{columnKey.get()}, oneNullTable, three).count());
-        assertEquals(2L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, three).count());
-        assertEquals(2L, table.where().lessThan(new long[]{columnKey.get()}, oneNullTable, three).count());
-        assertEquals(3L, table.where().lessThanOrEqual(new long[]{columnKey.get()}, oneNullTable, three).count());
-        assertEquals(0L, table.where().greaterThan(new long[]{columnKey.get()}, oneNullTable, three).count());
-        assertEquals(1L, table.where().greaterThanOrEqual(new long[]{columnKey.get()}, oneNullTable, three).count());
+        assertEquals(1L, table.where().equalTo("decimal128", three).count());
+        assertEquals(2L, table.where().notEqualTo("decimal128", three).count());
+        assertEquals(2L, table.where().lessThan("decimal128", three).count());
+        assertEquals(3L, table.where().lessThanOrEqual("decimal128", three).count());
+        assertEquals(0L, table.where().greaterThan("decimal128", three).count());
+        assertEquals(1L, table.where().greaterThanOrEqual("decimal128", three).count());
     }
 
     @Test
     public void objectIdQuery() throws Exception {
-        final ObjectId one = new ObjectId(new Date(10));
-        final ObjectId two = new ObjectId(new Date(20));
-        final ObjectId three = new ObjectId(new Date(30));
+        final Mixed one = Mixed.valueOf(new ObjectId(new Date(10)));
+        final Mixed two = Mixed.valueOf(new ObjectId(new Date(20)));
+        final Mixed three = Mixed.valueOf(new ObjectId(new Date(30)));
 
         final AtomicLong columnKey = new AtomicLong(-1);
 
         Table table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
-                columnKey.set(table.addColumn(RealmFieldType.OBJECT_ID, "date"));
+                columnKey.set(table.addColumn(RealmFieldType.OBJECT_ID, "objectid"));
 
-                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{one});
-                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{two});
-                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{three});
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{one.asObjectId()});
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{two.asObjectId()});
+                TestHelper.addRowWithValues(table, new long[]{columnKey.get()}, new Object[]{three.asObjectId()});
             }
         });
 
-        assertEquals(1L, table.where().equalTo(new long[]{columnKey.get()}, oneNullTable, one).count());
-        assertEquals(2L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, one).count());
-        assertEquals(0L, table.where().lessThan(new long[]{columnKey.get()}, oneNullTable, one).count());
-        assertEquals(1L, table.where().lessThanOrEqual(new long[]{columnKey.get()}, oneNullTable, one).count());
-        assertEquals(2L, table.where().greaterThan(new long[]{columnKey.get()}, oneNullTable, one).count());
-        assertEquals(3L, table.where().greaterThanOrEqual(new long[]{columnKey.get()}, oneNullTable, one).count());
+        assertEquals(1L, table.where().equalTo("objectid", one).count());
+        assertEquals(2L, table.where().notEqualTo("objectid", one).count());
+        assertEquals(0L, table.where().lessThan("objectid", one).count());
+        assertEquals(1L, table.where().lessThanOrEqual("objectid", one).count());
+        assertEquals(2L, table.where().greaterThan("objectid", one).count());
+        assertEquals(3L, table.where().greaterThanOrEqual("objectid", one).count());
 
-        assertEquals(1L, table.where().equalTo(new long[]{columnKey.get()}, oneNullTable, two).count());
-        assertEquals(2L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, two).count());
-        assertEquals(1L, table.where().lessThan(new long[]{columnKey.get()}, oneNullTable, two).count());
-        assertEquals(2L, table.where().lessThanOrEqual(new long[]{columnKey.get()}, oneNullTable, two).count());
-        assertEquals(1L, table.where().greaterThan(new long[]{columnKey.get()}, oneNullTable, two).count());
-        assertEquals(2L, table.where().greaterThanOrEqual(new long[]{columnKey.get()}, oneNullTable, two).count());
+        assertEquals(1L, table.where().equalTo("objectid", two).count());
+        assertEquals(2L, table.where().notEqualTo("objectid", two).count());
+        assertEquals(1L, table.where().lessThan("objectid", two).count());
+        assertEquals(2L, table.where().lessThanOrEqual("objectid", two).count());
+        assertEquals(1L, table.where().greaterThan("objectid", two).count());
+        assertEquals(2L, table.where().greaterThanOrEqual("objectid", two).count());
 
-        assertEquals(1L, table.where().equalTo(new long[]{columnKey.get()}, oneNullTable, three).count());
-        assertEquals(2L, table.where().notEqualTo(new long[]{columnKey.get()}, oneNullTable, three).count());
-        assertEquals(2L, table.where().lessThan(new long[]{columnKey.get()}, oneNullTable, three).count());
-        assertEquals(3L, table.where().lessThanOrEqual(new long[]{columnKey.get()}, oneNullTable, three).count());
-        assertEquals(0L, table.where().greaterThan(new long[]{columnKey.get()}, oneNullTable, three).count());
-        assertEquals(1L, table.where().greaterThanOrEqual(new long[]{columnKey.get()}, oneNullTable, three).count());
+        assertEquals(1L, table.where().equalTo("objectid", three).count());
+        assertEquals(2L, table.where().notEqualTo("objectid", three).count());
+        assertEquals(2L, table.where().lessThan("objectid", three).count());
+        assertEquals(3L, table.where().lessThanOrEqual("objectid", three).count());
+        assertEquals(0L, table.where().greaterThan("objectid", three).count());
+        assertEquals(1L, table.where().greaterThanOrEqual("objectid", three).count());
     }
 }

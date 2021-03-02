@@ -74,7 +74,7 @@ RUN yes | sdkmanager \
     'extras;android;m2repository' \
     'platforms;android-29' \
     'platform-tools' \
-    'ndk;21.0.6113669' \
+    'ndk;22.0.7026061' \
     'system-images;android-29;default;x86'
 
 # Make the SDK universally writable

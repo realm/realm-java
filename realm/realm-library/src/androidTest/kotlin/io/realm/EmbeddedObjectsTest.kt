@@ -24,7 +24,6 @@ import io.realm.kotlin.createEmbeddedObject
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import io.realm.rule.BlockingLooperThread
-import io.realm.rule.TestRealmConfigurationFactory
 import org.json.JSONObject
 import org.junit.*
 import org.junit.Assert.*

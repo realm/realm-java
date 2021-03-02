@@ -31,8 +31,8 @@ import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
 import io.realm.RealmModel;
-import io.realm.internal.core.DescriptorOrdering;
-import io.realm.internal.core.QueryDescriptor;
+import io.realm.Sort;
+import io.realm.internal.objectstore.OsKeyPathMapping;
 import io.realm.internal.objectstore.OsObjectBuilder;
 
 
@@ -296,14 +296,10 @@ public class OsResults implements NativeObject, ObservableCollection {
         return new OsResults(realm, srcTable, backlinksPtr);
     }
 
-    public static OsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query, DescriptorOrdering queryDescriptors) {
-        query.validateQuery();
-        long ptr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(), queryDescriptors.getNativePtr());
-        return new OsResults(sharedRealm, query.getTable(), ptr);
-    }
-
     public static OsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query) {
-        return createFromQuery(sharedRealm, query, new DescriptorOrdering());
+        query.validateQuery();
+        long ptr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr());
+        return new OsResults(sharedRealm, query.getTable(), ptr);
     }
 
     OsResults(OsSharedRealm sharedRealm, Table table, long nativePtr) {
@@ -391,12 +387,30 @@ public class OsResults implements NativeObject, ObservableCollection {
         nativeClear(nativePtr);
     }
 
-    public OsResults sort(QueryDescriptor sortDescriptor) {
-        return new OsResults(sharedRealm, table, nativeSort(nativePtr, sortDescriptor));
+    public OsResults sort(String fieldName, Sort sortOrder) {
+        String query = TableQuery.buildSortDescriptor(new String[] {fieldName}, new Sort[] {sortOrder});
+        OsKeyPathMapping mapping = table.getOsKeyPathMapping();
+        return new OsResults(sharedRealm, table, nativeStringDescriptor(nativePtr, query, (mapping != null) ? mapping.getNativePtr() : 0));
     }
 
-    public OsResults distinct(QueryDescriptor distinctDescriptor) {
-        return new OsResults(sharedRealm, table, nativeDistinct(nativePtr, distinctDescriptor));
+    public OsResults sort(String[] fieldNames, Sort[] sortOrders) {
+        //noinspection ConstantConditions
+        if (sortOrders == null || sortOrders.length == 0) {
+            throw new IllegalArgumentException("You must provide at least one sort order.");
+        }
+        if (fieldNames.length != sortOrders.length) {
+            throw new IllegalArgumentException("Number of fields and sort orders do not match.");
+        }
+
+        String query = TableQuery.buildSortDescriptor(fieldNames, sortOrders);
+        OsKeyPathMapping mapping = table.getOsKeyPathMapping();
+        return new OsResults(sharedRealm, table, nativeStringDescriptor(nativePtr, query, (mapping != null) ? mapping.getNativePtr() : 0));
+    }
+
+    public OsResults distinct(String[] fieldNames) {
+        String query = TableQuery.buildDistinctDescriptor(fieldNames);
+        OsKeyPathMapping mapping = table.getOsKeyPathMapping();
+        return new OsResults(sharedRealm, table, nativeStringDescriptor(nativePtr, query, (mapping != null) ? mapping.getNativePtr() : 0));
     }
 
     public boolean contains(UncheckedRow row) {
@@ -722,7 +736,7 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native long nativeGetFinalizerPtr();
 
-    protected static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr, long descriptorOrderingPtr);
+    protected static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr);
 
     private static native long nativeCreateSnapshot(long nativePtr);
 
@@ -742,9 +756,7 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native Object nativeAggregate(long nativePtr, long columnIndex, byte aggregateFunc);
 
-    private static native long nativeSort(long nativePtr, QueryDescriptor sortDesc);
-
-    private static native long nativeDistinct(long nativePtr, QueryDescriptor distinctDesc);
+    private static native long nativeStringDescriptor(long nativePtr, String descriptor, long mapping);
 
     private static native boolean nativeDeleteFirst(long nativePtr);
 

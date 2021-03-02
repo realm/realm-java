@@ -26,6 +26,7 @@ import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
+import io.realm.internal.objectstore.OsKeyPathMapping;
 
 /**
  * Class for interacting with the Realm schema. This makes it possible to inspect, add, delete and change the classes in
@@ -49,7 +50,8 @@ public abstract class RealmSchema {
     private final Map<Class<? extends RealmModel>, RealmObjectSchema> classToSchema = new HashMap<>();
     // Caches Class Strings to their Schema object
     private final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<>();
-
+    // Native pointer
+    private OsKeyPathMapping keyPathMapping = null;
     final BaseRealm realm;
     // Cached field look up
     private final ColumnIndices columnIndices;
@@ -154,7 +156,7 @@ public abstract class RealmSchema {
         Table table = dynamicClassToTable.get(tableName);
         if (table != null) { return table; }
 
-        table = realm.getSharedRealm().getTable(tableName);
+        table = realm.getSharedRealm().getTable(tableName, getKeyPathMapping());
         dynamicClassToTable.put(tableName, table);
 
         return table;
@@ -172,7 +174,7 @@ public abstract class RealmSchema {
         if (table == null) {
             String tableName = Table.getTableNameForClass(
                     realm.getConfiguration().getSchemaMediator().getSimpleClassName(originalClass));
-            table = realm.getSharedRealm().getTable(tableName);
+            table = realm.getSharedRealm().getTable(tableName, getKeyPathMapping());
             classToTable.put(originalClass, table);
         }
         if (isProxyClass(originalClass, clazz)) {
@@ -214,7 +216,7 @@ public abstract class RealmSchema {
             if (!realm.getSharedRealm().hasTable(tableName)) {
                 throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
             }
-            dynamicSchema = new ImmutableRealmObjectSchema(realm, this, realm.getSharedRealm().getTable(tableName));
+            dynamicSchema = new ImmutableRealmObjectSchema(realm, this, realm.getSharedRealm().getTable(tableName, getKeyPathMapping()));
             dynamicClassToSchema.put(tableName, dynamicSchema);
         }
         return dynamicSchema;
@@ -246,10 +248,21 @@ public abstract class RealmSchema {
         return dynamicClassToSchema.remove(name);
     }
 
+    final OsKeyPathMapping getKeyPathMapping() {
+        return keyPathMapping;
+    }
+
     private void checkColumnKeys() {
         if (!haveColumnInfo()) {
             throw new IllegalStateException("Attempt to use column key before set.");
         }
+    }
+
+    /**
+     * Create the underlying keypath mapping. Should only be called by typed Realms.
+     */
+    public void createKeyPathMapping() {
+        this.keyPathMapping = new OsKeyPathMapping(realm.sharedRealm.getNativePtr());
     }
 
     /**

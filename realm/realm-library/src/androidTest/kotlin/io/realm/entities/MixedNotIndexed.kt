@@ -23,6 +23,7 @@ open class MixedNotIndexed(
         var mixed: Mixed? = Mixed.nullValue()
 ) : RealmObject() {
     companion object {
+        const val CLASS_NAME = "MixedNotIndexed"
         const val FIELD_MIXED = "mixed"
     }
 }

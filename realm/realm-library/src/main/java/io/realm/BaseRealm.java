@@ -97,6 +97,9 @@ abstract class BaseRealm implements Closeable {
             if (schema != null) {
                 schema.refresh();
             }
+            if (BaseRealm.this instanceof Realm) {
+                schema.createKeyPathMapping();
+            }
         }
     };
 

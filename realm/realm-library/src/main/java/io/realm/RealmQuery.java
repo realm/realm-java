@@ -36,9 +36,7 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
-import io.realm.internal.core.DescriptorOrdering;
-import io.realm.internal.core.QueryDescriptor;
-import io.realm.internal.fields.FieldDescriptor;
+import io.realm.internal.Util;
 
 
 /**
@@ -75,7 +73,6 @@ public class RealmQuery<E> {
     private String className;
     private final boolean forValues;
     private final OsList osList;
-    private DescriptorOrdering queryDescriptors = new DescriptorOrdering();
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private static final String EMPTY_VALUES = "Non-empty 'values' must be provided.";
@@ -96,7 +93,7 @@ public class RealmQuery<E> {
     /**
      * Creates a query for dynamic objects of a given type from a {@link DynamicRealm}.
      *
-     * @param realm the realm to query within.
+     * @param realm     the realm to query within.
      * @param className the type to query.
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
@@ -233,14 +230,14 @@ public class RealmQuery<E> {
      * @return {@code true} if still valid to use, {@code false} otherwise.
      */
     public boolean isValid() {
-        if (realm == null || realm.isClosed() /* this includes thread checking */) {
+        if ((realm == null) || realm.isClosed() /* this includes thread checking */) {
             return false;
         }
 
         if (osList != null) {
             return osList.isValid();
         }
-        return table != null && table.isValid();
+        return (table != null) && table.isValid();
     }
 
     /**
@@ -257,11 +254,8 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> isNull(String fieldName) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName);
-
         // Checks that fieldName has the correct type is done in C++.
-        this.query.isNull(fd.getColumnKeys(), fd.getNativeTablePointers());
+        this.query.isNull(fieldName);
         return this;
     }
 
@@ -275,11 +269,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> isNotNull(String fieldName) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName);
-
-        // Checks that fieldName has the correct type is done in C++.
-        this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
+        this.query.isNotNull(fieldName);
         return this;
     }
 
@@ -287,7 +277,7 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -299,59 +289,60 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
-     * @param casing how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
+     * @param value     the value to compare with.
+     * @param casing    how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable String value, Case casing) {
         realm.checkIfValid();
-
-        return equalToWithoutThreadValidation(fieldName, value, casing);
+        if (casing == Case.SENSITIVE) {
+            this.query.equalTo(fieldName, Mixed.valueOf(value));
+        } else {
+            this.query.equalToInsensitive(fieldName, Mixed.valueOf(value));
+        }
+        return this;
     }
 
     /**
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Decimal128 value) {
         realm.checkIfValid();
-        return equalToWithoutThreadValidation(fieldName, value);
+        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        return this;
     }
 
     /**
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable ObjectId value) {
         realm.checkIfValid();
-        return equalToWithoutThreadValidation(fieldName, value);
+        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        return this;
     }
 
     /**
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable UUID value) {
         realm.checkIfValid();
-        return equalToWithoutThreadValidation(fieldName, value);
-    }
-
-    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable String value, Case casing) {
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.STRING);
-        this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value, casing);
+        this.query.equalTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -359,23 +350,13 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Byte value) {
         realm.checkIfValid();
-
-        return equalToWithoutThreadValidation(fieldName, value);
-    }
-
-    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable Byte value) {
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
-        if (value == null) {
-            this.query.isNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
+        this.query.equalTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -383,19 +364,13 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable byte[] value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.BINARY);
-        if (value == null) {
-            this.query.isNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
+        this.query.equalTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -403,22 +378,13 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Short value) {
         realm.checkIfValid();
-        return equalToWithoutThreadValidation(fieldName, value);
-    }
-
-    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable Short value) {
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
-        if (value == null) {
-            this.query.isNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
+        this.query.equalTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -426,47 +392,28 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Integer value) {
         realm.checkIfValid();
-
-        return equalToWithoutThreadValidation(fieldName, value);
-    }
-
-    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable Integer value) {
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
-        if (value == null) {
-            this.query.isNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
+        this.query.equalTo(fieldName, Mixed.valueOf(value));
         return this;
     }
+
 
     /**
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Long value) {
         realm.checkIfValid();
-
-        return equalToWithoutThreadValidation(fieldName, value);
-    }
-
-    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable Long value) {
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
-        if (value == null) {
-            this.query.isNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
+        this.query.equalTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -474,23 +421,13 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Double value) {
         realm.checkIfValid();
-
-        return equalToWithoutThreadValidation(fieldName, value);
-    }
-
-    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable Double value) {
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DOUBLE);
-        if (value == null) {
-            this.query.isNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
+        this.query.equalTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -498,23 +435,13 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return The query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Float value) {
         realm.checkIfValid();
-
-        return equalToWithoutThreadValidation(fieldName, value);
-    }
-
-    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable Float value) {
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.FLOAT);
-        if (value == null) {
-            this.query.isNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
+        this.query.equalTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -522,23 +449,13 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Boolean value) {
         realm.checkIfValid();
-
-        return equalToWithoutThreadValidation(fieldName, value);
-    }
-
-    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable Boolean value) {
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.BOOLEAN);
-        if (value == null) {
-            this.query.isNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
+        this.query.equalTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -546,59 +463,22 @@ public class RealmQuery<E> {
      * Equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Date value) {
         realm.checkIfValid();
-
-        return equalToWithoutThreadValidation(fieldName, value);
-    }
-
-    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable Date value) {
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DATE);
-        this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.equalTo(fieldName, Mixed.valueOf(value));
         return this;
     }
-
-    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable Decimal128 value) {
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
-        if (value == null) {
-            this.query.isNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
-        return this;
-    }
-
-    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable ObjectId value) {
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.OBJECT_ID);
-        if (value == null) {
-            this.query.isNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
-        return this;
-    }
-
-    private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable UUID value) {
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.UUID);
-        if (value == null) {
-            this.query.isNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
-        return this;
-    }
-
 
     /**
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a String field.
      */
@@ -610,227 +490,232 @@ public class RealmQuery<E> {
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
-     * @param casing how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
+     * @param casing    how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a String field.
      */
     public RealmQuery<E> in(String fieldName, @Nullable String[] values, Case casing) {
         realm.checkIfValid();
 
-        if (values == null || values.length == 0) {
+        if ((values == null) || (values.length == 0)) {
             alwaysFalse();
-            return this;
+        } else {
+            Mixed[] mixedValues = new Mixed[values.length];
+            for (int i = 0; i < values.length; i++) {
+                mixedValues[i] = Mixed.valueOf(values[i]);
+            }
+
+            if (casing == Case.SENSITIVE) {
+                query.in(fieldName, mixedValues);
+            } else {
+                query.inInsensitive(fieldName, mixedValues);
+            }
         }
-        beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0], casing);
-        for (int i = 1; i < values.length; i++) {
-            orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i], casing);
-        }
-        return endGroupWithoutThreadValidation();
+        return this;
     }
 
     /**
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Byte field.
      */
     public RealmQuery<E> in(String fieldName, @Nullable Byte[] values) {
         realm.checkIfValid();
 
-        if (values == null || values.length == 0) {
+        if ((values == null) || (values.length == 0)) {
             alwaysFalse();
-            return this;
         } else {
-            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-            for (int i = 1; i < values.length; i++) {
-                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            Mixed[] mixedValues = new Mixed[values.length];
+            for (int i = 0; i < values.length; i++) {
+                mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            return endGroupWithoutThreadValidation();
+            query.in(fieldName, mixedValues);
         }
+        return this;
     }
 
     /**
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Short field.
      */
     public RealmQuery<E> in(String fieldName, @Nullable Short[] values) {
         realm.checkIfValid();
 
-        if (values == null || values.length == 0) {
+        if ((values == null) || (values.length == 0)) {
             alwaysFalse();
-            return this;
         } else {
-            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-            for (int i = 1; i < values.length; i++) {
-                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            Mixed[] mixedValues = new Mixed[values.length];
+            for (int i = 0; i < values.length; i++) {
+                mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            return endGroupWithoutThreadValidation();
+            query.in(fieldName, mixedValues);
         }
+        return this;
     }
 
     /**
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Integer field.
      */
     public RealmQuery<E> in(String fieldName, @Nullable Integer[] values) {
         realm.checkIfValid();
 
-        if (values == null || values.length == 0) {
+        if ((values == null) || (values.length == 0)) {
             alwaysFalse();
-            return this;
         } else {
-            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-            for (int i = 1; i < values.length; i++) {
-                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            Mixed[] mixedValues = new Mixed[values.length];
+            for (int i = 0; i < values.length; i++) {
+                mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            return endGroupWithoutThreadValidation();
+            query.in(fieldName, mixedValues);
         }
+        return this;
     }
 
     /**
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Long field.
-     * empty.
+     *                                            empty.
      */
     public RealmQuery<E> in(String fieldName, @Nullable Long[] values) {
         realm.checkIfValid();
 
-        if (values == null || values.length == 0) {
+        if ((values == null) || (values.length == 0)) {
             alwaysFalse();
-            return this;
         } else {
-            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-            for (int i = 1; i < values.length; i++) {
-                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            Mixed[] mixedValues = new Mixed[values.length];
+            for (int i = 0; i < values.length; i++) {
+                mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            return endGroupWithoutThreadValidation();
+            query.in(fieldName, mixedValues);
         }
+        return this;
     }
 
     /**
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Double field.
-     * empty.
+     *                                            empty.
      */
     public RealmQuery<E> in(String fieldName, @Nullable Double[] values) {
         realm.checkIfValid();
 
-        if (values == null || values.length == 0) {
+        if ((values == null) || (values.length == 0)) {
             alwaysFalse();
-            return this;
         } else {
-            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-            for (int i = 1; i < values.length; i++) {
-                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            Mixed[] mixedValues = new Mixed[values.length];
+            for (int i = 0; i < values.length; i++) {
+                mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            return endGroupWithoutThreadValidation();
+            query.in(fieldName, mixedValues);
         }
+        return this;
     }
 
     /**
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Float field.
      */
     public RealmQuery<E> in(String fieldName, @Nullable Float[] values) {
         realm.checkIfValid();
 
-        if (values == null || values.length == 0) {
+        if ((values == null) || (values.length == 0)) {
             alwaysFalse();
-            return this;
         } else {
-            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-            for (int i = 1; i < values.length; i++) {
-                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            Mixed[] mixedValues = new Mixed[values.length];
+            for (int i = 0; i < values.length; i++) {
+                mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            return endGroupWithoutThreadValidation();
+            query.in(fieldName, mixedValues);
         }
+        return this;
     }
 
     /**
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Boolean.
-     * or empty.
+     *                                            or empty.
      */
     public RealmQuery<E> in(String fieldName, @Nullable Boolean[] values) {
         realm.checkIfValid();
 
-        //noinspection ConstantConditions
-        if (values == null || values.length == 0) {
+        if ((values == null) || (values.length == 0)) {
             alwaysFalse();
-            return this;
         } else {
-            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-            for (int i = 1; i < values.length; i++) {
-                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            Mixed[] mixedValues = new Mixed[values.length];
+            for (int i = 0; i < values.length; i++) {
+                mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            return endGroupWithoutThreadValidation();
+            query.in(fieldName, mixedValues);
         }
+        return this;
     }
 
     /**
      * In comparison. This allows you to test if objects match any value in an array of values.
      *
      * @param fieldName the field to compare.
-     * @param values array of values to compare with. If {@code null} or the empty array is provided the query will never
-     *               match any results.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field isn't a Date field.
      */
     public RealmQuery<E> in(String fieldName, @Nullable Date[] values) {
         realm.checkIfValid();
 
-        if (values == null || values.length == 0) {
+        if ((values == null) || (values.length == 0)) {
             alwaysFalse();
-            return this;
         } else {
-            beginGroupWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[0]);
-            for (int i = 1; i < values.length; i++) {
-                orWithoutThreadValidation().equalToWithoutThreadValidation(fieldName, values[i]);
+            Mixed[] mixedValues = new Mixed[values.length];
+            for (int i = 0; i < values.length; i++) {
+                mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            return endGroupWithoutThreadValidation();
+            query.in(fieldName, mixedValues);
         }
+        return this;
     }
 
     /**
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -842,19 +727,18 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
-     * @param casing how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
+     * @param value     the value to compare with.
+     * @param casing    how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable String value, Case casing) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.STRING);
-        if (fd.length() > 1 && !casing.getValue()) {
-            throw new IllegalArgumentException("Link queries cannot be case insensitive - coming soon.");
+        if (casing == Case.SENSITIVE) {
+            this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        } else {
+            this.query.notEqualToInsensitive(fieldName, Mixed.valueOf(value));
         }
-        this.query.notEqualTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value, casing);
         return this;
     }
 
@@ -862,18 +746,13 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, Decimal128 value) {
         realm.checkIfValid();
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
-        if (value == null) {
-            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.notEqualTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -881,18 +760,13 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, ObjectId value) {
         realm.checkIfValid();
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.OBJECT_ID);
-        if (value == null) {
-            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.notEqualTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -900,18 +774,13 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, UUID value) {
         realm.checkIfValid();
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.UUID);
-        if (value == null) {
-            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.notEqualTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -919,19 +788,13 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Byte value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
-        if (value == null) {
-            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.notEqualTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -939,19 +802,13 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable byte[] value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.BINARY);
-        if (value == null) {
-            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.notEqualTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -959,19 +816,13 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Short value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
-        if (value == null) {
-            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.notEqualTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -979,19 +830,13 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Integer value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
-        if (value == null) {
-            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.notEqualTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -999,19 +844,13 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Long value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
-        if (value == null) {
-            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.notEqualTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1019,19 +858,13 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Double value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DOUBLE);
-        if (value == null) {
-            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.notEqualTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1039,19 +872,13 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Float value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.FLOAT);
-        if (value == null) {
-            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.notEqualTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1059,19 +886,13 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Boolean value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.BOOLEAN);
-        if (value == null) {
-            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), !value);
-        }
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1079,19 +900,13 @@ public class RealmQuery<E> {
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Date value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DATE);
-        if (value == null) {
-            this.query.isNotNull(fd.getColumnKeys(), fd.getNativeTablePointers());
-        } else {
-            this.query.notEqualTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
-        }
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1099,15 +914,13 @@ public class RealmQuery<E> {
      * Greater-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThan(String fieldName, int value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
-        this.query.greaterThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.greaterThan(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1115,15 +928,13 @@ public class RealmQuery<E> {
      * Greater-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThan(String fieldName, long value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
-        this.query.greaterThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.greaterThan(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1131,15 +942,13 @@ public class RealmQuery<E> {
      * Greater-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThan(String fieldName, double value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DOUBLE);
-        this.query.greaterThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.greaterThan(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1147,15 +956,13 @@ public class RealmQuery<E> {
      * Greater-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThan(String fieldName, float value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.FLOAT);
-        this.query.greaterThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.greaterThan(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1163,15 +970,13 @@ public class RealmQuery<E> {
      * Greater-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThan(String fieldName, Date value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DATE);
-        this.query.greaterThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.greaterThan(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1179,14 +984,13 @@ public class RealmQuery<E> {
      * Greater-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThan(String fieldName, Decimal128 value) {
         realm.checkIfValid();
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
-        this.query.greaterThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.greaterThan(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1194,14 +998,13 @@ public class RealmQuery<E> {
      * Greater-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThan(String fieldName, ObjectId value) {
         realm.checkIfValid();
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.OBJECT_ID);
-        this.query.greaterThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.greaterThan(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1209,14 +1012,13 @@ public class RealmQuery<E> {
      * Greater-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThan(String fieldName, UUID value) {
         realm.checkIfValid();
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.UUID);
-        this.query.greaterThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.greaterThan(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1224,15 +1026,13 @@ public class RealmQuery<E> {
      * Greater-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, int value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
-        this.query.greaterThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1240,15 +1040,13 @@ public class RealmQuery<E> {
      * Greater-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, long value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
-        this.query.greaterThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1256,15 +1054,13 @@ public class RealmQuery<E> {
      * Greater-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, double value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DOUBLE);
-        this.query.greaterThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1272,15 +1068,13 @@ public class RealmQuery<E> {
      * Greater-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, float value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.FLOAT);
-        this.query.greaterThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1288,15 +1082,13 @@ public class RealmQuery<E> {
      * Greater-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, Date value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DATE);
-        this.query.greaterThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1304,14 +1096,13 @@ public class RealmQuery<E> {
      * Greater-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, Decimal128 value) {
         realm.checkIfValid();
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
-        this.query.greaterThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1319,14 +1110,13 @@ public class RealmQuery<E> {
      * Greater-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, ObjectId value) {
         realm.checkIfValid();
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.OBJECT_ID);
-        this.query.greaterThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1334,14 +1124,13 @@ public class RealmQuery<E> {
      * Greater-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, UUID value) {
         realm.checkIfValid();
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.UUID);
-        this.query.greaterThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1349,15 +1138,13 @@ public class RealmQuery<E> {
      * Less-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThan(String fieldName, int value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
-        this.query.lessThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.lessThan(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1365,15 +1152,13 @@ public class RealmQuery<E> {
      * Less-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThan(String fieldName, long value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
-        this.query.lessThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.lessThan(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1381,14 +1166,13 @@ public class RealmQuery<E> {
      * Less-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThan(String fieldName, Decimal128 value) {
         realm.checkIfValid();
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
-        this.query.lessThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.lessThan(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1396,14 +1180,13 @@ public class RealmQuery<E> {
      * Less-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThan(String fieldName, ObjectId value) {
         realm.checkIfValid();
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.OBJECT_ID);
-        this.query.lessThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.lessThan(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1411,14 +1194,13 @@ public class RealmQuery<E> {
      * Less-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThan(String fieldName, UUID value) {
         realm.checkIfValid();
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.UUID);
-        this.query.lessThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.lessThan(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1426,15 +1208,13 @@ public class RealmQuery<E> {
      * Less-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThan(String fieldName, double value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DOUBLE);
-        this.query.lessThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.lessThan(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1442,15 +1222,13 @@ public class RealmQuery<E> {
      * Less-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThan(String fieldName, float value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.FLOAT);
-        this.query.lessThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.lessThan(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1458,14 +1236,13 @@ public class RealmQuery<E> {
      * Less-than comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThan(String fieldName, Date value) {
         realm.checkIfValid();
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DATE);
-        this.query.lessThan(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.lessThan(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1473,15 +1250,13 @@ public class RealmQuery<E> {
      * Less-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, int value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
-        this.query.lessThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1489,14 +1264,13 @@ public class RealmQuery<E> {
      * Less-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, long value) {
         realm.checkIfValid();
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
-        this.query.lessThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1504,14 +1278,13 @@ public class RealmQuery<E> {
      * Less-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, Decimal128 value) {
         realm.checkIfValid();
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
-        this.query.lessThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1519,14 +1292,13 @@ public class RealmQuery<E> {
      * Less-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, ObjectId value) {
         realm.checkIfValid();
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.OBJECT_ID);
-        this.query.lessThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1534,14 +1306,13 @@ public class RealmQuery<E> {
      * Less-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, UUID value) {
         realm.checkIfValid();
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.UUID);
-        this.query.lessThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1549,15 +1320,13 @@ public class RealmQuery<E> {
      * Less-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, double value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DOUBLE);
-        this.query.lessThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1565,15 +1334,13 @@ public class RealmQuery<E> {
      * Less-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, float value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.FLOAT);
-        this.query.lessThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1581,15 +1348,13 @@ public class RealmQuery<E> {
      * Less-than-or-equal-to comparison.
      *
      * @param fieldName the field to compare.
-     * @param value the value to compare with.
+     * @param value     the value to compare with.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, Date value) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DATE);
-        this.query.lessThanOrEqual(fd.getColumnKeys(), fd.getNativeTablePointers(), value);
+        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1597,16 +1362,14 @@ public class RealmQuery<E> {
      * Between condition.
      *
      * @param fieldName the field to compare.
-     * @param from lowest value (inclusive).
-     * @param to highest value (inclusive).
+     * @param from      lowest value (inclusive).
+     * @param to        highest value (inclusive).
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> between(String fieldName, int from, int to) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
-        this.query.between(fd.getColumnKeys(), from, to);
+        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
         return this;
     }
 
@@ -1614,16 +1377,14 @@ public class RealmQuery<E> {
      * Between condition.
      *
      * @param fieldName the field to compare.
-     * @param from lowest value (inclusive).
-     * @param to highest value (inclusive).
+     * @param from      lowest value (inclusive).
+     * @param to        highest value (inclusive).
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> between(String fieldName, long from, long to) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.INTEGER);
-        this.query.between(fd.getColumnKeys(), from, to);
+        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
         return this;
     }
 
@@ -1631,16 +1392,14 @@ public class RealmQuery<E> {
      * Between condition.
      *
      * @param fieldName the field to compare.
-     * @param from lowest value (inclusive).
-     * @param to highest value (inclusive).
+     * @param from      lowest value (inclusive).
+     * @param to        highest value (inclusive).
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> between(String fieldName, double from, double to) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DOUBLE);
-        this.query.between(fd.getColumnKeys(), from, to);
+        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
         return this;
     }
 
@@ -1648,16 +1407,14 @@ public class RealmQuery<E> {
      * Between condition.
      *
      * @param fieldName the field to compare.
-     * @param from lowest value (inclusive).
-     * @param to highest value (inclusive).
+     * @param from      lowest value (inclusive).
+     * @param to        highest value (inclusive).
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> between(String fieldName, float from, float to) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.FLOAT);
-        this.query.between(fd.getColumnKeys(), from, to);
+        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
         return this;
     }
 
@@ -1665,16 +1422,14 @@ public class RealmQuery<E> {
      * Between condition.
      *
      * @param fieldName the field to compare.
-     * @param from lowest value (inclusive).
-     * @param to highest value (inclusive).
+     * @param from      lowest value (inclusive).
+     * @param to        highest value (inclusive).
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> between(String fieldName, Date from, Date to) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DATE);
-        this.query.between(fd.getColumnKeys(), from, to);
+        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
         return this;
     }
 
@@ -1682,16 +1437,14 @@ public class RealmQuery<E> {
      * Between condition.
      *
      * @param fieldName the field to compare.
-     * @param from lowest value (inclusive).
-     * @param to highest value (inclusive).
+     * @param from      lowest value (inclusive).
+     * @param to        highest value (inclusive).
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> between(String fieldName, Decimal128 from, Decimal128 to) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.DECIMAL128);
-        this.query.between(fd.getColumnKeys(), from, to);
+        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
         return this;
     }
 
@@ -1699,7 +1452,7 @@ public class RealmQuery<E> {
      * Condition that value of field contains the specified substring.
      *
      * @param fieldName the field to compare.
-     * @param value the substring.
+     * @param value     the substring.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1711,16 +1464,18 @@ public class RealmQuery<E> {
      * Condition that value of field contains the specified substring.
      *
      * @param fieldName the field to compare.
-     * @param value the substring.
-     * @param casing how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
+     * @param value     the substring.
+     * @param casing    how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
      * @return The query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> contains(String fieldName, String value, Case casing) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.STRING);
-        this.query.contains(fd.getColumnKeys(), fd.getNativeTablePointers(), value, casing);
+        if (casing == Case.SENSITIVE) {
+            this.query.contains(fieldName, Mixed.valueOf(value));
+        } else {
+            this.query.containsInsensitive(fieldName, Mixed.valueOf(value));
+        }
         return this;
     }
 
@@ -1728,7 +1483,7 @@ public class RealmQuery<E> {
      * Condition that the value of field begins with the specified string.
      *
      * @param fieldName the field to compare.
-     * @param value the string.
+     * @param value     the string.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1740,16 +1495,18 @@ public class RealmQuery<E> {
      * Condition that the value of field begins with the specified substring.
      *
      * @param fieldName the field to compare.
-     * @param value the substring.
-     * @param casing how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
+     * @param value     the substring.
+     * @param casing    how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
      * @return the query object
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> beginsWith(String fieldName, String value, Case casing) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.STRING);
-        this.query.beginsWith(fd.getColumnKeys(), fd.getNativeTablePointers(), value, casing);
+        if (casing == Case.SENSITIVE) {
+            this.query.beginsWith(fieldName, Mixed.valueOf(value));
+        } else {
+            this.query.beginsWithInsensitive(fieldName, Mixed.valueOf(value));
+        }
         return this;
     }
 
@@ -1757,7 +1514,7 @@ public class RealmQuery<E> {
      * Condition that the value of field ends with the specified string.
      *
      * @param fieldName the field to compare.
-     * @param value the string.
+     * @param value     the string.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1769,16 +1526,18 @@ public class RealmQuery<E> {
      * Condition that the value of field ends with the specified substring.
      *
      * @param fieldName the field to compare.
-     * @param value the substring.
-     * @param casing how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
+     * @param value     the substring.
+     * @param casing    how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> endsWith(String fieldName, String value, Case casing) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.STRING);
-        this.query.endsWith(fd.getColumnKeys(), fd.getNativeTablePointers(), value, casing);
+        if (casing == Case.SENSITIVE) {
+            this.query.endsWith(fieldName, Mixed.valueOf(value));
+        } else {
+            this.query.endsWithInsensitive(fieldName, Mixed.valueOf(value));
+        }
         return this;
     }
 
@@ -1790,7 +1549,7 @@ public class RealmQuery<E> {
      * </ul>
      *
      * @param fieldName the field to compare.
-     * @param value the wildcard string.
+     * @param value     the wildcard string.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
@@ -1806,16 +1565,18 @@ public class RealmQuery<E> {
      * </ul>
      *
      * @param fieldName the field to compare.
-     * @param value the wildcard string.
-     * @param casing how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
+     * @param value     the wildcard string.
+     * @param casing    how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> like(String fieldName, String value, Case casing) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.STRING);
-        this.query.like(fd.getColumnKeys(), fd.getNativeTablePointers(), value, casing);
+        if (casing == Case.SENSITIVE) {
+            this.query.like(fieldName, Mixed.valueOf(value));
+        } else {
+            this.query.likeInsensitive(fieldName, Mixed.valueOf(value));
+        }
         return this;
     }
 
@@ -1828,12 +1589,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> beginGroup() {
         realm.checkIfValid();
-
-        return beginGroupWithoutThreadValidation();
-    }
-
-    private RealmQuery<E> beginGroupWithoutThreadValidation() {
-        this.query.group();
+        this.query.beginGroup();
         return this;
     }
 
@@ -1845,11 +1601,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> endGroup() {
         realm.checkIfValid();
-
-        return endGroupWithoutThreadValidation();
-    }
-
-    private RealmQuery<E> endGroupWithoutThreadValidation() {
         this.query.endGroup();
         return this;
     }
@@ -1861,11 +1612,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> or() {
         realm.checkIfValid();
-
-        return orWithoutThreadValidation();
-    }
-
-    private RealmQuery<E> orWithoutThreadValidation() {
         this.query.or();
         return this;
     }
@@ -1888,7 +1634,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> not() {
         realm.checkIfValid();
-
         this.query.not();
         return this;
     }
@@ -1899,14 +1644,11 @@ public class RealmQuery<E> {
      * @param fieldName the field to compare.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field name isn't valid or its type isn't either a RealmList,
-     * String or byte array.
+     *                                            String or byte array.
      */
     public RealmQuery<E> isEmpty(String fieldName) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.STRING, RealmFieldType.BINARY, RealmFieldType.LIST, RealmFieldType.LINKING_OBJECTS);
-        this.query.isEmpty(fd.getColumnKeys(), fd.getNativeTablePointers());
-
+        this.query.isEmpty(fieldName);
         return this;
     }
 
@@ -1916,14 +1658,11 @@ public class RealmQuery<E> {
      * @param fieldName the field to compare.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field name isn't valid or its type isn't either a RealmList,
-     * String or byte array.
+     *                                            String or byte array.
      */
     public RealmQuery<E> isNotEmpty(String fieldName) {
         realm.checkIfValid();
-
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.STRING, RealmFieldType.BINARY, RealmFieldType.LIST, RealmFieldType.LINKING_OBJECTS);
-        this.query.isNotEmpty(fd.getColumnKeys(), fd.getNativeTablePointers());
-
+        this.query.isNotEmpty(fieldName);
         return this;
     }
 
@@ -1935,7 +1674,7 @@ public class RealmQuery<E> {
      * for the given field, {@code 0} will be returned. When computing the sum, objects with {@code null} values
      * are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
+     * @throws RealmException                     if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     public Number sum(String fieldName) {
         realm.checkIfValid();
@@ -1966,7 +1705,7 @@ public class RealmQuery<E> {
      * types of number fields. If no objects exist or they all have {@code null} as the value for the given field,
      * {@code 0} will be returned. When computing the average, objects with {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
+     * @throws RealmException                     if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     public double average(String fieldName) {
         realm.checkIfValid();
@@ -1985,6 +1724,7 @@ public class RealmQuery<E> {
                         TYPE_MISMATCH, fieldName, "int, float or double. For Decimal128 use `averageDecimal128` method."));
         }
     }
+
     /**
      * Returns the average of a given field.
      * Does not support dotted field notation.
@@ -1993,15 +1733,17 @@ public class RealmQuery<E> {
      * @return the average for the given field amongst objects in query results. This will be of type Decimal128. If no objects exist or they all have {@code null}
      * as the value for the given field {@code 0} will be returned. When computing the average, objects with {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a Decimal128 type.
-     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
+     * @throws RealmException                     if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
-    public @Nullable Decimal128 averageDecimal128(String fieldName) {
+    public @Nullable
+    Decimal128 averageDecimal128(String fieldName) {
         realm.checkIfValid();
         realm.checkAllowQueriesOnUiThread();
 
         long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
         return query.averageDecimal128(columnIndex);
     }
+
     /**
      * Finds the minimum value of a field.
      *
@@ -2010,7 +1752,7 @@ public class RealmQuery<E> {
      * returned. Otherwise the minimum value is returned. When determining the minimum value, objects with {@code null}
      * values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
+     * @throws RealmException                     if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     @Nullable
     public Number min(String fieldName) {
@@ -2041,7 +1783,7 @@ public class RealmQuery<E> {
      * will be returned. Otherwise the minimum date is returned. When determining the minimum date, objects with
      * {@code null} values are ignored.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
-     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
+     * @throws RealmException                          if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     @Nullable
     public Date minimumDate(String fieldName) {
@@ -2060,7 +1802,7 @@ public class RealmQuery<E> {
      * returned. Otherwise the maximum value is returned. When determining the maximum value, objects with {@code null}
      * values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
+     * @throws RealmException                     if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     @Nullable
     public Number max(String fieldName) {
@@ -2106,7 +1848,7 @@ public class RealmQuery<E> {
      *
      * @return the number of matching objects.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
-     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
+     * @throws RealmException                          if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     public long count() {
         realm.checkIfValid();
@@ -2139,13 +1881,13 @@ public class RealmQuery<E> {
     public RealmResults<E> findAll() {
         realm.checkIfValid();
         realm.checkAllowQueriesOnUiThread();
-        return createRealmResults(query, queryDescriptors, true);
+        return createRealmResults(query, true);
     }
 
     /**
      * The same as {@link #findAll()} expect the RealmResult is not forcefully evaluated. This
      * means this method will return a more "pure" wrapper around the Object Store Results class.
-     *
+     * <p>
      * This can be useful for internal usage where we still want to take advantage of optimizations
      * and additional functionality provided by Object Store, but do not wish to trigger the query
      * unless needed.
@@ -2154,7 +1896,6 @@ public class RealmQuery<E> {
         realm.checkIfValid();
         return createRealmResults(
                 query,
-                queryDescriptors,
                 false).osResults;
     }
 
@@ -2168,7 +1909,7 @@ public class RealmQuery<E> {
     public RealmResults<E> findAllAsync() {
         realm.checkIfValid();
         realm.sharedRealm.capabilities.checkCanDeliverNotification(ASYNC_QUERY_WRONG_THREAD_MESSAGE);
-        return createRealmResults(query, queryDescriptors, false);
+        return createRealmResults(query, false);
     }
 
     /**
@@ -2179,7 +1920,7 @@ public class RealmQuery<E> {
      *
      * @param fieldName the field name to sort by.
      * @throws IllegalArgumentException if the field name does not exist.
-     * @throws IllegalStateException if a sorting order was already defined.
+     * @throws IllegalStateException    if a sorting order was already defined.
      */
     public RealmQuery<E> sort(String fieldName) {
         realm.checkIfValid();
@@ -2195,11 +1936,11 @@ public class RealmQuery<E> {
      * @param fieldName the field name to sort by.
      * @param sortOrder how to sort the results.
      * @throws IllegalArgumentException if the field name does not exist.
-     * @throws IllegalStateException if a sorting order was already defined.
+     * @throws IllegalStateException    if a sorting order was already defined.
      */
     public RealmQuery<E> sort(String fieldName, Sort sortOrder) {
         realm.checkIfValid();
-        return sort(new String[] { fieldName}, new Sort[] { sortOrder});
+        return sort(new String[] {fieldName}, new Sort[] {sortOrder});
     }
 
     /**
@@ -2214,11 +1955,11 @@ public class RealmQuery<E> {
      * @param fieldName2 second field name
      * @param sortOrder2 sort order for second field
      * @throws IllegalArgumentException if the field name does not exist.
-     * @throws IllegalStateException if a sorting order was already defined.
+     * @throws IllegalStateException    if a sorting order was already defined.
      */
     public RealmQuery<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
         realm.checkIfValid();
-        return sort(new String[] { fieldName1, fieldName2 }, new Sort[] { sortOrder1, sortOrder2 });
+        return sort(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
     }
 
     /**
@@ -2231,28 +1972,20 @@ public class RealmQuery<E> {
      * @param fieldNames an array of field names to sort by.
      * @param sortOrders how to sort the field names.
      * @throws IllegalArgumentException if the field name does not exist.
-     * @throws IllegalStateException if a sorting order was already defined.
+     * @throws IllegalStateException    if a sorting order was already defined.
      */
     public RealmQuery<E> sort(String[] fieldNames, Sort[] sortOrders) {
-        realm.checkIfValid();
-        QueryDescriptor sortDescriptor = QueryDescriptor.getInstanceForSort(getSchemaConnector(), query.getTable(), fieldNames, sortOrders);
-        queryDescriptors.appendSort(sortDescriptor);
-        return this;
-    }
+        if ((sortOrders == null) || (sortOrders.length == 0)) {
+            throw new IllegalArgumentException("You must provide at least one sort order.");
+        }
+        if (fieldNames.length != sortOrders.length) {
+            throw new IllegalArgumentException("Number of fields and sort orders do not match.");
+        }
 
-    /**
-     * Selects a distinct set of objects of a specific class. If the result is sorted, the first object will be
-     * returned in case of multiple occurrences, otherwise it is undefined which object is returned.
-     * <p>
-     * Adding {@link io.realm.annotations.Index} to the corresponding field will make this operation much faster.
-     *
-     * @param fieldName the field name.
-     * @throws IllegalArgumentException if a field is {@code null}, does not exist, is an unsupported type, or points
-     * to linked fields.
-     * @throws IllegalStateException if distinct field names were already defined.
-     */
-    public RealmQuery<E> distinct(String fieldName) {
-        return distinct(fieldName, new String[]{});
+        realm.checkIfValid();
+
+        this.query.sort(fieldNames, sortOrders);
+        return this;
     }
 
     /**
@@ -2261,24 +1994,22 @@ public class RealmQuery<E> {
      * matches, it is undefined which object is returned. Unless the result is sorted, then the
      * first object will be returned.
      *
-     * @param firstFieldName first field name to use when finding distinct objects.
+     * @param firstFieldName      first field name to use when finding distinct objects.
      * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
      * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
-     * is an unsupported type, or points to a linked field.
-     * @throws IllegalStateException if distinct field names were already defined.
+     *                                  is an unsupported type, or points to a linked field.
+     * @throws IllegalStateException    if distinct field names were already defined.
      */
     public RealmQuery<E> distinct(String firstFieldName, String... remainingFieldNames) {
         realm.checkIfValid();
-        QueryDescriptor distinctDescriptor;
-        if (remainingFieldNames.length == 0) {
-            distinctDescriptor = QueryDescriptor.getInstanceForDistinct(getSchemaConnector(), table, firstFieldName);
-        } else {
-            String[] fieldNames = new String[1 + remainingFieldNames.length];
-            fieldNames[0] = firstFieldName;
-            System.arraycopy(remainingFieldNames, 0, fieldNames, 1, remainingFieldNames.length);
-            distinctDescriptor = QueryDescriptor.getInstanceForDistinct(getSchemaConnector(), table, fieldNames);
+        String[] fieldNames = new String[1 + remainingFieldNames.length];
+
+        fieldNames[0] = firstFieldName;
+        for (int i = 0; i < remainingFieldNames.length; i++) {
+            fieldNames[1 + i] = remainingFieldNames[0];
         }
-        queryDescriptors.appendDistinct(distinctDescriptor);
+
+        this.query.distinct(fieldNames);
         return this;
     }
 
@@ -2286,7 +2017,7 @@ public class RealmQuery<E> {
      * Limits the number of objects returned in case the query matched more objects.
      * <p>
      * Note that when using this method in combination with {@link #sort(String)} and
-     * {@link #distinct(String)} they will be executed in the order they where added which can
+     * {@link #distinct(String, String...)} they will be executed in the order they where added which can
      * affect the end result.
      *
      * @param limit a limit that is {@code &ge; 1}.
@@ -2294,10 +2025,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> limit(long limit) {
         realm.checkIfValid();
-        if (limit < 1) {
-            throw new IllegalArgumentException("Only positive numbers above 0 is allowed. Yours was: " + limit);
-        }
-        queryDescriptors.setLimit(limit);
+        this.query.limit(limit);
         return this;
     }
 
@@ -2320,6 +2048,58 @@ public class RealmQuery<E> {
     }
 
     /**
+     * Create a text-based predicate using the Realm Query Language. This predicate can be combined
+     * with other raw or type safe predicates, it accepts Realm values as arguments.
+     * <p>
+     * Class and property names used in the raw predicate can be either the names defined in the
+     * Realm Model classes or the internal names defined using the {@link io.realm.annotations.RealmClass}
+     * or {@link io.realm.annotations.RealmField} annotations.
+     * </p>
+     * See <a href="https://docs.mongodb.com/realm-sdks/js/latest/tutorial-query-language.html">these docs</a>
+     * for a more detailed description of the Realm Query Language.
+     * <p>
+     * <pre>
+     * Examples:
+     * {@code
+     * RealmQuery<Person> query = realm.where(Person.class);
+     *
+     * // Simple query
+     * query.rawPredicate("name = 'Jane'");
+     *
+     * // Multiple predicates
+     * query.rawPredicate("name = 'Jane' OR name = 'John'")
+     *
+     * // Collection queries
+     * query.rawPredicate("children.@count > 3")
+     * query.rawPredicate("ALL children.age > 18")
+     *
+     * // Sub queries
+     * query.rawPredicate("SUBQUERY(children, $child, $child.age > 21 AND $child.gender = 'male'").@count > 0');
+     *
+     * // Sort, Distinct, Limit
+     * query.rawPredicate("name = 'Jane' SORT(lastName) DISTINCT(city) LIMIT(5)");
+     *
+     * // Arguments
+     * query.rawPredicate("name = $0 AND age > $1", "Jane", 18);
+     * }
+     * </pre>
+     *
+     * @param predicate a Realm Query Language predicate.
+     * @param arguments Realm values for the predicate.
+     * @throws java.lang.IllegalArgumentException if there is an syntax error.
+     */
+    public RealmQuery<E> rawPredicate(String predicate, Object... arguments) {
+        realm.checkIfValid();
+
+        if (Util.isEmptyString(predicate)) {
+            throw new IllegalArgumentException("Non-null 'predicate' required.");
+        }
+
+        query.rawPredicate(predicate, arguments);
+        return this;
+    }
+
+    /**
      * Returns the {@link Realm} instance to which this query belongs.
      * <p>
      * Calling {@link Realm#close()} on the returned instance is discouraged as it is the same as
@@ -2328,7 +2108,7 @@ public class RealmQuery<E> {
      *
      * @return {@link Realm} instance this query belongs to.
      * @throws IllegalStateException if the Realm is an instance of {@link DynamicRealm} or the
-     * {@link Realm} was already closed.
+     *                               {@link Realm} was already closed.
      */
     public Realm getRealm() {
         if (realm == null) {
@@ -2347,7 +2127,8 @@ public class RealmQuery<E> {
      * @return the textual description of the query.
      */
     public String getDescription() {
-        return nativeSerializeQuery(query.getNativePtr(), queryDescriptors.getNativePtr());
+        this.query.validateQuery();
+        return nativeSerializeQuery(query.getNativePtr());
     }
 
     /**
@@ -2423,7 +2204,7 @@ public class RealmQuery<E> {
             // TODO: The performance by the pending query will be a little bit worse than directly calling core's
             // Query.find(). The overhead comes with core needs to add all the row indices to the vector. However this
             // can be optimized by adding support of limit in OS's Results which is supported by core already.
-            row = new PendingRow(realm.sharedRealm, query, queryDescriptors, isDynamicQuery());
+            row = new PendingRow(realm.sharedRealm, query, isDynamicQuery());
         }
         final E result;
         if (isDynamicQuery()) {
@@ -2435,7 +2216,7 @@ public class RealmQuery<E> {
             //noinspection unchecked
             result = (E) realm.getConfiguration().getSchemaMediator().newInstance(
                     modelClass, realm, row, realm.getSchema().getColumnInfo(modelClass),
-                    false, Collections.<String>emptyList());
+                    false, Collections.emptyList());
         }
 
         if (row instanceof PendingRow) {
@@ -2448,11 +2229,10 @@ public class RealmQuery<E> {
 
 
     private RealmResults<E> createRealmResults(TableQuery query,
-                                               DescriptorOrdering queryDescriptors,
-                                               boolean loadResults) {
+            boolean loadResults) {
         RealmResults<E> results;
         OsResults osResults;
-        osResults = OsResults.createFromQuery(realm.sharedRealm, query, queryDescriptors);
+        osResults = OsResults.createFromQuery(realm.sharedRealm, query);
 
         if (isDynamicQuery()) {
             results = new RealmResults<>(realm, osResults, className);
@@ -2467,21 +2247,8 @@ public class RealmQuery<E> {
     }
 
     private long getSourceRowIndexForFirstObject() {
-        if (!queryDescriptors.isEmpty()) {
-            RealmObjectProxy obj = (RealmObjectProxy) findAll().first(null);
-            if (obj != null) {
-                return obj.realmGet$proxyState().getRow$realm().getObjectKey();
-            } else {
-                return -1;
-            }
-        } else {
-            return this.query.find();
-        }
+        return this.query.find();
     }
 
-    private SchemaConnector getSchemaConnector() {
-        return new SchemaConnector(realm.getSchema());
-    }
-
-    private static native String nativeSerializeQuery(long tableQueryPtr, long descriptorPtr);
+    private static native String nativeSerializeQuery(long tableQueryPtr);
 }

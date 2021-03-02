@@ -26,12 +26,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.rule.UiThreadTestRule;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.BacklinksSource;
 import io.realm.entities.BacklinksTarget;
 import io.realm.rule.RunInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 
 public abstract class QueryTests {
@@ -59,6 +59,18 @@ public abstract class QueryTests {
                 RealmFieldType.STRING,
                 RealmFieldType.BINARY,
                 RealmFieldType.LIST,
+                RealmFieldType.OBJECT,
+                RealmFieldType.INTEGER_LIST,
+                RealmFieldType.BOOLEAN_LIST,
+                RealmFieldType.STRING_LIST,
+                RealmFieldType.BINARY_LIST,
+                RealmFieldType.DATE_LIST,
+                RealmFieldType.FLOAT_LIST,
+                RealmFieldType.DOUBLE_LIST,
+                RealmFieldType.DECIMAL128_LIST,
+                RealmFieldType.OBJECT_ID_LIST,
+                RealmFieldType.UUID_LIST,
+                RealmFieldType.MIXED_LIST,
                 RealmFieldType.LINKING_OBJECTS));
 
         SUPPORTED_IS_EMPTY_TYPES = Collections.unmodifiableList(list);
@@ -76,7 +88,9 @@ public abstract class QueryTests {
 
     @Before
     public void setUp() throws Exception {
-        RealmConfiguration realmConfig = configFactory.createConfiguration();
+        Realm.init(ApplicationProvider.getApplicationContext());
+        configFactory.create(); // Creates temporary folder (unsure why this is needed when Running RealmQueryTests independently.
+        RealmConfiguration realmConfig = configFactory.createSchemaConfiguration(true, io.realm.entities.conflict.AllJavaTypes.class);
         realm = Realm.getInstance(realmConfig);
     }
 

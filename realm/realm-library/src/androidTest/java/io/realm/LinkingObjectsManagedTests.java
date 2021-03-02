@@ -45,7 +45,6 @@ import io.realm.internal.Property;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -605,12 +604,12 @@ public class LinkingObjectsManagedTests {
         // Mock the schema info so the only difference compared with the original schema is that the LinkingObject field
         // points to BacklinksSource.childNotExist.
         OsObjectSchemaInfo targetSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksTarget", false, 1, 1)
-                .addPersistedProperty("id", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED)
+                .addPersistedProperty("id", "",RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED)
                 .addComputedLinkProperty("parents", "BacklinksSource", "childNotExist" /*"child" is the original value*/)
                 .build();
         OsObjectSchemaInfo sourceSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksSource", false, 2, 0)
-                .addPersistedProperty("name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED)
-                .addPersistedLinkProperty("child", RealmFieldType.OBJECT, "BacklinksTarget")
+                .addPersistedProperty("name", "",RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED)
+                .addPersistedLinkProperty("child", "",RealmFieldType.OBJECT, "BacklinksTarget")
                 .build();
         Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap =
                 new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>();
@@ -647,13 +646,12 @@ public class LinkingObjectsManagedTests {
 
         // Mock the schema info so the only difference compared with the original schema is that BacklinksSource.child
         // type is changed to BacklinksSource from BacklinksTarget.
-        OsObjectSchemaInfo targetSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksTarget", false, 1, 1)
-                .addPersistedProperty("id", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED)
+        OsObjectSchemaInfo targetSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksTarget", false, 0, 1)
                 .addComputedLinkProperty("parents", "BacklinksSource", "child")
                 .build();
         OsObjectSchemaInfo sourceSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksSource", false, 2, 0)
-                .addPersistedProperty("name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED)
-                .addPersistedLinkProperty("child", RealmFieldType.OBJECT,
+                .addPersistedProperty("", "name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED)
+                .addPersistedLinkProperty("","child", RealmFieldType.OBJECT,
                         "BacklinksSource"/*"BacklinksTarget" is the original value*/)
                 .build();
         Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap =
@@ -666,14 +664,18 @@ public class LinkingObjectsManagedTests {
         RealmConfiguration spyConfig = spy(realmConfig);
         when(spyConfig.getSchemaMediator()).thenReturn(mediator);
 
+        Realm localRealm = null;
         try {
-            Realm localRealm = Realm.getInstance(spyConfig);
-            localRealm.close();
+            localRealm = Realm.getInstance(spyConfig);
             fail();
         } catch (IllegalStateException expected) {
             assertThat(expected.getMessage(), CoreMatchers.containsString(
                     "Property 'BacklinksSource.child' declared as origin of linking objects property 'BacklinksTarget.parents' links to type 'BacklinksSource'"
             ));
+        } finally {
+            if (localRealm != null) {
+                localRealm.close();
+            }
         }
     }
 

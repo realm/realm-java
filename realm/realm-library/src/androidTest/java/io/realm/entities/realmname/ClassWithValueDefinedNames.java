@@ -16,6 +16,8 @@
 package io.realm.entities.realmname;
 
 import io.realm.RealmObject;
+import io.realm.RealmResults;
+import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.RealmClass;
 import io.realm.annotations.RealmField;
 
@@ -30,4 +32,12 @@ public class ClassWithValueDefinedNames extends RealmObject {
 
     @RealmField("my-field-name")
     public String field;
+
+    @RealmField("object-link")
+    public ClassWithValueDefinedNames objectLink;
+
+    // Must use the Java defined name
+    // Using `@LinkingObjects("object-link")` is not supported
+    @LinkingObjects("objectLink")
+    public final RealmResults<ClassWithValueDefinedNames> parents = null;
 }
