@@ -169,18 +169,14 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
     }
 
     // ------------------------------------------
-    // Map API
+    // RealmMap API
     // ------------------------------------------
 
     /**
      * TODO
      */
-    public void addChangeListener() {
-        mapStrategy.addChangeListener();
-    }
-
-    public void close() {
-        getOsMap().close();
+    public void addChangeListener(OrderedRealmCollectionChangeListener<RealmMap<K, V>> listener) {
+        mapStrategy.addChangeListener(this, listener);
     }
 
     // Needed for embedded objects
@@ -211,7 +207,8 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
          */
         protected abstract V putInternal(K key, V value);
 
-        abstract void addChangeListener();
+        abstract void addChangeListener(RealmMap<K, V> realmMap,
+                                        OrderedRealmCollectionChangeListener<RealmMap<K, V>> listener);
 
         abstract OsMap getOsMap();
 
@@ -355,8 +352,9 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
         }
 
         @Override
-        void addChangeListener() {
-            managedMapManager.addChangeListener();
+        void addChangeListener(RealmMap<K, V> realmMap,
+                               OrderedRealmCollectionChangeListener<RealmMap<K, V>> listener) {
+            managedMapManager.addChangeListener(realmMap, listener);
         }
 
         @Override
@@ -474,7 +472,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
         }
 
         @Override
-        void addChangeListener() {
+        void addChangeListener(RealmMap<K, V> realmMap, OrderedRealmCollectionChangeListener<RealmMap<K, V>> listener) {
             throw new UnsupportedOperationException("Unmanaged RealmMaps do not support change listeners.");
         }
 

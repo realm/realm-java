@@ -213,17 +213,17 @@ public class UncheckedRow implements NativeObject, Row {
 
     @Override
     public OsMap getMixedMap(long columnKey) {
-        return new OsMap(this, columnKey, getTable());
+        return new OsMap(this, columnKey);
     }
 
     @Override
     public OsMap getModelMap(long columnKey) {
-        return new OsMap(this, columnKey, getTable());
+        return new OsMap(this, columnKey);
     }
 
     @Override
     public OsMap getValueMap(long columnKey, RealmFieldType fieldType) {
-        return new OsMap(this, columnKey, getTable());
+        return new OsMap(this, columnKey);
     }
 
     // Setters

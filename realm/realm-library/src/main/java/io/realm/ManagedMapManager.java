@@ -129,8 +129,9 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
         return freezeInternal(mapValueOperator.freeze());
     }
 
-    public void addChangeListener() {
-        mapValueOperator.addChangeListener();
+    public void addChangeListener(RealmMap<K, V> realmMap,
+                                  OrderedRealmCollectionChangeListener<RealmMap<K, V>> listener) {
+        mapValueOperator.addChangeListener(realmMap, listener);
     }
 
     OsMap getOsMap() {
@@ -281,8 +282,23 @@ abstract class MapValueOperator<K, V> {
         return new Pair<>(frozenRealm, osMap.freeze(frozenRealm.sharedRealm));
     }
 
-    public void addChangeListener() {
-        osMap.addChangeListener();
+    public void addChangeListener(RealmMap<K, V> realmMap,
+                                  OrderedRealmCollectionChangeListener<RealmMap<K, V>> listener) {
+        checkForAddRemoveListener(listener, true);
+        osMap.addListener(realmMap, listener);
+    }
+
+    public void removeAllChangeListeners() {
+        checkForAddRemoveListener(null, false);
+        osMap.removeAllListeners();
+    }
+
+    private void checkForAddRemoveListener(@Nullable Object listener, boolean checkListener) {
+        if (checkListener && listener == null) {
+            throw new IllegalArgumentException("Listener should not be null");
+        }
+        baseRealm.checkIfValid();
+        baseRealm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
     }
 
     private <T> RealmResults<T> produceResults(Pair<Table, Long> tableAndValuesPtr,
