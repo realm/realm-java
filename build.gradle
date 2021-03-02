@@ -455,9 +455,9 @@ apply from: "mavencentral-properties.gradle"
 nexusStaging {
     // Lazily evaluate properties so they are only needed when actually used.
     packageGroup = "io.realm"
-    stagingProfileId = sonatypeStagingProfileId
-    username = ossrhUsername
-    password = ossrhPassword
+    stagingProfileId = rootProject.ext["sonatypeStagingProfileId"]
+    username = rootProject.ext["ossrhUsername"]
+    password = rootProject.ext["ossrhPassword"]
 }
 
 // This is just a placeholder for the release plugin

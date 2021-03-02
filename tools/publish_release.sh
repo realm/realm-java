@@ -20,7 +20,7 @@ set -e
 
 usage() {
 cat <<EOF
-Usage: $0 <bintray_user> <bintray_key> <realm_s3_access_key> <realm_s3_secret_key> <docs_s3_access_key> <docs_s3_secret_key> <slack-webhook-releases-url> <slack-webhook-java-ci-url>
+Usage: $0 <maven_central_user> <maven_central_key> <realm_s3_access_key> <realm_s3_secret_key> <docs_s3_access_key> <docs_s3_secret_key> <slack-webhook-releases-url> <slack-webhook-java-ci-url>
 EOF
 }
 
@@ -36,8 +36,8 @@ fi
 HERE=$(dirname `realpath "$0"`)
 REALM_JAVA_PATH="$HERE/.."
 RELEASE_VERSION=""
-BINTRAY_USER="$1"
-BINTRAY_KEY="$2"
+MAVEN_CENTRAL_USER="$1"
+MAVEN_CENTRAL_KEY="$2"
 REALM_S3_ACCESS_KEY="$3"
 REALM_S3_SECRET_KEY="$4"
 DOCS_S3_ACCESS_KEY="$5"
@@ -114,10 +114,10 @@ create_native_debug_symbols_package() {
   cd $HERE
 }
 
-upload_to_bintray() {
+upload_to_mavenCentral() {
   echo "Releasing on MavenCentral"
   cd $REALM_JAVA_PATH
-  ./gradlew mavenCentralUpload closeAndReleaseRepository
+  ./gradlew mavenCentralUpload closeAndReleaseRepository -PossrhUsername=$MAVEN_CENTRAL_USER -PossrhPassword=$MAVEN_CENTRAL_KEY
   cd $HERE
 }
 
@@ -170,7 +170,7 @@ check_env
 verify_release_preconditions
 verify_changelog
 create_javadoc
-upload_to_bintray
+upload_to_mavenCentral
 upload_debug_symbols
 upload_javadoc
 notify_slack_channels
