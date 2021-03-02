@@ -25,6 +25,8 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import io.realm.Case;
+import io.realm.RealmModel;
+import io.realm.RealmObject;
 import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.objectstore.OsKeyPathMapping;
 import io.realm.log.RealmLog;
@@ -496,7 +498,7 @@ public class TableQuery implements NativeObject {
     }
 
     public TableQuery greaterThanOrEqual(long[] columnKeys, long[] tablePtrs, ObjectId value) {
-        nativeGreaterEqualObjectId(nativePtr, columnKeys, tablePtrs,  value.toString());
+        nativeGreaterEqualObjectId(nativePtr, columnKeys, tablePtrs, value.toString());
         queryValidated = false;
         return this;
     }
@@ -534,7 +536,7 @@ public class TableQuery implements NativeObject {
     }
 
     public TableQuery greaterThanOrEqual(long[] columnKeys, long[] tablePtrs, UUID value) {
-        nativeGreaterEqualUUID(nativePtr, columnKeys, tablePtrs,  value.toString());
+        nativeGreaterEqualUUID(nativePtr, columnKeys, tablePtrs, value.toString());
         queryValidated = false;
         return this;
     }
@@ -703,12 +705,59 @@ public class TableQuery implements NativeObject {
         return nativeCount(nativePtr);
     }
 
-    public void rawPredicate(String filter, @Nullable OsKeyPathMapping mapping, DescriptorOrdering descriptors, String[] args) {
+    public void rawPredicate(String filter, @Nullable OsKeyPathMapping mapping, DescriptorOrdering descriptors, Object[] args) {
+        long listPtr = nativeCreateArgumentList();
+
+        for (int i = 0; i < args.length; i++) {
+            Object argument = args[i];
+            if (argument == null) {
+                nativeAddNullArgument(listPtr);
+            } else if (argument instanceof Boolean) {
+                nativeAddBooleanArgument(listPtr, (Boolean) argument);
+            } else if (argument instanceof Float) {
+                nativeAddFloatArgument(listPtr, (Float) argument);
+            } else if (argument instanceof Double) {
+                nativeAddDoubleArgument(listPtr, (Double) argument);
+            } else if (argument instanceof Number) {
+                Number value = (Number) argument;
+                nativeAddIntegerArgument(listPtr, value.longValue());
+            } else if (argument instanceof String) {
+                nativeAddStringArgument(listPtr, (String) argument);
+            } else if (argument instanceof byte[]) {
+                nativeAddByteArrayArgument(listPtr, (byte[]) argument);
+            } else if (argument instanceof Date) {
+                nativeAddDateArgument(listPtr, ((Date) argument).getTime());
+            } else if (argument instanceof Decimal128) {
+                Decimal128 value = (Decimal128) argument;
+                nativeAddDecimal128Argument(listPtr, value.getLow(), value.getHigh());
+            } else if (argument instanceof ObjectId) {
+                ObjectId value = (ObjectId) argument;
+                nativeAddObjectIdArgument(listPtr, value.toString());
+            } else if (argument instanceof UUID) {
+                UUID value = (UUID) argument;
+                nativeAddUUIDArgument(listPtr, value.toString());
+            } else if (argument instanceof RealmModel) {
+                RealmModel value = (RealmModel) argument;
+
+                if (!RealmObject.isValid(value) || !RealmObject.isManaged(value)) {
+                    throw new IllegalArgumentException("Argument[" + i + "] is not a valid managed object.");
+                }
+
+                RealmObjectProxy proxy = (RealmObjectProxy) value;
+                UncheckedRow row = (UncheckedRow) proxy.realmGet$proxyState().getRow$realm();
+                nativeAddObjectArgument(listPtr, row.getNativePtr());
+            } else {
+                throw new IllegalArgumentException("Unsupported query argument type: " + argument.getClass().getSimpleName());
+            }
+        }
+
         nativeRawPredicate(nativePtr,
                 filter,
-                (mapping != null) ? mapping.getNativePtr() : null,
+                (mapping != null) ? mapping.getNativePtr() : 0,
                 descriptors.getNativePtr(),
-                args);
+                listPtr);
+
+        nativeDestroyArgumentList(listPtr);
     }
 
     public long remove() {
@@ -905,7 +954,35 @@ public class TableQuery implements NativeObject {
 
     private native long nativeRemove(long nativeQueryPtr);
 
-    private native void nativeRawPredicate(long nativeQueryPtr, String filter, Long mapppingPtr, long descriptorsPointer, String[] args);
+    private static native long nativeCreateArgumentList();
+
+    private static native void nativeDestroyArgumentList(long listPtr);
+
+    private static native void nativeAddNullArgument(long listPtr);
+
+    private static native void nativeAddIntegerArgument(long listPtr, long val);
+
+    private static native void nativeAddStringArgument(long listPtr, String val);
+
+    private static native void nativeAddFloatArgument(long listPtr, float val);
+
+    private static native void nativeAddDoubleArgument(long listPtr, double val);
+
+    private static native void nativeAddBooleanArgument(long listPtr, boolean val);
+
+    private static native void nativeAddByteArrayArgument(long listPtr, byte[] val);
+
+    private static native void nativeAddDateArgument(long listPtr, long val);
+
+    private static native void nativeAddDecimal128Argument(long listPtr, long low, long high);
+
+    private static native void nativeAddObjectIdArgument(long listPtr, String data);
+
+    private static native void nativeAddUUIDArgument(long listPtr, String data);
+
+    private static native void nativeAddObjectArgument(long listPtr, long rowPtr);
+
+    private native void nativeRawPredicate(long nativeQueryPtr, String filter, long mapppingPtr, long descriptorsPointer, long argsPtr);
 
     private static native long nativeGetFinalizerPtr();
 }

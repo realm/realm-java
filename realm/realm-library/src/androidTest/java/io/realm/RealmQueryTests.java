@@ -19,7 +19,6 @@ package io.realm;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.internal.util.collections.Sets;
@@ -57,6 +56,8 @@ import io.realm.entities.PrimaryKeyAsBoxedLong;
 import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
+import io.realm.entities.embedded.EmbeddedSimpleChild;
+import io.realm.entities.embedded.EmbeddedSimpleParent;
 import io.realm.entities.realmname.ClassWithValueDefinedNames;
 import io.realm.exceptions.RealmException;
 import io.realm.log.RealmLog;
@@ -3988,40 +3989,97 @@ public class RealmQueryTests extends QueryTests {
         assertTrue(results.isEmpty());
     }
 
-    @Ignore("Re-Enable when support for Mixed as been added.")
     @Test
     public void rawPredicate_argumentSubstitution() {
         populateTestRealm();
         RealmQuery<AllTypes> query = realm.where(AllTypes.class);
-        query.rawPredicate("columnString = '$1' " +
-                "AND columnBoolean = $2 " +
-                "AND columnFloat = $3 " +
-                "AND columnInteger = $4", new Object[] {"test data 0", true, 1.2345f, 0});
+        query.rawPredicate("columnString = $0 " +
+                "AND columnBoolean = $1 " +
+                "AND columnFloat = $2 " +
+                "AND columnLong = $3", "test data 0", true, 1.2345f, 0);
         RealmResults<AllTypes> results = query.findAll();
         assertEquals(1, results.size());
     }
 
-    @Ignore("Re-Enable when support for Mixed as been added.")
+    @Test
+    public void rawPredicate_realmObjectArgumentSubstitution() {
+        realm.beginTransaction();
+
+        Dog dog = realm.createObject(Dog.class);
+        dog.setName("doggy dog");
+        dog.setAge(1999);
+
+        AllTypes allTypes = realm.createObject(AllTypes.class);
+        allTypes.setColumnRealmObject(dog);
+
+        realm.commitTransaction();
+
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class);
+        query.rawPredicate("columnRealmObject = $0", dog);
+        RealmResults<AllTypes> results = query.findAll();
+        assertEquals(1, results.size());
+    }
+
+    @Test
+    public void rawPredicate_embeddedObjectArgumentSubstitution() {
+        realm.beginTransaction();
+
+        EmbeddedSimpleParent parent = realm.createObject(EmbeddedSimpleParent.class, UUID.randomUUID().toString());
+        parent.setChild(new EmbeddedSimpleChild());
+
+        EmbeddedSimpleChild child = parent.getChild();
+
+        realm.commitTransaction();
+
+        RealmQuery<EmbeddedSimpleParent> query = realm.where(EmbeddedSimpleParent.class);
+        query.rawPredicate("child = $0", child);
+        RealmResults<EmbeddedSimpleParent> results = query.findAll();
+        assertEquals(1, results.size());
+    }
+
+    @Test
+    public void rawPredicate_invalidRealmObjectThrows() {
+        realm.beginTransaction();
+        AllTypes allTypes = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        realm.executeTransaction(r -> allTypes.deleteFromRealm());
+
+        try {
+            realm.where(AllTypes.class).rawPredicate("columnRealmObject = $0", allTypes);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("Argument[0] is not a valid managed object."));
+        }
+
+        try {
+            realm.where(AllTypes.class).rawPredicate("columnRealmObject = $0", new AllTypes());
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("Argument[0] is not a valid managed object."));
+        }
+    }
+
     @Test
     public void rawPredicate_invalidFormatOptions() {
         RealmQuery<AllTypes> query = realm.where(AllTypes.class);
         try {
             // Argument type not valid
-            query.rawPredicate("columnString = '$1'", new Object[] { 42 });
+            query.rawPredicate("columnString = $0", 42);
             fail();
         } catch (IllegalArgumentException ignore) {
         }
 
         try {
             // Missing number of arguments
-            query.rawPredicate("columnString = '$1' AND columnString  = '$2'", new Object[] { "foo" });
+            query.rawPredicate("columnString = $0 AND columnString  = $1", "foo");
             RealmLog.error(query.getDescription());
         } catch (IllegalArgumentException ignore) {
         }
 
         try {
             // Wrong syntax for argument substitution
-            query.rawPredicate("columnString = '%1'", new Object[] {"foo" });
+            query.rawPredicate("columnString = %0", "foo");
             fail();
         } catch (IllegalArgumentException ignore) {
         }
