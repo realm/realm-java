@@ -32,7 +32,7 @@ public class OsList implements NativeObject, ObservableCollection {
 
         this.nativePtr = ptrs[0];
 
-        Log.e("ZZZ", ">>>>>>>>>>>>>>>> new OsList: " + this.nativePtr);
+//        Log.e("ZZZ", ">>>>>>>>>>>>>>>> new OsList: " + this.nativePtr);
 
         this.context = sharedRealm.context;
         context.addReference(this);
@@ -48,7 +48,7 @@ public class OsList implements NativeObject, ObservableCollection {
     private OsList(OsSharedRealm sharedRealm, long listNativePtr, @Nullable Table targetTable) {
         this.nativePtr = listNativePtr;
 
-        Log.e("ZZZ", ">>>>>>>>>>>>>>>> new (FROZEN) OsList: " + this.nativePtr);
+//        Log.e("ZZZ", ">>>>>>>>>>>>>>>> new (FROZEN) OsList: " + this.nativePtr);
 
         this.targetTable = targetTable;
         this.context = sharedRealm.context;

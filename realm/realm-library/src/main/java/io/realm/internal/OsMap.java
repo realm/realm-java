@@ -48,7 +48,8 @@ public class OsMap implements NativeObject, ObservableCollection {
         OsSharedRealm osSharedRealm = row.getTable().getSharedRealm();
         long[] pointers = nativeCreate(osSharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
         this.nativePtr = pointers[0];
-//        Log.e("ZZZ", ">>>>>>>>>>>>>>>> new OsMap: " + this.nativePtr);
+
+        Log.e("ZZZ", ">>>>>>>>>>>>>>>> new OsMap: " + this.nativePtr);
 
         if (pointers[1] != NOT_FOUND) {
             this.targetTable = new Table(osSharedRealm, pointers[1]);
@@ -62,6 +63,9 @@ public class OsMap implements NativeObject, ObservableCollection {
     // Used to freeze maps
     private OsMap(OsSharedRealm osSharedRealm, long nativePtr, Table targetTable) {
         this.nativePtr = nativePtr;
+
+        Log.e("ZZZ", ">>>>>>>>>>>>>>>> new (FROZEN) OsMap: " + this.nativePtr);
+
         this.targetTable = targetTable;
         this.context = osSharedRealm.context;
         context.addReference(this);

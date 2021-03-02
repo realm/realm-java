@@ -84,13 +84,6 @@ final class NativeObjectReference extends PhantomReference<NativeObject> {
         referencePool.add(this);
 
         this.classToFinalize = referent.getClass();
-        if (classToFinalize == OsMap.class) {
-            if (nativePtr < 125671100000000L) {
-                Log.e("---", ">>>>>>>>>>>>>>>> WEIRD!!! " + classToFinalize.getCanonicalName() + ": " + nativePtr);
-            } else {
-                Log.e("---", ">>>>>>>>>>>>>>>> OK!!!    " + classToFinalize.getCanonicalName() + ": " + nativePtr);
-            }
-        }
     }
 
     /**
@@ -100,10 +93,6 @@ final class NativeObjectReference extends PhantomReference<NativeObject> {
         synchronized (context) {
             if (classToFinalize == OsMap.class) {
                 Log.e("---", ">>>>>>>>>>>>>>>> FINALIZING OsMap: " + nativePtr);
-            } if (classToFinalize == OsList.class) {
-                Log.e("---", ">>>>>>>>>>>>>>>> FINALIZING OsList: " + nativePtr);
-//            } else {
-//                Log.e("---", "--- FINALIZING " + classToFinalize.getCanonicalName());
             }
             nativeCleanUp(nativeFinalizerPtr, nativePtr);
         }

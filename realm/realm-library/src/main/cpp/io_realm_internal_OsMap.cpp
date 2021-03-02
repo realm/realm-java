@@ -26,20 +26,21 @@
 #include "util.hpp"
 #include "observable_collection_wrapper.hpp"
 
-#include "jni_util/jni_utils.hpp"
+//#include "jni_util/jni_utils.hpp"
 
 using namespace realm;
 using namespace realm::util;
 using namespace realm::object_store;
 using namespace realm::_impl;
 
-using namespace realm::jni_util;
+//using namespace realm::jni_util;
 
 typedef ObservableCollectionWrapper<object_store::Dictionary> DictionaryWrapper;
 
 void finalize_map(jlong ptr) {
-    Log::e(">>>>>>>>>>>>>>>> finalizing map wrapper: %1", ptr);
-    delete reinterpret_cast<DictionaryWrapper*>(ptr);
+//    Log::e(">>>>>>>>>>>>>>>> finalizing map wrapper: %1", ptr);
+    delete dynamic_cast<DictionaryWrapper*>(ptr);
+//    delete reinterpret_cast<DictionaryWrapper*>(ptr);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsMap_nativeGetFinalizerPtr(JNIEnv*, jclass) {
@@ -65,7 +66,7 @@ Java_io_realm_internal_OsMap_nativeCreate(JNIEnv* env, jclass, jlong shared_real
         auto wrapper_ptr = new DictionaryWrapper(dictionary);
         ret[0] = reinterpret_cast<jlong>(wrapper_ptr);
 
-        Log::e(">>>>>>>>>>>>>>>> created dictionary wrapper: %1", ret[0]);
+//        Log::e(">>>>>>>>>>>>>>>> created dictionary wrapper: %1", ret[0]);
 
         if (wrapper_ptr->collection().get_type() == PropertyType::Object) {
             const DictionaryPtr& ptr = obj.get_dictionary_ptr(ColKey(column_key));
