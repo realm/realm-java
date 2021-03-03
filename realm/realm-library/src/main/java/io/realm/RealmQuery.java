@@ -254,7 +254,6 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> isNull(String fieldName) {
         realm.checkIfValid();
-        // Checks that fieldName has the correct type is done in C++.
         this.query.isNull(fieldName);
         return this;
     }
@@ -297,7 +296,7 @@ public class RealmQuery<E> {
     public RealmQuery<E> equalTo(String fieldName, @Nullable String value, Case casing) {
         realm.checkIfValid();
         if (casing == Case.SENSITIVE) {
-            this.query.equalTo(fieldName, Mixed.valueOf(value));
+            this.query.equalTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.STRING);
         } else {
             this.query.equalToInsensitive(fieldName, Mixed.valueOf(value));
         }
@@ -314,7 +313,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Decimal128 value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.DECIMAL128);
         return this;
     }
 
@@ -328,7 +327,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable ObjectId value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.OBJECT_ID);
         return this;
     }
 
@@ -342,7 +341,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable UUID value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.UUID);
         return this;
     }
 
@@ -356,7 +355,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Byte value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.INTEGER);
         return this;
     }
 
@@ -370,7 +369,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable byte[] value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.BINARY);
         return this;
     }
 
@@ -384,7 +383,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Short value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.INTEGER);
         return this;
     }
 
@@ -398,7 +397,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Integer value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.INTEGER);
         return this;
     }
 
@@ -413,7 +412,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Long value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.INTEGER);
         return this;
     }
 
@@ -427,7 +426,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Double value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.DOUBLE);
         return this;
     }
 
@@ -441,7 +440,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Float value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.FLOAT);
         return this;
     }
 
@@ -455,7 +454,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Boolean value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.BOOLEAN);
         return this;
     }
 
@@ -469,7 +468,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Date value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.DATE);
         return this;
     }
 
@@ -508,7 +507,7 @@ public class RealmQuery<E> {
             }
 
             if (casing == Case.SENSITIVE) {
-                query.in(fieldName, mixedValues);
+                query.in(fieldName, mixedValues, TableQuery.TypeFilter.STRING);
             } else {
                 query.inInsensitive(fieldName, mixedValues);
             }
@@ -535,7 +534,7 @@ public class RealmQuery<E> {
             for (int i = 0; i < values.length; i++) {
                 mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            query.in(fieldName, mixedValues);
+            query.in(fieldName, mixedValues, TableQuery.TypeFilter.BINARY);
         }
         return this;
     }
@@ -559,7 +558,7 @@ public class RealmQuery<E> {
             for (int i = 0; i < values.length; i++) {
                 mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            query.in(fieldName, mixedValues);
+            query.in(fieldName, mixedValues, TableQuery.TypeFilter.INTEGER);
         }
         return this;
     }
@@ -583,7 +582,7 @@ public class RealmQuery<E> {
             for (int i = 0; i < values.length; i++) {
                 mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            query.in(fieldName, mixedValues);
+            query.in(fieldName, mixedValues, TableQuery.TypeFilter.INTEGER);
         }
         return this;
     }
@@ -608,7 +607,7 @@ public class RealmQuery<E> {
             for (int i = 0; i < values.length; i++) {
                 mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            query.in(fieldName, mixedValues);
+            query.in(fieldName, mixedValues, TableQuery.TypeFilter.INTEGER);
         }
         return this;
     }
@@ -633,7 +632,7 @@ public class RealmQuery<E> {
             for (int i = 0; i < values.length; i++) {
                 mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            query.in(fieldName, mixedValues);
+            query.in(fieldName, mixedValues, TableQuery.TypeFilter.DOUBLE);
         }
         return this;
     }
@@ -657,7 +656,7 @@ public class RealmQuery<E> {
             for (int i = 0; i < values.length; i++) {
                 mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            query.in(fieldName, mixedValues);
+            query.in(fieldName, mixedValues, TableQuery.TypeFilter.FLOAT);
         }
         return this;
     }
@@ -682,7 +681,7 @@ public class RealmQuery<E> {
             for (int i = 0; i < values.length; i++) {
                 mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            query.in(fieldName, mixedValues);
+            query.in(fieldName, mixedValues, TableQuery.TypeFilter.BOOLEAN);
         }
         return this;
     }
@@ -706,7 +705,7 @@ public class RealmQuery<E> {
             for (int i = 0; i < values.length; i++) {
                 mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            query.in(fieldName, mixedValues);
+            query.in(fieldName, mixedValues, TableQuery.TypeFilter.DATE);
         }
         return this;
     }
@@ -735,7 +734,7 @@ public class RealmQuery<E> {
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable String value, Case casing) {
         realm.checkIfValid();
         if (casing == Case.SENSITIVE) {
-            this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+            this.query.notEqualTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.STRING);
         } else {
             this.query.notEqualToInsensitive(fieldName, Mixed.valueOf(value));
         }
@@ -752,7 +751,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, Decimal128 value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.DECIMAL128);
         return this;
     }
 
@@ -766,7 +765,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, ObjectId value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.OBJECT_ID);
         return this;
     }
 
@@ -780,7 +779,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, UUID value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.UUID);
         return this;
     }
 
@@ -794,7 +793,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Byte value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.INTEGER);
         return this;
     }
 
@@ -808,7 +807,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable byte[] value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.BINARY);
         return this;
     }
 
@@ -822,7 +821,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Short value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.INTEGER);
         return this;
     }
 
@@ -836,7 +835,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Integer value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.INTEGER);
         return this;
     }
 
@@ -850,7 +849,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Long value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.INTEGER);
         return this;
     }
 
@@ -864,7 +863,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Double value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.DOUBLE);
         return this;
     }
 
@@ -878,7 +877,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Float value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.FLOAT);
         return this;
     }
 
@@ -892,7 +891,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Boolean value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.BOOLEAN);
         return this;
     }
 
@@ -906,7 +905,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Date value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.DATE);
         return this;
     }
 
@@ -920,7 +919,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, int value) {
         realm.checkIfValid();
-        this.query.greaterThan(fieldName, Mixed.valueOf(value));
+        this.query.greaterThan(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.INTEGER);
         return this;
     }
 
@@ -934,7 +933,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, long value) {
         realm.checkIfValid();
-        this.query.greaterThan(fieldName, Mixed.valueOf(value));
+        this.query.greaterThan(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.INTEGER);
         return this;
     }
 
@@ -948,7 +947,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, double value) {
         realm.checkIfValid();
-        this.query.greaterThan(fieldName, Mixed.valueOf(value));
+        this.query.greaterThan(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.DOUBLE);
         return this;
     }
 
@@ -962,7 +961,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, float value) {
         realm.checkIfValid();
-        this.query.greaterThan(fieldName, Mixed.valueOf(value));
+        this.query.greaterThan(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.FLOAT);
         return this;
     }
 
@@ -976,7 +975,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, Date value) {
         realm.checkIfValid();
-        this.query.greaterThan(fieldName, Mixed.valueOf(value));
+        this.query.greaterThan(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.DATE);
         return this;
     }
 
@@ -990,7 +989,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, Decimal128 value) {
         realm.checkIfValid();
-        this.query.greaterThan(fieldName, Mixed.valueOf(value));
+        this.query.greaterThan(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.DECIMAL128);
         return this;
     }
 
@@ -1004,7 +1003,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, ObjectId value) {
         realm.checkIfValid();
-        this.query.greaterThan(fieldName, Mixed.valueOf(value));
+        this.query.greaterThan(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.OBJECT_ID);
         return this;
     }
 
@@ -1018,7 +1017,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, UUID value) {
         realm.checkIfValid();
-        this.query.greaterThan(fieldName, Mixed.valueOf(value));
+        this.query.greaterThan(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.UUID);
         return this;
     }
 
@@ -1032,7 +1031,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, int value) {
         realm.checkIfValid();
-        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.INTEGER);
         return this;
     }
 
@@ -1046,7 +1045,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, long value) {
         realm.checkIfValid();
-        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.INTEGER);
         return this;
     }
 
@@ -1060,7 +1059,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, double value) {
         realm.checkIfValid();
-        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.DOUBLE);
         return this;
     }
 
@@ -1074,7 +1073,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, float value) {
         realm.checkIfValid();
-        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.FLOAT);
         return this;
     }
 
@@ -1088,7 +1087,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, Date value) {
         realm.checkIfValid();
-        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.DATE);
         return this;
     }
 
@@ -1102,7 +1101,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, Decimal128 value) {
         realm.checkIfValid();
-        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.DECIMAL128);
         return this;
     }
 
@@ -1116,7 +1115,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, ObjectId value) {
         realm.checkIfValid();
-        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.OBJECT_ID);
         return this;
     }
 
@@ -1130,7 +1129,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, UUID value) {
         realm.checkIfValid();
-        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.UUID);
         return this;
     }
 
@@ -1144,7 +1143,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, int value) {
         realm.checkIfValid();
-        this.query.lessThan(fieldName, Mixed.valueOf(value));
+        this.query.lessThan(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.INTEGER);
         return this;
     }
 
@@ -1158,7 +1157,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, long value) {
         realm.checkIfValid();
-        this.query.lessThan(fieldName, Mixed.valueOf(value));
+        this.query.lessThan(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.INTEGER);
         return this;
     }
 
@@ -1172,7 +1171,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, Decimal128 value) {
         realm.checkIfValid();
-        this.query.lessThan(fieldName, Mixed.valueOf(value));
+        this.query.lessThan(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.DECIMAL128);
         return this;
     }
 
@@ -1186,7 +1185,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, ObjectId value) {
         realm.checkIfValid();
-        this.query.lessThan(fieldName, Mixed.valueOf(value));
+        this.query.lessThan(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.OBJECT_ID);
         return this;
     }
 
@@ -1200,7 +1199,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, UUID value) {
         realm.checkIfValid();
-        this.query.lessThan(fieldName, Mixed.valueOf(value));
+        this.query.lessThan(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.UUID);
         return this;
     }
 
@@ -1214,7 +1213,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, double value) {
         realm.checkIfValid();
-        this.query.lessThan(fieldName, Mixed.valueOf(value));
+        this.query.lessThan(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.DOUBLE);
         return this;
     }
 
@@ -1228,7 +1227,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, float value) {
         realm.checkIfValid();
-        this.query.lessThan(fieldName, Mixed.valueOf(value));
+        this.query.lessThan(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.FLOAT);
         return this;
     }
 
@@ -1242,7 +1241,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, Date value) {
         realm.checkIfValid();
-        this.query.lessThan(fieldName, Mixed.valueOf(value));
+        this.query.lessThan(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.DATE);
         return this;
     }
 
@@ -1256,7 +1255,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, int value) {
         realm.checkIfValid();
-        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.INTEGER);
         return this;
     }
 
@@ -1270,7 +1269,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, long value) {
         realm.checkIfValid();
-        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.INTEGER);
         return this;
     }
 
@@ -1284,7 +1283,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, Decimal128 value) {
         realm.checkIfValid();
-        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.DECIMAL128);
         return this;
     }
 
@@ -1298,7 +1297,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, ObjectId value) {
         realm.checkIfValid();
-        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.OBJECT_ID);
         return this;
     }
 
@@ -1312,7 +1311,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, UUID value) {
         realm.checkIfValid();
-        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.UUID);
         return this;
     }
 
@@ -1326,7 +1325,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, double value) {
         realm.checkIfValid();
-        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.DOUBLE);
         return this;
     }
 
@@ -1340,7 +1339,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, float value) {
         realm.checkIfValid();
-        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.FLOAT);
         return this;
     }
 
@@ -1354,7 +1353,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, Date value) {
         realm.checkIfValid();
-        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value), TableQuery.TypeFilter.DATE);
         return this;
     }
 
@@ -1369,7 +1368,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> between(String fieldName, int from, int to) {
         realm.checkIfValid();
-        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
+        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to), TableQuery.TypeFilter.INTEGER);
         return this;
     }
 
@@ -1384,7 +1383,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> between(String fieldName, long from, long to) {
         realm.checkIfValid();
-        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
+        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to), TableQuery.TypeFilter.INTEGER);
         return this;
     }
 
@@ -1399,7 +1398,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> between(String fieldName, double from, double to) {
         realm.checkIfValid();
-        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
+        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to), TableQuery.TypeFilter.DOUBLE);
         return this;
     }
 
@@ -1414,7 +1413,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> between(String fieldName, float from, float to) {
         realm.checkIfValid();
-        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
+        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to), TableQuery.TypeFilter.FLOAT);
         return this;
     }
 
@@ -1429,7 +1428,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> between(String fieldName, Date from, Date to) {
         realm.checkIfValid();
-        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
+        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to), TableQuery.TypeFilter.DATE);
         return this;
     }
 
@@ -1444,7 +1443,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> between(String fieldName, Decimal128 from, Decimal128 to) {
         realm.checkIfValid();
-        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
+        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to), TableQuery.TypeFilter.DECIMAL128);
         return this;
     }
 
