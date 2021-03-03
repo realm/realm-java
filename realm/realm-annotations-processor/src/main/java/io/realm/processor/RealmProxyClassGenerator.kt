@@ -549,7 +549,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitStatement("String entryKey = item.getKey()")
                                 emitStatement("%s entryValue = item.getValue()", genericType)
                                 emitSingleLineComment("ensure (potential) RealmModel instances are copied to Realm if generic type is Mixed")
-//                                beginControlFlow("if (entryValue == null || entryValue.getType() == MixedType.OBJECT)")
                                 beginControlFlow("if (entryValue == null)")
                                     emitStatement("value.put(entryKey, null)")
                                 nextControlFlow("else if (entryValue.getType() == MixedType.OBJECT)")
