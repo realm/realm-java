@@ -33,7 +33,7 @@ import io.realm.internal.OsMap;
  * @param <K> the type of the keys stored in this map
  * @param <V> the type of the values stored in this map
  */
-abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<RealmMap<K, V>> {
+public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<RealmMap<K, V>> {
 
     protected final MapStrategy<K, V> mapStrategy;
 
@@ -175,7 +175,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
     /**
      * TODO
      */
-    public void addChangeListener(OrderedRealmCollectionChangeListener<RealmMap<K, V>> listener) {
+    public void addChangeListener(MapChangeListener<K, V> listener) {
         mapStrategy.addChangeListener(this, listener);
     }
 
@@ -207,8 +207,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
          */
         protected abstract V putInternal(K key, V value);
 
-        abstract void addChangeListener(RealmMap<K, V> realmMap,
-                                        OrderedRealmCollectionChangeListener<RealmMap<K, V>> listener);
+        abstract void addChangeListener(RealmMap<K, V> realmMap, MapChangeListener<K, V> listener);
 
         abstract OsMap getOsMap();
 
@@ -352,8 +351,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
         }
 
         @Override
-        void addChangeListener(RealmMap<K, V> realmMap,
-                               OrderedRealmCollectionChangeListener<RealmMap<K, V>> listener) {
+        void addChangeListener(RealmMap<K, V> realmMap, MapChangeListener<K, V> listener) {
             managedMapManager.addChangeListener(realmMap, listener);
         }
 
@@ -472,7 +470,7 @@ abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Freezable<
         }
 
         @Override
-        void addChangeListener(RealmMap<K, V> realmMap, OrderedRealmCollectionChangeListener<RealmMap<K, V>> listener) {
+        void addChangeListener(RealmMap<K, V> realmMap, MapChangeListener<K, V> listener) {
             throw new UnsupportedOperationException("Unmanaged RealmMaps do not support change listeners.");
         }
 

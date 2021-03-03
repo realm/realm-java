@@ -416,9 +416,10 @@ class ManagedDictionaryTester<T : Any>(
                 // Define new value to modify existing object and assert in listener callback
                 val newName = "Mr Snuffles"
 
-                dictionary.addChangeListener { map, changeSet ->
+                dictionary.addChangeListener { map, changes ->
                     when (operation) {
                         ChangeListenerOperation.INSERT -> {
+                            // Check dictionary
                             initializedDictionary.forEach { key, value ->
                                 val modelFromRealm = when (value) {
                                     null -> null
@@ -426,6 +427,9 @@ class ManagedDictionaryTester<T : Any>(
                                 }
                                 assertTrue(dictionary.containsValue(modelFromRealm))
                                 assertTrue(dictionary.containsKey(key))
+
+                                // Check insertions changeset contains keys
+                                assertTrue(changes.insertions.contains(key))
                             }
                             typeAsserter.assertEqualsHelper(
                                     looperThreadRealm,
@@ -445,6 +449,10 @@ class ManagedDictionaryTester<T : Any>(
                                     updateModelFromRealm as T,
                                     map[KEY_HELLO]
                             )
+
+                            // Check modifications changeset contains modified key
+                            assertEquals(1, changes.modifications.size)
+                            assertTrue(changes.modifications.contains(KEY_HELLO))
                         }
                         ChangeListenerOperation.DELETE -> {
                             // Dictionary has been cleared
@@ -454,6 +462,9 @@ class ManagedDictionaryTester<T : Any>(
                             // Housekeeping and bye
                             looperThreadRealm.close()
                             looperThread.testComplete()
+
+                            // Check deletions changeset size matches deleted elements
+                            assertEquals(initializedDictionary.size, changes.deletionCount.toInt())
                         }
                         ChangeListenerOperation.DEFAULT ->
                             throw IllegalArgumentException("Operation cannot be default")

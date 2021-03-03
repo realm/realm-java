@@ -16,17 +16,9 @@
 
 package io.realm;
 
-import javax.annotation.Nullable;
-
 /**
  * TODO
  */
-public class MapChangeListener {
-
-    public MapChangeListener() {
-    }
-
-    public <K, V> void onChange(RealmMap<K, V> map, @Nullable MapChangeSet changes) {
-
-    }
+public interface MapChangeListener<K, V> {
+    void onChange(RealmMap<K, V> map, MapChangeSet<K> changes);
 }

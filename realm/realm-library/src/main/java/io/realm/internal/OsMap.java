@@ -24,9 +24,6 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import io.realm.MapChangeListener;
-import io.realm.OrderedRealmCollectionChangeListener;
-import io.realm.RealmChangeListener;
 import io.realm.internal.android.TypeUtils;
 import io.realm.internal.core.NativeMixed;
 import io.realm.internal.util.Pair;
@@ -34,7 +31,7 @@ import io.realm.internal.util.Pair;
 /**
  * Java wrapper of Object Store Dictionary class. This backs managed versions of RealmMaps.
  */
-public class OsMap implements NativeObject, ObservableMap {
+public class OsMap implements NativeObject {
 
     public static final int NOT_FOUND = -1;
 
@@ -43,9 +40,6 @@ public class OsMap implements NativeObject, ObservableMap {
     private final long nativePtr;
     private final NativeContext context;
     private final Table targetTable;
-
-    private final ObserverPairList<ObservableCollection.CollectionObserverPair> observerPairs =
-            new ObserverPairList<>();
 
     public OsMap(UncheckedRow row, long columnKey) {
         OsSharedRealm osSharedRealm = row.getTable().getSharedRealm();
@@ -76,16 +70,6 @@ public class OsMap implements NativeObject, ObservableMap {
     @Override
     public long getNativeFinalizerPtr() {
         return nativeFinalizerPtr;
-    }
-
-    @Override
-    public void notifyChangeListeners(long nativeChangeSetPtr) {
-        OsCollectionChangeSet changeSet = new OsCollectionChangeSet(nativeChangeSetPtr, false);
-        if (changeSet.isEmpty()) {
-            // First time "query" returns. Do nothing.
-            return;
-        }
-        observerPairs.foreach(new Callback(changeSet));
     }
 
     public long size() {
@@ -271,38 +255,11 @@ public class OsMap implements NativeObject, ObservableMap {
         return new Pair<>((K) key, nativeMixed);
     }
 
-    private final ObserverPairList<ObservableCollection.CollectionObserverPair> mapObserverPairs =
-            new ObserverPairList<>();
-
-    public <T> void addListener(T observer, MapChangeListener listener) {
-
+    public void startListening(ObservableMap observableMap) {
+        nativeStartListening(nativePtr, observableMap);
     }
 
-    public <T> void addListener(T observer, OrderedRealmCollectionChangeListener<T> listener) {
-        if (observerPairs.isEmpty()) {
-            nativeStartListening(nativePtr);
-        }
-        ObservableCollection.CollectionObserverPair<T> collectionObserverPair = new ObservableCollection.CollectionObserverPair<>(observer, listener);
-        observerPairs.add(collectionObserverPair);
-    }
-
-    public <T> void addListener(T observer, RealmChangeListener<T> listener) {
-        addListener(observer, new ObservableCollection.RealmChangeListenerWrapper<>(listener));
-    }
-
-    public <T> void removeListener(T observer, OrderedRealmCollectionChangeListener<T> listener) {
-        observerPairs.remove(observer, listener);
-        if (observerPairs.isEmpty()) {
-            nativeStopListening(nativePtr);
-        }
-    }
-
-    public <T> void removeListener(T observer, RealmChangeListener<T> listener) {
-        removeListener(observer, new ObservableCollection.RealmChangeListenerWrapper<>(listener));
-    }
-
-    public void removeAllListeners() {
-        observerPairs.clear();
+    public void stopListening() {
         nativeStopListening(nativePtr);
     }
 
@@ -390,7 +347,7 @@ public class OsMap implements NativeObject, ObservableMap {
 
     private static native boolean nativeContainsRealmModel(long nativePtr, long objKey, long tablePtr);
 
-    private native void nativeStartListening(long nativePtr);   // Make not static to pass this instance
+    private static native void nativeStartListening(long nativePtr, ObservableMap observableMap);
 
-    private native void nativeStopListening(long nativePtr);
+    private static native void nativeStopListening(long nativePtr);
 }

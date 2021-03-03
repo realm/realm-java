@@ -16,11 +16,80 @@
 
 package io.realm;
 
+import io.realm.internal.OsMapChangeSet;
+
 /**
  * TODO
  */
-public interface MapChangeSet {
-    int[] getDeletions();
-    Mixed[] getInsertions();
-    Mixed[] getModifications();
+public interface MapChangeSet<T> {
+    long getDeletionCount();
+    T[] getInsertions();
+    T[] getModifications();
+    boolean isEmpty();
+}
+
+/**
+ * TODO
+ *
+ * @param <T>
+ */
+class MapChangeSetImpl<T> implements MapChangeSet<T> {
+
+    private final MapChangeSet<T> delegate;
+
+    public MapChangeSetImpl(MapChangeSet<T> delegate) {
+        this.delegate = delegate;
+    }
+
+    @Override
+    public long getDeletionCount() {
+        return delegate.getDeletionCount();
+    }
+
+    @Override
+    public T[] getInsertions() {
+        return delegate.getInsertions();
+    }
+
+    @Override
+    public T[] getModifications() {
+        return delegate.getModifications();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return delegate.isEmpty();
+    }
+}
+
+/**
+ * TODO
+ */
+class StringMapChangeSet implements MapChangeSet<String> {
+
+    private final OsMapChangeSet osMapChangeSet;
+
+    public StringMapChangeSet(long nativePtr) {
+        osMapChangeSet = new OsMapChangeSet(nativePtr);
+    }
+
+    @Override
+    public long getDeletionCount() {
+        return osMapChangeSet.getDeletionCount();
+    }
+
+    @Override
+    public String[] getInsertions() {
+        return osMapChangeSet.getStringKeyInsertions();
+    }
+
+    @Override
+    public String[] getModifications() {
+        return osMapChangeSet.getStringKeyModifications();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return osMapChangeSet.isEmpty();
+    }
 }

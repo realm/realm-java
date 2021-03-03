@@ -16,13 +16,12 @@
 
 package io.realm.internal;
 
-import io.realm.MapChangeSet;
-import io.realm.Mixed;
-
 /**
  * TODO
  */
-public class OsMapChangeSet implements MapChangeSet, NativeObject {
+public class OsMapChangeSet implements NativeObject {
+
+    public static final int EMPTY_CHANGESET = 0;
 
     private static long finalizerPtr = nativeGetFinalizerPtr();
 
@@ -42,23 +41,29 @@ public class OsMapChangeSet implements MapChangeSet, NativeObject {
         return finalizerPtr;
     }
 
-    @Override
-    public int[] getDeletions() {
-        // TODO
-        return new int[0];
+    public boolean isEmpty() {
+        return nativePtr == OsMapChangeSet.EMPTY_CHANGESET;
     }
 
-    @Override
-    public Mixed[] getInsertions() {
-        // TODO
-        return new Mixed[0];
+    public long getDeletionCount() {
+        return nativeGetDeletionCount(nativePtr);
     }
 
-    @Override
-    public Mixed[] getModifications() {
-        // TODO
-        return new Mixed[0];
+    public String[] getStringKeyInsertions() {
+        return nativeGetStringKeyInsertions(nativePtr);
     }
+
+    public String[] getStringKeyModifications() {
+        return nativeGetStringKeyModifications(nativePtr);
+    }
+
+    // TODO: add more insertions and modifications methods for other types of keys ad-hoc
 
     private static native long nativeGetFinalizerPtr();
+
+    private static native long nativeGetDeletionCount(long nativePtr);
+
+    private static native String[] nativeGetStringKeyInsertions(long nativePtr);
+
+    private static native String[] nativeGetStringKeyModifications(long nativePtr);
 }

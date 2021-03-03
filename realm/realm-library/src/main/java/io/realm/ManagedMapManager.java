@@ -27,12 +27,13 @@ import javax.annotation.Nullable;
 import io.realm.internal.ClassContainer;
 import io.realm.internal.Freezable;
 import io.realm.internal.ManageableObject;
+import io.realm.internal.ObservableMap;
+import io.realm.internal.ObserverPairList;
 import io.realm.internal.OsMap;
 import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
-import io.realm.internal.android.TypeUtils;
 import io.realm.internal.core.NativeMixed;
 import io.realm.internal.util.Pair;
 
@@ -43,17 +44,24 @@ import io.realm.internal.util.Pair;
  * @param <K> the key type
  * @param <V> the value type
  */
-abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, Freezable<RealmMap<K, V>> {
+abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, Freezable<RealmMap<K, V>>, ObservableMap {
 
+    protected final BaseRealm baseRealm;
     protected final MapValueOperator<K, V> mapValueOperator;
     protected final ClassContainer classContainer;
+    protected final ObserverPairList<MapObserverPair<K, V>> mapObserverPairs = new ObserverPairList<>();
 
-    ManagedMapManager(MapValueOperator<K, V> mapValueOperator, ClassContainer classContainer) {
+    ManagedMapManager(BaseRealm baseRealm,
+                      MapValueOperator<K, V> mapValueOperator,
+                      ClassContainer classContainer) {
+        this.baseRealm = baseRealm;
         this.mapValueOperator = mapValueOperator;
         this.classContainer = classContainer;
     }
 
     protected abstract RealmMap<K, V> freezeInternal(Pair<BaseRealm, OsMap> frozenBaseRealmMap);
+
+    protected abstract MapChangeSet<K> changeSetFactory(long nativeChangeSetPtr);
 
     @Override
     public abstract V put(K key, V value);
@@ -78,7 +86,8 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
 
     @Override
     public V remove(Object key) {
-        V removedValue = mapValueOperator.get(key);
+        //noinspection unchecked
+        V removedValue = mapValueOperator.get((K) key);
         mapValueOperator.remove(key);
         return removedValue;
     }
@@ -129,9 +138,52 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
         return freezeInternal(mapValueOperator.freeze());
     }
 
-    public void addChangeListener(RealmMap<K, V> realmMap,
-                                  OrderedRealmCollectionChangeListener<RealmMap<K, V>> listener) {
-        mapValueOperator.addChangeListener(realmMap, listener);
+    @Override
+    public void notifyChangeListeners(long nativeChangeSetPtr) {
+        MapChangeSet<K> mapChangeSet = new MapChangeSetImpl<>(changeSetFactory(nativeChangeSetPtr));
+        if (mapChangeSet.isEmpty()) {
+            // First callback we get is right after subscription: do nothing
+            return;
+        }
+        mapObserverPairs.foreach(new Callback<>(mapChangeSet));
+    }
+
+    public void addChangeListener(RealmMap<K, V> realmMap, MapChangeListener<K, V> listener) {
+        checkForAddRemoveListener(listener, true);
+        if (mapObserverPairs.isEmpty()) {
+            mapValueOperator.startListening(this);
+        }
+        ObservableMap.MapObserverPair<K, V> mapObserverPair = new MapObserverPair<>(realmMap, listener);
+        mapObserverPairs.add(mapObserverPair);
+    }
+
+    public void addChangeListener(RealmMap<K, V> realmMap, RealmChangeListener<V> listener) {
+        addChangeListener(realmMap, new RealmChangeListenerWrapper<>(listener));
+    }
+
+    public void removeListener(RealmMap<K, V> realmMap, MapChangeListener<K, V> listener) {
+        mapObserverPairs.remove(realmMap, listener);
+        if (mapObserverPairs.isEmpty()) {
+            mapValueOperator.stopListening();
+        }
+    }
+
+    public void removeListener(RealmMap<K, V> realmMap, RealmChangeListener<V> listener) {
+        removeListener(realmMap, new RealmChangeListenerWrapper<>(listener));
+    }
+
+    public void removeAllChangeListeners() {
+        checkForAddRemoveListener(null, false);
+        mapObserverPairs.clear();
+        mapValueOperator.stopListening();
+    }
+
+    private void checkForAddRemoveListener(@Nullable Object listener, boolean checkListener) {
+        if (checkListener && listener == null) {
+            throw new IllegalArgumentException("Listener should not be null");
+        }
+        baseRealm.checkIfValid();
+        baseRealm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
     }
 
     OsMap getOsMap() {
@@ -153,8 +205,10 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
  */
 class DictionaryManager<V> extends ManagedMapManager<String, V> {
 
-    DictionaryManager(MapValueOperator<String, V> mapValueOperator, ClassContainer classContainer) {
-        super(mapValueOperator, classContainer);
+    DictionaryManager(BaseRealm baseRealm,
+                      MapValueOperator<String, V> mapValueOperator,
+                      ClassContainer classContainer) {
+        super(baseRealm, mapValueOperator, classContainer);
     }
 
     @Override
@@ -176,7 +230,7 @@ class DictionaryManager<V> extends ManagedMapManager<String, V> {
 
     @Override
     public V get(Object key) {
-        return mapValueOperator.get(key);
+        return mapValueOperator.get((String) key);
     }
 
     @Override
@@ -188,12 +242,18 @@ class DictionaryManager<V> extends ManagedMapManager<String, V> {
     public Set<Entry<String, V>> entrySet() {
         return mapValueOperator.entrySet();
     }
+
+    @Override
+    protected MapChangeSet<String> changeSetFactory(long nativeChangeSetPtr) {
+        return new StringMapChangeSet(nativeChangeSetPtr);
+    }
 }
 
 /**
  * Abstraction for different map value types. Here are defined as generics but specializations
  * should provide concrete types.
  *
+ * @param <K> the key type
  * @param <V> the value type
  */
 abstract class MapValueOperator<K, V> {
@@ -214,10 +274,10 @@ abstract class MapValueOperator<K, V> {
     }
 
     @Nullable
-    public abstract V get(Object key);
+    public abstract V get(K key);
 
     @Nullable
-    public abstract V put(Object key, @Nullable V value);
+    public abstract V put(K key, @Nullable V value);
 
     public abstract Set<Map.Entry<K, V>> entrySet();
 
@@ -282,23 +342,12 @@ abstract class MapValueOperator<K, V> {
         return new Pair<>(frozenRealm, osMap.freeze(frozenRealm.sharedRealm));
     }
 
-    public void addChangeListener(RealmMap<K, V> realmMap,
-                                  OrderedRealmCollectionChangeListener<RealmMap<K, V>> listener) {
-        checkForAddRemoveListener(listener, true);
-        osMap.addListener(realmMap, listener);
+    public void startListening(ObservableMap observableMap) {
+        osMap.startListening(observableMap);
     }
 
-    public void removeAllChangeListeners() {
-        checkForAddRemoveListener(null, false);
-        osMap.removeAllListeners();
-    }
-
-    private void checkForAddRemoveListener(@Nullable Object listener, boolean checkListener) {
-        if (checkListener && listener == null) {
-            throw new IllegalArgumentException("Listener should not be null");
-        }
-        baseRealm.checkIfValid();
-        baseRealm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+    public void stopListening() {
+        osMap.stopListening();
     }
 
     private <T> RealmResults<T> produceResults(Pair<Table, Long> tableAndValuesPtr,
@@ -403,7 +452,7 @@ class GenericPrimitiveValueOperator<K, V> extends MapValueOperator<K, V> {
 
     @Nullable
     @Override
-    public V put(Object key, @Nullable V value) {
+    public V put(K key, @Nullable V value) {
         V original = get(key);
         osMap.put(key, value);
         return original;
@@ -512,7 +561,7 @@ class RealmModelValueOperator<K, V> extends MapValueOperator<K, V> {
 
     @Nullable
     @Override
-    public V put(Object key, @Nullable V value) {
+    public V put(K key, @Nullable V value) {
         //noinspection unchecked
         Class<V> clazz = (Class<V>) classContainer.getClazz();
         String className = classContainer.getClassName();

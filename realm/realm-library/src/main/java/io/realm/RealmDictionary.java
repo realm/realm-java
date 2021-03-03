@@ -109,7 +109,7 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         if (isClassForRealmModel(valueClass)) {
             ClassContainer classContainer = new ClassContainer(valueClass, null);
             RealmModelValueOperator<String, RealmModel> realmModelValueOperator = new RealmModelValueOperator<>(baseRealm, osMap, classContainer);
-            ManagedMapManager<String, RealmModel> dictionaryManager = new DictionaryManager<>(realmModelValueOperator, classContainer);
+            ManagedMapManager<String, RealmModel> dictionaryManager = new DictionaryManager<>(baseRealm, realmModelValueOperator, classContainer);
 
             //noinspection unchecked
             return (ManagedMapStrategy<String, V>) new ManagedMapStrategy<>(dictionaryManager);
@@ -162,7 +162,9 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         }
 
         //noinspection unchecked
-        return new DictionaryManager<>((MapValueOperator<String, V>) mapValueOperator, classContainer);
+        return new DictionaryManager<>(baseRealm,
+                (MapValueOperator<String, V>) mapValueOperator,
+                classContainer);
     }
 
     private static <K, V> DictionaryManager<V> getManager(String valueClass, BaseRealm baseRealm, OsMap osMap) {
@@ -203,7 +205,9 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         }
 
         //noinspection unchecked
-        return new DictionaryManager<>((MapValueOperator<String, V>) mapValueOperator, classContainer);
+        return new DictionaryManager<>(baseRealm,
+                (MapValueOperator<String, V>) mapValueOperator,
+                classContainer);
     }
 
     private static boolean isClassForRealmModel(Class<?> clazz) {
