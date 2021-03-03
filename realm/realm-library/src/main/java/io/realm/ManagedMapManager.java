@@ -335,6 +335,9 @@ class MixedValueOperator<K> extends MapValueOperator<K, Mixed> {
 
     @Override
     public boolean containsValue(@Nullable Object value) {
+        if (value == null) {
+            return false;
+        }
         if (value instanceof Mixed) {
             return osMap.containsMixedValue(((Mixed) value).getNativePtr());
         }

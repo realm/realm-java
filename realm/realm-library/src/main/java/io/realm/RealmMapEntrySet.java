@@ -47,8 +47,8 @@ import io.realm.internal.util.Pair;
 class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     public enum IteratorType {
-        LONG, BYTE, SHORT, INTEGER, FLOAT, DOUBLE, STRING, BOOLEAN, DATE, DECIMAL128, BOXED_BINARY,
-        BINARY, OBJECT_ID, UUID, MIXED, OBJECT
+        LONG, BYTE, SHORT, INTEGER, FLOAT, DOUBLE, STRING, BOOLEAN, DATE, DECIMAL128, BINARY,
+        OBJECT_ID, UUID, MIXED, OBJECT
     }
 
     private final BaseRealm baseRealm;
@@ -248,9 +248,6 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
             case DECIMAL128:
                 //noinspection unchecked
                 return (EntrySetIterator<K, V>) new Decimal128ValueIterator<>(osMap, baseRealm);
-            case BOXED_BINARY:
-                //noinspection unchecked
-                return (EntrySetIterator<K, V>) new BoxedBinaryValueIterator<>(osMap, baseRealm);
             case BINARY:
                 //noinspection unchecked
                 return (EntrySetIterator<K, V>) new BinaryValueIterator<>(osMap, baseRealm);
@@ -483,24 +480,6 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
         }
     }
 
-    private static class BoxedBinaryValueIterator<K> extends EntrySetIterator<K, Byte[]> {
-
-        public BoxedBinaryValueIterator(OsMap osMap, BaseRealm baseRealm) {
-            super(osMap, baseRealm);
-        }
-
-        @Override
-        protected Map.Entry<K, Byte[]> getEntryInternal(int position) {
-            Pair<K, Object> pair = osMap.getEntryForPrimitive(position);
-            if (pair.second == null) {
-                return new AbstractMap.SimpleImmutableEntry<>(pair.first, null);
-            }
-
-            Byte[] bytes = TypeUtils.convertPrimitiveBinaryToNonPrimitive((byte[]) pair.second);
-            return new AbstractMap.SimpleImmutableEntry<>(pair.first, bytes);
-        }
-    }
-
     private static class BinaryValueIterator<K> extends EntrySetIterator<K, byte[]> {
 
         public BinaryValueIterator(OsMap osMap, BaseRealm baseRealm) {
@@ -628,22 +607,5 @@ class BinaryEquals<K> extends EqualsHelper<K, byte[]> {
     @Override
     protected boolean compareInternal(@Nullable byte[] value, @Nullable byte[] otherValue) {
         return Arrays.equals(value, otherValue);
-    }
-}
-
-class BoxedBinaryEquals<K> extends EqualsHelper<K, Byte[]> {
-    @Override
-    protected boolean compareInternal(@Nullable Byte[] value, @Nullable Byte[] otherValue) {
-        if (value == null) {
-            return otherValue == null;
-        } else {
-            if (otherValue == null) {
-                return false;
-            } else {
-                byte[] bytes = TypeUtils.convertNonPrimitiveBinaryToPrimitive(value);
-                byte[] otherBytes = TypeUtils.convertNonPrimitiveBinaryToPrimitive(otherValue);
-                return Arrays.equals(bytes, otherBytes);
-            }
-        }
     }
 }
