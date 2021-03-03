@@ -160,6 +160,10 @@ public class NativeMixed implements NativeObject {
         return nativeGetRealmModelRowKey(nativePtr);
     }
 
+    public boolean coercedEquals(NativeMixed nativeMixed){
+        return nativeEquals(nativePtr, nativeMixed.nativePtr);
+    }
+
     private static native long nativeCreateMixedNull();
 
     private static native long nativeCreateMixedBoolean(boolean value);
@@ -209,6 +213,8 @@ public class NativeMixed implements NativeObject {
     private static native String nativeGetRealmModelTableName(long nativePtr, long sharedRealmPtr);
 
     private static native long nativeGetRealmModelRowKey(long nativePtr);
+
+    private static native boolean nativeEquals(long nativePtr, long nativeOtherPtr);
 
     private static native long nativeGetFinalizerPtr();
 }

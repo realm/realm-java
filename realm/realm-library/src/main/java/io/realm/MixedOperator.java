@@ -99,6 +99,10 @@ public abstract class MixedOperator {
     abstract MixedType getType();
 
     abstract Class<?> getTypedClass();
+
+    boolean coercedEquals(MixedOperator mixedOperator){
+        return getNativeMixed().coercedEquals(mixedOperator.getNativeMixed());
+    }
 }
 
 abstract class PrimitiveMixedOperator extends MixedOperator {
