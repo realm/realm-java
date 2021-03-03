@@ -407,6 +407,7 @@ class MixedValueOperator<K> extends MapValueOperator<K, Mixed> {
 
     @Override
     public boolean containsValue(@Nullable Object value) {
+        // Mixed dictionaries store null values as Mixed.nullValue()
         if (value == null) {
             return false;
         }
