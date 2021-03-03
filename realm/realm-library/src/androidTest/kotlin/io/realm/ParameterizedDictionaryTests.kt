@@ -18,8 +18,6 @@ package io.realm
 
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.DogPrimaryKey
-import io.realm.rule.BlockingLooperThread
-import io.realm.rule.RunTestInLooperThread
 import io.realm.rule.TestRealmConfigurationFactory
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
@@ -56,8 +54,7 @@ class ParameterizedDictionaryTests(
         fun testTypes(): List<DictionaryTester> {
             return DictionaryMode.values().map { type ->
                 when (type) {
-                    DictionaryMode.UNMANAGED -> listOf()
-//                    DictionaryMode.UNMANAGED -> unmanagedFactory()
+                    DictionaryMode.UNMANAGED -> unmanagedFactory()
                     DictionaryMode.MANAGED -> managedFactory()
                 }
             }.flatten()
@@ -79,114 +76,114 @@ class ParameterizedDictionaryTests(
         tester.tearDown()
     }
 
-//    @Test
-//    fun constructorWithAnotherMap() {
-//        tester.constructorWithAnotherMap()
-//    }
-//
-//    @Test
-//    fun isManaged() {
-//        tester.isManaged()
-//    }
-//
-//    @Test
-//    fun isValid() {
-//        tester.isValid()
-//    }
-//
-//    @Test
-//    fun isFrozen() {
-//        tester.isFrozen()
-//    }
-//
-//    @Test
-//    fun size() {
-//        tester.size()
-//    }
-//
-//    @Test
-//    fun isEmpty() {
-//        tester.isEmpty()
-//    }
-//
-//    @Test
-//    fun containsKey() {
-//        tester.containsKey()
-//    }
-//
-//    @Test
-//    fun containsValue() {
-//        tester.containsValue()
-//    }
-//
-//    @Test
-//    fun get() {
-//        tester.get()
-//    }
-//
-//    @Test
-//    fun put() {
-//        tester.put()
-//    }
-//
-//    @Test
-//    fun putRequired() {
-//        tester.putRequired()
-//    }
-//
-//    @Test
-//    fun remove() {
-//        tester.remove()
-//    }
-//
-//    @Test
-//    fun putAll() {
-//        tester.putAll()
-//    }
-//
-//    @Test
-//    fun clear() {
-//        tester.clear()
-//    }
-//
-//    @Test
-//    fun keySet() {
-//        tester.keySet()
-//    }
-//
-//    @Test
-//    fun values() {
-//        tester.values()
-//    }
-//
-//    @Test
-//    fun entrySet() {
-//        tester.entrySet()
-//    }
-//
-//    @Test
-//    fun freeze() {
-//        tester.freeze()
-//    }
-//
-//    @Test
-//    fun copyToRealm() {
-//        tester.copyToRealm()
-//    }
-//
-//    @Test
-//    fun copyFromRealm() {
-//        tester.copyFromRealm()
-//    }
-//
-//    @Test
-//    fun fieldAccessors() {
-//        tester.fieldAccessors()
-//    }
+    @Test
+    fun constructorWithAnotherMap() {
+        tester.constructorWithAnotherMap()
+    }
+
+    @Test
+    fun isManaged() {
+        tester.isManaged()
+    }
+
+    @Test
+    fun isValid() {
+        tester.isValid()
+    }
+
+    @Test
+    fun isFrozen() {
+        tester.isFrozen()
+    }
+
+    @Test
+    fun size() {
+        tester.size()
+    }
+
+    @Test
+    fun isEmpty() {
+        tester.isEmpty()
+    }
+
+    @Test
+    fun containsKey() {
+        tester.containsKey()
+    }
+
+    @Test
+    fun containsValue() {
+        tester.containsValue()
+    }
+
+    @Test
+    fun get() {
+        tester.get()
+    }
+
+    @Test
+    fun put() {
+        tester.put()
+    }
+
+    @Test
+    fun putRequired() {
+        tester.putRequired()
+    }
+
+    @Test
+    fun remove() {
+        tester.remove()
+    }
+
+    @Test
+    fun putAll() {
+        tester.putAll()
+    }
+
+    @Test
+    fun clear() {
+        tester.clear()
+    }
+
+    @Test
+    fun keySet() {
+        tester.keySet()
+    }
+
+    @Test
+    fun values() {
+        tester.values()
+    }
+
+    @Test
+    fun entrySet() {
+        tester.entrySet()
+    }
+
+    @Test
+    fun freeze() {
+        tester.freeze()
+    }
+
+    @Test
+    fun copyToRealm() {
+        tester.copyToRealm()
+    }
+
+    @Test
+    fun copyFromRealm() {
+        tester.copyFromRealm()
+    }
+
+    @Test
+    fun fieldAccessors() {
+        tester.fieldAccessors()
+    }
 
     @Test
     fun addChangeListener() {
-        tester.addChangeListener()
+        tester.changeListener()
     }
 }
 

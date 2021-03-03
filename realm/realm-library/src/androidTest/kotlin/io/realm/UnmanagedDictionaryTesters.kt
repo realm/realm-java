@@ -211,7 +211,7 @@ class UnmanagedGenericTester<T : Any>(
     override fun copyToRealm() = Unit                                   // Not applicable
     override fun copyFromRealm() = Unit                                 // Not applicable
     override fun fieldAccessors() = Unit                                // Not applicable
-    override fun addChangeListener() = Unit                             // Not applicable
+    override fun changeListener() = Unit                             // Not applicable
 }
 
 /**

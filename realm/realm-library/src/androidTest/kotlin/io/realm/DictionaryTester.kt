@@ -44,5 +44,5 @@ interface DictionaryTester : GenericTester {
     fun copyToRealm()
     fun copyFromRealm()
     fun fieldAccessors()
-    fun addChangeListener()
+    fun changeListener()
 }

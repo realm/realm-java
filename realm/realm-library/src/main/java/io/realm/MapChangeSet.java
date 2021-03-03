@@ -22,7 +22,7 @@ import io.realm.internal.OsMapChangeSet;
  * TODO
  */
 public interface MapChangeSet<T> {
-    long getDeletionCount();
+    long getDeletionsCount();
     T[] getInsertions();
     T[] getModifications();
     boolean isEmpty();
@@ -42,8 +42,8 @@ class MapChangeSetImpl<T> implements MapChangeSet<T> {
     }
 
     @Override
-    public long getDeletionCount() {
-        return delegate.getDeletionCount();
+    public long getDeletionsCount() {
+        return delegate.getDeletionsCount();
     }
 
     @Override
@@ -74,7 +74,7 @@ class StringMapChangeSet implements MapChangeSet<String> {
     }
 
     @Override
-    public long getDeletionCount() {
+    public long getDeletionsCount() {
         return osMapChangeSet.getDeletionCount();
     }
 
