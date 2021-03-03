@@ -16,6 +16,10 @@ rootExt["sonatypeStagingProfileId"] = '78c19333e4450f'
 // Set properties either from a global properties file or environment parameters
 rootExt["signBuild"] = getPropertyValue('signBuild')
 rootExt["signing.password"] = getPropertyValue('signPassword')
-rootExt["signing.secretKeyRingFile"] = getPropertyValue('signSecretRingFile')
+// Apparently Gradle treats properties define through a gradle.properties file differently
+// than those defined through the commandline using `-P`. This is a problem with new
+// line characters as found in an ascii-armoured PGP file. To ensure work around this, all newlines
+// have been replaced with `#` and thus needs to be reverted here.
+rootExt["signing.secretKeyRingFile"] = getPropertyValue('signSecretRingFile').replaceAll('#','\n')
 rootExt["ossrhUsername"] = getPropertyValue('ossrhUsername')
 rootExt["ossrhPassword"] = getPropertyValue('ossrhPassword')
