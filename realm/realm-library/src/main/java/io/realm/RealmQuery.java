@@ -534,7 +534,7 @@ public class RealmQuery<E> {
             for (int i = 0; i < values.length; i++) {
                 mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            query.in(fieldName, mixedValues, TableQuery.TypeFilter.BINARY);
+            query.in(fieldName, mixedValues, TableQuery.TypeFilter.INTEGER);
         }
         return this;
     }

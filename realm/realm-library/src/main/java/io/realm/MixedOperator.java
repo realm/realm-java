@@ -74,6 +74,7 @@ public abstract class MixedOperator {
 
     @Nullable
     private NativeMixed nativeMixed;
+    private MixedType type;
 
     private synchronized NativeMixed getNativeMixed() {
         if (nativeMixed == null) { nativeMixed = createNativeMixed(); }
@@ -87,21 +88,52 @@ public abstract class MixedOperator {
 
     protected abstract NativeMixed createNativeMixed();
 
-    protected MixedOperator(NativeMixed nativeMixed) {
-        this.nativeMixed = nativeMixed;
+    protected MixedOperator(MixedType type) {
+        this.type = type;
     }
 
-    protected MixedOperator() {
+    protected MixedOperator(MixedType type, NativeMixed nativeMixed) {
+        this.type = type;
+        this.nativeMixed = nativeMixed;
     }
 
     abstract <T> T getValue(Class<T> clazz);
 
-    abstract MixedType getType();
+    MixedType getType(){
+        return this.type;
+    }
 
-    abstract Class<?> getTypedClass();
+    Class<?> getTypedClass() {
+        return type.getTypedClass();
+    }
 
     boolean coercedEquals(MixedOperator mixedOperator){
         return getNativeMixed().coercedEquals(mixedOperator.getNativeMixed());
+    }
+}
+
+final class NullMixedOperator extends MixedOperator {
+    NullMixedOperator() {
+        super(MixedType.NULL);
+    }
+
+    NullMixedOperator(NativeMixed nativeMixed) {
+        super(MixedType.NULL, nativeMixed);
+    }
+
+    @Override
+    protected NativeMixed createNativeMixed() {
+        return new NativeMixed();
+    }
+
+    @Override
+    public <T> T getValue(Class<T> clazz) {
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return "null";
     }
 }
 
@@ -109,33 +141,19 @@ abstract class PrimitiveMixedOperator extends MixedOperator {
     @Nullable
     private final Object value;
 
-    private final MixedType type;
-
     PrimitiveMixedOperator(@Nullable Object value, @Nonnull MixedType type) {
+        super(type);
         this.value = value;
-        this.type = type;
     }
 
     PrimitiveMixedOperator(@Nullable Object value, @Nonnull MixedType type, @Nonnull NativeMixed nativeMixed) {
-        super(nativeMixed);
-
+        super(type, nativeMixed);
         this.value = value;
-        this.type = type;
     }
 
     @Override
     <T> T getValue(Class<T> clazz) {
         return clazz.cast(value);
-    }
-
-    @Override
-    MixedType getType() {
-        return type;
-    }
-
-    @Override
-    Class<?> getTypedClass() {
-        return type.getTypedClass();
     }
 
     @Override
@@ -149,6 +167,11 @@ abstract class PrimitiveMixedOperator extends MixedOperator {
 
         PrimitiveMixedOperator otherOperator = (PrimitiveMixedOperator) other;
         return (this.value == null) ? (otherOperator.value == null) : this.value.equals(otherOperator.value);
+    }
+
+    @Override
+    public String toString() {
+        return this.value.toString();
     }
 }
 
@@ -330,26 +353,6 @@ final class UUIDMixedOperator extends PrimitiveMixedOperator {
     }
 }
 
-final class NullMixedOperator extends PrimitiveMixedOperator {
-    NullMixedOperator() {
-        super(null, MixedType.NULL);
-    }
-
-    NullMixedOperator(NativeMixed nativeMixed) {
-        super(null, MixedType.NULL, nativeMixed);
-    }
-
-    @Override
-    protected NativeMixed createNativeMixed() {
-        return new NativeMixed();
-    }
-
-    @Override
-    public <T> T getValue(Class<T> clazz) {
-        return null;
-    }
-}
-
 class RealmModelOperator extends MixedOperator {
     private static <T extends RealmModel> Class<T> getModelClass(BaseRealm realm, NativeMixed nativeMixed) {
         OsSharedRealm sharedRealm = realm
@@ -372,12 +375,13 @@ class RealmModelOperator extends MixedOperator {
     private final RealmModel value;
 
     RealmModelOperator(RealmModel realmModel) {
+        super(MixedType.OBJECT);
         this.value = realmModel;
         this.clazz = realmModel.getClass();
     }
 
     <T extends RealmModel> RealmModelOperator(BaseRealm realm, NativeMixed nativeMixed) {
-        super(nativeMixed);
+        super(MixedType.OBJECT, nativeMixed);
 
         Class<T> clazz = getModelClass(realm, nativeMixed);
         this.clazz = clazz;
@@ -396,11 +400,6 @@ class RealmModelOperator extends MixedOperator {
     }
 
     @Override
-    MixedType getType() {
-        return MixedType.OBJECT;
-    }
-
-    @Override
     Class<?> getTypedClass() {
         return clazz;
     }
@@ -416,6 +415,11 @@ class RealmModelOperator extends MixedOperator {
 
         RealmModelOperator otherOperator = (RealmModelOperator) other;
         return (this.value == null) ? (otherOperator.value == null) : this.value.equals(otherOperator.value);
+    }
+
+    @Override
+    public String toString() {
+        return this.value.toString();
     }
 }
 

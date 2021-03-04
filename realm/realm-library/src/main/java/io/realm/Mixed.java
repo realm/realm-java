@@ -485,4 +485,9 @@ public class Mixed {
         if (other == null) { return false; }
         return this.operator.coercedEquals(other.operator);
     }
+
+    @Override
+    public String toString() {
+        return this.operator.toString();
+    }
 }

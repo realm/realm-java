@@ -369,13 +369,13 @@ public class TableQuery implements NativeObject {
 
     // isNull and isNotNull
     public TableQuery isNull(String fieldName) {
-        rawPredicateWithPointers(fieldName + " = NULL AND " + fieldName + ".@type = 'null'");
+        rawPredicateWithPointers(fieldName + " = NULL");
         queryValidated = false;
         return this;
     }
 
     public TableQuery isNotNull(String fieldName) {
-        rawPredicateWithPointers(fieldName + " != NULL AND " + fieldName + ".@type = 'null'");
+        rawPredicateWithPointers(fieldName + " != NULL");
         queryValidated = false;
         return this;
     }
