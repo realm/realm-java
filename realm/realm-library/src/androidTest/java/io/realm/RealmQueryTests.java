@@ -73,7 +73,6 @@ import static org.junit.Assert.fail;
 
 
 @RunWith(AndroidJUnit4.class)
-@Ignore("FIXME: See https://github.com/realm/realm-java/issues/7330")
 public class RealmQueryTests extends QueryTests {
     private void populateTestRealm(Realm testRealm, int dataSize) {
         testRealm.beginTransaction();

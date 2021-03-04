@@ -50,7 +50,6 @@ import static junit.framework.Assert.fail;
 
 
 @RunWith(AndroidJUnit4.class)
-@Ignore("FIXME: See https://github.com/realm/realm-java/issues/7330")
 public class OsResultsTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
@@ -192,8 +191,8 @@ public class OsResultsTests {
     @Test
     public void where() {
         OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
-        OsResults osResults2 = OsResults.createFromQuery(sharedRealm, osResults.where().equalTo("firstName", Mixed.valueOf("John"), TableQuery.TypeFilter.STRING));
-        OsResults osResults3 = OsResults.createFromQuery(sharedRealm, osResults2.where().equalTo("lastName",  Mixed.valueOf("Anderson"), TableQuery.TypeFilter.STRING));
+        OsResults osResults2 = OsResults.createFromQuery(sharedRealm, osResults.where().equalTo("firstName", Mixed.valueOf("John")));
+        OsResults osResults3 = OsResults.createFromQuery(sharedRealm, osResults2.where().equalTo("lastName",  Mixed.valueOf("Anderson")));
 
         // A new native Results should be created.
         assertTrue(osResults.getNativePtr() != osResults2.getNativePtr());
@@ -206,7 +205,7 @@ public class OsResultsTests {
 
     @Test
     public void sort() {
-        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().greaterThan("age", Mixed.valueOf(1), TableQuery.TypeFilter.INTEGER));
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().greaterThan("age", Mixed.valueOf(1)));
 
         OsResults osResults2 = osResults.sort("age", Sort.ASCENDING);
 
@@ -245,7 +244,7 @@ public class OsResultsTests {
 
     @Test
     public void distinct() {
-        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().lessThan("age", Mixed.valueOf(4), TableQuery.TypeFilter.INTEGER));
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().lessThan("age", Mixed.valueOf(4)));
 
         OsResults osResults2 = osResults.distinct(new String[]{"age"});
 
