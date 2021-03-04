@@ -48,9 +48,8 @@ class ManagedDictionaryTester<T : Any>(
         private val typeAsserter: TypeAsserter<T> = TypeAsserter()
 ) : DictionaryTester {
 
-    private val looperThread = BlockingLooperThread()
-
     private lateinit var config: RealmConfiguration
+    private lateinit var looperThread: BlockingLooperThread
     private lateinit var realm: Realm
 
     override fun toString(): String = when (mixedType) {
@@ -58,25 +57,19 @@ class ManagedDictionaryTester<T : Any>(
         else -> "Managed-${testerClass.simpleName}" + mixedType.name.let { "-$it" }
     }
 
-    override fun setUp(config: RealmConfiguration) {
+    override fun setUp(config: RealmConfiguration, looperThread: BlockingLooperThread) {
         this.config = config
+        this.looperThread = looperThread
         this.realm = Realm.getInstance(config)
     }
 
-    override fun tearDown() {
-        realm.close()
-    }
+    override fun tearDown() = realm.close()
 
-    // Not applicable in managed mode
-    override fun constructorWithAnotherMap() = Unit
+    override fun constructorWithAnotherMap() = Unit             // Not applicable in managed mode
 
-    override fun isManaged() {
-        assertTrue(initAndAssert().isManaged)
-    }
+    override fun isManaged() = assertTrue(initAndAssert().isManaged)
 
-    override fun isValid() {
-        assertTrue(initAndAssert().isValid)
-    }
+    override fun isValid() = assertTrue(initAndAssert().isValid)
 
     override fun isFrozen() {
         val dictionary = initAndAssert()
@@ -158,9 +151,7 @@ class ManagedDictionaryTester<T : Any>(
         }
     }
 
-    override fun put() {
-        putInternal(initializedDictionary, alternativeDictionary)
-    }
+    override fun put() = putInternal(initializedDictionary, alternativeDictionary)
 
     override fun putRequired() {
         // RealmModel and Mixed dictionaries are ignored since they cannot be marked with "@Required"
@@ -349,8 +340,7 @@ class ManagedDictionaryTester<T : Any>(
         }
     }
 
-    // This has already been tested in "isFrozen"
-    override fun freeze() = Unit
+    override fun freeze() = Unit                    // This has already been tested in "isFrozen"
 
     override fun copyToRealm() {
         // Instantiate container and set dictionary on container
@@ -403,7 +393,7 @@ class ManagedDictionaryTester<T : Any>(
         }
     }
 
-    override fun changeListener() {
+    override fun addMapChangeListener() {
         looperThread.runBlocking {
             val looperThreadRealm = Realm.getInstance(config)
 
@@ -414,55 +404,16 @@ class ManagedDictionaryTester<T : Any>(
             var operation = ChangeListenerOperation.UNDEFINED
 
             dictionary.addChangeListener { map, changes ->
-                when (operation) {
-                    ChangeListenerOperation.INSERT -> {
-                        // Check dictionary
-                        initializedDictionary.forEach { key, value ->
-                            typeAsserter.assertContainsValueHelper(
-                                    looperThreadRealm,
-                                    key,
-                                    map[key],
-                                    initializedDictionary,
-                                    map as RealmDictionary<T>
-                            )
-                            assertTrue(map.containsKey(key))
-
-                            // Check insertions changeset contains keys
-                            assertTrue(changes.insertions.contains(key))
-                        }
-                    }
-                    ChangeListenerOperation.UPDATE -> {
-                        typeAsserter.assertEqualsHelper(
-                                looperThreadRealm,
-                                initializedDictionary[KEY_BYE],
-                                map[KEY_HELLO]
-                        )
-
-                        // TODO: there is a bug in changeset for RealmModels where an unexpected,
-                        //  extra modification pops up in the array
-                        if (testerClass == DogPrimaryKey::class.java) {
-                            return@addChangeListener
-                        }
-
-                        // Check modifications changeset contains modified key
-                        assertEquals(1, changes.modifications.size)
-                        assertTrue(changes.modifications.contains(KEY_HELLO))
-                    }
-                    ChangeListenerOperation.DELETE -> {
-                        // Dictionary has been cleared
-                        assertTrue(map.isEmpty())
-                        assertEquals(0, map.size)
-
-                        // Check deletions changeset size matches deleted elements
-                        assertEquals(initializedDictionary.size, changes.deletionsCount.toInt())
-
-                        // Housekeeping and bye
-                        looperThreadRealm.close()
-                        looperThread.testComplete()
-                    }
-                    ChangeListenerOperation.UNDEFINED ->
-                        throw IllegalArgumentException("Operation cannot be default")
-                }
+                typeAsserter.assertChangeListenerUpdates(
+                        testerClass,
+                        operation,
+                        looperThread,
+                        looperThreadRealm,
+                        dictionary,
+                        initializedDictionary,
+                        map,
+                        changes
+                )
             }
 
             // Insert objects in dictionary
@@ -482,6 +433,77 @@ class ManagedDictionaryTester<T : Any>(
                 operation = ChangeListenerOperation.DELETE
                 dictionary.clear()
             }
+        }
+    }
+
+    override fun addRealmChangeListener() {
+        looperThread.runBlocking {
+            val looperThreadRealm = Realm.getInstance(config)
+
+            // Get dictionary
+            val dictionary = initAndAssert(looperThreadRealm)
+
+            // Define operation we perform on the dictionary
+            var operation = ChangeListenerOperation.UNDEFINED
+
+            dictionary.addChangeListener { map ->
+                typeAsserter.assertChangeListenerUpdates(
+                        testerClass,
+                        operation,
+                        looperThread,
+                        looperThreadRealm,
+                        dictionary,
+                        initializedDictionary,
+                        map
+                )
+            }
+
+            // Insert objects in dictionary
+            looperThreadRealm.executeTransaction {
+                operation = ChangeListenerOperation.INSERT
+                dictionary.putAll(initializedDictionary)
+            }
+
+            // Update object
+            looperThreadRealm.executeTransaction {
+                operation = ChangeListenerOperation.UPDATE
+                dictionary[KEY_HELLO] = alternativeDictionary[KEY_HELLO]
+            }
+
+            // Clear dictionary
+            looperThreadRealm.executeTransaction {
+                operation = ChangeListenerOperation.DELETE
+                dictionary.clear()
+            }
+        }
+    }
+
+    override fun hasListeners() {
+        val looperThread = BlockingLooperThread()
+        looperThread.runBlocking {
+            val looperThreadRealm = Realm.getInstance(config)
+
+            // Check for RealmChangeListener
+            val dictionary = initAndAssert(looperThreadRealm)
+            assertFalse(dictionary.hasListeners())
+
+            dictionary.addChangeListener { _ -> /* no-op */ }
+
+            assertTrue(dictionary.hasListeners())
+
+            // Check for MapChangeListener
+            val anotherDictionary = initAndAssert(looperThreadRealm)
+            assertFalse(anotherDictionary.hasListeners())
+
+            anotherDictionary.addChangeListener { _, _ -> /* no-op */ }
+
+            assertTrue(anotherDictionary.hasListeners())
+
+            // Housekeeping and bye-bye
+            dictionary.removeAllChangeListeners()
+            anotherDictionary.removeAllChangeListeners()
+            looperThreadRealm.close()
+            looperThread.testComplete()
         }
     }
 
@@ -545,7 +567,7 @@ class ManagedDictionaryTester<T : Any>(
     }
 }
 
-private enum class ChangeListenerOperation {
+enum class ChangeListenerOperation {
     UNDEFINED, INSERT, UPDATE, DELETE
 }
 
@@ -745,6 +767,72 @@ open class TypeAsserter<T> {
     // ByteArray, RealmModel and Mixed require different testing here
     open fun assertEqualsHelper(realm: Realm, value: T?, valueFromRealm: T?) =
             assertEquals(value, valueFromRealm)
+
+    fun assertChangeListenerUpdates(
+            testerClass: Class<T>,      // TODO: remove after bug in changeset is fixed
+            operation: ChangeListenerOperation,
+            looperThread: BlockingLooperThread,
+            looperThreadRealm: Realm,
+            managedDictionary: RealmDictionary<T>,
+            initializedDictionary: RealmDictionary<T>,
+            mapFromChangeListener: RealmMap<String, T>,
+            changes: MapChangeSet<String>? = null
+    ) {
+        when (operation) {
+            ChangeListenerOperation.INSERT -> {
+                // Check dictionary
+                initializedDictionary.forEach { key, _ ->
+                    assertContainsValueHelper(
+                            looperThreadRealm,
+                            key,
+                            mapFromChangeListener[key],
+                            initializedDictionary,
+                            mapFromChangeListener as RealmDictionary<T>
+                    )
+                    assertTrue(mapFromChangeListener.containsKey(key))
+
+                    if (changes != null) {
+                        // Check insertions changeset contains keys
+                        assertTrue(changes.insertions.contains(key))
+                    }
+                }
+            }
+            ChangeListenerOperation.UPDATE -> {
+                assertEqualsHelper(
+                        looperThreadRealm,
+                        initializedDictionary[KEY_BYE],
+                        mapFromChangeListener[KEY_HELLO]
+                )
+
+                // TODO: there is a bug in changeset for RealmModels where an unexpected,
+                //  extra modification pops up in the array
+                if (testerClass == DogPrimaryKey::class.java) {
+                    return
+                }
+
+                if (changes != null) {
+                    assertEquals(1, changes.modifications.size)
+                }
+            }
+            ChangeListenerOperation.DELETE -> {
+                // Dictionary has been cleared
+                assertTrue(mapFromChangeListener.isEmpty())
+                assertEquals(0, mapFromChangeListener.size)
+
+                if (changes != null) {
+                    // Check deletions changeset size matches deleted elements
+                    assertEquals(initializedDictionary.size, changes.deletionsCount.toInt())
+                }
+
+                // Housekeeping and bye-bye
+                managedDictionary.removeAllChangeListeners()
+                looperThreadRealm.close()
+                looperThread.testComplete()
+            }
+            ChangeListenerOperation.UNDEFINED ->
+                throw IllegalArgumentException("Operation cannot be default")
+        }
+    }
 }
 
 class BinaryAsserter : TypeAsserter<ByteArray>() {

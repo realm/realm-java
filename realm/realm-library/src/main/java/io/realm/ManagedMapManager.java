@@ -157,7 +157,7 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
         mapObserverPairs.add(mapObserverPair);
     }
 
-    public void addChangeListener(RealmMap<K, V> realmMap, RealmChangeListener<V> listener) {
+    public void addChangeListener(RealmMap<K, V> realmMap, RealmChangeListener<RealmMap<K, V>> listener) {
         addChangeListener(realmMap, new RealmChangeListenerWrapper<>(listener));
     }
 
@@ -168,7 +168,7 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
         }
     }
 
-    public void removeListener(RealmMap<K, V> realmMap, RealmChangeListener<V> listener) {
+    public void removeListener(RealmMap<K, V> realmMap, RealmChangeListener<RealmMap<K, V>> listener) {
         removeListener(realmMap, new RealmChangeListenerWrapper<>(listener));
     }
 
@@ -176,6 +176,10 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
         checkForAddRemoveListener(null, false);
         mapObserverPairs.clear();
         mapValueOperator.stopListening();
+    }
+
+    public boolean hasListeners() {
+        return !mapObserverPairs.isEmpty();
     }
 
     private void checkForAddRemoveListener(@Nullable Object listener, boolean checkListener) {

@@ -22,7 +22,8 @@ package io.realm;
  * to receive a notification about updates.
  * <p>
  * When registered against a {@code Realm} you'll get notified when a Realm instance has been updated.
- * Register against a {@code RealmResults} or {@code RealmObject} to only get notified about changes to them.
+ * Register against a {@code RealmResults}, {@code RealmList}, {@code RealmDictionary} or {@code RealmObject} to only
+ * get notified about changes to them.
  * <p>
  * Realm instances on a thread without an {@link android.os.Looper} cannot register a RealmChangeListener.
  * <p>

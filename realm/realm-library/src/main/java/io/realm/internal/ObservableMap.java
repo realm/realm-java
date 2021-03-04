@@ -53,16 +53,15 @@ public interface ObservableMap {
      * @param <V>
      */
     class RealmChangeListenerWrapper<K, V> implements MapChangeListener<K, V> {
-        private final RealmChangeListener<V> listener;
+        private final RealmChangeListener<RealmMap<K, V>> listener;
 
-        public RealmChangeListenerWrapper(RealmChangeListener<V> listener) {
+        public RealmChangeListenerWrapper(RealmChangeListener<RealmMap<K, V>> listener) {
             this.listener = listener;
         }
 
         @Override
         public void onChange(RealmMap<K, V> map, @Nullable MapChangeSet<K> changes) {
-            //noinspection unchecked
-            listener.onChange((V) map);
+            listener.onChange(map);
         }
 
         @Override
@@ -77,6 +76,37 @@ public interface ObservableMap {
             return listener.hashCode();
         }
     }
+
+//    /**
+//     * TODO
+//     *
+//     * @param <V>
+//     */
+//    class RealmChangeListenerWrapper<K, V> implements MapChangeListener<K, V> {
+//        private final RealmChangeListener<V> listener;
+//
+//        public RealmChangeListenerWrapper(RealmChangeListener<V> listener) {
+//            this.listener = listener;
+//        }
+//
+//        @Override
+//        public void onChange(RealmMap<K, V> map, @Nullable MapChangeSet<K> changes) {
+//            //noinspection unchecked
+//            listener.onChange((V) map);
+//        }
+//
+//        @Override
+//        public boolean equals(Object o) {
+//            //noinspection unchecked
+//            return o instanceof RealmChangeListenerWrapper &&
+//                    listener == ((RealmChangeListenerWrapper<K, V>) o).listener;
+//        }
+//
+//        @Override
+//        public int hashCode() {
+//            return listener.hashCode();
+//        }
+//    }
 
     /**
      * TODO

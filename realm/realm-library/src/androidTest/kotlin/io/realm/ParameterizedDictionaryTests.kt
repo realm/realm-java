@@ -18,6 +18,7 @@ package io.realm
 
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.DogPrimaryKey
+import io.realm.rule.BlockingLooperThread
 import io.realm.rule.TestRealmConfigurationFactory
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
@@ -65,10 +66,12 @@ class ParameterizedDictionaryTests(
     @JvmField
     val configFactory = TestRealmConfigurationFactory()
 
+    private val looperThread = BlockingLooperThread()
+
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().context)
-        tester.setUp(configFactory.createConfiguration())
+        tester.setUp(configFactory.createConfiguration(), looperThread)
     }
 
     @After
@@ -182,8 +185,18 @@ class ParameterizedDictionaryTests(
     }
 
     @Test
-    fun addChangeListener() {
-        tester.changeListener()
+    fun addRealmChangeListener() {
+        tester.addRealmChangeListener()
+    }
+
+    @Test
+    fun addMapChangeListener() {
+        tester.addMapChangeListener()
+    }
+
+    @Test
+    fun hasListeners() {
+        tester.hasListeners()
     }
 }
 

@@ -16,13 +16,14 @@
 
 package io.realm
 
+import io.realm.rule.BlockingLooperThread
 import io.realm.rule.TestRealmConfigurationFactory
 
 /**
  * Generic tester for parameterized tests. Includes two types of `setUp` functions.
  */
 interface GenericTester {
-    fun setUp(config: RealmConfiguration)
+    fun setUp(config: RealmConfiguration, looperThread: BlockingLooperThread)
     fun setUp(configFactory: TestRealmConfigurationFactory)
     fun tearDown()
 }
