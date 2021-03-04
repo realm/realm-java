@@ -295,10 +295,25 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable String value, Case casing) {
         realm.checkIfValid();
+        equalTo(fieldName, Mixed.valueOf(value), casing);
+        return this;
+    }
+
+    /**
+     * Equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to compare with.
+     * @param casing    how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> equalTo(String fieldName, Mixed value, Case casing) {
+        realm.checkIfValid();
         if (casing == Case.SENSITIVE) {
-            this.query.equalTo(fieldName, Mixed.valueOf(value));
+            this.query.equalTo(fieldName, value);
         } else {
-            this.query.equalToInsensitive(fieldName, Mixed.valueOf(value));
+            this.query.equalToInsensitive(fieldName, value);
         }
         return this;
     }
@@ -469,6 +484,20 @@ public class RealmQuery<E> {
     public RealmQuery<E> equalTo(String fieldName, @Nullable Date value) {
         realm.checkIfValid();
         this.query.equalTo(fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> equalTo(String fieldName, Mixed value) {
+        realm.checkIfValid();
+        this.query.equalTo(fieldName, value);
         return this;
     }
 
@@ -711,6 +740,31 @@ public class RealmQuery<E> {
     }
 
     /**
+     * In comparison. This allows you to test if objects match any value in an array of values.
+     *
+     * @param fieldName the field to compare.
+     * @param values    array of values to compare with. If {@code null} or the empty array is provided the query will never
+     *                  match any results.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field isn't a Date field.
+     */
+    public RealmQuery<E> in(String fieldName, Mixed[] values) {
+        realm.checkIfValid();
+
+        if ((values == null) || (values.length == 0)) {
+            alwaysFalse();
+        } else {
+            // Transform null values into Mixed null values.
+            Mixed[] mixedValues = new Mixed[values.length];
+            for (int i = 0; i < values.length; i++) {
+                mixedValues[i] = (values[i] == null) ? Mixed.nullValue() : values[i];
+            }
+            query.in(fieldName, mixedValues);
+        }
+        return this;
+    }
+
+    /**
      * Not-equal-to comparison.
      *
      * @param fieldName the field to compare.
@@ -733,10 +787,25 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable String value, Case casing) {
         realm.checkIfValid();
+        notEqualTo(fieldName, Mixed.valueOf(value), casing);
+        return this;
+    }
+
+    /**
+     * Not-equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to compare with.
+     * @param casing    how casing is handled. {@link Case#INSENSITIVE} works only for the Latin-1 characters.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> notEqualTo(String fieldName, Mixed value, Case casing) {
+        realm.checkIfValid();
         if (casing == Case.SENSITIVE) {
-            this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+            this.query.notEqualTo(fieldName, value);
         } else {
-            this.query.notEqualToInsensitive(fieldName, Mixed.valueOf(value));
+            this.query.notEqualToInsensitive(fieldName, value);
         }
         return this;
     }
@@ -780,6 +849,20 @@ public class RealmQuery<E> {
     public RealmQuery<E> notEqualTo(String fieldName, UUID value) {
         realm.checkIfValid();
         this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Not-equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> notEqualTo(String fieldName, Mixed value) {
+        realm.checkIfValid();
+        this.notEqualTo(fieldName, value, Case.SENSITIVE);
         return this;
     }
 
@@ -987,6 +1070,20 @@ public class RealmQuery<E> {
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
+    public RealmQuery<E> greaterThan(String fieldName, Mixed value) {
+        realm.checkIfValid();
+        this.query.greaterThan(fieldName, value);
+        return this;
+    }
+
+    /**
+     * Greater-than comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
     public RealmQuery<E> greaterThan(String fieldName, Decimal128 value) {
         realm.checkIfValid();
         this.query.greaterThan(fieldName, Mixed.valueOf(value));
@@ -1134,6 +1231,20 @@ public class RealmQuery<E> {
     }
 
     /**
+     * Greater-than-or-equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> greaterThanOrEqualTo(String fieldName, Mixed value) {
+        realm.checkIfValid();
+        this.query.greaterThanOrEqual(fieldName, value);
+        return this;
+    }
+
+    /**
      * Less-than comparison.
      *
      * @param fieldName the field to compare.
@@ -1242,6 +1353,20 @@ public class RealmQuery<E> {
     public RealmQuery<E> lessThan(String fieldName, Date value) {
         realm.checkIfValid();
         this.query.lessThan(fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Less-than comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> lessThan(String fieldName, Mixed value) {
+        realm.checkIfValid();
+        this.query.lessThan(fieldName, value);
         return this;
     }
 
@@ -1358,6 +1483,20 @@ public class RealmQuery<E> {
     }
 
     /**
+     * Less-than-or-equal-to comparison.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to compare with.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> lessThanOrEqualTo(String fieldName, Mixed value) {
+        realm.checkIfValid();
+        this.query.lessThanOrEqual(fieldName, value);
+        return this;
+    }
+
+    /**
      * Between condition.
      *
      * @param fieldName the field to compare.
@@ -1441,6 +1580,21 @@ public class RealmQuery<E> {
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
+    public RealmQuery<E> between(String fieldName, Mixed from, Mixed to) {
+        realm.checkIfValid();
+        this.query.between(fieldName, from, to);
+        return this;
+    }
+
+    /**
+     * Between condition.
+     *
+     * @param fieldName the field to compare.
+     * @param from      lowest value (inclusive).
+     * @param to        highest value (inclusive).
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
     public RealmQuery<E> between(String fieldName, Decimal128 from, Decimal128 to) {
         realm.checkIfValid();
         this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
@@ -1464,16 +1618,43 @@ public class RealmQuery<E> {
      *
      * @param fieldName the field to compare.
      * @param value     the substring.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> contains(String fieldName, Mixed value) {
+        return contains(fieldName, value, Case.SENSITIVE);
+    }
+
+    /**
+     * Condition that value of field contains the specified substring.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the substring.
      * @param casing    how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
      * @return The query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> contains(String fieldName, String value, Case casing) {
         realm.checkIfValid();
+        contains(fieldName, Mixed.valueOf(value), casing);
+        return this;
+    }
+
+    /**
+     * Condition that value of field contains the specified substring.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the substring.
+     * @param casing    how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
+     * @return The query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> contains(String fieldName, Mixed value, Case casing) {
+        realm.checkIfValid();
         if (casing == Case.SENSITIVE) {
-            this.query.contains(fieldName, Mixed.valueOf(value));
+            this.query.contains(fieldName, value);
         } else {
-            this.query.containsInsensitive(fieldName, Mixed.valueOf(value));
+            this.query.containsInsensitive(fieldName, value);
         }
         return this;
     }
@@ -1491,6 +1672,18 @@ public class RealmQuery<E> {
     }
 
     /**
+     * Condition that the value of field begins with the specified string.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the string.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> beginsWith(String fieldName, Mixed value) {
+        return beginsWith(fieldName, value, Case.SENSITIVE);
+    }
+
+    /**
      * Condition that the value of field begins with the specified substring.
      *
      * @param fieldName the field to compare.
@@ -1501,10 +1694,25 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> beginsWith(String fieldName, String value, Case casing) {
         realm.checkIfValid();
+        beginsWith(fieldName, Mixed.valueOf(value), casing);
+        return this;
+    }
+
+    /**
+     * Condition that the value of field begins with the specified substring.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the substring.
+     * @param casing    how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
+     * @return the query object
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> beginsWith(String fieldName, Mixed value, Case casing) {
+        realm.checkIfValid();
         if (casing == Case.SENSITIVE) {
-            this.query.beginsWith(fieldName, Mixed.valueOf(value));
+            this.query.beginsWith(fieldName, value);
         } else {
-            this.query.beginsWithInsensitive(fieldName, Mixed.valueOf(value));
+            this.query.beginsWithInsensitive(fieldName, value);
         }
         return this;
     }
@@ -1522,6 +1730,18 @@ public class RealmQuery<E> {
     }
 
     /**
+     * Condition that the value of field ends with the specified string.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the string.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> endsWith(String fieldName, Mixed value) {
+        return endsWith(fieldName, value, Case.SENSITIVE);
+    }
+
+    /**
      * Condition that the value of field ends with the specified substring.
      *
      * @param fieldName the field to compare.
@@ -1532,10 +1752,25 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> endsWith(String fieldName, String value, Case casing) {
         realm.checkIfValid();
+        endsWith(fieldName, value, casing);
+        return this;
+    }
+
+    /**
+     * Condition that the value of field ends with the specified substring.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the substring.
+     * @param casing    how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> endsWith(String fieldName, Mixed value, Case casing) {
+        realm.checkIfValid();
         if (casing == Case.SENSITIVE) {
-            this.query.endsWith(fieldName, Mixed.valueOf(value));
+            this.query.endsWith(fieldName, value);
         } else {
-            this.query.endsWithInsensitive(fieldName, Mixed.valueOf(value));
+            this.query.endsWithInsensitive(fieldName, value);
         }
         return this;
     }
@@ -1565,20 +1800,54 @@ public class RealmQuery<E> {
      *
      * @param fieldName the field to compare.
      * @param value     the wildcard string.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> like(String fieldName, Mixed value) {
+        return like(fieldName, value, Case.SENSITIVE);
+    }
+
+    /**
+     * Condition that the value of field matches with the specified substring, with wildcards:
+     * <ul>
+     * <li>'*' matches [0, n] unicode chars</li>
+     * <li>'?' matches a single unicode char.</li>
+     * </ul>
+     *
+     * @param fieldName the field to compare.
+     * @param value     the wildcard string.
      * @param casing    how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> like(String fieldName, String value, Case casing) {
         realm.checkIfValid();
-        if (casing == Case.SENSITIVE) {
-            this.query.like(fieldName, Mixed.valueOf(value));
-        } else {
-            this.query.likeInsensitive(fieldName, Mixed.valueOf(value));
-        }
+        like(fieldName, value, casing);
         return this;
     }
 
+    /**
+     * Condition that the value of field matches with the specified substring, with wildcards:
+     * <ul>
+     * <li>'*' matches [0, n] unicode chars</li>
+     * <li>'?' matches a single unicode char.</li>
+     * </ul>
+     *
+     * @param fieldName the field to compare.
+     * @param value     the wildcard string.
+     * @param casing    how to handle casing. Setting this to {@link Case#INSENSITIVE} only works for Latin-1 characters.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
+     */
+    public RealmQuery<E> like(String fieldName, Mixed value, Case casing) {
+        realm.checkIfValid();
+        if (casing == Case.SENSITIVE) {
+            this.query.like(fieldName, value);
+        } else {
+            this.query.likeInsensitive(fieldName, value);
+        }
+        return this;
+    }
 
     /**
      * Begin grouping of conditions ("left parenthesis"). A group must be closed with a call to {@code endGroup()}.

@@ -652,7 +652,6 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
     }
 
     @Test
-    @Ignore("FIXME: Using mixed as parameters do not work yet.")
     fun mixed() {
         this.test.executeMixed(this)
     }
@@ -685,7 +684,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
             is ObjectId -> query.equalTo(MixedNotIndexed.FIELD_MIXED, value)
             is UUID -> query.equalTo(MixedNotIndexed.FIELD_MIXED, value)
             is Date -> query.equalTo(MixedNotIndexed.FIELD_MIXED, value)
-//            is Mixed -> query.equalTo(MixedNotIndexed.FIELD_MIXED, value)
+            is Mixed -> query.equalTo(MixedNotIndexed.FIELD_MIXED, value)
             else -> throw IllegalStateException("EqualTo for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -709,7 +708,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
             is ObjectId -> query.notEqualTo(MixedNotIndexed.FIELD_MIXED, value)
             is UUID -> query.notEqualTo(MixedNotIndexed.FIELD_MIXED, value)
             is Date -> query.notEqualTo(MixedNotIndexed.FIELD_MIXED, value)
-//            is Mixed -> query.notEqualTo(MixedNotIndexed.FIELD_MIXED, value)
+            is Mixed -> query.notEqualTo(MixedNotIndexed.FIELD_MIXED, value)
             else -> throw IllegalStateException("NotEqualTo for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -721,7 +720,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
 
         when (value) {
             is String -> query.equalTo(MixedNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
-//            is Mixed -> query.equalTo(MixedNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
+            is Mixed -> query.equalTo(MixedNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
             else -> throw IllegalStateException("EqualTo[c] for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -733,7 +732,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
 
         when (value) {
             is String -> query.notEqualTo(MixedNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
-//            is Mixed -> query.notEqualTo(MixedNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
+            is Mixed -> query.notEqualTo(MixedNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
             else -> throw IllegalStateException("NotEqualTo[c] for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -752,7 +751,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
             is ObjectId -> query.greaterThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, value)
             is UUID -> query.greaterThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, value)
             is Date -> query.greaterThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, value)
-//            is Mixed -> query.greaterThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, value)
+            is Mixed -> query.greaterThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, value)
             else -> throw IllegalStateException("GreaterThanOrEqualTo for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -771,7 +770,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
             is ObjectId -> query.greaterThan(MixedNotIndexed.FIELD_MIXED, value)
             is UUID -> query.greaterThan(MixedNotIndexed.FIELD_MIXED, value)
             is Date -> query.greaterThan(MixedNotIndexed.FIELD_MIXED, value)
-//            is Mixed -> query.greaterThan(MixedNotIndexed.FIELD_MIXED, value)
+            is Mixed -> query.greaterThan(MixedNotIndexed.FIELD_MIXED, value)
             else -> throw IllegalStateException("GreaterThan for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -790,7 +789,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
             is ObjectId -> query.lessThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, value)
             is UUID -> query.lessThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, value)
             is Date -> query.lessThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, value)
-//            is Mixed -> query.lessThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, value)
+            is Mixed -> query.lessThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, value)
             else -> throw IllegalStateException("LessThanOrEqualTo for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -809,7 +808,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
             is ObjectId -> query.lessThan(MixedNotIndexed.FIELD_MIXED, value)
             is UUID -> query.lessThan(MixedNotIndexed.FIELD_MIXED, value)
             is Date -> query.lessThan(MixedNotIndexed.FIELD_MIXED, value)
-//            is Mixed -> query.lessThan(MixedNotIndexed.FIELD_MIXED, value)
+            is Mixed -> query.lessThan(MixedNotIndexed.FIELD_MIXED, value)
             else -> throw IllegalStateException("LessThan for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -831,7 +830,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
                 is Double -> query.`in`(MixedNotIndexed.FIELD_MIXED, value as Array<out Double?>)
                 is String -> query.`in`(MixedNotIndexed.FIELD_MIXED, value as Array<out String?>)
                 is Date -> query.`in`(MixedNotIndexed.FIELD_MIXED, value as Array<out Date?>)
-//            is Mixed -> query.`in`(MixedNotIndexed.FIELD_MIXED, value)
+                is Mixed -> query.`in`(MixedNotIndexed.FIELD_MIXED, value as Array<out Mixed>)
                 else -> throw IllegalStateException("In for type ${value::class.qualifiedName} not implemented")
             }
         }
@@ -849,7 +848,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
             is Double -> query.between(MixedNotIndexed.FIELD_MIXED, value1, value2 as Double)
             is Decimal128 -> query.between(MixedNotIndexed.FIELD_MIXED, value1, value2 as Decimal128)
             is Date -> query.between(MixedNotIndexed.FIELD_MIXED, value1, value2 as Date)
-//            is Mixed -> query.between(MixedNotIndexed.FIELD_MIXED, value)
+            is Mixed -> query.between(MixedNotIndexed.FIELD_MIXED, value1, value2 as Mixed)
             else -> throw IllegalStateException("Between for type ${value1::class.qualifiedName} not implemented")
         }
 
@@ -861,7 +860,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
 
         when (value) {
             is String -> query.beginsWith(MixedNotIndexed.FIELD_MIXED, value)
-//            is Mixed -> query.beginsWith(MixedNotIndexed.FIELD_MIXED, value)
+            is Mixed -> query.beginsWith(MixedNotIndexed.FIELD_MIXED, value)
             else -> throw IllegalStateException("BeginsWith for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -873,7 +872,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
 
         when (value) {
             is String -> query.beginsWith(MixedNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
-//            is Mixed -> query.beginsWith(MixedNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
+            is Mixed -> query.beginsWith(MixedNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
             else -> throw IllegalStateException("BeginsWith for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -885,7 +884,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
 
         when (value) {
             is String -> query.endsWith(MixedNotIndexed.FIELD_MIXED, value)
-//            is Mixed -> query.beginsWith(MixedNotIndexed.FIELD_MIXED, value)
+            is Mixed -> query.endsWith(MixedNotIndexed.FIELD_MIXED, value)
             else -> throw IllegalStateException("EndsWith for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -897,7 +896,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
 
         when (value) {
             is String -> query.endsWith(MixedNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
-//            is Mixed -> query.beginsWith(MixedNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
+            is Mixed -> query.endsWith(MixedNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
             else -> throw IllegalStateException("EndsWith for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -909,7 +908,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
 
         when (value) {
             is String -> query.contains(MixedNotIndexed.FIELD_MIXED, value)
-//            is Mixed -> query.contains(MixedNotIndexed.FIELD_MIXED, value)
+            is Mixed -> query.contains(MixedNotIndexed.FIELD_MIXED, value)
             else -> throw IllegalStateException("Contains for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -921,7 +920,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
 
         when (value) {
             is String -> query.contains(MixedNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
-//            is Mixed -> query.contains(MixedNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
+            is Mixed -> query.contains(MixedNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
             else -> throw IllegalStateException("Contains for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -933,7 +932,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
 
         when (value) {
             is String -> query.like(MixedNotIndexed.FIELD_MIXED, value)
-//            is Mixed -> query.like(MixedNotIndexed.FIELD_MIXED, value)
+            is Mixed -> query.like(MixedNotIndexed.FIELD_MIXED, value)
             else -> throw IllegalStateException("Like for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -945,7 +944,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
 
         when (value) {
             is String -> query.like(MixedNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
-//            is Mixed -> query.like(MixedNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
+            is Mixed -> query.like(MixedNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
             else -> throw IllegalStateException("Like for type ${value::class.qualifiedName} not implemented")
         }
 
