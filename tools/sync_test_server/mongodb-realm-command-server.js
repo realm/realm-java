@@ -12,6 +12,7 @@
 
 var winston = require('winston'); //logging
 var http = require('http');
+const fs = require('fs')
 
 const isPortAvailable = require('is-port-available');
 
@@ -42,8 +43,16 @@ function handleWatcher(req, resp) {
 function handleApplicationId(appName, req, resp) {
     switch(req.method) {
         case "GET":
-            resp.writeHead(200, {'Content-Type': 'text/plain'});
-            resp.end(applicationIds[appName]);
+            try {
+                 const data = fs.readFileSync('/apps/' + appName + '/app_id', 'utf8')
+                 console.log(data)
+                 resp.writeHead(200, {'Content-Type': 'text/plain'});
+                 resp.end(data);
+            } catch (err) {
+                 console.error(err)
+                 resp.writeHead(404, {'Content-Type': 'text/plain'});
+                 resp.end(err);
+            }
             break;
         case "PUT":
             var body = [];
