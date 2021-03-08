@@ -179,6 +179,11 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
                         arrayOf(UUID.fromString(TestHelper.generateUUIDString(0))),
                         arrayOf(UUID.fromString(TestHelper.generateUUIDString(0)))
                 ),
+                ParameterizedTest(
+                        MixedParameterizedQueryTests::equalToInsensitive,
+                        arrayOf("hello world 2"),
+                        arrayOf("hello world 2", "HELLO WORLD 2")
+                ),
                 // NOT EQUALS TEST DEFINITIONS
                 ParameterizedTest(
                         MixedParameterizedQueryTests::notEqualTo,
@@ -247,6 +252,12 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf(UUID.fromString(TestHelper.generateUUIDString(4))),
                         arrayOf(UUID.fromString(TestHelper.generateUUIDString(0)), UUID.fromString(TestHelper.generateUUIDString(1)), UUID.fromString(TestHelper.generateUUIDString(2)), UUID.fromString(TestHelper.generateUUIDString(3)))
+                ),
+                ParameterizedTest(
+                        MixedParameterizedQueryTests::notEqualToInsensitive,
+                        arrayOf("HELLO WORLD 2"),
+                        arrayOf("hello world 0", "hello world 1", "hello world 3", "hello world 4",
+                                "HELLO WORLD 0", "HELLO WORLD 1", "HELLO WORLD 3", "HELLO WORLD 4")
                 ),
                 // GREATER THAN TEST DEFINITIONS
                 ParameterizedTest(
