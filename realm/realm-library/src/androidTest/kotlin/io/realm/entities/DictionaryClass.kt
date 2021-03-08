@@ -18,11 +18,8 @@ package io.realm.entities
 
 import io.realm.Mixed
 import io.realm.RealmDictionary
-import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.entities.embedded.EmbeddedSimpleChild
-import io.realm.entities.embedded.EmbeddedSimpleParent
-import io.realm.entities.embedded.SimpleEmbeddedObject
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import java.util.*
@@ -51,7 +48,5 @@ open class DictionaryContainerClass : RealmObject() {
 }
 
 open class EmbeddedObjectDictionaryContainerClass : RealmObject() {
-    val myEmbeddedObjectList = RealmList<EmbeddedSimpleChild>()
     val myEmbeddedObjectDictionary = RealmDictionary<EmbeddedSimpleChild>()
-    val myOtherEmbeddedObjectDictionary = RealmDictionary<SimpleEmbeddedObject>()
 }

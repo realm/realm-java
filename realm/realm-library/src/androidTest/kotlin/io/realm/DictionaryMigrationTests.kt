@@ -152,16 +152,14 @@ class DictionaryMigrationTests {
     }
 
     @Test
-    fun copyToRealm_embeddedObject() {
+    fun copyToRealm_unmanagedEmbeddedObject() {
         realm = Realm.getInstance(configFactory.createConfiguration())
         realm.executeTransaction {
-            val unmanagedParent = EmbeddedSimpleParent("parent")
             val unmanagedChild = EmbeddedSimpleChild("child")
-            unmanagedParent.child = unmanagedChild
 
-            val unmanagedContainer = EmbeddedObjectDictionaryContainerClass()
-            val dictionary = unmanagedContainer.myEmbeddedObjectDictionary
-            dictionary["KEY_EMBEDDED"] = unmanagedChild
+            val unmanagedContainer = EmbeddedObjectDictionaryContainerClass().apply {
+                myEmbeddedObjectDictionary["KEY_EMBEDDED"] = unmanagedChild
+            }
 
             val managedContainer = it.copyToRealm(unmanagedContainer)
             assertNotNull(managedContainer)
@@ -171,7 +169,14 @@ class DictionaryMigrationTests {
 
             val managedChild = managedDictionary["KEY_EMBEDDED"]
             assertNotNull(managedChild)
+            assertTrue(managedChild.isValid)
             assertEquals(unmanagedChild.childId, managedChild.childId)
+
+            assertEquals(1, it.where<EmbeddedSimpleChild>().count())
+            managedDictionary.clear()
+            assertTrue(managedDictionary.isEmpty())
+            assertEquals(0, it.where<EmbeddedSimpleChild>().count())
+            assertFalse(managedChild.isValid)
         }
     }
 }
