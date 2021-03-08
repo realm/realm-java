@@ -47,7 +47,7 @@ function handleApplicationId(appName, req, resp) {
                  const data = fs.readFileSync('/apps/' + appName + '/app_id', 'utf8')
                  console.log(data)
                  resp.writeHead(200, {'Content-Type': 'text/plain'});
-                 resp.end(data);
+                 resp.end(data.replace(/\n$/, ''));
             } catch (err) {
                  console.error(err)
                  resp.writeHead(404, {'Content-Type': 'text/plain'});
