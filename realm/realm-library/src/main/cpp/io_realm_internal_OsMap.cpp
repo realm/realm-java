@@ -439,13 +439,12 @@ Java_io_realm_internal_OsMap_nativeFreeze(JNIEnv* env, jclass, jlong wrapper_ptr
 
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_OsMap_nativeCreateAndPutEmbeddedObject(JNIEnv* env, jclass,
-                                                              jlong shared_realm_ptr,
                                                               jlong wrapper_ptr,
                                                               jstring j_key) {
     try {
-        auto& realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
         auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
         auto& dictionary = wrapper.collection();
+        auto& realm = dictionary.get_realm();
         auto& object_schema = dictionary.get_object_schema();
 
         JStringAccessor key(env, j_key);
@@ -453,7 +452,7 @@ Java_io_realm_internal_OsMap_nativeCreateAndPutEmbeddedObject(JNIEnv* env, jclas
 
         dictionary.insert(context, StringData(key), JavaValue(std::map<ColKey, JavaValue>()), CreatePolicy::Skip);
         const Mixed& mixed = dictionary.get_any(StringData(key));
-        return reinterpret_cast<jlong>(mixed.get_link().get_obj_key().value);
+        return reinterpret_cast<jlong>(mixed.get<ObjKey>().value);
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);

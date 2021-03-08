@@ -216,7 +216,7 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
                 throw new IllegalArgumentException("Embedded objects are not supported by RealmLists of DynamicRealmObjects yet.");
             }
             long objKey = osList.createAndAddEmbeddedObject();
-            updateEmbeddedObject(realmObject, objKey);
+            CollectionUtils.updateEmbeddedObject((Realm) realm, realmObject, objKey);
         } else {
             RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(realm, (RealmModel) value) : realmObject);
             osList.addRow(proxy.realmGet$proxyState().getRow$realm().getObjectKey());
@@ -239,7 +239,7 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
                 throw new IllegalArgumentException("Embedded objects are not supported by RealmLists of DynamicRealmObjects yet.");
             }
             long objKey = osList.createAndAddEmbeddedObject(index);
-            updateEmbeddedObject(realmObject, objKey);
+            CollectionUtils.updateEmbeddedObject((Realm) realm, realmObject, objKey);
         } else {
             RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(realm, (RealmModel) value) : realmObject);
             osList.insertRow(index, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
@@ -269,21 +269,12 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
                 throw new IllegalArgumentException("Embedded objects are not supported by RealmLists of DynamicRealmObjects yet.");
             }
             long objKey = osList.createAndSetEmbeddedObject(index);
-            updateEmbeddedObject(realmObject, objKey);
+            CollectionUtils.updateEmbeddedObject((Realm) realm, realmObject, objKey);
         } else {
             RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(realm, (RealmModel) value) : realmObject);
             osList.setRow(index, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
         }
     }
-
-    private void updateEmbeddedObject(RealmModel unmanagedObject, long objKey) {
-        RealmProxyMediator schemaMediator = realm.getConfiguration().getSchemaMediator();
-        Class<? extends RealmModel> modelClass = Util.getOriginalModelClass(unmanagedObject.getClass());
-        Table table = ((Realm) realm).getTable(modelClass);
-        RealmModel managedObject = schemaMediator.newInstance(modelClass, realm, table.getUncheckedRow(objKey), realm.getSchema().getColumnInfo(modelClass), true, Collections.EMPTY_LIST);
-        schemaMediator.updateEmbeddedObject((Realm) realm, unmanagedObject, managedObject, new HashMap<>(), Collections.EMPTY_SET);
-    }
-
 }
 
 /**

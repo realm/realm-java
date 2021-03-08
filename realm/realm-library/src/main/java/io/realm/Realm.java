@@ -1030,9 +1030,9 @@ public class Realm extends BaseRealm {
      * This method should only be used to create objects of types marked as embedded.
      *
      * @param clazz the Class of the object to create. It must be marked with {@code \@RealmClass(embedded = true)}.
-     * @param parentObject The parent object which should hold a reference to the embedded object. If the parent property is a list
+     * @param parentObject The parent object which should hold a reference to the embedded object.
+     * @param parentProperty the property in the parent class which holds the reference. If the parent property is a list
      * the embedded object will be added to the end of that list.
-     * @param parentProperty the property in the parent class which holds the reference.
      * @return the newly created embedded object.
      * @throws IllegalArgumentException if {@code clazz} is not an embedded class or if the property
      * in the parent class cannot hold objects of the appropriate type.

@@ -16,10 +16,15 @@
 
 package io.realm;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Locale;
 
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.Table;
+import io.realm.internal.Util;
 
 public class CollectionUtils {
 
@@ -137,5 +142,20 @@ public class CollectionUtils {
         } else {
             return realm.copyToRealm(object);
         }
+    }
+
+    /**
+     * Used to update an embedded object internally after its row has been created.
+     *
+     * @param realm      The Realm instance used to create the object.
+     * @param realmModel the model that will be used to update the object.
+     * @param objKey     the object key.
+     */
+    static void updateEmbeddedObject(Realm realm, RealmModel realmModel, long objKey) {
+        RealmProxyMediator schemaMediator = realm.getConfiguration().getSchemaMediator();
+        Class<? extends RealmModel> modelClass = Util.getOriginalModelClass(realmModel.getClass());
+        Table table = realm.getTable(modelClass);
+        RealmModel managedObject = schemaMediator.newInstance(modelClass, realm, table.getUncheckedRow(objKey), realm.getSchema().getColumnInfo(modelClass), true, Collections.EMPTY_LIST);
+        schemaMediator.updateEmbeddedObject(realm, realmModel, managedObject, new HashMap<>(), Collections.EMPTY_SET);
     }
 }
