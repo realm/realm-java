@@ -42,6 +42,6 @@ open class DictionaryContainerClass : RealmObject() {
     val myMixedDictionary = RealmDictionary<Mixed>()
 
     companion object {
-        const val CLASS_NAME = "DictionaryClass"
+        const val CLASS_NAME = "DictionaryContainerClass"
     }
 }
