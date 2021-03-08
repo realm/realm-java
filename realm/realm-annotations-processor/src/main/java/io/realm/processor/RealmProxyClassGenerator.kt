@@ -2152,14 +2152,11 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     emitStatement("$genericType ${fieldName}UnmanagedEntryValue = entry.getValue()")
                                     emitStatement("$genericType cache${fieldName} = (${genericType}) cache.get(${fieldName}UnmanagedEntryValue)")
 
-                                    // TODO: is this is needed at all? According to the table.cpp
-                                    //  ColKey Table::add_column_dictionary method throws if the
-                                    //  field is an embedded object
                                     if (isEmbedded) {
                                         beginControlFlow("if (cache${fieldName} != null)")
                                             emitStatement("""throw new IllegalArgumentException("Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cache${fieldName}.toString()")""")
                                         nextControlFlow("else")
-                                            emitStatement("long objKey = ${fieldName}ManagedDictionary.getOsMap().createAndPutEmbeddedObject(realm.sharedRealm, entryKey)")
+                                            emitStatement("long objKey = ${fieldName}ManagedDictionary.getOsMap().createAndPutEmbeddedObject(entryKey)")
                                             emitStatement("Row linkedObjectRow = realm.getTable(${genericType}.class).getUncheckedRow(objKey)")
                                             emitStatement("$genericType linkedObject = ${linkedProxyClass}.newProxyInstance(realm, linkedObjectRow)")
                                             emitStatement("cache.put(${fieldName}UnmanagedEntryValue, (RealmObjectProxy) linkedObject)")
@@ -2283,10 +2280,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val proxyClassSimpleName = Utils.getDictionaryGenericProxyClassSimpleName(field)
                             val valueDictionaryFieldType = Utils.getDictionaryValueTypeQualifiedName(field)
                             val genericType = requireNotNull(Utils.getGenericTypeQualifiedName(field))
-
-                            emitSingleLineComment("proxyClassSimpleName: $proxyClassSimpleName")
-                            emitSingleLineComment("valueDictionaryFieldType: $valueDictionaryFieldType")
-                            emitSingleLineComment("genericType: $genericType")
 
                             emitEmptyLine()
                             emitSingleLineComment("Deep copy of $fieldName")
@@ -2557,8 +2550,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitStatement("stringBuilder.append((%1\$s().isNull()) ? \"null\" : \"%s()\")", metadata.getInternalGetter(fieldName), metadata.getInternalGetter(fieldName))
                         }
                         Utils.isRealmDictionary(field) -> {
-                            // TODO: maps
-                            emitSingleLineComment("TODO: Dictionary")
+                            val genericTypeSimpleName: SimpleClassName? = Utils.getDictionaryValueTypeQualifiedName(field)?.getSimpleName()
+                            emitStatement("stringBuilder.append(\"RealmDictionary<%s>[\").append(%s().size()).append(\"]\")", genericTypeSimpleName, metadata.getInternalGetter(fieldName))
                         }
                         else -> {
                             if (metadata.isNullable(field)) {
