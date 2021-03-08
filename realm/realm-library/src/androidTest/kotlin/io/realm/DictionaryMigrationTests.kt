@@ -19,19 +19,22 @@ package io.realm
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.DictionaryContainerClass
+import io.realm.entities.EmbeddedObjectDictionaryContainerClass
 import io.realm.entities.StringOnly
+import io.realm.entities.embedded.EmbeddedSimpleChild
+import io.realm.entities.embedded.EmbeddedSimpleParent
 import io.realm.kotlin.createObject
+import io.realm.kotlin.where
 import io.realm.rule.TestRealmConfigurationFactory
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 @RunWith(AndroidJUnit4::class)
 class DictionaryMigrationTests {
@@ -64,6 +67,11 @@ class DictionaryMigrationTests {
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().context)
+    }
+
+    @After
+    fun tearDown() {
+        realm.close()
     }
 
     @Test
@@ -112,5 +120,58 @@ class DictionaryMigrationTests {
         }
 
         realm.close()
+    }
+
+    @Test
+    fun put_embeddedObject() {
+        realm = Realm.getInstance(configFactory.createConfiguration())
+        realm.executeTransaction {
+            val parent = EmbeddedSimpleParent("parent")
+            parent.child = EmbeddedSimpleChild("child")
+
+            val managedParent: EmbeddedSimpleParent = it.copyToRealm(parent)
+            assertEquals(1, realm.where<EmbeddedSimpleChild>().count())
+            val managedChild: EmbeddedSimpleChild = managedParent.child!!
+
+            // Dictionary
+            val container = it.createObject<EmbeddedObjectDictionaryContainerClass>()
+            val dictionary = container.myEmbeddedObjectDictionary
+            dictionary["HELLO"] = managedChild
+
+            assertEquals(1, dictionary.size)
+            val valueFromDictionary = dictionary["HELLO"]
+            assertNotNull(valueFromDictionary)
+            assertNotEquals(managedChild, valueFromDictionary)     // should be NOT equals, they contain different objKeys
+
+            managedParent.deleteFromRealm()
+            assertFalse(managedParent.isValid)
+            assertEquals(1, dictionary.size)
+            assertFalse(managedChild.isValid)
+            assertTrue(valueFromDictionary.isValid)
+        }
+    }
+
+    @Test
+    fun copyToRealm_embeddedObject() {
+        realm = Realm.getInstance(configFactory.createConfiguration())
+        realm.executeTransaction {
+            val unmanagedParent = EmbeddedSimpleParent("parent")
+            val unmanagedChild = EmbeddedSimpleChild("child")
+            unmanagedParent.child = unmanagedChild
+
+            val unmanagedContainer = EmbeddedObjectDictionaryContainerClass()
+            val dictionary = unmanagedContainer.myEmbeddedObjectDictionary
+            dictionary["KEY_EMBEDDED"] = unmanagedChild
+
+            val managedContainer = it.copyToRealm(unmanagedContainer)
+            assertNotNull(managedContainer)
+            val managedDictionary = managedContainer.myEmbeddedObjectDictionary
+            assertNotNull(managedDictionary)
+            assertEquals(1, managedDictionary.size)
+
+            val managedChild = managedDictionary["KEY_EMBEDDED"]
+            assertNotNull(managedChild)
+            assertEquals(unmanagedChild.childId, managedChild.childId)
+        }
     }
 }
