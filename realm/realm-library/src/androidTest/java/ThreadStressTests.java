@@ -65,7 +65,6 @@ import static org.junit.Assert.assertNull;
  * it clearer what has happened in the case a run actually did crash, and doesn't indicate
  * problems with the test as such.
  */
-@Ignore
 @RunWith(Parameterized.class)
 public class ThreadStressTests {
 

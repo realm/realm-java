@@ -49,7 +49,6 @@ import kotlin.test.fail
  * Testing sync specific methods on [Realm].
  */
 @RunWith(AndroidJUnit4::class)
-@Ignore
 class SyncedRealmTests {
 
     @get:Rule

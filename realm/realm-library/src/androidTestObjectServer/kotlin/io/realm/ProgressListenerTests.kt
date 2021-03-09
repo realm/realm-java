@@ -46,7 +46,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
-@Ignore
 class ProgressListenerTests {
 
     companion object {
