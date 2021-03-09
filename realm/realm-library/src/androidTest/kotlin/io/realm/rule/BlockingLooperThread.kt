@@ -32,13 +32,24 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.collections.ArrayList
 
 /**
- * Helper class that makes it easier to run a piece of code inside a Looper Thread. This is done by
- * calling the `run` method. This method will block until the Looper either completes or throws
- * an exception.
+ * Helper class that makes it easier to run a piece of code inside a [Looper] Thread. This can be
+ * achieved by calling either [runBlocking] (which blocks the method execution until the `Looper`
+ * either completes, is flagged as completed by the user by calling [testComplete] or throws an
+ * exception) or [runDetached] (similar to `runBlocking` but it defers its execution to a later
+ * point, signaling its execution with [Condition.await]).
+ *
+ * **WARNING**
+ *
+ * **You should not reuse instances of `BlockingLooperThread` across parameterized tests** as
+ * `BlockingLooperThread` stores state to handle thread synchronization and this could lead to
+ * an unexpected behavior. It is recommended you declare a property that holds a
+ * `BlockingLooperThread` instance in your test class as the safest way to work with it as it will
+ * be recreated after every test you run. Alternatively, you can declare `BlockingLooperThread`
+ * local variables if you deem it necessary based on the scope of your individual tests.
  *
  * Usage:
  * ```
- * val lopperThread = LooperThreadTest()
+ * val blockingLooperThread = BlockingLooperThread()  // DO NOT REUSE ACROSS PARAMETERIZED TESTS!!!
  *
  * @Before
  * fun setUp() {
@@ -51,8 +62,14 @@ import kotlin.collections.ArrayList
  * }
  *
  * @Test
- * fun myTest() = looperThread.run {
- *     // test code
+ * fun myTest() = blockingLooperThread.runBlocking {
+ *     myBusinessLogic.doSomethingAsynchronously {
+ *          // Assert something once your get your callback
+ *          assertSomething()
+ *
+ *          // Flag completion
+ *          blockingLooperThread.testComplete()
+ *     }
  * }
  * ```
  */
