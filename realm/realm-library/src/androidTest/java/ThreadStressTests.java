@@ -65,7 +65,7 @@ import static org.junit.Assert.assertNull;
  * it clearer what has happened in the case a run actually did crash, and doesn't indicate
  * problems with the test as such.
  */
-@Ignore("These tests fails if we have a RealmDictionary<ClassWithPK/ClassWithIndex>/")
+@Ignore("Bug in Core: https://github.com/realm/realm-core/issues/4465")
 @RunWith(Parameterized.class)
 public class ThreadStressTests {
 
