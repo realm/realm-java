@@ -21,6 +21,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -45,7 +46,6 @@ import io.realm.exceptions.RealmException;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -725,6 +725,7 @@ public class DynamicRealmTests {
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void equalTo_noFieldObjectShouldThrow() {
         final String className = "NoField";
         RealmConfiguration emptyConfig = configFactory.createConfiguration("empty");
@@ -734,7 +735,7 @@ public class DynamicRealmTests {
         dynamicRealm.commitTransaction();
 
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Invalid query: field 'nonExisting' not found in table 'NoField'.");
+        thrown.expectMessage("Illegal Argument: 'NoField' has no property: 'nonExisting'");
         dynamicRealm.where(className).equalTo("nonExisting", 1);
     }
 

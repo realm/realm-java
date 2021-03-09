@@ -27,7 +27,6 @@ import org.junit.runner.RunWith;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.TestCase.assertNotNull;
 

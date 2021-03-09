@@ -200,6 +200,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeGetQuery(JNIEnv* env
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
         auto query = wrapper.collection().get_query();
+        query.set_ordering(std::make_unique<DescriptorOrdering>());
         return reinterpret_cast<jlong>(new Query(std::move(query)));
     }
     CATCH_STD()

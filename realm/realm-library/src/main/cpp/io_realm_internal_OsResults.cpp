@@ -19,6 +19,7 @@
 #include <realm/object-store/shared_realm.hpp>
 #include <realm/object-store/results.hpp>
 #include <realm/object-store/list.hpp>
+#include <realm/parser/keypath_mapping.hpp>
 #include <realm/util/optional.hpp>
 
 #include "java_class_global_def.hpp"
@@ -43,18 +44,21 @@ static void finalize_results(jlong ptr)
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeCreateResults(JNIEnv* env, jclass,
                                                                              jlong shared_realm_ptr,
-                                                                             jlong query_ptr,
-                                                                             jlong descriptor_ordering_ptr)
+                                                                             jlong query_ptr)
 {
     try {
-        auto query = reinterpret_cast<Query*>(query_ptr);
-        if (!TABLE_VALID(env, query->get_table())) {
+        auto& query = *reinterpret_cast<Query*>(query_ptr);
+        if (!TABLE_VALID(env, query.get_table())) {
             return reinterpret_cast<jlong>(nullptr);
         }
 
+        auto ordering = query.get_ordering();
+
         auto shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
-        auto descriptor_ordering = *(reinterpret_cast<DescriptorOrdering*>(descriptor_ordering_ptr));
-        Results results(shared_realm, *query, descriptor_ordering);
+        Results results(shared_realm, query, *ordering);
+
+        query.set_ordering(std::make_unique<DescriptorOrdering>(*ordering));
+
         auto wrapper = new ResultsWrapper(results);
 
         return reinterpret_cast<jlong>(wrapper);
@@ -200,26 +204,30 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_OsResults_nativeAggregate(JNIEn
     return static_cast<jobject>(nullptr);
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeSort(JNIEnv* env, jclass, jlong native_ptr,
-                                                                     jobject j_sort_desc)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeStringDescriptor(JNIEnv* env,
+                                                                                jclass,
+                                                                                jlong native_ptr,
+                                                                                jstring j_descriptor,
+                                                                                jlong j_mapping_ptr)
 {
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto sorted_result = wrapper->collection().sort(JavaQueryDescriptor(env, j_sort_desc).sort_descriptor());
-        return reinterpret_cast<jlong>(new ResultsWrapper(sorted_result));
-    }
-    CATCH_STD()
-    return reinterpret_cast<jlong>(nullptr);
-}
+        JStringAccessor descriptor(env, j_descriptor); // throws
+        std::vector<Mixed> args;
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeDistinct(JNIEnv* env, jclass, jlong native_ptr,
-                                                                         jobject j_distinct_desc)
-{
-    try {
-        auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-        auto distinct_result =
-            wrapper->collection().distinct(JavaQueryDescriptor(env, j_distinct_desc).distinct_descriptor());
-        return reinterpret_cast<jlong>(new ResultsWrapper(distinct_result));
+        query_parser::KeyPathMapping mapping;
+        if (j_mapping_ptr) {
+            mapping = *reinterpret_cast<query_parser::KeyPathMapping *>(j_mapping_ptr);
+        }
+
+        Query predicate = wrapper->collection().get_table()->query("TRUEPREDICATE " + std::string(descriptor), args, mapping);
+
+        if (auto parsed_ordering = predicate.get_ordering()) {
+            auto distinct_result = wrapper->collection().apply_ordering(std::move(*parsed_ordering));
+            return reinterpret_cast<jlong>(new ResultsWrapper(distinct_result));
+        }
+
+        return native_ptr;
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
@@ -266,8 +274,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeWhere(JNIEnv* env
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
 
         auto table_view = wrapper->collection().get_tableview();
-        Query* query =
-            new Query(table_view.get_parent(), std::unique_ptr<ConstTableView>(new TableView(std::move(table_view))));
+        Query* query = new Query(table_view.get_parent(), std::unique_ptr<ConstTableView>(new TableView(std::move(table_view))));
+        query->set_ordering(std::make_unique<DescriptorOrdering>());
         return reinterpret_cast<jlong>(query);
     }
     CATCH_STD()

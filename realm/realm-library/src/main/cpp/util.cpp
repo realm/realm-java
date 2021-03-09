@@ -172,8 +172,11 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     catch (std::logic_error& e) {
         ThrowException(env, IllegalState, e.what());
     }
-    catch (std::runtime_error& e) {
+    catch(realm::query_parser::InvalidQueryError& e){
         ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalArgument, ss.str());
+    }
+    catch (std::runtime_error& e) {
         ThrowException(env, RuntimeError, ss.str());
     }
     catch (std::exception& e) {
