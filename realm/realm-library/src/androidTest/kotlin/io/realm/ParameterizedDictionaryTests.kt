@@ -22,10 +22,7 @@ import io.realm.rule.BlockingLooperThread
 import io.realm.rule.TestRealmConfigurationFactory
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.*
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.util.*
@@ -160,6 +157,7 @@ class ParameterizedDictionaryTests(
     }
 
     @Test
+    @Ignore("Bug in Core: https://github.com/realm/realm-core/pull/4496")
     fun entrySet() {
         tester.entrySet()
     }
