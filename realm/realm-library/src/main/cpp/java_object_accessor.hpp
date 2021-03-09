@@ -374,6 +374,7 @@ struct JavaValue {
             case JavaValueType::Mixed:
                 return reinterpret_cast<JavaValue*>(this->get_mixed())->to_mixed();
             case JavaValueType::Object:
+                return Mixed(this->get_object()->get_key());
             case JavaValueType::List:
             case JavaValueType::PropertyList:
             case JavaValueType::Dictionary:

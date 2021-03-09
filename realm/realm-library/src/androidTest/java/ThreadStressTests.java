@@ -28,8 +28,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
@@ -39,11 +37,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import io.realm.ManagedRealmListForValueTests;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
@@ -52,7 +48,7 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;

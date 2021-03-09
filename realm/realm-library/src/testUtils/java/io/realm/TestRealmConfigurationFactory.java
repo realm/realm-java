@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.rule;
+package io.realm;
 
 import android.content.Context;
 
@@ -34,10 +34,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
+import javax.annotation.Nullable;
 
 import static org.junit.Assert.assertTrue;
+
 
 /**
  * Rule that creates the {@link RealmConfiguration } in a temporary directory and deletes the Realm created with that
@@ -138,27 +138,34 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
         return builder;
     }
 
+    public RealmConfiguration createSchemaConfiguration(boolean exclude,
+            Class<? extends RealmModel> firstClass, Class<? extends RealmModel>... additionalClasses) {
+        return createConfiguration(null, null, null, null,
+                exclude, firstClass, additionalClasses);
+    }
+
     public RealmConfiguration createConfiguration() {
         return createConfiguration(null);
     }
 
-    public RealmConfiguration createConfiguration(String name) {
+    public RealmConfiguration createConfiguration(@Nullable String name) {
         return createConfiguration(null, name);
     }
 
-    public RealmConfiguration createConfiguration(String subDir, String name) {
-        return createConfiguration(subDir, name, null, null);
+    public RealmConfiguration createConfiguration(@Nullable String subDir, @Nullable String name) {
+        return createConfiguration(subDir, name, null, null, false, null);
     }
 
-    public RealmConfiguration createConfiguration(String name, byte[] key) {
-        return createConfiguration(null, name, null, key);
+    public RealmConfiguration createConfiguration(@Nullable String name, @Nullable byte[] key) {
+        return createConfiguration(null, name, null, key, false, null);
     }
 
-    public RealmConfiguration createConfiguration(String name, Object module) {
-        return createConfiguration(null, name, module, null);
+    public RealmConfiguration createConfiguration(@Nullable String name, @Nullable Object module) {
+        return createConfiguration(null, name, module, null, false, null);
     }
 
-    public RealmConfiguration createConfiguration(String subDir, String name, Object module, byte[] key) {
+    public RealmConfiguration createConfiguration(@Nullable String subDir, @Nullable String name, @Nullable Object module, @Nullable byte[] key,
+            boolean exclude, @Nullable Class<? extends RealmModel> firstClass, Class<? extends RealmModel>... additionalClasses) {
         RealmConfiguration.Builder builder = createConfigurationBuilder();
 
         File folder = getRoot();
@@ -182,6 +189,14 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
 
         // Allow writes on UI
         builder.allowWritesOnUiThread(true);
+
+        if (firstClass != null) {
+            if (exclude) {
+                builder.excludeSchema(firstClass, additionalClasses);
+            } else {
+                builder.schema(firstClass, additionalClasses);
+            }
+        }
 
         RealmConfiguration configuration = builder.build();
         configurations.add(configuration);

@@ -21,7 +21,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.DictionaryContainerClass
 import io.realm.entities.StringOnly
 import io.realm.kotlin.createObject
-import io.realm.rule.TestRealmConfigurationFactory
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import org.junit.Before
