@@ -525,6 +525,7 @@ class SyncedRealmTests {
         val expectedDecimal128 = Decimal128(10)
         val expectedObjectId = ObjectId()
         val expectedUUID = UUID.randomUUID()
+        val expectedMixed = Mixed.valueOf("hello world")
         var expectedRealmObject = SyncDog().apply {
             id = expectedObjectId
         }
@@ -538,6 +539,17 @@ class SyncedRealmTests {
         val expectedDecimal128List = RealmList<Decimal128>(Decimal128(10), Decimal128(100), Decimal128(20))
         val expectedObjectIdList = RealmList<ObjectId>(ObjectId(Date(1000)), ObjectId(Date(100)), ObjectId(Date(2000)))
         val expectedUUIDList = RealmList<UUID>(UUID.randomUUID())
+        val expectedMixedList = RealmList<Mixed>(
+                Mixed.valueOf(1.toLong()),
+                Mixed.valueOf(false),
+                Mixed.valueOf(10.5.toFloat()),
+                Mixed.valueOf(10.5.toFloat()),
+                Mixed.valueOf(10.5.toDouble()),
+                Mixed.valueOf("hello world 2"),
+                Mixed.valueOf(Decimal128(102)),
+                Mixed.valueOf(ObjectId()),
+                Mixed.valueOf(UUID.randomUUID())
+        )
 
         Realm.getInstance(config1).use { realm ->
             realm.executeTransaction {
@@ -554,6 +566,7 @@ class SyncedRealmTests {
                     columnDecimal128 = expectedDecimal128
                     columnObjectId = expectedObjectId
                     columnUUID = expectedUUID
+                    columnMixed = expectedMixed
                     columnRealmInteger.set(expectedRealmInteger)
                     columnRealmObject = expectedRealmObject
                     columnRealmList = expectedRealmList
@@ -565,6 +578,7 @@ class SyncedRealmTests {
                     columnDateList = expectedDateList
                     columnDecimal128List = expectedDecimal128List
                     columnObjectIdList = expectedObjectIdList
+                    columnUUIDList = expectedUUIDList
                     columnUUIDList = expectedUUIDList
                 }
             }
@@ -594,6 +608,7 @@ class SyncedRealmTests {
                 assertEquals(expectedDecimal128, it.columnDecimal128)
                 assertEquals(expectedObjectId, it.columnObjectId)
                 assertEquals(expectedUUID, it.columnUUID)
+                assertEquals(expectedMixed, it.columnMixed)
                 assertEquals(expectedRealmInteger, it.columnRealmInteger.get())
                 assertEquals(expectedObjectId, it.columnRealmObject!!.id)
                 assertEquals(expectedObjectId, it.columnRealmList!!.first()!!.id)
@@ -606,6 +621,7 @@ class SyncedRealmTests {
                 assertEquals(expectedDecimal128List, it.columnDecimal128List)
                 assertEquals(expectedObjectIdList, it.columnObjectIdList)
                 assertEquals(expectedUUIDList, it.columnUUIDList)
+                assertEquals(expectedMixedList, it.columnMixedList)
             }
         }
     }
