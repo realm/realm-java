@@ -808,6 +808,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeWhere(JNIEnv* env, jo
     try {
         TableRef table = TBL_REF(nativeTableRefPtr);
         Query* queryPtr = new Query(table->where());
+        queryPtr->set_ordering(std::make_unique<DescriptorOrdering>());
         return reinterpret_cast<jlong>(queryPtr);
     }
     CATCH_STD()

@@ -16,7 +16,6 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.core.NativeMixed;
-import io.realm.internal.core.QueryDescriptor;
 
 /**
  * General implementation for {@link OrderedRealmCollection} which is based on the {@code Collection}.
@@ -109,7 +108,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
             }
 
             for (E e : this) {
-                if (e instanceof byte [] && object instanceof byte[]) {
+                if (e instanceof byte[] && object instanceof byte[]) {
                     if (Arrays.equals((byte[]) e, (byte[]) object)) {
                         return true;
                     }
@@ -272,10 +271,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     @Override
     public RealmResults<E> sort(String fieldName) {
-        QueryDescriptor sortDescriptor =
-                QueryDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldName, Sort.ASCENDING);
-
-        OsResults sortedOsResults = osResults.sort(sortDescriptor);
+        OsResults sortedOsResults = osResults.sort(fieldName, Sort.ASCENDING);
         return createLoadedResults(sortedOsResults);
     }
 
@@ -284,10 +280,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     @Override
     public RealmResults<E> sort(String fieldName, Sort sortOrder) {
-        QueryDescriptor sortDescriptor =
-                QueryDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldName, sortOrder);
-
-        OsResults sortedOsResults = osResults.sort(sortDescriptor);
+        OsResults sortedOsResults = osResults.sort(fieldName, sortOrder);
         return createLoadedResults(sortedOsResults);
     }
 
@@ -296,10 +289,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     @Override
     public RealmResults<E> sort(String[] fieldNames, Sort[] sortOrders) {
-        QueryDescriptor sortDescriptor =
-                QueryDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldNames, sortOrders);
-
-        OsResults sortedOsResults = osResults.sort(sortDescriptor);
+        OsResults sortedOsResults = osResults.sort(fieldNames, sortOrders);
         return createLoadedResults(sortedOsResults);
     }
 
@@ -610,10 +600,6 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
         }
         results.load();
         return results;
-    }
-
-    private SchemaConnector getSchemaConnector() {
-        return new SchemaConnector(baseRealm.getSchema());
     }
 
     protected static <T> CollectionOperator<T> getCollectionOperator(boolean forPrimitives,

@@ -54,7 +54,6 @@ import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.exceptions.RealmException;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;

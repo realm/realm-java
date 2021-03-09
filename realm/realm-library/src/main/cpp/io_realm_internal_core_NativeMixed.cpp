@@ -198,9 +198,9 @@ Java_io_realm_internal_core_NativeMixed_nativeMixedAsObjectId(JNIEnv *env, jclas
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeCreateMixedDecimal128(JNIEnv *env, jclass, jlong j_high, jlong j_low) {
+Java_io_realm_internal_core_NativeMixed_nativeCreateMixedDecimal128(JNIEnv *env, jclass, jlong j_low, jlong j_high) {
     try {
-        Decimal128::Bid128 raw{static_cast<uint64_t>(j_high), static_cast<uint64_t>(j_low)};
+        Decimal128::Bid128 raw{static_cast<uint64_t>(j_low), static_cast<uint64_t>(j_high)};
         return reinterpret_cast<jlong>(new JavaValue(Decimal128(raw)));
     } CATCH_STD()
 
@@ -289,5 +289,20 @@ Java_io_realm_internal_core_NativeMixed_nativeGetRealmModelRowKey(JNIEnv *env, j
     } CATCH_STD()
 
     return 0;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_core_NativeMixed_nativeEquals(JNIEnv *env, jclass, jlong native_ptr, jlong native_other_ptr) {
+    try {
+        auto java_value = *reinterpret_cast<JavaValue *>(native_ptr);
+        auto other_java_value = *reinterpret_cast<JavaValue *>(native_other_ptr);
+
+        auto mixed = java_value.to_mixed();
+        auto other_mixed = other_java_value.to_mixed();
+
+        return mixed.compare(other_mixed) == 0;
+    } CATCH_STD()
+
+    return false;
 }
 

@@ -29,11 +29,12 @@ import javax.annotation.Nullable;
 
 import io.realm.ImportFlag;
 import io.realm.Mixed;
-import io.realm.MixedHandlerImpl;
+import io.realm.MixedNativeFunctionsImpl;
 import io.realm.MutableRealmInteger;
 import io.realm.RealmDictionary;
 import io.realm.RealmList;
 import io.realm.RealmModel;
+import io.realm.internal.MixedNativeFunctions;
 import io.realm.internal.NativeContext;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmObjectProxy;
@@ -291,11 +292,11 @@ public class OsObjectBuilder implements Closeable {
     };
 
     private static ItemCallback<Mixed> mixedItemCallback = new ItemCallback<Mixed>() {
-        private final MixedHandler mixedHandler = new MixedHandlerImpl();
+        private final MixedNativeFunctions mixedNativeFunctions = new MixedNativeFunctionsImpl();
 
         @Override
         public void handleItem(long listPtr, Mixed mixed) {
-            mixedHandler.handleItem(listPtr, mixed);
+            mixedNativeFunctions.handleItem(listPtr, mixed);
         }
     };
 

@@ -117,7 +117,6 @@ import io.realm.log.RealmLog;
 import io.realm.objectid.NullPrimaryKey;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 import io.realm.util.RealmThread;
 
 import static io.realm.TestHelper.testNoObjectFound;
@@ -336,6 +335,7 @@ public class RealmTests {
 
     // TODO Move to RealmQueryTests?
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void where_equalTo_wrongFieldTypeAsInput() throws IOException {
         populateTestRealm();
 
@@ -458,6 +458,7 @@ public class RealmTests {
 
     // TODO Move to RealmQueryTests?
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void where_equalTo_requiredFieldWithNullArgument() {
         // String
         try {

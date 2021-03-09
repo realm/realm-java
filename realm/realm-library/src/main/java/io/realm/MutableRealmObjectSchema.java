@@ -26,8 +26,6 @@ import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsResults;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
-import io.realm.internal.core.DescriptorOrdering;
-import io.realm.internal.fields.FieldDescriptor;
 
 /**
  * Mutable {@link RealmObjectSchema}.
@@ -130,7 +128,8 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     public RealmObjectSchema addRealmObjectField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(RealmFieldType.OBJECT, fieldName, realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
+        table.addColumnLink(RealmFieldType.OBJECT, fieldName,
+                realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName()), schema.getKeyPathMapping()));
         return this;
     }
 
@@ -138,7 +137,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     public RealmObjectSchema addRealmListField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(RealmFieldType.LIST, fieldName, realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
+        table.addColumnLink(RealmFieldType.LIST, fieldName, realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName()), schema.getKeyPathMapping()));
         return this;
     }
 
@@ -302,7 +301,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         if (function != null) {
             // Users might delete object being transformed or accidentally delete other objects
             // in the same table. E.g. cascading deletes if it is referenced by an object being deleted.
-            OsResults result = OsResults.createFromQuery(realm.sharedRealm, table.where(), new DescriptorOrdering()).createSnapshot();
+            OsResults result = OsResults.createFromQuery(realm.sharedRealm, table.where()).createSnapshot();
             long original_size = result.size();
             if (original_size > Integer.MAX_VALUE) {
                 throw new UnsupportedOperationException("Too many results to iterate: " + original_size);
@@ -327,19 +326,6 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         }
 
         return linkedClassName;
-    }
-
-    /**
-     * Returns a field descriptor based on the internal field names found in the Realm file.
-     *
-     * @param internalColumnNameDescription internal column name or internal linked column name description.
-     * @param validColumnTypes valid field type for the last field in a linked field
-     * @return the corresponding FieldDescriptor.
-     * @throws IllegalArgumentException if a proper FieldDescriptor could not be created.
-     */
-    @Override
-    FieldDescriptor getFieldDescriptors(String internalColumnNameDescription, RealmFieldType... validColumnTypes) {
-        return FieldDescriptor.createStandardFieldDescriptor(getSchemaConnector(), getTable(), internalColumnNameDescription, validColumnTypes);
     }
 
     // Invariant: Field was just added. This method is responsible for cleaning up attributes if it fails.

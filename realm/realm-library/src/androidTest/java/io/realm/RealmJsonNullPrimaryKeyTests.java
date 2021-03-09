@@ -35,7 +35,6 @@ import io.realm.entities.PrimaryKeyAsObjectId;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.PrimaryKeyAsUUID;
 import io.realm.objectid.NullPrimaryKey;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
