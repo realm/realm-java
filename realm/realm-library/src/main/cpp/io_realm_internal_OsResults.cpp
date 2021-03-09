@@ -467,8 +467,6 @@ JNIEXPORT jbyte JNICALL Java_io_realm_internal_OsResults_nativeGetMode(JNIEnv* e
                 return io_realm_internal_OsResults_MODE_LIST;
             case Results::Mode::Query:
                 return io_realm_internal_OsResults_MODE_QUERY;
-            case Results::Mode::LinkList:
-                return io_realm_internal_OsResults_MODE_LINK_LIST;
             case Results::Mode::TableView:
                 return io_realm_internal_OsResults_MODE_TABLEVIEW;
             default:

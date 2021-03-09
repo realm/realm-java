@@ -256,16 +256,13 @@ public class OsResults implements NativeObject, ObservableCollection {
     @SuppressWarnings("WeakerAccess")
     public static final byte MODE_QUERY = 3;
     @SuppressWarnings("WeakerAccess")
-    public static final byte MODE_LINK_LIST = 4;
-    @SuppressWarnings("WeakerAccess")
-    public static final byte MODE_TABLEVIEW = 5;
+    public static final byte MODE_TABLEVIEW = 4;
 
     public enum Mode {
         EMPTY,          // Backed by nothing (for missing tables)
         TABLE,          // Backed directly by a Table
         PRIMITIVE_LIST, // List of primitives
         QUERY,          // Backed by a query that has not yet been turned into a TableView
-        LINK_LIST,      // Backed directly by a LinkView
         TABLEVIEW;      // Backed by a TableView created from a Query
 
         static Mode getByValue(byte value) {
@@ -278,8 +275,6 @@ public class OsResults implements NativeObject, ObservableCollection {
                     return QUERY;
                 case MODE_LIST:
                     return PRIMITIVE_LIST;
-                case MODE_LINK_LIST:
-                    return LINK_LIST;
                 case MODE_TABLEVIEW:
                     return TABLEVIEW;
                 default:
