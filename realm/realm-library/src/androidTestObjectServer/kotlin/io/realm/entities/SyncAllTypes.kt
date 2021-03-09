@@ -78,7 +78,12 @@ open class SyncAllTypes : RealmObject() {
 
     @Required
     var columnObjectId = ObjectId(TestHelper.randomObjectIdHexString())
-    val columnRealmInteger = MutableRealmInteger.ofNull()
+
+    @Required
+    var columnUUID: UUID = UUID.randomUUID()
+
+    val columnRealmInteger: MutableRealmInteger = MutableRealmInteger.ofNull()
+
     var columnRealmObject: SyncDog? = null
 
     var columnRealmList: RealmList<SyncDog>? = null
@@ -104,6 +109,8 @@ open class SyncAllTypes : RealmObject() {
 
     @Required
     var columnObjectIdList: RealmList<ObjectId>? = null
+    @Required
+    var columnUUIDList: RealmList<UUID>? = null
 
     fun setColumnMutableRealmInteger(value: Int) {
         columnRealmInteger.set(value.toLong())

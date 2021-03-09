@@ -524,6 +524,7 @@ class SyncedRealmTests {
         val expectedBinary = byteArrayOf(0, 1, 0)
         val expectedDecimal128 = Decimal128(10)
         val expectedObjectId = ObjectId()
+        val expectedUUID = UUID.randomUUID()
         var expectedRealmObject = SyncDog().apply {
             id = expectedObjectId
         }
@@ -536,6 +537,7 @@ class SyncedRealmTests {
         val expectedDateList = RealmList<Date>(Date(100), Date(10), Date(200))
         val expectedDecimal128List = RealmList<Decimal128>(Decimal128(10), Decimal128(100), Decimal128(20))
         val expectedObjectIdList = RealmList<ObjectId>(ObjectId(Date(1000)), ObjectId(Date(100)), ObjectId(Date(2000)))
+        val expectedUUIDList = RealmList<UUID>(UUID.randomUUID())
 
         Realm.getInstance(config1).use { realm ->
             realm.executeTransaction {
@@ -551,6 +553,7 @@ class SyncedRealmTests {
                     columnBinary = expectedBinary
                     columnDecimal128 = expectedDecimal128
                     columnObjectId = expectedObjectId
+                    columnUUID = expectedUUID
                     columnRealmInteger.set(expectedRealmInteger)
                     columnRealmObject = expectedRealmObject
                     columnRealmList = expectedRealmList
@@ -562,6 +565,7 @@ class SyncedRealmTests {
                     columnDateList = expectedDateList
                     columnDecimal128List = expectedDecimal128List
                     columnObjectIdList = expectedObjectIdList
+                    columnUUIDList = expectedUUIDList
                 }
             }
             realm.syncSession.uploadAllLocalChanges()
@@ -589,6 +593,7 @@ class SyncedRealmTests {
                 assertTrue(expectedBinary.contentEquals(it.columnBinary))
                 assertEquals(expectedDecimal128, it.columnDecimal128)
                 assertEquals(expectedObjectId, it.columnObjectId)
+                assertEquals(expectedUUID, it.columnUUID)
                 assertEquals(expectedRealmInteger, it.columnRealmInteger.get())
                 assertEquals(expectedObjectId, it.columnRealmObject!!.id)
                 assertEquals(expectedObjectId, it.columnRealmList!!.first()!!.id)
@@ -600,6 +605,7 @@ class SyncedRealmTests {
                 assertEquals(expectedDateList, it.columnDateList)
                 assertEquals(expectedDecimal128List, it.columnDecimal128List)
                 assertEquals(expectedObjectIdList, it.columnObjectIdList)
+                assertEquals(expectedUUIDList, it.columnUUIDList)
             }
         }
     }
