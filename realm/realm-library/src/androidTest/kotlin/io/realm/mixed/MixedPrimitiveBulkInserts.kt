@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package io.realm
+package io.realm.mixed
 
 import androidx.test.platform.app.InstrumentationRegistry
+import io.realm.*
 import io.realm.entities.*
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
@@ -126,10 +127,8 @@ class MixedPrimitivesBulkInsertsTests(
     private lateinit var realmConfiguration: RealmConfiguration
     private lateinit var realm: Realm
 
-
-    @Rule
-    @JvmField
-    val folder = TemporaryFolder()
+    @get:Rule
+    val configFactory = TestRealmConfigurationFactory()
 
     init {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
@@ -137,16 +136,14 @@ class MixedPrimitivesBulkInsertsTests(
 
     @Before
     fun setUp() {
-        realmConfiguration = RealmConfiguration
-                .Builder(InstrumentationRegistry.getInstrumentation().targetContext)
-                .directory(folder.newFolder())
-                .schema(MixedNotIndexed::class.java,
-                        MixedIndexed::class.java,
-                        AllJavaTypes::class.java,
-                        MixedRealmListWithPK::class.java,
-                        MixedNotIndexedWithPK::class.java,
-                        PrimaryKeyAsString::class.java)
-                .build()
+        realmConfiguration = configFactory.createSchemaConfiguration(
+                false,
+                MixedNotIndexed::class.java,
+                MixedIndexed::class.java,
+                AllJavaTypes::class.java,
+                MixedRealmListWithPK::class.java,
+                MixedNotIndexedWithPK::class.java,
+                PrimaryKeyAsString::class.java)
 
         realm = Realm.getInstance(realmConfiguration)
     }

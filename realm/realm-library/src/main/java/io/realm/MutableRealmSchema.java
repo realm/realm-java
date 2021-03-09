@@ -40,7 +40,7 @@ class MutableRealmSchema extends RealmSchema {
 
         String internalClassName = Table.getTableNameForClass(className);
         if (!realm.getSharedRealm().hasTable(internalClassName)) { return null; }
-        Table table = realm.getSharedRealm().getTable(internalClassName);
+        Table table = realm.getSharedRealm().getTable(internalClassName, getKeyPathMapping());
         return new MutableRealmObjectSchema(realm, this, table);
     }
 
@@ -72,7 +72,7 @@ class MutableRealmSchema extends RealmSchema {
                             Table.CLASS_NAME_MAX_LENGTH,
                             className.length()));
         }
-        return new MutableRealmObjectSchema(realm, this, realm.getSharedRealm().createTable(internalTableName));
+        return new MutableRealmObjectSchema(realm, this, realm.getSharedRealm().createTable(internalTableName, getKeyPathMapping()));
     }
 
     @Override
@@ -126,7 +126,7 @@ class MutableRealmSchema extends RealmSchema {
         }
 
         realm.getSharedRealm().renameTable(oldInternalName, newInternalName);
-        Table table = realm.getSharedRealm().getTable(newInternalName);
+        Table table = realm.getSharedRealm().getTable(newInternalName, realm.getSchema().getKeyPathMapping());
         RealmObjectSchema objectSchema = removeFromClassNameToSchemaMap(oldInternalName);
         if (objectSchema == null || !objectSchema.getTable().isValid() || !objectSchema.getClassName().equals(newClassName)) {
             objectSchema = new MutableRealmObjectSchema(realm, this, table);

@@ -115,7 +115,7 @@ public class Mixed {
         this.operator = operator;
     }
 
-    long getNativePtr() {
+    final long getNativePtr() {
         return this.operator.getNativePtr();
     }
 
@@ -479,5 +479,15 @@ public class Mixed {
         if (!(other instanceof Mixed)) { return false; }
         Mixed otherMixed = ((Mixed) other);
         return this.operator.equals(otherMixed.operator);
+    }
+
+    public final boolean coercedEquals(Mixed other) {
+        if (other == null) { return false; }
+        return this.operator.coercedEquals(other.operator);
+    }
+
+    @Override
+    public String toString() {
+        return this.operator.toString();
     }
 }

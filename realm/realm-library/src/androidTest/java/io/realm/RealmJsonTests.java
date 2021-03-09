@@ -63,7 +63,6 @@ import io.realm.entities.PrimitiveListTypes;
 import io.realm.entities.RandomPrimaryKey;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.Util;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;

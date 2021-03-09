@@ -399,11 +399,11 @@ public class RealmConfiguration {
 
     // Creates the mediator that defines the current schema.
     protected static RealmProxyMediator createSchemaMediator(Set<Object> modules,
-            Set<Class<? extends RealmModel>> debugSchema) {
+            Set<Class<? extends RealmModel>> debugSchema, boolean excludeDebugSchema) {
 
         // If using debug schema, uses special mediator.
         if (debugSchema.size() > 0) {
-            return new FilterableMediator(DEFAULT_MODULE_MEDIATOR, debugSchema);
+            return new FilterableMediator(DEFAULT_MODULE_MEDIATOR, debugSchema, excludeDebugSchema);
         }
 
         // If only one module, uses that mediator directly.
@@ -499,6 +499,7 @@ public class RealmConfiguration {
         private OsRealmConfig.Durability durability;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
+        private boolean excludeDebugSchema = false;
         @Nullable
         private RxObservableFactory rxFactory;
         @Nullable
@@ -871,6 +872,16 @@ public class RealmConfiguration {
         }
 
         /**
+         * DEBUG method. This restricts the Realm schema to exclude the provided classes from the original schema
+         * without having to create a module. These classes must be available in the default module. Calling this will
+         * remove any previously configured modules.
+         */
+        final Builder excludeSchema(Class<? extends RealmModel> firstClass, Class<? extends RealmModel>... additionalClasses) {
+            excludeDebugSchema = true;
+            return schema(firstClass, additionalClasses);
+        }
+
+        /**
          * Sets whether or not calls to {@link Realm#executeTransaction} are allowed from the UI thread.
          * <p>
          * <b>WARNING: Realm does not allow synchronous transactions to be run on the main thread unless users explicitly opt in
@@ -932,7 +943,7 @@ public class RealmConfiguration {
                     migration,
                     deleteRealmIfMigrationNeeded,
                     durability,
-                    createSchemaMediator(modules, debugSchema),
+                    createSchemaMediator(modules, debugSchema, excludeDebugSchema),
                     rxFactory,
                     flowFactory,
                     initialDataTransaction,

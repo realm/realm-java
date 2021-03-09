@@ -30,6 +30,8 @@ import io.realm.RealmFieldType;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.annotations.ObjectServer;
+import io.realm.internal.objectstore.OsKeyPathMapping;
+
 
 @Keep
 public final class OsSharedRealm implements Closeable, NativeObject {
@@ -297,6 +299,19 @@ public final class OsSharedRealm implements Closeable, NativeObject {
      * Gets an existing {@link Table} with the given name.
      *
      * @param name the name of table.
+     * @param osKeyPathMapping internal and public attribute naming map.
+     * @return a {@link Table} object.
+     * @throws IllegalArgumentException if the table doesn't exist.
+     */
+    public Table getTable(String name, OsKeyPathMapping osKeyPathMapping) {
+        long tableRefPtr = nativeGetTableRef(nativePtr, name);
+        return new Table(this, tableRefPtr, osKeyPathMapping);
+    }
+
+    /**
+     * Gets an existing {@link Table} with the given name.
+     *
+     * @param name the name of table.
      * @return a {@link Table} object.
      * @throws IllegalArgumentException if the table doesn't exist.
      */
@@ -314,6 +329,18 @@ public final class OsSharedRealm implements Closeable, NativeObject {
      */
     public Table createTable(String name) {
         return new Table(this, nativeCreateTable(nativePtr, name));
+    }
+
+    /**
+     * Creates a {@link Table} with then given name. Native assertion will happen if the table with the same name
+     * exists.
+     *
+     * @param name the name of table.
+     * @param mapping internal and public attribute naming map.
+     * @return a created {@link Table} object.
+     */
+    public Table createTable(String name, OsKeyPathMapping mapping) {
+        return new Table(this, nativeCreateTable(nativePtr, name), mapping);
     }
 
     /**
