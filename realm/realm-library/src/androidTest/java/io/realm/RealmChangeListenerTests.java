@@ -23,11 +23,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.annotation.Nullable;
-
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.rule.UiThreadTestRule;
-import io.realm.entities.AllJavaTypes;
+
 import io.realm.entities.AllTypes;
 import io.realm.entities.BacklinksSource;
 import io.realm.entities.BacklinksTarget;
@@ -37,7 +35,6 @@ import io.realm.entities.pojo.AllTypesRealmModel;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;

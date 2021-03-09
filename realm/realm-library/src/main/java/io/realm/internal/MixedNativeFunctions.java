@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Realm Inc.
+ * Copyright 2021 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.realm.internal;
 
-package io.realm.entities
+import io.realm.Mixed;
 
-import io.realm.Mixed
-import io.realm.RealmList
-import io.realm.RealmObject
-import io.realm.annotations.PrimaryKey
 
-open class MixedRealmListWithPK(@PrimaryKey var pk: Long) : RealmObject() {
-    companion object {
-        const val CLASS_NAME = "MixedRealmListWithPK"
-        const val FIELD_MIXED = "mixedList"
-        const val PK = "pk"
-    }
+public interface MixedNativeFunctions {
+    void handleItem(long listPtr, Mixed mixed);
 
-    constructor(): this(0)
-
-    var mixedList: RealmList<Mixed> = RealmList()
-    var modelList: RealmList<MixedRealmListWithPK> = RealmList()
+    void callRawPredicate(TableQuery query, String predicate, Mixed... arguments);
 }

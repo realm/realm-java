@@ -73,7 +73,6 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
 import io.realm.migration.MigrationPrimaryKey;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

@@ -34,7 +34,7 @@ import io.realm.RealmConfiguration;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;

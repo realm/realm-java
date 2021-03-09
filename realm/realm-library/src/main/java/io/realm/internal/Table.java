@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 
 import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
+import io.realm.internal.objectstore.OsKeyPathMapping;
 
 
 /**
@@ -52,12 +53,18 @@ public class Table implements NativeObject {
     private final NativeContext context;
 
     private final OsSharedRealm sharedRealm;
+    private final @Nullable OsKeyPathMapping osKeyPathMapping;
 
-    Table(OsSharedRealm sharedRealm, long nativeTableRefPointer) {
+    Table(OsSharedRealm sharedRealm, long nativeTableRefPointer, @Nullable OsKeyPathMapping osKeyPathMapping) {
         this.context = sharedRealm.context;
         this.sharedRealm = sharedRealm;
         this.nativeTableRefPtr = nativeTableRefPointer;
+        this.osKeyPathMapping = osKeyPathMapping;
         context.addReference(this);
+    }
+
+    Table(OsSharedRealm sharedRealm, long nativeTableRefPointer) {
+        this(sharedRealm, nativeTableRefPointer, null);
     }
 
     @Override
@@ -419,7 +426,7 @@ public class Table implements NativeObject {
     public Table getLinkTarget(long columnKey) {
         long nativeTablePointer = nativeGetLinkTarget(nativeTableRefPtr, columnKey);
         // Copies context reference from parent.
-        return new Table(this.sharedRealm, nativeTablePointer);
+        return new Table(this.sharedRealm, nativeTablePointer, getOsKeyPathMapping());
     }
 
     /**
@@ -619,6 +626,11 @@ public class Table implements NativeObject {
         return new TableQuery(this.context, this, nativeQueryPtr);
     }
 
+    @Nullable
+    public OsKeyPathMapping getOsKeyPathMapping() {
+        return osKeyPathMapping;
+    }
+
     public long findFirstLong(long columnKey, long value) {
         return nativeFindFirstInt(nativeTableRefPtr, columnKey, value);
     }
@@ -760,7 +772,7 @@ public class Table implements NativeObject {
         if (!frozenRealm.isFrozen()) {
             throw new IllegalArgumentException("Frozen Realm required");
         }
-        return new Table(frozenRealm, nativeFreeze(frozenRealm.getNativePtr(), nativeTableRefPtr));
+        return new Table(frozenRealm, nativeFreeze(frozenRealm.getNativePtr(), nativeTableRefPtr), getOsKeyPathMapping());
     }
 
     public boolean isEmbedded() {

@@ -21,13 +21,9 @@ import io.realm.annotations.PrimaryKey
 import io.realm.annotations.Required
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
-import io.realm.rule.TestRealmConfigurationFactory
 import org.bson.types.Decimal128
-import org.junit.After
+import org.junit.*
 import org.junit.Assert.*
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import org.junit.runner.RunWith
 import java.math.BigDecimal
 import kotlin.test.assertFailsWith
@@ -275,10 +271,6 @@ class Decimal128Tests {
 
     @Test
     fun linkQueryNotSupported() {
-        assertFailsWith<IllegalArgumentException>("It should not be possible to perform link query on Decimal128") {
-            realm.where<Decimal128RequiredRealmList>().greaterThan("decimals", Decimal128(BigDecimal.ZERO)).findAll()
-        }
-
         realm.beginTransaction()
         val obj = realm.createObject<Decimal128RequiredRealmList>()
         realm.cancelTransaction()
@@ -619,6 +611,7 @@ class Decimal128Tests {
     }
 
     @Test
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     fun queriesIsEmpty() {
         realm.beginTransaction()
         realm.createObject<Decimal128NotRequired>(1).decimal = Decimal128(BigDecimal.ONE)
@@ -628,7 +621,7 @@ class Decimal128Tests {
         realm.commitTransaction()
 
         assertFailsWith<IllegalArgumentException>("isEmpty is not supported for Decimal128") {
-            realm.where<Decimal128NotRequired>().isEmpty("decimal")
+            realm.where<Decimal128NotRequired>().isEmpty("decimal").count()
         }
     }
 

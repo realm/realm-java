@@ -8,10 +8,8 @@ import java.util.Date;
 import java.util.UUID;
 
 import io.realm.FrozenPendingRow;
-import io.realm.Mixed;
 import io.realm.RealmChangeListener;
 import io.realm.RealmFieldType;
-import io.realm.internal.core.DescriptorOrdering;
 import io.realm.internal.core.NativeMixed;
 
 
@@ -43,10 +41,10 @@ public class PendingRow implements Row {
     private WeakReference<FrontEnd> frontEndRef;
     private boolean returnCheckedRow;
 
-    public PendingRow(OsSharedRealm sharedRealm, TableQuery query, DescriptorOrdering queryDescriptors,
+    public PendingRow(OsSharedRealm sharedRealm, TableQuery query,
                       final boolean returnCheckedRow) {
         this.sharedRealm = sharedRealm;
-        pendingOsResults = OsResults.createFromQuery(sharedRealm, query, queryDescriptors);
+        pendingOsResults = OsResults.createFromQuery(sharedRealm, query);
 
         listener = new RealmChangeListener<PendingRow>() {
             @Override

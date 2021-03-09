@@ -25,7 +25,6 @@ import io.realm.entities.embedded.EmbeddedSimpleChild
 import io.realm.entities.embedded.EmbeddedSimpleParent
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
-import io.realm.rule.TestRealmConfigurationFactory
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import org.junit.After

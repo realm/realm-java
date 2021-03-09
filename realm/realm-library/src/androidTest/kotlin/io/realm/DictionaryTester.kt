@@ -16,8 +16,6 @@
 
 package io.realm
 
-import io.realm.rule.TestRealmConfigurationFactory
-
 /**
 // * Contains all the methods to test in RealmDictionary plus some other convenience ones.
  */
