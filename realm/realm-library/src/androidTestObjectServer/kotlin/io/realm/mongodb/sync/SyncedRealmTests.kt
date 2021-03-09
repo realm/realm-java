@@ -33,6 +33,7 @@ import io.realm.mongodb.User
 import io.realm.mongodb.close
 import org.bson.BsonNull
 import org.bson.BsonString
+import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import org.junit.*
 import org.junit.Assert.assertNotEquals
@@ -235,7 +236,7 @@ class SyncedRealmTests {
                 .testSchema(SyncByteArray::class.java)
                 .build()
 
-        var originalSize : Long? = null
+        var originalSize: Long? = null
         Realm.getInstance(config1).use { realm ->
             val oneMBData = ByteArray(1024 * 1024)
             realm.executeTransaction {
@@ -505,6 +506,107 @@ class SyncedRealmTests {
             realm1?.close()
             realm2?.close()
             app2.close()
+        }
+    }
+
+    @Test
+    fun allTypes_roundTrip() {
+        val user1: User = createNewUser()
+        val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
+
+        val primaryKeyValue = ObjectId()
+        val expectedRealmInteger = 100.toLong()
+        val expectedString = "hello world"
+        val expectedLong = 10.toLong()
+        val expectedDouble = 10.0
+        val expectedBoolean = true
+        val expectedDate = Date()
+        val expectedBinary = byteArrayOf(0, 1, 0)
+        val expectedDecimal128 = Decimal128(10)
+        val expectedObjectId = ObjectId()
+        val expectedUUID = UUID.randomUUID()
+        var expectedRealmObject = SyncDog().apply {
+            id = expectedObjectId
+        }
+        val expectedRealmList = RealmList<SyncDog>()
+        val expectedStringList = RealmList<String>("hello world 1", "hello world 2")
+        val expectedBinaryList = RealmList<ByteArray>()
+        val expectedBooleanList = RealmList<Boolean>(true, false, false, true)
+        val expectedLongList = RealmList<Long>(0, 1, 2, 5, 7)
+        val expectedDoubleList = RealmList<Double>(0.0, 2.toDouble(), 10.5)
+        val expectedDateList = RealmList<Date>(Date(100), Date(10), Date(200))
+        val expectedDecimal128List = RealmList<Decimal128>(Decimal128(10), Decimal128(100), Decimal128(20))
+        val expectedObjectIdList = RealmList<ObjectId>(ObjectId(Date(1000)), ObjectId(Date(100)), ObjectId(Date(2000)))
+        val expectedUUIDList = RealmList<UUID>(UUID.randomUUID())
+
+        Realm.getInstance(config1).use { realm ->
+            realm.executeTransaction {
+                expectedRealmObject = realm.copyToRealmOrUpdate(expectedRealmObject)
+                expectedRealmList.add(expectedRealmObject)
+
+                realm.createObject(SyncAllTypes::class.java, primaryKeyValue).apply {
+                    columnString = expectedString
+                    columnLong = expectedLong
+                    columnDouble = expectedDouble
+                    isColumnBoolean = expectedBoolean
+                    columnDate = expectedDate
+                    columnBinary = expectedBinary
+                    columnDecimal128 = expectedDecimal128
+                    columnObjectId = expectedObjectId
+                    columnUUID = expectedUUID
+                    columnRealmInteger.set(expectedRealmInteger)
+                    columnRealmObject = expectedRealmObject
+                    columnRealmList = expectedRealmList
+                    columnStringList = expectedStringList
+                    columnBinaryList = expectedBinaryList
+                    columnBooleanList = expectedBooleanList
+                    columnLongList = expectedLongList
+                    columnDoubleList = expectedDoubleList
+                    columnDateList = expectedDateList
+                    columnDecimal128List = expectedDecimal128List
+                    columnObjectIdList = expectedObjectIdList
+                    columnUUIDList = expectedUUIDList
+                }
+            }
+            realm.syncSession.uploadAllLocalChanges()
+            assertEquals(1, realm.where<SyncAllTypes>().count())
+        }
+
+        val user2: User = createNewUser()
+        val config2: SyncConfiguration = createDefaultConfig(user2, partitionValue)
+        Realm.getInstance(config2).use { realm ->
+            assertEquals(0, realm.where<SyncAllTypes>().count())
+
+            realm.syncSession.downloadAllServerChanges(5, TimeUnit.SECONDS).let {
+                if (!it) fail()
+            }
+            realm.refresh()
+
+            assertEquals(1, realm.where<SyncAllTypes>().count())
+
+            realm.where<SyncAllTypes>().findFirst()!!.let {
+                assertEquals(expectedString, it.columnString)
+                assertEquals(expectedLong, it.columnLong)
+                assertEquals(expectedDouble, it.columnDouble)
+                assertEquals(expectedBoolean, it.isColumnBoolean)
+                assertEquals(expectedDate, it.columnDate)
+                assertTrue(expectedBinary.contentEquals(it.columnBinary))
+                assertEquals(expectedDecimal128, it.columnDecimal128)
+                assertEquals(expectedObjectId, it.columnObjectId)
+                assertEquals(expectedUUID, it.columnUUID)
+                assertEquals(expectedRealmInteger, it.columnRealmInteger.get())
+                assertEquals(expectedObjectId, it.columnRealmObject!!.id)
+                assertEquals(expectedObjectId, it.columnRealmList!!.first()!!.id)
+                assertEquals(expectedStringList, it.columnStringList)
+                assertEquals(expectedBinaryList, it.columnBinaryList)
+                assertEquals(expectedBooleanList, it.columnBooleanList)
+                assertEquals(expectedLongList, it.columnLongList)
+                assertEquals(expectedDoubleList, it.columnDoubleList)
+                assertEquals(expectedDateList, it.columnDateList)
+                assertEquals(expectedDecimal128List, it.columnDecimal128List)
+                assertEquals(expectedObjectIdList, it.columnObjectIdList)
+                assertEquals(expectedUUIDList, it.columnUUIDList)
+            }
         }
     }
 
