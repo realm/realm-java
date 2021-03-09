@@ -31,7 +31,7 @@ import java.util.*
 open class SyncAllTypes : RealmObject() {
 
     companion object {
-        const val CLASS_NAME = "AllTypes"
+        const val CLASS_NAME = "SyncAllTypes"
         const val FIELD_STRING = "columnString"
         const val FIELD_LONG = "columnLong"
         const val FIELD_FLOAT = "columnFloat"
