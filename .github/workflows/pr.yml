@@ -78,6 +78,28 @@ jobs:
             examples/unitTestExample/build/test-results/**/TEST-*.xml
             realm/realm-library/build/test-results/**/TEST-*.xml
 
+      - name: Run Integration Tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: default
+          arch: x86_64
+          ndk: 22.0.7026061
+          cmake: 3.18.4
+          profile: Nexus 6
+          script: |
+            cd realm
+            ./gradlew connectedBaseDebugAndroidTest $BUILD_FLAGS
+
+      - name: Upload Integration Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: Integration Test Results
+          path: |
+            realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+            realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+
   process-test-results:
     needs: run-pr-build
     runs-on: ubuntu-latest
