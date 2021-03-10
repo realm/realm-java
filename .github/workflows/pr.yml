@@ -23,7 +23,7 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle-
 
       - name: Build library
-        run: ./gradlew assemble -PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true --stacktrace"
+        run: ./gradlew assemble -PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true --stacktrace
 
 
 #jobs:
