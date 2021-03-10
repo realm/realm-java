@@ -61,22 +61,19 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
           restore-keys: ${{ runner.os }}-gradle-
 
-      # TODO Move to later, but run here to verify it works
-      - name: Start Docker test image
-        uses: reactivecircus/android-emulator-runner@v2
-        env:
-          GITHUB_DOCKER_USER: ${{ secrets.GH_DOCKER_USER }}
-          GITHUB_DOCKER_TOKEN: ${{ secrets.GH_DOCKER_TOKEN }}
-        with:
-          api-level: 29
-          target: default
-          arch: x86_64
-          ndk: 22.0.7026061
-          profile: Nexus 6
-          script: cd tools/sync_test_server && sh ./start_server.sh && cd ../../realm &&./gradlew connectedBaseDebugAndroidTest $BUILD_FLAGS
-
+      # TODO Find a way to start the Docker test image while also having the emulator available
 #      - name: Start Docker test image
-#        run: cd tools/sync_test_server && sh ./start_server.sh
+#        uses: reactivecircus/android-emulator-runner@v2
+#        env:
+#          GITHUB_DOCKER_USER: ${{ secrets.GH_DOCKER_USER }}
+#          GITHUB_DOCKER_TOKEN: ${{ secrets.GH_DOCKER_TOKEN }}
+#        with:
+#          api-level: 29
+#          target: default
+#          arch: x86_64
+#          ndk: 22.0.7026061
+#          profile: Nexus 6
+#          script: cd tools/sync_test_server && sh ./start_server.sh && cd ../../realm &&./gradlew connectedBaseDebugAndroidTest $BUILD_FLAGS
 
       # TODO: Figure out how to do different build flags depending on the build type
       - name: Build library
