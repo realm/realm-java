@@ -6,6 +6,9 @@ on:
       - '*.md'
 
 env:
+  # GitHub Actions does not support variables. Use environments vars as a work-around
+  BUILD_FLAGS: -PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true
+
   # TODO: From DockerFile, not sure if needed
   CCACHE_CPP2: yes
   # CMAKE_VERSION: 3.18.4
@@ -27,6 +30,7 @@ jobs:
           brew install ccache
 
       # CCache setup copied from https://github.com/cristianadam/HelloWorld/blob/master/.github/workflows/build_cmake.yml
+      # TODO: How to verify this works at all?
       - name: Prepare ccache timestamp
         id: ccache_cache_timestamp
         shell: cmake -P {0}
@@ -57,7 +61,30 @@ jobs:
 
       # TODO: Figure out how to do different build flags depending on the build type
       - name: Build library
-        run: ./gradlew assemble -PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true --stacktrace
+        run: ./gradlew assemble $BUILD_FLAGS --stacktrace
+
+      - name: Run Tests
+        run: ./gradlew check $BUILD_FLAGS --stacktrace
+
+      - name: Publish Annotion Processor Tests
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: realm/realm-annotations-processor/build/test-results/test/TEST-*.xml
+
+      - name: Publish Example App Unit Tests
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: examples/unitTestExample/build/test-results/**/TEST-*.xml
+
+      - name: Publish Library Unit Tests
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: realm/realm-library/build/test-results/**/TEST-*.xml
+
+
 
 
 #jobs:
