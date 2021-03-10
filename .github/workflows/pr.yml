@@ -87,7 +87,7 @@ jobs:
           target: default
           arch: x86_64
           ndk: 22.0.7026061
-          cmake: 3.18.4
+          # TODO: Cannot find Cmake? cmake: 3.18.4
           profile: Nexus 6
           script: |
             cd realm
