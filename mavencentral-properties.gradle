@@ -5,7 +5,7 @@ def getPropertyValue(String propertyName) {
     if (project.hasProperty(propertyName)) {
         value = project.getProperty(propertyName)
     }
-    return value
+    return (value == null) ? "" : value;
 }
 
 // Default values
