@@ -66,26 +66,40 @@ jobs:
       - name: Run Tests
         run: ./gradlew check $BUILD_FLAGS --stacktrace
 
-      - name: Publish Annotion Processor Tests
-        uses: EnricoMi/publish-unit-test-result-action@v1
+      # EnricoMi/publish-unit-test-result-action@v1 only works on Linux, so as a work-around
+      # we archive the test results from mac-os and download them to a Linux runner.
+      - name: Upload Test Results
         if: always()
+        uses: actions/upload-artifact@v2
         with:
-          files: realm/realm-annotations-processor/build/test-results/test/TEST-*.xml
+          name: Unit Test Results
+          path: |
+            realm/realm-annotations-processor/build/test-results/test/TEST-*.xml
+            examples/unitTestExample/build/test-results/**/TEST-*.xml
+            realm/realm-library/build/test-results/**/TEST-*.xml
 
-      - name: Publish Example App Unit Tests
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        if: always()
+  process-test-results:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
         with:
-          files: examples/unitTestExample/build/test-results/**/TEST-*.xml
+          path: artifacts
 
-      - name: Publish Library Unit Tests
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        if: always()
+      - name: Publish Annotation Processor Results
+        uses: EnricoMi/publish-unit-test-result-action@master
         with:
-          files: realm/realm-library/build/test-results/**/TEST-*.xml
+          files: artifacts/realm/realm-annotations-processor/build/test-results/test/TEST-*.xml
 
+      - name: Publish Example Project Results
+        uses: EnricoMi/publish-unit-test-result-action@master
+        with:
+          files: artifacts/examples/unitTestExample/build/test-results/**/TEST-*.xml
 
-
+      - name: Publish Library Test Results
+        uses: EnricoMi/publish-unit-test-result-action@master
+        with:
+          files: artifacts/realm/realm-library/build/test-results/**/TEST-*.xml
 
 #jobs:
 #  build:
