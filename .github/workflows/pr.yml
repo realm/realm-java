@@ -15,6 +15,10 @@ jobs:
         with:
           submodules: 'recursive'
 
+      - name: Install dependencies
+        run: brew install ninja
+
+      # TODO: Figure out why we require 3.18.4. Ideally it should just be minimum versions everywhere?
       - name: Setup cmake
         uses: jwlawson/actions-setup-cmake@v1.8
         with:
@@ -27,6 +31,7 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
           restore-keys: ${{ runner.os }}-gradle-
 
+      # TODO: Figure out how to do different build flags depending on the build type
       - name: Build library
         run: ./gradlew assemble -PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true --stacktrace
 
@@ -64,7 +69,7 @@ jobs:
 #      - name: Run ubuntu tests
 #        if: matrix.os == 'ubuntu-latest' && matrix.job == 'test'
 #        run: |
-#          ./gradlew build -x :sqldelight-idea-plugin:build -x :sqldelight-gradle-plugin:test --stacktrace
+#          ./gradlew build -x :.sqldelight-idea-plugin:b4ight-gradle-plugin:test --stacktrace
 #          ./gradlew :sqldelight-gradle-plugin:test --tests="com.squareup.sqldelight.tests.*"
 #          ./gradlew :sqldelight-gradle-plugin:test --tests="com.squareup.sqldelight.integrations.*"
 #
