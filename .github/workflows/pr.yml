@@ -6,6 +6,8 @@ on:
       - '*.md'
 
 env:
+  #  GRADLE_OPTS: -Dorg.gradle.configureondemand=true -Dkotlin.incremental=false -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxPermSize=4096m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=1024m"
+
   # GitHub Actions does not support variables. Use environments vars as a work-around
   BUILD_FLAGS: -PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true
 
@@ -81,7 +83,7 @@ jobs:
       - name: Run Integration Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30
+          api-level: 29
           target: default
           arch: x86_64
           ndk: 22.0.7026061
@@ -123,75 +125,3 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@master
         with:
           files: artifacts/realm-java/realm/realm-library/build/test-results/**/TEST-*.xml
-
-#jobs:
-#  build:
-#    strategy:
-#      matrix:
-#        os: [macOS-latest, windows-latest, ubuntu-latest]
-#        job: [instrumentation, test]
-#        exclude:
-#          - os: windows-latest
-#            job: instrumentation
-#
-#    runs-on: ${{matrix.os}}
-#
-#    steps:
-#      - name: Checkout the repo
-#        uses: actions/checkout@v2
-#      - name: Validate Gradle Wrapper
-#        uses: gradle/wrapper-validation-action@v1
-#      - name: Cache intellij download
-#        uses: actions/cache@v2.1.0
-#        with:
-#          path: lib/download
-#          key: intellij-${{ hashFiles('gradle/dependencies.gradle') }}
-#      - name: Cache gradle
-#        uses: actions/cache@v2.1.0
-#        with:
-#          path: ~/.gradle/caches
-#          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
-#          restore-keys: |
-#            ${{ runner.os }}-gradle-
-#
-#      - name: Run ubuntu tests
-#        if: matrix.os == 'ubuntu-latest' && matrix.job == 'test'
-#        run: |
-#          ./gradlew build -x :.sqldelight-idea-plugin:b4ight-gradle-plugin:test --stacktrace
-#          ./gradlew :sqldelight-gradle-plugin:test --tests="com.squareup.sqldelight.tests.*"
-#          ./gradlew :sqldelight-gradle-plugin:test --tests="com.squareup.sqldelight.integrations.*"
-#
-#      - name: Run the IntelliJ plugin
-#        if: matrix.os == 'ubuntu-latest' && matrix.job == 'instrumentation'
-#        run: ./gradlew :sqldelight-idea-plugin:build --stacktrace
-#      - name: Verify IntelliJ plugin
-#        if: matrix.os == 'ubuntu-latest' && matrix.job == 'instrumentation'
-#        run: |
-#          ./gradlew :sqldelight-idea-plugin:runPluginVerifier
-#
-#      - name: Run windows tests
-#        if: matrix.os == 'windows-latest'
-#        run: ./gradlew mingwTest sqldelight-idea-plugin:check --stacktrace
-#
-#      - name: Run instrumentation tests
-#        if: matrix.os == 'macOS-latest' && matrix.job == 'instrumentation'
-#        uses: reactivecircus/android-emulator-runner@v2
-#        with:
-#          api-level: 29
-#          script: ./gradlew connectedCheck :sqldelight-gradle-plugin:build --stacktrace -PInstrumentation
-#      - name: Run ios tests
-#        if: matrix.os == 'macOS-latest' && matrix.job == 'test'
-#        run: ./gradlew iosX64Test --stacktrace
-#
-#      - name: Bundle the build report
-#        if: failure()
-#        run: find . -type d -name 'reports' | zip -@ -r build-reports.zip
-#      - name: Upload the build report
-#        if: failure()
-#        uses: actions/upload-artifact@master
-#        with:
-#          name: error-report
-#          path: build-reports.zip
-
-#env:
-#  GRADLE_OPTS: -Dorg.gradle.configureondemand=true -Dkotlin.incremental=false -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxPermSize=4096m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=1024m"
