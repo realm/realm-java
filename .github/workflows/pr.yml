@@ -90,17 +90,17 @@ jobs:
       - name: Publish Annotation Processor Results
         uses: EnricoMi/publish-unit-test-result-action@master
         with:
-          files: artifacts/realm/realm-annotations-processor/build/test-results/test/TEST-*.xml
+          files: artifacts/realm-java/realm/realm-annotations-processor/build/test-results/test/TEST-*.xml
 
       - name: Publish Example Project Results
         uses: EnricoMi/publish-unit-test-result-action@master
         with:
-          files: artifacts/examples/unitTestExample/build/test-results/**/TEST-*.xml
+          files: artifacts/realm-java/examples/unitTestExample/build/test-results/**/TEST-*.xml
 
       - name: Publish Library Test Results
         uses: EnricoMi/publish-unit-test-result-action@master
         with:
-          files: artifacts/realm/realm-library/build/test-results/**/TEST-*.xml
+          files: artifacts/realm-java/realm/realm-library/build/test-results/**/TEST-*.xml
 
 #jobs:
 #  build:
