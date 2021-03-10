@@ -32,9 +32,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
 
-import io.realm.internal.ClassContainer;
 import io.realm.internal.OsMap;
-import io.realm.internal.android.TypeUtils;
 import io.realm.internal.core.NativeMixed;
 import io.realm.internal.util.Pair;
 
@@ -55,29 +53,29 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
     private final OsMap osMap;
     private final IteratorType iteratorType;
     private final EqualsHelper<K, V> equalsHelper;
-    private final ClassContainer classContainer;
+    private final RealmTypeMapManager realmTypeMapManager;
 
     public RealmMapEntrySet(BaseRealm baseRealm,
                             OsMap osMap,
                             IteratorType iteratorType,
-                            @Nullable ClassContainer classContainer) {
+                            @Nullable RealmTypeMapManager realmTypeMapManager) {
         this.baseRealm = baseRealm;
         this.osMap = osMap;
         this.iteratorType = iteratorType;
         this.equalsHelper = new GenericEquals<>();
-        this.classContainer = classContainer;
+        this.realmTypeMapManager = realmTypeMapManager;
     }
 
     public RealmMapEntrySet(BaseRealm baseRealm,
                             OsMap osMap,
                             IteratorType iteratorType,
                             EqualsHelper<K, V> equalsHelper,
-                            @Nullable ClassContainer classContainer) {
+                            @Nullable RealmTypeMapManager realmTypeMapManager) {
         this.baseRealm = baseRealm;
         this.osMap = osMap;
         this.iteratorType = iteratorType;
         this.equalsHelper = equalsHelper;
-        this.classContainer = classContainer;
+        this.realmTypeMapManager = realmTypeMapManager;
     }
 
     @Override
@@ -111,7 +109,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
     @NotNull
     @Override
     public Iterator<Map.Entry<K, V>> iterator() {
-        return iteratorFactory(iteratorType, osMap, baseRealm, classContainer);
+        return iteratorFactory(iteratorType, osMap, baseRealm, realmTypeMapManager);
     }
 
     @NotNull
@@ -216,7 +214,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
     private static <K, V> EntrySetIterator<K, V> iteratorFactory(IteratorType iteratorType,
                                                                  OsMap osMap,
                                                                  BaseRealm baseRealm,
-                                                                 @Nullable ClassContainer classContainer) {
+                                                                 @Nullable RealmTypeMapManager realmTypeMapManager) {
         switch (iteratorType) {
             case LONG:
                 //noinspection unchecked
@@ -261,10 +259,10 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
                 //noinspection unchecked
                 return (EntrySetIterator<K, V>) new MixedValueIterator<K>(osMap, baseRealm);
             case OBJECT:
-                if (classContainer == null) {
+                if (realmTypeMapManager == null) {
                     throw new IllegalArgumentException("Missing class container when creating RealmModelValueIterator.");
                 }
-                return new RealmModelValueIterator<>(osMap, baseRealm, classContainer);
+                return new RealmModelValueIterator<>(osMap, baseRealm, realmTypeMapManager);
             default:
                 throw new IllegalArgumentException("Invalid iterator type.");
         }
@@ -533,11 +531,13 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     private static class RealmModelValueIterator<K, V> extends EntrySetIterator<K, V> {
 
-        private final ClassContainer classContainer;
+        private final RealmTypeMapManager<K, V> realmTypeMapManager;
 
-        public RealmModelValueIterator(OsMap osMap, BaseRealm baseRealm, ClassContainer classContainer) {
+        public RealmModelValueIterator(OsMap osMap,
+                                       BaseRealm baseRealm,
+                                       RealmTypeMapManager<K, V> realmTypeMapManager) {
             super(osMap, baseRealm);
-            this.classContainer = classContainer;
+            this.realmTypeMapManager = realmTypeMapManager;
         }
 
         @Override
@@ -551,13 +551,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
             }
 
             //noinspection unchecked
-            Class<? extends RealmModel> clazz = (Class<? extends RealmModel>) classContainer.getClazz();
-            String className = classContainer.getClassName();
-
-            //noinspection unchecked
-            V realmModel = (V) baseRealm.get(clazz, className, objRow);
-
-            return new AbstractMap.SimpleImmutableEntry<>(key, realmModel);
+            return (Map.Entry<K, V>) realmTypeMapManager.getModelEntry(baseRealm, objRow, key);
         }
     }
 
@@ -578,7 +572,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
     }
 }
 
-abstract class EqualsHelper<K, V>  {
+abstract class EqualsHelper<K, V> {
 
     boolean equalsHelper(Map.Entry<K, V> entry, Map.Entry<K, V> other) {
         K otherKey = other.getKey();

@@ -526,16 +526,6 @@ class ManagedDictionaryTester<T : Any>(
         return allTypesObject
     }
 
-    /**
-     * Helper function to get the managed version of a particular unmanaged RealmModel.
-     */
-    private fun DogPrimaryKey.getFromRealm(realm: Realm): DogPrimaryKey? {
-        return realm.where<DogPrimaryKey>()
-                .equalTo("id", this.id)
-                .equalTo("name", this.name)
-                .findFirst()
-    }
-
     private fun putInternal(
             initialized: RealmDictionary<T>,
             alternative: RealmDictionary<T>
@@ -724,7 +714,8 @@ fun managedFactory(): List<DictionaryTester> {
         )
     }
 
-    return primitiveTesters.plus(mixedTesters)
+//    return primitiveTesters.plus(mixedTesters)
+    return primitiveTesters
 }
 
 /**

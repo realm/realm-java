@@ -33,6 +33,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
+import kotlin.reflect.KProperty1
 import kotlin.test.*
 
 @RunWith(AndroidJUnit4::class)
@@ -176,6 +177,69 @@ class DictionaryMigrationTests {
             assertTrue(managedDictionary.isEmpty())
             assertEquals(0, it.where<EmbeddedSimpleChild>().count())
             assertFalse(managedChild.isValid)
+        }
+    }
+
+    @Test
+    fun query() {
+        realm = Realm.getInstance(configFactory.createConfiguration())
+        realm.executeTransaction { transactionRealm ->
+            val container = transactionRealm.createObject<DictionaryContainerClass>()
+
+            dictionaryFields.forEach {
+                when (it.second) {
+                    java.lang.Boolean::class.java -> {
+                        val dictionaryProperty = it.first as KProperty1<DictionaryContainerClass, RealmDictionary<Boolean>>
+                        val dictionary: RealmDictionary<Boolean> = dictionaryProperty.get(container)
+                        dictionary["A"] = true
+//                        dictionary["B"] = false
+
+                        val equalsPredicate1 = """${dictionaryProperty.name}.@keys == 'A'"""
+                        val equals1 = transactionRealm.where<DictionaryContainerClass>()
+                                .rawPredicate(equalsPredicate1)
+                                .findAll()
+                        val equalsPredicate2 = """${dictionaryProperty.name}.@keys == 'C'"""
+                        val equals2 = transactionRealm.where<DictionaryContainerClass>()
+                                .rawPredicate(equalsPredicate2)
+                                .findAll()
+
+                        val valueContainsPredicate1 = """${dictionaryProperty.name}.@values == TRUE"""
+                        val valueContains1 = transactionRealm.where<DictionaryContainerClass>()
+                                .rawPredicate(valueContainsPredicate1)
+                                .findAll()
+                        val valueContainsPredicate2 = """${dictionaryProperty.name}.@values == FALSE"""
+                        val valueContains2 = transactionRealm.where<DictionaryContainerClass>()
+                                .rawPredicate(valueContainsPredicate2)
+                                .findAll()
+
+                        val startsWithPredicate1 = """${dictionaryProperty.name}.@keys beginsWith 'A'"""
+                        val startsWith1 = transactionRealm.where<DictionaryContainerClass>()
+                                .rawPredicate(startsWithPredicate1)
+                                .findAll()
+                        val startsWithPredicate2 = """${dictionaryProperty.name}.@keys beginsWith 'B'"""
+                        val startsWith2 = transactionRealm.where<DictionaryContainerClass>()
+                                .rawPredicate(startsWithPredicate2)
+                                .findAll()
+
+                        val kjahs = 0
+                    }
+//                    java.lang.Boolean::class.java -> ""
+//                    java.lang.Integer::class.java -> ""
+//                    java.lang.Float::class.java -> ""
+//                    java.lang.Long::class.java -> ""
+//                    java.lang.Short::class.java -> ""
+//                    java.lang.Byte::class.java -> ""
+//                    java.lang.Double::class.java -> ""
+//                    String::class.java -> ""
+//                    ByteArray::class.java -> ""
+//                    Date::class.java -> ""
+//                    ObjectId::class.java -> ""
+//                    UUID::class.java -> ""
+//                    Decimal128::class.java -> ""
+//                    Mixed::class.java -> ""
+//                    StringOnly::class.java -> ""
+                }
+            }
         }
     }
 }
