@@ -37,8 +37,7 @@ docker login docker.pkg.github.com -u $GITHUB_DOCKER_USER -p $GITHUB_DOCKER_TOKE
 SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # Create app configurations
-APP_CONFIG_DIR=`mktemp -d`
-echo $APP_CONFIG_DIR
+APP_CONFIG_DIR=$SCRIPTPATH/app_config
 $SCRIPTPATH/app_config_generator.sh $APP_CONFIG_DIR $SCRIPTPATH/app_template testapp1 testapp2
 
 # Run Stitch and Stitch CLI Docker images
