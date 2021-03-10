@@ -61,6 +61,13 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
           restore-keys: ${{ runner.os }}-gradle-
 
+      # TODO Move to later, but run here to verify it works
+      - name: Start Docker test image
+        env:
+          GITHUB_DOCKER_USER: ${{ secrets.GH_DOCKER_USER }}
+          GITHUB_DOCKER_TOKEN: ${{ secrets.GH_DOCKER_TOKEN }}
+        run: cd tools/sync_test_server && sh ./start_server.sh
+
       # TODO: Figure out how to do different build flags depending on the build type
       - name: Build library
         run: ./gradlew assemble $BUILD_FLAGS --stacktrace
@@ -87,7 +94,6 @@ jobs:
           target: default
           arch: x86_64
           ndk: 22.0.7026061
-          # TODO: Cannot find Cmake? cmake: 3.18.4
           profile: Nexus 6
           script: cd realm && ./gradlew connectedBaseDebugAndroidTest $BUILD_FLAGS
 
@@ -95,7 +101,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: Integration Test Results
+          name: integration-test-results
           path: |
             realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
             realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
