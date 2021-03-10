@@ -1,4 +1,4 @@
-#!/bin/bash -xe
+#!/bin/bash
 TARGET_APP_PATH=$1;shift
 TEMPLATE_APP_PATH=$1;shift
 mkdir -p $TARGET_APP_PATH
