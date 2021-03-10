@@ -74,7 +74,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: Unit Test Results
+          name: unit-test-results
           path: |
             realm/realm-annotations-processor/build/test-results/test/TEST-*.xml
             examples/unitTestExample/build/test-results/**/TEST-*.xml
@@ -114,14 +114,14 @@ jobs:
       - name: Publish Annotation Processor Results
         uses: EnricoMi/publish-unit-test-result-action@master
         with:
-          files: artifacts/realm-java/realm/realm-annotations-processor/build/test-results/test/TEST-*.xml
+          files: artifacts/unit-test-results/realm-java/realm/realm-annotations-processor/build/test-results/test/TEST-*.xml
 
       - name: Publish Example Project Results
         uses: EnricoMi/publish-unit-test-result-action@master
         with:
-          files: artifacts/realm-java/examples/unitTestExample/build/test-results/**/TEST-*.xml
+          files: artifacts/unit-test-results/realm-java/examples/unitTestExample/build/test-results/**/TEST-*.xml
 
       - name: Publish Library Test Results
         uses: EnricoMi/publish-unit-test-result-action@master
         with:
-          files: artifacts/realm-java/realm/realm-library/build/test-results/**/TEST-*.xml
+          files: artifacts/unit-test-results/realm-java/realm/realm-library/build/test-results/**/TEST-*.xml
