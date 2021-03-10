@@ -40,5 +40,5 @@ SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 docker network create mongodb-realm-network
 docker build $DOCKERFILE_DIR -t mongodb-realm-command-server || { echo "Failed to build Docker image." ; exit 1 ; }
 ID=$(docker run --rm -i -t -d -v$SCRIPTPATH/app_config:/apps --network mongodb-realm-network -p9090:9090 -p8888:8888 -p26000:26000 --name mongodb-realm docker.pkg.github.com/realm/ci/mongodb-realm-test-server:$MONGODB_REALM_VERSION)
-docker run --rm -i -t -d --network container:$ID -v$SCRIPTPATH/new-config:/apps -v$TMP_DIR:/tmp --name mongodb-realm-command-server mongodb-realm-command-server
+docker run --rm -i -t -d --network container:$ID -v$SCRIPTPATH/app_config:/apps -v$TMP_DIR:/tmp --name mongodb-realm-command-server mongodb-realm-command-server
 
