@@ -79,6 +79,7 @@ jobs:
             realm/realm-library/build/test-results/**/TEST-*.xml
 
   process-test-results:
+    needs: run-pr-build
     runs-on: ubuntu-latest
     steps:
       - name: Download Artifacts
