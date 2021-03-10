@@ -89,9 +89,7 @@ jobs:
           ndk: 22.0.7026061
           # TODO: Cannot find Cmake? cmake: 3.18.4
           profile: Nexus 6
-          script: |
-            cd realm
-            ./gradlew connectedBaseDebugAndroidTest $BUILD_FLAGS
+          script: cd realm && ./gradlew connectedBaseDebugAndroidTest $BUILD_FLAGS
 
       - name: Upload Integration Test Results
         if: always()
