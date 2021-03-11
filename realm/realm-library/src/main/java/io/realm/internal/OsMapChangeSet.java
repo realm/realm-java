@@ -17,7 +17,8 @@
 package io.realm.internal;
 
 /**
- * TODO
+ * Similar to OsCollectionChangeSet. This class holds a pointer to the OS's map change set and read
+ * from it only when needed.
  */
 public class OsMapChangeSet implements NativeObject {
 

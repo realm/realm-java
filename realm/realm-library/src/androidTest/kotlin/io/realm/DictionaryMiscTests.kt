@@ -37,7 +37,7 @@ import kotlin.reflect.KProperty1
 import kotlin.test.*
 
 @RunWith(AndroidJUnit4::class)
-class DictionaryMigrationTests {
+class DictionaryMiscTests {
 
     @Rule
     @JvmField
