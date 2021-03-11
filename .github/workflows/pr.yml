@@ -26,11 +26,12 @@ jobs:
           submodules: 'recursive'
 
       # TODO How to optimize this? Can we cache it?
+      # Already available on Github Runners
+      # - brew install jq
       - name: Install dependencies
         run: |
           brew install ninja
           brew install ccache
-          brew install jq
           npm install -g mongodb-realm-cli
 
       # CCache setup copied from https://github.com/cristianadam/HelloWorld/blob/master/.github/workflows/build_cmake.yml

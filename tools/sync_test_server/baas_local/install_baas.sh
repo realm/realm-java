@@ -94,18 +94,18 @@ if [[ -f $WORK_PATH/baas_ready ]]; then
 fi
 
 echo "Installing node and go to build baas and its dependencies"
-
-export NVM_DIR="$WORK_PATH/.nvm"
-if [ ! -d "$NVM_DIR" ]; then
-    git clone https://github.com/nvm-sh/nvm.git "$NVM_DIR"
-    cd "$NVM_DIR"
-    git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" $(git rev-list --tags --max-count=1)`
-    cd -
-fi
-[[ -s "$NVM_DIR/nvm.sh" ]] && \. "$NVM_DIR/nvm.sh"
-NODE_VERSION=12.16.2
-nvm install --no-progress $NODE_VERSION
-nvm use $NODE_VERSION
+echo "Assume node is available"
+#export NVM_DIR="$WORK_PATH/.nvm"
+#if [ ! -d "$NVM_DIR" ]; then
+#    git clone https://github.com/nvm-sh/nvm.git "$NVM_DIR"
+#    cd "$NVM_DIR"
+#    git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" $(git rev-list --tags --max-count=1)`
+#    cd -
+#fi
+#[[ -s "$NVM_DIR/nvm.sh" ]] && \. "$NVM_DIR/nvm.sh"
+#NODE_VERSION=12.16.2
+#nvm install --no-progress $NODE_VERSION
+#nvm use $NODE_VERSION
 
 [[ -x $WORK_PATH/go/bin/go ]] || ($CURL -sL $GO_URL | tar -xz)
 export GOROOT=$WORK_PATH/go
