@@ -33,6 +33,7 @@ jobs:
           brew install ninja
           brew install ccache
           npm install -g mongodb-realm-cli
+          pip install yg
 
       # CCache setup copied from https://github.com/cristianadam/HelloWorld/blob/master/.github/workflows/build_cmake.yml
       # TODO: How to verify this works at all?
