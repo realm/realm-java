@@ -382,6 +382,13 @@ public class RealmObservableFactory implements RxObservableFactory {
                 final RealmChangeListener<RealmList<E>> listener = new RealmChangeListener<RealmList<E>>() {
                     @Override
                     public void onChange(RealmList<E> list) {
+                        if (!list.isValid()) {
+                            // Terminate stream if list is no longer valid. This indicates
+                            // the parent object has been deleted, so no further updates
+                            // will be coming.
+                            emitter.onComplete();
+                            return;
+                        }
                         if (!emitter.isCancelled()) {
                             emitter.onNext(returnFrozenObjects ? list.freeze() : list);
                         }
@@ -428,6 +435,13 @@ public class RealmObservableFactory implements RxObservableFactory {
                 final OrderedRealmCollectionChangeListener<RealmList<E>> listener = new OrderedRealmCollectionChangeListener<RealmList<E>>() {
                     @Override
                     public void onChange(RealmList<E> list, OrderedCollectionChangeSet changeSet) {
+                        if (!list.isValid()) {
+                            // Terminate stream if list is no longer valid. This indicates
+                            // the parent object has been deleted, so no further updates
+                            // will be coming.
+                            emitter.onComplete();
+                            return;
+                        }
                         if (!emitter.isDisposed()) {
                             emitter.onNext(new CollectionChange<>(returnFrozenObjects ? list.freeze() : list, changeSet));
                         }
@@ -473,6 +487,13 @@ public class RealmObservableFactory implements RxObservableFactory {
                 final RealmChangeListener<RealmList<E>> listener = new RealmChangeListener<RealmList<E>>() {
                     @Override
                     public void onChange(RealmList<E> list) {
+                        if (!list.isValid()) {
+                            // Terminate stream if list is no longer valid. This indicates
+                            // the parent object has been deleted, so no further updates
+                            // will be coming.
+                            emitter.onComplete();
+                            return;
+                        }
                         if (!emitter.isCancelled()) {
                             emitter.onNext(returnFrozenObjects ? list.freeze() : list);
                         }
@@ -519,6 +540,13 @@ public class RealmObservableFactory implements RxObservableFactory {
                 final OrderedRealmCollectionChangeListener<RealmList<E>> listener = new OrderedRealmCollectionChangeListener<RealmList<E>>() {
                     @Override
                     public void onChange(RealmList<E> list, OrderedCollectionChangeSet changeSet) {
+                        if (!list.isValid()) {
+                            // Terminate stream if list is no longer valid. This indicates
+                            // the parent object has been deleted, so no further updates
+                            // will be coming.
+                            emitter.onComplete();
+                            return;
+                        }
                         if (!emitter.isDisposed()) {
                             emitter.onNext(new CollectionChange<>(returnFrozenObjects ? list.freeze() : list, changeSet));
                         }
