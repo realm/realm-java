@@ -27,7 +27,7 @@ import org.junit.runners.Parameterized
 import java.util.*
 
 /**
- * Dictionary tests. It uses [Parameterized] tests for all possible combinations of
+ * [RealmDictionary] tests. It uses [Parameterized] tests for all possible combinations of
  * [RealmDictionary] types (i.e. all primitive Realm types (see [DictionarySupportedType]) plus
  * [RealmModel] and [Mixed] (and in turn all possible types supported by Mixed) in both `managed`
  * and `unmanaged` modes.
@@ -51,8 +51,8 @@ class ParameterizedDictionaryTests(
         fun testTypes(): List<DictionaryTester> {
             return DictionaryMode.values().map { type ->
                 when (type) {
-                    DictionaryMode.UNMANAGED -> unmanagedFactory()
-                    DictionaryMode.MANAGED -> managedFactory()
+                    DictionaryMode.UNMANAGED -> unmanagedDictionaryFactory()
+                    DictionaryMode.MANAGED -> managedDictionaryFactory()
                 }
             }.flatten()
         }

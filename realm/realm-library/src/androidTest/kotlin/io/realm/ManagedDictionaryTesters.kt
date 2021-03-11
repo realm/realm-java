@@ -589,7 +589,7 @@ enum class ChangeListenerOperation {
  * respectively enables agnostic field processing, making it possible to cover all supported types
  * with just one tester class.
  */
-fun managedFactory(): List<DictionaryTester> {
+fun managedDictionaryFactory(): List<DictionaryTester> {
     val primitiveTesters = listOf<DictionaryTester>(
             ManagedDictionaryTester(
                     testerClass = "Long",
