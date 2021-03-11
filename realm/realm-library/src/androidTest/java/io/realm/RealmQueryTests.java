@@ -1186,7 +1186,6 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(0, resultList.size());
     }
 
-    // TODO: like operator stack overflows
     @Test
     public void like_caseSensitive() {
         final int TEST_OBJECTS_COUNT = 200;
@@ -1211,7 +1210,6 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(20, resultList.size());
     }
 
-    // TODO: like operator stack overflows
     @Test
     public void like_caseSensitiveWithNonLatinCharacters() {
         populateTestRealm();
@@ -1558,7 +1556,6 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).contains(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null).findAll().first().getId());
     }
 
-    // TODO: endsWith operator stack overflows
     @Test(expected = IllegalArgumentException.class)
     public void endsWith_nullStringPrimaryKey() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
@@ -1567,7 +1564,6 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).endsWith(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null).findAll().first().getId());
     }
 
-    // TODO: like operator stack overflows
     @Test(expected = IllegalArgumentException.class)
     public void like_nullStringPrimaryKey() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
@@ -1863,7 +1859,6 @@ public class RealmQueryTests extends QueryTests {
                 (String) null).findFirst().getFieldStringNotNull());
     }
 
-    // TODO: endsWith operator stack overflows
     // Queries nullable field with endsWith - all strings end with null.
     @Test(expected = IllegalArgumentException.class)
     public void endsWith_nullForNullableStrings() {
@@ -1872,7 +1867,6 @@ public class RealmQueryTests extends QueryTests {
                 (String) null).findFirst().getFieldStringNotNull());
     }
 
-    // TODO: like operator stack overflows
     // Queries nullable field with like - nulls do not match either '?' or '*'.
     @Test
     public void like_nullForNullableStrings() {

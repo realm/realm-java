@@ -132,18 +132,17 @@ final class NullMixedOperator extends MixedOperator {
     }
 
     @Override
+    public String toString() {
+        return "null";
+    }
+
+    @Override
     public int hashCode() {
         return super.hashCode();
     }
-
     @Override
     public boolean equals(Object other) {
         return (other != null) && getClass().equals(other.getClass());
-    }
-
-    @Override
-    public String toString() {
-        return "null";
     }
 }
 
