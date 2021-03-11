@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Realm Inc.
+ * Copyright 2021 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,25 +19,54 @@ package io.realm;
 import io.realm.internal.OsMapChangeSet;
 
 /**
- * TODO
+ * This interface describes the changes made to a map during the last update.
+ * <p>
+ * {@link MapChangeSet} is passed to the {@link MapChangeListener} which is registered
+ * by {@link RealmMap#addChangeListener(MapChangeListener)} )}.
  */
 public interface MapChangeSet<T> {
+
+    /**
+     * The number of entries that have been deleted in the previous version of the map.
+     *
+     * @return the number of deletions.
+     */
     long getDeletionsCount();
+
+    /**
+     * Array containing the keys that have been inserted in the previous version of the map.
+     *
+     * @return array with the keys that have been inserted.
+     */
     T[] getInsertions();
+
+    /**
+     * Array containing the keys that have been modified in the previous version of the map.
+     *
+     * @return array with the keys that have been modified.
+     */
     T[] getModifications();
+
+    /**
+     * Whether the change set is empty or not. This is needed to detect whether a notification has
+     * been triggered right after subscription.
+     *
+     * @return whether the change set contains changes.
+     */
     boolean isEmpty();
 }
 
 /**
- * TODO
+ * Generic implementation of a {@link MapChangeSet}. This class forwards the fetching of the changes
+ * to a delegate according to the key type. For now only {@code String} keys are allowed.
  *
- * @param <T>
+ * @param <K> the type of the keys stored in the map
  */
-class MapChangeSetImpl<T> implements MapChangeSet<T> {
+class MapChangeSetImpl<K> implements MapChangeSet<K> {
 
-    private final MapChangeSet<T> delegate;
+    private final MapChangeSet<K> delegate;
 
-    public MapChangeSetImpl(MapChangeSet<T> delegate) {
+    public MapChangeSetImpl(MapChangeSet<K> delegate) {
         this.delegate = delegate;
     }
 
@@ -47,12 +76,12 @@ class MapChangeSetImpl<T> implements MapChangeSet<T> {
     }
 
     @Override
-    public T[] getInsertions() {
+    public K[] getInsertions() {
         return delegate.getInsertions();
     }
 
     @Override
-    public T[] getModifications() {
+    public K[] getModifications() {
         return delegate.getModifications();
     }
 
@@ -63,7 +92,7 @@ class MapChangeSetImpl<T> implements MapChangeSet<T> {
 }
 
 /**
- * TODO
+ * Delegate for {@code String} keys. Used for changes in {@link RealmDictionary}.
  */
 class StringMapChangeSet implements MapChangeSet<String> {
 
