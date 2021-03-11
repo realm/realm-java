@@ -1752,7 +1752,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> endsWith(String fieldName, String value, Case casing) {
         realm.checkIfValid();
-        endsWith(fieldName, value, casing);
+        endsWith(fieldName, Mixed.valueOf(value), casing);
         return this;
     }
 
@@ -1822,7 +1822,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> like(String fieldName, String value, Case casing) {
         realm.checkIfValid();
-        like(fieldName, value, casing);
+        like(fieldName, Mixed.valueOf(value), casing);
         return this;
     }
 
