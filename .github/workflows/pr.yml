@@ -63,11 +63,8 @@ jobs:
 
       # TODO Find a way to start the Docker test image while also having the emulator available
       - name: Start MongoDB Realm Test Server
-        run: |
-          cd tools/sync_test_server
-          sh install_baash.sh
-          sh setp
-          with:
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
           api-level: 29
           target: default
           arch: x86_64
