@@ -82,7 +82,7 @@ class MutableRealmSchema extends RealmSchema {
         RealmObjectSchema.checkLegalName(primaryKeyFieldName);
         String internalTableName = checkAndGetTableNameFromClassName(className);
 
-        RealmObjectSchema.FieldMetaData metadata = RealmObjectSchema.getSupportedSimpleFields().get(fieldType);
+        RealmObjectSchema.FieldMetaData metadata = RealmObjectSchema.SUPPORTED_LIST_SIMPLE_FIELDS.get(fieldType);
         if ((metadata == null) || (
                         (metadata.fieldType != RealmFieldType.STRING) &&
                         (metadata.fieldType != RealmFieldType.INTEGER) &&

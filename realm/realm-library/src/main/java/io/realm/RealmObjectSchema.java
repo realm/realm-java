@@ -591,10 +591,6 @@ public abstract class RealmObjectSchema {
         return table;
     }
 
-    static final Map<Class<?>, FieldMetaData> getSupportedSimpleFields() {
-        return SUPPORTED_LIST_SIMPLE_FIELDS;
-    }
-
     /**
      * Function interface, used when traversing all objects of the current class and apply a function on each.
      *
