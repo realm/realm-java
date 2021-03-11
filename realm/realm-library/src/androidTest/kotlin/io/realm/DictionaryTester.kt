@@ -16,10 +16,8 @@
 
 package io.realm
 
-import io.realm.rule.TestRealmConfigurationFactory
-
 /**
-// * Contains all the methods to test in RealmDictionary plus some other convenience ones.
+ * Contains all the methods to test in RealmDictionary plus some other convenience ones.
  */
 interface DictionaryTester : GenericTester{
     override fun setUp(configFactory: TestRealmConfigurationFactory) = Unit     // Not needed here

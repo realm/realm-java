@@ -16,8 +16,6 @@
 
 package io.realm
 
-import io.realm.rule.TestRealmConfigurationFactory
-
 /**
  * Generic tester for parameterized tests. Includes two types of `setUp` functions.
  */
