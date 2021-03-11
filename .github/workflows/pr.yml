@@ -65,7 +65,6 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
           restore-keys: ${{ runner.os }}-gradle-
 
-
       -   name: Setup SSH Keys and known_hosts
           env:
             SSH_AUTH_SOCK: /tmp/ssh_agent.sock

@@ -112,14 +112,15 @@ echo "Assume Go is available"
 #export GOROOT=$WORK_PATH/go
 #export PATH=$WORK_PATH/go/bin:$PATH
 
-[[ -d baas_dep_binaries ]] || mkdir baas_dep_binaries
-export PATH=$WORK_PATH/baas_dep_binaries:$PATH
-if [[ ! -x baas_dep_binaries/yq || ! -x baas_dep_binaries/jq ]]; then
-    cd baas_dep_binaries
-    which yq || ($CURL -LsS $YQ_DOWNLOAD_URL > yq && chmod +x yq)
-    which jq || ($CURL -LsS $JQ_DOWNLOAD_URL > jq && chmod +x jq)
-    cd -
-fi
+echo "Assume jq and yg is available"
+#[[ -d baas_dep_binaries ]] || mkdir baas_dep_binaries
+#export PATH=$WORK_PATH/baas_dep_binaries:$PATH
+#if [[ ! -x baas_dep_binaries/yq || ! -x baas_dep_binaries/jq ]]; then
+#    cd baas_dep_binaries
+#    which yq || ($CURL -LsS $YQ_DOWNLOAD_URL > yq && chmod +x yq)
+#    which jq || ($CURL -LsS $JQ_DOWNLOAD_URL > jq && chmod +x jq)
+#    cd -
+#fi
 
 # If no baas version is specified. Find latest released version
 if [[ -z "$BAAS_VERSION" ]]; then
