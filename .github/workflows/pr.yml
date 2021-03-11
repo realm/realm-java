@@ -62,8 +62,18 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
           restore-keys: ${{ runner.os }}-gradle-
 
+
+      -   name: Setup SSH Keys and known_hosts
+          env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          run: |
+            ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+            ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY }}"
+
       # TODO Find a way to start the Docker test image while also having the emulator available
       - name: Start MongoDB Realm Test Server
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
