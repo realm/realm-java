@@ -229,20 +229,43 @@ public abstract class RealmObjectSchema {
     public abstract RealmObjectSchema addRealmListField(String fieldName, Class<?> primitiveType);
 
     /**
-     * TODO
+     * Adds a new field that contains a {@link RealmDictionary} with references to other Realm model classes.
+     * <p>
+     * If the dictionary contains primitive types, use {@link #addRealmDictionaryField(String, Class)} instead.
      *
-     * @param fieldName
-     * @param objectSchema
-     * @return
+     * @param fieldName name of the field to add.
+     * @param objectSchema schema for the Realm type being referenced.
+     * @return the updated schema.
+     * @throws IllegalArgumentException if the field name is illegal or a field with that name already exists.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
      */
     public abstract RealmObjectSchema addRealmDictionaryField(String fieldName, RealmObjectSchema objectSchema);
 
     /**
-     * TODO
+     * Adds a new field that references a {@link RealmDictionary} with primitive values. See {@link RealmObject} for the
+     * list of supported types.
+     * <p>
+     * Nullability of elements are defined by using the correct class e.g., {@code Integer.class} instead of
+     * {@code int.class}. Alternatively {@link #setRequired(String, boolean)} can be used.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     * // Defines the list of Strings as being non null.
+     * RealmObjectSchema schema = schema.create("Person")
+     *     .addRealmListField("children", String.class)
+     *     .setRequired("children", true)
+     * }
+     * </pre>
+     * If the list contains references to other Realm classes, use
+     * {@link #addRealmListField(String, RealmObjectSchema)} instead.
      *
-     * @param fieldName
-     * @param primitiveType
-     * @return
+     * @param fieldName name of the field to add.
+     * @param primitiveType simple type of elements in the array.
+     * @return the updated schema.
+     * @throws IllegalArgumentException if the field name is illegal, a field with that name already exists or
+     * the element type isn't supported.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
      */
     public abstract RealmObjectSchema addRealmDictionaryField(String fieldName, Class<?> primitiveType);
 

@@ -16,11 +16,9 @@
 
 package io.realm;
 
-import javax.annotation.Nullable;
-
 /**
  * {@link OrderedRealmCollectionChangeListener} can be registered with a {@link RealmResults} to receive a notification
- * with a {@link OrderedCollectionChangeSet} to describe the details of what have been changed in the collection from
+ * with a {@link OrderedCollectionChangeSet} to describe the details of what have been changed in the collection since
  * last time.
  * <p>
  * Realm instances on a thread without an {@link android.os.Looper} cannot register a

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Realm Inc.
+ * Copyright 2021 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,25 @@
 package io.realm;
 
 /**
- * TODO
+ * {@link MapChangeListener} can be registered with a {@link RealmMap} to receive a notification
+ * with a {@link MapChangeSet} to describe the details of what have been changed in the map since
+ * last time.
+ * <p>
+ * Realm instances on a thread without an {@link android.os.Looper} cannot register a
+ * {@link MapChangeListener}.
+ * <p>
+ *
+ * @param <K> the type of the keys stored in the map
+ * @param <V> the type of the values stored in the map
+ * @see RealmMap#addChangeListener(MapChangeListener)
  */
 public interface MapChangeListener<K, V> {
+
+    /**
+     * This will be called when the async query is finished the first time or the collection of objects has changed.
+     *
+     * @param map     the map this listener is registered to.
+     * @param changes object with information about the change.
+     */
     void onChange(RealmMap<K, V> map, MapChangeSet<K> changes);
 }
