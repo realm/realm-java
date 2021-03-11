@@ -369,10 +369,6 @@ public class RealmObjectSchemaTests {
                     schema.addRealmDictionaryField(fieldName, DOG_SCHEMA);
                     checkAddedAndRemovable(fieldName);
                     break;
-//                case MIXED_DICTIONARY:
-//                    schema.addRealmDictionaryField(fieldName, DOG_SCHEMA);
-//                    checkAddedAndRemovable(fieldName);
-//                    break;
                 default:
                     // All primitive dictionaries
                     schema.addRealmDictionaryField(fieldName, fieldType.getType());
