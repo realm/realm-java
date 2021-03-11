@@ -579,7 +579,7 @@ class SyncedRealmTests {
                     columnDecimal128List = expectedDecimal128List
                     columnObjectIdList = expectedObjectIdList
                     columnUUIDList = expectedUUIDList
-                    columnUUIDList = expectedUUIDList
+                    columnMixedList = expectedMixedList
                 }
             }
             realm.syncSession.uploadAllLocalChanges()
