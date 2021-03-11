@@ -71,7 +71,7 @@ jobs:
           arch: x86_64
           ndk: 22.0.7026061
           profile: Nexus 6
-          script: cd tools/sync_test_server/baas_local && sh ./start_local_server.sh && cd ../../../realm &&./gradlew connectedBaseDebugAndroidTest $BUILD_FLAGS
+          script: cd tools/sync_test_server/baas_local && ./start_local_server.sh && cd ../../../realm &&./gradlew connectedBaseDebugAndroidTest $BUILD_FLAGS
 
       # TODO: Figure out how to do different build flags depending on the build type
       - name: Build library
