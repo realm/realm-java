@@ -107,9 +107,10 @@ echo "Assume node is available"
 #nvm install --no-progress $NODE_VERSION
 #nvm use $NODE_VERSION
 
-[[ -x $WORK_PATH/go/bin/go ]] || ($CURL -sL $GO_URL | tar -xz)
-export GOROOT=$WORK_PATH/go
-export PATH=$WORK_PATH/go/bin:$PATH
+echo "Assume Go is available"
+#[[ -x $WORK_PATH/go/bin/go ]] || ($CURL -sL $GO_URL | tar -xz)
+#export GOROOT=$WORK_PATH/go
+#export PATH=$WORK_PATH/go/bin:$PATH
 
 [[ -d baas_dep_binaries ]] || mkdir baas_dep_binaries
 export PATH=$WORK_PATH/baas_dep_binaries:$PATH
