@@ -36,7 +36,7 @@ import java.util.*
 import kotlin.test.*
 
 @RunWith(AndroidJUnit4::class)
-class DictionaryMigrationTests {
+class DictionaryMiscTests {
 
     @Rule
     @JvmField
