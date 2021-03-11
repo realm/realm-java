@@ -2,19 +2,18 @@
 # Clone of https://raw.githubusercontent.com/realm/realm-core/master/evergreen/install_baas.sh
 # But removed the part that import apps.
 #
-# This script will download all the dependencies for and build/start a Realm Cloud app server
-# and will import a given app into it.
+# This script will download all the dependencies for and build/start a Realm Cloud app server.
 #
 # Usage:
-# ./evergreen/build_and_run_baas.sh {path to working directory} {path to app to import} [git revision of baas]
+# ./evergreen/build_and_run_baas.sh {path to working directory} [git revision of baas]
 #
 
 set -o errexit
 set -o pipefail
 
+# Go and CCache on Mac does not play well together
 unset -v CC
 
-# Go and CCache on Mac does not play well together
 case $(uname -s) in
     Darwin)
         STITCH_SUPPORT_LIB_URL="https://s3.amazonaws.com/stitch-artifacts/stitch-support/stitch-support-macos-debug-4.3.2-721-ge791a2e-patch-5e2a6ad2a4cf473ae2e67b09.tgz"
@@ -80,18 +79,12 @@ BASE_PATH=$(cd $(dirname "$0"); pwd)
 
 REALPATH=$BASE_PATH/abspath.sh
 
-#if [[ -z $1 || -z $2 ]]; then
-#    echo "Must specify working directory and stitch app"
-#    exit 1
-#fi
+if [[ -z $1 ]]; then
+    echo "Must specify working directory."
+    exit 1
+fi
 WORK_PATH=$($REALPATH $1)
-#STITCH_APP=$($REALPATH $2)
 BAAS_VERSION=$2
-
-#if [[ ! -f "$STITCH_APP/stitch.json" ]]; then
-#    echo "Invalid app to import: $STITCH_APP/stitch.json does not exist."
-#    exit 1
-#fi
 
 [[ -d $WORK_PATH ]] || mkdir -p $WORK_PATH
 cd $WORK_PATH
@@ -127,6 +120,7 @@ if [[ ! -x baas_dep_binaries/yq || ! -x baas_dep_binaries/jq ]]; then
     cd -
 fi
 
+# If no baas version is specified. Find latest released version
 if [[ -z "$BAAS_VERSION" ]]; then
     BAAS_VERSION=$($CURL -LsS "https://realm.mongodb.com/api/private/v1.0/version" | jq -r '.backend.git_hash')
 fi
@@ -185,8 +179,6 @@ if [[ ! -x baas_dep_binaries/transpiler ]]; then
 fi
 
 if [[ ! -x baas_dep_binaries/stitch-cli ]]; then
-    env CCACHE_DISABLE=1
-    export CCACHE_DISABLE=1
     mkdir stitch-cli
     cd stitch-cli
     $CURL -LsS https://github.com/10gen/stitch-cli/archive/v1.9.0.tar.gz | tar -xz --strip-components=1
@@ -203,8 +195,6 @@ if [ ! -x $WORK_PATH/mongodb-binaries/bin/mongod ]; then
     mv mongodb* mongodb-binaries
     chmod +x ./mongodb-binaries/bin/*
 fi
-
-# ulimit -n 32000
 
 if [[ -d mongodb-dbpath ]]; then
     rm -rf mongodb-dbpath

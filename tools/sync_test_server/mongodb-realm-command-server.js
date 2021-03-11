@@ -10,6 +10,8 @@
  * stopped, so a new integration test will start from a clean slate.
  */
 
+var commandlineArgs = process.argv.slice(2);
+var APP_DIR = commandlineArgs[0] ? commandlineArgs[0] : "/apps";
 var winston = require('winston'); //logging
 var http = require('http');
 const fs = require('fs')
@@ -44,7 +46,7 @@ function handleApplicationId(appName, req, resp) {
     switch(req.method) {
         case "GET":
             try {
-                 const data = fs.readFileSync('/apps/' + appName + '/app_id', 'utf8')
+                 const data = fs.readFileSync(APP_DIR + '/' + appName + '/app_id', 'utf8')
                  console.log(data)
                  resp.writeHead(200, {'Content-Type': 'text/plain'});
                  resp.end(data.replace(/\n$/, ''));
