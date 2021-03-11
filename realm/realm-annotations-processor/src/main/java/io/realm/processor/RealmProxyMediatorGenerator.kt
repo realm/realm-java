@@ -17,18 +17,12 @@
 package io.realm.processor
 
 import com.squareup.javawriter.JavaWriter
-
+import io.realm.annotations.RealmModule
 import java.io.BufferedWriter
 import java.io.IOException
-import java.util.ArrayList
-import java.util.Arrays
-import java.util.EnumSet
-import java.util.Locale
-
+import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Modifier
-
-import io.realm.annotations.RealmModule
 import javax.tools.JavaFileObject
 
 class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingEnvironment,
