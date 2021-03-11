@@ -714,8 +714,7 @@ fun managedFactory(): List<DictionaryTester> {
         )
     }
 
-//    return primitiveTesters.plus(mixedTesters)
-    return primitiveTesters
+    return primitiveTesters.plus(mixedTesters)
 }
 
 /**
@@ -737,7 +736,8 @@ open class TypeAsserter<T> {
     open fun assertRemoveRealmModelFromRealm(
             dictionary: RealmDictionary<T>,
             index: Int,
-            key: String, value: T?
+            key: String,
+            value: T?
     ) = Unit    // Do nothing if we aren't testing a RealmModel or a Mixed wrapping a RealmModel
 
     // RealmModel requires different testing here
@@ -952,7 +952,12 @@ class MixedAsserter : TypeAsserter<Mixed>() {
         }
     }
 
-    override fun assertRemoveRealmModelFromRealm(dictionary: RealmDictionary<Mixed>, index: Int, key: String, value: Mixed?) {
+    override fun assertRemoveRealmModelFromRealm(
+            dictionary: RealmDictionary<Mixed>,
+            index: Int,
+            key: String,
+            value: Mixed?
+    ) {
         // No need to check anything for other types than RealmModel
         if (value is Mixed && value.valueClass == DogPrimaryKey::class.java) {
             // Removal of actual RealmModel to check whether it vanished from the dictionary

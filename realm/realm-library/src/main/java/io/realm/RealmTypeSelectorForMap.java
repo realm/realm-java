@@ -38,12 +38,12 @@ import io.realm.internal.util.Pair;
  * @param <K> the key type
  * @param <V> the value type
  */
-abstract class RealmTypeMapManager<K, V> {
+abstract class RealmTypeSelectorForMap<K, V> {
 
     protected final BaseRealm baseRealm;
     protected final OsMap osMap;
 
-    RealmTypeMapManager(BaseRealm baseRealm, OsMap osMap) {
+    RealmTypeSelectorForMap(BaseRealm baseRealm, OsMap osMap) {
         this.baseRealm = baseRealm;
         this.osMap = osMap;
     }
@@ -73,15 +73,15 @@ abstract class RealmTypeMapManager<K, V> {
 /**
  * Implementation for ordinary Realms.
  */
-class RealmMapManager<K, V> extends RealmTypeMapManager<K, V> {
+class RealmSelectorForMap<K, V> extends RealmTypeSelectorForMap<K, V> {
 
     protected final Class<K> keyClass;
     protected final Class<V> valueClass;
 
-    public RealmMapManager(BaseRealm baseRealm,
-                           OsMap osMap,
-                           Class<K> keyClass,
-                           Class<V> valueClass) {
+    public RealmSelectorForMap(BaseRealm baseRealm,
+                               OsMap osMap,
+                               Class<K> keyClass,
+                               Class<V> valueClass) {
         super(baseRealm, osMap);
         this.keyClass = keyClass;
         this.valueClass = valueClass;
@@ -125,9 +125,9 @@ class RealmMapManager<K, V> extends RealmTypeMapManager<K, V> {
 /**
  * Implementation for ordinary Realms in case we are working with RealmModels.
  */
-class LinkRealmMapManager<K, V extends RealmModel> extends RealmMapManager<K, V> {
+class LinkRealmSelectorForMap<K, V extends RealmModel> extends RealmSelectorForMap<K, V> {
 
-    public LinkRealmMapManager(BaseRealm baseRealm, OsMap osMap, Class<K> keyClass, Class<V> valueClass) {
+    public LinkRealmSelectorForMap(BaseRealm baseRealm, OsMap osMap, Class<K> keyClass, Class<V> valueClass) {
         super(baseRealm, osMap, keyClass, valueClass);
     }
 
@@ -171,13 +171,13 @@ class LinkRealmMapManager<K, V extends RealmModel> extends RealmMapManager<K, V>
 /**
  * Implementation for DynamicRealms.
  */
-class DynamicRealmMapManager<K, V> extends RealmTypeMapManager<K, V> {
+class DynamicRealmSelectorForMap<K, V> extends RealmTypeSelectorForMap<K, V> {
 
     private final String className;
 
-    public DynamicRealmMapManager(BaseRealm baseRealm,
-                                  OsMap osMap,
-                                  String className) {
+    public DynamicRealmSelectorForMap(BaseRealm baseRealm,
+                                      OsMap osMap,
+                                      String className) {
         super(baseRealm, osMap);
         this.className = className;
     }

@@ -53,29 +53,29 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
     private final OsMap osMap;
     private final IteratorType iteratorType;
     private final EqualsHelper<K, V> equalsHelper;
-    private final RealmTypeMapManager realmTypeMapManager;
+    private final RealmTypeSelectorForMap realmTypeSelectorForMap;
 
     public RealmMapEntrySet(BaseRealm baseRealm,
                             OsMap osMap,
                             IteratorType iteratorType,
-                            @Nullable RealmTypeMapManager realmTypeMapManager) {
+                            @Nullable RealmTypeSelectorForMap realmTypeSelectorForMap) {
         this.baseRealm = baseRealm;
         this.osMap = osMap;
         this.iteratorType = iteratorType;
         this.equalsHelper = new GenericEquals<>();
-        this.realmTypeMapManager = realmTypeMapManager;
+        this.realmTypeSelectorForMap = realmTypeSelectorForMap;
     }
 
     public RealmMapEntrySet(BaseRealm baseRealm,
                             OsMap osMap,
                             IteratorType iteratorType,
                             EqualsHelper<K, V> equalsHelper,
-                            @Nullable RealmTypeMapManager realmTypeMapManager) {
+                            @Nullable RealmTypeSelectorForMap realmTypeSelectorForMap) {
         this.baseRealm = baseRealm;
         this.osMap = osMap;
         this.iteratorType = iteratorType;
         this.equalsHelper = equalsHelper;
-        this.realmTypeMapManager = realmTypeMapManager;
+        this.realmTypeSelectorForMap = realmTypeSelectorForMap;
     }
 
     @Override
@@ -109,7 +109,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
     @NotNull
     @Override
     public Iterator<Map.Entry<K, V>> iterator() {
-        return iteratorFactory(iteratorType, osMap, baseRealm, realmTypeMapManager);
+        return iteratorFactory(iteratorType, osMap, baseRealm, realmTypeSelectorForMap);
     }
 
     @NotNull
@@ -214,7 +214,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
     private static <K, V> EntrySetIterator<K, V> iteratorFactory(IteratorType iteratorType,
                                                                  OsMap osMap,
                                                                  BaseRealm baseRealm,
-                                                                 @Nullable RealmTypeMapManager realmTypeMapManager) {
+                                                                 @Nullable RealmTypeSelectorForMap realmTypeSelectorForMap) {
         switch (iteratorType) {
             case LONG:
                 //noinspection unchecked
@@ -259,10 +259,10 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
                 //noinspection unchecked
                 return (EntrySetIterator<K, V>) new MixedValueIterator<K>(osMap, baseRealm);
             case OBJECT:
-                if (realmTypeMapManager == null) {
+                if (realmTypeSelectorForMap == null) {
                     throw new IllegalArgumentException("Missing class container when creating RealmModelValueIterator.");
                 }
-                return new RealmModelValueIterator<>(osMap, baseRealm, realmTypeMapManager);
+                return new RealmModelValueIterator<>(osMap, baseRealm, realmTypeSelectorForMap);
             default:
                 throw new IllegalArgumentException("Invalid iterator type.");
         }
@@ -531,13 +531,13 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     private static class RealmModelValueIterator<K, V> extends EntrySetIterator<K, V> {
 
-        private final RealmTypeMapManager<K, V> realmTypeMapManager;
+        private final RealmTypeSelectorForMap<K, V> realmTypeSelectorForMap;
 
         public RealmModelValueIterator(OsMap osMap,
                                        BaseRealm baseRealm,
-                                       RealmTypeMapManager<K, V> realmTypeMapManager) {
+                                       RealmTypeSelectorForMap<K, V> realmTypeSelectorForMap) {
             super(osMap, baseRealm);
-            this.realmTypeMapManager = realmTypeMapManager;
+            this.realmTypeSelectorForMap = realmTypeSelectorForMap;
         }
 
         @Override
@@ -551,7 +551,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
             }
 
             //noinspection unchecked
-            return (Map.Entry<K, V>) realmTypeMapManager.getModelEntry(baseRealm, objRow, key);
+            return (Map.Entry<K, V>) realmTypeSelectorForMap.getModelEntry(baseRealm, objRow, key);
         }
     }
 
