@@ -23,7 +23,7 @@ import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmModule;
 
-@RealmModule(classes = { AllTypes.class })
+@RealmModule(classes = { AllTypes.class, Simple.class })
 public class AppModuleCustomClasses {
 
 }
