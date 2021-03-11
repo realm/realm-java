@@ -28,16 +28,24 @@ import io.realm.log.RealmLog
 import io.realm.mongodb.User
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
-import io.realm.mongodb.sync.*
+import io.realm.mongodb.sync.Progress
+import io.realm.mongodb.sync.ProgressListener
+import io.realm.mongodb.sync.ProgressMode
+import io.realm.mongodb.sync.SyncConfiguration
+import io.realm.mongodb.sync.SyncSession
+import io.realm.mongodb.sync.testRealmExists
+import io.realm.mongodb.sync.testSchema
+import io.realm.mongodb.sync.testSessionStopPolicy
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.ObjectId
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.lang.IllegalStateException
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -284,7 +292,6 @@ class ProgressListenerTests {
     }
 
     @Test
-    @Ignore("FIXME: Tracked by https://github.com/realm/realm-java/issues/6976")
     fun addProgressListener_triggerImmediatelyWhenRegistered_waitForInitialRemoteData() {
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val config = SyncConfiguration.Builder(user, getTestPartitionValue())
@@ -301,7 +308,6 @@ class ProgressListenerTests {
     }
 
     @Test
-    @Ignore("FIXME: Flacky: Tracked by https://github.com/realm/realm-java/issues/6976")
     fun progressListenersWorkWhenUsingWaitForInitialRemoteData() = looperThread.runBlocking {
         val username = UUID.randomUUID().toString()
         val password = "password"
