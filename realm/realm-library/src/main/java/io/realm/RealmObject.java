@@ -49,10 +49,12 @@ import io.realm.rx.ObjectChange;
  * <li>byte[]</li>
  * <li>String</li>
  * <li>Date</li>
+ * <li>UUID</li>
  * <li>org.bson.types.Decimal128</li>
  * <li>org.bson.types.ObjectId</li>
  * <li>Any RealmObject subclass</li>
  * <li>RealmList</li>
+ * <li>RealmDictionary</li>
  * </ul>
  * <p>
  * The types <code>short</code>, <code>int</code>, and <code>long</code> are mapped to <code>long</code> when storing
