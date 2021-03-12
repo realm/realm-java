@@ -33,7 +33,11 @@ jobs:
           brew install ninja
           brew install ccache
           npm install -g mongodb-realm-cli
-          pip install yg
+
+      # See https://stackoverflow.com/questions/59207134/cant-install-a-python-package-use-it-in-a-github-action
+      - name: Install Python dependencies
+      - uses: actions/setup-python@v1
+        run: pip install yg
 
       - name: Test for yq
         run: type yq
