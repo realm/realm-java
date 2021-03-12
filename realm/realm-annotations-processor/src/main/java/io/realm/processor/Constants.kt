@@ -87,6 +87,23 @@ object Constants {
             "io.realm.Mixed" to RealmFieldType.STRING_TO_MIXED_MAP
     )
 
+    val SET_ELEMENT_TYPE_TO_REALM_TYPES = mapOf(
+//            "java.lang.Byte" to RealmFieldType.STRING_TO_INTEGER_MAP,
+//            "java.lang.Short" to RealmFieldType.STRING_TO_INTEGER_MAP,
+//            "java.lang.Integer" to RealmFieldType.STRING_TO_INTEGER_MAP,
+//            "java.lang.Long" to RealmFieldType.STRING_TO_INTEGER_MAP,
+//            "java.lang.Float" to RealmFieldType.STRING_TO_FLOAT_MAP,
+//            "java.lang.Double" to RealmFieldType.STRING_TO_DOUBLE_MAP,
+//            "java.lang.Boolean" to RealmFieldType.STRING_TO_BOOLEAN_MAP,
+            "java.lang.String" to RealmFieldType.STRING_SET
+//            "java.util.Date" to RealmFieldType.STRING_TO_DATE_MAP,
+//            "byte[]" to RealmFieldType.STRING_TO_BINARY_MAP,
+//            "org.bson.types.Decimal128" to RealmFieldType.STRING_TO_DECIMAL128_MAP,
+//            "org.bson.types.ObjectId" to RealmFieldType.STRING_TO_OBJECT_ID_MAP,
+//            "java.util.UUID" to RealmFieldType.STRING_TO_UUID_MAP,
+//            "io.realm.Mixed" to RealmFieldType.STRING_TO_MIXED_MAP
+    )
+
     /**
      * Realm types and their corresponding Java types.
      *
@@ -135,8 +152,9 @@ object Constants {
         STRING_TO_DECIMAL128_MAP("STRING_TO_DECIMAL128_MAP", "Map"),
         STRING_TO_OBJECT_ID_MAP("STRING_TO_OBJECT_ID_MAP", "Map"),
         STRING_TO_UUID_MAP("STRING_TO_UUID_MAP", "Map"),
-        STRING_TO_MIXED_MAP("STRING_TO_MIXED_MAP", "Map");
+        STRING_TO_MIXED_MAP("STRING_TO_MIXED_MAP", "Map"),
 
+        STRING_SET("STRING_SET", "Set");
 
         /**
          * The name of the enum, used in the Java bindings, used to represent the corresponding type.

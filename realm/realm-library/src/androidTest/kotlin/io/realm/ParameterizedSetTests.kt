@@ -34,8 +34,9 @@ class ParameterizedSetTests(
         fun testType(): List<SetTester> {
             return SetMode.values().mapNotNull { type ->
                 when (type) {
-                    SetMode.UNMANAGED -> unmanagedSetFactory()
-                    SetMode.MANAGED -> null
+//                    SetMode.UNMANAGED -> unmanagedSetFactory()
+                    SetMode.UNMANAGED -> null
+                    SetMode.MANAGED -> managedSetFactory()
                 }
             }.flatten()
         }
@@ -88,15 +89,15 @@ class ParameterizedSetTests(
         tester.contains()
     }
 
-    @Test
-    fun iterator() {
-        tester.iterator()
-    }
-
-    @Test
-    fun toArray() {
-        tester.toArray()
-    }
+//    @Test
+//    fun iterator() {
+//        tester.iterator()
+//    }
+//
+//    @Test
+//    fun toArray() {
+//        tester.toArray()
+//    }
 
     @Test
     fun add() {
@@ -108,35 +109,35 @@ class ParameterizedSetTests(
         tester.remove()
     }
 
-    @Test
-    fun containsAll() {
-        tester.containsAll()
-    }
-
-    @Test
-    fun addAll() {
-        tester.addAll()
-    }
-
-    @Test
-    fun retainAll() {
-        tester.retainAll()
-    }
-
-    @Test
-    fun removeAll() {
-        tester.removeAll()
-    }
+//    @Test
+//    fun containsAll() {
+//        tester.containsAll()
+//    }
+//
+//    @Test
+//    fun addAll() {
+//        tester.addAll()
+//    }
+//
+//    @Test
+//    fun retainAll() {
+//        tester.retainAll()
+//    }
+//
+//    @Test
+//    fun removeAll() {
+//        tester.removeAll()
+//    }
 
     @Test
     fun clear() {
         tester.clear()
     }
 
-    @Test
-    fun freeze() {
-        tester.freeze()
-    }
+//    @Test
+//    fun freeze() {
+//        tester.freeze()
+//    }
 }
 
 /**

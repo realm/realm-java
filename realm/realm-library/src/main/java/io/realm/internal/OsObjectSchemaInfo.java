@@ -89,8 +89,11 @@ public class OsObjectSchemaInfo implements NativeObject {
          * @return this {@code OsObjectSchemaInfo}.
          */
         public Builder addPersistedValueListProperty(String publicName, String internalName, RealmFieldType type, boolean isRequired) {
-            long propertyPtr = Property.nativeCreatePersistedProperty(internalName, publicName,
-                    Property.convertFromRealmFieldType(type, isRequired), !Property.PRIMARY_KEY, !Property.INDEXED);
+            long propertyPtr = Property.nativeCreatePersistedProperty(internalName,
+                    publicName,
+                    Property.convertFromRealmFieldType(type, isRequired),
+                    !Property.PRIMARY_KEY,
+                    !Property.INDEXED);
             persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
             persistedPropertyPtrCurPos++;
             return this;
@@ -106,6 +109,28 @@ public class OsObjectSchemaInfo implements NativeObject {
          * @return this {@code OsObjectSchemaInfo}.
          */
         public Builder addPersistedMapProperty(String publicName, String internalName, RealmFieldType type, boolean isRequired) {
+            long propertyPtr = Property.nativeCreatePersistedProperty(internalName,
+                    publicName,
+                    Property.convertFromRealmFieldType(type, isRequired),
+                    !Property.PRIMARY_KEY,
+                    !Property.INDEXED);
+            persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
+            persistedPropertyPtrCurPos++;
+            return this;
+        }
+
+        /**
+         * TODO: UNIFY THIS AND THE TWO ABOVE
+         *
+         * Adds a persisted set property to this builder.
+         *
+         * @param publicName the name of the property as defined in the Java/Kotlin model class.
+         * @param internalName the internal name of the property if different from the public name, otherwise "".
+         * @param type the type of the property. It must be one of value list type.
+         * @param isRequired set to true if this property is not nullable.
+         * @return this {@code OsObjectSchemaInfo}.
+         */
+        public Builder addPersistedSetProperty(String publicName, String internalName, RealmFieldType type, boolean isRequired) {
             long propertyPtr = Property.nativeCreatePersistedProperty(internalName,
                     publicName,
                     Property.convertFromRealmFieldType(type, isRequired),

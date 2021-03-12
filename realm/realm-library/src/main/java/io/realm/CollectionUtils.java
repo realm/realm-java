@@ -28,6 +28,10 @@ import io.realm.internal.Util;
 
 public class CollectionUtils {
 
+    static boolean isClassForRealmModel(Class<?> clazz) {
+        return RealmModel.class.isAssignableFrom(clazz);
+    }
+
     /**
      * Called by both list and dictionary operators to determine whether a RealmModel can be copied
      * to a Realm.

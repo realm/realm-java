@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -119,7 +120,7 @@ public class ManagedSetManager<E> implements Set<E>, ManageableObject, Freezable
 
     @Override
     public boolean retainAll(@NotNull Collection<?> c) {
-        return setValueOperator.reatainAll(c);
+        return setValueOperator.retainAll(c);
     }
 
     @Override
@@ -158,14 +159,16 @@ class SetValueOperator<E> {
     }
 
     public boolean add(@Nullable E e) {
-        boolean alreadyExisted = osSet.contains(e);
+        boolean found = osSet.contains(e);
         osSet.add(e);
-        return !alreadyExisted;
+        return !found;
     }
 
     public boolean isValid() {
-        // TODO
-        return false;
+        if (baseRealm.isClosed()) {
+            return false;
+        }
+        return osSet.isValid();
     }
 
     public boolean isFrozen() {
@@ -215,7 +218,7 @@ class SetValueOperator<E> {
         return false;
     }
 
-    public boolean reatainAll(Collection<?> c) {
+    public boolean retainAll(Collection<?> c) {
         // TODO
         return false;
     }
@@ -226,6 +229,41 @@ class SetValueOperator<E> {
     }
 
     public void clear() {
-        // TODO
+        osSet.clear();
+    }
+}
+
+class SetIterator<E> implements Iterator<E> {
+
+    private final OsSet osSet;
+    private final BaseRealm baseRealm;
+
+    private int pos = -1;
+
+    public SetIterator(OsSet osSet, BaseRealm baseRealm) {
+        this.osSet = osSet;
+        this.baseRealm = baseRealm;
+    }
+
+    @Override
+    public boolean hasNext() {
+        return pos + 1 < osSet.size();
+    }
+
+    @Override
+    public E next() {
+        pos++;
+        long size = osSet.size();
+        if (pos >= size) {
+            throw new NoSuchElementException("Cannot access index " + pos + " when size is " + size +
+                    ". Remember to check hasNext() before using next().");
+        }
+
+        return getValueAtIndex(pos);
+    }
+
+    private E getValueAtIndex(int position) {
+        //noinspection unchecked
+        return (E) osSet.getValueAtIndex(position);
     }
 }

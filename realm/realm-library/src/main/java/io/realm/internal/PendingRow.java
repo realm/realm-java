@@ -183,6 +183,21 @@ public class PendingRow implements Row {
     }
 
     @Override
+    public OsSet getMixedSet(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public OsSet getModelSet(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public OsSet getValueSet(long columnKey, RealmFieldType fieldType) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
     public void setLong(long columnKey, long value) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }

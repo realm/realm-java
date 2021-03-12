@@ -665,3 +665,56 @@ Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddMixedDictionaryEntry
     }
     CATCH_STD()
 }
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeStartSet(JNIEnv* env,
+                                                                  jclass,
+                                                                  jlong j_size) {
+    try {
+        auto set_as_list = new std::vector<JavaValue>();
+        set_as_list->reserve(j_size);
+        return reinterpret_cast<jlong>(set_as_list);
+    }
+    CATCH_STD()
+    return realm::npos;
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeStopSet(JNIEnv* env,
+                                                                 jclass,
+                                                                 jlong data_ptr,
+                                                                 jlong column_key,
+                                                                 jlong set_ptr) {
+    try {
+        auto set_as_list = reinterpret_cast<std::vector<JavaValue>*>(set_ptr);
+        const JavaValue value((*set_as_list));
+        add_property(data_ptr, column_key, value);
+        delete set_as_list;
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddNullSetItem(JNIEnv* env,
+                                                                        jclass,
+                                                                        jlong set_ptr) {
+    try {
+        const JavaValue value = JavaValue();
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddStringSetItem(JNIEnv* env,
+                                                                          jclass,
+                                                                          jlong set_ptr,
+                                                                          jstring j_value) {
+    try {
+        JStringAccessor value(env, j_value);
+        std::string string_value(value);
+        const JavaValue wrapped_value(string_value);
+        add_list_element(set_ptr, wrapped_value);
+    }
+    CATCH_STD()
+}

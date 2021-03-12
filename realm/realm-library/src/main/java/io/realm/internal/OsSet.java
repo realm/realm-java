@@ -18,7 +18,12 @@ package io.realm.internal;
 
 import javax.annotation.Nullable;
 
+import io.realm.Mixed;
+
 public class OsSet implements NativeObject {
+
+    private static final int VALUE_FOUND = 1;
+    private static final int VALUE_NOT_FOUND = 0;
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
@@ -40,6 +45,14 @@ public class OsSet implements NativeObject {
     @Override
     public long getNativeFinalizerPtr() {
         return nativeFinalizerPtr;
+    }
+
+    public boolean isValid() {
+        return nativeIsValid(nativePtr);
+    }
+
+    public Object getValueAtIndex(int position) {
+        return nativeGetValueAtIndex(nativePtr, position);
     }
 
     public long size() {
@@ -66,6 +79,10 @@ public class OsSet implements NativeObject {
         }
     }
 
+    public void addMixed(Mixed value) {
+        // TODO
+    }
+
     public boolean remove(@Nullable Object value) {
         long[] indexAndFound;
         if (value == null) {
@@ -75,12 +92,20 @@ public class OsSet implements NativeObject {
         } else {
             throw new UnsupportedOperationException("set remove - Hold your horses cowboy...");
         }
-        return indexAndFound[1] == 0;
+        return indexAndFound[1] == 1;
+    }
+
+    public void clear() {
+        nativeClear(nativePtr);
     }
 
     private static native long nativeGetFinalizerPtr();
 
     private static native long nativeCreate(long sharedRealmPtr, long nativeRowPtr, long columnKey);
+
+    private static native boolean nativeIsValid(long nativePtr);
+
+    private static native Object nativeGetValueAtIndex(long nativePtr, int position);
 
     private static native long nativeSize(long nativePtr);
 
@@ -95,4 +120,6 @@ public class OsSet implements NativeObject {
     private static native long[] nativeRemoveNull(long nativePtr);
 
     private static native long[] nativeRemoveString(long nativePtr, String value);
+
+    private static native void nativeClear(long nativePtr);
 }

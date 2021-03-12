@@ -114,7 +114,7 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
     private static <V> ManagedMapStrategy<String, V> getStrategy(Class<V> valueClass,
                                                                  BaseRealm baseRealm,
                                                                  OsMap osMap) {
-        if (isClassForRealmModel(valueClass)) {
+        if (CollectionUtils.isClassForRealmModel(valueClass)) {
             Class<? extends RealmModel> typeCastClass = (Class<? extends RealmModel>) valueClass;
             TypeSelectorForMap<String, RealmModel> realmSelector = (TypeSelectorForMap<String, RealmModel>) getRealmSelector(typeCastClass, baseRealm, osMap);
             ManagedMapManager<String, RealmModel> dictionaryManager = new DictionaryManager<>(baseRealm,
@@ -223,9 +223,5 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         return new DictionaryManager<>(baseRealm,
                 (MapValueOperator<String, V>) mapValueOperator,
                 typeSelectorForMap);
-    }
-
-    private static boolean isClassForRealmModel(Class<?> clazz) {
-        return RealmModel.class.isAssignableFrom(clazz);
     }
 }
