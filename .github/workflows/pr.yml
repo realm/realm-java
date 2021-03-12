@@ -35,12 +35,6 @@ jobs:
           brew install yq
           npm install -g mongodb-realm-cli
 
-      - name: Test for yq
-        run: |
-          type yq
-          yq --version
-          yq --help
-
       # CCache setup copied from https://github.com/cristianadam/HelloWorld/blob/master/.github/workflows/build_cmake.yml
       # TODO: How to verify this works at all?
       - name: Prepare ccache timestamp
@@ -78,6 +72,13 @@ jobs:
           ssh-agent -a $SSH_AUTH_SOCK > /dev/null
           ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY }}"
 
+      # TODO: Figure out how to do different build flags depending on the build type
+      - name: Build library
+        run: ./gradlew assemble $BUILD_FLAGS --stacktrace
+
+      - name: Run Tests
+        run: ./gradlew check $BUILD_FLAGS --stacktrace
+
       # TODO Find a way to start the Docker test image while also having the emulator available
       - name: Start MongoDB Realm Test Server
         env:
@@ -90,13 +91,6 @@ jobs:
           ndk: 22.0.7026061
           profile: Nexus 6
           script: bash tools/sync_test_server/ci_run_integration_tests.sh
-
-      # TODO: Figure out how to do different build flags depending on the build type
-      - name: Build library
-        run: ./gradlew assemble $BUILD_FLAGS --stacktrace
-
-      - name: Run Tests
-        run: ./gradlew check $BUILD_FLAGS --stacktrace
 
       # EnricoMi/publish-unit-test-result-action@v1 only works on Linux, so as a work-around
       # we archive the test results from mac-os and download them to a Linux runner.
