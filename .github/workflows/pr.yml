@@ -65,12 +65,15 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
           restore-keys: ${{ runner.os }}-gradle-
 
-      -   name: Setup SSH Keys and known_hosts
-          env:
-            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-          run: |
-            ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-            ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY }}"
+      - name: Setup SSH Keys and known_hosts
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY }}"
+
+      - name: Test for yq
+        run: which yq
 
       # TODO Find a way to start the Docker test image while also having the emulator available
       - name: Start MongoDB Realm Test Server
@@ -83,7 +86,7 @@ jobs:
           arch: x86_64
           ndk: 22.0.7026061
           profile: Nexus 6
-          script: cd tools/sync_test_server/baas_local && ./start_local_server.sh && cd ../../../realm &&./gradlew connectedBaseDebugAndroidTest $BUILD_FLAGS
+          script: cd tools/sync_test_server/baas_local && ./start_local_server.sh && cd ../../../realm && ./gradlew connectedBaseDebugAndroidTest $BUILD_FLAGS
 
       # TODO: Figure out how to do different build flags depending on the build type
       - name: Build library
