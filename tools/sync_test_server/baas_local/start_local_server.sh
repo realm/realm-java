@@ -1,14 +1,16 @@
 #!/bin/bash
-
 #
 # This script controls starting a MongoDB Realm test server and import two running apps into it.
 #
 # It also starts a local command server that the integration tests use to control the MongoDB Realm
 # instance.
 #
-
+#
 # Copy from https://github.com/realm/ci/edit/master/realm/docker/mongodb-realm/run.sh
 # Requires jq and mongodb-realm-cli
+
+set -e
+
 function import_apps () {
   app_dir="$1"
   realm-cli login --config-path=/tmp/stitch-config --base-url=http://localhost:9090 --auth-provider=local-userpass --username=unique_user@domain.com --password=password

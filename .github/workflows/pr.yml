@@ -92,7 +92,7 @@ jobs:
           arch: x86_64
           ndk: 22.0.7026061
           profile: Nexus 6
-          script: sh tools/sync_test_server/ci_run_integration_tests.sh
+          script: tools/sync_test_server/ci_run_integration_tests.sh
 
       # TODO: Figure out how to do different build flags depending on the build type
       - name: Build library
