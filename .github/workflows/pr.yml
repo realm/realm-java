@@ -34,6 +34,11 @@ jobs:
       - name: Modify Path
         run: echo "$HOME/.pyenv/shims" >> $GITHUB_PATH
 
+      - name: Bleh
+        run: |
+          python -m site
+          python -m site --user-site
+
       # - brew install jq
       - name: Install dependencies
         run: |
