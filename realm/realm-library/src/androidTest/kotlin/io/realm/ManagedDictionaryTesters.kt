@@ -53,8 +53,8 @@ class ManagedDictionaryTester<T : Any>(
     private lateinit var realm: Realm
 
     override fun toString(): String = when (mixedType) {
-        null -> "Managed-$testerClass"
-        else -> "Managed-$testerClass" + mixedType.name.let { "-$it" }
+        null -> "ManagedDictionary-$testerClass"
+        else -> "ManagedDictionary-$testerClass" + mixedType.name.let { "-$it" }
     }
 
     override fun setUp(config: RealmConfiguration, looperThread: BlockingLooperThread) {
