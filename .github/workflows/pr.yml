@@ -32,7 +32,7 @@ jobs:
         uses: actions/setup-python@v1
 
       - name: Modify Path
-        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+        run: echo "$HOME/.pyenv/shims" >> $GITHUB_PATH
 
       # - brew install jq
       - name: Install dependencies
