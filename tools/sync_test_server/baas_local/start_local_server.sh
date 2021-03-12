@@ -14,7 +14,7 @@ set -e
 function import_apps () {
   app_dir="$1"
   realm-cli login --config-path=/tmp/stitch-config --base-url=http://localhost:9090 --auth-provider=local-userpass --username=unique_user@domain.com --password=password
-  access_token=$(yq ".access_token" /tmp/stitch-config -r)
+  access_token=$(yq e ".access_token" /tmp/stitch-config)
   group_id=$(curl --header "Authorization: Bearer $access_token" http://localhost:9090/api/admin/v3.0/auth/profile -s | jq '.roles[0].group_id' -r)
   cd $app_dir
   for app in *; do
