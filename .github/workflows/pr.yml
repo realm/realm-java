@@ -27,17 +27,17 @@ jobs:
 
       # TODO How to optimize this? Can we cache it?
       # Already available on Github Runners
+        # See https://stackoverflow.com/questions/59207134/cant-install-a-python-package-use-it-in-a-github-action
+      - name: Install Python dependencies
+        uses: actions/setup-python@v1
+
       # - brew install jq
       - name: Install dependencies
         run: |
           brew install ninja
           brew install ccache
           npm install -g mongodb-realm-cli
-
-      # See https://stackoverflow.com/questions/59207134/cant-install-a-python-package-use-it-in-a-github-action
-      - name: Install Python dependencies
-        uses: actions/setup-python@v1
-        run: pip install yg
+          pip install yg
 
       - name: Test for yq
         run: type yq
