@@ -35,6 +35,9 @@ jobs:
           npm install -g mongodb-realm-cli
           pip install yg
 
+      - name: Test for yq
+        run: type yq
+
       # CCache setup copied from https://github.com/cristianadam/HelloWorld/blob/master/.github/workflows/build_cmake.yml
       # TODO: How to verify this works at all?
       - name: Prepare ccache timestamp
@@ -71,9 +74,6 @@ jobs:
         run: |
           ssh-agent -a $SSH_AUTH_SOCK > /dev/null
           ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY }}"
-
-      - name: Test for yq
-        run: which yq
 
       # TODO Find a way to start the Docker test image while also having the emulator available
       - name: Start MongoDB Realm Test Server
