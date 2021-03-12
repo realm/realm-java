@@ -27,18 +27,12 @@ jobs:
 
       # TODO How to optimize this? Can we cache it?
       # Already available on Github Runners
-        # See https://stackoverflow.com/questions/59207134/cant-install-a-python-package-use-it-in-a-github-action
-        # TODO: I don't know why installing pip packages doesn't work, so steal workaround from BAAS install script
-      - name: Install Python dependencies
-        run: |
-          curl -LsS https://github.com/mikefarah/yq/releases/download/3.4.1/yq_darwin_amd64 > yq && chmod +x yq
-          cp ./yq /usr/local/bin/yq
-
       # - brew install jq
       - name: Install dependencies
         run: |
           brew install ninja
           brew install ccache
+          brew install yq
           npm install -g mongodb-realm-cli
 
       - name: Test for yq
