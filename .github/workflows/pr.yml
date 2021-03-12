@@ -13,6 +13,7 @@ env:
 
   # TODO: From DockerFile, not sure if needed
   CCACHE_CPP2: yes
+  PATH: $PATH:~/.local/bin/yq
   # CMAKE_VERSION: 3.18.4
   # CCACHE_VERSION: 3.7.7
 
