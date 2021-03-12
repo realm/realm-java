@@ -80,9 +80,9 @@ cd $SCRIPTPATH
 
 # Start command server
 echo "Start command server..."
-mkdir tmp-command-server
+mkdir tmp-command-server || true
 cd tmp-command-server
-cp ../../mongodb-realm-command-server.js ./
+cp $SCRIPTPATH/../mongodb-realm-command-server.js ./
 npm install winston@2.4.0 temp httpdispatcher@1.0.0 fs-extra moment is-port-available@0.1.5
 node ./mongodb-realm-command-server.js $APP_CONFIG_DIR &
 echo $! > command_server.pid
