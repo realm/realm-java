@@ -27,7 +27,7 @@ jobs:
 
       - name: Setup script variables
         run: |
-          echo "Comment on PR #${{ github.event.issue.number }}
+          echo "Comment on PR #${{ github.event.issue.number }}"
           echo "Running on branch ${GITHUB_REF##*/}"
 
       # TODO How to optimize this? Can we cache it?
