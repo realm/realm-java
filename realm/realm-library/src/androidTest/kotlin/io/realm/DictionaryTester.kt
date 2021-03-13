@@ -32,6 +32,7 @@ interface DictionaryTester {
     fun containsValue()
     fun get()
     fun put()
+    fun putRequired()
     fun remove()
     fun putAll()
     fun clear()
@@ -41,4 +42,5 @@ interface DictionaryTester {
     fun freeze()
     fun copyToRealm()
     fun copyFromRealm()
+    fun fieldAccessors()
 }

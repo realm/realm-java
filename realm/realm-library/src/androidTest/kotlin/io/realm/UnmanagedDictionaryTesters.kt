@@ -36,8 +36,8 @@ class UnmanagedGenericTester<T : Any>(
 
     override fun toString(): String = testerName
 
-    override fun setUp(config: RealmConfiguration) = Unit
-    override fun tearDown() = Unit
+    override fun setUp(config: RealmConfiguration) = Unit       // Not applicable
+    override fun tearDown() = Unit                              // Not applicable
 
     override fun constructorWithAnotherMap() {
         val otherDictionary = RealmDictionary<T?>().apply {
@@ -104,8 +104,7 @@ class UnmanagedGenericTester<T : Any>(
         assertFalse(realmDictionary.containsValue(notPresentValue))
     }
 
-    // This will be tested in "put"
-    override fun get() = Unit
+    override fun get() = Unit                       // This will be tested in "put"
 
     override fun put() {
         val realmDictionary = RealmDictionary<T?>()
@@ -123,6 +122,8 @@ class UnmanagedGenericTester<T : Any>(
             realmDictionary[null] = keyValuePairs[0].second
         }
     }
+
+    override fun putRequired() = Unit               // Not applicable
 
     override fun remove() {
         val realmDictionary = RealmDictionary<T>()
@@ -207,8 +208,9 @@ class UnmanagedGenericTester<T : Any>(
         }
     }
 
-    override fun copyToRealm() = Unit               // Not applicable
-    override fun copyFromRealm() = Unit             // Not applicable
+    override fun copyToRealm() = Unit                   // Not applicable
+    override fun copyFromRealm() = Unit                 // Not applicable
+    override fun fieldAccessors() = Unit                // Not applicable
 }
 
 /**

@@ -49,7 +49,7 @@ import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import io.realm.entities.DefaultValueOfField;
-import io.realm.entities.DictionaryClass;
+import io.realm.entities.PopulatedDictionaryClass;
 import io.realm.entities.Dog;
 import io.realm.entities.MappedAllJavaTypes;
 import io.realm.entities.NonLatinFieldNames;
@@ -2229,12 +2229,12 @@ public class RealmResultsTests extends CollectionTests {
         stringDictionary.put(KEY_2, VALUE_2);
 
         realm.beginTransaction();
-        DictionaryClass object = new DictionaryClass();
-        object.setMyStringDictionary(stringDictionary);
-        DictionaryClass objectFromRealm = realm.copyToRealm(object);
+        AllTypes object = new AllTypes();
+        object.setColumnStringDictionary(stringDictionary);
+        AllTypes objectFromRealm = realm.copyToRealm(object);
         realm.commitTransaction();
 
-        RealmDictionary<String> stringDictionaryFromRealm = objectFromRealm.getMyStringDictionary();
+        RealmDictionary<String> stringDictionaryFromRealm = objectFromRealm.getColumnStringDictionary();
         assertNotNull(stringDictionaryFromRealm);
 
         Collection<String> values = stringDictionaryFromRealm.values();

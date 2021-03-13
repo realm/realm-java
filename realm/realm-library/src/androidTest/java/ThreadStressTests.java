@@ -21,6 +21,7 @@ import android.text.TextUtils;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,6 +61,7 @@ import static org.junit.Assert.assertNull;
  * it clearer what has happened in the case a run actually did crash, and doesn't indicate
  * problems with the test as such.
  */
+@Ignore("Bug in Core: https://github.com/realm/realm-core/issues/4465")
 @RunWith(Parameterized.class)
 public class ThreadStressTests {
 

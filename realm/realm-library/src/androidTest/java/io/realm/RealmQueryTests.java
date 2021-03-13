@@ -3116,8 +3116,6 @@ public class RealmQueryTests extends QueryTests {
         HashSet types = new HashSet(Arrays.asList(RealmFieldType.values()));
         types.remove(RealmFieldType.TYPED_LINK);
         types.remove(RealmFieldType.MIXED_LIST);
-
-        // TODO: maps not ready to test yet
         types.remove(RealmFieldType.STRING_TO_MIXED_MAP);
         types.remove(RealmFieldType.STRING_TO_BOOLEAN_MAP);
         types.remove(RealmFieldType.STRING_TO_STRING_MAP);
