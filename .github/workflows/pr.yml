@@ -26,7 +26,7 @@ jobs:
           submodules: 'recursive'
 
       - name: Setup script variables
-      - run: |
+        run: |
           echo "Comment on PR #${{ github.event.issue.number }}
           echo "Running on branch ${GITHUB_REF##*/}"
 
