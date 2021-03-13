@@ -16,6 +16,5 @@ if [[ -f $SCRIPTPATH/tmp-baas/baas_ready ]]; then
 fi
 if [[ -n "$PIDS_TO_KILL" ]]; then
     echo "Killing $PIDS_TO_KILL"
-    kill $PIDS_TO_KILL
-    echo "Waiting for processes to exit"
+    kill -9 $PIDS_TO_KILL
 fi
