@@ -18,5 +18,4 @@ if [[ -n "$PIDS_TO_KILL" ]]; then
     echo "Killing $PIDS_TO_KILL"
     kill $PIDS_TO_KILL
     echo "Waiting for processes to exit"
-    wait
 fi

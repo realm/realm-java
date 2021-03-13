@@ -79,7 +79,17 @@ jobs:
       - name: Run Tests
         run: ./gradlew check $BUILD_FLAGS --stacktrace
 
-      # TODO Find a way to start the Docker test image while also having the emulator available
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: unit-test-results
+          path: |
+            realm/realm-annotations-processor/build/test-results/test/TEST-*.xml
+            examples/unitTestExample/build/test-results/**/TEST-*.xml
+            realm/realm-library/build/test-results/**/TEST-*.xml
+
+       # TODO Find a way to start the Docker test image while also having the emulator available
       - name: Start MongoDB Realm Test Server
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
@@ -94,26 +104,6 @@ jobs:
 
       # EnricoMi/publish-unit-test-result-action@v1 only works on Linux, so as a work-around
       # we archive the test results from mac-os and download them to a Linux runner.
-      - name: Upload Test Results
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: unit-test-results
-          path: |
-            realm/realm-annotations-processor/build/test-results/test/TEST-*.xml
-            examples/unitTestExample/build/test-results/**/TEST-*.xml
-            realm/realm-library/build/test-results/**/TEST-*.xml
-
-      - name: Run Integration Tests
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 29
-          target: default
-          arch: x86_64
-          ndk: 22.0.7026061
-          profile: Nexus 6
-          script: cd realm && ./gradlew connectedBaseDebugAndroidTest $BUILD_FLAGS
-
       - name: Upload Integration Test Results
         if: always()
         uses: actions/upload-artifact@v2
