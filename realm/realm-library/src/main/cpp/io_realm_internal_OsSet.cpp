@@ -188,6 +188,43 @@ Java_io_realm_internal_OsSet_nativeRemoveString(JNIEnv* env, jclass, jlong set_p
     return nullptr;
 }
 
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsSet_nativeIsSubSetOf(JNIEnv* env, jclass, jlong set_ptr,
+                                              jlong other_set_ptr) {
+    try {
+        auto &other_set = *reinterpret_cast<realm::object_store::Set *>(other_set_ptr);
+        auto &set = *reinterpret_cast<realm::object_store::Set *>(set_ptr);
+        return other_set.is_subset_of(set);
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsSet_nativeContainsAllString(JNIEnv* env, jclass, jlong set_ptr,
+                                                     jobjectArray j_other_set_values) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        JObjectArrayAccessor<JStringAccessor, jstring> values(env, j_other_set_values);
+        jsize values_size = values.size();
+        for (int i = 0; i < values_size; i++) {
+            JStringAccessor value = values[i];
+            size_t found;
+            if (value.is_null()) {
+                found = set.find_any(Mixed());
+            } else {
+                found = set.find_any(Mixed(StringData(value)));
+            }
+            if (found == npos) {    // npos represents "not found"
+                return false;
+            }
+        }
+        return true;
+    }
+    CATCH_STD()
+    return false;
+}
+
 JNIEXPORT void JNICALL
 Java_io_realm_internal_OsSet_nativeClear(JNIEnv* env, jclass, jlong set_ptr) {
     try {
@@ -195,4 +232,18 @@ Java_io_realm_internal_OsSet_nativeClear(JNIEnv* env, jclass, jlong set_ptr) {
         set.remove_all();
     }
     CATCH_STD()
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_OsSet_nativeFreeze(JNIEnv* env, jclass, jlong set_ptr,
+                                          jlong frozen_realm_ptr) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& shared_realm_ptr = *reinterpret_cast<std::shared_ptr<Realm>*>(frozen_realm_ptr);
+        const object_store::Set& frozen_set = set.freeze(shared_realm_ptr);
+        auto* frozen_set_ptr = new object_store::Set(frozen_set);
+        return reinterpret_cast<jlong>(frozen_set_ptr);
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
 }

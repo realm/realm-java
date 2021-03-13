@@ -18,13 +18,12 @@ package io.realm
 
 import io.realm.entities.AllTypes
 import io.realm.rule.BlockingLooperThread
-import org.bson.types.Decimal128
-import org.bson.types.ObjectId
-import java.util.*
-import kotlin.reflect.KFunction
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KFunction2
-import kotlin.test.*
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 /**
  * Generic tester for all types of unmanaged sets.
@@ -59,9 +58,7 @@ class ManagedSetTester<T : Any>(
 
     override fun isValid() = assertTrue(initAndAssert().isValid)
 
-    override fun isFrozen() {
-        // TODO
-    }
+    override fun isFrozen() = Unit          // Tested in frozen
 
     override fun size() {
         val set = initAndAssert()
@@ -95,7 +92,17 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun iterator() {
-        // TODO
+        val set = initAndAssert()
+        assertNotNull(set.iterator())
+        realm.executeTransaction {
+            // TODO: use addAll
+            initializedSet.forEach { value ->
+                set.add(value)
+            }
+        }
+        set.forEach { value ->
+            assertTrue(initializedSet.contains(value))
+        }
     }
 
     override fun toArray() {
@@ -131,7 +138,21 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun containsAll() {
-        // TODO
+        val set = initAndAssert()
+        realm.executeTransaction {
+            initializedSet.forEach { value ->
+                set.add(value)
+            }
+        }
+
+        // Contains an unmanaged collection
+        assertTrue(set.containsAll(initializedSet))
+
+        // Does not contain an unmanaged collection
+        assertFalse(set.containsAll(listOf(notPresentValue)))
+
+        // Contains a managed set
+        assertTrue(set.containsAll(set))
     }
 
     override fun addAll() {
@@ -157,7 +178,18 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun freeze() {
-        // TODO
+        val set = initAndAssert()
+        realm.executeTransaction {
+            // TODO: use addAll
+            initializedSet.forEach { value ->
+                set.add(value)
+            }
+        }
+
+        val frozenSet = set.freeze()
+        assertFalse(set.isFrozen)
+        assertTrue(frozenSet.isFrozen)
+        assertEquals(set.size, frozenSet.size)
     }
 
     //----------------------------------

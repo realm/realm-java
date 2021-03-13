@@ -53,12 +53,12 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
     private final OsMap osMap;
     private final IteratorType iteratorType;
     private final EqualsHelper<K, V> equalsHelper;
-    private final TypeSelectorForMap typeSelectorForMap;
+    private final TypeSelectorForMap<K, V> typeSelectorForMap;
 
     public RealmMapEntrySet(BaseRealm baseRealm,
                             OsMap osMap,
                             IteratorType iteratorType,
-                            @Nullable TypeSelectorForMap typeSelectorForMap) {
+                            @Nullable TypeSelectorForMap<K, V> typeSelectorForMap) {
         this.baseRealm = baseRealm;
         this.osMap = osMap;
         this.iteratorType = iteratorType;
@@ -70,7 +70,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
                             OsMap osMap,
                             IteratorType iteratorType,
                             EqualsHelper<K, V> equalsHelper,
-                            @Nullable TypeSelectorForMap typeSelectorForMap) {
+                            @Nullable TypeSelectorForMap<K, V> typeSelectorForMap) {
         this.baseRealm = baseRealm;
         this.osMap = osMap;
         this.iteratorType = iteratorType;

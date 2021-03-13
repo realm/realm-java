@@ -16,9 +16,14 @@
 
 package io.realm.internal;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.Collection;
+
 import javax.annotation.Nullable;
 
 import io.realm.Mixed;
+import io.realm.RealmSet;
 
 public class OsSet implements NativeObject {
 
@@ -29,10 +34,19 @@ public class OsSet implements NativeObject {
 
     private final long nativePtr;
     private final NativeContext context;
+    private final OsSharedRealm osSharedRealm;
 
     public OsSet(UncheckedRow row, long columnKey) {
-        OsSharedRealm osSharedRealm = row.getTable().getSharedRealm();
+        this.osSharedRealm = row.getTable().getSharedRealm();
         this.nativePtr = nativeCreate(osSharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
+        this.context = osSharedRealm.context;
+        context.addReference(this);
+    }
+
+    // Used to freeze sets
+    private OsSet(OsSharedRealm osSharedRealm, long nativePtr) {
+        this.osSharedRealm = osSharedRealm;
+        this.nativePtr = nativePtr;
         this.context = osSharedRealm.context;
         context.addReference(this);
     }
@@ -95,8 +109,33 @@ public class OsSet implements NativeObject {
         return indexAndFound[1] == 1;
     }
 
+    public boolean isSubSetOf(long otherSetNativePtr) {
+        return nativeIsSubSetOf(this.nativePtr, otherSetNativePtr);
+    }
+
+    public boolean containsAll(Collection<?> collection, Class<?> valueClass) {
+        Object[] objects = collection.toArray();
+
+        // It cannot be contained if it is not the same type
+        if (objects[0].getClass() != valueClass) {
+            return false;
+        }
+
+        if (valueClass == String.class) {
+            String[] values = collection.toArray(new String[objects.length]);
+            return nativeContainsAllString(nativePtr, values);
+        } else {
+            throw new UnsupportedOperationException("set containsAll - Hold your horses cowboy...");
+        }
+    }
+
     public void clear() {
         nativeClear(nativePtr);
+    }
+
+    public OsSet freeze(OsSharedRealm frozenSharedRealm) {
+        long frozenNativePtr = nativeFreeze(this.nativePtr, frozenSharedRealm.getNativePtr());
+        return new OsSet(frozenSharedRealm, frozenNativePtr);
     }
 
     private static native long nativeGetFinalizerPtr();
@@ -121,5 +160,11 @@ public class OsSet implements NativeObject {
 
     private static native long[] nativeRemoveString(long nativePtr, String value);
 
+    private static native boolean nativeIsSubSetOf(long nativePtr, long otherSetNativePtr);
+
+    private static native boolean nativeContainsAllString(long nativePtr, String[] otherSet);
+
     private static native void nativeClear(long nativePtr);
+
+    private static native long nativeFreeze(long nativePtr, long frozenRealmPtr);
 }

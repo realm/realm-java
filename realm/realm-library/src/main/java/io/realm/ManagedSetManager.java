@@ -109,22 +109,22 @@ public class ManagedSetManager<E> implements Set<E>, ManageableObject, Freezable
     }
 
     @Override
-    public boolean containsAll(@NotNull Collection<?> c) {
+    public boolean containsAll(Collection<?> c) {
         return setValueOperator.containsAll(c);
     }
 
     @Override
-    public boolean addAll(@NotNull Collection<? extends E> c) {
+    public boolean addAll(Collection<? extends E> c) {
         return setValueOperator.addAll(c);
     }
 
     @Override
-    public boolean retainAll(@NotNull Collection<?> c) {
+    public boolean retainAll(Collection<?> c) {
         return setValueOperator.retainAll(c);
     }
 
     @Override
-    public boolean removeAll(@NotNull Collection<?> c) {
+    public boolean removeAll(Collection<?> c) {
         return setValueOperator.removeAll(c);
     }
 
@@ -139,7 +139,11 @@ public class ManagedSetManager<E> implements Set<E>, ManageableObject, Freezable
 
     @Override
     public RealmSet<E> freeze() {
-        return null;
+        return setValueOperator.freeze();
+    }
+
+    OsSet getOsSet() {
+        return setValueOperator.osSet;
     }
 }
 
@@ -152,10 +156,12 @@ class SetValueOperator<E> {
 
     protected final BaseRealm baseRealm;
     protected final OsSet osSet;
+    protected final Class<E> valueClass;
 
-    public SetValueOperator(BaseRealm baseRealm, OsSet osSet) {
+    public SetValueOperator(BaseRealm baseRealm, OsSet osSet, Class<E> valueClass) {
         this.baseRealm = baseRealm;
         this.osSet = osSet;
+        this.valueClass = valueClass;
     }
 
     public boolean add(@Nullable E e) {
@@ -172,8 +178,7 @@ class SetValueOperator<E> {
     }
 
     public boolean isFrozen() {
-        // TODO
-        return false;
+        return baseRealm.isFrozen();
     }
 
     public int size() {
@@ -181,8 +186,7 @@ class SetValueOperator<E> {
     }
 
     public boolean isEmpty() {
-        // TODO
-        return false;
+        return size() == 0;
     }
 
     public boolean contains(@Nullable Object o) {
@@ -190,8 +194,7 @@ class SetValueOperator<E> {
     }
 
     public Iterator<E> iterator() {
-        // TODO
-        return null;
+        return new SetIterator<>(osSet, baseRealm);
     }
 
     public Object[] toArray() {
@@ -209,8 +212,15 @@ class SetValueOperator<E> {
     }
 
     public boolean containsAll(Collection<?> c) {
-        // TODO
-        return false;
+        // Check if collection is subset in case we receive a RealmSet
+        if (c instanceof RealmSet) {
+            //noinspection unchecked
+            RealmSet<E> setFromCollection = (RealmSet<E>) c;
+            OsSet otherOsSet = setFromCollection.getOsSet();
+            return otherOsSet.isSubSetOf(osSet.getNativePtr());
+        }
+
+        return osSet.containsAll(c, valueClass);
     }
 
     public boolean addAll(Collection<? extends E> c) {
@@ -231,8 +241,19 @@ class SetValueOperator<E> {
     public void clear() {
         osSet.clear();
     }
+
+    public RealmSet<E> freeze() {
+        BaseRealm frozenRealm = baseRealm.freeze();
+        OsSet frozenOsSet = osSet.freeze(frozenRealm.sharedRealm);
+        return new RealmSet<>(frozenRealm, frozenOsSet, valueClass);
+    }
 }
 
+/**
+ * TODO
+ *
+ * @param <E>
+ */
 class SetIterator<E> implements Iterator<E> {
 
     private final OsSet osSet;
