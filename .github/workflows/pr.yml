@@ -25,10 +25,17 @@ jobs:
         with:
           submodules: 'recursive'
 
-      - name: Setup script variables
-        run: |
-          echo "Comment on PR #${{ github.event.issue.number }}"
-          echo "Running on branch ${GITHUB_REF##*/}"
+      - name: Debug emulator
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          target: default
+          arch: x86_64
+          ndk: 22.0.7026061
+          profile: Nexus 6
+          script: adb devices && echo "Done running"
 
       # TODO How to optimize this? Can we cache it?
       # Already available on Github Runners
