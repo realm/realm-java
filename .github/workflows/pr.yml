@@ -74,7 +74,7 @@ jobs:
 
       # TODO: Figure out how to do different build flags depending on the build type
       - name: Build library
-        run: ./gradlew assembleObjectServerDebug $BUILD_FLAGS --stacktrace
+        run: ./gradlew assemble $BUILD_FLAGS --stacktrace
 
 #      - name: Run Tests
 #        run: ./gradlew check $BUILD_FLAGS --stacktrace
