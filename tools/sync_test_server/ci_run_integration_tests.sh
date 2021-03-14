@@ -10,4 +10,3 @@ cd ../../../realm
 cd $SCRIPTPATH/baas_local
 bash ./stop_local_server.sh
 echo "Local servers stopped"
-return 0
