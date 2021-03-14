@@ -6,7 +6,8 @@ echo "Start building local BAAS"
 cd $SCRIPTPATH/baas_local
 bash ./start_local_server.sh
 cd ../../../realm
-./gradlew connectedBaseDebugAndroidTest -PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true
+./gradlew connectedObjectServerDebugAndroidTest -PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true
 cd $SCRIPTPATH/baas_local
 bash ./stop_local_server.sh
 echo "Local servers stopped"
+return 0

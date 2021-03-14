@@ -74,20 +74,20 @@ jobs:
 
       # TODO: Figure out how to do different build flags depending on the build type
       - name: Build library
-        run: ./gradlew assemble $BUILD_FLAGS --stacktrace
+        run: ./gradlew assembleObjectServerDebug $BUILD_FLAGS --stacktrace
 
-      - name: Run Tests
-        run: ./gradlew check $BUILD_FLAGS --stacktrace
+#      - name: Run Tests
+#        run: ./gradlew check $BUILD_FLAGS --stacktrace
 
-      - name: Upload Test Results
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: unit-test-results
-          path: |
-            realm/realm-annotations-processor/build/test-results/test/TEST-*.xml
-            examples/unitTestExample/build/test-results/**/TEST-*.xml
-            realm/realm-library/build/test-results/**/TEST-*.xml
+#      - name: Upload Test Results
+#        if: always()
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: unit-test-results
+#          path: |
+#            realm/realm-annotations-processor/build/test-results/test/TEST-*.xml
+#            examples/unitTestExample/build/test-results/**/TEST-*.xml
+#            realm/realm-library/build/test-results/**/TEST-*.xml
 
        # TODO Find a way to start the Docker test image while also having the emulator available
       - name: Start MongoDB Realm Test Server
@@ -100,7 +100,7 @@ jobs:
           arch: x86_64
           ndk: 22.0.7026061
           profile: Nexus 6
-          script: tools/sync_test_server/ci_run_integration_tests.sh
+          script: bash tools/sync_test_server/ci_run_integration_tests.sh
 
       # EnricoMi/publish-unit-test-result-action@v1 only works on Linux, so as a work-around
       # we archive the test results from mac-os and download them to a Linux runner.
