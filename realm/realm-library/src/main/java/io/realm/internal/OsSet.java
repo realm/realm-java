@@ -16,16 +16,17 @@
 
 package io.realm.internal;
 
-import java.lang.reflect.Array;
-import java.util.Arrays;
 import java.util.Collection;
 
 import javax.annotation.Nullable;
 
-import io.realm.Mixed;
-import io.realm.RealmSet;
-
 public class OsSet implements NativeObject {
+
+    public enum ExternalCollectionOperation {
+        ADD_ALL,
+        REMOVE_ALL,
+        RETAIN_ALL
+    }
 
     private static final int VALUE_FOUND = 1;
     private static final int VALUE_NOT_FOUND = 0;
@@ -79,22 +80,23 @@ public class OsSet implements NativeObject {
         } else if (value.getClass() == String.class) {
             return nativeContainsString(nativePtr, (String) value);
         } else {
+            // TODO: add missing types
             throw new UnsupportedOperationException("set contains - Hold your horses cowboy...");
         }
     }
 
-    public void add(@Nullable Object value) {
+    public boolean add(@Nullable Object value) {
+        long[] indexAndFound;
         if (value == null) {
-            nativeAddNull(nativePtr);
+            indexAndFound = nativeAddNull(nativePtr);
         } else if (value.getClass() == String.class) {
-            nativeAddString(nativePtr, (String) value);
+            indexAndFound = nativeAddString(nativePtr, (String) value);
         } else {
+            // TODO: add missing types
             throw new UnsupportedOperationException("set add - Hold your horses cowboy...");
         }
-    }
 
-    public void addMixed(Mixed value) {
-        // TODO
+        return indexAndFound[1] != VALUE_NOT_FOUND;
     }
 
     public boolean remove(@Nullable Object value) {
@@ -104,9 +106,10 @@ public class OsSet implements NativeObject {
         } else if (value.getClass() == String.class) {
             indexAndFound = nativeRemoveString(nativePtr, (String) value);
         } else {
+            // TODO: add missing types
             throw new UnsupportedOperationException("set remove - Hold your horses cowboy...");
         }
-        return indexAndFound[1] == 1;
+        return indexAndFound[1] == 1;       // 1 means true, i.e. it was found
     }
 
     public boolean isSubSetOf(long otherSetNativePtr) {
@@ -116,8 +119,8 @@ public class OsSet implements NativeObject {
     public boolean containsAll(Collection<?> collection, Class<?> valueClass) {
         Object[] objects = collection.toArray();
 
-        // It cannot be contained if it is not the same type
-        if (objects[0].getClass() != valueClass) {
+        // It cannot be contained if it is empty or not the same type
+        if (collection.size() == 0 || objects[0].getClass() != valueClass) {
             return false;
         }
 
@@ -125,8 +128,33 @@ public class OsSet implements NativeObject {
             String[] values = collection.toArray(new String[objects.length]);
             return nativeContainsAllString(nativePtr, values);
         } else {
+            // TODO: add missing types
             throw new UnsupportedOperationException("set containsAll - Hold your horses cowboy...");
         }
+    }
+
+    public boolean union(OsSet otherRealmSet) {
+        return nativeUnion(nativePtr, otherRealmSet.getNativePtr());
+    }
+
+    public <E> boolean addAll(Collection<? extends E> collection, Class<?> valueClass) {
+        return collectionFunnel(collection, valueClass, ExternalCollectionOperation.ADD_ALL);
+    }
+
+    public boolean asymmetricDifference(OsSet otherSet) {
+        return nativeAsymmetricDifference(nativePtr, otherSet.getNativePtr());
+    }
+
+    public <E> boolean removeAll(Collection<? extends E> collection, Class<?> valueClass) {
+        return collectionFunnel(collection, valueClass, ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    public boolean intersect(OsSet otherSet) {
+        return nativeIntersect(nativePtr, otherSet.getNativePtr());
+    }
+
+    public <E> boolean retainAll(Collection<? extends E> collection, Class<?> valueClass) {
+        return collectionFunnel(collection, valueClass, ExternalCollectionOperation.RETAIN_ALL);
     }
 
     public void clear() {
@@ -136,6 +164,39 @@ public class OsSet implements NativeObject {
     public OsSet freeze(OsSharedRealm frozenSharedRealm) {
         long frozenNativePtr = nativeFreeze(this.nativePtr, frozenSharedRealm.getNativePtr());
         return new OsSet(frozenSharedRealm, frozenNativePtr);
+    }
+
+    private <E> boolean collectionFunnel(Collection<? extends E> collection,
+                                         Class<?> valueClass,
+                                         ExternalCollectionOperation operation) {
+        // Return unchanged if collection is empty
+        if (collection.size() == 0) {
+            return false;
+        }
+
+        // Collection cannot be removed if it is not the same type
+        Object[] objects = collection.toArray();
+        Class<?> itemClass = objects[0].getClass();
+        if (itemClass != valueClass) {
+            throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+        }
+
+        if (itemClass == String.class) {
+            String[] values = collection.toArray(new String[objects.length]);
+            switch (operation) {
+                case ADD_ALL:
+                    return nativeAddAllString(nativePtr, values);
+                case REMOVE_ALL:
+                    return nativeRemoveAllString(nativePtr, values);
+                case RETAIN_ALL:
+                    return nativeRetainAllString(nativePtr, values);
+                default:
+                    throw new IllegalStateException("Unexpected value: " + operation);
+            }
+        } else {
+            // TODO: add missing types
+            throw new UnsupportedOperationException("set addAll - Hold your horses cowboy...");
+        }
     }
 
     private static native long nativeGetFinalizerPtr();
@@ -152,9 +213,9 @@ public class OsSet implements NativeObject {
 
     private static native boolean nativeContainsString(long nativePtr, String value);
 
-    private static native void nativeAddNull(long nativePtr);
+    private static native long[] nativeAddNull(long nativePtr);
 
-    private static native void nativeAddString(long nativePtr, String value);
+    private static native long[] nativeAddString(long nativePtr, String value);
 
     private static native long[] nativeRemoveNull(long nativePtr);
 
@@ -163,6 +224,18 @@ public class OsSet implements NativeObject {
     private static native boolean nativeIsSubSetOf(long nativePtr, long otherSetNativePtr);
 
     private static native boolean nativeContainsAllString(long nativePtr, String[] otherSet);
+
+    private static native boolean nativeUnion(long nativePtr, long otherRealmSetNativePtr);
+
+    private static native boolean nativeAddAllString(long nativePtr, String[] otherSet);
+
+    private static native boolean nativeAsymmetricDifference(long nativePtr, long otherRealmSetNativePtr);
+
+    private static native boolean nativeRemoveAllString(long nativePtr, String[] otherSet);
+
+    private static native boolean nativeIntersect(long nativePtr, long otherRealmSetNativePtr);
+
+    private static native boolean nativeRetainAllString(long nativePtr, String[] otherSet);
 
     private static native void nativeClear(long nativePtr);
 

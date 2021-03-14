@@ -19,7 +19,6 @@ package io.realm;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -135,7 +134,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
      */
     @NotNull
     @Override
-    public <T> T[] toArray(@NotNull T[] a) {
+    public <T> T[] toArray(T[] a) {
         return setStrategy.toArray(a);
     }
 
@@ -159,7 +158,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
      * {@inheritDoc}
      */
     @Override
-    public boolean containsAll(@NotNull Collection<?> c) {
+    public boolean containsAll(Collection<?> c) {
         return setStrategy.containsAll(c);
     }
 
@@ -167,7 +166,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
      * {@inheritDoc}
      */
     @Override
-    public boolean addAll(@NotNull Collection<? extends E> c) {
+    public boolean addAll(Collection<? extends E> c) {
         return setStrategy.addAll(c);
     }
 
@@ -175,7 +174,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
      * {@inheritDoc}
      */
     @Override
-    public boolean retainAll(@NotNull Collection<?> c) {
+    public boolean retainAll(Collection<?> c) {
         return setStrategy.retainAll(c);
     }
 
@@ -183,7 +182,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
      * {@inheritDoc}
      */
     @Override
-    public boolean removeAll(@NotNull Collection<?> c) {
+    public boolean removeAll(Collection<?> c) {
         return setStrategy.removeAll(c);
     }
 
@@ -333,22 +332,19 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
         @Override
         public boolean addAll(Collection<? extends E> c) {
             checkValidCollection(c);
-            // TODO
-            return false;
+            return managedSetManager.addAll(c);
         }
 
         @Override
         public boolean retainAll(Collection<?> c) {
             checkValidCollection(c);
-            // TODO
-            return false;
+            return managedSetManager.retainAll(c);
         }
 
         @Override
         public boolean removeAll(Collection<?> c) {
             checkValidCollection(c);
-            // TODO
-            return false;
+            return managedSetManager.removeAll(c);
         }
 
         @Override
@@ -450,7 +446,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
 
         @NotNull
         @Override
-        public <T> T[] toArray(@NotNull T[] a) {
+        public <T> T[] toArray(T[] a) {
             return unmanagedSet.toArray(a);
         }
 
@@ -465,22 +461,22 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
         }
 
         @Override
-        public boolean containsAll(@NotNull Collection<?> c) {
+        public boolean containsAll(Collection<?> c) {
             return unmanagedSet.containsAll(c);
         }
 
         @Override
-        public boolean addAll(@NotNull Collection<? extends E> c) {
+        public boolean addAll(Collection<? extends E> c) {
             return unmanagedSet.addAll(c);
         }
 
         @Override
-        public boolean retainAll(@NotNull Collection<?> c) {
+        public boolean retainAll(Collection<?> c) {
             return unmanagedSet.retainAll(c);
         }
 
         @Override
-        public boolean removeAll(@NotNull Collection<?> c) {
+        public boolean removeAll(Collection<?> c) {
             return unmanagedSet.removeAll(c);
         }
 

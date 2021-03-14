@@ -17,13 +17,13 @@
 package io.realm
 
 import io.realm.entities.AllTypes
+import io.realm.entities.SetContainerClass
+import io.realm.kotlin.createObject
 import io.realm.rule.BlockingLooperThread
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KFunction2
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import kotlin.reflect.KProperty1
+import kotlin.test.*
 
 /**
  * Generic tester for all types of unmanaged sets.
@@ -33,6 +33,7 @@ class ManagedSetTester<T : Any>(
         private val mixedType: MixedType? = null,
         private val setGetter: KFunction1<AllTypes, RealmSet<T>>,
         private val setSetter: KFunction2<AllTypes, RealmSet<T>, Unit>,
+        private val managedSetGetter: KProperty1<SetContainerClass, RealmSet<T>>,
         private val initializedSet: List<T?>,
         private val notPresentValue: T
 ) : SetTester {
@@ -95,10 +96,7 @@ class ManagedSetTester<T : Any>(
         val set = initAndAssert()
         assertNotNull(set.iterator())
         realm.executeTransaction {
-            // TODO: use addAll
-            initializedSet.forEach { value ->
-                set.add(value)
-            }
+            set.addAll(initializedSet)
         }
         set.forEach { value ->
             assertTrue(initializedSet.contains(value))
@@ -153,18 +151,161 @@ class ManagedSetTester<T : Any>(
 
         // Contains a managed set
         assertTrue(set.containsAll(set))
+
+        // Does not contain an empty collection
+        assertFalse(set.containsAll(listOf()))
+
+        // Fails if passed null
+        try {
+//            set.containsAll(null)
+            set.containsAll(TestHelper.getNull())
+        } catch (e: Exception) {
+            val kjahsd = 0
+        }
+//        assertFailsWith<NullPointerException> {
+//            set.containsAll(TestHelper.getNull())
+//        }
     }
 
     override fun addAll() {
-        // TODO
+        val set = initAndAssert()
+        assertEquals(0, set.size)
+        realm.executeTransaction { transactionRealm ->
+            // Check set changed after adding collection
+            assertTrue(set.addAll(initializedSet))
+
+            // Set does not change if we add the same data
+            assertFalse(set.addAll(initializedSet))
+
+            // Set does not change if we add the same data from a managed set
+            val managedSameSet = managedSetGetter.get(transactionRealm.createObject())
+            assertNotNull(managedSameSet)
+            managedSameSet.addAll(initializedSet)
+            assertFalse(set.addAll(managedSameSet as Collection<T>))
+
+            // Set does not change if we add itself to it
+            assertFalse(set.addAll(set))
+
+            // Check set changed after adding collection from a managed set
+            val managedSet = managedSetGetter.get(transactionRealm.createObject())
+            assertNotNull(managedSet)
+            managedSet.add(notPresentValue)
+            assertTrue(set.addAll(managedSet as Collection<T>))
+
+            // Fails if passed null
+            assertFailsWith<NullPointerException> {
+                set.addAll(TestHelper.getNull())
+            }
+        }
     }
 
     override fun retainAll() {
-        // TODO
+        val set = initAndAssert()
+        assertEquals(0, set.size)
+        realm.executeTransaction { transactionRealm ->
+            assertTrue(set.isEmpty())
+
+            // Check empty set does not change after intersecting it with a collection
+            assertTrue(set.isEmpty())
+            assertFalse(set.retainAll(initializedSet))
+
+            // Add values to set and intersect it the same value - check the set does not change
+            set.addAll(initializedSet)
+            assertFalse(set.isEmpty())
+            assertFalse(set.retainAll(initializedSet))
+            assertEquals(initializedSet.size, set.size)
+
+            // Intersect with an empty collection - check set does not change
+            assertFalse(set.retainAll(listOf()))
+            assertFalse(set.isEmpty())
+
+            // Now intersect with something else - check set changes
+            assertTrue(set.retainAll(listOf(notPresentValue)))
+            assertTrue(set.isEmpty())
+
+            // Set does not change if we intersect it with another set containing the same elements
+            set.addAll(initializedSet)
+            val managedSameSet = managedSetGetter.get(transactionRealm.createObject())
+            assertNotNull(managedSameSet)
+            managedSameSet.addAll(initializedSet)
+            assertFalse(set.retainAll(managedSameSet as Collection<T>))
+            assertEquals(initializedSet.size, set.size)
+
+            // Set does not change if we intersect it with itself
+            set.clear()
+            set.addAll(initializedSet)
+            assertFalse(set.isEmpty())
+            assertFalse(set.retainAll(set))
+            assertFalse(set.isEmpty())
+
+            // Intersect with a managed set not containing any elements from the original set
+            set.clear()
+            set.addAll(initializedSet)
+            assertFalse(set.isEmpty())
+            val managedSet = managedSetGetter.get(transactionRealm.createObject())
+            assertNotNull(managedSet)
+            managedSet.add(notPresentValue)
+            assertTrue(set.retainAll(managedSet as Collection<T>))
+            assertTrue(set.isEmpty())
+        }
     }
 
     override fun removeAll() {
-        // TODO
+        val set = initAndAssert()
+        assertEquals(0, set.size)
+        realm.executeTransaction { transactionRealm ->
+            // Check empty set does not change after removing a collection
+            assertTrue(set.isEmpty())
+            assertFalse(set.removeAll(initializedSet))
+            assertTrue(set.isEmpty())
+
+            // Add values to set and remove all - check the set changes
+            set.addAll(initializedSet)
+            assertFalse(set.isEmpty())
+            assertTrue(set.removeAll(initializedSet))
+            assertTrue(set.isEmpty())
+
+            // Add values again and remove empty collection - check set does not change
+            set.addAll(initializedSet)
+            assertFalse(set.removeAll(listOf()))
+            assertFalse(set.isEmpty())
+
+            // Now remove something else - check set does not change
+            assertFalse(set.removeAll(listOf(notPresentValue)))
+
+            // Set does change if we remove all its items using another set containing the same elements
+            set.addAll(initializedSet)
+            assertFalse(set.isEmpty())
+            val managedSameSet = managedSetGetter.get(transactionRealm.createObject())
+            assertNotNull(managedSameSet)
+            managedSameSet.addAll(initializedSet)
+            assertTrue(set.removeAll(managedSameSet as Collection<T>))
+
+            // Set does change if we remove all its items using itself
+            set.clear()
+            set.addAll(initializedSet)
+            assertFalse(set.isEmpty())
+            assertTrue(set.removeAll(set))
+            assertTrue(set.isEmpty())
+
+            // Add values again and remove something else from a managed set
+            set.addAll(initializedSet)
+            assertFalse(set.isEmpty())
+            val managedSet = managedSetGetter.get(transactionRealm.createObject())
+            assertNotNull(managedSet)
+            managedSet.add(notPresentValue)
+            assertFalse(set.removeAll(managedSet as Collection<T>))
+
+            // Fails if passed null
+            try {
+                set.removeAll(TestHelper.getNull())
+            } catch (e: Exception) {
+                val kjahsd = 0
+            }
+//            assertFailsWith<NullPointerException> {
+//                set.removeAll(TestHelper.getNull())
+//            }
+        }
     }
 
     override fun clear() {
@@ -180,10 +321,7 @@ class ManagedSetTester<T : Any>(
     override fun freeze() {
         val set = initAndAssert()
         realm.executeTransaction {
-            // TODO: use addAll
-            initializedSet.forEach { value ->
-                set.add(value)
-            }
+            set.addAll(initializedSet)
         }
 
         val frozenSet = set.freeze()
@@ -247,6 +385,7 @@ fun managedSetFactory(): List<SetTester> {
                         testerName = "String",
                         setGetter = AllTypes::getColumnStringSet,
                         setSetter = AllTypes::setColumnStringSet,
+                        managedSetGetter = SetContainerClass::myStringSet,
                         initializedSet = listOf(VALUE_STRING_HELLO, VALUE_STRING_BYE, null),
                         notPresentValue = VALUE_STRING_NOT_PRESENT
                 )

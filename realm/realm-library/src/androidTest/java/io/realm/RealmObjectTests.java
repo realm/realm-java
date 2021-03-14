@@ -117,7 +117,7 @@ public class RealmObjectTests {
         realm.commitTransaction();
 
         assertNotNull("RealmObject.realmGetRow returns zero ", row);
-        assertEquals(54, row.getColumnCount());     // Update this value when adding new fields to AllTypes
+        assertEquals(55, row.getColumnCount());     // Update this value when adding new fields to AllTypes
     }
 
     @Test
