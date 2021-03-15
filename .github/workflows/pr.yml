@@ -1,12 +1,18 @@
-# Workflow that defines how pull requests are built and tested.
+# Define how pull requests are built and tested.
 name: Pull Requests
 on:
   pull_request:
     paths-ignore:
       - '*.md'
 
-#env:
+env:
   #  GRADLE_OPTS: -Dorg.gradle.configureondemand=true -Dkotlin.incremental=false -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxPermSize=4096m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=1024m"
+
+  # GitHub Actions does not support variables. Use environments vars as a work-around
+  BUILD_FLAGS: -PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true
+
+  # TODO: From DockerFile, not sure if needed
+  CCACHE_CPP2: yes
   # CMAKE_VERSION: 3.18.4
   # CCACHE_VERSION: 3.7.7
 
@@ -14,18 +20,97 @@ jobs:
   run-pr-build:
     runs-on: macos-latest
     steps:
-      # See https://github.community/t/path-to-action-in-the-same-repository-as-workflow/16952/2
       - name: Checkout code
         uses: actions/checkout@v2
         with:
           submodules: 'recursive'
 
-      - name: Build and Test Library
-        uses: ./.github/actions/build-library
-        with:
-          scope: minimal
+      # TODO Can we optimize this? Caching?
+      - name: Install dependencies
+        run: |
+          brew install ninja
+          brew install ccache
+          brew install yq
+          npm install -g mongodb-realm-cli
 
-#  TODO: Figure out another way to publish Unit Test Results. Maybe https://github.com/mikepenz/action-junit-report
+      # CCache setup copied from https://github.com/cristianadam/HelloWorld/blob/master/.github/workflows/build_cmake.yml
+      # TODO: How to verify this works at all?
+      - name: Prepare ccache timestamp
+        id: ccache_cache_timestamp
+        shell: cmake -P {0}
+        run: |
+          string(TIMESTAMP current_date "%Y-%m-%d-%H;%M;%S" UTC)
+          message("::set-output name=timestamp::${current_date}")
+
+      - name: ccache cache files
+        uses: actions/cache@v1.1.0
+        with:
+          path: .ccache
+          key: ${{ runner.os }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-
+
+      # TODO: Figure out why we require 3.18.4. Ideally it should just be minimum versions everywhere?
+      - name: Setup cmake
+        uses: jwlawson/actions-setup-cmake@v1.8
+        with:
+          cmake-version: '3.18.4'
+
+      - name: Cache Gradle
+        uses: actions/cache@v2.1.0
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: ${{ runner.os }}-gradle-
+
+      - name: Setup SSH Keys and known_hosts
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY }}"
+
+      # TODO: Figure out how to do different build flags depending on the build type.
+      - name: Build library
+        run: ./gradlew assemble $BUILD_FLAGS --stacktrace
+
+      - name: Run Unit Tests
+        run: ./gradlew check $BUILD_FLAGS --stacktrace
+
+      - name: Upload Unit Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: unit-test-results
+          path: |
+            realm/realm-annotations-processor/build/test-results/test/TEST-*.xml
+            examples/unitTestExample/build/test-results/**/TEST-*.xml
+            realm/realm-library/build/test-results/**/TEST-*.xml
+
+      - name: Run Integration Tests
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          target: default
+          arch: x86_64
+          ndk: 22.0.7026061
+          profile: Nexus 6
+          script: bash tools/sync_test_server/ci_run_integration_tests.sh
+
+      # EnricoMi/publish-unit-test-result-action@v1 only works on Linux, so as a work-around
+      # we archive the test results from mac-os and download them to a Linux runner.
+      - name: Upload Integration Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: integration-test-results
+          path: |
+            realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+            realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+
+# TODO: Figure out another way to publish Unit Test Results. Maybe https://github.com/mikepenz/action-junit-report
 #  process-test-results:
 #    needs: run-pr-build
 #    runs-on: ubuntu-latest

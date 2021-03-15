@@ -13,7 +13,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup conditional environment variables
-      run: |
+      shell: |
         if [[ $INPUT_SCOPE == full ]]; then
           echo "BUILD_FLAGS=-PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true" >> $GITHUB_ENV
           echo "TEST_TARGET=connectedAndroidTest" >> $GITHUB_ENV
