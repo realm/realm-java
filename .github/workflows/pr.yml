@@ -56,12 +56,15 @@ jobs:
         with:
           cmake-version: '3.18.4'
 
-      - name: Cache Gradle
-        uses: actions/cache@v2.1.0
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
-          restore-keys: ${{ runner.os }}-gradle-
+        - name: Cache Gradle packages
+          uses: actions/cache@v2
+          with:
+            path: |
+              ~/.gradle/caches
+              ~/.gradle/wrapper
+            key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+            restore-keys: |
+              ${{ runner.os }}-gradle-
 
       - name: Setup SSH Keys and known_hosts
         env:
@@ -109,6 +112,16 @@ jobs:
           path: |
             realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
             realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+
+      # Source: https://docs.github.com/en/actions/guides/building-and-testing-java-with-gradle
+      - name: Cleanup Gradle Cache
+        if: always()
+        # Remove some files from the Gradle cache, so they aren't cached by GitHub Actions.
+        # Restoring these files from a GitHub Actions cache might cause problems for future builds.
+        run: |
+          rm -f ~/.gradle/caches/modules-2/modules-2.lock
+          rm -f ~/.gradle/caches/modules-2/gc.properties
+
 
 # TODO: Figure out another way to publish Unit Test Results. Maybe https://github.com/mikepenz/action-junit-report
 #  process-test-results:
