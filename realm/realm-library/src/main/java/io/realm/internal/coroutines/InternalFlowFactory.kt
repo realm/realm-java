@@ -320,7 +320,9 @@ class InternalFlowFactory(
             val flowRealm = Realm.getInstance(config)
             val listener = RealmChangeListener<RealmList<T>> { listenerResults ->
                 if (isActive) {
-                    if (returnFrozenObjects) {
+                    if (!listenerResults.isValid) {
+                        close()
+                    } else if (returnFrozenObjects) {
                         offer(listenerResults.freeze())
                     } else {
                         offer(listenerResults)
@@ -370,7 +372,9 @@ class InternalFlowFactory(
             val flowRealm = Realm.getInstance(config)
             val listener = OrderedRealmCollectionChangeListener<RealmList<T>> { listenerList, changeSet ->
                 if (isActive) {
-                    if (returnFrozenObjects) {
+                    if (!listenerList.isValid) {
+                        close()
+                    } else if (returnFrozenObjects) {
                         offer(CollectionChange(listenerList.freeze(), changeSet))
                     } else {
                         offer(CollectionChange(listenerList, changeSet))
@@ -417,7 +421,9 @@ class InternalFlowFactory(
             val flowRealm = DynamicRealm.getInstance(config)
             val listener = RealmChangeListener<RealmList<T>> { listenerResults ->
                 if (isActive) {
-                    if (returnFrozenObjects) {
+                    if (!listenerResults.isValid) {
+                        close()
+                    } else if (returnFrozenObjects) {
                         offer(listenerResults.freeze())
                     } else {
                         offer(listenerResults)
@@ -467,7 +473,9 @@ class InternalFlowFactory(
             val flowRealm = DynamicRealm.getInstance(config)
             val listener = OrderedRealmCollectionChangeListener<RealmList<T>> { listenerList, changeSet ->
                 if (isActive) {
-                    if (returnFrozenObjects) {
+                    if (!listenerList.isValid) {
+                        close()
+                    } else if (returnFrozenObjects) {
                         offer(CollectionChange(listenerList.freeze(), changeSet))
                     } else {
                         offer(CollectionChange(listenerList, changeSet))
