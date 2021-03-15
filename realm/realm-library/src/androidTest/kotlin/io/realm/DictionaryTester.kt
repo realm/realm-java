@@ -19,7 +19,7 @@ package io.realm
 /**
  * Contains all the methods to test in RealmDictionary plus some other convenience ones.
  */
-interface DictionaryTester : GenericTester{
+interface DictionaryTester : GenericTester {
     override fun setUp(configFactory: TestRealmConfigurationFactory) = Unit     // Not needed here
     fun constructorWithAnotherMap()
     fun isManaged()
@@ -42,4 +42,7 @@ interface DictionaryTester : GenericTester{
     fun copyToRealm()
     fun copyFromRealm()
     fun fieldAccessors()
+    fun addMapChangeListener()
+    fun addRealmChangeListener()
+    fun hasListeners()
 }

@@ -70,8 +70,8 @@ final class NativeObjectReference extends PhantomReference<NativeObject> {
     private static ReferencePool referencePool = new ReferencePool();
 
     NativeObjectReference(NativeContext context,
-            NativeObject referent,
-            ReferenceQueue<? super NativeObject> referenceQueue) {
+                          NativeObject referent,
+                          ReferenceQueue<? super NativeObject> referenceQueue) {
         super(referent, referenceQueue);
         this.nativePtr = referent.getNativePtr();
         this.nativeFinalizerPtr = referent.getNativeFinalizerPtr();

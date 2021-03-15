@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Realm Inc.
+ * Copyright 2020 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 #include "jni_util/java_exception_thrower.hpp"
 #include "util.hpp"
 #include "observable_collection_wrapper.hpp"
+#include "observable_dictionary_wrapper.hpp"
 
 using namespace realm;
 using namespace realm::util;
@@ -32,33 +33,56 @@ using namespace realm::object_store;
 using namespace realm::_impl;
 
 void finalize_map(jlong ptr) {
-    delete reinterpret_cast<object_store::Dictionary*>(ptr);
+    delete reinterpret_cast<ObservableDictionaryWrapper*>(ptr);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsMap_nativeGetFinalizerPtr(JNIEnv*, jclass) {
     return reinterpret_cast<jlong>(&finalize_map);
 }
 
-JNIEXPORT jlong JNICALL
+JNIEXPORT jlongArray JNICALL
 Java_io_realm_internal_OsMap_nativeCreate(JNIEnv* env, jclass, jlong shared_realm_ptr,
                                           jlong obj_ptr, jlong column_key) {
     try {
-        auto& obj = *reinterpret_cast<realm::Obj*>(obj_ptr);
-        auto& shared_realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
+        auto obj = *reinterpret_cast<realm::Obj*>(obj_ptr);
+        auto shared_realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
 
-        // FIXME: figure out whether or not we need to use something similar to ObservableCollectionWrapper from OsList
-        object_store::Dictionary* dictionary_ptr = new object_store::Dictionary(shared_realm, obj, ColKey(column_key));
-        return reinterpret_cast<jlong>(dictionary_ptr);
+        // Return an array of pointers: first to the wrapper, second to the table (if applicable)
+        jlong ret[2];
+
+        // Get dictionary, put it in the wrapper and save pointer to be returned
+        object_store::Dictionary dictionary(shared_realm, obj, ColKey(column_key));
+        auto wrapper_ptr = new ObservableDictionaryWrapper(dictionary);
+        ret[0] = reinterpret_cast<jlong>(wrapper_ptr);
+
+        // Special case for objects: return the table. Ignore for other types
+        if (wrapper_ptr->collection().get_type() == PropertyType::Object) {
+            const DictionaryPtr& ptr = obj.get_dictionary_ptr(ColKey(column_key));
+            auto target_table_ptr = new TableRef(ptr->get_target_table());
+            ret[1] = reinterpret_cast<jlong>(target_table_ptr);
+        } else {
+            ret[1] = reinterpret_cast<jlong>(nullptr);
+        }
+
+        jlongArray ret_array = env->NewLongArray(2);
+        if (!ret_array) {
+            ThrowException(env, OutOfMemory, "Could not allocate memory to create OsMap.");
+            return nullptr;
+        }
+
+        env->SetLongArrayRegion(ret_array, 0, 2, ret);
+        return ret_array;
     }
     CATCH_STD()
-    return reinterpret_cast<jlong>(nullptr);
+    return nullptr;
 }
 
 JNIEXPORT jobject JNICALL
-Java_io_realm_internal_OsMap_nativeGetValue(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativeGetValue(JNIEnv* env, jclass, jlong wrapper_ptr,
                                             jstring j_key) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor key(env, j_key);
         const Optional<Mixed>& optional_result = dictionary.try_get_any(StringData(key));
         if (optional_result) {
@@ -100,10 +124,11 @@ Java_io_realm_internal_OsMap_nativeGetValue(JNIEnv* env, jclass, jlong map_ptr,
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_OsMap_nativeGetMixedPtr(JNIEnv *env, jclass, jlong map_ptr,
-                                                 jstring j_key) {
+Java_io_realm_internal_OsMap_nativeGetMixedPtr(JNIEnv *env, jclass, jlong wrapper_ptr,
+                                               jstring j_key) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor key(env, j_key);
         const Optional<Mixed>& optional_result = dictionary.try_get_any(StringData(key));
         if (optional_result) {
@@ -115,10 +140,11 @@ Java_io_realm_internal_OsMap_nativeGetMixedPtr(JNIEnv *env, jclass, jlong map_pt
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_OsMap_nativeGetRow(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativeGetRow(JNIEnv* env, jclass, jlong wrapper_ptr,
                                           jstring j_key) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor key(env, j_key);
         const Optional<Mixed>& optional_result = dictionary.try_get_any(StringData(key));
         if (optional_result) {
@@ -133,10 +159,11 @@ Java_io_realm_internal_OsMap_nativeGetRow(JNIEnv* env, jclass, jlong map_ptr,
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_OsMap_nativePutMixed(JNIEnv* env, jclass, jlong map_ptr, jstring j_key,
+Java_io_realm_internal_OsMap_nativePutMixed(JNIEnv* env, jclass, jlong wrapper_ptr, jstring j_key,
                                             jlong mixed_ptr) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         auto mixed_java_value = *reinterpret_cast<JavaValue*>(mixed_ptr);
         const Mixed& mixed = mixed_java_value.to_mixed();
         JStringAccessor key(env, j_key);
@@ -146,10 +173,11 @@ Java_io_realm_internal_OsMap_nativePutMixed(JNIEnv* env, jclass, jlong map_ptr, 
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_OsMap_nativePutNull(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativePutNull(JNIEnv* env, jclass, jlong wrapper_ptr,
                                            jstring j_key) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor key(env, j_key);
         dictionary.insert(StringData(key).data(), Mixed());
     }
@@ -157,10 +185,11 @@ Java_io_realm_internal_OsMap_nativePutNull(JNIEnv* env, jclass, jlong map_ptr,
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_OsMap_nativePutLong(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativePutLong(JNIEnv* env, jclass, jlong wrapper_ptr,
                                            jstring j_key, jlong j_value) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor key(env, j_key);
         JavaAccessorContext context(env);
         dictionary.insert(context, StringData(key).data(), Any(j_value));
@@ -169,10 +198,11 @@ Java_io_realm_internal_OsMap_nativePutLong(JNIEnv* env, jclass, jlong map_ptr,
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_OsMap_nativePutFloat(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativePutFloat(JNIEnv* env, jclass, jlong wrapper_ptr,
                                             jstring j_key, jfloat j_value) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor key(env, j_key);
         JavaAccessorContext context(env);
         dictionary.insert(context, StringData(key).data(), Any(j_value));
@@ -181,10 +211,11 @@ Java_io_realm_internal_OsMap_nativePutFloat(JNIEnv* env, jclass, jlong map_ptr,
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_OsMap_nativePutDouble(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativePutDouble(JNIEnv* env, jclass, jlong wrapper_ptr,
                                              jstring j_key, jdouble j_value) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor key(env, j_key);
         JavaAccessorContext context(env);
         dictionary.insert(context, StringData(key).data(), Any(j_value));
@@ -193,10 +224,11 @@ Java_io_realm_internal_OsMap_nativePutDouble(JNIEnv* env, jclass, jlong map_ptr,
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_OsMap_nativePutString(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativePutString(JNIEnv* env, jclass, jlong wrapper_ptr,
                                              jstring j_key, jstring j_value) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor key(env, j_key);
         JStringAccessor value(env, j_value);
         JavaAccessorContext context(env);
@@ -206,10 +238,11 @@ Java_io_realm_internal_OsMap_nativePutString(JNIEnv* env, jclass, jlong map_ptr,
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_OsMap_nativePutBoolean(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativePutBoolean(JNIEnv* env, jclass, jlong wrapper_ptr,
                                               jstring j_key, jboolean j_value) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor key(env, j_key);
         JavaAccessorContext context(env);
         dictionary.insert(context, StringData(key).data(), Any(j_value));
@@ -218,10 +251,11 @@ Java_io_realm_internal_OsMap_nativePutBoolean(JNIEnv* env, jclass, jlong map_ptr
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_OsMap_nativePutDate(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativePutDate(JNIEnv* env, jclass, jlong wrapper_ptr,
                                            jstring j_key, jlong j_value) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor key(env, j_key);
         JavaAccessorContext context(env);
         dictionary.insert(context, StringData(key).data(), Any(j_value));
@@ -230,11 +264,12 @@ Java_io_realm_internal_OsMap_nativePutDate(JNIEnv* env, jclass, jlong map_ptr,
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_OsMap_nativePutDecimal128(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativePutDecimal128(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                  jstring j_key, jlong j_high_value,
                                                  jlong j_low_value) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor key(env, j_key);
         Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
         auto decimal128 = Decimal128(raw);
@@ -245,10 +280,11 @@ Java_io_realm_internal_OsMap_nativePutDecimal128(JNIEnv* env, jclass, jlong map_
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_OsMap_nativePutBinary(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativePutBinary(JNIEnv* env, jclass, jlong wrapper_ptr,
                                              jstring j_key, jbyteArray j_value) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor key(env, j_key);
         JByteArrayAccessor data(env, j_value);
         JavaAccessorContext context(env);
@@ -258,10 +294,11 @@ Java_io_realm_internal_OsMap_nativePutBinary(JNIEnv* env, jclass, jlong map_ptr,
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_OsMap_nativePutObjectId(JNIEnv* env, jclass, jlong map_ptr, jstring j_key,
+Java_io_realm_internal_OsMap_nativePutObjectId(JNIEnv* env, jclass, jlong wrapper_ptr, jstring j_key,
                                                jstring j_value) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor key(env, j_key);
         JStringAccessor data(env, j_value);
 
@@ -274,10 +311,11 @@ Java_io_realm_internal_OsMap_nativePutObjectId(JNIEnv* env, jclass, jlong map_pt
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_OsMap_nativePutUUID(JNIEnv* env, jclass, jlong map_ptr, jstring j_key,
+Java_io_realm_internal_OsMap_nativePutUUID(JNIEnv* env, jclass, jlong wrapper_ptr, jstring j_key,
                                            jstring j_value) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor key(env, j_key);
         JStringAccessor value(env, j_value);
         JavaAccessorContext context(env);
@@ -287,10 +325,11 @@ Java_io_realm_internal_OsMap_nativePutUUID(JNIEnv* env, jclass, jlong map_ptr, j
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_OsMap_nativePutRow(JNIEnv* env, jclass, jlong map_ptr, jstring j_key,
+Java_io_realm_internal_OsMap_nativePutRow(JNIEnv* env, jclass, jlong wrapper_ptr, jstring j_key,
                                           jlong j_obj_key) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor key(env, j_key);
         dictionary.insert(StringData(key).data(), ObjKey(j_obj_key));
     }
@@ -298,18 +337,20 @@ Java_io_realm_internal_OsMap_nativePutRow(JNIEnv* env, jclass, jlong map_ptr, js
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_OsMap_nativeClear(JNIEnv* env, jclass, jlong map_ptr) {
+Java_io_realm_internal_OsMap_nativeClear(JNIEnv* env, jclass, jlong wrapper_ptr) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         dictionary.remove_all();
     }
     CATCH_STD()
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_OsMap_nativeSize(JNIEnv* env, jclass, jlong map_ptr) {
+Java_io_realm_internal_OsMap_nativeSize(JNIEnv* env, jclass, jlong wrapper_ptr) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         return dictionary.size();
     }
     CATCH_STD()
@@ -317,10 +358,11 @@ Java_io_realm_internal_OsMap_nativeSize(JNIEnv* env, jclass, jlong map_ptr) {
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsMap_nativeContainsKey(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativeContainsKey(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                jstring j_key) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor key(env, j_key);
         return dictionary.contains(StringData(key).data());
     }
@@ -329,9 +371,10 @@ Java_io_realm_internal_OsMap_nativeContainsKey(JNIEnv* env, jclass, jlong map_pt
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsMap_nativeIsValid(JNIEnv* env, jclass, jlong map_ptr) {
+Java_io_realm_internal_OsMap_nativeIsValid(JNIEnv* env, jclass, jlong wrapper_ptr) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         return dictionary.is_valid();
     }
     CATCH_STD()
@@ -339,10 +382,11 @@ Java_io_realm_internal_OsMap_nativeIsValid(JNIEnv* env, jclass, jlong map_ptr) {
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_OsMap_nativeRemove(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativeRemove(JNIEnv* env, jclass, jlong wrapper_ptr,
                                           jstring j_key) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor key(env, j_key);
         dictionary.erase(StringData(key));
     }
@@ -350,38 +394,44 @@ Java_io_realm_internal_OsMap_nativeRemove(JNIEnv* env, jclass, jlong map_ptr,
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_OsMap_nativeKeys(JNIEnv* env, jclass, jlong map_ptr) {
+Java_io_realm_internal_OsMap_nativeKeys(JNIEnv* env, jclass, jlong wrapper_ptr) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         const Results& key_results = dictionary.get_keys();
-        auto wrapper = new ObservableCollectionWrapper(key_results);
-        return reinterpret_cast<jlong>(wrapper);
+
+        // Return an ObservableCollectionWrapper as these are results!
+        auto results_wrapper = new ObservableCollectionWrapper(key_results);
+        return reinterpret_cast<jlong>(results_wrapper);
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_OsMap_nativeValues(JNIEnv* env, jclass, jlong map_ptr) {
+Java_io_realm_internal_OsMap_nativeValues(JNIEnv* env, jclass, jlong wrapper_ptr) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         const Results& value_results = dictionary.get_values();
-        auto wrapper = new ObservableCollectionWrapper(value_results);
-        return reinterpret_cast<jlong>(wrapper);
+
+        // Return an ObservableCollectionWrapper as these are results!
+        auto results_wrapper = new ObservableCollectionWrapper(value_results);
+        return reinterpret_cast<jlong>(results_wrapper);
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_OsMap_nativeFreeze(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativeFreeze(JNIEnv* env, jclass, jlong wrapper_ptr,
                                           jlong realm_ptr) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         std::shared_ptr<Realm>& shared_realm_ptr = *reinterpret_cast<std::shared_ptr<Realm>*>(realm_ptr);
-        const object_store::Dictionary& frozen_dictionary = dictionary.freeze(shared_realm_ptr);
-        auto* frozen_dictionary_ptr = new object_store::Dictionary(frozen_dictionary);
-        return reinterpret_cast<jlong>(frozen_dictionary_ptr);
+        object_store::Dictionary frozen_dictionary = dictionary.freeze(shared_realm_ptr);
+        return reinterpret_cast<jlong>(new ObservableDictionaryWrapper(frozen_dictionary));
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
@@ -390,11 +440,12 @@ Java_io_realm_internal_OsMap_nativeFreeze(JNIEnv* env, jclass, jlong map_ptr,
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_OsMap_nativeCreateAndPutEmbeddedObject(JNIEnv* env, jclass,
                                                               jlong shared_realm_ptr,
-                                                              jlong map_ptr,
+                                                              jlong wrapper_ptr,
                                                               jstring j_key) {
     try {
         auto& realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         auto& object_schema = dictionary.get_object_schema();
 
         JStringAccessor key(env, j_key);
@@ -409,9 +460,10 @@ Java_io_realm_internal_OsMap_nativeCreateAndPutEmbeddedObject(JNIEnv* env, jclas
 }
 
 JNIEXPORT jobjectArray JNICALL
-Java_io_realm_internal_OsMap_nativeGetEntryForModel(JNIEnv* env, jclass, jlong map_ptr, jint j_pos) {
+Java_io_realm_internal_OsMap_nativeGetEntryForModel(JNIEnv* env, jclass, jlong wrapper_ptr, jint j_pos) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         const std::pair<StringData, Mixed>& pair = dictionary.get_pair(j_pos);
         const StringData& key = pair.first;
         const Mixed& mixed = pair.second;
@@ -430,9 +482,10 @@ Java_io_realm_internal_OsMap_nativeGetEntryForModel(JNIEnv* env, jclass, jlong m
 }
 
 JNIEXPORT jobjectArray JNICALL
-Java_io_realm_internal_OsMap_nativeGetEntryForMixed(JNIEnv* env, jclass, jlong map_ptr, jint j_pos) {
+Java_io_realm_internal_OsMap_nativeGetEntryForMixed(JNIEnv* env, jclass, jlong wrapper_ptr, jint j_pos) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         const std::pair<StringData, Mixed>& pair = dictionary.get_pair(j_pos);
         const StringData& key = pair.first;
         const Mixed& mixed = pair.second;
@@ -448,10 +501,11 @@ Java_io_realm_internal_OsMap_nativeGetEntryForMixed(JNIEnv* env, jclass, jlong m
 }
 
 JNIEXPORT jobjectArray JNICALL
-Java_io_realm_internal_OsMap_nativeGetEntryForPrimitive(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativeGetEntryForPrimitive(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                         jint j_pos) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         const std::pair<StringData, Mixed>& pair = dictionary.get_pair(j_pos);
         const StringData& key = pair.first;
         const Mixed& mixed = pair.second;
@@ -505,9 +559,10 @@ Java_io_realm_internal_OsMap_nativeGetEntryForPrimitive(JNIEnv* env, jclass, jlo
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsMap_nativeContainsNull(JNIEnv* env, jclass, jlong map_ptr) {
+Java_io_realm_internal_OsMap_nativeContainsNull(JNIEnv* env, jclass, jlong wrapper_ptr) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         size_t find_result = dictionary.find_any(Mixed());
         if (find_result != realm::not_found) {
             return true;
@@ -518,10 +573,11 @@ Java_io_realm_internal_OsMap_nativeContainsNull(JNIEnv* env, jclass, jlong map_p
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsMap_nativeContainsLong(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativeContainsLong(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                 jlong j_value) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         size_t find_result = dictionary.find_any(Mixed(j_value));
         if (find_result != realm::not_found) {
             return true;
@@ -532,10 +588,11 @@ Java_io_realm_internal_OsMap_nativeContainsLong(JNIEnv* env, jclass, jlong map_p
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsMap_nativeContainsBoolean(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativeContainsBoolean(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                    jboolean j_value) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         size_t find_result = dictionary.find_any(Mixed(bool(j_value)));
         if (find_result != realm::not_found) {
             return true;
@@ -546,10 +603,11 @@ Java_io_realm_internal_OsMap_nativeContainsBoolean(JNIEnv* env, jclass, jlong ma
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsMap_nativeContainsString(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativeContainsString(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                   jstring j_value) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor key(env, j_value);
         size_t find_result = dictionary.find_any(Mixed(StringData(key)));
         if (find_result != realm::not_found) {
@@ -561,10 +619,11 @@ Java_io_realm_internal_OsMap_nativeContainsString(JNIEnv* env, jclass, jlong map
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsMap_nativeContainsBinary(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativeContainsBinary(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                   jbyteArray j_value) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         const OwnedBinaryData& data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
         size_t find_result = dictionary.find_any(Mixed(data.get()));
         if (find_result != realm::not_found) {
@@ -576,10 +635,11 @@ Java_io_realm_internal_OsMap_nativeContainsBinary(JNIEnv* env, jclass, jlong map
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsMap_nativeContainsFloat(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativeContainsFloat(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                  jfloat j_value) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         size_t find_result = dictionary.find_any(Mixed(j_value));
         if (find_result != realm::not_found) {
             return true;
@@ -590,10 +650,11 @@ Java_io_realm_internal_OsMap_nativeContainsFloat(JNIEnv* env, jclass, jlong map_
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsMap_nativeContainsObjectId(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativeContainsObjectId(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                     jstring j_value) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor data(env, j_value);
         const ObjectId object_id = ObjectId(StringData(data).data());
         size_t find_result = dictionary.find_any(Mixed(object_id));
@@ -606,10 +667,11 @@ Java_io_realm_internal_OsMap_nativeContainsObjectId(JNIEnv* env, jclass, jlong m
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsMap_nativeContainsUUID(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativeContainsUUID(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                 jstring j_value) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         JStringAccessor value(env, j_value);
         const UUID& uuid = UUID(StringData(value).data());
         size_t find_result = dictionary.find_any(Mixed(uuid));
@@ -622,10 +684,11 @@ Java_io_realm_internal_OsMap_nativeContainsUUID(JNIEnv* env, jclass, jlong map_p
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsMap_nativeContainsDate(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativeContainsDate(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                 jlong j_value) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         realm::Timestamp timestamp = from_milliseconds(j_value);
         size_t find_result = dictionary.find_any(Mixed(timestamp));
         if (find_result != realm::not_found) {
@@ -637,10 +700,11 @@ Java_io_realm_internal_OsMap_nativeContainsDate(JNIEnv* env, jclass, jlong map_p
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsMap_nativeContainsDecimal128(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativeContainsDecimal128(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                       jlong j_high_value, jlong j_low_value) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
         auto decimal128 = Decimal128(raw);
         size_t find_result = dictionary.find_any(Mixed(decimal128));
@@ -653,10 +717,11 @@ Java_io_realm_internal_OsMap_nativeContainsDecimal128(JNIEnv* env, jclass, jlong
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsMap_nativeContainsMixed(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativeContainsMixed(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                  jlong mixed_ptr) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
         auto mixed_java_value = *reinterpret_cast<JavaValue*>(mixed_ptr);
         const Mixed& mixed = mixed_java_value.to_mixed();
         size_t find_result = dictionary.find_any(mixed);
@@ -669,10 +734,11 @@ Java_io_realm_internal_OsMap_nativeContainsMixed(JNIEnv* env, jclass, jlong map_
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsMap_nativeContainsRealmModel(JNIEnv* env, jclass, jlong map_ptr,
+Java_io_realm_internal_OsMap_nativeContainsRealmModel(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                       jlong j_obj_key, jlong j_table_ptr) {
     try {
-        auto& dictionary = *reinterpret_cast<realm::object_store::Dictionary*>(map_ptr);
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
 
         TableRef target_table = TBL_REF(j_table_ptr);
         ObjKey object_key(j_obj_key);
@@ -686,4 +752,23 @@ Java_io_realm_internal_OsMap_nativeContainsRealmModel(JNIEnv* env, jclass, jlong
     }
     CATCH_STD();
     return false;
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_OsMap_nativeStartListening(JNIEnv* env, jclass, jlong wrapper_ptr,
+                                                  jobject j_observable_map) {
+    try {
+        auto wrapper = reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        wrapper->start_listening(env, j_observable_map);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_OsMap_nativeStopListening(JNIEnv* env, jclass, jlong wrapper_ptr) {
+    try {
+        auto wrapper = reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        wrapper->stop_listening();
+    }
+    CATCH_STD()
 }

@@ -18,6 +18,7 @@ package io.realm
 
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.DogPrimaryKey
+import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import org.junit.*
@@ -61,10 +62,12 @@ class ParameterizedDictionaryTests(
     @JvmField
     val configFactory = TestRealmConfigurationFactory()
 
+    private val looperThread = BlockingLooperThread()
+
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().context)
-        tester.setUp(configFactory.createConfiguration())
+        tester.setUp(configFactory.createConfiguration(), looperThread)
     }
 
     @After
@@ -174,8 +177,23 @@ class ParameterizedDictionaryTests(
     }
 
     @Test
-    fun accessors() {
+    fun fieldAccessors() {
         tester.fieldAccessors()
+    }
+
+    @Test
+    fun addRealmChangeListener() {
+        tester.addRealmChangeListener()
+    }
+
+    @Test
+    fun addMapChangeListener() {
+        tester.addMapChangeListener()
+    }
+
+    @Test
+    fun hasListeners() {
+        tester.hasListeners()
     }
 }
 
@@ -193,8 +211,8 @@ enum class DictionaryMode {
  * Add new types ad-hoc here.
  */
 enum class DictionarySupportedType {
-    LONG, INTEGER, SHORT, BYTE, FLOAT, DOUBLE, STRING, BOOLEAN, DATE, DECIMAL128, BOXED_BINARY,
-    BINARY, OBJECT_ID, UUID, LINK, MIXED
+    LONG, INTEGER, SHORT, BYTE, FLOAT, DOUBLE, STRING, BOOLEAN, DATE, DECIMAL128, BINARY, OBJECT_ID,
+    UUID, LINK, MIXED
 }
 
 //-------------------------------------------

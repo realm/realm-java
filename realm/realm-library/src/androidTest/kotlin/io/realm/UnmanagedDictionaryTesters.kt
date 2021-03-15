@@ -16,6 +16,7 @@
 
 package io.realm
 
+import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import java.util.*
@@ -36,8 +37,8 @@ class UnmanagedGenericTester<T : Any>(
 
     override fun toString(): String = testerName
 
-    override fun setUp(config: RealmConfiguration) = Unit       // Not applicable
-    override fun tearDown() = Unit                              // Not applicable
+    override fun setUp(config: RealmConfiguration, looperThread: BlockingLooperThread) = Unit       // Not applicable
+    override fun tearDown() = Unit                                                                  // Not applicable
 
     override fun constructorWithAnotherMap() {
         val otherDictionary = RealmDictionary<T?>().apply {
@@ -208,9 +209,28 @@ class UnmanagedGenericTester<T : Any>(
         }
     }
 
-    override fun copyToRealm() = Unit                   // Not applicable
-    override fun copyFromRealm() = Unit                 // Not applicable
-    override fun fieldAccessors() = Unit                // Not applicable
+    override fun copyToRealm() = Unit                                   // Not applicable
+    override fun copyFromRealm() = Unit                                 // Not applicable
+    override fun fieldAccessors() = Unit                                // Not applicable
+
+    override fun addMapChangeListener() {
+        val dictionary = RealmDictionary<T>()
+        assertFailsWith<UnsupportedOperationException> {
+            dictionary.addChangeListener { _, _ -> /* no-op */ }
+        }
+    }
+
+    override fun addRealmChangeListener() {
+        val dictionary = RealmDictionary<T>()
+        assertFailsWith<UnsupportedOperationException> {
+            dictionary.addChangeListener { _ -> /* no-op */ }
+        }
+    }
+
+    override fun hasListeners() {
+        val dictionary = RealmDictionary<T>()
+        assertFalse(dictionary.hasListeners())
+    }
 }
 
 /**

@@ -21,6 +21,7 @@ import io.realm.entities.DogPrimaryKey
 import io.realm.entities.PopulatedDictionaryClass
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
+import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import java.util.*
@@ -36,7 +37,8 @@ import kotlin.test.*
  * [AllTypes]. This way we only need one tester for all supported types.
  */
 class ManagedDictionaryTester<T : Any>(
-        private val testerClass: String,
+        private val testerClass: Class<T>,
+        private val mixedType: MixedType? = null,
         private val dictionaryGetter: KFunction1<AllTypes, RealmDictionary<T>>,
         private val dictionarySetter: KFunction2<AllTypes, RealmDictionary<T>, Unit>,
         private val requiredDictionaryGetter: KFunction1<AllTypes, RealmDictionary<T>>? = null,
@@ -47,29 +49,27 @@ class ManagedDictionaryTester<T : Any>(
 ) : DictionaryTester {
 
     private lateinit var config: RealmConfiguration
+    private lateinit var looperThread: BlockingLooperThread
     private lateinit var realm: Realm
 
-    override fun toString(): String = "Managed$testerClass"
+    override fun toString(): String = when (mixedType) {
+        null -> "Managed-${testerClass.simpleName}"
+        else -> "Managed-${testerClass.simpleName}" + mixedType.name.let { "-$it" }
+    }
 
-    override fun setUp(config: RealmConfiguration) {
+    override fun setUp(config: RealmConfiguration, looperThread: BlockingLooperThread) {
         this.config = config
+        this.looperThread = looperThread
         this.realm = Realm.getInstance(config)
     }
 
-    override fun tearDown() {
-        realm.close()
-    }
+    override fun tearDown() = realm.close()
 
-    // Not applicable in managed mode
-    override fun constructorWithAnotherMap() = Unit
+    override fun constructorWithAnotherMap() = Unit             // Not applicable in managed mode
 
-    override fun isManaged() {
-        assertTrue(initAndAssert().isManaged)
-    }
+    override fun isManaged() = assertTrue(initAndAssert().isManaged)
 
-    override fun isValid() {
-        assertTrue(initAndAssert().isValid)
-    }
+    override fun isValid() = assertTrue(initAndAssert().isValid)
 
     override fun isFrozen() {
         val dictionary = initAndAssert()
@@ -151,9 +151,7 @@ class ManagedDictionaryTester<T : Any>(
         }
     }
 
-    override fun put() {
-        putInternal(initializedDictionary, alternativeDictionary)
-    }
+    override fun put() = putInternal(initializedDictionary, alternativeDictionary)
 
     override fun putRequired() {
         // RealmModel and Mixed dictionaries are ignored since they cannot be marked with "@Required"
@@ -342,8 +340,7 @@ class ManagedDictionaryTester<T : Any>(
         }
     }
 
-    // This has already been tested in "isFrozen"
-    override fun freeze() = Unit
+    override fun freeze() = Unit                    // This has already been tested in "isFrozen"
 
     override fun copyToRealm() {
         // Instantiate container and set dictionary on container
@@ -396,11 +393,125 @@ class ManagedDictionaryTester<T : Any>(
         }
     }
 
+    override fun addMapChangeListener() {
+        looperThread.runBlocking {
+            val looperThreadRealm = Realm.getInstance(config)
+
+            // Get dictionary
+            val dictionary = initAndAssert(looperThreadRealm)
+
+            // Define operation we perform on the dictionary
+            var operation = ChangeListenerOperation.UNDEFINED
+
+            dictionary.addChangeListener { map, changes ->
+                typeAsserter.assertChangeListenerUpdates(
+                        testerClass,
+                        operation,
+                        looperThread,
+                        looperThreadRealm,
+                        dictionary,
+                        initializedDictionary,
+                        map,
+                        changes
+                )
+            }
+
+            // Insert objects in dictionary
+            looperThreadRealm.executeTransaction {
+                operation = ChangeListenerOperation.INSERT
+                dictionary.putAll(initializedDictionary)
+            }
+
+            // Update object
+            looperThreadRealm.executeTransaction {
+                operation = ChangeListenerOperation.UPDATE
+                dictionary[KEY_HELLO] = alternativeDictionary[KEY_HELLO]
+            }
+
+            // Clear dictionary
+            looperThreadRealm.executeTransaction {
+                operation = ChangeListenerOperation.DELETE
+                dictionary.clear()
+            }
+        }
+    }
+
+    override fun addRealmChangeListener() {
+        looperThread.runBlocking {
+            val looperThreadRealm = Realm.getInstance(config)
+
+            // Get dictionary
+            val dictionary = initAndAssert(looperThreadRealm)
+
+            // Define operation we perform on the dictionary
+            var operation = ChangeListenerOperation.UNDEFINED
+
+            dictionary.addChangeListener { map ->
+                typeAsserter.assertChangeListenerUpdates(
+                        testerClass,
+                        operation,
+                        looperThread,
+                        looperThreadRealm,
+                        dictionary,
+                        initializedDictionary,
+                        map
+                )
+            }
+
+            // Insert objects in dictionary
+            looperThreadRealm.executeTransaction {
+                operation = ChangeListenerOperation.INSERT
+                dictionary.putAll(initializedDictionary)
+            }
+
+            // Update object
+            looperThreadRealm.executeTransaction {
+                operation = ChangeListenerOperation.UPDATE
+                dictionary[KEY_HELLO] = alternativeDictionary[KEY_HELLO]
+            }
+
+            // Clear dictionary
+            looperThreadRealm.executeTransaction {
+                operation = ChangeListenerOperation.DELETE
+                dictionary.clear()
+            }
+        }
+    }
+
+    override fun hasListeners() {
+        val looperThread = BlockingLooperThread()
+        looperThread.runBlocking {
+            val looperThreadRealm = Realm.getInstance(config)
+
+            // Check for RealmChangeListener
+            val dictionary = initAndAssert(looperThreadRealm)
+            assertFalse(dictionary.hasListeners())
+
+            dictionary.addChangeListener { _ -> /* no-op */ }
+
+            assertTrue(dictionary.hasListeners())
+
+            // Check for MapChangeListener
+            val anotherDictionary = initAndAssert(looperThreadRealm)
+            assertFalse(anotherDictionary.hasListeners())
+
+            anotherDictionary.addChangeListener { _, _ -> /* no-op */ }
+
+            assertTrue(anotherDictionary.hasListeners())
+
+            // Housekeeping and bye-bye
+            dictionary.removeAllChangeListeners()
+            anotherDictionary.removeAllChangeListeners()
+            looperThreadRealm.close()
+            looperThread.testComplete()
+        }
+    }
+
     //----------------------------------
     // Private stuff
     //----------------------------------
 
-    private fun initAndAssert(): RealmDictionary<T> {
+    private fun initAndAssert(realm: Realm = this.realm): RealmDictionary<T> {
         val allTypesObject = createAllTypesManagedContainerAndAssert(realm)
         assertNotNull(allTypesObject)
         return dictionaryGetter.call(allTypesObject)
@@ -413,6 +524,16 @@ class ManagedDictionaryTester<T : Any>(
         val allTypesObject = realm.where<AllTypes>().findFirst()
         assertNotNull(allTypesObject)
         return allTypesObject
+    }
+
+    /**
+     * Helper function to get the managed version of a particular unmanaged RealmModel.
+     */
+    private fun DogPrimaryKey.getFromRealm(realm: Realm): DogPrimaryKey? {
+        return realm.where<DogPrimaryKey>()
+                .equalTo("id", this.id)
+                .equalTo("name", this.name)
+                .findFirst()
     }
 
     private fun putInternal(
@@ -446,6 +567,10 @@ class ManagedDictionaryTester<T : Any>(
     }
 }
 
+enum class ChangeListenerOperation {
+    UNDEFINED, INSERT, UPDATE, DELETE
+}
+
 /**
  * Creates testers for all [DictionarySupportedType]s and initializes them for testing. There are as
  * many Mixed testers as [MixedType]s.
@@ -457,7 +582,7 @@ class ManagedDictionaryTester<T : Any>(
 fun managedFactory(): List<DictionaryTester> {
     val primitiveTesters = listOf<DictionaryTester>(
             ManagedDictionaryTester(
-                    testerClass = "Long",
+                    testerClass = Long::class.java,
                     dictionaryGetter = AllTypes::getColumnLongDictionary,
                     dictionarySetter = AllTypes::setColumnLongDictionary,
                     requiredDictionaryGetter = AllTypes::getColumnRequiredLongDictionary,
@@ -466,7 +591,7 @@ fun managedFactory(): List<DictionaryTester> {
                     populatedGetter = PopulatedDictionaryClass::populatedLongDictionary
             ),
             ManagedDictionaryTester(
-                    testerClass = "Integer",
+                    testerClass = Int::class.java,
                     dictionaryGetter = AllTypes::getColumnIntegerDictionary,
                     dictionarySetter = AllTypes::setColumnIntegerDictionary,
                     requiredDictionaryGetter = AllTypes::getColumnRequiredIntegerDictionary,
@@ -475,7 +600,7 @@ fun managedFactory(): List<DictionaryTester> {
                     populatedGetter = PopulatedDictionaryClass::populatedIntDictionary
             ),
             ManagedDictionaryTester(
-                    testerClass = "Short",
+                    testerClass = Short::class.java,
                     dictionaryGetter = AllTypes::getColumnShortDictionary,
                     dictionarySetter = AllTypes::setColumnShortDictionary,
                     requiredDictionaryGetter = AllTypes::getColumnRequiredShortDictionary,
@@ -484,7 +609,7 @@ fun managedFactory(): List<DictionaryTester> {
                     populatedGetter = PopulatedDictionaryClass::populatedShortDictionary
             ),
             ManagedDictionaryTester(
-                    testerClass = "Byte",
+                    testerClass = Byte::class.java,
                     dictionaryGetter = AllTypes::getColumnByteDictionary,
                     dictionarySetter = AllTypes::setColumnByteDictionary,
                     requiredDictionaryGetter = AllTypes::getColumnRequiredByteDictionary,
@@ -493,7 +618,7 @@ fun managedFactory(): List<DictionaryTester> {
                     populatedGetter = PopulatedDictionaryClass::populatedByteDictionary
             ),
             ManagedDictionaryTester(
-                    testerClass = "Float",
+                    testerClass = Float::class.java,
                     dictionaryGetter = AllTypes::getColumnFloatDictionary,
                     dictionarySetter = AllTypes::setColumnFloatDictionary,
                     requiredDictionaryGetter = AllTypes::getColumnRequiredFloatDictionary,
@@ -502,7 +627,7 @@ fun managedFactory(): List<DictionaryTester> {
                     populatedGetter = PopulatedDictionaryClass::populatedFloatDictionary
             ),
             ManagedDictionaryTester(
-                    testerClass = "Double",
+                    testerClass = Double::class.java,
                     dictionaryGetter = AllTypes::getColumnDoubleDictionary,
                     dictionarySetter = AllTypes::setColumnDoubleDictionary,
                     requiredDictionaryGetter = AllTypes::getColumnRequiredDoubleDictionary,
@@ -511,7 +636,7 @@ fun managedFactory(): List<DictionaryTester> {
                     populatedGetter = PopulatedDictionaryClass::populatedDoubleDictionary
             ),
             ManagedDictionaryTester(
-                    testerClass = "String",
+                    testerClass = String::class.java,
                     dictionaryGetter = AllTypes::getColumnStringDictionary,
                     dictionarySetter = AllTypes::setColumnStringDictionary,
                     requiredDictionaryGetter = AllTypes::getColumnRequiredStringDictionary,
@@ -520,7 +645,7 @@ fun managedFactory(): List<DictionaryTester> {
                     populatedGetter = PopulatedDictionaryClass::populatedStringDictionary
             ),
             ManagedDictionaryTester(
-                    testerClass = "Boolean",
+                    testerClass = Boolean::class.java,
                     dictionaryGetter = AllTypes::getColumnBooleanDictionary,
                     dictionarySetter = AllTypes::setColumnBooleanDictionary,
                     requiredDictionaryGetter = AllTypes::getColumnRequiredBooleanDictionary,
@@ -529,7 +654,7 @@ fun managedFactory(): List<DictionaryTester> {
                     populatedGetter = PopulatedDictionaryClass::populatedBooleanDictionary
             ),
             ManagedDictionaryTester(
-                    testerClass = "Date",
+                    testerClass = Date::class.java,
                     dictionaryGetter = AllTypes::getColumnDateDictionary,
                     dictionarySetter = AllTypes::setColumnDateDictionary,
                     requiredDictionaryGetter = AllTypes::getColumnRequiredDateDictionary,
@@ -538,7 +663,7 @@ fun managedFactory(): List<DictionaryTester> {
                     populatedGetter = PopulatedDictionaryClass::populatedDateDictionary
             ),
             ManagedDictionaryTester(
-                    testerClass = "Decimal128",
+                    testerClass = Decimal128::class.java,
                     dictionaryGetter = AllTypes::getColumnDecimal128Dictionary,
                     dictionarySetter = AllTypes::setColumnDecimal128Dictionary,
                     requiredDictionaryGetter = AllTypes::getColumnRequiredDecimal128Dictionary,
@@ -547,7 +672,7 @@ fun managedFactory(): List<DictionaryTester> {
                     populatedGetter = PopulatedDictionaryClass::populatedDecimal128Dictionary
             ),
             ManagedDictionaryTester(
-                    testerClass = "Binary",
+                    testerClass = ByteArray::class.java,
                     dictionaryGetter = AllTypes::getColumnBinaryDictionary,
                     dictionarySetter = AllTypes::setColumnBinaryDictionary,
                     requiredDictionaryGetter = AllTypes::getColumnRequiredBinaryDictionary,
@@ -557,7 +682,7 @@ fun managedFactory(): List<DictionaryTester> {
                     typeAsserter = BinaryAsserter()
             ),
             ManagedDictionaryTester(
-                    testerClass = "ObjectId",
+                    testerClass = ObjectId::class.java,
                     dictionaryGetter = AllTypes::getColumnObjectIdDictionary,
                     dictionarySetter = AllTypes::setColumnObjectIdDictionary,
                     requiredDictionaryGetter = AllTypes::getColumnRequiredObjectIdDictionary,
@@ -566,7 +691,7 @@ fun managedFactory(): List<DictionaryTester> {
                     populatedGetter = PopulatedDictionaryClass::populatedObjectIdDictionary
             ),
             ManagedDictionaryTester(
-                    testerClass = "UUID",
+                    testerClass = UUID::class.java,
                     dictionaryGetter = AllTypes::getColumnUUIDDictionary,
                     dictionarySetter = AllTypes::setColumnUUIDDictionary,
                     requiredDictionaryGetter = AllTypes::getColumnRequiredUUIDDictionary,
@@ -575,7 +700,7 @@ fun managedFactory(): List<DictionaryTester> {
                     populatedGetter = PopulatedDictionaryClass::populatedUUIDDictionary
             ),
             ManagedDictionaryTester(
-                    testerClass = "Link",
+                    testerClass = DogPrimaryKey::class.java,
                     dictionaryGetter = AllTypes::getColumnRealmDictionary,
                     dictionarySetter = AllTypes::setColumnRealmDictionary,
                     initializedDictionary = RealmDictionary<DogPrimaryKey>().init(listOf(KEY_HELLO to VALUE_LINK_HELLO, KEY_BYE to VALUE_LINK_BYE, KEY_NULL to null)),
@@ -588,7 +713,8 @@ fun managedFactory(): List<DictionaryTester> {
     // Create Mixed testers now
     val mixedTesters = MixedType.values().map { mixedType ->
         ManagedDictionaryTester(
-                testerClass = "Mixed-${mixedType.name}",
+                testerClass = Mixed::class.java,
+                mixedType = mixedType,
                 dictionaryGetter = AllTypes::getColumnMixedDictionary,
                 dictionarySetter = AllTypes::setColumnMixedDictionary,
                 initializedDictionary = RealmDictionary<Mixed>().init(getMixedKeyValuePairs(mixedType)),
@@ -620,7 +746,7 @@ open class TypeAsserter<T> {
     open fun assertRemoveRealmModelFromRealm(
             dictionary: RealmDictionary<T>,
             index: Int,
-            key: String,value: T?
+            key: String, value: T?
     ) = Unit    // Do nothing if we aren't testing a RealmModel or a Mixed wrapping a RealmModel
 
     // RealmModel requires different testing here
@@ -641,6 +767,73 @@ open class TypeAsserter<T> {
     // ByteArray, RealmModel and Mixed require different testing here
     open fun assertEqualsHelper(realm: Realm, value: T?, valueFromRealm: T?) =
             assertEquals(value, valueFromRealm)
+
+    fun assertChangeListenerUpdates(
+            testerClass: Class<T>,      // TODO: remove after bug in changeset is fixed - https://github.com/realm/realm-core/issues/4487
+            operation: ChangeListenerOperation,
+            looperThread: BlockingLooperThread,
+            looperThreadRealm: Realm,
+            managedDictionary: RealmDictionary<T>,
+            initializedDictionary: RealmDictionary<T>,
+            mapFromChangeListener: RealmMap<String, T>,
+            changes: MapChangeSet<String>? = null
+    ) {
+        when (operation) {
+            ChangeListenerOperation.INSERT -> {
+                // Check dictionary
+                initializedDictionary.forEach { key, _ ->
+                    assertContainsValueHelper(
+                            looperThreadRealm,
+                            key,
+                            mapFromChangeListener[key],
+                            initializedDictionary,
+                            mapFromChangeListener as RealmDictionary<T>
+                    )
+                    assertTrue(mapFromChangeListener.containsKey(key))
+
+                    if (changes != null) {
+                        // Check insertions changeset contains keys
+                        assertTrue(changes.insertions.contains(key))
+                    }
+                }
+            }
+            ChangeListenerOperation.UPDATE -> {
+                assertEqualsHelper(
+                        looperThreadRealm,
+                        initializedDictionary[KEY_BYE],
+                        mapFromChangeListener[KEY_HELLO]
+                )
+
+                // TODO: there is a bug in changeset for RealmModels where an unexpected,
+                //  extra modification pops up in the array
+                //  https://github.com/realm/realm-core/issues/4487
+                if (testerClass == DogPrimaryKey::class.java) {
+                    return
+                }
+
+                if (changes != null) {
+                    assertEquals(1, changes.changes.size)
+                }
+            }
+            ChangeListenerOperation.DELETE -> {
+                // Dictionary has been cleared
+                assertTrue(mapFromChangeListener.isEmpty())
+                assertEquals(0, mapFromChangeListener.size)
+
+                if (changes != null) {
+                    // Check deletions changeset size matches deleted elements
+                    assertEquals(initializedDictionary.size, changes.deletionsCount.toInt())
+                }
+
+                // Housekeeping and bye-bye
+                managedDictionary.removeAllChangeListeners()
+                looperThreadRealm.close()
+                looperThread.testComplete()
+            }
+            ChangeListenerOperation.UNDEFINED ->
+                throw IllegalArgumentException("Operation cannot be default")
+        }
+    }
 }
 
 class BinaryAsserter : TypeAsserter<ByteArray>() {
@@ -737,7 +930,7 @@ class RealmModelAsserter : TypeAsserter<DogPrimaryKey>() {
             valueFromRealm: DogPrimaryKey?
     ) {
         val modelFromRealm = realm.where<DogPrimaryKey>()
-                .equalTo("name", valueFromRealm?.name)
+                .equalTo("name", value?.name)
                 .findFirst()
         if (value == null && valueFromRealm == null) {
             assertEquals(modelFromRealm, valueFromRealm)
