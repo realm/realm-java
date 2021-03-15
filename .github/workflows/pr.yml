@@ -104,7 +104,7 @@ jobs:
 
       # EnricoMi/publish-unit-test-result-action@v1 only works on Linux, so as a work-around
       # we archive the test results from mac-os and download them to a Linux runner.
-      - name: Upload Integration Test Results
+      - name: Archive Integration Test Results and Logs
         if: always()
         uses: actions/upload-artifact@v2
         with:
@@ -112,6 +112,8 @@ jobs:
           path: |
             realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
             realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+            tools/sync_server_server/logcat.txt
+            tools/sync_server_server/baas_local/tmp-baas/baas_server.pid
 
       # Source: https://docs.github.com/en/actions/guides/building-and-testing-java-with-gradle
       - name: Cleanup Gradle Cache
