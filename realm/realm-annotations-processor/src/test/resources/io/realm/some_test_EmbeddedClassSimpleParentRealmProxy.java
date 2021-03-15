@@ -362,7 +362,7 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
         if (!jsonHasPrimaryKey) {
             throw new IllegalArgumentException("JSON object doesn't have the primary key field 'id'.");
         }
-        return realm.copyToRealm(obj);
+        return realm.copyToRealmOrUpdate(obj);
     }
 
     static some_test_EmbeddedClassSimpleParentRealmProxy newProxyInstance(BaseRealm realm, Row row) {
