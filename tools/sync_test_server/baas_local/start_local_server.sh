@@ -63,8 +63,8 @@ if [[ -d tmp-baas ]]; then
 fi
 
 # Install and run BAAS
-echo "Install and start BAAS..."
-sh ./install_baas.sh ./tmp-baas & #$MONGODB_REALM_VERSION
+echo "Install and start BAAS: $MONGODB_REALM_VERSION ..."
+sh ./install_baas.sh ./tmp-baas $MONGODB_REALM_VERSION &
 while [[ ! -e $SCRIPTPATH/tmp-baas/baas_ready ]] ; do
     sleep 1
 done
@@ -84,5 +84,5 @@ mkdir tmp-command-server || true
 cd tmp-command-server
 cp $SCRIPTPATH/../mongodb-realm-command-server.js ./
 npm install winston@2.4.0 temp httpdispatcher@1.0.0 fs-extra moment is-port-available@0.1.5
-node ./mongodb-realm-command-server.js $APP_CONFIG_DIR &
+node ./mongodb-realm-command-server.js $APP_CONFIG_DIR > command_server_log.txt &
 echo $! > command_server.pid
