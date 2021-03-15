@@ -260,8 +260,8 @@ public class LinkingObjectsDynamicTests {
                     case STRING_TO_UUID_MAP:
                     case STRING_TO_DECIMAL128_MAP:
                     case STRING_TO_LINK_MAP:
-                        // TODO: fix this when adding support for dictionary
-                        throw new IllegalArgumentException();
+                        // TODO: fix this when adding support for dictionary in AllJavaTypes
+                        throw new IllegalArgumentException("Unexpected field type");
                     default:
                         fail("unknown type: " + fieldType);
                         break;

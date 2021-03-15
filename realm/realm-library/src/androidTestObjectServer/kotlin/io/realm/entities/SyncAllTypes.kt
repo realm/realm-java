@@ -31,7 +31,7 @@ import java.util.*
 open class SyncAllTypes : RealmObject() {
 
     companion object {
-        const val CLASS_NAME = "AllTypes"
+        const val CLASS_NAME = "SyncAllTypes"
         const val FIELD_STRING = "columnString"
         const val FIELD_LONG = "columnLong"
         const val FIELD_FLOAT = "columnFloat"
@@ -78,32 +78,39 @@ open class SyncAllTypes : RealmObject() {
 
     @Required
     var columnObjectId = ObjectId(TestHelper.randomObjectIdHexString())
-    val columnRealmInteger = MutableRealmInteger.ofNull()
+
+    @Required
+    var columnUUID: UUID = UUID.randomUUID()
+
+    val columnRealmInteger: MutableRealmInteger = MutableRealmInteger.ofNull()
+
     var columnRealmObject: SyncDog? = null
 
-    var columnRealmList: RealmList<SyncDog>? = null
+    var columnRealmList: RealmList<SyncDog> = RealmList()
     @Required
-    var columnStringList: RealmList<String>? = null
+    var columnStringList: RealmList<String> = RealmList()
     @Required
-    var columnBinaryList: RealmList<ByteArray>? = null
+    var columnBinaryList: RealmList<ByteArray> = RealmList()
     @Required
-    var columnBooleanList: RealmList<Boolean>? = null
+    var columnBooleanList: RealmList<Boolean> = RealmList()
     @Required
-    var columnLongList: RealmList<Long>? = null
+    var columnLongList: RealmList<Long> = RealmList()
     @Required
-    var columnDoubleList: RealmList<Double>? = null
+    var columnDoubleList: RealmList<Double> = RealmList()
 
     // FIXME Float ruins initial upload of scheme, works if added to schema later
 //    @Required
 //    var columnFloatList: RealmList<Float>? = null
 
     @Required
-    var columnDateList: RealmList<Date>? = null
+    var columnDateList: RealmList<Date> = RealmList()
     @Required
-    var columnDecimal128List: RealmList<Decimal128>? = null
+    var columnDecimal128List: RealmList<Decimal128> = RealmList()
 
     @Required
-    var columnObjectIdList: RealmList<ObjectId>? = null
+    var columnObjectIdList: RealmList<ObjectId> = RealmList()
+    @Required
+    var columnUUIDList: RealmList<UUID> = RealmList()
 
     fun setColumnMutableRealmInteger(value: Int) {
         columnRealmInteger.set(value.toLong())
