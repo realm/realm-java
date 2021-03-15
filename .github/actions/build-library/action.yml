@@ -29,6 +29,7 @@ runs:
           else
             echo "BUILD_FLAGS=$MIN_BUILD_FLAGS" >> $GITHUB_ENV
             echo "TEST_TARGET=$MIN_TEST_TARGET" >> $GITHUB_ENV
+          endif
 
       - name: Checkout code
         uses: actions/checkout@v2
