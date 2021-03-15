@@ -13,16 +13,16 @@ runs:
   using: "composite"
   steps:
     steps:
-      - name: Setup conditional environment variables
-        run: |
-          if [[ $INPUT_SCOPE == full ]]; then
-            echo "BUILD_FLAGS=-PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true" >> $GITHUB_ENV
-            echo "TEST_TARGET=connectedAndroidTest" >> $GITHUB_ENV
-          else
-            echo "BUILD_FLAGS=-PenableLTO=true -PbuildCore=true" >> $GITHUB_ENV
-            echo "TEST_TARGET=connectedObjectServerDebugAndroidTest" >> $GITHUB_ENV
-          endif
-          echo "CCACHE_CPP2=yes" >> $GITHUB_ENV
+#      - name: Setup conditional environment variables
+#        run: |
+#          if [[ $INPUT_SCOPE == full ]]; then
+#            echo "BUILD_FLAGS=-PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true" >> $GITHUB_ENV
+#            echo "TEST_TARGET=connectedAndroidTest" >> $GITHUB_ENV
+#          else
+#            echo "BUILD_FLAGS=-PenableLTO=true -PbuildCore=true" >> $GITHUB_ENV
+#            echo "TEST_TARGET=connectedObjectServerDebugAndroidTest" >> $GITHUB_ENV
+#          endif
+#          echo "CCACHE_CPP2=yes" >> $GITHUB_ENV
 
       - name: Checkout code
         uses: actions/checkout@v2
