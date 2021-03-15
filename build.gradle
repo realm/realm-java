@@ -9,7 +9,8 @@ buildscript {
     }
 }
 
-apply plugin: 'ch.netzwerg.release'
+// TODO: Re-enable this
+// apply plugin: 'ch.netzwerg.release'
 
 def currentVersion = file("${projectDir}/version.txt").text.trim()
 
