@@ -23,12 +23,7 @@ runs:
 #            echo "TEST_TARGET=connectedObjectServerDebugAndroidTest" >> $GITHUB_ENV
 #          endif
 #          echo "CCACHE_CPP2=yes" >> $GITHUB_ENV
-
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-
+      -
       # TODO Can we optimize this? Caching?
       - name: Install dependencies
         run: |
