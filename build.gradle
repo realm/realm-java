@@ -3,7 +3,9 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'ch.netzwerg:gradle-release-plugin:1.2.5'
+        // TODO: https://jcenter.bintray.com/ch/netzwerg/gradle-release-plugin/1.2.5/gradle-release-plugin-1.2.5.pom
+        //  currently returns 500
+        // 'ch.netzwerg:gradle-release-plugin:1.2.5'
     }
 }
 
@@ -551,8 +553,9 @@ task ojoUpload {
 // This is just a placeholder for the release plugin
 task build {}
 
-release {
-    push = false
-    versionSuffix = '-SNAPSHOT'
-    tagPrefix = 'v'
-}
+// TODO: Re-enable this
+//release {
+//    push = false
+//    versionSuffix = '-SNAPSHOT'
+//    tagPrefix = 'v'
+//}
