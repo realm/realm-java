@@ -1,0 +1,11 @@
+# Workflow for building and publishing releases to Maven Central.
+name: Publish release
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+
+
+
