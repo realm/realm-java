@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'ch.netzwerg:gradle-release-plugin:1.2.0'
+        classpath 'ch.netzwerg:gradle-release-plugin:1.2.5'
     }
 }
 
