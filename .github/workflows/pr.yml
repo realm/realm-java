@@ -14,6 +14,8 @@ jobs:
   run-pr-build:
     runs-on: macos-latest
     steps:
+      # See https://github.community/t/path-to-action-in-the-same-repository-as-workflow/16952/2
+      - uses: actions/checkout@v1
       - name: Build and Test Library
         uses: ./.github/actions/build-library
         with:
