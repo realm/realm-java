@@ -4143,6 +4143,13 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    public void dictionary_containsKeyNonLatin(){
+        fillDictionaryTests();
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).containsKey(AllTypes.FIELD_STRING_DICTIONARY, "델타").findAll();
+        assertEquals(0, results.size());
+    }
+
+    @Test
     public void dictionary_containsValue(){
         fillDictionaryTests();
         RealmResults<AllTypes> results = realm.where(AllTypes.class).containsValue(AllTypes.FIELD_STRING_DICTIONARY, "Test2").findAll();
