@@ -181,6 +181,41 @@ public class RealmObjectSchemaTests {
         }
     }
 
+    // Enumerate all dictionary types
+    public enum FieldDictionaryType {
+        STRING_DICTIONARY(String.class, true),
+        SHORT_DICTIONARY(Short.class, true), PRIMITIVE_SHORT_DICTIONARY(short.class, false),
+        INT_DICTIONARY(Integer.class, true), PRIMITIVE_INT_DICTIONARY(int.class, false),
+        LONG_DICTIONARY(Long.class, true), PRIMITIVE_LONG_DICTIONARY(long.class, false),
+        BYTE_DICTIONARY(Byte.class, true), PRIMITIVE_BYTE_DICTIONARY(byte.class, false),
+        BOOLEAN_DICTIONARY(Boolean.class, true), PRIMITIVE_BOOLEAN_DICTIONARY(boolean.class, false),
+        FLOAT_DICTIONARY(Float.class, true), PRIMITIVE_FLOAT_DICTIONARY(float.class, false),
+        DOUBLE_DICTIONARY(Double.class, true), PRIMITIVE_DOUBLE_DICTIONARY(double.class, false),
+        BLOB_DICTIONARY(byte[].class, true),
+        DATE_DICTIONARY(Date.class, true),
+        OBJECT_ID_DICTIONARY(ObjectId.class, true),
+        DECIMAL128_DICTIONARY(Decimal128.class, true),
+        UUID_DICTIONARY(UUID.class, true),
+        MIXED_DICTIONARY(Mixed.class, true),
+        DICTIONARY(RealmDictionary.class, false); // Dictionary of Realm Objects
+
+        final Class<?> clazz;
+        final boolean defaultNullable;
+
+        FieldDictionaryType(Class<?> clazz, boolean defaultNullable) {
+            this.clazz = clazz;
+            this.defaultNullable = defaultNullable;
+        }
+
+        public Class<?> getType() {
+            return clazz;
+        }
+
+        public boolean isNullable() {
+            return defaultNullable;
+        }
+    }
+
     public enum IndexFieldType {
         STRING(String.class, true),
         SHORT(Short.class, true), PRIMITIVE_SHORT(short.class, false),
@@ -325,6 +360,18 @@ public class RealmObjectSchemaTests {
                 default:
                     // All primitive lists
                     schema.addRealmListField(fieldName, fieldType.getType());
+                    checkAddedAndRemovable(fieldName);
+            }
+        }
+        for (FieldDictionaryType fieldType: FieldDictionaryType.values()) {
+            switch (fieldType) {
+                case DICTIONARY:
+                    schema.addRealmDictionaryField(fieldName, DOG_SCHEMA);
+                    checkAddedAndRemovable(fieldName);
+                    break;
+                default:
+                    // All primitive dictionaries
+                    schema.addRealmDictionaryField(fieldName, fieldType.getType());
                     checkAddedAndRemovable(fieldName);
             }
         }

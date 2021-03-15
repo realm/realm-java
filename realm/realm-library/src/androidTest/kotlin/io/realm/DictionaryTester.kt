@@ -19,9 +19,8 @@ package io.realm
 /**
  * Contains all the methods to test in RealmDictionary plus some other convenience ones.
  */
-interface DictionaryTester {
-    fun setUp(config: RealmConfiguration)
-    fun tearDown()
+interface DictionaryTester : GenericTester{
+    override fun setUp(configFactory: TestRealmConfigurationFactory) = Unit     // Not needed here
     fun constructorWithAnotherMap()
     fun isManaged()
     fun isValid()

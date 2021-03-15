@@ -94,6 +94,24 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddPrimitiveListColum
     return reinterpret_cast<jlong>(nullptr);
 }
 
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddPrimitiveDictionaryColumn(JNIEnv* env,
+                                                                                        jobject,
+                                                                                        jlong native_table_ptr,
+                                                                                        jint j_col_type,
+                                                                                        jstring j_name,
+                                                                                        jboolean j_is_nullable)
+{
+    try {
+        JStringAccessor name(env, j_name); // throws
+        bool is_column_nullable = to_bool(j_is_nullable);
+        DataType data_type = DataType(j_col_type);
+        TableRef table = TBL_REF(native_table_ptr);
+        return (jlong)(table->add_column_dictionary(data_type, name, is_column_nullable).value);
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumnLink(JNIEnv* env, jobject, jlong nativeTableRefPtr,
                                                                          jint colType, jstring name,
                                                                          jlong targetTableRefPtr)
@@ -106,23 +124,45 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumnLink(JNIEnv*
     try {
         JStringAccessor name_accessor(env, name); // throws
         TableRef table = TBL_REF(nativeTableRefPtr);
-        auto data_type = DataType(colType);
 
-        if (REALM_UNLIKELY(!Table::is_link_type(ColumnType(data_type))))
-            throw LogicError(LogicError::illegal_type);
-
-        if (data_type == type_LinkList) {
-            return static_cast<jlong>(table->add_column_list(*targetTableRef, name_accessor).value);
-        }
-        else {
-            REALM_ASSERT(data_type == type_Link);
+        if (colType == int(DataType::Type::Link)) {
             return static_cast<jlong>(table->add_column(*targetTableRef, name_accessor).value);
+        } else if (colType == int(DataType::Type::LinkList)) {
+            return static_cast<jlong>(table->add_column_list(*targetTableRef, name_accessor).value);
+        } else {
+            throw LogicError(LogicError::illegal_type);
         }
     }
     CATCH_STD()
     return 0;
 }
 
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumnDictionaryLink(JNIEnv* env,
+                                                                                   jobject,
+                                                                                   jlong nativeTableRefPtr,
+                                                                                   jint colType,
+                                                                                   jstring name,
+                                                                                   jlong targetTableRefPtr)
+{
+    TableRef targetTableRef = TBL_REF(targetTableRefPtr);
+    if (!targetTableRef->is_group_level()) {
+        ThrowException(env, UnsupportedOperation, "Links can only be made to toplevel tables.");
+        return 0;
+    }
+    try {
+        JStringAccessor name_accessor(env, name); // throws
+        TableRef table = TBL_REF(nativeTableRefPtr);
+
+        // There is no entry in DataType::Type to identify Link Dictionaries, so use PropertyType instead
+        if (colType == (int(PropertyType::Dictionary) + int(DataType::Type::Link))) {
+            return static_cast<jlong>(table->add_column_dictionary(*targetTableRef, name_accessor).value);
+        } else {
+            throw LogicError(LogicError::illegal_type);
+        }
+    }
+    CATCH_STD()
+    return 0;
+}
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveColumn(JNIEnv* env, jobject, jlong nativeTableRefPtr,
                                                                        jlong columnKey)
