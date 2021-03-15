@@ -769,7 +769,7 @@ open class TypeAsserter<T> {
             assertEquals(value, valueFromRealm)
 
     fun assertChangeListenerUpdates(
-            testerClass: Class<T>,      // TODO: remove after bug in changeset is fixed
+            testerClass: Class<T>,      // TODO: remove after bug in changeset is fixed - https://github.com/realm/realm-core/issues/4487
             operation: ChangeListenerOperation,
             looperThread: BlockingLooperThread,
             looperThreadRealm: Realm,
@@ -806,12 +806,13 @@ open class TypeAsserter<T> {
 
                 // TODO: there is a bug in changeset for RealmModels where an unexpected,
                 //  extra modification pops up in the array
+                //  https://github.com/realm/realm-core/issues/4487
                 if (testerClass == DogPrimaryKey::class.java) {
                     return
                 }
 
                 if (changes != null) {
-                    assertEquals(1, changes.modifications.size)
+                    assertEquals(1, changes.changes.size)
                 }
             }
             ChangeListenerOperation.DELETE -> {

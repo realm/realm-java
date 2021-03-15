@@ -41,11 +41,12 @@ public interface MapChangeSet<T> {
     T[] getInsertions();
 
     /**
-     * Array containing the keys that have been modified in the previous version of the map.
+     * Array containing the keys or the values that have been modified in the previous version of
+     * the map.
      *
      * @return array with the keys that have been modified.
      */
-    T[] getModifications();
+    T[] getChanges();
 
     /**
      * Whether the change set is empty or not. This is needed to detect whether a notification has
@@ -81,8 +82,8 @@ class MapChangeSetImpl<K> implements MapChangeSet<K> {
     }
 
     @Override
-    public K[] getModifications() {
-        return delegate.getModifications();
+    public K[] getChanges() {
+        return delegate.getChanges();
     }
 
     @Override
@@ -113,7 +114,7 @@ class StringMapChangeSet implements MapChangeSet<String> {
     }
 
     @Override
-    public String[] getModifications() {
+    public String[] getChanges() {
         return osMapChangeSet.getStringKeyModifications();
     }
 
