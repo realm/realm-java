@@ -31,5 +31,4 @@ open class MixedRealmListWithPK(@PrimaryKey var pk: Long) : RealmObject() {
     constructor(): this(0)
 
     var mixedList: RealmList<Mixed> = RealmList()
-    var modelList: RealmList<MixedRealmListWithPK> = RealmList()
 }
