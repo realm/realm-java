@@ -7,6 +7,11 @@ on:
       - releases
 env:
 jobs:
+  run-snapshot-build:
+    runs-on: macos-latest
+    steps:
+      - name: Build and Test Library
+        run: echo "Work work work..."
 
 
 

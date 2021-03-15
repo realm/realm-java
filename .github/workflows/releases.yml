@@ -6,6 +6,11 @@ on:
       - 'v*'
 
 jobs:
+  run-release-build:
+    runs-on: macos-latest
+    steps:
+      - name: Build and Test Library
+        run: echo "Work work work..."
 
 
 
