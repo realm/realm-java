@@ -472,6 +472,20 @@ public class LinkingObjectsQueryTests extends QueryTests {
                 case MIXED_LIST:
                     assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_MIXED_LIST).count());
                     break;
+                case STRING_TO_MIXED_MAP:
+                case STRING_TO_BOOLEAN_MAP:
+                case STRING_TO_STRING_MAP:
+                case STRING_TO_INTEGER_MAP:
+                case STRING_TO_FLOAT_MAP:
+                case STRING_TO_DOUBLE_MAP:
+                case STRING_TO_BINARY_MAP:
+                case STRING_TO_DATE_MAP:
+                case STRING_TO_OBJECT_ID_MAP:
+                case STRING_TO_UUID_MAP:
+                case STRING_TO_DECIMAL128_MAP:
+                case STRING_TO_LINK_MAP:
+                    // TODO: fix this when adding support for dictionary in AllJavaTypes
+                    break;
                 default:
                     fail("Unknown type: " + type);
             }
@@ -544,6 +558,20 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     break;
                 case MIXED_LIST:
                     assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_MIXED_LIST).count());
+                    break;
+                case STRING_TO_MIXED_MAP:
+                case STRING_TO_BOOLEAN_MAP:
+                case STRING_TO_STRING_MAP:
+                case STRING_TO_INTEGER_MAP:
+                case STRING_TO_FLOAT_MAP:
+                case STRING_TO_DOUBLE_MAP:
+                case STRING_TO_BINARY_MAP:
+                case STRING_TO_DATE_MAP:
+                case STRING_TO_OBJECT_ID_MAP:
+                case STRING_TO_UUID_MAP:
+                case STRING_TO_DECIMAL128_MAP:
+                case STRING_TO_LINK_MAP:
+                    // TODO: fix this when adding support for dictionary in AllJavaTypes
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -645,6 +673,20 @@ public class LinkingObjectsQueryTests extends QueryTests {
                 case MIXED_LIST:
                     assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_MIXED_LIST).count());
                     break;
+                case STRING_TO_MIXED_MAP:
+                case STRING_TO_BOOLEAN_MAP:
+                case STRING_TO_STRING_MAP:
+                case STRING_TO_INTEGER_MAP:
+                case STRING_TO_FLOAT_MAP:
+                case STRING_TO_DOUBLE_MAP:
+                case STRING_TO_BINARY_MAP:
+                case STRING_TO_DATE_MAP:
+                case STRING_TO_OBJECT_ID_MAP:
+                case STRING_TO_UUID_MAP:
+                case STRING_TO_DECIMAL128_MAP:
+                case STRING_TO_LINK_MAP:
+                    // TODO: fix this when adding support for dictionary in AllJavaTypes
+                    break;
                 default:
                     fail("Unknown type: " + type);
             }
@@ -715,6 +757,20 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     break;
                 case MIXED_LIST:
                     assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_MIXED_LIST).count());
+                    break;
+                case STRING_TO_MIXED_MAP:
+                case STRING_TO_BOOLEAN_MAP:
+                case STRING_TO_STRING_MAP:
+                case STRING_TO_INTEGER_MAP:
+                case STRING_TO_FLOAT_MAP:
+                case STRING_TO_DOUBLE_MAP:
+                case STRING_TO_BINARY_MAP:
+                case STRING_TO_DATE_MAP:
+                case STRING_TO_OBJECT_ID_MAP:
+                case STRING_TO_UUID_MAP:
+                case STRING_TO_DECIMAL128_MAP:
+                case STRING_TO_LINK_MAP:
+                    // TODO: fix this when adding support for dictionary in AllJavaTypes
                     break;
                 default:
                     fail("Unknown type: " + type);
