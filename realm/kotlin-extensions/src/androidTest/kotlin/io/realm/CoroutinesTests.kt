@@ -4,6 +4,7 @@ import io.realm.entities.AllTypes
 import io.realm.entities.Dog
 import io.realm.entities.SimpleClass
 import io.realm.kotlin.*
+import io.realm.rule.BlockingLooperThread
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.TestCoroutineDispatcher
@@ -13,6 +14,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.*
 
 @ExperimentalCoroutinesApi
@@ -26,6 +28,7 @@ class CoroutinesTests {
     private lateinit var configuration: RealmConfiguration
     private lateinit var testDispatcher: TestCoroutineDispatcher
     private lateinit var testScope: TestCoroutineScope
+    private val looperThread = BlockingLooperThread()
 
     @Before
     fun setUp() {
@@ -921,6 +924,160 @@ class CoroutinesTests {
         }
 
         TestHelper.awaitOrFail(countDownLatch)
+    }
+
+    @Test
+    fun realmList_flow_parentDeletionComplete() = looperThread.runBlocking {
+        val realm = Realm.getInstance(configuration)
+        realm.beginTransaction()
+        val parent = realm.createObject<AllTypes>()
+        val list = parent.columnRealmList
+        list.add(Dog("dog"))
+        realm.commitTransaction()
+
+        val collectingStarted = AtomicBoolean(false)
+        val context = looperThread.asDispatcher()
+        val scope = CoroutineScope(context)
+        scope.launch {
+            // We should only emit valid lists. If the parent of the list is invalidated
+            // it should close the stream gracefully resulting in onComplete being called.
+            list.toFlow()
+                    .onEach { assertTrue(it.isValid) }
+                    .onCompletion {
+                        realm.close()
+                        looperThread.testComplete()
+                    }.collect {
+                        collectingStarted.set(true)
+                    }
+        }
+
+        // Delete object holding list after stream started
+        looperThread.postRunnable(object: Runnable {
+            override fun run() {
+                // The Coroutine might not start straight away, so busy wait for it to happen.
+                if (!collectingStarted.get()) {
+                    looperThread.postRunnable(this)
+                } else {
+                    realm.executeTransaction { parent.deleteFromRealm() }
+                }
+            }
+        })
+    }
+
+    @Test
+    fun realmList_changeSetFlow_parentDeletionComplete() = looperThread.runBlocking {
+        val realm = Realm.getInstance(configuration)
+        realm.beginTransaction()
+        val parent = realm.createObject<AllTypes>()
+        val list = parent.columnRealmList
+        list.add(Dog("dog"))
+        realm.commitTransaction()
+
+        val collectingStarted = AtomicBoolean(false)
+        val context = looperThread.asDispatcher()
+        val scope = CoroutineScope(context)
+        scope.launch {
+            // We should only emit valid lists. If the parent of the list is invalidated
+            // it should close the stream gracefully resulting in onComplete being called.
+            list.toChangesetFlow()
+                    .onEach { assertTrue(it.collection.isValid) }
+                    .onCompletion {
+                        realm.close()
+                        looperThread.testComplete()
+                    }.collect {
+                        collectingStarted.set(true)
+                    }
+        }
+
+        // Delete object holding list after stream started
+        looperThread.postRunnable(object: Runnable {
+            override fun run() {
+                // The Coroutine might not start straight away, so busy wait for it to happen.
+                if (!collectingStarted.get()) {
+                    looperThread.postRunnable(this)
+                } else {
+                    realm.executeTransaction { parent.deleteFromRealm() }
+                }
+            }
+        })
+    }
+
+    @Test
+    fun dynamicRealmList_flow_parentDeletionComplete() = looperThread.runBlocking {
+        Realm.getInstance(configuration).close() // Create schema
+        val realm = DynamicRealm.getInstance(configuration)
+        realm.beginTransaction()
+        val parent = realm.createObject(AllTypes.CLASS_NAME)
+        val list = parent.getList(AllTypes.FIELD_REALMLIST)
+        list.add(realm.createObject(Dog.CLASS_NAME))
+        realm.commitTransaction()
+
+        val collectingStarted = AtomicBoolean(false)
+        val context = looperThread.asDispatcher()
+        val scope = CoroutineScope(context)
+        scope.launch {
+            // We should only emit valid lists. If the parent of the list is invalidated
+            // it should close the stream gracefully resulting in onComplete being called.
+            list.toFlow()
+                    .onEach { assertTrue(it.isValid) }
+                    .onCompletion {
+                        realm.close()
+                        looperThread.testComplete()
+                    }.collect {
+                        collectingStarted.set(true)
+                    }
+        }
+
+        // Delete object holding list after stream started
+        looperThread.postRunnable(object: Runnable {
+            override fun run() {
+                // The Coroutine might not start straight away, so busy wait for it to happen.
+                if (!collectingStarted.get()) {
+                    looperThread.postRunnable(this)
+                } else {
+                    realm.executeTransaction { parent.deleteFromRealm() }
+                }
+            }
+        })
+    }
+
+    @Test
+    fun dynamicRealmList_changeSetFlow_parentDeletionComplete() = looperThread.runBlocking {
+        Realm.getInstance(configuration).close() // Create schema
+        val realm = DynamicRealm.getInstance(configuration)
+        realm.beginTransaction()
+        val parent = realm.createObject(AllTypes.CLASS_NAME)
+        val list = parent.getList(AllTypes.FIELD_REALMLIST)
+        list.add(realm.createObject(Dog.CLASS_NAME))
+        realm.commitTransaction()
+
+        val collectingStarted = AtomicBoolean(false)
+        val context = looperThread.asDispatcher()
+        val scope = CoroutineScope(context)
+        scope.launch {
+            // We should only emit valid lists. If the parent of the list is invalidated
+            // it should close the stream gracefully resulting in onComplete being called.
+            list.toChangesetFlow()
+                    .onEach { assertTrue(it.collection.isValid) }
+                    .onCompletion {
+                        realm.close()
+                        looperThread.testComplete()
+                    }.collect {
+                        collectingStarted.set(true)
+                    }
+        }
+
+        // Delete object holding list after stream started
+        looperThread.postRunnable(object: Runnable {
+            override fun run() {
+                // The Coroutine might not start straight away, so busy wait for it to happen.
+                if (!collectingStarted.get()) {
+                    looperThread.postRunnable(this)
+                } else {
+                    realm.executeTransaction { parent.deleteFromRealm() }
+                }
+            }
+        })
     }
 
     @Test

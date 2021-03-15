@@ -61,9 +61,13 @@ public class AllTypes extends RealmObject {
     private final MutableRealmInteger columnMutableRealmInteger = MutableRealmInteger.valueOf(0);
 
     private AllTypes columnObject;
+    private Simple columnObjectWithoutPk;
 
     private RealmList<AllTypes> columnRealmList;
-    private final RealmList<AllTypes> columnRealmFinalList = new RealmList<AllTypes>();
+    private RealmList<Simple> columnRealmListNoPk;
+
+    private final RealmList<AllTypes> columnRealmFinalList = new RealmList<>();
+    private final RealmList<Simple> columnRealmFinalListNoPk = new RealmList<>();
 
     private RealmList<String> columnStringList;
     private RealmList<byte[]> columnBinaryList;

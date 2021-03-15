@@ -205,6 +205,8 @@ public class TableQuery implements NativeObject {
                 mixedArgs[i] = Mixed.valueOf((ObjectId) argument);
             } else if (argument instanceof UUID) {
                 mixedArgs[i] = Mixed.valueOf((UUID) argument);
+            } else if (argument instanceof Mixed) {
+                mixedArgs[i] = (Mixed) argument;
             } else if (RealmModel.class.isAssignableFrom(argument.getClass())) {
                 RealmModel value = (RealmModel) argument;
 

@@ -191,7 +191,7 @@ public class RealmObjectSchemaTests {
         BOOLEAN_DICTIONARY(Boolean.class, true), PRIMITIVE_BOOLEAN_DICTIONARY(boolean.class, false),
         FLOAT_DICTIONARY(Float.class, true), PRIMITIVE_FLOAT_DICTIONARY(float.class, false),
         DOUBLE_DICTIONARY(Double.class, true), PRIMITIVE_DOUBLE_DICTIONARY(double.class, false),
-        BLOB_DICTIONARY(Byte[].class, true), PRIMITIVE_BLOB_DICTIONARY(byte[].class, true),
+        BLOB_DICTIONARY(byte[].class, true),
         DATE_DICTIONARY(Date.class, true),
         OBJECT_ID_DICTIONARY(ObjectId.class, true),
         DECIMAL128_DICTIONARY(Decimal128.class, true),
