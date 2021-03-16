@@ -114,8 +114,9 @@ jobs:
           path: |
             realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml
             realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml
-            tools/sync_server_server/logcat.txt
-            tools/sync_server_server/baas_local/tmp-baas/baas_server.log
+            tools/sync_test_server/logcat.txt
+            tools/sync_test_server/baas_local/tmp-baas/baas_server.log
+            tools/sync_test_server/baas_local/tmp-command-server/command_server.log
 
       # Source: https://docs.github.com/en/actions/guides/building-and-testing-java-with-gradle
       - name: Cleanup Gradle Cache

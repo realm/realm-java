@@ -8,7 +8,7 @@ bash ./start_local_server.sh
 cd ../../../realm
 adb root
 adb logcat -b all -c
-adb logcat -v time > 'logcat.txt' &
+adb logcat -v time > $SCRIPTPATH/logcat.txt &
 LOG_CAT_PID=`echo \$!`
 # TODO: Build parameters should be command line parameters
 ./gradlew connectedObjectServerDebugAndroidTest -PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true
