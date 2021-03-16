@@ -85,6 +85,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: unit-test-results
+          if-no-files-found: warn
           path: |
             realm/realm-annotations-processor/build/test-results/test/TEST-*.xml
             examples/unitTestExample/build/test-results/**/TEST-*.xml
@@ -109,11 +110,12 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: integration-test-results
+          if-no-files-found: warn
           path: |
-            realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
-            realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+            realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml
+            realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml
             tools/sync_server_server/logcat.txt
-            tools/sync_server_server/baas_local/tmp-baas/baas_server.pid
+            tools/sync_server_server/baas_local/tmp-baas/baas_server.log
 
       # Source: https://docs.github.com/en/actions/guides/building-and-testing-java-with-gradle
       - name: Cleanup Gradle Cache
