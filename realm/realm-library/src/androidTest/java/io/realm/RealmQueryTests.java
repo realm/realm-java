@@ -968,16 +968,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    public void in_stringNotNull() {
-        doTestForInString(NoPrimaryKeyNullTypes.FIELD_STRING_NOT_NULL);
-        try {
-            realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_STRING_NOT_NULL, new String[]{"TEST data 14", "test data 118", null, "test DATA 199"}, Case.INSENSITIVE).findAll();
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-    }
-
-    @Test(expected = IllegalArgumentException.class)
     public void in_stringNull() {
         doTestForInString(NoPrimaryKeyNullTypes.FIELD_STRING_NULL);
         RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).not().in(NoPrimaryKeyNullTypes.FIELD_STRING_NULL, new String[] {"TEST data 14", "test data 118", null, "test DATA 199"}, Case.INSENSITIVE).findAll();

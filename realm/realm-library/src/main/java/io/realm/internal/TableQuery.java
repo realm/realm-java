@@ -372,7 +372,11 @@ public class TableQuery implements NativeObject {
     public TableQuery in(String fieldName, Mixed[] values) {
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
-            or().equalTo(fieldName, values[i]);
+            if(values[i] == null){
+                or().isNull(fieldName);
+            } else {
+                or().equalTo(fieldName, values[i]);
+            }
         }
         endGroup();
 
@@ -383,7 +387,11 @@ public class TableQuery implements NativeObject {
     public TableQuery inInsensitive(String fieldName, Mixed[] values) {
         beginGroup().equalToInsensitive(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
-            or().equalToInsensitive(fieldName, values[i]);
+            if(values[i] == null){
+                or().isNull(fieldName);
+            } else {
+                or().equalToInsensitive(fieldName, values[i]);
+            }
         }
         endGroup();
 

@@ -532,7 +532,11 @@ public class RealmQuery<E> {
         } else {
             Mixed[] mixedValues = new Mixed[values.length];
             for (int i = 0; i < values.length; i++) {
-                mixedValues[i] = Mixed.valueOf(values[i]);
+                if (values[i] != null) {
+                    mixedValues[i] = Mixed.valueOf(values[i]);
+                } else {
+                    mixedValues[i] = null;
+                }
             }
 
             if (casing == Case.SENSITIVE) {
@@ -1635,6 +1639,7 @@ public class RealmQuery<E> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> contains(String fieldName, String value, Case casing) {
+        Util.checkNull(value, "value");
         realm.checkIfValid();
         contains(fieldName, Mixed.valueOf(value), casing);
         return this;
@@ -1693,6 +1698,7 @@ public class RealmQuery<E> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> beginsWith(String fieldName, String value, Case casing) {
+        Util.checkNull(value, "value");
         realm.checkIfValid();
         beginsWith(fieldName, Mixed.valueOf(value), casing);
         return this;
@@ -1751,6 +1757,7 @@ public class RealmQuery<E> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> endsWith(String fieldName, String value, Case casing) {
+        Util.checkNull(value, "value");
         realm.checkIfValid();
         endsWith(fieldName, Mixed.valueOf(value), casing);
         return this;
@@ -1821,6 +1828,7 @@ public class RealmQuery<E> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> like(String fieldName, String value, Case casing) {
+        Util.checkNull(value, "value");
         realm.checkIfValid();
         like(fieldName, Mixed.valueOf(value), casing);
         return this;
