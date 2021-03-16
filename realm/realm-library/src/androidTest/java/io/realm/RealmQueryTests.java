@@ -249,6 +249,10 @@ public class RealmQueryTests extends QueryTests {
 
         FIND_FIRST,
         FIND_FIRST_ASYNC,
+
+        CONTAINS_KEY,
+        CONTAINS_VALUE,
+        CONTAINS_ENTRY,
     }
 
     private static void callThreadConfinedMethod(RealmQuery<?> query, ThreadConfinedMethods method) {
@@ -359,6 +363,10 @@ public class RealmQueryTests extends QueryTests {
             case SORT_WITH_MANY_ORDERS: query.sort(new String[] {AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID}, new Sort[] {Sort.DESCENDING, Sort.DESCENDING}); break;
             case FIND_FIRST: query.findFirst(); break;
             case FIND_FIRST_ASYNC: query.findFirstAsync(); break;
+
+            case CONTAINS_KEY: query.containsKey(AllJavaTypes.FIELD_STRING, null); break;
+            case CONTAINS_VALUE: query.containsValue(AllJavaTypes.FIELD_STRING, (String) null); break;
+            case CONTAINS_ENTRY: query.containsEntry(AllJavaTypes.FIELD_STRING, new AbstractMap.SimpleImmutableEntry<>(null, null)); break;
 
             default:
                 throw new AssertionError("missing case for " + method);
