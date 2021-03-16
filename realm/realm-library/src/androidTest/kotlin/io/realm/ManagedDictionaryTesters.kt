@@ -405,6 +405,7 @@ class ManagedDictionaryTester<T : Any>(
 
             dictionary.addChangeListener { map, changes ->
                 typeAsserter.assertChangeListenerUpdates(
+                        testerClass,
                         operation,
                         looperThread,
                         looperThreadRealm,
@@ -430,7 +431,11 @@ class ManagedDictionaryTester<T : Any>(
                 // change set - calling 'put' with an unmanaged object with PK that already is
                 // in the database will trigger two changes: one for the actual modification and
                 // two for insertion itself since we use 'copyToRealmOrUpdate'.
-                dictionary[KEY_HELLO] = dictionary[KEY_BYE]
+                if (testerClass == "String-NonLatin" || testerClass == "Mixed-NonLatin") {
+                    dictionary[KEY_HELLO_NON_LATIN] = dictionary[KEY_BYE_NON_LATIN]
+                } else {
+                    dictionary[KEY_HELLO] = dictionary[KEY_BYE]
+                }
             }
 
             // Clear dictionary
@@ -453,6 +458,7 @@ class ManagedDictionaryTester<T : Any>(
 
             dictionary.addChangeListener { map ->
                 typeAsserter.assertChangeListenerUpdates(
+                        testerClass,
                         operation,
                         looperThread,
                         looperThreadRealm,
@@ -477,7 +483,11 @@ class ManagedDictionaryTester<T : Any>(
                 // change set - calling 'put' with an unmanaged object with PK that already is
                 // in the database will trigger two changes: one for the actual modification and
                 // two for insertion itself since we use 'copyToRealmOrUpdate'.
-                dictionary[KEY_HELLO] = dictionary[KEY_BYE]
+                if (testerClass == "String-NonLatin" || testerClass == "Mixed-NonLatin") {
+                    dictionary[KEY_HELLO_NON_LATIN] = dictionary[KEY_BYE_NON_LATIN]
+                } else {
+                    dictionary[KEY_HELLO] = dictionary[KEY_BYE]
+                }
             }
 
             // Clear dictionary
@@ -581,124 +591,133 @@ enum class ChangeListenerOperation {
  */
 fun managedFactory(): List<DictionaryTester> {
     val primitiveTesters = listOf<DictionaryTester>(
-//            ManagedDictionaryTester(
-//                    testerClass = "Long",
-//                    dictionaryGetter = AllTypes::getColumnLongDictionary,
-//                    dictionarySetter = AllTypes::setColumnLongDictionary,
-//                    requiredDictionaryGetter = AllTypes::getColumnRequiredLongDictionary,
-//                    initializedDictionary = RealmDictionary<Long>().init(listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toLong(), KEY_BYE to VALUE_NUMERIC_BYE.toLong(), KEY_NULL to null)),
-//                    alternativeDictionary = RealmDictionary<Long>().init(listOf(KEY_HELLO to VALUE_NUMERIC_BYE.toLong(), KEY_BYE to VALUE_NUMERIC_HELLO.toLong(), KEY_NULL to null)),
-//                    populatedGetter = PopulatedDictionaryClass::populatedLongDictionary
-//            ),
-//            ManagedDictionaryTester(
-//                    testerClass = "Int",
-//                    dictionaryGetter = AllTypes::getColumnIntegerDictionary,
-//                    dictionarySetter = AllTypes::setColumnIntegerDictionary,
-//                    requiredDictionaryGetter = AllTypes::getColumnRequiredIntegerDictionary,
-//                    initializedDictionary = RealmDictionary<Int>().init(listOf(KEY_HELLO to VALUE_NUMERIC_HELLO, KEY_BYE to VALUE_NUMERIC_BYE, KEY_NULL to null)),
-//                    alternativeDictionary = RealmDictionary<Int>().init(listOf(KEY_HELLO to VALUE_NUMERIC_BYE, KEY_BYE to VALUE_NUMERIC_HELLO, KEY_NULL to null)),
-//                    populatedGetter = PopulatedDictionaryClass::populatedIntDictionary
-//            ),
-//            ManagedDictionaryTester(
-//                    testerClass = "Short",
-//                    dictionaryGetter = AllTypes::getColumnShortDictionary,
-//                    dictionarySetter = AllTypes::setColumnShortDictionary,
-//                    requiredDictionaryGetter = AllTypes::getColumnRequiredShortDictionary,
-//                    initializedDictionary = RealmDictionary<Short>().init(listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toShort(), KEY_BYE to VALUE_NUMERIC_BYE.toShort(), KEY_NULL to null)),
-//                    alternativeDictionary = RealmDictionary<Short>().init(listOf(KEY_HELLO to VALUE_NUMERIC_BYE.toShort(), KEY_BYE to VALUE_NUMERIC_HELLO.toShort(), KEY_NULL to null)),
-//                    populatedGetter = PopulatedDictionaryClass::populatedShortDictionary
-//            ),
-//            ManagedDictionaryTester(
-//                    testerClass = "Byte",
-//                    dictionaryGetter = AllTypes::getColumnByteDictionary,
-//                    dictionarySetter = AllTypes::setColumnByteDictionary,
-//                    requiredDictionaryGetter = AllTypes::getColumnRequiredByteDictionary,
-//                    initializedDictionary = RealmDictionary<Byte>().init(listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toByte(), KEY_BYE to VALUE_NUMERIC_BYE.toByte(), KEY_NULL to null)),
-//                    alternativeDictionary = RealmDictionary<Byte>().init(listOf(KEY_HELLO to VALUE_NUMERIC_BYE.toByte(), KEY_BYE to VALUE_NUMERIC_HELLO.toByte(), KEY_NULL to null)),
-//                    populatedGetter = PopulatedDictionaryClass::populatedByteDictionary
-//            ),
-//            ManagedDictionaryTester(
-//                    testerClass = "Float",
-//                    dictionaryGetter = AllTypes::getColumnFloatDictionary,
-//                    dictionarySetter = AllTypes::setColumnFloatDictionary,
-//                    requiredDictionaryGetter = AllTypes::getColumnRequiredFloatDictionary,
-//                    initializedDictionary = RealmDictionary<Float>().init(listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toFloat(), KEY_BYE to VALUE_NUMERIC_BYE.toFloat(), KEY_NULL to null)),
-//                    alternativeDictionary = RealmDictionary<Float>().init(listOf(KEY_HELLO to VALUE_NUMERIC_BYE.toFloat(), KEY_BYE to VALUE_NUMERIC_HELLO.toFloat(), KEY_NULL to null)),
-//                    populatedGetter = PopulatedDictionaryClass::populatedFloatDictionary
-//            ),
-//            ManagedDictionaryTester(
-//                    testerClass = "Double",
-//                    dictionaryGetter = AllTypes::getColumnDoubleDictionary,
-//                    dictionarySetter = AllTypes::setColumnDoubleDictionary,
-//                    requiredDictionaryGetter = AllTypes::getColumnRequiredDoubleDictionary,
-//                    initializedDictionary = RealmDictionary<Double>().init(listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toDouble(), KEY_BYE to VALUE_NUMERIC_BYE.toDouble(), KEY_NULL to null)),
-//                    alternativeDictionary = RealmDictionary<Double>().init(listOf(KEY_HELLO to VALUE_NUMERIC_BYE.toDouble(), KEY_BYE to VALUE_NUMERIC_HELLO.toDouble(), KEY_NULL to null)),
-//                    populatedGetter = PopulatedDictionaryClass::populatedDoubleDictionary
-//            ),
-//            ManagedDictionaryTester(
-//                    testerClass = "String",
-//                    dictionaryGetter = AllTypes::getColumnStringDictionary,
-//                    dictionarySetter = AllTypes::setColumnStringDictionary,
-//                    requiredDictionaryGetter = AllTypes::getColumnRequiredStringDictionary,
-//                    initializedDictionary = RealmDictionary<String>().init(listOf(KEY_HELLO to VALUE_STRING_HELLO, KEY_BYE to VALUE_STRING_BYE, KEY_NULL to null)),
-//                    alternativeDictionary = RealmDictionary<String>().init(listOf(KEY_HELLO to VALUE_STRING_BYE, KEY_BYE to VALUE_STRING_HELLO, KEY_NULL to null)),
-//                    populatedGetter = PopulatedDictionaryClass::populatedStringDictionary
-//            ),
-//            ManagedDictionaryTester(
-//                    testerClass = "Boolean",
-//                    dictionaryGetter = AllTypes::getColumnBooleanDictionary,
-//                    dictionarySetter = AllTypes::setColumnBooleanDictionary,
-//                    requiredDictionaryGetter = AllTypes::getColumnRequiredBooleanDictionary,
-//                    initializedDictionary = RealmDictionary<Boolean>().init(listOf(KEY_HELLO to VALUE_BOOLEAN_HELLO, KEY_BYE to VALUE_BOOLEAN_BYE, KEY_NULL to null)),
-//                    alternativeDictionary = RealmDictionary<Boolean>().init(listOf(KEY_HELLO to VALUE_BOOLEAN_BYE, KEY_BYE to VALUE_BOOLEAN_HELLO, KEY_NULL to null)),
-//                    populatedGetter = PopulatedDictionaryClass::populatedBooleanDictionary
-//            ),
-//            ManagedDictionaryTester(
-//                    testerClass = "Date",
-//                    dictionaryGetter = AllTypes::getColumnDateDictionary,
-//                    dictionarySetter = AllTypes::setColumnDateDictionary,
-//                    requiredDictionaryGetter = AllTypes::getColumnRequiredDateDictionary,
-//                    initializedDictionary = RealmDictionary<Date>().init(listOf(KEY_HELLO to VALUE_DATE_HELLO, KEY_BYE to VALUE_DATE_BYE, KEY_NULL to null)),
-//                    alternativeDictionary = RealmDictionary<Date>().init(listOf(KEY_HELLO to VALUE_DATE_BYE, KEY_BYE to VALUE_DATE_HELLO, KEY_NULL to null)),
-//                    populatedGetter = PopulatedDictionaryClass::populatedDateDictionary
-//            ),
-//            ManagedDictionaryTester(
-//                    testerClass = "Decimal128",
-//                    dictionaryGetter = AllTypes::getColumnDecimal128Dictionary,
-//                    dictionarySetter = AllTypes::setColumnDecimal128Dictionary,
-//                    requiredDictionaryGetter = AllTypes::getColumnRequiredDecimal128Dictionary,
-//                    initializedDictionary = RealmDictionary<Decimal128>().init(listOf(KEY_HELLO to VALUE_DECIMAL128_HELLO, KEY_BYE to VALUE_DECIMAL128_BYE, KEY_NULL to null)),
-//                    alternativeDictionary = RealmDictionary<Decimal128>().init(listOf(KEY_HELLO to VALUE_DECIMAL128_BYE, KEY_BYE to VALUE_DECIMAL128_HELLO, KEY_NULL to null)),
-//                    populatedGetter = PopulatedDictionaryClass::populatedDecimal128Dictionary
-//            ),
-//            ManagedDictionaryTester(
-//                    testerClass = "ByteArray",
-//                    dictionaryGetter = AllTypes::getColumnBinaryDictionary,
-//                    dictionarySetter = AllTypes::setColumnBinaryDictionary,
-//                    requiredDictionaryGetter = AllTypes::getColumnRequiredBinaryDictionary,
-//                    initializedDictionary = RealmDictionary<ByteArray>().init(listOf(KEY_HELLO to VALUE_BINARY_HELLO, KEY_BYE to VALUE_BINARY_BYE, KEY_NULL to null)),
-//                    alternativeDictionary = RealmDictionary<ByteArray>().init(listOf(KEY_HELLO to VALUE_BINARY_BYE, KEY_BYE to VALUE_BINARY_HELLO, KEY_NULL to null)),
-//                    populatedGetter = PopulatedDictionaryClass::populatedBinaryDictionary,
-//                    typeAsserter = BinaryAsserter()
-//            ),
-//            ManagedDictionaryTester(
-//                    testerClass = "ObjectId",
-//                    dictionaryGetter = AllTypes::getColumnObjectIdDictionary,
-//                    dictionarySetter = AllTypes::setColumnObjectIdDictionary,
-//                    requiredDictionaryGetter = AllTypes::getColumnRequiredObjectIdDictionary,
-//                    initializedDictionary = RealmDictionary<ObjectId>().init(listOf(KEY_HELLO to VALUE_OBJECT_ID_HELLO, KEY_BYE to VALUE_OBJECT_ID_BYE, KEY_NULL to null)),
-//                    alternativeDictionary = RealmDictionary<ObjectId>().init(listOf(KEY_HELLO to VALUE_OBJECT_ID_BYE, KEY_BYE to VALUE_OBJECT_ID_HELLO, KEY_NULL to null)),
-//                    populatedGetter = PopulatedDictionaryClass::populatedObjectIdDictionary
-//            ),
-//            ManagedDictionaryTester(
-//                    testerClass = "UUID",
-//                    dictionaryGetter = AllTypes::getColumnUUIDDictionary,
-//                    dictionarySetter = AllTypes::setColumnUUIDDictionary,
-//                    requiredDictionaryGetter = AllTypes::getColumnRequiredUUIDDictionary,
-//                    initializedDictionary = RealmDictionary<UUID>().init(listOf(KEY_HELLO to VALUE_UUID_HELLO, KEY_BYE to VALUE_UUID_BYE, KEY_NULL to null)),
-//                    alternativeDictionary = RealmDictionary<UUID>().init(listOf(KEY_HELLO to VALUE_UUID_BYE, KEY_BYE to VALUE_UUID_HELLO, KEY_NULL to null)),
-//                    populatedGetter = PopulatedDictionaryClass::populatedUUIDDictionary
-//            ),
+            ManagedDictionaryTester(
+                    testerClass = "Long",
+                    dictionaryGetter = AllTypes::getColumnLongDictionary,
+                    dictionarySetter = AllTypes::setColumnLongDictionary,
+                    requiredDictionaryGetter = AllTypes::getColumnRequiredLongDictionary,
+                    initializedDictionary = RealmDictionary<Long>().init(listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toLong(), KEY_BYE to VALUE_NUMERIC_BYE.toLong(), KEY_NULL to null)),
+                    alternativeDictionary = RealmDictionary<Long>().init(listOf(KEY_HELLO to VALUE_NUMERIC_BYE.toLong(), KEY_BYE to VALUE_NUMERIC_HELLO.toLong(), KEY_NULL to null)),
+                    populatedGetter = PopulatedDictionaryClass::populatedLongDictionary
+            ),
+            ManagedDictionaryTester(
+                    testerClass = "Int",
+                    dictionaryGetter = AllTypes::getColumnIntegerDictionary,
+                    dictionarySetter = AllTypes::setColumnIntegerDictionary,
+                    requiredDictionaryGetter = AllTypes::getColumnRequiredIntegerDictionary,
+                    initializedDictionary = RealmDictionary<Int>().init(listOf(KEY_HELLO to VALUE_NUMERIC_HELLO, KEY_BYE to VALUE_NUMERIC_BYE, KEY_NULL to null)),
+                    alternativeDictionary = RealmDictionary<Int>().init(listOf(KEY_HELLO to VALUE_NUMERIC_BYE, KEY_BYE to VALUE_NUMERIC_HELLO, KEY_NULL to null)),
+                    populatedGetter = PopulatedDictionaryClass::populatedIntDictionary
+            ),
+            ManagedDictionaryTester(
+                    testerClass = "Short",
+                    dictionaryGetter = AllTypes::getColumnShortDictionary,
+                    dictionarySetter = AllTypes::setColumnShortDictionary,
+                    requiredDictionaryGetter = AllTypes::getColumnRequiredShortDictionary,
+                    initializedDictionary = RealmDictionary<Short>().init(listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toShort(), KEY_BYE to VALUE_NUMERIC_BYE.toShort(), KEY_NULL to null)),
+                    alternativeDictionary = RealmDictionary<Short>().init(listOf(KEY_HELLO to VALUE_NUMERIC_BYE.toShort(), KEY_BYE to VALUE_NUMERIC_HELLO.toShort(), KEY_NULL to null)),
+                    populatedGetter = PopulatedDictionaryClass::populatedShortDictionary
+            ),
+            ManagedDictionaryTester(
+                    testerClass = "Byte",
+                    dictionaryGetter = AllTypes::getColumnByteDictionary,
+                    dictionarySetter = AllTypes::setColumnByteDictionary,
+                    requiredDictionaryGetter = AllTypes::getColumnRequiredByteDictionary,
+                    initializedDictionary = RealmDictionary<Byte>().init(listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toByte(), KEY_BYE to VALUE_NUMERIC_BYE.toByte(), KEY_NULL to null)),
+                    alternativeDictionary = RealmDictionary<Byte>().init(listOf(KEY_HELLO to VALUE_NUMERIC_BYE.toByte(), KEY_BYE to VALUE_NUMERIC_HELLO.toByte(), KEY_NULL to null)),
+                    populatedGetter = PopulatedDictionaryClass::populatedByteDictionary
+            ),
+            ManagedDictionaryTester(
+                    testerClass = "Float",
+                    dictionaryGetter = AllTypes::getColumnFloatDictionary,
+                    dictionarySetter = AllTypes::setColumnFloatDictionary,
+                    requiredDictionaryGetter = AllTypes::getColumnRequiredFloatDictionary,
+                    initializedDictionary = RealmDictionary<Float>().init(listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toFloat(), KEY_BYE to VALUE_NUMERIC_BYE.toFloat(), KEY_NULL to null)),
+                    alternativeDictionary = RealmDictionary<Float>().init(listOf(KEY_HELLO to VALUE_NUMERIC_BYE.toFloat(), KEY_BYE to VALUE_NUMERIC_HELLO.toFloat(), KEY_NULL to null)),
+                    populatedGetter = PopulatedDictionaryClass::populatedFloatDictionary
+            ),
+            ManagedDictionaryTester(
+                    testerClass = "Double",
+                    dictionaryGetter = AllTypes::getColumnDoubleDictionary,
+                    dictionarySetter = AllTypes::setColumnDoubleDictionary,
+                    requiredDictionaryGetter = AllTypes::getColumnRequiredDoubleDictionary,
+                    initializedDictionary = RealmDictionary<Double>().init(listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toDouble(), KEY_BYE to VALUE_NUMERIC_BYE.toDouble(), KEY_NULL to null)),
+                    alternativeDictionary = RealmDictionary<Double>().init(listOf(KEY_HELLO to VALUE_NUMERIC_BYE.toDouble(), KEY_BYE to VALUE_NUMERIC_HELLO.toDouble(), KEY_NULL to null)),
+                    populatedGetter = PopulatedDictionaryClass::populatedDoubleDictionary
+            ),
+            ManagedDictionaryTester(
+                    testerClass = "String",
+                    dictionaryGetter = AllTypes::getColumnStringDictionary,
+                    dictionarySetter = AllTypes::setColumnStringDictionary,
+                    requiredDictionaryGetter = AllTypes::getColumnRequiredStringDictionary,
+                    initializedDictionary = RealmDictionary<String>().init(listOf(KEY_HELLO to VALUE_STRING_HELLO, KEY_BYE to VALUE_STRING_BYE, KEY_NULL to null)),
+                    alternativeDictionary = RealmDictionary<String>().init(listOf(KEY_HELLO to VALUE_STRING_BYE, KEY_BYE to VALUE_STRING_HELLO, KEY_NULL to null)),
+                    populatedGetter = PopulatedDictionaryClass::populatedStringDictionary
+            ),
+            ManagedDictionaryTester(
+                    testerClass = "String-NonLatin",
+                    dictionaryGetter = AllTypes::getColumnStringDictionary,
+                    dictionarySetter = AllTypes::setColumnStringDictionary,
+                    requiredDictionaryGetter = AllTypes::getColumnRequiredStringDictionary,
+                    initializedDictionary = RealmDictionary<String>().init(listOf(KEY_HELLO_NON_LATIN to VALUE_STRING_NON_LATIN_HELLO, KEY_BYE_NON_LATIN to VALUE_STRING_NON_LATIN_BYE, KEY_NULL_NON_LATIN to null)),
+                    alternativeDictionary = RealmDictionary<String>().init(listOf(KEY_HELLO_NON_LATIN to VALUE_STRING_NON_LATIN_BYE, KEY_BYE_NON_LATIN to VALUE_STRING_NON_LATIN_HELLO, KEY_NULL_NON_LATIN to null)),
+                    populatedGetter = PopulatedDictionaryClass::populatedStringDictionary
+            ),
+            ManagedDictionaryTester(
+                    testerClass = "Boolean",
+                    dictionaryGetter = AllTypes::getColumnBooleanDictionary,
+                    dictionarySetter = AllTypes::setColumnBooleanDictionary,
+                    requiredDictionaryGetter = AllTypes::getColumnRequiredBooleanDictionary,
+                    initializedDictionary = RealmDictionary<Boolean>().init(listOf(KEY_HELLO to VALUE_BOOLEAN_HELLO, KEY_BYE to VALUE_BOOLEAN_BYE, KEY_NULL to null)),
+                    alternativeDictionary = RealmDictionary<Boolean>().init(listOf(KEY_HELLO to VALUE_BOOLEAN_BYE, KEY_BYE to VALUE_BOOLEAN_HELLO, KEY_NULL to null)),
+                    populatedGetter = PopulatedDictionaryClass::populatedBooleanDictionary
+            ),
+            ManagedDictionaryTester(
+                    testerClass = "Date",
+                    dictionaryGetter = AllTypes::getColumnDateDictionary,
+                    dictionarySetter = AllTypes::setColumnDateDictionary,
+                    requiredDictionaryGetter = AllTypes::getColumnRequiredDateDictionary,
+                    initializedDictionary = RealmDictionary<Date>().init(listOf(KEY_HELLO to VALUE_DATE_HELLO, KEY_BYE to VALUE_DATE_BYE, KEY_NULL to null)),
+                    alternativeDictionary = RealmDictionary<Date>().init(listOf(KEY_HELLO to VALUE_DATE_BYE, KEY_BYE to VALUE_DATE_HELLO, KEY_NULL to null)),
+                    populatedGetter = PopulatedDictionaryClass::populatedDateDictionary
+            ),
+            ManagedDictionaryTester(
+                    testerClass = "Decimal128",
+                    dictionaryGetter = AllTypes::getColumnDecimal128Dictionary,
+                    dictionarySetter = AllTypes::setColumnDecimal128Dictionary,
+                    requiredDictionaryGetter = AllTypes::getColumnRequiredDecimal128Dictionary,
+                    initializedDictionary = RealmDictionary<Decimal128>().init(listOf(KEY_HELLO to VALUE_DECIMAL128_HELLO, KEY_BYE to VALUE_DECIMAL128_BYE, KEY_NULL to null)),
+                    alternativeDictionary = RealmDictionary<Decimal128>().init(listOf(KEY_HELLO to VALUE_DECIMAL128_BYE, KEY_BYE to VALUE_DECIMAL128_HELLO, KEY_NULL to null)),
+                    populatedGetter = PopulatedDictionaryClass::populatedDecimal128Dictionary
+            ),
+            ManagedDictionaryTester(
+                    testerClass = "ByteArray",
+                    dictionaryGetter = AllTypes::getColumnBinaryDictionary,
+                    dictionarySetter = AllTypes::setColumnBinaryDictionary,
+                    requiredDictionaryGetter = AllTypes::getColumnRequiredBinaryDictionary,
+                    initializedDictionary = RealmDictionary<ByteArray>().init(listOf(KEY_HELLO to VALUE_BINARY_HELLO, KEY_BYE to VALUE_BINARY_BYE, KEY_NULL to null)),
+                    alternativeDictionary = RealmDictionary<ByteArray>().init(listOf(KEY_HELLO to VALUE_BINARY_BYE, KEY_BYE to VALUE_BINARY_HELLO, KEY_NULL to null)),
+                    populatedGetter = PopulatedDictionaryClass::populatedBinaryDictionary,
+                    typeAsserter = BinaryAsserter()
+            ),
+            ManagedDictionaryTester(
+                    testerClass = "ObjectId",
+                    dictionaryGetter = AllTypes::getColumnObjectIdDictionary,
+                    dictionarySetter = AllTypes::setColumnObjectIdDictionary,
+                    requiredDictionaryGetter = AllTypes::getColumnRequiredObjectIdDictionary,
+                    initializedDictionary = RealmDictionary<ObjectId>().init(listOf(KEY_HELLO to VALUE_OBJECT_ID_HELLO, KEY_BYE to VALUE_OBJECT_ID_BYE, KEY_NULL to null)),
+                    alternativeDictionary = RealmDictionary<ObjectId>().init(listOf(KEY_HELLO to VALUE_OBJECT_ID_BYE, KEY_BYE to VALUE_OBJECT_ID_HELLO, KEY_NULL to null)),
+                    populatedGetter = PopulatedDictionaryClass::populatedObjectIdDictionary
+            ),
+            ManagedDictionaryTester(
+                    testerClass = "UUID",
+                    dictionaryGetter = AllTypes::getColumnUUIDDictionary,
+                    dictionarySetter = AllTypes::setColumnUUIDDictionary,
+                    requiredDictionaryGetter = AllTypes::getColumnRequiredUUIDDictionary,
+                    initializedDictionary = RealmDictionary<UUID>().init(listOf(KEY_HELLO to VALUE_UUID_HELLO, KEY_BYE to VALUE_UUID_BYE, KEY_NULL to null)),
+                    alternativeDictionary = RealmDictionary<UUID>().init(listOf(KEY_HELLO to VALUE_UUID_BYE, KEY_BYE to VALUE_UUID_HELLO, KEY_NULL to null)),
+                    populatedGetter = PopulatedDictionaryClass::populatedUUIDDictionary
+            ),
             ManagedDictionaryTester(
                     testerClass = "DogPrimaryKey",
                     dictionaryGetter = AllTypes::getColumnRealmDictionary,
@@ -722,10 +741,20 @@ fun managedFactory(): List<DictionaryTester> {
                 populatedGetter = PopulatedDictionaryClass::populatedMixedDictionary,
                 typeAsserter = MixedAsserter()
         )
-    }
+    }.plus(
+            ManagedDictionaryTester(
+                    testerClass = "Mixed-NonLatin",
+                    mixedType = MixedType.STRING,
+                    dictionaryGetter = AllTypes::getColumnMixedDictionary,
+                    dictionarySetter = AllTypes::setColumnMixedDictionary,
+                    initializedDictionary = RealmDictionary<Mixed>().init(listOf(KEY_HELLO_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_BYE, KEY_BYE_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_HELLO, KEY_NULL_NON_LATIN to null)),
+                    alternativeDictionary = RealmDictionary<Mixed>().init(listOf(KEY_HELLO_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_HELLO, KEY_BYE_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_BYE, KEY_NULL_NON_LATIN to null)),
+                    populatedGetter = PopulatedDictionaryClass::populatedMixedDictionary,
+                    typeAsserter = MixedAsserter()
+            )
+    )
 
-//    return primitiveTesters.plus(mixedTesters)
-    return primitiveTesters
+    return primitiveTesters.plus(mixedTesters)
 }
 
 /**
@@ -771,6 +800,7 @@ open class TypeAsserter<T> {
             assertEquals(value, valueFromRealm)
 
     fun assertChangeListenerUpdates(
+            testerClass: String,
             operation: ChangeListenerOperation,
             looperThread: BlockingLooperThread,
             looperThreadRealm: Realm,
@@ -799,11 +829,19 @@ open class TypeAsserter<T> {
                 }
             }
             ChangeListenerOperation.UPDATE -> {
-                assertEqualsHelper(
-                        looperThreadRealm,
-                        initializedDictionary[KEY_BYE],
-                        mapFromChangeListener[KEY_HELLO]
-                )
+                if (testerClass == "String-NonLatin" || testerClass == "Mixed-NonLatin") {
+                    assertEqualsHelper(
+                            looperThreadRealm,
+                            initializedDictionary[KEY_BYE_NON_LATIN],
+                            mapFromChangeListener[KEY_HELLO_NON_LATIN]
+                    )
+                } else {
+                    assertEqualsHelper(
+                            looperThreadRealm,
+                            initializedDictionary[KEY_BYE],
+                            mapFromChangeListener[KEY_HELLO]
+                    )
+                }
                 if (changes != null) {
                     assertEquals(1, changes.changes.size)
                 }
