@@ -504,7 +504,11 @@ public class RealmQuery<E> {
         } else {
             Mixed[] mixedValues = new Mixed[values.length];
             for (int i = 0; i < values.length; i++) {
-                mixedValues[i] = Mixed.valueOf(values[i]);
+                if (values[i] != null) {
+                    mixedValues[i] = Mixed.valueOf(values[i]);
+                } else {
+                    mixedValues[i] = null;
+                }
             }
 
             if (casing == Case.SENSITIVE) {
