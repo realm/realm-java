@@ -3054,11 +3054,10 @@ public class RealmQueryTests extends QueryTests {
             } else {
                 // Test that unsupported types throw exception as expected
                 try {
-//                    if (((type.getNativeValue() & RealmFieldTypeConstants.LIST_OFFSET) == 0) && (type != RealmFieldType.LIST)) // FIXME: LISTS CRASHES REALM EXCEPTION
                         realm.where(AllTypes.class)
                                 .distinct(field)
                                 .findAll();
-                } catch (IllegalArgumentException ignore) {
+                } catch (IllegalStateException ignore) { // Not distinct not supported on lists
                 }
             }
             types.remove(type);
@@ -3066,9 +3065,6 @@ public class RealmQueryTests extends QueryTests {
 
         // Verify that we have tested all field types except LinkingObjects which is not part of
         // the schema lookup
-
-
-        // FIXME: NOT WORKING BACKLINKS
         assertEquals(types.toString(), Sets.newSet(RealmFieldType.LINKING_OBJECTS), types);
         // So verify Linking explicitly
         RealmResults<AllTypes> distinct = realm.where(AllTypes.class)
@@ -3078,19 +3074,19 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4477")
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4524")
     public void distinct_allFields() {
         distinctAllFields(realm, "");
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4477")
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4524")
     public void distinct_linkedAllFields() {
         distinctAllFields(realm, AllTypes.FIELD_REALMLINK + ".");
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4477")
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4524")
     public void distinct_nestedLinkedAllFields() {
         distinctAllFields(realm, AllTypes.FIELD_REALMLINK + "." + AllTypes.FIELD_REALMLINK + ".");
     }
