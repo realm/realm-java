@@ -1936,7 +1936,7 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Condition that value of field contains the specified key.
+     * Condition that value if a dictionary field contains the specified key.
      *
      * @param fieldName the field to compare.
      * @param key       the key to search for.
@@ -1950,7 +1950,7 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Condition that value of field contains the specified value.
+     * Condition that value if dictionary field contains the specified value.
      *
      * @param fieldName the field to compare.
      * @param value     the value to search for.
@@ -1964,7 +1964,7 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Condition that value of field contains the specified value.
+     * Condition that value if dictionary field contains the specified value.
      *
      * @param fieldName the field to compare.
      * @param value     the value to search for.
@@ -1978,7 +1978,7 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Condition that value of field contains the specified value.
+     * Condition that value if dictionary field contains the specified value.
      *
      * @param fieldName the field to compare.
      * @param value     the value to search for.
@@ -1992,7 +1992,7 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Condition that find maps that contain the specified values.
+     * Condition that value if dictionary field contains the specified value.
      *
      * @param fieldName the field to compare.
      * @param value     the value to search for
@@ -2006,7 +2006,7 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Condition that value of field contains the specified value.
+     * Condition that value if dictionary field contains the specified value.
      *
      * @param fieldName the field to compare.
      * @param value     the value to search for.
@@ -2020,7 +2020,7 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Condition that value of field contains the specified value.
+     * Condition that value if dictionary field contains the specified value.
      *
      * @param fieldName the field to compare.
      * @param value     the value to search for.
@@ -2034,7 +2034,7 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Condition that value of field contains the specified value.
+     * Condition that value if dictionary field contains the specified value.
      *
      * @param fieldName the field to compare.
      * @param value     the value to search for.
@@ -2048,7 +2048,7 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Condition that value of field contains the specified value.
+     * Condition that value if dictionary field contains the specified value.
      *
      * @param fieldName the field to compare.
      * @param value     the value to search for.
@@ -2062,7 +2062,7 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Condition that value of field contains the specified value.
+     * Condition that value if dictionary field contains the specified value.
      *
      * @param fieldName the field to compare.
      * @param value     the value to search for.
@@ -2076,7 +2076,7 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Condition that value of field contains the specified value.
+     * Condition that value if dictionary field contains the specified value.
      *
      * @param fieldName the field to compare.
      * @param value     the value to search for.
@@ -2090,7 +2090,7 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Condition that value of field contains the specified value.
+     * Condition that value if dictionary field contains the specified value.
      *
      * @param fieldName the field to compare.
      * @param value     the value to search for.
@@ -2104,7 +2104,7 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Condition that value of field contains the specified value.
+     * Condition that value if dictionary field contains the specified value.
      *
      * @param fieldName the field to compare.
      * @param value     the value to search for.
@@ -2118,7 +2118,7 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Condition that value of field contains the specified value.
+     * Condition that value if dictionary field contains the specified value.
      *
      * @param fieldName the field to compare.
      * @param value     the value to search for.
@@ -2132,7 +2132,7 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Condition that value of field contains the specified value.
+     * Condition that value if dictionary field contains the specified value.
      *
      * @param fieldName the field to compare.
      * @param value     the value to search for.
@@ -2146,7 +2146,21 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Condition that value of field contains the specified entry.
+     * Condition that value if dictionary field contains the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsValue(String fieldName, RealmModel value) {
+        realm.checkIfValid();
+        this.query.containsValue(fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that value if dictionary field contains the specified entry.
      *
      * @param fieldName the field to compare.
      * @param entry     the entry to search for.

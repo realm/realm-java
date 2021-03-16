@@ -501,7 +501,7 @@ public class Mixed {
 
             return Mixed.valueOf((RealmModel) model);
         } else {
-            throw new IllegalArgumentException("Unsupported query argument type: " + value.getClass().getSimpleName());
+            throw new IllegalArgumentException("Type not supported on Mixed: " + value.getClass().getSimpleName());
         }
     }
 
