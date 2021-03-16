@@ -372,7 +372,11 @@ public class TableQuery implements NativeObject {
     public TableQuery in(String fieldName, Mixed[] values) {
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
-            or().equalTo(fieldName, values[i]);
+            if(values[i] == null){
+                or().isNull(fieldName);
+            } else {
+                or().equalTo(fieldName, values[i]);
+            }
         }
         endGroup();
 
@@ -383,7 +387,11 @@ public class TableQuery implements NativeObject {
     public TableQuery inInsensitive(String fieldName, Mixed[] values) {
         beginGroup().equalToInsensitive(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
-            or().equalToInsensitive(fieldName, values[i]);
+            if(values[i] == null){
+                or().isNull(fieldName);
+            } else {
+                or().equalToInsensitive(fieldName, values[i]);
+            }
         }
         endGroup();
 
@@ -450,6 +458,10 @@ public class TableQuery implements NativeObject {
     }
 
     // Double aggregation
+    public double sumMixed(long columnKey) {
+        validateQuery();
+        return nativeSumMixed(nativePtr, columnKey);
+    }
 
     public double sumDouble(long columnKey) {
         validateQuery();
@@ -471,14 +483,29 @@ public class TableQuery implements NativeObject {
         return nativeMaximumDouble(nativePtr, columnKey);
     }
 
+    public Double maximumMixed(long columnKey) {
+        validateQuery();
+        return nativeMaximumMixed(nativePtr, columnKey);
+    }
+
     public Double minimumDouble(long columnKey) {
         validateQuery();
         return nativeMinimumDouble(nativePtr, columnKey);
     }
 
+    public Double minimumMixed(long columnKey) {
+        validateQuery();
+        return nativeMinimumMixed(nativePtr, columnKey);
+    }
+
     public double averageDouble(long columnKey) {
         validateQuery();
         return nativeAverageDouble(nativePtr, columnKey);
+    }
+
+    public double averageMixed(long columnKey) {
+        validateQuery();
+        return nativeAverageMixed(nativePtr, columnKey);
     }
 
     public Decimal128 averageDecimal128(long columnKey) {
@@ -570,17 +597,25 @@ public class TableQuery implements NativeObject {
 
     private native double nativeAverageFloat(long nativeQueryPtr, long columnKey);
 
+    private native double nativeSumMixed(long nativeQueryPtr, long columnKey);
+
     private native double nativeSumDouble(long nativeQueryPtr, long columnKey);
 
     private native long[] nativeSumDecimal128(long nativeQueryPtr, long columnKey);
 
     private native Double nativeMaximumDouble(long nativeQueryPtr, long columnKey);
 
+    private native Double nativeMaximumMixed(long nativeQueryPtr, long columnKey);
+
     private native long[] nativeMaximumDecimal128(long nativeQueryPtr, long columnKey);
+
+    private native Double nativeMinimumMixed(long nativeQueryPtr, long columnKey);
 
     private native Double nativeMinimumDouble(long nativeQueryPtr, long columnKey);
 
     private native long[] nativeMinimumDecimal128(long nativeQueryPtr, long columnKey);
+
+    private native double nativeAverageMixed(long nativeQueryPtr, long columnKey);
 
     private native double nativeAverageDouble(long nativeQueryPtr, long columnKey);
 
