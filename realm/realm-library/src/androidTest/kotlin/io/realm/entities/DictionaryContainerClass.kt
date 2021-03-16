@@ -19,6 +19,7 @@ package io.realm.entities
 import io.realm.Mixed
 import io.realm.RealmDictionary
 import io.realm.RealmObject
+import io.realm.entities.embedded.EmbeddedSimpleChild
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import java.util.*
@@ -44,4 +45,8 @@ open class DictionaryContainerClass : RealmObject() {
     companion object {
         const val CLASS_NAME = "DictionaryContainerClass"
     }
+}
+
+open class EmbeddedObjectDictionaryContainerClass : RealmObject() {
+    val myEmbeddedObjectDictionary = RealmDictionary<EmbeddedSimpleChild>()
 }

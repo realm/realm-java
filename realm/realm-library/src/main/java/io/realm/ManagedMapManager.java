@@ -18,6 +18,8 @@ package io.realm;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -32,8 +34,10 @@ import io.realm.internal.ObserverPairList;
 import io.realm.internal.OsMap;
 import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
+import io.realm.internal.Util;
 import io.realm.internal.core.NativeMixed;
 import io.realm.internal.util.Pair;
 
@@ -577,13 +581,21 @@ class RealmModelValueOperator<K, V> extends MapValueOperator<K, V> {
         } else {
             if (className == null) {
                 if (clazz == null) {
-                    throw new IllegalStateException("Missing clazz.");
+                    throw new IllegalStateException("Missing both class and class string.");
                 }
                 className = clazz.getCanonicalName();
             }
-            boolean copyObject = CollectionUtils.checkCanObjectBeCopied(baseRealm, (RealmModel) value, className);
-            RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, (RealmModel) value) : (RealmModel) value);
-            osMap.putRow(key, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
+
+            //noinspection unchecked
+            boolean isEmbedded = baseRealm.getSchema().getSchemaForClass((Class<? extends RealmModel>) clazz).isEmbedded();
+            if (isEmbedded) {
+                long objKey = osMap.createAndPutEmbeddedObject(key);
+                CollectionUtils.updateEmbeddedObject((Realm) baseRealm, (RealmModel) value, objKey);
+            } else {
+                boolean copyObject = CollectionUtils.checkCanObjectBeCopied(baseRealm, (RealmModel) value, className);
+                RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, (RealmModel) value) : (RealmModel) value);
+                osMap.putRow(key, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
+            }
         }
 
         if (rowModelKey == OsMap.NOT_FOUND) {

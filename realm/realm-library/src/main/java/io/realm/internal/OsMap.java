@@ -217,8 +217,8 @@ public class OsMap implements NativeObject {
         return nativeGetMixedPtr(nativePtr, (String) key);
     }
 
-    public long createAndPutEmbeddedObject(OsSharedRealm sharedRealm, Object key) {
-        return nativeCreateAndPutEmbeddedObject(sharedRealm.getNativePtr(), nativePtr, (String) key);
+    public long createAndPutEmbeddedObject(Object key) {
+        return nativeCreateAndPutEmbeddedObject(nativePtr, (String) key);
     }
 
     public <K> Pair<K, Object> getEntryForPrimitive(int position) {
@@ -315,7 +315,7 @@ public class OsMap implements NativeObject {
 
     private static native long nativeFreeze(long nativePtr, long realmPtr);
 
-    private static native long nativeCreateAndPutEmbeddedObject(long sharedRealmPtr, long nativePtr, String key);
+    private static native long nativeCreateAndPutEmbeddedObject(long nativePtr, String key);
 
     private static native Object[] nativeGetEntryForModel(long nativePtr, int position);
 
