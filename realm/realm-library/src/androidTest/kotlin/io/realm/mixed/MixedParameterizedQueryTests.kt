@@ -122,32 +122,32 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
                 ParameterizedTest(
                         MixedParameterizedQueryTests::equalTo,
                         arrayOf(4.toByte()),
-                        arrayOf(4, 4, 4, 4)
+                        arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::equalTo,
                         arrayOf(4.toShort()),
-                        arrayOf(4, 4, 4, 4)
+                        arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::equalTo,
                         arrayOf(4.toInt()),
-                        arrayOf(4, 4, 4, 4)
+                        arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::equalTo,
                         arrayOf(4.toLong()),
-                        arrayOf(4, 4, 4, 4)
+                        arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::equalTo,
                         arrayOf(4.toFloat()),
-                        arrayOf(4.toFloat())
+                        arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::equalTo,
                         arrayOf(4.toDouble()),
-                        arrayOf(4.toDouble())
+                        arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::equalTo,
@@ -167,7 +167,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
                 ParameterizedTest(
                         MixedParameterizedQueryTests::equalTo,
                         arrayOf(Decimal128(4)),
-                        arrayOf(Decimal128(4))
+                        arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::equalTo,
@@ -193,32 +193,32 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
                 ParameterizedTest(
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf(4.toByte()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.1, 4.2, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf(4.toShort()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf(4.toInt()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf(4.toLong()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf(4.4.toFloat()),
-                        arrayOf(4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat())
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.0, 4.1, 4.2, 4.3, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::notEqualTo,
-                        arrayOf(4.3.toDouble()),
-                        arrayOf(4.0.toDouble(), 4.1.toDouble(), 4.2.toDouble(), 4.4.toDouble(), 4.5.toDouble(), 4.6.toDouble(), 4.7.toDouble(), 4.8.toDouble(), 4.9.toDouble())
+                        arrayOf(4.3),
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.0, 4.1, 4.2, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::notEqualTo,
@@ -241,7 +241,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
                 ParameterizedTest(
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf(Decimal128(4)),
-                        arrayOf(Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::notEqualTo,
@@ -287,8 +287,8 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::greaterThan,
-                        arrayOf(4.4.toDouble()),
-                        arrayOf(4.5.toDouble(), 4.6.toDouble(), 4.7.toDouble(), 4.8.toDouble(), 4.9.toDouble())
+                        arrayOf(4.4),
+                        arrayOf(4.5, 4.6, 4.7, 4.8, 4.9)
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::greaterThan,
@@ -297,8 +297,8 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::greaterThan,
-                        arrayOf(Decimal128(1)),
-                        arrayOf(Decimal128(2), Decimal128(3), Decimal128(4))
+                        arrayOf(Decimal128(3)),
+                        arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.0, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::greaterThan,
@@ -334,12 +334,12 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
                 ParameterizedTest(
                         MixedParameterizedQueryTests::greaterThanOrEqualTo,
                         arrayOf(4.5.toFloat()),
-                        arrayOf(4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat())
+                        arrayOf(4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::greaterThanOrEqualTo,
-                        arrayOf(4.4.toDouble()),
-                        arrayOf(4.4.toDouble(), 4.5.toDouble(), 4.6.toDouble(), 4.7.toDouble(), 4.8.toDouble(), 4.9.toDouble())
+                        arrayOf(4.4),
+                        arrayOf(4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::greaterThanOrEqualTo,
@@ -348,8 +348,8 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::greaterThanOrEqualTo,
-                        arrayOf(Decimal128(1)),
-                        arrayOf(Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
+                        arrayOf(Decimal128(3)),
+                        arrayOf(3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.0, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, Decimal128(3), Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::greaterThanOrEqualTo,
@@ -365,32 +365,32 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
                 ParameterizedTest(
                         MixedParameterizedQueryTests::lessThan,
                         arrayOf(4.toByte()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3)
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::lessThan,
                         arrayOf(4.toShort()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3)
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::lessThan,
                         arrayOf(4.toInt()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3)
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::lessThan,
                         arrayOf(4.toLong()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3)
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::lessThan,
                         arrayOf(4.5.toFloat()),
-                        arrayOf(4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat())
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.0, 4.1, 4.2, 4.3, 4.4, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::lessThan,
-                        arrayOf(4.3.toDouble()),
-                        arrayOf(4.0.toDouble(), 4.1.toDouble(), 4.2.toDouble())
+                        arrayOf(4.3),
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.0, 4.1, 4.2, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::lessThan,
@@ -400,7 +400,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
                 ParameterizedTest(
                         MixedParameterizedQueryTests::lessThan,
                         arrayOf(Decimal128(3)),
-                        arrayOf(Decimal128(0), Decimal128(1), Decimal128(2))
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, Decimal128(0), Decimal128(1), Decimal128(2))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::lessThan,
@@ -416,37 +416,37 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
                 ParameterizedTest(
                         MixedParameterizedQueryTests::lessThanOrEqualTo,
                         arrayOf(4.toByte()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4)
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::lessThanOrEqualTo,
                         arrayOf(4.toShort()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4)
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::lessThanOrEqualTo,
                         arrayOf(4.toInt()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4)
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::lessThanOrEqualTo,
                         arrayOf(4.toLong()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4)
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::lessThanOrEqualTo,
                         arrayOf(4.5.toFloat()),
-                        arrayOf(4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat())
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.0, 4.1, 4.2, 4.3, 4.4, 4.5, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::lessThanOrEqualTo,
-                        arrayOf(4.3.toDouble()),
-                        arrayOf(4.0.toDouble(), 4.1.toDouble(), 4.2.toDouble(), 4.3.toDouble())
+                        arrayOf(4.3),
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.0, 4.1, 4.2, 4.3, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::lessThanOrEqualTo,
                         arrayOf(Date(3)),
-                        arrayOf(Date(0), Date(1), Date(2), Date(3))
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, Date(0), Date(1), Date(2), Date(3))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::lessThanOrEqualTo,
@@ -472,32 +472,32 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
                 ParameterizedTest(
                         MixedParameterizedQueryTests::`in`,
                         arrayOf(arrayOf(4.toByte(), 2.toByte(), 5.toByte(), 22.toByte(), null)),
-                        arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5)
+                        arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, Decimal128(2), Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::`in`,
                         arrayOf(arrayOf(4.toShort(), 2.toShort(), 5.toShort(), 22.toShort(), null)),
-                        arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5)
+                        arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, Decimal128(2), Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::`in`,
                         arrayOf(arrayOf(4.toInt(), 2.toInt(), 5.toInt(), 22.toInt(), null)),
-                        arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5)
+                        arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, Decimal128(2), Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::`in`,
                         arrayOf(arrayOf(4.toLong(), 2.toLong(), 5.toLong(), 22.toLong(), null)),
-                        arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5)
+                        arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, Decimal128(2), Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::`in`,
                         arrayOf(arrayOf(4.8.toFloat(), 8.1.toFloat(), 4.3.toFloat(), 4.0.toFloat(), 4.7.toFloat(), null)),
-                        arrayOf(4.0.toFloat(), 4.3.toFloat(), 4.7.toFloat(), 4.8.toFloat())
+                        arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.3.toFloat(), 4.7.toFloat(), 4.8.toFloat(), Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::`in`,
-                        arrayOf(arrayOf(4.8.toDouble(), 8.1.toDouble(), 4.3.toDouble(), 4.0.toDouble(), 4.7.toDouble(), null)),
-                        arrayOf(4.0.toDouble(), 4.3.toDouble(), 4.7.toDouble(), 4.8.toDouble())
+                        arrayOf(arrayOf(4.8, 8.1, 4.3, 4.0, 4.7, null)),
+                        arrayOf(4, 4, 4, 4, 4.0, 4.3, 4.7, 4.8, Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::`in`,
@@ -527,7 +527,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
                 ParameterizedTest(
                         MixedParameterizedQueryTests::`in`,
                         arrayOf(arrayOf(null, Decimal128(100), Decimal128(3), Decimal128(2))),
-                        arrayOf(Decimal128(2), Decimal128(3))
+                        arrayOf(2, 2, 2, 2, 3, 3, 3, 3, Decimal128(2), Decimal128(3))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::`in`,
@@ -563,12 +563,12 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
                 ParameterizedTest(
                         MixedParameterizedQueryTests::between,
                         arrayOf(4.51.toFloat(), 4.89.toFloat()),
-                        arrayOf(4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat())
+                        arrayOf(4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.6, 4.7, 4.8)
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::between,
-                        arrayOf(4.49.toDouble(), 4.89.toDouble()),
-                        arrayOf(4.5.toDouble(), 4.6.toDouble(), 4.7.toDouble(), 4.8.toDouble())
+                        arrayOf(4.49, 4.89),
+                        arrayOf(4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.5, 4.6, 4.7, 4.8)
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::between,
@@ -578,7 +578,7 @@ class MixedParameterizedQueryTests(val test: ParameterizedTest) {
                 ParameterizedTest(
                         MixedParameterizedQueryTests::between,
                         arrayOf(Decimal128(2), Decimal128(4)),
-                        arrayOf(Decimal128(2), Decimal128(3), Decimal128(4))
+                        arrayOf(2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 ParameterizedTest(
                         MixedParameterizedQueryTests::between,
