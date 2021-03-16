@@ -16,7 +16,6 @@
 
 package io.realm.entities
 
-import androidx.annotation.Nullable
 import io.realm.*
 import io.realm.annotations.PrimaryKey
 import io.realm.annotations.RealmField
@@ -113,7 +112,23 @@ open class SyncAllTypes : RealmObject() {
     @Required
     var columnUUIDList: RealmList<UUID> = RealmList()
 
-    var columnMixedList: RealmList<Mixed>? = null
+    var columnMixedList: RealmList<Mixed> = RealmList()
+
+    var columnRealmDictionary: RealmDictionary<SyncDog> = RealmDictionary()
+    var columnBooleanDictionary: RealmDictionary<Boolean> = RealmDictionary()
+    var columnStringDictionary: RealmDictionary<String> = RealmDictionary()
+    var columnIntegerDictionary: RealmDictionary<Int> = RealmDictionary()
+    var columnFloatDictionary: RealmDictionary<Float> = RealmDictionary()
+    var columnLongDictionary: RealmDictionary<Long> = RealmDictionary()
+    var columnShortDictionary: RealmDictionary<Short> = RealmDictionary()
+    var columnDoubleDictionary: RealmDictionary<Double> = RealmDictionary()
+    var columnByteDictionary: RealmDictionary<Byte> = RealmDictionary()
+    var columnBinaryDictionary: RealmDictionary<ByteArray> = RealmDictionary()
+    var columnDateDictionary: RealmDictionary<Date> = RealmDictionary()
+    var columnObjectIdDictionary: RealmDictionary<ObjectId> = RealmDictionary()
+    var columnUUIDDictionary: RealmDictionary<UUID> = RealmDictionary()
+    var columnDecimal128Dictionary: RealmDictionary<Decimal128> = RealmDictionary()
+    var columnMixedDictionary: RealmDictionary<Mixed> = RealmDictionary()
 
     fun setColumnMutableRealmInteger(value: Int) {
         columnRealmInteger.set(value.toLong())

@@ -551,6 +551,18 @@ class SyncedRealmTests {
                 Mixed.valueOf(UUID.randomUUID())
         )
 
+        val expectedRealmDict = RealmDictionary<SyncDog>()
+        val expectedStringDict = RealmDictionary<String>().init(listOf("key" to expectedString))
+        val expectedBinaryDict = RealmDictionary<ByteArray>().init(listOf("key" to expectedBinary))
+        val expectedBooleanDict = RealmDictionary<Boolean>().init(listOf("key" to expectedBoolean))
+        val expectedLongDict = RealmDictionary<Long>().init(listOf("key" to expectedLong))
+        val expectedDoubleDict = RealmDictionary<Double>().init(listOf("key" to expectedDouble))
+        val expectedDateDict = RealmDictionary<Date>().init(listOf("key" to expectedDate))
+        val expectedDecimal128Dict = RealmDictionary<Decimal128>().init(listOf("key" to expectedDecimal128))
+        val expectedObjectIdDict = RealmDictionary<ObjectId>().init(listOf("key" to expectedObjectId))
+        val expectedUUIDDict = RealmDictionary<UUID>().init(listOf("key" to expectedUUID))
+        val expectedMixedDict = RealmDictionary<Mixed>().init(listOf("key" to expectedMixed))
+
         Realm.getInstance(config1).use { realm ->
             realm.executeTransaction {
                 expectedRealmObject = realm.copyToRealmOrUpdate(expectedRealmObject)
@@ -569,6 +581,7 @@ class SyncedRealmTests {
                     columnMixed = expectedMixed
                     columnRealmInteger.set(expectedRealmInteger)
                     columnRealmObject = expectedRealmObject
+
                     columnRealmList = expectedRealmList
                     columnStringList = expectedStringList
                     columnBinaryList = expectedBinaryList
@@ -580,6 +593,18 @@ class SyncedRealmTests {
                     columnObjectIdList = expectedObjectIdList
                     columnUUIDList = expectedUUIDList
                     columnMixedList = expectedMixedList
+
+                    columnRealmDictionary = expectedRealmDict
+                    columnStringDictionary = expectedStringDict
+                    columnBinaryDictionary = expectedBinaryDict
+                    columnBooleanDictionary = expectedBooleanDict
+                    columnLongDictionary = expectedLongDict
+                    columnDoubleDictionary = expectedDoubleDict
+                    columnDateDictionary = expectedDateDict
+                    columnDecimal128Dictionary = expectedDecimal128Dict
+                    columnObjectIdDictionary = expectedObjectIdDict
+                    columnUUIDDictionary = expectedUUIDDict
+                    columnMixedDictionary = expectedMixedDict
                 }
             }
             realm.syncSession.uploadAllLocalChanges()
@@ -624,6 +649,18 @@ class SyncedRealmTests {
                 assertEquals(expectedObjectIdList, it.columnObjectIdList)
                 assertEquals(expectedUUIDList, it.columnUUIDList)
                 assertEquals(expectedMixedList, it.columnMixedList)
+
+                assertEquals(expectedObjectId, it.columnRealmDictionary["key"]!!.id)
+                assertEquals(expectedString, it.columnStringDictionary["key"])
+                assertTrue(Arrays.equals(expectedBinary, it.columnBinaryDictionary["key"]))
+                assertEquals(expectedBoolean, it.columnBooleanDictionary["key"])
+                assertEquals(expectedLong, it.columnLongDictionary["key"])
+                assertEquals(expectedDouble, it.columnDoubleDictionary["key"])
+                assertEquals(expectedDate, it.columnDateDictionary["key"])
+                assertEquals(expectedDecimal128, it.columnDecimal128Dictionary["key"])
+                assertEquals(expectedObjectId, it.columnObjectIdDictionary["key"])
+                assertEquals(expectedUUID, it.columnUUIDDictionary["key"])
+                assertEquals(expectedMixed, it.columnMixedDictionary["key"])
             }
         }
     }
