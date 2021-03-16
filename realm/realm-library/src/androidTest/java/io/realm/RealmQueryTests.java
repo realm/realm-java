@@ -1261,7 +1261,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void equalTo_withNonExistingField() {
         try {
             realm.where(AllTypes.class).equalTo("NotAField", 13).findAll();
@@ -2003,7 +2002,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void equalTo_binary_multiFailures() {
         createBinaryOnlyDataSet();
 
@@ -2038,7 +2036,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void notEqualTo_binary_multiFailures() {
         createBinaryOnlyDataSet();
 
@@ -2585,7 +2582,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void isEmpty_illegalFieldTypeThrows() {
         for (RealmFieldType type : NOT_SUPPORTED_IS_EMPTY_TYPES) {
             try {
@@ -2627,7 +2623,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void isEmpty_invalidFieldNameThrows() {
         String[] fieldNames = new String[] {null, "", "foo", AllJavaTypes.FIELD_OBJECT + ".foo"};
 
@@ -2641,7 +2636,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void isEmpty_acrossLink_wrongTypeThrows() {
         for (RealmFieldType type : RealmFieldType.values()) {
             if (SUPPORTED_IS_EMPTY_TYPES.contains(type)) {
@@ -2779,7 +2773,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void isNotEmpty_illegalFieldTypeThrows() {
         for (RealmFieldType type : NOT_SUPPORTED_IS_NOT_EMPTY_TYPES) {
             try {
@@ -2821,7 +2814,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void isNotEmpty_invalidFieldNameThrows() {
         String[] fieldNames = new String[] {null, "", "foo", AllJavaTypes.FIELD_OBJECT + ".foo"};
 
@@ -3454,7 +3446,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void rawPredicate_invalidFieldNameThrows() {
         try {
             realm.where(AllTypes.class).rawPredicate("foo = 'test data 0'");
@@ -3465,7 +3456,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void rawPredicate_invalidLinkedFieldNameThrows() {
         try {
             realm.where(AllTypes.class).rawPredicate("columnRealmObject.foo = 'test data 0'");
