@@ -1470,6 +1470,7 @@ public class RealmQuery<E> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> contains(String fieldName, String value, Case casing) {
+        Util.checkNull(value, "value");
         realm.checkIfValid();
         if (casing == Case.SENSITIVE) {
             this.query.contains(fieldName, Mixed.valueOf(value));
@@ -1501,6 +1502,7 @@ public class RealmQuery<E> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> beginsWith(String fieldName, String value, Case casing) {
+        Util.checkNull(value, "value");
         realm.checkIfValid();
         if (casing == Case.SENSITIVE) {
             this.query.beginsWith(fieldName, Mixed.valueOf(value));
@@ -1532,6 +1534,7 @@ public class RealmQuery<E> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> endsWith(String fieldName, String value, Case casing) {
+        Util.checkNull(value, "value");
         realm.checkIfValid();
         if (casing == Case.SENSITIVE) {
             this.query.endsWith(fieldName, Mixed.valueOf(value));
@@ -1571,6 +1574,7 @@ public class RealmQuery<E> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> like(String fieldName, String value, Case casing) {
+        Util.checkNull(value, "value");
         realm.checkIfValid();
         if (casing == Case.SENSITIVE) {
             this.query.like(fieldName, Mixed.valueOf(value));
