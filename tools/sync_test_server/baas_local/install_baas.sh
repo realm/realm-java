@@ -114,7 +114,7 @@ echo "Assume Go is available"
 
 echo "Assume jq and yg is available"
 [[ -d baas_dep_binaries ]] || mkdir baas_dep_binaries
-#export PATH=$WORK_PATH/baas_dep_binaries:$PATH
+export PATH=$WORK_PATH/baas_dep_binaries:$PATH
 #if [[ ! -x baas_dep_binaries/yq || ! -x baas_dep_binaries/jq ]]; then
 #    cd baas_dep_binaries
 #    which yq || ($CURL -LsS $YQ_DOWNLOAD_URL > yq && chmod +x yq)
