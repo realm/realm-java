@@ -46,6 +46,9 @@ function import_apps () {
 SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 MONGODB_REALM_VERSION=$(grep MONGODB_REALM_SERVER $SCRIPTPATH/../../../dependencies.list | cut -d'=' -f2)
 
+# Running as root is not directly required here, but we might want to access files later on the
+# emulator. Set root here to avoid resetting network settings later.
+adb root
 adb reverse tcp:9443 tcp:9443 && \
 adb reverse tcp:9080 tcp:9080 && \
 adb reverse tcp:9090 tcp:9090 && \

@@ -6,7 +6,6 @@ echo "Start building local BAAS"
 cd $SCRIPTPATH/baas_local
 bash ./start_local_server.sh
 cd ../../../realm
-adb root
 adb logcat -b all -c
 adb logcat -v time > $SCRIPTPATH/logcat.txt &
 LOG_CAT_PID=`echo \$!`
