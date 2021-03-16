@@ -80,7 +80,7 @@ public class OsListTests {
                 .schemaInfo(schemaInfo);
         sharedRealm = OsSharedRealm.getInstance(configBuilder, OsSharedRealm.VersionID.LIVE);
         sharedRealm.beginTransaction();
-        Table table = sharedRealm.getTable(Table.getTableNameForClass("TestModel"));
+        Table table = sharedRealm.getTable(Table.getTableNameForClass("TestModel"), null);
         row = table.getUncheckedRow(OsObject.createRow(table));
         sharedRealm.commitTransaction();
 
