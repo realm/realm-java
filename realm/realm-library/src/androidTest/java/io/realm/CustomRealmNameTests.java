@@ -121,7 +121,7 @@ public class CustomRealmNameTests {
     public void typedQueryWithJavaNames() {
         RealmResults<ClassWithPolicy> results = realm.where(ClassWithPolicy.class)
                 .equalTo("camelCase", "foo") // Java name in model class
-                .equalTo("parents.pascal_case", 1) // Backlinks also uses java names
+                .equalTo("parents.PascalCase", 1) // Backlinks also uses java names
                 .sort("mHungarian") // Sorting uses Java names
                 .distinct("customName") // Distinct uses Java names
                 .findAll();
