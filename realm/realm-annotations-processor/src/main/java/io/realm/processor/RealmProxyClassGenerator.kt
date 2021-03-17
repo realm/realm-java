@@ -2511,10 +2511,29 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                         }
                         Utils.isMixedDictionary(field) -> {
-                            // TODO: isMixedDictionary
-                            emitSingleLineComment("TODO: isMixedDictionary")
+                            emitEmptyLine()
+
+                            val genericType = Utils.getGenericTypeQualifiedName(field)
+                            emitStatement("RealmDictionary<Mixed> ${fieldName}UnmanagedDictionary = realmObjectSource.${getter}()")
+                            beginControlFlow("if (${fieldName}UnmanagedDictionary != null)")
+                                emitStatement("RealmDictionary<Mixed> ${fieldName}ManagedDictionary = new RealmDictionary<>()")
+                                emitStatement("java.util.Set<java.util.Map.Entry<String, ${genericType}>> entries = ${fieldName}UnmanagedDictionary.entrySet()")
+                                emitStatement("java.util.List<String> keys = new java.util.ArrayList<>()")
+                                emitStatement("java.util.List<Long> mixedPointers = new java.util.ArrayList<>()")
+                                beginControlFlow("for (java.util.Map.Entry<String, ${genericType}> entry : entries)")
+                                    emitStatement("Mixed mixedItem = entry.getValue()")
+                                    emitStatement("mixedItem = ProxyUtils.copyOrUpdate(mixedItem, realm, true, cache, flags)")
+                                    emitStatement("${fieldName}ManagedDictionary.put(entry.getKey(), mixedItem)")
+                                endControlFlow()
+                                emitStatement("builder.addMixedValueDictionary(${fieldColKey}, mixedDictionaryManagedDictionary)")
+                            nextControlFlow("else")
+                                emitStatement("builder.addMixedValueDictionary(${fieldColKey}, null)")
+                            endControlFlow()
+                            emitEmptyLine()
                         }
                         Utils.isRealmModelDictionary(field) -> {
+                            emitEmptyLine()
+
                             val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
                             val listElementType: TypeMirror = Utils.getGenericType(field)!!
                             val isEmbedded = isFieldTypeEmbedded(listElementType)
