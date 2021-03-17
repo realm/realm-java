@@ -106,13 +106,11 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
         return false;
     }
 
-    @NotNull
     @Override
     public Iterator<Map.Entry<K, V>> iterator() {
         return iteratorFactory(iteratorType, osMap, baseRealm, typeSelectorForMap);
     }
 
-    @NotNull
     @Override
     public Object[] toArray() {
         Object[] array = new Object[(int) osMap.size()];
@@ -126,9 +124,8 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
         return array;
     }
 
-    @NotNull
     @Override
-    public <T> T[] toArray(@NotNull T[] a) {
+    public <T> T[] toArray(T[] a) {
         T[] array;
         long mapSize = osMap.size();
 
@@ -172,7 +169,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
     }
 
     @Override
-    public boolean containsAll(@NotNull Collection<?> c) {
+    public boolean containsAll(Collection<?> c) {
         if (c.isEmpty()) {
             return this.isEmpty();
         }
@@ -192,17 +189,17 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
     }
 
     @Override
-    public boolean addAll(@NotNull Collection<? extends Map.Entry<K, V>> c) {
+    public boolean addAll(Collection<? extends Map.Entry<K, V>> c) {
         throw new UnsupportedOperationException("This set is immutable and cannot be modified.");
     }
 
     @Override
-    public boolean retainAll(@NotNull Collection<?> c) {
+    public boolean retainAll(Collection<?> c) {
         throw new UnsupportedOperationException("This set is immutable and cannot be modified.");
     }
 
     @Override
-    public boolean removeAll(@NotNull Collection<?> c) {
+    public boolean removeAll(Collection<?> c) {
         throw new UnsupportedOperationException("This set is immutable and cannot be modified.");
     }
 

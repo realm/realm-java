@@ -34,8 +34,9 @@ class ParameterizedSetTests(
         fun testType(): List<SetTester> {
             return SetMode.values().mapNotNull { type ->
                 when (type) {
-//                    SetMode.UNMANAGED -> unmanagedSetFactory()
-                    SetMode.UNMANAGED -> null
+                    SetMode.UNMANAGED -> unmanagedSetFactory()
+//                    SetMode.UNMANAGED -> null
+//                    SetMode.MANAGED -> null
                     SetMode.MANAGED -> managedSetFactory()
                 }
             }.flatten()
@@ -94,10 +95,15 @@ class ParameterizedSetTests(
         tester.iterator()
     }
 
-//    @Test
-//    fun toArray() {
-//        tester.toArray()
-//    }
+    @Test
+    fun toArray() {
+        tester.toArray()
+    }
+
+    @Test
+    fun toArrayWithParameter() {
+        tester.toArrayWithParameter()
+    }
 
     @Test
     fun add() {
@@ -171,6 +177,7 @@ interface SetTester : GenericTester {
     fun contains()
     fun iterator()
     fun toArray()
+    fun toArrayWithParameter()
     fun add()
     fun remove()
     fun containsAll()

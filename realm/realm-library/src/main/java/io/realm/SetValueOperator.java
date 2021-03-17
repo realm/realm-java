@@ -62,16 +62,6 @@ abstract class SetValueOperator<E> {
         return new SetIterator<>(osSet, baseRealm);
     }
 
-    Object[] toArray() {
-        // TODO
-        return new Object[0];
-    }
-
-    <T> T[] toArray(T[] a) {
-        // TODO
-        return null;
-    }
-
     public void clear() {
         osSet.clear();
     }

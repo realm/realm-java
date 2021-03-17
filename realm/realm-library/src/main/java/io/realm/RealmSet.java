@@ -16,13 +16,14 @@
 
 package io.realm;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import io.realm.internal.Freezable;
 import io.realm.internal.ManageableObject;
@@ -114,7 +115,6 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
     /**
      * {@inheritDoc}
      */
-    @NotNull
     @Override
     public Iterator<E> iterator() {
         return setStrategy.iterator();
@@ -123,7 +123,6 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
     /**
      * {@inheritDoc}
      */
-    @NotNull
     @Override
     public Object[] toArray() {
         return setStrategy.toArray();
@@ -132,7 +131,6 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
     /**
      * {@inheritDoc}
      */
-    @NotNull
     @Override
     public <T> T[] toArray(T[] a) {
         return setStrategy.toArray(a);
@@ -230,7 +228,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
             throw new UnsupportedOperationException("getStrategy: missing class '" + valueClass.getSimpleName() + "'");
         }
 
-        return new ManagedSetStrategy<>(operator);
+        return new ManagedSetStrategy<>(operator, valueClass);
     }
 
     /**
@@ -250,9 +248,11 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
     private static class ManagedSetStrategy<E> extends SetStrategy<E> {
 
         private final SetValueOperator<E> setValueOperator;
+        private final Class<E> valueClass;
 
-        private ManagedSetStrategy(SetValueOperator<E> setValueOperator) {
+        private ManagedSetStrategy(SetValueOperator<E> setValueOperator, Class<E> valueClass) {
             this.setValueOperator = setValueOperator;
+            this.valueClass = valueClass;
         }
 
         // ------------------------------------------
@@ -293,24 +293,56 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
             return setValueOperator.contains(o);
         }
 
-        @NotNull
         @Override
         public Iterator<E> iterator() {
             return setValueOperator.iterator();
         }
 
-        @NotNull
         @Override
         public Object[] toArray() {
-            // TODO
-            return new Object[0];
+            Object[] array = new Object[size()];
+            int i = 0;
+            for (E value : this) {
+                array[i] = value;
+                i++;
+            }
+            return array;
         }
 
-        @NotNull
         @Override
-        public <T> T[] toArray(T[] a) {
+        public <T> T[] toArray(@Nullable T[] a) {
             checkValidArray(a);
-            return setValueOperator.toArray(a);
+
+            T[] array;
+            long setSize = size();
+
+            // From docs:
+            // If the set fits in the specified array, it is returned therein.
+            // Otherwise, a new array is allocated with the runtime type of the
+            // specified array and the size of this set.
+            if (a.length == setSize || a.length > setSize) {
+                array = a;
+            } else {
+                //noinspection unchecked
+                array = (T[]) Array.newInstance(valueClass, (int) setSize);
+            }
+
+            int i = 0;
+            for (E value : this) {
+                //noinspection unchecked
+                array[i] = (T) value;
+                i++;
+            }
+
+            // From docs:
+            // If this set fits in the specified array with room to spare
+            // (i.e., the array has more elements than this set), the element in
+            // the array immediately following the end of the set is set to null.
+            if (a.length > setSize) {
+                array[i] = null;
+            }
+
+            return array;
         }
 
         @Override
@@ -432,19 +464,16 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
             return unmanagedSet.contains(o);
         }
 
-        @NotNull
         @Override
         public Iterator<E> iterator() {
             return unmanagedSet.iterator();
         }
 
-        @NotNull
         @Override
         public Object[] toArray() {
             return unmanagedSet.toArray();
         }
 
-        @NotNull
         @Override
         public <T> T[] toArray(T[] a) {
             return unmanagedSet.toArray(a);
