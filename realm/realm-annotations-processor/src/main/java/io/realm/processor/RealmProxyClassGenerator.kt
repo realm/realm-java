@@ -2515,8 +2515,53 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitSingleLineComment("TODO: isMixedDictionary")
                         }
                         Utils.isRealmModelDictionary(field) -> {
-                            // TODO: isRealmModelDictionary
-                            emitSingleLineComment("TODO: isRealmModelDictionary")
+                            val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
+                            val listElementType: TypeMirror = Utils.getGenericType(field)!!
+                            val isEmbedded = isFieldTypeEmbedded(listElementType)
+                            val linkedProxyClass: SimpleClassName = Utils.getDictionaryGenericProxyClassSimpleName(field)
+
+                            emitStatement("RealmDictionary<${genericType}> ${fieldName}UnmanagedDictionary = realmObjectSource.${getter}()")
+                            beginControlFlow("if (${fieldName}UnmanagedDictionary != null)")
+                                emitStatement("RealmDictionary<${genericType}> ${fieldName}ManagedDictionary = new RealmDictionary<>()")
+                                emitStatement("java.util.Set<java.util.Map.Entry<String, ${genericType}>> entries = ${fieldName}UnmanagedDictionary.entrySet()")
+                                beginControlFlow("for (java.util.Map.Entry<String, ${genericType}> entry : entries)")
+                                    emitStatement("String entryKey = entry.getKey()")
+                                    emitStatement("$genericType ${fieldName}UnmanagedEntryValue = entry.getValue()")
+                                    emitStatement("$genericType cache${fieldName} = (${genericType}) cache.get(${fieldName}UnmanagedEntryValue)")
+
+                                    if (isEmbedded) {
+                                        beginControlFlow("if (cache${fieldName} != null)")
+                                            emitStatement("""throw new IllegalArgumentException("Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cache${fieldName}.toString()")""")
+                                        nextControlFlow("else")
+                                            emitStatement("long objKey = ${fieldName}ManagedDictionary.getOsMap().createAndPutEmbeddedObject(entryKey)")
+                                            emitStatement("Row linkedObjectRow = realm.getTable(${genericType}.class).getUncheckedRow(objKey)")
+                                            emitStatement("$genericType linkedObject = ${linkedProxyClass}.newProxyInstance(realm, linkedObjectRow)")
+                                            emitStatement("cache.put(${fieldName}UnmanagedEntryValue, (RealmObjectProxy) linkedObject)")
+                                            emitStatement("${linkedProxyClass}.updateEmbeddedObject(realm, ${fieldName}UnmanagedEntryValue, linkedObject, new HashMap<RealmModel, RealmObjectProxy>(), Collections.EMPTY_SET)")
+                                        endControlFlow()
+                                    } else {
+                                        beginControlFlow("if (cache${fieldName} != null)")
+                                            emitStatement("${fieldName}ManagedDictionary.put(entryKey, cache${fieldName})")
+                                        nextControlFlow("else")
+                                            beginControlFlow("if (${fieldName}UnmanagedEntryValue == null)")
+                                                emitStatement("${fieldName}ManagedDictionary.put(entryKey, null)")
+                                            nextControlFlow("else")
+                                                emitStatement(
+                                                        "%sManagedDictionary.put(entryKey, %s.copyOrUpdate(realm, (%s) realm.getSchema().getColumnInfo(%s.class), %sUnmanagedEntryValue, true, cache, flags))",
+                                                        fieldName,
+                                                        Utils.getDictionaryGenericProxyClassSimpleName(field),
+                                                        columnInfoClassNameDictionaryGeneric(field),
+                                                        Utils.getGenericTypeQualifiedName(field),
+                                                        fieldName
+                                                )
+                                            endControlFlow()
+                                        endControlFlow()
+                                    }
+                                endControlFlow()
+                                emitStatement("builder.addObjectDictionary(${fieldColKey}, objectDictionaryManagedDictionary)")
+                            nextControlFlow("else")
+                                emitStatement("builder.addObjectDictionary(${fieldColKey}, null)")
+                            endControlFlow()
                         }
                         Utils.isRealmValueDictionary(field) -> {
                             emitStatement("builder.${OsObjectBuilderTypeHelper.getOsObjectBuilderName(field)}(${fieldColKey}, realmObjectSource.${getter}())")
