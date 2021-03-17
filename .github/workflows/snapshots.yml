@@ -1,0 +1,17 @@
+# Workflow for building and publishing SNAPSHOT releases to Maven Central.
+name: Create SNAPSHOT release
+on:
+  push:
+    branches:
+      - master
+      - releases
+env:
+jobs:
+  run-snapshot-build:
+    runs-on: macos-latest
+    steps:
+      - name: Build and Test Library
+        run: echo "Work work work..."
+
+
+

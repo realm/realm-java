@@ -9,6 +9,10 @@ realm/build
 # Gradle local properties
 local.properties
 
+# Test server temp dirs
+tools/sync_test_server/baas_local/tmp-baas
+tools/sync_test_server/baas_local/tmp-command-server
+
 # Core
 core
 core-*

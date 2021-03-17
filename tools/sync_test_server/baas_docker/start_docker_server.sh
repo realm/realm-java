@@ -24,7 +24,7 @@ fi
 # Get the script dir which contains the Dockerfile
 DOCKERFILE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-MONGODB_REALM_VERSION=$(grep MONGODB_REALM_SERVER $DOCKERFILE_DIR/../../dependencies.list | cut -d'=' -f2)
+MONGODB_REALM_VERSION=$(grep MONGODB_REALM_SERVER $DOCKERFILE_DIR/../../../dependencies.list | cut -d'=' -f2)
 
 adb reverse tcp:9443 tcp:9443 && \
 adb reverse tcp:9080 tcp:9080 && \

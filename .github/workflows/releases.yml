@@ -1,0 +1,16 @@
+# Workflow for building and publishing releases to Maven Central.
+name: Publish release
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  run-release-build:
+    runs-on: macos-latest
+    steps:
+      - name: Build and Test Library
+        run: echo "Work work work..."
+
+
+

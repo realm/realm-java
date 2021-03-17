@@ -272,7 +272,7 @@ class SyncSessionTests {
             realm.executeTransaction {
                 realm.createObject(SyncAllTypesWithFloat::class.java, ObjectId())
             }
-            assertFailsWithErrorCode(ErrorCode.INVALID_SCHEMA_CHANGE) {
+            assertFailsWithErrorCode(ErrorCode.BAD_CHANGESET) {
                 realm.syncSession.uploadAllLocalChanges()
             }
         }
