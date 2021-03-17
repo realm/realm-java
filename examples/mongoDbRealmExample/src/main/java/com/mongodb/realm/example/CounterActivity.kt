@@ -135,8 +135,8 @@ class CounterActivity : AppCompatActivity() {
                 removeProgressListener(downloadListener)
                 removeProgressListener(uploadListener)
             }
+            // Close Realm here to make sure it is closed when navigating to other Activities.
             realm?.close()
-            RealmLog.error(Realm.getGlobalInstanceCount(realm!!.configuration).toString())
         }
     }
 
