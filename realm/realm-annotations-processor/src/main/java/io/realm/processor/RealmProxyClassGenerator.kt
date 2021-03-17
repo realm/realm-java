@@ -2525,7 +2525,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     emitStatement("mixedItem = ProxyUtils.copyOrUpdate(mixedItem, realm, true, cache, flags)")
                                     emitStatement("${fieldName}ManagedDictionary.put(entry.getKey(), mixedItem)")
                                 endControlFlow()
-                                emitStatement("builder.addMixedValueDictionary(${fieldColKey}, mixedDictionaryManagedDictionary)")
+                                emitStatement("builder.addMixedValueDictionary(${fieldColKey}, ${fieldName}ManagedDictionary)")
                             nextControlFlow("else")
                                 emitStatement("builder.addMixedValueDictionary(${fieldColKey}, null)")
                             endControlFlow()
@@ -2577,7 +2577,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                         endControlFlow()
                                     }
                                 endControlFlow()
-                                emitStatement("builder.addObjectDictionary(${fieldColKey}, objectDictionaryManagedDictionary)")
+                                emitStatement("builder.addObjectDictionary(${fieldColKey}, ${fieldName}ManagedDictionary)")
                             nextControlFlow("else")
                                 emitStatement("builder.addObjectDictionary(${fieldColKey}, null)")
                             endControlFlow()
