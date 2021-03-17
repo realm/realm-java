@@ -2510,9 +2510,16 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitStatement("builder.addMixedList(${fieldColKey}, new RealmList<Mixed>())")
                             endControlFlow()
                         }
-                        Utils.isRealmDictionary(field) -> {
-                            // TODO: dictionary
-                            emitSingleLineComment("TODO: Dictionary")
+                        Utils.isMixedDictionary(field) -> {
+                            // TODO: isMixedDictionary
+                            emitSingleLineComment("TODO: isMixedDictionary")
+                        }
+                        Utils.isRealmModelDictionary(field) -> {
+                            // TODO: isRealmModelDictionary
+                            emitSingleLineComment("TODO: isRealmModelDictionary")
+                        }
+                        Utils.isRealmValueDictionary(field) -> {
+                            emitStatement("builder.${OsObjectBuilderTypeHelper.getOsObjectBuilderName(field)}(${fieldColKey}, realmObjectSource.${getter}())")
                         }
                         else -> {
                             emitStatement("builder.%s(%s, realmObjectSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey, getter)
