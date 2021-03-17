@@ -114,20 +114,20 @@ class ParameterizedSetTests(
         tester.containsAll()
     }
 
-//    @Test
-//    fun addAll() {
-//        tester.addAll()
-//    }
-//
-//    @Test
-//    fun retainAll() {
-//        tester.retainAll()
-//    }
-//
-//    @Test
-//    fun removeAll() {
-//        tester.removeAll()
-//    }
+    @Test
+    fun addAll() {
+        tester.addAll()
+    }
+
+    @Test
+    fun retainAll() {
+        tester.retainAll()
+    }
+
+    @Test
+    fun removeAll() {
+        tester.removeAll()
+    }
 
     @Test
     fun clear() {

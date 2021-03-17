@@ -223,14 +223,14 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
             return null;
         }
 
-        ManagedSetManager<T> manager;
+        SetValueOperator<T> operator;
         if (valueClass == String.class) {
-            manager = new ManagedSetManager<>((SetValueOperator<T>) new SetValueOperator<>(baseRealm, osSet, String.class));
+            operator = (SetValueOperator<T>) new StringOperator(baseRealm, osSet, String.class);
         } else {
             throw new UnsupportedOperationException("getStrategy: missing class '" + valueClass.getSimpleName() + "'");
         }
 
-        return new ManagedSetStrategy<>(manager);
+        return new ManagedSetStrategy<>(operator);
     }
 
     /**
@@ -249,10 +249,10 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
      */
     private static class ManagedSetStrategy<E> extends SetStrategy<E> {
 
-        private final ManagedSetManager<E> managedSetManager;
+        private final SetValueOperator<E> setValueOperator;
 
-        private ManagedSetStrategy(ManagedSetManager<E> managedSetManager) {
-            this.managedSetManager = managedSetManager;
+        private ManagedSetStrategy(SetValueOperator<E> setValueOperator) {
+            this.setValueOperator = setValueOperator;
         }
 
         // ------------------------------------------
@@ -266,12 +266,12 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
 
         @Override
         public boolean isValid() {
-            return managedSetManager.isValid();
+            return setValueOperator.isValid();
         }
 
         @Override
         public boolean isFrozen() {
-            return managedSetManager.isFrozen();
+            return setValueOperator.isFrozen();
         }
 
         // ------------------------------------------
@@ -280,23 +280,23 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
 
         @Override
         public int size() {
-            return managedSetManager.size();
+            return setValueOperator.size();
         }
 
         @Override
         public boolean isEmpty() {
-            return managedSetManager.isEmpty();
+            return setValueOperator.isEmpty();
         }
 
         @Override
         public boolean contains(@Nullable Object o) {
-            return managedSetManager.contains(o);
+            return setValueOperator.contains(o);
         }
 
         @NotNull
         @Override
         public Iterator<E> iterator() {
-            return managedSetManager.iterator();
+            return setValueOperator.iterator();
         }
 
         @NotNull
@@ -310,46 +310,46 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
         @Override
         public <T> T[] toArray(T[] a) {
             checkValidArray(a);
-            return managedSetManager.toArray(a);
+            return setValueOperator.toArray(a);
         }
 
         @Override
         public boolean add(@Nullable E e) {
-            return managedSetManager.add(e);
+            return setValueOperator.add(e);
         }
 
         @Override
         public boolean remove(@Nullable Object o) {
-            return managedSetManager.remove(o);
+            return setValueOperator.remove(o);
         }
 
         @Override
         public boolean containsAll(Collection<?> c) {
             checkValidCollection(c);
-            return managedSetManager.containsAll(c);
+            return setValueOperator.containsAll(c);
         }
 
         @Override
         public boolean addAll(Collection<? extends E> c) {
             checkValidCollection(c);
-            return managedSetManager.addAll(c);
+            return setValueOperator.addAll(c);
         }
 
         @Override
         public boolean retainAll(Collection<?> c) {
             checkValidCollection(c);
-            return managedSetManager.retainAll(c);
+            return setValueOperator.retainAll(c);
         }
 
         @Override
         public boolean removeAll(Collection<?> c) {
             checkValidCollection(c);
-            return managedSetManager.removeAll(c);
+            return setValueOperator.removeAll(c);
         }
 
         @Override
         public void clear() {
-            managedSetManager.clear();
+            setValueOperator.clear();
         }
 
         // ------------------------------------------
@@ -358,12 +358,12 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
 
         @Override
         public RealmSet<E> freeze() {
-            return managedSetManager.freeze();
+            return setValueOperator.freeze();
         }
 
         @Override
         OsSet getOsSet() {
-            return managedSetManager.getOsSet();
+            return setValueOperator.getOsSet();
         }
 
         // ------------------------------------------

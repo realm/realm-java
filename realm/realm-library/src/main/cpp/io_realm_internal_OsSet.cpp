@@ -206,18 +206,6 @@ Java_io_realm_internal_OsSet_nativeRemoveString(JNIEnv* env, jclass, jlong set_p
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeIsSubSetOf(JNIEnv* env, jclass, jlong set_ptr,
-                                              jlong other_set_ptr) {
-    try {
-        auto &other_set = *reinterpret_cast<realm::object_store::Set *>(other_set_ptr);
-        auto &set = *reinterpret_cast<realm::object_store::Set *>(set_ptr);
-        return other_set.is_subset_of(set);
-    }
-    CATCH_STD()
-    return false;
-}
-
-JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_OsSet_nativeContainsAllString(JNIEnv* env, jclass, jlong set_ptr,
                                                      jobjectArray j_other_set_values) {
     try {
@@ -240,6 +228,16 @@ Java_io_realm_internal_OsSet_nativeContainsAllString(JNIEnv* env, jclass, jlong 
     }
     CATCH_STD()
     return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsSet_nativeContainsAll(JNIEnv*, jclass, jlong set_ptr, jlong other_set_ptr) {
+    auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+    auto& other_set = *reinterpret_cast<realm::object_store::Set*>(other_set_ptr);
+
+    // If other set is a subset of set then set contains other set
+    bool is_contained = other_set.is_subset_of(set);
+    return is_contained;
 }
 
 JNIEXPORT jboolean JNICALL
