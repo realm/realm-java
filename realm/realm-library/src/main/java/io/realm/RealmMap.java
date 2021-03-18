@@ -306,7 +306,6 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
         return mapStrategy.hasListeners();
     }
 
-    // Needed for embedded objects
     OsMap getOsMap() {
         return mapStrategy.getOsMap();
     }
