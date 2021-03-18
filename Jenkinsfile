@@ -13,8 +13,6 @@ slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
 // WARNING: Only set to `false` as an absolute last resort. Doing this will disable all integration
 // tests.
 enableIntegrationTests = true
-// WARNING: Only set to `false` if the emulator is being controlled by the host
-buildControlledEmulator = false
 
 // RUNTIME PROPERTIES
 
@@ -150,20 +148,17 @@ try {
             // able to share its cache between builds.
             lock("${env.NODE_NAME}-android") {
               if (useEmulator) {
-                if (buildControlledEmulator) {
-                  // TODO: We should wait until the emulator is online. For now assume it starts fast enough
-                  //  before the tests will run, since the library needs to build first.
-                  sh """yes '\n' | avdmanager create avd -n CIEmulator -k '${emulatorImage}' --force"""
-                  sh "adb start-server" // https://stackoverflow.com/questions/56198290/problems-with-adb-exe
-                  // Need to go to ANDROID_HOME due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
-                  sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -port 5553 -no-boot-anim -no-window -wipe-data -noaudio -partition-size 4098 &"
-                }
+                // TODO: We should wait until the emulator is online. For now assume it starts fast enough
+                //  before the tests will run, since the library needs to build first.
+                sh """yes '\n' | avdmanager create avd -n CIEmulator -k '${emulatorImage}' --force"""
+                sh "adb start-server" // https://stackoverflow.com/questions/56198290/problems-with-adb-exe
+                // Need to go to ANDROID_HOME due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
+                sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-boot-anim -no-window -wipe-data -noaudio -partition-size 4098 &"
+
                 try {
                   runBuild(buildFlags, instrumentationTestTarget)
                 } finally {
-                  if (buildControlledEmulator) {
-                    sh "adb emu kill"
-                  }
+                  sh "adb emu kill"
                 }
               } else {
                 runBuild(buildFlags, instrumentationTestTarget)
