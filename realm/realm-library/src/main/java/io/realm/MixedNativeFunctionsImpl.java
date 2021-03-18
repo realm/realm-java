@@ -15,6 +15,8 @@
  */
 package io.realm;
 
+import java.util.Map;
+
 import io.realm.internal.MixedNativeFunctions;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
@@ -26,6 +28,11 @@ public class MixedNativeFunctionsImpl implements MixedNativeFunctions {
     @Override
     public void handleItem(long listPtr, Mixed mixed) {
         OsObjectBuilder.nativeAddMixedListItem(listPtr, mixed.getNativePtr());
+    }
+
+    @Override
+    public void handleItem(long containerPtr, Map.Entry<String, Mixed> entry) {
+        OsObjectBuilder.nativeAddMixedDictionaryEntry(containerPtr, entry.getKey(), entry.getValue().getNativePtr());
     }
 
     @Override
