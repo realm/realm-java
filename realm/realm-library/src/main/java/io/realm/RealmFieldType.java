@@ -220,6 +220,7 @@ public enum RealmFieldType {
             case CORE_TYPE_VALUE_OBJECT + DICTIONARY_OFFSET:
                 return false;
             case CORE_TYPE_VALUE_STRING + SET_OFFSET:
+            case CORE_TYPE_VALUE_INTEGER + SET_OFFSET:
                 return false;
             default:
                 throw new RuntimeException("Unsupported Realm type:  " + this);

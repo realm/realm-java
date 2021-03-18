@@ -22,6 +22,7 @@ import io.realm.RealmObject;
 public class RealmSetModel extends RealmObject {
 
     private RealmSet<String> stringSet;
+    private RealmSet<Integer> integerSet;
 
     public RealmSet<String> getStringSet() {
         return stringSet;
@@ -29,5 +30,13 @@ public class RealmSetModel extends RealmObject {
 
     public void setStringSet(RealmSet<String> stringSet) {
         this.stringSet = stringSet;
+    }
+
+    public RealmSet<Integer> getIntegerSet() {
+        return integerSet;
+    }
+
+    public void setIntegerSet(RealmSet<Integer> integerSet) {
+        this.integerSet = integerSet;
     }
 }
