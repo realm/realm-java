@@ -2102,7 +2102,6 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         builder.addPersistedMapProperty(NO_ALIAS, "columnUUIDDictionary", RealmFieldType.STRING_TO_UUID_MAP, !Property.REQUIRED);
         builder.addPersistedMapProperty(NO_ALIAS, "columnDecimal128Dictionary", RealmFieldType.STRING_TO_DECIMAL128_MAP, !Property.REQUIRED);
         builder.addPersistedMapProperty(NO_ALIAS, "columnMixedDictionary", RealmFieldType.STRING_TO_MIXED_MAP, !Property.REQUIRED);
-
         builder.addComputedLinkProperty("parentObjects", "AllTypes", "columnObject");
         return builder.build();
     }
@@ -2799,6 +2798,59 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         } else {
             builder.addMixedList(columnInfo.columnMixedListColKey, new RealmList<Mixed>());
         }
+
+        RealmDictionary<some.test.AllTypes> columnRealmDictionaryUnmanagedDictionary = realmObjectSource.realmGet$columnRealmDictionary();
+        if (columnRealmDictionaryUnmanagedDictionary != null) {
+            RealmDictionary<some.test.AllTypes> columnRealmDictionaryManagedDictionary = new RealmDictionary<>();
+            java.util.Set<java.util.Map.Entry<String, some.test.AllTypes>> entries = columnRealmDictionaryUnmanagedDictionary.entrySet();
+            for (java.util.Map.Entry<String, some.test.AllTypes> entry : entries) {
+                String entryKey = entry.getKey();
+                some.test.AllTypes columnRealmDictionaryUnmanagedEntryValue = entry.getValue();
+                some.test.AllTypes cachecolumnRealmDictionary = (some.test.AllTypes) cache.get(columnRealmDictionaryUnmanagedEntryValue);
+                if (cachecolumnRealmDictionary != null) {
+                    columnRealmDictionaryManagedDictionary.put(entryKey, cachecolumnRealmDictionary);
+                } else {
+                    if (columnRealmDictionaryUnmanagedEntryValue == null) {
+                        columnRealmDictionaryManagedDictionary.put(entryKey, null);
+                    } else {
+                        columnRealmDictionaryManagedDictionary.put(entryKey, some_test_AllTypesRealmProxy.copyOrUpdate(realm, (some_test_AllTypesRealmProxy.AllTypesColumnInfo) realm.getSchema().getColumnInfo(some.test.AllTypes.class), columnRealmDictionaryUnmanagedEntryValue, true, cache, flags));
+                    }
+                }
+            }
+            builder.addObjectDictionary(columnInfo.columnRealmDictionaryColKey, columnRealmDictionaryManagedDictionary);
+        } else {
+            builder.addObjectDictionary(columnInfo.columnRealmDictionaryColKey, null);
+        }
+        builder.addBooleanValueDictionary(columnInfo.columnBooleanDictionaryColKey, realmObjectSource.realmGet$columnBooleanDictionary());
+        builder.addStringValueDictionary(columnInfo.columnStringDictionaryColKey, realmObjectSource.realmGet$columnStringDictionary());
+        builder.addIntegerValueDictionary(columnInfo.columnIntegerDictionaryColKey, realmObjectSource.realmGet$columnIntegerDictionary());
+        builder.addFloatValueDictionary(columnInfo.columnFloatDictionaryColKey, realmObjectSource.realmGet$columnFloatDictionary());
+        builder.addLongValueDictionary(columnInfo.columnLongDictionaryColKey, realmObjectSource.realmGet$columnLongDictionary());
+        builder.addShortValueDictionary(columnInfo.columnShortDictionaryColKey, realmObjectSource.realmGet$columnShortDictionary());
+        builder.addDoubleValueDictionary(columnInfo.columnDoubleDictionaryColKey, realmObjectSource.realmGet$columnDoubleDictionary());
+        builder.addByteValueDictionary(columnInfo.columnByteDictionaryColKey, realmObjectSource.realmGet$columnByteDictionary());
+        builder.addBinaryValueDictionary(columnInfo.columnBinaryDictionaryColKey, realmObjectSource.realmGet$columnBinaryDictionary());
+        builder.addDateValueDictionary(columnInfo.columnDateDictionaryColKey, realmObjectSource.realmGet$columnDateDictionary());
+        builder.addObjectIdValueDictionary(columnInfo.columnObjectIdDictionaryColKey, realmObjectSource.realmGet$columnObjectIdDictionary());
+        builder.addUUIDValueDictionary(columnInfo.columnUUIDDictionaryColKey, realmObjectSource.realmGet$columnUUIDDictionary());
+        builder.addDecimal128ValueDictionary(columnInfo.columnDecimal128DictionaryColKey, realmObjectSource.realmGet$columnDecimal128Dictionary());
+
+        RealmDictionary<Mixed> columnMixedDictionaryUnmanagedDictionary = realmObjectSource.realmGet$columnMixedDictionary();
+        if (columnMixedDictionaryUnmanagedDictionary != null) {
+            RealmDictionary<Mixed> columnMixedDictionaryManagedDictionary = new RealmDictionary<>();
+            java.util.Set<java.util.Map.Entry<String, io.realm.Mixed>> entries = columnMixedDictionaryUnmanagedDictionary.entrySet();
+            java.util.List<String> keys = new java.util.ArrayList<>();
+            java.util.List<Long> mixedPointers = new java.util.ArrayList<>();
+            for (java.util.Map.Entry<String, io.realm.Mixed> entry : entries) {
+                Mixed mixedItem = entry.getValue();
+                mixedItem = ProxyUtils.copyOrUpdate(mixedItem, realm, true, cache, flags);
+                columnMixedDictionaryManagedDictionary.put(entry.getKey(), mixedItem);
+            }
+            builder.addMixedValueDictionary(columnInfo.columnMixedDictionaryColKey, columnMixedDictionaryManagedDictionary);
+        } else {
+            builder.addMixedValueDictionary(columnInfo.columnMixedDictionaryColKey, null);
+        }
+
 
         builder.updateExistingTopLevelObject();
         return realmObject;

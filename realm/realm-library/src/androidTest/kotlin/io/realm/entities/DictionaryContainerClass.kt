@@ -18,7 +18,9 @@ package io.realm.entities
 
 import io.realm.Mixed
 import io.realm.RealmDictionary
+import io.realm.RealmList
 import io.realm.RealmObject
+import io.realm.annotations.PrimaryKey
 import io.realm.entities.embedded.EmbeddedSimpleChild
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
@@ -49,4 +51,25 @@ open class DictionaryContainerClass : RealmObject() {
 
 open class EmbeddedObjectDictionaryContainerClass : RealmObject() {
     val myEmbeddedObjectDictionary = RealmDictionary<EmbeddedSimpleChild>()
+}
+
+open class PrimaryKeyDictionaryContainer : RealmObject() {
+    @PrimaryKey
+    var name = ""
+
+    val myRealmModelDictionary = RealmDictionary<DogPrimaryKey>()
+    val myBooleanDictionary = RealmDictionary<Boolean>()
+    val myStringDictionary = RealmDictionary<String>()
+    val myIntDictionary = RealmDictionary<Int>()
+    val myFloatDictionary = RealmDictionary<Float>()
+    val myLongDictionary = RealmDictionary<Long>()
+    val myShortDictionary = RealmDictionary<Short>()
+    val myDoubleDictionary = RealmDictionary<Double>()
+    val myByteDictionary = RealmDictionary<Byte>()
+    val myBinaryDictionary = RealmDictionary<ByteArray>()
+    val myDateDictionary = RealmDictionary<Date>()
+    val myObjectIdDictionary = RealmDictionary<ObjectId>()
+    val myUUIDDictionary = RealmDictionary<UUID>()
+    val myDecimal128Dictionary = RealmDictionary<Decimal128>()
+    val myMixedDictionary = RealmDictionary<Mixed>()
 }
