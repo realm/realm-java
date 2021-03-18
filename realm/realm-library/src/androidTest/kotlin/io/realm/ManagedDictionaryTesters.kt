@@ -367,6 +367,14 @@ class ManagedDictionaryTester<T : Any>(
     }
 
     override fun copyToRealmOrUpdate() {
+        val initialInstance = PrimaryKeyDictionaryContainer()
+
+        // Copy to Realm
+        realm.executeTransaction {
+            val allTypesObject = realm.copyToRealmOrUpdate(initialInstance)
+            assertNotNull(allTypesObject)
+        }
+
         // Instantiate container and set dictionary on container
         val manualInstance = PrimaryKeyDictionaryContainer().apply {
             primaryKeyDictionaryGetter.get(this).putAll(initializedDictionary)
