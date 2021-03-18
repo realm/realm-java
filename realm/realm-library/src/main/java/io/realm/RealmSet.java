@@ -20,7 +20,6 @@ import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -311,6 +310,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
             return array;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public <T> T[] toArray(@Nullable T[] a) {
             checkValidArray(a);
@@ -325,7 +325,6 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
             if (a.length == setSize || a.length > setSize) {
                 array = a;
             } else {
-                //noinspection unchecked
                 array = (T[]) Array.newInstance(valueClass, (int) setSize);
             }
 
@@ -334,13 +333,8 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
                 if (value == null) {
                     array[i] = null;
                 } else {
-                    //noinspection unchecked
-                    array[i] = (T) setValueOperator.typeCastValue(value);
+                    array[i] = (T) value;
                 }
-
-//                //noinspection unchecked
-//                array[i] = (T) value;
-
                 i++;
             }
 

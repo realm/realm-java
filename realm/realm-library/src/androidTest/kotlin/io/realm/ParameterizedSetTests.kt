@@ -129,11 +129,11 @@ class ParameterizedSetTests(
 //    fun retainAll() {
 //        tester.retainAll()
 //    }
-//
-//    @Test
-//    fun removeAll() {
-//        tester.removeAll()
-//    }
+
+    @Test
+    fun removeAll() {
+        tester.removeAll()
+    }
 
     @Test
     fun clear() {

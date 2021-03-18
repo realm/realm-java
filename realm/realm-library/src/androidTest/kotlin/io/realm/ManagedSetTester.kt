@@ -305,58 +305,58 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun removeAll() {
-//        val set = initAndAssert()
-//
-//        realm.executeTransaction { transactionRealm ->
-//            // Does not change after removing a some values from an empty set
-//            assertTrue(set.isEmpty())
-//            assertFalse(set.removeAll(initializedSet))
-//            assertTrue(set.isEmpty())
-//
-//            // Changes after adding values and then remove all
-//            set.addAll(initializedSet)
-//            assertEquals(initializedSet.size, set.size)
-//            assertTrue(set.removeAll(initializedSet))
-//            assertTrue(set.isEmpty())
-//
-//            // Does not change after adding values again and remove empty collection
-//            set.addAll(initializedSet)
-//            assertFalse(set.removeAll(listOf()))
-//            assertEquals(initializedSet.size, set.size)
-//
-//            // Does not change after remove something else from empty set
-//            assertFalse(set.removeAll(listOf(notPresentValue)))
-//            assertEquals(initializedSet.size, set.size)
-//
-//            // Changes if we remove all items using itself
-//            set.addAll(initializedSet)
-//            assertEquals(initializedSet.size, set.size)
-//            assertTrue(set.removeAll(set))
-//            assertTrue(set.isEmpty())
-//
-//            // Changes if we add some values and remove all items afterwards using another set containing the same items
-//            set.addAll(initializedSet)
-//            val sameValuesManagedSet = managedSetGetter.get(transactionRealm.createObject())
-//            assertNotNull(sameValuesManagedSet)
-//            sameValuesManagedSet.addAll(initializedSet)
-//            assertEquals(initializedSet.size, sameValuesManagedSet.size)
-//            assertTrue(set.removeAll(sameValuesManagedSet as Collection<T>))
-//            assertTrue(set.isEmpty())
-//
-//            // Does not change if we add some values and remove a value not contained in the set afterwards
-//            set.addAll(initializedSet)
-//            assertEquals(initializedSet.size, set.size)
-//            val notPresentValueSet = managedSetGetter.get(transactionRealm.createObject())
-//            assertNotNull(notPresentValueSet)
-//            notPresentValueSet.add(notPresentValue)
-//            assertFalse(set.removeAll(notPresentValueSet as Collection<T>))
-//            assertEquals(initializedSet.size, set.size)
-//
-//            // TODO: it's not possible to test passing a null value from Kotlin, even if using
-//            //  TestHelper.getNull(). It seems that Kotlin generates different bytecode when the
-//            //  parameter to the function is a generics collection with an upper bound.
-//            //  The only way to test this is by writing a Java test instead.
-//        }
+        val set = initAndAssert()
+
+        realm.executeTransaction { transactionRealm ->
+            // Does not change after removing a some values from an empty set
+            assertTrue(set.isEmpty())
+            assertFalse(set.removeAll(initializedSet))
+            assertTrue(set.isEmpty())
+
+            // Changes after adding values and then remove all
+            set.addAll(initializedSet)
+            assertEquals(initializedSet.size, set.size)
+            assertTrue(set.removeAll(initializedSet))
+            assertTrue(set.isEmpty())
+
+            // Does not change after adding values again and remove empty collection
+            set.addAll(initializedSet)
+            assertFalse(set.removeAll(listOf()))
+            assertEquals(initializedSet.size, set.size)
+
+            // Does not change after remove something else from empty set
+            assertFalse(set.removeAll(listOf(notPresentValue)))
+            assertEquals(initializedSet.size, set.size)
+
+            // Changes if we remove all items using itself
+            set.addAll(initializedSet)
+            assertEquals(initializedSet.size, set.size)
+            assertTrue(set.removeAll(set))
+            assertTrue(set.isEmpty())
+
+            // Changes if we add some values and remove all items afterwards using another set containing the same items
+            set.addAll(initializedSet)
+            val sameValuesManagedSet = managedSetGetter.get(transactionRealm.createObject())
+            assertNotNull(sameValuesManagedSet)
+            sameValuesManagedSet.addAll(initializedSet)
+            assertEquals(initializedSet.size, sameValuesManagedSet.size)
+            assertTrue(set.removeAll(sameValuesManagedSet as Collection<T>))
+            assertTrue(set.isEmpty())
+
+            // Does not change if we add some values and remove a value not contained in the set afterwards
+            set.addAll(initializedSet)
+            assertEquals(initializedSet.size, set.size)
+            val notPresentValueSet = managedSetGetter.get(transactionRealm.createObject())
+            assertNotNull(notPresentValueSet)
+            notPresentValueSet.add(notPresentValue)
+            assertFalse(set.removeAll(notPresentValueSet as Collection<T>))
+            assertEquals(initializedSet.size, set.size)
+
+            // TODO: it's not possible to test passing a null value from Kotlin, even if using
+            //  TestHelper.getNull(). It seems that Kotlin generates different bytecode when the
+            //  parameter to the function is a generics collection with an upper bound.
+            //  The only way to test this is by writing a Java test instead.
+        }
     }
 
     override fun clear() {
@@ -442,16 +442,16 @@ fun managedSetFactory(): List<SetTester> {
 //                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toDouble()
 //                )
 
-//            SetSupportedType.STRING ->
-//                ManagedSetTester<String>(
-//                        testerName = "String",
-//                        setGetter = AllTypes::getColumnStringSet,
-//                        setSetter = AllTypes::setColumnStringSet,
-//                        managedSetGetter = SetContainerClass::myStringSet,
-//                        initializedSet = listOf(VALUE_STRING_HELLO, VALUE_STRING_BYE, null),
-//                        notPresentValue = VALUE_STRING_NOT_PRESENT,
-//                        toArrayManaged = ToArrayManaged.StringManaged()
-//                )
+            SetSupportedType.STRING ->
+                ManagedSetTester<String>(
+                        testerName = "String",
+                        setGetter = AllTypes::getColumnStringSet,
+                        setSetter = AllTypes::setColumnStringSet,
+                        managedSetGetter = SetContainerClass::myStringSet,
+                        initializedSet = listOf(VALUE_STRING_HELLO, VALUE_STRING_BYE, null),
+                        notPresentValue = VALUE_STRING_NOT_PRESENT,
+                        toArrayManaged = ToArrayManaged.StringManaged()
+                )
 
 //            SetSupportedType.BOOLEAN ->
 //                UnmanagedSetTester<Boolean>(

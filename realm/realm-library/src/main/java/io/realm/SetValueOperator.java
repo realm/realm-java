@@ -61,7 +61,8 @@ abstract class SetValueOperator<E> {
     }
 
     Iterator<E> iterator() {
-        return new SetIterator<>(osSet, baseRealm);
+//        return new SetIterator<>(osSet, baseRealm);
+        return iteratorFactory(valueClass, osSet, baseRealm);
     }
 
     public void clear() {
@@ -119,6 +120,19 @@ abstract class SetValueOperator<E> {
                 return osSet.intersect(otherOsSet);
             default:
                 throw new IllegalStateException("Unexpected value: " + operation);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> SetIterator<T> iteratorFactory(Class<T> valueClass,
+                                                      OsSet osSet,
+                                                      BaseRealm baseRealm) {
+        if (valueClass == String.class) {
+            return (SetIterator<T>) new StringSetIterator(osSet, baseRealm);
+        } else if (valueClass == Integer.class) {
+            return (SetIterator<T>) new IntegerSetIterator(osSet, baseRealm);
+        } else {
+            throw new IllegalArgumentException("Unknown class for iterator: " + valueClass.getSimpleName());
         }
     }
 }
@@ -252,7 +266,7 @@ class IntegerOperator extends SetValueOperator<Integer> {
             OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
             return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.REMOVE_ALL);
         }
-        return osSet.removeAllString(c);
+        return osSet.removeAllInteger(c);
     }
 
     @Override
@@ -266,10 +280,10 @@ class IntegerOperator extends SetValueOperator<Integer> {
  *
  * @param <E>
  */
-class SetIterator<E> implements Iterator<E> {
+abstract class SetIterator<E> implements Iterator<E> {
 
-    private final OsSet osSet;
-    private final BaseRealm baseRealm;      // TODO: needed for models, will be abstracted later
+    protected final OsSet osSet;
+    protected final BaseRealm baseRealm;    // TODO: needed for models, will be abstracted later
 
     private int pos = -1;
 
@@ -295,8 +309,38 @@ class SetIterator<E> implements Iterator<E> {
         return getValueAtIndex(pos);
     }
 
-    private E getValueAtIndex(int position) {
+    // Some types might want to override this to convert/typecast the value correctly
+    protected E getValueAtIndex(int position) {
         //noinspection unchecked
         return (E) osSet.getValueAtIndex(position);
+    }
+}
+
+/**
+ * TODO
+ */
+class StringSetIterator extends SetIterator<String> {
+    public StringSetIterator(OsSet osSet, BaseRealm baseRealm) {
+        super(osSet, baseRealm);
+    }
+}
+
+/**
+ * TODO
+ */
+class IntegerSetIterator extends SetIterator<Integer> {
+    public IntegerSetIterator(OsSet osSet, BaseRealm baseRealm) {
+        super(osSet, baseRealm);
+    }
+
+    @Override
+    protected Integer getValueAtIndex(int position) {
+        Object value = osSet.getValueAtIndex(position);
+        if (value == null) {
+            return null;
+        }
+
+        Long valueAtIndex = (Long) value;
+        return valueAtIndex.intValue();
     }
 }

@@ -366,8 +366,8 @@ Java_io_realm_internal_OsSet_nativeAddAllString(JNIEnv* env, jclass, jlong set_p
         auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
         JObjectArrayAccessor<JStringAccessor, jstring> values(env, j_values);
         JavaAccessorContext context(env);
-
         bool set_has_changed = false;
+
         for (int i = 0; i < j_values_size; i++) {
             if (i != null_sentinel) {
                 JStringAccessor value = values[i];
@@ -398,9 +398,9 @@ Java_io_realm_internal_OsSet_nativeAddAllLong(JNIEnv* env, jclass, jlong set_ptr
                                               jlong null_sentinel) {
     try {
         auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
-        bool set_has_changed = false;
         JLongArrayAccessor values(env, j_values);
         JavaAccessorContext context(env);
+        bool set_has_changed = false;
 
         for (int i = 0; i < j_values_size; i++) {
             // Insert normally if value is not null
@@ -443,20 +443,29 @@ Java_io_realm_internal_OsSet_nativeAsymmetricDifference(JNIEnv*,
 
 JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_OsSet_nativeRemoveAllString(JNIEnv* env, jclass, jlong set_ptr,
-                                                   jobjectArray j_values) {
+                                                   jobjectArray j_values, jlong j_values_size,
+                                                   jlong null_sentinel) {
     try {
         auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
         JObjectArrayAccessor<JStringAccessor, jstring> values(env, j_values);
-        jsize values_size = values.size();
         bool set_has_changed = false;
-        for (int i = 0; i < values_size; i++) {
-            JStringAccessor value = values[i];
-            JavaAccessorContext context(env);
-            const std::pair<size_t, bool>& remove_pair = set.remove_any(Mixed(StringData(value)));
 
-            // If we get true it means the element was not there and therefore it has changed
-            if (remove_pair.second) {
-                set_has_changed = true;
+        for (int i = 0; i < j_values_size; i++) {
+            if (i != null_sentinel) {
+                JStringAccessor value = values[i];
+                const std::pair<size_t, bool>& insert_pair = set.remove_any(Mixed(StringData(value)));
+
+                // If we get true it means the element was not there and therefore it has changed
+                if (insert_pair.second) {
+                    set_has_changed = true;
+                }
+            } else {
+                const std::pair<size_t, bool>& insert_pair = set.remove_any(Mixed());
+
+                // If we get true it means the element was not there and therefore it has changed
+                if (insert_pair.second) {
+                    set_has_changed = true;
+                }
             }
         }
         return set_has_changed;
@@ -471,9 +480,8 @@ Java_io_realm_internal_OsSet_nativeRemoveAllLong(JNIEnv* env, jclass, jlong set_
                                                  jlong null_sentinel) {
     try {
         auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
-        bool set_has_changed = false;
         JLongArrayAccessor values(env, j_values);
-        JavaAccessorContext context(env);
+        bool set_has_changed = false;
 
         for (int index = 0; index < j_values_size; index++) {
             // Insert normally if value is not null

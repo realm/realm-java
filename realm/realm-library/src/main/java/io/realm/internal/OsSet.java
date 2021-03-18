@@ -16,16 +16,9 @@
 
 package io.realm.internal;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 import javax.annotation.Nullable;
-
-import io.realm.internal.util.Pair;
 
 public class OsSet implements NativeObject {
 
@@ -122,20 +115,6 @@ public class OsSet implements NativeObject {
 
         int nullSentinel = nullSentinelIndex == null ? NULL_VALUE_NOT_FOUND : nullSentinelIndex;
         return nativeContainsAllString(nativePtr, stringArray, totalLength, nullSentinel);
-
-//        // Every set contains the empty set, in this case an empty collection
-//        if (collection.size() == 0) {
-//            return true;
-//        }
-//
-//        // It cannot be contained if it is empty or not the same type
-//        Object[] objects = collection.toArray();
-//        if (objects[0].getClass() != String.class) {
-//            return false;
-//        }
-//
-//        String[] values = collection.toArray(new String[objects.length]);
-//        return nativeContainsAllString(nativePtr, values);
     }
 
     public boolean add(@Nullable String value) {
@@ -187,18 +166,31 @@ public class OsSet implements NativeObject {
     }
 
     public <E> boolean removeAllString(Collection<? extends E> collection) {
-//        // Nothing changes if collection is empty
-//        if (collection.isEmpty()) {
-//            return false;
-//        }
-//
-//        // Remove existing duplicates and preserve ordering using a HashSet
-//        Set<? extends E> setWithNoDuplicates = new HashSet<>(collection);
-//
-//        int size = setWithNoDuplicates.size();
-//        String[] values = setWithNoDuplicates.toArray(new String[size]);
-//        return funnelStringCollection(values, ExternalCollectionOperation.REMOVE_ALL);
-        return false;
+        // TODO: extract to its own method
+        String[] stringArray = new String[collection.size()];
+
+        Integer nullSentinelIndex = null;
+
+        int totalLength = 0;
+        for (E value : collection) {
+            if (value == null) {
+                if (nullSentinelIndex == null) {
+                    nullSentinelIndex = totalLength;
+                    totalLength++;
+                }
+            } else {
+                // TODO: maybe can be done better...?
+                if (value instanceof String) {
+                    stringArray[totalLength] = (String) value;
+                    totalLength++;
+                } else {
+                    throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                }
+            }
+        }
+
+        int nullSentinel = nullSentinelIndex == null ? NULL_VALUE_NOT_FOUND : nullSentinelIndex;
+        return nativeRemoveAllString(nativePtr, stringArray, totalLength, nullSentinel);
     }
 
     public <E> boolean retainAllString(Collection<? extends E> collection) {
@@ -323,7 +315,7 @@ public class OsSet implements NativeObject {
             } else {
                 // TODO: maybe can be done better...?
                 if (value instanceof Integer) {
-                    longArray[totalLength] = (long) value;
+                    longArray[totalLength] = (int) value;
                     totalLength++;
                 } else {
                     throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
@@ -462,7 +454,7 @@ public class OsSet implements NativeObject {
 
     private static native boolean nativeAsymmetricDifference(long nativePtr, long otherRealmSetNativePtr);
 
-    private static native boolean nativeRemoveAllString(long nativePtr, String[] otherSet);
+    private static native boolean nativeRemoveAllString(long nativePtr, String[] otherSet, long otherSetSize, long nullSentinel);
 
     private static native boolean nativeRemoveAllLong(long nativePtr, long[] otherSet, long otherSetSize, long nullSentinel);
 
