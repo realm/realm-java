@@ -194,7 +194,7 @@ public class AllTypes extends RealmObject {
 
 //    private RealmSet<Boolean> columnBooleanSet;
     private RealmSet<String> columnStringSet;
-//    private RealmSet<Integer> columnIntegerSet;
+    private RealmSet<Integer> columnIntegerSet;
 //    private RealmSet<Float> columnFloatSet;
 //    private RealmSet<Long> columnLongSet;
 //    private RealmSet<Short> columnShortSet;
@@ -652,5 +652,13 @@ public class AllTypes extends RealmObject {
 
     public void setColumnStringSet(RealmSet<String> columnStringSet) {
         this.columnStringSet = columnStringSet;
+    }
+
+    public RealmSet<Integer> getColumnIntegerSet() {
+        return columnIntegerSet;
+    }
+
+    public void setColumnIntegerSet(RealmSet<Integer> columnIntegerSet) {
+        this.columnIntegerSet = columnIntegerSet;
     }
 }

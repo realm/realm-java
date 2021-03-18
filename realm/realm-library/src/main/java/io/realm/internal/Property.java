@@ -28,6 +28,7 @@ import static io.realm.RealmFieldType.DECIMAL128_LIST;
 import static io.realm.RealmFieldType.DOUBLE_LIST;
 import static io.realm.RealmFieldType.FLOAT_LIST;
 import static io.realm.RealmFieldType.INTEGER_LIST;
+import static io.realm.RealmFieldType.INTEGER_SET;
 import static io.realm.RealmFieldType.MIXED_LIST;
 import static io.realm.RealmFieldType.OBJECT_ID_LIST;
 import static io.realm.RealmFieldType.STRING_SET;
@@ -220,6 +221,9 @@ public class Property implements NativeObject {
             case STRING_SET:
                 type = TYPE_STRING | TYPE_SET;
                 break;
+            case INTEGER_SET:
+                type = TYPE_INT | TYPE_SET;
+                break;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported filed type: '%s'.", fieldType.name()));
@@ -309,6 +313,8 @@ public class Property implements NativeObject {
                 return STRING_TO_LINK_MAP;
             case TYPE_STRING | TYPE_SET:
                 return STRING_SET;
+            case TYPE_INT | TYPE_SET:
+                return INTEGER_SET;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported property type: '%d'", propertyType));

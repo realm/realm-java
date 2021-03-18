@@ -16,21 +16,15 @@
 
 package io.realm.entities
 
-import io.realm.Mixed
-import io.realm.RealmDictionary
 import io.realm.RealmObject
 import io.realm.RealmSet
-import io.realm.entities.embedded.EmbeddedSimpleChild
-import org.bson.types.Decimal128
-import org.bson.types.ObjectId
-import java.util.*
 
 open class SetContainerClass : RealmObject() {
 
 //    val myRealmModelSet = RealmSet<StringOnly>()
 //    val myBooleanSet = RealmSet<Boolean>()
     val myStringSet = RealmSet<String>()
-//    val myIntSet = RealmSet<Int>()
+    val myIntSet = RealmSet<Int>()
 //    val myFloatSet = RealmSet<Float>()
 //    val myLongSet = RealmSet<Long>()
 //    val myShortSet = RealmSet<Short>()

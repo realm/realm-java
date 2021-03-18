@@ -39,6 +39,8 @@ abstract class SetValueOperator<E> {
 
     abstract boolean removeAll(Collection<?> c);
 
+    public abstract Object typeCastValue(E value);
+
     boolean isValid() {
         if (baseRealm.isClosed()) {
             return false;
@@ -82,7 +84,7 @@ abstract class SetValueOperator<E> {
         return c instanceof RealmSet && ((RealmSet<? extends E>) c).isManaged();
     }
 
-    protected boolean collectionFunnel(OsSet otherOsSet,
+    protected boolean funnelCollection(OsSet otherOsSet,
                                        OsSet.ExternalCollectionOperation operation) {
         // Special case if the passed collection is the same native set as this one
         if (osSet.getNativePtr() == otherOsSet.getNativePtr()) {
@@ -149,7 +151,7 @@ class StringOperator extends SetValueOperator<String> {
     boolean containsAll(Collection<?> c) {
         if (isRealmCollection(c)) {
             OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
-            return collectionFunnel(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
         }
         return osSet.containsAllString(c);
     }
@@ -158,7 +160,7 @@ class StringOperator extends SetValueOperator<String> {
     boolean addAll(Collection<? extends String> c) {
         if (isRealmCollection(c)) {
             OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
-            return collectionFunnel(otherOsSet, OsSet.ExternalCollectionOperation.ADD_ALL);
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.ADD_ALL);
         }
         return osSet.addAllString(c);
     }
@@ -167,7 +169,7 @@ class StringOperator extends SetValueOperator<String> {
     boolean retainAll(Collection<?> c) {
         if (isRealmCollection(c)) {
             OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
-            return collectionFunnel(otherOsSet, OsSet.ExternalCollectionOperation.RETAIN_ALL);
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.RETAIN_ALL);
         }
         return osSet.retainAllString(c);
     }
@@ -176,9 +178,86 @@ class StringOperator extends SetValueOperator<String> {
     boolean removeAll(Collection<?> c) {
         if (isRealmCollection(c)) {
             OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
-            return collectionFunnel(otherOsSet, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.REMOVE_ALL);
         }
         return osSet.removeAllString(c);
+    }
+
+    @Override
+    public Object typeCastValue(String value) {
+        return value;
+    }
+}
+
+/**
+ * TODO
+ */
+class IntegerOperator extends SetValueOperator<Integer> {
+
+    public IntegerOperator(BaseRealm baseRealm, OsSet osSet, Class<Integer> valueClass) {
+        super(baseRealm, osSet, valueClass);
+    }
+
+    @Override
+    boolean add(@Nullable Integer value) {
+        return osSet.add(value);
+    }
+
+    @Override
+    boolean contains(@Nullable Object o) {
+        Long value;
+        if (o == null) {
+            value = null;
+        } else {
+            value = ((Integer) o).longValue();
+        }
+        return osSet.contains(value);
+    }
+
+    @Override
+    boolean remove(@Nullable Object o) {
+        return osSet.remove((Integer) o);
+    }
+
+    @Override
+    boolean containsAll(Collection<?> c) {
+        if (isRealmCollection(c)) {
+            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+        }
+        return osSet.containsAllInteger(c);
+    }
+
+    @Override
+    boolean addAll(Collection<? extends Integer> c) {
+        if (isRealmCollection(c)) {
+            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.ADD_ALL);
+        }
+        return osSet.addAllInteger(c);
+    }
+
+    @Override
+    boolean retainAll(Collection<?> c) {
+        if (isRealmCollection(c)) {
+            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.RETAIN_ALL);
+        }
+        return osSet.retainAllString(c);
+    }
+
+    @Override
+    boolean removeAll(Collection<?> c) {
+        if (isRealmCollection(c)) {
+            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+        }
+        return osSet.removeAllString(c);
+    }
+
+    @Override
+    public Object typeCastValue(Integer value) {
+        return value.longValue();
     }
 }
 

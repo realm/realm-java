@@ -137,6 +137,18 @@ Java_io_realm_internal_OsSet_nativeContainsString(JNIEnv* env, jclass, jlong set
     return reinterpret_cast<jlong>(nullptr);
 }
 
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsSet_nativeContainsLong(JNIEnv* env, jclass, jlong set_ptr,
+                                                jlong j_value) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        size_t found = set.find_any(Mixed(j_value));
+        return found != npos;       // npos represents "not found"
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
 JNIEXPORT jlongArray JNICALL
 Java_io_realm_internal_OsSet_nativeAddNull(JNIEnv* env, jclass, jlong set_ptr) {
     try {
@@ -160,7 +172,30 @@ Java_io_realm_internal_OsSet_nativeAddString(JNIEnv* env, jclass, jlong set_ptr,
         auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
         JStringAccessor value(env, j_value);
         JavaAccessorContext context(env);
+
+        // TODO: abstract this call so that the rest is the same for all types
         const std::pair<size_t, bool>& add_pair = set.insert(context, Any(value));
+
+        jlong ret[2];
+        ret[0] = add_pair.first;    // index
+        ret[1] = add_pair.second;   // found (or not)
+        jlongArray ret_array = env->NewLongArray(2);
+        env->SetLongArrayRegion(ret_array, 0, 2, ret);
+        return ret_array;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jlongArray JNICALL
+Java_io_realm_internal_OsSet_nativeAddLong(JNIEnv* env, jclass, jlong set_ptr, jlong j_value) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        JavaAccessorContext context(env);
+
+        // TODO: abstract this call so that the rest is the same for all types
+        const std::pair<size_t, bool>& add_pair = set.insert(context, Any(j_value));
+
         jlong ret[2];
         ret[0] = add_pair.first;    // index
         ret[1] = add_pair.second;   // found (or not)
@@ -193,7 +228,29 @@ Java_io_realm_internal_OsSet_nativeRemoveString(JNIEnv* env, jclass, jlong set_p
     try {
         auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
         JStringAccessor value(env, j_value);
+
+        // TODO: abstract this call so that the rest is the same for all types
         const std::pair<size_t, bool>& remove_pair = set.remove_any(Mixed(StringData(value)));
+
+        jlong ret[2];
+        ret[0] = remove_pair.first;     // index
+        ret[1] = remove_pair.second;    // found (or not)
+        jlongArray ret_array = env->NewLongArray(2);
+        env->SetLongArrayRegion(ret_array, 0, 2, ret);
+        return ret_array;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jlongArray JNICALL
+Java_io_realm_internal_OsSet_nativeRemoveLong(JNIEnv* env, jclass, jlong set_ptr, jlong j_value) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+
+        // TODO: abstract this call so that the rest is the same for all types
+        const std::pair<size_t, bool>& remove_pair = set.remove_any(Mixed(j_value));
+
         jlong ret[2];
         ret[0] = remove_pair.first;     // index
         ret[1] = remove_pair.second;    // found (or not)
@@ -207,18 +264,18 @@ Java_io_realm_internal_OsSet_nativeRemoveString(JNIEnv* env, jclass, jlong set_p
 
 JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_OsSet_nativeContainsAllString(JNIEnv* env, jclass, jlong set_ptr,
-                                                     jobjectArray j_other_set_values) {
+                                                     jobjectArray j_values, jlong j_values_size,
+                                                     jlong null_sentinel) {
     try {
         auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
-        JObjectArrayAccessor<JStringAccessor, jstring> values(env, j_other_set_values);
-        jsize values_size = values.size();
-        for (int i = 0; i < values_size; i++) {
-            JStringAccessor value = values[i];
+        JObjectArrayAccessor<JStringAccessor, jstring> values(env, j_values);
+
+        for (int i = 0; i < j_values_size; i++) {
             size_t found;
-            if (value.is_null()) {
-                found = set.find_any(Mixed());
+            if (i != null_sentinel) {
+                found = set.find_any(Mixed(StringData(values[i])));
             } else {
-                found = set.find_any(Mixed(StringData(value)));
+                found = set.find_any(Mixed());
             }
             if (found == npos) {    // npos represents "not found"
                 return false;
@@ -229,6 +286,56 @@ Java_io_realm_internal_OsSet_nativeContainsAllString(JNIEnv* env, jclass, jlong 
     CATCH_STD()
     return false;
 }
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsSet_nativeContainsAllLong(JNIEnv* env, jclass, jlong set_ptr,
+                                                   jlongArray j_values, jlong j_values_size,
+                                                   jlong null_sentinel) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        JLongArrayAccessor values(env, j_values);
+
+        for (int i = 0; i < j_values_size; i++) {
+            size_t found;
+            if (i != null_sentinel) {
+                found = set.find_any(Mixed(values[i]));
+            } else {
+                found = set.find_any(Mixed());
+            }
+
+            if (found == npos) {    // npos represents "not found"
+                return false;
+            }
+        }
+        return true;
+    }
+    CATCH_STD()
+    return false;
+}
+
+//JNIEXPORT jboolean JNICALL
+//Java_io_realm_internal_OsSet_nativeContainsAllLong(JNIEnv* env, jclass, jlong set_ptr,
+//                                                   jobjectArray j_other_set_values,
+//                                                   jlong other_set_size) {
+//    try {
+//        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+//        for (int index = 0; index < (other_set_size - 1); index++) {
+//            jobject value = env->GetObjectArrayElement(j_other_set_values, index);
+//            size_t found;
+//            if (value == NULL) {
+//                found = set.find_any(Mixed());
+//            } else {
+//                found = set.find_any(Mixed((jlong) value));
+//            }
+//            if (found == npos) {    // npos represents "not found"
+//                return false;
+//            }
+//        }
+//        return true;
+//    }
+//    CATCH_STD()
+//    return false;
+//}
 
 JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_OsSet_nativeContainsAll(JNIEnv*, jclass, jlong set_ptr, jlong other_set_ptr) {
@@ -253,20 +360,65 @@ Java_io_realm_internal_OsSet_nativeUnion(JNIEnv*, jclass, jlong set_ptr, jlong o
 
 JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_OsSet_nativeAddAllString(JNIEnv* env, jclass, jlong set_ptr,
-                                                jobjectArray j_values) {
+                                                jobjectArray j_values, jlong j_values_size,
+                                                jlong null_sentinel) {
     try {
         auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
         JObjectArrayAccessor<JStringAccessor, jstring> values(env, j_values);
-        jsize values_size = values.size();
-        bool set_has_changed = false;
-        for (int i = 0; i < values_size; i++) {
-            JStringAccessor value = values[i];
-            JavaAccessorContext context(env);
-            const std::pair<size_t, bool>& insert_pair = set.insert(context, Any(value));
+        JavaAccessorContext context(env);
 
-            // If we get true it means the element was not there and therefore it has changed
-            if (insert_pair.second) {
-                set_has_changed = true;
+        bool set_has_changed = false;
+        for (int i = 0; i < j_values_size; i++) {
+            if (i != null_sentinel) {
+                JStringAccessor value = values[i];
+                const std::pair<size_t, bool>& insert_pair = set.insert(context, Any(value));
+
+                // If we get true it means the element was not there and therefore it has changed
+                if (insert_pair.second) {
+                    set_has_changed = true;
+                }
+            } else {
+                const std::pair<size_t, bool>& insert_pair = set.insert(context, Any());
+
+                // If we get true it means the element was not there and therefore it has changed
+                if (insert_pair.second) {
+                    set_has_changed = true;
+                }
+            }
+        }
+        return set_has_changed;
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsSet_nativeAddAllLong(JNIEnv* env, jclass, jlong set_ptr,
+                                              jlongArray j_values, jlong j_values_size,
+                                              jlong null_sentinel) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        bool set_has_changed = false;
+        JLongArrayAccessor values(env, j_values);
+        JavaAccessorContext context(env);
+
+        for (int i = 0; i < j_values_size; i++) {
+            // Insert normally if value is not null
+            if (i != null_sentinel) {
+                jlong value = values[i];
+                const std::pair<size_t, bool>& insert_pair = set.insert(context, Any(value));
+
+                // If we get true it means the element was not there and therefore it has changed
+                if (insert_pair.second) {
+                    set_has_changed = true;
+                }
+            } else {
+                const std::pair<size_t, bool>& insert_pair = set.insert(context, Any());
+
+                // If we get true it means the element was not there and therefore it has changed
+                if (insert_pair.second) {
+                    set_has_changed = true;
+                }
             }
         }
         return set_has_changed;
@@ -305,6 +457,41 @@ Java_io_realm_internal_OsSet_nativeRemoveAllString(JNIEnv* env, jclass, jlong se
             // If we get true it means the element was not there and therefore it has changed
             if (remove_pair.second) {
                 set_has_changed = true;
+            }
+        }
+        return set_has_changed;
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsSet_nativeRemoveAllLong(JNIEnv* env, jclass, jlong set_ptr,
+                                                 jlongArray j_values, jlong j_values_size,
+                                                 jlong null_sentinel) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        bool set_has_changed = false;
+        JLongArrayAccessor values(env, j_values);
+        JavaAccessorContext context(env);
+
+        for (int index = 0; index < j_values_size; index++) {
+            // Insert normally if value is not null
+            if (index != null_sentinel) {
+                jlong value = values[index];
+                const std::pair<size_t, bool>& remove_pair = set.remove_any(Mixed((jlong) value));
+
+                // If we get true it means the element was not there and therefore it has changed
+                if (remove_pair.second) {
+                    set_has_changed = true;
+                }
+            } else {
+                const std::pair<size_t, bool>& remove_pair = set.remove_any(Mixed());
+
+                // If we get true it means the element was not there and therefore it has changed
+                if (remove_pair.second) {
+                    set_has_changed = true;
+                }
             }
         }
         return set_has_changed;
@@ -367,8 +554,8 @@ Java_io_realm_internal_OsSet_nativeRetainAllString(JNIEnv* env, jclass, jlong se
         int intersection_size = intersection.size();
 
         JavaAccessorContext context(env);
-        for (std::string& t : intersection) {
-            jstring j_string = to_jstring(env, t);
+        for (std::string& item : intersection) {
+            jstring j_string = to_jstring(env, item);
             JStringAccessor string_value(env, j_string);
             set.insert(context, Any(string_value));
         }
@@ -387,6 +574,79 @@ Java_io_realm_internal_OsSet_nativeRetainAllString(JNIEnv* env, jclass, jlong se
         } else {
             for (int i = 0; i < intersection_size; i++) {
                 size_t found_index = set.find_any(Mixed(StringData(intersection[i])));
+                if (found_index == npos) {
+                    set_has_changed = true;
+                }
+            }
+            if (set_has_null && other_collection_has_nulls) {
+                size_t found_index = set.find_any(Mixed());
+                if (found_index == npos) {
+                    set_has_changed = true;
+                }
+            }
+        }
+
+        return set_has_changed;
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsSet_nativeRetainAllLong(JNIEnv* env, jclass, jlong set_ptr,
+                                                 jobjectArray j_values, jlong j_values_size) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        int set_size = set.size();
+        bool set_has_null = false;
+        std::set<jlong> aux_set;
+        for (int i = 0; i < set_size; i++) {
+            const Mixed& value = set.get_any(i);
+            if (value.is_null()) {
+                set_has_null = true;
+            } else {
+                aux_set.insert(value.get_int());
+            }
+        }
+
+        bool other_collection_has_nulls = false;
+        std::set<jlong> other_collection_set;
+        for (int i = 0; i < (j_values_size - 1); i++) {
+            jobject object_value = env->GetObjectArrayElement(j_values, i);
+            if (object_value == NULL) {
+                other_collection_has_nulls = true;
+            } else {
+                other_collection_set.insert((jlong) object_value);
+            }
+        }
+
+        std::vector<jlong> intersection;
+        std::set_intersection(aux_set.begin(), aux_set.end(),
+                              other_collection_set.begin(), other_collection_set.end(),
+                              std::back_inserter(intersection));
+
+        set.delete_all();
+        int intersection_size = intersection.size();
+
+        JavaAccessorContext context(env);
+        for (jlong item : intersection) {
+            set.insert(context, Any(item));
+        }
+        if (set_has_null && other_collection_has_nulls) {
+            set.insert(context, Any());
+        }
+
+        int aux_set_size = aux_set.size();
+        if (set_has_null && other_collection_has_nulls) {
+            aux_set_size = aux_set_size + 1;
+        }
+
+        bool set_has_changed = false;
+        if (int(set.size()) != aux_set_size) {
+            set_has_changed = true;
+        } else {
+            for (int i = 0; i < intersection_size; i++) {
+                size_t found_index = set.find_any(Mixed((jlong) intersection[i]));
                 if (found_index == npos) {
                     set_has_changed = true;
                 }

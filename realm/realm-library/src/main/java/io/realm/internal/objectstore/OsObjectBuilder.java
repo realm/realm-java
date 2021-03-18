@@ -664,6 +664,13 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
+    private static ItemCallback<Integer> integerSetItemCallback = new ItemCallback<Integer>() {
+        @Override
+        public void handleItem(long containerPtr, Integer item) {
+            nativeAddIntegerSetItem(containerPtr, item);
+        }
+    };
+
     private static native long nativeStartSet(long size);
 
     private static native void nativeStopSet(long builderPtr, long columnKey, long setPtr);
@@ -672,12 +679,18 @@ public class OsObjectBuilder implements Closeable {
 
     private static native void nativeAddStringSetItem(long setPtr, String val);
 
+    private static native void nativeAddIntegerSetItem(long setPtr, long val);
+
     private void addEmptySet(long columnKey) {
         nativeStopSet(builderPtr, columnKey, nativeStartSet(0));
     }
 
     public void addStringSet(long columnKey, RealmSet<String> set) {
         addSetItem(builderPtr, columnKey, set, stringSetItemCallback);
+    }
+
+    public void addIntegerSet(long columnKey, RealmSet<Integer> set) {
+        addSetItem(builderPtr, columnKey, set, integerSetItemCallback);
     }
 
     private <T> void addSetItem(long builderPtr,

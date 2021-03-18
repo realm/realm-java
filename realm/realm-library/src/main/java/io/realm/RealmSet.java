@@ -224,6 +224,8 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
         SetValueOperator<T> operator;
         if (valueClass == String.class) {
             operator = (SetValueOperator<T>) new StringOperator(baseRealm, osSet, String.class);
+        } else if (valueClass == Integer.class) {
+            operator = (SetValueOperator<T>) new IntegerOperator(baseRealm, osSet, Integer.class);
         } else {
             throw new UnsupportedOperationException("getStrategy: missing class '" + valueClass.getSimpleName() + "'");
         }
@@ -329,8 +331,16 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
 
             int i = 0;
             for (E value : this) {
-                //noinspection unchecked
-                array[i] = (T) value;
+                if (value == null) {
+                    array[i] = null;
+                } else {
+                    //noinspection unchecked
+                    array[i] = (T) setValueOperator.typeCastValue(value);
+                }
+
+//                //noinspection unchecked
+//                array[i] = (T) value;
+
                 i++;
             }
 

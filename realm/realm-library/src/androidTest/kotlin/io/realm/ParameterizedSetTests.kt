@@ -34,8 +34,8 @@ class ParameterizedSetTests(
         fun testType(): List<SetTester> {
             return SetMode.values().mapNotNull { type ->
                 when (type) {
-                    SetMode.UNMANAGED -> unmanagedSetFactory()
-//                    SetMode.UNMANAGED -> null
+//                    SetMode.UNMANAGED -> unmanagedSetFactory()
+                    SetMode.UNMANAGED -> null
 //                    SetMode.MANAGED -> null
                     SetMode.MANAGED -> managedSetFactory()
                 }
@@ -125,15 +125,15 @@ class ParameterizedSetTests(
         tester.addAll()
     }
 
-    @Test
-    fun retainAll() {
-        tester.retainAll()
-    }
-
-    @Test
-    fun removeAll() {
-        tester.removeAll()
-    }
+//    @Test
+//    fun retainAll() {
+//        tester.retainAll()
+//    }
+//
+//    @Test
+//    fun removeAll() {
+//        tester.removeAll()
+//    }
 
     @Test
     fun clear() {
