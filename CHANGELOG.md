@@ -3,9 +3,9 @@
 Releases are now found on `mavenCentral()` instead of `jcenter()`. `jcenter()` is still required as
 a configured repository as [`Relinker`](https://github.com/KeepSafe/ReLinker) which Realm depends on,
 are still only on `jcenter()`. As soon as that has [moved](https://github.com/KeepSafe/ReLinker/issues/79),
-`jcenter()`` is no longer required.
+`jcenter()` is no longer required.
 
-A minimal supported setup will therefor now look like this:
+A minimal supported setup will therefore now look like this:
 
 ```
 allprojects {

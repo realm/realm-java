@@ -12,7 +12,7 @@ releaseBranches = ['master', 'next-major', 'v10', 'releases']
 slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
 // WARNING: Only set to `false` as an absolute last resort. Doing this will disable all integration
 // tests.
-enableIntegrationTests = false
+enableIntegrationTests = true
 // WARNING: Only set to `false` if the emulator is being controlled by the host
 buildControlledEmulator = false
 
@@ -32,7 +32,7 @@ isReleaseBranch = releaseBranches.contains(currentBranch)
 // FIXME: Always used the emulator until we can enable more reliable devices
 // 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen.
 // nodeSelector = (releaseBranches.contains(currentBranch)) ? 'android' : 'docker-cph-03' // Switch to `brix` when all CPH nodes work: https://jira.mongodb.org/browse/RCI-14
-nodeSelector = 'osx_kotlin'
+nodeSelector = 'docker-cph-03'
 try {
   node(nodeSelector) {
     timeout(time: 150, unit: 'MINUTES') {
@@ -251,71 +251,71 @@ def runBuild(buildFlags, instrumentationTestTarget) {
         step([$class: 'LintPublisher'])
       }
     },
-            'Realm Transformer' : {
-              try {
-                gradle('realm-transformer', 'check')
-              } finally {
-                storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
-              }
-            },
-            // 'Static code analysis' : {
-            //   try {
-            //     gradle('realm', "spotbugsMain pmd checkstyle ${buildFlags}")
-            //   } finally {
-            //     publishHTML(target: [
-            //       allowMissing: false,
-            //       alwaysLinkToLastBuild: false,
-            //       keepAll: true,
-            //       reportDir: 'realm/realm-library/build/reports/spotbugs',
-            //       reportFiles: 'main.html',
-            //       reportName: 'Spotbugs report'
-            //     ])
+    'Realm Transformer' : {
+      try {
+        gradle('realm-transformer', 'check')
+      } finally {
+        storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
+      }
+    },
+    // 'Static code analysis' : {
+    //   try {
+    //     gradle('realm', "spotbugsMain pmd checkstyle ${buildFlags}")
+    //   } finally {
+    //     publishHTML(target: [
+    //       allowMissing: false,
+    //       alwaysLinkToLastBuild: false,
+    //       keepAll: true,
+    //       reportDir: 'realm/realm-library/build/reports/spotbugs',
+    //       reportFiles: 'main.html',
+    //       reportName: 'Spotbugs report'
+    //     ])
 
-            //     publishHTML(target: [
-            //       allowMissing: false,
-            //       alwaysLinkToLastBuild: false,
-            //       keepAll: true,
-            //       reportDir: 'realm/realm-library/build/reports/pmd',
-            //       reportFiles: 'pmd.html',
-            //       reportName: 'PMD report'
-            //     ])
+    //     publishHTML(target: [
+    //       allowMissing: false,
+    //       alwaysLinkToLastBuild: false,
+    //       keepAll: true,
+    //       reportDir: 'realm/realm-library/build/reports/pmd',
+    //       reportFiles: 'pmd.html',
+    //       reportName: 'PMD report'
+    //     ])
 
-            //     publishHTML(target: [
-            //       allowMissing: false,
-            //       alwaysLinkToLastBuild: false,
-            //       keepAll: true,
-            //       reportDir: 'realm/realm-library/build/reports/checkstyle',
-            //       reportFiles: 'checkstyle.html',
-            //       reportName: 'Checkstyle report'
-            //     ])
-            //   }
-            // },
-            'Instrumentation' : {
-              if (enableIntegrationTests) {
-                String backgroundPid
-                try {
-                  backgroundPid = startLogCatCollector()
-                  forwardAdbPorts()
-                  gradle('realm', "${instrumentationTestTarget} ${buildFlags}")
-                } finally {
-                  stopLogCatCollector(backgroundPid)
-                  storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
-                  storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
-                }
-              } else {
-                echo "Instrumentation tests were disabled."
-              }
-            },
-            'Gradle Plugin' : {
-              try {
-                gradle('gradle-plugin', 'check --debug')
-              } finally {
-                storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
-              }
-            },
-            'JavaDoc': {
-              sh "./gradlew javadoc ${buildFlags} --stacktrace"
-            }
+    //     publishHTML(target: [
+    //       allowMissing: false,
+    //       alwaysLinkToLastBuild: false,
+    //       keepAll: true,
+    //       reportDir: 'realm/realm-library/build/reports/checkstyle',
+    //       reportFiles: 'checkstyle.html',
+    //       reportName: 'Checkstyle report'
+    //     ])
+    //   }
+    // },
+    'Instrumentation' : {
+      if (enableIntegrationTests) {
+        String backgroundPid
+        try {
+          backgroundPid = startLogCatCollector()
+          forwardAdbPorts()
+          gradle('realm', "${instrumentationTestTarget} ${buildFlags}")
+        } finally {
+          stopLogCatCollector(backgroundPid)
+          storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+          storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
+        }
+      } else {
+        echo "Instrumentation tests were disabled."
+      }
+    },
+    'Gradle Plugin' : {
+      try {
+        gradle('gradle-plugin', 'check --debug')
+      } finally {
+        storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
+      }
+    },
+    'JavaDoc': {
+      sh "./gradlew javadoc ${buildFlags} --stacktrace"
+    }
   }
 
   // TODO: add support for running monkey on the example apps
@@ -384,9 +384,9 @@ def stopLogCatCollector(String backgroundPid) {
   if (backgroundPid != null) {
     sh "kill ${backgroundPid}"
     zip([
-            'zipFile': 'logcat.zip',
-            'archive': true,
-            'glob' : 'logcat.txt'
+      'zipFile': 'logcat.zip',
+      'archive': true,
+      'glob' : 'logcat.txt'
     ])
     sh 'rm logcat.txt'
   }
@@ -395,25 +395,25 @@ def stopLogCatCollector(String backgroundPid) {
 def archiveServerLogs(String mongoDbRealmContainerId, String commandServerContainerId) {
   sh "docker logs ${commandServerContainerId} > ./command-server.log"
   zip([
-          'zipFile': 'command-server-log.zip',
-          'archive': true,
-          'glob' : 'command-server.log'
+    'zipFile': 'command-server-log.zip',
+    'archive': true,
+    'glob' : 'command-server.log'
   ])
   sh 'rm command-server.log'
 
   sh "docker cp ${mongoDbRealmContainerId}:/var/log/stitch.log ./stitch.log"
   zip([
-          'zipFile': 'stitchlog.zip',
-          'archive': true,
-          'glob' : 'stitch.log'
+    'zipFile': 'stitchlog.zip',
+    'archive': true,
+    'glob' : 'stitch.log'
   ])
   sh 'rm stitch.log'
 
   sh "docker cp ${mongoDbRealmContainerId}:/var/log/mongodb.log ./mongodb.log"
   zip([
-          'zipFile': 'mongodb.zip',
-          'archive': true,
-          'glob' : 'mongodb.log'
+    'zipFile': 'mongodb.zip',
+    'archive': true,
+    'glob' : 'mongodb.log'
   ])
   sh 'rm mongodb.log'
 }
