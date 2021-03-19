@@ -37,6 +37,7 @@ class ManagedSetTester<T : Any>(
         private val setGetter: KFunction1<AllTypes, RealmSet<T>>,
         private val setSetter: KFunction2<AllTypes, RealmSet<T>, Unit>,
         private val managedSetGetter: KProperty1<SetContainerClass, RealmSet<T>>,
+        private val managedCollectionGetter: KProperty1<SetContainerClass, RealmList<T>>,
         private val initializedSet: List<T?>,
         private val notPresentValue: T,
         private val toArrayManaged: ToArrayManaged<T>
@@ -185,7 +186,7 @@ class ManagedSetTester<T : Any>(
             // Contains a managed set (itself)
             assertTrue(set.containsAll(set))
 
-            // Contains an empty collection
+            // Contains an empty collection - every set contains the empty set
             assertTrue(set.containsAll(listOf()))
 
             // Contains a managed set containing the same values
@@ -205,6 +206,20 @@ class ManagedSetTester<T : Any>(
             assertTrue(emptyManagedSet.isEmpty())
             assertTrue(set.containsAll(emptyManagedSet))
 
+            // Contains a managed list with the same elements
+            val sameValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            sameValuesManagedList.addAll(initializedSet)
+            assertTrue(set.containsAll(sameValuesManagedList))
+
+            // Does not contain a managed list with the other elements
+            val differentValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            differentValuesManagedList.add(notPresentValue)
+            assertFalse(set.containsAll(differentValuesManagedList))
+
+            // Contains an empty managed list
+            val emptyValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            assertTrue(set.containsAll(emptyValuesManagedList))
+
             // TODO: it's not possible to test passing a null value from Kotlin, even if using
             //  TestHelper.getNull(). It seems that Kotlin generates different bytecode when the
             //  parameter to the function is a generics collection with an upper bound.
@@ -213,6 +228,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun addAll() {
+        // FIXME: add cases for managed lists just as we do in containsAll
         val set = initAndAssert()
 
         realm.executeTransaction { transactionRealm ->
@@ -316,6 +332,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun removeAll() {
+        // FIXME: add cases for managed lists just as we do in containsAll
         val set = initAndAssert()
 
         realm.executeTransaction { transactionRealm ->
@@ -416,6 +433,7 @@ fun managedSetFactory(): List<SetTester> {
                         setGetter = AllTypes::getColumnLongSet,
                         setSetter = AllTypes::setColumnLongSet,
                         managedSetGetter = SetContainerClass::myLongSet,
+                        managedCollectionGetter = SetContainerClass::myLongList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO.toLong(), VALUE_NUMERIC_BYE.toLong(), null),
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toLong(),
                         toArrayManaged = ToArrayManaged.LongManaged()
@@ -426,6 +444,7 @@ fun managedSetFactory(): List<SetTester> {
                         setGetter = AllTypes::getColumnIntegerSet,
                         setSetter = AllTypes::setColumnIntegerSet,
                         managedSetGetter = SetContainerClass::myIntSet,
+                        managedCollectionGetter = SetContainerClass::myIntList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO, VALUE_NUMERIC_BYE, null),
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT,
                         toArrayManaged = ToArrayManaged.IntManaged()
@@ -436,6 +455,7 @@ fun managedSetFactory(): List<SetTester> {
                         setGetter = AllTypes::getColumnShortSet,
                         setSetter = AllTypes::setColumnShortSet,
                         managedSetGetter = SetContainerClass::myShortSet,
+                        managedCollectionGetter = SetContainerClass::myShortList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO.toShort(), VALUE_NUMERIC_BYE.toShort(), null),
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toShort(),
                         toArrayManaged = ToArrayManaged.ShortManaged()
@@ -446,6 +466,7 @@ fun managedSetFactory(): List<SetTester> {
                         setGetter = AllTypes::getColumnByteSet,
                         setSetter = AllTypes::setColumnByteSet,
                         managedSetGetter = SetContainerClass::myByteSet,
+                        managedCollectionGetter = SetContainerClass::myByteList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO.toByte(), VALUE_NUMERIC_BYE.toByte(), null),
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toByte(),
                         toArrayManaged = ToArrayManaged.ByteManaged()
@@ -468,6 +489,7 @@ fun managedSetFactory(): List<SetTester> {
                         setGetter = AllTypes::getColumnStringSet,
                         setSetter = AllTypes::setColumnStringSet,
                         managedSetGetter = SetContainerClass::myStringSet,
+                        managedCollectionGetter = SetContainerClass::myStringList,
                         initializedSet = listOf(VALUE_STRING_HELLO, VALUE_STRING_BYE, null),
                         notPresentValue = VALUE_STRING_NOT_PRESENT,
                         toArrayManaged = ToArrayManaged.StringManaged()

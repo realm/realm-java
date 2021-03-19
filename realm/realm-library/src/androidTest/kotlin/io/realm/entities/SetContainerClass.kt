@@ -16,8 +16,13 @@
 
 package io.realm.entities
 
+import io.realm.Mixed
+import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.RealmSet
+import org.bson.types.Decimal128
+import org.bson.types.ObjectId
+import java.util.*
 
 open class SetContainerClass : RealmObject() {
 
@@ -36,6 +41,22 @@ open class SetContainerClass : RealmObject() {
 //    val myUUIDSet = RealmSet<UUID>()
 //    val myDecimal128Set = RealmSet<Decimal128>()
 //    val myMixedSet = RealmSet<Mixed>()
+
+    val myRealmModelList = RealmList<StringOnly>()
+    val myBooleanList = RealmList<Boolean>()
+    val myStringList = RealmList<String>()
+    val myIntList = RealmList<Int>()
+    val myFloatList = RealmList<Float>()
+    val myLongList = RealmList<Long>()
+    val myShortList = RealmList<Short>()
+    val myDoubleList = RealmList<Double>()
+    val myByteList = RealmList<Byte>()
+    val myBinaryList = RealmList<ByteArray>()
+    val myDateList = RealmList<Date>()
+    val myObjectIdList = RealmList<ObjectId>()
+    val myUUIDList = RealmList<UUID>()
+    val myDecimal128List = RealmList<Decimal128>()
+    val myMixedList = RealmList<Mixed>()
 
     companion object {
         const val CLASS_NAME = "SetContainerClass"

@@ -32,13 +32,25 @@ interface GenericTester {
     fun tearDown()
 }
 
-fun createAllTypesManagedContainerAndAssert(realm: Realm): AllTypes {
+fun createAllTypesManagedContainerAndAssert(
+        realm: Realm,
+        id: String? = null
+): AllTypes {
     var allTypesObject: AllTypes? = null
     realm.executeTransaction { transactionRealm ->
         allTypesObject = transactionRealm.createObject()
         assertNotNull(allTypesObject)
+
+        // Assign id if we have one
+        if (id != null) {
+            allTypesObject!!.columnString = id
+        }
     }
-    val allTypesObjectFromRealm = realm.where<AllTypes>().findFirst()
+    val allTypesObjectFromRealm = if (id == null) {
+        realm.where<AllTypes>().equalTo(AllTypes.FIELD_STRING, "").findFirst()
+    } else {
+        realm.where<AllTypes>().equalTo(AllTypes.FIELD_STRING, id).findFirst()
+    }
     assertEquals(allTypesObject, allTypesObjectFromRealm)
     return allTypesObject!!
 }
