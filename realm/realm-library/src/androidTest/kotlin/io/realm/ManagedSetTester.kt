@@ -34,6 +34,7 @@ class ManagedSetTester<T : Any>(
         private val setGetter: KFunction1<AllTypes, RealmSet<T>>,
         private val setSetter: KFunction2<AllTypes, RealmSet<T>, Unit>,
         private val managedSetGetter: KProperty1<SetContainerClass, RealmSet<T>>,
+        private val managedCollectionGetter: KFunction1<AllTypes, RealmList<T>>,
         private val initializedSet: List<T?>,
         private val notPresentValue: T
 ) : SetTester {
@@ -154,22 +155,39 @@ class ManagedSetTester<T : Any>(
         // Contains a managed set
         assertTrue(set.containsAll(set))
 
+        // Contains a managed list with the same elements
+        val sameValuesContainer = createAllTypesManagedContainerAndAssert(realm, "sameValues")
+        val sameValuesManagedList = managedCollectionGetter.call(sameValuesContainer)
+        realm.executeTransaction {
+            sameValuesManagedList.addAll(initializedSet)
+        }
+        assertTrue(set.containsAll(sameValuesManagedList))
+
+        // Does not contain a managed list with the other elements
+        val differentValuesContainer = createAllTypesManagedContainerAndAssert(realm, "differentValues")
+        val differentValuesManagedList = managedCollectionGetter.call(differentValuesContainer)
+        realm.executeTransaction {
+            differentValuesManagedList.add(notPresentValue)
+        }
+        assertFalse(set.containsAll(differentValuesManagedList))
+
+        // Does not contain an empty managed list
+        val emptyValuesContainer = createAllTypesManagedContainerAndAssert(realm, "emptyValues")
+        val emptyValuesManagedList = managedCollectionGetter.call(emptyValuesContainer)
+        assertFalse(set.containsAll(emptyValuesManagedList))
+
         // Does not contain an empty collection
         assertFalse(set.containsAll(listOf()))
 
-        // Fails if passed null
-        try {
-//            set.containsAll(null)
-            set.containsAll(TestHelper.getNull())
-        } catch (e: Exception) {
-            val kjahsd = 0
-        }
+        // FIXME: Fails if passed null fails due to Kotlin generating bytecode that doesn't
+        //  allow using TestHelper.getNull() when the generic type is not upper-bound
 //        assertFailsWith<NullPointerException> {
 //            set.containsAll(TestHelper.getNull())
 //        }
     }
 
     override fun addAll() {
+        // FIXME: add cases for managed lists just as we do in containsAll
         val set = initAndAssert()
         assertEquals(0, set.size)
         realm.executeTransaction { transactionRealm ->
@@ -202,6 +220,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun retainAll() {
+        // FIXME: add cases for managed lists just as we do in containsAll
         val set = initAndAssert()
         assertEquals(0, set.size)
         realm.executeTransaction { transactionRealm ->
@@ -253,6 +272,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun removeAll() {
+        // FIXME: add cases for managed lists just as we do in containsAll
         val set = initAndAssert()
         assertEquals(0, set.size)
         realm.executeTransaction { transactionRealm ->
@@ -298,12 +318,8 @@ class ManagedSetTester<T : Any>(
             managedSet.add(notPresentValue)
             assertFalse(set.removeAll(managedSet as Collection<T>))
 
-            // Fails if passed null
-            try {
-                set.removeAll(TestHelper.getNull())
-            } catch (e: Exception) {
-                val kjahsd = 0
-            }
+            // FIXME: Fails if passed null fails due to Kotlin generating bytecode that doesn't
+            //  allow using TestHelper.getNull() when the generic type is not upper-bound
 //            assertFailsWith<NullPointerException> {
 //                set.removeAll(TestHelper.getNull())
 //            }
@@ -388,6 +404,7 @@ fun managedSetFactory(): List<SetTester> {
                         setGetter = AllTypes::getColumnStringSet,
                         setSetter = AllTypes::setColumnStringSet,
                         managedSetGetter = SetContainerClass::myStringSet,
+                        managedCollectionGetter = AllTypes::getColumnStringList,
                         initializedSet = listOf(VALUE_STRING_HELLO, VALUE_STRING_BYE, null),
                         notPresentValue = VALUE_STRING_NOT_PRESENT
                 )
