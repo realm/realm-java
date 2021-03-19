@@ -248,8 +248,8 @@ fun unmanagedSetFactory(): List<SetTester> {
                         values = listOf(VALUE_LINK_HELLO, VALUE_LINK_BYE, null),
                         notPresentValue = VALUE_LINK_NOT_PRESENT
                 )
-            // Ignore Mixed in this switch
-            else -> null
+            SetSupportedType.MIXED -> null      // Ignore Mixed in this switch
+            else -> throw IllegalArgumentException("Unknown data type for Sets")
         }
     }
 
