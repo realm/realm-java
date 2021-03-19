@@ -20,6 +20,7 @@ import io.realm.entities.AllTypes
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import io.realm.rule.BlockingLooperThread
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 /**
@@ -32,10 +33,12 @@ interface GenericTester {
 }
 
 fun createAllTypesManagedContainerAndAssert(realm: Realm): AllTypes {
+    var allTypesObject: AllTypes? = null
     realm.executeTransaction { transactionRealm ->
-        transactionRealm.createObject<AllTypes>()
+        allTypesObject = transactionRealm.createObject()
+        assertNotNull(allTypesObject)
     }
-    val allTypesObject = realm.where<AllTypes>().findFirst()
-    assertNotNull(allTypesObject)
-    return allTypesObject
+    val allTypesObjectFromRealm = realm.where<AllTypes>().findFirst()
+    assertEquals(allTypesObject, allTypesObjectFromRealm)
+    return allTypesObject!!
 }
