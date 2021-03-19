@@ -88,11 +88,11 @@ class ParameterizedSetTests(
         tester.contains()
     }
 
-//    @Test
-//    fun iterator() {
-//        tester.iterator()
-//    }
-//
+    @Test
+    fun iterator() {
+        tester.iterator()
+    }
+
 //    @Test
 //    fun toArray() {
 //        tester.toArray()
@@ -108,35 +108,35 @@ class ParameterizedSetTests(
         tester.remove()
     }
 
-//    @Test
-//    fun containsAll() {
-//        tester.containsAll()
-//    }
-//
-//    @Test
-//    fun addAll() {
-//        tester.addAll()
-//    }
-//
-//    @Test
-//    fun retainAll() {
-//        tester.retainAll()
-//    }
-//
-//    @Test
-//    fun removeAll() {
-//        tester.removeAll()
-//    }
+    @Test
+    fun containsAll() {
+        tester.containsAll()
+    }
+
+    @Test
+    fun addAll() {
+        tester.addAll()
+    }
+
+    @Test
+    fun retainAll() {
+        tester.retainAll()
+    }
+
+    @Test
+    fun removeAll() {
+        tester.removeAll()
+    }
 
     @Test
     fun clear() {
         tester.clear()
     }
 
-//    @Test
-//    fun freeze() {
-//        tester.freeze()
-//    }
+    @Test
+    fun freeze() {
+        tester.freeze()
+    }
 }
 
 /**

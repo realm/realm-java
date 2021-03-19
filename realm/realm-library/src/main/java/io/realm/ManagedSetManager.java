@@ -109,22 +109,22 @@ public class ManagedSetManager<E> implements Set<E>, ManageableObject, Freezable
     }
 
     @Override
-    public boolean containsAll(@NotNull Collection<?> c) {
+    public boolean containsAll(Collection<?> c) {
         return setValueOperator.containsAll(c);
     }
 
     @Override
-    public boolean addAll(@NotNull Collection<? extends E> c) {
+    public boolean addAll(Collection<? extends E> c) {
         return setValueOperator.addAll(c);
     }
 
     @Override
-    public boolean retainAll(@NotNull Collection<?> c) {
+    public boolean retainAll(Collection<?> c) {
         return setValueOperator.retainAll(c);
     }
 
     @Override
-    public boolean removeAll(@NotNull Collection<?> c) {
+    public boolean removeAll(Collection<?> c) {
         return setValueOperator.removeAll(c);
     }
 
@@ -139,7 +139,11 @@ public class ManagedSetManager<E> implements Set<E>, ManageableObject, Freezable
 
     @Override
     public RealmSet<E> freeze() {
-        return null;
+        return setValueOperator.freeze();
+    }
+
+    OsSet getOsSet() {
+        return setValueOperator.osSet;
     }
 }
 
@@ -152,16 +156,16 @@ class SetValueOperator<E> {
 
     protected final BaseRealm baseRealm;
     protected final OsSet osSet;
+    protected final Class<E> valueClass;
 
-    public SetValueOperator(BaseRealm baseRealm, OsSet osSet) {
+    public SetValueOperator(BaseRealm baseRealm, OsSet osSet, Class<E> valueClass) {
         this.baseRealm = baseRealm;
         this.osSet = osSet;
+        this.valueClass = valueClass;
     }
 
     public boolean add(@Nullable E e) {
-        boolean found = osSet.contains(e);
-        osSet.add(e);
-        return !found;
+        return osSet.add(e);
     }
 
     public boolean isValid() {
@@ -172,8 +176,7 @@ class SetValueOperator<E> {
     }
 
     public boolean isFrozen() {
-        // TODO
-        return false;
+        return baseRealm.isFrozen();
     }
 
     public int size() {
@@ -181,8 +184,7 @@ class SetValueOperator<E> {
     }
 
     public boolean isEmpty() {
-        // TODO
-        return false;
+        return size() == 0;
     }
 
     public boolean contains(@Nullable Object o) {
@@ -190,8 +192,7 @@ class SetValueOperator<E> {
     }
 
     public Iterator<E> iterator() {
-        // TODO
-        return null;
+        return new SetIterator<>(osSet, baseRealm);
     }
 
     public Object[] toArray() {
@@ -209,30 +210,142 @@ class SetValueOperator<E> {
     }
 
     public boolean containsAll(Collection<?> c) {
-        // TODO
-        return false;
+        // Check if collection is subset in case we receive a managed RealmSet
+        if (c instanceof RealmSet && ((RealmSet<?>) c).isManaged()) {
+            //noinspection unchecked
+            RealmSet<E> setFromCollection = (RealmSet<E>) c;
+            OsSet otherOsSet = setFromCollection.getOsSet();
+            return otherOsSet.isSubSetOf(osSet.getNativePtr());
+        }
+
+        return osSet.containsAll(c, valueClass);
     }
 
     public boolean addAll(Collection<? extends E> c) {
-        // TODO
-        return false;
+        return collectionFunnel(c, OsSet.ExternalCollectionOperation.ADD_ALL);
+//        // Check if collection is a managed RealmSet and compute union instead
+//        if (c instanceof RealmSet && ((RealmSet<? extends E>) c).isManaged()) {
+//            OsSet otherOsSet = ((RealmSet<? extends E>) c).getOsSet();
+//
+//            // Do nothing if the passed collection is this very set
+//            if (osSet.getNativePtr() == otherOsSet.getNativePtr()) {
+//                return false;
+//            }
+//
+//            // Otherwise compute union
+//            return osSet.union(otherOsSet);
+//        }
+//
+//        // Good old addAll if the passed collection is not a RealmSet
+//        return osSet.addAll(c, valueClass);
     }
 
     public boolean retainAll(Collection<?> c) {
-        // TODO
-        return false;
+        return collectionFunnel(c, OsSet.ExternalCollectionOperation.RETAIN_ALL);
+//        // Check if collection is a managed RealmSet and compute intersection instead
+//        if (c instanceof RealmSet && ((RealmSet<? extends E>) c).isManaged()) {
+//            OsSet otherOsSet = ((RealmSet<? extends E>) c).getOsSet();
+//
+//            // Clear and return true if the passed collection is this very set
+//            if (osSet.getNativePtr() == otherOsSet.getNativePtr()) {
+//                osSet.clear();
+//                return true;
+//            }
+//
+//            // Otherwise compute intersection
+//            return osSet.intersect(otherOsSet);
+//        }
+//
+//        // Good old retainAll if the passed collection is not a RealmSet
+//        return osSet.retainAll(c, valueClass);
     }
 
     public boolean removeAll(Collection<?> c) {
-        // TODO
-        return false;
+        return collectionFunnel(c, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+//        // Check if collection is a managed RealmSet and compute asymmetric difference instead
+//        if (c instanceof RealmSet && ((RealmSet<? extends E>) c).isManaged()) {
+//            OsSet otherOsSet = ((RealmSet<? extends E>) c).getOsSet();
+//
+//            // Clear and return true if the passed collection is this very set
+//            if (osSet.getNativePtr() == otherOsSet.getNativePtr()) {
+//                osSet.clear();
+//                return true;
+//            }
+//
+//            // Otherwise compute asymmetric difference
+//            return osSet.asymmetricDifference(otherOsSet);
+//        }
+//
+//        // Good old removeAll if the passed collection is not a RealmSet
+//        return osSet.removeAll(c, valueClass);
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean collectionFunnel(Collection<?> c, OsSet.ExternalCollectionOperation operation) {
+        // Check if collection is a managed RealmSet and compute asymmetric difference instead
+        if (c instanceof RealmSet && ((RealmSet<? extends E>) c).isManaged()) {
+            OsSet otherOsSet = ((RealmSet<? extends E>) c).getOsSet();
+
+            // Special case if the passed collection is the same native set as this one
+            if (osSet.getNativePtr() == otherOsSet.getNativePtr()) {
+                switch (operation) {
+                    case ADD_ALL:
+                        // Nothing changes if we add this set to this very set
+                        return false;
+                    case REMOVE_ALL:
+                        // Clear and return true if the passed collection is this very set
+                        osSet.clear();
+                        return true;
+                    case RETAIN_ALL:
+                        // Nothing changes if this set intersects this very set
+                        return false;
+                }
+            }
+
+            // Otherwise compute set-specific operation
+            switch (operation) {
+                case ADD_ALL:
+                    return osSet.union(otherOsSet);
+                case REMOVE_ALL:
+                    return osSet.asymmetricDifference(otherOsSet);
+                case RETAIN_ALL:
+                    return osSet.intersect(otherOsSet);
+            }
+        }
+
+        // TODO: add support for checking RealmList or RealmResults
+
+        switch (operation) {
+            case ADD_ALL:
+                // Good old addAll if the passed collection is not a RealmSet
+                return osSet.addAll(c, valueClass);
+            case REMOVE_ALL:
+                // Good old removeAll if the passed collection is not a RealmSet
+                return osSet.removeAll(c, valueClass);
+            case RETAIN_ALL:
+                // Good old retainAll if the passed collection is not a RealmSet
+                return osSet.retainAll(c, valueClass);
+            default:
+                throw new IllegalStateException("Unexpected value: " + operation);
+        }
     }
 
     public void clear() {
         osSet.clear();
     }
+
+    public RealmSet<E> freeze() {
+        BaseRealm frozenRealm = baseRealm.freeze();
+        OsSet frozenOsSet = osSet.freeze(frozenRealm.sharedRealm);
+        return new RealmSet<>(frozenRealm, frozenOsSet, valueClass);
+    }
 }
 
+/**
+ * TODO
+ *
+ * @param <E>
+ */
 class SetIterator<E> implements Iterator<E> {
 
     private final OsSet osSet;
