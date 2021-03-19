@@ -308,6 +308,7 @@ class ManagedSetTester<T : Any>(
             // Intersect with a managed set not containing any elements from the original set
             set.clear()
             set.addAll(initializedSet)
+
             assertEquals(initializedSet.size, set.size)
             val notPresentValueSet = managedSetGetter.get(transactionRealm.createObject())
             assertNotNull(notPresentValueSet)
