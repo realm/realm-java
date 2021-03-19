@@ -151,7 +151,16 @@ class ManagedSetTester<T : Any>(
                 set.add(value)
                 assertTrue(set.remove(value))
             }
+            assertTrue(set.isEmpty())
+
+            // Does not change if we remove something that is not there
             assertFalse(set.remove(notPresentValue))
+
+            // Does not change if we remove an object that is not the same time as the set
+            assertFalse(set.remove<Any>(AllTypes()))
+
+            // Does not change if we remove null and null is not present
+            assertFalse(set.remove(null))
         }
         assertEquals(0, set.size)
     }
@@ -399,13 +408,16 @@ class ManagedSetTester<T : Any>(
 fun managedSetFactory(): List<SetTester> {
     val primitiveTesters: List<SetTester> = SetSupportedType.values().mapNotNull { supportedType ->
         when (supportedType) {
-//            SetSupportedType.LONG ->
-//                UnmanagedSetTester<Long>(
-//                        testerName = "Long",
-//                        values = listOf(VALUE_NUMERIC_HELLO.toLong(), VALUE_NUMERIC_BYE.toLong(), null),
-//                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toLong()
-//                )
-
+            SetSupportedType.LONG ->
+                ManagedSetTester<Long>(
+                        testerName = "Long",
+                        setGetter = AllTypes::getColumnLongSet,
+                        setSetter = AllTypes::setColumnLongSet,
+                        managedSetGetter = SetContainerClass::myLongSet,
+                        initializedSet = listOf(VALUE_NUMERIC_HELLO.toLong(), VALUE_NUMERIC_BYE.toLong(), null),
+                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toLong(),
+                        toArrayManaged = ToArrayManaged.LongManaged()
+                )
             SetSupportedType.INTEGER ->
                 ManagedSetTester<Int>(
                         testerName = "Integer",
@@ -416,19 +428,26 @@ fun managedSetFactory(): List<SetTester> {
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT,
                         toArrayManaged = ToArrayManaged.IntManaged()
                 )
-
-//            SetSupportedType.SHORT ->
-//                UnmanagedSetTester<Short>(
-//                        testerName = "Short",
-//                        values = listOf(VALUE_NUMERIC_HELLO.toShort(), VALUE_NUMERIC_BYE.toShort(), null),
-//                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toShort()
-//                )
-//            SetSupportedType.BYTE ->
-//                UnmanagedSetTester<Byte>(
-//                        testerName = "Byte",
-//                        values = listOf(VALUE_NUMERIC_HELLO.toByte(), VALUE_NUMERIC_BYE.toByte(), null),
-//                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toByte()
-//                )
+            SetSupportedType.SHORT ->
+                ManagedSetTester<Short>(
+                        testerName = "Short",
+                        setGetter = AllTypes::getColumnShortSet,
+                        setSetter = AllTypes::setColumnShortSet,
+                        managedSetGetter = SetContainerClass::myShortSet,
+                        initializedSet = listOf(VALUE_NUMERIC_HELLO.toShort(), VALUE_NUMERIC_BYE.toShort(), null),
+                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toShort(),
+                        toArrayManaged = ToArrayManaged.ShortManaged()
+                )
+            SetSupportedType.BYTE ->
+                ManagedSetTester<Byte>(
+                        testerName = "Byte",
+                        setGetter = AllTypes::getColumnByteSet,
+                        setSetter = AllTypes::setColumnByteSet,
+                        managedSetGetter = SetContainerClass::myByteSet,
+                        initializedSet = listOf(VALUE_NUMERIC_HELLO.toByte(), VALUE_NUMERIC_BYE.toByte(), null),
+                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toByte(),
+                        toArrayManaged = ToArrayManaged.ByteManaged()
+                )
 //            SetSupportedType.FLOAT ->
 //                UnmanagedSetTester<Float>(
 //                        testerName = "Float",
@@ -441,7 +460,6 @@ fun managedSetFactory(): List<SetTester> {
 //                        values = listOf(VALUE_NUMERIC_HELLO.toDouble(), VALUE_NUMERIC_BYE.toDouble(), null),
 //                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toDouble()
 //                )
-
             SetSupportedType.STRING ->
                 ManagedSetTester<String>(
                         testerName = "String",
@@ -452,7 +470,6 @@ fun managedSetFactory(): List<SetTester> {
                         notPresentValue = VALUE_STRING_NOT_PRESENT,
                         toArrayManaged = ToArrayManaged.StringManaged()
                 )
-
 //            SetSupportedType.BOOLEAN ->
 //                UnmanagedSetTester<Boolean>(
 //                        testerName = "Boolean",

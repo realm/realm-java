@@ -39,8 +39,6 @@ abstract class SetValueOperator<E> {
 
     abstract boolean removeAll(Collection<?> c);
 
-    public abstract Object typeCastValue(E value);
-
     boolean isValid() {
         if (baseRealm.isClosed()) {
             return false;
@@ -131,6 +129,12 @@ abstract class SetValueOperator<E> {
             return (SetIterator<T>) new StringSetIterator(osSet, baseRealm);
         } else if (valueClass == Integer.class) {
             return (SetIterator<T>) new IntegerSetIterator(osSet, baseRealm);
+        } else if (valueClass == Long.class) {
+            return (SetIterator<T>) new LongSetIterator(osSet, baseRealm);
+        } else if (valueClass == Short.class) {
+            return (SetIterator<T>) new ShortSetIterator(osSet, baseRealm);
+        } else if (valueClass == Byte.class) {
+            return (SetIterator<T>) new ByteSetIterator(osSet, baseRealm);
         } else {
             throw new IllegalArgumentException("Unknown class for iterator: " + valueClass.getSimpleName());
         }
@@ -196,11 +200,6 @@ class StringOperator extends SetValueOperator<String> {
         }
         return osSet.removeAllString(c);
     }
-
-    @Override
-    public Object typeCastValue(String value) {
-        return value;
-    }
 }
 
 /**
@@ -257,7 +256,7 @@ class IntegerOperator extends SetValueOperator<Integer> {
             OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
             return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.RETAIN_ALL);
         }
-        return osSet.retainAllString(c);
+        return osSet.retainAllInteger(c);
     }
 
     @Override
@@ -268,10 +267,200 @@ class IntegerOperator extends SetValueOperator<Integer> {
         }
         return osSet.removeAllInteger(c);
     }
+}
+
+/**
+ * TODO
+ */
+class LongOperator extends SetValueOperator<Long> {
+
+    public LongOperator(BaseRealm baseRealm, OsSet osSet, Class<Long> valueClass) {
+        super(baseRealm, osSet, valueClass);
+    }
 
     @Override
-    public Object typeCastValue(Integer value) {
-        return value.longValue();
+    boolean add(@Nullable Long value) {
+        return osSet.add(value);
+    }
+
+    @Override
+    boolean contains(@Nullable Object o) {
+        return osSet.contains((Long) o);
+    }
+
+    @Override
+    boolean remove(@Nullable Object o) {
+        return osSet.remove((Long) o);
+    }
+
+    @Override
+    boolean containsAll(Collection<?> c) {
+        if (isRealmCollection(c)) {
+            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+        }
+        return osSet.containsAllLong(c);
+    }
+
+    @Override
+    boolean addAll(Collection<? extends Long> c) {
+        if (isRealmCollection(c)) {
+            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.ADD_ALL);
+        }
+        return osSet.addAllLong(c);
+    }
+
+    @Override
+    boolean retainAll(Collection<?> c) {
+        if (isRealmCollection(c)) {
+            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.RETAIN_ALL);
+        }
+        return osSet.retainAllLong(c);
+    }
+
+    @Override
+    boolean removeAll(Collection<?> c) {
+        if (isRealmCollection(c)) {
+            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+        }
+        return osSet.removeAllLong(c);
+    }
+}
+
+/**
+ * TODO
+ */
+class ShortOperator extends SetValueOperator<Short> {
+
+    public ShortOperator(BaseRealm baseRealm, OsSet osSet, Class<Short> valueClass) {
+        super(baseRealm, osSet, valueClass);
+    }
+
+    @Override
+    boolean add(@Nullable Short value) {
+        return osSet.add(value);
+    }
+
+    @Override
+    boolean contains(@Nullable Object o) {
+        Long value;
+        if (o == null) {
+            value = null;
+        } else {
+            value = ((Short) o).longValue();
+        }
+        return osSet.contains(value);
+    }
+
+    @Override
+    boolean remove(@Nullable Object o) {
+        return osSet.remove((Short) o);
+    }
+
+    @Override
+    boolean containsAll(Collection<?> c) {
+        if (isRealmCollection(c)) {
+            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+        }
+        return osSet.containsAllShort(c);
+    }
+
+    @Override
+    boolean addAll(Collection<? extends Short> c) {
+        if (isRealmCollection(c)) {
+            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.ADD_ALL);
+        }
+        return osSet.addAllShort(c);
+    }
+
+    @Override
+    boolean retainAll(Collection<?> c) {
+        if (isRealmCollection(c)) {
+            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.RETAIN_ALL);
+        }
+        return osSet.retainAllShort(c);
+    }
+
+    @Override
+    boolean removeAll(Collection<?> c) {
+        if (isRealmCollection(c)) {
+            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+        }
+        return osSet.removeAllShort(c);
+    }
+}
+
+/**
+ * TODO
+ */
+class ByteOperator extends SetValueOperator<Byte> {
+
+    public ByteOperator(BaseRealm baseRealm, OsSet osSet, Class<Byte> valueClass) {
+        super(baseRealm, osSet, valueClass);
+    }
+
+    @Override
+    boolean add(@Nullable Byte value) {
+        return osSet.add(value);
+    }
+
+    @Override
+    boolean contains(@Nullable Object o) {
+        Long value;
+        if (o == null) {
+            value = null;
+        } else {
+            value = ((Byte) o).longValue();
+        }
+        return osSet.contains(value);
+    }
+
+    @Override
+    boolean remove(@Nullable Object o) {
+        return osSet.remove((Byte) o);
+    }
+
+    @Override
+    boolean containsAll(Collection<?> c) {
+        if (isRealmCollection(c)) {
+            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+        }
+        return osSet.containsAllByte(c);
+    }
+
+    @Override
+    boolean addAll(Collection<? extends Byte> c) {
+        if (isRealmCollection(c)) {
+            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.ADD_ALL);
+        }
+        return osSet.addAllByte(c);
+    }
+
+    @Override
+    boolean retainAll(Collection<?> c) {
+        if (isRealmCollection(c)) {
+            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.RETAIN_ALL);
+        }
+        return osSet.retainAllByte(c);
+    }
+
+    @Override
+    boolean removeAll(Collection<?> c) {
+        if (isRealmCollection(c)) {
+            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+        }
+        return osSet.removeAllByte(c);
     }
 }
 
@@ -342,5 +531,54 @@ class IntegerSetIterator extends SetIterator<Integer> {
 
         Long valueAtIndex = (Long) value;
         return valueAtIndex.intValue();
+    }
+}
+
+/**
+ * TODO
+ */
+class LongSetIterator extends SetIterator<Long> {
+    public LongSetIterator(OsSet osSet, BaseRealm baseRealm) {
+        super(osSet, baseRealm);
+    }
+}
+
+/**
+ * TODO
+ */
+class ShortSetIterator extends SetIterator<Short> {
+    public ShortSetIterator(OsSet osSet, BaseRealm baseRealm) {
+        super(osSet, baseRealm);
+    }
+
+    @Override
+    protected Short getValueAtIndex(int position) {
+        Object value = osSet.getValueAtIndex(position);
+        if (value == null) {
+            return null;
+        }
+
+        Long longValue = (Long) value;
+        return longValue.shortValue();
+    }
+}
+
+/**
+ * TODO
+ */
+class ByteSetIterator extends SetIterator<Byte> {
+    public ByteSetIterator(OsSet osSet, BaseRealm baseRealm) {
+        super(osSet, baseRealm);
+    }
+
+    @Override
+    protected Byte getValueAtIndex(int position) {
+        Object value = osSet.getValueAtIndex(position);
+        if (value == null) {
+            return null;
+        }
+
+        Long longValue = (Long) value;
+        return longValue.byteValue();
     }
 }

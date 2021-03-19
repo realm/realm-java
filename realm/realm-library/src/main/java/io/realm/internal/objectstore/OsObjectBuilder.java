@@ -676,6 +676,27 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
+    private static ItemCallback<Long> longSetItemCallback = new ItemCallback<Long>() {
+        @Override
+        public void handleItem(long containerPtr, Long item) {
+            nativeAddIntegerSetItem(containerPtr, item);
+        }
+    };
+
+    private static ItemCallback<Short> shortSetItemCallback = new ItemCallback<Short>() {
+        @Override
+        public void handleItem(long containerPtr, Short item) {
+            nativeAddIntegerSetItem(containerPtr, item);
+        }
+    };
+
+    private static ItemCallback<Byte> byteSetItemCallback = new ItemCallback<Byte>() {
+        @Override
+        public void handleItem(long containerPtr, Byte item) {
+            nativeAddIntegerSetItem(containerPtr, item);
+        }
+    };
+
     private static native long nativeStartSet(long size);
 
     private static native void nativeStopSet(long builderPtr, long columnKey, long setPtr);
@@ -696,6 +717,18 @@ public class OsObjectBuilder implements Closeable {
 
     public void addIntegerSet(long columnKey, RealmSet<Integer> set) {
         addSetItem(builderPtr, columnKey, set, integerSetItemCallback);
+    }
+
+    public void addLongSet(long columnKey, RealmSet<Long> set) {
+        addSetItem(builderPtr, columnKey, set, longSetItemCallback);
+    }
+
+    public void addShortSet(long columnKey, RealmSet<Short> set) {
+        addSetItem(builderPtr, columnKey, set, shortSetItemCallback);
+    }
+
+    public void addByteSet(long columnKey, RealmSet<Byte> set) {
+        addSetItem(builderPtr, columnKey, set, byteSetItemCallback);
     }
 
     private <T> void addSetItem(long builderPtr,

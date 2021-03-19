@@ -88,10 +88,10 @@ object Constants {
     )
 
     val SET_ELEMENT_TYPE_TO_REALM_TYPES = mapOf(
-//            "java.lang.Byte" to RealmFieldType.INTEGER_SET,
-//            "java.lang.Short" to RealmFieldType.INTEGER_SET,
+            "java.lang.Byte" to RealmFieldType.INTEGER_SET,
+            "java.lang.Short" to RealmFieldType.INTEGER_SET,
             "java.lang.Integer" to RealmFieldType.INTEGER_SET,
-//            "java.lang.Long" to RealmFieldType.INTEGER_SET,
+            "java.lang.Long" to RealmFieldType.INTEGER_SET,
 //            "java.lang.Float" to RealmFieldType.FLOAT_SET,
 //            "java.lang.Double" to RealmFieldType.DOUBLE_SET,
 //            "java.lang.Boolean" to RealmFieldType.BOOLEAN_SET,

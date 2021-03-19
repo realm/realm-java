@@ -357,6 +357,345 @@ public class OsSet implements NativeObject {
     }
 
     // ----------------------------------------------------
+    // Long operations
+    // ----------------------------------------------------
+
+    public boolean containsAllLong(Collection<?> collection) {
+        // TODO: extract to its own method
+        long[] longArray = new long[collection.size()];
+
+        Integer nullSentinelIndex = null;
+
+        int totalLength = 0;
+        for (Object value : collection) {
+            if (value == null) {
+                if (nullSentinelIndex == null) {
+                    nullSentinelIndex = totalLength;
+                    totalLength++;
+                }
+            } else {
+                // TODO: maybe can be done better...?
+                if (value instanceof Long) {
+                    longArray[totalLength] = (long) value;
+                    totalLength++;
+                } else {
+                    // Collection is not contained if it is not the same type
+                    return false;
+                }
+            }
+        }
+
+        int nullSentinel = nullSentinelIndex == null ? NULL_VALUE_NOT_FOUND : nullSentinelIndex;
+        return nativeContainsAllLong(nativePtr, longArray, totalLength, nullSentinel);
+    }
+
+    public <E> boolean addAllLong(Collection<? extends E> collection) {
+        // TODO: extract to its own method
+        long[] longArray = new long[collection.size()];
+
+        Integer nullSentinelIndex = null;
+
+        int totalLength = 0;
+        for (E value : collection) {
+            if (value == null) {
+                if (nullSentinelIndex == null) {
+                    nullSentinelIndex = totalLength;
+                    totalLength++;
+                }
+            } else {
+                // TODO: maybe can be done better...?
+                if (value instanceof Long) {
+                    longArray[totalLength] = (long) value;
+                    totalLength++;
+                } else {
+                    throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                }
+            }
+        }
+
+        int nullSentinel = nullSentinelIndex == null ? NULL_VALUE_NOT_FOUND : nullSentinelIndex;
+        return nativeAddAllLong(nativePtr, longArray, totalLength, nullSentinel);
+    }
+
+    public boolean add(@Nullable Long value) {
+        long[] indexAndFound;
+        if (value == null) {
+            indexAndFound = nativeAddNull(nativePtr);
+        } else {
+            indexAndFound = nativeAddLong(nativePtr, value);
+        }
+        return indexAndFound[1] != VALUE_NOT_FOUND;
+    }
+
+    public boolean remove(@Nullable Long value) {
+        long[] indexAndFound;
+        if (value == null) {
+            indexAndFound = nativeRemoveNull(nativePtr);
+        } else {
+            indexAndFound = nativeRemoveLong(nativePtr, value);
+        }
+        return indexAndFound[1] == 1;       // 1 means true, i.e. it was found
+    }
+
+    public <E> boolean removeAllLong(Collection<? extends E> collection) {
+        // TODO: extract to its own method
+        long[] longArray = new long[collection.size()];
+
+        Integer nullSentinelIndex = null;
+
+        int totalLength = 0;
+        for (E value : collection) {
+            if (value == null) {
+                if (nullSentinelIndex == null) {
+                    nullSentinelIndex = totalLength;
+                    totalLength++;
+                }
+            } else {
+                // TODO: maybe can be done better...?
+                if (value instanceof Long) {
+                    longArray[totalLength] = (Long) value;
+                    totalLength++;
+                } else {
+                    throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                }
+            }
+        }
+
+        int nullSentinel = nullSentinelIndex == null ? NULL_VALUE_NOT_FOUND : nullSentinelIndex;
+        return nativeRemoveAllLong(nativePtr, longArray, totalLength, nullSentinel);
+    }
+
+    public <E> boolean retainAllLong(Collection<? extends E> collection) {
+        throw new UnsupportedOperationException("retainAllLong missing");
+    }
+
+    // ----------------------------------------------------
+    // Short operations
+    // ----------------------------------------------------
+
+    public boolean containsAllShort(Collection<?> collection) {
+        // TODO: extract to its own method
+        long[] longArray = new long[collection.size()];
+
+        Integer nullSentinelIndex = null;
+
+        int totalLength = 0;
+        for (Object value : collection) {
+            if (value == null) {
+                if (nullSentinelIndex == null) {
+                    nullSentinelIndex = totalLength;
+                    totalLength++;
+                }
+            } else {
+                // TODO: maybe can be done better...?
+                if (value instanceof Short) {
+                    longArray[totalLength] = (short) value;
+                    totalLength++;
+                } else {
+                    // Collection is not contained if it is not the same type
+                    return false;
+                }
+            }
+        }
+
+        int nullSentinel = nullSentinelIndex == null ? NULL_VALUE_NOT_FOUND : nullSentinelIndex;
+        return nativeContainsAllLong(nativePtr, longArray, totalLength, nullSentinel);
+    }
+
+    public <E> boolean addAllShort(Collection<? extends E> collection) {
+        // TODO: extract to its own method
+        long[] longArray = new long[collection.size()];
+
+        Integer nullSentinelIndex = null;
+
+        int totalLength = 0;
+        for (E value : collection) {
+            if (value == null) {
+                if (nullSentinelIndex == null) {
+                    nullSentinelIndex = totalLength;
+                    totalLength++;
+                }
+            } else {
+                // TODO: maybe can be done better...?
+                if (value instanceof Short) {
+                    longArray[totalLength] = (short) value;
+                    totalLength++;
+                } else {
+                    throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                }
+            }
+        }
+
+        int nullSentinel = nullSentinelIndex == null ? NULL_VALUE_NOT_FOUND : nullSentinelIndex;
+        return nativeAddAllLong(nativePtr, longArray, totalLength, nullSentinel);
+    }
+
+    public boolean add(@Nullable Short value) {
+        long[] indexAndFound;
+        if (value == null) {
+            indexAndFound = nativeAddNull(nativePtr);
+        } else {
+            indexAndFound = nativeAddLong(nativePtr, value.longValue());
+        }
+        return indexAndFound[1] != VALUE_NOT_FOUND;
+    }
+
+    public boolean remove(@Nullable Short value) {
+        long[] indexAndFound;
+        if (value == null) {
+            indexAndFound = nativeRemoveNull(nativePtr);
+        } else {
+            indexAndFound = nativeRemoveLong(nativePtr, value.longValue());
+        }
+        return indexAndFound[1] == 1;       // 1 means true, i.e. it was found
+    }
+
+    public <E> boolean removeAllShort(Collection<? extends E> collection) {
+        // TODO: extract to its own method
+        long[] longArray = new long[collection.size()];
+
+        Integer nullSentinelIndex = null;
+
+        int totalLength = 0;
+        for (E value : collection) {
+            if (value == null) {
+                if (nullSentinelIndex == null) {
+                    nullSentinelIndex = totalLength;
+                    totalLength++;
+                }
+            } else {
+                // TODO: maybe can be done better...?
+                if (value instanceof Short) {
+                    longArray[totalLength] = (short) value;
+                    totalLength++;
+                } else {
+                    throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                }
+            }
+        }
+
+        int nullSentinel = nullSentinelIndex == null ? NULL_VALUE_NOT_FOUND : nullSentinelIndex;
+        return nativeRemoveAllLong(nativePtr, longArray, totalLength, nullSentinel);
+    }
+
+    public <E> boolean retainAllShort(Collection<? extends E> collection) {
+        throw new UnsupportedOperationException("retainAllShort missing");
+    }
+
+    // ----------------------------------------------------
+    // Byte operations
+    // ----------------------------------------------------
+
+    public boolean containsAllByte(Collection<?> collection) {
+        // TODO: extract to its own method
+        long[] longArray = new long[collection.size()];
+
+        Integer nullSentinelIndex = null;
+
+        int totalLength = 0;
+        for (Object value : collection) {
+            if (value == null) {
+                if (nullSentinelIndex == null) {
+                    nullSentinelIndex = totalLength;
+                    totalLength++;
+                }
+            } else {
+                // TODO: maybe can be done better...?
+                if (value instanceof Byte) {
+                    longArray[totalLength] = (byte) value;
+                    totalLength++;
+                } else {
+                    // Collection is not contained if it is not the same type
+                    return false;
+                }
+            }
+        }
+
+        int nullSentinel = nullSentinelIndex == null ? NULL_VALUE_NOT_FOUND : nullSentinelIndex;
+        return nativeContainsAllLong(nativePtr, longArray, totalLength, nullSentinel);
+    }
+
+    public <E> boolean addAllByte(Collection<? extends E> collection) {
+        // TODO: extract to its own method
+        long[] longArray = new long[collection.size()];
+
+        Integer nullSentinelIndex = null;
+
+        int totalLength = 0;
+        for (E value : collection) {
+            if (value == null) {
+                if (nullSentinelIndex == null) {
+                    nullSentinelIndex = totalLength;
+                    totalLength++;
+                }
+            } else {
+                // TODO: maybe can be done better...?
+                if (value instanceof Byte) {
+                    longArray[totalLength] = (byte) value;
+                    totalLength++;
+                } else {
+                    throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                }
+            }
+        }
+
+        int nullSentinel = nullSentinelIndex == null ? NULL_VALUE_NOT_FOUND : nullSentinelIndex;
+        return nativeAddAllLong(nativePtr, longArray, totalLength, nullSentinel);
+    }
+
+    public boolean add(@Nullable Byte value) {
+        long[] indexAndFound;
+        if (value == null) {
+            indexAndFound = nativeAddNull(nativePtr);
+        } else {
+            indexAndFound = nativeAddLong(nativePtr, value.longValue());
+        }
+        return indexAndFound[1] != VALUE_NOT_FOUND;
+    }
+
+    public boolean remove(@Nullable Byte value) {
+        long[] indexAndFound;
+        if (value == null) {
+            indexAndFound = nativeRemoveNull(nativePtr);
+        } else {
+            indexAndFound = nativeRemoveLong(nativePtr, value.longValue());
+        }
+        return indexAndFound[1] == 1;       // 1 means true, i.e. it was found
+    }
+
+    public <E> boolean removeAllByte(Collection<? extends E> collection) {
+        // TODO: extract to its own method
+        long[] longArray = new long[collection.size()];
+
+        Integer nullSentinelIndex = null;
+
+        int totalLength = 0;
+        for (E value : collection) {
+            if (value == null) {
+                if (nullSentinelIndex == null) {
+                    nullSentinelIndex = totalLength;
+                    totalLength++;
+                }
+            } else {
+                // TODO: maybe can be done better...?
+                if (value instanceof Byte) {
+                    longArray[totalLength] = (byte) value;
+                    totalLength++;
+                } else {
+                    throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                }
+            }
+        }
+
+        int nullSentinel = nullSentinelIndex == null ? NULL_VALUE_NOT_FOUND : nullSentinelIndex;
+        return nativeRemoveAllLong(nativePtr, longArray, totalLength, nullSentinel);
+    }
+
+    public <E> boolean retainAllByte(Collection<? extends E> collection) {
+        throw new UnsupportedOperationException("retainAllShort missing");
+    }
+
+    // ----------------------------------------------------
     // Set operations
     // ----------------------------------------------------
 

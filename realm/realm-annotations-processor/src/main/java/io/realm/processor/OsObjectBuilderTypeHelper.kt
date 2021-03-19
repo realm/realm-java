@@ -46,11 +46,11 @@ object OsObjectBuilderTypeHelper {
 //            QualifiedClassName("io.realm.Mixed") to "MixedSet",
 //            QualifiedClassName("java.lang.Boolean") to "BooleanSet",
             QualifiedClassName("java.lang.String") to "StringSet",
-            QualifiedClassName("java.lang.Integer") to "IntegerSet"
+            QualifiedClassName("java.lang.Integer") to "IntegerSet",
 //            QualifiedClassName("java.lang.Float") to "FloatSet",
-//            QualifiedClassName("java.lang.Long") to "LongSet",
-//            QualifiedClassName("java.lang.Short") to "ShortSet",
-//            QualifiedClassName("java.lang.Byte") to "ByteSet",
+            QualifiedClassName("java.lang.Long") to "LongSet",
+            QualifiedClassName("java.lang.Short") to "ShortSet",
+            QualifiedClassName("java.lang.Byte") to "ByteSet"
 //            QualifiedClassName("java.lang.Double") to "DoubleSet",
 //            QualifiedClassName("java.util.Date") to "DateSet",
 //            QualifiedClassName("byte[]") to "BinarySet",

@@ -225,6 +225,12 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
             operator = (SetValueOperator<T>) new StringOperator(baseRealm, osSet, String.class);
         } else if (valueClass == Integer.class) {
             operator = (SetValueOperator<T>) new IntegerOperator(baseRealm, osSet, Integer.class);
+        } else if (valueClass == Long.class) {
+            operator = (SetValueOperator<T>) new LongOperator(baseRealm, osSet, Long.class);
+        } else if (valueClass == Short.class) {
+            operator = (SetValueOperator<T>) new ShortOperator(baseRealm, osSet, Short.class);
+        } else if (valueClass == Byte.class) {
+            operator = (SetValueOperator<T>) new ByteOperator(baseRealm, osSet, Byte.class);
         } else {
             throw new UnsupportedOperationException("getStrategy: missing class '" + valueClass.getSimpleName() + "'");
         }
@@ -356,6 +362,9 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
 
         @Override
         public boolean remove(@Nullable Object o) {
+            if (o != null && o.getClass() != valueClass) {
+                return false;
+            }
             return setValueOperator.remove(o);
         }
 
