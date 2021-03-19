@@ -340,8 +340,8 @@ fun unmanagedDictionaryFactory(): List<DictionaryTester> {
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_LINK_NOT_PRESENT
                 )
-            // Ignore Mixed in this switch
-            else -> null
+            DictionarySupportedType.MIXED -> null      // Ignore Mixed in this switch
+            else -> throw IllegalArgumentException("Unknown data type for Dictionaries")
         }
     }
 
