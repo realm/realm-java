@@ -201,17 +201,17 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
 
         @Override
         public int size() {
-            return 0;
+            return managedSetManager.size();
         }
 
         @Override
         public boolean isEmpty() {
-            return false;
+            return size() == 0;
         }
 
         @Override
         public boolean contains(@Nullable Object o) {
-            return false;
+            return managedSetManager.contains(o);
         }
 
         @NotNull
@@ -234,12 +234,12 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
 
         @Override
         public boolean add(@Nullable E e) {
-            return false;
+            return managedSetManager.add(e);
         }
 
         @Override
         public boolean remove(@Nullable Object o) {
-            return false;
+            return managedSetManager.remove(o);
         }
 
         @Override

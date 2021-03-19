@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.Freezable;
 import io.realm.internal.ManageableObject;
+import io.realm.internal.OsSet;
 
 /**
  * TODO
@@ -34,23 +35,29 @@ import io.realm.internal.ManageableObject;
  */
 public class ManagedSetManager<E> implements Set<E>, ManageableObject, Freezable<RealmSet<E>> {
 
+    private final SetValueOperator<E> setValueOperator;
+
+    public ManagedSetManager(SetValueOperator<E> setValueOperator) {
+        this.setValueOperator = setValueOperator;
+    }
+
     // ------------------------------------------
     // ManageableObject API
     // ------------------------------------------
 
     @Override
     public boolean isManaged() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isValid() {
-        return false;
+        return setValueOperator.isValid();
     }
 
     @Override
     public boolean isFrozen() {
-        return false;
+        return setValueOperator.isFrozen();
     }
 
     // ------------------------------------------
@@ -59,70 +66,70 @@ public class ManagedSetManager<E> implements Set<E>, ManageableObject, Freezable
 
     @Override
     public int size() {
-        return 0;
+        return setValueOperator.size();
     }
 
     @Override
     public boolean isEmpty() {
-        return false;
+        return setValueOperator.isEmpty();
     }
 
     @Override
     public boolean contains(@Nullable Object o) {
-        return false;
+        return setValueOperator.contains(o);
     }
 
     @NotNull
     @Override
     public Iterator<E> iterator() {
-        return null;
+        return setValueOperator.iterator();
     }
 
     @NotNull
     @Override
     public Object[] toArray() {
-        return new Object[0];
+        return setValueOperator.toArray();
     }
 
     @NotNull
     @Override
     public <T> T[] toArray(@NotNull T[] a) {
-        return null;
+        return setValueOperator.toArray(a);
     }
 
     @Override
-    public boolean add(E e) {
-        return false;
+    public boolean add(@Nullable E e) {
+        return setValueOperator.add(e);
     }
 
     @Override
     public boolean remove(@Nullable Object o) {
-        return false;
+        return setValueOperator.remove(o);
     }
 
     @Override
     public boolean containsAll(@NotNull Collection<?> c) {
-        return false;
+        return setValueOperator.containsAll(c);
     }
 
     @Override
     public boolean addAll(@NotNull Collection<? extends E> c) {
-        return false;
+        return setValueOperator.addAll(c);
     }
 
     @Override
     public boolean retainAll(@NotNull Collection<?> c) {
-        return false;
+        return setValueOperator.reatainAll(c);
     }
 
     @Override
     public boolean removeAll(@NotNull Collection<?> c) {
-        return false;
+        return setValueOperator.removeAll(c);
     }
 
     @Override
     public void clear() {
-
+        setValueOperator.clear();
     }
 
     // ------------------------------------------
@@ -132,5 +139,93 @@ public class ManagedSetManager<E> implements Set<E>, ManageableObject, Freezable
     @Override
     public RealmSet<E> freeze() {
         return null;
+    }
+}
+
+/**
+ * TODO
+ *
+ * @param <E>
+ */
+class SetValueOperator<E> {
+
+    protected final BaseRealm baseRealm;
+    protected final OsSet osSet;
+
+    public SetValueOperator(BaseRealm baseRealm, OsSet osSet) {
+        this.baseRealm = baseRealm;
+        this.osSet = osSet;
+    }
+
+    public boolean add(@Nullable E e) {
+        boolean alreadyExisted = osSet.contains(e);
+        osSet.add(e);
+        return !alreadyExisted;
+    }
+
+    public boolean isValid() {
+        // TODO
+        return false;
+    }
+
+    public boolean isFrozen() {
+        // TODO
+        return false;
+    }
+
+    public int size() {
+        return Long.valueOf(osSet.size()).intValue();
+    }
+
+    public boolean isEmpty() {
+        // TODO
+        return false;
+    }
+
+    public boolean contains(@Nullable Object o) {
+        return osSet.contains(o);
+    }
+
+    public Iterator<E> iterator() {
+        // TODO
+        return null;
+    }
+
+    public Object[] toArray() {
+        // TODO
+        return new Object[0];
+    }
+
+    public <T> T[] toArray(T[] a) {
+        // TODO
+        return null;
+    }
+
+    public boolean remove(@Nullable Object o) {
+        return osSet.remove(o);
+    }
+
+    public boolean containsAll(Collection<?> c) {
+        // TODO
+        return false;
+    }
+
+    public boolean addAll(Collection<? extends E> c) {
+        // TODO
+        return false;
+    }
+
+    public boolean reatainAll(Collection<?> c) {
+        // TODO
+        return false;
+    }
+
+    public boolean removeAll(Collection<?> c) {
+        // TODO
+        return false;
+    }
+
+    public void clear() {
+        // TODO
     }
 }
