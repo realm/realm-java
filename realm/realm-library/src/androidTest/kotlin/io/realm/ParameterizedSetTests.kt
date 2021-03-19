@@ -35,8 +35,6 @@ class ParameterizedSetTests(
             return SetMode.values().mapNotNull { type ->
                 when (type) {
                     SetMode.UNMANAGED -> unmanagedSetFactory()
-//                    SetMode.UNMANAGED -> null
-//                    SetMode.MANAGED -> null
                     SetMode.MANAGED -> managedSetFactory()
                 }
             }.flatten()
