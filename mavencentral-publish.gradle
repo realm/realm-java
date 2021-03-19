@@ -33,6 +33,7 @@ def createPomDependencies(configurationNames) {
     }
 }
 
+// TODO: Consider refactoring this. See https://github.com/realm/realm-java/pull/7327#discussion_r586281652
 def populatePom(publication, pomName, pomDescription, pomDependencies = null) {
     publication.pom {
         name = "${pomName}"

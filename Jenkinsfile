@@ -315,12 +315,15 @@ def runBuild(buildFlags, instrumentationTestTarget) {
 
   // TODO: add support for running monkey on the example apps
 
-  if (['master'].contains(currentBranch)) {
+  def collectMetrics = ['master'].contains(currentBranch)
+  echo "Collecting metrics: $collectMetrics"
+  if (collectMetrics) {
     stage('Collect metrics') {
       collectAarMetrics()
     }
   }
 
+  echo "Releasing SNAPSHOT: ($isReleaseBranch, $publishBuild)"
   if (isReleaseBranch && !publishBuild) {
     stage('Publish SNAPSHOT') {
       withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
