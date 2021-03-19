@@ -141,6 +141,8 @@ class ManagedSetTester<T : Any>(
                 assertFalse(set.add(value))
             }
         }
+
+        // FIXME: assert sets are equal
     }
 
     override fun remove() {
