@@ -271,8 +271,8 @@ fun unmanagedSetFactory(): List<SetTester> {
                         notPresentValue = VALUE_LINK_NOT_PRESENT,
                         toArrayUnmanaged = ToArrayUnmanaged.RealmModelUnmanaged()
                 )
-            // Ignore Mixed in this switch
-            else -> null
+            SetSupportedType.MIXED -> null      // Ignore Mixed in this switch
+            else -> throw IllegalArgumentException("Unknown data type for Sets")
         }
     }
 
