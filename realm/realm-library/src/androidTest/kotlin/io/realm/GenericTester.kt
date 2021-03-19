@@ -16,7 +16,12 @@
 
 package io.realm
 
+import io.realm.entities.AllTypes
+import io.realm.kotlin.createObject
+import io.realm.kotlin.where
 import io.realm.rule.BlockingLooperThread
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 /**
  * Generic tester for parameterized tests. Includes two types of `setUp` functions.
@@ -25,4 +30,15 @@ interface GenericTester {
     fun setUp(config: RealmConfiguration, looperThread: BlockingLooperThread)
     fun setUp(configFactory: TestRealmConfigurationFactory)
     fun tearDown()
+}
+
+fun createAllTypesManagedContainerAndAssert(realm: Realm): AllTypes {
+    var allTypesObject: AllTypes? = null
+    realm.executeTransaction { transactionRealm ->
+        allTypesObject = transactionRealm.createObject()
+        assertNotNull(allTypesObject)
+    }
+    val allTypesObjectFromRealm = realm.where<AllTypes>().findFirst()
+    assertEquals(allTypesObject, allTypesObjectFromRealm)
+    return allTypesObject!!
 }

@@ -16,15 +16,15 @@
 
 package some.test;
 
-import io.realm.RealmDictionary;
 import io.realm.RealmObject;
+import io.realm.RealmSet;
 
 /**
- * Dictionaries must specify a generic type. With this class we check that the annotation processor
- * detects this class has a RealmDictionary field missing the required type and therefore should
+ * Sets must specify a generic type. With this class we check that the annotation processor
+ * detects this class has a RealmSet field missing the required type and therefore should
  * fail in compile time.
  */
-public class RealmDictionaryMissingGenerics extends RealmObject {
+public class RealmSetMissingGenerics extends RealmObject {
 
-    private RealmDictionary dictionary; // this is an error!
+    private RealmSet set; // this is an error!
 }

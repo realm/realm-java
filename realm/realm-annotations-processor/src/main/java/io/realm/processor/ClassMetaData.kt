@@ -41,6 +41,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     private val nullableFields = LinkedHashSet<RealmFieldElement>() // Set of fields which can be nullable
     private val nullableValueListFields = LinkedHashSet<RealmFieldElement>() // Set of fields whose elements can be nullable
     private val nullableValueMapFields = LinkedHashSet<RealmFieldElement>() // Set of fields whose elements can be nullable
+    private val nullableValueSetFields = LinkedHashSet<RealmFieldElement>() // Set of fields whose elements can be nullable
 
     // package name for model class.
     private lateinit var packageName: String
@@ -85,7 +86,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             typeMirrors.UUID_MIRROR,
             typeMirrors.MIXED_MIRROR
     )
-    private val validDictionaryTypes: List<TypeMirror>  = listOf(
+    private val validDictionaryTypes: List<TypeMirror> = listOf(
             typeMirrors.STRING_MIRROR,
             typeMirrors.BINARY_MIRROR,
             typeMirrors.BINARY_NON_PRIMITIVE_MIRROR,
@@ -101,6 +102,9 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             typeMirrors.OBJECT_ID_MIRROR,
             typeMirrors.UUID_MIRROR,
             typeMirrors.MIXED_MIRROR
+    )
+    private val validSetTypes: List<TypeMirror>  = listOf(
+            typeMirrors.STRING_MIRROR
     )
     private val stringType = typeMirrors.STRING_MIRROR
 
@@ -233,6 +237,15 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     }
 
     /**
+     * Checks if the value of a `RealmDictionary` entry designated by `realmDictionaryVariableElement` is nullable.
+     *
+     * @return `true` if the element is nullable type, `false` otherwise.
+     */
+    fun isSetValueNullable(realmSetVariableElement: VariableElement): Boolean {
+        return nullableValueSetFields.contains(realmSetVariableElement)
+    }
+
+    /**
      * Checks if a VariableElement is indexed.
      *
      * @param variableElement the element/field
@@ -333,6 +346,9 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         if (!checkDictionaryTypes()) {
             return false
         }
+        if (!checkSetTypes()) {
+            return false
+        }
         if (!checkReferenceTypes()) {
             return false
         }
@@ -403,6 +419,34 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         return true
     }
 
+    private fun checkSetTypes(): Boolean {
+        for (field in fields) {
+            if (Utils.isRealmSet(field)) {
+                if (!checkSetValuesType(field)) {
+                    return false
+                }
+            }
+        }
+
+        return true
+    }
+
+    private fun checkSetValuesType(field: VariableElement): Boolean {
+        // Check for missing generic (default back to Object)
+        if (Utils.getGenericTypeQualifiedName(field) == null) {
+            Utils.error(getFieldErrorSuffix(field) + "No generic type supplied for field", field)
+            return false
+        }
+
+        val elementTypeMirror = checkReferenceIsNotInterface(field) ?: return false
+        return checkAcceptableClass(
+                field,
+                elementTypeMirror,
+                validSetTypes,
+                "Element type RealmSet must be of type 'Mixed' or any type that can be boxed inside 'Mixed': "
+        )
+    }
+
     private fun checkDictionaryValuesType(field: VariableElement): Boolean {
         // Check for missing generic (default back to Object)
         if (Utils.getGenericTypeQualifiedName(field) == null) {
@@ -415,7 +459,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
                 field,
                 elementTypeMirror,
                 validDictionaryTypes,
-                "Element type of RealmDictionary must be of type 'Mixed' or any type that can be boxed inside 'Mixed': "
+                "Element type RealmDictionary must be of type 'Mixed' or any type that can be boxed inside 'Mixed': "
         )
     }
 
@@ -617,7 +661,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             val containsRealmModelClasses = (listGenericType.isNotEmpty() && Utils.isRealmModel(listGenericType[0]))
             val containsMixed = (listGenericType.isNotEmpty() && Utils.isMixed(listGenericType[0]))
 
-            // @Required not allowed if the dictionary contains Realm model classes
+            // @Required not allowed if the dictionary contains Realm model classes or Mixed
             if (hasRequiredAnnotation && (containsRealmModelClasses || containsMixed)) {
                 Utils.error("@Required not allowed on RealmDictionaries that contain other Realm model classes and Mixed.")
                 return false
@@ -628,6 +672,26 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             if (!hasRequiredAnnotation) {
                 if (!containsRealmModelClasses) {
                     nullableValueMapFields.add(field)
+                }
+            }
+        } else if (Utils.isRealmSet(field)) {
+            // Same as RealmList
+            val hasRequiredAnnotation = hasRequiredAnnotation(field)
+            val setGenericType = (field.asType() as DeclaredType).typeArguments
+            val containsRealmModelClasses = (setGenericType.isNotEmpty() && Utils.isRealmModel(setGenericType[0]))
+            val containsMixed = (setGenericType.isNotEmpty() && Utils.isMixed(setGenericType[0]))
+
+            // @Required not allowed if the set contains Realm model classes or Mixed
+            if (hasRequiredAnnotation && (containsRealmModelClasses || containsMixed)) {
+                Utils.error("@Required not allowed on RealmSets that contain other Realm model classes and Mixed.")
+                return false
+            }
+
+            // @Required thus only makes sense for RealmSets with primitive types
+            // We only check @Required annotation. @org.jetbrains.annotations.NotNull annotation should not affect nullability of the list values.
+            if (!hasRequiredAnnotation) {
+                if (!containsRealmModelClasses) {
+                    nullableValueSetFields.add(field)
                 }
             }
         } else if (isRequiredField(field)) {

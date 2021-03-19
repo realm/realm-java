@@ -64,6 +64,8 @@ public class RealmProcessorTest {
     private final JavaFileObject realmDictionaryModelWrongType = JavaFileObjects.forResource("some/test/RealmDictionaryModelWrongType.java");
     private final JavaFileObject realmDictionaryModelMixedRequired = JavaFileObjects.forResource("some/test/RealmDictionaryModelMixedRequired.java");
     private final JavaFileObject realmDictionaryModelRealmModelRequired = JavaFileObjects.forResource("some/test/RealmDictionaryModelRealmModelRequired.java");
+    private final JavaFileObject realmSetModel = JavaFileObjects.forResource("some/test/RealmSetModel.java");
+    private final JavaFileObject realmSetMissingGenericsModel = JavaFileObjects.forResource("some/test/RealmSetMissingGenerics.java");
 
     @Test
     public void compileSimpleFile() {
@@ -526,6 +528,22 @@ public class RealmProcessorTest {
     public void compileRealmDictionaryModelRealmModelRequiredFails() {
         assertAbout(javaSource())
                 .that(realmDictionaryModelRealmModelRequired)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileRealmSetModel() {
+        assertAbout(javaSource())
+                .that(realmSetModel)
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileRealmSetMissingGenerics() {
+        assertAbout(javaSource())
+                .that(realmSetMissingGenericsModel)
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }

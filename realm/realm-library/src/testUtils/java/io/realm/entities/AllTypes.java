@@ -29,6 +29,7 @@ import io.realm.RealmDictionary;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
+import io.realm.RealmSet;
 import io.realm.TestHelper;
 import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.Required;
@@ -190,6 +191,21 @@ public class AllTypes extends RealmObject {
     private RealmDictionary<UUID> columnRequiredUUIDDictionary;
     @Required
     private RealmDictionary<Decimal128> columnRequiredDecimal128Dictionary;
+
+//    private RealmSet<Boolean> columnBooleanSet;
+    private RealmSet<String> columnStringSet;
+//    private RealmSet<Integer> columnIntegerSet;
+//    private RealmSet<Float> columnFloatSet;
+//    private RealmSet<Long> columnLongSet;
+//    private RealmSet<Short> columnShortSet;
+//    private RealmSet<Double> columnDoubleSet;
+//    private RealmSet<Byte> columnByteSet;
+//    private RealmSet<byte[]> columnBinarySet;
+//    private RealmSet<Date> columnDateSet;
+//    private RealmSet<ObjectId> columnObjectIdSet;
+//    private RealmSet<UUID> columnUUIDSet;
+//    private RealmSet<Decimal128> columnDecimal128Set;
+//    private RealmSet<Mixed> columnMixedSet;
 
     public String getColumnString() {
         return columnString;
@@ -628,5 +644,13 @@ public class AllTypes extends RealmObject {
 
     public void setColumnRequiredDecimal128Dictionary(RealmDictionary<Decimal128> columnRequiredDecimal128Dictionary) {
         this.columnRequiredDecimal128Dictionary = columnRequiredDecimal128Dictionary;
+    }
+
+    public RealmSet<String> getColumnStringSet() {
+        return columnStringSet;
+    }
+
+    public void setColumnStringSet(RealmSet<String> columnStringSet) {
+        this.columnStringSet = columnStringSet;
     }
 }

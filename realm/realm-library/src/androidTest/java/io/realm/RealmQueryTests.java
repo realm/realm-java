@@ -2657,6 +2657,7 @@ public class RealmQueryTests extends QueryTests {
                     case STRING_TO_UUID_MAP:
                     case STRING_TO_DECIMAL128_MAP:
                     case STRING_TO_LINK_MAP:
+                    case STRING_SET:
                         // TODO: add queries for dictionaries
                         break;
                     default:
@@ -2893,6 +2894,7 @@ public class RealmQueryTests extends QueryTests {
                     case STRING_TO_UUID_MAP:
                     case STRING_TO_DECIMAL128_MAP:
                     case STRING_TO_LINK_MAP:
+                    case STRING_SET:
                         // TODO: add queries for dictionaries
                         break;
                     default:
@@ -3118,6 +3120,7 @@ public class RealmQueryTests extends QueryTests {
         types.remove(RealmFieldType.STRING_TO_UUID_MAP);
         types.remove(RealmFieldType.STRING_TO_DECIMAL128_MAP);
         types.remove(RealmFieldType.STRING_TO_LINK_MAP);
+        types.remove(RealmFieldType.STRING_SET);
 
 
         // Iterate all fields of AllTypes table and verify that distinct either:
@@ -4149,6 +4152,7 @@ public class RealmQueryTests extends QueryTests {
             case STRING_TO_UUID_MAP:
             case STRING_TO_DECIMAL128_MAP:
             case STRING_TO_LINK_MAP:
+            case STRING_SET:
                 return false;
             case TYPED_LINK:
         }

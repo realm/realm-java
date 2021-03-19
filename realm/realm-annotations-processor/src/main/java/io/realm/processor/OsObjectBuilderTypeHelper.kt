@@ -42,6 +42,23 @@ object OsObjectBuilderTypeHelper {
             QualifiedClassName("java.util.UUID") to "UUIDValueDictionary"
     )
 
+    private val QUALIFIED_SET_VALUES: Map<QualifiedClassName, String> = mapOf(
+//            QualifiedClassName("io.realm.Mixed") to "MixedSet",
+//            QualifiedClassName("java.lang.Boolean") to "BooleanSet",
+            QualifiedClassName("java.lang.String") to "StringSet"
+//            QualifiedClassName("java.lang.Integer") to "IntegerSet",
+//            QualifiedClassName("java.lang.Float") to "FloatSet",
+//            QualifiedClassName("java.lang.Long") to "LongSet",
+//            QualifiedClassName("java.lang.Short") to "ShortSet",
+//            QualifiedClassName("java.lang.Byte") to "ByteSet",
+//            QualifiedClassName("java.lang.Double") to "DoubleSet",
+//            QualifiedClassName("java.util.Date") to "DateSet",
+//            QualifiedClassName("byte[]") to "BinarySet",
+//            QualifiedClassName("org.bson.types.ObjectId") to "ObjectIdSet",
+//            QualifiedClassName("org.bson.types.Decimal128") to "Decimal128Set",
+//            QualifiedClassName("java.util.UUID") to "UUIDSet"
+    )
+
     init {
         // Map of qualified types to their OsObjectBuilder Type
         val fieldTypes = HashMap<QualifiedClassName, String>()
@@ -107,6 +124,8 @@ object OsObjectBuilderTypeHelper {
             "add" + getListTypeName(Utils.getRealmListType(field))
         } else if (Utils.isRealmDictionary(field)) {
             "add" + getDictionaryValueTypeName(Utils.getDictionaryType(field))
+        } else if (Utils.isRealmSet(field)) {
+            "add" + getSetValueTypeName(Utils.getSetType(field))
         } else if (Utils.isRealmResults(field)) {
             throw IllegalStateException("RealmResults are not supported by OsObjectBuilder: $field")
         } else {
@@ -133,6 +152,12 @@ object OsObjectBuilderTypeHelper {
     private fun getDictionaryValueTypeName(typeName: QualifiedClassName?): String {
         return requireNotNull(QUALIFIED_MAP_VALUES[typeName]) {
             "Unsupported dictionary value type: '$typeName'"
+        }
+    }
+
+    private fun getSetValueTypeName(typeName: QualifiedClassName?): String {
+        return requireNotNull(QUALIFIED_SET_VALUES[typeName]) {
+            "Unsupported set value type: '$typeName'"
         }
     }
 }

@@ -30,6 +30,7 @@ import static io.realm.RealmFieldType.FLOAT_LIST;
 import static io.realm.RealmFieldType.INTEGER_LIST;
 import static io.realm.RealmFieldType.MIXED_LIST;
 import static io.realm.RealmFieldType.OBJECT_ID_LIST;
+import static io.realm.RealmFieldType.STRING_SET;
 import static io.realm.RealmFieldType.TYPED_LINK;
 import static io.realm.RealmFieldType.UUID_LIST;
 import static io.realm.RealmFieldType.STRING_LIST;
@@ -88,6 +89,8 @@ public class Property implements NativeObject {
     public static final int TYPE_NULLABLE = 64;
     @SuppressWarnings("WeakerAccess")
     public static final int TYPE_ARRAY = 128;
+    @SuppressWarnings("WeakerAccess")
+    public static final int TYPE_SET = 256;
     @SuppressWarnings("WeakerAccess")
     public static final int TYPE_DICTIONARY = 512;
 
@@ -214,6 +217,9 @@ public class Property implements NativeObject {
             case STRING_TO_LINK_MAP:
                 type = TYPE_OBJECT | TYPE_DICTIONARY;
                 break;
+            case STRING_SET:
+                type = TYPE_STRING | TYPE_SET;
+                break;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported filed type: '%s'.", fieldType.name()));
@@ -301,6 +307,8 @@ public class Property implements NativeObject {
                 return STRING_TO_UUID_MAP;
             case TYPE_OBJECT | TYPE_DICTIONARY:
                 return STRING_TO_LINK_MAP;
+            case TYPE_STRING | TYPE_SET:
+                return STRING_SET;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported property type: '%d'", propertyType));

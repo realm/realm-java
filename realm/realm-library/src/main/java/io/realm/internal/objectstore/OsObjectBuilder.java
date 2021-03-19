@@ -34,6 +34,7 @@ import io.realm.MutableRealmInteger;
 import io.realm.RealmDictionary;
 import io.realm.RealmList;
 import io.realm.RealmModel;
+import io.realm.RealmSet;
 import io.realm.internal.MixedNativeFunctions;
 import io.realm.internal.NativeContext;
 import io.realm.internal.OsSharedRealm;
@@ -656,6 +657,59 @@ public class OsObjectBuilder implements Closeable {
     private void addEmptyDictionary(long columnKey) {
         nativeStopDictionary(builderPtr, columnKey, nativeStartDictionary());
     }
+
+    // -----------------------------------------------
+    // SET
+    // -----------------------------------------------
+
+    private static ItemCallback<String> stringSetItemCallback = new ItemCallback<String>() {
+        @Override
+        public void handleItem(long containerPtr, String item) {
+            nativeAddStringSetItem(containerPtr, item);
+        }
+    };
+
+    private static native long nativeStartSet(long size);
+
+    private static native void nativeStopSet(long builderPtr, long columnKey, long setPtr);
+
+    private static native void nativeAddNullSetItem(long setPtr);
+
+    private static native void nativeAddStringSetItem(long setPtr, String val);
+
+    private void addEmptySet(long columnKey) {
+        nativeStopSet(builderPtr, columnKey, nativeStartSet(0));
+    }
+
+    public void addStringSet(long columnKey, RealmSet<String> set) {
+        addSetItem(builderPtr, columnKey, set, stringSetItemCallback);
+    }
+
+    private <T> void addSetItem(long builderPtr,
+                                long columnKey,
+                                @Nullable Set<T> set,
+                                ItemCallback<T> itemCallback) {
+        if (set != null) {
+            long setPtr = nativeStartSet(set.size());
+            boolean isNullable = (columnKey == 0) || table.isColumnNullable(columnKey);
+            for (T item : set) {
+                if (item == null) {
+                    if (!isNullable) {
+                        throw new IllegalArgumentException("This 'RealmList' is not nullable. A non-null value is expected.");
+                    }
+                    nativeAddNullSetItem(setPtr);
+                } else {
+                    itemCallback.handleItem(setPtr, item);
+                }
+            }
+            nativeStopSet(builderPtr, columnKey, setPtr);
+        } else {
+            addEmptySet(columnKey);
+        }
+    }
+
+    //--------------------------------------------------
+    //--------------------------------------------------
 
     /**
      * Updates any existing object if it exists, otherwise creates a new one.

@@ -106,6 +106,12 @@ public interface Row {
 
     OsMap getValueMap(long columnKey, RealmFieldType fieldType);
 
+    OsSet getMixedSet(long columnKey);
+
+    OsSet getModelSet(long columnKey);
+
+    OsSet getValueSet(long columnKey, RealmFieldType fieldType);
+
     void setLong(long columnKey, long value);
 
     void setBoolean(long columnKey, boolean value);

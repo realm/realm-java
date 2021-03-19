@@ -573,15 +573,6 @@ class ManagedDictionaryTester<T : Any>(
         return dictionaryGetter.call(allTypesObject)
     }
 
-    private fun createAllTypesManagedContainerAndAssert(realm: Realm): AllTypes {
-        realm.executeTransaction { transactionRealm ->
-            transactionRealm.createObject<AllTypes>()
-        }
-        val allTypesObject = realm.where<AllTypes>().findFirst()
-        assertNotNull(allTypesObject)
-        return allTypesObject
-    }
-
     private fun putInternal(
             initialized: RealmDictionary<T>,
             alternative: RealmDictionary<T>

@@ -226,6 +226,21 @@ public class UncheckedRow implements NativeObject, Row {
         return new OsMap(this, columnKey);
     }
 
+    @Override
+    public OsSet getMixedSet(long columnKey) {
+        return new OsSet(this, columnKey);
+    }
+
+    @Override
+    public OsSet getModelSet(long columnKey) {
+        return new OsSet(this, columnKey);
+    }
+
+    @Override
+    public OsSet getValueSet(long columnKey, RealmFieldType fieldType) {
+        return new OsSet(this, columnKey);
+    }
+
     // Setters
 
     @Override

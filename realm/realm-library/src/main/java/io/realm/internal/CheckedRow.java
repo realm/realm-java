@@ -153,6 +153,27 @@ public class CheckedRow extends UncheckedRow {
     }
 
     @Override
+    public OsSet getMixedSet(long columnIndex) {
+        return super.getModelSet(columnIndex);
+    }
+
+    @Override
+    public OsSet getModelSet(long columnIndex) {
+        return super.getModelSet(columnIndex);
+    }
+
+    @Override
+    public OsSet getValueSet(long columnIndex, RealmFieldType fieldType) {
+        final RealmFieldType actualFieldType = getTable().getColumnType(columnIndex);
+        if (fieldType != actualFieldType) {
+            throw new IllegalArgumentException(
+                    String.format(Locale.US, "The type of field '%1$s' is not 'RealmFieldType.%2$s'.",
+                            getTable().getColumnName(columnIndex), fieldType.name()));
+        }
+        return super.getValueSet(columnIndex, fieldType);
+    }
+
+    @Override
     public Row freeze(OsSharedRealm frozenRealm) {
         if (!isValid()) {
             return InvalidRow.INSTANCE;

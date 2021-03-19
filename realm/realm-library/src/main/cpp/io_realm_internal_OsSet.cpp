@@ -51,6 +51,55 @@ Java_io_realm_internal_OsSet_nativeCreate(JNIEnv* env, jclass, jlong shared_real
     return reinterpret_cast<jlong>(nullptr);
 }
 
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsSet_nativeIsValid(JNIEnv* env, jclass, jlong set_ptr) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        return set.is_valid();
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jobject JNICALL
+Java_io_realm_internal_OsSet_nativeGetValueAtIndex(JNIEnv* env, jclass, jlong set_ptr, jint position) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        const Mixed& value = set.get_any(position);
+        if (value.is_null()) {
+            return nullptr;
+        } else {
+            const DataType& type = value.get_type();
+            switch (type) {
+                case DataType::Type::Int:
+                    return JavaClassGlobalDef::new_long(env, value.get_int());
+                case DataType::Type::Double:
+                    return JavaClassGlobalDef::new_double(env, value.get_double());
+                case DataType::Type::Bool:
+                    return JavaClassGlobalDef::new_boolean(env, value.get_bool());
+                case DataType::Type::String:
+                    return to_jstring(env, value.get_string());
+                case DataType::Type::Binary:
+                    return JavaClassGlobalDef::new_byte_array(env, value.get_binary());
+                case DataType::Type::Float:
+                    return JavaClassGlobalDef::new_float(env, value.get_float());
+                case DataType::Type::UUID:
+                    return JavaClassGlobalDef::new_uuid(env, value.get_uuid());
+                case DataType::Type::ObjectId:
+                    return JavaClassGlobalDef::new_object_id(env, value.get_object_id());
+                case DataType::Type::Timestamp:
+                    return JavaClassGlobalDef::new_date(env, value.get_timestamp());
+                case DataType::Type::Decimal:
+                    return JavaClassGlobalDef::new_decimal128(env, value.get_decimal());
+                default:
+                    throw std::logic_error("'getValue' method only suitable for int, double, boolean, String, byte[], float, UUID, Decimal128 and ObjectId.");
+            }
+        }
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_OsSet_nativeSize(JNIEnv* env, jclass, jlong set_ptr) {
     try {
@@ -66,7 +115,7 @@ Java_io_realm_internal_OsSet_nativeContainsNull(JNIEnv *env, jclass, jlong set_p
     try {
         auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
         size_t found = set.find_any(Mixed());
-        return found;
+        return found != npos;       // npos represents "not found"
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
@@ -79,7 +128,7 @@ Java_io_realm_internal_OsSet_nativeContainsString(JNIEnv* env, jclass, jlong set
         auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
         JStringAccessor value(env, j_value);
         size_t found = set.find_any(Mixed(StringData(value)));
-        return found;
+        return found != npos;       // npos represents "not found"
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
@@ -89,7 +138,8 @@ JNIEXPORT void JNICALL
 Java_io_realm_internal_OsSet_nativeAddNull(JNIEnv* env, jclass, jlong set_ptr) {
     try {
         auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
-        set.insert(Mixed());
+        JavaAccessorContext context(env);
+        set.insert(context, Any());
     }
     CATCH_STD()
 }
@@ -136,4 +186,13 @@ Java_io_realm_internal_OsSet_nativeRemoveString(JNIEnv* env, jclass, jlong set_p
     }
     CATCH_STD()
     return nullptr;
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_OsSet_nativeClear(JNIEnv* env, jclass, jlong set_ptr) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        set.remove_all();
+    }
+    CATCH_STD()
 }
