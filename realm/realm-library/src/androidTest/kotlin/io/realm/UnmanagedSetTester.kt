@@ -34,8 +34,8 @@ class UnmanagedSetTester<T : Any>(
 ) : SetTester {
 
     override fun toString(): String = when (mixedType) {
-        null -> "ManagedDictionary-$testerClass"
-        else -> "ManagedDictionary-$testerClass" + mixedType.name.let { "-$it" }
+        null -> "UnmanagedDictionary-$testerClass"
+        else -> "UnmanagedDictionary-$testerClass" + mixedType.name.let { "-$it" }
     }
 
     override fun setUp(config: RealmConfiguration, looperThread: BlockingLooperThread) = Unit
