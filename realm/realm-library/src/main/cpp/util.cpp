@@ -552,3 +552,13 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str, bool delete_jstring_r
         std::memset(tmp_char_array + m_size, 0, buf_size - m_size);
     }
 }
+
+std::vector<Mixed> to_mixed(const std::vector<JavaValue>& java_value_vector) {
+    std::vector<Mixed> mixed_vector = std::vector<Mixed>();
+
+    for (auto &java_value: java_value_vector) {
+        mixed_vector.push_back(java_value.to_mixed());
+    }
+
+    return mixed_vector;
+}

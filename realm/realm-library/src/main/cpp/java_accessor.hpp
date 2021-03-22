@@ -43,6 +43,8 @@ class JPrimitiveArrayAccessor;
 typedef JPrimitiveArrayAccessor<jbyteArray, jbyte> JByteArrayAccessor;
 typedef JPrimitiveArrayAccessor<jbooleanArray, jboolean> JBooleanArrayAccessor;
 typedef JPrimitiveArrayAccessor<jlongArray, jlong> JLongArrayAccessor;
+typedef JPrimitiveArrayAccessor<jfloatArray, jfloat> JFloatArrayAccessor;
+typedef JPrimitiveArrayAccessor<jdoubleArray, jdouble> JDoubleArrayAccessor;
 
 // JPrimitiveArrayAccessor and JObjectArrayAccessor are not supposed to be used across JNI borders. They won't acquire
 // references of the original Java object. Thus, you have to ensure the original java object is available during the
