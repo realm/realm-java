@@ -23,8 +23,12 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.UUID;
 
+import io.realm.CollectionUtils;
+import io.realm.RealmModel;
 import io.realm.internal.NativeContext;
 import io.realm.internal.NativeObject;
+import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.UncheckedRow;
 
 
 public final class NativeMixedCollection implements NativeObject {
@@ -187,6 +191,23 @@ public final class NativeMixedCollection implements NativeObject {
         return new NativeMixedCollection(nativeCreateUUIDCollection(uuidValues, notNull));
     }
 
+    public static NativeMixedCollection newRealmModelCollection(Collection<? extends RealmModel> collection) {
+        long[] objectValues = new long[collection.size()];
+        boolean[] notNull = new boolean[collection.size()];
+
+        int i = 0;
+        for (RealmModel model : collection) {
+            if (model != null) {
+                RealmObjectProxy proxy = (RealmObjectProxy) model;
+                objectValues[i] = ((UncheckedRow) proxy.realmGet$proxyState().getRow$realm()).getNativePtr();
+                notNull[i] = true;
+            }
+            i++;
+        }
+
+        return new NativeMixedCollection(nativeCreateObjectCollection(objectValues, notNull));
+    }
+
     private NativeMixedCollection(long nativePtr) {
         this.nativePtr = nativePtr;
         NativeContext.dummyContext.addReference(this);
@@ -229,6 +250,8 @@ public final class NativeMixedCollection implements NativeObject {
     private static native long nativeCreateDecimal128Collection(long[] lowValues, long[] highValues, boolean[] notNull);
 
     private static native long nativeCreateUUIDCollection(String[] uuidValues, boolean[] notNull);
+
+    private static native long nativeCreateObjectCollection(long[] objectValues, boolean[] notNull);
 
     private static native int nativeGetCollectionSize(long nativePtr);
 

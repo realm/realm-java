@@ -18,11 +18,14 @@ package io.realm.mixed
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.MixedType
-import io.realm.Realm
+import io.realm.*
+import io.realm.entities.*
 import io.realm.internal.core.NativeMixedCollection
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
@@ -31,8 +34,28 @@ import kotlin.test.assertTrue
 
 @RunWith(AndroidJUnit4::class)
 class MixedCollectionTests {
+    private lateinit var realmConfiguration: RealmConfiguration
+    private lateinit var realm: Realm
+
+    @get:Rule
+    val configFactory = TestRealmConfigurationFactory()
+
     init {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
+    }
+
+    @Before
+    fun setUp() {
+        realmConfiguration = configFactory.createSchemaConfiguration(
+                false,
+                PrimaryKeyAsString::class.java)
+
+        realm = Realm.getInstance(realmConfiguration)
+    }
+
+    @After
+    fun tearDown() {
+        realm.close()
     }
 
     @Test
@@ -279,5 +302,36 @@ class MixedCollectionTests {
         val collection = listOf<Double?>()
         val nativeMixedCollection = NativeMixedCollection.newDoubleCollection(collection)
         assertEquals(collection.size, nativeMixedCollection.size)
+    }
+
+    @Test
+    fun validateRealmModel() {
+        var collection = mutableListOf<PrimaryKeyAsString?>()
+
+        realm.executeTransaction {
+            val managedObjects = it.copyToRealmOrUpdate(listOf(
+                    PrimaryKeyAsString(UUID.randomUUID().toString(), 0),
+                    PrimaryKeyAsString(UUID.randomUUID().toString(), 0),
+                    PrimaryKeyAsString(UUID.randomUUID().toString(), 0)
+            ))
+
+            collection.addAll(managedObjects)
+            collection.add(2, null)
+
+        }
+
+        val nativeMixedCollection = NativeMixedCollection.newRealmModelCollection(collection)
+
+        assertEquals(collection.size, nativeMixedCollection.size)
+        collection.forEachIndexed { index, expectedValue ->
+            val nativeMixed = nativeMixedCollection.getItem(index)
+
+            if (expectedValue == null) {
+                assertEquals(MixedType.NULL, nativeMixed.type)
+            } else {
+                assertEquals(MixedType.OBJECT, nativeMixed.type)
+                // FIXME: Validate that the contents are ok. Missing Mixed methods that allows testing.
+            }
+        }
     }
 }

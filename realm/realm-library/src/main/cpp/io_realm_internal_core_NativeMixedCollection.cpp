@@ -247,6 +247,27 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateUUIDCollection(JNI
     return reinterpret_cast<jlong>(nullptr);
 }
 
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_core_NativeMixedCollection_nativeCreateObjectCollection(JNIEnv *env, jclass,
+                                                                             jlongArray j_object_array,
+                                                                             jbooleanArray j_not_null) {
+    try {
+        JLongArrayAccessor values(env, j_object_array);
+        JBooleanArrayAccessor not_null(env, j_not_null);
+        auto collection = new std::vector<JavaValue>();
+        for (int i = 0; i < values.size(); i++) {
+            if (not_null[i]) {
+                collection->push_back(JavaValue(reinterpret_cast<Obj*>(values[i])));
+            } else {
+                collection->push_back(JavaValue());
+            }
+        }
+        return reinterpret_cast<jlong>(collection);
+    } CATCH_STD()
+
+    return reinterpret_cast<jlong>(nullptr);
+}
+
 JNIEXPORT jint JNICALL
 Java_io_realm_internal_core_NativeMixedCollection_nativeGetCollectionSize(JNIEnv *env, jclass,
                                                                           jlong j_native_ptr) {
