@@ -328,7 +328,7 @@ def runBuild(buildFlags, instrumentationTestTarget) {
   if (isReleaseBranch && !publishBuild) {
     stage('Publish SNAPSHOT') {
       withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'maven-central-credentials', passwordVariable: 'MAVEN_CENTRAL_PASSWORD', usernameVariable: 'MAVEN_CENTRAL_USER']]) {
-        sh "chmod +x gradlew && ./gradlew mavenCentralUpload ${buildFlags} -PossrhUsername='$MAVEN_CENTRAL_USER' -PossrhUsername='$MAVEN_CENTRAL_PASSWORD' --stacktrace"
+        sh "chmod +x gradlew && ./gradlew mavenCentralUpload ${buildFlags} -PossrhUsername='$MAVEN_CENTRAL_USER' -PossrhPassword='$MAVEN_CENTRAL_PASSWORD' --stacktrace"
       }
     }
   }
