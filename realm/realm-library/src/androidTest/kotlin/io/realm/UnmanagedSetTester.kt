@@ -26,12 +26,17 @@ import kotlin.test.*
  * Generic tester for all types of unmanaged sets.
  */
 class UnmanagedSetTester<T : Any>(
-        private val testerName: String,
+        private val testerClass: Class<T>,
         private val values: List<T?>,
-        private val notPresentValue: T
+        private val notPresentValue: T,
+        private val toArrayUnmanaged: ToArrayUnmanaged<T>,
+        private val mixedType: MixedType? = null
 ) : SetTester {
 
-    override fun toString(): String = testerName
+    override fun toString(): String = when (mixedType) {
+        null -> "UnmanagedDictionary-$testerClass"
+        else -> "UnmanagedDictionary-$testerClass" + mixedType.name.let { "-$it" }
+    }
 
     override fun setUp(config: RealmConfiguration, looperThread: BlockingLooperThread) = Unit
     override fun tearDown() = Unit
@@ -86,6 +91,10 @@ class UnmanagedSetTester<T : Any>(
         realmSet.addAll(values)
         val fullArray = realmSet.toArray()
         assertEquals(values.size, fullArray.size)
+    }
+
+    override fun toArrayWithParameter() {
+        toArrayUnmanaged.toArrayWithParameter(values)
     }
 
     override fun add() {
@@ -165,88 +174,102 @@ fun unmanagedSetFactory(): List<SetTester> {
     val primitiveTesters: List<SetTester> = SetSupportedType.values().mapNotNull { supportedType ->
         when (supportedType) {
             SetSupportedType.LONG ->
-                UnmanagedSetTester<Long>(
-                        testerName = "Long",
+                UnmanagedSetTester(
+                        testerClass = Long::class.java,
                         values = listOf(VALUE_NUMERIC_HELLO.toLong(), VALUE_NUMERIC_BYE.toLong(), null),
-                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toLong()
+                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toLong(),
+                        toArrayUnmanaged = ToArrayUnmanaged.LongUnmanaged()
                 )
             SetSupportedType.INTEGER ->
-                UnmanagedSetTester<Int>(
-                        testerName = "Int",
+                UnmanagedSetTester(
+                        testerClass = Int::class.java,
                         values = listOf(VALUE_NUMERIC_HELLO, VALUE_NUMERIC_BYE),
-                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT
+                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT,
+                        toArrayUnmanaged = ToArrayUnmanaged.IntUnmanaged()
                 )
             SetSupportedType.SHORT ->
-                UnmanagedSetTester<Short>(
-                        testerName = "Short",
+                UnmanagedSetTester(
+                        testerClass = Short::class.java,
                         values = listOf(VALUE_NUMERIC_HELLO.toShort(), VALUE_NUMERIC_BYE.toShort(), null),
-                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toShort()
+                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toShort(),
+                        toArrayUnmanaged = ToArrayUnmanaged.ShortUnmanaged()
                 )
             SetSupportedType.BYTE ->
-                UnmanagedSetTester<Byte>(
-                        testerName = "Byte",
+                UnmanagedSetTester(
+                        testerClass = Byte::class.java,
                         values = listOf(VALUE_NUMERIC_HELLO.toByte(), VALUE_NUMERIC_BYE.toByte(), null),
-                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toByte()
+                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toByte(),
+                        toArrayUnmanaged = ToArrayUnmanaged.ByteUnmanaged()
                 )
             SetSupportedType.FLOAT ->
-                UnmanagedSetTester<Float>(
-                        testerName = "Float",
+                UnmanagedSetTester(
+                        testerClass = Float::class.java,
                         values = listOf(VALUE_NUMERIC_HELLO.toFloat(), VALUE_NUMERIC_BYE.toFloat(), null),
-                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toFloat()
+                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toFloat(),
+                        toArrayUnmanaged = ToArrayUnmanaged.FloatUnmanaged()
                 )
             SetSupportedType.DOUBLE ->
-                UnmanagedSetTester<Double>(
-                        testerName = "Double",
+                UnmanagedSetTester(
+                        testerClass = Double::class.java,
                         values = listOf(VALUE_NUMERIC_HELLO.toDouble(), VALUE_NUMERIC_BYE.toDouble(), null),
-                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toDouble()
+                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toDouble(),
+                        toArrayUnmanaged = ToArrayUnmanaged.DoubleUnmanaged()
                 )
             SetSupportedType.STRING ->
-                UnmanagedSetTester<String>(
-                        testerName = "String",
+                UnmanagedSetTester(
+                        testerClass = String::class.java,
                         values = listOf(VALUE_STRING_HELLO, VALUE_STRING_BYE, null),
-                        notPresentValue = VALUE_STRING_NOT_PRESENT
+                        notPresentValue = VALUE_STRING_NOT_PRESENT,
+                        toArrayUnmanaged = ToArrayUnmanaged.StringUnmanaged()
                 )
             SetSupportedType.BOOLEAN ->
-                UnmanagedSetTester<Boolean>(
-                        testerName = "Boolean",
+                UnmanagedSetTester(
+                        testerClass = Boolean::class.java,
                         values = listOf(VALUE_BOOLEAN_HELLO, null),
-                        notPresentValue = VALUE_BOOLEAN_NOT_PRESENT
+                        notPresentValue = VALUE_BOOLEAN_NOT_PRESENT,
+                        toArrayUnmanaged = ToArrayUnmanaged.BooleanUnmanaged()
                 )
             SetSupportedType.DATE ->
-                UnmanagedSetTester<Date>(
-                        testerName = "Date",
+                UnmanagedSetTester(
+                        testerClass = Date::class.java,
                         values = listOf(VALUE_DATE_HELLO, VALUE_DATE_BYE, null),
-                        notPresentValue = VALUE_DATE_NOT_PRESENT
+                        notPresentValue = VALUE_DATE_NOT_PRESENT,
+                        toArrayUnmanaged = ToArrayUnmanaged.DateUnmanaged()
                 )
             SetSupportedType.DECIMAL128 ->
-                UnmanagedSetTester<Decimal128>(
-                        testerName = "Decimal128",
+                UnmanagedSetTester(
+                        testerClass = Decimal128::class.java,
                         values = listOf(VALUE_DECIMAL128_HELLO, VALUE_DECIMAL128_BYE, null),
-                        notPresentValue = VALUE_DECIMAL128_NOT_PRESENT
+                        notPresentValue = VALUE_DECIMAL128_NOT_PRESENT,
+                        toArrayUnmanaged = ToArrayUnmanaged.Decimal128Unmanaged()
                 )
             SetSupportedType.BINARY ->
-                UnmanagedSetTester<ByteArray>(
-                        testerName = "ByteArray",
+                UnmanagedSetTester(
+                        testerClass = ByteArray::class.java,
                         values = listOf(VALUE_BINARY_HELLO, VALUE_BINARY_BYE, null),
-                        notPresentValue = VALUE_BINARY_NOT_PRESENT
+                        notPresentValue = VALUE_BINARY_NOT_PRESENT,
+                        toArrayUnmanaged = ToArrayUnmanaged.BinaryUnmanaged()
                 )
             SetSupportedType.OBJECT_ID ->
-                UnmanagedSetTester<ObjectId>(
-                        testerName = "ObjectId",
+                UnmanagedSetTester(
+                        testerClass = ObjectId::class.java,
                         values = listOf(VALUE_OBJECT_ID_HELLO, VALUE_OBJECT_ID_BYE, null),
-                        notPresentValue = VALUE_OBJECT_ID_NOT_PRESENT
+                        notPresentValue = VALUE_OBJECT_ID_NOT_PRESENT,
+                        toArrayUnmanaged = ToArrayUnmanaged.ObjectIdUnmanaged()
                 )
             SetSupportedType.UUID ->
-                UnmanagedSetTester<UUID>(
-                        testerName = "UUID",
+                UnmanagedSetTester(
+                        testerClass = UUID::class.java,
                         values = listOf(VALUE_UUID_HELLO, VALUE_UUID_BYE, null),
-                        notPresentValue = VALUE_UUID_NOT_PRESENT
+                        notPresentValue = VALUE_UUID_NOT_PRESENT,
+                        toArrayUnmanaged = ToArrayUnmanaged.UUIDUnmanaged()
                 )
             SetSupportedType.LINK ->
-                UnmanagedSetTester<RealmModel>(
-                        testerName = "UnmanagedRealmModel",
+                UnmanagedSetTester(
+                        testerClass = RealmModel::class.java,
                         values = listOf(VALUE_LINK_HELLO, VALUE_LINK_BYE, null),
-                        notPresentValue = VALUE_LINK_NOT_PRESENT
+                        notPresentValue = VALUE_LINK_NOT_PRESENT,
+                        toArrayUnmanaged = ToArrayUnmanaged.RealmModelUnmanaged()
                 )
             SetSupportedType.MIXED -> null      // Ignore Mixed in this switch
             else -> throw IllegalArgumentException("Unknown data type for Sets")
@@ -255,14 +278,16 @@ fun unmanagedSetFactory(): List<SetTester> {
 
     // Create Mixed testers now
     val mixedTesters = MixedType.values().map { mixedType ->
-        UnmanagedSetTester<Mixed>(
-                "UnmanagedSetMixed-${mixedType.name}",
+        UnmanagedSetTester(
+                Mixed::class.java,
                 getMixedValues(mixedType),
-                VALUE_MIXED_NOT_PRESENT
+                VALUE_MIXED_NOT_PRESENT,
+                ToArrayUnmanaged.MixedUnmanaged(),
+                mixedType
         )
     }
 
-    // Put the together
+    // Put them together
     return primitiveTesters.plus(mixedTesters)
 }
 
@@ -292,5 +317,83 @@ fun getMixedValues(mixedType: MixedType): List<Mixed?> {
             listOf(VALUE_MIXED_UUID_HELLO, VALUE_MIXED_UUID_BYE, null)
         MixedType.NULL ->
             listOf(Mixed.nullValue(), Mixed.valueOf("Not null"), null)
+    }
+}
+
+/**
+ * TODO
+ */
+abstract class ToArrayUnmanaged<T> {
+
+    abstract fun toArrayWithParameter(values: List<T?>)
+
+    protected fun test(values: List<T?>, emptyArray: Array<T>, fullArray: Array<T>) {
+        val realmSet = RealmSet<T>()
+        val emptyFromSet = realmSet.toArray(emptyArray)
+        assertEquals(0, emptyFromSet.size)
+
+        realmSet.addAll(values as Collection<T>)
+        val fullFromSet = realmSet.toArray(fullArray)
+        assertEquals(values.size, fullFromSet.size)
+    }
+
+    class LongUnmanaged : ToArrayUnmanaged<Long>() {
+        override fun toArrayWithParameter(values: List<Long?>) = test(values, emptyArray(), arrayOf())
+    }
+
+    class IntUnmanaged : ToArrayUnmanaged<Int>() {
+        override fun toArrayWithParameter(values: List<Int?>) = test(values, emptyArray(), arrayOf())
+    }
+
+    class ShortUnmanaged : ToArrayUnmanaged<Short>() {
+        override fun toArrayWithParameter(values: List<Short?>) = test(values, emptyArray(), arrayOf())
+    }
+
+    class ByteUnmanaged : ToArrayUnmanaged<Byte>() {
+        override fun toArrayWithParameter(values: List<Byte?>) = test(values, emptyArray(), arrayOf())
+    }
+
+    class FloatUnmanaged : ToArrayUnmanaged<Float>() {
+        override fun toArrayWithParameter(values: List<Float?>) = test(values, emptyArray(), arrayOf())
+    }
+
+    class DoubleUnmanaged : ToArrayUnmanaged<Double>() {
+        override fun toArrayWithParameter(values: List<Double?>) = test(values, emptyArray(), arrayOf())
+    }
+
+    class StringUnmanaged : ToArrayUnmanaged<String>() {
+        override fun toArrayWithParameter(values: List<String?>) = test(values, emptyArray(), arrayOf())
+    }
+
+    class BooleanUnmanaged : ToArrayUnmanaged<Boolean>() {
+        override fun toArrayWithParameter(values: List<Boolean?>) = test(values, emptyArray(), arrayOf())
+    }
+
+    class DateUnmanaged : ToArrayUnmanaged<Date>() {
+        override fun toArrayWithParameter(values: List<Date?>) = test(values, emptyArray(), arrayOf())
+    }
+
+    class Decimal128Unmanaged : ToArrayUnmanaged<Decimal128>() {
+        override fun toArrayWithParameter(values: List<Decimal128?>) = test(values, emptyArray(), arrayOf())
+    }
+
+    class BinaryUnmanaged : ToArrayUnmanaged<ByteArray>() {
+        override fun toArrayWithParameter(values: List<ByteArray?>) = test(values, emptyArray(), arrayOf())
+    }
+
+    class ObjectIdUnmanaged : ToArrayUnmanaged<ObjectId>() {
+        override fun toArrayWithParameter(values: List<ObjectId?>) = test(values, emptyArray(), arrayOf())
+    }
+
+    class UUIDUnmanaged : ToArrayUnmanaged<UUID>() {
+        override fun toArrayWithParameter(values: List<UUID?>) = test(values, emptyArray(), arrayOf())
+    }
+
+    class RealmModelUnmanaged : ToArrayUnmanaged<RealmModel>() {
+        override fun toArrayWithParameter(values: List<RealmModel?>) = test(values, emptyArray(), arrayOf())
+    }
+
+    class MixedUnmanaged : ToArrayUnmanaged<Mixed>() {
+        override fun toArrayWithParameter(values: List<Mixed?>) = test(values, emptyArray(), arrayOf())
     }
 }

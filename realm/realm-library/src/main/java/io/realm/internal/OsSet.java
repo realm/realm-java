@@ -23,6 +23,7 @@ import javax.annotation.Nullable;
 public class OsSet implements NativeObject {
 
     public enum ExternalCollectionOperation {
+        CONTAINS_ALL,
         ADD_ALL,
         REMOVE_ALL,
         RETAIN_ALL
@@ -74,87 +75,106 @@ public class OsSet implements NativeObject {
         return nativeSize(nativePtr);
     }
 
-    public boolean contains(@Nullable Object value) {
+    // ----------------------------------------------------
+    // String operations
+    // ----------------------------------------------------
+
+    public boolean contains(@Nullable String value) {
         if (value == null) {
             return nativeContainsNull(nativePtr);
-        } else if (value.getClass() == String.class) {
-            return nativeContainsString(nativePtr, (String) value);
         } else {
-            // TODO: add missing types
-            throw new UnsupportedOperationException("set contains - Hold your horses cowboy...");
+            return nativeContainsString(nativePtr, (String) value);
         }
     }
 
-    public boolean add(@Nullable Object value) {
+    public boolean containsAllString(Collection<?> collection) {
+        // Every set contains the empty set, in this case an empty collection
+        if (collection.size() == 0) {
+            return true;
+        }
+
+        // It cannot be contained if it is empty or not the same type
+        Object[] objects = collection.toArray();
+        if (objects[0].getClass() != String.class) {
+            return false;
+        }
+
+        String[] values = collection.toArray(new String[objects.length]);
+        return nativeContainsAllString(nativePtr, values);
+    }
+
+    public boolean add(@Nullable String value) {
         long[] indexAndFound;
         if (value == null) {
             indexAndFound = nativeAddNull(nativePtr);
-        } else if (value.getClass() == String.class) {
-            indexAndFound = nativeAddString(nativePtr, (String) value);
         } else {
-            // TODO: add missing types
-            throw new UnsupportedOperationException("set add - Hold your horses cowboy...");
+            indexAndFound = nativeAddString(nativePtr, value);
         }
-
         return indexAndFound[1] != VALUE_NOT_FOUND;
     }
 
-    public boolean remove(@Nullable Object value) {
+    public <E> boolean addAllString(Collection<? extends E> collection) {
+        // Nothing changes if collection is empty
+        if (collection.isEmpty()) {
+            return false;
+        }
+
+        int size = collection.size();
+        String[] values = collection.toArray(new String[size]);
+        return collectionFunnelString(values, ExternalCollectionOperation.ADD_ALL);
+    }
+
+    public boolean remove(@Nullable String value) {
         long[] indexAndFound;
         if (value == null) {
             indexAndFound = nativeRemoveNull(nativePtr);
-        } else if (value.getClass() == String.class) {
-            indexAndFound = nativeRemoveString(nativePtr, (String) value);
         } else {
-            // TODO: add missing types
-            throw new UnsupportedOperationException("set remove - Hold your horses cowboy...");
+            indexAndFound = nativeRemoveString(nativePtr, (String) value);
         }
         return indexAndFound[1] == 1;       // 1 means true, i.e. it was found
     }
 
-    public boolean isSubSetOf(long otherSetNativePtr) {
-        return nativeIsSubSetOf(this.nativePtr, otherSetNativePtr);
-    }
-
-    public boolean containsAll(Collection<?> collection, Class<?> valueClass) {
-        Object[] objects = collection.toArray();
-
-        // It cannot be contained if it is empty or not the same type
-        if (collection.size() == 0 || objects[0].getClass() != valueClass) {
+    public <E> boolean removeAllString(Collection<? extends E> collection) {
+        // Nothing changes if collection is empty
+        if (collection.isEmpty()) {
             return false;
         }
 
-        if (valueClass == String.class) {
-            String[] values = collection.toArray(new String[objects.length]);
-            return nativeContainsAllString(nativePtr, values);
-        } else {
-            // TODO: add missing types
-            throw new UnsupportedOperationException("set containsAll - Hold your horses cowboy...");
+        int size = collection.size();
+        String[] values = collection.toArray(new String[size]);
+        return collectionFunnelString(values, ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    public <E> boolean retainAllString(Collection<? extends E> collection) {
+        // Intersection with an empty collection results into an empty set
+        if (collection.isEmpty()) {
+            nativeClear(nativePtr);
+            return true;
         }
+
+        int size = collection.size();
+        String[] values = collection.toArray(new String[size]);
+        return collectionFunnelString(values, ExternalCollectionOperation.RETAIN_ALL);
+    }
+
+    // ----------------------------------------------------
+    // Set operations
+    // ----------------------------------------------------
+
+    public boolean containsAll(OsSet otherRealmSet) {
+        return nativeContainsAll(nativePtr, otherRealmSet.getNativePtr());
     }
 
     public boolean union(OsSet otherRealmSet) {
         return nativeUnion(nativePtr, otherRealmSet.getNativePtr());
     }
 
-    public <E> boolean addAll(Collection<? extends E> collection, Class<?> valueClass) {
-        return collectionFunnel(collection, valueClass, ExternalCollectionOperation.ADD_ALL);
-    }
-
     public boolean asymmetricDifference(OsSet otherSet) {
         return nativeAsymmetricDifference(nativePtr, otherSet.getNativePtr());
     }
 
-    public <E> boolean removeAll(Collection<? extends E> collection, Class<?> valueClass) {
-        return collectionFunnel(collection, valueClass, ExternalCollectionOperation.REMOVE_ALL);
-    }
-
     public boolean intersect(OsSet otherSet) {
         return nativeIntersect(nativePtr, otherSet.getNativePtr());
-    }
-
-    public <E> boolean retainAll(Collection<? extends E> collection, Class<?> valueClass) {
-        return collectionFunnel(collection, valueClass, ExternalCollectionOperation.RETAIN_ALL);
     }
 
     public void clear() {
@@ -166,36 +186,25 @@ public class OsSet implements NativeObject {
         return new OsSet(frozenSharedRealm, frozenNativePtr);
     }
 
-    private <E> boolean collectionFunnel(Collection<? extends E> collection,
-                                         Class<?> valueClass,
-                                         ExternalCollectionOperation operation) {
-        // Return unchanged if collection is empty
-        if (collection.size() == 0) {
-            return false;
-        }
-
-        // Collection cannot be removed if it is not the same type
-        Object[] objects = collection.toArray();
-        Class<?> itemClass = objects[0].getClass();
+    private void checkCollectionType(Object[] values, Class<?> valueClass) {
+        // Throw if collection and set are not the same type
+        Class<?> itemClass = values[0].getClass();
         if (itemClass != valueClass) {
             throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
         }
+    }
 
-        if (itemClass == String.class) {
-            String[] values = collection.toArray(new String[objects.length]);
-            switch (operation) {
-                case ADD_ALL:
-                    return nativeAddAllString(nativePtr, values);
-                case REMOVE_ALL:
-                    return nativeRemoveAllString(nativePtr, values);
-                case RETAIN_ALL:
-                    return nativeRetainAllString(nativePtr, values);
-                default:
-                    throw new IllegalStateException("Unexpected value: " + operation);
-            }
-        } else {
-            // TODO: add missing types
-            throw new UnsupportedOperationException("set addAll - Hold your horses cowboy...");
+    private boolean collectionFunnelString(String[] values, ExternalCollectionOperation operation) {
+        checkCollectionType(values, String.class);
+        switch (operation) {
+            case ADD_ALL:
+                return nativeAddAllString(nativePtr, values);
+            case REMOVE_ALL:
+                return nativeRemoveAllString(nativePtr, values);
+            case RETAIN_ALL:
+                return nativeRetainAllString(nativePtr, values);
+            default:
+                throw new IllegalStateException("Unexpected value: " + operation);
         }
     }
 
@@ -221,9 +230,9 @@ public class OsSet implements NativeObject {
 
     private static native long[] nativeRemoveString(long nativePtr, String value);
 
-    private static native boolean nativeIsSubSetOf(long nativePtr, long otherSetNativePtr);
-
     private static native boolean nativeContainsAllString(long nativePtr, String[] otherSet);
+
+    private static native boolean nativeContainsAll(long nativePtr, long otherRealmSetNativePtr);
 
     private static native boolean nativeUnion(long nativePtr, long otherRealmSetNativePtr);
 
