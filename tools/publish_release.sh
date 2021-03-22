@@ -21,10 +21,11 @@ set -e
 usage() {
 cat <<EOF
 Usage: $0 <maven_central_user> <maven_central_key> <realm_s3_access_key> <realm_s3_secret_key> <docs_s3_access_key> <docs_s3_secret_key> <slack-webhook-releases-url> <slack-webhook-java-ci-url>
+Usage: $0 verify
 EOF
 }
 
-if [ "$#" -ne 8 ]; then
+if [ "$#" -ne 8 ] && [ "$1" != "verify" ]; then
   usage
   exit 1
 fi
@@ -169,8 +170,11 @@ notify_slack_channels() {
 check_env
 verify_release_preconditions
 verify_changelog
-create_javadoc
-upload_to_mavenCentral
-upload_debug_symbols
-upload_javadoc
-notify_slack_channels
+
+if [ "$1" != "verify" ]; then
+  create_javadoc
+  upload_to_mavenCentral
+  upload_debug_symbols
+  upload_javadoc
+  notify_slack_channels
+fi

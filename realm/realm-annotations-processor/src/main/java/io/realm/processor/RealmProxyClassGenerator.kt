@@ -394,7 +394,12 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitStatement("%s.updateEmbeddedObject(realm, value, proxyObject, new HashMap<RealmModel, RealmObjectProxy>(), Collections.EMPTY_SET)", linkedProxyClass)
                             emitStatement("value = proxyObject")
                         } else {
-                            emitStatement("value = realm.copyToRealm(value)")
+                            val linkedMetadata = classCollection.getClassFromQualifiedName(linkedQualifiedClassName)
+                            if (linkedMetadata.hasPrimaryKey()) {
+                                emitStatement("value = realm.copyToRealmOrUpdate(value)")
+                            } else {
+                                emitStatement("value = realm.copyToRealm(value)")
+                            }
                         }
                     endControlFlow()
 
@@ -487,7 +492,12 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         beginControlFlow("if (item == null || RealmObject.isManaged(item))")
                             emitStatement("value.add(item)")
                         nextControlFlow("else")
-                            emitStatement("value.add(realm.copyToRealm(item))")
+                            val genericTypeMetadata = classCollection.getClassFromQualifiedName(genericType!!)
+                            if (genericTypeMetadata.hasPrimaryKey()) {
+                                emitStatement("value.add(realm.copyToRealmOrUpdate(item))")
+                            } else {
+                                emitStatement("value.add(realm.copyToRealm(item))");
+                            }
                         endControlFlow()
                     endControlFlow()
                 endControlFlow()
@@ -2293,7 +2303,11 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 endControlFlow()
             }
             if (!metadata.embedded) {
-                emitStatement("return realm.copyToRealm(obj)")
+                if (metadata.hasPrimaryKey()) {
+                    emitStatement("return realm.copyToRealmOrUpdate(obj)")
+                } else {
+                    emitStatement("return realm.copyToRealm(obj)")
+                }
             } else {
                 // Embedded objects are left unmanaged and assumed to be added by their parent. This
                 // is safe as json import is blocked for embedded objects without a parent.

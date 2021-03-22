@@ -66,6 +66,10 @@ try {
           } else {
             echo "Building release: '${gitTag}'"
             setBuildName("Tag ${gitTag}")
+            sh """
+              set +x  
+              sh tools/publish_release.sh verify
+            """
             publishBuild = true
           }
         }
