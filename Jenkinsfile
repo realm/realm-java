@@ -7,12 +7,12 @@ import groovy.json.JsonOutput
 // CONSTANTS
 
 // Branches from which we release SNAPSHOT's. Only release branches need to run on actual hardware.
-releaseBranches = ['master', 'next-major', 'v10', 'releases']
+releaseBranches = ['master', 'next-major', 'v10', 'releases', 'cm/use-maven-central' ]
 // Branches that are "important", so if they do not compile they will generate a Slack notification
 slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
 // WARNING: Only set to `false` as an absolute last resort. Doing this will disable all integration
 // tests.
-enableIntegrationTests = true
+enableIntegrationTests = false
 
 // RUNTIME PROPERTIES
 
@@ -327,8 +327,8 @@ def runBuild(buildFlags, instrumentationTestTarget) {
   echo "Releasing SNAPSHOT: ($isReleaseBranch, $publishBuild)"
   if (isReleaseBranch && !publishBuild) {
     stage('Publish SNAPSHOT') {
-      withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
-        sh "chmod +x gradlew && ./gradlew mavenCentralUpload ${buildFlags} --stacktrace"
+      withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'maven-central-credentials', passwordVariable: 'MAVEN_CENTRAL_PASSWORD', usernameVariable: 'MAVEN_CENTRAL_USER']]) {
+        sh "chmod +x gradlew && ./gradlew mavenCentralUpload ${buildFlags} -PossrhUsername='$MAVEN_CENTRAL_USER' -PossrhUsername='$MAVEN_CENTRAL_PASSWORD' --stacktrace"
       }
     }
   }

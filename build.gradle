@@ -57,6 +57,12 @@ def copyProperties = {
     if (project.hasProperty('signSecretRingFile')) {
         startParameter.projectProperties += [signSecretRingFile: project.getProperty('signSecretRingFile')]
     }
+    if (project.hasProperty('ossrhUsername')) {
+        startParameter.projectProperties += [ossrhUsername: project.getProperty('ossrhUsername')]
+    }
+    if (project.hasProperty('ossrhPassword')) {
+        startParameter.projectProperties += [ossrhPassword: project.getProperty('ossrhPassword')]
+    }
 }
 
 task assembleAnnotations(type:GradleBuild) {
