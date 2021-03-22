@@ -253,6 +253,10 @@ public:
         REALM_TERMINATE("not supported");
     }
 
+    bool is_null(util::Any value) {
+        return !value.has_value();
+    }
+
     // Any properties are only supported by the Cocoa binding to enable reading
     // old Realm files that may have used them. Other bindings can safely not
     // implement this.
