@@ -197,7 +197,7 @@ dependencies {
 
     api "io.realm:realm-annotations:${version}"
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
-    implementation 'com.getkeepsafe.relinker:relinker:1.4.0'
+    implementation 'com.getkeepsafe.relinker:relinker:1.4.3'
     api "org.mongodb:bson:${properties.getProperty('BSON_DEPENDENCY')}"
     implementation("io.reactivex.rxjava2:rxandroid:${properties.getProperty('RXANDROID_DEPENDENCY')}") {
         exclude group: 'io.reactivex.rxjava2', module: 'rxjava'

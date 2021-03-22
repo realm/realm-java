@@ -1,9 +1,6 @@
 ## 10.4.0 (YYYY-MM-DD)
 
-Releases are now found on `mavenCentral()` instead of `jcenter()`. `jcenter()` is still required as
-a configured repository as [`Relinker`](https://github.com/KeepSafe/ReLinker) which Realm depends on,
-are still only on `jcenter()`. As soon as that has [moved](https://github.com/KeepSafe/ReLinker/issues/79),
-`jcenter()` is no longer required.
+All releases from 10.4.0 and forward are now found on `mavenCentral()` instead of `jcenter()`. 
 
 A minimal supported setup will therefore now look like this:
 
@@ -20,8 +17,6 @@ allprojects {
 
     repositories {
         mavenCentral()
-        google()
-        jcenter()
     }
 }
 ```
@@ -44,7 +39,7 @@ for more information.
 ### Internal
 * Updated to Realm Core commit: df57de0101b5b817f8f4158cf45e11985cd640c2.
 * Updated to NDK 22.0.7026061.
-
+* Updated to ReLinker 1.4.3.
 
 ## 10.3.0 (2021-01-08)
 

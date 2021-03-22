@@ -84,11 +84,8 @@ class Realm implements Plugin<Project> {
                         && !url.endsWith("extras/android/m2repository")
                         && !url.endsWith("extras/google/m2repository"))
             }.isEmpty()) {
-                // If no repository was defined, we add jCenter
-                // Calling this automatically adds jCenter to the list of repositories
-                // TODO: Remove jcenter() once Relinker has moved: https://github.com/KeepSafe/ReLinker/issues/79
+                // If no repository was defined, we add Maven Central
                 project.getRepositories().mavenCentral()
-                project.getRepositories().jcenter()
             }
         }
 
