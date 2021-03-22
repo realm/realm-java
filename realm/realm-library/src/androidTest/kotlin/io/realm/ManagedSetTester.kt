@@ -60,14 +60,14 @@ class ManagedSetTester<T : Any>(
 
     override fun tearDown() = realm.close()
 
-    override fun isManaged() = assertTrue(initAndAssert().isManaged)
+    override fun isManaged() = assertTrue(initAndAssertEmptySet().isManaged)
 
-    override fun isValid() = assertTrue(initAndAssert().isValid)
+    override fun isValid() = assertTrue(initAndAssertEmptySet().isValid)
 
     override fun isFrozen() = Unit          // Tested in frozen
 
     override fun size() {
-        val set = initAndAssert()
+        val set = initAndAssertEmptySet()
 
         realm.executeTransaction {
             initializedSet.forEach { value ->
@@ -78,7 +78,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun isEmpty() {
-        val set = initAndAssert()
+        val set = initAndAssertEmptySet()
 
         realm.executeTransaction {
             initializedSet.forEach { value ->
@@ -89,7 +89,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun contains() {
-        val set = initAndAssert()
+        val set = initAndAssertEmptySet()
 
         assertFalse(set.contains(notPresentValue))
         realm.executeTransaction {
@@ -100,7 +100,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun iterator() {
-        val set = initAndAssert()
+        val set = initAndAssertEmptySet()
 
         assertNotNull(set.iterator())
         realm.executeTransaction {
@@ -112,7 +112,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun toArray() {
-        val set = initAndAssert()
+        val set = initAndAssertEmptySet()
 
         // Empty set
         assertEquals(0, set.toArray().size)
@@ -134,12 +134,12 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun toArrayWithParameter() {
-        val set = initAndAssert()
+        val set = initAndAssertEmptySet()
         toArrayManaged.toArrayWithParameter(realm, set, initializedSet)
     }
 
     override fun add() {
-        val set = initAndAssert()
+        val set = initAndAssertEmptySet()
 
         realm.executeTransaction {
             // Adding a value for the first time returns true
@@ -156,7 +156,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun remove() {
-        val set = initAndAssert()
+        val set = initAndAssertEmptySet()
 
         realm.executeTransaction {
             initializedSet.forEach { value ->
@@ -178,7 +178,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun containsAll() {
-        val set = initAndAssert()
+        val set = initAndAssertEmptySet()
 
         realm.executeTransaction { transactionRealm ->
             set.addAll(initializedSet)
@@ -238,7 +238,7 @@ class ManagedSetTester<T : Any>(
 
     override fun addAll() {
         // FIXME: add cases for managed lists just as we do in containsAll
-        val set = initAndAssert()
+        val set = initAndAssertEmptySet()
 
         realm.executeTransaction { transactionRealm ->
             // Changes after adding collection
@@ -342,7 +342,7 @@ class ManagedSetTester<T : Any>(
 
     override fun removeAll() {
         // FIXME: add cases for managed lists just as we do in containsAll
-        val set = initAndAssert()
+        val set = initAndAssertEmptySet()
 
         realm.executeTransaction { transactionRealm ->
             // Does not change after removing a some values from an empty set
@@ -397,7 +397,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun clear() {
-        val set = initAndAssert()
+        val set = initAndAssertEmptySet()
 
         realm.executeTransaction {
             set.add(notPresentValue)
@@ -408,7 +408,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun freeze() {
-        val set = initAndAssert()
+        val set = initAndAssertEmptySet()
 
         realm.executeTransaction {
             set.addAll(initializedSet)
@@ -424,7 +424,7 @@ class ManagedSetTester<T : Any>(
     // Private stuff
     //----------------------------------
 
-    private fun initAndAssert(realm: Realm = this.realm): RealmSet<T> {
+    private fun initAndAssertEmptySet(realm: Realm = this.realm): RealmSet<T> {
         val allTypesObject = createAllTypesManagedContainerAndAssert(realm)
         assertNotNull(allTypesObject)
         val set = setGetter.call(allTypesObject)
