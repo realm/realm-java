@@ -143,7 +143,7 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateBinaryCollection(J
                                                                                jobjectArray j_binary_array,
                                                                                jbooleanArray j_not_null) {
     try {
-        JObjectArrayAccessor<JByteArrayAccessor, jstring> values(env, j_binary_array);
+        JObjectArrayAccessor<JByteArrayAccessor, jbyteArray> values(env, j_binary_array);
         JBooleanArrayAccessor not_null(env, j_not_null);
         auto collection = new std::vector<JavaValue>();
         for (int i = 0; i < values.size(); i++) {

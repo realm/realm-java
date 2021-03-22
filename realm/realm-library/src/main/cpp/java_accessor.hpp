@@ -373,6 +373,40 @@ inline JPrimitiveArrayAccessor<jlongArray, jlong>::ElementsHolder::~ElementsHold
     }
 }
 
+// Accessor for jfloatArray
+template <>
+inline JPrimitiveArrayAccessor<jfloatArray, jfloat>::ElementsHolder::ElementsHolder(JNIEnv* env, jfloatArray jarray)
+    : m_env(env)
+    , m_jarray(jarray)
+    , m_data_ptr(jarray ? env->GetFloatArrayElements(jarray, nullptr) : nullptr)
+{
+}
+
+template <>
+inline JPrimitiveArrayAccessor<jfloatArray, jfloat>::ElementsHolder::~ElementsHolder()
+{
+    if (m_jarray) {
+        m_env->ReleaseFloatArrayElements(m_jarray, m_data_ptr, m_release_mode);
+    }
+}
+
+// Accessor for jdoubleArray
+template <>
+inline JPrimitiveArrayAccessor<jdoubleArray , jdouble>::ElementsHolder::ElementsHolder(JNIEnv* env, jdoubleArray jarray)
+    : m_env(env)
+    , m_jarray(jarray)
+    , m_data_ptr(jarray ? env->GetDoubleArrayElements(jarray, nullptr) : nullptr)
+{
+}
+
+template <>
+inline JPrimitiveArrayAccessor<jdoubleArray, jdouble>::ElementsHolder::~ElementsHolder()
+{
+    if (m_jarray) {
+        m_env->ReleaseDoubleArrayElements(m_jarray, m_data_ptr, m_release_mode);
+    }
+}
+
 template <>
 inline bool JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
 {
