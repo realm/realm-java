@@ -505,7 +505,8 @@ Java_io_realm_internal_OsSet_nativeRetainAllString(JNIEnv* env, jclass, jlong se
     try {
         auto &set = *reinterpret_cast<realm::object_store::Set *>(set_ptr);
         JObjectArrayAccessor<JStringAccessor, jstring> values(env, j_values);
-        std::vector<Mixed> shared_elements;
+
+        std::vector<Mixed> common_elements;
         bool set_has_changed = false;
 
         for (int i = 0; i < j_values_size; i++) {
@@ -520,7 +521,7 @@ Java_io_realm_internal_OsSet_nativeRetainAllString(JNIEnv* env, jclass, jlong se
             // Check for present values
             if (set.find_any(mixed) != realm::npos) {
                 // Put shared elements and store them in an auxiliary structure to use later
-                shared_elements.push_back(mixed);
+                common_elements.push_back(mixed);
             } else {
                 // If an element is not found that means the set will change
                 set_has_changed = true;
@@ -529,7 +530,7 @@ Java_io_realm_internal_OsSet_nativeRetainAllString(JNIEnv* env, jclass, jlong se
 
         // Insert shared elements now
         set.remove_all();
-        for (auto& shared_element : shared_elements) {
+        for (auto& shared_element : common_elements) {
             set.insert_any(shared_element);
         }
 
@@ -547,7 +548,7 @@ Java_io_realm_internal_OsSet_nativeRetainAllLong(JNIEnv* env, jclass, jlong set_
         auto &set = *reinterpret_cast<realm::object_store::Set *>(set_ptr);
         JLongArrayAccessor values(env, j_values);
         
-        std::vector<Mixed> shared_elements;
+        std::vector<Mixed> common_elements;
         bool set_has_changed = false;
 
         for (int i = 0; i < j_values_size; i++) {
@@ -562,7 +563,7 @@ Java_io_realm_internal_OsSet_nativeRetainAllLong(JNIEnv* env, jclass, jlong set_
             // Check for present values
             if (set.find_any(mixed) != realm::npos) {
                 // Put shared elements and store them in an auxiliary structure to use later
-                shared_elements.push_back(mixed);
+                common_elements.push_back(mixed);
             } else {
                 // If an element is not found that means the set will change
                 set_has_changed = true;
@@ -571,7 +572,7 @@ Java_io_realm_internal_OsSet_nativeRetainAllLong(JNIEnv* env, jclass, jlong set_
 
         // Insert shared elements now
         set.remove_all();
-        for (auto& shared_element : shared_elements) {
+        for (auto& shared_element : common_elements) {
             set.insert_any(shared_element);
         }
 

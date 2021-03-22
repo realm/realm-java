@@ -368,21 +368,26 @@ class ManagedSetTester<T : Any>(
             assertTrue(set.retainAll(emptyManagedSet as Collection<T>))
             assertTrue(set.isEmpty())
 
-//            // Does not change after adding a managed list with the same elements
-//            val sameValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
-//            sameValuesManagedList.addAll(initializedSet)
-//            assertTrue(set.containsAll(sameValuesManagedList))
-//
-//            // Changes after adding a managed list with other elements
-//            val differentValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
-//            differentValuesManagedList.addAll(listOf(notPresentValue))
-//            assertTrue(set.containsAll(differentValuesManagedList))
-//
-//            // Does not change after adding an empty managed list
-//            set.clear()
-//            assertTrue(set.addAll(initializedSet))
-//            val emptyValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
-//            assertFalse(set.addAll(emptyValuesManagedList))
+            // Does not change after intersection with a managed list with the same elements
+            set.clear()
+            set.addAll(initializedSet)
+            val sameValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            sameValuesManagedList.addAll(initializedSet)
+            assertFalse(set.retainAll(sameValuesManagedList))
+            assertTrue(set.containsAll(sameValuesManagedList))
+
+            // Changes after intersection with a managed list with other elements
+            val differentValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            differentValuesManagedList.addAll(listOf(notPresentValue))
+            assertTrue(set.retainAll(differentValuesManagedList))
+            assertTrue(set.isEmpty())
+
+            // Changes after intersection with an empty managed list
+            set.clear()
+            assertTrue(set.addAll(initializedSet))
+            val emptyValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            assertTrue(set.retainAll(emptyValuesManagedList))
+            assertTrue(set.isEmpty())
 
             // TODO: it's not possible to test passing a null value from Kotlin, even if using
             //  TestHelper.getNull(). It seems that Kotlin generates different bytecode when the
