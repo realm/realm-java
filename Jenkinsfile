@@ -25,7 +25,7 @@ mongoDbRealmContainer = null
 mongoDbRealmCommandServerContainer = null
 emulatorContainer = null
 dockerNetworkId = UUID.randomUUID().toString()
-currentBranch = env.BRANCH_NAME
+currentBranch = env.CHANGE_BRANCH
 isReleaseBranch = releaseBranches.contains(currentBranch)
 // FIXME: Always used the emulator until we can enable more reliable devices
 // 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen.
