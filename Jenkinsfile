@@ -7,12 +7,12 @@ import groovy.json.JsonOutput
 // CONSTANTS
 
 // Branches from which we release SNAPSHOT's. Only release branches need to run on actual hardware.
-releaseBranches = ['master', 'next-major', 'v10', 'releases', 'cm/use-maven-central' ]
+releaseBranches = ['master', 'next-major', 'v10', 'releases']
 // Branches that are "important", so if they do not compile they will generate a Slack notification
 slackNotificationBranches = [ 'master', 'releases', 'next-major', 'v10' ]
 // WARNING: Only set to `false` as an absolute last resort. Doing this will disable all integration
 // tests.
-enableIntegrationTests = false
+enableIntegrationTests = true
 
 // RUNTIME PROPERTIES
 
