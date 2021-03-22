@@ -196,7 +196,7 @@ class MixedCollectionTests {
             if (expectedValue == null) {
                 assertEquals(MixedType.NULL, nativeMixed.type)
             } else {
-                assertEquals(MixedType.FLOAT, nativeMixed.type)
+                assertEquals(MixedType.BINARY, nativeMixed.type)
                 assertTrue(Arrays.equals(expectedValue, nativeMixed.asBinary()))
             }
         }
