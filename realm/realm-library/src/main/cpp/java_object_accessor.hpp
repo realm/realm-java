@@ -738,6 +738,16 @@ inline JavaValue from_mixed(realm::Mixed mixed_value){
     }
 }
 
+inline std::vector<Mixed> to_mixed(const std::vector<JavaValue>& java_value_vector) {
+    std::vector<Mixed> mixed_vector = std::vector<Mixed>();
+
+    for (auto &java_value: java_value_vector) {
+        mixed_vector.push_back(java_value.to_mixed());
+    }
+
+    return mixed_vector;
+}
+
 }
 
 #endif // REALM_JAVA_OBJECT_ACCESSOR_HPP

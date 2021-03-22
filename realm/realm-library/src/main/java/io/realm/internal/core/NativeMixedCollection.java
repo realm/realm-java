@@ -202,6 +202,14 @@ public final class NativeMixedCollection implements NativeObject {
         return nativeGetFinalizerPtr();
     }
 
+    public int getSize(){
+        return nativeGetCollectionSize(nativePtr);
+    }
+
+    public NativeMixed getItem(int index){
+        return new NativeMixed(nativeGetCollectionItem(nativePtr, index));
+    }
+
     private static native long nativeCreateBooleanCollection(boolean[] booleanValues, boolean[] notNull);
 
     private static native long nativeCreateIntegerCollection(long[] integerValues, boolean[] notNull);
@@ -221,6 +229,10 @@ public final class NativeMixedCollection implements NativeObject {
     private static native long nativeCreateDecimal128Collection(long[] lowValues, long[] highValues, boolean[] notNull);
 
     private static native long nativeCreateUUIDCollection(String[] uuidValues, boolean[] notNull);
+
+    private static native int nativeGetCollectionSize(long nativePtr);
+
+    private static native long nativeGetCollectionItem(long nativePtr, int index);
 
     private static native long nativeGetFinalizerPtr();
 }

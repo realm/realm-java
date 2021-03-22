@@ -18,6 +18,7 @@
 
 #include "java_accessor.hpp"
 #include "java_object_accessor.hpp"
+#include "util.hpp"
 
 using namespace std;
 using namespace realm;
@@ -137,7 +138,6 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateStringCollection(J
     return reinterpret_cast<jlong>(nullptr);
 }
 
-
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_core_NativeMixedCollection_nativeCreateBinaryCollection(JNIEnv *env, jclass,
                                                                                jobjectArray j_binary_array,
@@ -158,7 +158,6 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateBinaryCollection(J
 
     return reinterpret_cast<jlong>(nullptr);
 }
-
 
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_core_NativeMixedCollection_nativeCreateDateCollection(JNIEnv *env, jclass,
@@ -181,7 +180,6 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateDateCollection(JNI
     return reinterpret_cast<jlong>(nullptr);
 }
 
-
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_core_NativeMixedCollection_nativeCreateObjectIdCollection(JNIEnv *env, jclass,
                                                                                  jobjectArray j_object_id_array,
@@ -202,7 +200,6 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateObjectIdCollection
 
     return reinterpret_cast<jlong>(nullptr);
 }
-
 
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_core_NativeMixedCollection_nativeCreateDecimal128Collection(JNIEnv *env, jclass,
@@ -229,7 +226,6 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateDecimal128Collecti
     return reinterpret_cast<jlong>(nullptr);
 }
 
-
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_core_NativeMixedCollection_nativeCreateUUIDCollection(JNIEnv *env, jclass,
                                                                              jobjectArray j_uuid_array,
@@ -251,3 +247,25 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateUUIDCollection(JNI
     return reinterpret_cast<jlong>(nullptr);
 }
 
+JNIEXPORT jint JNICALL
+Java_io_realm_internal_core_NativeMixedCollection_nativeGetCollectionSize(JNIEnv *env, jclass,
+                                                                          jlong j_native_ptr) {
+    try {
+        auto &collection = *reinterpret_cast<std::vector<JavaValue> *>(j_native_ptr);
+        return collection.size();
+    } CATCH_STD()
+
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_core_NativeMixedCollection_nativeGetCollectionItem(JNIEnv *env, jclass,
+                                                                          jlong j_native_ptr,
+                                                                          jint j_index) {
+    try {
+        auto &collection = *reinterpret_cast<std::vector<JavaValue> *>(j_native_ptr);
+        return reinterpret_cast<jlong>(&collection[j_index]);
+    } CATCH_STD()
+
+    return reinterpret_cast<jlong>(nullptr);
+}
