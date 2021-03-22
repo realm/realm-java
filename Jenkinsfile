@@ -51,6 +51,7 @@ try {
 
         // Check type of Build. We are treating this as a release build if we are building
         // the exact Git SHA that was tagged.
+        echo "Building from branch: $currentBranch"
         gitTag = readGitTag()
         echo "Git tag: ${gitTag ?: 'none'}"
         if (!gitTag) {
