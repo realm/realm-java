@@ -152,7 +152,7 @@ class ManagedSetTester<T : Any>(
             }
         }
 
-        // FIXME: assert sets are equal
+        assertTrue(set.containsAll(initializedSet))
     }
 
     override fun remove() {
@@ -174,6 +174,7 @@ class ManagedSetTester<T : Any>(
             // Does not change if we remove null and null is not present
             assertFalse(set.remove(null))
         }
+
         assertEquals(0, set.size)
     }
 
@@ -277,6 +278,27 @@ class ManagedSetTester<T : Any>(
             assertTrue(set.addAll(notPresentValueSet as Collection<T>))
             assertEquals(initializedSet.size + notPresentValueSet.size, set.size)
 
+            // Does not change after adding a managed list with the same elements
+            set.clear()
+            set.addAll(initializedSet)
+            val sameValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            sameValuesManagedList.addAll(initializedSet)
+            assertFalse(set.addAll(sameValuesManagedList))
+            assertTrue(set.containsAll(sameValuesManagedList))
+
+            // Changes after adding a managed list with other elements
+            val differentValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            differentValuesManagedList.addAll(listOf(notPresentValue))
+            assertTrue(set.addAll(differentValuesManagedList))
+            assertTrue(set.containsAll(differentValuesManagedList))
+
+            // Does not change after adding an empty managed list
+            set.clear()
+            assertTrue(set.addAll(initializedSet))
+            val emptyValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            assertFalse(set.addAll(emptyValuesManagedList))
+            assertEquals(initializedSet.size, set.size)
+
             // Fails if passed null according to Java Set interface
             assertFailsWith<NullPointerException> {
                 set.addAll(TestHelper.getNull())
@@ -285,59 +307,88 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun retainAll() {
-//        val set = initAndAssert()
+        val set = initAndAssertEmptySet()
+
+        realm.executeTransaction { transactionRealm ->
+            // Does not change after empty set intersects with another collection
+            assertFalse(set.retainAll(initializedSet))
+            assertTrue(set.isEmpty())
+
+            // Does not change after empty set intersects with empty collection
+            assertFalse(set.retainAll(listOf()))
+            assertTrue(set.isEmpty())
+
+            // Does not change after adding data and intersecting it with same values
+            set.addAll(initializedSet)
+            assertEquals(initializedSet.size, set.size)
+            assertFalse(set.retainAll(initializedSet))
+            assertEquals(initializedSet.size, set.size)
+
+            // Changes after intersection with empty collection
+            assertTrue(set.retainAll(listOf()))
+            assertTrue(set.isEmpty())
+
+            // Changes after adding data and intersecting it with other values
+            set.addAll(initializedSet)
+            assertEquals(initializedSet.size, set.size)
+            assertTrue(set.retainAll(listOf(notPresentValue)))
+            assertTrue(set.isEmpty())
+
+            // Does not change after intersection with itself
+            set.clear()
+            set.addAll(initializedSet)
+            assertFalse(set.isEmpty())
+            assertFalse(set.retainAll(set))
+            assertEquals(initializedSet.size, set.size)
+
+            // Does not change after intersection with another set containing the same elements
+            set.clear()
+            set.addAll(initializedSet)
+            val sameValuesManagedSet = managedSetGetter.get(transactionRealm.createObject())
+            assertNotNull(sameValuesManagedSet)
+            sameValuesManagedSet.addAll(initializedSet)
+            assertFalse(set.retainAll(sameValuesManagedSet as Collection<T>))
+            assertEquals(initializedSet.size, set.size)
+
+            // Changes after intersection with a managed set not containing any elements from the original set
+            set.clear()
+            set.addAll(initializedSet)
+            assertEquals(initializedSet.size, set.size)
+            val notPresentValueSet = managedSetGetter.get(transactionRealm.createObject())
+            assertNotNull(notPresentValueSet)
+            notPresentValueSet.add(notPresentValue)
+            assertTrue(set.retainAll(notPresentValueSet as Collection<T>))
+            assertTrue(set.isEmpty())
+
+            // Changes after intersection with another empty, managed set
+            set.clear()
+            set.addAll(initializedSet)
+            val emptyManagedSet = managedSetGetter.get(transactionRealm.createObject())
+            assertNotNull(emptyManagedSet)
+            assertTrue(set.retainAll(emptyManagedSet as Collection<T>))
+            assertTrue(set.isEmpty())
+
+//            // Does not change after adding a managed list with the same elements
+//            val sameValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+//            sameValuesManagedList.addAll(initializedSet)
+//            assertTrue(set.containsAll(sameValuesManagedList))
 //
-//        realm.executeTransaction { transactionRealm ->
-//            // Does not change after empty set intersects with another collection
-//            assertFalse(set.retainAll(initializedSet))
-//            assertTrue(set.isEmpty())
+//            // Changes after adding a managed list with other elements
+//            val differentValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+//            differentValuesManagedList.addAll(listOf(notPresentValue))
+//            assertTrue(set.containsAll(differentValuesManagedList))
 //
-//            // Does not change after adding data and intersecting it with same values
-//            set.addAll(initializedSet)
-//            assertEquals(initializedSet.size, set.size)
-//            assertFalse(set.retainAll(initializedSet))
-//            assertEquals(initializedSet.size, set.size)
-//
-//            // Changes after intersection with empty collection
-//            assertTrue(set.retainAll(listOf()))
-//            assertTrue(set.isEmpty())
-//
-//            // Changes after adding data and intersecting it with other values
-//            set.addAll(initializedSet)
-//            assertEquals(initializedSet.size, set.size)
-//            assertTrue(set.retainAll(listOf(notPresentValue)))
-//            assertTrue(set.isEmpty())
-//
-//            // Does not change after intersection with itself
+//            // Does not change after adding an empty managed list
 //            set.clear()
-//            set.addAll(initializedSet)
-//            assertFalse(set.isEmpty())
-//            assertFalse(set.retainAll(set))
-//            assertEquals(initializedSet.size, set.size)
-//
-//            // Does not change after intersection with another set containing the same elements
-//            set.addAll(initializedSet)
-//            val sameValuesManagedSet = managedSetGetter.get(transactionRealm.createObject())
-//            assertNotNull(sameValuesManagedSet)
-//            sameValuesManagedSet.addAll(initializedSet)
-//            assertFalse(set.retainAll(sameValuesManagedSet as Collection<T>))
-//            assertEquals(initializedSet.size, set.size)
-//
-//            // Intersect with a managed set not containing any elements from the original set
-//            set.clear()
-//            set.addAll(initializedSet)
-//            assertEquals(initializedSet.size, set.size)
-//            val notPresentValueSet = managedSetGetter.get(transactionRealm.createObject())
-//            assertNotNull(notPresentValueSet)
-//            notPresentValueSet.add(notPresentValue)
-//            assertTrue(set.retainAll(notPresentValueSet as Collection<T>))
-//            assertTrue(set.isEmpty())
-//
-//            // TODO: it's not possible to test passing a null value from Kotlin, even if using
-//            //  TestHelper.getNull(). It seems that Kotlin generates different bytecode when the
-//            //  parameter to the function is a generics collection with an upper bound.
-//            //  The only way to test this is by writing a Java test instead.
-//        }
+//            assertTrue(set.addAll(initializedSet))
+//            val emptyValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+//            assertFalse(set.addAll(emptyValuesManagedList))
+
+            // TODO: it's not possible to test passing a null value from Kotlin, even if using
+            //  TestHelper.getNull(). It seems that Kotlin generates different bytecode when the
+            //  parameter to the function is a generics collection with an upper bound.
+            //  The only way to test this is by writing a Java test instead.
+        }
     }
 
     override fun removeAll() {
@@ -480,6 +531,7 @@ fun managedSetFactory(): List<SetTester> {
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toByte(),
                         toArrayManaged = ToArrayManaged.ByteManaged()
                 )
+
 //            SetSupportedType.FLOAT ->
 //                UnmanagedSetTester<Float>(
 //                        testerName = "Float",
@@ -492,6 +544,7 @@ fun managedSetFactory(): List<SetTester> {
 //                        values = listOf(VALUE_NUMERIC_HELLO.toDouble(), VALUE_NUMERIC_BYE.toDouble(), null),
 //                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toDouble()
 //                )
+
             SetSupportedType.STRING ->
                 ManagedSetTester<String>(
                         testerName = "String",
@@ -503,6 +556,7 @@ fun managedSetFactory(): List<SetTester> {
                         notPresentValue = VALUE_STRING_NOT_PRESENT,
                         toArrayManaged = ToArrayManaged.StringManaged()
                 )
+
 //            SetSupportedType.BOOLEAN ->
 //                UnmanagedSetTester<Boolean>(
 //                        testerName = "Boolean",

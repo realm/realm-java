@@ -194,6 +194,43 @@ public class OsSet implements NativeObject {
     }
 
     public <E> boolean retainAllString(Collection<? extends E> collection) {
+        // If this set is empty the intersection is also the empty set and nothing changes
+        if (this.size() == 0) {
+            return false;
+        }
+
+        // If the other set is empty the intersection is also the empty set
+        if (collection.size() == 0) {
+            this.clear();
+            return true;
+        }
+
+        // TODO: extract to its own method
+        String[] stringArray = new String[collection.size()];
+
+        Integer nullSentinelIndex = null;
+
+        int totalLength = 0;
+        for (E value : collection) {
+            if (value == null) {
+                if (nullSentinelIndex == null) {
+                    nullSentinelIndex = totalLength;
+                    totalLength++;
+                }
+            } else {
+                // TODO: maybe can be done better...?
+                if (value instanceof String) {
+                    stringArray[totalLength] = (String) value;
+                    totalLength++;
+                } else {
+                    throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                }
+            }
+        }
+
+        int nullSentinel = nullSentinelIndex == null ? NULL_VALUE_NOT_FOUND : nullSentinelIndex;
+        return nativeRetainAllString(nativePtr, stringArray, totalLength, nullSentinel);
+
 //        // Intersection with an empty collection results into an empty set
 //        if (collection.isEmpty()) {
 //            nativeClear(nativePtr);
@@ -206,7 +243,8 @@ public class OsSet implements NativeObject {
 //        int size = setWithNoDuplicates.size();
 //        String[] values = setWithNoDuplicates.toArray(new String[size]);
 //        return funnelStringCollection(values, ExternalCollectionOperation.RETAIN_ALL);
-        return false;
+
+//        return false;
     }
 
     // ----------------------------------------------------
@@ -328,32 +366,42 @@ public class OsSet implements NativeObject {
     }
 
     public <E> boolean retainAllInteger(Collection<? extends E> collection) {
-//        // TODO: extract to its own method
-//        long[] longArray = new long[collection.size()];
-//
-//        Integer nullSentinelIndex = null;
-//
-//        int totalLength = 0;
-//        for (E value : collection) {
-//            if (value == null) {
-//                if (nullSentinelIndex == null) {
-//                    nullSentinelIndex = totalLength;
-//                    totalLength++;
-//                }
-//            } else {
-//                // TODO: maybe can be done better...?
-//                if (value instanceof Integer) {
-//                    longArray[totalLength] = (long) value;
-//                    totalLength++;
-//                } else {
-//                    throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
-//                }
-//            }
-//        }
-//
-//        int nullSentinel = nullSentinelIndex == null ? NULL_VALUE_NOT_FOUND : nullSentinelIndex;
-//        return nativeRetainAllLong(nativePtr, longArray, totalLength, nullSentinel);
-        return false;
+        // If this set is empty the intersection is also the empty set and nothing changes
+        if (this.size() == 0) {
+            return false;
+        }
+
+        // If the other set is empty the intersection is also the empty set
+        if (collection.size() == 0) {
+            this.clear();
+            return true;
+        }
+
+        // TODO: extract to its own method
+        long[] longArray = new long[collection.size()];
+
+        Integer nullSentinelIndex = null;
+
+        int totalLength = 0;
+        for (E value : collection) {
+            if (value == null) {
+                if (nullSentinelIndex == null) {
+                    nullSentinelIndex = totalLength;
+                    totalLength++;
+                }
+            } else {
+                // TODO: maybe can be done better...?
+                if (value instanceof Integer) {
+                    longArray[totalLength] = (int) value;
+                    totalLength++;
+                } else {
+                    throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                }
+            }
+        }
+
+        int nullSentinel = nullSentinelIndex == null ? NULL_VALUE_NOT_FOUND : nullSentinelIndex;
+        return nativeRetainAllLong(nativePtr, longArray, totalLength, nullSentinel);
     }
 
     // ----------------------------------------------------
@@ -466,7 +514,42 @@ public class OsSet implements NativeObject {
     }
 
     public <E> boolean retainAllLong(Collection<? extends E> collection) {
-        throw new UnsupportedOperationException("retainAllLong missing");
+        // If this set is empty the intersection is also the empty set and nothing changes
+        if (this.size() == 0) {
+            return false;
+        }
+
+        // If the other set is empty the intersection is also the empty set
+        if (collection.size() == 0) {
+            this.clear();
+            return true;
+        }
+
+        // TODO: extract to its own method
+        long[] longArray = new long[collection.size()];
+
+        Integer nullSentinelIndex = null;
+
+        int totalLength = 0;
+        for (E value : collection) {
+            if (value == null) {
+                if (nullSentinelIndex == null) {
+                    nullSentinelIndex = totalLength;
+                    totalLength++;
+                }
+            } else {
+                // TODO: maybe can be done better...?
+                if (value instanceof Long) {
+                    longArray[totalLength] = (long) value;
+                    totalLength++;
+                } else {
+                    throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                }
+            }
+        }
+
+        int nullSentinel = nullSentinelIndex == null ? NULL_VALUE_NOT_FOUND : nullSentinelIndex;
+        return nativeRetainAllLong(nativePtr, longArray, totalLength, nullSentinel);
     }
 
     // ----------------------------------------------------
@@ -579,7 +662,42 @@ public class OsSet implements NativeObject {
     }
 
     public <E> boolean retainAllShort(Collection<? extends E> collection) {
-        throw new UnsupportedOperationException("retainAllShort missing");
+        // If this set is empty the intersection is also the empty set and nothing changes
+        if (this.size() == 0) {
+            return false;
+        }
+
+        // If the other set is empty the intersection is also the empty set
+        if (collection.size() == 0) {
+            this.clear();
+            return true;
+        }
+
+        // TODO: extract to its own method
+        long[] longArray = new long[collection.size()];
+
+        Integer nullSentinelIndex = null;
+
+        int totalLength = 0;
+        for (E value : collection) {
+            if (value == null) {
+                if (nullSentinelIndex == null) {
+                    nullSentinelIndex = totalLength;
+                    totalLength++;
+                }
+            } else {
+                // TODO: maybe can be done better...?
+                if (value instanceof Short) {
+                    longArray[totalLength] = (Short) value;
+                    totalLength++;
+                } else {
+                    throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                }
+            }
+        }
+
+        int nullSentinel = nullSentinelIndex == null ? NULL_VALUE_NOT_FOUND : nullSentinelIndex;
+        return nativeRetainAllLong(nativePtr, longArray, totalLength, nullSentinel);
     }
 
     // ----------------------------------------------------
@@ -692,7 +810,42 @@ public class OsSet implements NativeObject {
     }
 
     public <E> boolean retainAllByte(Collection<? extends E> collection) {
-        throw new UnsupportedOperationException("retainAllShort missing");
+        // If this set is empty the intersection is also the empty set and nothing changes
+        if (this.size() == 0) {
+            return false;
+        }
+
+        // If the other set is empty the intersection is also the empty set
+        if (collection.size() == 0) {
+            this.clear();
+            return true;
+        }
+
+        // TODO: extract to its own method
+        long[] longArray = new long[collection.size()];
+
+        Integer nullSentinelIndex = null;
+
+        int totalLength = 0;
+        for (E value : collection) {
+            if (value == null) {
+                if (nullSentinelIndex == null) {
+                    nullSentinelIndex = totalLength;
+                    totalLength++;
+                }
+            } else {
+                // TODO: maybe can be done better...?
+                if (value instanceof Byte) {
+                    longArray[totalLength] = (byte) value;
+                    totalLength++;
+                } else {
+                    throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                }
+            }
+        }
+
+        int nullSentinel = nullSentinelIndex == null ? NULL_VALUE_NOT_FOUND : nullSentinelIndex;
+        return nativeRetainAllLong(nativePtr, longArray, totalLength, nullSentinel);
     }
 
     // ----------------------------------------------------
@@ -799,9 +952,9 @@ public class OsSet implements NativeObject {
 
     private static native boolean nativeIntersect(long nativePtr, long otherRealmSetNativePtr);
 
-    private static native boolean nativeRetainAllString(long nativePtr, String[] otherSet);
+    private static native boolean nativeRetainAllString(long nativePtr, String[] otherSet, long otherSetSize, long nullSentinel);
 
-    private static native boolean nativeRetainAllLong(long nativePtr, long[] otherSet, long otherSetSize, long[] nullPositions, long nullPositionsSize);
+    private static native boolean nativeRetainAllLong(long nativePtr, long[] otherSet, long otherSetSize, long nullSentinel);
 
     private static native void nativeClear(long nativePtr);
 

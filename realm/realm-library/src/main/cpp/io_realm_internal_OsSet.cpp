@@ -313,30 +313,6 @@ Java_io_realm_internal_OsSet_nativeContainsAllLong(JNIEnv* env, jclass, jlong se
     return false;
 }
 
-//JNIEXPORT jboolean JNICALL
-//Java_io_realm_internal_OsSet_nativeContainsAllLong(JNIEnv* env, jclass, jlong set_ptr,
-//                                                   jobjectArray j_other_set_values,
-//                                                   jlong other_set_size) {
-//    try {
-//        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
-//        for (int index = 0; index < (other_set_size - 1); index++) {
-//            jobject value = env->GetObjectArrayElement(j_other_set_values, index);
-//            size_t found;
-//            if (value == NULL) {
-//                found = set.find_any(Mixed());
-//            } else {
-//                found = set.find_any(Mixed((jlong) value));
-//            }
-//            if (found == npos) {    // npos represents "not found"
-//                return false;
-//            }
-//        }
-//        return true;
-//    }
-//    CATCH_STD()
-//    return false;
-//}
-
 JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_OsSet_nativeContainsAll(JNIEnv*, jclass, jlong set_ptr, jlong other_set_ptr) {
     auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
@@ -524,74 +500,37 @@ Java_io_realm_internal_OsSet_nativeIntersect(JNIEnv*,
 
 JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_OsSet_nativeRetainAllString(JNIEnv* env, jclass, jlong set_ptr,
-                                                   jobjectArray j_values) {
+                                                   jobjectArray j_values, jlong j_values_size,
+                                                   jlong j_null_sentinel) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto &set = *reinterpret_cast<realm::object_store::Set *>(set_ptr);
         JObjectArrayAccessor<JStringAccessor, jstring> values(env, j_values);
-
-        int set_size = set.size();
-        bool set_has_null = false;
-        std::set<std::string> aux_set;
-        for (int i = 0; i < set_size; i++) {
-            const Mixed& value = set.get_any(i);
-            if (value.is_null()) {
-                set_has_null = true;
-            } else {
-                aux_set.insert(value.get_string());
-            }
-        }
-
-        jsize other_collection_size = values.size();
-        bool other_collection_has_nulls = false;
-        std::set<std::string> other_collection_set;
-        for (int i = 0; i < other_collection_size; i++) {
-            JStringAccessor value = values[i];
-            if (value.is_null()) {
-                other_collection_has_nulls = true;
-            } else {
-                other_collection_set.insert(values[i]);
-            }
-        }
-
-        std::vector<std::string> intersection;
-        std::set_intersection(aux_set.begin(), aux_set.end(),
-                              other_collection_set.begin(), other_collection_set.end(),
-                              std::back_inserter(intersection));
-
-        set.delete_all();
-        int intersection_size = intersection.size();
-
-        JavaAccessorContext context(env);
-        for (std::string& item : intersection) {
-            jstring j_string = to_jstring(env, item);
-            JStringAccessor string_value(env, j_string);
-            set.insert(context, Any(string_value));
-        }
-        if (set_has_null && other_collection_has_nulls) {
-            set.insert(context, Any());
-        }
-
-        int aux_set_size = aux_set.size();
-        if (set_has_null && other_collection_has_nulls) {
-            aux_set_size = aux_set_size + 1;
-        }
-
+        std::vector<Mixed> shared_elements;
         bool set_has_changed = false;
-        if (int(set.size()) != aux_set_size) {
-            set_has_changed = true;
-        } else {
-            for (int i = 0; i < intersection_size; i++) {
-                size_t found_index = set.find_any(Mixed(StringData(intersection[i])));
-                if (found_index == npos) {
-                    set_has_changed = true;
-                }
+
+        for (int i = 0; i < j_values_size; i++) {
+            Mixed mixed;
+            if (i != j_null_sentinel) {
+                JStringAccessor string_accessor = values[i];
+                mixed = Mixed(StringData(string_accessor));
+            } else {
+                mixed = Mixed();
             }
-            if (set_has_null && other_collection_has_nulls) {
-                size_t found_index = set.find_any(Mixed());
-                if (found_index == npos) {
-                    set_has_changed = true;
-                }
+
+            // Check for present values
+            if (set.find_any(mixed) != realm::npos) {
+                // Put shared elements and store them in an auxiliary structure to use later
+                shared_elements.push_back(mixed);
+            } else {
+                // If an element is not found that means the set will change
+                set_has_changed = true;
             }
+        }
+
+        // Insert shared elements now
+        set.remove_all();
+        for (auto& shared_element : shared_elements) {
+            set.insert_any(shared_element);
         }
 
         return set_has_changed;
@@ -602,69 +541,38 @@ Java_io_realm_internal_OsSet_nativeRetainAllString(JNIEnv* env, jclass, jlong se
 
 JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_OsSet_nativeRetainAllLong(JNIEnv* env, jclass, jlong set_ptr,
-                                                 jobjectArray j_values, jlong j_values_size) {
+                                                 jlongArray j_values, jlong j_values_size,
+                                                 jlong j_null_sentinel) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
-        int set_size = set.size();
-        bool set_has_null = false;
-        std::set<jlong> aux_set;
-        for (int i = 0; i < set_size; i++) {
-            const Mixed& value = set.get_any(i);
-            if (value.is_null()) {
-                set_has_null = true;
-            } else {
-                aux_set.insert(value.get_int());
-            }
-        }
-
-        bool other_collection_has_nulls = false;
-        std::set<jlong> other_collection_set;
-        for (int i = 0; i < (j_values_size - 1); i++) {
-            jobject object_value = env->GetObjectArrayElement(j_values, i);
-            if (object_value == NULL) {
-                other_collection_has_nulls = true;
-            } else {
-                other_collection_set.insert((jlong) object_value);
-            }
-        }
-
-        std::vector<jlong> intersection;
-        std::set_intersection(aux_set.begin(), aux_set.end(),
-                              other_collection_set.begin(), other_collection_set.end(),
-                              std::back_inserter(intersection));
-
-        set.delete_all();
-        int intersection_size = intersection.size();
-
-        JavaAccessorContext context(env);
-        for (jlong item : intersection) {
-            set.insert(context, Any(item));
-        }
-        if (set_has_null && other_collection_has_nulls) {
-            set.insert(context, Any());
-        }
-
-        int aux_set_size = aux_set.size();
-        if (set_has_null && other_collection_has_nulls) {
-            aux_set_size = aux_set_size + 1;
-        }
-
+        auto &set = *reinterpret_cast<realm::object_store::Set *>(set_ptr);
+        JLongArrayAccessor values(env, j_values);
+        
+        std::vector<Mixed> shared_elements;
         bool set_has_changed = false;
-        if (int(set.size()) != aux_set_size) {
-            set_has_changed = true;
-        } else {
-            for (int i = 0; i < intersection_size; i++) {
-                size_t found_index = set.find_any(Mixed((jlong) intersection[i]));
-                if (found_index == npos) {
-                    set_has_changed = true;
-                }
+
+        for (int i = 0; i < j_values_size; i++) {
+            Mixed mixed;
+            if (i != j_null_sentinel) {
+                jlong value = values[i];
+                mixed = Mixed(value);
+            } else {
+                mixed = Mixed();
             }
-            if (set_has_null && other_collection_has_nulls) {
-                size_t found_index = set.find_any(Mixed());
-                if (found_index == npos) {
-                    set_has_changed = true;
-                }
+
+            // Check for present values
+            if (set.find_any(mixed) != realm::npos) {
+                // Put shared elements and store them in an auxiliary structure to use later
+                shared_elements.push_back(mixed);
+            } else {
+                // If an element is not found that means the set will change
+                set_has_changed = true;
             }
+        }
+
+        // Insert shared elements now
+        set.remove_all();
+        for (auto& shared_element : shared_elements) {
+            set.insert_any(shared_element);
         }
 
         return set_has_changed;

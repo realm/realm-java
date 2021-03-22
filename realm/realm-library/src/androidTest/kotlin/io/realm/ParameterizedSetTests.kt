@@ -32,7 +32,7 @@ class ParameterizedSetTests(
         @JvmStatic
         @Parameterized.Parameters(name = "{0}")
         fun testType(): List<SetTester> {
-            return SetMode.values().mapNotNull { type ->
+            return SetMode.values().map { type ->
                 when (type) {
                     SetMode.UNMANAGED -> unmanagedSetFactory()
                     SetMode.MANAGED -> managedSetFactory()
@@ -123,10 +123,10 @@ class ParameterizedSetTests(
         tester.addAll()
     }
 
-//    @Test
-//    fun retainAll() {
-//        tester.retainAll()
-//    }
+    @Test
+    fun retainAll() {
+        tester.retainAll()
+    }
 
     @Test
     fun removeAll() {
