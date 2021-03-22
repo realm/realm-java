@@ -738,7 +738,7 @@ inline JavaValue from_mixed(realm::Mixed mixed_value){
     }
 }
 
-inline std::vector<Mixed> to_mixed(const std::vector<JavaValue>& java_value_vector) {
+inline std::vector<Mixed> to_mixed_vector(const std::vector<JavaValue>& java_value_vector) {
     std::vector<Mixed> mixed_vector = std::vector<Mixed>();
 
     for (auto &java_value: java_value_vector) {
