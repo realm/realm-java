@@ -119,7 +119,16 @@ class ManagedSetTester<T : Any>(
         // Set with some values
         realm.executeTransaction {
             set.addAll(initializedSet)
-            assertEquals(initializedSet.size, set.toArray().size)
+
+            val setToArray = set.toArray()
+            assertEquals(initializedSet.size, setToArray.size)
+
+            val sameValuesUnmanagedSetToArray = RealmSet<T>().apply {
+                addAll(initializedSet)
+            }.toArray()
+            sameValuesUnmanagedSetToArray.forEach { value ->
+                assertTrue(setToArray.contains(value))
+            }
         }
     }
 
