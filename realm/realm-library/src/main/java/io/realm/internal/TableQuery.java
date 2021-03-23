@@ -44,6 +44,7 @@ public class TableQuery implements NativeObject {
     private boolean queryValidated = true;
 
     private static String escapeFieldName(String fieldName){
+        if (fieldName == null) { return null; }
         return fieldName.replace(" ", "\\ ");
     }
 
