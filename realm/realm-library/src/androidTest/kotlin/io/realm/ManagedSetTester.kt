@@ -238,7 +238,6 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun addAll() {
-        // FIXME: add cases for managed lists just as we do in containsAll
         val set = initAndAssertEmptySet()
 
         realm.executeTransaction { transactionRealm ->
@@ -384,7 +383,7 @@ class ManagedSetTester<T : Any>(
 
             // Changes after intersection with an empty managed list
             set.clear()
-            assertTrue(set.addAll(initializedSet))
+            set.addAll(initializedSet)
             val emptyValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
             assertTrue(set.retainAll(emptyValuesManagedList))
             assertTrue(set.isEmpty())
@@ -443,6 +442,29 @@ class ManagedSetTester<T : Any>(
             assertNotNull(notPresentValueSet)
             notPresentValueSet.add(notPresentValue)
             assertFalse(set.removeAll(notPresentValueSet as Collection<T>))
+            assertEquals(initializedSet.size, set.size)
+
+            // Changes after removing a managed list with the same elements
+            set.clear()
+            set.addAll(initializedSet)
+            val sameValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            sameValuesManagedList.addAll(initializedSet)
+            assertTrue(set.removeAll(sameValuesManagedList))
+            assertTrue(set.isEmpty())
+
+            // Does not change after removing a managed list with other elements
+            set.clear()
+            set.addAll(initializedSet)
+            val differentValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            differentValuesManagedList.addAll(listOf(notPresentValue))
+            assertFalse(set.removeAll(differentValuesManagedList))
+            assertEquals(initializedSet.size, set.size)
+
+            // Does not change after removing an empty managed list
+            set.clear()
+            set.addAll(initializedSet)
+            val emptyValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            assertFalse(set.removeAll(emptyValuesManagedList))
             assertEquals(initializedSet.size, set.size)
 
             // TODO: it's not possible to test passing a null value from Kotlin, even if using
