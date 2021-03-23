@@ -6,9 +6,13 @@
 * Added support for `java.util.UUID` as supported field in model classes.
 * Added support for `java.util.UUID` as a primary key.
 * Added support for the string-based Realm Query Language through `RealmQuery.rawPredicate(...)`. This allows many new type of queries not previously supported by the typed query API. See the Javadoc on this method for further details. (Issue [#6116](https://github.com/realm/realm-java/pull/6116))
-
+ 
 ### Fixes
 * Checks for null Strings on non-nullable query operators `contains`, `beginsWith`, `endsWith`, and `like`.
+
+### Known Bugs
+* Java field names not supported on Sort or Distinct operations. (Issue [#4550] (https://github.com/realm/realm-core/issues/4550))
+* Queries on fields named with non-latin characters are not currently supported. (Issue [#4467] (https://github.com/realm/realm-core/issues/4467))
 
 ### Compatibility
 * File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
