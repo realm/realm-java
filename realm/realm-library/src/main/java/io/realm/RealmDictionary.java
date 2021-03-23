@@ -104,10 +104,10 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         return map;
     }
 
-    private static <V extends RealmModel> LinkRealmSelectorForMap<String, V> getRealmModelMapManager(Class<V> valueClass,
-                                                                                                     BaseRealm baseRealm,
-                                                                                                     OsMap osMap) {
-        return new LinkRealmSelectorForMap<>(baseRealm, osMap, String.class, valueClass);
+    private static <V extends RealmModel> LinkSelectorForMap<String, V> getRealmSelector(Class<V> valueClass,
+                                                                                         BaseRealm baseRealm,
+                                                                                         OsMap osMap) {
+        return new LinkSelectorForMap<>(baseRealm, osMap, String.class, valueClass);
     }
 
     @SuppressWarnings("unchecked")
@@ -115,10 +115,12 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
                                                                  BaseRealm baseRealm,
                                                                  OsMap osMap) {
         if (isClassForRealmModel(valueClass)) {
-            LinkRealmSelectorForMap<String, ? extends RealmModel> realmModelStrategy = getRealmModelMapManager((Class<? extends RealmModel>) valueClass, baseRealm, osMap);
-            RealmTypeSelectorForMap<String, V> realmTypeSelectorForMap = (RealmTypeSelectorForMap<String, V>) realmModelStrategy;;
-            RealmModelValueOperator<String, RealmModel> realmModelValueOperator = new RealmModelValueOperator<>(baseRealm, osMap, (RealmTypeSelectorForMap<String, RealmModel>) realmTypeSelectorForMap);
-            ManagedMapManager<String, RealmModel> dictionaryManager = new DictionaryManager<>(baseRealm, realmModelValueOperator, (RealmTypeSelectorForMap<String, RealmModel>) realmTypeSelectorForMap);
+            Class<? extends RealmModel> typeCastClass = (Class<? extends RealmModel>) valueClass;
+            TypeSelectorForMap<String, RealmModel> realmSelector = (TypeSelectorForMap<String, RealmModel>) getRealmSelector(typeCastClass, baseRealm, osMap);
+            ManagedMapManager<String, RealmModel> dictionaryManager = new DictionaryManager<>(baseRealm,
+                    new RealmModelValueOperator<>(baseRealm, osMap, realmSelector),
+                    realmSelector);
+
             return (ManagedMapStrategy<String, V>) new ManagedMapStrategy<>(dictionaryManager);
         }
 
@@ -137,90 +139,90 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
     private static <V> DictionaryManager<V> getManager(Class<V> valueClass,
                                                        BaseRealm baseRealm,
                                                        OsMap osMap) {
-        RealmTypeSelectorForMap<String, V> realmTypeSelectorForMap = new RealmSelectorForMap<>(baseRealm, osMap, String.class, valueClass);
+        TypeSelectorForMap<String, V> typeSelectorForMap = new SelectorForMap<>(baseRealm, osMap, String.class, valueClass);
 
         MapValueOperator<String, ?> mapValueOperator;
 
         if (valueClass == Mixed.class) {
-            mapValueOperator = new MixedValueOperator<>(baseRealm, osMap, (RealmTypeSelectorForMap<String, Mixed>) realmTypeSelectorForMap);
+            mapValueOperator = new MixedValueOperator<>(baseRealm, osMap, (TypeSelectorForMap<String, Mixed>) typeSelectorForMap);
         } else if (valueClass == Long.class) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.LONG);
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.LONG);
         } else if (valueClass == Float.class) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.FLOAT);
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.FLOAT);
         } else if (valueClass == Double.class) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.DOUBLE);
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.DOUBLE);
         } else if (valueClass == String.class) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.STRING);
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.STRING);
         } else if (valueClass == Boolean.class) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.BOOLEAN);
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.BOOLEAN);
         } else if (valueClass == Date.class) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.DATE);
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.DATE);
         } else if (valueClass == Decimal128.class) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.DECIMAL128);
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.DECIMAL128);
         } else if (valueClass == Integer.class) {
-            mapValueOperator = new IntegerValueOperator<>(baseRealm, osMap, (RealmTypeSelectorForMap<String, Integer>) realmTypeSelectorForMap);
+            mapValueOperator = new IntegerValueOperator<>(baseRealm, osMap, (TypeSelectorForMap<String, Integer>) typeSelectorForMap);
         } else if (valueClass == Short.class) {
-            mapValueOperator = new ShortValueOperator<>(baseRealm, osMap, (RealmTypeSelectorForMap<String, Short>) realmTypeSelectorForMap);
+            mapValueOperator = new ShortValueOperator<>(baseRealm, osMap, (TypeSelectorForMap<String, Short>) typeSelectorForMap);
         } else if (valueClass == Byte.class) {
-            mapValueOperator = new ByteValueOperator<>(baseRealm, osMap, (RealmTypeSelectorForMap<String, Byte>) realmTypeSelectorForMap);
+            mapValueOperator = new ByteValueOperator<>(baseRealm, osMap, (TypeSelectorForMap<String, Byte>) typeSelectorForMap);
         } else if (valueClass == byte[].class) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.BINARY, (EqualsHelper<String, V>) new BinaryEquals<String>());
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.BINARY, (EqualsHelper<String, V>) new BinaryEquals<String>());
         } else if (valueClass == ObjectId.class) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.OBJECT_ID);
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.OBJECT_ID);
         } else if (valueClass == UUID.class) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.UUID);
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.UUID);
         } else {
             throw new IllegalArgumentException("Only Maps of Mixed or one of the types that can be boxed inside Mixed can be used.");
         }
 
         return new DictionaryManager<>(baseRealm,
                 (MapValueOperator<String, V>) mapValueOperator,
-                realmTypeSelectorForMap);
+                typeSelectorForMap);
     }
 
     @SuppressWarnings("unchecked")
     private static <V> DictionaryManager<V> getManager(String valueClass,
                                                        BaseRealm baseRealm,
                                                        OsMap osMap) {
-        RealmTypeSelectorForMap<String, V> realmTypeSelectorForMap = new DynamicRealmSelectorForMap<>(baseRealm, osMap, valueClass);
+        TypeSelectorForMap<String, V> typeSelectorForMap = new DynamicSelectorForMap<>(baseRealm, osMap, valueClass);
 
         MapValueOperator<String, ?> mapValueOperator;
 
         if (valueClass.equals(Mixed.class.getCanonicalName())) {
-            mapValueOperator = new MixedValueOperator<>(baseRealm, osMap, (RealmTypeSelectorForMap<String, Mixed>) realmTypeSelectorForMap);
+            mapValueOperator = new MixedValueOperator<>(baseRealm, osMap, (TypeSelectorForMap<String, Mixed>) typeSelectorForMap);
         } else if (valueClass.equals(Long.class.getCanonicalName())) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.LONG);
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.LONG);
         } else if (valueClass.equals(Float.class.getCanonicalName())) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.FLOAT);
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.FLOAT);
         } else if (valueClass.equals(Double.class.getCanonicalName())) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.DOUBLE);
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.DOUBLE);
         } else if (valueClass.equals(String.class.getCanonicalName())) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.STRING);
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.STRING);
         } else if (valueClass.equals(Boolean.class.getCanonicalName())) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.BOOLEAN);
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.BOOLEAN);
         } else if (valueClass.equals(Date.class.getCanonicalName())) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.DATE);
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.DATE);
         } else if (valueClass.equals(Decimal128.class.getCanonicalName())) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.DECIMAL128);
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.DECIMAL128);
         } else if (valueClass.equals(Integer.class.getCanonicalName())) {
-            mapValueOperator = new IntegerValueOperator<>(baseRealm, osMap, (RealmTypeSelectorForMap<String, Integer>) realmTypeSelectorForMap);
+            mapValueOperator = new IntegerValueOperator<>(baseRealm, osMap, (TypeSelectorForMap<String, Integer>) typeSelectorForMap);
         } else if (valueClass.equals(Short.class.getCanonicalName())) {
-            mapValueOperator = new ShortValueOperator<>(baseRealm, osMap, (RealmTypeSelectorForMap<String, Short>) realmTypeSelectorForMap);
+            mapValueOperator = new ShortValueOperator<>(baseRealm, osMap, (TypeSelectorForMap<String, Short>) typeSelectorForMap);
         } else if (valueClass.equals(Byte.class.getCanonicalName())) {
-            mapValueOperator = new ByteValueOperator<>(baseRealm, osMap, (RealmTypeSelectorForMap<String, Byte>) realmTypeSelectorForMap);
+            mapValueOperator = new ByteValueOperator<>(baseRealm, osMap, (TypeSelectorForMap<String, Byte>) typeSelectorForMap);
         } else if (valueClass.equals(byte[].class.getCanonicalName())) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.BINARY, (EqualsHelper<String, V>) new BinaryEquals<String>());
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.BINARY, (EqualsHelper<String, V>) new BinaryEquals<String>());
         } else if (valueClass.equals(ObjectId.class.getCanonicalName())) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.OBJECT_ID);
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.OBJECT_ID);
         } else if (valueClass.equals(UUID.class.getCanonicalName())) {
-            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, realmTypeSelectorForMap, RealmMapEntrySet.IteratorType.UUID);
+            mapValueOperator = new GenericPrimitiveValueOperator<>(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.UUID);
         } else {
             throw new IllegalArgumentException("Only Maps of Mixed or one of the types that can be boxed inside Mixed can be used.");
         }
 
         return new DictionaryManager<>(baseRealm,
                 (MapValueOperator<String, V>) mapValueOperator,
-                realmTypeSelectorForMap);
+                typeSelectorForMap);
     }
 
     private static boolean isClassForRealmModel(Class<?> clazz) {

@@ -43,15 +43,15 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
 
     protected final BaseRealm baseRealm;
     protected final MapValueOperator<K, V> mapValueOperator;
-    protected final RealmTypeSelectorForMap<K, V> realmTypeSelector;
+    protected final TypeSelectorForMap<K, V> typeSelectorForMap;
     protected final ObserverPairList<MapObserverPair<K, V>> mapObserverPairs = new ObserverPairList<>();
 
     ManagedMapManager(BaseRealm baseRealm,
                       MapValueOperator<K, V> mapValueOperator,
-                      RealmTypeSelectorForMap<K, V> realmTypeSelector) {
+                      TypeSelectorForMap<K, V> typeSelectorForMap) {
         this.baseRealm = baseRealm;
         this.mapValueOperator = mapValueOperator;
-        this.realmTypeSelector = realmTypeSelector;
+        this.typeSelectorForMap = typeSelectorForMap;
     }
 
     protected abstract RealmMap<K, V> freezeInternal(Pair<BaseRealm, OsMap> frozenBaseRealmMap);
@@ -206,15 +206,15 @@ class DictionaryManager<V> extends ManagedMapManager<String, V> {
 
     DictionaryManager(BaseRealm baseRealm,
                       MapValueOperator<String, V> mapValueOperator,
-                      RealmTypeSelectorForMap<String, V> realmTypeSelector) {
-        super(baseRealm, mapValueOperator, realmTypeSelector);
+                      TypeSelectorForMap<String, V> typeSelectorForMap) {
+        super(baseRealm, mapValueOperator, typeSelectorForMap);
     }
 
     @Override
     protected RealmDictionary<V> freezeInternal(Pair<BaseRealm, OsMap> frozenBaseRealmMap) {
         BaseRealm frozenBaseRealm = frozenBaseRealmMap.first;
         OsMap osMap = frozenBaseRealmMap.second;
-        return realmTypeSelector.freeze(frozenBaseRealm);
+        return typeSelectorForMap.freeze(frozenBaseRealm);
     }
 
     @Override
@@ -249,16 +249,16 @@ abstract class MapValueOperator<K, V> {
 
     protected final BaseRealm baseRealm;
     protected final OsMap osMap;
-    protected final RealmTypeSelectorForMap<K, V> realmTypeSelector;
+    protected final TypeSelectorForMap<K, V> typeSelectorForMap;
     protected final RealmMapEntrySet.IteratorType iteratorType;
 
     MapValueOperator(BaseRealm baseRealm,
                      OsMap osMap,
-                     RealmTypeSelectorForMap<K, V> realmTypeSelector,
+                     TypeSelectorForMap<K, V> typeSelectorForMap,
                      RealmMapEntrySet.IteratorType iteratorType) {
         this.baseRealm = baseRealm;
         this.osMap = osMap;
-        this.realmTypeSelector = realmTypeSelector;
+        this.typeSelectorForMap = typeSelectorForMap;
         this.iteratorType = iteratorType;
     }
 
@@ -312,11 +312,11 @@ abstract class MapValueOperator<K, V> {
     }
 
     public Set<K> keySet() {
-        return realmTypeSelector.keySet();
+        return typeSelectorForMap.keySet();
     }
 
     public Collection<V> values() {
-        return realmTypeSelector.getValues();
+        return typeSelectorForMap.getValues();
     }
 
     public Pair<BaseRealm, OsMap> freeze() {
@@ -340,8 +340,8 @@ class MixedValueOperator<K> extends MapValueOperator<K, Mixed> {
 
     MixedValueOperator(BaseRealm baseRealm,
                        OsMap osMap,
-                       RealmTypeSelectorForMap<K, Mixed> realmTypeSelector) {
-        super(baseRealm, osMap, realmTypeSelector, RealmMapEntrySet.IteratorType.MIXED);
+                       TypeSelectorForMap<K, Mixed> typeSelectorForMap) {
+        super(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.MIXED);
     }
 
     @Nullable
@@ -395,17 +395,17 @@ class GenericPrimitiveValueOperator<K, V> extends MapValueOperator<K, V> {
 
     GenericPrimitiveValueOperator(BaseRealm baseRealm,
                                   OsMap osMap,
-                                  RealmTypeSelectorForMap<K, V> realmTypeSelector,
+                                  TypeSelectorForMap<K, V> typeSelectorForMap,
                                   RealmMapEntrySet.IteratorType iteratorType) {
-        this(baseRealm, osMap, realmTypeSelector, iteratorType, new GenericEquals<>());
+        this(baseRealm, osMap, typeSelectorForMap, iteratorType, new GenericEquals<>());
     }
 
     GenericPrimitiveValueOperator(BaseRealm baseRealm,
                                   OsMap osMap,
-                                  RealmTypeSelectorForMap<K, V> realmTypeSelector,
+                                  TypeSelectorForMap<K, V> typeSelectorForMap,
                                   RealmMapEntrySet.IteratorType iteratorType,
                                   EqualsHelper<K, V> equalsHelper) {
-        super(baseRealm, osMap, realmTypeSelector, iteratorType);
+        super(baseRealm, osMap, typeSelectorForMap, iteratorType);
         this.equalsHelper = equalsHelper;
     }
 
@@ -461,8 +461,8 @@ class IntegerValueOperator<K> extends GenericPrimitiveValueOperator<K, Integer> 
 
     IntegerValueOperator(BaseRealm baseRealm,
                          OsMap osMap,
-                         RealmTypeSelectorForMap<K, Integer> realmTypeSelector) {
-        super(baseRealm, osMap, realmTypeSelector, RealmMapEntrySet.IteratorType.INTEGER);
+                         TypeSelectorForMap<K, Integer> typeSelectorForMap) {
+        super(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.INTEGER);
     }
 
     @Override
@@ -480,8 +480,8 @@ class ShortValueOperator<K> extends GenericPrimitiveValueOperator<K, Short> {
 
     ShortValueOperator(BaseRealm baseRealm,
                        OsMap osMap,
-                       RealmTypeSelectorForMap<K, Short> realmTypeSelector) {
-        super(baseRealm, osMap, realmTypeSelector, RealmMapEntrySet.IteratorType.SHORT);
+                       TypeSelectorForMap<K, Short> typeSelectorForMap) {
+        super(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.SHORT);
     }
 
     @Override
@@ -499,8 +499,8 @@ class ByteValueOperator<K> extends GenericPrimitiveValueOperator<K, Byte> {
 
     ByteValueOperator(BaseRealm baseRealm,
                       OsMap osMap,
-                      RealmTypeSelectorForMap<K, Byte> realmTypeSelector) {
-        super(baseRealm, osMap, realmTypeSelector, RealmMapEntrySet.IteratorType.BYTE);
+                      TypeSelectorForMap<K, Byte> typeSelectorForMap) {
+        super(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.BYTE);
     }
 
     @Override
@@ -516,8 +516,8 @@ class RealmModelValueOperator<K, V> extends MapValueOperator<K, V> {
 
     RealmModelValueOperator(BaseRealm baseRealm,
                             OsMap osMap,
-                            RealmTypeSelectorForMap<K, V> realmTypeSelector) {
-        super(baseRealm, osMap, realmTypeSelector, RealmMapEntrySet.IteratorType.OBJECT);
+                            TypeSelectorForMap<K, V> typeSelectorForMap) {
+        super(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.OBJECT);
     }
 
     @Nullable
@@ -528,18 +528,18 @@ class RealmModelValueOperator<K, V> extends MapValueOperator<K, V> {
             return null;
         }
 
-        return realmTypeSelector.getRealmModel(baseRealm, realmModelKey);
+        return typeSelectorForMap.getRealmModel(baseRealm, realmModelKey);
     }
 
     @Nullable
     @Override
     public V put(K key, @Nullable V value) {
-        return realmTypeSelector.putRealmModel(baseRealm, osMap, key, value);
+        return typeSelectorForMap.putRealmModel(baseRealm, osMap, key, value);
     }
 
     @Override
     public Set<Map.Entry<K, V>> entrySet() {
-        return new RealmMapEntrySet<>(baseRealm, osMap, RealmMapEntrySet.IteratorType.OBJECT, realmTypeSelector);
+        return new RealmMapEntrySet<>(baseRealm, osMap, RealmMapEntrySet.IteratorType.OBJECT, typeSelectorForMap);
     }
 
     @Override

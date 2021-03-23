@@ -533,7 +533,11 @@ public class RealmQuery<E> {
         } else {
             Mixed[] mixedValues = new Mixed[values.length];
             for (int i = 0; i < values.length; i++) {
-                mixedValues[i] = Mixed.valueOf(values[i]);
+                if (values[i] != null) {
+                    mixedValues[i] = Mixed.valueOf(values[i]);
+                } else {
+                    mixedValues[i] = null;
+                }
             }
 
             if (casing == Case.SENSITIVE) {
@@ -1636,6 +1640,7 @@ public class RealmQuery<E> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> contains(String fieldName, String value, Case casing) {
+        Util.checkNull(value, "value");
         realm.checkIfValid();
         contains(fieldName, Mixed.valueOf(value), casing);
         return this;
@@ -1694,6 +1699,7 @@ public class RealmQuery<E> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> beginsWith(String fieldName, String value, Case casing) {
+        Util.checkNull(value, "value");
         realm.checkIfValid();
         beginsWith(fieldName, Mixed.valueOf(value), casing);
         return this;
@@ -1752,6 +1758,7 @@ public class RealmQuery<E> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> endsWith(String fieldName, String value, Case casing) {
+        Util.checkNull(value, "value");
         realm.checkIfValid();
         endsWith(fieldName, Mixed.valueOf(value), casing);
         return this;
@@ -1822,6 +1829,7 @@ public class RealmQuery<E> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> like(String fieldName, String value, Case casing) {
+        Util.checkNull(value, "value");
         realm.checkIfValid();
         like(fieldName, Mixed.valueOf(value), casing);
         return this;
@@ -2198,6 +2206,8 @@ public class RealmQuery<E> {
                 return query.sumDouble(columnKey);
             case DECIMAL128:
                 return query.sumDecimal128(columnKey);
+            case MIXED:
+                return query.sumMixed(columnKey);
             default:
                 throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double"));
@@ -2227,6 +2237,8 @@ public class RealmQuery<E> {
                 return query.averageDouble(columnIndex);
             case FLOAT:
                 return query.averageFloat(columnIndex);
+            case MIXED:
+                return query.averageMixed(columnIndex);
             default:
                 throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double. For Decimal128 use `averageDecimal128` method."));
@@ -2277,6 +2289,8 @@ public class RealmQuery<E> {
                 return this.query.minimumDouble(columnIndex);
             case DECIMAL128:
                 return this.query.minimumDecimal128(columnIndex);
+            case MIXED:
+                return this.query.minimumMixed(columnIndex);
             default:
                 throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double"));
@@ -2327,6 +2341,8 @@ public class RealmQuery<E> {
                 return this.query.maximumDouble(columnIndex);
             case DECIMAL128:
                 return this.query.maximumDecimal128(columnIndex);
+            case MIXED:
+                return this.query.maximumMixed(columnIndex);
             default:
                 throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double"));
