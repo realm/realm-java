@@ -112,7 +112,7 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
-    public static String buildSortDescriptor(String[] fieldNames, Sort[] sortOrders){
+    public static String buildSortDescriptor(String[] fieldNames, Sort[] sortOrders) {
         StringBuilder descriptorBuilder = new StringBuilder("SORT(");
 
         String sortSeparator = "";
@@ -138,7 +138,7 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
-    public static String buildDistinctDescriptor(String[] fieldNames){
+    public static String buildDistinctDescriptor(String[] fieldNames) {
         StringBuilder descriptorBuilder = new StringBuilder("DISTINCT(");
 
         String distinctSeparator = "";
@@ -375,13 +375,17 @@ public class TableQuery implements NativeObject {
     public TableQuery in(String fieldName, Mixed[] values) {
         fieldName = escapeFieldName(fieldName);
 
-        beginGroup().equalTo(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            if (values[i] == null) {
-                or().isNull(fieldName);
+        beginGroup();
+
+        boolean first = true;
+        for (Mixed value : values) {
+            if (!first) { or(); }
+            if (value == null) {
+                isNull(fieldName);
             } else {
-                or().equalTo(fieldName, values[i]);
+                equalTo(fieldName, value);
             }
+            first = false;
         }
         endGroup();
 
@@ -392,13 +396,17 @@ public class TableQuery implements NativeObject {
     public TableQuery inInsensitive(String fieldName, Mixed[] values) {
         fieldName = escapeFieldName(fieldName);
 
-        beginGroup().equalToInsensitive(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            if (values[i] == null) {
-                or().isNull(fieldName);
+        beginGroup();
+
+        boolean first = true;
+        for (Mixed value : values) {
+            if (!first) { or(); }
+            if (value == null) {
+                isNull(fieldName);
             } else {
-                or().equalToInsensitive(fieldName, values[i]);
+                equalToInsensitive(fieldName, value);
             }
+            first = false;
         }
         endGroup();
 
