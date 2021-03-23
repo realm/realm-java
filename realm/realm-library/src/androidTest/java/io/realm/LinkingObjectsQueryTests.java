@@ -213,13 +213,13 @@ public class LinkingObjectsQueryTests extends QueryTests {
             realm.where(NullTypes.class).isNull(NullTypes.FIELD_LO_OBJECT);
             fail("isNull should throw on type LINKING_OBJECT(14) targeting an OBJECT");
         } catch (IllegalArgumentException expected) {
-            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('@links.class_NullTypes.fieldObjectNull')"));
+            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('@links.NullTypes.fieldObjectNull')"));
         }
         try {
             realm.where(NullTypes.class).isNull(NullTypes.FIELD_LO_LIST);
             fail("isNull should throw on type LINKING_OBJECT(14) targeting a LIST");
         } catch (IllegalArgumentException expected) {
-            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('@links.class_NullTypes.fieldListNull')"));
+            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('@links.NullTypes.fieldListNull')"));
         }
     }
 
@@ -230,13 +230,13 @@ public class LinkingObjectsQueryTests extends QueryTests {
             realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_OBJECT);
             fail("isNull should throw on nested linked fields (LINKING_OBJECT => OBJECT)");
         } catch (IllegalArgumentException expected) {
-            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('fieldObjectNull.@links.class_NullTypes.fieldObjectNull') with NULL"));
+            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('fieldObjectNull.@links.NullTypes.fieldObjectNull') with NULL"));
         }
         try {
             realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_LIST);
             fail("isNull should throw on nested linked fields (LINKING_OBJECT => LIST)");
         } catch (IllegalArgumentException expected) {
-            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('fieldObjectNull.@links.class_NullTypes.fieldListNull') with NULL"));
+            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('fieldObjectNull.@links.NullTypes.fieldListNull') with NULL"));
         }
     }
 
@@ -335,13 +335,13 @@ public class LinkingObjectsQueryTests extends QueryTests {
             realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_LO_OBJECT);
             fail("isNotNull should throw on type LINKING_OBJECT(14) targeting an OBJECT");
         } catch (IllegalArgumentException expected) {
-            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('@links.class_NullTypes.fieldObjectNull')"));
+            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('@links.NullTypes.fieldObjectNull')"));
         }
         try {
             realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_LO_LIST);
             fail("isNotNull should throw on type LINKING_OBJECT(14) targeting a LIST");
         } catch (IllegalArgumentException expected) {
-            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('@links.class_NullTypes.fieldListNull')"));
+            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('@links.NullTypes.fieldListNull')"));
         }
     }
 
@@ -352,13 +352,13 @@ public class LinkingObjectsQueryTests extends QueryTests {
             realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_OBJECT);
             fail("isNotNull should throw on nested linked fields (LINKING_OBJECT => OBJECT)");
         } catch (IllegalArgumentException expected) {
-            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('fieldObjectNull.@links.class_NullTypes.fieldObjectNull')"));
+            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('fieldObjectNull.@links.NullTypes.fieldObjectNull')"));
         }
         try {
             realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_LIST);
             fail("isNotNull should throw on nested linked fields (LINKING_OBJECT => LIST)");
         } catch (IllegalArgumentException expected) {
-            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('fieldObjectNull.@links.class_NullTypes.fieldListNull'"));
+            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('fieldObjectNull.@links.NullTypes.fieldListNull'"));
         }
     }
 
