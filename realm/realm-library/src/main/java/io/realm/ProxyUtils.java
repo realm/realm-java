@@ -373,6 +373,24 @@ class ProxyUtils {
                     realmList.add(Mixed.valueOf(jsonReader.nextBoolean()));
                 }
             }
+        } else if (elementClass == ObjectId.class) {
+            while (jsonReader.hasNext()) {
+                if (jsonReader.peek() == JsonToken.NULL) {
+                    jsonReader.skipValue();
+                    realmList.add(null);
+                } else {
+                    realmList.add(new ObjectId(jsonReader.nextString()));
+                }
+            }
+        } else if (elementClass == Decimal128.class) {
+            while (jsonReader.hasNext()) {
+                if (jsonReader.peek() == JsonToken.NULL) {
+                    jsonReader.skipValue();
+                    realmList.add(null);
+                } else {
+                    realmList.add(org.bson.types.Decimal128.parse(jsonReader.nextString()));
+                }
+            }
         } else {
             throwWrongElementType(elementClass);
         }
