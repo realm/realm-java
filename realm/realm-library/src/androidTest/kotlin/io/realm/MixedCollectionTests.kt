@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.mixed
+package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -317,7 +317,6 @@ class MixedCollectionTests {
 
             collection.addAll(managedObjects)
             collection.add(2, null)
-
         }
 
         val nativeMixedCollection = NativeMixedCollection.newRealmModelCollection(collection)
@@ -329,8 +328,9 @@ class MixedCollectionTests {
             if (expectedValue == null) {
                 assertEquals(MixedType.NULL, nativeMixed.type)
             } else {
-                assertEquals(MixedType.OBJECT, nativeMixed.type)
-                // FIXME: Validate that the contents are ok. Missing Mixed methods that allows testing.
+                val mixed = Mixed(MixedOperator.fromNativeMixed(realm, nativeMixed))
+                assertEquals(MixedType.OBJECT, mixed.type)
+                assertEquals(expectedValue.name, mixed.asRealmModel(PrimaryKeyAsString::class.java).name)
             }
         }
     }
