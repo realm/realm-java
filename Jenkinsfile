@@ -118,13 +118,13 @@ try {
             // Prepare Docker containers used by Instrumentation tests
             // TODO: How much of this logic can be moved to start_server.sh for shared logic with local testing.
 
-            def tempDir = runCommand('mktemp -d -t app_config')
+            def tempDir = runCommand('mktemp -d -t app_config.XXXXXXXXXX')
             sh "tools/sync_test_server/app_config_generator.sh ${tempDir} tools/sync_test_server/app_template testapp1 testapp2"
 
             sh "docker network create ${dockerNetworkId}"
             mongoDbRealmContainer = mdbRealmImage.run("--network ${dockerNetworkId} -v$tempDir:/apps")
             mongoDbRealmCommandServerContainer = commandServerEnv.run("--network container:${mongoDbRealmContainer.id} -v$tempDir:/apps")
-            sh "timeout 60 sh -c \"while [[ ! -f $APP_CONFIG_DIR/testapp1/app_id || ! -f $APP_CONFIG_DIR/testapp2/app_id ]]; do echo 'Waiting for server to start'; sleep 1; done\""
+            sh "timeout 60 sh -c \"while [[ ! -f $tempDir/testapp1/app_id || ! -f $tempDir/testapp2/app_id ]]; do echo 'Waiting for server to start'; sleep 1; done\""
           }
 
           // There is a chance that real devices are attached to the host, so if the emulator is
