@@ -271,9 +271,13 @@ Java_io_realm_internal_core_NativeMixed_nativeGetRealmModelTableName(JNIEnv *env
         auto java_value = *reinterpret_cast<JavaValue *>(native_ptr);
         auto &shared_realm = *(reinterpret_cast<SharedRealm *>(shared_realm_ptr));
 
-        auto obj_link = java_value.get_object_link();
-
-        return to_jstring(env, shared_realm->read_group().get_table(obj_link.get_table_key())->get_name());
+        if (java_value.get_type() == JavaValueType::ObjectLink) {
+            auto &obj_link = java_value.get_object_link();
+            return to_jstring(env, shared_realm->read_group().get_table(obj_link.get_table_key())->get_name());
+        } else {
+            auto &obj = java_value.get_object();
+            return to_jstring(env, obj->get_table()->get_name());
+        }
     } CATCH_STD()
 
     return nullptr;
@@ -284,8 +288,14 @@ Java_io_realm_internal_core_NativeMixed_nativeGetRealmModelRowKey(JNIEnv *env, j
     try {
         auto java_value = *reinterpret_cast<JavaValue *>(native_ptr);
 
-        auto obj_link = java_value.get_object_link();
-        return obj_link.get_obj_key().value;
+        if (java_value.get_type() == JavaValueType::ObjectLink) {
+            auto obj_link = java_value.get_object_link();
+            return obj_link.get_obj_key().value;
+        } else {
+            auto &obj = java_value.get_object();
+            return obj->get_key().value;
+        }
+
     } CATCH_STD()
 
     return 0;
