@@ -122,12 +122,9 @@ try {
             sh "tools/sync_test_server/app_config_generator.sh ${tempDir} tools/sync_test_server/app_template testapp1 testapp2"
 
             sh "docker network create ${dockerNetworkId}"
-            mongoDbRealmContainer = mdbRealmImage.run("--network ${dockerNetworkId}")
-            mongoDbRealmCommandServerContainer = commandServerEnv.run("--network container:${mongoDbRealmContainer.id}")
-            sh "docker cp ${tempDir}/testapp1 ${mongoDbRealmContainer.id}:/tmp/app_config-testapp1"
-            sh "docker cp ${tempDir}/testapp2 ${mongoDbRealmContainer.id}:/tmp/app_config-testapp2"
-            sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmContainer.id}:/tmp/"
-            sh "docker exec -i ${mongoDbRealmContainer.id} sh /tmp/setup_mongodb_realm.sh"
+            mongoDbRealmContainer = mdbRealmImage.run("--network ${dockerNetworkId} -v$tempDir:/apps")
+            mongoDbRealmCommandServerContainer = commandServerEnv.run("--network container:${mongoDbRealmContainer.id} -v$tempDir:/apps")
+            sh "timeout 60 sh -c \"while [[ ! -f $APP_CONFIG_DIR/testapp1/app_id || ! -f $APP_CONFIG_DIR/testapp2/app_id ]]; do echo 'Waiting for server to start'; sleep 1; done\""
           }
 
           // There is a chance that real devices are attached to the host, so if the emulator is
