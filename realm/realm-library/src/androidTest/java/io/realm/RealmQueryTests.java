@@ -3464,7 +3464,7 @@ public class RealmQueryTests extends QueryTests {
             realm.where(AllTypes.class).rawPredicate("unknownField.foo = 'test data 0'");
             fail();
         } catch (IllegalArgumentException e) {
-            assertTrue(e.getMessage().contains("class_AllTypes has no property unknownField"));
+            assertTrue(e.getMessage().contains("'AllTypes' has no property: 'unknownField'"));
         }
     }
 
