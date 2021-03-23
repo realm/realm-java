@@ -19,12 +19,12 @@ package io.realm.entities;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
-import java.text.DecimalFormat;
 import java.util.Date;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.Required;
+
 
 public class PrimitiveListTypes extends RealmObject {
     public static final String FIELD_STRING_LIST = "stringList";
