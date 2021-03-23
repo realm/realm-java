@@ -117,11 +117,15 @@ try {
 
             // Prepare Docker containers used by Instrumentation tests
             // TODO: How much of this logic can be moved to start_server.sh for shared logic with local testing.
+
+            def tempDir = runCommand('mktemp -d -t app_config')
+            sh "tools/sync_test_server/app_config_generator.sh ${tempDir} tools/sync_test_server/app_template testapp1 testapp2"
+
             sh "docker network create ${dockerNetworkId}"
             mongoDbRealmContainer = mdbRealmImage.run("--network ${dockerNetworkId}")
             mongoDbRealmCommandServerContainer = commandServerEnv.run("--network container:${mongoDbRealmContainer.id}")
-            sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config-testapp1"
-            sh "docker cp tools/sync_test_server/app_config ${mongoDbRealmContainer.id}:/tmp/app_config-testapp2"
+            sh "docker cp ${tempDir}/testapp1 ${mongoDbRealmContainer.id}:/tmp/app_config-testapp1"
+            sh "docker cp ${tempDir}/testapp2 ${mongoDbRealmContainer.id}:/tmp/app_config-testapp2"
             sh "docker cp tools/sync_test_server/setup_mongodb_realm.sh ${mongoDbRealmContainer.id}:/tmp/"
             sh "docker exec -i ${mongoDbRealmContainer.id} sh /tmp/setup_mongodb_realm.sh"
           }
@@ -466,5 +470,13 @@ def readGitTag() {
   if (returnStatus != 0) {
     return null
   }
-  return sh(returnStdout: true, script: command).trim()
+  return returnStatus.trim()
+}
+
+def runCommand(String command){
+  def returnStatus = sh(returnStatus: true, script: command)
+  if (returnStatus != 0) {
+    return null
+  }
+  return returnStatus.trim()
 }
