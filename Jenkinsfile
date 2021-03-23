@@ -159,7 +159,6 @@ try {
                 sh "adb start-server" // https://stackoverflow.com/questions/56198290/problems-with-adb-exe
                 // Need to go to ANDROID_HOME due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
                 sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-boot-anim -no-window -wipe-data -noaudio -partition-size 4098 &"
-
                 try {
                   runBuild(buildFlags, instrumentationTestTarget)
                 } finally {
@@ -435,9 +434,9 @@ def getTagsString(Map<String, String> tags) {
 
 def storeJunitResults(String path) {
   step([
-          $class: 'JUnitResultArchiver',
-          allowEmptyResults: true,
-          testResults: path
+    $class: 'JUnitResultArchiver',
+    allowEmptyResults: true,
+    testResults: path
   ])
 }
 

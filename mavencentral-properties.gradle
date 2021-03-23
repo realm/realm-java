@@ -1,11 +1,7 @@
 // Find property in either System environment or Gradle properties.
 // If set in both places, Gradle properties win.
 def getPropertyValue(String propertyName) {
-    def value = System.getenv(propertyName)
-    if (project.hasProperty(propertyName)) {
-        value = project.getProperty(propertyName)
-    }
-    return (value == null) ? "" : value;
+    return project.findProperty(propertyName) ?: System.getenv(propertyName) ?: ""
 }
 
 // Default values
