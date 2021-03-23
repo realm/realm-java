@@ -43,7 +43,7 @@ public class TableQuery implements NativeObject {
 
     private boolean queryValidated = true;
 
-    private static String escapeFieldName(String fieldName){
+    private static String escapeFieldName(String fieldName) {
         if (fieldName == null) { return null; }
         return fieldName.replace(" ", "\\ ");
     }
@@ -377,7 +377,7 @@ public class TableQuery implements NativeObject {
 
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
-            if(values[i] == null){
+            if (values[i] == null) {
                 or().isNull(fieldName);
             } else {
                 or().equalTo(fieldName, values[i]);
@@ -394,7 +394,7 @@ public class TableQuery implements NativeObject {
 
         beginGroup().equalToInsensitive(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
-            if(values[i] == null){
+            if (values[i] == null) {
                 or().isNull(fieldName);
             } else {
                 or().equalToInsensitive(fieldName, values[i]);
