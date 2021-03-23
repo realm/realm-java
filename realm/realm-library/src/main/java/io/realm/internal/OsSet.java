@@ -127,15 +127,6 @@ public class OsSet implements NativeObject {
     // Integer operations
     // ----------------------------------------------------
 
-    public boolean contains(@Nullable Long value) {
-        if (value == null) {
-            return nativeContainsNull(nativePtr);
-        } else {
-
-            return nativeContainsLong(nativePtr, value);
-        }
-    }
-
     public boolean add(@Nullable Integer value) {
         long[] indexAndFound;
         if (value == null) {
@@ -159,6 +150,14 @@ public class OsSet implements NativeObject {
     // ----------------------------------------------------
     // Long operations
     // ----------------------------------------------------
+
+    public boolean contains(@Nullable Long value) {
+        if (value == null) {
+            return nativeContainsNull(nativePtr);
+        } else {
+            return nativeContainsLong(nativePtr, value);
+        }
+    }
 
     public boolean add(@Nullable Long value) {
         long[] indexAndFound;
@@ -229,6 +228,38 @@ public class OsSet implements NativeObject {
     }
 
     // ----------------------------------------------------
+    // Binary operations
+    // ----------------------------------------------------
+
+    public boolean contains(@Nullable byte[] value) {
+        if (value == null) {
+            return nativeContainsNull(nativePtr);
+        } else {
+            return nativeContainsBinary(nativePtr, value);
+        }
+    }
+
+    public boolean add(@Nullable byte[] value) {
+        long[] indexAndFound;
+        if (value == null) {
+            indexAndFound = nativeAddNull(nativePtr);
+        } else {
+            indexAndFound = nativeAddBinary(nativePtr, value);
+        }
+        return indexAndFound[1] != VALUE_NOT_FOUND;
+    }
+
+    public boolean remove(@Nullable byte[] value) {
+        long[] indexAndFound;
+        if (value == null) {
+            indexAndFound = nativeRemoveNull(nativePtr);
+        } else {
+            indexAndFound = nativeRemoveBinary(nativePtr, value);
+        }
+        return indexAndFound[1] == VALUE_FOUND;
+    }
+
+    // ----------------------------------------------------
     // Set operations
     // ----------------------------------------------------
 
@@ -292,17 +323,23 @@ public class OsSet implements NativeObject {
 
     private static native boolean nativeContainsLong(long nativePtr, long value);
 
+    private static native boolean nativeContainsBinary(long nativePtr, byte[] value);
+
     private static native long[] nativeAddNull(long nativePtr);
 
     private static native long[] nativeAddString(long nativePtr, String value);
 
     private static native long[] nativeAddLong(long nativePtr, long value);
 
+    private static native long[] nativeAddBinary(long nativePtr, byte[] value);
+
     private static native long[] nativeRemoveNull(long nativePtr);
 
     private static native long[] nativeRemoveString(long nativePtr, String value);
 
     private static native long[] nativeRemoveLong(long nativePtr, long value);
+
+    private static native long[] nativeRemoveBinary(long nativePtr, byte[] value);
 
     private static native boolean nativeContainsAllMixedCollection(long nativePtr, long mixedCollectionPtr);
 

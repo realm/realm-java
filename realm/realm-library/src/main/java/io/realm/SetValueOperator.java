@@ -32,13 +32,21 @@ abstract class SetValueOperator<E> {
 
     abstract boolean remove(@Nullable Object o);
 
-    abstract boolean containsAll(Collection<?> c);
+    abstract boolean containsAllInternal(Collection<?> c);
 
     abstract boolean addAllInternal(Collection<? extends E> c);
 
     abstract boolean removeAllInternal(Collection<?> c);
 
     abstract boolean retainAllInternal(Collection<?> c);
+
+    boolean containsAll(Collection<?> c) {
+        if (isRealmCollection(c)) {
+            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+        }
+        return containsAllInternal(c);
+    }
 
     boolean addAll(Collection<? extends E> c) {
         if (isRealmCollection(c)) {
@@ -159,6 +167,8 @@ abstract class SetValueOperator<E> {
             return (SetIterator<T>) new ShortSetIterator(osSet, baseRealm);
         } else if (valueClass == Byte.class) {
             return (SetIterator<T>) new ByteSetIterator(osSet, baseRealm);
+        } else if (valueClass == byte[].class) {
+            return (SetIterator<T>) new BinarySetIterator(osSet, baseRealm);
         } else {
             throw new IllegalArgumentException("Unknown class for iterator: " + valueClass.getSimpleName());
         }
@@ -190,12 +200,7 @@ class StringOperator extends SetValueOperator<String> {
     }
 
     @Override
-    boolean containsAll(Collection<?> c) {
-        if (isRealmCollection(c)) {
-            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
-            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
-        }
-
+    boolean containsAllInternal(Collection<?> c) {
         for (Object value : c) {
             if (value != null && !(value instanceof String)) {
                 return false;
@@ -222,17 +227,17 @@ class StringOperator extends SetValueOperator<String> {
     }
 
     @Override
-    boolean retainAllInternal(Collection<?> c) {
-        //noinspection unchecked
-        NativeMixedCollection collection = NativeMixedCollection.newStringCollection((Collection<String>) c);
-        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
-    }
-
-    @Override
     boolean removeAllInternal(Collection<?> c) {
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newStringCollection((Collection<String>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newStringCollection((Collection<String>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
 }
 
@@ -267,12 +272,7 @@ class IntegerOperator extends SetValueOperator<Integer> {
     }
 
     @Override
-    boolean containsAll(Collection<?> c) {
-        if (isRealmCollection(c)) {
-            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
-            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
-        }
-
+    boolean containsAllInternal(Collection<?> c) {
         for (Object value : c) {
             if (value != null && !(value instanceof Number)) {
                 return false;
@@ -298,17 +298,17 @@ class IntegerOperator extends SetValueOperator<Integer> {
     }
 
     @Override
-    boolean retainAllInternal(Collection<?> c) {
-        //noinspection unchecked
-        NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Integer>) c);
-        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
-    }
-
-    @Override
     boolean removeAllInternal(Collection<?> c) {
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Integer>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Integer>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
 }
 
@@ -337,12 +337,7 @@ class LongOperator extends SetValueOperator<Long> {
     }
 
     @Override
-    boolean containsAll(Collection<?> c) {
-        if (isRealmCollection(c)) {
-            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
-            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
-        }
-
+    boolean containsAllInternal(Collection<?> c) {
         for (Object value : c) {
             if (value != null && !(value instanceof Number)) {
                 return false;
@@ -367,17 +362,17 @@ class LongOperator extends SetValueOperator<Long> {
     }
 
     @Override
-    boolean retainAllInternal(Collection<?> c) {
-        //noinspection unchecked
-        NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Long>) c);
-        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
-    }
-
-    @Override
     boolean removeAllInternal(Collection<?> c) {
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Long>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Long>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
 }
 
@@ -412,12 +407,7 @@ class ShortOperator extends SetValueOperator<Short> {
     }
 
     @Override
-    boolean containsAll(Collection<?> c) {
-        if (isRealmCollection(c)) {
-            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
-            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
-        }
-
+    boolean containsAllInternal(Collection<?> c) {
         for (Object value : c) {
             if (value != null && !(value instanceof Number)) {
                 return false;
@@ -443,17 +433,17 @@ class ShortOperator extends SetValueOperator<Short> {
     }
 
     @Override
-    boolean retainAllInternal(Collection<?> c) {
-        //noinspection unchecked
-        NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Short>) c);
-        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
-    }
-
-    @Override
     boolean removeAllInternal(Collection<?> c) {
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Short>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Short>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
 }
 
@@ -488,12 +478,7 @@ class ByteOperator extends SetValueOperator<Byte> {
     }
 
     @Override
-    boolean containsAll(Collection<?> c) {
-        if (isRealmCollection(c)) {
-            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
-            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
-        }
-
+    boolean containsAllInternal(Collection<?> c) {
         for (Object value : c) {
             if (value != null && !(value instanceof Number)) {
                 return false;
@@ -519,17 +504,88 @@ class ByteOperator extends SetValueOperator<Byte> {
     }
 
     @Override
+    boolean removeAllInternal(Collection<?> c) {
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Byte>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
     boolean retainAllInternal(Collection<?> c) {
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Byte>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
+}
+
+/**
+ * TODO
+ */
+class BinaryOperator extends SetValueOperator<byte[]> {
+
+    public BinaryOperator(BaseRealm baseRealm, OsSet osSet, Class<byte[]> valueClass) {
+        super(baseRealm, osSet, valueClass);
+    }
+
+    @Override
+    boolean add(@Nullable byte[] value) {
+        return osSet.add(value);
+    }
+
+    @Override
+    boolean contains(@Nullable Object o) {
+        byte[] value;
+        if (o == null) {
+            value = null;
+        } else {
+            value = (byte[]) o;
+        }
+        return osSet.contains(value);
+    }
+
+    @Override
+    boolean remove(@Nullable Object o) {
+        return osSet.remove((byte[]) o);
+    }
+
+    @Override
+    boolean containsAllInternal(Collection<?> c) {
+        for (Object value : c) {
+            if (value != null && !(value instanceof byte[])) {
+                return false;
+            }
+        }
+
+        //noinspection unchecked
+        Collection<byte[]> binaryCollection = (Collection<byte[]>) c;
+        NativeMixedCollection collection = NativeMixedCollection.newBinaryCollection(binaryCollection);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+    }
+
+    @Override
+    boolean addAllInternal(Collection<? extends byte[]> c) {
+        for (Object value : c) {
+            if (value != null && !(value instanceof byte[])) {
+                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+            }
+        }
+
+        NativeMixedCollection collection = NativeMixedCollection.newBinaryCollection(c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
+    }
 
     @Override
     boolean removeAllInternal(Collection<?> c) {
         //noinspection unchecked
-        NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Byte>) c);
+        NativeMixedCollection collection = NativeMixedCollection.newBinaryCollection((Collection<byte[]>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newBinaryCollection((Collection<byte[]>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
 }
 
@@ -649,5 +705,24 @@ class ByteSetIterator extends SetIterator<Byte> {
 
         Long longValue = (Long) value;
         return longValue.byteValue();
+    }
+}
+
+/**
+ * TODO
+ */
+class BinarySetIterator extends SetIterator<byte[]> {
+    public BinarySetIterator(OsSet osSet, BaseRealm baseRealm) {
+        super(osSet, baseRealm);
+    }
+
+    @Override
+    protected byte[] getValueAtIndex(int position) {
+        Object value = osSet.getValueAtIndex(position);
+        if (value == null) {
+            return null;
+        }
+
+        return (byte[]) value;
     }
 }

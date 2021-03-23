@@ -122,7 +122,8 @@ public enum RealmFieldType {
     STRING_TO_LINK_MAP(CORE_TYPE_VALUE_OBJECT + DICTIONARY_OFFSET),
 
     STRING_SET(CORE_TYPE_VALUE_STRING + SET_OFFSET),
-    INTEGER_SET(CORE_TYPE_VALUE_INTEGER + SET_OFFSET);
+    INTEGER_SET(CORE_TYPE_VALUE_INTEGER + SET_OFFSET),
+    BINARY_SET(CORE_TYPE_VALUE_BINARY + SET_OFFSET);
 
 
     // Primitive array for fast mapping between between native values and their Realm type.
@@ -221,6 +222,7 @@ public enum RealmFieldType {
                 return false;
             case CORE_TYPE_VALUE_STRING + SET_OFFSET:
             case CORE_TYPE_VALUE_INTEGER + SET_OFFSET:
+            case CORE_TYPE_VALUE_BINARY + SET_OFFSET:
                 return false;
             default:
                 throw new RuntimeException("Unsupported Realm type:  " + this);

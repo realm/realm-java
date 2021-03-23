@@ -95,9 +95,9 @@ object Constants {
 //            "java.lang.Float" to RealmFieldType.FLOAT_SET,
 //            "java.lang.Double" to RealmFieldType.DOUBLE_SET,
 //            "java.lang.Boolean" to RealmFieldType.BOOLEAN_SET,
-            "java.lang.String" to RealmFieldType.STRING_SET
+            "java.lang.String" to RealmFieldType.STRING_SET,
 //            "java.util.Date" to RealmFieldType.DATE_SET,
-//            "byte[]" to RealmFieldType.BINARY_SET,
+            "byte[]" to RealmFieldType.BINARY_SET
 //            "org.bson.types.Decimal128" to RealmFieldType.DECIMAL128_SET,
 //            "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID_SET,
 //            "java.util.UUID" to RealmFieldType.UUID_SET,
@@ -155,7 +155,8 @@ object Constants {
         STRING_TO_MIXED_MAP("STRING_TO_MIXED_MAP", "Map"),
 
         STRING_SET("STRING_SET", "Set"),
-        INTEGER_SET("INTEGER_SET", "Set");
+        INTEGER_SET("INTEGER_SET", "Set"),
+        BINARY_SET("BINARY_SET", "Set");
 
         /**
          * The name of the enum, used in the Java bindings, used to represent the corresponding type.

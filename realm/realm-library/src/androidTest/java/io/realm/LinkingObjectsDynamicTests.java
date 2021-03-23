@@ -262,6 +262,7 @@ public class LinkingObjectsDynamicTests {
                     case STRING_TO_LINK_MAP:
                     case STRING_SET:
                     case INTEGER_SET:
+                    case BINARY_SET:
                         // TODO: fix this when adding support for dictionary and set in AllJavaTypes
                         throw new IllegalArgumentException("Unexpected field type");
                     default:

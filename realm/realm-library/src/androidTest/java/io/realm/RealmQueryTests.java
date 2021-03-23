@@ -2659,6 +2659,7 @@ public class RealmQueryTests extends QueryTests {
                     case STRING_TO_LINK_MAP:
                     case STRING_SET:
                     case INTEGER_SET:
+                    case BINARY_SET:
                         // TODO: what about dictionaries and sets?
                         break;
                     default:
@@ -2897,6 +2898,7 @@ public class RealmQueryTests extends QueryTests {
                     case STRING_TO_LINK_MAP:
                     case STRING_SET:
                     case INTEGER_SET:
+                    case BINARY_SET:
                         // TODO: what about dictionaries and sets?
                         break;
                     default:
@@ -3124,6 +3126,7 @@ public class RealmQueryTests extends QueryTests {
         types.remove(RealmFieldType.STRING_TO_LINK_MAP);
         types.remove(RealmFieldType.STRING_SET);
         types.remove(RealmFieldType.INTEGER_SET);
+        types.remove(RealmFieldType.BINARY_SET);
 
 
         // Iterate all fields of AllTypes table and verify that distinct either:
@@ -4157,6 +4160,7 @@ public class RealmQueryTests extends QueryTests {
             case STRING_TO_LINK_MAP:
             case STRING_SET:
             case INTEGER_SET:
+            case BINARY_SET:
                 return false;
             case TYPED_LINK:
         }

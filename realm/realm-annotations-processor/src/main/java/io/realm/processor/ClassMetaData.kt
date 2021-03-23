@@ -104,7 +104,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     )
     private val validSetTypes: List<TypeMirror>  = listOf(
             typeMirrors.STRING_MIRROR,
-//            typeMirrors.BINARY_MIRROR,
+            typeMirrors.BINARY_MIRROR,
 //            typeMirrors.BOOLEAN_MIRROR,
             typeMirrors.LONG_MIRROR,
             typeMirrors.INTEGER_MIRROR,

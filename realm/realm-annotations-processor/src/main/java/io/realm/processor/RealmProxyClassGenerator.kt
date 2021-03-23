@@ -1105,6 +1105,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitStatement("builder.addPersistedLinkProperty(%s, \"%s\", RealmFieldType.STRING_TO_LINK_MAP, %s)", publicFieldName, internalFieldName, internalClassName)
                         }
                         Constants.RealmFieldType.STRING_SET,
+                        Constants.RealmFieldType.BINARY_SET,
                         Constants.RealmFieldType.INTEGER_SET -> {
                             val valueNullable = metadata.isSetValueNullable(field)
                             val requiredFlag = if (valueNullable) "!Property.REQUIRED" else "Property.REQUIRED"
