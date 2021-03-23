@@ -531,7 +531,7 @@ class SyncedRealmTests {
         }
         val expectedRealmList = RealmList<SyncDog>()
         val expectedStringList = RealmList<String>("hello world 1", "hello world 2")
-        val expectedBinaryList = RealmList<ByteArray>()
+        val expectedBinaryList = RealmList<ByteArray>(expectedBinary)
         val expectedBooleanList = RealmList<Boolean>(true, false, false, true)
         val expectedLongList = RealmList<Long>(0, 1, 2, 5, 7)
         val expectedDoubleList = RealmList<Double>(0.0, 2.toDouble(), 10.5)
@@ -591,7 +591,7 @@ class SyncedRealmTests {
         Realm.getInstance(config2).use { realm ->
             assertEquals(0, realm.where<SyncAllTypes>().count())
 
-            realm.syncSession.downloadAllServerChanges(5, TimeUnit.SECONDS).let {
+            realm.syncSession.downloadAllServerChanges(TestHelper.STANDARD_WAIT_SECS.toLong(), TimeUnit.SECONDS).let {
                 if (!it) fail()
             }
             realm.refresh()
@@ -611,9 +611,11 @@ class SyncedRealmTests {
                 assertEquals(expectedMixed, it.columnMixed)
                 assertEquals(expectedRealmInteger, it.columnRealmInteger.get())
                 assertEquals(expectedObjectId, it.columnRealmObject!!.id)
-                assertEquals(expectedObjectId, it.columnRealmList!!.first()!!.id)
+                assertEquals(expectedObjectId, it.columnRealmList.first()!!.id)
                 assertEquals(expectedStringList, it.columnStringList)
-                assertEquals(expectedBinaryList, it.columnBinaryList)
+                expectedBinaryList.forEachIndexed { index, bytes ->
+                    Arrays.equals(bytes, it.columnBinaryList[index])
+                }
                 assertEquals(expectedBooleanList, it.columnBooleanList)
                 assertEquals(expectedLongList, it.columnLongList)
                 assertEquals(expectedDoubleList, it.columnDoubleList)
