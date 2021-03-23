@@ -1261,7 +1261,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void equalTo_withNonExistingField() {
         try {
             realm.where(AllTypes.class).equalTo("NotAField", 13).findAll();
@@ -2003,7 +2002,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void equalTo_binary_multiFailures() {
         createBinaryOnlyDataSet();
 
@@ -2038,7 +2036,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void notEqualTo_binary_multiFailures() {
         createBinaryOnlyDataSet();
 
@@ -2585,7 +2582,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void isEmpty_illegalFieldTypeThrows() {
         for (RealmFieldType type : NOT_SUPPORTED_IS_EMPTY_TYPES) {
             try {
@@ -2627,7 +2623,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void isEmpty_invalidFieldNameThrows() {
         String[] fieldNames = new String[] {null, "", "foo", AllJavaTypes.FIELD_OBJECT + ".foo"};
 
@@ -2641,7 +2636,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void isEmpty_acrossLink_wrongTypeThrows() {
         for (RealmFieldType type : RealmFieldType.values()) {
             if (SUPPORTED_IS_EMPTY_TYPES.contains(type)) {
@@ -2779,7 +2773,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void isNotEmpty_illegalFieldTypeThrows() {
         for (RealmFieldType type : NOT_SUPPORTED_IS_NOT_EMPTY_TYPES) {
             try {
@@ -2821,7 +2814,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void isNotEmpty_invalidFieldNameThrows() {
         String[] fieldNames = new String[] {null, "", "foo", AllJavaTypes.FIELD_OBJECT + ".foo"};
 
@@ -3062,11 +3054,10 @@ public class RealmQueryTests extends QueryTests {
             } else {
                 // Test that unsupported types throw exception as expected
                 try {
-//                    if (((type.getNativeValue() & RealmFieldTypeConstants.LIST_OFFSET) == 0) && (type != RealmFieldType.LIST)) // FIXME: LISTS CRASHES REALM EXCEPTION
                         realm.where(AllTypes.class)
                                 .distinct(field)
                                 .findAll();
-                } catch (IllegalArgumentException ignore) {
+                } catch (IllegalStateException ignore) { // Not distinct not supported on lists
                 }
             }
             types.remove(type);
@@ -3074,9 +3065,6 @@ public class RealmQueryTests extends QueryTests {
 
         // Verify that we have tested all field types except LinkingObjects which is not part of
         // the schema lookup
-
-
-        // FIXME: NOT WORKING BACKLINKS
         assertEquals(types.toString(), Sets.newSet(RealmFieldType.LINKING_OBJECTS), types);
         // So verify Linking explicitly
         RealmResults<AllTypes> distinct = realm.where(AllTypes.class)
@@ -3086,19 +3074,19 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4477")
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4524")
     public void distinct_allFields() {
         distinctAllFields(realm, "");
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4477")
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4524")
     public void distinct_linkedAllFields() {
         distinctAllFields(realm, AllTypes.FIELD_REALMLINK + ".");
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4477")
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4524")
     public void distinct_nestedLinkedAllFields() {
         distinctAllFields(realm, AllTypes.FIELD_REALMLINK + "." + AllTypes.FIELD_REALMLINK + ".");
     }
@@ -3454,7 +3442,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void rawPredicate_invalidFieldNameThrows() {
         try {
             realm.where(AllTypes.class).rawPredicate("foo = 'test data 0'");
@@ -3465,7 +3452,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void rawPredicate_invalidLinkedFieldNameThrows() {
         try {
             realm.where(AllTypes.class).rawPredicate("columnRealmObject.foo = 'test data 0'");
@@ -3478,7 +3464,7 @@ public class RealmQueryTests extends QueryTests {
             realm.where(AllTypes.class).rawPredicate("unknownField.foo = 'test data 0'");
             fail();
         } catch (IllegalArgumentException e) {
-            assertTrue(e.getMessage().contains("class_AllTypes has no property unknownField"));
+            assertTrue(e.getMessage().contains("'AllTypes' has no property: 'unknownField'"));
         }
     }
 

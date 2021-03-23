@@ -303,21 +303,9 @@ public final class OsSharedRealm implements Closeable, NativeObject {
      * @return a {@link Table} object.
      * @throws IllegalArgumentException if the table doesn't exist.
      */
-    public Table getTable(String name, OsKeyPathMapping osKeyPathMapping) {
+    public Table getTable(String name, @Nullable OsKeyPathMapping osKeyPathMapping) {
         long tableRefPtr = nativeGetTableRef(nativePtr, name);
         return new Table(this, tableRefPtr, osKeyPathMapping);
-    }
-
-    /**
-     * Gets an existing {@link Table} with the given name.
-     *
-     * @param name the name of table.
-     * @return a {@link Table} object.
-     * @throws IllegalArgumentException if the table doesn't exist.
-     */
-    public Table getTable(String name) {
-        long tableRefPtr = nativeGetTableRef(nativePtr, name);
-        return new Table(this, tableRefPtr);
     }
 
     /**

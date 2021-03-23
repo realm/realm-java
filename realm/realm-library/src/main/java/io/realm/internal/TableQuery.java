@@ -43,6 +43,10 @@ public class TableQuery implements NativeObject {
 
     private boolean queryValidated = true;
 
+    private static String escapeFieldName(String fieldName){
+        return fieldName.replace(" ", "\\ ");
+    }
+
     public TableQuery(NativeContext context,
             Table table,
             long nativeQueryPtr) {
@@ -115,7 +119,7 @@ public class TableQuery implements NativeObject {
             String fieldName = fieldNames[i];
 
             descriptorBuilder.append(sortSeparator)
-                    .append(fieldName)
+                    .append(escapeFieldName(fieldName))
                     .append(" ")
                     .append((sortOrders[i] == Sort.ASCENDING) ? "ASC" : "DESC");
 
@@ -139,7 +143,7 @@ public class TableQuery implements NativeObject {
         String distinctSeparator = "";
         for (String fieldName : fieldNames) {
             descriptorBuilder.append(distinctSeparator)
-                    .append(fieldName);
+                    .append(escapeFieldName(fieldName));
 
             distinctSeparator = ", ";
         }
@@ -161,13 +165,13 @@ public class TableQuery implements NativeObject {
     }
 
     public TableQuery isEmpty(String fieldName) {
-        rawPredicateWithPointers(fieldName + ".@count = 0");
+        rawPredicateWithPointers(escapeFieldName(fieldName) + ".@count = 0");
         queryValidated = false;
         return this;
     }
 
     public TableQuery isNotEmpty(String fieldName) {
-        rawPredicateWithPointers(fieldName + ".@count != 0");
+        rawPredicateWithPointers(escapeFieldName(fieldName) + ".@count != 0");
         queryValidated = false;
         return this;
     }
@@ -243,116 +247,116 @@ public class TableQuery implements NativeObject {
     }
 
     public TableQuery equalTo(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, fieldName + " = $0", value);
+        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " = $0", value);
         queryValidated = false;
         return this;
     }
 
     public TableQuery notEqualTo(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, fieldName + " != $0", value);
+        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " != $0", value);
         queryValidated = false;
         return this;
     }
 
     public TableQuery equalToInsensitive(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, fieldName + " =[c] $0", value);
+        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " =[c] $0", value);
         queryValidated = false;
         return this;
     }
 
     public TableQuery notEqualToInsensitive(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, fieldName + " !=[c] $0", value);
+        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " !=[c] $0", value);
         queryValidated = false;
         return this;
     }
 
     public TableQuery greaterThan(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, fieldName + " > $0", value);
+        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " > $0", value);
         queryValidated = false;
         return this;
     }
 
     public TableQuery greaterThanOrEqual(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, fieldName + " >= $0", value);
+        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " >= $0", value);
         queryValidated = false;
         return this;
     }
 
     public TableQuery lessThan(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, fieldName + " < $0", value);
+        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " < $0", value);
         queryValidated = false;
         return this;
     }
 
     public TableQuery lessThanOrEqual(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, fieldName + " <= $0", value);
+        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " <= $0", value);
         queryValidated = false;
         return this;
     }
 
     public TableQuery between(String fieldName, Mixed value1, Mixed value2) {
-        mixedNativeFunctions.callRawPredicate(this, fieldName + " >= $0 AND " + fieldName + " <= $1", value1, value2);
+        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName)  + " >= $0 AND " + escapeFieldName(fieldName)  + " <= $1", value1, value2);
         queryValidated = false;
         return this;
     }
 
     public TableQuery beginsWith(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, fieldName + " BEGINSWITH $0", value);
+        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " BEGINSWITH $0", value);
         queryValidated = false;
         return this;
     }
 
     public TableQuery beginsWithInsensitive(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, fieldName + " BEGINSWITH[c] $0", value);
+        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " BEGINSWITH[c] $0", value);
         queryValidated = false;
         return this;
     }
 
     public TableQuery endsWith(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, fieldName + " ENDSWITH $0", value);
+        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " ENDSWITH $0", value);
         queryValidated = false;
         return this;
     }
 
     public TableQuery endsWithInsensitive(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, fieldName + " ENDSWITH[c] $0", value);
+        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " ENDSWITH[c] $0", value);
         queryValidated = false;
         return this;
     }
 
     public TableQuery like(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, fieldName + " LIKE $0", value);
+        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " LIKE $0", value);
         queryValidated = false;
         return this;
     }
 
     public TableQuery likeInsensitive(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, fieldName + " LIKE[c] $0", value);
+        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " LIKE[c] $0", value);
         queryValidated = false;
         return this;
     }
 
     public TableQuery contains(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, fieldName + " CONTAINS $0", value);
+        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " CONTAINS $0", value);
         queryValidated = false;
         return this;
     }
 
     public TableQuery containsInsensitive(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, fieldName + " CONTAINS[c] $0", value);
+        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " CONTAINS[c] $0", value);
         queryValidated = false;
         return this;
     }
 
     // isNull and isNotNull
     public TableQuery isNull(String fieldName) {
-        rawPredicateWithPointers(fieldName + " = NULL");
+        rawPredicateWithPointers(escapeFieldName(fieldName) + " = NULL");
         queryValidated = false;
         return this;
     }
 
     public TableQuery isNotNull(String fieldName) {
-        rawPredicateWithPointers(fieldName + " != NULL");
+        rawPredicateWithPointers(escapeFieldName(fieldName) + " != NULL");
         queryValidated = false;
         return this;
     }
@@ -370,6 +374,8 @@ public class TableQuery implements NativeObject {
     }
 
     public TableQuery in(String fieldName, Mixed[] values) {
+        fieldName = escapeFieldName(fieldName);
+
         beginGroup().equalTo(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
             if(values[i] == null){
@@ -385,6 +391,8 @@ public class TableQuery implements NativeObject {
     }
 
     public TableQuery inInsensitive(String fieldName, Mixed[] values) {
+        fieldName = escapeFieldName(fieldName);
+
         beginGroup().equalToInsensitive(fieldName, values[0]);
         for (int i = 1; i < values.length; i++) {
             if(values[i] == null){

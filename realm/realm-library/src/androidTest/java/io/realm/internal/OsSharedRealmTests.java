@@ -74,12 +74,12 @@ public class OsSharedRealmTests {
         assertTrue(sharedRealm.hasTable("MyTable"));
 
         // Table is existing, no need transaction to create it
-        assertTrue(sharedRealm.getTable("MyTable").isValid());
+        assertTrue(sharedRealm.getTable("MyTable", null).isValid());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getTable_throwsIfTableNotExist() {
-        sharedRealm.getTable("NON_EXISTING");
+        sharedRealm.getTable("NON_EXISTING", null);
     }
 
     @Test
