@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import org.bson.types.ObjectId;
+
 import javax.annotation.Nullable;
 
 import io.realm.internal.core.NativeMixedCollection;
@@ -260,6 +262,38 @@ public class OsSet implements NativeObject {
     }
 
     // ----------------------------------------------------
+    // ObjectId operations
+    // ----------------------------------------------------
+
+    public boolean contains(@Nullable ObjectId value) {
+        if (value == null) {
+            return nativeContainsNull(nativePtr);
+        } else {
+            return nativeContainsObjectId(nativePtr, value.toString());
+        }
+    }
+
+    public boolean add(@Nullable ObjectId value) {
+        long[] indexAndFound;
+        if (value == null) {
+            indexAndFound = nativeAddNull(nativePtr);
+        } else {
+            indexAndFound = nativeAddObjectId(nativePtr, value.toString());
+        }
+        return indexAndFound[1] != VALUE_NOT_FOUND;
+    }
+
+    public boolean remove(@Nullable ObjectId value) {
+        long[] indexAndFound;
+        if (value == null) {
+            indexAndFound = nativeRemoveNull(nativePtr);
+        } else {
+            indexAndFound = nativeRemoveObjectId(nativePtr, value.toString());
+        }
+        return indexAndFound[1] == VALUE_FOUND;
+    }
+
+    // ----------------------------------------------------
     // Set operations
     // ----------------------------------------------------
 
@@ -325,6 +359,8 @@ public class OsSet implements NativeObject {
 
     private static native boolean nativeContainsBinary(long nativePtr, byte[] value);
 
+    private static native boolean nativeContainsObjectId(long nativePtr, String value);
+
     private static native long[] nativeAddNull(long nativePtr);
 
     private static native long[] nativeAddString(long nativePtr, String value);
@@ -333,6 +369,8 @@ public class OsSet implements NativeObject {
 
     private static native long[] nativeAddBinary(long nativePtr, byte[] value);
 
+    private static native long[] nativeAddObjectId(long nativePtr, String value);
+
     private static native long[] nativeRemoveNull(long nativePtr);
 
     private static native long[] nativeRemoveString(long nativePtr, String value);
@@ -340,6 +378,8 @@ public class OsSet implements NativeObject {
     private static native long[] nativeRemoveLong(long nativePtr, long value);
 
     private static native long[] nativeRemoveBinary(long nativePtr, byte[] value);
+
+    private static native long[] nativeRemoveObjectId(long nativePtr, String value);
 
     private static native boolean nativeContainsAllMixedCollection(long nativePtr, long mixedCollectionPtr);
 

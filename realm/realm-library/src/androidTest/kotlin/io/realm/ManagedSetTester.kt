@@ -617,13 +617,17 @@ fun managedSetFactory(): List<SetTester> {
                         notPresentValue = VALUE_BINARY_NOT_PRESENT,
                         toArrayManaged = ToArrayManaged.BinaryManaged()
                 )
-
-//            SetSupportedType.OBJECT_ID ->
-//                UnmanagedSetTester<ObjectId>(
-//                        testerName = "ObjectId",
-//                        values = listOf(VALUE_OBJECT_ID_HELLO, VALUE_OBJECT_ID_BYE, null),
-//                        notPresentValue = VALUE_OBJECT_ID_NOT_PRESENT
-//                )
+            SetSupportedType.OBJECT_ID ->
+                ManagedSetTester<ObjectId>(
+                        testerName = "ObjectId",
+                        setGetter = AllTypes::getColumnObjectIdSet,
+                        setSetter = AllTypes::setColumnObjectIdSet,
+                        managedSetGetter = SetContainerClass::myObjectIdSet,
+                        managedCollectionGetter = SetContainerClass::myObjectIdList,
+                        initializedSet = listOf(VALUE_OBJECT_ID_HELLO, VALUE_OBJECT_ID_BYE, null),
+                        notPresentValue = VALUE_OBJECT_ID_NOT_PRESENT,
+                        toArrayManaged = ToArrayManaged.ObjectIdManaged()
+                )
 //            SetSupportedType.UUID ->
 //                UnmanagedSetTester<UUID>(
 //                        testerName = "UUID",

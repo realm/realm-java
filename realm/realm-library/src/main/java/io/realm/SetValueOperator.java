@@ -1,5 +1,7 @@
 package io.realm;
 
+import org.bson.types.ObjectId;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -169,6 +171,8 @@ abstract class SetValueOperator<E> {
             return (SetIterator<T>) new ByteSetIterator(osSet, baseRealm);
         } else if (valueClass == byte[].class) {
             return (SetIterator<T>) new BinarySetIterator(osSet, baseRealm);
+        } else if (valueClass == ObjectId.class) {
+            return (SetIterator<T>) new ObjectIdSetIterator(osSet, baseRealm);
         } else {
             throw new IllegalArgumentException("Unknown class for iterator: " + valueClass.getSimpleName());
         }
@@ -591,6 +595,77 @@ class BinaryOperator extends SetValueOperator<byte[]> {
 
 /**
  * TODO
+ */
+class ObjectIdOperator extends SetValueOperator<ObjectId> {
+
+    public ObjectIdOperator(BaseRealm baseRealm, OsSet osSet, Class<ObjectId> valueClass) {
+        super(baseRealm, osSet, valueClass);
+    }
+
+    @Override
+    boolean add(@Nullable ObjectId value) {
+        return osSet.add(value);
+    }
+
+    @Override
+    boolean contains(@Nullable Object o) {
+        ObjectId value;
+        if (o == null) {
+            value = null;
+        } else {
+            value = (ObjectId) o;
+        }
+        return osSet.contains(value);
+    }
+
+    @Override
+    boolean remove(@Nullable Object o) {
+        return osSet.remove((ObjectId) o);
+    }
+
+    @Override
+    boolean containsAllInternal(Collection<?> c) {
+        for (Object value : c) {
+            if (value != null && !(value instanceof ObjectId)) {
+                return false;
+            }
+        }
+
+        //noinspection unchecked
+        Collection<ObjectId> objectIdCollection = (Collection<ObjectId>) c;
+        NativeMixedCollection collection = NativeMixedCollection.newObjectIdCollection(objectIdCollection);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+    }
+
+    @Override
+    boolean addAllInternal(Collection<? extends ObjectId> c) {
+        for (Object value : c) {
+            if (value != null && !(value instanceof ObjectId)) {
+                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+            }
+        }
+
+        NativeMixedCollection collection = NativeMixedCollection.newObjectIdCollection(c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
+    }
+
+    @Override
+    boolean removeAllInternal(Collection<?> c) {
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newObjectIdCollection((Collection<ObjectId>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newObjectIdCollection((Collection<ObjectId>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
+    }
+}
+
+/**
+ * TODO
  *
  * @param <E>
  */
@@ -724,5 +799,14 @@ class BinarySetIterator extends SetIterator<byte[]> {
         }
 
         return (byte[]) value;
+    }
+}
+
+/**
+ * TODO
+ */
+class ObjectIdSetIterator extends SetIterator<ObjectId> {
+    public ObjectIdSetIterator(OsSet osSet, BaseRealm baseRealm) {
+        super(osSet, baseRealm);
     }
 }

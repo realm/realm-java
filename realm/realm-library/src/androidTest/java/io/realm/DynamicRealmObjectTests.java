@@ -1926,6 +1926,7 @@ public class DynamicRealmObjectTests {
                 case STRING_SET:
                 case INTEGER_SET:
                 case BINARY_SET:
+                case OBJECT_ID_SET:
                     // TODO: fix this when adding support for dictionaries and sets
                     break;
                 default:

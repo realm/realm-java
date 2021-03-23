@@ -743,3 +743,17 @@ Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddByteArraySetItem(JNI
     }
     CATCH_STD()
 }
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObjectIdSetItem(JNIEnv* env,
+                                                                            jclass,
+                                                                            jlong set_ptr,
+                                                                            jstring j_value) {
+    try {
+        JStringAccessor data(env, j_value);
+        ObjectId objectId = ObjectId(StringData(data).data());
+        const JavaValue value(objectId);
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}

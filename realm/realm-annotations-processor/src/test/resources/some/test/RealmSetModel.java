@@ -16,6 +16,8 @@
 
 package some.test;
 
+import org.bson.types.ObjectId;
+
 import io.realm.RealmSet;
 import io.realm.RealmObject;
 
@@ -27,6 +29,7 @@ public class RealmSetModel extends RealmObject {
     private RealmSet<Short> shortSet;
     private RealmSet<Byte> byteSet;
     private RealmSet<byte[]> binarySet;
+    private RealmSet<ObjectId> objectIdSet;
 
     public RealmSet<String> getStringSet() {
         return stringSet;
@@ -74,5 +77,13 @@ public class RealmSetModel extends RealmObject {
 
     public void setBinarySet(RealmSet<byte[]> binarySet) {
         this.binarySet = binarySet;
+    }
+
+    public RealmSet<ObjectId> getObjectIdSet() {
+        return objectIdSet;
+    }
+
+    public void setObjectIdSet(RealmSet<ObjectId> objectIdSet) {
+        this.objectIdSet = objectIdSet;
     }
 }
