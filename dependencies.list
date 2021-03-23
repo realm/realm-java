@@ -4,7 +4,7 @@ REALM_CORE=10.3.3
 
 # Version of MongoDB Realm used by integration tests
 # See https://github.com/realm/ci/packages/147854 for available versions
-MONGODB_REALM_SERVER=2021-03-09
+MONGODB_REALM_SERVER=2021-03-22
 
 # Common Android settings across projects
 GRADLE_BUILD_TOOLS=4.0.0

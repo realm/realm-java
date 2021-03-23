@@ -1557,6 +1557,53 @@ public class RealmMigrationTests {
         realm.close();
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void migrateRealm_mixedDeleteLinkedTable() {
+        // Creates v0 of the Realm.
+        RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
+                .schema(StringOnly.class, MixedNotIndexed.class)
+                .build();
+
+        Realm realm = Realm.getInstance(originalConfig);
+
+        realm.executeTransaction(transactionRealm -> {
+            MixedNotIndexed mixedNotIndexed = new MixedNotIndexed();
+            StringOnly stringOnly = new StringOnly();
+            stringOnly.setChars("hello world");
+            mixedNotIndexed.setMixed(Mixed.valueOf(stringOnly));
+
+            transactionRealm.copyToRealm(mixedNotIndexed);
+        });
+
+        RealmResults<MixedNotIndexed> results = realm.where(MixedNotIndexed.class).findAll();
+        assertEquals(1, results.size());
+        assertNotNull(results.get(0));
+
+        Mixed mixed = results.get(0).getMixed();
+        assertEquals(MixedType.OBJECT, mixed.getType());
+        assertEquals(StringOnly.class, mixed.getValueClass());
+
+        realm.close();
+
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmSchema schema = realm.getSchema();
+                schema.remove(StringOnly.CLASS_NAME);
+            }
+        };
+
+        // Creates v1 of the Realm.
+        RealmConfiguration realmConfig = configFactory
+                .createConfigurationBuilder()
+                .schemaVersion(1)
+                .schema(MixedNotIndexed.class)
+                .migration(migration)
+                .build();
+
+        realm = Realm.getInstance(realmConfig);
+    }
+
     @Test
     public void migrateRealm_mixedIndexed() {
         // Creates v0 of the Realm.
