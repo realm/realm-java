@@ -467,7 +467,7 @@ def readGitTag() {
   if (returnStatus != 0) {
     return null
   }
-  return returnStatus.trim()
+  return sh(returnStdout: true, script: command).trim()
 }
 
 def runCommand(String command){
