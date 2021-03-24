@@ -2061,8 +2061,13 @@ public class RealmQuery<E> {
      * <p>
      * Class and property names used in the raw predicate can be either the names defined in the
      * Realm Model classes or the internal names defined using the {@link io.realm.annotations.RealmClass}
-     * or {@link io.realm.annotations.RealmField} annotations.
+     * or {@link io.realm.annotations.RealmField} annotations. If a class or property name contains spaces those must
+     * be escaped.
      * </p>
+     * Arguments are defined in the string predicate as $argument_index, where $argument_index is a decimal integer that
+     * specifies the position of the argument in the argument list. The first argument is referenced by $0, the second
+     * by $1, etc.
+     * <p>
      * See <a href="https://docs.mongodb.com/realm-sdks/js/latest/tutorial-query-language.html">these docs</a>
      * for a more detailed description of the Realm Query Language.
      * <p>
@@ -2073,6 +2078,9 @@ public class RealmQuery<E> {
      *
      * // Simple query
      * query.rawPredicate("name = 'Jane'");
+     *
+     * // Spaces in property name
+     * query.rawPredicate("my\ property = 'Jane'");
      *
      * // Multiple predicates
      * query.rawPredicate("name = 'Jane' OR name = 'John'")
