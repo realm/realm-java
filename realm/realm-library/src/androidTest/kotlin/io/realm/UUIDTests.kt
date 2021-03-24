@@ -415,7 +415,6 @@ class UUIDTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4475")
     fun queriesGreaterThanOrEqualTo() {
         val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
         val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
@@ -439,7 +438,6 @@ class UUIDTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4475")
     fun queriesGreaterThan() {
         val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
         val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
@@ -462,7 +460,6 @@ class UUIDTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4475")
     fun queriesLessThanOrEqualTo() {
         val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
         val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
@@ -486,7 +483,6 @@ class UUIDTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4475")
     fun queriesLessThan() {
         val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
         val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
