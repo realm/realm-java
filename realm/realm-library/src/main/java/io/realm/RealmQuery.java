@@ -2206,8 +2206,6 @@ public class RealmQuery<E> {
                 return query.sumDouble(columnKey);
             case DECIMAL128:
                 return query.sumDecimal128(columnKey);
-            case MIXED:
-                return query.sumMixed(columnKey);
             default:
                 throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double"));
@@ -2237,8 +2235,6 @@ public class RealmQuery<E> {
                 return query.averageDouble(columnIndex);
             case FLOAT:
                 return query.averageFloat(columnIndex);
-            case MIXED:
-                return query.averageMixed(columnIndex);
             default:
                 throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double. For Decimal128 use `averageDecimal128` method."));
@@ -2289,8 +2285,6 @@ public class RealmQuery<E> {
                 return this.query.minimumDouble(columnIndex);
             case DECIMAL128:
                 return this.query.minimumDecimal128(columnIndex);
-            case MIXED:
-                return this.query.minimumMixed(columnIndex);
             default:
                 throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double"));
@@ -2341,8 +2335,6 @@ public class RealmQuery<E> {
                 return this.query.maximumDouble(columnIndex);
             case DECIMAL128:
                 return this.query.maximumDecimal128(columnIndex);
-            case MIXED:
-                return this.query.maximumMixed(columnIndex);
             default:
                 throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double"));

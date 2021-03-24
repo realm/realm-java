@@ -257,6 +257,10 @@ public:
         REALM_TERMINATE("not supported");
     }
 
+    bool is_null(util::Any value) {
+        return !value.has_value();
+    }
+
     // Convert from the boxed type to core types. This needs to be implemented
     // for all of the types which `box()` can take, plus `RowExpr` and optional
     // versions of the numeric types, minus `List` and `Results`.
