@@ -38,6 +38,8 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateBooleanCollection(
                                                                                 jbooleanArray j_boolean_array,
                                                                                 jbooleanArray j_not_null) {
     try {
+        // TODO: could be worth templating this logic here and in the methods below
+        //  https://github.com/realm/realm-java/issues/7384
         JBooleanArrayAccessor values(env, j_boolean_array);
         JBooleanArrayAccessor not_null(env, j_not_null);
         auto collection = new std::vector<JavaValue>();
