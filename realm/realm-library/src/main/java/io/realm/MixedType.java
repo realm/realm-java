@@ -50,6 +50,7 @@ public enum MixedType {
             final int nativeValue = mixedType.realmFieldType.getNativeValue();
             realmFieldToMixedTypeMap[nativeValue] = mixedType;
         }
+        // TODO: only used for testing purposes, see https://github.com/realm/realm-java/issues/7385
         // Links Object field type to Mixed object.
         realmFieldToMixedTypeMap[RealmFieldType.OBJECT.getNativeValue()] = OBJECT;
     }
