@@ -91,12 +91,19 @@ class ManagedSetTester<T : Any>(
     override fun contains() {
         val set = initAndAssertEmptySet()
 
-        assertFalse(set.contains(notPresentValue))
-        realm.executeTransaction {
-            set.add(notPresentValue)
+        initializedSet.forEach { value ->
+            assertFalse(set.contains(value))
         }
-        assertTrue(set.contains(notPresentValue))
-        assertFalse(set.contains(null))
+        realm.executeTransaction {
+            set.addAll(initializedSet)
+        }
+        initializedSet.forEach { value ->
+            assertTrue(set.contains(value))
+        }
+        assertFalse(set.contains(notPresentValue))
+
+        // Check contains with something entirely different
+        assertFalse(set.contains(Pair(1, 2) as T))
     }
 
     override fun iterator() {
@@ -159,8 +166,8 @@ class ManagedSetTester<T : Any>(
         val set = initAndAssertEmptySet()
 
         realm.executeTransaction {
+            set.addAll(initializedSet)
             initializedSet.forEach { value ->
-                set.add(value)
                 assertTrue(set.remove(value))
             }
             assertTrue(set.isEmpty())
