@@ -92,7 +92,7 @@ object Constants {
             "java.lang.Short" to RealmFieldType.INTEGER_SET,
             "java.lang.Integer" to RealmFieldType.INTEGER_SET,
             "java.lang.Long" to RealmFieldType.INTEGER_SET,
-//            "java.lang.Float" to RealmFieldType.FLOAT_SET,
+            "java.lang.Float" to RealmFieldType.FLOAT_SET,
 //            "java.lang.Double" to RealmFieldType.DOUBLE_SET,
 //            "java.lang.Boolean" to RealmFieldType.BOOLEAN_SET,
             "java.lang.String" to RealmFieldType.STRING_SET,
@@ -156,6 +156,7 @@ object Constants {
 
         STRING_SET("STRING_SET", "Set"),
         INTEGER_SET("INTEGER_SET", "Set"),
+        FLOAT_SET("FLOAT_SET", "Set"),
         OBJECT_ID_SET("OBJECT_ID_SET", "Set"),
         BINARY_SET("BINARY_SET", "Set"),
         UUID_SET("UUID_SET", "Set");

@@ -150,6 +150,18 @@ Java_io_realm_internal_OsSet_nativeContainsLong(JNIEnv* env, jclass, jlong set_p
 }
 
 JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsSet_nativeContainsFloat(JNIEnv* env, jclass, jlong set_ptr,
+                                                 jfloat j_value) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        size_t found = set.find_any(Mixed(j_value));
+        return found != npos;       // npos represents "not found"
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_OsSet_nativeContainsBinary(JNIEnv* env, jclass, jlong set_ptr,
                                                   jbyteArray j_value) {
     try {
@@ -230,6 +242,26 @@ Java_io_realm_internal_OsSet_nativeAddString(JNIEnv* env, jclass, jlong set_ptr,
 
 JNIEXPORT jlongArray JNICALL
 Java_io_realm_internal_OsSet_nativeAddLong(JNIEnv* env, jclass, jlong set_ptr, jlong j_value) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        JavaAccessorContext context(env);
+
+        // TODO: abstract this call so that the rest is the same for all types
+        const std::pair<size_t, bool>& add_pair = set.insert(context, Any(j_value));
+
+        jlong ret[2];
+        ret[0] = add_pair.first;    // index
+        ret[1] = add_pair.second;   // found (or not)
+        jlongArray ret_array = env->NewLongArray(2);
+        env->SetLongArrayRegion(ret_array, 0, 2, ret);
+        return ret_array;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jlongArray JNICALL
+Java_io_realm_internal_OsSet_nativeAddFloat(JNIEnv* env, jclass, jlong set_ptr, jfloat j_value) {
     try {
         auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
         JavaAccessorContext context(env);
@@ -353,7 +385,28 @@ Java_io_realm_internal_OsSet_nativeRemoveString(JNIEnv* env, jclass, jlong set_p
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeRemoveLong(JNIEnv* env, jclass, jlong set_ptr, jlong j_value) {
+Java_io_realm_internal_OsSet_nativeRemoveLong(JNIEnv* env, jclass, jlong set_ptr,
+                                              jlong j_value) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+
+        // TODO: abstract this call so that the rest is the same for all types
+        const std::pair<size_t, bool>& remove_pair = set.remove_any(Mixed(j_value));
+
+        jlong ret[2];
+        ret[0] = remove_pair.first;     // index
+        ret[1] = remove_pair.second;    // found (or not)
+        jlongArray ret_array = env->NewLongArray(2);
+        env->SetLongArrayRegion(ret_array, 0, 2, ret);
+        return ret_array;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jlongArray JNICALL
+Java_io_realm_internal_OsSet_nativeRemoveFloat(JNIEnv* env, jclass, jlong set_ptr,
+                                               jfloat j_value) {
     try {
         auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
 

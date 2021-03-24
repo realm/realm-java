@@ -28,6 +28,7 @@ import static io.realm.RealmFieldType.DATE_LIST;
 import static io.realm.RealmFieldType.DECIMAL128_LIST;
 import static io.realm.RealmFieldType.DOUBLE_LIST;
 import static io.realm.RealmFieldType.FLOAT_LIST;
+import static io.realm.RealmFieldType.FLOAT_SET;
 import static io.realm.RealmFieldType.INTEGER_LIST;
 import static io.realm.RealmFieldType.INTEGER_SET;
 import static io.realm.RealmFieldType.MIXED_LIST;
@@ -227,6 +228,9 @@ public class Property implements NativeObject {
             case INTEGER_SET:
                 type = TYPE_INT | TYPE_SET;
                 break;
+            case FLOAT_SET:
+                type = TYPE_FLOAT | TYPE_SET;
+                break;
             case BINARY_SET:
                 type = TYPE_DATA | TYPE_SET;
                 break;
@@ -327,6 +331,8 @@ public class Property implements NativeObject {
                 return STRING_SET;
             case TYPE_INT | TYPE_SET:
                 return INTEGER_SET;
+            case TYPE_FLOAT | TYPE_SET:
+                return FLOAT_SET;
             case TYPE_DATA | TYPE_SET:
                 return BINARY_SET;
             case TYPE_OBJECT_ID | TYPE_SET:
