@@ -16,7 +16,7 @@
 
 package io.realm
 
-import io.realm.entities.AllTypes
+import io.realm.entities.DictionaryAllTypes
 import io.realm.entities.DogPrimaryKey
 import io.realm.entities.PopulatedDictionaryClass
 import io.realm.entities.PrimaryKeyDictionaryContainer
@@ -35,14 +35,14 @@ import kotlin.test.*
  * Generic tester for all types of managed dictionaries.
  *
  * It uses `KFunction1` and `KFunction2` to streamline the access to [RealmDictionary] fields in
- * [AllTypes]. This way we only need one tester for all supported types.
+ * [DictionaryAllTypes]. This way we only need one tester for all supported types.
  */
 class ManagedDictionaryTester<T : Any>(
         private val testerClass: String,
         private val mixedType: MixedType? = null,
-        private val dictionaryGetter: KFunction1<AllTypes, RealmDictionary<T>>,
-        private val dictionarySetter: KFunction2<AllTypes, RealmDictionary<T>, Unit>,
-        private val requiredDictionaryGetter: KFunction1<AllTypes, RealmDictionary<T>>? = null,
+        private val dictionaryGetter: KFunction1<DictionaryAllTypes, RealmDictionary<T>>,
+        private val dictionarySetter: KFunction2<DictionaryAllTypes, RealmDictionary<T>, Unit>,
+        private val requiredDictionaryGetter: KFunction1<DictionaryAllTypes, RealmDictionary<T>>? = null,
         private val initializedDictionary: RealmDictionary<T>,
         private val alternativeDictionary: RealmDictionary<T>,
         private val populatedGetter: KProperty1<PopulatedDictionaryClass, RealmDictionary<T>>,
@@ -346,7 +346,7 @@ class ManagedDictionaryTester<T : Any>(
 
     override fun copyToRealm() {
         // Instantiate container and set dictionary on container
-        val manualInstance = AllTypes().apply {
+        val manualInstance = DictionaryAllTypes().apply {
             dictionarySetter.call(this, initializedDictionary)
         }
 
@@ -357,7 +357,7 @@ class ManagedDictionaryTester<T : Any>(
         }
 
         // Get dictionary from container from Realm
-        val allTypesObject = realm.where<AllTypes>().findFirst()
+        val allTypesObject = realm.where<DictionaryAllTypes>().findFirst()
         assertNotNull(allTypesObject)
         val dictionary = dictionaryGetter.call(allTypesObject)
         assertFalse(dictionary.isEmpty())
@@ -573,11 +573,11 @@ class ManagedDictionaryTester<T : Any>(
         return dictionaryGetter.call(allTypesObject)
     }
 
-    private fun createAllTypesManagedContainerAndAssert(realm: Realm): AllTypes {
+    private fun createAllTypesManagedContainerAndAssert(realm: Realm): DictionaryAllTypes {
         realm.executeTransaction { transactionRealm ->
-            transactionRealm.createObject<AllTypes>()
+            transactionRealm.createObject<DictionaryAllTypes>()
         }
-        val allTypesObject = realm.where<AllTypes>().findFirst()
+        val allTypesObject = realm.where<DictionaryAllTypes>().findFirst()
         assertNotNull(allTypesObject)
         return allTypesObject
     }
@@ -629,9 +629,9 @@ fun managedFactory(): List<DictionaryTester> {
     val primitiveTesters = listOf<DictionaryTester>(
             ManagedDictionaryTester(
                     testerClass = "Long",
-                    dictionaryGetter = AllTypes::getColumnLongDictionary,
-                    dictionarySetter = AllTypes::setColumnLongDictionary,
-                    requiredDictionaryGetter = AllTypes::getColumnRequiredLongDictionary,
+                    dictionaryGetter = DictionaryAllTypes::getColumnLongDictionary,
+                    dictionarySetter = DictionaryAllTypes::setColumnLongDictionary,
+                    requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredLongDictionary,
                     initializedDictionary = RealmDictionary<Long>().init(listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toLong(), KEY_BYE to VALUE_NUMERIC_BYE.toLong(), KEY_NULL to null)),
                     alternativeDictionary = RealmDictionary<Long>().init(listOf(KEY_HELLO to VALUE_NUMERIC_BYE.toLong(), KEY_BYE to VALUE_NUMERIC_HELLO.toLong(), KEY_NULL to null)),
                     populatedGetter = PopulatedDictionaryClass::populatedLongDictionary,
@@ -639,9 +639,9 @@ fun managedFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "Int",
-                    dictionaryGetter = AllTypes::getColumnIntegerDictionary,
-                    dictionarySetter = AllTypes::setColumnIntegerDictionary,
-                    requiredDictionaryGetter = AllTypes::getColumnRequiredIntegerDictionary,
+                    dictionaryGetter = DictionaryAllTypes::getColumnIntegerDictionary,
+                    dictionarySetter = DictionaryAllTypes::setColumnIntegerDictionary,
+                    requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredIntegerDictionary,
                     initializedDictionary = RealmDictionary<Int>().init(listOf(KEY_HELLO to VALUE_NUMERIC_HELLO, KEY_BYE to VALUE_NUMERIC_BYE, KEY_NULL to null)),
                     alternativeDictionary = RealmDictionary<Int>().init(listOf(KEY_HELLO to VALUE_NUMERIC_BYE, KEY_BYE to VALUE_NUMERIC_HELLO, KEY_NULL to null)),
                     populatedGetter = PopulatedDictionaryClass::populatedIntDictionary,
@@ -649,9 +649,9 @@ fun managedFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "Short",
-                    dictionaryGetter = AllTypes::getColumnShortDictionary,
-                    dictionarySetter = AllTypes::setColumnShortDictionary,
-                    requiredDictionaryGetter = AllTypes::getColumnRequiredShortDictionary,
+                    dictionaryGetter = DictionaryAllTypes::getColumnShortDictionary,
+                    dictionarySetter = DictionaryAllTypes::setColumnShortDictionary,
+                    requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredShortDictionary,
                     initializedDictionary = RealmDictionary<Short>().init(listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toShort(), KEY_BYE to VALUE_NUMERIC_BYE.toShort(), KEY_NULL to null)),
                     alternativeDictionary = RealmDictionary<Short>().init(listOf(KEY_HELLO to VALUE_NUMERIC_BYE.toShort(), KEY_BYE to VALUE_NUMERIC_HELLO.toShort(), KEY_NULL to null)),
                     populatedGetter = PopulatedDictionaryClass::populatedShortDictionary,
@@ -659,9 +659,9 @@ fun managedFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "Byte",
-                    dictionaryGetter = AllTypes::getColumnByteDictionary,
-                    dictionarySetter = AllTypes::setColumnByteDictionary,
-                    requiredDictionaryGetter = AllTypes::getColumnRequiredByteDictionary,
+                    dictionaryGetter = DictionaryAllTypes::getColumnByteDictionary,
+                    dictionarySetter = DictionaryAllTypes::setColumnByteDictionary,
+                    requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredByteDictionary,
                     initializedDictionary = RealmDictionary<Byte>().init(listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toByte(), KEY_BYE to VALUE_NUMERIC_BYE.toByte(), KEY_NULL to null)),
                     alternativeDictionary = RealmDictionary<Byte>().init(listOf(KEY_HELLO to VALUE_NUMERIC_BYE.toByte(), KEY_BYE to VALUE_NUMERIC_HELLO.toByte(), KEY_NULL to null)),
                     populatedGetter = PopulatedDictionaryClass::populatedByteDictionary,
@@ -669,9 +669,9 @@ fun managedFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "Float",
-                    dictionaryGetter = AllTypes::getColumnFloatDictionary,
-                    dictionarySetter = AllTypes::setColumnFloatDictionary,
-                    requiredDictionaryGetter = AllTypes::getColumnRequiredFloatDictionary,
+                    dictionaryGetter = DictionaryAllTypes::getColumnFloatDictionary,
+                    dictionarySetter = DictionaryAllTypes::setColumnFloatDictionary,
+                    requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredFloatDictionary,
                     initializedDictionary = RealmDictionary<Float>().init(listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toFloat(), KEY_BYE to VALUE_NUMERIC_BYE.toFloat(), KEY_NULL to null)),
                     alternativeDictionary = RealmDictionary<Float>().init(listOf(KEY_HELLO to VALUE_NUMERIC_BYE.toFloat(), KEY_BYE to VALUE_NUMERIC_HELLO.toFloat(), KEY_NULL to null)),
                     populatedGetter = PopulatedDictionaryClass::populatedFloatDictionary,
@@ -679,9 +679,9 @@ fun managedFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "Double",
-                    dictionaryGetter = AllTypes::getColumnDoubleDictionary,
-                    dictionarySetter = AllTypes::setColumnDoubleDictionary,
-                    requiredDictionaryGetter = AllTypes::getColumnRequiredDoubleDictionary,
+                    dictionaryGetter = DictionaryAllTypes::getColumnDoubleDictionary,
+                    dictionarySetter = DictionaryAllTypes::setColumnDoubleDictionary,
+                    requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredDoubleDictionary,
                     initializedDictionary = RealmDictionary<Double>().init(listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toDouble(), KEY_BYE to VALUE_NUMERIC_BYE.toDouble(), KEY_NULL to null)),
                     alternativeDictionary = RealmDictionary<Double>().init(listOf(KEY_HELLO to VALUE_NUMERIC_BYE.toDouble(), KEY_BYE to VALUE_NUMERIC_HELLO.toDouble(), KEY_NULL to null)),
                     populatedGetter = PopulatedDictionaryClass::populatedDoubleDictionary,
@@ -689,9 +689,9 @@ fun managedFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "String",
-                    dictionaryGetter = AllTypes::getColumnStringDictionary,
-                    dictionarySetter = AllTypes::setColumnStringDictionary,
-                    requiredDictionaryGetter = AllTypes::getColumnRequiredStringDictionary,
+                    dictionaryGetter = DictionaryAllTypes::getColumnStringDictionary,
+                    dictionarySetter = DictionaryAllTypes::setColumnStringDictionary,
+                    requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredStringDictionary,
                     initializedDictionary = RealmDictionary<String>().init(listOf(KEY_HELLO to VALUE_STRING_HELLO, KEY_BYE to VALUE_STRING_BYE, KEY_NULL to null)),
                     alternativeDictionary = RealmDictionary<String>().init(listOf(KEY_HELLO to VALUE_STRING_BYE, KEY_BYE to VALUE_STRING_HELLO, KEY_NULL to null)),
                     populatedGetter = PopulatedDictionaryClass::populatedStringDictionary,
@@ -699,9 +699,9 @@ fun managedFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "String-NonLatin",
-                    dictionaryGetter = AllTypes::getColumnStringDictionary,
-                    dictionarySetter = AllTypes::setColumnStringDictionary,
-                    requiredDictionaryGetter = AllTypes::getColumnRequiredStringDictionary,
+                    dictionaryGetter = DictionaryAllTypes::getColumnStringDictionary,
+                    dictionarySetter = DictionaryAllTypes::setColumnStringDictionary,
+                    requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredStringDictionary,
                     initializedDictionary = RealmDictionary<String>().init(listOf(KEY_HELLO_NON_LATIN to VALUE_STRING_NON_LATIN_HELLO, KEY_BYE_NON_LATIN to VALUE_STRING_NON_LATIN_BYE, KEY_NULL_NON_LATIN to null)),
                     alternativeDictionary = RealmDictionary<String>().init(listOf(KEY_HELLO_NON_LATIN to VALUE_STRING_NON_LATIN_BYE, KEY_BYE_NON_LATIN to VALUE_STRING_NON_LATIN_HELLO, KEY_NULL_NON_LATIN to null)),
                     populatedGetter = PopulatedDictionaryClass::populatedStringDictionary,
@@ -709,9 +709,9 @@ fun managedFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "Boolean",
-                    dictionaryGetter = AllTypes::getColumnBooleanDictionary,
-                    dictionarySetter = AllTypes::setColumnBooleanDictionary,
-                    requiredDictionaryGetter = AllTypes::getColumnRequiredBooleanDictionary,
+                    dictionaryGetter = DictionaryAllTypes::getColumnBooleanDictionary,
+                    dictionarySetter = DictionaryAllTypes::setColumnBooleanDictionary,
+                    requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredBooleanDictionary,
                     initializedDictionary = RealmDictionary<Boolean>().init(listOf(KEY_HELLO to VALUE_BOOLEAN_HELLO, KEY_BYE to VALUE_BOOLEAN_BYE, KEY_NULL to null)),
                     alternativeDictionary = RealmDictionary<Boolean>().init(listOf(KEY_HELLO to VALUE_BOOLEAN_BYE, KEY_BYE to VALUE_BOOLEAN_HELLO, KEY_NULL to null)),
                     populatedGetter = PopulatedDictionaryClass::populatedBooleanDictionary,
@@ -719,9 +719,9 @@ fun managedFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "Date",
-                    dictionaryGetter = AllTypes::getColumnDateDictionary,
-                    dictionarySetter = AllTypes::setColumnDateDictionary,
-                    requiredDictionaryGetter = AllTypes::getColumnRequiredDateDictionary,
+                    dictionaryGetter = DictionaryAllTypes::getColumnDateDictionary,
+                    dictionarySetter = DictionaryAllTypes::setColumnDateDictionary,
+                    requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredDateDictionary,
                     initializedDictionary = RealmDictionary<Date>().init(listOf(KEY_HELLO to VALUE_DATE_HELLO, KEY_BYE to VALUE_DATE_BYE, KEY_NULL to null)),
                     alternativeDictionary = RealmDictionary<Date>().init(listOf(KEY_HELLO to VALUE_DATE_BYE, KEY_BYE to VALUE_DATE_HELLO, KEY_NULL to null)),
                     populatedGetter = PopulatedDictionaryClass::populatedDateDictionary,
@@ -729,9 +729,9 @@ fun managedFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "Decimal128",
-                    dictionaryGetter = AllTypes::getColumnDecimal128Dictionary,
-                    dictionarySetter = AllTypes::setColumnDecimal128Dictionary,
-                    requiredDictionaryGetter = AllTypes::getColumnRequiredDecimal128Dictionary,
+                    dictionaryGetter = DictionaryAllTypes::getColumnDecimal128Dictionary,
+                    dictionarySetter = DictionaryAllTypes::setColumnDecimal128Dictionary,
+                    requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredDecimal128Dictionary,
                     initializedDictionary = RealmDictionary<Decimal128>().init(listOf(KEY_HELLO to VALUE_DECIMAL128_HELLO, KEY_BYE to VALUE_DECIMAL128_BYE, KEY_NULL to null)),
                     alternativeDictionary = RealmDictionary<Decimal128>().init(listOf(KEY_HELLO to VALUE_DECIMAL128_BYE, KEY_BYE to VALUE_DECIMAL128_HELLO, KEY_NULL to null)),
                     populatedGetter = PopulatedDictionaryClass::populatedDecimal128Dictionary,
@@ -739,9 +739,9 @@ fun managedFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "ByteArray",
-                    dictionaryGetter = AllTypes::getColumnBinaryDictionary,
-                    dictionarySetter = AllTypes::setColumnBinaryDictionary,
-                    requiredDictionaryGetter = AllTypes::getColumnRequiredBinaryDictionary,
+                    dictionaryGetter = DictionaryAllTypes::getColumnBinaryDictionary,
+                    dictionarySetter = DictionaryAllTypes::setColumnBinaryDictionary,
+                    requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredBinaryDictionary,
                     initializedDictionary = RealmDictionary<ByteArray>().init(listOf(KEY_HELLO to VALUE_BINARY_HELLO, KEY_BYE to VALUE_BINARY_BYE, KEY_NULL to null)),
                     alternativeDictionary = RealmDictionary<ByteArray>().init(listOf(KEY_HELLO to VALUE_BINARY_BYE, KEY_BYE to VALUE_BINARY_HELLO, KEY_NULL to null)),
                     populatedGetter = PopulatedDictionaryClass::populatedBinaryDictionary,
@@ -750,9 +750,9 @@ fun managedFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "ObjectId",
-                    dictionaryGetter = AllTypes::getColumnObjectIdDictionary,
-                    dictionarySetter = AllTypes::setColumnObjectIdDictionary,
-                    requiredDictionaryGetter = AllTypes::getColumnRequiredObjectIdDictionary,
+                    dictionaryGetter = DictionaryAllTypes::getColumnObjectIdDictionary,
+                    dictionarySetter = DictionaryAllTypes::setColumnObjectIdDictionary,
+                    requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredObjectIdDictionary,
                     initializedDictionary = RealmDictionary<ObjectId>().init(listOf(KEY_HELLO to VALUE_OBJECT_ID_HELLO, KEY_BYE to VALUE_OBJECT_ID_BYE, KEY_NULL to null)),
                     alternativeDictionary = RealmDictionary<ObjectId>().init(listOf(KEY_HELLO to VALUE_OBJECT_ID_BYE, KEY_BYE to VALUE_OBJECT_ID_HELLO, KEY_NULL to null)),
                     populatedGetter = PopulatedDictionaryClass::populatedObjectIdDictionary,
@@ -760,9 +760,9 @@ fun managedFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "UUID",
-                    dictionaryGetter = AllTypes::getColumnUUIDDictionary,
-                    dictionarySetter = AllTypes::setColumnUUIDDictionary,
-                    requiredDictionaryGetter = AllTypes::getColumnRequiredUUIDDictionary,
+                    dictionaryGetter = DictionaryAllTypes::getColumnUUIDDictionary,
+                    dictionarySetter = DictionaryAllTypes::setColumnUUIDDictionary,
+                    requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredUUIDDictionary,
                     initializedDictionary = RealmDictionary<UUID>().init(listOf(KEY_HELLO to VALUE_UUID_HELLO, KEY_BYE to VALUE_UUID_BYE, KEY_NULL to null)),
                     alternativeDictionary = RealmDictionary<UUID>().init(listOf(KEY_HELLO to VALUE_UUID_BYE, KEY_BYE to VALUE_UUID_HELLO, KEY_NULL to null)),
                     populatedGetter = PopulatedDictionaryClass::populatedUUIDDictionary,
@@ -770,8 +770,8 @@ fun managedFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "DogPrimaryKey",
-                    dictionaryGetter = AllTypes::getColumnRealmDictionary,
-                    dictionarySetter = AllTypes::setColumnRealmDictionary,
+                    dictionaryGetter = DictionaryAllTypes::getColumnRealmDictionary,
+                    dictionarySetter = DictionaryAllTypes::setColumnRealmDictionary,
                     initializedDictionary = RealmDictionary<DogPrimaryKey>().init(listOf(KEY_HELLO to VALUE_LINK_HELLO, KEY_BYE to VALUE_LINK_BYE, KEY_NULL to null)),
                     alternativeDictionary = RealmDictionary<DogPrimaryKey>().init(listOf(KEY_HELLO to VALUE_LINK_BYE, KEY_BYE to VALUE_LINK_HELLO, KEY_NULL to null)),
                     populatedGetter = PopulatedDictionaryClass::populatedRealmModelDictionary,
@@ -785,8 +785,8 @@ fun managedFactory(): List<DictionaryTester> {
         ManagedDictionaryTester(
                 testerClass = "Mixed",
                 mixedType = mixedType,
-                dictionaryGetter = AllTypes::getColumnMixedDictionary,
-                dictionarySetter = AllTypes::setColumnMixedDictionary,
+                dictionaryGetter = DictionaryAllTypes::getColumnMixedDictionary,
+                dictionarySetter = DictionaryAllTypes::setColumnMixedDictionary,
                 initializedDictionary = RealmDictionary<Mixed>().init(getMixedKeyValuePairs(mixedType)),
                 alternativeDictionary = RealmDictionary<Mixed>().init(getMixedKeyValuePairs(mixedType, true)),
                 populatedGetter = PopulatedDictionaryClass::populatedMixedDictionary,
@@ -797,8 +797,8 @@ fun managedFactory(): List<DictionaryTester> {
             ManagedDictionaryTester(
                     testerClass = "Mixed-NonLatin",
                     mixedType = MixedType.STRING,
-                    dictionaryGetter = AllTypes::getColumnMixedDictionary,
-                    dictionarySetter = AllTypes::setColumnMixedDictionary,
+                    dictionaryGetter = DictionaryAllTypes::getColumnMixedDictionary,
+                    dictionarySetter = DictionaryAllTypes::setColumnMixedDictionary,
                     initializedDictionary = RealmDictionary<Mixed>().init(listOf(KEY_HELLO_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_BYE, KEY_BYE_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_HELLO, KEY_NULL_NON_LATIN to null)),
                     alternativeDictionary = RealmDictionary<Mixed>().init(listOf(KEY_HELLO_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_HELLO, KEY_BYE_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_BYE, KEY_NULL_NON_LATIN to null)),
                     populatedGetter = PopulatedDictionaryClass::populatedMixedDictionary,
