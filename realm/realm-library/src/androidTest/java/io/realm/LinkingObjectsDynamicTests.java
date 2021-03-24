@@ -264,6 +264,7 @@ public class LinkingObjectsDynamicTests {
                     case INTEGER_SET:
                     case BINARY_SET:
                     case OBJECT_ID_SET:
+                    case UUID_SET:
                         // TODO: fix this when adding support for dictionary and set in AllJavaTypes
                         throw new IllegalArgumentException("Unexpected field type");
                     default:

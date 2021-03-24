@@ -176,6 +176,20 @@ Java_io_realm_internal_OsSet_nativeContainsObjectId(JNIEnv* env, jclass, jlong s
     return reinterpret_cast<jlong>(nullptr);
 }
 
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsSet_nativeContainsUUID(JNIEnv* env, jclass, jlong set_ptr,
+                                                jstring j_value) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        JStringAccessor value(env, j_value);
+        const UUID& uuid = UUID(StringData(value).data());
+        size_t found = set.find_any(Mixed(uuid));
+        return found != npos;       // npos represents "not found"
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
 JNIEXPORT jlongArray JNICALL
 Java_io_realm_internal_OsSet_nativeAddNull(JNIEnv* env, jclass, jlong set_ptr) {
     try {
@@ -280,6 +294,29 @@ Java_io_realm_internal_OsSet_nativeAddObjectId(JNIEnv* env, jclass, jlong set_pt
 }
 
 JNIEXPORT jlongArray JNICALL
+Java_io_realm_internal_OsSet_nativeAddUUID(JNIEnv* env, jclass, jlong set_ptr,
+                                           jstring j_value) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        JavaAccessorContext context(env);
+        JStringAccessor value(env, j_value);
+        const UUID& uuid = UUID(StringData(value).data());
+
+        // TODO: abstract this call so that the rest is the same for all types
+        const std::pair<size_t, bool>& add_pair = set.insert(context, Any(uuid));
+
+        jlong ret[2];
+        ret[0] = add_pair.first;    // index
+        ret[1] = add_pair.second;   // found (or not)
+        jlongArray ret_array = env->NewLongArray(2);
+        env->SetLongArrayRegion(ret_array, 0, 2, ret);
+        return ret_array;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jlongArray JNICALL
 Java_io_realm_internal_OsSet_nativeRemoveNull(JNIEnv* env, jclass, jlong set_ptr) {
     try {
         auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
@@ -365,6 +402,29 @@ Java_io_realm_internal_OsSet_nativeRemoveObjectId(JNIEnv* env, jclass, jlong set
 
         // TODO: abstract this call so that the rest is the same for all types
         const std::pair<size_t, bool>& remove_pair = set.remove_any(Mixed(object_id));
+
+
+        jlong ret[2];
+        ret[0] = remove_pair.first;     // index
+        ret[1] = remove_pair.second;    // found (or not)
+        jlongArray ret_array = env->NewLongArray(2);
+        env->SetLongArrayRegion(ret_array, 0, 2, ret);
+        return ret_array;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jlongArray JNICALL
+Java_io_realm_internal_OsSet_nativeRemoveUUID(JNIEnv* env, jclass, jlong set_ptr,
+                                              jstring j_value) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        JStringAccessor value(env, j_value);
+        const UUID& uuid = UUID(StringData(value).data());
+
+        // TODO: abstract this call so that the rest is the same for all types
+        const std::pair<size_t, bool>& remove_pair = set.remove_any(Mixed(uuid));
 
         jlong ret[2];
         ret[0] = remove_pair.first;     // index

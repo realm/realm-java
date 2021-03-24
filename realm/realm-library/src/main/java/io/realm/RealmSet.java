@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -237,6 +238,8 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
             operator = (SetValueOperator<T>) new BinaryOperator(baseRealm, osSet, byte[].class);
         } else if (valueClass == ObjectId.class) {
             operator = (SetValueOperator<T>) new ObjectIdOperator(baseRealm, osSet, ObjectId.class);
+        } else if (valueClass == UUID.class) {
+            operator = (SetValueOperator<T>) new UUIDOperator(baseRealm, osSet, UUID.class);
         } else {
             throw new UnsupportedOperationException("getStrategy: missing class '" + valueClass.getSimpleName() + "'");
         }

@@ -617,6 +617,7 @@ fun managedSetFactory(): List<SetTester> {
                         notPresentValue = VALUE_BINARY_NOT_PRESENT,
                         toArrayManaged = ToArrayManaged.BinaryManaged()
                 )
+
             SetSupportedType.OBJECT_ID ->
                 ManagedSetTester<ObjectId>(
                         testerName = "ObjectId",
@@ -628,12 +629,19 @@ fun managedSetFactory(): List<SetTester> {
                         notPresentValue = VALUE_OBJECT_ID_NOT_PRESENT,
                         toArrayManaged = ToArrayManaged.ObjectIdManaged()
                 )
-//            SetSupportedType.UUID ->
-//                UnmanagedSetTester<UUID>(
-//                        testerName = "UUID",
-//                        values = listOf(VALUE_UUID_HELLO, VALUE_UUID_BYE, null),
-//                        notPresentValue = VALUE_UUID_NOT_PRESENT
-//                )
+
+            SetSupportedType.UUID ->
+                ManagedSetTester<UUID>(
+                        testerName = "UUID",
+                        setGetter = AllTypes::getColumnUUIDSet,
+                        setSetter = AllTypes::setColumnUUIDSet,
+                        managedSetGetter = SetContainerClass::myUUIDSet,
+                        managedCollectionGetter = SetContainerClass::myUUIDList,
+                        initializedSet = listOf(VALUE_UUID_HELLO, VALUE_UUID_BYE, null),
+                        notPresentValue = VALUE_UUID_NOT_PRESENT,
+                        toArrayManaged = ToArrayManaged.UUIDManaged()
+                )
+
 //            SetSupportedType.LINK ->
 //                UnmanagedSetTester<RealmModel>(
 //                        testerName = "UnmanagedRealmModel",

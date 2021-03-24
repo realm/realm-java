@@ -2661,6 +2661,7 @@ public class RealmQueryTests extends QueryTests {
                     case INTEGER_SET:
                     case BINARY_SET:
                     case OBJECT_ID_SET:
+                    case UUID_SET:
                         // TODO: what about dictionaries and sets?
                         break;
                     default:
@@ -2901,6 +2902,7 @@ public class RealmQueryTests extends QueryTests {
                     case INTEGER_SET:
                     case BINARY_SET:
                     case OBJECT_ID_SET:
+                    case UUID_SET:
                         // TODO: what about dictionaries and sets?
                         break;
                     default:
@@ -3130,6 +3132,7 @@ public class RealmQueryTests extends QueryTests {
         types.remove(RealmFieldType.INTEGER_SET);
         types.remove(RealmFieldType.BINARY_SET);
         types.remove(RealmFieldType.OBJECT_ID_SET);
+        types.remove(RealmFieldType.UUID_SET);
 
 
         // Iterate all fields of AllTypes table and verify that distinct either:
@@ -4165,6 +4168,7 @@ public class RealmQueryTests extends QueryTests {
             case INTEGER_SET:
             case BINARY_SET:
             case OBJECT_ID_SET:
+            case UUID_SET:
                 return false;
             case TYPED_LINK:
         }
