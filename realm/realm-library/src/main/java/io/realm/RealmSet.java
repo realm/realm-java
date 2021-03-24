@@ -373,9 +373,6 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
 
         @Override
         public boolean remove(@Nullable Object o) {
-            if (o != null && o.getClass() != valueClass) {
-                return false;
-            }
             return setValueOperator.remove(o);
         }
 
