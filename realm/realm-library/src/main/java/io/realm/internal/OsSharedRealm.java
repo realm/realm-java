@@ -309,6 +309,17 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     }
 
     /**
+     * Gets an existing {@link Table} with the given name.
+     *
+     * @param name the name of table.
+     * @return a {@link Table} object.
+     * @throws IllegalArgumentException if the table doesn't exist.
+     */
+    public Table getTable(String name) {
+        return getTable(name, null);
+    }
+
+    /**
      * Creates a {@link Table} with then given name. Native assertion will happen if the table with the same name
      * exists.
      *

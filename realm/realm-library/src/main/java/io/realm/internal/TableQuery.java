@@ -43,7 +43,8 @@ public class TableQuery implements NativeObject {
 
     private boolean queryValidated = true;
 
-    private static String escapeFieldName(String fieldName){
+    private static String escapeFieldName(String fieldName) {
+        if (fieldName == null) { return null; }
         return fieldName.replace(" ", "\\ ");
     }
 
@@ -376,13 +377,17 @@ public class TableQuery implements NativeObject {
     public TableQuery in(String fieldName, Mixed[] values) {
         fieldName = escapeFieldName(fieldName);
 
-        beginGroup().equalTo(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            if(values[i] == null){
-                or().isNull(fieldName);
+        beginGroup();
+
+        boolean first = true;
+        for (Mixed value : values) {
+            if (!first) { or(); }
+            if (value == null) {
+                isNull(fieldName);
             } else {
-                or().equalTo(fieldName, values[i]);
+                equalTo(fieldName, value);
             }
+            first = false;
         }
         endGroup();
 
@@ -393,13 +398,17 @@ public class TableQuery implements NativeObject {
     public TableQuery inInsensitive(String fieldName, Mixed[] values) {
         fieldName = escapeFieldName(fieldName);
 
-        beginGroup().equalToInsensitive(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            if(values[i] == null){
-                or().isNull(fieldName);
+        beginGroup();
+
+        boolean first = true;
+        for (Mixed value : values) {
+            if (!first) { or(); }
+            if (value == null) {
+                isNull(fieldName);
             } else {
-                or().equalToInsensitive(fieldName, values[i]);
+                equalToInsensitive(fieldName, value);
             }
+            first = false;
         }
         endGroup();
 
