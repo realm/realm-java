@@ -730,3 +730,17 @@ Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddIntegerSetItem(JNIEn
     }
     CATCH_STD()
 }
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddUUIDSetItem(JNIEnv* env,
+                                                                        jclass,
+                                                                        jlong set_ptr,
+                                                                        jstring j_value) {
+    try {
+        JStringAccessor data(env, j_value);
+        UUID uuid = UUID(StringData(data).data());
+        const JavaValue value(uuid);
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}

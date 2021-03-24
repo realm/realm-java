@@ -1925,6 +1925,7 @@ public class DynamicRealmObjectTests {
                 case STRING_TO_LINK_MAP:
                 case STRING_SET:
                 case INTEGER_SET:
+                case UUID_SET:
                     // TODO: fix this when adding support for dictionaries and sets
                     break;
                 default:
