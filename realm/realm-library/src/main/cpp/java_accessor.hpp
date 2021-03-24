@@ -43,6 +43,8 @@ class JPrimitiveArrayAccessor;
 typedef JPrimitiveArrayAccessor<jbyteArray, jbyte> JByteArrayAccessor;
 typedef JPrimitiveArrayAccessor<jbooleanArray, jboolean> JBooleanArrayAccessor;
 typedef JPrimitiveArrayAccessor<jlongArray, jlong> JLongArrayAccessor;
+typedef JPrimitiveArrayAccessor<jfloatArray, jfloat> JFloatArrayAccessor;
+typedef JPrimitiveArrayAccessor<jdoubleArray, jdouble> JDoubleArrayAccessor;
 
 // JPrimitiveArrayAccessor and JObjectArrayAccessor are not supposed to be used across JNI borders. They won't acquire
 // references of the original Java object. Thus, you have to ensure the original java object is available during the
@@ -368,6 +370,40 @@ inline JPrimitiveArrayAccessor<jlongArray, jlong>::ElementsHolder::~ElementsHold
 {
     if (m_jarray) {
         m_env->ReleaseLongArrayElements(m_jarray, m_data_ptr, m_release_mode);
+    }
+}
+
+// Accessor for jfloatArray
+template <>
+inline JPrimitiveArrayAccessor<jfloatArray, jfloat>::ElementsHolder::ElementsHolder(JNIEnv* env, jfloatArray jarray)
+    : m_env(env)
+    , m_jarray(jarray)
+    , m_data_ptr(jarray ? env->GetFloatArrayElements(jarray, nullptr) : nullptr)
+{
+}
+
+template <>
+inline JPrimitiveArrayAccessor<jfloatArray, jfloat>::ElementsHolder::~ElementsHolder()
+{
+    if (m_jarray) {
+        m_env->ReleaseFloatArrayElements(m_jarray, m_data_ptr, m_release_mode);
+    }
+}
+
+// Accessor for jdoubleArray
+template <>
+inline JPrimitiveArrayAccessor<jdoubleArray , jdouble>::ElementsHolder::ElementsHolder(JNIEnv* env, jdoubleArray jarray)
+    : m_env(env)
+    , m_jarray(jarray)
+    , m_data_ptr(jarray ? env->GetDoubleArrayElements(jarray, nullptr) : nullptr)
+{
+}
+
+template <>
+inline JPrimitiveArrayAccessor<jdoubleArray, jdouble>::ElementsHolder::~ElementsHolder()
+{
+    if (m_jarray) {
+        m_env->ReleaseDoubleArrayElements(m_jarray, m_data_ptr, m_release_mode);
     }
 }
 

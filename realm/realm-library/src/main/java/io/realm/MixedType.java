@@ -41,7 +41,7 @@ public enum MixedType {
     UUID(RealmFieldType.UUID, java.util.UUID.class),
     NULL(null, null);
 
-    private static final MixedType[] realmFieldToMixedTypeMap = new MixedType[MAX_CORE_TYPE_VALUE + 1];
+    private static final MixedType[] realmFieldToMixedTypeMap = new MixedType[MAX_CORE_TYPE_VALUE + 2];
 
     static {
         for (MixedType mixedType : values()) {
@@ -50,6 +50,9 @@ public enum MixedType {
             final int nativeValue = mixedType.realmFieldType.getNativeValue();
             realmFieldToMixedTypeMap[nativeValue] = mixedType;
         }
+        // TODO: only used for testing purposes, see https://github.com/realm/realm-java/issues/7385
+        // Links Object field type to Mixed object.
+        realmFieldToMixedTypeMap[RealmFieldType.OBJECT.getNativeValue()] = OBJECT;
     }
 
     public static MixedType fromNativeValue(int realmFieldType) {
