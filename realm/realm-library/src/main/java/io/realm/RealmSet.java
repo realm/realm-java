@@ -20,7 +20,6 @@ import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -224,6 +223,14 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
         SetValueOperator<T> operator;
         if (valueClass == String.class) {
             operator = (SetValueOperator<T>) new StringOperator(baseRealm, osSet, String.class);
+        } else if (valueClass == Integer.class) {
+            operator = (SetValueOperator<T>) new IntegerOperator(baseRealm, osSet, Integer.class);
+        } else if (valueClass == Long.class) {
+            operator = (SetValueOperator<T>) new LongOperator(baseRealm, osSet, Long.class);
+        } else if (valueClass == Short.class) {
+            operator = (SetValueOperator<T>) new ShortOperator(baseRealm, osSet, Short.class);
+        } else if (valueClass == Byte.class) {
+            operator = (SetValueOperator<T>) new ByteOperator(baseRealm, osSet, Byte.class);
         } else {
             throw new UnsupportedOperationException("getStrategy: missing class '" + valueClass.getSimpleName() + "'");
         }
@@ -309,6 +316,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
             return array;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public <T> T[] toArray(@Nullable T[] a) {
             checkValidArray(a);
@@ -323,14 +331,16 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
             if (a.length == setSize || a.length > setSize) {
                 array = a;
             } else {
-                //noinspection unchecked
                 array = (T[]) Array.newInstance(valueClass, (int) setSize);
             }
 
             int i = 0;
             for (E value : this) {
-                //noinspection unchecked
-                array[i] = (T) value;
+                if (value == null) {
+                    array[i] = null;
+                } else {
+                    array[i] = (T) value;
+                }
                 i++;
             }
 
@@ -352,6 +362,9 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
 
         @Override
         public boolean remove(@Nullable Object o) {
+            if (o != null && o.getClass() != valueClass) {
+                return false;
+            }
             return setValueOperator.remove(o);
         }
 

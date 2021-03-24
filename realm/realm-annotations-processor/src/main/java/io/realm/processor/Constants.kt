@@ -88,20 +88,20 @@ object Constants {
     )
 
     val SET_ELEMENT_TYPE_TO_REALM_TYPES = mapOf(
-//            "java.lang.Byte" to RealmFieldType.STRING_TO_INTEGER_MAP,
-//            "java.lang.Short" to RealmFieldType.STRING_TO_INTEGER_MAP,
-//            "java.lang.Integer" to RealmFieldType.STRING_TO_INTEGER_MAP,
-//            "java.lang.Long" to RealmFieldType.STRING_TO_INTEGER_MAP,
-//            "java.lang.Float" to RealmFieldType.STRING_TO_FLOAT_MAP,
-//            "java.lang.Double" to RealmFieldType.STRING_TO_DOUBLE_MAP,
-//            "java.lang.Boolean" to RealmFieldType.STRING_TO_BOOLEAN_MAP,
+            "java.lang.Byte" to RealmFieldType.INTEGER_SET,
+            "java.lang.Short" to RealmFieldType.INTEGER_SET,
+            "java.lang.Integer" to RealmFieldType.INTEGER_SET,
+            "java.lang.Long" to RealmFieldType.INTEGER_SET,
+//            "java.lang.Float" to RealmFieldType.FLOAT_SET,
+//            "java.lang.Double" to RealmFieldType.DOUBLE_SET,
+//            "java.lang.Boolean" to RealmFieldType.BOOLEAN_SET,
             "java.lang.String" to RealmFieldType.STRING_SET
-//            "java.util.Date" to RealmFieldType.STRING_TO_DATE_MAP,
-//            "byte[]" to RealmFieldType.STRING_TO_BINARY_MAP,
-//            "org.bson.types.Decimal128" to RealmFieldType.STRING_TO_DECIMAL128_MAP,
-//            "org.bson.types.ObjectId" to RealmFieldType.STRING_TO_OBJECT_ID_MAP,
-//            "java.util.UUID" to RealmFieldType.STRING_TO_UUID_MAP,
-//            "io.realm.Mixed" to RealmFieldType.STRING_TO_MIXED_MAP
+//            "java.util.Date" to RealmFieldType.DATE_SET,
+//            "byte[]" to RealmFieldType.BINARY_SET,
+//            "org.bson.types.Decimal128" to RealmFieldType.DECIMAL128_SET,
+//            "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID_SET,
+//            "java.util.UUID" to RealmFieldType.UUID_SET,
+//            "io.realm.Mixed" to RealmFieldType.MIXED_SET
     )
 
     /**
@@ -154,7 +154,8 @@ object Constants {
         STRING_TO_UUID_MAP("STRING_TO_UUID_MAP", "Map"),
         STRING_TO_MIXED_MAP("STRING_TO_MIXED_MAP", "Map"),
 
-        STRING_SET("STRING_SET", "Set");
+        STRING_SET("STRING_SET", "Set"),
+        INTEGER_SET("INTEGER_SET", "Set");
 
         /**
          * The name of the enum, used in the Java bindings, used to represent the corresponding type.

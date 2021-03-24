@@ -2523,7 +2523,8 @@ public class RealmQueryTests extends QueryTests {
                 case STRING_TO_UUID_MAP:
                 case STRING_TO_DECIMAL128_MAP:
                 case STRING_TO_LINK_MAP:
-                    // TODO: add queries for dictionaries
+                    // TODO: https://github.com/realm/realm-java/issues/7382
+                    // TODO: https://github.com/realm/realm-java/issues/7383
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -2604,7 +2605,8 @@ public class RealmQueryTests extends QueryTests {
                 case STRING_TO_UUID_MAP:
                 case STRING_TO_DECIMAL128_MAP:
                 case STRING_TO_LINK_MAP:
-                    // TODO: add queries for dictionaries
+                    // TODO: https://github.com/realm/realm-java/issues/7382
+                    // TODO: https://github.com/realm/realm-java/issues/7383
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -2658,7 +2660,9 @@ public class RealmQueryTests extends QueryTests {
                     case STRING_TO_DECIMAL128_MAP:
                     case STRING_TO_LINK_MAP:
                     case STRING_SET:
-                        // TODO: add queries for dictionaries
+                    case INTEGER_SET:
+                        // TODO: https://github.com/realm/realm-java/issues/7382
+                        // TODO: https://github.com/realm/realm-java/issues/7383
                         break;
                     default:
                         fail("Unknown type: " + type);
@@ -2767,7 +2771,8 @@ public class RealmQueryTests extends QueryTests {
                 case STRING_TO_UUID_MAP:
                 case STRING_TO_MIXED_MAP:
                 case STRING_TO_LINK_MAP:
-                    // TODO: add queries for dictionaries
+                    // TODO: https://github.com/realm/realm-java/issues/7382
+                    // TODO: https://github.com/realm/realm-java/issues/7383
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -2841,7 +2846,8 @@ public class RealmQueryTests extends QueryTests {
                 case STRING_TO_UUID_MAP:
                 case STRING_TO_MIXED_MAP:
                 case STRING_TO_LINK_MAP:
-                    // TODO: add queries for dictionaries
+                    // TODO: https://github.com/realm/realm-java/issues/7382
+                    // TODO: https://github.com/realm/realm-java/issues/7383
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -2895,7 +2901,9 @@ public class RealmQueryTests extends QueryTests {
                     case STRING_TO_DECIMAL128_MAP:
                     case STRING_TO_LINK_MAP:
                     case STRING_SET:
-                        // TODO: add queries for dictionaries
+                    case INTEGER_SET:
+                        // TODO: https://github.com/realm/realm-java/issues/7382
+                        // TODO: https://github.com/realm/realm-java/issues/7383
                         break;
                     default:
                         fail("Unknown type: " + type);
@@ -3108,6 +3116,8 @@ public class RealmQueryTests extends QueryTests {
         HashSet types = new HashSet(Arrays.asList(RealmFieldType.values()));
         types.remove(RealmFieldType.TYPED_LINK);
         types.remove(RealmFieldType.MIXED_LIST);
+        // TODO: https://github.com/realm/realm-java/issues/7382
+        // TODO: https://github.com/realm/realm-java/issues/7383
         types.remove(RealmFieldType.STRING_TO_MIXED_MAP);
         types.remove(RealmFieldType.STRING_TO_BOOLEAN_MAP);
         types.remove(RealmFieldType.STRING_TO_STRING_MAP);
@@ -3121,6 +3131,7 @@ public class RealmQueryTests extends QueryTests {
         types.remove(RealmFieldType.STRING_TO_DECIMAL128_MAP);
         types.remove(RealmFieldType.STRING_TO_LINK_MAP);
         types.remove(RealmFieldType.STRING_SET);
+        types.remove(RealmFieldType.INTEGER_SET);
 
 
         // Iterate all fields of AllTypes table and verify that distinct either:
@@ -4153,6 +4164,7 @@ public class RealmQueryTests extends QueryTests {
             case STRING_TO_DECIMAL128_MAP:
             case STRING_TO_LINK_MAP:
             case STRING_SET:
+            case INTEGER_SET:
                 return false;
             case TYPED_LINK:
         }

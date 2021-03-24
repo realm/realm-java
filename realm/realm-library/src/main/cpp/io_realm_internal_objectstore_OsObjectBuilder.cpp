@@ -718,3 +718,15 @@ Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddStringSetItem(JNIEnv
     }
     CATCH_STD()
 }
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddIntegerSetItem(JNIEnv* env,
+                                                                           jclass,
+                                                                           jlong set_ptr,
+                                                                           jlong j_value) {
+    try {
+        const JavaValue value(j_value);
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}

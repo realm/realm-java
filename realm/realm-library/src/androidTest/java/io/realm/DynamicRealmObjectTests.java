@@ -1924,7 +1924,9 @@ public class DynamicRealmObjectTests {
                 case STRING_TO_DECIMAL128_MAP:
                 case STRING_TO_LINK_MAP:
                 case STRING_SET:
-                    // TODO: fix this when adding support for dictionaries
+                case INTEGER_SET:
+                    // TODO: https://github.com/realm/realm-java/issues/7382
+                    // TODO: https://github.com/realm/realm-java/issues/7383
                     break;
                 default:
                     fail("Not testing all types");

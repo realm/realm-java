@@ -548,7 +548,7 @@ class ManagedDictionaryTester<T : Any>(
             assertTrue(dictionary.hasListeners())
 
             // Check for MapChangeListener
-            val anotherDictionary = initAndAssert(looperThreadRealm)
+            val anotherDictionary = initAndAssert(looperThreadRealm, "another dictionary")
             assertFalse(anotherDictionary.hasListeners())
 
             anotherDictionary.addChangeListener { _, _ -> /* no-op */ }
@@ -567,8 +567,11 @@ class ManagedDictionaryTester<T : Any>(
     // Private stuff
     //----------------------------------
 
-    private fun initAndAssert(realm: Realm = this.realm): RealmDictionary<T> {
-        val allTypesObject = createAllTypesManagedContainerAndAssert(realm)
+    private fun initAndAssert(
+            realm: Realm = this.realm,
+            id: String? = null
+    ): RealmDictionary<T> {
+        val allTypesObject = createAllTypesManagedContainerAndAssert(realm, id)
         assertNotNull(allTypesObject)
         return dictionaryGetter.call(allTypesObject)
     }
@@ -577,7 +580,7 @@ class ManagedDictionaryTester<T : Any>(
             initialized: RealmDictionary<T>,
             alternative: RealmDictionary<T>
     ) {
-        val dictionary = initAndAssert()
+        val dictionary = initAndAssert(id = "internal")
 
         realm.executeTransaction {
             // Check we get null since previous values are not present

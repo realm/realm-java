@@ -49,7 +49,7 @@ public final class NativeMixedCollection implements NativeObject {
         return new NativeMixedCollection(nativeCreateBooleanCollection(booleanValues, notNull));
     }
 
-    public static NativeMixedCollection newIntegerCollection(Collection<Number> collection) {
+    public static NativeMixedCollection newIntegerCollection(Collection<? extends Number> collection) {
         long[] integerValues = new long[collection.size()];
         boolean[] notNull = new boolean[collection.size()];
 

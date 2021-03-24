@@ -194,12 +194,12 @@ public class AllTypes extends RealmObject {
 
 //    private RealmSet<Boolean> columnBooleanSet;
     private RealmSet<String> columnStringSet;
-//    private RealmSet<Integer> columnIntegerSet;
+    private RealmSet<Integer> columnIntegerSet;
 //    private RealmSet<Float> columnFloatSet;
-//    private RealmSet<Long> columnLongSet;
-//    private RealmSet<Short> columnShortSet;
+    private RealmSet<Long> columnLongSet;
+    private RealmSet<Short> columnShortSet;
 //    private RealmSet<Double> columnDoubleSet;
-//    private RealmSet<Byte> columnByteSet;
+    private RealmSet<Byte> columnByteSet;
 //    private RealmSet<byte[]> columnBinarySet;
 //    private RealmSet<Date> columnDateSet;
 //    private RealmSet<ObjectId> columnObjectIdSet;
@@ -652,5 +652,37 @@ public class AllTypes extends RealmObject {
 
     public void setColumnStringSet(RealmSet<String> columnStringSet) {
         this.columnStringSet = columnStringSet;
+    }
+
+    public RealmSet<Integer> getColumnIntegerSet() {
+        return columnIntegerSet;
+    }
+
+    public void setColumnIntegerSet(RealmSet<Integer> columnIntegerSet) {
+        this.columnIntegerSet = columnIntegerSet;
+    }
+
+    public RealmSet<Long> getColumnLongSet() {
+        return columnLongSet;
+    }
+
+    public void setColumnLongSet(RealmSet<Long> columnLongSet) {
+        this.columnLongSet = columnLongSet;
+    }
+
+    public RealmSet<Short> getColumnShortSet() {
+        return columnShortSet;
+    }
+
+    public void setColumnShortSet(RealmSet<Short> columnShortSet) {
+        this.columnShortSet = columnShortSet;
+    }
+
+    public RealmSet<Byte> getColumnByteSet() {
+        return columnByteSet;
+    }
+
+    public void setColumnByteSet(RealmSet<Byte> columnByteSet) {
+        this.columnByteSet = columnByteSet;
     }
 }
