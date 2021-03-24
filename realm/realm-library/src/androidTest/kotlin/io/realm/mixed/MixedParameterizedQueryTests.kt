@@ -89,6 +89,7 @@ class MixedParameterizedQueryTest(
 }
 
 @RunWith(Parameterized::class)
+@Ignore("FIXME: Disabled until https://github.com/realm/realm-core/issues/4504")
 class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
     private lateinit var realmConfiguration: RealmConfiguration
     private lateinit var realm: Realm
