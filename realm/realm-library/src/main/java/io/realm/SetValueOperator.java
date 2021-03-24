@@ -28,7 +28,7 @@ abstract class SetValueOperator<E> {
 
     abstract boolean add(@Nullable E value);
 
-    abstract boolean contains(@Nullable Object o);
+    abstract boolean containsInternal(@Nullable Object o);
 
     abstract boolean remove(@Nullable Object o);
 
@@ -39,6 +39,14 @@ abstract class SetValueOperator<E> {
     abstract boolean removeAllInternal(Collection<?> c);
 
     abstract boolean retainAllInternal(Collection<?> c);
+
+    boolean contains(@Nullable Object o) {
+        // Return false when passing something else than the correct type
+        if (o != null && o.getClass() != valueClass) {
+            return false;
+        }
+        return containsInternal(o);
+    }
 
     boolean addAll(Collection<? extends E> c) {
         if (isRealmCollection(c)) {
@@ -180,7 +188,7 @@ class StringOperator extends SetValueOperator<String> {
     }
 
     @Override
-    boolean contains(@Nullable Object o) {
+    boolean containsInternal(@Nullable Object o) {
         return osSet.contains((String) o);
     }
 
@@ -251,7 +259,7 @@ class IntegerOperator extends SetValueOperator<Integer> {
     }
 
     @Override
-    boolean contains(@Nullable Object o) {
+    boolean containsInternal(@Nullable Object o) {
         Long value;
         if (o == null) {
             value = null;
@@ -327,7 +335,7 @@ class LongOperator extends SetValueOperator<Long> {
     }
 
     @Override
-    boolean contains(@Nullable Object o) {
+    boolean containsInternal(@Nullable Object o) {
         return osSet.contains((Long) o);
     }
 
@@ -396,7 +404,7 @@ class ShortOperator extends SetValueOperator<Short> {
     }
 
     @Override
-    boolean contains(@Nullable Object o) {
+    boolean containsInternal(@Nullable Object o) {
         Long value;
         if (o == null) {
             value = null;
@@ -472,7 +480,7 @@ class ByteOperator extends SetValueOperator<Byte> {
     }
 
     @Override
-    boolean contains(@Nullable Object o) {
+    boolean containsInternal(@Nullable Object o) {
         Long value;
         if (o == null) {
             value = null;

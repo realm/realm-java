@@ -262,7 +262,8 @@ public class LinkingObjectsDynamicTests {
                     case STRING_TO_LINK_MAP:
                     case STRING_SET:
                     case INTEGER_SET:
-                        // TODO: fix this when adding support for dictionary and set in AllJavaTypes
+                        // TODO: https://github.com/realm/realm-java/issues/7382
+                        // TODO: https://github.com/realm/realm-java/issues/7383
                         throw new IllegalArgumentException("Unexpected field type");
                     default:
                         fail("unknown type: " + fieldType);
