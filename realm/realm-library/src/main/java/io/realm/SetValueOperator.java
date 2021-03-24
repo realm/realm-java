@@ -62,6 +62,11 @@ abstract class SetValueOperator<E> {
             OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
             return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
         }
+        if (!isCollectionSameType(c)) {
+            // A collection of a different type cannot be contained in the set
+            return false;
+        }
+
         return containsAllInternal(c);
     }
 
@@ -70,6 +75,10 @@ abstract class SetValueOperator<E> {
             OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
             return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.ADD_ALL);
         }
+        if (!isUpperBoundCollectionSameType(c)) {
+            return false;
+        }
+
         return addAllInternal(c);
     }
 
@@ -78,6 +87,11 @@ abstract class SetValueOperator<E> {
             OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
             return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.REMOVE_ALL);
         }
+        if (!isCollectionSameType(c)) {
+            // Difference with a collection of a different type does not change the set
+            return false;
+        }
+
         return removeAllInternal(c);
     }
 
@@ -86,6 +100,12 @@ abstract class SetValueOperator<E> {
             OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
             return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.RETAIN_ALL);
         }
+        if (!isCollectionSameType(c)) {
+            // Intersection with a collection of a different type yields an empty set
+            osSet.clear();
+            return true;
+        }
+
         return retainAllInternal(c);
     }
 
@@ -172,7 +192,33 @@ abstract class SetValueOperator<E> {
 
     private boolean isObjectSameType(@Nullable Object o) {
         // Return false when passing something else than the correct type
-        return o == null || o.getClass() == valueClass;
+        if (o != null) {
+            return o.getClass() == valueClass;
+        } else {
+            return true;
+        }
+    }
+
+    private boolean isUpperBoundCollectionSameType(Collection<? extends E> c) {
+        if (!c.isEmpty()) {
+            for (E item : c) {
+                if (item != null) {
+                    return item.getClass() == valueClass;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean isCollectionSameType(Collection<?> c) {
+        if (!c.isEmpty()) {
+            for (Object item : c) {
+                if (item != null) {
+                    return item.getClass() == valueClass;
+                }
+            }
+        }
+        return true;
     }
 
     @SuppressWarnings("unchecked")
