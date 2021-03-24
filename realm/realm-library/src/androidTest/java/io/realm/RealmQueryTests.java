@@ -1545,35 +1545,56 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedLong.class).notEqualTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY, Long.valueOf((long) -1)).findAll().first().getName());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void beginWith_nullStringPrimaryKey() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 10, -5);
 
-        realm.where(PrimaryKeyAsString.class).beginsWith(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null);
+        RealmQuery<PrimaryKeyAsString> query = realm.where(PrimaryKeyAsString.class);
+        try {
+            query.beginsWith(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null);
+            fail();
+        } catch (IllegalArgumentException ignore) {
+        }
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void contains_nullStringPrimaryKey() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 10, -5);
 
-        realm.where(PrimaryKeyAsString.class).contains(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null);
+        RealmQuery<PrimaryKeyAsString> query = realm.where(PrimaryKeyAsString.class);
+        try {
+            query.contains(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null);
+            fail();
+        } catch (IllegalArgumentException ignore) {
+        }
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void endsWith_nullStringPrimaryKey() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 10, -5);
 
-        realm.where(PrimaryKeyAsString.class).endsWith(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null);
+        RealmQuery<PrimaryKeyAsString> query = realm.where(PrimaryKeyAsString.class);
+        try {
+            query.endsWith(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null);
+            fail();
+        } catch (IllegalArgumentException ignore) {
+        }
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void like_nullStringPrimaryKey() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 10, -5);
-        realm.where(PrimaryKeyAsString.class).like(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null);
+
+        RealmQuery<PrimaryKeyAsString> query = realm.where(PrimaryKeyAsString.class);
+        try {
+            query.like(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null);
+            fail();
+        } catch (IllegalArgumentException ignore) {
+        }
     }
 
     @Test
