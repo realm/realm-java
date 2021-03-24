@@ -33,7 +33,7 @@ abstract class SetValueOperator<E> {
 
     abstract boolean containsInternal(@Nullable Object o);
 
-    abstract boolean remove(@Nullable Object o);
+    abstract boolean removeInternal(@Nullable Object o);
 
     abstract boolean containsAllInternal(Collection<?> c);
 
@@ -44,11 +44,17 @@ abstract class SetValueOperator<E> {
     abstract boolean retainAllInternal(Collection<?> c);
 
     boolean contains(@Nullable Object o) {
-        // Return false when passing something else than the correct type
-        if (o != null && o.getClass() != valueClass) {
+        if (!isObjectSameType(o)) {
             return false;
         }
         return containsInternal(o);
+    }
+
+    boolean remove(@Nullable Object o) {
+        if (!isObjectSameType(o)) {
+            return false;
+        }
+        return removeInternal(o);
     }
 
     boolean containsAll(Collection<?> c) {
@@ -164,6 +170,11 @@ abstract class SetValueOperator<E> {
         }
     }
 
+    private boolean isObjectSameType(@Nullable Object o) {
+        // Return false when passing something else than the correct type
+        return o == null || o.getClass() == valueClass;
+    }
+
     @SuppressWarnings("unchecked")
     private static <T> SetIterator<T> iteratorFactory(Class<T> valueClass,
                                                       OsSet osSet,
@@ -216,7 +227,7 @@ class BooleanOperator extends SetValueOperator<Boolean> {
     }
 
     @Override
-    boolean remove(@Nullable Object o) {
+    boolean removeInternal(@Nullable Object o) {
         return osSet.remove((Boolean) o);
     }
 
@@ -282,7 +293,7 @@ class StringOperator extends SetValueOperator<String> {
     }
 
     @Override
-    boolean remove(@Nullable Object o) {
+    boolean removeInternal(@Nullable Object o) {
         return osSet.remove((String) o);
     }
 
@@ -354,7 +365,7 @@ class IntegerOperator extends SetValueOperator<Integer> {
     }
 
     @Override
-    boolean remove(@Nullable Object o) {
+    boolean removeInternal(@Nullable Object o) {
         return osSet.remove((Integer) o);
     }
 
@@ -419,7 +430,7 @@ class LongOperator extends SetValueOperator<Long> {
     }
 
     @Override
-    boolean remove(@Nullable Object o) {
+    boolean removeInternal(@Nullable Object o) {
         return osSet.remove((Long) o);
     }
 
@@ -489,7 +500,7 @@ class ShortOperator extends SetValueOperator<Short> {
     }
 
     @Override
-    boolean remove(@Nullable Object o) {
+    boolean removeInternal(@Nullable Object o) {
         return osSet.remove((Short) o);
     }
 
@@ -560,7 +571,7 @@ class ByteOperator extends SetValueOperator<Byte> {
     }
 
     @Override
-    boolean remove(@Nullable Object o) {
+    boolean removeInternal(@Nullable Object o) {
         return osSet.remove((Byte) o);
     }
 
@@ -631,7 +642,7 @@ class FloatOperator extends SetValueOperator<Float> {
     }
 
     @Override
-    boolean remove(@Nullable Object o) {
+    boolean removeInternal(@Nullable Object o) {
         return osSet.remove((Float) o);
     }
 
@@ -702,7 +713,7 @@ class DoubleOperator extends SetValueOperator<Double> {
     }
 
     @Override
-    boolean remove(@Nullable Object o) {
+    boolean removeInternal(@Nullable Object o) {
         return osSet.remove((Double) o);
     }
 
@@ -773,7 +784,7 @@ class BinaryOperator extends SetValueOperator<byte[]> {
     }
 
     @Override
-    boolean remove(@Nullable Object o) {
+    boolean removeInternal(@Nullable Object o) {
         return osSet.remove((byte[]) o);
     }
 
@@ -844,7 +855,7 @@ class ObjectIdOperator extends SetValueOperator<ObjectId> {
     }
 
     @Override
-    boolean remove(@Nullable Object o) {
+    boolean removeInternal(@Nullable Object o) {
         return osSet.remove((ObjectId) o);
     }
 
@@ -915,7 +926,7 @@ class UUIDOperator extends SetValueOperator<UUID> {
     }
 
     @Override
-    boolean remove(@Nullable Object o) {
+    boolean removeInternal(@Nullable Object o) {
         return osSet.remove((UUID) o);
     }
 
