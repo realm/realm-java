@@ -3,11 +3,13 @@ buildscript {
         jcenter()
     }
     dependencies {
+        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.22.0'
         classpath 'ch.netzwerg:gradle-release-plugin:1.2.0'
     }
 }
 
 apply plugin: 'ch.netzwerg.release'
+apply plugin: 'io.codearte.nexus-staging'
 
 def currentVersion = file("${projectDir}/version.txt").text.trim()
 
@@ -45,6 +47,21 @@ def copyProperties = {
     }
     if (project.hasProperty('buildCore')) {
         startParameter.projectProperties += [buildCore: project.getProperty('buildCore')]
+    }
+    if (project.hasProperty('signBuild')) {
+        startParameter.projectProperties += [signBuild: project.getProperty('signBuild')]
+    }
+    if (project.hasProperty('signPassword')) {
+        startParameter.projectProperties += [signPassword: project.getProperty('signPassword')]
+    }
+    if (project.hasProperty('signSecretRingFile')) {
+        startParameter.projectProperties += [signSecretRingFile: project.getProperty('signSecretRingFile')]
+    }
+    if (project.hasProperty('ossrhUsername')) {
+        startParameter.projectProperties += [ossrhUsername: project.getProperty('ossrhUsername')]
+    }
+    if (project.hasProperty('ossrhPassword')) {
+        startParameter.projectProperties += [ossrhPassword: project.getProperty('ossrhPassword')]
     }
 }
 
@@ -383,169 +400,56 @@ task distribute {
     dependsOn uploadUpdateVersion
 }
 
-task bintrayRealm(type: GradleBuild) {
-    description = 'Publish the Realm AAR and AP to Bintray'
+task mavenCentralRealm(type: GradleBuild) {
+    description = 'Publish the Realm AAR and AP to Maven Central'
     group = 'Publishing'
     buildFile = file('realm/build.gradle')
-    tasks = ['bintrayUploadAll']
+    tasks = ['publishAllPublicationsToMavenCentralRepository']
     startParameter.projectProperties = gradle.startParameter.projectProperties
     configure copyProperties
 }
 
-task bintrayAnnotations(type: GradleBuild) {
-    description = 'Publish the Realm Annotations to Bintray'
+task mavenCentralAnnotations(type: GradleBuild) {
+    description = 'Publish the Realm Annotations to Maven Central'
     group = 'Publishing'
     buildFile = file('realm-annotations/build.gradle')
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['bintrayUpload']
+    tasks = ['publishAllPublicationsToMavenCentralRepository']
 }
 
-task bintrayGradlePlugin(type: GradleBuild) {
-    description = 'Publish the Realm Gradle Plugin to Bintray'
+task mavenCentralGradlePlugin(type: GradleBuild) {
+    description = 'Publish the Realm Gradle Plugin to Maven Central'
     group = 'Publishing'
     buildFile = file('gradle-plugin/build.gradle')
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['bintrayUpload']
+    tasks = ['publishAllPublicationsToMavenCentralRepository']
 }
 
-task bintrayTransformer(type: GradleBuild) {
-    description = 'Publish the Realm Transformer to Bintray'
+task mavenCentralTransformer(type: GradleBuild) {
+    description = 'Publish the Realm Transformer to Maven Central'
     group = 'Publishing'
     buildFile = file('realm-transformer/build.gradle')
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['bintrayUpload']
+    tasks = ['publishAllPublicationsToMavenCentralRepository']
 }
 
-import groovy.json.JsonSlurper
-def checkPackageIsReady(String packageName, String version) {
-    // See https://bintray.com/docs/api/#_get_version
-    def userName = project.findProperty('bintrayUser') ?: 'noUser'
-    def accessKey = project.findProperty('bintrayKey') ?: 'noKey'
-    def result = new ByteArrayOutputStream()
-    exec {
-        commandLine 'curl',
-                '-X',
-                'GET',
-                '-u',
-                "${userName}:${accessKey}",
-                "https://api.bintray.com/packages/realm/maven/$packageName/versions/$version"
-        standardOutput = result
-    }
-    def parser = new JsonSlurper()
-    def commandlineResponse = result.toString()
-    def json = parser.parseText(commandlineResponse)
-    if (json["published"] != false) {
-        throw new GradleException("$packageName was not ready to be published: $commandlineResponse")
-    }
-}
-
-int publishPackage(String packageName, String version) {
-    // See https://bintray.com/docs/api/#_publish_discard_uploaded_content
-    def userName = project.findProperty('bintrayUser') ?: 'noUser'
-    def accessKey = project.findProperty('bintrayKey') ?: 'noKey'
-    def result = new ByteArrayOutputStream()
-    exec {
-        commandLine 'curl',
-                '-X',
-                'POST',
-                '-u',
-                "${userName}:${accessKey}",
-                "https://api.bintray.com/content/realm/maven/$packageName/$version/publish"
-        standardOutput = result
-    }
-    def parser = new JsonSlurper()
-    def commandlineResponse = result.toString()
-    println "$commandlineResponse"
-    def json = parser.parseText(commandlineResponse)
-    if (!json.keySet().contains('files')) {
-        throw new GradleException("$packageName was not correctly published: $commandlineResponse")
-    }
-    return json['files']
-}
-
-task bintrayUpload {
-    description = 'Publish all the Realm artifacts to Bintray'
+task mavenCentralUpload {
+    description = 'Publish all the Realm artifacts to Maven Central'
     group = 'Publishing'
-    dependsOn bintrayRealm
-    dependsOn bintrayAnnotations
-    dependsOn bintrayGradlePlugin
-    dependsOn bintrayTransformer
-
-    doLast {
-        // All the packages we want to release
-        def packages = [ "realm-annotations",
-                         "realm-transformer",
-                         "realm-annotations-processor",
-                         "realm-android-library",
-                         "realm-android-library-object-server",
-                         "realm-android-kotlin-extensions",
-                         "realm-android-kotlin-extensions-object-server",
-                         "realm-gradle-plugin" ]
-
-        // Number of files we expect to have been released. If this
-        // does not happen, an error is thrown and manual intervention
-        // is needed.
-        def expectedFilesReleasedCount = 24
-
-        // Check that all packages are available on BinTray before publishing them
-        // This makes it possible to quickly release them using the Web UI if
-        // anything goes wrong.
-        packages.each {pckg ->
-            checkPackageIsReady(pckg, currentVersion);
-        }
-
-        // Once we verified all packages are ready, we release them while keeping
-        // track of the number of released files.
-        def releasedFilesCount = 0
-        packages.each {pckg ->
-            releasedFilesCount += publishPackage(pckg, currentVersion);
-        }
-        if (releasedFilesCount != expectedFilesReleasedCount) {
-            throw new GradleException("Something went wrong when releasing on BinTray. Number of files did not match the expected: $releasedFilesCount vs. $expectedFilesReleasedCount")
-        }
-    }
+    dependsOn mavenCentralRealm
+    dependsOn mavenCentralAnnotations
+    dependsOn mavenCentralGradlePlugin
+    dependsOn mavenCentralTransformer
 }
 
-task ojoRealm(type: GradleBuild) {
-    description = 'Publish the Realm AAR and AP SNAPSHOT to Bintray'
-    group = 'Publishing'
-    buildFile = file('realm/build.gradle')
-    tasks = ['ojoUpload']
-    startParameter.projectProperties = gradle.startParameter.projectProperties
-    configure copyProperties
-}
+apply from: "mavencentral-properties.gradle"
 
-task ojoAnnotations(type: GradleBuild) {
-    description = 'Publish the Realm Annotations SNAPSHOT to Bintray'
-    group = 'Publishing'
-    buildFile = file('realm-annotations/build.gradle')
-    startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['artifactoryPublish']
-}
-
-task ojoGradlePlugin(type: GradleBuild) {
-    description = 'Publish the Realm Gradle Plugin SNAPSHOT to Bintray'
-    group = 'Publishing'
-    buildFile = file('gradle-plugin/build.gradle')
-    startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['artifactoryPublish']
-}
-
-task ojoTransformer(type: GradleBuild) {
-    description = 'Publish the Realm Transformer SNAPSHOT to Bintray'
-    group = 'Publishing'
-    buildFile = file('realm-transformer/build.gradle')
-    startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['artifactoryPublish']
-}
-
-task ojoUpload {
-    description = 'Publish all the Realm SNAPSHOT artifacts to OJO'
-    group = 'Publishing'
-    dependsOn ojoRealm
-    dependsOn ojoAnnotations
-    dependsOn ojoGradlePlugin
-    dependsOn ojoTransformer
+nexusStaging {
+    // Lazily evaluate properties so they are only needed when actually used.
+    packageGroup = "io.realm"
+    stagingProfileId = rootProject.ext["sonatypeStagingProfileId"]
+    username = rootProject.ext["ossrhUsername"]
+    password = rootProject.ext["ossrhPassword"]
 }
 
 // This is just a placeholder for the release plugin

@@ -152,7 +152,7 @@ class PluginTest {
 
         assertEquals(3, project.buildscript.repositories.size())
         assertEquals(1, project.repositories.size())
-        assertEquals('jcenter.bintray.com', project.repositories.last().url.host)
+        assertEquals('repo.maven.apache.org', project.repositories.last().url.host)
     }
 
     @Test

@@ -1,13 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'realm-android'
 
-repositories {
-    maven {
-        url 'https://maven.google.com'
-    }
-    google()
-}
-
 android {
     compileSdkVersion rootProject.sdkVersion
     buildToolsVersion rootProject.buildTools

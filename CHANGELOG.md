@@ -1,5 +1,30 @@
 ## 10.4.0 (YYYY-MM-DD)
 
+All releases from 10.4.0 and forward are now found on `mavenCentral()` instead of `jcenter()`. 
+
+A minimal supported setup will therefore now look like this:
+
+```
+allprojects {
+    buildscript {
+        repositories {
+            mavenCentral()
+        }
+        dependencies {
+            classpath "io.realm:realm-gradle-plugin:10.4.0"
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+}
+```
+
+`SNAPSHOT` releases have also been moved from `http://oss.jfrog.org/artifactory/oss-snapshot-local`
+to `https://oss.sonatype.org/content/repositories/snapshots/`. See [here](https://github.com/realm/realm-java/blob/master/README.md#using-snapshots)
+for more information.
+
 ### Enhancements
 * Added support for the string-based Realm Query Language through `RealmQuery.rawPredicate(...)`. This allows many new type of queries not previously supported by the typed query API. See the Javadoc on this method for further details. (Issue [#6116](https://github.com/realm/realm-java/pull/6116))
 
@@ -14,7 +39,7 @@
 ### Internal
 * Updated to Realm Core commit: df57de0101b5b817f8f4158cf45e11985cd640c2.
 * Updated to NDK 22.0.7026061.
-
+* Updated to ReLinker 1.4.3.
 
 ## 10.3.1 (2021-01-28)
 

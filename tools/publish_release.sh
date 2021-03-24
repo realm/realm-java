@@ -20,7 +20,7 @@ set -e
 
 usage() {
 cat <<EOF
-Usage: $0 <bintray_user> <bintray_key> <realm_s3_access_key> <realm_s3_secret_key> <docs_s3_access_key> <docs_s3_secret_key> <slack-webhook-releases-url> <slack-webhook-java-ci-url>
+Usage: $0 <maven_central_user> <maven_central_key> <realm_s3_access_key> <realm_s3_secret_key> <docs_s3_access_key> <docs_s3_secret_key> <slack-webhook-releases-url> <slack-webhook-java-ci-url>
 Usage: $0 verify
 EOF
 }
@@ -37,8 +37,8 @@ fi
 HERE=$(dirname `realpath "$0"`)
 REALM_JAVA_PATH="$HERE/.."
 RELEASE_VERSION=""
-BINTRAY_USER="$1"
-BINTRAY_KEY="$2"
+MAVEN_CENTRAL_USER="$1"
+MAVEN_CENTRAL_KEY="$2"
 REALM_S3_ACCESS_KEY="$3"
 REALM_S3_SECRET_KEY="$4"
 DOCS_S3_ACCESS_KEY="$5"
@@ -115,10 +115,10 @@ create_native_debug_symbols_package() {
   cd $HERE
 }
 
-upload_to_bintray() {
-  echo "Releasing on Bintray..."
+upload_to_mavenCentral() {
+  echo "Releasing on MavenCentral"
   cd $REALM_JAVA_PATH
-  ./gradlew bintrayUpload -PbintrayUser=$BINTRAY_USER -PbintrayKey=$BINTRAY_KEY
+  ./gradlew mavenCentralUpload closeAndReleaseRepository -PossrhUsername=$MAVEN_CENTRAL_USER -PossrhPassword=$MAVEN_CENTRAL_KEY
   cd $HERE
 }
 
@@ -155,7 +155,7 @@ notify_slack_channels() {
   fi
 
   link_to_changelog="https://github.com/realm/realm-java/blob/$current_commit/CHANGELOG.md#$tag"
-  payload="{ \"username\": \"Realm CI\", \"icon_emoji\": \":realm_new:\", \"text\": \"<$link_to_changelog|*Realm Java $RELEASE_VERSION has been released*>\\nSee the Release Notes for more details.\" }"
+  payload="{ \"username\": \"Realm CI\", \"icon_emoji\": \":realm_new:\", \"text\": \"<$link_to_changelog|*Realm Java $RELEASE_VERSION has been released*>\\nSee the Release Notes for more details. Note, it can take up to 10 minutes before the release is visible on Maven Central.\" }"
   echo $link_to_changelog
   echo "Pinging #realm-releases"
   curl -X POST --data-urlencode "payload=${payload}" ${SLACK_WEBHOOK_RELEASES_URL}
@@ -173,7 +173,7 @@ verify_changelog
 
 if [ "$1" != "verify" ]; then
   create_javadoc
-  upload_to_bintray
+  upload_to_mavenCentral
   upload_debug_symbols
   upload_javadoc
   notify_slack_channels

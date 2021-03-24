@@ -18,14 +18,15 @@ enableIntegrationTests = true
 
 // Will store whether or not this build was successful.
 buildSuccess = false
-// Will be set to `true` if this build is a full release that should be available on Bintray.
+// Will be set to `true` if this build is a full release that should be available on Maven Central.
 // This is determined by comparing the current git tag to the version number of the build.
 publishBuild = false
 mongoDbRealmContainer = null
 mongoDbRealmCommandServerContainer = null
 emulatorContainer = null
 dockerNetworkId = UUID.randomUUID().toString()
-currentBranch = env.BRANCH_NAME
+currentBranch = env.CHANGE_BRANCH
+isReleaseBranch = releaseBranches.contains(currentBranch)
 // FIXME: Always used the emulator until we can enable more reliable devices
 // 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen.
 // nodeSelector = (releaseBranches.contains(currentBranch)) ? 'android' : 'docker-cph-03' // Switch to `brix` when all CPH nodes work: https://jira.mongodb.org/browse/RCI-14
@@ -50,6 +51,7 @@ try {
 
         // Check type of Build. We are treating this as a release build if we are building
         // the exact Git SHA that was tagged.
+        echo "Building from branch: $currentBranch"
         gitTag = readGitTag()
         echo "Git tag: ${gitTag ?: 'none'}"
         if (!gitTag) {
@@ -83,7 +85,7 @@ try {
         def instrumentationTestTarget = "connectedAndroidTest"
         def deviceSerial = ""
 
-        if (!releaseBranches.contains(currentBranch)) {
+        if (!isReleaseBranch) {
           // Build development branch
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
@@ -225,8 +227,17 @@ try {
 def runBuild(buildFlags, instrumentationTestTarget) {
 
   stage('Build') {
-    sh "chmod +x gradlew"
-    sh "./gradlew assemble ${buildFlags} --stacktrace"
+    withCredentials([
+            [$class: 'StringBinding', credentialsId: 'maven-central-java-ring-file', variable: 'SIGN_KEY'],
+            [$class: 'StringBinding', credentialsId: 'maven-central-java-ring-file-password', variable: 'SIGN_KEY_PASSWORD'],
+    ]) {
+      sh "chmod +x gradlew"
+      def signingFlags = ""
+      if (isReleaseBranch) {
+        signingFlags = "-PsignBuild=true -PsignSecretRingFile=\"${SIGN_KEY}\" -PsignPassword=${SIGN_KEY_PASSWORD}"
+      }
+      sh "./gradlew assemble ${buildFlags} ${signingFlags} --stacktrace"
+    }
   }
 
   stage('Tests') {
@@ -309,16 +320,19 @@ def runBuild(buildFlags, instrumentationTestTarget) {
 
   // TODO: add support for running monkey on the example apps
 
-  if (['master'].contains(currentBranch)) {
+  def collectMetrics = ['master'].contains(currentBranch)
+  echo "Collecting metrics: $collectMetrics"
+  if (collectMetrics) {
     stage('Collect metrics') {
       collectAarMetrics()
     }
   }
 
-  if (releaseBranches.contains(currentBranch) && !publishBuild) {
-    stage('Publish to OJO') {
-      withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER']]) {
-        sh "chmod +x gradlew && ./gradlew -PbintrayUser=${env.BINTRAY_USER} -PbintrayKey=${env.BINTRAY_KEY} ojoUpload ${buildFlags} --stacktrace"
+  echo "Releasing SNAPSHOT: ($isReleaseBranch, $publishBuild)"
+  if (isReleaseBranch && !publishBuild) {
+    stage('Publish SNAPSHOT') {
+      withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'maven-central-credentials', passwordVariable: 'MAVEN_CENTRAL_PASSWORD', usernameVariable: 'MAVEN_CENTRAL_USER']]) {
+        sh "chmod +x gradlew && ./gradlew mavenCentralUpload ${buildFlags} -PossrhUsername='$MAVEN_CENTRAL_USER' -PossrhPassword='$MAVEN_CENTRAL_PASSWORD' --stacktrace"
       }
     }
   }
@@ -329,13 +343,13 @@ def runPublish() {
     withCredentials([
             [$class: 'StringBinding', credentialsId: 'slack-webhook-java-ci-channel', variable: 'SLACK_URL_CI'],
             [$class: 'StringBinding', credentialsId: 'slack-webhook-releases-channel', variable: 'SLACK_URL_RELEASE'],
-            [$class: 'UsernamePasswordMultiBinding', credentialsId: 'bintray', passwordVariable: 'BINTRAY_KEY', usernameVariable: 'BINTRAY_USER'],
+            [$class: 'UsernamePasswordMultiBinding', credentialsId: 'maven-central-credentials', passwordVariable: 'MAVEN_CENTRAL_PASSWORD', usernameVariable: 'MAVEN_CENTRAL_USER'],
             [$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'DOCS_S3_ACCESS_KEY', credentialsId: 'mongodb-realm-docs-s3', secretKeyVariable: 'DOCS_S3_SECRET_KEY'],
             [$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'REALM_S3_ACCESS_KEY', credentialsId: 'realm-s3', secretKeyVariable: 'REALM_S3_SECRET_KEY']
     ]) {
       sh """
         set +x
-        sh tools/publish_release.sh '$BINTRAY_USER' '$BINTRAY_KEY' \
+        sh tools/publish_release.sh '$MAVEN_CENTRAL_USER' '$MAVEN_CENTRAL_PASSWORD' \
         '$REALM_S3_ACCESS_KEY' '$REALM_S3_SECRET_KEY' \
         '$DOCS_S3_ACCESS_KEY' '$DOCS_S3_SECRET_KEY' \
         '$SLACK_URL_RELEASE' \

@@ -1,0 +1,102 @@
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+apply from: buildscript.sourceFile.getParent() + "/" + "mavencentral-properties.gradle"
+
+// The publications doesn't know about our AAR dependencies, so we have to manually add them to the pom
+// Credit: http://stackoverflow.com/questions/24743562/gradle-not-including-dependencies-in-published-pom-xml
+def createPomDependencies(configurationNames) {
+    return {
+        def dependenciesNode = asNode().appendNode('dependencies')
+        configurationNames.each { configurationName ->
+            configurations[configurationName].allDependencies.each {
+                // Also ignore `realm-library` because that is used by the Kotlin Extensions as
+                // a project dependency, but it is being written to the POM file in a wrong way.
+                // Instead we just ignore it as the Gradle Plugin makes sure it is always present.
+                if (it.group != null && it.name != null && it.name != 'realm-library') {
+                    def dependencyNode = dependenciesNode.appendNode('dependency')
+                    dependencyNode.appendNode('groupId', it.group)
+                    dependencyNode.appendNode('artifactId', it.name)
+                    dependencyNode.appendNode('version', it.version)
+
+                    //If there are any exclusions in dependency
+                    if (it.excludeRules.size() > 0) {
+                        def exclusionsNode = dependencyNode.appendNode('exclusions')
+                        it.excludeRules.each { rule ->
+                            def exclusionNode = exclusionsNode.appendNode('exclusion')
+                            exclusionNode.appendNode('groupId', rule.group)
+                            exclusionNode.appendNode('artifactId', rule.module)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// TODO: Consider refactoring this. See https://github.com/realm/realm-java/pull/7327#discussion_r586281652
+def populatePom(publication, pomName, pomDescription, pomDependencies = null) {
+    publication.pom {
+        name = "${pomName}"
+        description = "${pomDescription}"
+        url = 'https://docs.mongodb.com/realm'
+        licenses {
+            license {
+                name = 'The Apache Software License, Version 2.0'
+                url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                distribution = 'repo'
+            }
+        }
+        issueManagement {
+            system = 'github'
+            url = 'https://github.com/realm/realm-java/issues'
+        }
+        scm {
+            url = 'scm:https://github.com/realm/realm-java'
+            connection = 'scm:git@github.com:realm/realm-java.git'
+            developerConnection = 'scm:git@github.com:realm/realm-java.git'
+        }
+        developers {
+            developer {
+                name = 'Realm'
+                email = 'info@realm.io'
+                organization = 'MongoDB'
+                organizationUrl = 'https://www.mongodb.com'
+            }
+        }
+    }
+    if (pomDependencies) {
+        publication.pom.withXml(pomDependencies)
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "MavenCentral"
+            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+            url = version.endsWith('-SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username = rootProject.ext["ossrhUsername"]
+                password = rootProject.ext["ossrhPassword"]
+            }
+        }
+    }
+}
+
+signing {
+    required { signBuild }
+    def keyId = rootProject.ext["signing.keyId"]
+    def ringFile = rootProject.ext["signing.secretKeyRingFile"]
+    def password = rootProject.ext["signing.password"]
+    useInMemoryPgpKeys(keyId, ringFile, password)
+    sign publishing.publications
+}
+
+// Export methods so they are available in other gradle files
+// https://stackoverflow.com/questions/18715137/extract-common-methods-from-gradle-build-script
+ext {
+    createPomDependencies = this.&createPomDependencies
+    populatePom = this.&populatePom
+}
+
