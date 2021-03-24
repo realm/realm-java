@@ -382,13 +382,12 @@ public class OsResults implements NativeObject, ObservableCollection {
         nativeClear(nativePtr);
     }
 
-    public OsResults sort(String fieldName, Sort sortOrder) {
+    public OsResults sort(@Nullable OsKeyPathMapping mapping, String fieldName, Sort sortOrder) {
         String query = TableQuery.buildSortDescriptor(new String[] {fieldName}, new Sort[] {sortOrder});
-        OsKeyPathMapping mapping = table.getOsKeyPathMapping();
         return new OsResults(sharedRealm, table, nativeStringDescriptor(nativePtr, query, (mapping != null) ? mapping.getNativePtr() : 0));
     }
 
-    public OsResults sort(String[] fieldNames, Sort[] sortOrders) {
+    public OsResults sort(@Nullable OsKeyPathMapping mapping, String[] fieldNames, Sort[] sortOrders) {
         //noinspection ConstantConditions
         if (sortOrders == null || sortOrders.length == 0) {
             throw new IllegalArgumentException("You must provide at least one sort order.");
@@ -398,13 +397,11 @@ public class OsResults implements NativeObject, ObservableCollection {
         }
 
         String query = TableQuery.buildSortDescriptor(fieldNames, sortOrders);
-        OsKeyPathMapping mapping = table.getOsKeyPathMapping();
         return new OsResults(sharedRealm, table, nativeStringDescriptor(nativePtr, query, (mapping != null) ? mapping.getNativePtr() : 0));
     }
 
-    public OsResults distinct(String[] fieldNames) {
+    public OsResults distinct(@Nullable OsKeyPathMapping mapping, String[] fieldNames) {
         String query = TableQuery.buildDistinctDescriptor(fieldNames);
-        OsKeyPathMapping mapping = table.getOsKeyPathMapping();
         return new OsResults(sharedRealm, table, nativeStringDescriptor(nativePtr, query, (mapping != null) ? mapping.getNativePtr() : 0));
     }
 

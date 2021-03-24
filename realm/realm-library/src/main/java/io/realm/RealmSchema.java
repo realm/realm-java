@@ -156,7 +156,7 @@ public abstract class RealmSchema {
         Table table = dynamicClassToTable.get(tableName);
         if (table != null) { return table; }
 
-        table = realm.getSharedRealm().getTable(tableName, getKeyPathMapping());
+        table = realm.getSharedRealm().getTable(tableName);
         dynamicClassToTable.put(tableName, table);
 
         return table;
