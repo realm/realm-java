@@ -89,6 +89,7 @@ public class RealmQueryTests extends QueryTests {
             allTypes.setColumnObjectId(new ObjectId(TestHelper.generateObjectIdHexString(i)));
             allTypes.setColumnDecimal128(new Decimal128(new BigDecimal(i + ".23456789")));
             allTypes.setColumnUUID(UUID.fromString(TestHelper.generateUUIDString(i)));
+            allTypes.setColumnMixed(Mixed.valueOf(i));
 
             NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
             nonLatinFieldNames.set델타(i);
@@ -2955,6 +2956,7 @@ public class RealmQueryTests extends QueryTests {
                 obj.setColumnMutableRealmInteger(j);
                 obj.setColumnRealmLink(obj);
                 obj.setColumnRealmObject(dog);
+                obj.setColumnMixed(Mixed.valueOf(i));
             }
         }
         realm.commitTransaction();
@@ -3074,19 +3076,19 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4524")
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4550")
     public void distinct_allFields() {
         distinctAllFields(realm, "");
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4524")
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4550")
     public void distinct_linkedAllFields() {
         distinctAllFields(realm, AllTypes.FIELD_REALMLINK + ".");
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4524")
+    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4550")
     public void distinct_nestedLinkedAllFields() {
         distinctAllFields(realm, AllTypes.FIELD_REALMLINK + "." + AllTypes.FIELD_REALMLINK + ".");
     }
@@ -4012,8 +4014,8 @@ public class RealmQueryTests extends QueryTests {
             case OBJECT_ID:
             case UUID:
             case LINKING_OBJECTS:
-                return true;
             case MIXED:
+                return true;
             case LIST:
             case INTEGER_LIST:
             case BOOLEAN_LIST:

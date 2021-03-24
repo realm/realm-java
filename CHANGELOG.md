@@ -1,6 +1,6 @@
 ## 10.4.0 (YYYY-MM-DD)
 ### Breaking Changes
-* Queries on non-nullable fields do no longer throw whe using null values.
+* Queries on non-nullable fields do no longer throw when using null values.
 * String query operators `contains`, `beginsWith`, `endsWith`, and `like`, now throw a null pointer exception on null values.
 
 ### Enhancements
@@ -9,6 +9,7 @@
 * Added support for the string-based Realm Query Language through `RealmQuery.rawPredicate(...)`. This allows many new type of queries not previously supported by the typed query API. See the Javadoc on this method for further details. (Issue [#6116](https://github.com/realm/realm-java/pull/6116))
 * Child object fields support queries using the `between` operator.
 * Queries on numerical fields (byte, short, int, long, float, double, decimal128) accept any numerical value as an argument.
+* The distinct query no longer throws an exception on unsupported fields when applied through an object link.
  
 ### Known Bugs
 * Sort and Distinct operations do not support using the Java field name of fields with a custom name defined. (Issue [#4550] (https://github.com/realm/realm-core/issues/4550))
