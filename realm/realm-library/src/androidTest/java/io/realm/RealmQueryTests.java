@@ -520,6 +520,21 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(22, resultList.size());
     }
 
+    @Test(expected = UnsupportedOperationException.class)
+    public void or_missingFilters() {
+        realm.where(AllTypes.class).or().findAll();
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void or_missingFilterBefore() {
+        realm.where(AllTypes.class).or().equalTo(AllTypes.FIELD_FLOAT, 31.2345f).findAll();
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void or_missingFilterAfter() {
+        realm.where(AllTypes.class).or().equalTo(AllTypes.FIELD_FLOAT, 31.2345f).findAll();
+    }
+
     @Test
     public void not() {
         populateTestRealm(); // create TEST_DATA_SIZE objects
