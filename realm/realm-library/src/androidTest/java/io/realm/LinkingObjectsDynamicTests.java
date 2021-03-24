@@ -267,7 +267,8 @@ public class LinkingObjectsDynamicTests {
                     case BINARY_SET:
                     case OBJECT_ID_SET:
                     case UUID_SET:
-                        // TODO: fix this when adding support for dictionary and set in AllJavaTypes
+                        // TODO: https://github.com/realm/realm-java/issues/7382
+                        // TODO: https://github.com/realm/realm-java/issues/7383
                         throw new IllegalArgumentException("Unexpected field type");
                     default:
                         fail("unknown type: " + fieldType);
