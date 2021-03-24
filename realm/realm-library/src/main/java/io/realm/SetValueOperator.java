@@ -42,14 +42,14 @@ abstract class SetValueOperator<E> {
     abstract boolean retainAllInternal(Collection<?> c);
 
     boolean contains(@Nullable Object o) {
-        if (isObjectSameType(o)) {
+        if (!isObjectSameType(o)) {
             return false;
         }
         return containsInternal(o);
     }
 
     boolean remove(@Nullable Object o) {
-        if (isObjectSameType(o)) {
+        if (!isObjectSameType(o)) {
             return false;
         }
         return removeInternal(o);
@@ -186,7 +186,11 @@ abstract class SetValueOperator<E> {
 
     private boolean isObjectSameType(@Nullable Object o) {
         // Return false when passing something else than the correct type
-        return o != null && o.getClass() != valueClass;
+        if (o != null) {
+            return o.getClass() == valueClass;
+        } else {
+            return true;
+        }
     }
 
     private boolean isUpperBoundCollectionSameType(Collection<? extends E> c) {
