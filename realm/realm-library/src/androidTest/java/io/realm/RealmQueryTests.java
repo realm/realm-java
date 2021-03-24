@@ -1535,7 +1535,7 @@ public class RealmQueryTests extends QueryTests {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 10, -5);
 
-        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).beginsWith(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null).findAll().first().getId());
+        realm.where(PrimaryKeyAsString.class).beginsWith(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -1543,7 +1543,7 @@ public class RealmQueryTests extends QueryTests {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 10, -5);
 
-        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).contains(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null).findAll().first().getId());
+        realm.where(PrimaryKeyAsString.class).contains(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -1551,18 +1551,14 @@ public class RealmQueryTests extends QueryTests {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 10, -5);
 
-        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).endsWith(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null).findAll().first().getId());
+        realm.where(PrimaryKeyAsString.class).endsWith(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void like_nullStringPrimaryKey() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 10, -5);
-
-        assertEquals(
-                SECONDARY_FIELD_NUMBER,
-                realm.where(PrimaryKeyAsString.class).like(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null)
-                        .findAll().first().getId());
+        realm.where(PrimaryKeyAsString.class).like(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null);
     }
 
     @Test
@@ -2629,7 +2625,7 @@ public class RealmQueryTests extends QueryTests {
 
         for (String fieldName : fieldNames) {
             try {
-                realm.where(AllJavaTypes.class).isEmpty(fieldName).findAll();
+                realm.where(AllJavaTypes.class).isEmpty(fieldName);
                 fail();
             } catch (IllegalArgumentException ignored) {
             }
@@ -2645,7 +2641,7 @@ public class RealmQueryTests extends QueryTests {
 
             RealmQuery<Owner> query = realm.where(Owner.class);
             try {
-                query.isEmpty(Owner.FIELD_CAT + "." + Cat.FIELD_AGE).findAll();
+                query.isEmpty(Owner.FIELD_CAT + "." + Cat.FIELD_AGE);
                 fail();
             } catch (IllegalArgumentException expected) {
                 assertTrue(expected.getMessage().contains("Illegal Argument: Operation '@count' is not supported on property of type"));
