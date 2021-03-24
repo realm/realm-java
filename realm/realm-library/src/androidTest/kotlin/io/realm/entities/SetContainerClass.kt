@@ -33,7 +33,7 @@ open class SetContainerClass : RealmObject() {
     val myFloatSet = RealmSet<Float>()
     val myLongSet = RealmSet<Long>()
     val myShortSet = RealmSet<Short>()
-//    val myDoubleSet = RealmSet<Double>()
+    val myDoubleSet = RealmSet<Double>()
     val myByteSet = RealmSet<Byte>()
     val myBinarySet = RealmSet<ByteArray>()
 //    val myDateSet = RealmSet<Date>()

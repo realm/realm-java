@@ -172,6 +172,8 @@ abstract class SetValueOperator<E> {
             return (SetIterator<T>) new ByteSetIterator(osSet, baseRealm);
         } else if (valueClass == Float.class) {
             return (SetIterator<T>) new FloatSetIterator(osSet, baseRealm);
+        } else if (valueClass == Double.class) {
+            return (SetIterator<T>) new DoubleSetIterator(osSet, baseRealm);
         } else if (valueClass == byte[].class) {
             return (SetIterator<T>) new BinarySetIterator(osSet, baseRealm);
         } else if (valueClass == ObjectId.class) {
@@ -601,6 +603,77 @@ class FloatOperator extends SetValueOperator<Float> {
 /**
  * TODO
  */
+class DoubleOperator extends SetValueOperator<Double> {
+
+    public DoubleOperator(BaseRealm baseRealm, OsSet osSet, Class<Double> valueClass) {
+        super(baseRealm, osSet, valueClass);
+    }
+
+    @Override
+    boolean add(@Nullable Double value) {
+        return osSet.add(value);
+    }
+
+    @Override
+    boolean contains(@Nullable Object o) {
+        Double value;
+        if (o == null) {
+            value = null;
+        } else {
+            value = (Double) o;
+        }
+        return osSet.contains(value);
+    }
+
+    @Override
+    boolean remove(@Nullable Object o) {
+        return osSet.remove((Double) o);
+    }
+
+    @Override
+    boolean containsAllInternal(Collection<?> c) {
+        for (Object value : c) {
+            if (value != null && !(value instanceof Double)) {
+                return false;
+            }
+        }
+
+        //noinspection unchecked
+        Collection<Double> doubleCollection = (Collection<Double>) c;
+        NativeMixedCollection collection = NativeMixedCollection.newDoubleCollection(doubleCollection);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+    }
+
+    @Override
+    boolean addAllInternal(Collection<? extends Double> c) {
+        for (Object value : c) {
+            if (value != null && !(value instanceof Double)) {
+                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+            }
+        }
+
+        NativeMixedCollection collection = NativeMixedCollection.newDoubleCollection(c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
+    }
+
+    @Override
+    boolean removeAllInternal(Collection<?> c) {
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newDoubleCollection((Collection<Double>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newDoubleCollection((Collection<Double>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
+    }
+}
+
+/**
+ * TODO
+ */
 class BinaryOperator extends SetValueOperator<byte[]> {
 
     public BinaryOperator(BaseRealm baseRealm, OsSet osSet, Class<byte[]> valueClass) {
@@ -935,6 +1008,15 @@ class ByteSetIterator extends SetIterator<Byte> {
  */
 class FloatSetIterator extends SetIterator<Float> {
     public FloatSetIterator(OsSet osSet, BaseRealm baseRealm) {
+        super(osSet, baseRealm);
+    }
+}
+
+/**
+ * TODO
+ */
+class DoubleSetIterator extends SetIterator<Double> {
+    public DoubleSetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
     }
 }

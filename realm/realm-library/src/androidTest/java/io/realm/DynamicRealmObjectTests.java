@@ -1926,6 +1926,7 @@ public class DynamicRealmObjectTests {
                 case STRING_SET:
                 case INTEGER_SET:
                 case FLOAT_SET:
+                case DOUBLE_SET:
                 case BINARY_SET:
                 case OBJECT_ID_SET:
                 case UUID_SET:

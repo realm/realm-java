@@ -264,6 +264,38 @@ public class OsSet implements NativeObject {
     }
 
     // ----------------------------------------------------
+    // Double operations
+    // ----------------------------------------------------
+
+    public boolean contains(@Nullable Double value) {
+        if (value == null) {
+            return nativeContainsNull(nativePtr);
+        } else {
+            return nativeContainsDouble(nativePtr, value);
+        }
+    }
+
+    public boolean add(@Nullable Double value) {
+        long[] indexAndFound;
+        if (value == null) {
+            indexAndFound = nativeAddNull(nativePtr);
+        } else {
+            indexAndFound = nativeAddDouble(nativePtr, value);
+        }
+        return indexAndFound[1] != VALUE_NOT_FOUND;
+    }
+
+    public boolean remove(@Nullable Double value) {
+        long[] indexAndFound;
+        if (value == null) {
+            indexAndFound = nativeRemoveNull(nativePtr);
+        } else {
+            indexAndFound = nativeRemoveDouble(nativePtr, value);
+        }
+        return indexAndFound[1] == VALUE_FOUND;
+    }
+
+    // ----------------------------------------------------
     // Binary operations
     // ----------------------------------------------------
 
@@ -425,6 +457,8 @@ public class OsSet implements NativeObject {
 
     private static native boolean nativeContainsFloat(long nativePtr, float value);
 
+    private static native boolean nativeContainsDouble(long nativePtr, double value);
+
     private static native boolean nativeContainsBinary(long nativePtr, byte[] value);
 
     private static native boolean nativeContainsObjectId(long nativePtr, String value);
@@ -439,6 +473,8 @@ public class OsSet implements NativeObject {
 
     private static native long[] nativeAddFloat(long nativePtr, float value);
 
+    private static native long[] nativeAddDouble(long nativePtr, double value);
+
     private static native long[] nativeAddBinary(long nativePtr, byte[] value);
 
     private static native long[] nativeAddObjectId(long nativePtr, String value);
@@ -452,6 +488,8 @@ public class OsSet implements NativeObject {
     private static native long[] nativeRemoveLong(long nativePtr, long value);
 
     private static native long[] nativeRemoveFloat(long nativePtr, float value);
+
+    private static native long[] nativeRemoveDouble(long nativePtr, double value);
 
     private static native long[] nativeRemoveBinary(long nativePtr, byte[] value);
 
