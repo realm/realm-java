@@ -175,8 +175,8 @@ class ManagedSetTester<T : Any>(
             // Does not change if we remove something that is not there
             assertFalse(set.remove(notPresentValue))
 
-            // Does not change if we remove an object that is not the same time as the set
-            assertFalse(set.remove<Any>(AllTypes()))
+            // Does not change if we remove an object that is not the same type as the set
+            assertFalse(set.remove<Any>(Pair(1, 2)))
 
             // Does not change if we remove null and null is not present
             assertFalse(set.remove(null))
