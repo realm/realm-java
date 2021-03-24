@@ -33,7 +33,7 @@ abstract class SetValueOperator<E> {
 
     abstract boolean removeInternal(@Nullable Object o);
 
-    abstract boolean containsAll(Collection<?> c);
+    abstract boolean containsAllInternal(Collection<?> c);
 
     abstract boolean addAllInternal(Collection<? extends E> c);
 
@@ -42,17 +42,26 @@ abstract class SetValueOperator<E> {
     abstract boolean retainAllInternal(Collection<?> c);
 
     boolean contains(@Nullable Object o) {
-        if (!isObjectSameType(o)) {
+        if (isObjectSameType(o)) {
             return false;
         }
         return containsInternal(o);
     }
 
     boolean remove(@Nullable Object o) {
-        if (!isObjectSameType(o)) {
+        if (isObjectSameType(o)) {
             return false;
         }
         return removeInternal(o);
+    }
+
+    boolean containsAll(Collection<?> c) {
+        if (!isCollectionSameType(c)) {
+            // A collection of a different type cannot be contained in the set
+            return false;
+        }
+
+        return containsAllInternal(c);
     }
 
     boolean addAll(Collection<? extends E> c) {
@@ -60,6 +69,10 @@ abstract class SetValueOperator<E> {
             OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
             return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.ADD_ALL);
         }
+        if (!isUpperBoundCollectionSameType(c)) {
+            return false;
+        }
+
         return addAllInternal(c);
     }
 
@@ -68,6 +81,11 @@ abstract class SetValueOperator<E> {
             OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
             return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.REMOVE_ALL);
         }
+        if (!isCollectionSameType(c)) {
+            // Difference with a collection of a different type does not change the set
+            return false;
+        }
+
         return removeAllInternal(c);
     }
 
@@ -76,6 +94,12 @@ abstract class SetValueOperator<E> {
             OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
             return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.RETAIN_ALL);
         }
+        if (!isCollectionSameType(c)) {
+            // Intersection with a collection of a different type yields an empty set
+            osSet.clear();
+            return true;
+        }
+
         return retainAllInternal(c);
     }
 
@@ -162,7 +186,29 @@ abstract class SetValueOperator<E> {
 
     private boolean isObjectSameType(@Nullable Object o) {
         // Return false when passing something else than the correct type
-        return o == null || o.getClass() == valueClass;
+        return o != null && o.getClass() != valueClass;
+    }
+
+    private boolean isUpperBoundCollectionSameType(Collection<? extends E> c) {
+        if (!c.isEmpty()) {
+            for (E item : c) {
+                if (item != null) {
+                    return item.getClass() == valueClass;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean isCollectionSameType(Collection<?> c) {
+        if (!c.isEmpty()) {
+            for (Object item : c) {
+                if (item != null) {
+                    return item.getClass() == valueClass;
+                }
+            }
+        }
+        return true;
     }
 
     @SuppressWarnings("unchecked")
@@ -212,7 +258,7 @@ class StringOperator extends SetValueOperator<String> {
     }
 
     @Override
-    boolean containsAll(Collection<?> c) {
+    boolean containsAllInternal(Collection<?> c) {
         if (isRealmCollection(c)) {
             OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
             return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
@@ -289,7 +335,7 @@ class IntegerOperator extends SetValueOperator<Integer> {
     }
 
     @Override
-    boolean containsAll(Collection<?> c) {
+    boolean containsAllInternal(Collection<?> c) {
         if (isRealmCollection(c)) {
             OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
             return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
@@ -359,7 +405,7 @@ class LongOperator extends SetValueOperator<Long> {
     }
 
     @Override
-    boolean containsAll(Collection<?> c) {
+    boolean containsAllInternal(Collection<?> c) {
         if (isRealmCollection(c)) {
             OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
             return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
@@ -434,7 +480,7 @@ class ShortOperator extends SetValueOperator<Short> {
     }
 
     @Override
-    boolean containsAll(Collection<?> c) {
+    boolean containsAllInternal(Collection<?> c) {
         if (isRealmCollection(c)) {
             OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
             return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
@@ -510,7 +556,7 @@ class ByteOperator extends SetValueOperator<Byte> {
     }
 
     @Override
-    boolean containsAll(Collection<?> c) {
+    boolean containsAllInternal(Collection<?> c) {
         if (isRealmCollection(c)) {
             OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
             return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
@@ -586,7 +632,7 @@ class UUIDOperator extends SetValueOperator<UUID> {
     }
 
     @Override
-    boolean containsAll(Collection<?> c) {
+    boolean containsAllInternal(Collection<?> c) {
         if (isRealmCollection(c)) {
             OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
             return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
