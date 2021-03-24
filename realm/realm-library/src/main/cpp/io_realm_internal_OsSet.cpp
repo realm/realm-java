@@ -125,6 +125,18 @@ Java_io_realm_internal_OsSet_nativeContainsNull(JNIEnv *env, jclass, jlong set_p
 }
 
 JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsSet_nativeContainsBoolean(JNIEnv* env, jclass, jlong set_ptr,
+                                                   jboolean j_value) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        size_t found = set.find_any(Mixed(bool(j_value)));
+        return found != npos;       // npos represents "not found"
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_OsSet_nativeContainsString(JNIEnv* env, jclass, jlong set_ptr,
                                                   jstring j_value) {
     try {
@@ -220,6 +232,27 @@ Java_io_realm_internal_OsSet_nativeAddNull(JNIEnv* env, jclass, jlong set_ptr) {
         auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
         JavaAccessorContext context(env);
         const std::pair<size_t, bool>& add_pair = set.insert(context, Any());
+        jlong ret[2];
+        ret[0] = add_pair.first;    // index
+        ret[1] = add_pair.second;   // found (or not)
+        jlongArray ret_array = env->NewLongArray(2);
+        env->SetLongArrayRegion(ret_array, 0, 2, ret);
+        return ret_array;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jlongArray JNICALL
+Java_io_realm_internal_OsSet_nativeAddBoolean(JNIEnv* env, jclass, jlong set_ptr,
+                                              jboolean j_value) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        JavaAccessorContext context(env);
+
+        // TODO: abstract this call so that the rest is the same for all types
+        const std::pair<size_t, bool>& add_pair = set.insert(context, Any(j_value));
+
         jlong ret[2];
         ret[0] = add_pair.first;    // index
         ret[1] = add_pair.second;   // found (or not)
@@ -386,6 +419,26 @@ Java_io_realm_internal_OsSet_nativeRemoveNull(JNIEnv* env, jclass, jlong set_ptr
     try {
         auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
         const std::pair<size_t, bool>& remove_pair = set.remove_any(Mixed());
+        jlong ret[2];
+        ret[0] = remove_pair.first;     // index
+        ret[1] = remove_pair.second;    // found (or not)
+        jlongArray ret_array = env->NewLongArray(2);
+        env->SetLongArrayRegion(ret_array, 0, 2, ret);
+        return ret_array;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jlongArray JNICALL
+Java_io_realm_internal_OsSet_nativeRemoveBoolean(JNIEnv* env, jclass, jlong set_ptr,
+                                                 jboolean j_value) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+
+        // TODO: abstract this call so that the rest is the same for all types
+        const std::pair<size_t, bool>& remove_pair = set.remove_any(Mixed(bool(j_value)));
+
         jlong ret[2];
         ret[0] = remove_pair.first;     // index
         ret[1] = remove_pair.second;    // found (or not)

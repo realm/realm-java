@@ -669,6 +669,13 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
+    private static ItemCallback<Boolean> booleanSetItemCallback = new ItemCallback<Boolean>() {
+        @Override
+        public void handleItem(long containerPtr, Boolean item) {
+            nativeAddBooleanSetItem(containerPtr, item);
+        }
+    };
+
     private static ItemCallback<Integer> integerSetItemCallback = new ItemCallback<Integer>() {
         @Override
         public void handleItem(long containerPtr, Integer item) {
@@ -740,6 +747,8 @@ public class OsObjectBuilder implements Closeable {
 
     private static native void nativeAddStringSetItem(long setPtr, String val);
 
+    private static native void nativeAddBooleanSetItem(long setPtr, boolean val);
+
     private static native void nativeAddIntegerSetItem(long setPtr, long val);
 
     private static native void nativeAddFloatSetItem(long setPtr, float val);
@@ -758,6 +767,10 @@ public class OsObjectBuilder implements Closeable {
 
     public void addStringSet(long columnKey, RealmSet<String> set) {
         addSetItem(builderPtr, columnKey, set, stringSetItemCallback);
+    }
+
+    public void addBooleanSet(long columnKey, RealmSet<Boolean> set) {
+        addSetItem(builderPtr, columnKey, set, booleanSetItemCallback);
     }
 
     public void addIntegerSet(long columnKey, RealmSet<Integer> set) {

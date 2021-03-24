@@ -1104,6 +1104,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val internalClassName = Utils.getReferencedTypeInternalClassNameStatement(genericTypeQualifiedName, classCollection)
                             emitStatement("builder.addPersistedLinkProperty(%s, \"%s\", RealmFieldType.STRING_TO_LINK_MAP, %s)", publicFieldName, internalFieldName, internalClassName)
                         }
+                        Constants.RealmFieldType.BOOLEAN_SET,
                         Constants.RealmFieldType.STRING_SET,
                         Constants.RealmFieldType.BINARY_SET,
                         Constants.RealmFieldType.INTEGER_SET,

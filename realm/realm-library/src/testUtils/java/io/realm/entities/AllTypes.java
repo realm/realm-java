@@ -192,7 +192,7 @@ public class AllTypes extends RealmObject {
     @Required
     private RealmDictionary<Decimal128> columnRequiredDecimal128Dictionary;
 
-//    private RealmSet<Boolean> columnBooleanSet;
+    private RealmSet<Boolean> columnBooleanSet;
     private RealmSet<String> columnStringSet;
     private RealmSet<Integer> columnIntegerSet;
     private RealmSet<Float> columnFloatSet;
@@ -644,6 +644,14 @@ public class AllTypes extends RealmObject {
 
     public void setColumnRequiredDecimal128Dictionary(RealmDictionary<Decimal128> columnRequiredDecimal128Dictionary) {
         this.columnRequiredDecimal128Dictionary = columnRequiredDecimal128Dictionary;
+    }
+
+    public RealmSet<Boolean> getColumnBooleanSet() {
+        return columnBooleanSet;
+    }
+
+    public void setColumnBooleanSet(RealmSet<Boolean> columnBooleanSet) {
+        this.columnBooleanSet = columnBooleanSet;
     }
 
     public RealmSet<String> getColumnStringSet() {

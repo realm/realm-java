@@ -224,7 +224,9 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
         }
 
         SetValueOperator<T> operator;
-        if (valueClass == String.class) {
+        if (valueClass == Boolean.class) {
+            operator = (SetValueOperator<T>) new BooleanOperator(baseRealm, osSet, Boolean.class);
+        } else if (valueClass == String.class) {
             operator = (SetValueOperator<T>) new StringOperator(baseRealm, osSet, String.class);
         } else if (valueClass == Integer.class) {
             operator = (SetValueOperator<T>) new IntegerOperator(baseRealm, osSet, Integer.class);

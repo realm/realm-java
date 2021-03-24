@@ -160,7 +160,9 @@ abstract class SetValueOperator<E> {
     private static <T> SetIterator<T> iteratorFactory(Class<T> valueClass,
                                                       OsSet osSet,
                                                       BaseRealm baseRealm) {
-        if (valueClass == String.class) {
+        if (valueClass == Boolean.class) {
+            return (SetIterator<T>) new BooleanSetIterator(osSet, baseRealm);
+        } else if (valueClass == String.class) {
             return (SetIterator<T>) new StringSetIterator(osSet, baseRealm);
         } else if (valueClass == Integer.class) {
             return (SetIterator<T>) new IntegerSetIterator(osSet, baseRealm);
@@ -183,6 +185,72 @@ abstract class SetValueOperator<E> {
         } else {
             throw new IllegalArgumentException("Unknown class for iterator: " + valueClass.getSimpleName());
         }
+    }
+}
+
+/**
+ * TODO
+ */
+class BooleanOperator extends SetValueOperator<Boolean> {
+
+    public BooleanOperator(BaseRealm baseRealm, OsSet osSet, Class<Boolean> valueClass) {
+        super(baseRealm, osSet, valueClass);
+    }
+
+    @Override
+    boolean add(@Nullable Boolean value) {
+        return osSet.add(value);
+    }
+
+    @Override
+    boolean contains(@Nullable Object o) {
+        return osSet.contains((Boolean) o);
+    }
+
+    @Override
+    boolean remove(@Nullable Object o) {
+        return osSet.remove((Boolean) o);
+    }
+
+    @Override
+    boolean containsAllInternal(Collection<?> c) {
+        for (Object value : c) {
+            if (value != null && !(value instanceof Boolean)) {
+                return false;
+            }
+        }
+
+        //noinspection unchecked
+        Collection<Boolean> booleanCollection = (Collection<Boolean>) c;
+        NativeMixedCollection collection = NativeMixedCollection.newBooleanCollection(booleanCollection);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+    }
+
+    @Override
+    boolean addAllInternal(Collection<? extends Boolean> c) {
+        for (Object value : c) {
+            if (value != null && !(value instanceof Boolean)) {
+                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+            }
+        }
+
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newBooleanCollection((Collection<Boolean>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
+    }
+
+    @Override
+    boolean removeAllInternal(Collection<?> c) {
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newBooleanCollection((Collection<Boolean>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newBooleanCollection((Collection<Boolean>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
 }
 
@@ -922,6 +990,15 @@ abstract class SetIterator<E> implements Iterator<E> {
     protected E getValueAtIndex(int position) {
         //noinspection unchecked
         return (E) osSet.getValueAtIndex(position);
+    }
+}
+
+/**
+ * TODO
+ */
+class BooleanSetIterator extends SetIterator<Boolean> {
+    public BooleanSetIterator(OsSet osSet, BaseRealm baseRealm) {
+        super(osSet, baseRealm);
     }
 }
 

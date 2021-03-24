@@ -96,6 +96,38 @@ public class OsSet implements NativeObject {
     }
 
     // ----------------------------------------------------
+    // Boolean operations
+    // ----------------------------------------------------
+
+    public boolean contains(@Nullable Boolean value) {
+        if (value == null) {
+            return nativeContainsNull(nativePtr);
+        } else {
+            return nativeContainsBoolean(nativePtr, value);
+        }
+    }
+
+    public boolean add(@Nullable Boolean value) {
+        long[] indexAndFound;
+        if (value == null) {
+            indexAndFound = nativeAddNull(nativePtr);
+        } else {
+            indexAndFound = nativeAddBoolean(nativePtr, value);
+        }
+        return indexAndFound[1] != VALUE_NOT_FOUND;
+    }
+
+    public boolean remove(@Nullable Boolean value) {
+        long[] indexAndFound;
+        if (value == null) {
+            indexAndFound = nativeRemoveNull(nativePtr);
+        } else {
+            indexAndFound = nativeRemoveBoolean(nativePtr, value);
+        }
+        return indexAndFound[1] == VALUE_FOUND;
+    }
+
+    // ----------------------------------------------------
     // String operations
     // ----------------------------------------------------
 
@@ -451,6 +483,8 @@ public class OsSet implements NativeObject {
 
     private static native boolean nativeContainsNull(long nativePtr);
 
+    private static native boolean nativeContainsBoolean(long nativePtr, boolean value);
+
     private static native boolean nativeContainsString(long nativePtr, String value);
 
     private static native boolean nativeContainsLong(long nativePtr, long value);
@@ -467,6 +501,8 @@ public class OsSet implements NativeObject {
 
     private static native long[] nativeAddNull(long nativePtr);
 
+    private static native long[] nativeAddBoolean(long nativePtr, boolean value);
+
     private static native long[] nativeAddString(long nativePtr, String value);
 
     private static native long[] nativeAddLong(long nativePtr, long value);
@@ -482,6 +518,8 @@ public class OsSet implements NativeObject {
     private static native long[] nativeAddUUID(long nativePtr, String value);
 
     private static native long[] nativeRemoveNull(long nativePtr);
+
+    private static native long[] nativeRemoveBoolean(long nativePtr, boolean value);
 
     private static native long[] nativeRemoveString(long nativePtr, String value);
 
