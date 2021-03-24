@@ -102,7 +102,7 @@ public class OsResultsTests {
     }
 
     private Table getTable(OsSharedRealm sharedRealm) {
-        return sharedRealm.getTable(Table.getTableNameForClass("test_table"), null);
+        return sharedRealm.getTable(Table.getTableNameForClass("test_table"));
     }
 
     private void populateData(OsSharedRealm sharedRealm) {

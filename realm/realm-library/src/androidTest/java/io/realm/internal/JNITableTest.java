@@ -215,7 +215,7 @@ public class JNITableTest {
             sharedRealm.createTable(TABLE_NAME);
             sharedRealm.commitTransaction();
 
-            Table table = sharedRealm.getTable(TABLE_NAME, null);
+            Table table = sharedRealm.getTable(TABLE_NAME);
             assertEquals(TABLE_NAME, table.getName());
         } finally {
             sharedRealm.close();
