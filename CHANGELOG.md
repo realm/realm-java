@@ -11,7 +11,7 @@
 * Checks for null Strings on non-nullable query operators `contains`, `beginsWith`, `endsWith`, and `like`.
 
 ### Known Bugs
-* Java field names not supported on Sort or Distinct operations. (Issue [#4550] (https://github.com/realm/realm-core/issues/4550))
+* Sort and Distinct operations do not support using the Java field name of fields with a custom name defined. (Issue [#4550] (https://github.com/realm/realm-core/issues/4550))
 * Queries on fields named with non-latin characters are not currently supported. (Issue [#4467] (https://github.com/realm/realm-core/issues/4467))
 
 ### Compatibility
