@@ -209,6 +209,12 @@ class ManagedSetTester<T : Any>(
             // Contains an empty collection - every set contains the empty set
             assertTrue(set.containsAll(listOf()))
 
+            // Does not contain a collection of a different type
+            val collectionOfDifferentType = initializedSet.map {
+                Pair(it, it)
+            }
+            assertFalse(set.containsAll(collectionOfDifferentType as Collection<*>))
+
             // Contains a managed set containing the same values
             val sameValuesManagedSet = managedSetGetter.get(transactionRealm.createObject())
             sameValuesManagedSet.addAll(initializedSet)
@@ -337,6 +343,14 @@ class ManagedSetTester<T : Any>(
             assertTrue(set.retainAll(listOf()))
             assertTrue(set.isEmpty())
 
+            // Changes after intersection with a collection of a different type
+            set.addAll(initializedSet)
+            val collectionOfDifferentType = initializedSet.map {
+                Pair(it, it)
+            }
+            assertTrue(set.retainAll(collectionOfDifferentType as Collection<*>))
+            assertTrue(set.isEmpty())
+
             // Changes after adding data and intersecting it with other values
             set.addAll(initializedSet)
             assertEquals(initializedSet.size, set.size)
@@ -424,6 +438,13 @@ class ManagedSetTester<T : Any>(
             // Does not change after adding values again and remove empty collection
             set.addAll(initializedSet)
             assertFalse(set.removeAll(listOf()))
+            assertEquals(initializedSet.size, set.size)
+
+            // Does not change after removing a list of a different type
+            val differentTypeCollection = initializedSet.map {
+                Pair(it, it)
+            }
+            assertFalse(set.removeAll(differentTypeCollection as Collection<*>))
             assertEquals(initializedSet.size, set.size)
 
             // Does not change after remove something else from empty set
