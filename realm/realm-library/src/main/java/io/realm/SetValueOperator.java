@@ -31,7 +31,7 @@ abstract class SetValueOperator<E> {
 
     abstract boolean add(@Nullable E value);
 
-    abstract boolean contains(@Nullable Object o);
+    abstract boolean containsInternal(@Nullable Object o);
 
     abstract boolean remove(@Nullable Object o);
 
@@ -42,6 +42,14 @@ abstract class SetValueOperator<E> {
     abstract boolean removeAllInternal(Collection<?> c);
 
     abstract boolean retainAllInternal(Collection<?> c);
+
+    boolean contains(@Nullable Object o) {
+        // Return false when passing something else than the correct type
+        if (o != null && o.getClass() != valueClass) {
+            return false;
+        }
+        return containsInternal(o);
+    }
 
     boolean containsAll(Collection<?> c) {
         if (isRealmCollection(c)) {
@@ -203,7 +211,7 @@ class BooleanOperator extends SetValueOperator<Boolean> {
     }
 
     @Override
-    boolean contains(@Nullable Object o) {
+    boolean containsInternal(@Nullable Object o) {
         return osSet.contains((Boolean) o);
     }
 
@@ -269,7 +277,7 @@ class StringOperator extends SetValueOperator<String> {
     }
 
     @Override
-    boolean contains(@Nullable Object o) {
+    boolean containsInternal(@Nullable Object o) {
         return osSet.contains((String) o);
     }
 
@@ -335,7 +343,7 @@ class IntegerOperator extends SetValueOperator<Integer> {
     }
 
     @Override
-    boolean contains(@Nullable Object o) {
+    boolean containsInternal(@Nullable Object o) {
         Long value;
         if (o == null) {
             value = null;
@@ -406,7 +414,7 @@ class LongOperator extends SetValueOperator<Long> {
     }
 
     @Override
-    boolean contains(@Nullable Object o) {
+    boolean containsInternal(@Nullable Object o) {
         return osSet.contains((Long) o);
     }
 
@@ -470,7 +478,7 @@ class ShortOperator extends SetValueOperator<Short> {
     }
 
     @Override
-    boolean contains(@Nullable Object o) {
+    boolean containsInternal(@Nullable Object o) {
         Long value;
         if (o == null) {
             value = null;
@@ -541,7 +549,7 @@ class ByteOperator extends SetValueOperator<Byte> {
     }
 
     @Override
-    boolean contains(@Nullable Object o) {
+    boolean containsInternal(@Nullable Object o) {
         Long value;
         if (o == null) {
             value = null;
@@ -612,7 +620,7 @@ class FloatOperator extends SetValueOperator<Float> {
     }
 
     @Override
-    boolean contains(@Nullable Object o) {
+    boolean containsInternal(@Nullable Object o) {
         Float value;
         if (o == null) {
             value = null;
@@ -683,7 +691,7 @@ class DoubleOperator extends SetValueOperator<Double> {
     }
 
     @Override
-    boolean contains(@Nullable Object o) {
+    boolean containsInternal(@Nullable Object o) {
         Double value;
         if (o == null) {
             value = null;
@@ -754,7 +762,7 @@ class BinaryOperator extends SetValueOperator<byte[]> {
     }
 
     @Override
-    boolean contains(@Nullable Object o) {
+    boolean containsInternal(@Nullable Object o) {
         byte[] value;
         if (o == null) {
             value = null;
@@ -825,7 +833,7 @@ class ObjectIdOperator extends SetValueOperator<ObjectId> {
     }
 
     @Override
-    boolean contains(@Nullable Object o) {
+    boolean containsInternal(@Nullable Object o) {
         ObjectId value;
         if (o == null) {
             value = null;
@@ -896,7 +904,7 @@ class UUIDOperator extends SetValueOperator<UUID> {
     }
 
     @Override
-    boolean contains(@Nullable Object o) {
+    boolean containsInternal(@Nullable Object o) {
         UUID value;
         if (o == null) {
             value = null;
