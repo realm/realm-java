@@ -572,7 +572,6 @@ class UUIDTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/isio.realm.CustomRealmNameTestssues/4469")
     fun queriesIsEmpty() {
         val uuid1 = UUID.randomUUID()
         val uuid2 = UUID.randomUUID()
