@@ -1,6 +1,6 @@
 ## 10.4.0 (YYYY-MM-DD)
 ### Breaking Changes
-* Queries no longer check do nullability checks on non-nullable fields.
+* Queries will no longer perform nullability checks on input values when querying non-nullable fields.
 
 ### Enhancements
 * Added support for `java.util.UUID` as supported field in model classes.
