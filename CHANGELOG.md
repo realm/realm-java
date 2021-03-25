@@ -27,9 +27,12 @@ for more information.
 
 ### Enhancements
 * Added support for the string-based Realm Query Language through `RealmQuery.rawPredicate(...)`. This allows many new type of queries not previously supported by the typed query API. See the Javadoc on this method for further details. (Issue [#6116](https://github.com/realm/realm-java/pull/6116))
+* Performance of sorting on more than one property has been improved. Especially important if many elements match on the first property.
 
 ### Fixes
-* None
+* Calling max/min/sum/avg on a List may give wrong results (Realm Core [#4252](https://github.com/realm/realm-core/issues/4252), since v10.0.0)
+* Fix an issue when using `RealmResults.freeze()` across threads with different transaction versions. Previously, copying the `RealmsResults`' native resource could result in a stale state or objects from a future version. (Realm Core [#4254](https://github.com/realm/realm-core/pull/4254)).
+* On 32-bit devices you may get exception with "No such object" when upgrading to v10.* ([#7314](https://github.com/realm/realm-java/issues/7314), since v10.0.0)
 
 ### Compatibility
 * File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
@@ -37,7 +40,7 @@ for more information.
 * Realm Studio 10.0.0 or above is required to open Realms created by this version.
 
 ### Internal
-* Updated to Realm Core commit: df57de0101b5b817f8f4158cf45e11985cd640c2.
+* Updated to Realm Core 10.5.6, commit 92129110dece2cee59839e20be3a7067084a1196.
 * Updated to NDK 22.0.7026061.
 * Updated to ReLinker 1.4.3.
 
