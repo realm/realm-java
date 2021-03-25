@@ -22,11 +22,15 @@ import io.realm.annotations.RealmField
 import io.realm.annotations.Required
 import org.bson.types.ObjectId
 
-open class CRDTCounter : RealmObject() {
+open class CRDTCounter(userId: String) : RealmObject() {
+
+    // Required by Realm
+    constructor(): this("")
 
     @PrimaryKey
     @RealmField("_id")
-    var id: ObjectId = ObjectId.get()
+    var id: String = userId
+
     @Required
     private val counter: MutableRealmInteger = MutableRealmInteger.valueOf(0L)
 

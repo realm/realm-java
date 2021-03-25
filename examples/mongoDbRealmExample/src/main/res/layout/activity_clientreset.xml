@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:padding="32dp"
+            android:layout_centerInParent="true"
+            android:orientation="vertical">
+
+            <me.zhanghai.android.materialprogressbar.MaterialProgressBar
+                android:id="@+id/progressbar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="64dp"
+                android:layout_gravity="center_horizontal"
+                android:indeterminate="true"
+                style="@style/Widget.MaterialProgressBar.ProgressBar" />
+
+            <TextView
+                android:id="@+id/status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                app:fontFamily="sans-serif" />
+        </LinearLayout>
+
+    </RelativeLayout>
+</layout>
+

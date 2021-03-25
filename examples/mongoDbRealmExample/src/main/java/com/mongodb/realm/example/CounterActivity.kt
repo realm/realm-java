@@ -32,10 +32,7 @@ import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.RealmLog
 import io.realm.mongodb.User
-import io.realm.mongodb.sync.ProgressListener
-import io.realm.mongodb.sync.ProgressMode
-import io.realm.mongodb.sync.SyncConfiguration
-import io.realm.mongodb.sync.SyncSession
+import io.realm.mongodb.sync.*
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
@@ -97,43 +94,37 @@ class CounterActivity : AppCompatActivity() {
         user = loggedInUser
         val user = user
         if (user != null) {
-            // Create a RealmConfiguration for our user
-            // Use user id as partition value, so each user gets an unique view.
-            // FIXME Right now we are using waitForInitialRemoteData and a more advanced
-            // initialData block due to Sync only supporting ObjectId keys. This should
-            // be changed once natural keys are supported.
+            // Create a RealmConfiguration for our user. Use user id as partition value, so each
+            // user gets an unique view.
             val config = SyncConfiguration.Builder(user, user.id)
                     .initialData {
-                        if (it.isEmpty) {
-                            it.insert(CRDTCounter())
-                        }
+                        it.insert(CRDTCounter(user.id))
                     }
-                    .waitForInitialRemoteData()
+                    .clientResetHandler { session, error ->
+                        ClientResetActivity.RESET_ERRORS.add(Pair(error, session.configuration))
+                        val intent = Intent(this, ClientResetActivity::class.java)
+                        startActivity(intent)
+                    }
                     .build()
 
-            // This will automatically sync all changes in the background for as long as the Realm is open
-            Realm.getInstanceAsync(config, object: Realm.Callback() {
-                override fun onSuccess(realm: Realm) {
-                    this@CounterActivity.realm = realm
-
-                    counter = realm.where<CRDTCounter>().findFirstAsync()
-                    counter.addChangeListener<CRDTCounter> { obj, _ ->
-                        if (obj.isValid) {
-                            counterView.text = String.format(Locale.US, "%d", counter.count)
-                        } else {
-                            counterView.text = "-"
-                        }
-                    }
-
-                    // Setup progress listeners for indeterminate progress bars
-                    session = realm.syncSession
-                    session.run {
-                        addDownloadProgressListener(ProgressMode.INDEFINITELY, downloadListener)
-                        addUploadProgressListener(ProgressMode.INDEFINITELY, uploadListener)
+            realm = Realm.getInstance(config).also {
+                counter = it.where<CRDTCounter>().findFirstAsync()
+                counter.addChangeListener<CRDTCounter> { obj, _ ->
+                    if (obj.isValid) {
+                        counterView.text = String.format(Locale.US, "%d", counter.count)
+                    } else {
+                        counterView.text = "-"
                     }
                 }
-            })
-            counterView.text = "-"
+
+                // Setup progress listeners for indeterminate progress bars
+                session = it.syncSession
+                session.run {
+                    addDownloadProgressListener(ProgressMode.INDEFINITELY, downloadListener)
+                    addUploadProgressListener(ProgressMode.INDEFINITELY, uploadListener)
+                }
+                counterView.text = "-"
+            }
         }
     }
 
@@ -144,6 +135,7 @@ class CounterActivity : AppCompatActivity() {
                 removeProgressListener(downloadListener)
                 removeProgressListener(uploadListener)
             }
+            // Close Realm here to make sure it is closed when navigating to other Activities.
             realm?.close()
         }
     }
@@ -156,15 +148,16 @@ class CounterActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_logout -> {
-                val user = user
-                user?.logOutAsync {
-                    if (it.isSuccess) {
-                        realm?.close()
-                        this.user = loggedInUser
-                    } else {
-                        RealmLog.error(it.error.toString())
-                    }
-                }
+//                val user = user
+//                user?.logOutAsync {
+//                    if (it.isSuccess) {
+//                        realm?.close()
+//                        this.user = loggedInUser
+//                    } else {
+//                        RealmLog.error(it.error.toString())
+//                    }
+//                }
+                ResetHelper.triggerClientReset(user!!.app.sync, realm!!.syncSession)
                 true
             }
             else -> super.onOptionsItemSelected(item)
