@@ -47,6 +47,9 @@ public class DictionaryAllTypes extends RealmObject {
     private RealmDictionary<Mixed> columnMixedDictionary;
 
     @Required
+    private String columnString = "";
+
+    @Required
     private RealmDictionary<Boolean> columnRequiredBooleanDictionary;
     @Required
     private RealmDictionary<String> columnRequiredStringDictionary;
@@ -72,6 +75,14 @@ public class DictionaryAllTypes extends RealmObject {
     private RealmDictionary<UUID> columnRequiredUUIDDictionary;
     @Required
     private RealmDictionary<Decimal128> columnRequiredDecimal128Dictionary;
+
+    public String getColumnString() {
+        return columnString;
+    }
+
+    public void setColumnString(String columnString) {
+        this.columnString = columnString;
+    }
 
     public RealmDictionary<DogPrimaryKey> getColumnRealmDictionary() {
         return columnRealmDictionary;

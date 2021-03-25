@@ -158,7 +158,7 @@ class ManagedDictionaryTester<T : Any>(
     override fun putRequired() {
         // RealmModel and Mixed dictionaries are ignored since they cannot be marked with "@Required"
         if (requiredDictionaryGetter != null) {
-            val allTypesObject = createAllTypesManagedContainerAndAssert(realm)
+            val allTypesObject = createCollectionAllTypesManagedContainerAndAssert(realm)
             assertNotNull(allTypesObject)
             val dictionary = requiredDictionaryGetter.call(allTypesObject)
 
@@ -256,7 +256,7 @@ class ManagedDictionaryTester<T : Any>(
     }
 
     override fun entrySet() {
-        val allTypesObject = createAllTypesManagedContainerAndAssert(realm)
+        val allTypesObject = createCollectionAllTypesManagedContainerAndAssert(realm)
         assertNotNull(allTypesObject)
         val dictionary = dictionaryGetter.call(allTypesObject)
 
@@ -401,7 +401,7 @@ class ManagedDictionaryTester<T : Any>(
     }
 
     override fun copyFromRealm() {
-        val allTypesObject = createAllTypesManagedContainerAndAssert(realm)
+        val allTypesObject = createCollectionAllTypesManagedContainerAndAssert(realm)
         assertNotNull(allTypesObject)
         val dictionary = dictionaryGetter.call(allTypesObject)
 
@@ -571,18 +571,9 @@ class ManagedDictionaryTester<T : Any>(
             realm: Realm = this.realm,
             id: String? = null
     ): RealmDictionary<T> {
-        val allTypesObject = createAllTypesManagedContainerAndAssert(realm, id)
+        val allTypesObject = createCollectionAllTypesManagedContainerAndAssert(realm, id)
         assertNotNull(allTypesObject)
         return dictionaryGetter.call(allTypesObject)
-    }
-
-    private fun createAllTypesManagedContainerAndAssert(realm: Realm): DictionaryAllTypes {
-        realm.executeTransaction { transactionRealm ->
-            transactionRealm.createObject<DictionaryAllTypes>()
-        }
-        val allTypesObject = realm.where<DictionaryAllTypes>().findFirst()
-        assertNotNull(allTypesObject)
-        return allTypesObject
     }
 
     private fun putInternal(
