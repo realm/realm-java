@@ -790,7 +790,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4467")
     public void equalTo_nonLatinCharacters() {
         populateTestRealm(realm, 200);
 
