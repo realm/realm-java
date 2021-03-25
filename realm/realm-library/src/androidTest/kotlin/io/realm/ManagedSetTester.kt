@@ -102,8 +102,13 @@ class ManagedSetTester<T : Any>(
         }
         assertFalse(set.contains(notPresentValue))
 
-        // Check contains with something entirely different
-        assertFalse(set.contains(Pair(1, 2) as T))
+        // Throws if we call contains with something entirely different
+        val somethingEntirelyDifferent = initializedSet.map {
+            Pair(it, it)
+        }
+        assertFailsWith<ClassCastException> {
+            set.contains<Any>(somethingEntirelyDifferent)
+        }
     }
 
     override fun iterator() {
@@ -178,8 +183,13 @@ class ManagedSetTester<T : Any>(
             // Does not change if we remove something that is not there
             assertFalse(set.remove(notPresentValue))
 
-            // Does not change if we remove an object that is not the same type as the set
-            assertFalse(set.remove<Any>(Pair(1, 2)))
+            // Throws if we remove an object that is not the same type as the set
+            val somethingEntirelyDifferent = initializedSet.map {
+                Pair(it, it)
+            }
+            assertFailsWith<ClassCastException> {
+                set.remove<Any>(somethingEntirelyDifferent)
+            }
 
             // Does not change if we remove null and null is not present
             assertFalse(set.remove(null))
@@ -194,9 +204,6 @@ class ManagedSetTester<T : Any>(
         realm.executeTransaction { transactionRealm ->
             set.addAll(initializedSet)
 
-            // Does not contain a collection of something other than its own type
-            assertFalse(set.containsAll(listOf(Pair(1, 2)) as Collection<*>))
-
             // Contains an unmanaged collection
             assertTrue(set.containsAll(initializedSet))
 
@@ -209,11 +216,13 @@ class ManagedSetTester<T : Any>(
             // Contains an empty collection - every set contains the empty set
             assertTrue(set.containsAll(listOf()))
 
-            // Does not contain a collection of a different type
+            // Throws when passing a collection of a different type
             val collectionOfDifferentType = initializedSet.map {
                 Pair(it, it)
             }
-            assertFalse(set.containsAll(collectionOfDifferentType as Collection<*>))
+            assertFailsWith<java.lang.ClassCastException> {
+                set.containsAll(collectionOfDifferentType as Collection<*>)
+            }
 
             // Contains a managed set containing the same values
             val sameValuesManagedSet = managedSetGetter.get(transactionRealm.createObject())
@@ -272,6 +281,14 @@ class ManagedSetTester<T : Any>(
             // Does not change if we add an empty collection
             assertFalse(set.addAll(listOf()))
             assertEquals(initializedSet.size, set.size)
+
+            // Throws when adding a collection of a different type
+            val somethingEntirelyDifferent = initializedSet.map {
+                Pair(it, it)
+            }
+            assertFailsWith<ClassCastException> {
+                set.addAll(somethingEntirelyDifferent as Collection<T>)
+            }
 
             // Does not change if we add the same data from a managed set
             val sameValuesManagedSet = managedSetGetter.get(transactionRealm.createObject())
@@ -343,16 +360,16 @@ class ManagedSetTester<T : Any>(
             assertTrue(set.retainAll(listOf()))
             assertTrue(set.isEmpty())
 
-            // Changes after intersection with a collection of a different type
+            // Throws after intersection with a collection of a different type
             set.addAll(initializedSet)
             val collectionOfDifferentType = initializedSet.map {
                 Pair(it, it)
             }
-            assertTrue(set.retainAll(collectionOfDifferentType as Collection<*>))
-            assertTrue(set.isEmpty())
+            assertFailsWith<ClassCastException> {
+                set.retainAll(collectionOfDifferentType as Collection<*>)
+            }
 
             // Changes after adding data and intersecting it with other values
-            set.addAll(initializedSet)
             assertEquals(initializedSet.size, set.size)
             assertTrue(set.retainAll(listOf(notPresentValue)))
             assertTrue(set.isEmpty())
@@ -440,12 +457,13 @@ class ManagedSetTester<T : Any>(
             assertFalse(set.removeAll(listOf()))
             assertEquals(initializedSet.size, set.size)
 
-            // Does not change after removing a list of a different type
+            // Throws when removing a list of a different type
             val differentTypeCollection = initializedSet.map {
                 Pair(it, it)
             }
-            assertFalse(set.removeAll(differentTypeCollection as Collection<*>))
-            assertEquals(initializedSet.size, set.size)
+            assertFailsWith<ClassCastException> {
+                set.removeAll(differentTypeCollection as Collection<*>)
+            }
 
             // Does not change after remove something else from empty set
             assertFalse(set.removeAll(listOf(notPresentValue)))
