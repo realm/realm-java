@@ -418,14 +418,22 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
         private <T> void checkValidArray(@Nullable T[] array) {
             if (array == null) {
                 // According to Java Set documentation
-                throw new NullPointerException("Cannot specify a null collection in containsAll.");
+                throw new NullPointerException("Cannot pass a null array when calling 'toArray'.");
+            }
+
+            String valueClassSimpleName = valueClass.getSimpleName();
+            String arrayTypeSimpleName = array.getClass().getComponentType().getSimpleName();
+
+            // According to Java Set documentation
+            if (!valueClassSimpleName.equals(arrayTypeSimpleName)) {
+                throw new ArrayStoreException("Array type must be of type '" + valueClassSimpleName +
+                        "' but it was of type '" + arrayTypeSimpleName + "'.");
             }
         }
 
         private void checkValidCollection(@Nullable Collection<?> collection) {
             if (collection == null) {
-                // According to Java Set documentation
-                throw new NullPointerException("Cannot specify a null collection in containsAll.");
+                throw new NullPointerException("Collection must not be null.");
             }
         }
     }

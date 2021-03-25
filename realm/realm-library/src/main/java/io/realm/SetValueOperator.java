@@ -43,22 +43,24 @@ abstract class SetValueOperator<E> {
 
     boolean contains(@Nullable Object o) {
         if (!isObjectSameType(o)) {
-            return false;
+            // Throw as per interface contract
+            throw new ClassCastException("Set contents and object must be the same type when calling 'contains'.");
         }
         return containsInternal(o);
     }
 
     boolean remove(@Nullable Object o) {
         if (!isObjectSameType(o)) {
-            return false;
+            // Throw as per interface contract
+            throw new ClassCastException("Set contents and object must be the same type when calling 'remove'.");
         }
         return removeInternal(o);
     }
 
     boolean containsAll(Collection<?> c) {
         if (!isCollectionSameType(c)) {
-            // A collection of a different type cannot be contained in the set
-            return false;
+            // Throw as per interface contract
+            throw new ClassCastException("Set contents and collection must be the same type when calling 'containsAll'.");
         }
 
         return containsAllInternal(c);
@@ -70,7 +72,8 @@ abstract class SetValueOperator<E> {
             return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.ADD_ALL);
         }
         if (!isUpperBoundCollectionSameType(c)) {
-            return false;
+            // Throw as per interface contract
+            throw new ClassCastException("Set contents and collection must be the same type when calling 'addAll'.");
         }
 
         return addAllInternal(c);
@@ -82,8 +85,8 @@ abstract class SetValueOperator<E> {
             return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.REMOVE_ALL);
         }
         if (!isCollectionSameType(c)) {
-            // Difference with a collection of a different type does not change the set
-            return false;
+            // Throw as per interface contract
+            throw new ClassCastException("Set contents and collection must be the same type when calling 'removeAll'.");
         }
 
         return removeAllInternal(c);
@@ -95,9 +98,8 @@ abstract class SetValueOperator<E> {
             return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.RETAIN_ALL);
         }
         if (!isCollectionSameType(c)) {
-            // Intersection with a collection of a different type yields an empty set
-            osSet.clear();
-            return true;
+            // Throw as per interface contract
+            throw new ClassCastException("Set contents and collection must be the same type when calling 'retainAll'.");
         }
 
         return retainAllInternal(c);
