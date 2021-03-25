@@ -120,7 +120,7 @@ public class AllTypes extends RealmObject {
     private RealmSet<Date> columnDateSet;
     private RealmSet<ObjectId> columnObjectIdSet;
     private RealmSet<UUID> columnUUIDSet;
-//    private RealmSet<Decimal128> columnDecimal128Set;
+    private RealmSet<Decimal128> columnDecimal128Set;
 //    private RealmSet<Mixed> columnMixedSet;
 
     public String getColumnString() {
@@ -430,5 +430,13 @@ public class AllTypes extends RealmObject {
 
     public void setColumnUUIDSet(RealmSet<UUID> columnUUIDSet) {
         this.columnUUIDSet = columnUUIDSet;
+    }
+
+    public RealmSet<Decimal128> getColumnDecimal128Set() {
+        return columnDecimal128Set;
+    }
+
+    public void setColumnDecimal128Set(RealmSet<Decimal128> columnDecimal128Set) {
+        this.columnDecimal128Set = columnDecimal128Set;
     }
 }

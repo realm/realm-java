@@ -16,6 +16,7 @@
 
 package io.realm.internal;
 
+import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
@@ -393,6 +394,38 @@ public class OsSet implements NativeObject {
     }
 
     // ----------------------------------------------------
+    // Decimal128 operations
+    // ----------------------------------------------------
+
+    public boolean contains(@Nullable Decimal128 value) {
+        if (value == null) {
+            return nativeContainsNull(nativePtr);
+        } else {
+            return nativeContainsDecimal128(nativePtr, value.getLow(), value.getHigh());
+        }
+    }
+
+    public boolean add(@Nullable Decimal128 value) {
+        long[] indexAndFound;
+        if (value == null) {
+            indexAndFound = nativeAddNull(nativePtr);
+        } else {
+            indexAndFound = nativeAddDecimal128(nativePtr, value.getLow(), value.getHigh());
+        }
+        return indexAndFound[1] != VALUE_NOT_FOUND;
+    }
+
+    public boolean remove(@Nullable Decimal128 value) {
+        long[] indexAndFound;
+        if (value == null) {
+            indexAndFound = nativeRemoveNull(nativePtr);
+        } else {
+            indexAndFound = nativeRemoveDecimal128(nativePtr, value.getLow(), value.getHigh());
+        }
+        return indexAndFound[1] == VALUE_FOUND;
+    }
+
+    // ----------------------------------------------------
     // ObjectId operations
     // ----------------------------------------------------
 
@@ -530,6 +563,8 @@ public class OsSet implements NativeObject {
 
     private static native boolean nativeContainsDate(long nativePtr, long value);
 
+    private static native boolean nativeContainsDecimal128(long nativePtr, long lowValue, long highValue);
+
     private static native boolean nativeContainsObjectId(long nativePtr, String value);
 
     private static native boolean nativeContainsUUID(long nativePtr, String value);
@@ -550,6 +585,8 @@ public class OsSet implements NativeObject {
 
     private static native long[] nativeAddDate(long nativePtr, long value);
 
+    private static native long[] nativeAddDecimal128(long nativePtr, long lowValue, long highValue);
+
     private static native long[] nativeAddObjectId(long nativePtr, String value);
 
     private static native long[] nativeAddUUID(long nativePtr, String value);
@@ -569,6 +606,8 @@ public class OsSet implements NativeObject {
     private static native long[] nativeRemoveBinary(long nativePtr, byte[] value);
 
     private static native long[] nativeRemoveDate(long nativePtr, long value);
+
+    private static native long[] nativeRemoveDecimal128(long nativePtr, long lowValue, long highValue);
 
     private static native long[] nativeRemoveObjectId(long nativePtr, String value);
 

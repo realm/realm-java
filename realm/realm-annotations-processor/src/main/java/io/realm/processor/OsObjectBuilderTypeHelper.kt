@@ -55,7 +55,7 @@ object OsObjectBuilderTypeHelper {
             QualifiedClassName("java.util.Date") to "DateSet",
             QualifiedClassName("byte[]") to "BinarySet",
             QualifiedClassName("org.bson.types.ObjectId") to "ObjectIdSet",
-//            QualifiedClassName("org.bson.types.Decimal128") to "Decimal128Set",
+            QualifiedClassName("org.bson.types.Decimal128") to "Decimal128Set",
             QualifiedClassName("java.util.UUID") to "UUIDSet"
     )
 

@@ -267,6 +267,7 @@ public class LinkingObjectsDynamicTests {
                     case DOUBLE_SET:
                     case BINARY_SET:
                     case DATE_SET:
+                    case DECIMAL128_SET:
                     case OBJECT_ID_SET:
                     case UUID_SET:
                         // TODO: https://github.com/realm/realm-java/issues/7382

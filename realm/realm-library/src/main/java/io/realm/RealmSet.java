@@ -16,6 +16,7 @@
 
 package io.realm;
 
+import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.lang.reflect.Array;
@@ -245,6 +246,8 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
             operator = (SetValueOperator<T>) new BinaryOperator(baseRealm, osSet, byte[].class);
         } else if (valueClass == Date.class) {
             operator = (SetValueOperator<T>) new DateOperator(baseRealm, osSet, Date.class);
+        } else if (valueClass == Decimal128.class) {
+            operator = (SetValueOperator<T>) new Decimal128Operator(baseRealm, osSet, Decimal128.class);
         } else if (valueClass == ObjectId.class) {
             operator = (SetValueOperator<T>) new ObjectIdOperator(baseRealm, osSet, ObjectId.class);
         } else if (valueClass == UUID.class) {

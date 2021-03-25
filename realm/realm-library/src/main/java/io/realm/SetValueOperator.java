@@ -1,5 +1,6 @@
 package io.realm;
 
+import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Collection;
@@ -248,6 +249,8 @@ abstract class SetValueOperator<E> {
             return (SetIterator<T>) new BinarySetIterator(osSet, baseRealm);
         } else if (valueClass == Date.class) {
             return (SetIterator<T>) new DateSetIterator(osSet, baseRealm);
+        } else if (valueClass == Decimal128.class) {
+            return (SetIterator<T>) new Decimal128SetIterator(osSet, baseRealm);
         } else if (valueClass == ObjectId.class) {
             return (SetIterator<T>) new ObjectIdSetIterator(osSet, baseRealm);
         } else if (valueClass == UUID.class) {
@@ -300,7 +303,7 @@ class BooleanOperator extends SetValueOperator<Boolean> {
     boolean addAllInternal(Collection<? extends Boolean> c) {
         for (Object value : c) {
             if (value != null && !(value instanceof Boolean)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                throw new ClassCastException("Invalid collection type. Set and collection must contain the same type of elements.");
             }
         }
 
@@ -369,7 +372,7 @@ class StringOperator extends SetValueOperator<String> {
     boolean addAllInternal(Collection<? extends String> c) {
         for (Object value : c) {
             if (value != null && !(value instanceof String)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                throw new ClassCastException("Invalid collection type. Set and collection must contain the same type of elements.");
             }
         }
 
@@ -444,7 +447,7 @@ class IntegerOperator extends SetValueOperator<Integer> {
     boolean addAllInternal(Collection<? extends Integer> c) {
         for (Object value : c) {
             if (value != null && !(value instanceof Integer)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                throw new ClassCastException("Invalid collection type. Set and collection must contain the same type of elements.");
             }
         }
 
@@ -511,7 +514,7 @@ class LongOperator extends SetValueOperator<Long> {
     boolean addAllInternal(Collection<? extends Long> c) {
         for (Object value : c) {
             if (value != null && !(value instanceof Long)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                throw new ClassCastException("Invalid collection type. Set and collection must contain the same type of elements.");
             }
         }
 
@@ -585,7 +588,7 @@ class ShortOperator extends SetValueOperator<Short> {
     boolean addAllInternal(Collection<? extends Short> c) {
         for (Object value : c) {
             if (value != null && !(value instanceof Short)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                throw new ClassCastException("Invalid collection type. Set and collection must contain the same type of elements.");
             }
         }
 
@@ -659,7 +662,7 @@ class ByteOperator extends SetValueOperator<Byte> {
     boolean addAllInternal(Collection<? extends Byte> c) {
         for (Object value : c) {
             if (value != null && !(value instanceof Byte)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                throw new ClassCastException("Invalid collection type. Set and collection must contain the same type of elements.");
             }
         }
 
@@ -732,7 +735,7 @@ class FloatOperator extends SetValueOperator<Float> {
     boolean addAllInternal(Collection<? extends Float> c) {
         for (Object value : c) {
             if (value != null && !(value instanceof Float)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                throw new ClassCastException("Invalid collection type. Set and collection must contain the same type of elements.");
             }
         }
 
@@ -805,7 +808,7 @@ class DoubleOperator extends SetValueOperator<Double> {
     boolean addAllInternal(Collection<? extends Double> c) {
         for (Object value : c) {
             if (value != null && !(value instanceof Double)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                throw new ClassCastException("Invalid collection type. Set and collection must contain the same type of elements.");
             }
         }
 
@@ -878,7 +881,7 @@ class BinaryOperator extends SetValueOperator<byte[]> {
     boolean addAllInternal(Collection<? extends byte[]> c) {
         for (Object value : c) {
             if (value != null && !(value instanceof byte[])) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                throw new ClassCastException("Invalid collection type. Set and collection must contain the same type of elements.");
             }
         }
 
@@ -951,7 +954,7 @@ class DateOperator extends SetValueOperator<Date> {
     boolean addAllInternal(Collection<? extends Date> c) {
         for (Object value : c) {
             if (value != null && !(value instanceof Date)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                throw new ClassCastException("Invalid collection type. Set and collection must contain the same type of elements.");
             }
         }
 
@@ -972,6 +975,79 @@ class DateOperator extends SetValueOperator<Date> {
         // Collection has been type-checked from caller
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newDateCollection((Collection<Date>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
+    }
+}
+
+/**
+ * TODO
+ */
+class Decimal128Operator extends SetValueOperator<Decimal128> {
+
+    public Decimal128Operator(BaseRealm baseRealm, OsSet osSet, Class<Decimal128> valueClass) {
+        super(baseRealm, osSet, valueClass);
+    }
+
+    @Override
+    boolean add(@Nullable Decimal128 value) {
+        return osSet.add(value);
+    }
+
+    @Override
+    boolean containsInternal(@Nullable Object o) {
+        Decimal128 value;
+        if (o == null) {
+            value = null;
+        } else {
+            value = (Decimal128) o;
+        }
+        return osSet.contains(value);
+    }
+
+    @Override
+    boolean removeInternal(@Nullable Object o) {
+        return osSet.remove((Decimal128) o);
+    }
+
+    @Override
+    boolean containsAllInternal(Collection<?> c) {
+        for (Object value : c) {
+            if (value != null && !(value instanceof Decimal128)) {
+                return false;
+            }
+        }
+
+        //noinspection unchecked
+        Collection<Decimal128> decimal128Collection = (Collection<Decimal128>) c;
+        NativeMixedCollection collection = NativeMixedCollection.newDecimal128Collection(decimal128Collection);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+    }
+
+    @Override
+    boolean addAllInternal(Collection<? extends Decimal128> c) {
+        for (Object value : c) {
+            if (value != null && !(value instanceof Decimal128)) {
+                throw new ClassCastException("Invalid collection type. Set and collection must contain the same type of elements.");
+            }
+        }
+
+        NativeMixedCollection collection = NativeMixedCollection.newDecimal128Collection(c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
+    }
+
+    @Override
+    boolean removeAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newDecimal128Collection((Collection<Decimal128>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newDecimal128Collection((Collection<Decimal128>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
 }
@@ -1024,7 +1100,7 @@ class ObjectIdOperator extends SetValueOperator<ObjectId> {
     boolean addAllInternal(Collection<? extends ObjectId> c) {
         for (Object value : c) {
             if (value != null && !(value instanceof ObjectId)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                throw new ClassCastException("Invalid collection type. Set and collection must contain the same type of elements.");
             }
         }
 
@@ -1098,7 +1174,7 @@ class UUIDOperator extends SetValueOperator<UUID> {
     boolean addAllInternal(Collection<? extends UUID> c) {
         for (Object value : c) {
             if (value != null && !(value instanceof UUID)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
+                throw new ClassCastException("Invalid collection type. Set and collection must contain the same type of elements.");
             }
         }
 
@@ -1293,6 +1369,15 @@ class BinarySetIterator extends SetIterator<byte[]> {
  */
 class DateSetIterator extends SetIterator<Date> {
     public DateSetIterator(OsSet osSet, BaseRealm baseRealm) {
+        super(osSet, baseRealm);
+    }
+}
+
+/**
+ * TODO
+ */
+class Decimal128SetIterator extends SetIterator<Decimal128> {
+    public Decimal128SetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
     }
 }
