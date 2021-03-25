@@ -781,6 +781,18 @@ Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddByteArraySetItem(JNI
 }
 
 JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDateSetItem(JNIEnv* env,
+                                                                        jclass,
+                                                                        jlong set_ptr,
+                                                                        jlong j_value) {
+    try {
+        const JavaValue value(from_milliseconds(j_value));
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObjectIdSetItem(JNIEnv* env,
                                                                             jclass,
                                                                             jlong set_ptr,

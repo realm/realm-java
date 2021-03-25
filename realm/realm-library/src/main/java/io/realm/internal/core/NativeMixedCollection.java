@@ -126,7 +126,7 @@ public final class NativeMixedCollection implements NativeObject {
         return new NativeMixedCollection(nativeCreateBinaryCollection(binaryValues, notNull));
     }
 
-    public static NativeMixedCollection newDateCollection(Collection<Date> collection) {
+    public static NativeMixedCollection newDateCollection(Collection<? extends Date> collection) {
         long[] dateValues = new long[collection.size()];
         boolean[] notNull = new boolean[collection.size()];
 
