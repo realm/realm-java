@@ -2323,10 +2323,12 @@ public class RealmJsonTests {
         testPrimitiveListWithValues(PrimitiveListTypes.FIELD_INT_LIST, null, new Integer[0]);
         testPrimitiveListWithValues(PrimitiveListTypes.FIELD_LONG_LIST, null, new Long[0]);
         testPrimitiveListWithValues(PrimitiveListTypes.FIELD_DATE_LIST, null, new Date[0]);
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_OBJECT_ID_LIST, null, new Date[0]);
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_DECIMAL128_LIST, null, new Date[0]);
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_UUID_LIST, null, new Date[0]);
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_MIXED_LIST, null, new Date[0]);
         testPrimitiveListWithValues(PrimitiveListTypes.FIELD_OBJECT_ID_LIST, null, new ObjectId[0]);
         testPrimitiveListWithValues(PrimitiveListTypes.FIELD_DECIMAL128_LIST, null, new Decimal128[0]);
-        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_UUID_LIST, null, new UUID[0]);
-        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_MIXED_LIST, null, new Mixed[0]);
         testPrimitiveListWithValues(PrimitiveListTypes.FIELD_BYTE_LIST, null, new byte[0][]);
     }
 

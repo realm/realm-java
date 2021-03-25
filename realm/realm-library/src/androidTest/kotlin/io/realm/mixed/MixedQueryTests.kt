@@ -107,42 +107,6 @@ class MixedQueryTests {
     }
 
     @Test
-    fun average() {
-        val value = realm.where<MixedNotIndexed>().average(MixedNotIndexed.FIELD_MIXED)
-        assertEquals(4.292307692.toDouble(), value)
-    }
-
-    @Test
-    fun sum() {
-        val value = realm.where<MixedNotIndexed>().sum(MixedNotIndexed.FIELD_MIXED)
-        assertEquals(279, value)
-    }
-
-    @Test
-    fun min() {
-        val value = realm.where<MixedNotIndexed>().min(MixedNotIndexed.FIELD_MIXED)
-        assertEquals(0, value)
-    }
-
-    @Test
-    fun max() {
-        val value = realm.where<MixedNotIndexed>().max(MixedNotIndexed.FIELD_MIXED)
-        assertEquals(9, value)
-    }
-
-    @Test
-    fun minDate() {
-        val value = realm.where<MixedNotIndexed>().minimumDate(MixedNotIndexed.FIELD_MIXED)
-        assertEquals(Date(0), value)
-    }
-
-    @Test
-    fun maxDate() {
-        val value = realm.where<MixedNotIndexed>().maximumDate(MixedNotIndexed.FIELD_MIXED)
-        assertEquals(Date(4), value)
-    }
-
-    @Test
     fun sort() {
         val results = realm.where<MixedNotIndexed>().sort(MixedNotIndexed.FIELD_MIXED).findAll()
         results.forEachIndexed { index, mixedNotIndexed ->
