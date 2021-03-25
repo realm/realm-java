@@ -15,11 +15,14 @@
  */
 package io.realm.internal;
 
+import javax.annotation.Nullable;
+
 import io.realm.Mixed;
+import io.realm.internal.objectstore.OsKeyPathMapping;
 
 
 public interface MixedNativeFunctions {
     void handleItem(long listPtr, Mixed mixed);
 
-    void callRawPredicate(TableQuery query, String predicate, Mixed... arguments);
+    void callRawPredicate(TableQuery query, @Nullable OsKeyPathMapping mapping, String predicate, Mixed... arguments);
 }

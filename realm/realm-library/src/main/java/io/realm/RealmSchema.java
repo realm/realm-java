@@ -156,7 +156,7 @@ public abstract class RealmSchema {
         Table table = dynamicClassToTable.get(tableName);
         if (table != null) { return table; }
 
-        table = realm.getSharedRealm().getTable(tableName, getKeyPathMapping());
+        table = realm.getSharedRealm().getTable(tableName);
         dynamicClassToTable.put(tableName, table);
 
         return table;
@@ -174,7 +174,7 @@ public abstract class RealmSchema {
         if (table == null) {
             String tableName = Table.getTableNameForClass(
                     realm.getConfiguration().getSchemaMediator().getSimpleClassName(originalClass));
-            table = realm.getSharedRealm().getTable(tableName, getKeyPathMapping());
+            table = realm.getSharedRealm().getTable(tableName);
             classToTable.put(originalClass, table);
         }
         if (isProxyClass(originalClass, clazz)) {
@@ -216,7 +216,7 @@ public abstract class RealmSchema {
             if (!realm.getSharedRealm().hasTable(tableName)) {
                 throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
             }
-            dynamicSchema = new ImmutableRealmObjectSchema(realm, this, realm.getSharedRealm().getTable(tableName, getKeyPathMapping()));
+            dynamicSchema = new ImmutableRealmObjectSchema(realm, this, realm.getSharedRealm().getTable(tableName));
             dynamicClassToSchema.put(tableName, dynamicSchema);
         }
         return dynamicSchema;

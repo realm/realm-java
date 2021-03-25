@@ -255,7 +255,7 @@ public class RealmQuery<E> {
     public RealmQuery<E> isNull(String fieldName) {
         realm.checkIfValid();
         // Checks that fieldName has the correct type is done in C++.
-        this.query.isNull(fieldName);
+        this.query.isNull(realm.getSchema().getKeyPathMapping(), fieldName);
         return this;
     }
 
@@ -269,7 +269,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> isNotNull(String fieldName) {
         realm.checkIfValid();
-        this.query.isNotNull(fieldName);
+        this.query.isNotNull(realm.getSchema().getKeyPathMapping(), fieldName);
         return this;
     }
 
@@ -297,9 +297,9 @@ public class RealmQuery<E> {
     public RealmQuery<E> equalTo(String fieldName, @Nullable String value, Case casing) {
         realm.checkIfValid();
         if (casing == Case.SENSITIVE) {
-            this.query.equalTo(fieldName, Mixed.valueOf(value));
+            this.query.equalTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         } else {
-            this.query.equalToInsensitive(fieldName, Mixed.valueOf(value));
+            this.query.equalToInsensitive(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         }
         return this;
     }
@@ -314,7 +314,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Decimal128 value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -328,7 +328,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable ObjectId value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -342,7 +342,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable UUID value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -356,7 +356,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Byte value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -370,7 +370,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable byte[] value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -384,7 +384,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Short value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -398,7 +398,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Integer value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -413,7 +413,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Long value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -427,7 +427,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Double value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -441,7 +441,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Float value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -455,7 +455,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Boolean value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -469,7 +469,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> equalTo(String fieldName, @Nullable Date value) {
         realm.checkIfValid();
-        this.query.equalTo(fieldName, Mixed.valueOf(value));
+        this.query.equalTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -512,9 +512,9 @@ public class RealmQuery<E> {
             }
 
             if (casing == Case.SENSITIVE) {
-                query.in(fieldName, mixedValues);
+                query.in(realm.getSchema().getKeyPathMapping(), fieldName, mixedValues);
             } else {
-                query.inInsensitive(fieldName, mixedValues);
+                query.inInsensitive(realm.getSchema().getKeyPathMapping(), fieldName, mixedValues);
             }
         }
         return this;
@@ -539,7 +539,7 @@ public class RealmQuery<E> {
             for (int i = 0; i < values.length; i++) {
                 mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            query.in(fieldName, mixedValues);
+            query.in(realm.getSchema().getKeyPathMapping(), fieldName, mixedValues);
         }
         return this;
     }
@@ -563,7 +563,7 @@ public class RealmQuery<E> {
             for (int i = 0; i < values.length; i++) {
                 mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            query.in(fieldName, mixedValues);
+            query.in(realm.getSchema().getKeyPathMapping(), fieldName, mixedValues);
         }
         return this;
     }
@@ -587,7 +587,7 @@ public class RealmQuery<E> {
             for (int i = 0; i < values.length; i++) {
                 mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            query.in(fieldName, mixedValues);
+            query.in(realm.getSchema().getKeyPathMapping(), fieldName, mixedValues);
         }
         return this;
     }
@@ -612,7 +612,7 @@ public class RealmQuery<E> {
             for (int i = 0; i < values.length; i++) {
                 mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            query.in(fieldName, mixedValues);
+            query.in(realm.getSchema().getKeyPathMapping(), fieldName, mixedValues);
         }
         return this;
     }
@@ -637,7 +637,7 @@ public class RealmQuery<E> {
             for (int i = 0; i < values.length; i++) {
                 mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            query.in(fieldName, mixedValues);
+            query.in(realm.getSchema().getKeyPathMapping(), fieldName, mixedValues);
         }
         return this;
     }
@@ -661,7 +661,7 @@ public class RealmQuery<E> {
             for (int i = 0; i < values.length; i++) {
                 mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            query.in(fieldName, mixedValues);
+            query.in(realm.getSchema().getKeyPathMapping(), fieldName, mixedValues);
         }
         return this;
     }
@@ -686,7 +686,7 @@ public class RealmQuery<E> {
             for (int i = 0; i < values.length; i++) {
                 mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            query.in(fieldName, mixedValues);
+            query.in(realm.getSchema().getKeyPathMapping(), fieldName, mixedValues);
         }
         return this;
     }
@@ -710,7 +710,7 @@ public class RealmQuery<E> {
             for (int i = 0; i < values.length; i++) {
                 mixedValues[i] = Mixed.valueOf(values[i]);
             }
-            query.in(fieldName, mixedValues);
+            query.in(realm.getSchema().getKeyPathMapping(), fieldName, mixedValues);
         }
         return this;
     }
@@ -739,9 +739,9 @@ public class RealmQuery<E> {
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable String value, Case casing) {
         realm.checkIfValid();
         if (casing == Case.SENSITIVE) {
-            this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+            this.query.notEqualTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         } else {
-            this.query.notEqualToInsensitive(fieldName, Mixed.valueOf(value));
+            this.query.notEqualToInsensitive(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         }
         return this;
     }
@@ -756,7 +756,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, Decimal128 value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -770,7 +770,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, ObjectId value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -784,7 +784,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, UUID value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -798,7 +798,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Byte value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -812,7 +812,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable byte[] value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -826,7 +826,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Short value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -840,7 +840,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Integer value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -854,7 +854,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Long value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -868,7 +868,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Double value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -882,7 +882,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Float value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -896,7 +896,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Boolean value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -910,7 +910,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, @Nullable Date value) {
         realm.checkIfValid();
-        this.query.notEqualTo(fieldName, Mixed.valueOf(value));
+        this.query.notEqualTo(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -924,7 +924,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, int value) {
         realm.checkIfValid();
-        this.query.greaterThan(fieldName, Mixed.valueOf(value));
+        this.query.greaterThan(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -938,7 +938,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, long value) {
         realm.checkIfValid();
-        this.query.greaterThan(fieldName, Mixed.valueOf(value));
+        this.query.greaterThan(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -952,7 +952,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, double value) {
         realm.checkIfValid();
-        this.query.greaterThan(fieldName, Mixed.valueOf(value));
+        this.query.greaterThan(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -966,7 +966,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, float value) {
         realm.checkIfValid();
-        this.query.greaterThan(fieldName, Mixed.valueOf(value));
+        this.query.greaterThan(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -980,7 +980,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, Date value) {
         realm.checkIfValid();
-        this.query.greaterThan(fieldName, Mixed.valueOf(value));
+        this.query.greaterThan(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -994,7 +994,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, Decimal128 value) {
         realm.checkIfValid();
-        this.query.greaterThan(fieldName, Mixed.valueOf(value));
+        this.query.greaterThan(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1008,7 +1008,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, ObjectId value) {
         realm.checkIfValid();
-        this.query.greaterThan(fieldName, Mixed.valueOf(value));
+        this.query.greaterThan(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1022,7 +1022,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThan(String fieldName, UUID value) {
         realm.checkIfValid();
-        this.query.greaterThan(fieldName, Mixed.valueOf(value));
+        this.query.greaterThan(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1036,7 +1036,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, int value) {
         realm.checkIfValid();
-        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.greaterThanOrEqual(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1050,7 +1050,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, long value) {
         realm.checkIfValid();
-        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.greaterThanOrEqual(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1064,7 +1064,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, double value) {
         realm.checkIfValid();
-        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.greaterThanOrEqual(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1078,7 +1078,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, float value) {
         realm.checkIfValid();
-        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.greaterThanOrEqual(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1092,7 +1092,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, Date value) {
         realm.checkIfValid();
-        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.greaterThanOrEqual(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1106,7 +1106,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, Decimal128 value) {
         realm.checkIfValid();
-        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.greaterThanOrEqual(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1120,7 +1120,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, ObjectId value) {
         realm.checkIfValid();
-        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.greaterThanOrEqual(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1134,7 +1134,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, UUID value) {
         realm.checkIfValid();
-        this.query.greaterThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.greaterThanOrEqual(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1148,7 +1148,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, int value) {
         realm.checkIfValid();
-        this.query.lessThan(fieldName, Mixed.valueOf(value));
+        this.query.lessThan(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1162,7 +1162,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, long value) {
         realm.checkIfValid();
-        this.query.lessThan(fieldName, Mixed.valueOf(value));
+        this.query.lessThan(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1176,7 +1176,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, Decimal128 value) {
         realm.checkIfValid();
-        this.query.lessThan(fieldName, Mixed.valueOf(value));
+        this.query.lessThan(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1190,7 +1190,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, ObjectId value) {
         realm.checkIfValid();
-        this.query.lessThan(fieldName, Mixed.valueOf(value));
+        this.query.lessThan(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1204,7 +1204,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, UUID value) {
         realm.checkIfValid();
-        this.query.lessThan(fieldName, Mixed.valueOf(value));
+        this.query.lessThan(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1218,7 +1218,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, double value) {
         realm.checkIfValid();
-        this.query.lessThan(fieldName, Mixed.valueOf(value));
+        this.query.lessThan(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1232,7 +1232,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, float value) {
         realm.checkIfValid();
-        this.query.lessThan(fieldName, Mixed.valueOf(value));
+        this.query.lessThan(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1246,7 +1246,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThan(String fieldName, Date value) {
         realm.checkIfValid();
-        this.query.lessThan(fieldName, Mixed.valueOf(value));
+        this.query.lessThan(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1260,7 +1260,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, int value) {
         realm.checkIfValid();
-        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.lessThanOrEqual(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1274,7 +1274,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, long value) {
         realm.checkIfValid();
-        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.lessThanOrEqual(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1288,7 +1288,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, Decimal128 value) {
         realm.checkIfValid();
-        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.lessThanOrEqual(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1302,7 +1302,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, ObjectId value) {
         realm.checkIfValid();
-        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.lessThanOrEqual(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1316,7 +1316,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, UUID value) {
         realm.checkIfValid();
-        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.lessThanOrEqual(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1330,7 +1330,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, double value) {
         realm.checkIfValid();
-        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.lessThanOrEqual(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1344,7 +1344,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, float value) {
         realm.checkIfValid();
-        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.lessThanOrEqual(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1358,7 +1358,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, Date value) {
         realm.checkIfValid();
-        this.query.lessThanOrEqual(fieldName, Mixed.valueOf(value));
+        this.query.lessThanOrEqual(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         return this;
     }
 
@@ -1373,7 +1373,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> between(String fieldName, int from, int to) {
         realm.checkIfValid();
-        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
+        this.query.between(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
         return this;
     }
 
@@ -1388,7 +1388,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> between(String fieldName, long from, long to) {
         realm.checkIfValid();
-        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
+        this.query.between(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
         return this;
     }
 
@@ -1403,7 +1403,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> between(String fieldName, double from, double to) {
         realm.checkIfValid();
-        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
+        this.query.between(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
         return this;
     }
 
@@ -1418,7 +1418,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> between(String fieldName, float from, float to) {
         realm.checkIfValid();
-        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
+        this.query.between(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
         return this;
     }
 
@@ -1433,7 +1433,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> between(String fieldName, Date from, Date to) {
         realm.checkIfValid();
-        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
+        this.query.between(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
         return this;
     }
 
@@ -1448,7 +1448,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> between(String fieldName, Decimal128 from, Decimal128 to) {
         realm.checkIfValid();
-        this.query.between(fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
+        this.query.between(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(from), Mixed.valueOf(to));
         return this;
     }
 
@@ -1477,9 +1477,9 @@ public class RealmQuery<E> {
         Util.checkNull(value, "value");
         realm.checkIfValid();
         if (casing == Case.SENSITIVE) {
-            this.query.contains(fieldName, Mixed.valueOf(value));
+            this.query.contains(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         } else {
-            this.query.containsInsensitive(fieldName, Mixed.valueOf(value));
+            this.query.containsInsensitive(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         }
         return this;
     }
@@ -1509,9 +1509,9 @@ public class RealmQuery<E> {
         Util.checkNull(value, "value");
         realm.checkIfValid();
         if (casing == Case.SENSITIVE) {
-            this.query.beginsWith(fieldName, Mixed.valueOf(value));
+            this.query.beginsWith(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         } else {
-            this.query.beginsWithInsensitive(fieldName, Mixed.valueOf(value));
+            this.query.beginsWithInsensitive(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         }
         return this;
     }
@@ -1541,9 +1541,9 @@ public class RealmQuery<E> {
         Util.checkNull(value, "value");
         realm.checkIfValid();
         if (casing == Case.SENSITIVE) {
-            this.query.endsWith(fieldName, Mixed.valueOf(value));
+            this.query.endsWith(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         } else {
-            this.query.endsWithInsensitive(fieldName, Mixed.valueOf(value));
+            this.query.endsWithInsensitive(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         }
         return this;
     }
@@ -1581,9 +1581,9 @@ public class RealmQuery<E> {
         Util.checkNull(value, "value");
         realm.checkIfValid();
         if (casing == Case.SENSITIVE) {
-            this.query.like(fieldName, Mixed.valueOf(value));
+            this.query.like(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         } else {
-            this.query.likeInsensitive(fieldName, Mixed.valueOf(value));
+            this.query.likeInsensitive(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
         }
         return this;
     }
@@ -1656,7 +1656,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> isEmpty(String fieldName) {
         realm.checkIfValid();
-        this.query.isEmpty(fieldName);
+        this.query.isEmpty(realm.getSchema().getKeyPathMapping(), fieldName);
         return this;
     }
 
@@ -1670,7 +1670,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> isNotEmpty(String fieldName) {
         realm.checkIfValid();
-        this.query.isNotEmpty(fieldName);
+        this.query.isNotEmpty(realm.getSchema().getKeyPathMapping(), fieldName);
         return this;
     }
 
@@ -1992,7 +1992,7 @@ public class RealmQuery<E> {
 
         realm.checkIfValid();
 
-        this.query.sort(fieldNames, sortOrders);
+        this.query.sort(realm.getSchema().getKeyPathMapping(), fieldNames, sortOrders);
         return this;
     }
 
@@ -2017,7 +2017,7 @@ public class RealmQuery<E> {
             fieldNames[1 + i] = remainingFieldNames[0];
         }
 
-        this.query.distinct(fieldNames);
+        this.query.distinct(realm.getSchema().getKeyPathMapping(), fieldNames);
         return this;
     }
 
@@ -2111,7 +2111,7 @@ public class RealmQuery<E> {
             throw new IllegalArgumentException("Non-null 'predicate' required.");
         }
 
-        query.rawPredicate(predicate, arguments);
+        query.rawPredicate(realm.getSchema().getKeyPathMapping(), predicate, arguments);
         return this;
     }
 
