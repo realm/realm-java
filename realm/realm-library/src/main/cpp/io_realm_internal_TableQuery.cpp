@@ -199,19 +199,6 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageFloat(J
 }
 
 // double Aggregates
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeSumMixed(JNIEnv *env, jobject,
-                                                                            jlong nativeQueryPtr, jlong columnKey) {
-    Query *pQuery = Q(nativeQueryPtr);
-    ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, col_type_Mixed)) {
-        return 0;
-    }
-    try {
-        return pQuery->sum_double(ColKey(columnKey));
-    }
-    CATCH_STD()
-    return 0;
-}
 
 JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeSumDouble(JNIEnv *env, jobject,
                                                                             jlong nativeQueryPtr, jlong columnKey) {
@@ -233,25 +220,6 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDouble(
     Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Double)) {
-        return nullptr;
-    }
-    try {
-        ObjKey return_ndx;
-        double result = pQuery->maximum_double(ColKey(columnKey), &return_ndx);
-        if (bool(return_ndx)) {
-            return JavaClassGlobalDef::new_double(env, result);
-        }
-    }
-    CATCH_STD()
-    return nullptr;
-}
-
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumMixed(JNIEnv *env, jobject,
-                                                                                jlong nativeQueryPtr,
-                                                                                jlong columnKey) {
-    Query *pQuery = Q(nativeQueryPtr);
-    ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, col_type_Mixed)) {
         return nullptr;
     }
     try {
@@ -318,25 +286,6 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(
     return nullptr;
 }
 
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumMixed(JNIEnv *env, jobject,
-                                                                                jlong nativeQueryPtr,
-                                                                                jlong columnKey) {
-    Query *pQuery = Q(nativeQueryPtr);
-    ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, col_type_Mixed)) {
-        return nullptr;
-    }
-    try {
-        ObjKey return_ndx;
-        double result = pQuery->minimum_double(ColKey(columnKey), &return_ndx);
-        if (bool(return_ndx)) {
-            return JavaClassGlobalDef::new_double(env, result);
-        }
-    }
-    CATCH_STD()
-    return nullptr;
-}
-
 JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDecimal128(JNIEnv *env, jobject,
                                                                                        jlong nativeQueryPtr,
                                                                                        jlong columnKey) {
@@ -359,21 +308,6 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble(
     Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
     if (!TYPE_VALID(env, pTable, columnKey, col_type_Double)) {
-        return 0;
-    }
-    try {
-        return pQuery->average_double(ColKey(columnKey));
-    }
-    CATCH_STD()
-    return 0;
-}
-
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageMixed(JNIEnv *env, jobject,
-                                                                                jlong nativeQueryPtr,
-                                                                                jlong columnKey) {
-    Query *pQuery = Q(nativeQueryPtr);
-    ConstTableRef pTable = pQuery->get_table();
-    if (!TYPE_VALID(env, pTable, columnKey, col_type_Mixed)) {
         return 0;
     }
     try {

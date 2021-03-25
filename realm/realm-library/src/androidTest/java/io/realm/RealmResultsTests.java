@@ -49,7 +49,7 @@ import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import io.realm.entities.DefaultValueOfField;
-import io.realm.entities.PopulatedDictionaryClass;
+import io.realm.entities.DictionaryAllTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.MappedAllJavaTypes;
 import io.realm.entities.NonLatinFieldNames;
@@ -2229,9 +2229,9 @@ public class RealmResultsTests extends CollectionTests {
         stringDictionary.put(KEY_2, VALUE_2);
 
         realm.beginTransaction();
-        AllTypes object = new AllTypes();
+        DictionaryAllTypes object = new DictionaryAllTypes();
         object.setColumnStringDictionary(stringDictionary);
-        AllTypes objectFromRealm = realm.copyToRealm(object);
+        DictionaryAllTypes objectFromRealm = realm.copyToRealm(object);
         realm.commitTransaction();
 
         RealmDictionary<String> stringDictionaryFromRealm = objectFromRealm.getColumnStringDictionary();
