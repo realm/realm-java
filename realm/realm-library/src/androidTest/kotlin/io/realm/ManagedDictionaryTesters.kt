@@ -118,6 +118,17 @@ class ManagedDictionaryTester<T : Any>(
         initializedDictionary.forEach { key, _ ->
             assertTrue(dictionary.containsKey(key))
         }
+
+        assertFailsWith<NullPointerException> {
+            dictionary.containsKey(null)
+        }
+
+        val somethingEntirelyDifferent = initializedDictionary.map { (key, _) ->
+            Pair(key, key)
+        }
+        assertFailsWith<ClassCastException> {
+            dictionary.containsKey(somethingEntirelyDifferent as Any)
+        }
     }
 
     override fun containsValue() {
@@ -136,6 +147,13 @@ class ManagedDictionaryTester<T : Any>(
         dictionary.forEach { key, value ->
             typeAsserter.assertContainsValueHelper(realm, key, value, initializedDictionary, dictionary)
         }
+
+        val somethingEntirelyDifferent = initializedDictionary.map { (key, _) ->
+            Pair(key, key)
+        }
+        assertFailsWith<ClassCastException> {
+            dictionary.containsValue(somethingEntirelyDifferent as Any)
+        }
     }
 
     override fun get() {
@@ -150,6 +168,13 @@ class ManagedDictionaryTester<T : Any>(
         }
         initializedDictionary.forEach { key, value ->
             typeAsserter.assertEqualsHelper(realm, value, dictionary[key])
+        }
+
+        val somethingEntirelyDifferent = initializedDictionary.map { (key, _) ->
+            Pair(key, key)
+        }
+        assertFailsWith<ClassCastException> {
+            dictionary.get(somethingEntirelyDifferent as Any)
         }
     }
 
@@ -200,20 +225,36 @@ class ManagedDictionaryTester<T : Any>(
                     typeAsserter.assertRemoveRealmModelFromRealm(dictionary, index, key, value)
                 }
             }
+
+            val somethingEntirelyDifferent = initializedDictionary.map { (key, _) ->
+                Pair(key, key)
+            }
+            assertFailsWith<ClassCastException> {
+                dictionary.remove(somethingEntirelyDifferent as Any)
+            }
         }
     }
 
     override fun putAll() {
         val dictionary = initAndAssert()
+        val anotherDictionary = initAndAssert()
         assertTrue(dictionary.isEmpty())
 
         realm.executeTransaction {
             dictionary.putAll(initializedDictionary)
-        }
 
-        // Check initialized dictionary got inserted
-        initializedDictionary.forEach { key, value ->
-            typeAsserter.assertEqualsHelper(realm, value, dictionary[key])
+            // Check initialized dictionary got inserted
+            initializedDictionary.forEach { key, value ->
+                typeAsserter.assertEqualsHelper(realm, value, dictionary[key])
+            }
+
+            // Put a managed dictionary
+            dictionary.putAll(dictionary)
+            assertEquals(dictionary.size, initializedDictionary.size)
+
+            // TODO: It is not possible to test that putting a map containing null keys throws
+            //  a NullPointerException from Kotlin, even when using TestHelper.getNull() due to
+            //  some bytecode generation that doesn't match.
         }
     }
 
@@ -602,6 +643,11 @@ class ManagedDictionaryTester<T : Any>(
         realm.executeTransaction {
             alternative.forEach { key, value ->
                 typeAsserter.assertEqualsHelper(realm, initialized[key], dictionary.put(key, value))
+            }
+
+            // Check null key fails
+            assertFailsWith<NullPointerException> {
+                dictionary[TestHelper.getNull()] = initializedDictionary[KEY_HELLO]
             }
         }
 
