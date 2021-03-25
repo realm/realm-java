@@ -196,8 +196,8 @@ abstract class SetValueOperator<E> {
     private boolean isUpperBoundCollectionSameType(Collection<? extends E> c) {
         if (!c.isEmpty()) {
             for (E item : c) {
-                if (item != null) {
-                    return item.getClass() == valueClass;
+                if (item != null && item.getClass() != valueClass) {
+                    return false;
                 }
             }
         }
@@ -207,8 +207,8 @@ abstract class SetValueOperator<E> {
     private boolean isCollectionSameType(Collection<?> c) {
         if (!c.isEmpty()) {
             for (Object item : c) {
-                if (item != null) {
-                    return item.getClass() == valueClass;
+                if (item != null && item.getClass() != valueClass) {
+                    return false;
                 }
             }
         }
@@ -258,6 +258,7 @@ class StringOperator extends SetValueOperator<String> {
 
     @Override
     boolean removeInternal(@Nullable Object o) {
+        // Object has been type-checked from caller
         return osSet.remove((String) o);
     }
 
@@ -295,6 +296,7 @@ class StringOperator extends SetValueOperator<String> {
 
     @Override
     boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newStringCollection((Collection<String>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
@@ -302,6 +304,7 @@ class StringOperator extends SetValueOperator<String> {
 
     @Override
     boolean removeAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newStringCollection((Collection<String>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
@@ -335,6 +338,7 @@ class IntegerOperator extends SetValueOperator<Integer> {
 
     @Override
     boolean removeInternal(@Nullable Object o) {
+        // Object has been type-checked from caller
         return osSet.remove((Integer) o);
     }
 
@@ -371,6 +375,7 @@ class IntegerOperator extends SetValueOperator<Integer> {
 
     @Override
     boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Integer>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
@@ -378,6 +383,7 @@ class IntegerOperator extends SetValueOperator<Integer> {
 
     @Override
     boolean removeAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Integer>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
@@ -405,6 +411,7 @@ class LongOperator extends SetValueOperator<Long> {
 
     @Override
     boolean removeInternal(@Nullable Object o) {
+        // Object has been type-checked from caller
         return osSet.remove((Long) o);
     }
 
@@ -440,6 +447,7 @@ class LongOperator extends SetValueOperator<Long> {
 
     @Override
     boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Long>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
@@ -447,6 +455,7 @@ class LongOperator extends SetValueOperator<Long> {
 
     @Override
     boolean removeAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Long>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
@@ -480,6 +489,7 @@ class ShortOperator extends SetValueOperator<Short> {
 
     @Override
     boolean removeInternal(@Nullable Object o) {
+        // Object has been type-checked from caller
         return osSet.remove((Short) o);
     }
 
@@ -516,6 +526,7 @@ class ShortOperator extends SetValueOperator<Short> {
 
     @Override
     boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Short>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
@@ -523,6 +534,7 @@ class ShortOperator extends SetValueOperator<Short> {
 
     @Override
     boolean removeAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Short>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
@@ -556,6 +568,7 @@ class ByteOperator extends SetValueOperator<Byte> {
 
     @Override
     boolean removeInternal(@Nullable Object o) {
+        // Object has been type-checked from caller
         return osSet.remove((Byte) o);
     }
 
@@ -592,6 +605,7 @@ class ByteOperator extends SetValueOperator<Byte> {
 
     @Override
     boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Byte>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
@@ -599,6 +613,7 @@ class ByteOperator extends SetValueOperator<Byte> {
 
     @Override
     boolean removeAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Byte>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
@@ -632,6 +647,7 @@ class UUIDOperator extends SetValueOperator<UUID> {
 
     @Override
     boolean removeInternal(@Nullable Object o) {
+        // Object has been type-checked from caller
         return osSet.remove((UUID) o);
     }
 
@@ -668,6 +684,7 @@ class UUIDOperator extends SetValueOperator<UUID> {
 
     @Override
     boolean removeAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newUUIDCollection((Collection<UUID>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
@@ -675,6 +692,7 @@ class UUIDOperator extends SetValueOperator<UUID> {
 
     @Override
     boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newUUIDCollection((Collection<UUID>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
