@@ -3095,31 +3095,19 @@ public class RealmQueryTests extends QueryTests {
             }
             types.remove(type);
         }
-
-        // Verify that we have tested all field types except LinkingObjects which is not part of
-        // the schema lookup
-        assertEquals(types.toString(), Sets.newSet(RealmFieldType.LINKING_OBJECTS), types);
-        // So verify Linking explicitly
-        RealmResults<AllTypes> distinct = realm.where(AllTypes.class)
-                .distinct(prefix + AllTypes.FIELD_REALMBACKLINK)
-                .findAll();
-        assertEquals(numberOfBlocks * numberOfObjects, distinct.size());
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4550")
     public void distinct_allFields() {
         distinctAllFields(realm, "");
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4550")
     public void distinct_linkedAllFields() {
         distinctAllFields(realm, AllTypes.FIELD_REALMLINK + ".");
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4550")
     public void distinct_nestedLinkedAllFields() {
         distinctAllFields(realm, AllTypes.FIELD_REALMLINK + "." + AllTypes.FIELD_REALMLINK + ".");
     }
