@@ -19,7 +19,6 @@ package io.realm;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.internal.util.collections.Sets;
@@ -3094,6 +3093,16 @@ public class RealmQueryTests extends QueryTests {
                 }
             }
             types.remove(type);
+        }
+
+        // Validate that backlinks are not supported by sort/distinct
+        assertEquals(types.toString(), Sets.newSet(RealmFieldType.LINKING_OBJECTS), types);
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class);
+
+        try{
+            query.distinct(prefix + AllTypes.FIELD_REALMBACKLINK);
+            fail();
+        } catch (IllegalArgumentException ignore){
         }
     }
 
