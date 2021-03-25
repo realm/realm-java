@@ -296,15 +296,11 @@ class UUIDTests {
     fun linkQueryNotSupported() {
         val uuid1 = UUID.randomUUID()
 
-        assertFailsWith<IllegalArgumentException>("It should not be possible to perform link query on UUID") {
-            realm.where<UUIDRequiredRealmList>().greaterThan("ids", uuid1).findAll()
-        }
-
         realm.beginTransaction()
         val obj = realm.createObject<UUIDRequiredRealmList>()
         realm.cancelTransaction()
 
-        assertFailsWith<UnsupportedOperationException> {
+        assertFailsWith<UnsupportedOperationException>("It should not be possible to perform link query on UUID") {
             obj.ids.where().equalTo("ids", uuid1).findAll()
         }
     }

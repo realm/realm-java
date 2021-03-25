@@ -26,7 +26,6 @@ import org.junit.runner.RunWith;
 
 import io.realm.entities.StringOnly;
 
-
 @RunWith(AndroidJUnit4.class)
 public class UTFStringsTests {
     @Rule
