@@ -79,7 +79,7 @@ public final class NativeMixedCollection implements NativeObject {
         return new NativeMixedCollection(nativeCreateFloatCollection(floatValues, notNull));
     }
 
-    public static NativeMixedCollection newDoubleCollection(Collection<Double> collection) {
+    public static NativeMixedCollection newDoubleCollection(Collection<? extends Double> collection) {
         double[] doubleValues = new double[collection.size()];
         boolean[] notNull = new boolean[collection.size()];
 

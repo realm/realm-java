@@ -1108,6 +1108,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Constants.RealmFieldType.BINARY_SET,
                         Constants.RealmFieldType.INTEGER_SET,
                         Constants.RealmFieldType.FLOAT_SET,
+                        Constants.RealmFieldType.DOUBLE_SET,
                         Constants.RealmFieldType.OBJECT_ID_SET,
                         Constants.RealmFieldType.UUID_SET -> {
                             val valueNullable = metadata.isSetValueNullable(field)

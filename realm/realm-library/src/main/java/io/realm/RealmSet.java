@@ -236,6 +236,8 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
             operator = (SetValueOperator<T>) new ByteOperator(baseRealm, osSet, Byte.class);
         } else if (valueClass == Float.class) {
             operator = (SetValueOperator<T>) new FloatOperator(baseRealm, osSet, Float.class);
+        } else if (valueClass == Double.class) {
+            operator = (SetValueOperator<T>) new DoubleOperator(baseRealm, osSet, Double.class);
         } else if (valueClass == byte[].class) {
             operator = (SetValueOperator<T>) new BinaryOperator(baseRealm, osSet, byte[].class);
         } else if (valueClass == ObjectId.class) {

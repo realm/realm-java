@@ -2689,6 +2689,7 @@ public class RealmQueryTests extends QueryTests {
                     case STRING_SET:
                     case INTEGER_SET:
                     case FLOAT_SET:
+                    case DOUBLE_SET:
                     case BINARY_SET:
                     case OBJECT_ID_SET:
                     case UUID_SET:
@@ -2931,6 +2932,7 @@ public class RealmQueryTests extends QueryTests {
                     case STRING_SET:
                     case INTEGER_SET:
                     case FLOAT_SET:
+                    case DOUBLE_SET:
                     case BINARY_SET:
                     case OBJECT_ID_SET:
                     case UUID_SET:
@@ -3165,6 +3167,7 @@ public class RealmQueryTests extends QueryTests {
         types.remove(RealmFieldType.STRING_SET);
         types.remove(RealmFieldType.INTEGER_SET);
         types.remove(RealmFieldType.FLOAT_SET);
+        types.remove(RealmFieldType.DOUBLE_SET);
         types.remove(RealmFieldType.BINARY_SET);
         types.remove(RealmFieldType.OBJECT_ID_SET);
         types.remove(RealmFieldType.UUID_SET);
@@ -4194,6 +4197,7 @@ public class RealmQueryTests extends QueryTests {
             case STRING_SET:
             case INTEGER_SET:
             case FLOAT_SET:
+            case DOUBLE_SET:
             case BINARY_SET:
             case OBJECT_ID_SET:
             case UUID_SET:

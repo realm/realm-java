@@ -618,14 +618,17 @@ fun managedSetFactory(): List<SetTester> {
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toFloat(),
                         toArrayManaged = ToArrayManaged.FloatManaged()
                 )
-
-//            SetSupportedType.DOUBLE ->
-//                UnmanagedSetTester<Double>(
-//                        testerName = "Double",
-//                        values = listOf(VALUE_NUMERIC_HELLO.toDouble(), VALUE_NUMERIC_BYE.toDouble(), null),
-//                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toDouble()
-//                )
-
+            SetSupportedType.DOUBLE ->
+                ManagedSetTester<Double>(
+                        testerName = "Double",
+                        setGetter = AllTypes::getColumnDoubleSet,
+                        setSetter = AllTypes::setColumnDoubleSet,
+                        managedSetGetter = SetContainerClass::myDoubleSet,
+                        managedCollectionGetter = SetContainerClass::myDoubleList,
+                        initializedSet = listOf(VALUE_NUMERIC_HELLO.toDouble(), VALUE_NUMERIC_BYE.toDouble(), null),
+                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toDouble(),
+                        toArrayManaged = ToArrayManaged.DoubleManaged()
+                )
             SetSupportedType.STRING ->
                 ManagedSetTester<String>(
                         testerName = "String",
