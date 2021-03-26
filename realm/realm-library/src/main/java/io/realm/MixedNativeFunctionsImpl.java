@@ -15,9 +15,12 @@
  */
 package io.realm;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.MixedNativeFunctions;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
+import io.realm.internal.objectstore.OsKeyPathMapping;
 import io.realm.internal.objectstore.OsObjectBuilder;
 
 
@@ -29,13 +32,13 @@ public class MixedNativeFunctionsImpl implements MixedNativeFunctions {
     }
 
     @Override
-    public void callRawPredicate(TableQuery query, String predicate, Mixed... arguments) {
+    public void callRawPredicate(TableQuery query, @Nullable OsKeyPathMapping mapping, String predicate, Mixed... arguments) {
         long[] args = new long[arguments.length];
 
         for (int i = 0; i < arguments.length; i++) {
             args[i] = arguments[i].getNativePtr();
         }
 
-        query.rawPredicateWithPointers(predicate, args);
+        query.rawPredicateWithPointers(mapping, predicate, args);
     }
 }

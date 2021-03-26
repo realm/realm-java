@@ -162,7 +162,7 @@ public class OsResultsTests {
 
     @Test
     public void constructor_withDistinct() {
-        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().distinct(new String[]{"firstName"}));
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().distinct(null, new String[]{"firstName"}));
 
         assertEquals(3, osResults.size());
         assertEquals("John", osResults.getUncheckedRow(0).getString(colKey0));
@@ -191,8 +191,8 @@ public class OsResultsTests {
     @Test
     public void where() {
         OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
-        OsResults osResults2 = OsResults.createFromQuery(sharedRealm, osResults.where().equalTo("firstName", Mixed.valueOf("John")));
-        OsResults osResults3 = OsResults.createFromQuery(sharedRealm, osResults2.where().equalTo("lastName",  Mixed.valueOf("Anderson")));
+        OsResults osResults2 = OsResults.createFromQuery(sharedRealm, osResults.where().equalTo(null,"firstName", Mixed.valueOf("John")));
+        OsResults osResults3 = OsResults.createFromQuery(sharedRealm, osResults2.where().equalTo(null, "lastName",  Mixed.valueOf("Anderson")));
 
         // A new native Results should be created.
         assertTrue(osResults.getNativePtr() != osResults2.getNativePtr());
@@ -205,9 +205,9 @@ public class OsResultsTests {
 
     @Test
     public void sort() {
-        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().greaterThan("age", Mixed.valueOf(1)));
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().greaterThan(null,"age", Mixed.valueOf(1)));
 
-        OsResults osResults2 = osResults.sort("age", Sort.ASCENDING);
+        OsResults osResults2 = osResults.sort(null,"age", Sort.ASCENDING);
 
         // A new native Results should be created.
         assertTrue(osResults.getNativePtr() != osResults2.getNativePtr());
@@ -237,16 +237,16 @@ public class OsResultsTests {
 
     @Test
     public void indexOf() {
-        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().sort(new String[] {"age"}, new Sort[] {Sort.ASCENDING}));
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().sort(null,new String[] {"age"}, new Sort[] {Sort.ASCENDING}));
         UncheckedRow row = table.getUncheckedRow(rowKey0);
         assertEquals(3, osResults.indexOf(row));
     }
 
     @Test
     public void distinct() {
-        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().lessThan("age", Mixed.valueOf(4)));
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().lessThan(null,"age", Mixed.valueOf(4)));
 
-        OsResults osResults2 = osResults.distinct(new String[]{"age"});
+        OsResults osResults2 = osResults.distinct(null, new String[]{"age"});
 
         // A new native Results should be created.
         assertTrue(osResults.getNativePtr() != osResults2.getNativePtr());
