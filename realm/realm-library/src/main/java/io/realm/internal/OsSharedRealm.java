@@ -30,6 +30,8 @@ import io.realm.RealmFieldType;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.annotations.ObjectServer;
+import io.realm.internal.objectstore.OsKeyPathMapping;
+
 
 @Keep
 public final class OsSharedRealm implements Closeable, NativeObject {

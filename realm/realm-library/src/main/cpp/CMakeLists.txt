@@ -101,7 +101,7 @@ set(classes_LIST
     io.realm.internal.NativeObjectReference io.realm.internal.OsCollectionChangeSet
     io.realm.internal.OsObject io.realm.internal.OsRealmConfig io.realm.internal.OsList
     io.realm.internal.OsObjectStore
-    io.realm.internal.core.DescriptorOrdering io.realm.internal.core.NativeMixed
+    io.realm.internal.core.NativeMixed
     io.realm.internal.objectstore.OsObjectBuilder
     io.realm.internal.objectstore.OsKeyPathMapping
 )

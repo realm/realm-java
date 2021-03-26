@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 
 import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
+import io.realm.internal.objectstore.OsKeyPathMapping;
 
 
 /**
