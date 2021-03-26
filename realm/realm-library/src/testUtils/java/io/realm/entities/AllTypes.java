@@ -119,7 +119,7 @@ public class AllTypes extends RealmObject {
 //    private RealmSet<byte[]> columnBinarySet;
 //    private RealmSet<Date> columnDateSet;
 //    private RealmSet<ObjectId> columnObjectIdSet;
-//    private RealmSet<UUID> columnUUIDSet;
+    private RealmSet<UUID> columnUUIDSet;
 //    private RealmSet<Decimal128> columnDecimal128Set;
 //    private RealmSet<Mixed> columnMixedSet;
 
@@ -374,5 +374,13 @@ public class AllTypes extends RealmObject {
 
     public void setColumnByteSet(RealmSet<Byte> columnByteSet) {
         this.columnByteSet = columnByteSet;
+    }
+
+    public RealmSet<UUID> getColumnUUIDSet() {
+        return columnUUIDSet;
+    }
+
+    public void setColumnUUIDSet(RealmSet<UUID> columnUUIDSet) {
+        this.columnUUIDSet = columnUUIDSet;
     }
 }

@@ -262,6 +262,7 @@ public class LinkingObjectsDynamicTests {
                     case STRING_TO_LINK_MAP:
                     case STRING_SET:
                     case INTEGER_SET:
+                    case UUID_SET:
                         // TODO: https://github.com/realm/realm-java/issues/7382
                         // TODO: https://github.com/realm/realm-java/issues/7383
                         throw new IllegalArgumentException("Unexpected field type");

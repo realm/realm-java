@@ -175,7 +175,7 @@ public final class NativeMixedCollection implements NativeObject {
         return new NativeMixedCollection(nativeCreateDecimal128Collection(lowValues, highValues, notNull));
     }
 
-    public static NativeMixedCollection newUUIDCollection(Collection<UUID> collection) {
+    public static NativeMixedCollection newUUIDCollection(Collection<? extends UUID> collection) {
         String[] uuidValues = new String[collection.size()];
         boolean[] notNull = new boolean[collection.size()];
 

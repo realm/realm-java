@@ -50,13 +50,13 @@ object OsObjectBuilderTypeHelper {
 //            QualifiedClassName("java.lang.Float") to "FloatSet",
             QualifiedClassName("java.lang.Long") to "LongSet",
             QualifiedClassName("java.lang.Short") to "ShortSet",
-            QualifiedClassName("java.lang.Byte") to "ByteSet"
+            QualifiedClassName("java.lang.Byte") to "ByteSet",
 //            QualifiedClassName("java.lang.Double") to "DoubleSet",
 //            QualifiedClassName("java.util.Date") to "DateSet",
 //            QualifiedClassName("byte[]") to "BinarySet",
 //            QualifiedClassName("org.bson.types.ObjectId") to "ObjectIdSet",
 //            QualifiedClassName("org.bson.types.Decimal128") to "Decimal128Set",
-//            QualifiedClassName("java.util.UUID") to "UUIDSet"
+            QualifiedClassName("java.util.UUID") to "UUIDSet"
     )
 
     init {

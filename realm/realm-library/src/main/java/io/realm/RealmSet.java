@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -231,6 +232,8 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
             operator = (SetValueOperator<T>) new ShortOperator(baseRealm, osSet, Short.class);
         } else if (valueClass == Byte.class) {
             operator = (SetValueOperator<T>) new ByteOperator(baseRealm, osSet, Byte.class);
+        } else if (valueClass == UUID.class) {
+            operator = (SetValueOperator<T>) new UUIDOperator(baseRealm, osSet, UUID.class);
         } else {
             throw new UnsupportedOperationException("getStrategy: missing class '" + valueClass.getSimpleName() + "'");
         }
@@ -362,9 +365,6 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
 
         @Override
         public boolean remove(@Nullable Object o) {
-            if (o != null && o.getClass() != valueClass) {
-                return false;
-            }
             return setValueOperator.remove(o);
         }
 
@@ -418,14 +418,22 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
         private <T> void checkValidArray(@Nullable T[] array) {
             if (array == null) {
                 // According to Java Set documentation
-                throw new NullPointerException("Cannot specify a null collection in containsAll.");
+                throw new NullPointerException("Cannot pass a null array when calling 'toArray'.");
+            }
+
+            String valueClassSimpleName = valueClass.getSimpleName();
+            String arrayTypeSimpleName = array.getClass().getComponentType().getSimpleName();
+
+            // According to Java Set documentation
+            if (!valueClassSimpleName.equals(arrayTypeSimpleName)) {
+                throw new ArrayStoreException("Array type must be of type '" + valueClassSimpleName +
+                        "' but it was of type '" + arrayTypeSimpleName + "'.");
             }
         }
 
         private void checkValidCollection(@Nullable Collection<?> collection) {
             if (collection == null) {
-                // According to Java Set documentation
-                throw new NullPointerException("Cannot specify a null collection in containsAll.");
+                throw new NullPointerException("Collection must not be null.");
             }
         }
     }

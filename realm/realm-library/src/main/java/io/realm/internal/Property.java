@@ -47,6 +47,7 @@ import static io.realm.RealmFieldType.STRING_TO_LINK_MAP;
 import static io.realm.RealmFieldType.STRING_TO_OBJECT_ID_MAP;
 import static io.realm.RealmFieldType.STRING_TO_STRING_MAP;
 import static io.realm.RealmFieldType.STRING_TO_UUID_MAP;
+import static io.realm.RealmFieldType.UUID_SET;
 
 
 /**
@@ -224,6 +225,9 @@ public class Property implements NativeObject {
             case INTEGER_SET:
                 type = TYPE_INT | TYPE_SET;
                 break;
+            case UUID_SET:
+                type = TYPE_UUID | TYPE_SET;
+                break;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported filed type: '%s'.", fieldType.name()));
@@ -315,6 +319,8 @@ public class Property implements NativeObject {
                 return STRING_SET;
             case TYPE_INT | TYPE_SET:
                 return INTEGER_SET;
+            case TYPE_UUID | TYPE_SET:
+                return UUID_SET;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported property type: '%d'", propertyType));
