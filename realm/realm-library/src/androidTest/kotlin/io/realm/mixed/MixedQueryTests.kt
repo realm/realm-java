@@ -129,7 +129,7 @@ class MixedQueryTests {
     fun min() {
         initializeTestData()
         val value = realm.where<MixedNotIndexed>().minMixed(MixedNotIndexed.FIELD_MIXED)
-        assertNotNull(value)
+        assertTrue(value.isNull)
     }
 
     @Test
@@ -141,7 +141,10 @@ class MixedQueryTests {
         }
 
         val value = realm.where<MixedNotIndexed>().minMixed(MixedNotIndexed.FIELD_MIXED)
+
         assertFalse(value.isNull)
+        assertEquals(MixedType.INTEGER, value.type)
+        assertEquals(0.toLong(), value.asLong())
     }
 
     @Test

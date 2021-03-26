@@ -258,11 +258,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumMixed(J
     try {
         ObjKey return_ndx;
         Mixed result = pQuery->maximum_mixed(ColKey(columnKey), &return_ndx);
-        if (bool(return_ndx)) {
-            return JavaClassGlobalDef::new_mixed(env, result);
-        } else {
-            return JavaClassGlobalDef::new_mixed(env, Mixed());
-        }
+        return JavaClassGlobalDef::new_mixed(env, bool(return_ndx) ? result : Mixed());
     }
     CATCH_STD()
     return nullptr;
@@ -330,11 +326,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumMixed(J
     try {
         ObjKey return_ndx;
         const Mixed result = pQuery->minimum_mixed(ColKey(columnKey), &return_ndx);
-        if (bool(return_ndx)) {
-            return JavaClassGlobalDef::new_mixed(env, result);
-        } else {
-            return JavaClassGlobalDef::new_mixed(env, Mixed());
-        }
+        return JavaClassGlobalDef::new_mixed(env, bool(return_ndx) ? result : Mixed());
     }
     CATCH_STD()
     return nullptr;
