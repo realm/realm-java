@@ -45,7 +45,6 @@ import io.realm.internal.Property;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

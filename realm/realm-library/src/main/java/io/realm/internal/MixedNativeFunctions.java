@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Realm Inc.
+ * Copyright 2021 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.realm.internal;
 
-#include "io_realm_RealmQuery.h"
+import javax.annotation.Nullable;
 
-#include <realm/object-store/results.hpp>
-#include <realm/object-store/shared_realm.hpp>
-
-#include "util.hpp"
+import io.realm.Mixed;
+import io.realm.internal.objectstore.OsKeyPathMapping;
 
 
-using namespace realm;
+public interface MixedNativeFunctions {
+    void handleItem(long listPtr, Mixed mixed);
 
-JNIEXPORT jstring JNICALL Java_io_realm_RealmQuery_nativeSerializeQuery(JNIEnv* env, jclass, jlong table_query_ptr)
-{
-    try {
-        auto query = reinterpret_cast<Query*>(table_query_ptr);
-        std::string serialized_query = query->get_description();
-
-        return to_jstring(env, serialized_query);
-    }
-    CATCH_STD()
-    return to_jstring(env, "");
+    void callRawPredicate(TableQuery query, @Nullable OsKeyPathMapping mapping, String predicate, Mixed... arguments);
 }

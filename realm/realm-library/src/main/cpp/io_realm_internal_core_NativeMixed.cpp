@@ -198,9 +198,9 @@ Java_io_realm_internal_core_NativeMixed_nativeMixedAsObjectId(JNIEnv *env, jclas
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeCreateMixedDecimal128(JNIEnv *env, jclass, jlong j_high, jlong j_low) {
+Java_io_realm_internal_core_NativeMixed_nativeCreateMixedDecimal128(JNIEnv *env, jclass, jlong j_low, jlong j_high) {
     try {
-        Decimal128::Bid128 raw{static_cast<uint64_t>(j_high), static_cast<uint64_t>(j_low)};
+        Decimal128::Bid128 raw{static_cast<uint64_t>(j_low), static_cast<uint64_t>(j_high)};
         return reinterpret_cast<jlong>(new JavaValue(Decimal128(raw)));
     } CATCH_STD()
 

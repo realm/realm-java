@@ -26,7 +26,6 @@ import org.junit.runner.RunWith;
 
 import io.realm.entities.Cat;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotSame;

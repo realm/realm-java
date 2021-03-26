@@ -4,9 +4,7 @@ import io.realm.entities.AllTypes
 import io.realm.entities.Dog
 import io.realm.entities.SimpleClass
 import io.realm.kotlin.*
-import io.realm.log.RealmLog
 import io.realm.rule.BlockingLooperThread
-import io.realm.rule.TestRealmConfigurationFactory
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.TestCoroutineDispatcher
