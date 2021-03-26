@@ -725,7 +725,6 @@ public class DynamicRealmTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void equalTo_noFieldObjectShouldThrow() {
         final String className = "NoField";
         RealmConfiguration emptyConfig = configFactory.createConfiguration("empty");
@@ -735,7 +734,7 @@ public class DynamicRealmTests {
         dynamicRealm.commitTransaction();
 
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Illegal Argument: 'NoField' has no property: 'nonExisting'");
+        thrown.expectMessage("Illegal Argument: 'class_NoField' has no property: 'nonExisting'");
         dynamicRealm.where(className).equalTo("nonExisting", 1);
     }
 

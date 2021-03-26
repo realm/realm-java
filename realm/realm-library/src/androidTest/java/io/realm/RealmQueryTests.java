@@ -19,7 +19,6 @@ package io.realm;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.internal.util.collections.Sets;
@@ -89,6 +88,7 @@ public class RealmQueryTests extends QueryTests {
             allTypes.setColumnObjectId(new ObjectId(TestHelper.generateObjectIdHexString(i)));
             allTypes.setColumnDecimal128(new Decimal128(new BigDecimal(i + ".23456789")));
             allTypes.setColumnUUID(UUID.fromString(TestHelper.generateUUIDString(i)));
+            allTypes.setColumnMixed(Mixed.valueOf(i));
 
             NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
             nonLatinFieldNames.set델타(i);
@@ -519,6 +519,21 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(22, resultList.size());
     }
 
+    @Test(expected = UnsupportedOperationException.class)
+    public void or_missingFilters() {
+        realm.where(AllTypes.class).or().findAll();
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void or_missingFilterBefore() {
+        realm.where(AllTypes.class).or().equalTo(AllTypes.FIELD_FLOAT, 31.2345f).findAll();
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void or_missingFilterAfter() {
+        realm.where(AllTypes.class).or().equalTo(AllTypes.FIELD_FLOAT, 31.2345f).findAll();
+    }
+
     @Test
     public void not() {
         populateTestRealm(); // create TEST_DATA_SIZE objects
@@ -774,7 +789,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4467")
     public void equalTo_nonLatinCharacters() {
         populateTestRealm(realm, 200);
 
@@ -1529,39 +1543,56 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(SECONDARY_FIELD_STRING, realm.where(PrimaryKeyAsBoxedLong.class).notEqualTo(PrimaryKeyAsBoxedLong.FIELD_PRIMARY_KEY, Long.valueOf((long) -1)).findAll().first().getName());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void beginWith_nullStringPrimaryKey() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 10, -5);
 
-        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).beginsWith(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null).findAll().first().getId());
+        RealmQuery<PrimaryKeyAsString> query = realm.where(PrimaryKeyAsString.class);
+        try {
+            query.beginsWith(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null);
+            fail();
+        } catch (IllegalArgumentException ignore) {
+        }
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void contains_nullStringPrimaryKey() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 10, -5);
 
-        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).contains(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null).findAll().first().getId());
+        RealmQuery<PrimaryKeyAsString> query = realm.where(PrimaryKeyAsString.class);
+        try {
+            query.contains(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null);
+            fail();
+        } catch (IllegalArgumentException ignore) {
+        }
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void endsWith_nullStringPrimaryKey() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 10, -5);
 
-        assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).endsWith(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null).findAll().first().getId());
+        RealmQuery<PrimaryKeyAsString> query = realm.where(PrimaryKeyAsString.class);
+        try {
+            query.endsWith(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null);
+            fail();
+        } catch (IllegalArgumentException ignore) {
+        }
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void like_nullStringPrimaryKey() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
         TestHelper.populateTestRealmWithStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER, 10, -5);
 
-        assertEquals(
-                SECONDARY_FIELD_NUMBER,
-                realm.where(PrimaryKeyAsString.class).like(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null)
-                        .findAll().first().getId());
+        RealmQuery<PrimaryKeyAsString> query = realm.where(PrimaryKeyAsString.class);
+        try {
+            query.like(PrimaryKeyAsString.FIELD_PRIMARY_KEY, (String) null);
+            fail();
+        } catch (IllegalArgumentException ignore) {
+        }
     }
 
     @Test
@@ -2678,7 +2709,7 @@ public class RealmQueryTests extends QueryTests {
 
         for (String fieldName : fieldNames) {
             try {
-                realm.where(AllJavaTypes.class).isEmpty(fieldName).findAll();
+                realm.where(AllJavaTypes.class).isEmpty(fieldName);
                 fail();
             } catch (IllegalArgumentException ignored) {
             }
@@ -2694,7 +2725,7 @@ public class RealmQueryTests extends QueryTests {
 
             RealmQuery<Owner> query = realm.where(Owner.class);
             try {
-                query.isEmpty(Owner.FIELD_CAT + "." + Cat.FIELD_AGE).findAll();
+                query.isEmpty(Owner.FIELD_CAT + "." + Cat.FIELD_AGE);
                 fail();
             } catch (IllegalArgumentException expected) {
                 assertTrue(expected.getMessage().contains("Illegal Argument: Operation '@count' is not supported on property of type"));
@@ -3055,6 +3086,7 @@ public class RealmQueryTests extends QueryTests {
                 obj.setColumnMutableRealmInteger(j);
                 obj.setColumnRealmLink(obj);
                 obj.setColumnRealmObject(dog);
+                obj.setColumnMixed(Mixed.valueOf(i));
             }
         }
         realm.commitTransaction();
@@ -3183,30 +3215,28 @@ public class RealmQueryTests extends QueryTests {
             types.remove(type);
         }
 
-        // Verify that we have tested all field types except LinkingObjects which is not part of
-        // the schema lookup
+        // Validate that backlinks are not supported by sort/distinct
         assertEquals(types.toString(), Sets.newSet(RealmFieldType.LINKING_OBJECTS), types);
-        // So verify Linking explicitly
-        RealmResults<AllTypes> distinct = realm.where(AllTypes.class)
-                .distinct(prefix + AllTypes.FIELD_REALMBACKLINK)
-                .findAll();
-        assertEquals(numberOfBlocks * numberOfObjects, distinct.size());
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class);
+
+        try{
+            query.distinct(prefix + AllTypes.FIELD_REALMBACKLINK);
+            fail();
+        } catch (IllegalArgumentException ignore){
+        }
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4524")
     public void distinct_allFields() {
         distinctAllFields(realm, "");
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4524")
     public void distinct_linkedAllFields() {
         distinctAllFields(realm, AllTypes.FIELD_REALMLINK + ".");
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4524")
     public void distinct_nestedLinkedAllFields() {
         distinctAllFields(realm, AllTypes.FIELD_REALMLINK + "." + AllTypes.FIELD_REALMLINK + ".");
     }
@@ -4132,8 +4162,8 @@ public class RealmQueryTests extends QueryTests {
             case OBJECT_ID:
             case UUID:
             case LINKING_OBJECTS:
-                return true;
             case MIXED:
+                return true;
             case LIST:
             case INTEGER_LIST:
             case BOOLEAN_LIST:
