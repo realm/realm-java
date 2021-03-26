@@ -111,7 +111,7 @@ open class SyncAllTypes : RealmObject() {
     @Required
     var columnUUIDList: RealmList<UUID> = RealmList()
 
-    var columnMixedList: RealmList<Mixed>? = null
+//    var columnMixedList: RealmList<Mixed> = RealmList()
 
     fun setColumnMutableRealmInteger(value: Int) {
         columnRealmInteger.set(value.toLong())
