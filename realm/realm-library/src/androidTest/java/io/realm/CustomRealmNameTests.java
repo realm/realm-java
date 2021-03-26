@@ -117,7 +117,6 @@ public class CustomRealmNameTests {
     // Java field names and cores.
     //
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4550")
     public void typedQueryWithJavaNames() {
         RealmResults<ClassWithPolicy> results = realm.where(ClassWithPolicy.class)
                 .equalTo("camelCase", "foo") // Java name in model class

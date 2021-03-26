@@ -271,7 +271,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     @Override
     public RealmResults<E> sort(String fieldName) {
-        OsResults sortedOsResults = osResults.sort(fieldName, Sort.ASCENDING);
+        OsResults sortedOsResults = osResults.sort(baseRealm.getSchema().getKeyPathMapping(), fieldName, Sort.ASCENDING);
         return createLoadedResults(sortedOsResults);
     }
 
@@ -280,7 +280,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     @Override
     public RealmResults<E> sort(String fieldName, Sort sortOrder) {
-        OsResults sortedOsResults = osResults.sort(fieldName, sortOrder);
+        OsResults sortedOsResults = osResults.sort(baseRealm.getSchema().getKeyPathMapping(), fieldName, sortOrder);
         return createLoadedResults(sortedOsResults);
     }
 
@@ -289,7 +289,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     @Override
     public RealmResults<E> sort(String[] fieldNames, Sort[] sortOrders) {
-        OsResults sortedOsResults = osResults.sort(fieldNames, sortOrders);
+        OsResults sortedOsResults = osResults.sort(baseRealm.getSchema().getKeyPathMapping(), fieldNames, sortOrders);
         return createLoadedResults(sortedOsResults);
     }
 

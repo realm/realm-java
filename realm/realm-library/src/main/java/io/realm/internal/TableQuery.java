@@ -23,6 +23,8 @@ import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import io.realm.Mixed;
 import io.realm.MixedNativeFunctionsImpl;
 import io.realm.RealmModel;
@@ -44,7 +46,7 @@ public class TableQuery implements NativeObject {
 
     private boolean queryValidated = true;
 
-    private static String escapeFieldName(String fieldName) {
+    private static String escapeFieldName(@Nullable String fieldName) {
         if (fieldName == null) { return null; }
         return fieldName.replace(" ", "\\ ");
     }
@@ -133,9 +135,9 @@ public class TableQuery implements NativeObject {
         return descriptorBuilder.toString();
     }
 
-    public TableQuery sort(String[] fieldNames, Sort[] sortOrders) {
+    public TableQuery sort(@Nullable OsKeyPathMapping mapping, String[] fieldNames, Sort[] sortOrders) {
         String descriptor = buildSortDescriptor(fieldNames, sortOrders);
-        rawDescriptor(descriptor);
+        rawDescriptor(mapping, descriptor);
         return this;
     }
 
@@ -155,199 +157,195 @@ public class TableQuery implements NativeObject {
         return descriptorBuilder.toString();
     }
 
-    public TableQuery distinct(String[] fieldNames) {
+    public TableQuery distinct(@Nullable OsKeyPathMapping mapping, String[] fieldNames) {
         String descriptor = buildDistinctDescriptor(fieldNames);
-        rawDescriptor(descriptor);
+        rawDescriptor(mapping, descriptor);
         return this;
     }
 
     public TableQuery limit(long limit) {
-        rawDescriptor("LIMIT(" + limit + ")");
+        rawDescriptor(null, "LIMIT(" + limit + ")");
         return this;
     }
 
-    public TableQuery isEmpty(String fieldName) {
-        rawPredicateWithPointers(escapeFieldName(fieldName) + ".@count = 0");
+    public TableQuery isEmpty(@Nullable OsKeyPathMapping mapping, String fieldName) {
+        rawPredicateWithPointers(mapping, escapeFieldName(fieldName) + ".@count = 0");
         queryValidated = false;
         return this;
     }
 
-    public TableQuery isNotEmpty(String fieldName) {
-        rawPredicateWithPointers(escapeFieldName(fieldName) + ".@count != 0");
+    public TableQuery isNotEmpty(@Nullable OsKeyPathMapping mapping, String fieldName) {
+        rawPredicateWithPointers(mapping, escapeFieldName(fieldName) + ".@count != 0");
         queryValidated = false;
         return this;
     }
 
-    public TableQuery rawPredicate(String predicate, Mixed... args) {
-        mixedNativeFunctions.callRawPredicate(this, predicate, args);
+    public TableQuery rawPredicate(@Nullable OsKeyPathMapping mapping, String predicate, Mixed... args) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, predicate, args);
         return this;
     }
 
-    public void rawPredicateWithPointers(String predicate, long... values) {
-        OsKeyPathMapping mapping = table.getOsKeyPathMapping();
-
+    public void rawPredicateWithPointers(@Nullable OsKeyPathMapping mapping, String predicate, long... values) {
         nativeRawPredicate(nativePtr,
                 predicate,
                 values,
                 (mapping != null) ? mapping.getNativePtr() : 0);
     }
 
-    private void rawDescriptor(String descriptor) {
-        OsKeyPathMapping mapping = table.getOsKeyPathMapping();
-
+    private void rawDescriptor(@Nullable OsKeyPathMapping mapping, String descriptor) {
         nativeRawDescriptor(nativePtr,
                 descriptor,
                 (mapping != null) ? mapping.getNativePtr() : 0);
     }
 
-    public TableQuery equalTo(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " = $0", value);
+    public TableQuery equalTo(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " = $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery notEqualTo(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " != $0", value);
+    public TableQuery notEqualTo(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " != $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery equalToInsensitive(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " =[c] $0", value);
+    public TableQuery equalToInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " =[c] $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery notEqualToInsensitive(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " !=[c] $0", value);
+    public TableQuery notEqualToInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " !=[c] $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery greaterThan(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " > $0", value);
+    public TableQuery greaterThan(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " > $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery greaterThanOrEqual(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " >= $0", value);
+    public TableQuery greaterThanOrEqual(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " >= $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery lessThan(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " < $0", value);
+    public TableQuery lessThan(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " < $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery lessThanOrEqual(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " <= $0", value);
+    public TableQuery lessThanOrEqual(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " <= $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery between(String fieldName, Mixed value1, Mixed value2) {
-        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName)  + " >= $0 AND " + escapeFieldName(fieldName)  + " <= $1", value1, value2);
+    public TableQuery between(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value1, Mixed value2) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, "(" + escapeFieldName(fieldName) + " >= $0 AND " + escapeFieldName(fieldName) + " <= $1)", value1, value2);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery beginsWith(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " BEGINSWITH $0", value);
+    public TableQuery beginsWith(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " BEGINSWITH $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery beginsWithInsensitive(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " BEGINSWITH[c] $0", value);
+    public TableQuery beginsWithInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " BEGINSWITH[c] $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery endsWith(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " ENDSWITH $0", value);
+    public TableQuery endsWith(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " ENDSWITH $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery endsWithInsensitive(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " ENDSWITH[c] $0", value);
+    public TableQuery endsWithInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " ENDSWITH[c] $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery like(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " LIKE $0", value);
+    public TableQuery like(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " LIKE $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery likeInsensitive(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " LIKE[c] $0", value);
+    public TableQuery likeInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " LIKE[c] $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery contains(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " CONTAINS $0", value);
+    public TableQuery contains(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " CONTAINS $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery containsInsensitive(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, escapeFieldName(fieldName) + " CONTAINS[c] $0", value);
+    public TableQuery containsInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " CONTAINS[c] $0", value);
         queryValidated = false;
         return this;
     }
 
     // Dictionary queries
 
-    public TableQuery containsKey(String fieldName, Mixed key) {
-        mixedNativeFunctions.callRawPredicate(this, "ANY " + fieldName + ".@keys == $0", key);
+    public TableQuery containsKey(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed key) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, "ANY " + escapeFieldName(fieldName) + ".@keys == $0", key);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery containsValue(String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, "ANY " + fieldName + ".@values == $0", value);
+    public TableQuery containsValue(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, "ANY " + escapeFieldName(fieldName) + ".@values == $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery containsEntry(String fieldName, Mixed key, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, fieldName + "[$0] == $1", key, value);
+    public TableQuery containsEntry(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed key, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + "[$0] == $1", key, value);
         queryValidated = false;
         return this;
     }
 
     // isNull and isNotNull
-    public TableQuery isNull(String fieldName) {
-        rawPredicateWithPointers(escapeFieldName(fieldName) + " = NULL");
+    public TableQuery isNull(@Nullable OsKeyPathMapping mapping, String fieldName) {
+        rawPredicateWithPointers(mapping, escapeFieldName(fieldName) + " = NULL");
         queryValidated = false;
         return this;
     }
 
-    public TableQuery isNotNull(String fieldName) {
-        rawPredicateWithPointers(escapeFieldName(fieldName) + " != NULL");
+    public TableQuery isNotNull(@Nullable OsKeyPathMapping mapping, String fieldName) {
+        rawPredicateWithPointers(mapping, escapeFieldName(fieldName) + " != NULL");
         queryValidated = false;
         return this;
     }
 
     public TableQuery alwaysTrue() {
-        rawPredicateWithPointers("TRUEPREDICATE");
+        rawPredicateWithPointers(null, "TRUEPREDICATE");
         queryValidated = false;
         return this;
     }
 
     public TableQuery alwaysFalse() {
-        rawPredicateWithPointers("FALSEPREDICATE");
+        rawPredicateWithPointers(null, "FALSEPREDICATE");
         queryValidated = false;
         return this;
     }
 
-    public TableQuery in(String fieldName, Mixed[] values) {
+    public TableQuery in(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed[] values) {
         fieldName = escapeFieldName(fieldName);
 
         beginGroup();
@@ -356,9 +354,9 @@ public class TableQuery implements NativeObject {
         for (Mixed value : values) {
             if (!first) { or(); }
             if (value == null) {
-                isNull(fieldName);
+                isNull(mapping, fieldName);
             } else {
-                equalTo(fieldName, value);
+                equalTo(mapping, fieldName, value);
             }
             first = false;
         }
@@ -368,7 +366,7 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
-    public TableQuery inInsensitive(String fieldName, Mixed[] values) {
+    public TableQuery inInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed[] values) {
         fieldName = escapeFieldName(fieldName);
 
         beginGroup();
@@ -377,9 +375,9 @@ public class TableQuery implements NativeObject {
         for (Mixed value : values) {
             if (!first) { or(); }
             if (value == null) {
-                isNull(fieldName);
+                isNull(mapping, fieldName);
             } else {
-                equalToInsensitive(fieldName, value);
+                equalToInsensitive(mapping, fieldName, value);
             }
             first = false;
         }
