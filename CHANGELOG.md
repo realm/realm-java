@@ -1,4 +1,4 @@
-## 10.4.0 (YYYY-MM-DD)
+## 10.4.0 (2021-03-26)
 
 All releases from 10.4.0 and forward are now found on `mavenCentral()` instead of `jcenter()`. 
 
