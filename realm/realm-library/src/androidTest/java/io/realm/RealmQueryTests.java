@@ -3806,14 +3806,14 @@ public class RealmQueryTests extends QueryTests {
             realm.where(AllTypes.class).rawPredicate("columnRealmObject = $0", allTypes);
             fail();
         } catch (IllegalArgumentException e) {
-            assertTrue(e.getMessage().contains("RealmObject is not a valid managed object."));
+            assertTrue("Real message: " + e.getMessage(), e.getMessage().contains("RealmObject is not a valid managed object."));
         }
 
         try {
             realm.where(AllTypes.class).rawPredicate("columnRealmObject = $0", new AllTypes());
             fail();
         } catch (IllegalArgumentException e) {
-            assertTrue(e.getMessage().contains("RealmObject is not a valid managed object."));
+            assertTrue("Real message: " + e.getMessage(), e.getMessage().contains("RealmObject is not a valid managed object."));
         }
     }
 
