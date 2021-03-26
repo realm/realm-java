@@ -2686,6 +2686,7 @@ public class RealmQueryTests extends QueryTests {
                     case STRING_TO_UUID_MAP:
                     case STRING_TO_DECIMAL128_MAP:
                     case STRING_TO_LINK_MAP:
+                    case BOOLEAN_SET:
                     case STRING_SET:
                     case INTEGER_SET:
                     case FLOAT_SET:
@@ -2929,6 +2930,7 @@ public class RealmQueryTests extends QueryTests {
                     case STRING_TO_UUID_MAP:
                     case STRING_TO_DECIMAL128_MAP:
                     case STRING_TO_LINK_MAP:
+                    case BOOLEAN_SET:
                     case STRING_SET:
                     case INTEGER_SET:
                     case FLOAT_SET:
@@ -3164,6 +3166,7 @@ public class RealmQueryTests extends QueryTests {
         types.remove(RealmFieldType.STRING_TO_UUID_MAP);
         types.remove(RealmFieldType.STRING_TO_DECIMAL128_MAP);
         types.remove(RealmFieldType.STRING_TO_LINK_MAP);
+        types.remove(RealmFieldType.BOOLEAN_SET);
         types.remove(RealmFieldType.STRING_SET);
         types.remove(RealmFieldType.INTEGER_SET);
         types.remove(RealmFieldType.FLOAT_SET);
@@ -4194,6 +4197,7 @@ public class RealmQueryTests extends QueryTests {
             case STRING_TO_UUID_MAP:
             case STRING_TO_DECIMAL128_MAP:
             case STRING_TO_LINK_MAP:
+            case BOOLEAN_SET:
             case STRING_SET:
             case INTEGER_SET:
             case FLOAT_SET:

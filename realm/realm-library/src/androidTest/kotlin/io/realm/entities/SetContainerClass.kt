@@ -27,7 +27,7 @@ import java.util.*
 open class SetContainerClass : RealmObject() {
 
 //    val myRealmModelSet = RealmSet<StringOnly>()
-//    val myBooleanSet = RealmSet<Boolean>()
+    val myBooleanSet = RealmSet<Boolean>()
     val myStringSet = RealmSet<String>()
     val myIntSet = RealmSet<Int>()
     val myFloatSet = RealmSet<Float>()

@@ -108,7 +108,7 @@ public class AllTypes extends RealmObject {
     private RealmList<UUID> columnUUIDList;
     private RealmList<Mixed> columnMixedList;
 
-//    private RealmSet<Boolean> columnBooleanSet;
+    private RealmSet<Boolean> columnBooleanSet;
     private RealmSet<String> columnStringSet;
     private RealmSet<Integer> columnIntegerSet;
     private RealmSet<Float> columnFloatSet;
@@ -334,6 +334,14 @@ public class AllTypes extends RealmObject {
 
     public void setColumnMixedList(RealmList<Mixed> columnMixedList) {
         this.columnMixedList = columnMixedList;
+    }
+
+    public RealmSet<Boolean> getColumnBooleanSet() {
+        return columnBooleanSet;
+    }
+
+    public void setColumnBooleanSet(RealmSet<Boolean> columnBooleanSet) {
+        this.columnBooleanSet = columnBooleanSet;
     }
 
     public RealmSet<String> getColumnStringSet() {

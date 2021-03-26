@@ -24,6 +24,7 @@ import io.realm.RealmFieldType;
 import static io.realm.RealmFieldType.BINARY_LIST;
 import static io.realm.RealmFieldType.BINARY_SET;
 import static io.realm.RealmFieldType.BOOLEAN_LIST;
+import static io.realm.RealmFieldType.BOOLEAN_SET;
 import static io.realm.RealmFieldType.DATE_LIST;
 import static io.realm.RealmFieldType.DECIMAL128_LIST;
 import static io.realm.RealmFieldType.DOUBLE_LIST;
@@ -223,6 +224,9 @@ public class Property implements NativeObject {
             case STRING_TO_LINK_MAP:
                 type = TYPE_OBJECT | TYPE_DICTIONARY;
                 break;
+            case BOOLEAN_SET:
+                type = TYPE_BOOL | TYPE_SET;
+                break;
             case STRING_SET:
                 type = TYPE_STRING | TYPE_SET;
                 break;
@@ -331,6 +335,8 @@ public class Property implements NativeObject {
                 return STRING_TO_UUID_MAP;
             case TYPE_OBJECT | TYPE_DICTIONARY:
                 return STRING_TO_LINK_MAP;
+            case TYPE_BOOL | TYPE_SET:
+                return BOOLEAN_SET;
             case TYPE_STRING | TYPE_SET:
                 return STRING_SET;
             case TYPE_INT | TYPE_SET:

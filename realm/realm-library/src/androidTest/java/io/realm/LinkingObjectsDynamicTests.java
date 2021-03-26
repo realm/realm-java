@@ -260,6 +260,7 @@ public class LinkingObjectsDynamicTests {
                     case STRING_TO_UUID_MAP:
                     case STRING_TO_DECIMAL128_MAP:
                     case STRING_TO_LINK_MAP:
+                    case BOOLEAN_SET:
                     case STRING_SET:
                     case INTEGER_SET:
                     case FLOAT_SET:

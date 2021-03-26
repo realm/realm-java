@@ -734,6 +734,18 @@ Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddStringSetItem(JNIEnv
 }
 
 JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddBooleanSetItem(JNIEnv* env,
+                                                                           jclass,
+                                                                           jlong set_ptr,
+                                                                           jboolean j_value) {
+    try {
+        const JavaValue wrapped_value(j_value);
+        add_list_element(set_ptr, wrapped_value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddIntegerSetItem(JNIEnv* env,
                                                                            jclass,
                                                                            jlong set_ptr,

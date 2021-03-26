@@ -640,13 +640,18 @@ fun managedSetFactory(): List<SetTester> {
                         notPresentValue = VALUE_STRING_NOT_PRESENT,
                         toArrayManaged = ToArrayManaged.StringManaged()
                 )
+            SetSupportedType.BOOLEAN ->
+                ManagedSetTester<Boolean>(
+                        testerName = "Boolean",
+                        setGetter = AllTypes::getColumnBooleanSet,
+                        setSetter = AllTypes::setColumnBooleanSet,
+                        managedSetGetter = SetContainerClass::myBooleanSet,
+                        managedCollectionGetter = SetContainerClass::myBooleanList,
+                        initializedSet = listOf(VALUE_BOOLEAN_HELLO, null),
+                        notPresentValue = VALUE_BOOLEAN_NOT_PRESENT,
+                        toArrayManaged = ToArrayManaged.BooleanManaged()
+                )
 
-//            SetSupportedType.BOOLEAN ->
-//                UnmanagedSetTester<Boolean>(
-//                        testerName = "Boolean",
-//                        values = listOf(VALUE_BOOLEAN_HELLO, null),
-//                        notPresentValue = VALUE_BOOLEAN_NOT_PRESENT
-//                )
 //            SetSupportedType.DATE ->
 //                UnmanagedSetTester<Date>(
 //                        testerName = "Date",
