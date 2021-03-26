@@ -47,7 +47,7 @@ object OsObjectBuilderTypeHelper {
 //            QualifiedClassName("java.lang.Boolean") to "BooleanSet",
             QualifiedClassName("java.lang.String") to "StringSet",
             QualifiedClassName("java.lang.Integer") to "IntegerSet",
-//            QualifiedClassName("java.lang.Float") to "FloatSet",
+            QualifiedClassName("java.lang.Float") to "FloatSet",
             QualifiedClassName("java.lang.Long") to "LongSet",
             QualifiedClassName("java.lang.Short") to "ShortSet",
             QualifiedClassName("java.lang.Byte") to "ByteSet",

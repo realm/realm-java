@@ -237,6 +237,8 @@ abstract class SetValueOperator<E> {
             return (SetIterator<T>) new ShortSetIterator(osSet, baseRealm);
         } else if (valueClass == Byte.class) {
             return (SetIterator<T>) new ByteSetIterator(osSet, baseRealm);
+        } else if (valueClass == Float.class) {
+            return (SetIterator<T>) new FloatSetIterator(osSet, baseRealm);
         } else if (valueClass == byte[].class) {
             return (SetIterator<T>) new BinarySetIterator(osSet, baseRealm);
         } else if (valueClass == ObjectId.class) {
@@ -560,6 +562,69 @@ class ByteOperator extends SetValueOperator<Byte> {
 /**
  * TODO
  */
+class FloatOperator extends SetValueOperator<Float> {
+
+    public FloatOperator(BaseRealm baseRealm, OsSet osSet, Class<Float> valueClass) {
+        super(baseRealm, osSet, valueClass);
+    }
+
+    @Override
+    boolean add(@Nullable Float value) {
+        return osSet.add(value);
+    }
+
+    @Override
+    boolean containsInternal(@Nullable Object o) {
+        Float value;
+        if (o == null) {
+            value = null;
+        } else {
+            value = (Float) o;
+        }
+        return osSet.contains(value);
+    }
+
+    @Override
+    boolean removeInternal(@Nullable Object o) {
+        return osSet.remove((Float) o);
+    }
+
+    @Override
+    boolean containsAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        Collection<Float> floatCollection = (Collection<Float>) c;
+        NativeMixedCollection collection = NativeMixedCollection.newFloatCollection(floatCollection);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+    }
+
+    @Override
+    boolean addAllInternal(Collection<? extends Float> c) {
+        // Collection has been type-checked from caller
+        NativeMixedCollection collection = NativeMixedCollection.newFloatCollection(c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
+    }
+
+    @Override
+    boolean removeAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newFloatCollection((Collection<Float>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newFloatCollection((Collection<Float>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
+    }
+}
+
+/**
+ * TODO
+ */
 class BinaryOperator extends SetValueOperator<byte[]> {
 
     public BinaryOperator(BaseRealm baseRealm, OsSet osSet, Class<byte[]> valueClass) {
@@ -863,6 +928,15 @@ class ByteSetIterator extends SetIterator<Byte> {
 
         Long longValue = (Long) value;
         return longValue.byteValue();
+    }
+}
+
+/**
+ * TODO
+ */
+class FloatSetIterator extends SetIterator<Float> {
+    public FloatSetIterator(OsSet osSet, BaseRealm baseRealm) {
+        super(osSet, baseRealm);
     }
 }
 

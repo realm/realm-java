@@ -746,6 +746,18 @@ Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddIntegerSetItem(JNIEn
 }
 
 JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddFloatSetItem(JNIEnv* env,
+                                                                         jclass,
+                                                                         jlong set_ptr,
+                                                                         jfloat j_value) {
+    try {
+        const JavaValue value(j_value);
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddByteArraySetItem(JNIEnv* env,
                                                                              jclass,
                                                                              jlong set_ptr,

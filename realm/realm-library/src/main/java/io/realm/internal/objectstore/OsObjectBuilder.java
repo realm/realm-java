@@ -697,6 +697,13 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
+    private static ItemCallback<Float> floatSetItemCallback = new ItemCallback<Float>() {
+        @Override
+        public void handleItem(long containerPtr, Float item) {
+            nativeAddFloatSetItem(containerPtr, item);
+        }
+    };
+
     private static ItemCallback<byte[]> binarySetItemCallback = new ItemCallback<byte[]>() {
         @Override
         public void handleItem(long containerPtr, byte[] item) {
@@ -728,6 +735,8 @@ public class OsObjectBuilder implements Closeable {
 
     private static native void nativeAddIntegerSetItem(long setPtr, long val);
 
+    private static native void nativeAddFloatSetItem(long setPtr, float val);
+
     private static native void nativeAddByteArraySetItem(long setPtr, byte[] val);
 
     private static native void nativeAddObjectIdSetItem(long setPtr, String val);
@@ -756,6 +765,10 @@ public class OsObjectBuilder implements Closeable {
 
     public void addByteSet(long columnKey, RealmSet<Byte> set) {
         addSetItem(builderPtr, columnKey, set, byteSetItemCallback);
+    }
+
+    public void addFloatSet(long columnKey, RealmSet<Float> set) {
+        addSetItem(builderPtr, columnKey, set, floatSetItemCallback);
     }
 
     public void addBinarySet(long columnKey, RealmSet<byte[]> set) {

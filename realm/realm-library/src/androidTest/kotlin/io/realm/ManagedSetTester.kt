@@ -607,13 +607,18 @@ fun managedSetFactory(): List<SetTester> {
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toByte(),
                         toArrayManaged = ToArrayManaged.ByteManaged()
                 )
+            SetSupportedType.FLOAT ->
+                ManagedSetTester<Float>(
+                        testerName = "Float",
+                        setGetter = AllTypes::getColumnFloatSet,
+                        setSetter = AllTypes::setColumnFloatSet,
+                        managedSetGetter = SetContainerClass::myFloatSet,
+                        managedCollectionGetter = SetContainerClass::myFloatList,
+                        initializedSet = listOf(VALUE_NUMERIC_HELLO.toFloat(), VALUE_NUMERIC_BYE.toFloat(), null),
+                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toFloat(),
+                        toArrayManaged = ToArrayManaged.FloatManaged()
+                )
 
-//            SetSupportedType.FLOAT ->
-//                UnmanagedSetTester<Float>(
-//                        testerName = "Float",
-//                        values = listOf(VALUE_NUMERIC_HELLO.toFloat(), VALUE_NUMERIC_BYE.toFloat(), null),
-//                        notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toFloat()
-//                )
 //            SetSupportedType.DOUBLE ->
 //                UnmanagedSetTester<Double>(
 //                        testerName = "Double",
