@@ -455,6 +455,55 @@ public class Mixed {
         return operator.getValue(clazz);
     }
 
+    /**
+     * Creates a new Mixed out of an Object.
+     *
+     * @param value initial value.
+     * @return a new Mixed wrapping the object.
+     */
+    static Mixed valueOf(@Nullable Object value) {
+        if (value == null) {
+            return Mixed.nullValue();
+        } else if (value instanceof Boolean) {
+            return Mixed.valueOf((Boolean) value);
+        } else if (value instanceof Byte) {
+            return Mixed.valueOf((Byte) value);
+        } else if (value instanceof Short) {
+            return Mixed.valueOf((Short) value);
+        } else if (value instanceof Integer) {
+            return Mixed.valueOf((Integer) value);
+        } else if (value instanceof Long) {
+            return Mixed.valueOf((Long) value);
+        } else if (value instanceof Float) {
+            return Mixed.valueOf((Float) value);
+        } else if (value instanceof Double) {
+            return Mixed.valueOf((Double) value);
+        } else if (value instanceof Decimal128) {
+            return Mixed.valueOf((Decimal128) value);
+        } else if (value instanceof String) {
+            return Mixed.valueOf((String) value);
+        } else if (value instanceof byte[]) {
+            return Mixed.valueOf((byte[]) value);
+        } else if (value instanceof Date) {
+            return Mixed.valueOf((Date) value);
+        } else if (value instanceof ObjectId) {
+            return Mixed.valueOf((ObjectId) value);
+        } else if (value instanceof UUID) {
+            return Mixed.valueOf((UUID) value);
+        } else if (value instanceof Mixed) {
+            return (Mixed) value;
+        } else if (RealmModel.class.isAssignableFrom(value.getClass())) {
+            RealmModel model = (RealmModel) value;
+
+            if (!RealmObject.isValid(model) || !RealmObject.isManaged(model)) {
+                throw new IllegalArgumentException("RealmObject is not a valid managed object.");
+            }
+
+            return Mixed.valueOf((RealmModel) model);
+        } else {
+            throw new IllegalArgumentException("Type not supported on Mixed: " + value.getClass().getSimpleName());
+        }
+    }
 
     /**
      * A {@code Mixed}'s hash code is, exactly, the hash code of its value.

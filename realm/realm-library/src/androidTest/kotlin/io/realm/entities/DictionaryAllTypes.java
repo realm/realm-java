@@ -29,6 +29,7 @@ import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
 public class DictionaryAllTypes extends RealmObject {
+    public static final String FIELD_STRING_DICTIONARY = "columnStringDictionary";
 
     @PrimaryKey
     private String id = "";

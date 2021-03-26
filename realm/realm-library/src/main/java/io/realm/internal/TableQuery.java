@@ -20,6 +20,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -179,56 +180,8 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
-    public TableQuery rawPredicate(@Nullable OsKeyPathMapping mapping, String predicate, Object... args) {
-        Mixed[] mixedArgs = new Mixed[args.length];
-
-        for (int i = 0; i < args.length; i++) {
-            Object argument = args[i];
-            if (argument == null) {
-                mixedArgs[i] = Mixed.nullValue();
-            } else if (argument instanceof Boolean) {
-                mixedArgs[i] = Mixed.valueOf((Boolean) argument);
-            } else if (argument instanceof Byte) {
-                mixedArgs[i] = Mixed.valueOf((Byte) argument);
-            } else if (argument instanceof Short) {
-                mixedArgs[i] = Mixed.valueOf((Short) argument);
-            } else if (argument instanceof Integer) {
-                mixedArgs[i] = Mixed.valueOf((Integer) argument);
-            } else if (argument instanceof Long) {
-                mixedArgs[i] = Mixed.valueOf((Long) argument);
-            } else if (argument instanceof Float) {
-                mixedArgs[i] = Mixed.valueOf((Float) argument);
-            } else if (argument instanceof Double) {
-                mixedArgs[i] = Mixed.valueOf((Double) argument);
-            } else if (argument instanceof Decimal128) {
-                mixedArgs[i] = Mixed.valueOf((Decimal128) argument);
-            } else if (argument instanceof String) {
-                mixedArgs[i] = Mixed.valueOf((String) argument);
-            } else if (argument instanceof byte[]) {
-                mixedArgs[i] = Mixed.valueOf((byte[]) argument);
-            } else if (argument instanceof Date) {
-                mixedArgs[i] = Mixed.valueOf((Date) argument);
-            } else if (argument instanceof ObjectId) {
-                mixedArgs[i] = Mixed.valueOf((ObjectId) argument);
-            } else if (argument instanceof UUID) {
-                mixedArgs[i] = Mixed.valueOf((UUID) argument);
-            } else if (argument instanceof Mixed) {
-                mixedArgs[i] = (Mixed) argument;
-            } else if (RealmModel.class.isAssignableFrom(argument.getClass())) {
-                RealmModel value = (RealmModel) argument;
-
-                if (!RealmObject.isValid(value) || !RealmObject.isManaged(value)) {
-                    throw new IllegalArgumentException("Argument[" + i + "] is not a valid managed object.");
-                }
-
-                mixedArgs[i] = Mixed.valueOf((RealmModel) argument);
-            } else {
-                throw new IllegalArgumentException("Unsupported query argument type: " + argument.getClass().getSimpleName());
-            }
-        }
-
-        mixedNativeFunctions.callRawPredicate(this, mapping, predicate, mixedArgs);
-
+    public TableQuery rawPredicate(@Nullable OsKeyPathMapping mapping, String predicate, Mixed... args) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, predicate, args);
         return this;
     }
 
@@ -343,6 +296,26 @@ public class TableQuery implements NativeObject {
 
     public TableQuery containsInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
         mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " CONTAINS[c] $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    // Dictionary queries
+
+    public TableQuery containsKey(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed key) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, "ANY " + escapeFieldName(fieldName) + ".@keys == $0", key);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery containsValue(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, "ANY " + escapeFieldName(fieldName) + ".@values == $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery containsEntry(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed key, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + "[$0] == $1", key, value);
         queryValidated = false;
         return this;
     }
