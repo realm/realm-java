@@ -83,6 +83,6 @@ RUN chmod -R a+rwX ${ANDROID_HOME}
 # Ensure a new enough version of CMake is available.
 RUN cd /opt \
     && wget -nv https://cmake.org/files/v3.20/cmake-3.20.0-linux-x86_64.tar.gz \
-    && tar zxf cmake-3.20.0-Linux-x86_64.tar.gz
+    && tar zxf cmake-3.20.0-linux-x86_64.tar.gz
 
-ENV PATH "/opt/cmake-3.20.0-Linux-x86_64/bin:$PATH"
+ENV PATH "/opt/cmake-3.20.0-linux-x86_64/bin:$PATH"
