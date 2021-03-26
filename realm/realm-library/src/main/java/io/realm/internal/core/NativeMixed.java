@@ -76,7 +76,7 @@ public class NativeMixed implements NativeObject {
     }
 
     public NativeMixed(Decimal128 value) {
-        this(nativeCreateMixedDecimal128(value.getHigh(), value.getLow()));
+        this(nativeCreateMixedDecimal128(value.getLow(), value.getHigh()));
     }
 
     public NativeMixed(UUID value) {
@@ -148,7 +148,7 @@ public class NativeMixed implements NativeObject {
 
     public Decimal128 asDecimal128() {
         long[] data = nativeMixedAsDecimal128(nativePtr);
-        return Decimal128.fromIEEE754BIDEncoding(data[0], data[1]);
+        return Decimal128.fromIEEE754BIDEncoding(data[1]/*high*/, data[0]/*low*/);
     }
 
     public UUID asUUID() {
@@ -202,7 +202,7 @@ public class NativeMixed implements NativeObject {
 
     private static native String nativeMixedAsObjectId(long nativePtr);
 
-    private static native long nativeCreateMixedDecimal128(long high, long low);
+    private static native long nativeCreateMixedDecimal128(long low, long high);
 
     private static native long[] nativeMixedAsDecimal128(long nativePtr);
 
