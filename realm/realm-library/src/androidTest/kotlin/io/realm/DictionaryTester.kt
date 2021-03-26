@@ -40,6 +40,7 @@ interface DictionaryTester : GenericTester {
     fun entrySet()
     fun freeze()
     fun copyToRealm()
+    fun copyToRealmOrUpdate()
     fun copyFromRealm()
     fun fieldAccessors()
     fun addMapChangeListener()

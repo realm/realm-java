@@ -28,7 +28,6 @@ import io.realm.RealmObject;
 import io.realm.annotations.Ignore;
 import io.realm.annotations.PrimaryKey;
 
-
 public class DefaultValueOfField extends RealmObject {
 
     public static final String CLASS_NAME = "DefaultValueOfField";
@@ -64,7 +63,7 @@ public class DefaultValueOfField extends RealmObject {
     public static final double FIELD_DOUBLE_DEFAULT_VALUE = 0.25;
     public static final boolean FIELD_BOOLEAN_DEFAULT_VALUE = true;
     public static final Date FIELD_DATE_DEFAULT_VALUE = new Date(1473691826000L /*2016/9/12 23:56:26 JST*/);
-    public static final byte[] FIELD_BINARY_DEFAULT_VALUE = new byte[] {123, -100, 0, 2};
+    public static final byte[] FIELD_BINARY_DEFAULT_VALUE = new byte[]{123, -100, 0, 2};
     public static final ObjectId FIELD_OBJECT_ID_DEFAULT_VALUE = new ObjectId(new Date(10));
     public static final Decimal128 FIELD_DECIMAL128_DEFAULT_VALUE = new Decimal128(10);
     public static final UUID FIELD_UUID_DEFAULT_VALUE = UUID.randomUUID();
@@ -93,7 +92,7 @@ public class DefaultValueOfField extends RealmObject {
 
         FIELD_STRING_LIST_DEFAULT_VALUE = new RealmList<>("1");
         FIELD_BOOLEAN_LIST_DEFAULT_VALUE = new RealmList<>(true);
-        FIELD_BINARY_LIST_DEFAULT_VALUE = new RealmList<>(new byte[] {1});
+        FIELD_BINARY_LIST_DEFAULT_VALUE = new RealmList<>(new byte[]{1});
         FIELD_LONG_LIST_DEFAULT_VALUE = new RealmList<>(1L);
         FIELD_INTEGER_LIST_DEFAULT_VALUE = new RealmList<>(1);
         FIELD_SHORT_LIST_DEFAULT_VALUE = new RealmList<>((short) 1);
@@ -109,14 +108,12 @@ public class DefaultValueOfField extends RealmObject {
 
     public static String lastRandomStringValue;
 
-    @Ignore
-    private String fieldIgnored = FIELD_IGNORED_DEFAULT_VALUE;
+    @Ignore private String fieldIgnored = FIELD_IGNORED_DEFAULT_VALUE;
     private String fieldString = FIELD_STRING_DEFAULT_VALUE;
     private String fieldRandomString = lastRandomStringValue = UUID.randomUUID().toString();
     private short fieldShort = FIELD_SHORT_DEFAULT_VALUE;
     private int fieldInt = FIELD_INT_DEFAULT_VALUE;
-    @PrimaryKey
-    private long fieldLongPrimaryKey = FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE;
+    @PrimaryKey private long fieldLongPrimaryKey = FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE;
     private long fieldLong = FIELD_LONG_DEFAULT_VALUE;
     private byte fieldByte = FIELD_BYTE_DEFAULT_VALUE;
     private float fieldFloat = FIELD_FLOAT_DEFAULT_VALUE;

@@ -15,11 +15,15 @@
  */
 package io.realm.internal;
 
+import java.util.Map;
+
 import io.realm.Mixed;
 
 
 public interface MixedNativeFunctions {
     void handleItem(long listPtr, Mixed mixed);
+
+    void handleItem(long listPtr, Map.Entry<String, Mixed> mixed);
 
     void callRawPredicate(TableQuery query, String predicate, Mixed... arguments);
 }
