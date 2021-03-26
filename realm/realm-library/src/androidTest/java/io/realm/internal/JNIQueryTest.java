@@ -93,7 +93,7 @@ public class JNIQueryTest {
 
         long colKey1 = table.getColumnKey("number");
 
-        long cnt = query.equalTo("name", Mixed.valueOf("D")).count();
+        long cnt = query.equalTo(null,"name", Mixed.valueOf("D")).count();
         assertEquals(2, cnt);
 
         cnt = query.minimumInt(colKey1);
@@ -117,8 +117,8 @@ public class JNIQueryTest {
         init();
 
         // All the following queries are not valid, e.g contain a group but not a closing group, an or() but not a second filter etc
-        try { table.where().equalTo("", Mixed.valueOf(1)).or().validateQuery();       fail("missing a second filter"); }      catch (IllegalArgumentException ignore) {}
-        try { table.where().beginGroup().equalTo("", Mixed.valueOf(1)).validateQuery();    fail("missing a closing group"); }      catch (IllegalArgumentException ignore) {}
+        try { table.where().equalTo(null, "", Mixed.valueOf(1)).or().validateQuery();       fail("missing a second filter"); }      catch (IllegalArgumentException ignore) {}
+        try { table.where().beginGroup().equalTo(null,"", Mixed.valueOf(1)).validateQuery();    fail("missing a closing group"); }      catch (IllegalArgumentException ignore) {}
 
         try { table.where().beginGroup().count();                                fail(); }                               catch (UnsupportedOperationException ignore) {}
         try { table.where().beginGroup().validateQuery();                              fail(); }                               catch (UnsupportedOperationException ignore) {}
@@ -128,10 +128,10 @@ public class JNIQueryTest {
         try { table.where().beginGroup().sumInt(0);                              fail(); }                               catch (UnsupportedOperationException ignore) {}
         try { table.where().beginGroup().averageInt(0);                          fail(); }                               catch (UnsupportedOperationException ignore) {}
 
-        try { table.where().endGroup().equalTo("", Mixed.valueOf(1)).validateQuery(); fail("ends group, no start"); }         catch (IllegalArgumentException ignore) {}
-        try { table.where().equalTo("", Mixed.valueOf(1)).endGroup().validateQuery(); fail("ends group, no start"); }         catch (IllegalArgumentException ignore) {}
+        try { table.where().endGroup().equalTo(null,"", Mixed.valueOf(1)).validateQuery(); fail("ends group, no start"); }         catch (IllegalArgumentException ignore) {}
+        try { table.where().equalTo(null,"", Mixed.valueOf(1)).endGroup().validateQuery(); fail("ends group, no start"); }         catch (IllegalArgumentException ignore) {}
 
-        try { table.where().equalTo("", Mixed.valueOf(1)).endGroup().find();    fail("ends group, no start"); }         catch (IllegalArgumentException ignore) {}
+        try { table.where().equalTo(null,"", Mixed.valueOf(1)).endGroup().find();    fail("ends group, no start"); }         catch (IllegalArgumentException ignore) {}
     }
 
     @Test
@@ -154,7 +154,7 @@ public class JNIQueryTest {
             }
         });
 
-        TableQuery query = table.where().greaterThan("score", Mixed.valueOf(600));
+        TableQuery query = table.where().greaterThan(null,"score", Mixed.valueOf(600));
 
         // Finds first match.
         assertEquals(1, query.find());
@@ -180,7 +180,7 @@ public class JNIQueryTest {
                 new Object[]{new byte[]{1,2,3}, true, new Date(1384423149761L), 4.5d, 5.7f, 100, "string", new Decimal128(0), new ObjectId()});
         sharedRealm.commitTransaction();
 
-        TableQuery q = t.where().greaterThan("long", Mixed.valueOf(1000)); // No matches
+        TableQuery q = t.where().greaterThan(null,"long", Mixed.valueOf(1000)); // No matches
 
         assertEquals(-1, q.find());
     }
@@ -206,58 +206,58 @@ public class JNIQueryTest {
         // Compares integer in non integer columns.
         for (int i = 0; i <= 6; i++) {
             if ((i != 5) && (i != 1) && (i != 3) && (i != 4)) {
-                try { query.equalTo(columnKeys[i], L123).find();            fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.notEqualTo(columnKeys[i], L123).find();         fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.lessThan(columnKeys[i], L123).find();           fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.lessThanOrEqual(columnKeys[i], L123).find();    fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.greaterThan(columnKeys[i], L123).find();        fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.greaterThanOrEqual(columnKeys[i], L123).find(); fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.between(columnKeys[i], L123, L321).find();                     fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.equalTo(null, columnKeys[i], L123).find();            fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.notEqualTo(null, columnKeys[i], L123).find();         fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.lessThan(null, columnKeys[i], L123).find();           fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.lessThanOrEqual(null, columnKeys[i], L123).find();    fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.greaterThan(null, columnKeys[i], L123).find();        fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.greaterThanOrEqual(null, columnKeys[i], L123).find(); fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.between(null, columnKeys[i], L123, L321).find();                     fail(); } catch(IllegalArgumentException ignore) {}
             }
         }
 
         // Compares float in non float columns.
         for (int i = 0; i <= 6; i++) {
             if ((i != 5) && (i != 1) && (i != 3) && (i != 4)) {
-                try { query.equalTo(columnKeys[i], F123).find();            fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.notEqualTo(columnKeys[i], F123).find();         fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.lessThan(columnKeys[i], F123).find();           fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.lessThanOrEqual(columnKeys[i], F123).find();    fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.greaterThan(columnKeys[i], F123).find();        fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.greaterThanOrEqual(columnKeys[i], F123).find(); fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.between(columnKeys[i], F123, F321).find();                    fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.equalTo(null, columnKeys[i], F123).find();            fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.notEqualTo(null, columnKeys[i], F123).find();         fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.lessThan(null, columnKeys[i], F123).find();           fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.lessThanOrEqual(null, columnKeys[i], F123).find();    fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.greaterThan(null, columnKeys[i], F123).find();        fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.greaterThanOrEqual(null, columnKeys[i], F123).find(); fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.between(null, columnKeys[i], F123, F321).find();                    fail(); } catch(IllegalArgumentException ignore) {}
             }
         }
 
         // Compares double in non double columns.
         for (int i = 0; i <= 6; i++) {
             if ((i != 5) && (i != 1) && (i != 3) && (i != 4)) {
-                try { query.equalTo(columnKeys[i], D123).find();                     fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.notEqualTo(columnKeys[i], D123).find();                  fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.lessThan(columnKeys[i], D123).find();                    fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.lessThanOrEqual(columnKeys[i], D123).find();             fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.greaterThan(columnKeys[i], D123).find();                 fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.greaterThanOrEqual(columnKeys[i], D123).find();          fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.between(columnKeys[i], D123, D321).find();                             fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.equalTo(null, columnKeys[i], D123).find();                     fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.notEqualTo(null, columnKeys[i], D123).find();                  fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.lessThan(null, columnKeys[i], D123).find();                    fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.lessThanOrEqual(null, columnKeys[i], D123).find();             fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.greaterThan(null, columnKeys[i], D123).find();                 fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.greaterThanOrEqual(null, columnKeys[i], D123).find();          fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.between(null, columnKeys[i], D123, D321).find();                             fail(); } catch(IllegalArgumentException ignore) {}
             }
         }
 
         // Compares boolean in non boolean columns.
         for (int i = 0; i <= 6; i++) {
             if ((i != 5) && (i != 1) && (i != 3) && (i != 4)) {
-              try { query.equalTo(columnKeys[i], Mixed.valueOf(true)).find();                       fail(); } catch(IllegalArgumentException ignore) {}
+              try { query.equalTo(null, columnKeys[i], Mixed.valueOf(true)).find();                       fail(); } catch(IllegalArgumentException ignore) {}
             }
         }
 
         // Compares date.
         for (int i = 0; i <= 6; i++) {
             if (i != 2) {
-                try { query.equalTo(columnKeys[i], date).find();                   fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.lessThan(columnKeys[i], date).find();                fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.lessThanOrEqual(columnKeys[i], date).find();         fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.greaterThan(columnKeys[i], date).find();             fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.greaterThanOrEqual(columnKeys[i], date).find();      fail(); } catch(IllegalArgumentException ignore) {}
-                try { query.between(columnKeys[i], date, date).find();                     fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.equalTo(null, columnKeys[i], date).find();                   fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.lessThan(null, columnKeys[i], date).find();                fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.lessThanOrEqual(null, columnKeys[i], date).find();         fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.greaterThan(null, columnKeys[i], date).find();             fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.greaterThanOrEqual(null, columnKeys[i], date).find();      fail(); } catch(IllegalArgumentException ignore) {}
+                try { query.between(null, columnKeys[i], date, date).find();                     fail(); } catch(IllegalArgumentException ignore) {}
             }
         }
     }
@@ -323,84 +323,84 @@ public class JNIQueryTest {
             }
         });
 
-        assertEquals(1L, table.where().equalTo("date", distantPast).count());
-        assertEquals(6L, table.where().notEqualTo("date", distantPast).count());
-        assertEquals(0L, table.where().lessThan("date", distantPast).count());
-        assertEquals(1L, table.where().lessThanOrEqual("date", distantPast).count());
-        assertEquals(6L, table.where().greaterThan("date", distantPast).count());
-        assertEquals(7L, table.where().greaterThanOrEqual("date", distantPast).count());
+        assertEquals(1L, table.where().equalTo(null, "date", distantPast).count());
+        assertEquals(6L, table.where().notEqualTo(null, "date", distantPast).count());
+        assertEquals(0L, table.where().lessThan(null, "date", distantPast).count());
+        assertEquals(1L, table.where().lessThanOrEqual(null, "date", distantPast).count());
+        assertEquals(6L, table.where().greaterThan(null, "date", distantPast).count());
+        assertEquals(7L, table.where().greaterThanOrEqual(null, "date", distantPast).count());
 
-        assertEquals(1L, table.where().equalTo("date", past).count());
-        assertEquals(6L, table.where().notEqualTo("date", past).count());
-        assertEquals(1L, table.where().lessThan("date", past).count());
-        assertEquals(2L, table.where().lessThanOrEqual("date", past).count());
-        assertEquals(5L, table.where().greaterThan("date", past).count());
-        assertEquals(6L, table.where().greaterThanOrEqual("date", past).count());
+        assertEquals(1L, table.where().equalTo(null, "date", past).count());
+        assertEquals(6L, table.where().notEqualTo(null, "date", past).count());
+        assertEquals(1L, table.where().lessThan(null, "date", past).count());
+        assertEquals(2L, table.where().lessThanOrEqual(null, "date", past).count());
+        assertEquals(5L, table.where().greaterThan(null, "date", past).count());
+        assertEquals(6L, table.where().greaterThanOrEqual(null, "date", past).count());
 
-        assertEquals(1L, table.where().equalTo("date", date0).count());
-        assertEquals(6L, table.where().notEqualTo("date", date0).count());
-        assertEquals(2L, table.where().lessThan("date", date0).count());
-        assertEquals(3L, table.where().lessThanOrEqual("date", date0).count());
-        assertEquals(4L, table.where().greaterThan("date", date0).count());
-        assertEquals(5L, table.where().greaterThanOrEqual("date", date0).count());
+        assertEquals(1L, table.where().equalTo(null, "date", date0).count());
+        assertEquals(6L, table.where().notEqualTo(null, "date", date0).count());
+        assertEquals(2L, table.where().lessThan(null, "date", date0).count());
+        assertEquals(3L, table.where().lessThanOrEqual(null, "date", date0).count());
+        assertEquals(4L, table.where().greaterThan(null, "date", date0).count());
+        assertEquals(5L, table.where().greaterThanOrEqual(null, "date", date0).count());
 
-        assertEquals(1L, table.where().equalTo("date", future).count());
-        assertEquals(6L, table.where().notEqualTo("date", future).count());
-        assertEquals(5L, table.where().lessThan("date", future).count());
-        assertEquals(6L, table.where().lessThanOrEqual("date", future).count());
-        assertEquals(1L, table.where().greaterThan("date", future).count());
-        assertEquals(2L, table.where().greaterThanOrEqual("date", future).count());
+        assertEquals(1L, table.where().equalTo(null, "date", future).count());
+        assertEquals(6L, table.where().notEqualTo(null, "date", future).count());
+        assertEquals(5L, table.where().lessThan(null, "date", future).count());
+        assertEquals(6L, table.where().lessThanOrEqual(null, "date", future).count());
+        assertEquals(1L, table.where().greaterThan(null, "date", future).count());
+        assertEquals(2L, table.where().greaterThanOrEqual(null, "date", future).count());
 
-        assertEquals(1L, table.where().equalTo("date", distantFuture).count());
-        assertEquals(6L, table.where().notEqualTo("date", distantFuture).count());
-        assertEquals(6L, table.where().lessThan("date", distantFuture).count());
-        assertEquals(7L, table.where().lessThanOrEqual("date", distantFuture).count());
-        assertEquals(0L, table.where().greaterThan("date", distantFuture).count());
-        assertEquals(1L, table.where().greaterThanOrEqual("date", distantFuture).count());
+        assertEquals(1L, table.where().equalTo(null, "date", distantFuture).count());
+        assertEquals(6L, table.where().notEqualTo(null, "date", distantFuture).count());
+        assertEquals(6L, table.where().lessThan(null, "date", distantFuture).count());
+        assertEquals(7L, table.where().lessThanOrEqual(null, "date", distantFuture).count());
+        assertEquals(0L, table.where().greaterThan(null, "date", distantFuture).count());
+        assertEquals(1L, table.where().greaterThanOrEqual(null, "date", distantFuture).count());
 
         // between
 
-        assertEquals(1L, table.where().between("date", distantPast, distantPast).count());
-        assertEquals(2L, table.where().between("date", distantPast, past).count());
-        assertEquals(3L, table.where().between("date", distantPast, date0).count());
-        assertEquals(5L, table.where().between("date", distantPast, date10000).count());
-        assertEquals(6L, table.where().between("date", distantPast, future).count());
-        assertEquals(7L, table.where().between("date", distantPast, distantFuture).count());
+        assertEquals(1L, table.where().between(null, "date", distantPast, distantPast).count());
+        assertEquals(2L, table.where().between(null, "date", distantPast, past).count());
+        assertEquals(3L, table.where().between(null, "date", distantPast, date0).count());
+        assertEquals(5L, table.where().between(null, "date", distantPast, date10000).count());
+        assertEquals(6L, table.where().between(null, "date", distantPast, future).count());
+        assertEquals(7L, table.where().between(null, "date", distantPast, distantFuture).count());
 
-        assertEquals(0L, table.where().between("date", past, distantPast).count());
-        assertEquals(1L, table.where().between("date", past, past).count());
-        assertEquals(2L, table.where().between("date", past, date0).count());
-        assertEquals(4L, table.where().between("date", past, date10000).count());
-        assertEquals(5L, table.where().between("date", past, future).count());
-        assertEquals(6L, table.where().between("date", past, distantFuture).count());
+        assertEquals(0L, table.where().between(null, "date", past, distantPast).count());
+        assertEquals(1L, table.where().between(null, "date", past, past).count());
+        assertEquals(2L, table.where().between(null, "date", past, date0).count());
+        assertEquals(4L, table.where().between(null, "date", past, date10000).count());
+        assertEquals(5L, table.where().between(null, "date", past, future).count());
+        assertEquals(6L, table.where().between(null, "date", past, distantFuture).count());
 
-        assertEquals(0L, table.where().between("date", date0, distantPast).count());
-        assertEquals(0L, table.where().between("date", date0, past).count());
-        assertEquals(1L, table.where().between("date", date0, date0).count());
-        assertEquals(3L, table.where().between("date", date0, date10000).count());
-        assertEquals(4L, table.where().between("date", date0, future).count());
-        assertEquals(5L, table.where().between("date", date0, distantFuture).count());
+        assertEquals(0L, table.where().between(null, "date", date0, distantPast).count());
+        assertEquals(0L, table.where().between(null, "date", date0, past).count());
+        assertEquals(1L, table.where().between(null, "date", date0, date0).count());
+        assertEquals(3L, table.where().between(null, "date", date0, date10000).count());
+        assertEquals(4L, table.where().between(null, "date", date0, future).count());
+        assertEquals(5L, table.where().between(null, "date", date0, distantFuture).count());
 
-        assertEquals(0L, table.where().between("date", date10000, distantPast).count());
-        assertEquals(0L, table.where().between("date", date10000, past).count());
-        assertEquals(0L, table.where().between("date", date10000, date0).count());
-        assertEquals(1L, table.where().between("date", date10000, date10000).count());
-        assertEquals(2L, table.where().between("date", date10000, future).count());
-        assertEquals(3L, table.where().between("date", date10000, distantFuture).count());
+        assertEquals(0L, table.where().between(null, "date", date10000, distantPast).count());
+        assertEquals(0L, table.where().between(null, "date", date10000, past).count());
+        assertEquals(0L, table.where().between(null, "date", date10000, date0).count());
+        assertEquals(1L, table.where().between(null, "date", date10000, date10000).count());
+        assertEquals(2L, table.where().between(null, "date", date10000, future).count());
+        assertEquals(3L, table.where().between(null, "date", date10000, distantFuture).count());
 
-        assertEquals(0L, table.where().between("date", future, distantPast).count());
-        assertEquals(0L, table.where().between("date", future, past).count());
-        assertEquals(0L, table.where().between("date", future, date0).count());
-        assertEquals(0L, table.where().between("date", future, date10000).count());
-        assertEquals(1L, table.where().between("date", future, future).count());
-        assertEquals(2L, table.where().between("date", future, distantFuture).count());
+        assertEquals(0L, table.where().between(null, "date", future, distantPast).count());
+        assertEquals(0L, table.where().between(null, "date", future, past).count());
+        assertEquals(0L, table.where().between(null, "date", future, date0).count());
+        assertEquals(0L, table.where().between(null, "date", future, date10000).count());
+        assertEquals(1L, table.where().between(null, "date", future, future).count());
+        assertEquals(2L, table.where().between(null, "date", future, distantFuture).count());
 
-        assertEquals(0L, table.where().between("date", distantFuture, distantPast).count());
-        assertEquals(0L, table.where().between("date", distantFuture, past).count());
-        assertEquals(0L, table.where().between("date", distantFuture, date0).count());
-        assertEquals(0L, table.where().between("date", distantFuture, date10000).count());
-        assertEquals(0L, table.where().between("date", distantFuture, future).count());
-        assertEquals(1L, table.where().between("date", distantFuture, distantFuture).count());
+        assertEquals(0L, table.where().between(null, "date", distantFuture, distantPast).count());
+        assertEquals(0L, table.where().between(null, "date", distantFuture, past).count());
+        assertEquals(0L, table.where().between(null, "date", distantFuture, date0).count());
+        assertEquals(0L, table.where().between(null, "date", distantFuture, date10000).count());
+        assertEquals(0L, table.where().between(null, "date", distantFuture, future).count());
+        assertEquals(1L, table.where().between(null, "date", distantFuture, distantFuture).count());
     }
 
     @Test
@@ -427,13 +427,13 @@ public class JNIQueryTest {
 
         // Equal to
 
-        assertEquals(1L, table.where().equalTo("binary", binary1).count());
-        assertEquals(1L, table.where().equalTo("binary", binary3).count());
+        assertEquals(1L, table.where().equalTo(null, "binary", binary1).count());
+        assertEquals(1L, table.where().equalTo(null, "binary", binary3).count());
 
         // Not equal to
 
-        assertEquals(3L, table.where().notEqualTo("binary", binary2).count());
-        assertEquals(3L, table.where().notEqualTo("binary", binary4).count());
+        assertEquals(3L, table.where().notEqualTo(null, "binary", binary2).count());
+        assertEquals(3L, table.where().notEqualTo(null, "binary", binary4).count());
     }
 
     @Test
@@ -455,26 +455,26 @@ public class JNIQueryTest {
             }
         });
 
-        assertEquals(1L, table.where().equalTo("decimal128", one).count());
-        assertEquals(2L, table.where().notEqualTo("decimal128", one).count());
-        assertEquals(0L, table.where().lessThan("decimal128", one).count());
-        assertEquals(1L, table.where().lessThanOrEqual("decimal128", one).count());
-        assertEquals(2L, table.where().greaterThan("decimal128", one).count());
-        assertEquals(3L, table.where().greaterThanOrEqual("decimal128", one).count());
+        assertEquals(1L, table.where().equalTo(null, "decimal128", one).count());
+        assertEquals(2L, table.where().notEqualTo(null, "decimal128", one).count());
+        assertEquals(0L, table.where().lessThan(null, "decimal128", one).count());
+        assertEquals(1L, table.where().lessThanOrEqual(null, "decimal128", one).count());
+        assertEquals(2L, table.where().greaterThan(null, "decimal128", one).count());
+        assertEquals(3L, table.where().greaterThanOrEqual(null, "decimal128", one).count());
 
-        assertEquals(1L, table.where().equalTo("decimal128", two).count());
-        assertEquals(2L, table.where().notEqualTo("decimal128", two).count());
-        assertEquals(1L, table.where().lessThan("decimal128", two).count());
-        assertEquals(2L, table.where().lessThanOrEqual("decimal128", two).count());
-        assertEquals(1L, table.where().greaterThan("decimal128", two).count());
-        assertEquals(2L, table.where().greaterThanOrEqual("decimal128", two).count());
+        assertEquals(1L, table.where().equalTo(null, "decimal128", two).count());
+        assertEquals(2L, table.where().notEqualTo(null, "decimal128", two).count());
+        assertEquals(1L, table.where().lessThan(null, "decimal128", two).count());
+        assertEquals(2L, table.where().lessThanOrEqual(null, "decimal128", two).count());
+        assertEquals(1L, table.where().greaterThan(null, "decimal128", two).count());
+        assertEquals(2L, table.where().greaterThanOrEqual(null, "decimal128", two).count());
 
-        assertEquals(1L, table.where().equalTo("decimal128", three).count());
-        assertEquals(2L, table.where().notEqualTo("decimal128", three).count());
-        assertEquals(2L, table.where().lessThan("decimal128", three).count());
-        assertEquals(3L, table.where().lessThanOrEqual("decimal128", three).count());
-        assertEquals(0L, table.where().greaterThan("decimal128", three).count());
-        assertEquals(1L, table.where().greaterThanOrEqual("decimal128", three).count());
+        assertEquals(1L, table.where().equalTo(null, "decimal128", three).count());
+        assertEquals(2L, table.where().notEqualTo(null, "decimal128", three).count());
+        assertEquals(2L, table.where().lessThan(null, "decimal128", three).count());
+        assertEquals(3L, table.where().lessThanOrEqual(null, "decimal128", three).count());
+        assertEquals(0L, table.where().greaterThan(null, "decimal128", three).count());
+        assertEquals(1L, table.where().greaterThanOrEqual(null, "decimal128", three).count());
     }
 
     @Test
@@ -496,25 +496,25 @@ public class JNIQueryTest {
             }
         });
 
-        assertEquals(1L, table.where().equalTo("objectid", one).count());
-        assertEquals(2L, table.where().notEqualTo("objectid", one).count());
-        assertEquals(0L, table.where().lessThan("objectid", one).count());
-        assertEquals(1L, table.where().lessThanOrEqual("objectid", one).count());
-        assertEquals(2L, table.where().greaterThan("objectid", one).count());
-        assertEquals(3L, table.where().greaterThanOrEqual("objectid", one).count());
+        assertEquals(1L, table.where().equalTo(null, "objectid", one).count());
+        assertEquals(2L, table.where().notEqualTo(null, "objectid", one).count());
+        assertEquals(0L, table.where().lessThan(null, "objectid", one).count());
+        assertEquals(1L, table.where().lessThanOrEqual(null, "objectid", one).count());
+        assertEquals(2L, table.where().greaterThan(null, "objectid", one).count());
+        assertEquals(3L, table.where().greaterThanOrEqual(null, "objectid", one).count());
 
-        assertEquals(1L, table.where().equalTo("objectid", two).count());
-        assertEquals(2L, table.where().notEqualTo("objectid", two).count());
-        assertEquals(1L, table.where().lessThan("objectid", two).count());
-        assertEquals(2L, table.where().lessThanOrEqual("objectid", two).count());
-        assertEquals(1L, table.where().greaterThan("objectid", two).count());
-        assertEquals(2L, table.where().greaterThanOrEqual("objectid", two).count());
+        assertEquals(1L, table.where().equalTo(null, "objectid", two).count());
+        assertEquals(2L, table.where().notEqualTo(null, "objectid", two).count());
+        assertEquals(1L, table.where().lessThan(null, "objectid", two).count());
+        assertEquals(2L, table.where().lessThanOrEqual(null, "objectid", two).count());
+        assertEquals(1L, table.where().greaterThan(null, "objectid", two).count());
+        assertEquals(2L, table.where().greaterThanOrEqual(null, "objectid", two).count());
 
-        assertEquals(1L, table.where().equalTo("objectid", three).count());
-        assertEquals(2L, table.where().notEqualTo("objectid", three).count());
-        assertEquals(2L, table.where().lessThan("objectid", three).count());
-        assertEquals(3L, table.where().lessThanOrEqual("objectid", three).count());
-        assertEquals(0L, table.where().greaterThan("objectid", three).count());
-        assertEquals(1L, table.where().greaterThanOrEqual("objectid", three).count());
+        assertEquals(1L, table.where().equalTo(null, "objectid", three).count());
+        assertEquals(2L, table.where().notEqualTo(null, "objectid", three).count());
+        assertEquals(2L, table.where().lessThan(null, "objectid", three).count());
+        assertEquals(3L, table.where().lessThanOrEqual(null, "objectid", three).count());
+        assertEquals(0L, table.where().greaterThan(null, "objectid", three).count());
+        assertEquals(1L, table.where().greaterThanOrEqual(null, "objectid", three).count());
     }
 }
