@@ -611,7 +611,6 @@ class Decimal128Tests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     fun queriesIsEmpty() {
         realm.beginTransaction()
         realm.createObject<Decimal128NotRequired>(1).decimal = Decimal128(BigDecimal.ONE)

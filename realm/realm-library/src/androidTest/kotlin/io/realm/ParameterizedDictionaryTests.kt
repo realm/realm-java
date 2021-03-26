@@ -174,6 +174,11 @@ class ParameterizedDictionaryTests(
     }
 
     @Test
+    fun copyToRealmOrUpdate() {
+        tester.copyToRealmOrUpdate()
+    }
+
+    @Test
     fun copyFromRealm() {
         tester.copyFromRealm()
     }
@@ -231,6 +236,8 @@ internal const val KEY_BYE_NON_LATIN = "Keyさようなら"
 internal const val KEY_NULL_NON_LATIN = "Keyヌル"
 internal const val KEY_NOT_PRESENT_NON_LATIN = "Key現在ではない"
 
+internal const val NEW_KEY = "NEW KEY"
+internal const val NEW_KEY_NON_LATIN = "NEW KEYさようなら"
 internal const val VALUE_BOOLEAN_HELLO = true
 internal const val VALUE_BOOLEAN_BYE = false
 internal const val VALUE_BOOLEAN_NOT_PRESENT = VALUE_BOOLEAN_BYE
