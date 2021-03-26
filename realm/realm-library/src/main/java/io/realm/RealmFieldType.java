@@ -123,6 +123,7 @@ public enum RealmFieldType {
 
     STRING_SET(CORE_TYPE_VALUE_STRING + SET_OFFSET),
     INTEGER_SET(CORE_TYPE_VALUE_INTEGER + SET_OFFSET),
+    BINARY_SET(CORE_TYPE_VALUE_BINARY + SET_OFFSET),
     UUID_SET(CORE_TYPE_VALUE_UUID + SET_OFFSET);
 
 
@@ -222,6 +223,7 @@ public enum RealmFieldType {
                 return false;
             case CORE_TYPE_VALUE_STRING + SET_OFFSET:
             case CORE_TYPE_VALUE_INTEGER + SET_OFFSET:
+            case CORE_TYPE_VALUE_BINARY + SET_OFFSET:
             case CORE_TYPE_VALUE_UUID + SET_OFFSET:
                 return false;
             default:

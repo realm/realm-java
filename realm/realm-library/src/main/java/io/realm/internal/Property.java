@@ -22,6 +22,7 @@ import java.util.Locale;
 import io.realm.RealmFieldType;
 
 import static io.realm.RealmFieldType.BINARY_LIST;
+import static io.realm.RealmFieldType.BINARY_SET;
 import static io.realm.RealmFieldType.BOOLEAN_LIST;
 import static io.realm.RealmFieldType.DATE_LIST;
 import static io.realm.RealmFieldType.DECIMAL128_LIST;
@@ -225,6 +226,9 @@ public class Property implements NativeObject {
             case INTEGER_SET:
                 type = TYPE_INT | TYPE_SET;
                 break;
+            case BINARY_SET:
+                type = TYPE_DATA | TYPE_SET;
+                break;
             case UUID_SET:
                 type = TYPE_UUID | TYPE_SET;
                 break;
@@ -319,6 +323,8 @@ public class Property implements NativeObject {
                 return STRING_SET;
             case TYPE_INT | TYPE_SET:
                 return INTEGER_SET;
+            case TYPE_DATA | TYPE_SET:
+                return BINARY_SET;
             case TYPE_UUID | TYPE_SET:
                 return UUID_SET;
             default:

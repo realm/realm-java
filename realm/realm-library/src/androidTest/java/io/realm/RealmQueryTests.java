@@ -2657,6 +2657,7 @@ public class RealmQueryTests extends QueryTests {
                     case STRING_TO_LINK_MAP:
                     case STRING_SET:
                     case INTEGER_SET:
+                    case BINARY_SET:
                     case UUID_SET:
                         // TODO: https://github.com/realm/realm-java/issues/7382
                         // TODO: https://github.com/realm/realm-java/issues/7383
@@ -2896,6 +2897,7 @@ public class RealmQueryTests extends QueryTests {
                     case STRING_TO_LINK_MAP:
                     case STRING_SET:
                     case INTEGER_SET:
+                    case BINARY_SET:
                     case UUID_SET:
                         // TODO: https://github.com/realm/realm-java/issues/7382
                         // TODO: https://github.com/realm/realm-java/issues/7383
@@ -3126,6 +3128,7 @@ public class RealmQueryTests extends QueryTests {
         types.remove(RealmFieldType.STRING_TO_LINK_MAP);
         types.remove(RealmFieldType.STRING_SET);
         types.remove(RealmFieldType.INTEGER_SET);
+        types.remove(RealmFieldType.BINARY_SET);
         types.remove(RealmFieldType.UUID_SET);
 
 
@@ -4154,6 +4157,7 @@ public class RealmQueryTests extends QueryTests {
             case STRING_TO_LINK_MAP:
             case STRING_SET:
             case INTEGER_SET:
+            case BINARY_SET:
             case UUID_SET:
                 return false;
             case TYPED_LINK:

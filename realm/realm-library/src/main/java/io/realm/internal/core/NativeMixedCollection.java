@@ -110,7 +110,7 @@ public final class NativeMixedCollection implements NativeObject {
         return new NativeMixedCollection(nativeCreateStringCollection(stringValues, notNull));
     }
 
-    public static NativeMixedCollection newBinaryCollection(Collection<byte[]> collection) {
+    public static NativeMixedCollection newBinaryCollection(Collection<? extends byte[]> collection) {
         byte[][] binaryValues = new byte[collection.size()][];
         boolean[] notNull = new boolean[collection.size()];
 

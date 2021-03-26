@@ -26,6 +26,7 @@ public class RealmSetModel extends RealmObject {
     private RealmSet<Long> longSet;
     private RealmSet<Short> shortSet;
     private RealmSet<Byte> byteSet;
+    private RealmSet<byte[]> binarySet;
 
     public RealmSet<String> getStringSet() {
         return stringSet;
@@ -65,5 +66,13 @@ public class RealmSetModel extends RealmObject {
 
     public void setByteSet(RealmSet<Byte> byteSet) {
         this.byteSet = byteSet;
+    }
+
+    public RealmSet<byte[]> getBinarySet() {
+        return binarySet;
+    }
+
+    public void setBinarySet(RealmSet<byte[]> binarySet) {
+        this.binarySet = binarySet;
     }
 }

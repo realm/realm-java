@@ -58,6 +58,10 @@ abstract class SetValueOperator<E> {
     }
 
     boolean containsAll(Collection<?> c) {
+        if (isRealmCollection(c)) {
+            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
+            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+        }
         if (!isCollectionSameType(c)) {
             // Throw as per interface contract
             throw new ClassCastException("Set contents and collection must be the same type when calling 'containsAll'.");
@@ -231,6 +235,8 @@ abstract class SetValueOperator<E> {
             return (SetIterator<T>) new ShortSetIterator(osSet, baseRealm);
         } else if (valueClass == Byte.class) {
             return (SetIterator<T>) new ByteSetIterator(osSet, baseRealm);
+        } else if (valueClass == byte[].class) {
+            return (SetIterator<T>) new BinarySetIterator(osSet, baseRealm);
         } else if (valueClass == UUID.class) {
             return (SetIterator<T>) new UUIDSetIterator(osSet, baseRealm);
         } else {
@@ -266,17 +272,7 @@ class StringOperator extends SetValueOperator<String> {
 
     @Override
     boolean containsAllInternal(Collection<?> c) {
-        if (isRealmCollection(c)) {
-            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
-            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
-        }
-
-        for (Object value : c) {
-            if (value != null && !(value instanceof String)) {
-                return false;
-            }
-        }
-
+        // Collection has been type-checked from caller
         //noinspection unchecked
         Collection<String> stringCollection = (Collection<String>) c;
         NativeMixedCollection collection = NativeMixedCollection.newStringCollection(stringCollection);
@@ -285,23 +281,10 @@ class StringOperator extends SetValueOperator<String> {
 
     @Override
     boolean addAllInternal(Collection<? extends String> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof String)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
-            }
-        }
-
-        //noinspection unchecked
-        NativeMixedCollection collection = NativeMixedCollection.newStringCollection((Collection<String>) c);
-        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
-    }
-
-    @Override
-    boolean retainAllInternal(Collection<?> c) {
         // Collection has been type-checked from caller
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newStringCollection((Collection<String>) c);
-        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
     }
 
     @Override
@@ -310,6 +293,14 @@ class StringOperator extends SetValueOperator<String> {
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newStringCollection((Collection<String>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newStringCollection((Collection<String>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
 }
 
@@ -346,17 +337,7 @@ class IntegerOperator extends SetValueOperator<Integer> {
 
     @Override
     boolean containsAllInternal(Collection<?> c) {
-        if (isRealmCollection(c)) {
-            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
-            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
-        }
-
-        for (Object value : c) {
-            if (value != null && !(value instanceof Number)) {
-                return false;
-            }
-        }
-
+        // Collection has been type-checked from caller
         //noinspection unchecked
         Collection<Number> numberCollection = (Collection<Number>) c;
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection(numberCollection);
@@ -365,22 +346,9 @@ class IntegerOperator extends SetValueOperator<Integer> {
 
     @Override
     boolean addAllInternal(Collection<? extends Integer> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof Integer)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
-            }
-        }
-
+        // Collection has been type-checked from caller
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection(c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
-    }
-
-    @Override
-    boolean retainAllInternal(Collection<?> c) {
-        // Collection has been type-checked from caller
-        //noinspection unchecked
-        NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Integer>) c);
-        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
 
     @Override
@@ -389,6 +357,14 @@ class IntegerOperator extends SetValueOperator<Integer> {
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Integer>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Integer>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
 }
 
@@ -419,17 +395,7 @@ class LongOperator extends SetValueOperator<Long> {
 
     @Override
     boolean containsAllInternal(Collection<?> c) {
-        if (isRealmCollection(c)) {
-            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
-            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
-        }
-
-        for (Object value : c) {
-            if (value != null && !(value instanceof Number)) {
-                return false;
-            }
-        }
-
+        // Collection has been type-checked from caller
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Number>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
@@ -437,22 +403,9 @@ class LongOperator extends SetValueOperator<Long> {
 
     @Override
     boolean addAllInternal(Collection<? extends Long> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof Long)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
-            }
-        }
-
+        // Collection has been type-checked from caller
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection(c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
-    }
-
-    @Override
-    boolean retainAllInternal(Collection<?> c) {
-        // Collection has been type-checked from caller
-        //noinspection unchecked
-        NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Long>) c);
-        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
 
     @Override
@@ -461,6 +414,14 @@ class LongOperator extends SetValueOperator<Long> {
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Long>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Long>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
 }
 
@@ -497,17 +458,7 @@ class ShortOperator extends SetValueOperator<Short> {
 
     @Override
     boolean containsAllInternal(Collection<?> c) {
-        if (isRealmCollection(c)) {
-            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
-            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
-        }
-
-        for (Object value : c) {
-            if (value != null && !(value instanceof Number)) {
-                return false;
-            }
-        }
-
+        // Collection has been type-checked from caller
         //noinspection unchecked
         Collection<Number> numberCollection = (Collection<Number>) c;
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection(numberCollection);
@@ -516,22 +467,9 @@ class ShortOperator extends SetValueOperator<Short> {
 
     @Override
     boolean addAllInternal(Collection<? extends Short> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof Short)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
-            }
-        }
-
+        // Collection has been type-checked from caller
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection(c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
-    }
-
-    @Override
-    boolean retainAllInternal(Collection<?> c) {
-        // Collection has been type-checked from caller
-        //noinspection unchecked
-        NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Short>) c);
-        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
 
     @Override
@@ -540,6 +478,14 @@ class ShortOperator extends SetValueOperator<Short> {
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Short>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Short>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
 }
 
@@ -576,17 +522,7 @@ class ByteOperator extends SetValueOperator<Byte> {
 
     @Override
     boolean containsAllInternal(Collection<?> c) {
-        if (isRealmCollection(c)) {
-            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
-            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
-        }
-
-        for (Object value : c) {
-            if (value != null && !(value instanceof Number)) {
-                return false;
-            }
-        }
-
+        // Collection has been type-checked from caller
         //noinspection unchecked
         Collection<Number> numberCollection = (Collection<Number>) c;
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection(numberCollection);
@@ -595,14 +531,17 @@ class ByteOperator extends SetValueOperator<Byte> {
 
     @Override
     boolean addAllInternal(Collection<? extends Byte> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof Byte)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
-            }
-        }
-
+        // Collection has been type-checked from caller
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection(c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
+    }
+
+    @Override
+    boolean removeAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Byte>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
     }
 
     @Override
@@ -612,13 +551,68 @@ class ByteOperator extends SetValueOperator<Byte> {
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Byte>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
+}
+
+/**
+ * TODO
+ */
+class BinaryOperator extends SetValueOperator<byte[]> {
+
+    public BinaryOperator(BaseRealm baseRealm, OsSet osSet, Class<byte[]> valueClass) {
+        super(baseRealm, osSet, valueClass);
+    }
+
+    @Override
+    boolean add(@Nullable byte[] value) {
+        return osSet.add(value);
+    }
+
+    @Override
+    boolean containsInternal(@Nullable Object o) {
+        byte[] value;
+        if (o == null) {
+            value = null;
+        } else {
+            value = (byte[]) o;
+        }
+        return osSet.contains(value);
+    }
+
+    @Override
+    boolean removeInternal(@Nullable Object o) {
+        return osSet.remove((byte[]) o);
+    }
+
+    @Override
+    boolean containsAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        Collection<byte[]> binaryCollection = (Collection<byte[]>) c;
+        NativeMixedCollection collection = NativeMixedCollection.newBinaryCollection(binaryCollection);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+    }
+
+    @Override
+    boolean addAllInternal(Collection<? extends byte[]> c) {
+        // Collection has been type-checked from caller
+        NativeMixedCollection collection = NativeMixedCollection.newBinaryCollection(c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
+    }
 
     @Override
     boolean removeAllInternal(Collection<?> c) {
         // Collection has been type-checked from caller
         //noinspection unchecked
-        NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Byte>) c);
+        NativeMixedCollection collection = NativeMixedCollection.newBinaryCollection((Collection<byte[]>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newBinaryCollection((Collection<byte[]>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
 }
 
@@ -655,17 +649,7 @@ class UUIDOperator extends SetValueOperator<UUID> {
 
     @Override
     boolean containsAllInternal(Collection<?> c) {
-        if (isRealmCollection(c)) {
-            OsSet otherOsSet = ((RealmSet<?>) c).getOsSet();
-            return funnelCollection(otherOsSet, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
-        }
-
-        for (Object value : c) {
-            if (value != null && !(value instanceof UUID)) {
-                return false;
-            }
-        }
-
+        // Collection has been type-checked from caller
         //noinspection unchecked
         Collection<UUID> uuidCollection = (Collection<UUID>) c;
         NativeMixedCollection collection = NativeMixedCollection.newUUIDCollection(uuidCollection);
@@ -674,12 +658,7 @@ class UUIDOperator extends SetValueOperator<UUID> {
 
     @Override
     boolean addAllInternal(Collection<? extends UUID> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof UUID)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
-            }
-        }
-
+        // Collection has been type-checked from caller
         NativeMixedCollection collection = NativeMixedCollection.newUUIDCollection(c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
     }
@@ -817,6 +796,25 @@ class ByteSetIterator extends SetIterator<Byte> {
 
         Long longValue = (Long) value;
         return longValue.byteValue();
+    }
+}
+
+/**
+ * TODO
+ */
+class BinarySetIterator extends SetIterator<byte[]> {
+    public BinarySetIterator(OsSet osSet, BaseRealm baseRealm) {
+        super(osSet, baseRealm);
+    }
+
+    @Override
+    protected byte[] getValueAtIndex(int position) {
+        Object value = osSet.getValueAtIndex(position);
+        if (value == null) {
+            return null;
+        }
+
+        return (byte[]) value;
     }
 }
 

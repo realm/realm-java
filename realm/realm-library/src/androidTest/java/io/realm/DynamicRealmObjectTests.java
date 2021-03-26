@@ -1925,6 +1925,7 @@ public class DynamicRealmObjectTests {
                 case STRING_TO_LINK_MAP:
                 case STRING_SET:
                 case INTEGER_SET:
+                case BINARY_SET:
                 case UUID_SET:
                     // TODO: https://github.com/realm/realm-java/issues/7382
                     // TODO: https://github.com/realm/realm-java/issues/7383

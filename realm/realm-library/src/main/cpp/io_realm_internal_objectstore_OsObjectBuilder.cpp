@@ -732,6 +732,19 @@ Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddIntegerSetItem(JNIEn
 }
 
 JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddByteArraySetItem(JNIEnv* env,
+                                                                             jclass,
+                                                                             jlong set_ptr,
+                                                                             jbyteArray j_value) {
+    try {
+        auto data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
+        const JavaValue value(data);
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddUUIDSetItem(JNIEnv* env,
                                                                         jclass,
                                                                         jlong set_ptr,

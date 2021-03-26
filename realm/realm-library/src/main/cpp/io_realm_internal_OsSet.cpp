@@ -150,6 +150,19 @@ Java_io_realm_internal_OsSet_nativeContainsLong(JNIEnv* env, jclass, jlong set_p
 }
 
 JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsSet_nativeContainsBinary(JNIEnv* env, jclass, jlong set_ptr,
+                                                  jbyteArray j_value) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        const OwnedBinaryData& data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
+        size_t found = set.find_any(Mixed(data.get()));
+        return found != npos;       // npos represents "not found"
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_OsSet_nativeContainsUUID(JNIEnv* env, jclass, jlong set_ptr,
                                                 jstring j_value) {
     try {
@@ -209,6 +222,28 @@ Java_io_realm_internal_OsSet_nativeAddLong(JNIEnv* env, jclass, jlong set_ptr, j
 
         // TODO: abstract this call so that the rest is the same for all types
         const std::pair<size_t, bool>& add_pair = set.insert(context, Any(j_value));
+
+        jlong ret[2];
+        ret[0] = add_pair.first;    // index
+        ret[1] = add_pair.second;   // found (or not)
+        jlongArray ret_array = env->NewLongArray(2);
+        env->SetLongArrayRegion(ret_array, 0, 2, ret);
+        return ret_array;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jlongArray JNICALL
+Java_io_realm_internal_OsSet_nativeAddBinary(JNIEnv* env, jclass, jlong set_ptr,
+                                             jbyteArray j_value) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        JavaAccessorContext context(env);
+        JByteArrayAccessor data(env, j_value);
+
+        // TODO: abstract this call so that the rest is the same for all types
+        const std::pair<size_t, bool>& add_pair = set.insert(context, Any(data));
 
         jlong ret[2];
         ret[0] = add_pair.first;    // index
@@ -287,6 +322,27 @@ Java_io_realm_internal_OsSet_nativeRemoveLong(JNIEnv* env, jclass, jlong set_ptr
 
         // TODO: abstract this call so that the rest is the same for all types
         const std::pair<size_t, bool>& remove_pair = set.remove_any(Mixed(j_value));
+
+        jlong ret[2];
+        ret[0] = remove_pair.first;     // index
+        ret[1] = remove_pair.second;    // found (or not)
+        jlongArray ret_array = env->NewLongArray(2);
+        env->SetLongArrayRegion(ret_array, 0, 2, ret);
+        return ret_array;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jlongArray JNICALL
+Java_io_realm_internal_OsSet_nativeRemoveBinary(JNIEnv* env, jclass, jlong set_ptr,
+                                                jbyteArray j_value) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        const OwnedBinaryData& data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
+
+        // TODO: abstract this call so that the rest is the same for all types
+        const std::pair<size_t, bool>& remove_pair = set.remove_any(Mixed(data.get()));
 
         jlong ret[2];
         ret[0] = remove_pair.first;     // index
