@@ -704,6 +704,13 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
+    private static ItemCallback<ObjectId> objectIdSetItemCallback = new ItemCallback<ObjectId>() {
+        @Override
+        public void handleItem(long containerPtr, ObjectId item) {
+            nativeAddObjectIdSetItem(containerPtr, item.toString());
+        }
+    };
+
     private static ItemCallback<UUID> uuidSetItemCallback = new ItemCallback<UUID>() {
         @Override
         public void handleItem(long containerPtr, UUID item) {
@@ -722,6 +729,8 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeAddIntegerSetItem(long setPtr, long val);
 
     private static native void nativeAddByteArraySetItem(long setPtr, byte[] val);
+
+    private static native void nativeAddObjectIdSetItem(long setPtr, String val);
 
     private static native void nativeAddUUIDSetItem(long setPtr, String val);
 
@@ -751,6 +760,10 @@ public class OsObjectBuilder implements Closeable {
 
     public void addBinarySet(long columnKey, RealmSet<byte[]> set) {
         addSetItem(builderPtr, columnKey, set, binarySetItemCallback);
+    }
+
+    public void addObjectIdSet(long columnKey, RealmSet<ObjectId> set) {
+        addSetItem(builderPtr, columnKey, set, objectIdSetItemCallback);
     }
 
     public void addUUIDSet(long columnKey, RealmSet<UUID> set) {

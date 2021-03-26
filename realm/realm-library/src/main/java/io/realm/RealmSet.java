@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import org.bson.types.ObjectId;
+
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.HashSet;
@@ -234,6 +236,8 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
             operator = (SetValueOperator<T>) new ByteOperator(baseRealm, osSet, Byte.class);
         } else if (valueClass == byte[].class) {
             operator = (SetValueOperator<T>) new BinaryOperator(baseRealm, osSet, byte[].class);
+        } else if (valueClass == ObjectId.class) {
+            operator = (SetValueOperator<T>) new ObjectIdOperator(baseRealm, osSet, ObjectId.class);
         } else if (valueClass == UUID.class) {
             operator = (SetValueOperator<T>) new UUIDOperator(baseRealm, osSet, UUID.class);
         } else {

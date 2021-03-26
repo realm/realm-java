@@ -650,6 +650,20 @@ Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddUUIDDictionaryEntry(
 }
 
 JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObjectDictionaryEntry(JNIEnv* env,
+                                                                                jclass,
+                                                                                jlong dictionary_ptr,
+                                                                                jstring j_key,
+                                                                                jlong j_value) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        JStringAccessor key(env, j_key);
+        dictionary->insert(std::make_pair(key, JavaValue(reinterpret_cast<Obj*>(j_value))));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddMixedDictionaryEntry(JNIEnv* env,
                                                                                  jclass,
                                                                                  jlong dictionary_ptr,
@@ -739,6 +753,20 @@ Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddByteArraySetItem(JNI
     try {
         auto data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
         const JavaValue value(data);
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObjectIdSetItem(JNIEnv* env,
+                                                                            jclass,
+                                                                            jlong set_ptr,
+                                                                            jstring j_value) {
+    try {
+        JStringAccessor data(env, j_value);
+        ObjectId objectId = ObjectId(StringData(data).data());
+        const JavaValue value(objectId);
         add_list_element(set_ptr, value);
     }
     CATCH_STD()

@@ -32,6 +32,7 @@ import static io.realm.RealmFieldType.INTEGER_LIST;
 import static io.realm.RealmFieldType.INTEGER_SET;
 import static io.realm.RealmFieldType.MIXED_LIST;
 import static io.realm.RealmFieldType.OBJECT_ID_LIST;
+import static io.realm.RealmFieldType.OBJECT_ID_SET;
 import static io.realm.RealmFieldType.STRING_SET;
 import static io.realm.RealmFieldType.TYPED_LINK;
 import static io.realm.RealmFieldType.UUID_LIST;
@@ -229,6 +230,9 @@ public class Property implements NativeObject {
             case BINARY_SET:
                 type = TYPE_DATA | TYPE_SET;
                 break;
+            case OBJECT_ID_SET:
+                type = TYPE_OBJECT_ID | TYPE_SET;
+                break;
             case UUID_SET:
                 type = TYPE_UUID | TYPE_SET;
                 break;
@@ -325,6 +329,8 @@ public class Property implements NativeObject {
                 return INTEGER_SET;
             case TYPE_DATA | TYPE_SET:
                 return BINARY_SET;
+            case TYPE_OBJECT_ID | TYPE_SET:
+                return OBJECT_ID_SET;
             case TYPE_UUID | TYPE_SET:
                 return UUID_SET;
             default:

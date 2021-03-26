@@ -263,6 +263,7 @@ public class LinkingObjectsDynamicTests {
                     case STRING_SET:
                     case INTEGER_SET:
                     case BINARY_SET:
+                    case OBJECT_ID_SET:
                     case UUID_SET:
                         // TODO: https://github.com/realm/realm-java/issues/7382
                         // TODO: https://github.com/realm/realm-java/issues/7383

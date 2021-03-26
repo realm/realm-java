@@ -99,7 +99,7 @@ object Constants {
 //            "java.util.Date" to RealmFieldType.DATE_SET,
             "byte[]" to RealmFieldType.BINARY_SET,
 //            "org.bson.types.Decimal128" to RealmFieldType.DECIMAL128_SET,
-//            "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID_SET,
+            "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID_SET,
             "java.util.UUID" to RealmFieldType.UUID_SET
 //            "io.realm.Mixed" to RealmFieldType.MIXED_SET
     )
@@ -156,6 +156,7 @@ object Constants {
 
         STRING_SET("STRING_SET", "Set"),
         INTEGER_SET("INTEGER_SET", "Set"),
+        OBJECT_ID_SET("OBJECT_ID_SET", "Set"),
         BINARY_SET("BINARY_SET", "Set"),
         UUID_SET("UUID_SET", "Set");
 

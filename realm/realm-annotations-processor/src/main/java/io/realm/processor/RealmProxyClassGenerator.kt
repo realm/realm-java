@@ -1107,6 +1107,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Constants.RealmFieldType.STRING_SET,
                         Constants.RealmFieldType.BINARY_SET,
                         Constants.RealmFieldType.INTEGER_SET,
+                        Constants.RealmFieldType.OBJECT_ID_SET,
                         Constants.RealmFieldType.UUID_SET -> {
                             val valueNullable = metadata.isSetValueNullable(field)
                             val requiredFlag = if (valueNullable) "!Property.REQUIRED" else "Property.REQUIRED"

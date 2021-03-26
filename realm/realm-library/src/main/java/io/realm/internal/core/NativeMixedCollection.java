@@ -141,7 +141,7 @@ public final class NativeMixedCollection implements NativeObject {
         return new NativeMixedCollection(nativeCreateDateCollection(dateValues, notNull));
     }
 
-    public static NativeMixedCollection newObjectIdCollection(Collection<ObjectId> collection) {
+    public static NativeMixedCollection newObjectIdCollection(Collection<? extends ObjectId> collection) {
         String[] objectIdValues = new String[collection.size()];
         boolean[] notNull = new boolean[collection.size()];
 
