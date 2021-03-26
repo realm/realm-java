@@ -18,6 +18,7 @@ package io.realm;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -54,7 +55,7 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
         this.typeSelectorForMap = typeSelectorForMap;
     }
 
-    protected abstract boolean containsKeyInternal(Object key);
+    protected abstract boolean containsKeyInternal(@Nullable Object key);
 
     protected abstract void validateMap(Map<? extends K, ? extends V> map);
 
@@ -86,6 +87,10 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
 
     @Override
     public V remove(Object key) {
+        if (key == null) {
+            throw new NullPointerException("Null keys are not allowed.");
+        }
+
         //noinspection unchecked
         V removedValue = mapValueOperator.get((K) key);
         mapValueOperator.remove(key);
@@ -103,10 +108,7 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
     }
 
     @Override
-    public boolean containsKey(Object key) {
-        if (key == null) {
-            throw new NullPointerException("Null keys are not allowed.");
-        }
+    public boolean containsKey(@Nullable Object key) {
         return containsKeyInternal(key);
     }
 
@@ -223,7 +225,10 @@ class DictionaryManager<V> extends ManagedMapManager<String, V> {
     }
 
     @Override
-    public boolean containsKeyInternal(Object key) {
+    public boolean containsKeyInternal(@Nullable Object key) {
+        if (key == null) {
+            throw new NullPointerException("Null keys are not allowed when calling 'containsKey'.");
+        }
         if (!isNotNullItemTypeValid(key, String.class)) {
             throw new ClassCastException("Only String keys can be used with 'containsKey'.");
         }
@@ -248,9 +253,13 @@ class DictionaryManager<V> extends ManagedMapManager<String, V> {
 
     @Override
     public V get(Object key) {
+        if (key == null) {
+            throw new NullPointerException("Null keys are not allowed when calling 'get'.");
+        }
         if (!isNotNullItemTypeValid(key, String.class)) {
             throw new ClassCastException("Only String keys can be used with 'containsKey'.");
         }
+
         return mapValueOperator.get((String) key);
     }
 
@@ -259,7 +268,18 @@ class DictionaryManager<V> extends ManagedMapManager<String, V> {
         if (key == null) {
             throw new NullPointerException("Null keys are not allowed.");
         }
-        return mapValueOperator.put(key, value);
+        try {
+            return mapValueOperator.put(key, value);
+        } catch (IllegalStateException e) {
+            // If the exception caught here is caused by adding null to a dictionary marked as
+            // "@Required" we have to convert it to NullPointerException as per the Java Map
+            // interface
+            if (Objects.requireNonNull(e.getMessage()).contains("Data type mismatch")) {
+                throw new NullPointerException("Cannot insert null values in a dictionary marked with '@Required'.");
+            } else {
+                throw e;
+            }
+        }
     }
 
     @Override

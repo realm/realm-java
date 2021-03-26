@@ -125,7 +125,7 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
     }
 
     @Override
-    public boolean containsKey(Object key) {
+    public boolean containsKey(@Nullable Object key) {
         return mapStrategy.containsKey(key);
     }
 
@@ -425,7 +425,7 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
         }
 
         @Override
-        public boolean containsKey(Object key) {
+        public boolean containsKey(@Nullable Object key) {
             return managedMapManager.containsKey(key);
         }
 
@@ -569,12 +569,12 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
         }
 
         @Override
-        public boolean containsKey(Object key) {
+        public boolean containsKey(@Nullable Object key) {
             return unmanagedMap.containsKey(key);
         }
 
         @Override
-        public boolean containsValue(Object value) {
+        public boolean containsValue(@Nullable Object value) {
             return unmanagedMap.containsValue(value);
         }
 
