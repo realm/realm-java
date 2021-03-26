@@ -177,6 +177,7 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ThrowException(env, IllegalState, e.what());
     }
     catch (std::runtime_error& e) {
+        ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, RuntimeError, ss.str());
     }
     catch (std::exception& e) {

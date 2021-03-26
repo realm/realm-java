@@ -518,7 +518,6 @@ class ObjectIdTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     fun queriesIsEmpty() {
         realm.beginTransaction()
         realm.createObject<ObjectIdAndString>().id = ObjectId(generateObjectIdHexString(1))
