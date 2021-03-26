@@ -25,9 +25,13 @@ import java.util.UUID;
 import io.realm.Mixed;
 import io.realm.RealmDictionary;
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
 public class DictionaryAllTypes extends RealmObject {
+
+    @PrimaryKey
+    private String id = "";
 
     private RealmDictionary<DogPrimaryKey> columnRealmDictionary;
 
@@ -72,6 +76,14 @@ public class DictionaryAllTypes extends RealmObject {
     private RealmDictionary<UUID> columnRequiredUUIDDictionary;
     @Required
     private RealmDictionary<Decimal128> columnRequiredDecimal128Dictionary;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public RealmDictionary<DogPrimaryKey> getColumnRealmDictionary() {
         return columnRealmDictionary;
