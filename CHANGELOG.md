@@ -14,10 +14,6 @@
 * The `distinct` query filter no longer throws an exception when applied on non-existent fields.
 * `isEmpty` query filter can now be applied on `RealmList` and `RealmObject` fields.
 
-### Known Bugs
-* Sort and Distinct operations do not support using the Java field name of fields with a custom name defined. (Issue [#4550] (https://github.com/realm/realm-core/issues/4550))
-* Queries on fields named with non-latin characters are not currently supported. (Issue [#4467] (https://github.com/realm/realm-core/issues/4467))
-
 ### Compatibility
 * File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
 * APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
