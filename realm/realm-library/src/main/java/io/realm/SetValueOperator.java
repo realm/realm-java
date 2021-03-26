@@ -3,6 +3,7 @@ package io.realm;
 import org.bson.types.ObjectId;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -245,6 +246,8 @@ abstract class SetValueOperator<E> {
             return (SetIterator<T>) new DoubleSetIterator(osSet, baseRealm);
         } else if (valueClass == byte[].class) {
             return (SetIterator<T>) new BinarySetIterator(osSet, baseRealm);
+        } else if (valueClass == Date.class) {
+            return (SetIterator<T>) new DateSetIterator(osSet, baseRealm);
         } else if (valueClass == ObjectId.class) {
             return (SetIterator<T>) new ObjectIdSetIterator(osSet, baseRealm);
         } else if (valueClass == UUID.class) {
@@ -813,6 +816,69 @@ class BinaryOperator extends SetValueOperator<byte[]> {
 /**
  * TODO
  */
+class DateOperator extends SetValueOperator<Date> {
+
+    public DateOperator(BaseRealm baseRealm, OsSet osSet, Class<Date> valueClass) {
+        super(baseRealm, osSet, valueClass);
+    }
+
+    @Override
+    boolean add(@Nullable Date value) {
+        return osSet.add(value);
+    }
+
+    @Override
+    boolean containsInternal(@Nullable Object o) {
+        Date value;
+        if (o == null) {
+            value = null;
+        } else {
+            value = (Date) o;
+        }
+        return osSet.contains(value);
+    }
+
+    @Override
+    boolean removeInternal(@Nullable Object o) {
+        return osSet.remove((Date) o);
+    }
+
+    @Override
+    boolean containsAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        Collection<Date> dateCollection = (Collection<Date>) c;
+        NativeMixedCollection collection = NativeMixedCollection.newDateCollection(dateCollection);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+    }
+
+    @Override
+    boolean addAllInternal(Collection<? extends Date> c) {
+        // Collection has been type-checked from caller
+        NativeMixedCollection collection = NativeMixedCollection.newDateCollection(c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
+    }
+
+    @Override
+    boolean removeAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newDateCollection((Collection<Date>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newDateCollection((Collection<Date>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
+    }
+}
+
+/**
+ * TODO
+ */
 class ObjectIdOperator extends SetValueOperator<ObjectId> {
 
     public ObjectIdOperator(BaseRealm baseRealm, OsSet osSet, Class<ObjectId> valueClass) {
@@ -1099,6 +1165,15 @@ class BinarySetIterator extends SetIterator<byte[]> {
         }
 
         return (byte[]) value;
+    }
+}
+
+/**
+ * TODO
+ */
+class DateSetIterator extends SetIterator<Date> {
+    public DateSetIterator(OsSet osSet, BaseRealm baseRealm) {
+        super(osSet, baseRealm);
     }
 }
 

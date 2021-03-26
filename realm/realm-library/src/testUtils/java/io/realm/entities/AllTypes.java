@@ -117,7 +117,7 @@ public class AllTypes extends RealmObject {
     private RealmSet<Double> columnDoubleSet;
     private RealmSet<Byte> columnByteSet;
     private RealmSet<byte[]> columnBinarySet;
-//    private RealmSet<Date> columnDateSet;
+    private RealmSet<Date> columnDateSet;
     private RealmSet<ObjectId> columnObjectIdSet;
     private RealmSet<UUID> columnUUIDSet;
 //    private RealmSet<Decimal128> columnDecimal128Set;
@@ -406,6 +406,14 @@ public class AllTypes extends RealmObject {
 
     public void setColumnBinarySet(RealmSet<byte[]> columnBinarySet) {
         this.columnBinarySet = columnBinarySet;
+    }
+
+    public RealmSet<Date> getColumnDateSet() {
+        return columnDateSet;
+    }
+
+    public void setColumnDateSet(RealmSet<Date> columnDateSet) {
+        this.columnDateSet = columnDateSet;
     }
 
     public RealmSet<ObjectId> getColumnObjectIdSet() {
