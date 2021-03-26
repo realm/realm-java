@@ -3718,7 +3718,7 @@ public class RealmQueryTests extends QueryTests {
             realm.where(AllTypes.class).rawPredicate("foo = 'test data 0'");
             fail();
         } catch (IllegalArgumentException e) {
-            assertTrue(e.getMessage().contains("'AllTypes' has no property: 'foo'"));
+            assertTrue("Real message: " + e.getMessage(), e.getMessage().contains("'AllTypes' has no property: 'foo'"));
         }
     }
 
@@ -3728,14 +3728,14 @@ public class RealmQueryTests extends QueryTests {
             realm.where(AllTypes.class).rawPredicate("columnRealmObject.foo = 'test data 0'");
             fail();
         } catch (IllegalArgumentException e) {
-            assertTrue(e.getMessage().contains("'Dog' has no property: 'foo'"));
+            assertTrue("Real message: " + e.getMessage(), e.getMessage().contains("'Dog' has no property: 'foo'"));
         }
 
         try {
             realm.where(AllTypes.class).rawPredicate("unknownField.foo = 'test data 0'");
             fail();
         } catch (IllegalArgumentException e) {
-            assertTrue(e.getMessage().contains("class_AllTypes has no property unknownField"));
+            assertTrue("Real message: " + e.getMessage(), e.getMessage().contains("'AllTypes' has no property: 'unknownField'"));
         }
     }
 

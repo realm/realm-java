@@ -221,6 +221,7 @@ set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${REALM_LINKER_FLAGS
 # Work-around for gold linker issue when enabling LTO: https://github.com/android/ndk/issues/1444
 # Make the build choose whatever default linker chosen by the NDK.
 STRING(REGEX REPLACE "-fuse-ld=gold" "" CMAKE_CXX_LINK_OPTIONS_IPO ${CMAKE_CXX_LINK_OPTIONS_IPO})
+# Can be removed once minimum CMake version is 3.20
 
 # JNI source files
 file(GLOB jni_SRC
