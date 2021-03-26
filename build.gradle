@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.22.0'
+        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0'
         classpath 'ch.netzwerg:gradle-release-plugin:1.2.0'
     }
 }
@@ -450,6 +450,8 @@ nexusStaging {
     stagingProfileId = rootProject.ext["sonatypeStagingProfileId"]
     username = rootProject.ext["ossrhUsername"]
     password = rootProject.ext["ossrhPassword"]
+    delayBetweenRetriesInMillis = 5000
+    numberOfRetries = 60
 }
 
 // This is just a placeholder for the release plugin
