@@ -278,12 +278,7 @@ class StringOperator extends SetValueOperator<String> {
 
     @Override
     boolean containsAllInternal(Collection<?> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof String)) {
-                return false;
-            }
-        }
-
+        // Collection has been type-checked from caller
         //noinspection unchecked
         Collection<String> stringCollection = (Collection<String>) c;
         NativeMixedCollection collection = NativeMixedCollection.newStringCollection(stringCollection);
@@ -292,12 +287,7 @@ class StringOperator extends SetValueOperator<String> {
 
     @Override
     boolean addAllInternal(Collection<? extends String> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof String)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
-            }
-        }
-
+        // Collection has been type-checked from caller
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newStringCollection((Collection<String>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
@@ -353,12 +343,7 @@ class IntegerOperator extends SetValueOperator<Integer> {
 
     @Override
     boolean containsAllInternal(Collection<?> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof Number)) {
-                return false;
-            }
-        }
-
+        // Collection has been type-checked from caller
         //noinspection unchecked
         Collection<Number> numberCollection = (Collection<Number>) c;
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection(numberCollection);
@@ -367,12 +352,7 @@ class IntegerOperator extends SetValueOperator<Integer> {
 
     @Override
     boolean addAllInternal(Collection<? extends Integer> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof Integer)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
-            }
-        }
-
+        // Collection has been type-checked from caller
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection(c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
     }
@@ -421,12 +401,7 @@ class LongOperator extends SetValueOperator<Long> {
 
     @Override
     boolean containsAllInternal(Collection<?> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof Number)) {
-                return false;
-            }
-        }
-
+        // Collection has been type-checked from caller
         //noinspection unchecked
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection((Collection<Number>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
@@ -434,12 +409,7 @@ class LongOperator extends SetValueOperator<Long> {
 
     @Override
     boolean addAllInternal(Collection<? extends Long> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof Long)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
-            }
-        }
-
+        // Collection has been type-checked from caller
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection(c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
     }
@@ -494,12 +464,7 @@ class ShortOperator extends SetValueOperator<Short> {
 
     @Override
     boolean containsAllInternal(Collection<?> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof Number)) {
-                return false;
-            }
-        }
-
+        // Collection has been type-checked from caller
         //noinspection unchecked
         Collection<Number> numberCollection = (Collection<Number>) c;
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection(numberCollection);
@@ -508,12 +473,7 @@ class ShortOperator extends SetValueOperator<Short> {
 
     @Override
     boolean addAllInternal(Collection<? extends Short> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof Short)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
-            }
-        }
-
+        // Collection has been type-checked from caller
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection(c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
     }
@@ -568,12 +528,7 @@ class ByteOperator extends SetValueOperator<Byte> {
 
     @Override
     boolean containsAllInternal(Collection<?> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof Number)) {
-                return false;
-            }
-        }
-
+        // Collection has been type-checked from caller
         //noinspection unchecked
         Collection<Number> numberCollection = (Collection<Number>) c;
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection(numberCollection);
@@ -582,12 +537,7 @@ class ByteOperator extends SetValueOperator<Byte> {
 
     @Override
     boolean addAllInternal(Collection<? extends Byte> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof Byte)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
-            }
-        }
-
+        // Collection has been type-checked from caller
         NativeMixedCollection collection = NativeMixedCollection.newIntegerCollection(c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
     }
@@ -641,12 +591,7 @@ class FloatOperator extends SetValueOperator<Float> {
 
     @Override
     boolean containsAllInternal(Collection<?> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof Float)) {
-                return false;
-            }
-        }
-
+        // Collection has been type-checked from caller
         //noinspection unchecked
         Collection<Float> floatCollection = (Collection<Float>) c;
         NativeMixedCollection collection = NativeMixedCollection.newFloatCollection(floatCollection);
@@ -655,12 +600,7 @@ class FloatOperator extends SetValueOperator<Float> {
 
     @Override
     boolean addAllInternal(Collection<? extends Float> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof Float)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
-            }
-        }
-
+        // Collection has been type-checked from caller
         NativeMixedCollection collection = NativeMixedCollection.newFloatCollection(c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
     }
@@ -714,12 +654,7 @@ class BinaryOperator extends SetValueOperator<byte[]> {
 
     @Override
     boolean containsAllInternal(Collection<?> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof byte[])) {
-                return false;
-            }
-        }
-
+        // Collection has been type-checked from caller
         //noinspection unchecked
         Collection<byte[]> binaryCollection = (Collection<byte[]>) c;
         NativeMixedCollection collection = NativeMixedCollection.newBinaryCollection(binaryCollection);
@@ -728,12 +663,7 @@ class BinaryOperator extends SetValueOperator<byte[]> {
 
     @Override
     boolean addAllInternal(Collection<? extends byte[]> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof byte[])) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
-            }
-        }
-
+        // Collection has been type-checked from caller
         NativeMixedCollection collection = NativeMixedCollection.newBinaryCollection(c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
     }
@@ -787,12 +717,7 @@ class ObjectIdOperator extends SetValueOperator<ObjectId> {
 
     @Override
     boolean containsAllInternal(Collection<?> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof ObjectId)) {
-                return false;
-            }
-        }
-
+        // Collection has been type-checked from caller
         //noinspection unchecked
         Collection<ObjectId> objectIdCollection = (Collection<ObjectId>) c;
         NativeMixedCollection collection = NativeMixedCollection.newObjectIdCollection(objectIdCollection);
@@ -801,12 +726,7 @@ class ObjectIdOperator extends SetValueOperator<ObjectId> {
 
     @Override
     boolean addAllInternal(Collection<? extends ObjectId> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof ObjectId)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
-            }
-        }
-
+        // Collection has been type-checked from caller
         NativeMixedCollection collection = NativeMixedCollection.newObjectIdCollection(c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
     }
@@ -861,12 +781,7 @@ class UUIDOperator extends SetValueOperator<UUID> {
 
     @Override
     boolean containsAllInternal(Collection<?> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof UUID)) {
-                return false;
-            }
-        }
-
+        // Collection has been type-checked from caller
         //noinspection unchecked
         Collection<UUID> uuidCollection = (Collection<UUID>) c;
         NativeMixedCollection collection = NativeMixedCollection.newUUIDCollection(uuidCollection);
@@ -875,12 +790,7 @@ class UUIDOperator extends SetValueOperator<UUID> {
 
     @Override
     boolean addAllInternal(Collection<? extends UUID> c) {
-        for (Object value : c) {
-            if (value != null && !(value instanceof UUID)) {
-                throw new IllegalArgumentException("Invalid collection type. Set and collection must contain the same type of elements.");
-            }
-        }
-
+        // Collection has been type-checked from caller
         NativeMixedCollection collection = NativeMixedCollection.newUUIDCollection(c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
     }
