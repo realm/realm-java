@@ -22,12 +22,12 @@ import org.bson.types.ObjectId;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Objects;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import io.realm.exceptions.RealmException;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
@@ -60,11 +60,15 @@ public abstract class MixedOperator {
             case UUID:
                 return new UUIDMixedOperator(nativeMixed);
             case OBJECT:
-                if (realm instanceof DynamicRealm) {
-                    return new DynamicRealmModelMixedOperator(realm, nativeMixed);
-                } else {
-                    return new RealmModelOperator(realm, nativeMixed);
+                if (realm instanceof Realm) {
+                    try {
+                        Class<RealmModel> clazz = nativeMixed.getModelClass(realm.sharedRealm, realm.configuration.getSchemaMediator());
+                        return new RealmModelOperator(realm, nativeMixed, clazz);
+                    } catch (RealmException ignore) {
+                        // Fall through to DynamicRealmModelOperator
+                    }
                 }
+                return new DynamicRealmModelMixedOperator(realm, nativeMixed);
             case NULL:
                 return new NullMixedOperator(nativeMixed);
             default:
@@ -363,18 +367,6 @@ final class UUIDMixedOperator extends PrimitiveMixedOperator {
 }
 
 class RealmModelOperator extends MixedOperator {
-    private static <T extends RealmModel> Class<T> getModelClass(BaseRealm realm, NativeMixed nativeMixed) {
-        OsSharedRealm sharedRealm = realm
-                .getSharedRealm();
-
-        String className = Table.getClassNameForTable(nativeMixed.getRealmModelTableName(sharedRealm));
-
-        return realm
-                .getConfiguration()
-                .getSchemaMediator()
-                .getClazz(className);
-    }
-
     private static <T extends RealmModel> T getRealmModel(BaseRealm realm, Class<T> clazz, NativeMixed nativeMixed) {
         return realm
                 .get(clazz, nativeMixed.getRealmModelRowKey(), false, Collections.emptyList());
@@ -389,12 +381,10 @@ class RealmModelOperator extends MixedOperator {
         this.clazz = realmModel.getClass();
     }
 
-    <T extends RealmModel> RealmModelOperator(BaseRealm realm, NativeMixed nativeMixed) {
+    <T extends RealmModel> RealmModelOperator(BaseRealm realm, NativeMixed nativeMixed, Class<T> clazz) {
         super(MixedType.OBJECT, nativeMixed);
 
-        Class<T> clazz = getModelClass(realm, nativeMixed);
         this.clazz = clazz;
-
         this.value = getRealmModel(realm, clazz, nativeMixed);
     }
 
@@ -439,8 +429,7 @@ final class DynamicRealmModelMixedOperator extends RealmModelOperator {
 
         String className = Table.getClassNameForTable(nativeMixed.getRealmModelTableName(sharedRealm));
 
-        return realm
-                .get((Class<T>) DynamicRealmObject.class, className, nativeMixed.getRealmModelRowKey());
+        return realm.get((Class<T>) DynamicRealmObject.class, className, nativeMixed.getRealmModelRowKey());
     }
 
     DynamicRealmModelMixedOperator(BaseRealm realm, NativeMixed nativeMixed) {

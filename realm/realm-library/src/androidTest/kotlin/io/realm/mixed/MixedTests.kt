@@ -925,4 +925,37 @@ class MixedTests {
         assertEquals(MixedType.OBJECT, mixedObject.mixed!!.type)
         assertEquals(MixedNotIndexed::class.simpleName, mixedObject.mixed!!.valueClass?.simpleName)
     }
+
+    @Test
+    fun missing_schemaClass() {
+        realm.close()
+
+        val missingClassName = "MissingClass"
+        val fieldName = "aString"
+        val expectedValue = "Hello world"
+
+        DynamicRealm.getInstance(realmConfiguration).use { dynamicRealm ->
+            dynamicRealm.executeTransaction { transactionRealm ->
+                transactionRealm.schema
+                        .create(missingClassName)
+                        .addField(fieldName, String::class.java)
+
+                val missingClassObject = transactionRealm.createObject(missingClassName).apply {
+                    set(fieldName, expectedValue)
+                }
+                transactionRealm.createObject(MixedNotIndexed.CLASS_NAME).apply {
+                    set(MixedNotIndexed.FIELD_MIXED, Mixed.valueOf(missingClassObject))
+                }
+            }
+        }
+
+        realm = Realm.getInstance(realmConfiguration)
+
+        val mixedNotIndexed = realm.where(MixedNotIndexed::class.java).findFirst()!!
+        assertEquals(MixedType.OBJECT, mixedNotIndexed.mixed!!.type)
+        assertEquals(DynamicRealmObject::class.java, mixedNotIndexed.mixed!!.valueClass)
+
+        val innerObject = mixedNotIndexed.mixed!!.asRealmModel(DynamicRealmObject::class.java)
+        assertEquals(expectedValue, innerObject.getString(fieldName))
+    }
 }
