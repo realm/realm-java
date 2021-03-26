@@ -18,7 +18,6 @@ package io.realm;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -38,7 +37,6 @@ import io.realm.entities.AllJavaTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

@@ -39,6 +39,7 @@ import java.util.concurrent.ThreadFactory;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.TestHelper;
+import io.realm.TestRealmConfigurationFactory;
 import io.realm.internal.android.AndroidCapabilities;
 
 

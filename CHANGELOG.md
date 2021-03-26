@@ -1,12 +1,18 @@
 ## 10.4.0 (YYYY-MM-DD)
+### Breaking Changes
+* Queries no longer do nullability checks on non-nullable fields, so using `null` as an argument will not throw an `IllegalArgumentException`.
+* String query filters `contains`, `beginsWith`, `endsWith`, and `like`, now throw a null pointer exception on null values.
+* The query builder no longer throw `IllegalStateException` but `IllegalArgumentException`.
 
 ### Enhancements
 * Added support for `java.util.UUID` as supported field in model classes.
 * Added support for `java.util.UUID` as a primary key.
 * Added support for the string-based Realm Query Language through `RealmQuery.rawPredicate(...)`. This allows many new type of queries not previously supported by the typed query API. See the Javadoc on this method for further details. (Issue [#6116](https://github.com/realm/realm-java/pull/6116))
-
-### Fixes
-* None
+* Queries across relationships now support the `between` operator.
+* Queries on numerical fields (byte, short, int, long, float, double, decimal128) now accept any numerical value as an argument.
+* The `distinct` query filter on unsupported fields no longer throws an exception when applied through when querying across relationships.
+* The `distinct` query filter no longer throws an exception when applied on non-existent fields.
+* `isEmpty` query filter can now be applied on `RealmList` and `RealmObject` fields.
 
 ### Compatibility
 * File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.

@@ -13,7 +13,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.OsResults;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.core.QueryDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 
@@ -294,10 +293,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     @Override
     public RealmResults<E> sort(String fieldName) {
-        QueryDescriptor sortDescriptor =
-                QueryDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldName, Sort.ASCENDING);
-
-        OsResults sortedOsResults = osResults.sort(sortDescriptor);
+        OsResults sortedOsResults = osResults.sort(baseRealm.getSchema().getKeyPathMapping(), fieldName, Sort.ASCENDING);
         return createLoadedResults(sortedOsResults);
     }
 
@@ -306,10 +302,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     @Override
     public RealmResults<E> sort(String fieldName, Sort sortOrder) {
-        QueryDescriptor sortDescriptor =
-                QueryDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldName, sortOrder);
-
-        OsResults sortedOsResults = osResults.sort(sortDescriptor);
+        OsResults sortedOsResults = osResults.sort(baseRealm.getSchema().getKeyPathMapping(), fieldName, sortOrder);
         return createLoadedResults(sortedOsResults);
     }
 
@@ -318,10 +311,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     @Override
     public RealmResults<E> sort(String[] fieldNames, Sort[] sortOrders) {
-        QueryDescriptor sortDescriptor =
-                QueryDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldNames, sortOrders);
-
-        OsResults sortedOsResults = osResults.sort(sortDescriptor);
+        OsResults sortedOsResults = osResults.sort(baseRealm.getSchema().getKeyPathMapping(), fieldNames, sortOrders);
         return createLoadedResults(sortedOsResults);
     }
 
@@ -632,9 +622,5 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
         }
         results.load();
         return results;
-    }
-
-    private SchemaConnector getSchemaConnector() {
-        return new SchemaConnector(baseRealm.getSchema());
     }
 }

@@ -42,7 +42,6 @@ import io.realm.entities.pojo.RealmObjectWithRealmModelField;
 import io.realm.exceptions.RealmException;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
