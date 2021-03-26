@@ -22,6 +22,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.entities.MixedNotIndexed
 import io.realm.kotlin.where
+import org.bson.types.Decimal128
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -104,6 +105,42 @@ class MixedQueryTests {
     fun count() {
         val value = realm.where<MixedNotIndexed>().count()
         assertEquals(106, value)
+    }
+
+    @Test
+    fun average() {
+        val value = realm.where<MixedNotIndexed>().averageMixed(MixedNotIndexed.FIELD_MIXED)
+        assertEquals("4.292307692", value)
+    }
+
+    @Test
+    fun sum() {
+        val value = realm.where<MixedNotIndexed>().sumMixed(MixedNotIndexed.FIELD_MIXED)
+        assertEquals(Decimal128(279), value)
+    }
+
+    @Test
+    fun min() {
+        val value = realm.where<MixedNotIndexed>().minMixed(MixedNotIndexed.FIELD_MIXED)
+        assertEquals(Mixed.valueOf(0.toLong()), value)
+    }
+
+    @Test
+    fun max() {
+        val value = realm.where<MixedNotIndexed>().maxMixed(MixedNotIndexed.FIELD_MIXED)
+        assertEquals(Mixed.valueOf(9.toLong()), value)
+    }
+
+    @Test
+    fun minDate() {
+        val value = realm.where<MixedNotIndexed>().minimumDate(MixedNotIndexed.FIELD_MIXED)
+        assertEquals(Date(0), value)
+    }
+
+    @Test
+    fun maxDate() {
+        val value = realm.where<MixedNotIndexed>().maximumDate(MixedNotIndexed.FIELD_MIXED)
+        assertEquals(Date(4), value)
     }
 
     @Test

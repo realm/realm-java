@@ -569,7 +569,7 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::between,
                         arrayOf(4.49, 4.89),
-                        arrayOf(4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.5, 4.6, 4.7, 4.8)
+                        arrayOf(4.5.toFloat(), 4.6.toFloat() 4.7.toFloat(), 4.8.toFloat(), 4.5, 4.6, 4.7, 4.8)
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::between,
