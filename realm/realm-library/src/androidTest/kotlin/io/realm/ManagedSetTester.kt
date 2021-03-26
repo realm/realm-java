@@ -662,14 +662,17 @@ fun managedSetFactory(): List<SetTester> {
                         notPresentValue = VALUE_DATE_NOT_PRESENT,
                         toArrayManaged = ToArrayManaged.DateManaged()
                 )
-
-//            SetSupportedType.DECIMAL128 ->
-//                UnmanagedSetTester<Decimal128>(
-//                        testerName = "Decimal128",
-//                        values = listOf(VALUE_DECIMAL128_HELLO, VALUE_DECIMAL128_BYE, null),
-//                        notPresentValue = VALUE_DECIMAL128_NOT_PRESENT
-//                )
-
+            SetSupportedType.DECIMAL128 ->
+                ManagedSetTester<Decimal128>(
+                        testerName = "Decimal128",
+                        setGetter = AllTypes::getColumnDecimal128Set,
+                        setSetter = AllTypes::setColumnDecimal128Set,
+                        managedSetGetter = SetContainerClass::myDecimal128Set,
+                        managedCollectionGetter = SetContainerClass::myDecimal128List,
+                        initializedSet = listOf(VALUE_DECIMAL128_HELLO, VALUE_DECIMAL128_BYE, null),
+                        notPresentValue = VALUE_DECIMAL128_NOT_PRESENT,
+                        toArrayManaged = ToArrayManaged.Decimal128Managed()
+                )
             SetSupportedType.BINARY ->
                 ManagedSetTester<ByteArray>(
                         testerName = "Binary",

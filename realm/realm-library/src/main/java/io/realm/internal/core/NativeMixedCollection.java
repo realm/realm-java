@@ -157,7 +157,7 @@ public final class NativeMixedCollection implements NativeObject {
         return new NativeMixedCollection(nativeCreateObjectIdCollection(objectIdValues, notNull));
     }
 
-    public static NativeMixedCollection newDecimal128Collection(Collection<Decimal128> collection) {
+    public static NativeMixedCollection newDecimal128Collection(Collection<? extends Decimal128> collection) {
         long[] lowValues = new long[collection.size()];
         long[] highValues = new long[collection.size()];
         boolean[] notNull = new boolean[collection.size()];

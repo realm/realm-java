@@ -16,7 +16,11 @@
 
 package some.test;
 
+import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
+
+import java.util.Date;
+import java.util.UUID;
 
 import io.realm.RealmSet;
 import io.realm.RealmObject;
@@ -30,6 +34,12 @@ public class RealmSetModel extends RealmObject {
     private RealmSet<Byte> byteSet;
     private RealmSet<byte[]> binarySet;
     private RealmSet<ObjectId> objectIdSet;
+    private RealmSet<UUID> uuidSet;
+    private RealmSet<Float> floatSet;
+    private RealmSet<Double> doubleSet;
+    private RealmSet<Boolean> booleanSet;
+    private RealmSet<Date> dateSet;
+    private RealmSet<Decimal128> decimal128Set;
 
     public RealmSet<String> getStringSet() {
         return stringSet;
@@ -85,5 +95,53 @@ public class RealmSetModel extends RealmObject {
 
     public void setObjectIdSet(RealmSet<ObjectId> objectIdSet) {
         this.objectIdSet = objectIdSet;
+    }
+
+    public RealmSet<UUID> getUuidSet() {
+        return uuidSet;
+    }
+
+    public void setUuidSet(RealmSet<UUID> uuidSet) {
+        this.uuidSet = uuidSet;
+    }
+
+    public RealmSet<Float> getFloatSet() {
+        return floatSet;
+    }
+
+    public void setFloatSet(RealmSet<Float> floatSet) {
+        this.floatSet = floatSet;
+    }
+
+    public RealmSet<Double> getDoubleSet() {
+        return doubleSet;
+    }
+
+    public void setDoubleSet(RealmSet<Double> doubleSet) {
+        this.doubleSet = doubleSet;
+    }
+
+    public RealmSet<Boolean> getBooleanSet() {
+        return booleanSet;
+    }
+
+    public void setBooleanSet(RealmSet<Boolean> booleanSet) {
+        this.booleanSet = booleanSet;
+    }
+
+    public RealmSet<Date> getDateSet() {
+        return dateSet;
+    }
+
+    public void setDateSet(RealmSet<Date> dateSet) {
+        this.dateSet = dateSet;
+    }
+
+    public RealmSet<Decimal128> getDecimal128Set() {
+        return decimal128Set;
+    }
+
+    public void setDecimal128Set(RealmSet<Decimal128> decimal128Set) {
+        this.decimal128Set = decimal128Set;
     }
 }

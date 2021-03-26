@@ -1,5 +1,6 @@
 package io.realm;
 
+import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Collection;
@@ -248,6 +249,8 @@ abstract class SetValueOperator<E> {
             return (SetIterator<T>) new BinarySetIterator(osSet, baseRealm);
         } else if (valueClass == Date.class) {
             return (SetIterator<T>) new DateSetIterator(osSet, baseRealm);
+        } else if (valueClass == Decimal128.class) {
+            return (SetIterator<T>) new Decimal128SetIterator(osSet, baseRealm);
         } else if (valueClass == ObjectId.class) {
             return (SetIterator<T>) new ObjectIdSetIterator(osSet, baseRealm);
         } else if (valueClass == UUID.class) {
@@ -879,6 +882,69 @@ class DateOperator extends SetValueOperator<Date> {
 /**
  * TODO
  */
+class Decimal128Operator extends SetValueOperator<Decimal128> {
+
+    public Decimal128Operator(BaseRealm baseRealm, OsSet osSet, Class<Decimal128> valueClass) {
+        super(baseRealm, osSet, valueClass);
+    }
+
+    @Override
+    boolean add(@Nullable Decimal128 value) {
+        return osSet.add(value);
+    }
+
+    @Override
+    boolean containsInternal(@Nullable Object o) {
+        Decimal128 value;
+        if (o == null) {
+            value = null;
+        } else {
+            value = (Decimal128) o;
+        }
+        return osSet.contains(value);
+    }
+
+    @Override
+    boolean removeInternal(@Nullable Object o) {
+        return osSet.remove((Decimal128) o);
+    }
+
+    @Override
+    boolean containsAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        Collection<Decimal128> decimal128Collection = (Collection<Decimal128>) c;
+        NativeMixedCollection collection = NativeMixedCollection.newDecimal128Collection(decimal128Collection);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+    }
+
+    @Override
+    boolean addAllInternal(Collection<? extends Decimal128> c) {
+        // Collection has been type-checked from caller
+        NativeMixedCollection collection = NativeMixedCollection.newDecimal128Collection(c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
+    }
+
+    @Override
+    boolean removeAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newDecimal128Collection((Collection<Decimal128>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeMixedCollection collection = NativeMixedCollection.newDecimal128Collection((Collection<Decimal128>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
+    }
+}
+
+/**
+ * TODO
+ */
 class ObjectIdOperator extends SetValueOperator<ObjectId> {
 
     public ObjectIdOperator(BaseRealm baseRealm, OsSet osSet, Class<ObjectId> valueClass) {
@@ -1173,6 +1239,15 @@ class BinarySetIterator extends SetIterator<byte[]> {
  */
 class DateSetIterator extends SetIterator<Date> {
     public DateSetIterator(OsSet osSet, BaseRealm baseRealm) {
+        super(osSet, baseRealm);
+    }
+}
+
+/**
+ * TODO
+ */
+class Decimal128SetIterator extends SetIterator<Decimal128> {
+    public Decimal128SetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
     }
 }

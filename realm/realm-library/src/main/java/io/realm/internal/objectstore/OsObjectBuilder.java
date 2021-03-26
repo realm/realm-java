@@ -732,6 +732,13 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
+    private static ItemCallback<Decimal128> decimal128SetItemCallback = new ItemCallback<Decimal128>() {
+        @Override
+        public void handleItem(long containerPtr, Decimal128 item) {
+            nativeAddDecimal128SetItem(containerPtr, item.getLow(), item.getHigh());
+        }
+    };
+
     private static ItemCallback<ObjectId> objectIdSetItemCallback = new ItemCallback<ObjectId>() {
         @Override
         public void handleItem(long containerPtr, ObjectId item) {
@@ -765,6 +772,8 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeAddByteArraySetItem(long setPtr, byte[] val);
 
     private static native void nativeAddDateSetItem(long setPtr, long val);
+
+    private static native void nativeAddDecimal128SetItem(long setPtr, long lowVal, long highVal);
 
     private static native void nativeAddObjectIdSetItem(long setPtr, String val);
 
@@ -812,6 +821,10 @@ public class OsObjectBuilder implements Closeable {
 
     public void addDateSet(long columnKey, RealmSet<Date> set) {
         addSetItem(builderPtr, columnKey, set, dateSetItemCallback);
+    }
+
+    public void addDecimal128Set(long columnKey, RealmSet<Decimal128> set) {
+        addSetItem(builderPtr, columnKey, set, decimal128SetItemCallback);
     }
 
     public void addObjectIdSet(long columnKey, RealmSet<ObjectId> set) {

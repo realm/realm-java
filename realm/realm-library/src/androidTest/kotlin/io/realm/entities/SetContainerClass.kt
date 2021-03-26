@@ -39,7 +39,7 @@ open class SetContainerClass : RealmObject() {
     val myDateSet = RealmSet<Date>()
     val myObjectIdSet = RealmSet<ObjectId>()
     val myUUIDSet = RealmSet<UUID>()
-//    val myDecimal128Set = RealmSet<Decimal128>()
+    val myDecimal128Set = RealmSet<Decimal128>()
 //    val myMixedSet = RealmSet<Mixed>()
 
     val myRealmModelList = RealmList<StringOnly>()
