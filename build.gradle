@@ -450,7 +450,7 @@ nexusStaging {
     stagingProfileId = rootProject.ext["sonatypeStagingProfileId"]
     username = rootProject.ext["ossrhUsername"]
     password = rootProject.ext["ossrhPassword"]
-    delayBetweenRetriesInMillis = 5000
+    delayBetweenRetriesInMillis = 10000
     numberOfRetries = 60
 }
 

@@ -118,7 +118,7 @@ create_native_debug_symbols_package() {
 upload_to_mavenCentral() {
   echo "Releasing on MavenCentral"
   cd $REALM_JAVA_PATH
-  ./gradlew mavenCentralUpload closeAndReleaseRepository -PossrhUsername=$MAVEN_CENTRAL_USER -PossrhPassword=$MAVEN_CENTRAL_KEY
+  ./gradlew mavenCentralUpload closeAndReleaseRepository -PossrhUsername=$MAVEN_CENTRAL_USER -PossrhPassword=$MAVEN_CENTRAL_KEY --stacktrace --info
   cd $HERE
 }
 
