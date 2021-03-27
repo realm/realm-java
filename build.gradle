@@ -450,8 +450,10 @@ nexusStaging {
     stagingProfileId = rootProject.ext["sonatypeStagingProfileId"]
     username = rootProject.ext["ossrhUsername"]
     password = rootProject.ext["ossrhPassword"]
+    // Maven Central, at times, seems really slow to update the repository status,
+    // so setting the timeout to 20 minutes.
     delayBetweenRetriesInMillis = 10000
-    numberOfRetries = 60
+    numberOfRetries = 120
 }
 
 // This is just a placeholder for the release plugin
