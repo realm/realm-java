@@ -1,15 +1,20 @@
 buildscript {
+    def properties = new Properties()
+    properties.load(new FileInputStream("${projectDir}/dependencies.list"))
+
     repositories {
         jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
-        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0'
+        classpath "io.github.gradle-nexus:publish-plugin:${properties.get("GRADLE_NEXUS_PLUGIN")}"
         classpath 'ch.netzwerg:gradle-release-plugin:1.2.0'
     }
 }
 
 apply plugin: 'ch.netzwerg.release'
-apply plugin: 'io.codearte.nexus-staging'
 
 def currentVersion = file("${projectDir}/version.txt").text.trim()
 
@@ -404,7 +409,7 @@ task mavenCentralRealm(type: GradleBuild) {
     description = 'Publish the Realm AAR and AP to Maven Central'
     group = 'Publishing'
     buildFile = file('realm/build.gradle')
-    tasks = ['publishAllPublicationsToMavenCentralRepository']
+    tasks = ['publishToSonatype']
     startParameter.projectProperties = gradle.startParameter.projectProperties
     configure copyProperties
 }
@@ -414,7 +419,7 @@ task mavenCentralAnnotations(type: GradleBuild) {
     group = 'Publishing'
     buildFile = file('realm-annotations/build.gradle')
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['publishAllPublicationsToMavenCentralRepository']
+    tasks = ['publishToSonatype']
 }
 
 task mavenCentralGradlePlugin(type: GradleBuild) {
@@ -422,7 +427,7 @@ task mavenCentralGradlePlugin(type: GradleBuild) {
     group = 'Publishing'
     buildFile = file('gradle-plugin/build.gradle')
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['publishAllPublicationsToMavenCentralRepository']
+    tasks = ['publishToSonatype']
 }
 
 task mavenCentralTransformer(type: GradleBuild) {
@@ -430,7 +435,7 @@ task mavenCentralTransformer(type: GradleBuild) {
     group = 'Publishing'
     buildFile = file('realm-transformer/build.gradle')
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['publishAllPublicationsToMavenCentralRepository']
+    tasks = ['publishToSonatype']
 }
 
 task mavenCentralUpload {
@@ -442,19 +447,7 @@ task mavenCentralUpload {
     dependsOn mavenCentralTransformer
 }
 
-apply from: "mavencentral-properties.gradle"
-
-nexusStaging {
-    // Lazily evaluate properties so they are only needed when actually used.
-    packageGroup = "io.realm"
-    stagingProfileId = rootProject.ext["sonatypeStagingProfileId"]
-    username = rootProject.ext["ossrhUsername"]
-    password = rootProject.ext["ossrhPassword"]
-    // Maven Central, at times, seems really slow to update the repository status,
-    // so setting the timeout to 20 minutes.
-    delayBetweenRetriesInMillis = 10000
-    numberOfRetries = 120
-}
+apply from: "mavencentral-publish.gradle"
 
 // This is just a placeholder for the release plugin
 task build {}

@@ -4,10 +4,14 @@ buildscript {
 
     repositories {
         jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${properties.get('BUILD_INFO_EXTRACTOR_GRADLE')}"
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${properties.get('GRADLE_BINTRAY_PLUGIN')}"
+        classpath "io.github.gradle-nexus:publish-plugin:${properties.get("GRADLE_NEXUS_PLUGIN")}"
     }
 }
 
@@ -20,6 +24,7 @@ targetCompatibility = '1.8'
 group = 'io.realm'
 version = file("${projectDir}/../version.txt").text.trim()
 
+apply from: "${rootDir}/../mavencentral-publications.gradle"
 apply from: "${rootDir}/../mavencentral-publish.gradle"
 
 publishing {

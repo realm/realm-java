@@ -108,17 +108,12 @@ create_javadoc() {
   cd $HERE
 }
 
-create_native_debug_symbols_package() {
-  echo "Creating zip file with native debug symbols.."
-  cd $REALM_JAVA_PATH
-  ./gradlew distributionPackage
-  cd $HERE
-}
-
 upload_to_mavenCentral() {
   echo "Releasing on MavenCentral"
   cd $REALM_JAVA_PATH
-  ./gradlew mavenCentralUpload closeAndReleaseRepository -PossrhUsername=$MAVEN_CENTRAL_USER -PossrhPassword=$MAVEN_CENTRAL_KEY --stacktrace --info
+  # FIXME: This doesn't currently work. Apparently we must call this from each repository.
+  # This is very annoying as it means we might end up with half a release.
+  ./gradlew mavenCentralUpload closeAndReleaseStagingRepository -PossrhUsername=$MAVEN_CENTRAL_USER -PossrhPassword=$MAVEN_CENTRAL_KEY --stacktrace
   cd $HERE
 }
 

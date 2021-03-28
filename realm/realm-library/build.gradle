@@ -329,7 +329,7 @@ task checkstyle(type: Checkstyle) {
     }
 }
 
-apply from: "${rootDir}/../mavencentral-publish.gradle"
+apply from: "${rootDir}/../mavencentral-publications.gradle"
 
 publishing {
     publications {

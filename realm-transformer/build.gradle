@@ -5,10 +5,12 @@ buildscript {
     repositories {
         google()
         jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${properties.get('BUILD_INFO_EXTRACTOR_GRADLE')}"
-        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${properties.get('GRADLE_BINTRAY_PLUGIN')}"
+        classpath "io.github.gradle-nexus:publish-plugin:${properties.get("GRADLE_NEXUS_PLUGIN")}"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -70,6 +72,7 @@ task generateVersionClass(type: Copy) {
 
 compileJava.dependsOn generateVersionClass
 
+apply from: "${rootDir}/../mavencentral-publications.gradle"
 apply from: "${rootDir}/../mavencentral-publish.gradle"
 
 publishing {
