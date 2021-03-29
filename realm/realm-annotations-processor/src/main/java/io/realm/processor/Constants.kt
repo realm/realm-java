@@ -163,7 +163,8 @@ object Constants {
         DOUBLE_SET("DOUBLE_SET", "Set"),
         DECIMAL128_SET("DECIMAL128_SET", "Set"),
         OBJECT_ID_SET("OBJECT_ID_SET", "Set"),
-        UUID_SET("UUID_SET", "Set");
+        UUID_SET("UUID_SET", "Set"),
+        LINK_SET("LINK_SET", "Set");
 
         /**
          * The name of the enum, used in the Java bindings, used to represent the corresponding type.

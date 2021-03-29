@@ -716,12 +716,17 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
             emitStatement("proxyState.getRealm\$realm().checkIfValid()")
 
-            if (forMixed) {
-                emitStatement("OsSet osSet = proxyState.getRow\$realm().getMixedSet(%s)", fieldColKeyVariableReference(field))
-            } else if (forRealmModel) {
-                emitStatement("OsSet osSet = proxyState.getRow\$realm().getModelSet(%s)", fieldColKeyVariableReference(field))
-            } else {
-                emitStatement("OsSet osSet = proxyState.getRow\$realm().getValueSet(%s, RealmFieldType.%s)", fieldColKeyVariableReference(field), Utils.getValueSetFieldType(field).name)
+            when {
+                forMixed -> {
+                    // Add Mixed logic
+                    throw IllegalStateException("Missing Mixed implementation")
+                }
+                forRealmModel -> {
+                    emitStatement("OsSet osSet = proxyState.getRow\$realm().getModelSet(%s)", fieldColKeyVariableReference(field))
+                }
+                else -> {
+                    emitStatement("OsSet osSet = proxyState.getRow\$realm().getValueSet(%s, RealmFieldType.%s)", fieldColKeyVariableReference(field), Utils.getValueSetFieldType(field).name)
+                }
             }
 
             beginControlFlow("if (value == null)")
@@ -730,21 +735,19 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             emitStatement("osSet.clear()")
             beginControlFlow("for (%s item : value)", genericType)
 
-                if (forMixed) {
-                    beginControlFlow("if (item == null)")
-                        emitStatement("osSet.add(null)")
-                    nextControlFlow("else")
-                        emitStatement("osSet.addMixed(item)")
-                    endControlFlow()
-                } else if (forRealmModel) {
-                    beginControlFlow("if (item == null)")
-                        emitStatement("osSet.add(null)")
-                    nextControlFlow("else")
-                        emitStatement("osSet.putRow(((RealmObjectProxy) item).realmGet\$proxyState().getRow\$realm().getObjectKey())")
-                    endControlFlow()
-                } else {
+            when {
+                forMixed -> {
+                    // Add Mixed logic
+                    throw IllegalStateException("Missing Mixed implementation")
+                }
+                forRealmModel -> {
+                    emitStatement("proxyState.checkValidObject(item)")
+                    emitStatement("osSet.addRow(((RealmObjectProxy) item).realmGet\$proxyState().getRow\$realm().getObjectKey())")
+                }
+                else -> {
                     emitStatement("osSet.add(item)")
                 }
+            }
 
             endControlFlow()
 
@@ -839,13 +842,13 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitStatement("proxyState.checkValidObject(linkedObject)")
                             emitStatement("osList.setRow(i, ((RealmObjectProxy) linkedObject).realmGet\$proxyState().getRow\$realm().getObjectKey())")
                         endControlFlow()
-                        nextControlFlow("else")
-                            emitStatement("osList.removeAll()")
-                            beginControlFlow("if (value == null)")
-                                emitStatement("return")
-                            endControlFlow()
-                            emitStatement("int objects = value.size()")
-                            beginControlFlow("for (int i = 0; i < objects; i++)")
+                    nextControlFlow("else")
+                        emitStatement("osList.removeAll()")
+                        beginControlFlow("if (value == null)")
+                            emitStatement("return")
+                        endControlFlow()
+                        emitStatement("int objects = value.size()")
+                        beginControlFlow("for (int i = 0; i < objects; i++)")
                             emitStatement("%s linkedObject = value.get(i)", genericType)
                             emitStatement("proxyState.checkValidObject(linkedObject)")
                             emitStatement("osList.addRow(((RealmObjectProxy) linkedObject).realmGet\$proxyState().getRow\$realm().getObjectKey())")
@@ -1117,6 +1120,11 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val valueNullable = metadata.isSetValueNullable(field)
                             val requiredFlag = if (valueNullable) "!Property.REQUIRED" else "Property.REQUIRED"
                             emitStatement("builder.addPersistedSetProperty(%s, \"%s\", %s, %s)", publicFieldName, internalFieldName, fieldType.realmType, requiredFlag)
+                        }
+                        Constants.RealmFieldType.LINK_SET -> {
+                            val genericTypeQualifiedName = Utils.getGenericTypeQualifiedName(field)
+                            val internalClassName = Utils.getReferencedTypeInternalClassNameStatement(genericTypeQualifiedName, classCollection)
+                            emitStatement("builder.addPersistedLinkProperty(${publicFieldName}, \"${internalFieldName}\", RealmFieldType.LINK_SET, ${internalClassName})")
                         }
                     }
                 }
@@ -3263,6 +3271,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         }
         if (Utils.isRealmDictionary(field)) {
             return Utils.getValueDictionaryFieldType(field)
+        }
+        if (Utils.isRealmModelSet(field)) {
+            return Constants.RealmFieldType.LINK_SET
         }
         if (Utils.isRealmSet(field)) {
             return Utils.getValueSetFieldType(field)

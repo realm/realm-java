@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import io.realm.RealmModel;
 import io.realm.internal.core.NativeMixedCollection;
 
 public class OsSet implements NativeObject {
@@ -487,6 +488,22 @@ public class OsSet implements NativeObject {
             indexAndFound = nativeRemoveUUID(nativePtr, value.toString());
         }
         return indexAndFound[1] == VALUE_FOUND;
+    }
+
+    // ----------------------------------------------------
+    // Realm model operations
+    // ----------------------------------------------------
+
+    public boolean containsRow(long nativePtr) {
+        throw new IllegalStateException("Not implemented");
+    }
+
+    public boolean addRow(long nativePtr) {
+        throw new IllegalStateException("Not implemented");
+    }
+
+    public boolean removeRow(long nativePtr) {
+        throw new IllegalStateException("Not implemented");
     }
 
     // ----------------------------------------------------

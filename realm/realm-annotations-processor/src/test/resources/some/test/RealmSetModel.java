@@ -40,6 +40,7 @@ public class RealmSetModel extends RealmObject {
     private RealmSet<Boolean> booleanSet;
     private RealmSet<Date> dateSet;
     private RealmSet<Decimal128> decimal128Set;
+    private RealmSet<RealmSetModel> objectSet;
 
     public RealmSet<String> getStringSet() {
         return stringSet;
@@ -143,5 +144,13 @@ public class RealmSetModel extends RealmObject {
 
     public void setDecimal128Set(RealmSet<Decimal128> decimal128Set) {
         this.decimal128Set = decimal128Set;
+    }
+
+    public RealmSet<RealmSetModel> getObjectSet() {
+        return objectSet;
+    }
+
+    public void setObjectSet(RealmSet<RealmSetModel> objectSet) {
+        this.objectSet = objectSet;
     }
 }

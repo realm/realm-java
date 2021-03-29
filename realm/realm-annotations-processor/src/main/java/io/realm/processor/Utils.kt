@@ -277,6 +277,14 @@ object Utils {
     }
 
     /**
+     * @return `true` if a given field type is `RealmSet<RealmModel>`, `false` otherwise.
+     */
+    fun isRealmModelSet(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmSetElementTypeMirror(field) ?: return false
+        return isRealmModel(elementTypeMirror)
+    }
+
+    /**
      * @param field [VariableElement] of a value list field.
      * @return element type of the list field.
      */
