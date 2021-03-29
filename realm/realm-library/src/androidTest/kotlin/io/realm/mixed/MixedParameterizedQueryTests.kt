@@ -704,28 +704,7 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
         this.test.executeMixed(this)
     }
 
-    private fun logArray(tag: String, expected: Array<Mixed>) {
-        val builder = StringBuilder()
-        for (a in expected) {
-            builder.append("$a, ")
-        }
-
-        Log.e(tag, "Array [$builder]")
-    }
-
-    private fun logResults(tag: String, expected: RealmResults<MixedNotIndexed>) {
-        val builder = StringBuilder()
-        for (a in expected) {
-            builder.append("${a.mixed}, ")
-        }
-
-        Log.e(tag, "Array [$builder]")
-    }
-
     private fun validate(expected: Array<Mixed>, results: RealmResults<MixedNotIndexed>, expectedSize: Int) {
-        logArray("expected", expected)
-        logResults("results", results)
-
         assertEquals(expectedSize, results.size)
 
         expected.forEachIndexed { index, item ->

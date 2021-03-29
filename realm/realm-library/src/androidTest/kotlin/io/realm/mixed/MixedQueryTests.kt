@@ -28,8 +28,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
+import kotlin.collections.HashSet
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 @RunWith(AndroidJUnit4::class)
 class MixedQueryTests {
@@ -76,12 +79,18 @@ class MixedQueryTests {
     fun isNull() {
         val results = realm.where<MixedNotIndexed>().isNull(MixedNotIndexed.FIELD_MIXED).findAll()
         assertEquals(9, results.size)
+        for (result in results) {
+            assertTrue(result.mixed!!.isNull)
+        }
     }
 
     @Test
     fun isNotNull() {
         val results = realm.where<MixedNotIndexed>().isNotNull(MixedNotIndexed.FIELD_MIXED).findAll()
         assertEquals(97, results.size)
+        for (result in results) {
+            assertFalse(result.mixed!!.isNull)
+        }
     }
 
     @Test
@@ -109,16 +118,20 @@ class MixedQueryTests {
     @Test
     fun sort() {
         val results = realm.where<MixedNotIndexed>().sort(MixedNotIndexed.FIELD_MIXED).findAll()
-        results.forEachIndexed { index, mixedNotIndexed ->
-            Log.d("SORT", "$index ${mixedNotIndexed.mixed!!.type} ${mixedNotIndexed.mixed}")
-        }
+        assertEquals(106, results.size)
+        assertTrue(results.first()!!.mixed!!.isNull)
+        assertEquals(MixedType.UUID, results.last()!!.mixed!!.type)
     }
 
     @Test
     fun distinct() {
         val results = realm.where<MixedNotIndexed>().distinct(MixedNotIndexed.FIELD_MIXED).findAll()
-        results.forEachIndexed { index, mixedNotIndexed ->
-            Log.d("DISTINCT", "$index ${mixedNotIndexed.mixed!!.type} ${mixedNotIndexed.mixed}")
+
+        val hashSet = HashSet<Mixed>()
+        for (result in results){
+            hashSet.add(result.mixed!!)
         }
+        assertEquals(60, results.size)
+        assertEquals(hashSet.size, results.size)
     }
 }
