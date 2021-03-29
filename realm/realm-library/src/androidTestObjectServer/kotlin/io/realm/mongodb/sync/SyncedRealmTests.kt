@@ -26,11 +26,8 @@ import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
-import io.realm.mongodb.App
-import io.realm.mongodb.Credentials
+import io.realm.mongodb.*
 import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
-import io.realm.mongodb.User
-import io.realm.mongodb.close
 import org.bson.BsonNull
 import org.bson.BsonString
 import org.bson.types.Decimal128
@@ -509,10 +506,47 @@ class SyncedRealmTests {
         }
     }
 
+    // Float is not supported in sync yet. The intention of this test is to catch when it does.
+    // Once it is supported we must add it to the data roundtrip test.
     @Test
-    fun allTypes_roundTrip() {
+    fun catch_float32NotSupportedInSync(){
         val user1: User = createNewUser()
         val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
+
+        Realm.getInstance(config1).use { realm1 ->
+            realm1.executeTransaction {
+                val syncObject = SyncAllTypes().apply {
+                    columnMixed = Mixed.valueOf(10.5.toFloat())
+                    columnRealmInteger.set(10)
+                }
+
+                realm1.copyToRealmOrUpdate(syncObject)
+            }
+
+            try {
+                realm1.syncSession.uploadAllLocalChanges()
+                fail("Sync now support float32 values.")
+            } catch (ignore: AppException) {
+
+            }
+        }
+    }
+
+
+    @Test
+    fun allTypes_roundTrip() {
+        val expectedMixedValues = arrayListOf(
+                Mixed.valueOf(1.toLong()),
+                Mixed.valueOf(false),
+//              Float not supported in sync yet, uncomment once it does
+//                Mixed.valueOf(10.5.toFloat()),
+                Mixed.valueOf(10.5.toDouble()),
+                Mixed.valueOf("hello world 2"),
+                Mixed.valueOf(Date(105)),
+                Mixed.valueOf(Decimal128(102)),
+                Mixed.valueOf(ObjectId()),
+                Mixed.valueOf(UUID.randomUUID())
+        )
 
         val primaryKeyValue = ObjectId()
         val expectedRealmInteger = 100.toLong()
@@ -538,76 +572,91 @@ class SyncedRealmTests {
         val expectedDecimal128List = RealmList<Decimal128>(Decimal128(10), Decimal128(100), Decimal128(20))
         val expectedObjectIdList = RealmList<ObjectId>(ObjectId(Date(1000)), ObjectId(Date(100)), ObjectId(Date(2000)))
         val expectedUUIDList = RealmList<UUID>(UUID.randomUUID())
+        val expectedMixedList = RealmList<Mixed>()
+        expectedMixedList.addAll(expectedMixedValues)
 
-        Realm.getInstance(config1).use { realm ->
-            realm.executeTransaction {
-                expectedRealmObject = realm.copyToRealmOrUpdate(expectedRealmObject)
-                expectedRealmList.add(expectedRealmObject)
-
-                realm.createObject(SyncAllTypes::class.java, primaryKeyValue).apply {
-                    columnString = expectedString
-                    columnLong = expectedLong
-                    columnDouble = expectedDouble
-                    isColumnBoolean = expectedBoolean
-                    columnDate = expectedDate
-                    columnBinary = expectedBinary
-                    columnDecimal128 = expectedDecimal128
-                    columnObjectId = expectedObjectId
-                    columnUUID = expectedUUID
-                    columnRealmInteger.set(expectedRealmInteger)
-                    columnRealmObject = expectedRealmObject
-                    columnRealmList = expectedRealmList
-                    columnStringList = expectedStringList
-                    columnBinaryList = expectedBinaryList
-                    columnBooleanList = expectedBooleanList
-                    columnLongList = expectedLongList
-                    columnDoubleList = expectedDoubleList
-                    columnDateList = expectedDateList
-                    columnDecimal128List = expectedDecimal128List
-                    columnObjectIdList = expectedObjectIdList
-                    columnUUIDList = expectedUUIDList
-                }
-            }
-            realm.syncSession.uploadAllLocalChanges()
-            assertEquals(1, realm.where<SyncAllTypes>().count())
-        }
+        val user1: User = createNewUser()
+        val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
 
         val user2: User = createNewUser()
         val config2: SyncConfiguration = createDefaultConfig(user2, partitionValue)
-        Realm.getInstance(config2).use { realm ->
-            assertEquals(0, realm.where<SyncAllTypes>().count())
 
-            realm.syncSession.downloadAllServerChanges(TestHelper.STANDARD_WAIT_SECS.toLong(), TimeUnit.SECONDS).let {
-                if (!it) fail()
-            }
-            realm.refresh()
+        Realm.getInstance(config1).use { realm1 ->
+            Realm.getInstance(config2).use { realm2 ->
+                for (expectedMixed in expectedMixedValues) {
+                    realm1.executeTransaction {
+                        expectedRealmObject = realm1.copyToRealmOrUpdate(expectedRealmObject)
+                        expectedRealmList.add(expectedRealmObject)
 
-            assertEquals(1, realm.where<SyncAllTypes>().count())
+                        val syncObject = SyncAllTypes().apply {
+                            id = primaryKeyValue
+                            columnString = expectedString
+                            columnLong = expectedLong
+                            columnDouble = expectedDouble
+                            isColumnBoolean = expectedBoolean
+                            columnDate = expectedDate
+                            columnBinary = expectedBinary
+                            columnDecimal128 = expectedDecimal128
+                            columnObjectId = expectedObjectId
+                            columnUUID = expectedUUID
+                            columnMixed = expectedMixed
+                            columnRealmInteger.set(expectedRealmInteger)
+                            columnRealmObject = expectedRealmObject
+                            columnRealmList = expectedRealmList
+                            columnStringList = expectedStringList
+                            columnBinaryList = expectedBinaryList
+                            columnBooleanList = expectedBooleanList
+                            columnLongList = expectedLongList
+                            columnDoubleList = expectedDoubleList
+                            columnDateList = expectedDateList
+                            columnDecimal128List = expectedDecimal128List
+                            columnObjectIdList = expectedObjectIdList
+                            columnUUIDList = expectedUUIDList
+                            columnMixedList = expectedMixedList
+                        }
 
-            realm.where<SyncAllTypes>().findFirst()!!.let {
-                assertEquals(expectedString, it.columnString)
-                assertEquals(expectedLong, it.columnLong)
-                assertEquals(expectedDouble, it.columnDouble)
-                assertEquals(expectedBoolean, it.isColumnBoolean)
-                assertEquals(expectedDate, it.columnDate)
-                assertTrue(expectedBinary.contentEquals(it.columnBinary))
-                assertEquals(expectedDecimal128, it.columnDecimal128)
-                assertEquals(expectedObjectId, it.columnObjectId)
-                assertEquals(expectedUUID, it.columnUUID)
-                assertEquals(expectedRealmInteger, it.columnRealmInteger.get())
-                assertEquals(expectedObjectId, it.columnRealmObject!!.id)
-                assertEquals(expectedObjectId, it.columnRealmList.first()!!.id)
-                assertEquals(expectedStringList, it.columnStringList)
-                expectedBinaryList.forEachIndexed { index, bytes ->
-                    Arrays.equals(bytes, it.columnBinaryList[index])
+                        realm1.copyToRealmOrUpdate(syncObject)
+                    }
+                    realm1.syncSession.uploadAllLocalChanges()
+
+                    assertEquals(1, realm1.where<SyncAllTypes>().count())
+
+                    realm2.syncSession.downloadAllServerChanges(TestHelper.STANDARD_WAIT_SECS.toLong(), TimeUnit.SECONDS).let {
+                        if (!it) fail()
+                    }
+                    realm2.refresh()
+
+                    assertEquals(1, realm2.where<SyncAllTypes>().count())
+
+                    realm2.where<SyncAllTypes>().findFirst()!!.let {
+                        assertEquals(primaryKeyValue, it.id)
+                        assertEquals(expectedString, it.columnString)
+                        assertEquals(expectedLong, it.columnLong)
+                        assertEquals(expectedDouble, it.columnDouble)
+                        assertEquals(expectedBoolean, it.isColumnBoolean)
+                        assertEquals(expectedDate, it.columnDate)
+                        assertTrue(expectedBinary.contentEquals(it.columnBinary))
+                        assertEquals(expectedDecimal128, it.columnDecimal128)
+                        assertEquals(expectedObjectId, it.columnObjectId)
+                        assertEquals(expectedUUID, it.columnUUID)
+                        assertEquals(expectedMixed, it.columnMixed)
+                        assertEquals(expectedRealmInteger, it.columnRealmInteger.get())
+                        assertEquals(expectedObjectId, it.columnRealmObject!!.id)
+                        assertEquals(expectedObjectId, it.columnRealmList.first()!!.id)
+                        assertEquals(expectedStringList, it.columnStringList)
+                        expectedBinaryList.forEachIndexed { index, bytes ->
+                            Arrays.equals(bytes, it.columnBinaryList[index])
+                        }
+                        assertEquals(expectedBooleanList, it.columnBooleanList)
+                        assertEquals(expectedLongList, it.columnLongList)
+                        assertEquals(expectedDoubleList, it.columnDoubleList)
+                        assertEquals(expectedDateList, it.columnDateList)
+                        assertEquals(expectedDecimal128List, it.columnDecimal128List)
+                        assertEquals(expectedObjectIdList, it.columnObjectIdList)
+                        assertEquals(expectedUUIDList, it.columnUUIDList)
+                        assertEquals(expectedMixedList, it.columnMixedList)
+                    }
                 }
-                assertEquals(expectedBooleanList, it.columnBooleanList)
-                assertEquals(expectedLongList, it.columnLongList)
-                assertEquals(expectedDoubleList, it.columnDoubleList)
-                assertEquals(expectedDateList, it.columnDateList)
-                assertEquals(expectedDecimal128List, it.columnDecimal128List)
-                assertEquals(expectedObjectIdList, it.columnObjectIdList)
-                assertEquals(expectedUUIDList, it.columnUUIDList)
             }
         }
     }

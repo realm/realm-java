@@ -148,7 +148,7 @@ public class NativeMixed implements NativeObject {
 
     public Decimal128 asDecimal128() {
         long[] data = nativeMixedAsDecimal128(nativePtr);
-        return Decimal128.fromIEEE754BIDEncoding(data[1], data[0]);
+        return Decimal128.fromIEEE754BIDEncoding(data[1]/*high*/, data[0]/*low*/);
     }
 
     public UUID asUUID() {
