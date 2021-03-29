@@ -506,6 +506,8 @@ class SyncedRealmTests {
         }
     }
 
+    // Float is not supported in sync yet. The intention of this test is to catch when it does.
+    // Once it is supported we must add it to the data roundtrip test.
     @Test
     fun catch_float32NotSupportedInSync(){
         val user1: User = createNewUser()
@@ -536,7 +538,7 @@ class SyncedRealmTests {
         val expectedMixedValues = arrayListOf(
                 Mixed.valueOf(1.toLong()),
                 Mixed.valueOf(false),
-//              Float not supported in sync
+//              Float not supported in sync yet, uncomment once it does
 //                Mixed.valueOf(10.5.toFloat()),
                 Mixed.valueOf(10.5.toDouble()),
                 Mixed.valueOf("hello world 2"),
