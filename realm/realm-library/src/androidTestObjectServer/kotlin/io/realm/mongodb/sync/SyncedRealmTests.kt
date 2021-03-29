@@ -664,7 +664,7 @@ class SyncedRealmTests {
     @Ignore("Not implemented yet")
     fun refreshConnections() {}
 
-    private fun createDefaultConfig(user: User, partitionValue: String   = defaultPartitionValue): SyncConfiguration {
+    private fun createDefaultConfig(user: User, partitionValue: String = defaultPartitionValue): SyncConfiguration {
         return SyncConfiguration.Builder(user, partitionValue)
                 .modules(DefaultSyncSchema())
                 .build()
