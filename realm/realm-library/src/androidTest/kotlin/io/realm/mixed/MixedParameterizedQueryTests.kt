@@ -16,6 +16,7 @@
 
 package io.realm.mixed
 
+import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.entities.*
@@ -26,16 +27,20 @@ import org.junit.*
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.lang.IllegalStateException
+import java.lang.StringBuilder
 import java.util.*
 import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.javaMethod
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class MixedParameterizedQueryTest(
         val function: KFunction<*>,
         val parameters: Array<Any?>,
-        val results: Array<Any?>
+        val results: Array<Any?>,
+        var expectedSize: Int? = null,
+        var expand: Boolean = true
 ) {
     @Suppress("UNCHECKED_CAST")
     private fun asMixed(array: Array<Any?>): Array<Mixed> {
@@ -80,16 +85,23 @@ class MixedParameterizedQueryTest(
     }
 
     fun execute(context: Any) {
-        function.call(context, *parameters, asMixed(results))
+        if (expand) {
+            function.call(context, asMixed(results), expectedSize ?: results.size, *parameters)
+        } else {
+            function.call(context, asMixed(results), expectedSize ?: results.size, parameters)
+        }
     }
 
     fun executeMixed(context: Any) {
-        function.call(context, *asMixed(parameters), asMixed(results))
+        if (expand) {
+            function.call(context, asMixed(results), expectedSize ?: results.size, *asMixed(parameters))
+        } else {
+            function.call(context, asMixed(results), expectedSize ?: results.size, asMixed(parameters))
+        }
     }
 }
 
 @RunWith(Parameterized::class)
-@Ignore("FIXME: Disabled until https://github.com/realm/realm-core/issues/4504")
 class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
     private lateinit var realmConfiguration: RealmConfiguration
     private lateinit var realm: Realm
@@ -189,76 +201,86 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf(true),
-                        arrayOf(false)
+                        arrayOf(false),
+                        expectedSize = 105
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf(4.toByte()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.1, 4.2, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
+                        arrayOf(4.toByte()),
+                        expectedSize = 99
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf(4.toShort()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
+                        arrayOf(4.toShort()),
+                        expectedSize = 99
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf(4.toInt()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
+                        arrayOf(4.toInt()),
+                        expectedSize = 99
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf(4.toLong()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
+                        arrayOf(4.toLong()),
+                        expectedSize = 99
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf(4.4.toFloat()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.0, 4.1, 4.2, 4.3, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
+                        arrayOf(4.4.toFloat()),
+                        expectedSize = 105
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf(4.3),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.0, 4.1, 4.2, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
+                        arrayOf(4.3),
+                        expectedSize = 105
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf("hello world 2"),
-                        arrayOf("hello world 0", "hello world 1", "hello world 3", "hello world 4")
+                        arrayOf("hello world 2"),
+                        expectedSize = 105
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf(byteArrayOf(0, 1, 0)),
-                        arrayOf(byteArrayOf(0, 0, 0),
-                                byteArrayOf(0, 1, 1),
-                                byteArrayOf(1, 1, 0),
-                                byteArrayOf(1, 1, 1))
+                        arrayOf(byteArrayOf(0, 1, 0)),
+                        expectedSize = 105
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf(Date(4)),
-                        arrayOf(Date(0), Date(1), Date(2), Date(3))
+                        arrayOf(Date(4)),
+                        expectedSize = 105
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf(Decimal128(4)),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
+                        arrayOf(Decimal128(4)),
+                        expectedSize = 99
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf(ObjectId(TestHelper.generateObjectIdHexString(4))),
-                        arrayOf(ObjectId(TestHelper.generateObjectIdHexString(0)), ObjectId(TestHelper.generateObjectIdHexString(1)), ObjectId(TestHelper.generateObjectIdHexString(2)), ObjectId(TestHelper.generateObjectIdHexString(3)))
+                        arrayOf(ObjectId(TestHelper.generateObjectIdHexString(4))),
+                        expectedSize = 105
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::notEqualTo,
                         arrayOf(UUID.fromString(TestHelper.generateUUIDString(4))),
-                        arrayOf(UUID.fromString(TestHelper.generateUUIDString(0)), UUID.fromString(TestHelper.generateUUIDString(1)), UUID.fromString(TestHelper.generateUUIDString(2)), UUID.fromString(TestHelper.generateUUIDString(3)))
+                        arrayOf(UUID.fromString(TestHelper.generateUUIDString(4))),
+                        expectedSize = 105
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::notEqualToInsensitive,
                         arrayOf("HELLO WORLD 2"),
-                        arrayOf("hello world 0", "hello world 1", "hello world 3", "hello world 4",
-                                "HELLO WORLD 0", "HELLO WORLD 1", "HELLO WORLD 3", "HELLO WORLD 4")
+                        arrayOf("HELLO WORLD 2"),
+                        expectedSize = 104
                 ),
                 // GREATER THAN TEST DEFINITIONS
                 MixedParameterizedQueryTest(
@@ -284,12 +306,12 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::greaterThan,
                         arrayOf(4.5.toFloat()),
-                        arrayOf(4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat())
+                        arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.6, 4.7, 4.8, 4.9)
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::greaterThan,
                         arrayOf(4.4),
-                        arrayOf(4.5, 4.6, 4.7, 4.8, 4.9)
+                        arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.5, 4.6, 4.7, 4.8, 4.9)
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::greaterThan,
@@ -299,7 +321,7 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::greaterThan,
                         arrayOf(Decimal128(3)),
-                        arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.0, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, Decimal128(4))
+                        arrayOf(4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.0, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::greaterThan,
@@ -335,12 +357,12 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::greaterThanOrEqualTo,
                         arrayOf(4.5.toFloat()),
-                        arrayOf(4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
+                        arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.5, 4.6, 4.7, 4.8, 4.9)
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::greaterThanOrEqualTo,
                         arrayOf(4.4),
-                        arrayOf(4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
+                        arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.4, 4.5, 4.6, 4.7, 4.8, 4.9)
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::greaterThanOrEqualTo,
@@ -350,7 +372,7 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::greaterThanOrEqualTo,
                         arrayOf(Decimal128(3)),
-                        arrayOf(3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.0, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, Decimal128(3), Decimal128(4))
+                        arrayOf(3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.0, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, Decimal128(3), Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::greaterThanOrEqualTo,
@@ -417,22 +439,22 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::lessThanOrEqualTo,
                         arrayOf(4.toByte()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::lessThanOrEqualTo,
                         arrayOf(4.toShort()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::lessThanOrEqualTo,
                         arrayOf(4.toInt()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::lessThanOrEqualTo,
                         arrayOf(4.toLong()),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::lessThanOrEqualTo,
@@ -447,12 +469,12 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::lessThanOrEqualTo,
                         arrayOf(Date(3)),
-                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, Date(0), Date(1), Date(2), Date(3))
+                        arrayOf(Date(0), Date(1), Date(2), Date(3))
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::lessThanOrEqualTo,
                         arrayOf(Decimal128(3)),
-                        arrayOf(Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
+                        arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::lessThanOrEqualTo,
@@ -467,78 +489,92 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
                 // IN TEST DEFINITIONS
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::`in`,
-                        arrayOf(arrayOf(true, null)),
-                        arrayOf(true)
+                        arrayOf(true, null),
+                        arrayOf(true, *arrayOfNulls(9)),
+                        expand = false
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::`in`,
-                        arrayOf(arrayOf(4.toByte(), 2.toByte(), 5.toByte(), 22.toByte(), null)),
-                        arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, Decimal128(2), Decimal128(4))
+                        arrayOf(4.toByte(), 2.toByte(), 5.toByte(), 22.toByte(), null),
+                        arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, 4.0.toFloat(), 4.0, Decimal128(2), Decimal128(4), *arrayOfNulls(9)),
+                        expand = false
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::`in`,
-                        arrayOf(arrayOf(4.toShort(), 2.toShort(), 5.toShort(), 22.toShort(), null)),
-                        arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, Decimal128(2), Decimal128(4))
+                        arrayOf(4.toShort(), 2.toShort(), 5.toShort(), 22.toShort(), null),
+                        arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, 4.0.toFloat(), 4.0, Decimal128(2), Decimal128(4), *arrayOfNulls(9)),
+                        expand = false
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::`in`,
-                        arrayOf(arrayOf(4.toInt(), 2.toInt(), 5.toInt(), 22.toInt(), null)),
-                        arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, Decimal128(2), Decimal128(4))
+                        arrayOf(4.toInt(), 2.toInt(), 5.toInt(), 22.toInt(), null),
+                        arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, 4.0.toFloat(), 4.0, Decimal128(2), Decimal128(4), *arrayOfNulls(9)),
+                        expand = false
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::`in`,
-                        arrayOf(arrayOf(4.toLong(), 2.toLong(), 5.toLong(), 22.toLong(), null)),
-                        arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, Decimal128(2), Decimal128(4))
+                        arrayOf(4.toLong(), 2.toLong(), 5.toLong(), 22.toLong(), null),
+                        arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, 4.0.toFloat(), 4.0, Decimal128(2), Decimal128(4), *arrayOfNulls(9)),
+                        expand = false
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::`in`,
-                        arrayOf(arrayOf(4.8.toFloat(), 8.1.toFloat(), 4.3.toFloat(), 4.0.toFloat(), 4.7.toFloat(), null)),
-                        arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.3.toFloat(), 4.7.toFloat(), 4.8.toFloat(), Decimal128(4))
+                        arrayOf(4.8.toFloat(), 8.1.toFloat(), 4.3.toFloat(), 4.0.toFloat(), 4.7.toFloat(), null),
+                        arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.3.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.0, Decimal128(4), *arrayOfNulls(9)),
+                        expand = false
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::`in`,
-                        arrayOf(arrayOf(4.8, 8.1, 4.3, 4.0, 4.7, null)),
-                        arrayOf(4, 4, 4, 4, 4.0, 4.3, 4.7, 4.8, Decimal128(4))
+                        arrayOf(4.8, 8.1, 4.3, 4.0, 4.7, null),
+                        arrayOf(4, 4, 4, 4, 4.0, 4.0, 4.3, 4.7, 4.8, Decimal128(4), *arrayOfNulls(9)),
+                        expand = false
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::`in`,
-                        arrayOf(arrayOf("hello world 3", "hello world 0", "hello world 4", "realm rocks", null)),
-                        arrayOf("hello world 0", "hello world 3", "hello world 4")
+                        arrayOf("hello world 3", "hello world 0", "hello world 4", "realm rocks", null),
+                        arrayOf("hello world 0", "hello world 3", "hello world 4", *arrayOfNulls(9)),
+                        expand = false
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::`in`,
-                        arrayOf(arrayOf(
+                        arrayOf(
                                 byteArrayOf(0, 0, 0),
                                 byteArrayOf(0, 1, 1),
                                 byteArrayOf(1, 1, 0, 0),
                                 byteArrayOf(1, 1, 1),
                                 null
-                        )),
+                        ),
                         arrayOf(
                                 byteArrayOf(0, 0, 0),
                                 byteArrayOf(0, 1, 1),
-                                byteArrayOf(1, 1, 1)
-                        )
+                                byteArrayOf(1, 1, 1),
+                                *arrayOfNulls(9)
+                        ),
+                        expand = false
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::`in`,
-                        arrayOf(arrayOf(Date(100), Date(3), null, Date(1))),
-                        arrayOf(Date(1), Date(3))
+                        arrayOf(Date(100), Date(3), null, Date(1)),
+                        arrayOf(Date(1), Date(3), *arrayOfNulls(9)),
+                        expand = false
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::`in`,
-                        arrayOf(arrayOf(null, Decimal128(100), Decimal128(3), Decimal128(2))),
-                        arrayOf(2, 2, 2, 2, 3, 3, 3, 3, Decimal128(2), Decimal128(3))
+                        arrayOf(Decimal128(100), null, Decimal128(3), Decimal128(2)),
+                        arrayOf(2, 2, 2, 2, 3, 3, 3, 3, Decimal128(2), Decimal128(3), *arrayOfNulls(9)),
+                        expand = false
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::`in`,
-                        arrayOf(arrayOf(null, ObjectId(TestHelper.generateObjectIdHexString(3)), ObjectId(TestHelper.generateObjectIdHexString(9)), ObjectId(TestHelper.generateObjectIdHexString(1)))),
-                        arrayOf(ObjectId(TestHelper.generateObjectIdHexString(1)), ObjectId(TestHelper.generateObjectIdHexString(3)))
+                        arrayOf(ObjectId(TestHelper.generateObjectIdHexString(3)), null, ObjectId(TestHelper.generateObjectIdHexString(9)), ObjectId(TestHelper.generateObjectIdHexString(1))),
+                        arrayOf(ObjectId(TestHelper.generateObjectIdHexString(1)), ObjectId(TestHelper.generateObjectIdHexString(3)), *arrayOfNulls(9)),
+                        expand = false
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::`in`,
-                        arrayOf(arrayOf(null, UUID.fromString(TestHelper.generateUUIDString(3)), UUID.fromString(TestHelper.generateUUIDString(9)), UUID.fromString(TestHelper.generateUUIDString(1)))),
-                        arrayOf(UUID.fromString(TestHelper.generateUUIDString(1)), UUID.fromString(TestHelper.generateUUIDString(3)))
+                        arrayOf(UUID.fromString(TestHelper.generateUUIDString(3)), null, UUID.fromString(TestHelper.generateUUIDString(9)), UUID.fromString(TestHelper.generateUUIDString(1))),
+                        arrayOf(UUID.fromString(TestHelper.generateUUIDString(1)), UUID.fromString(TestHelper.generateUUIDString(3)), *arrayOfNulls(9)),
+                        expand = false
                 ),
                 // BETWEEN TEST DEFINITIONS
                 MixedParameterizedQueryTest(
@@ -579,7 +615,7 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::between,
                         arrayOf(Decimal128(2), Decimal128(4)),
-                        arrayOf(2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, Decimal128(2), Decimal128(3), Decimal128(4))
+                        arrayOf(2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::between,
@@ -668,18 +704,25 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
         this.test.executeMixed(this)
     }
 
-    private fun validate(expected: Array<Mixed>, results: RealmResults<MixedNotIndexed>, skipContents: Boolean = false) {
-        assertEquals(expected.size, results.size)
+    private fun validate(expected: Array<Mixed>, results: RealmResults<MixedNotIndexed>, expectedSize: Int) {
+        assertEquals(expectedSize, results.size)
 
-        if (!skipContents) {
-            expected.forEachIndexed { index, item ->
-                val comparing = results[index]!!.mixed!!
-                assertTrue(item.coercedEquals(comparing))
-            }
+        expected.forEachIndexed { index, item ->
+            val comparing = results[index]!!.mixed!!
+            assertTrue(item.coercedEquals(comparing), "Values are not equal $item [vs] $comparing")
         }
     }
 
-    fun equalTo(value: Any, expected: Array<Mixed>) {
+    private fun validateNotEqual(expected: Array<Mixed>, results: RealmResults<MixedNotIndexed>, expectedSize: Int) {
+        assertEquals(expectedSize, results.size)
+
+        expected.forEachIndexed { index, item ->
+            val comparing = results[index]!!.mixed!!
+            assertFalse(item.coercedEquals(comparing), "Values are equal $item [vs] $comparing")
+        }
+    }
+
+    fun equalTo(expected: Array<Mixed>, expectedSize: Int, value: Any) {
         val query: RealmQuery<MixedNotIndexed> = realm.where()
 
         when (value) {
@@ -700,10 +743,10 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
             else -> throw IllegalStateException("EqualTo for type ${value::class.qualifiedName} not implemented")
         }
 
-        validate(expected, query.findAll()!!)
+        validate(expected, query.findAll()!!, expectedSize)
     }
 
-    fun notEqualTo(value: Any, expected: Array<Mixed>) {
+    fun notEqualTo(expected: Array<Mixed>, expectedSize: Int, value: Any) {
         val query: RealmQuery<MixedNotIndexed> = realm.where()
 
         when (value) {
@@ -724,10 +767,10 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
             else -> throw IllegalStateException("NotEqualTo for type ${value::class.qualifiedName} not implemented")
         }
 
-        validate(expected, query.findAll()!!)
+        validateNotEqual(expected, query.findAll()!!, expectedSize)
     }
 
-    fun equalToInsensitive(value: Any, expected: Array<Mixed>) {
+    fun equalToInsensitive(expected: Array<Mixed>, expectedSize: Int, value: Any) {
         val query: RealmQuery<MixedNotIndexed> = realm.where()
 
         when (value) {
@@ -736,10 +779,10 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
             else -> throw IllegalStateException("EqualTo[c] for type ${value::class.qualifiedName} not implemented")
         }
 
-        validate(expected, query.findAll()!!)
+        validate(expected, query.findAll()!!, expectedSize)
     }
 
-    fun notEqualToInsensitive(value: Any, expected: Array<Mixed>) {
+    fun notEqualToInsensitive(expected: Array<Mixed>, expectedSize: Int, value: Any) {
         val query: RealmQuery<MixedNotIndexed> = realm.where()
 
         when (value) {
@@ -748,10 +791,10 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
             else -> throw IllegalStateException("NotEqualTo[c] for type ${value::class.qualifiedName} not implemented")
         }
 
-        validate(expected, query.findAll()!!)
+        validateNotEqual(expected, query.findAll()!!, expectedSize)
     }
 
-    fun greaterThanOrEqualTo(value: Any, expected: Array<Mixed>) {
+    fun greaterThanOrEqualTo(expected: Array<Mixed>, expectedSize: Int, value: Any) {
         val query: RealmQuery<MixedNotIndexed> = realm.where()
 
         when (value) {
@@ -764,13 +807,15 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
             is UUID -> query.greaterThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, value)
             is Date -> query.greaterThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, value)
             is Mixed -> query.greaterThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, value)
+            is Byte -> return
+            is Short -> return
             else -> throw IllegalStateException("GreaterThanOrEqualTo for type ${value::class.qualifiedName} not implemented")
         }
 
-        validate(expected, query.findAll()!!)
+        validate(expected, query.findAll()!!, expectedSize)
     }
 
-    fun greaterThan(value: Any, expected: Array<Mixed>) {
+    fun greaterThan(expected: Array<Mixed>, expectedSize: Int, value: Any) {
         val query: RealmQuery<MixedNotIndexed> = realm.where()
 
         when (value) {
@@ -783,13 +828,15 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
             is UUID -> query.greaterThan(MixedNotIndexed.FIELD_MIXED, value)
             is Date -> query.greaterThan(MixedNotIndexed.FIELD_MIXED, value)
             is Mixed -> query.greaterThan(MixedNotIndexed.FIELD_MIXED, value)
+            is Byte -> return
+            is Short -> return
             else -> throw IllegalStateException("GreaterThan for type ${value::class.qualifiedName} not implemented")
         }
 
-        validate(expected, query.findAll()!!)
+        validate(expected, query.findAll()!!, expectedSize)
     }
 
-    fun lessThanOrEqualTo(value: Any, expected: Array<Mixed>) {
+    fun lessThanOrEqualTo(expected: Array<Mixed>, expectedSize: Int, value: Any) {
         val query: RealmQuery<MixedNotIndexed> = realm.where()
 
         when (value) {
@@ -802,13 +849,15 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
             is UUID -> query.lessThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, value)
             is Date -> query.lessThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, value)
             is Mixed -> query.lessThanOrEqualTo(MixedNotIndexed.FIELD_MIXED, value)
+            is Byte -> return
+            is Short -> return
             else -> throw IllegalStateException("LessThanOrEqualTo for type ${value::class.qualifiedName} not implemented")
         }
 
-        validate(expected, query.findAll()!!)
+        validate(expected, query.findAll()!!, expectedSize)
     }
 
-    fun lessThan(value: Any, expected: Array<Mixed>) {
+    fun lessThan(expected: Array<Mixed>, expectedSize: Int, value: Any) {
         val query: RealmQuery<MixedNotIndexed> = realm.where()
 
         when (value) {
@@ -821,36 +870,49 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
             is UUID -> query.lessThan(MixedNotIndexed.FIELD_MIXED, value)
             is Date -> query.lessThan(MixedNotIndexed.FIELD_MIXED, value)
             is Mixed -> query.lessThan(MixedNotIndexed.FIELD_MIXED, value)
+            is Byte -> return
+            is Short -> return
             else -> throw IllegalStateException("LessThan for type ${value::class.qualifiedName} not implemented")
         }
 
-        validate(expected, query.findAll()!!)
+        validate(expected, query.findAll()!!, expectedSize)
+    }
+
+    private inline fun <reified T> convertToType(value: Array<Any?>): Array<T>{
+        return Array(value.size) { i ->
+            value[i] as T
+        }
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun `in`(value: Any, expected: Array<Mixed>) {
+    fun `in`(expected: Array<Mixed>, expectedSize: Int, value: Array<Any?>) {
         val query: RealmQuery<MixedNotIndexed> = realm.where()
 
-        if (value is Array<*> && value.size > 0) {
+        if (value.isNotEmpty()) {
             when (value[0]) {
-                is Boolean -> query.`in`(MixedNotIndexed.FIELD_MIXED, value as Array<out Boolean?>)
-                is Byte -> query.`in`(MixedNotIndexed.FIELD_MIXED, value as Array<out Byte?>)
-                is Short -> query.`in`(MixedNotIndexed.FIELD_MIXED, value as Array<out Short?>)
-                is Int -> query.`in`(MixedNotIndexed.FIELD_MIXED, value as Array<out Int?>)
-                is Long -> query.`in`(MixedNotIndexed.FIELD_MIXED, value as Array<out Long?>)
-                is Float -> query.`in`(MixedNotIndexed.FIELD_MIXED, value as Array<out Float?>)
-                is Double -> query.`in`(MixedNotIndexed.FIELD_MIXED, value as Array<out Double?>)
-                is String -> query.`in`(MixedNotIndexed.FIELD_MIXED, value as Array<out String?>)
-                is Date -> query.`in`(MixedNotIndexed.FIELD_MIXED, value as Array<out Date?>)
-                is Mixed -> query.`in`(MixedNotIndexed.FIELD_MIXED, value as Array<out Mixed>)
+                is Boolean -> query.`in`(MixedNotIndexed.FIELD_MIXED, convertToType<Boolean?>(value))
+                is Byte -> query.`in`(MixedNotIndexed.FIELD_MIXED, convertToType<Byte?>(value))
+                is Short -> query.`in`(MixedNotIndexed.FIELD_MIXED, convertToType<Short?>(value))
+                is Int -> query.`in`(MixedNotIndexed.FIELD_MIXED, convertToType<Int?>(value))
+                is Long -> query.`in`(MixedNotIndexed.FIELD_MIXED, convertToType<Long?>(value))
+                is Float -> query.`in`(MixedNotIndexed.FIELD_MIXED, convertToType<Float?>(value))
+                is Double -> query.`in`(MixedNotIndexed.FIELD_MIXED, convertToType<Double?>(value))
+                is String -> query.`in`(MixedNotIndexed.FIELD_MIXED, convertToType<String?>(value))
+                is Date -> query.`in`(MixedNotIndexed.FIELD_MIXED, convertToType<Date?>(value))
+                is Mixed -> query.`in`(MixedNotIndexed.FIELD_MIXED, convertToType<Mixed?>(value))
+                is Decimal128 -> return
+                is ObjectId -> return
+                is UUID -> return
+                is ByteArray -> return
+
                 else -> throw IllegalStateException("In for type ${value::class.qualifiedName} not implemented")
             }
         }
 
-        validate(expected, query.findAll()!!)
+        validate(expected, query.findAll()!!, expectedSize)
     }
 
-    fun between(value1: Any, value2: Any, expected: Array<Mixed>) {
+    fun between(expected: Array<Mixed>, expectedSize: Int, value1: Any, value2: Any) {
         val query: RealmQuery<MixedNotIndexed> = realm.where()
 
         when (value1) {
@@ -861,13 +923,17 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
             is Decimal128 -> query.between(MixedNotIndexed.FIELD_MIXED, value1, value2 as Decimal128)
             is Date -> query.between(MixedNotIndexed.FIELD_MIXED, value1, value2 as Date)
             is Mixed -> query.between(MixedNotIndexed.FIELD_MIXED, value1, value2 as Mixed)
+            is Byte -> return
+            is Short -> return
+            is ObjectId -> return
+            is UUID -> return
             else -> throw IllegalStateException("Between for type ${value1::class.qualifiedName} not implemented")
         }
 
-        validate(expected, query.findAll()!!)
+        validate(expected, query.findAll()!!, expectedSize)
     }
 
-    fun beginsWith(value: Any, expected: Array<Mixed>) {
+    fun beginsWith(expected: Array<Mixed>, expectedSize: Int, value: Any) {
         val query: RealmQuery<MixedNotIndexed> = realm.where()
 
         when (value) {
@@ -876,10 +942,10 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
             else -> throw IllegalStateException("BeginsWith for type ${value::class.qualifiedName} not implemented")
         }
 
-        validate(expected, query.findAll()!!)
+        validate(expected, query.findAll()!!, expectedSize)
     }
 
-    fun beginsWithInsensitive(value: Any, expected: Array<Mixed>) {
+    fun beginsWithInsensitive(expected: Array<Mixed>, expectedSize: Int, value: Any) {
         val query: RealmQuery<MixedNotIndexed> = realm.where()
 
         when (value) {
@@ -888,10 +954,10 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
             else -> throw IllegalStateException("BeginsWith for type ${value::class.qualifiedName} not implemented")
         }
 
-        validate(expected, query.findAll()!!)
+        validate(expected, query.findAll()!!, expectedSize)
     }
 
-    fun endsWith(value: Any, expected: Array<Mixed>) {
+    fun endsWith(expected: Array<Mixed>, expectedSize: Int, value: Any) {
         val query: RealmQuery<MixedNotIndexed> = realm.where()
 
         when (value) {
@@ -900,10 +966,10 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
             else -> throw IllegalStateException("EndsWith for type ${value::class.qualifiedName} not implemented")
         }
 
-        validate(expected, query.findAll()!!)
+        validate(expected, query.findAll()!!, expectedSize)
     }
 
-    fun endsWithInsensitive(value: Any, expected: Array<Mixed>) {
+    fun endsWithInsensitive(expected: Array<Mixed>, expectedSize: Int, value: Any) {
         val query: RealmQuery<MixedNotIndexed> = realm.where()
 
         when (value) {
@@ -912,10 +978,10 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
             else -> throw IllegalStateException("EndsWith for type ${value::class.qualifiedName} not implemented")
         }
 
-        validate(expected, query.findAll()!!)
+        validate(expected, query.findAll()!!, expectedSize)
     }
 
-    fun contains(value: Any, expected: Array<Mixed>) {
+    fun contains(expected: Array<Mixed>, expectedSize: Int, value: Any) {
         val query: RealmQuery<MixedNotIndexed> = realm.where()
 
         when (value) {
@@ -924,10 +990,10 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
             else -> throw IllegalStateException("Contains for type ${value::class.qualifiedName} not implemented")
         }
 
-        validate(expected, query.findAll()!!)
+        validate(expected, query.findAll()!!, expectedSize)
     }
 
-    fun containsInsensitive(value: Any, expected: Array<Mixed>) {
+    fun containsInsensitive(expected: Array<Mixed>, expectedSize: Int, value: Any) {
         val query: RealmQuery<MixedNotIndexed> = realm.where()
 
         when (value) {
@@ -936,10 +1002,10 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
             else -> throw IllegalStateException("Contains for type ${value::class.qualifiedName} not implemented")
         }
 
-        validate(expected, query.findAll()!!)
+        validate(expected, query.findAll()!!, expectedSize)
     }
 
-    fun like(value: Any, expected: Array<Mixed>) {
+    fun like(expected: Array<Mixed>, expectedSize: Int, value: Any) {
         val query: RealmQuery<MixedNotIndexed> = realm.where()
 
         when (value) {
@@ -948,10 +1014,10 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
             else -> throw IllegalStateException("Like for type ${value::class.qualifiedName} not implemented")
         }
 
-        validate(expected, query.findAll()!!)
+        validate(expected, query.findAll()!!, expectedSize)
     }
 
-    fun likeInsensitive(value: Any, expected: Array<Mixed>) {
+    fun likeInsensitive(expected: Array<Mixed>, expectedSize: Int, value: Any) {
         val query: RealmQuery<MixedNotIndexed> = realm.where()
 
         when (value) {
@@ -960,6 +1026,6 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
             else -> throw IllegalStateException("Like for type ${value::class.qualifiedName} not implemented")
         }
 
-        validate(expected, query.findAll()!!)
+        validate(expected, query.findAll()!!, expectedSize)
     }
 }
