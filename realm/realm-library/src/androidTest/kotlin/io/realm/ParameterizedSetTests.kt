@@ -1,6 +1,7 @@
 package io.realm
 
 import androidx.test.platform.app.InstrumentationRegistry
+import io.realm.entities.DogPrimaryKey
 import io.realm.rule.BlockingLooperThread
 import org.junit.After
 import org.junit.Before
@@ -184,4 +185,12 @@ interface SetTester : GenericTester {
     fun removeAll()
     fun clear()
     fun freeze()
+}
+
+fun <T : Any> RealmSet<T>.init(values: List<T?>): RealmSet<T> {
+    return this.apply {
+        for (value in values) {
+            this.add(value)
+        }
+    }
 }

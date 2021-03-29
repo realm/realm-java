@@ -270,6 +270,7 @@ public class LinkingObjectsDynamicTests {
                     case DECIMAL128_SET:
                     case OBJECT_ID_SET:
                     case UUID_SET:
+                    case LINK_SET:
                         // TODO: https://github.com/realm/realm-java/issues/7382
                         // TODO: https://github.com/realm/realm-java/issues/7383
                         throw new IllegalArgumentException("Unexpected field type");

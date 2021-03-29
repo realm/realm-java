@@ -17,7 +17,9 @@
 package io.realm
 
 import io.realm.entities.AllTypes
+import io.realm.entities.DogPrimaryKey
 import io.realm.entities.SetContainerClass
+import io.realm.entities.StringOnly
 import io.realm.kotlin.createObject
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
@@ -709,12 +711,17 @@ fun managedSetFactory(): List<SetTester> {
                         toArrayManaged = ToArrayManaged.UUIDManaged()
                 )
 
-//            SetSupportedType.LINK ->
-//                UnmanagedSetTester<RealmModel>(
-//                        testerName = "UnmanagedRealmModel",
-//                        values = listOf(VALUE_LINK_HELLO, VALUE_LINK_BYE, null),
-//                        notPresentValue = VALUE_LINK_NOT_PRESENT
-//                )
+            SetSupportedType.LINK ->
+                ManagedSetTester<DogPrimaryKey>(
+                        testerName = "LINK",
+                        setGetter = AllTypes::getColumnRealmModelSet,
+                        setSetter = AllTypes::setColumnRealmModelSet,
+                        managedSetGetter = SetContainerClass::myRealmModelSet,
+                        managedCollectionGetter = SetContainerClass::myRealmModelList,
+                        initializedSet =  listOf(VALUE_LINK_HELLO, VALUE_LINK_BYE),
+                        notPresentValue = VALUE_LINK_NOT_PRESENT,
+                        toArrayManaged = ToArrayManaged.RealmModelManaged()
+                )
             // Ignore Mixed in this switch
             else -> null
         }
@@ -823,8 +830,8 @@ abstract class ToArrayManaged<T> {
                 test(realm, set, values, emptyArray(), arrayOf())
     }
 
-    class RealmModelManaged : ToArrayManaged<RealmModel>() {
-        override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<RealmModel>, values: List<RealmModel?>) =
+    class RealmModelManaged : ToArrayManaged<DogPrimaryKey>() {
+        override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<DogPrimaryKey>, values: List<DogPrimaryKey?>) =
                 test(realm, set, values, emptyArray(), arrayOf())
     }
 
