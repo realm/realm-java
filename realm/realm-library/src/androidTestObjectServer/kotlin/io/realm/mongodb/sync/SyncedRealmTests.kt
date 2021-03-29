@@ -610,8 +610,7 @@ class SyncedRealmTests {
                             columnDecimal128List = expectedDecimal128List
                             columnObjectIdList = expectedObjectIdList
                             columnUUIDList = expectedUUIDList
-                            // Ignored until realm lists of mixed are compatible in Sync
-//                        columnMixedList = expectedMixedList
+                            columnMixedList = expectedMixedList
                         }
 
                         realm1.copyToRealmOrUpdate(syncObject)
@@ -653,7 +652,7 @@ class SyncedRealmTests {
                         assertEquals(expectedDecimal128List, it.columnDecimal128List)
                         assertEquals(expectedObjectIdList, it.columnObjectIdList)
                         assertEquals(expectedUUIDList, it.columnUUIDList)
-//                    assertEquals(expectedMixedList, it.columnMixedList)
+                        assertEquals(expectedMixedList, it.columnMixedList)
                     }
                 }
             }
