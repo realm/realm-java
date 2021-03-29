@@ -507,7 +507,7 @@ class SyncedRealmTests {
     }
 
     @Test
-    fun catch_float32availableInSync(){
+    fun catch_float32NotSupportedInSync(){
         val user1: User = createNewUser()
         val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
 
