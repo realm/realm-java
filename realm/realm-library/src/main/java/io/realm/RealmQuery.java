@@ -2028,7 +2028,7 @@ public class RealmQuery<E> {
      * Returns the average of a given field.
      * Does not support dotted field notation.
      *
-     * @param fieldName the field to calculate average on. Only Mixed fields is supported. For other types consider using {@link #average(String)}.
+     * @param fieldName the field to calculate average on. Only Mixed fields are supported. For other types consider using {@link #average(String)}.
      * @return the average for the given field amongst objects in query results. This will be of type Decimal128. If no objects exist or they all have {@code null}
      * as the value for the given field {@code 0} will be returned. When computing the average, objects with {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a Mixed type.
