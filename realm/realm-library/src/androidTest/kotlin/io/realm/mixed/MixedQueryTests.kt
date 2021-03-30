@@ -16,7 +16,6 @@
 
 package io.realm.mixed
 
-import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
@@ -27,7 +26,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.*
 import kotlin.collections.HashSet
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
