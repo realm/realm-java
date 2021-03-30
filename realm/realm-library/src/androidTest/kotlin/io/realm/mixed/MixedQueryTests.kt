@@ -22,10 +22,7 @@ import io.realm.*
 import io.realm.entities.MixedNotIndexed
 import io.realm.kotlin.where
 import org.bson.types.Decimal128
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.*
 import org.junit.runner.RunWith
 import java.util.*
 import kotlin.collections.HashSet
@@ -134,14 +131,32 @@ class MixedQueryTests {
         assertEquals(Decimal128.parse("279.0"), value)
     }
 
+    // This test case is meant to catch when  https://github.com/realm/realm-core/issues/4571 gets fixed
     @Test
-    fun min() {
-        initializeTestData()
+    fun catch_minAggregationFixed() {
+        initializeTestData(true)
+        realm.executeTransaction {
+            val mixedObject = MixedNotIndexed(Mixed.nullValue())
+            realm.insert(mixedObject)
+        }
+
         val value = realm.where<MixedNotIndexed>().minMixed(MixedNotIndexed.FIELD_MIXED)
         assertTrue(value.isNull)
     }
 
     @Test
+    @Ignore("FIXME: see https://github.com/realm/realm-core/issues/4571")
+    fun min() {
+        initializeTestData()
+        val value = realm.where<MixedNotIndexed>().minMixed(MixedNotIndexed.FIELD_MIXED)
+
+        assertFalse(value.isNull)
+        assertEquals(MixedType.INTEGER, value.type)
+        assertEquals(0.toLong(), value.asLong())
+    }
+
+    @Test
+    @Ignore("FIXME: see https://github.com/realm/realm-core/issues/4571")
     fun min_without_nulls() {
         initializeTestData(true)
         realm.executeTransaction {
