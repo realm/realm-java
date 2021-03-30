@@ -19,10 +19,10 @@ package io.realm.mixed
 import io.realm.Mixed
 import io.realm.MixedType
 import io.realm.TestHelper
+import io.realm.entities.PrimaryKeyAsString
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import java.util.*
-import kotlin.collections.ArrayList
 
 class MixedHelper {
     companion object {
@@ -89,7 +89,10 @@ class MixedHelper {
                         }
                     }
                     MixedType.OBJECT -> {
-                    }   // FIXME: ADD TESTS
+                        for (i in 0..5) {
+                            mixedValues.add(Mixed.valueOf(PrimaryKeyAsString("item $i")))
+                        }
+                    }
                     MixedType.NULL -> {
                         for (i in 1..9) {
                             mixedValues.add(Mixed.nullValue())
