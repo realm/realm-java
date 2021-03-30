@@ -3,6 +3,7 @@ package io.realm;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -12,6 +13,8 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import io.realm.internal.OsSet;
+import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.Row;
 import io.realm.internal.core.NativeMixedCollection;
 
 /**
@@ -194,10 +197,10 @@ abstract class SetValueOperator<E> {
         }
     }
 
-    private boolean isObjectSameType(@Nullable Object o) {
+    private boolean isObjectSameType(@Nullable Object object) {
         // Return false when passing something else than the correct type
-        if (o != null) {
-            return o.getClass() == valueClass;
+        if (object != null) {
+            return valueClass.isAssignableFrom(object.getClass());
         } else {
             return true;
         }
@@ -206,7 +209,7 @@ abstract class SetValueOperator<E> {
     private boolean isUpperBoundCollectionSameType(Collection<? extends E> c) {
         if (!c.isEmpty()) {
             for (E item : c) {
-                if (item != null && item.getClass() != valueClass) {
+                if (item != null && !valueClass.isAssignableFrom(item.getClass())) {
                     return false;
                 }
             }
@@ -217,7 +220,7 @@ abstract class SetValueOperator<E> {
     private boolean isCollectionSameType(Collection<?> c) {
         if (!c.isEmpty()) {
             for (Object item : c) {
-                if (item != null && item.getClass() != valueClass) {
+                if (item != null && !valueClass.isAssignableFrom(item.getClass())) {
                     return false;
                 }
             }
@@ -255,6 +258,8 @@ abstract class SetValueOperator<E> {
             return (SetIterator<T>) new ObjectIdSetIterator(osSet, baseRealm);
         } else if (valueClass == UUID.class) {
             return (SetIterator<T>) new UUIDSetIterator(osSet, baseRealm);
+        } else if (RealmModel.class.isAssignableFrom(valueClass)) {
+            return (SetIterator<T>) new RealmModelSetIterator(osSet, baseRealm, valueClass);
         } else {
             throw new IllegalArgumentException("Unknown class for iterator: " + valueClass.getSimpleName());
         }
@@ -1071,6 +1076,89 @@ class UUIDOperator extends SetValueOperator<UUID> {
 
 /**
  * TODO
+ */
+class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
+
+    public RealmModelSetOperator(BaseRealm baseRealm, OsSet osSet, Class<T> valueClass) {
+        super(baseRealm, osSet, valueClass);
+    }
+
+    @Override
+    boolean add(@Nullable T value) {
+        if (value == null) {
+            throw new IllegalArgumentException("Null values cannot be contained in this set.");
+        }
+
+        boolean copyObject = CollectionUtils.checkCanObjectBeCopied(baseRealm, value, valueClass.getName());
+        if (CollectionUtils.isEmbedded(baseRealm, value)) {
+            throw new IllegalArgumentException("Embedded objects are not supported by RealmSets.");
+        } else {
+            RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, (RealmModel) value) : value);
+            Row row$realm = proxy.realmGet$proxyState().getRow$realm();
+            return osSet.addRow(row$realm.getObjectKey());
+        }
+    }
+
+    @Override
+    boolean containsInternal(@Nullable Object value) {
+        if (value == null) {
+            throw new IllegalArgumentException("Null values cannot be contained in this set.");
+        } else if (valueClass.cast(value) instanceof RealmObjectProxy) {
+            Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
+            return osSet.containsRow(row$realm.getObjectKey());
+        }
+        throw new IllegalArgumentException("Only managed models can be contained in this set.");
+    }
+
+    @Override
+    boolean removeInternal(@Nullable Object value) {
+        if (value == null) {
+            return false;
+        } else if (valueClass.cast(value) instanceof RealmObjectProxy) {
+            Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
+            return osSet.removeRow(row$realm.getObjectKey());
+        }
+        throw new IllegalArgumentException("Only managed models can be contained in this set.");
+    }
+
+    @Override
+    boolean containsAllInternal(Collection<?> collection) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        Collection<T> realmModelCollection = (Collection<T>) collection;
+        NativeMixedCollection mixedCollection = NativeMixedCollection.newRealmModelCollection(realmModelCollection);
+        return osSet.collectionFunnel(mixedCollection, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+    }
+
+    @Override
+    boolean addAllInternal(Collection<? extends T> collection) {
+        // Collection has been type-checked from caller
+        collection = CollectionUtils.copyToRealm(baseRealm, collection);
+        NativeMixedCollection mixedCollection = NativeMixedCollection.newRealmModelCollection(collection);
+        return osSet.collectionFunnel(mixedCollection, OsSet.ExternalCollectionOperation.ADD_ALL);
+    }
+
+    @Override
+    boolean removeAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        Collection<T> realmModelCollection = (Collection<T>) c;
+        NativeMixedCollection collection = NativeMixedCollection.newRealmModelCollection(realmModelCollection);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        Collection<T> realmModelCollection = (Collection<T>) c;
+        NativeMixedCollection collection = NativeMixedCollection.newRealmModelCollection(realmModelCollection);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
+    }
+}
+
+/**
+ * TODO
  *
  * @param <E>
  */
@@ -1268,5 +1356,23 @@ class ObjectIdSetIterator extends SetIterator<ObjectId> {
 class UUIDSetIterator extends SetIterator<UUID> {
     public UUIDSetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
+    }
+}
+
+/**
+ * TODO
+ */
+class RealmModelSetIterator<T extends RealmModel> extends SetIterator<T> {
+    private final Class<T> valueClass;
+
+    public RealmModelSetIterator(OsSet osSet, BaseRealm baseRealm, Class<T> valueClass) {
+        super(osSet, baseRealm);
+        this.valueClass = valueClass;
+    }
+
+    @Override
+    protected T getValueAtIndex(int position) {
+        long rowPtr = osSet.getRow(position);
+        return baseRealm.get(valueClass, rowPtr, false, new ArrayList<>());
     }
 }

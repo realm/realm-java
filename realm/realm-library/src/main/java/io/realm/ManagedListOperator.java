@@ -211,7 +211,7 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
     public void appendValue(Object value) {
         RealmModel realmObject = (RealmModel) value;
         boolean copyObject = CollectionUtils.checkCanObjectBeCopied(realm, realmObject, className);
-        if (isEmbedded((RealmModel) value)) {
+        if (CollectionUtils.isEmbedded(realm, realmObject)) {
             if (value instanceof DynamicRealmObject) {
                 throw new IllegalArgumentException("Embedded objects are not supported by RealmLists of DynamicRealmObjects yet.");
             }
@@ -234,7 +234,7 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
         checkInsertIndex(index);
         RealmModel realmObject = (RealmModel) value;
         boolean copyObject = CollectionUtils.checkCanObjectBeCopied(realm, realmObject, className);
-        if (isEmbedded(realmObject)) {
+        if (CollectionUtils.isEmbedded(realm, realmObject)) {
             if (value instanceof DynamicRealmObject) {
                 throw new IllegalArgumentException("Embedded objects are not supported by RealmLists of DynamicRealmObjects yet.");
             }
@@ -243,15 +243,6 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
         } else {
             RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(realm, (RealmModel) value) : realmObject);
             osList.insertRow(index, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
-        }
-    }
-
-    private boolean isEmbedded(RealmModel value) {
-        if (realm instanceof Realm) {
-            return realm.getSchema().getSchemaForClass(value.getClass()).isEmbedded();
-        } else {
-            String objectType = ((DynamicRealmObject) value).getType();
-            return realm.getSchema().getSchemaForClass(objectType).isEmbedded();
         }
     }
 
@@ -264,7 +255,7 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
     protected void setValue(int index, Object value) {
         RealmModel realmObject = (RealmModel) value;
         boolean copyObject = CollectionUtils.checkCanObjectBeCopied(realm, realmObject, className);
-        if (isEmbedded(realmObject)) {
+        if (CollectionUtils.isEmbedded(realm, realmObject)) {
             if (value instanceof DynamicRealmObject) {
                 throw new IllegalArgumentException("Embedded objects are not supported by RealmLists of DynamicRealmObjects yet.");
             }

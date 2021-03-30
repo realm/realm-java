@@ -712,7 +712,7 @@ fun managedSetFactory(): List<SetTester> {
                 )
 
             SetSupportedType.LINK ->
-                ManagedSetTester<DogPrimaryKey>(
+                RealmModelManagedSetTester<DogPrimaryKey>(
                         testerName = "LINK",
                         setGetter = AllTypes::getColumnRealmModelSet,
                         setSetter = AllTypes::setColumnRealmModelSet,

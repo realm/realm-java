@@ -221,8 +221,8 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
                                                          OsSet osSet,
                                                          Class<T> valueClass) {
         if (CollectionUtils.isClassForRealmModel(valueClass)) {
-            // TODO
-            return null;
+            Class<? extends RealmModel> typeCastClass = (Class<? extends RealmModel>) valueClass;
+            return new ManagedSetStrategy<>((SetValueOperator<T>) new RealmModelSetOperator<>(baseRealm, osSet, typeCastClass), valueClass);
         }
 
         SetValueOperator<T> operator;
@@ -278,7 +278,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
         private final SetValueOperator<E> setValueOperator;
         private final Class<E> valueClass;
 
-        private ManagedSetStrategy(SetValueOperator<E> setValueOperator, Class<E> valueClass) {
+        ManagedSetStrategy(SetValueOperator<E> setValueOperator, Class<E> valueClass) {
             this.setValueOperator = setValueOperator;
             this.valueClass = valueClass;
         }

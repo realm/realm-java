@@ -742,7 +742,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 }
                 forRealmModel -> {
                     emitStatement("proxyState.checkValidObject(item)")
-                    emitStatement("osSet.addRow(((RealmObjectProxy) item).realmGet\$proxyState().getRow\$realm().getObjectKey())")
+                    emitStatement("Row row\$realm = ((RealmObjectProxy) item).realmGet\$proxyState().getRow\$realm()")
+                    emitStatement("osSet.addRow(row\$realm.getObjectKey())")
                 }
                 else -> {
                     emitStatement("osSet.add(item)")
