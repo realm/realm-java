@@ -39,12 +39,12 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class MixedParameterizedQueryTest(
-        val function: KFunction<*>,
-        val parameters: Array<Any?>,
-        val results: Array<Any?>,
+        val filter: KFunction<*>,
+        val arguments: Array<Any?>,
+        val expectedResult: Array<Any?>,
         val expectedSize: Int? = null,
-        val expand: Boolean = true,
-        val checkUnmanagedModels: Boolean = false
+        val expandArguments: Boolean = true,
+        val testWithUnmanagedObjects: Boolean = false
 ) {
     @Suppress("UNCHECKED_CAST")
     private fun asMixed(array: Array<Any?>, realm: Realm, copyToRealm: Boolean = true): Array<Mixed> {
@@ -79,46 +79,46 @@ class MixedParameterizedQueryTest(
     }
 
     override fun toString(): String {
-        if (parameters.isEmpty()) {
-            return function.javaMethod!!.name
+        if (arguments.isEmpty()) {
+            return filter.javaMethod!!.name
         }
 
-        val firstParameter = parameters[0]
+        val firstParameter = arguments[0]
         if (firstParameter is Array<*>) {
-            return "${function.javaMethod!!.name}:${firstParameter::class.java.componentType}"
+            return "${filter.javaMethod!!.name}:${firstParameter::class.java.componentType}"
         }
 
-        return "${function.javaMethod!!.name}:${parameters[0]!!::class.simpleName}"
+        return "${filter.javaMethod!!.name}:${arguments[0]!!::class.simpleName}"
     }
 
     fun execute(context: Any, realm: Realm) {
-        if (expand) {
-            function.call(context, asMixed(results, realm), expectedSize ?: results.size, *parameters)
+        if (expandArguments) {
+            filter.call(context, asMixed(expectedResult, realm), expectedSize ?: expectedResult.size, *arguments)
         } else {
-            function.call(context, asMixed(results, realm), expectedSize ?: results.size, parameters)
+            filter.call(context, asMixed(expectedResult, realm), expectedSize ?: expectedResult.size, arguments)
         }
     }
 
     fun executeMixed(context: Any, realm: Realm) {
-        if (expand) {
-            function.call(context, asMixed(results, realm), expectedSize ?: results.size, *asMixed(parameters, realm))
+        if (expandArguments) {
+            filter.call(context, asMixed(expectedResult, realm), expectedSize ?: expectedResult.size, *asMixed(arguments, realm))
         } else {
-            function.call(context, asMixed(results, realm), expectedSize ?: results.size, asMixed(parameters, realm))
+            filter.call(context, asMixed(expectedResult, realm), expectedSize ?: expectedResult.size, asMixed(arguments, realm))
         }
     }
 
     fun executeMixed_nonManagedRealmModel(context: Any, realm: Realm) {
-        if(!checkUnmanagedModels){
+        if(!testWithUnmanagedObjects){
             return
         }
 
         val exception = assertFailsWith<InvocationTargetException>("Non managed Realm objects are not valid query arguments"){
-            if (expand) {
-                function.call(context, asMixed(results, realm, false),
-                        expectedSize ?: results.size, *asMixed(parameters, realm, false))
+            if (expandArguments) {
+                filter.call(context, asMixed(expectedResult, realm, false),
+                        expectedSize ?: expectedResult.size, *asMixed(arguments, realm, false))
             } else {
-                function.call(context, asMixed(results, realm, false),
-                        expectedSize ?: results.size, asMixed(parameters, realm, false))
+                filter.call(context, asMixed(expectedResult, realm, false),
+                        expectedSize ?: expectedResult.size, asMixed(arguments, realm, false))
             }
         }
 
@@ -153,573 +153,573 @@ class MixedParameterizedQueryTests(val test: MixedParameterizedQueryTest) {
         fun data(): List<MixedParameterizedQueryTest> = listOf(
                 // EQUALS TEST DEFINITIONS
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::equalTo,
-                        parameters = arrayOf(true),
-                        results = arrayOf(true)
+                        filter = MixedParameterizedQueryTests::equalTo,
+                        arguments = arrayOf(true),
+                        expectedResult = arrayOf(true)
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::equalTo,
-                        parameters = arrayOf(4.toByte()),
-                        results = arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
+                        filter = MixedParameterizedQueryTests::equalTo,
+                        arguments = arrayOf(4.toByte()),
+                        expectedResult = arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::equalTo,
-                        parameters = arrayOf(4.toShort()),
-                        results = arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
+                        filter = MixedParameterizedQueryTests::equalTo,
+                        arguments = arrayOf(4.toShort()),
+                        expectedResult = arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::equalTo,
-                        parameters = arrayOf(4.toInt()),
-                        results = arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
+                        filter = MixedParameterizedQueryTests::equalTo,
+                        arguments = arrayOf(4.toInt()),
+                        expectedResult = arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::equalTo,
-                        parameters = arrayOf(4.toLong()),
-                        results = arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
+                        filter = MixedParameterizedQueryTests::equalTo,
+                        arguments = arrayOf(4.toLong()),
+                        expectedResult = arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::equalTo,
-                        parameters = arrayOf(4.toFloat()),
-                        results = arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
+                        filter = MixedParameterizedQueryTests::equalTo,
+                        arguments = arrayOf(4.toFloat()),
+                        expectedResult = arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::equalTo,
-                        parameters = arrayOf(4.toDouble()),
-                        results = arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
+                        filter = MixedParameterizedQueryTests::equalTo,
+                        arguments = arrayOf(4.toDouble()),
+                        expectedResult = arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::equalTo,
-                        parameters = arrayOf("hello world 1"),
-                        results = arrayOf("hello world 1")
+                        filter = MixedParameterizedQueryTests::equalTo,
+                        arguments = arrayOf("hello world 1"),
+                        expectedResult = arrayOf("hello world 1")
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::equalTo,
-                        parameters = arrayOf(byteArrayOf(0, 1, 0)),
-                        results = arrayOf(byteArrayOf(0, 1, 0))
+                        filter = MixedParameterizedQueryTests::equalTo,
+                        arguments = arrayOf(byteArrayOf(0, 1, 0)),
+                        expectedResult = arrayOf(byteArrayOf(0, 1, 0))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::equalTo,
-                        parameters = arrayOf(Date(4)),
-                        results = arrayOf(Date(4))
+                        filter = MixedParameterizedQueryTests::equalTo,
+                        arguments = arrayOf(Date(4)),
+                        expectedResult = arrayOf(Date(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::equalTo,
-                        parameters = arrayOf(Decimal128(4)),
-                        results = arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
+                        filter = MixedParameterizedQueryTests::equalTo,
+                        arguments = arrayOf(Decimal128(4)),
+                        expectedResult = arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::equalTo,
-                        parameters = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(0))),
-                        results = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(0)))
+                        filter = MixedParameterizedQueryTests::equalTo,
+                        arguments = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(0))),
+                        expectedResult = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(0)))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::equalTo,
-                        parameters = arrayOf(UUID.fromString(TestHelper.generateUUIDString(0))),
-                        results = arrayOf(UUID.fromString(TestHelper.generateUUIDString(0)))
+                        filter = MixedParameterizedQueryTests::equalTo,
+                        arguments = arrayOf(UUID.fromString(TestHelper.generateUUIDString(0))),
+                        expectedResult = arrayOf(UUID.fromString(TestHelper.generateUUIDString(0)))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::equalToInsensitive,
-                        parameters = arrayOf("hello world 2"),
-                        results = arrayOf("hello world 2", "HELLO WORLD 2")
+                        filter = MixedParameterizedQueryTests::equalToInsensitive,
+                        arguments = arrayOf("hello world 2"),
+                        expectedResult = arrayOf("hello world 2", "HELLO WORLD 2")
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::equalTo,
-                        parameters = arrayOf(PrimaryKeyAsString("item 1")),
-                        results = arrayOf(PrimaryKeyAsString("item 1")),
-                        checkUnmanagedModels = true
+                        filter = MixedParameterizedQueryTests::equalTo,
+                        arguments = arrayOf(PrimaryKeyAsString("item 1")),
+                        expectedResult = arrayOf(PrimaryKeyAsString("item 1")),
+                        testWithUnmanagedObjects = true
                 ),
                 // NOT EQUALS TEST DEFINITIONS
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::notEqualTo,
-                        parameters = arrayOf(true),
-                        results = arrayOf(false),
+                        filter = MixedParameterizedQueryTests::notEqualTo,
+                        arguments = arrayOf(true),
+                        expectedResult = arrayOf(false),
                         expectedSize = 111
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::notEqualTo,
-                        parameters = arrayOf(4.toByte()),
-                        results = arrayOf(4.toByte()),
+                        filter = MixedParameterizedQueryTests::notEqualTo,
+                        arguments = arrayOf(4.toByte()),
+                        expectedResult = arrayOf(4.toByte()),
                         expectedSize = 105
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::notEqualTo,
-                        parameters = arrayOf(4.toShort()),
-                        results = arrayOf(4.toShort()),
+                        filter = MixedParameterizedQueryTests::notEqualTo,
+                        arguments = arrayOf(4.toShort()),
+                        expectedResult = arrayOf(4.toShort()),
                         expectedSize = 105
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::notEqualTo,
-                        parameters = arrayOf(4.toInt()),
-                        results = arrayOf(4.toInt()),
+                        filter = MixedParameterizedQueryTests::notEqualTo,
+                        arguments = arrayOf(4.toInt()),
+                        expectedResult = arrayOf(4.toInt()),
                         expectedSize = 105
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::notEqualTo,
-                        parameters = arrayOf(4.toLong()),
-                        results = arrayOf(4.toLong()),
+                        filter = MixedParameterizedQueryTests::notEqualTo,
+                        arguments = arrayOf(4.toLong()),
+                        expectedResult = arrayOf(4.toLong()),
                         expectedSize = 105
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::notEqualTo,
-                        parameters = arrayOf(4.4.toFloat()),
-                        results = arrayOf(4.4.toFloat()),
+                        filter = MixedParameterizedQueryTests::notEqualTo,
+                        arguments = arrayOf(4.4.toFloat()),
+                        expectedResult = arrayOf(4.4.toFloat()),
                         expectedSize = 111
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::notEqualTo,
-                        parameters = arrayOf(4.3),
-                        results = arrayOf(4.3),
+                        filter = MixedParameterizedQueryTests::notEqualTo,
+                        arguments = arrayOf(4.3),
+                        expectedResult = arrayOf(4.3),
                         expectedSize = 111
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::notEqualTo,
-                        parameters = arrayOf("hello world 2"),
-                        results = arrayOf("hello world 2"),
+                        filter = MixedParameterizedQueryTests::notEqualTo,
+                        arguments = arrayOf("hello world 2"),
+                        expectedResult = arrayOf("hello world 2"),
                         expectedSize = 111
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::notEqualTo,
-                        parameters = arrayOf(byteArrayOf(0, 1, 0)),
-                        results = arrayOf(byteArrayOf(0, 1, 0)),
+                        filter = MixedParameterizedQueryTests::notEqualTo,
+                        arguments = arrayOf(byteArrayOf(0, 1, 0)),
+                        expectedResult = arrayOf(byteArrayOf(0, 1, 0)),
                         expectedSize = 111
                 ),
                 MixedParameterizedQueryTest(
                         MixedParameterizedQueryTests::notEqualTo,
-                        parameters = arrayOf(Date(4)),
-                        results = arrayOf(Date(4)),
+                        arguments = arrayOf(Date(4)),
+                        expectedResult = arrayOf(Date(4)),
                         expectedSize = 111
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::notEqualTo,
-                        parameters = arrayOf(Decimal128(4)),
-                        results = arrayOf(Decimal128(4)),
+                        filter = MixedParameterizedQueryTests::notEqualTo,
+                        arguments = arrayOf(Decimal128(4)),
+                        expectedResult = arrayOf(Decimal128(4)),
                         expectedSize = 105
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::notEqualTo,
-                        parameters = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(4))),
-                        results = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(4))),
+                        filter = MixedParameterizedQueryTests::notEqualTo,
+                        arguments = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(4))),
+                        expectedResult = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(4))),
                         expectedSize = 111
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::notEqualTo,
-                        parameters = arrayOf(UUID.fromString(TestHelper.generateUUIDString(4))),
-                        results = arrayOf(UUID.fromString(TestHelper.generateUUIDString(4))),
+                        filter = MixedParameterizedQueryTests::notEqualTo,
+                        arguments = arrayOf(UUID.fromString(TestHelper.generateUUIDString(4))),
+                        expectedResult = arrayOf(UUID.fromString(TestHelper.generateUUIDString(4))),
                         expectedSize = 111
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::notEqualToInsensitive,
-                        parameters = arrayOf("HELLO WORLD 2"),
-                        results = arrayOf("HELLO WORLD 2"),
+                        filter = MixedParameterizedQueryTests::notEqualToInsensitive,
+                        arguments = arrayOf("HELLO WORLD 2"),
+                        expectedResult = arrayOf("HELLO WORLD 2"),
                         expectedSize = 110
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::notEqualTo,
-                        parameters = arrayOf(PrimaryKeyAsString("item 1")),
-                        results = arrayOf(PrimaryKeyAsString("item 1")),
+                        filter = MixedParameterizedQueryTests::notEqualTo,
+                        arguments = arrayOf(PrimaryKeyAsString("item 1")),
+                        expectedResult = arrayOf(PrimaryKeyAsString("item 1")),
                         expectedSize = 111,
-                        checkUnmanagedModels = true
+                        testWithUnmanagedObjects = true
                 ),
                 // GREATER THAN TEST DEFINITIONS
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThan,
-                        parameters = arrayOf(5.toByte()),
-                        results = arrayOf(6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
+                        filter = MixedParameterizedQueryTests::greaterThan,
+                        arguments = arrayOf(5.toByte()),
+                        expectedResult = arrayOf(6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThan,
-                        parameters = arrayOf(5.toShort()),
-                        results = arrayOf(6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
+                        filter = MixedParameterizedQueryTests::greaterThan,
+                        arguments = arrayOf(5.toShort()),
+                        expectedResult = arrayOf(6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThan,
-                        parameters = arrayOf(5.toInt()),
-                        results = arrayOf(6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
+                        filter = MixedParameterizedQueryTests::greaterThan,
+                        arguments = arrayOf(5.toInt()),
+                        expectedResult = arrayOf(6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThan,
-                        parameters = arrayOf(5.toLong()),
-                        results = arrayOf(6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
+                        filter = MixedParameterizedQueryTests::greaterThan,
+                        arguments = arrayOf(5.toLong()),
+                        expectedResult = arrayOf(6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThan,
-                        parameters = arrayOf(4.5.toFloat()),
-                        results = arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.6, 4.7, 4.8, 4.9)
+                        filter = MixedParameterizedQueryTests::greaterThan,
+                        arguments = arrayOf(4.5.toFloat()),
+                        expectedResult = arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.6, 4.7, 4.8, 4.9)
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThan,
-                        parameters = arrayOf(4.425),
-                        results = arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.5, 4.6, 4.7, 4.8, 4.9)
+                        filter = MixedParameterizedQueryTests::greaterThan,
+                        arguments = arrayOf(4.425),
+                        expectedResult = arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.5, 4.6, 4.7, 4.8, 4.9)
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThan,
-                        parameters = arrayOf(Date(2)),
-                        results = arrayOf(Date(3), Date(4))
+                        filter = MixedParameterizedQueryTests::greaterThan,
+                        arguments = arrayOf(Date(2)),
+                        expectedResult = arrayOf(Date(3), Date(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThan,
-                        parameters = arrayOf(Decimal128(3)),
-                        results = arrayOf(4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.0, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, Decimal128(4))
+                        filter = MixedParameterizedQueryTests::greaterThan,
+                        arguments = arrayOf(Decimal128(3)),
+                        expectedResult = arrayOf(4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.0, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThan,
-                        parameters = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(1))),
-                        results = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(2)), ObjectId(TestHelper.generateObjectIdHexString(3)), ObjectId(TestHelper.generateObjectIdHexString(4)))
+                        filter = MixedParameterizedQueryTests::greaterThan,
+                        arguments = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(1))),
+                        expectedResult = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(2)), ObjectId(TestHelper.generateObjectIdHexString(3)), ObjectId(TestHelper.generateObjectIdHexString(4)))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThan,
-                        parameters = arrayOf(UUID.fromString(TestHelper.generateUUIDString(1))),
-                        results = arrayOf(UUID.fromString(TestHelper.generateUUIDString(2)), UUID.fromString(TestHelper.generateUUIDString(3)), UUID.fromString(TestHelper.generateUUIDString(4)))
+                        filter = MixedParameterizedQueryTests::greaterThan,
+                        arguments = arrayOf(UUID.fromString(TestHelper.generateUUIDString(1))),
+                        expectedResult = arrayOf(UUID.fromString(TestHelper.generateUUIDString(2)), UUID.fromString(TestHelper.generateUUIDString(3)), UUID.fromString(TestHelper.generateUUIDString(4)))
                 ),
                 // GREATER THAN OR EQUALS TEST DEFINITIONS
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThanOrEqualTo,
-                        parameters = arrayOf(5.toByte()),
-                        results = arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
+                        filter = MixedParameterizedQueryTests::greaterThanOrEqualTo,
+                        arguments = arrayOf(5.toByte()),
+                        expectedResult = arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThanOrEqualTo,
-                        parameters = arrayOf(5.toShort()),
-                        results = arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
+                        filter = MixedParameterizedQueryTests::greaterThanOrEqualTo,
+                        arguments = arrayOf(5.toShort()),
+                        expectedResult = arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThanOrEqualTo,
-                        parameters = arrayOf(5.toInt()),
-                        results = arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
+                        filter = MixedParameterizedQueryTests::greaterThanOrEqualTo,
+                        arguments = arrayOf(5.toInt()),
+                        expectedResult = arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThanOrEqualTo,
-                        parameters = arrayOf(5.toLong()),
-                        results = arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
+                        filter = MixedParameterizedQueryTests::greaterThanOrEqualTo,
+                        arguments = arrayOf(5.toLong()),
+                        expectedResult = arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9)
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThanOrEqualTo,
-                        parameters = arrayOf(4.5.toFloat()),
-                        results = arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.5, 4.6, 4.7, 4.8, 4.9)
+                        filter = MixedParameterizedQueryTests::greaterThanOrEqualTo,
+                        arguments = arrayOf(4.5.toFloat()),
+                        expectedResult = arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.5, 4.6, 4.7, 4.8, 4.9)
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThanOrEqualTo,
-                        parameters = arrayOf(4.4),
-                        results = arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.4, 4.5, 4.6, 4.7, 4.8, 4.9)
+                        filter = MixedParameterizedQueryTests::greaterThanOrEqualTo,
+                        arguments = arrayOf(4.4),
+                        expectedResult = arrayOf(5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.4, 4.5, 4.6, 4.7, 4.8, 4.9)
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThanOrEqualTo,
-                        parameters = arrayOf(Date(2)),
-                        results = arrayOf(Date(2), Date(3), Date(4))
+                        filter = MixedParameterizedQueryTests::greaterThanOrEqualTo,
+                        arguments = arrayOf(Date(2)),
+                        expectedResult = arrayOf(Date(2), Date(3), Date(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThanOrEqualTo,
-                        parameters = arrayOf(Decimal128(3)),
-                        results = arrayOf(3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.0, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, Decimal128(3), Decimal128(4))
+                        filter = MixedParameterizedQueryTests::greaterThanOrEqualTo,
+                        arguments = arrayOf(Decimal128(3)),
+                        expectedResult = arrayOf(3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.9.toFloat(), 4.0, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, Decimal128(3), Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThanOrEqualTo,
-                        parameters = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(1))),
-                        results = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(1)), ObjectId(TestHelper.generateObjectIdHexString(2)), ObjectId(TestHelper.generateObjectIdHexString(3)), ObjectId(TestHelper.generateObjectIdHexString(4)))
+                        filter = MixedParameterizedQueryTests::greaterThanOrEqualTo,
+                        arguments = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(1))),
+                        expectedResult = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(1)), ObjectId(TestHelper.generateObjectIdHexString(2)), ObjectId(TestHelper.generateObjectIdHexString(3)), ObjectId(TestHelper.generateObjectIdHexString(4)))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::greaterThanOrEqualTo,
-                        parameters = arrayOf(UUID.fromString(TestHelper.generateUUIDString(1))),
-                        results = arrayOf(UUID.fromString(TestHelper.generateUUIDString(1)), UUID.fromString(TestHelper.generateUUIDString(2)), UUID.fromString(TestHelper.generateUUIDString(3)), UUID.fromString(TestHelper.generateUUIDString(4)))
+                        filter = MixedParameterizedQueryTests::greaterThanOrEqualTo,
+                        arguments = arrayOf(UUID.fromString(TestHelper.generateUUIDString(1))),
+                        expectedResult = arrayOf(UUID.fromString(TestHelper.generateUUIDString(1)), UUID.fromString(TestHelper.generateUUIDString(2)), UUID.fromString(TestHelper.generateUUIDString(3)), UUID.fromString(TestHelper.generateUUIDString(4)))
                 ),
                 // LESS THAN TEST DEFINITIONS
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThan,
-                        parameters = arrayOf(4.toByte()),
-                        results = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
+                        filter = MixedParameterizedQueryTests::lessThan,
+                        arguments = arrayOf(4.toByte()),
+                        expectedResult = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThan,
-                        parameters = arrayOf(4.toShort()),
-                        results = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
+                        filter = MixedParameterizedQueryTests::lessThan,
+                        arguments = arrayOf(4.toShort()),
+                        expectedResult = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThan,
-                        parameters = arrayOf(4.toInt()),
-                        results = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
+                        filter = MixedParameterizedQueryTests::lessThan,
+                        arguments = arrayOf(4.toInt()),
+                        expectedResult = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThan,
-                        parameters = arrayOf(4.toLong()),
-                        results = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
+                        filter = MixedParameterizedQueryTests::lessThan,
+                        arguments = arrayOf(4.toLong()),
+                        expectedResult = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThan,
-                        parameters = arrayOf(4.5.toFloat()),
-                        results = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.0, 4.1, 4.2, 4.3, 4.4, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
+                        filter = MixedParameterizedQueryTests::lessThan,
+                        arguments = arrayOf(4.5.toFloat()),
+                        expectedResult = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.0, 4.1, 4.2, 4.3, 4.4, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThan,
-                        parameters = arrayOf(4.3),
-                        results = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.0, 4.1, 4.2, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
+                        filter = MixedParameterizedQueryTests::lessThan,
+                        arguments = arrayOf(4.3),
+                        expectedResult = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.0, 4.1, 4.2, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThan,
-                        parameters = arrayOf(Date(3)),
-                        results = arrayOf(Date(0), Date(1), Date(2))
+                        filter = MixedParameterizedQueryTests::lessThan,
+                        arguments = arrayOf(Date(3)),
+                        expectedResult = arrayOf(Date(0), Date(1), Date(2))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThan,
-                        parameters = arrayOf(Decimal128(3)),
-                        results = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, Decimal128(0), Decimal128(1), Decimal128(2))
+                        filter = MixedParameterizedQueryTests::lessThan,
+                        arguments = arrayOf(Decimal128(3)),
+                        expectedResult = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, Decimal128(0), Decimal128(1), Decimal128(2))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThan,
-                        parameters = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(3))),
-                        results = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(0)), ObjectId(TestHelper.generateObjectIdHexString(1)), ObjectId(TestHelper.generateObjectIdHexString(2)))
+                        filter = MixedParameterizedQueryTests::lessThan,
+                        arguments = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(3))),
+                        expectedResult = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(0)), ObjectId(TestHelper.generateObjectIdHexString(1)), ObjectId(TestHelper.generateObjectIdHexString(2)))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThan,
-                        parameters = arrayOf(UUID.fromString(TestHelper.generateUUIDString(3))),
-                        results = arrayOf(UUID.fromString(TestHelper.generateUUIDString(0)), UUID.fromString(TestHelper.generateUUIDString(1)), UUID.fromString(TestHelper.generateUUIDString(2)))
+                        filter = MixedParameterizedQueryTests::lessThan,
+                        arguments = arrayOf(UUID.fromString(TestHelper.generateUUIDString(3))),
+                        expectedResult = arrayOf(UUID.fromString(TestHelper.generateUUIDString(0)), UUID.fromString(TestHelper.generateUUIDString(1)), UUID.fromString(TestHelper.generateUUIDString(2)))
                 ),
                 // LESS THAN OR EQUALS TEST DEFINITIONS
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThanOrEqualTo,
-                        parameters = arrayOf(4.toByte()),
-                        results = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
+                        filter = MixedParameterizedQueryTests::lessThanOrEqualTo,
+                        arguments = arrayOf(4.toByte()),
+                        expectedResult = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThanOrEqualTo,
-                        parameters = arrayOf(4.toShort()),
-                        results = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
+                        filter = MixedParameterizedQueryTests::lessThanOrEqualTo,
+                        arguments = arrayOf(4.toShort()),
+                        expectedResult = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThanOrEqualTo,
-                        parameters = arrayOf(4.toInt()),
-                        results = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
+                        filter = MixedParameterizedQueryTests::lessThanOrEqualTo,
+                        arguments = arrayOf(4.toInt()),
+                        expectedResult = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThanOrEqualTo,
-                        parameters = arrayOf(4.toLong()),
-                        results = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
+                        filter = MixedParameterizedQueryTests::lessThanOrEqualTo,
+                        arguments = arrayOf(4.toLong()),
+                        expectedResult = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThanOrEqualTo,
-                        parameters = arrayOf(4.5.toFloat()),
-                        results = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.0, 4.1, 4.2, 4.3, 4.4, 4.5, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
+                        filter = MixedParameterizedQueryTests::lessThanOrEqualTo,
+                        arguments = arrayOf(4.5.toFloat()),
+                        expectedResult = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.4.toFloat(), 4.5.toFloat(), 4.0, 4.1, 4.2, 4.3, 4.4, 4.5, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThanOrEqualTo,
-                        parameters = arrayOf(4.325),
-                        results = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.0, 4.1, 4.2, 4.3, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
+                        filter = MixedParameterizedQueryTests::lessThanOrEqualTo,
+                        arguments = arrayOf(4.325),
+                        expectedResult = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.1.toFloat(), 4.2.toFloat(), 4.3.toFloat(), 4.0, 4.1, 4.2, 4.3, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThanOrEqualTo,
-                        parameters = arrayOf(Date(3)),
-                        results = arrayOf(Date(0), Date(1), Date(2), Date(3))
+                        filter = MixedParameterizedQueryTests::lessThanOrEqualTo,
+                        arguments = arrayOf(Date(3)),
+                        expectedResult = arrayOf(Date(0), Date(1), Date(2), Date(3))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThanOrEqualTo,
-                        parameters = arrayOf(Decimal128(3)),
-                        results = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
+                        filter = MixedParameterizedQueryTests::lessThanOrEqualTo,
+                        arguments = arrayOf(Decimal128(3)),
+                        expectedResult = arrayOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, Decimal128(0), Decimal128(1), Decimal128(2), Decimal128(3))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThanOrEqualTo,
-                        parameters = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(3))),
-                        results = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(0)), ObjectId(TestHelper.generateObjectIdHexString(1)), ObjectId(TestHelper.generateObjectIdHexString(2)), ObjectId(TestHelper.generateObjectIdHexString(3)))
+                        filter = MixedParameterizedQueryTests::lessThanOrEqualTo,
+                        arguments = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(3))),
+                        expectedResult = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(0)), ObjectId(TestHelper.generateObjectIdHexString(1)), ObjectId(TestHelper.generateObjectIdHexString(2)), ObjectId(TestHelper.generateObjectIdHexString(3)))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::lessThanOrEqualTo,
-                        parameters = arrayOf(UUID.fromString(TestHelper.generateUUIDString(3))),
-                        results = arrayOf(UUID.fromString(TestHelper.generateUUIDString(0)), UUID.fromString(TestHelper.generateUUIDString(1)), UUID.fromString(TestHelper.generateUUIDString(2)), UUID.fromString(TestHelper.generateUUIDString(3)))
+                        filter = MixedParameterizedQueryTests::lessThanOrEqualTo,
+                        arguments = arrayOf(UUID.fromString(TestHelper.generateUUIDString(3))),
+                        expectedResult = arrayOf(UUID.fromString(TestHelper.generateUUIDString(0)), UUID.fromString(TestHelper.generateUUIDString(1)), UUID.fromString(TestHelper.generateUUIDString(2)), UUID.fromString(TestHelper.generateUUIDString(3)))
                 ),
                 // IN TEST DEFINITIONS
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::`in`,
-                        parameters = arrayOf(true, null),
-                        results = arrayOf(true, *arrayOfNulls(9)),
-                        expand = false
+                        filter = MixedParameterizedQueryTests::`in`,
+                        arguments = arrayOf(true, null),
+                        expectedResult = arrayOf(true, *arrayOfNulls(9)),
+                        expandArguments = false
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::`in`,
-                        parameters = arrayOf(4.toByte(), 2.toByte(), 5.toByte(), 22.toByte(), null),
-                        results = arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, 4.0.toFloat(), 4.0, Decimal128(2), Decimal128(4), *arrayOfNulls(9)),
-                        expand = false
+                        filter = MixedParameterizedQueryTests::`in`,
+                        arguments = arrayOf(4.toByte(), 2.toByte(), 5.toByte(), 22.toByte(), null),
+                        expectedResult = arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, 4.0.toFloat(), 4.0, Decimal128(2), Decimal128(4), *arrayOfNulls(9)),
+                        expandArguments = false
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::`in`,
-                        parameters = arrayOf(4.toShort(), 2.toShort(), 5.toShort(), 22.toShort(), null),
-                        results = arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, 4.0.toFloat(), 4.0, Decimal128(2), Decimal128(4), *arrayOfNulls(9)),
-                        expand = false
+                        filter = MixedParameterizedQueryTests::`in`,
+                        arguments = arrayOf(4.toShort(), 2.toShort(), 5.toShort(), 22.toShort(), null),
+                        expectedResult = arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, 4.0.toFloat(), 4.0, Decimal128(2), Decimal128(4), *arrayOfNulls(9)),
+                        expandArguments = false
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::`in`,
-                        parameters = arrayOf(4.toInt(), 2.toInt(), 5.toInt(), 22.toInt(), null),
-                        results = arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, 4.0.toFloat(), 4.0, Decimal128(2), Decimal128(4), *arrayOfNulls(9)),
-                        expand = false
+                        filter = MixedParameterizedQueryTests::`in`,
+                        arguments = arrayOf(4.toInt(), 2.toInt(), 5.toInt(), 22.toInt(), null),
+                        expectedResult = arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, 4.0.toFloat(), 4.0, Decimal128(2), Decimal128(4), *arrayOfNulls(9)),
+                        expandArguments = false
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::`in`,
-                        parameters = arrayOf(4.toLong(), 2.toLong(), 5.toLong(), 22.toLong(), null),
-                        results = arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, 4.0.toFloat(), 4.0, Decimal128(2), Decimal128(4), *arrayOfNulls(9)),
-                        expand = false
+                        filter = MixedParameterizedQueryTests::`in`,
+                        arguments = arrayOf(4.toLong(), 2.toLong(), 5.toLong(), 22.toLong(), null),
+                        expectedResult = arrayOf(2, 2, 2, 2, 4, 4, 4, 4, 5, 5, 5, 5, 4.0.toFloat(), 4.0, Decimal128(2), Decimal128(4), *arrayOfNulls(9)),
+                        expandArguments = false
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::`in`,
-                        parameters = arrayOf(4.8.toFloat(), 8.1.toFloat(), 4.3.toFloat(), 4.0.toFloat(), 4.7.toFloat(), null),
-                        results = arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.3.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.0, Decimal128(4), *arrayOfNulls(9)),
-                        expand = false
+                        filter = MixedParameterizedQueryTests::`in`,
+                        arguments = arrayOf(4.8.toFloat(), 8.1.toFloat(), 4.3.toFloat(), 4.0.toFloat(), 4.7.toFloat(), null),
+                        expectedResult = arrayOf(4, 4, 4, 4, 4.0.toFloat(), 4.3.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.0, Decimal128(4), *arrayOfNulls(9)),
+                        expandArguments = false
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::`in`,
-                        parameters = arrayOf(4.8, 8.1, 4.3, 4.0, 4.7, null),
-                        results = arrayOf(4, 4, 4, 4, 4.0, 4.0, 4.3, 4.7, 4.8, Decimal128(4), *arrayOfNulls(9)),
-                        expand = false
+                        filter = MixedParameterizedQueryTests::`in`,
+                        arguments = arrayOf(4.8, 8.1, 4.3, 4.0, 4.7, null),
+                        expectedResult = arrayOf(4, 4, 4, 4, 4.0, 4.0, 4.3, 4.7, 4.8, Decimal128(4), *arrayOfNulls(9)),
+                        expandArguments = false
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::`in`,
-                        parameters = arrayOf("hello world 3", "hello world 0", "hello world 4", "realm rocks", null),
-                        results = arrayOf("hello world 0", "hello world 3", "hello world 4", *arrayOfNulls(9)),
-                        expand = false
+                        filter = MixedParameterizedQueryTests::`in`,
+                        arguments = arrayOf("hello world 3", "hello world 0", "hello world 4", "realm rocks", null),
+                        expectedResult = arrayOf("hello world 0", "hello world 3", "hello world 4", *arrayOfNulls(9)),
+                        expandArguments = false
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::`in`,
-                        parameters = arrayOf(
+                        filter = MixedParameterizedQueryTests::`in`,
+                        arguments = arrayOf(
                                 byteArrayOf(0, 0, 0),
                                 byteArrayOf(0, 1, 1),
                                 byteArrayOf(1, 1, 0, 0),
                                 byteArrayOf(1, 1, 1),
                                 null
                         ),
-                        results = arrayOf(
+                        expectedResult = arrayOf(
                                 byteArrayOf(0, 0, 0),
                                 byteArrayOf(0, 1, 1),
                                 byteArrayOf(1, 1, 1),
                                 *arrayOfNulls(9)
                         ),
-                        expand = false
+                        expandArguments = false
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::`in`,
-                        parameters = arrayOf(Date(100), Date(3), null, Date(1)),
-                        results = arrayOf(Date(1), Date(3), *arrayOfNulls(9)),
-                        expand = false
+                        filter = MixedParameterizedQueryTests::`in`,
+                        arguments = arrayOf(Date(100), Date(3), null, Date(1)),
+                        expectedResult = arrayOf(Date(1), Date(3), *arrayOfNulls(9)),
+                        expandArguments = false
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::`in`,
-                        parameters = arrayOf(Decimal128(100), null, Decimal128(3), Decimal128(2)),
-                        results = arrayOf(2, 2, 2, 2, 3, 3, 3, 3, Decimal128(2), Decimal128(3), *arrayOfNulls(9)),
-                        expand = false
+                        filter = MixedParameterizedQueryTests::`in`,
+                        arguments = arrayOf(Decimal128(100), null, Decimal128(3), Decimal128(2)),
+                        expectedResult = arrayOf(2, 2, 2, 2, 3, 3, 3, 3, Decimal128(2), Decimal128(3), *arrayOfNulls(9)),
+                        expandArguments = false
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::`in`,
-                        parameters = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(3)), null, ObjectId(TestHelper.generateObjectIdHexString(9)), ObjectId(TestHelper.generateObjectIdHexString(1))),
-                        results = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(1)), ObjectId(TestHelper.generateObjectIdHexString(3)), *arrayOfNulls(9)),
-                        expand = false
+                        filter = MixedParameterizedQueryTests::`in`,
+                        arguments = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(3)), null, ObjectId(TestHelper.generateObjectIdHexString(9)), ObjectId(TestHelper.generateObjectIdHexString(1))),
+                        expectedResult = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(1)), ObjectId(TestHelper.generateObjectIdHexString(3)), *arrayOfNulls(9)),
+                        expandArguments = false
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::`in`,
-                        parameters = arrayOf(UUID.fromString(TestHelper.generateUUIDString(3)), null, UUID.fromString(TestHelper.generateUUIDString(9)), UUID.fromString(TestHelper.generateUUIDString(1))),
-                        results = arrayOf(UUID.fromString(TestHelper.generateUUIDString(1)), UUID.fromString(TestHelper.generateUUIDString(3)), *arrayOfNulls(9)),
-                        expand = false
+                        filter = MixedParameterizedQueryTests::`in`,
+                        arguments = arrayOf(UUID.fromString(TestHelper.generateUUIDString(3)), null, UUID.fromString(TestHelper.generateUUIDString(9)), UUID.fromString(TestHelper.generateUUIDString(1))),
+                        expectedResult = arrayOf(UUID.fromString(TestHelper.generateUUIDString(1)), UUID.fromString(TestHelper.generateUUIDString(3)), *arrayOfNulls(9)),
+                        expandArguments = false
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::`in`,
-                        parameters = arrayOf(PrimaryKeyAsString("item 1"), PrimaryKeyAsString("item 3")),
-                        results = arrayOf(PrimaryKeyAsString("item 1"), PrimaryKeyAsString("item 3")),
-                        expand = false
+                        filter = MixedParameterizedQueryTests::`in`,
+                        arguments = arrayOf(PrimaryKeyAsString("item 1"), PrimaryKeyAsString("item 3")),
+                        expectedResult = arrayOf(PrimaryKeyAsString("item 1"), PrimaryKeyAsString("item 3")),
+                        expandArguments = false
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::`in`,
-                        parameters = arrayOf(PrimaryKeyAsString("item 1"), PrimaryKeyAsString("item 3")),
-                        results = arrayOf(PrimaryKeyAsString("item 1"), PrimaryKeyAsString("item 3")),
-                        expand = false,
-                        checkUnmanagedModels = true
+                        filter = MixedParameterizedQueryTests::`in`,
+                        arguments = arrayOf(PrimaryKeyAsString("item 1"), PrimaryKeyAsString("item 3")),
+                        expectedResult = arrayOf(PrimaryKeyAsString("item 1"), PrimaryKeyAsString("item 3")),
+                        expandArguments = false,
+                        testWithUnmanagedObjects = true
                 ),
                 // BETWEEN TEST DEFINITIONS
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::between,
-                        parameters = arrayOf(6.toByte(), 8.toByte()),
-                        results = arrayOf(6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8)
+                        filter = MixedParameterizedQueryTests::between,
+                        arguments = arrayOf(6.toByte(), 8.toByte()),
+                        expectedResult = arrayOf(6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8)
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::between,
-                        parameters = arrayOf(6.toShort(), 8.toShort()),
-                        results = arrayOf(6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8)
+                        filter = MixedParameterizedQueryTests::between,
+                        arguments = arrayOf(6.toShort(), 8.toShort()),
+                        expectedResult = arrayOf(6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8)
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::between,
-                        parameters = arrayOf(6.toInt(), 8.toInt()),
-                        results = arrayOf(6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8)
+                        filter = MixedParameterizedQueryTests::between,
+                        arguments = arrayOf(6.toInt(), 8.toInt()),
+                        expectedResult = arrayOf(6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8)
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::between,
-                        parameters = arrayOf(6.toLong(), 8.toLong()),
-                        results = arrayOf(6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8)
+                        filter = MixedParameterizedQueryTests::between,
+                        arguments = arrayOf(6.toLong(), 8.toLong()),
+                        expectedResult = arrayOf(6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8)
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::between,
-                        parameters = arrayOf(4.51.toFloat(), 4.89.toFloat()),
-                        results = arrayOf(4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.6, 4.7, 4.8)
+                        filter = MixedParameterizedQueryTests::between,
+                        arguments = arrayOf(4.51.toFloat(), 4.89.toFloat()),
+                        expectedResult = arrayOf(4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.6, 4.7, 4.8)
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::between,
-                        parameters = arrayOf(4.49, 4.89),
-                        results = arrayOf(4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.5, 4.6, 4.7, 4.8)
+                        filter = MixedParameterizedQueryTests::between,
+                        arguments = arrayOf(4.49, 4.89),
+                        expectedResult = arrayOf(4.5.toFloat(), 4.6.toFloat(), 4.7.toFloat(), 4.8.toFloat(), 4.5, 4.6, 4.7, 4.8)
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::between,
-                        parameters = arrayOf(Date(2), Date(4)),
-                        results = arrayOf(Date(2), Date(3), Date(4))
+                        filter = MixedParameterizedQueryTests::between,
+                        arguments = arrayOf(Date(2), Date(4)),
+                        expectedResult = arrayOf(Date(2), Date(3), Date(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::between,
-                        parameters = arrayOf(Decimal128(2), Decimal128(4)),
-                        results = arrayOf(2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(2), Decimal128(3), Decimal128(4))
+                        filter = MixedParameterizedQueryTests::between,
+                        arguments = arrayOf(Decimal128(2), Decimal128(4)),
+                        expectedResult = arrayOf(2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4.0.toFloat(), 4.0, Decimal128(2), Decimal128(3), Decimal128(4))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::between,
-                        parameters = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(2)), ObjectId(TestHelper.generateObjectIdHexString(4))),
-                        results = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(2)), ObjectId(TestHelper.generateObjectIdHexString(3)), ObjectId(TestHelper.generateObjectIdHexString(4)))
+                        filter = MixedParameterizedQueryTests::between,
+                        arguments = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(2)), ObjectId(TestHelper.generateObjectIdHexString(4))),
+                        expectedResult = arrayOf(ObjectId(TestHelper.generateObjectIdHexString(2)), ObjectId(TestHelper.generateObjectIdHexString(3)), ObjectId(TestHelper.generateObjectIdHexString(4)))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::between,
-                        parameters = arrayOf(UUID.fromString(TestHelper.generateUUIDString(2)), UUID.fromString(TestHelper.generateUUIDString(4))),
-                        results = arrayOf(UUID.fromString(TestHelper.generateUUIDString(2)), UUID.fromString(TestHelper.generateUUIDString(3)), UUID.fromString(TestHelper.generateUUIDString(4)))
+                        filter = MixedParameterizedQueryTests::between,
+                        arguments = arrayOf(UUID.fromString(TestHelper.generateUUIDString(2)), UUID.fromString(TestHelper.generateUUIDString(4))),
+                        expectedResult = arrayOf(UUID.fromString(TestHelper.generateUUIDString(2)), UUID.fromString(TestHelper.generateUUIDString(3)), UUID.fromString(TestHelper.generateUUIDString(4)))
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::beginsWith,
-                        parameters = arrayOf("hello"),
-                        results = arrayOf("hello world 0", "hello world 1", "hello world 2", "hello world 3", "hello world 4")
+                        filter = MixedParameterizedQueryTests::beginsWith,
+                        arguments = arrayOf("hello"),
+                        expectedResult = arrayOf("hello world 0", "hello world 1", "hello world 2", "hello world 3", "hello world 4")
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::beginsWithInsensitive,
-                        parameters = arrayOf("hELlo"),
-                        results = arrayOf("hello world 0", "hello world 1", "hello world 2", "hello world 3", "hello world 4",
+                        filter = MixedParameterizedQueryTests::beginsWithInsensitive,
+                        arguments = arrayOf("hELlo"),
+                        expectedResult = arrayOf("hello world 0", "hello world 1", "hello world 2", "hello world 3", "hello world 4",
                                 "HELLO WORLD 0", "HELLO WORLD 1", "HELLO WORLD 2", "HELLO WORLD 3", "HELLO WORLD 4")
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::endsWith,
-                        parameters = arrayOf("world 4"),
-                        results = arrayOf("hello world 4")
+                        filter = MixedParameterizedQueryTests::endsWith,
+                        arguments = arrayOf("world 4"),
+                        expectedResult = arrayOf("hello world 4")
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::endsWithInsensitive,
-                        parameters = arrayOf("wOrld 4"),
-                        results = arrayOf("hello world 4",
+                        filter = MixedParameterizedQueryTests::endsWithInsensitive,
+                        arguments = arrayOf("wOrld 4"),
+                        expectedResult = arrayOf("hello world 4",
                                 "HELLO WORLD 4")
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::contains,
-                        parameters = arrayOf("world"),
-                        results = arrayOf("hello world 0", "hello world 1", "hello world 2", "hello world 3", "hello world 4")
+                        filter = MixedParameterizedQueryTests::contains,
+                        arguments = arrayOf("world"),
+                        expectedResult = arrayOf("hello world 0", "hello world 1", "hello world 2", "hello world 3", "hello world 4")
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::containsInsensitive,
-                        parameters = arrayOf("WorLD"),
-                        results = arrayOf("hello world 0", "hello world 1", "hello world 2", "hello world 3", "hello world 4",
+                        filter = MixedParameterizedQueryTests::containsInsensitive,
+                        arguments = arrayOf("WorLD"),
+                        expectedResult = arrayOf("hello world 0", "hello world 1", "hello world 2", "hello world 3", "hello world 4",
                                 "HELLO WORLD 0", "HELLO WORLD 1", "HELLO WORLD 2", "HELLO WORLD 3", "HELLO WORLD 4")
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::like,
-                        parameters = arrayOf("*w?rld*"),
-                        results = arrayOf("hello world 0", "hello world 1", "hello world 2", "hello world 3", "hello world 4")
+                        filter = MixedParameterizedQueryTests::like,
+                        arguments = arrayOf("*w?rld*"),
+                        expectedResult = arrayOf("hello world 0", "hello world 1", "hello world 2", "hello world 3", "hello world 4")
                 ),
                 MixedParameterizedQueryTest(
-                        function = MixedParameterizedQueryTests::likeInsensitive,
-                        parameters = arrayOf("*W?RLD*"),
-                        results = arrayOf("hello world 0", "hello world 1", "hello world 2", "hello world 3", "hello world 4",
+                        filter = MixedParameterizedQueryTests::likeInsensitive,
+                        arguments = arrayOf("*W?RLD*"),
+                        expectedResult = arrayOf("hello world 0", "hello world 1", "hello world 2", "hello world 3", "hello world 4",
                                 "HELLO WORLD 0", "HELLO WORLD 1", "HELLO WORLD 2", "HELLO WORLD 3", "HELLO WORLD 4")
                 )
         )
