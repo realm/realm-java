@@ -133,7 +133,7 @@ class MixedQueryTests {
     // This test case is meant to catch when  https://github.com/realm/realm-core/issues/4571 gets fixed
     @Test
     fun catch_minAggregationFixed() {
-        initializeTestData(true)
+        initializeTestData(stripNulls = true)
         realm.executeTransaction {
             val mixedObject = MixedNotIndexed(Mixed.nullValue())
             realm.insert(mixedObject)
