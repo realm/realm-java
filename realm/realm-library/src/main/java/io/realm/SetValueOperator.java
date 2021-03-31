@@ -1128,11 +1128,11 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
         String className = valueClass.getName();
         for (T object : realmModelCollection) {
             if (object == null) {
-                throw new IllegalArgumentException("Realm objects collections containing null values are not allowed");
+                throw new IllegalArgumentException("Null values are not allowed on collections containing Realm models");
             }
 
             if (!(object instanceof RealmObjectProxy)) {
-                throw new IllegalArgumentException("Realm objects collections containing unmanaged values are not allowed");
+                throw new IllegalArgumentException("Unmanaged values are not allowed on collections containing Realm models");
             }
 
             CollectionUtils.checkCanObjectBeCopied(baseRealm, object, className, "Set");
