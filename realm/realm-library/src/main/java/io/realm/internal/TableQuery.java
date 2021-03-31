@@ -30,6 +30,7 @@ import io.realm.MixedNativeFunctionsImpl;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.Sort;
+import io.realm.internal.core.NativeMixed;
 import io.realm.internal.objectstore.OsKeyPathMapping;
 import io.realm.log.RealmLog;
 
@@ -477,6 +478,29 @@ public class TableQuery implements NativeObject {
         return nativeAverageDouble(nativePtr, columnKey);
     }
 
+    // Mixed aggregation
+    public Decimal128 sumMixed(long columnKey) {
+        validateQuery();
+        long[] data =  nativeSumMixed(nativePtr, columnKey);
+        return Decimal128.fromIEEE754BIDEncoding(data[1]/*high*/, data[0]/*low*/);
+    }
+
+    public NativeMixed maximumMixed(long columnKey) {
+        validateQuery();
+        return nativeMaximumMixed(nativePtr, columnKey);
+    }
+
+    public NativeMixed minimumMixed(long columnKey) {
+        validateQuery();
+        return nativeMinimumMixed(nativePtr, columnKey);
+    }
+
+    public Decimal128 averageMixed(long columnKey) {
+        validateQuery();
+        long[] data =  nativeAverageMixed(nativePtr, columnKey);
+        return Decimal128.fromIEEE754BIDEncoding(data[1]/*high*/, data[0]/*low*/);
+    }
+
     public Decimal128 averageDecimal128(long columnKey) {
         validateQuery();
         long[] result = nativeAverageDecimal128(nativePtr, columnKey);
@@ -566,17 +590,25 @@ public class TableQuery implements NativeObject {
 
     private native double nativeAverageFloat(long nativeQueryPtr, long columnKey);
 
+    private native long[] nativeSumMixed(long nativeQueryPtr, long columnKey);
+
     private native double nativeSumDouble(long nativeQueryPtr, long columnKey);
 
     private native long[] nativeSumDecimal128(long nativeQueryPtr, long columnKey);
 
     private native Double nativeMaximumDouble(long nativeQueryPtr, long columnKey);
 
+    private native NativeMixed nativeMaximumMixed(long nativeQueryPtr, long columnKey);
+
     private native long[] nativeMaximumDecimal128(long nativeQueryPtr, long columnKey);
+
+    private native NativeMixed nativeMinimumMixed(long nativeQueryPtr, long columnKey);
 
     private native Double nativeMinimumDouble(long nativeQueryPtr, long columnKey);
 
     private native long[] nativeMinimumDecimal128(long nativeQueryPtr, long columnKey);
+
+    private native long[] nativeAverageMixed(long nativeQueryPtr, long columnKey);
 
     private native double nativeAverageDouble(long nativeQueryPtr, long columnKey);
 

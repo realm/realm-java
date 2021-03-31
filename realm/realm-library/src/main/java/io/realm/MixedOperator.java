@@ -390,6 +390,9 @@ class RealmModelOperator extends MixedOperator {
 
     @Override
     protected NativeMixed createNativeMixed() {
+        if (!(value instanceof RealmObjectProxy)) {
+            throw new IllegalStateException("Native Mixed instances only allow managed Realm objects or primitives");
+        }
         return new NativeMixed(getValue(RealmObjectProxy.class));
     }
 

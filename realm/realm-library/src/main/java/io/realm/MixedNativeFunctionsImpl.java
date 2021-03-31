@@ -40,8 +40,13 @@ public class MixedNativeFunctionsImpl implements MixedNativeFunctions {
     public void callRawPredicate(TableQuery query, @Nullable OsKeyPathMapping mapping, String predicate, Mixed... arguments) {
         long[] args = new long[arguments.length];
 
-        for (int i = 0; i < arguments.length; i++) {
-            args[i] = arguments[i].getNativePtr();
+        try {
+            for (int i = 0; i < arguments.length; i++) {
+                args[i] = arguments[i].getNativePtr();
+            }
+        } catch (IllegalStateException cause) {
+            // This might happen if a query is constructed with a Mixed value containing an unmanaged Realm object.
+            throw new IllegalArgumentException("Unmanaged Realm objects are not valid query arguments", cause);
         }
 
         query.rawPredicateWithPointers(mapping, predicate, args);

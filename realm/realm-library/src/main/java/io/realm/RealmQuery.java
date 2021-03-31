@@ -38,6 +38,7 @@ import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.Util;
+import io.realm.internal.core.NativeMixed;
 
 
 /**
@@ -2186,10 +2187,10 @@ public class RealmQuery<E> {
     /**
      * Calculates the sum of a given field.
      *
-     * @param fieldName the field to sum. Only number fields are supported.
+     * @param fieldName the field to sum. Only number and Mixed fields are supported.
      * @return the sum of fields of the matching objects. If no objects exist or they all have {@code null} as the value
      * for the given field, {@code 0} will be returned. When computing the sum, objects with {@code null} values
-     * are ignored.
+     * are ignored. When applied to a Mixed field, the returning type will be {@code Decimal128}.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      * @throws RealmException                     if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
@@ -2207,6 +2208,8 @@ public class RealmQuery<E> {
                 return query.sumDouble(columnKey);
             case DECIMAL128:
                 return query.sumDecimal128(columnKey);
+            case MIXED:
+                return query.sumMixed(columnKey);
             default:
                 throw new IllegalArgumentException(String.format(Locale.US,
                         TYPE_MISMATCH, fieldName, "int, float or double"));
@@ -2262,6 +2265,25 @@ public class RealmQuery<E> {
     }
 
     /**
+     * Returns the average of a given field.
+     * Does not support dotted field notation.
+     *
+     * @param fieldName the field to calculate average on. Only Mixed fields are supported. For other types consider using {@link #average(String)}.
+     * @return the average for the given field amongst objects in query results. This will be of type Decimal128. If no objects exist or they all have {@code null}
+     * as the value for the given field {@code 0} will be returned. When computing the average, objects with {@code null} values are ignored.
+     * @throws java.lang.IllegalArgumentException if the field is not a Mixed type.
+     * @throws RealmException                     if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
+     */
+    public @Nullable
+    Decimal128 averageMixed(String fieldName) {
+        realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
+
+        long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
+        return query.averageMixed(columnIndex);
+    }
+
+    /**
      * Finds the minimum value of a field.
      *
      * @param fieldName the field to look for a minimum on. Only number fields are supported.
@@ -2312,6 +2334,24 @@ public class RealmQuery<E> {
     }
 
     /**
+     * Finds the minimum value of a field.
+     *
+     * @param fieldName the field name
+     * @return if no objects exist or they all have {@code null} as the value for the given Mixed field, {@code null}
+     * will be returned. Otherwise the minimum Mixed is returned. When determining the minimum Mixed, objects with
+     * {@code null} values are ignored.
+     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
+     * @throws RealmException                          if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
+     */
+    public Mixed minMixed(String fieldName) {
+        realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
+
+        long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
+        return new Mixed(MixedOperator.fromNativeMixed(realm, this.query.minimumMixed(columnIndex)));
+    }
+
+    /**
      * Finds the maximum value of a field.
      *
      * @param fieldName the field to look for a maximum on. Only number fields are supported.
@@ -2358,6 +2398,24 @@ public class RealmQuery<E> {
 
         long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
         return this.query.maximumDate(columnIndex);
+    }
+
+    /**
+     * Finds the maximum value of a field.
+     *
+     * @param fieldName the field name.
+     * @return if no objects exist or they all have {@code null} as the value for the given Mixed field, {@code null}
+     * will be returned. Otherwise the maximum Mixed is returned. When determining the maximum Mixed, objects with
+     * {@code null} values are ignored.
+     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
+     */
+    @Nullable
+    public Mixed maxMixed(String fieldName) {
+        realm.checkIfValid();
+        realm.checkAllowQueriesOnUiThread();
+
+        long columnIndex = schema.getAndCheckFieldColumnKey(fieldName);
+        return new Mixed(MixedOperator.fromNativeMixed(realm, this.query.maximumMixed(columnIndex)));
     }
 
     /**
