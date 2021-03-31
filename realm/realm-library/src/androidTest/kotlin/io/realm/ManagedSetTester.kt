@@ -19,7 +19,6 @@ package io.realm
 import io.realm.entities.AllTypes
 import io.realm.entities.DogPrimaryKey
 import io.realm.entities.SetContainerClass
-import io.realm.entities.StringOnly
 import io.realm.kotlin.createObject
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
@@ -718,8 +717,8 @@ fun managedSetFactory(): List<SetTester> {
                         setSetter = AllTypes::setColumnRealmModelSet,
                         managedSetGetter = SetContainerClass::myRealmModelSet,
                         managedCollectionGetter = SetContainerClass::myRealmModelList,
-                        initializedSet =  listOf(VALUE_LINK_HELLO, VALUE_LINK_BYE),
-                        notPresentValue = VALUE_LINK_NOT_PRESENT,
+                        unmanagedInitializedSet =  listOf(VALUE_LINK_HELLO, VALUE_LINK_BYE),
+                        unmanagedNotPresentValue = VALUE_LINK_NOT_PRESENT,
                         toArrayManaged = ToArrayManaged.RealmModelManaged()
                 )
             // Ignore Mixed in this switch

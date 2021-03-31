@@ -17,6 +17,9 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.core.NativeMixedCollection;
 
+import static io.realm.CollectionUtils.SET_TYPE;
+
+
 /**
  * TODO
  *
@@ -160,7 +163,7 @@ abstract class SetValueOperator<E> {
     }
 
     protected boolean funnelCollection(OsSet otherOsSet,
-                                       OsSet.ExternalCollectionOperation operation) {
+            OsSet.ExternalCollectionOperation operation) {
         // Special case if the passed collection is the same native set as this one
         if (osSet.getNativePtr() == otherOsSet.getNativePtr()) {
             switch (operation) {
@@ -230,8 +233,8 @@ abstract class SetValueOperator<E> {
 
     @SuppressWarnings("unchecked")
     private static <T> SetIterator<T> iteratorFactory(Class<T> valueClass,
-                                                      OsSet osSet,
-                                                      BaseRealm baseRealm) {
+            OsSet osSet,
+            BaseRealm baseRealm) {
         if (valueClass == Boolean.class) {
             return (SetIterator<T>) new BooleanSetIterator(osSet, baseRealm);
         } else if (valueClass == String.class) {
@@ -1089,7 +1092,7 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
             throw new IllegalArgumentException("Null values cannot be contained in this set.");
         }
 
-        boolean copyObject = CollectionUtils.checkCanObjectBeCopied(baseRealm, value, valueClass.getName());
+        boolean copyObject = CollectionUtils.checkCanObjectBeCopied(baseRealm, value, valueClass.getName(), SET_TYPE);
         if (CollectionUtils.isEmbedded(baseRealm, value)) {
             throw new IllegalArgumentException("Embedded objects are not supported by RealmSets.");
         } else {
@@ -1121,11 +1124,28 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
         throw new IllegalArgumentException("Only managed models can be contained in this set.");
     }
 
+    private void checkValidCollection(Collection<? extends T> realmModelCollection) {
+        String className = valueClass.getName();
+        for (T object : realmModelCollection) {
+            if (object == null) {
+                throw new IllegalArgumentException("Realm objects collections containing null values are not allowed");
+            }
+
+            if (!(object instanceof RealmObjectProxy)) {
+                throw new IllegalArgumentException("Realm objects collections containing unmanaged values are not allowed");
+            }
+
+            CollectionUtils.checkCanObjectBeCopied(baseRealm, object, className, "Set");
+        }
+    }
+
     @Override
     boolean containsAllInternal(Collection<?> collection) {
         // Collection has been type-checked from caller
         //noinspection unchecked
         Collection<T> realmModelCollection = (Collection<T>) collection;
+
+        checkValidCollection(realmModelCollection);
         NativeMixedCollection mixedCollection = NativeMixedCollection.newRealmModelCollection(realmModelCollection);
         return osSet.collectionFunnel(mixedCollection, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
     }
@@ -1143,6 +1163,8 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
         // Collection has been type-checked from caller
         //noinspection unchecked
         Collection<T> realmModelCollection = (Collection<T>) c;
+
+        checkValidCollection(realmModelCollection);
         NativeMixedCollection collection = NativeMixedCollection.newRealmModelCollection(realmModelCollection);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
     }
@@ -1152,6 +1174,8 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
         // Collection has been type-checked from caller
         //noinspection unchecked
         Collection<T> realmModelCollection = (Collection<T>) c;
+
+        checkValidCollection(realmModelCollection);
         NativeMixedCollection collection = NativeMixedCollection.newRealmModelCollection(realmModelCollection);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }

@@ -19,9 +19,7 @@ package io.realm;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -29,10 +27,9 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.OsList;
 import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.Table;
-import io.realm.internal.Util;
 import io.realm.internal.core.NativeMixed;
+
+import static io.realm.CollectionUtils.LIST_TYPE;
 
 
 /**
@@ -210,7 +207,7 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
     @Override
     public void appendValue(Object value) {
         RealmModel realmObject = (RealmModel) value;
-        boolean copyObject = CollectionUtils.checkCanObjectBeCopied(realm, realmObject, className);
+        boolean copyObject = CollectionUtils.checkCanObjectBeCopied(realm, realmObject, className, LIST_TYPE);
         if (CollectionUtils.isEmbedded(realm, realmObject)) {
             if (value instanceof DynamicRealmObject) {
                 throw new IllegalArgumentException("Embedded objects are not supported by RealmLists of DynamicRealmObjects yet.");
@@ -233,7 +230,7 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
         // need to check in advance to avoid unnecessary copy of unmanaged object into Realm.
         checkInsertIndex(index);
         RealmModel realmObject = (RealmModel) value;
-        boolean copyObject = CollectionUtils.checkCanObjectBeCopied(realm, realmObject, className);
+        boolean copyObject = CollectionUtils.checkCanObjectBeCopied(realm, realmObject, className, LIST_TYPE);
         if (CollectionUtils.isEmbedded(realm, realmObject)) {
             if (value instanceof DynamicRealmObject) {
                 throw new IllegalArgumentException("Embedded objects are not supported by RealmLists of DynamicRealmObjects yet.");
@@ -254,7 +251,7 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
     @Override
     protected void setValue(int index, Object value) {
         RealmModel realmObject = (RealmModel) value;
-        boolean copyObject = CollectionUtils.checkCanObjectBeCopied(realm, realmObject, className);
+        boolean copyObject = CollectionUtils.checkCanObjectBeCopied(realm, realmObject, className, LIST_TYPE);
         if (CollectionUtils.isEmbedded(realm, realmObject)) {
             if (value instanceof DynamicRealmObject) {
                 throw new IllegalArgumentException("Embedded objects are not supported by RealmLists of DynamicRealmObjects yet.");
