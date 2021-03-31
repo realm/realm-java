@@ -25,6 +25,8 @@ import io.realm.kotlin.where
 import org.bson.types.Decimal128
 import org.junit.*
 import org.junit.runner.RunWith
+import java.util.*
+import kotlin.collections.HashSet
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
