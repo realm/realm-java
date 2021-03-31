@@ -140,15 +140,6 @@ class RealmModelManagedSetTester<T : RealmModel>(
         // Test with unmanaged realm objects
         val set = initAndAssertEmptySet()
         realm.executeTransaction {
-            // Allows adding unmanaged objects
-            set.addAll(unmanagedInitializedSet)
-
-            // Contains an unmanaged collection of managed objects
-            assertTrue(set.containsAll(managedInitializedSet))
-
-            // Does not contain an unmanaged collection of managed objects
-            assertFalse(set.containsAll(listOf(managedNotPresentValue)))
-
             // Check it fails to check if it contains unmanaged objects
             assertFailsWith<IllegalArgumentException> ("Collection with unmanaged objects not permitted") {
                 set.containsAll(unmanagedInitializedSet)
@@ -239,9 +230,43 @@ class RealmModelManagedSetTester<T : RealmModel>(
         }
     }
 
-    override fun retainAll() = managedTester.retainAll()
+    override fun retainAll() {
+        // Test with managed realm objects
+        managedTester.retainAll()
 
-    override fun removeAll() = managedTester.removeAll()
+        // Test with unmanaged realm objects
+        val set = initAndAssertEmptySet()
+        realm.executeTransaction {
+            // Does not allow to intersect with unmanaged objects
+            assertFailsWith<IllegalArgumentException> ("Collection with unmanaged objects not permitted") {
+                set.retainAll(unmanagedInitializedSet)
+            }
+
+            // Check it fails to check if it contains null values
+            assertFailsWith<IllegalArgumentException>("Collections with nulls are not permitted") {
+                set.retainAll(nullCollection)
+            }
+        }
+    }
+
+    override fun removeAll() {
+        // Test with managed realm objects
+        managedTester.removeAll()
+
+        // Test with unmanaged realm objects
+        val set = initAndAssertEmptySet()
+        realm.executeTransaction {
+            // Does not allow to intersect with unmanaged objects
+            assertFailsWith<IllegalArgumentException> ("Collection with unmanaged objects not permitted") {
+                set.removeAll(unmanagedInitializedSet)
+            }
+
+            // Check it fails to check if it contains null values
+            assertFailsWith<IllegalArgumentException>("Collections with nulls are not permitted") {
+                set.removeAll(nullCollection)
+            }
+        }
+    }
 
     override fun clear() = managedTester.clear()
 
