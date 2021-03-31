@@ -32,7 +32,6 @@ import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -86,7 +85,6 @@ import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.NoPrimaryKeyNullTypes;
 import io.realm.entities.NonLatinFieldNames;
-import io.realm.entities.NullTypes;
 import io.realm.entities.Object4957;
 import io.realm.entities.Owner;
 import io.realm.entities.OwnerPrimaryKey;
@@ -102,7 +100,6 @@ import io.realm.entities.PrimaryKeyRequiredAsBoxedInteger;
 import io.realm.entities.PrimaryKeyRequiredAsBoxedLong;
 import io.realm.entities.PrimaryKeyRequiredAsBoxedShort;
 import io.realm.entities.PrimaryKeyRequiredAsString;
-import io.realm.entities.PrimitiveListTypes;
 import io.realm.entities.RandomPrimaryKey;
 import io.realm.entities.StringAndInt;
 import io.realm.entities.StringOnly;
@@ -153,15 +150,15 @@ public class RealmTests {
     private Context context;
     private Realm realm;
     private List<String> columnData = new ArrayList<String>() {{
-        add(AllTypes.FIELD_BOOLEAN);
-        add(AllTypes.FIELD_DATE);
         add(AllTypes.FIELD_DOUBLE);
         add(AllTypes.FIELD_FLOAT);
-        add(AllTypes.FIELD_STRING);
         add(AllTypes.FIELD_LONG);
-        add(AllTypes.FIELD_BINARY);
         add(AllTypes.FIELD_DECIMAL128);
+        add(AllTypes.FIELD_BOOLEAN);
+        add(AllTypes.FIELD_DATE);
         add(AllTypes.FIELD_OBJECT_ID);
+        add(AllTypes.FIELD_STRING);
+        add(AllTypes.FIELD_BINARY);
         add(AllTypes.FIELD_UUID);
         add(AllTypes.FIELD_MIXED);
     }};
@@ -335,30 +332,21 @@ public class RealmTests {
 
     // TODO Move to RealmQueryTests?
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
     public void where_equalTo_wrongFieldTypeAsInput() throws IOException {
         populateTestRealm();
 
         for (int i = 0; i < columnData.size(); i++) {
-            try {
-                realm.where(AllTypes.class).equalTo(columnData.get(i), true).findAll();
-                if (i != 0) {
-                    fail("Realm.where should fail with illegal argument");
-                }
-            } catch (IllegalArgumentException ignored) {
-            }
+            // Realm queries applies coercion on numerical values
+            boolean NON_NUMERICAL_COLUMN = (i > 4) && (i != 10);
+            // Realm queries applies coercion on objectid and date
+            boolean NON_OBJECT_OR_DATE = ((i <= 4) || (i > 6)) && (i != 10);
+            // Realm queries applies coercion on string and binary
+            boolean NON_STRING_OR_BINARY = ((i <= 6) || (i > 8)) && (i != 10);
 
-            try {
-                realm.where(AllTypes.class).equalTo(columnData.get(i), new Date()).findAll();
-                if (i != 1) {
-                    fail("Realm.where should fail with illegal argument");
-                }
-            } catch (IllegalArgumentException ignored) {
-            }
 
             try {
                 realm.where(AllTypes.class).equalTo(columnData.get(i), 13.37D).findAll();
-                if (i != 2) {
+                if (NON_NUMERICAL_COLUMN) {
                     fail("Realm.where should fail with illegal argument");
                 }
             } catch (IllegalArgumentException ignored) {
@@ -366,15 +354,7 @@ public class RealmTests {
 
             try {
                 realm.where(AllTypes.class).equalTo(columnData.get(i), 13.3711F).findAll();
-                if (i != 3) {
-                    fail("Realm.where should fail with illegal argument");
-                }
-            } catch (IllegalArgumentException ignored) {
-            }
-
-            try {
-                realm.where(AllTypes.class).equalTo(columnData.get(i), "test").findAll();
-                if (i != 4) {
+                if (NON_NUMERICAL_COLUMN) {
                     fail("Realm.where should fail with illegal argument");
                 }
             } catch (IllegalArgumentException ignored) {
@@ -382,15 +362,7 @@ public class RealmTests {
 
             try {
                 realm.where(AllTypes.class).equalTo(columnData.get(i), 1337).findAll();
-                if (i != 5) {
-                    fail("Realm.where should fail with illegal argument");
-                }
-            } catch (IllegalArgumentException ignored) {
-            }
-
-            try {
-                realm.where(AllTypes.class).equalTo(columnData.get(i), new byte[] {1, 2, 3}).findAll();
-                if (i != 6) {
+                if (NON_NUMERICAL_COLUMN) {
                     fail("Realm.where should fail with illegal argument");
                 }
             } catch (IllegalArgumentException ignored) {
@@ -398,7 +370,23 @@ public class RealmTests {
 
             try {
                 realm.where(AllTypes.class).equalTo(columnData.get(i), new Decimal128(new BigDecimal(i + "12345"))).findAll();
-                if (i != 7) {
+                if (NON_NUMERICAL_COLUMN) {
+                    fail("Realm.where should fail with illegal argument");
+                }
+            } catch (IllegalArgumentException ignored) {
+            }
+
+            try {
+                realm.where(AllTypes.class).equalTo(columnData.get(i), true).findAll();
+                if (NON_NUMERICAL_COLUMN) {
+                    fail("Realm.where should fail with illegal argument");
+                }
+            } catch (IllegalArgumentException ignored) {
+            }
+
+            try {
+                realm.where(AllTypes.class).equalTo(columnData.get(i), new Date()).findAll();
+                if (NON_OBJECT_OR_DATE) {
                     fail("Realm.where should fail with illegal argument");
                 }
             } catch (IllegalArgumentException ignored) {
@@ -406,7 +394,23 @@ public class RealmTests {
 
             try {
                 realm.where(AllTypes.class).equalTo(columnData.get(i), new ObjectId(TestHelper.generateObjectIdHexString(i))).findAll();
-                if (i != 8) {
+                if (NON_OBJECT_OR_DATE) {
+                    fail("Realm.where should fail with illegal argument");
+                }
+            } catch (IllegalArgumentException ignored) {
+            }
+
+            try {
+                realm.where(AllTypes.class).equalTo(columnData.get(i), "test").findAll();
+                if (NON_STRING_OR_BINARY) {
+                    fail("Realm.where should fail with illegal argument");
+                }
+            } catch (IllegalArgumentException ignored) {
+            }
+
+            try {
+                realm.where(AllTypes.class).equalTo(columnData.get(i), new byte[] {1, 2, 3}).findAll();
+                if (NON_STRING_OR_BINARY) {
                     fail("Realm.where should fail with illegal argument");
                 }
             } catch (IllegalArgumentException ignored) {
@@ -414,7 +418,7 @@ public class RealmTests {
 
             try {
                 realm.where(AllTypes.class).equalTo(columnData.get(i), UUID.fromString(TestHelper.generateUUIDString(i))).findAll();
-                if (i != 9) {
+                if ((i != 9) && (i != 10)) {
                     fail("Realm.where should fail with illegal argument");
                 }
             } catch (IllegalArgumentException ignored) {
@@ -453,74 +457,6 @@ public class RealmTests {
             realm.where(AllTypes.class).equalTo("invalidcolumnname", Math.PI).findAll();
             fail("Invalid field name");
         } catch (Exception ignored) {
-        }
-    }
-
-    // TODO Move to RealmQueryTests?
-    @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4469")
-    public void where_equalTo_requiredFieldWithNullArgument() {
-        // String
-        try {
-            realm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NOT_NULL, (String) null).findAll();
-            fail("Realm.where should fail with illegal argument");
-        } catch (IllegalArgumentException ignored) {
-        }
-
-        // Boolean
-        try {
-            realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NOT_NULL, (String) null).findAll();
-            fail("Realm.where should fail with illegal argument");
-        } catch (IllegalArgumentException ignored) {
-        }
-
-        // Byte
-        try {
-            realm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTE_NOT_NULL, (Byte) null).findAll();
-            fail("Realm.where should fail with illegal argument");
-        } catch (IllegalArgumentException ignored) {
-        }
-
-        // Short
-        try {
-            realm.where(NullTypes.class).equalTo(NullTypes.FIELD_SHORT_NOT_NULL, (Short) null).findAll();
-            fail("Realm.where should fail with illegal argument");
-        } catch (IllegalArgumentException ignored) {
-        }
-
-        // Integer
-        try {
-            realm.where(NullTypes.class).equalTo(NullTypes.FIELD_INTEGER_NOT_NULL, (Integer) null).findAll();
-            fail("Realm.where should fail with illegal argument");
-        } catch (IllegalArgumentException ignored) {
-        }
-
-        // Long
-        try {
-            realm.where(NullTypes.class).equalTo(NullTypes.FIELD_LONG_NOT_NULL, (Long) null).findAll();
-            fail("Realm.where should fail with illegal argument");
-        } catch (IllegalArgumentException ignored) {
-        }
-
-        // Float
-        try {
-            realm.where(NullTypes.class).equalTo(NullTypes.FIELD_FLOAT_NOT_NULL, (Float) null).findAll();
-            fail("Realm.where should fail with illegal argument");
-        } catch (IllegalArgumentException ignored) {
-        }
-
-        // Double
-        try {
-            realm.where(NullTypes.class).equalTo(NullTypes.FIELD_FLOAT_NOT_NULL, (Double) null).findAll();
-            fail("Realm.where should fail with illegal argument");
-        } catch (IllegalArgumentException ignored) {
-        }
-
-        // Date
-        try {
-            realm.where(NullTypes.class).equalTo(NullTypes.FIELD_DATE_NOT_NULL, (Date) null).findAll();
-            fail("Realm.where should fail with illegal argument");
-        } catch (IllegalArgumentException ignored) {
         }
     }
 

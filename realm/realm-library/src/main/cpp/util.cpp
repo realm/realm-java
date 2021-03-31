@@ -134,6 +134,10 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
     }
+    catch (realm::query_parser::InvalidQueryArgError& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalArgument, ss.str());
+    }
     catch(std::invalid_argument& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
@@ -172,11 +176,8 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     catch (std::logic_error& e) {
         ThrowException(env, IllegalState, e.what());
     }
-    catch(realm::query_parser::InvalidQueryError& e){
-        ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, IllegalArgument, ss.str());
-    }
     catch (std::runtime_error& e) {
+        ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, RuntimeError, ss.str());
     }
     catch (std::exception& e) {
@@ -243,7 +244,10 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             jExceptionClass = env->FindClass("java/lang/IllegalStateException");
             message = classStr;
             break;
-
+        case IllegalFormatException:
+            jExceptionClass = env->FindClass("java/util/IllegalFormatException");
+            message = classStr;
+            break;
         // Should never get here.
         case ExceptionKindMax:
         default:

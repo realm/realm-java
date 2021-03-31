@@ -296,15 +296,11 @@ class UUIDTests {
     fun linkQueryNotSupported() {
         val uuid1 = UUID.randomUUID()
 
-        assertFailsWith<IllegalArgumentException>("It should not be possible to perform link query on UUID") {
-            realm.where<UUIDRequiredRealmList>().greaterThan("ids", uuid1).findAll()
-        }
-
         realm.beginTransaction()
         val obj = realm.createObject<UUIDRequiredRealmList>()
         realm.cancelTransaction()
 
-        assertFailsWith<UnsupportedOperationException> {
+        assertFailsWith<UnsupportedOperationException>("It should not be possible to perform link query on UUID") {
             obj.ids.where().equalTo("ids", uuid1).findAll()
         }
     }
@@ -419,7 +415,6 @@ class UUIDTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4475")
     fun queriesGreaterThanOrEqualTo() {
         val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
         val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
@@ -443,7 +438,6 @@ class UUIDTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4475")
     fun queriesGreaterThan() {
         val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
         val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
@@ -466,7 +460,6 @@ class UUIDTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4475")
     fun queriesLessThanOrEqualTo() {
         val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
         val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
@@ -490,7 +483,6 @@ class UUIDTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/issues/4475")
     fun queriesLessThan() {
         val uuid1 = UUID.fromString("017ba5ca-aa12-4afa-9219-e20cc3018599")
         val uuid2 = UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599")
@@ -576,7 +568,6 @@ class UUIDTests {
     }
 
     @Test
-    @Ignore("FIXME: See https://github.com/realm/realm-core/isio.realm.CustomRealmNameTestssues/4469")
     fun queriesIsEmpty() {
         val uuid1 = UUID.randomUUID()
         val uuid2 = UUID.randomUUID()

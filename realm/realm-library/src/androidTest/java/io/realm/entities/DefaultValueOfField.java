@@ -28,6 +28,7 @@ import io.realm.RealmObject;
 import io.realm.annotations.Ignore;
 import io.realm.annotations.PrimaryKey;
 
+
 public class DefaultValueOfField extends RealmObject {
 
     public static final String CLASS_NAME = "DefaultValueOfField";
@@ -108,12 +109,14 @@ public class DefaultValueOfField extends RealmObject {
 
     public static String lastRandomStringValue;
 
-    @Ignore private String fieldIgnored = FIELD_IGNORED_DEFAULT_VALUE;
+    @Ignore
+    private String fieldIgnored = FIELD_IGNORED_DEFAULT_VALUE;
     private String fieldString = FIELD_STRING_DEFAULT_VALUE;
     private String fieldRandomString = lastRandomStringValue = UUID.randomUUID().toString();
     private short fieldShort = FIELD_SHORT_DEFAULT_VALUE;
     private int fieldInt = FIELD_INT_DEFAULT_VALUE;
-    @PrimaryKey private long fieldLongPrimaryKey = FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE;
+    @PrimaryKey
+    private long fieldLongPrimaryKey = FIELD_LONG_PRIMARY_KEY_DEFAULT_VALUE;
     private long fieldLong = FIELD_LONG_DEFAULT_VALUE;
     private byte fieldByte = FIELD_BYTE_DEFAULT_VALUE;
     private float fieldFloat = FIELD_FLOAT_DEFAULT_VALUE;
