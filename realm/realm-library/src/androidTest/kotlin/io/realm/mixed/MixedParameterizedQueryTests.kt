@@ -112,7 +112,7 @@ class MixedParameterizedQueryTest(
             return
         }
 
-        val exception = assertFailsWith<InvocationTargetException>("Non managed Realm objects are not valid query arguments"){
+        val exception = assertFailsWith<InvocationTargetException>("Unmanaged Realm objects are not valid query arguments"){
             if (expandArguments) {
                 filter.call(context, asMixed(expectedResult, realm, false),
                         expectedSize ?: expectedResult.size, *asMixed(arguments, realm, false))

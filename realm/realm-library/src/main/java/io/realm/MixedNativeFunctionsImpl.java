@@ -39,6 +39,7 @@ public class MixedNativeFunctionsImpl implements MixedNativeFunctions {
                 args[i] = arguments[i].getNativePtr();
             }
         } catch (IllegalStateException cause) {
+            // This might happen if a query is constructed with a Mixed value containing an unmanaged Realm object.
             throw new IllegalArgumentException("Unmanaged Realm objects are not valid query arguments", cause);
         }
 
