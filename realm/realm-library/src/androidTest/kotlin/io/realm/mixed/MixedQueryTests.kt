@@ -20,13 +20,13 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.entities.MixedNotIndexed
+import io.realm.entities.PrimaryKeyAsString
 import io.realm.kotlin.where
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlin.collections.HashSet
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
@@ -61,7 +61,8 @@ class MixedQueryTests {
     fun setUp() {
         realmConfiguration = configFactory.createSchemaConfiguration(
                 false,
-                MixedNotIndexed::class.java)
+                MixedNotIndexed::class.java,
+                PrimaryKeyAsString::class.java)
 
         realm = Realm.getInstance(realmConfiguration)
 
@@ -85,7 +86,7 @@ class MixedQueryTests {
     @Test
     fun isNotNull() {
         val results = realm.where<MixedNotIndexed>().isNotNull(MixedNotIndexed.FIELD_MIXED).findAll()
-        assertEquals(97, results.size)
+        assertEquals(103, results.size)
         for (result in results) {
             assertFalse(result.mixed!!.isNull)
         }
@@ -110,13 +111,13 @@ class MixedQueryTests {
     @Test
     fun count() {
         val value = realm.where<MixedNotIndexed>().count()
-        assertEquals(106, value)
+        assertEquals(112, value)
     }
 
     @Test
     fun sort() {
         val results = realm.where<MixedNotIndexed>().sort(MixedNotIndexed.FIELD_MIXED).findAll()
-        assertEquals(106, results.size)
+        assertEquals(112, results.size)
         assertTrue(results.first()!!.mixed!!.isNull)
         assertEquals(MixedType.UUID, results.last()!!.mixed!!.type)
     }
@@ -126,10 +127,10 @@ class MixedQueryTests {
         val results = realm.where<MixedNotIndexed>().distinct(MixedNotIndexed.FIELD_MIXED).findAll()
 
         val hashSet = HashSet<Mixed>()
-        for (result in results){
+        for (result in results) {
             hashSet.add(result.mixed!!)
         }
-        assertEquals(60, results.size)
+        assertEquals(66, results.size)
         assertEquals(hashSet.size, results.size)
     }
 }
