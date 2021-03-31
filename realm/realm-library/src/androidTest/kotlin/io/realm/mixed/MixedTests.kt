@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package io.realm
+package io.realm.mixed
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.realm.*
 import io.realm.entities.*
 import io.realm.entities.embedded.SimpleEmbeddedObject
 import io.realm.kotlin.createObject
@@ -41,9 +42,8 @@ class MixedTests {
     private lateinit var realmConfiguration: RealmConfiguration
     private lateinit var realm: Realm
 
-    @Rule
-    @JvmField
-    val folder = TemporaryFolder()
+    @get:Rule
+    val configFactory = TestRealmConfigurationFactory()
 
     init {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
@@ -51,18 +51,16 @@ class MixedTests {
 
     @Before
     fun setUp() {
-        realmConfiguration = RealmConfiguration
-                .Builder(InstrumentationRegistry.getInstrumentation().targetContext)
-                .directory(folder.newFolder())
-                .schema(MixedNotIndexed::class.java,
-                        MixedIndexed::class.java,
-                        AllJavaTypes::class.java,
-                        MixedNotIndexedWithPK::class.java,
-                        SimpleEmbeddedObject::class.java,
-                        MixedDefaultPK::class.java,
-                        MixedDefaultNonPK::class.java,
-                        PrimaryKeyAsString::class.java)
-                .build()
+        realmConfiguration = configFactory.createSchemaConfiguration(
+                false,
+                MixedNotIndexed::class.java,
+                MixedIndexed::class.java,
+                AllJavaTypes::class.java,
+                MixedNotIndexedWithPK::class.java,
+                SimpleEmbeddedObject::class.java,
+                MixedDefaultPK::class.java,
+                MixedDefaultNonPK::class.java,
+                PrimaryKeyAsString::class.java)
 
         realm = Realm.getInstance(realmConfiguration)
     }
@@ -803,6 +801,7 @@ class MixedTests {
             }
 
             anotherRealm.commitTransaction()
+            anotherRealm.close()
 
             looperThread.testComplete()
         }
@@ -822,6 +821,7 @@ class MixedTests {
             }
 
             anotherRealm.commitTransaction()
+            anotherRealm.close()
 
             looperThread.testComplete()
         }

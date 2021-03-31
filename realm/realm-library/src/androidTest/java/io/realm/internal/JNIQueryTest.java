@@ -16,9 +16,6 @@
 
 package io.realm.internal;
 
-import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.junit.After;
@@ -31,6 +28,8 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 import io.realm.Mixed;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;

@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.rule.UiThreadTestRule;
+
 import io.realm.entities.AllTypes;
 import io.realm.entities.BacklinksSource;
 import io.realm.entities.BacklinksTarget;

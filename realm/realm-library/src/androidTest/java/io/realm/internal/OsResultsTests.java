@@ -17,8 +17,6 @@
 package io.realm.internal;
 
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -32,15 +30,16 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import io.realm.Mixed;
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.Sort;
 import io.realm.TestHelper;
+import io.realm.TestRealmConfigurationFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;

@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package io.realm
+package io.realm.mixed
 
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.entities.AllJavaTypes
+import io.realm.*
+import io.realm.entities.*
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
@@ -36,6 +37,10 @@ import kotlin.test.assertTrue
 @RunWith(Parameterized::class)
 class MixedChangeListenerTests(private val testingType: MixedType, private val first: Any, private val second: Any, private val third: Any) {
     private lateinit var realmConfiguration: RealmConfiguration
+
+    @get:Rule
+    val configFactory = TestRealmConfigurationFactory()
+
     private val looperThread = BlockingLooperThread()
 
     @Rule
@@ -48,11 +53,9 @@ class MixedChangeListenerTests(private val testingType: MixedType, private val f
 
     @Before
     fun setUp() {
-        realmConfiguration = RealmConfiguration
-                .Builder(InstrumentationRegistry.getInstrumentation().targetContext)
-                .directory(folder.newFolder())
-                .schema(AllJavaTypes::class.java)
-                .build()
+        realmConfiguration = configFactory.createSchemaConfiguration(
+                false,
+                AllJavaTypes::class.java)
     }
 
     @After
