@@ -103,7 +103,23 @@ class RealmModelManagedSetTester<T : RealmModel>(
 
     override fun isEmpty() = managedTester.isEmpty()
 
-    override fun contains() = managedTester.contains()
+    override fun contains() {
+        managedTester.contains()
+
+        // Test with unmanaged realm objects
+        val set = initAndAssertEmptySet()
+        realm.executeTransaction {
+            // Check throws exception when unmanaged values are passed
+            assertFailsWith<IllegalArgumentException>("Unmanaged objects not permitted") {
+                set.contains(unmanagedNotPresentValue)
+            }
+
+            // Check throws exception when null values are passed
+            assertFailsWith<IllegalArgumentException>("Nulls are not permitted") {
+                set.contains(null)
+            }
+        }
+    }
 
     override fun iterator() = managedTester.iterator()
 
@@ -131,7 +147,18 @@ class RealmModelManagedSetTester<T : RealmModel>(
         assertTrue(set.containsAll(managedInitializedSet))
     }
 
-    override fun remove() = managedTester.remove()
+    override fun remove() {
+        managedTester.remove()
+
+        // Test with unmanaged realm objects
+        val set = initAndAssertEmptySet()
+        realm.executeTransaction {
+            // Check throws exception when unmanaged values are passed
+            assertFailsWith<IllegalArgumentException> ("Unmanaged objects not permitted") {
+                set.remove(unmanagedNotPresentValue)
+            }
+        }
+    }
 
     override fun containsAll() {
         // Test with managed realm objects
@@ -140,12 +167,12 @@ class RealmModelManagedSetTester<T : RealmModel>(
         // Test with unmanaged realm objects
         val set = initAndAssertEmptySet()
         realm.executeTransaction {
-            // Check it fails to check if it contains unmanaged objects
+            // Check throws exception when unmanaged values are passed
             assertFailsWith<IllegalArgumentException> ("Collection with unmanaged objects not permitted") {
                 set.containsAll(unmanagedInitializedSet)
             }
 
-            // Check it fails to check if it contains null values
+            // Check throws exception when null values are passed
             assertFailsWith<IllegalArgumentException>("Collections with nulls are not permitted") {
                 set.containsAll(nullCollection)
             }
@@ -237,12 +264,12 @@ class RealmModelManagedSetTester<T : RealmModel>(
         // Test with unmanaged realm objects
         val set = initAndAssertEmptySet()
         realm.executeTransaction {
-            // Does not allow to intersect with unmanaged objects
+            // Check throws exception when unmanaged values are passed
             assertFailsWith<IllegalArgumentException> ("Collection with unmanaged objects not permitted") {
                 set.retainAll(unmanagedInitializedSet)
             }
 
-            // Check it fails to check if it contains null values
+            // Check throws exception when null values are passed
             assertFailsWith<IllegalArgumentException>("Collections with nulls are not permitted") {
                 set.retainAll(nullCollection)
             }
@@ -256,12 +283,12 @@ class RealmModelManagedSetTester<T : RealmModel>(
         // Test with unmanaged realm objects
         val set = initAndAssertEmptySet()
         realm.executeTransaction {
-            // Does not allow to intersect with unmanaged objects
+            // Check throws exception when unmanaged values are passed
             assertFailsWith<IllegalArgumentException> ("Collection with unmanaged objects not permitted") {
                 set.removeAll(unmanagedInitializedSet)
             }
 
-            // Check it fails to check if it contains null values
+            // Check throws exception when null values are passed
             assertFailsWith<IllegalArgumentException>("Collections with nulls are not permitted") {
                 set.removeAll(nullCollection)
             }
