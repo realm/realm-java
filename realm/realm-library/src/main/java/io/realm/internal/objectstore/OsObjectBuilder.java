@@ -291,6 +291,15 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
+    private static ItemCallback<Map.Entry<String, Mixed>> mixedMapItemCallback = new ItemCallback<Map.Entry<String, Mixed>>() {
+        private final MixedNativeFunctions mixedNativeFunctions = new MixedNativeFunctionsImpl();
+
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, Mixed> item) {
+            mixedNativeFunctions.handleItem(containerPtr, item);
+        }
+    };
+
     private static ItemCallback<Mixed> mixedItemCallback = new ItemCallback<Mixed>() {
         private final MixedNativeFunctions mixedNativeFunctions = new MixedNativeFunctionsImpl();
 
@@ -549,32 +558,6 @@ public class OsObjectBuilder implements Closeable {
         nativeStopList(builderPtr, columnKey, listPtr);
     }
 
-    public void addMixedValueDictionary(long columnKey) {
-        addEmptyDictionary(columnKey);
-    }
-
-    public void addMixedValueDictionary(long columnKey, List<String> keys, List<Long> mixedPointers) {
-        addMixedDictionaryItem(builderPtr, columnKey, keys, mixedPointers);
-    }
-
-    private void addMixedDictionaryItem(
-            long builderPtr,
-            long columnKey,
-            List<String> keys,
-            List<Long> mixedPointers
-    ) {
-        if (keys.isEmpty() && mixedPointers.isEmpty()) {
-            addEmptyDictionary(columnKey);
-        } else {
-            long dictionaryPtr = nativeStartDictionary();
-            for (int i = 0; i < keys.size(); i++) {
-                nativeAddMixedDictionaryEntry(dictionaryPtr, keys.get(i), mixedPointers.get(i));
-            }
-            nativeStopDictionary(builderPtr, columnKey, dictionaryPtr);
-
-        }
-    }
-
     public void addBooleanValueDictionary(long columnKey, RealmDictionary<Boolean> dictionary) {
         addDictionaryItem(builderPtr, columnKey, dictionary, booleanMapItemCallback);
     }
@@ -625,6 +608,28 @@ public class OsObjectBuilder implements Closeable {
 
     public void addUUIDValueDictionary(long columnKey, RealmDictionary<UUID> dictionary) {
         addDictionaryItem(builderPtr, columnKey, dictionary, uuidMapItemCallback);
+    }
+
+    public void addMixedValueDictionary(long columnKey, RealmDictionary<Mixed> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, mixedMapItemCallback);
+    }
+
+    public <T extends RealmModel> void addObjectDictionary(long columnKey, @Nullable RealmDictionary<T> dictionary) {
+        if (dictionary != null) {
+            long dictionaryPtr = nativeStartDictionary();
+            for (Map.Entry<String, T> entry : dictionary.entrySet()) {
+                if (entry.getValue() == null) {
+                    nativeAddNullDictionaryEntry(dictionaryPtr, entry.getKey());
+                } else {
+                    RealmObjectProxy realmObjectProxy = (RealmObjectProxy) entry.getValue();
+                    long objectPtr = ((UncheckedRow) realmObjectProxy.realmGet$proxyState().getRow$realm()).getNativePtr();
+                    nativeAddObjectDictionaryEntry(dictionaryPtr, entry.getKey(), objectPtr);
+                }
+            }
+            nativeStopDictionary(builderPtr, columnKey, dictionaryPtr);
+        } else {
+            addEmptyDictionary(columnKey);
+        }
     }
 
     private <T> void addDictionaryItem(
@@ -820,5 +825,7 @@ public class OsObjectBuilder implements Closeable {
 
     private static native void nativeAddUUIDDictionaryEntry(long dictionaryPtr, String key, String value);
 
-    private static native void nativeAddMixedDictionaryEntry(long dictionaryPtr, String key, long mixedPtr);
+    private static native void nativeAddObjectDictionaryEntry(long dictionaryPtr, String key, long rowPtr);
+
+    public static native void nativeAddMixedDictionaryEntry(long dictionaryPtr, String key, long mixedPtr);
 }

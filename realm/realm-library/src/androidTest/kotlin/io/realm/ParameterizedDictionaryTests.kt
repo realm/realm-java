@@ -21,7 +21,10 @@ import io.realm.entities.DogPrimaryKey
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
-import org.junit.*
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.util.*
@@ -51,7 +54,8 @@ class ParameterizedDictionaryTests(
         fun testTypes(): List<DictionaryTester> {
             return DictionaryMode.values().map { type ->
                 when (type) {
-                    DictionaryMode.UNMANAGED -> unmanagedFactory()
+//                    DictionaryMode.UNMANAGED -> unmanagedFactory()
+                    DictionaryMode.UNMANAGED -> listOf()
                     DictionaryMode.MANAGED -> managedFactory()
                 }
             }.flatten()
@@ -156,7 +160,6 @@ class ParameterizedDictionaryTests(
     }
 
     @Test
-    @Ignore("Bug in Core: https://github.com/realm/realm-core/pull/4496")
     fun entrySet() {
         tester.entrySet()
     }
@@ -169,6 +172,11 @@ class ParameterizedDictionaryTests(
     @Test
     fun copyToRealm() {
         tester.copyToRealm()
+    }
+
+    @Test
+    fun copyToRealmOrUpdate() {
+        tester.copyToRealmOrUpdate()
     }
 
     @Test
@@ -224,6 +232,13 @@ internal const val KEY_BYE = "KeyBye"
 internal const val KEY_NULL = "KeyNull"
 internal const val KEY_NOT_PRESENT = "KeyNotPresent"
 
+internal const val KEY_HELLO_NON_LATIN = "Keyこんにちは"
+internal const val KEY_BYE_NON_LATIN = "Keyさようなら"
+internal const val KEY_NULL_NON_LATIN = "Keyヌル"
+internal const val KEY_NOT_PRESENT_NON_LATIN = "Key現在ではない"
+
+internal const val NEW_KEY = "NEW KEY"
+internal const val NEW_KEY_NON_LATIN = "NEW KEYさようなら"
 internal const val VALUE_BOOLEAN_HELLO = true
 internal const val VALUE_BOOLEAN_BYE = false
 internal const val VALUE_BOOLEAN_NOT_PRESENT = VALUE_BOOLEAN_BYE
@@ -231,6 +246,10 @@ internal const val VALUE_BOOLEAN_NOT_PRESENT = VALUE_BOOLEAN_BYE
 internal const val VALUE_STRING_HELLO = "HELLO"
 internal const val VALUE_STRING_BYE = "BYE"
 internal const val VALUE_STRING_NOT_PRESENT = "NOT PRESENT"
+
+internal const val VALUE_STRING_NON_LATIN_HELLO = "こんにちは"
+internal const val VALUE_STRING_NON_LATIN_BYE = "さようなら"
+internal const val VALUE_STRING_NON_LATIN_NOT_PRESENT = "現在ではない"
 
 internal const val VALUE_NUMERIC_HELLO = 42
 internal const val VALUE_NUMERIC_BYE = -42
@@ -301,6 +320,8 @@ internal val VALUE_MIXED_DOUBLE_HELLO = Mixed.valueOf(VALUE_NUMERIC_HELLO.toDoub
 internal val VALUE_MIXED_DOUBLE_BYE = Mixed.valueOf(VALUE_NUMERIC_BYE.toDouble())
 internal val VALUE_MIXED_STRING_HELLO = Mixed.valueOf(VALUE_STRING_HELLO)
 internal val VALUE_MIXED_STRING_BYE = Mixed.valueOf(VALUE_STRING_BYE)
+internal val VALUE_MIXED_STRING_NON_LATIN_HELLO = Mixed.valueOf(VALUE_STRING_NON_LATIN_HELLO)
+internal val VALUE_MIXED_STRING_NON_LATIN_BYE = Mixed.valueOf(VALUE_STRING_NON_LATIN_BYE)
 internal val VALUE_MIXED_BOOLEAN_HELLO = Mixed.valueOf(VALUE_BOOLEAN_HELLO)
 internal val VALUE_MIXED_BOOLEAN_BYE = Mixed.valueOf(VALUE_BOOLEAN_BYE)
 internal val VALUE_MIXED_DATE_HELLO = Mixed.valueOf(VALUE_DATE_HELLO)

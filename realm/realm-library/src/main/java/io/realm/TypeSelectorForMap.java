@@ -38,29 +38,26 @@ import io.realm.internal.util.Pair;
  * @param <K> the key type
  * @param <V> the value type
  */
-abstract class RealmTypeSelectorForMap<K, V> {
+abstract class TypeSelectorForMap<K, V> {
 
     protected final BaseRealm baseRealm;
     protected final OsMap osMap;
 
-    RealmTypeSelectorForMap(BaseRealm baseRealm, OsMap osMap) {
+    TypeSelectorForMap(BaseRealm baseRealm, OsMap osMap) {
         this.baseRealm = baseRealm;
         this.osMap = osMap;
     }
 
     protected V getRealmModel(BaseRealm baseRealm, long realmModelKey) {
-        // do nothing here, override only for RealModels
-        return null;
+        throw new UnsupportedOperationException("Function 'getRealmModel' can only be called from 'LinkSelectorForMap' instances.");
     }
 
     protected V putRealmModel(BaseRealm baseRealm, OsMap osMap, K key, @Nullable V value) {
-        // do nothing here, override only for RealModels
-        return null;
+        throw new UnsupportedOperationException("Function 'putRealmModel' can only be called from 'LinkSelectorForMap' instances.");
     }
 
     protected Map.Entry<K, V> getModelEntry(BaseRealm baseRealm, long objRow, K key) {
-        // do nothing here, override only for RealModels
-        return null;
+        throw new UnsupportedOperationException("Function 'getModelEntry' can only be called from 'LinkSelectorForMap' instances.");
     }
 
     abstract Set<K> keySet();
@@ -73,15 +70,15 @@ abstract class RealmTypeSelectorForMap<K, V> {
 /**
  * Implementation for ordinary Realms.
  */
-class RealmSelectorForMap<K, V> extends RealmTypeSelectorForMap<K, V> {
+class SelectorForMap<K, V> extends TypeSelectorForMap<K, V> {
 
     protected final Class<K> keyClass;
     protected final Class<V> valueClass;
 
-    public RealmSelectorForMap(BaseRealm baseRealm,
-                               OsMap osMap,
-                               Class<K> keyClass,
-                               Class<V> valueClass) {
+    public SelectorForMap(BaseRealm baseRealm,
+                          OsMap osMap,
+                          Class<K> keyClass,
+                          Class<V> valueClass) {
         super(baseRealm, osMap);
         this.keyClass = keyClass;
         this.valueClass = valueClass;
@@ -125,9 +122,9 @@ class RealmSelectorForMap<K, V> extends RealmTypeSelectorForMap<K, V> {
 /**
  * Implementation for ordinary Realms in case we are working with RealmModels.
  */
-class LinkRealmSelectorForMap<K, V extends RealmModel> extends RealmSelectorForMap<K, V> {
+class LinkSelectorForMap<K, V extends RealmModel> extends SelectorForMap<K, V> {
 
-    public LinkRealmSelectorForMap(BaseRealm baseRealm, OsMap osMap, Class<K> keyClass, Class<V> valueClass) {
+    public LinkSelectorForMap(BaseRealm baseRealm, OsMap osMap, Class<K> keyClass, Class<V> valueClass) {
         super(baseRealm, osMap, keyClass, valueClass);
     }
 
@@ -171,13 +168,13 @@ class LinkRealmSelectorForMap<K, V extends RealmModel> extends RealmSelectorForM
 /**
  * Implementation for DynamicRealms.
  */
-class DynamicRealmSelectorForMap<K, V> extends RealmTypeSelectorForMap<K, V> {
+class DynamicSelectorForMap<K, V> extends TypeSelectorForMap<K, V> {
 
     private final String className;
 
-    public DynamicRealmSelectorForMap(BaseRealm baseRealm,
-                                      OsMap osMap,
-                                      String className) {
+    public DynamicSelectorForMap(BaseRealm baseRealm,
+                                 OsMap osMap,
+                                 String className) {
         super(baseRealm, osMap);
         this.className = className;
     }
