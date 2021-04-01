@@ -19,6 +19,7 @@ package io.realm
 import io.realm.entities.AllTypes
 import io.realm.entities.PrimaryKeyAsString
 import io.realm.entities.SetContainerClass
+import io.realm.entities.SyncDog
 import io.realm.kotlin.createObject
 import io.realm.rule.BlockingLooperThread
 import java.lang.IllegalArgumentException
@@ -48,7 +49,6 @@ class RealmModelManagedSetTester<T : RealmModel>(
     private lateinit var realm: Realm
     private lateinit var managedInitializedSet: MutableList<T>
     private lateinit var managedNotPresentValue: T
-    private val nullCollection: List<T?> = listOf(null)
 
     private fun initAndAssertEmptySet(realm: Realm = this.realm): RealmSet<T> {
         val allTypesObject = createAllTypesManagedContainerAndAssert(realm, "unmanaged")
@@ -114,10 +114,7 @@ class RealmModelManagedSetTester<T : RealmModel>(
                 set.contains(unmanagedNotPresentValue)
             }
 
-            // Check throws exception when null values are passed
-            assertFailsWith<IllegalArgumentException>("Nulls are not permitted") {
-                set.contains(null)
-            }
+            assertFalse(set.contains(null))
         }
     }
 
@@ -172,10 +169,8 @@ class RealmModelManagedSetTester<T : RealmModel>(
                 set.containsAll(unmanagedInitializedSet)
             }
 
-            // Check throws exception when null values are passed
-            assertFailsWith<IllegalArgumentException>("Collections with nulls are not permitted") {
-                set.containsAll(nullCollection)
-            }
+            // Checks it does not contain nulls
+            assertFalse(set.containsAll(listOf(null)))
         }
     }
 
@@ -186,6 +181,10 @@ class RealmModelManagedSetTester<T : RealmModel>(
         val set = initAndAssertEmptySet()
         realm.executeTransaction { transactionRealm ->
             // Changes after adding collection
+            assertFailsWith<IllegalArgumentException>("Cannot add null values into a set") {
+                set.addAll(listOf(null))
+            }
+
             assertTrue(set.addAll(unmanagedInitializedSet))
             assertEquals(unmanagedInitializedSet.size, set.size)
 
@@ -271,7 +270,7 @@ class RealmModelManagedSetTester<T : RealmModel>(
 
             // Check throws exception when null values are passed
             assertFailsWith<IllegalArgumentException>("Collections with nulls are not permitted") {
-                set.retainAll(nullCollection)
+                set.retainAll(listOf(null))
             }
         }
     }
@@ -290,7 +289,7 @@ class RealmModelManagedSetTester<T : RealmModel>(
 
             // Check throws exception when null values are passed
             assertFailsWith<IllegalArgumentException>("Collections with nulls are not permitted") {
-                set.removeAll(nullCollection)
+                set.removeAll(listOf(null))
             }
         }
     }

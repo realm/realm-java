@@ -172,7 +172,7 @@ public class CollectionUtils {
     }
 
     /**
-     * Called by both list and dictionary operators to copy a RealmModel to Realm in case it has
+     * Called by both list, sets and dictionary operators to copy a RealmModel to Realm in case it has
      * been deemed necessary.
      *
      * @param baseRealm The Realm instance to copy the object to.
