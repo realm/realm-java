@@ -94,7 +94,7 @@ class SelectorForMap<K, V> extends TypeSelectorForMap<K, V> {
 
     @Override
     public Collection<V> getValues() {
-        boolean forPrimitives = !RealmModel.class.isAssignableFrom(valueClass);
+        boolean forPrimitives = !CollectionUtils.isClassForRealmModel(valueClass);
         return produceResults(baseRealm, osMap.tableAndValuePtrs(), forPrimitives, valueClass);
     }
 

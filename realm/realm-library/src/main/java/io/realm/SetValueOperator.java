@@ -261,7 +261,7 @@ abstract class SetValueOperator<E> {
             return (SetIterator<T>) new ObjectIdSetIterator(osSet, baseRealm);
         } else if (valueClass == UUID.class) {
             return (SetIterator<T>) new UUIDSetIterator(osSet, baseRealm);
-        } else if (RealmModel.class.isAssignableFrom(valueClass)) {
+        } else if (CollectionUtils.isClassForRealmModel(valueClass)) {
             return (SetIterator<T>) new RealmModelSetIterator(osSet, baseRealm, valueClass);
         } else {
             throw new IllegalArgumentException("Unknown class for iterator: " + valueClass.getSimpleName());
