@@ -1110,6 +1110,7 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
         if (value == null) {
             return false; // Realm model sets cannot contain nulls
         } else if (valueClass.cast(value) instanceof RealmObjectProxy) {
+            CollectionUtils.checkCanObjectBeCopied(baseRealm, (RealmModel) value, valueClass.getName(), SET_TYPE);
             Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
             return osSet.containsRow(row$realm.getObjectKey());
         }
@@ -1121,6 +1122,7 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
         if (value == null) {
             return false;  // Realm model sets cannot contain nulls
         } else if (valueClass.cast(value) instanceof RealmObjectProxy) {
+            CollectionUtils.checkCanObjectBeCopied(baseRealm, (RealmModel) value, valueClass.getName(), SET_TYPE);
             Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
             return osSet.removeRow(row$realm.getObjectKey());
         }

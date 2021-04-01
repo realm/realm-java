@@ -73,7 +73,7 @@ class RealmModelManagedSetTester<T : RealmModel>(
             managedNotPresentValue = realm.copyToRealmOrUpdate(unmanagedNotPresentValue)
         }
 
-        this.managedTester = ManagedSetTester (
+        this.managedTester = ManagedSetTester(
                 testerName = testerName,
                 mixedType = mixedType,
                 setGetter = setGetter,
@@ -116,13 +116,27 @@ class RealmModelManagedSetTester<T : RealmModel>(
 
             assertFalse(set.contains(null))
         }
+
+        // Test with objects from another realm
+        looperThread.runBlocking {
+            Realm.getInstance(realm.configuration).use { alternativeRealm ->
+                alternativeRealm.executeTransaction {
+                    val value = alternativeRealm.copyToRealmOrUpdate(unmanagedNotPresentValue)
+
+                    assertFailsWith<IllegalArgumentException>("Cannot pass an object from another Realm instance") {
+                        set.contains(value)
+                    }
+                }
+            }
+            looperThread.testComplete()
+        }
     }
 
     override fun iterator() = managedTester.iterator()
 
     override fun toArray() = managedTester.toArray()
 
-    override fun toArrayWithParameter()  = managedTester.toArrayWithParameter()
+    override fun toArrayWithParameter() = managedTester.toArrayWithParameter()
 
     override fun add() {
         // Test with managed objects
@@ -141,6 +155,19 @@ class RealmModelManagedSetTester<T : RealmModel>(
             }
         }
 
+        // Test with objects from another realm
+        looperThread.runBlocking {
+            Realm.getInstance(realm.configuration).use { alternativeRealm ->
+                alternativeRealm.executeTransaction {
+                    val value = alternativeRealm.copyToRealmOrUpdate(unmanagedNotPresentValue)
+                    assertFailsWith<IllegalArgumentException>("Cannot pass an object from another Realm instance") {
+                        set.add(value)
+                    }
+                }
+            }
+            looperThread.testComplete()
+        }
+
         assertTrue(set.containsAll(managedInitializedSet))
     }
 
@@ -151,9 +178,23 @@ class RealmModelManagedSetTester<T : RealmModel>(
         val set = initAndAssertEmptySet()
         realm.executeTransaction {
             // Check throws exception when unmanaged values are passed
-            assertFailsWith<IllegalArgumentException> ("Unmanaged objects not permitted") {
+            assertFailsWith<IllegalArgumentException>("Unmanaged objects not permitted") {
                 set.remove(unmanagedNotPresentValue)
             }
+        }
+
+        // Test with objects from another realm
+        looperThread.runBlocking {
+            Realm.getInstance(realm.configuration).use { alternativeRealm ->
+                alternativeRealm.executeTransaction {
+                    val value = alternativeRealm.copyToRealmOrUpdate(unmanagedNotPresentValue)
+
+                    assertFailsWith<IllegalArgumentException>("Cannot pass an object from another Realm instance") {
+                        set.remove(value)
+                    }
+                }
+            }
+            looperThread.testComplete()
         }
     }
 
@@ -165,12 +206,26 @@ class RealmModelManagedSetTester<T : RealmModel>(
         val set = initAndAssertEmptySet()
         realm.executeTransaction {
             // Check throws exception when unmanaged values are passed
-            assertFailsWith<IllegalArgumentException> ("Collection with unmanaged objects not permitted") {
+            assertFailsWith<IllegalArgumentException>("Collection with unmanaged objects not permitted") {
                 set.containsAll(unmanagedInitializedSet)
             }
 
             // Checks it does not contain nulls
             assertFalse(set.containsAll(listOf(null)))
+        }
+
+        // Test with objects from another realm
+        looperThread.runBlocking {
+            Realm.getInstance(realm.configuration).use { alternativeRealm ->
+                alternativeRealm.executeTransaction {
+                    val values = alternativeRealm.copyToRealmOrUpdate(unmanagedInitializedSet)
+
+                    assertFailsWith<IllegalArgumentException>("Cannot pass an object from another Realm instance") {
+                        set.containsAll(values)
+                    }
+                }
+            }
+            looperThread.testComplete()
         }
     }
 
@@ -254,6 +309,20 @@ class RealmModelManagedSetTester<T : RealmModel>(
                 set.addAll(TestHelper.getNull())
             }
         }
+
+        // Test with objects from another realm
+        looperThread.runBlocking {
+            Realm.getInstance(realm.configuration).use { alternativeRealm ->
+                alternativeRealm.executeTransaction {
+                    val values = alternativeRealm.copyToRealmOrUpdate(unmanagedInitializedSet)
+
+                    assertFailsWith<IllegalArgumentException>("Cannot pass an object from another Realm instance") {
+                        set.addAll(values)
+                    }
+                }
+            }
+            looperThread.testComplete()
+        }
     }
 
     override fun retainAll() {
@@ -264,7 +333,7 @@ class RealmModelManagedSetTester<T : RealmModel>(
         val set = initAndAssertEmptySet()
         realm.executeTransaction {
             // Check throws exception when unmanaged values are passed
-            assertFailsWith<IllegalArgumentException> ("Collection with unmanaged objects not permitted") {
+            assertFailsWith<IllegalArgumentException>("Collection with unmanaged objects not permitted") {
                 set.retainAll(unmanagedInitializedSet)
             }
 
@@ -272,6 +341,20 @@ class RealmModelManagedSetTester<T : RealmModel>(
             assertFailsWith<IllegalArgumentException>("Collections with nulls are not permitted") {
                 set.retainAll(listOf(null))
             }
+        }
+
+        // Test with objects from another realm
+        looperThread.runBlocking {
+            Realm.getInstance(realm.configuration).use { alternativeRealm ->
+                alternativeRealm.executeTransaction {
+                    val values = alternativeRealm.copyToRealmOrUpdate(unmanagedInitializedSet)
+
+                    assertFailsWith<IllegalArgumentException>("Cannot pass an object from another Realm instance") {
+                        set.retainAll(values)
+                    }
+                }
+            }
+            looperThread.testComplete()
         }
     }
 
@@ -283,7 +366,7 @@ class RealmModelManagedSetTester<T : RealmModel>(
         val set = initAndAssertEmptySet()
         realm.executeTransaction {
             // Check throws exception when unmanaged values are passed
-            assertFailsWith<IllegalArgumentException> ("Collection with unmanaged objects not permitted") {
+            assertFailsWith<IllegalArgumentException>("Collection with unmanaged objects not permitted") {
                 set.removeAll(unmanagedInitializedSet)
             }
 
@@ -291,6 +374,20 @@ class RealmModelManagedSetTester<T : RealmModel>(
             assertFailsWith<IllegalArgumentException>("Collections with nulls are not permitted") {
                 set.removeAll(listOf(null))
             }
+        }
+
+        // Test with objects from another realm
+        looperThread.runBlocking {
+            Realm.getInstance(realm.configuration).use { alternativeRealm ->
+                alternativeRealm.executeTransaction {
+                    val values = alternativeRealm.copyToRealmOrUpdate(unmanagedInitializedSet)
+
+                    assertFailsWith<IllegalArgumentException>("Cannot pass an object from another Realm instance") {
+                        set.removeAll(values)
+                    }
+                }
+            }
+            looperThread.testComplete()
         }
     }
 
