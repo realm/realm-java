@@ -752,6 +752,15 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
+    private static ItemCallback<Mixed> mixedSetItemCallback = new ItemCallback<Mixed>() {
+        private final MixedNativeFunctions mixedNativeFunctions = new MixedNativeFunctionsImpl();
+
+        @Override
+        public void handleItem(long containerPtr, Mixed item) {
+            mixedNativeFunctions.handleItem(containerPtr, item);
+        }
+    };
+
     private static native long nativeStartSet(long size);
 
     private static native void nativeStopSet(long builderPtr, long columnKey, long setPtr);
@@ -834,6 +843,10 @@ public class OsObjectBuilder implements Closeable {
 
     public void addUUIDSet(long columnKey, RealmSet<UUID> set) {
         addSetItem(builderPtr, columnKey, set, uuidSetItemCallback);
+    }
+
+    public void addMixedSet(long columnKey, RealmSet<Mixed> set) {
+        addSetItem(builderPtr, columnKey, set, mixedSetItemCallback);
     }
 
     public <T extends RealmModel> void addObjectSet(long columnKey, @Nullable RealmSet<T> set) {

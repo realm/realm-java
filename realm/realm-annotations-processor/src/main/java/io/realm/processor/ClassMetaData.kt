@@ -115,8 +115,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             typeMirrors.DATE_MIRROR,
             typeMirrors.DECIMAL128_MIRROR,
             typeMirrors.OBJECT_ID_MIRROR,
-            typeMirrors.UUID_MIRROR
-//            typeMirrors.MIXED_MIRROR
+            typeMirrors.UUID_MIRROR,
+            typeMirrors.MIXED_MIRROR
     )
     private val stringType = typeMirrors.STRING_MIRROR
 
