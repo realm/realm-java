@@ -42,7 +42,8 @@ class ManagedSetTester<T : Any>(
         private val managedCollectionGetter: KProperty1<SetContainerClass, RealmList<T>>,
         private val initializedSet: List<T?>,
         private val notPresentValue: T,
-        private val toArrayManaged: ToArrayManaged<T>
+        private val toArrayManaged: ToArrayManaged<T>,
+        private val nullable: Boolean = true
 ) : SetTester {
 
     private lateinit var config: RealmConfiguration
@@ -193,8 +194,14 @@ class ManagedSetTester<T : Any>(
                 set.remove<Any>(somethingEntirelyDifferent)
             }
 
-            // Does not change if we remove null and null is not present
-            assertFalse(set.remove(null))
+            if(nullable){
+                // Does not change if we remove null and null is not present
+                assertFalse(set.remove(null))
+            } else {
+                assertFailsWith<java.lang.NullPointerException>("Set does not support null values") {
+                    set.remove(null)
+                }
+            }
         }
 
         assertEquals(0, set.size)

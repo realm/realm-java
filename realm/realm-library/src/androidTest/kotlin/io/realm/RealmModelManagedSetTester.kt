@@ -31,6 +31,9 @@ import kotlin.test.*
 
 /**
  * Generic tester for Realm models types of managed sets.
+ *
+ * It delegates the validation of managed realm models to the ManagedSetTester class, as it will validate all the paths,
+ * whereas in this test we validate Realm models specific cases.
  */
 class RealmModelManagedSetTester<T : RealmModel>(
         private val testerName: String,
@@ -59,10 +62,7 @@ class RealmModelManagedSetTester<T : RealmModel>(
         return set
     }
 
-    override fun toString(): String = when (mixedType) {
-        null -> "RealmModelManagedSet-${testerName}"
-        else -> "RealmModelManagedSet-${testerName}" + mixedType.name.let { "-$it" }
-    }
+    override fun toString(): String = "RealmModelManagedSet-${testerName}"
 
     override fun setUp(config: RealmConfiguration, looperThread: BlockingLooperThread) {
         this.config = config
@@ -83,7 +83,8 @@ class RealmModelManagedSetTester<T : RealmModel>(
                 managedCollectionGetter = managedCollectionGetter,
                 initializedSet = managedInitializedSet,
                 notPresentValue = managedNotPresentValue,
-                toArrayManaged = toArrayManaged
+                toArrayManaged = toArrayManaged,
+                nullable = false
         )
 
         this.managedTester.setUp(config, looperThread)
@@ -115,7 +116,9 @@ class RealmModelManagedSetTester<T : RealmModel>(
                 set.contains(unmanagedNotPresentValue)
             }
 
-            assertFalse(set.contains(null))
+            assertFailsWith<java.lang.NullPointerException>("Set does not support null values") {
+                assertFalse(set.contains(null))
+            }
         }
 
         // Test with objects from another realm
@@ -212,7 +215,9 @@ class RealmModelManagedSetTester<T : RealmModel>(
             }
 
             // Checks it does not contain nulls
-            assertFalse(set.containsAll(listOf(null)))
+            assertFailsWith<java.lang.NullPointerException>("Set does not support null values") {
+                assertFalse(set.containsAll(listOf(null)))
+            }
         }
 
         // Test with objects from another realm
@@ -237,7 +242,7 @@ class RealmModelManagedSetTester<T : RealmModel>(
         val set = initAndAssertEmptySet()
         realm.executeTransaction { transactionRealm ->
             // Changes after adding collection
-            assertFailsWith<IllegalArgumentException>("Cannot add null values into a set") {
+            assertFailsWith<java.lang.NullPointerException>("Cannot add null values into this set") {
                 set.addAll(listOf(null))
             }
 
@@ -339,7 +344,7 @@ class RealmModelManagedSetTester<T : RealmModel>(
             }
 
             // Check throws exception when null values are passed
-            assertFailsWith<IllegalArgumentException>("Collections with nulls are not permitted") {
+            assertFailsWith<java.lang.NullPointerException>("Collections with nulls are not permitted") {
                 set.retainAll(listOf(null))
             }
         }
@@ -372,7 +377,7 @@ class RealmModelManagedSetTester<T : RealmModel>(
             }
 
             // Check throws exception when null values are passed
-            assertFailsWith<IllegalArgumentException>("Collections with nulls are not permitted") {
+            assertFailsWith<java.lang.NullPointerException>("Collections with nulls are not permitted") {
                 set.removeAll(listOf(null))
             }
         }
@@ -407,7 +412,7 @@ class RealmModelManagedSetTester<T : RealmModel>(
                 alternativeRealm.executeTransaction {
                     val alternativeSet = RealmSet<T>().init(managedInitializedSet)
 
-                    assertFailsWith<IllegalArgumentException> ("Cannot pass values from another Realm") {
+                    assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
                         setSetter(alternativeObject, alternativeSet)
                     }
                 }
