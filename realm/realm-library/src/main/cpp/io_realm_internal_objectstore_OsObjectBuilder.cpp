@@ -782,17 +782,6 @@ Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDoubleSetItem(JNIEnv
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObjectSetItem(JNIEnv* env,
-                                                                          jclass,
-                                                                          jlong set_ptr,
-                                                                          jlong row_ptr) {
-    try {
-        add_list_element(set_ptr, JavaValue(reinterpret_cast<Obj*>(row_ptr)));
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL
 Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddByteArraySetItem(JNIEnv* env,
                                                                              jclass,
                                                                              jlong set_ptr,

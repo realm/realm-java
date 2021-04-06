@@ -768,8 +768,6 @@ public class OsObjectBuilder implements Closeable {
 
     private static native void nativeAddDoubleSetItem(long setPtr, double val);
 
-    private static native void nativeAddObjectSetItem(long setPtr, long rowPtr);
-
     private static native void nativeAddByteArraySetItem(long setPtr, byte[] val);
 
     private static native void nativeAddDateSetItem(long setPtr, long val);
@@ -834,24 +832,6 @@ public class OsObjectBuilder implements Closeable {
 
     public void addUUIDSet(long columnKey, RealmSet<UUID> set) {
         addSetItem(builderPtr, columnKey, set, uuidSetItemCallback);
-    }
-
-    public <T extends RealmModel> void addObjectSet(long columnKey, @Nullable RealmSet<T> set) {
-        if (set != null) {
-            long setPtr = nativeStartSet(set.size());
-            for (T value : set) {
-                if (value == null) {
-                    throw new IllegalArgumentException("Null values are not allowed in RealmSets containing Realm models");
-                } else {
-                    RealmObjectProxy realmObjectProxy = (RealmObjectProxy) value;
-                    long objectPtr = ((UncheckedRow) realmObjectProxy.realmGet$proxyState().getRow$realm()).getNativePtr();
-                    nativeAddObjectSetItem(setPtr, objectPtr);
-                }
-            }
-            nativeStopSet(builderPtr, columnKey, setPtr);
-        } else {
-            addEmptySet(columnKey);
-        }
     }
 
     private <T> void addSetItem(long builderPtr,
