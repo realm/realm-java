@@ -20,6 +20,7 @@ import io.realm.entities.AllTypes
 import io.realm.entities.DogPrimaryKey
 import io.realm.entities.SetContainerClass
 import io.realm.kotlin.createObject
+import io.realm.kotlin.where
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
@@ -546,6 +547,21 @@ class ManagedSetTester<T : Any>(
         assertFalse(set.isFrozen)
         assertTrue(frozenSet.isFrozen)
         assertEquals(set.size, frozenSet.size)
+    }
+
+    override fun setters() {
+        val allFields = createAllTypesManagedContainerAndAssert(realm)
+        val aSet = RealmSet<T>().init(initializedSet)
+
+        realm.executeTransaction {
+            setSetter(allFields, aSet)
+            assertEquals(aSet.size, setGetter(allFields).size)
+
+            // Validate it can assign the set to itself
+            val managedSet = setGetter(allFields)
+            setSetter(allFields, managedSet)
+            assertEquals(aSet.size, setGetter(allFields).size)
+        }
     }
 
     //----------------------------------

@@ -21,6 +21,7 @@ import io.realm.entities.PrimaryKeyAsString
 import io.realm.entities.SetContainerClass
 import io.realm.entities.SyncDog
 import io.realm.kotlin.createObject
+import io.realm.kotlin.where
 import io.realm.rule.BlockingLooperThread
 import java.lang.IllegalArgumentException
 import kotlin.reflect.KFunction1
@@ -394,4 +395,24 @@ class RealmModelManagedSetTester<T : RealmModel>(
     override fun clear() = managedTester.clear()
 
     override fun freeze() = managedTester.freeze()
+
+    override fun setters() {
+        managedTester.setters()
+
+        // Test with objects from another realm
+        looperThread.runBlocking {
+            Realm.getInstance(realm.configuration).use { alternativeRealm ->
+                val alternativeObject = createAllTypesManagedContainerAndAssert(alternativeRealm, "alternativeObject")
+
+                alternativeRealm.executeTransaction {
+                    val alternativeSet = RealmSet<T>().init(managedInitializedSet)
+
+                    assertFailsWith<IllegalArgumentException> ("Cannot pass values from another Realm") {
+                        setSetter(alternativeObject, alternativeSet)
+                    }
+                }
+            }
+            looperThread.testComplete()
+        }
+    }
 }

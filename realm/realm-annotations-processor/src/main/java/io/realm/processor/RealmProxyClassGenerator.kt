@@ -732,8 +732,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             beginControlFlow("if (value == null)")
                 emitStatement("return")
             endControlFlow()
+            emitSingleLineComment("We need to create a copy of the set before clearing as the input and target sets might be the same.")
+            emitStatement("List<$genericType> unmanagedList = new ArrayList<>(value)")
             emitStatement("osSet.clear()")
-            beginControlFlow("for (%s item : value)", genericType)
+            beginControlFlow("for (%s item : unmanagedList)", genericType)
 
             when {
                 forMixed -> {
