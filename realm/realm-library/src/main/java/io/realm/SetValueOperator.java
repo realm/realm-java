@@ -1105,37 +1105,45 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
         }
     }
 
+    /**
+     * Check that object is a valid and managed object by the set's Realm.
+     *
+     * @param value model object
+     */
+    private void checkValidObject(RealmModel value) {
+        if (!RealmObject.isValid(value) || !RealmObject.isManaged(value)) {
+            throw new IllegalArgumentException("'value' is not a valid managed object.");
+        }
+        if (((RealmObjectProxy) value).realmGet$proxyState().getRealm$realm() != baseRealm) {
+            throw new IllegalArgumentException("'value' belongs to a different Realm.");
+        }
+    }
+
     @Override
     boolean containsInternal(@Nullable Object value) {
         if (value == null) {
             return false; // Realm model sets cannot contain nulls
-        } else if (valueClass.cast(value) instanceof RealmObjectProxy) {
-            CollectionUtils.checkCanObjectBeCopied(baseRealm, (RealmModel) value, valueClass.getName(), SET_TYPE);
-            Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
-            return osSet.containsRow(row$realm.getObjectKey());
         }
-        throw new IllegalArgumentException("Only managed models can be contained in this set.");
+
+        checkValidObject((RealmModel) value);
+        Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
+        return osSet.containsRow(row$realm.getObjectKey());
     }
 
     @Override
     boolean removeInternal(@Nullable Object value) {
         if (value == null) {
             return false;  // Realm model sets cannot contain nulls
-        } else if (valueClass.cast(value) instanceof RealmObjectProxy) {
-            CollectionUtils.checkCanObjectBeCopied(baseRealm, (RealmModel) value, valueClass.getName(), SET_TYPE);
-            Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
-            return osSet.removeRow(row$realm.getObjectKey());
         }
-        throw new IllegalArgumentException("Only managed models can be contained in this set.");
+
+        checkValidObject((RealmModel) value);
+        Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
+        return osSet.removeRow(row$realm.getObjectKey());
     }
 
-    private void checkManagedCollection(Collection<? extends T> collection) {
-        String className = valueClass.getName();
+    private void checkValidCollection(Collection<? extends T> collection) {
         for (T object : collection) {
-            if (!(object instanceof RealmObjectProxy)) {
-                throw new IllegalArgumentException("Unmanaged values are not allowed on collections containing Realm models");
-            }
-            CollectionUtils.checkCanObjectBeCopied(baseRealm, object, className, "Set");
+            checkValidObject(object);
         }
     }
 
@@ -1147,8 +1155,8 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
 
         // Realm model sets cannot contain null values
         if (collection.contains(null)) { return false; }
-        // All models must be managed and from the sets Realm
-        checkManagedCollection(realmModelCollection);
+        // All models must be managed and from the same set's Realm
+        checkValidCollection(realmModelCollection);
         NativeMixedCollection mixedCollection = NativeMixedCollection.newRealmModelCollection(realmModelCollection);
         return osSet.collectionFunnel(mixedCollection, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
     }
@@ -1170,7 +1178,7 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
         //noinspection unchecked
         Collection<T> realmModelCollection = (Collection<T>) c;
 
-        checkManagedCollection(realmModelCollection);
+        checkValidCollection(realmModelCollection);
         NativeMixedCollection collection = NativeMixedCollection.newRealmModelCollection(realmModelCollection);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
     }
@@ -1181,7 +1189,7 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
         //noinspection unchecked
         Collection<T> realmModelCollection = (Collection<T>) c;
 
-        checkManagedCollection(realmModelCollection);
+        checkValidCollection(realmModelCollection);
         NativeMixedCollection collection = NativeMixedCollection.newRealmModelCollection(realmModelCollection);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
