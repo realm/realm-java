@@ -18,6 +18,7 @@ package io.realm
 
 import io.realm.entities.AllTypes
 import io.realm.entities.DogPrimaryKey
+import io.realm.entities.Owner
 import io.realm.entities.SetContainerClass
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
@@ -194,7 +195,7 @@ class ManagedSetTester<T : Any>(
                 set.remove<Any>(somethingEntirelyDifferent)
             }
 
-            if(nullable){
+            if (nullable) {
                 // Does not change if we remove null and null is not present
                 assertFalse(set.remove(null))
             } else {
@@ -740,7 +741,7 @@ fun managedSetFactory(): List<SetTester> {
                         setSetter = AllTypes::setColumnRealmModelSet,
                         managedSetGetter = SetContainerClass::myRealmModelSet,
                         managedCollectionGetter = SetContainerClass::myRealmModelList,
-                        unmanagedInitializedSet =  listOf(VALUE_LINK_HELLO, VALUE_LINK_BYE),
+                        unmanagedInitializedSet = listOf(VALUE_LINK_HELLO, VALUE_LINK_BYE),
                         unmanagedNotPresentValue = VALUE_LINK_NOT_PRESENT,
                         toArrayManaged = ToArrayManaged.RealmModelManaged()
                 )
@@ -753,8 +754,22 @@ fun managedSetFactory(): List<SetTester> {
     // TODO
 
     // Put them together
-//    return primitiveTesters.plus(mixedTesters)
+    // return primitiveTesters.plus(mixedTesters)
+
+    // Validate with no PK models
     return primitiveTesters
+            .plus(
+                    NoPKRealmModelSetTester<Owner>(
+                            testerName = "LINK_NO_PK",
+                            setGetter = AllTypes::getColumnRealmModelNoPkSet,
+                            setSetter = AllTypes::setColumnRealmModelNoPkSet,
+                            managedSetGetter = SetContainerClass::myRealmModelNoPkSet,
+                            managedCollectionGetter = SetContainerClass::myRealmModelNoPkList,
+                            initializedSet = listOf(VALUE_LINK_NO_PK_HELLO, VALUE_LINK_NO_PK_BYE),
+                            notPresentValue = VALUE_LINK_NO_PK_NOT_PRESENT,
+                            toArrayManaged = ToArrayManaged.RealmModelNoPKManaged()
+                    )
+            )
 }
 
 /**
@@ -854,6 +869,11 @@ abstract class ToArrayManaged<T> {
 
     class RealmModelManaged : ToArrayManaged<DogPrimaryKey>() {
         override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<DogPrimaryKey>, values: List<DogPrimaryKey?>) =
+                test(realm, set, values, emptyArray(), arrayOf())
+    }
+
+    class RealmModelNoPKManaged : ToArrayManaged<Owner>() {
+        override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<Owner>, values: List<Owner?>) =
                 test(realm, set, values, emptyArray(), arrayOf())
     }
 

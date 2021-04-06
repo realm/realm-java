@@ -18,6 +18,7 @@ package io.realm
 
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.DogPrimaryKey
+import io.realm.entities.Owner
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
@@ -310,6 +311,10 @@ internal val VALUE_UUID_NOT_PRESENT = UUID.nameUUIDFromBytes(VALUE_BINARY_NOT_PR
 internal val VALUE_LINK_HELLO = DogPrimaryKey(42, VALUE_STRING_HELLO)
 internal val VALUE_LINK_BYE = DogPrimaryKey(43, VALUE_STRING_BYE)
 internal val VALUE_LINK_NOT_PRESENT = DogPrimaryKey(44, VALUE_STRING_NOT_PRESENT)
+
+internal val VALUE_LINK_NO_PK_HELLO = Owner().apply { name = VALUE_STRING_HELLO }
+internal val VALUE_LINK_NO_PK_BYE = Owner().apply { name = VALUE_STRING_BYE }
+internal val VALUE_LINK_NO_PK_NOT_PRESENT = Owner().apply { name = VALUE_STRING_NOT_PRESENT }
 
 internal val VALUE_MIXED_INTEGER_HELLO = Mixed.valueOf(VALUE_NUMERIC_HELLO)
 internal val VALUE_MIXED_INTEGER_BYE = Mixed.valueOf(VALUE_NUMERIC_BYE)
