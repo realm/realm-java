@@ -26,6 +26,7 @@ import java.util.*
 
 open class SetContainerClass : RealmObject() {
 
+    val myRealmModelNoPkSet = RealmSet<Owner>()
     val myRealmModelSet = RealmSet<DogPrimaryKey>()
     val myBooleanSet = RealmSet<Boolean>()
     val myStringSet = RealmSet<String>()
@@ -42,6 +43,7 @@ open class SetContainerClass : RealmObject() {
     val myDecimal128Set = RealmSet<Decimal128>()
 //    val myMixedSet = RealmSet<Mixed>()
 
+    val myRealmModelNoPkList = RealmList<Owner>()
     val myRealmModelList = RealmList<DogPrimaryKey>()
     val myBooleanList = RealmList<Boolean>()
     val myStringList = RealmList<String>()

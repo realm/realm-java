@@ -67,6 +67,7 @@ public class RealmProcessorTest {
     private final JavaFileObject realmSetModel = JavaFileObjects.forResource("some/test/RealmSetModel.java");
     private final JavaFileObject realmSetModelWrongType = JavaFileObjects.forResource("some/test/RealmSetModelWrongType.java");
     private final JavaFileObject realmSetMissingGenericsModel = JavaFileObjects.forResource("some/test/RealmSetMissingGenerics.java");
+    private final JavaFileObject embeddedObject = JavaFileObjects.forResource("some/test/EmbeddedObject.java");
 
     @Test
     public void compileSimpleFile() {
@@ -376,6 +377,22 @@ public class RealmProcessorTest {
                     .processedWith(new RealmProcessor())
                     .failsToCompile();
         }
+    }
+
+    // Not supported RealmSets of embedded objects
+    @Test
+    public void compileEmbeddedObjectSet() throws IOException {
+        RealmSyntheticTestClass.Builder builder = new RealmSyntheticTestClass.Builder()
+                .name("InvalidRequiredType");
+
+        builder.field()
+                .name("embeddedSet")
+                .type("RealmSet<EmbeddedObject>");
+
+        assertAbout(javaSources())
+                .that(Arrays.asList(embeddedObject, builder.build()))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
     }
 
     @Test

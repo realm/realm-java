@@ -719,7 +719,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             when {
                 forMixed -> {
                     // Add Mixed logic
-                    throw IllegalStateException("Missing Mixed implementation")
+                    throw UnsupportedOperationException("Missing Mixed implementation")
                 }
                 forRealmModel -> {
                     emitStatement("OsSet osSet = proxyState.getRow\$realm().getModelSet(%s)", fieldColKeyVariableReference(field))
@@ -732,13 +732,15 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             beginControlFlow("if (value == null)")
                 emitStatement("return")
             endControlFlow()
+            emitSingleLineComment("We need to create a copy of the set before clearing as the input and target sets might be the same.")
+            emitStatement("List<$genericType> unmanagedList = new ArrayList<>(value)")
             emitStatement("osSet.clear()")
-            beginControlFlow("for (%s item : value)", genericType)
+            beginControlFlow("for (%s item : unmanagedList)", genericType)
 
             when {
                 forMixed -> {
                     // Add Mixed logic
-                    throw IllegalStateException("Missing Mixed implementation")
+                    throw UnsupportedOperationException("Missing Mixed implementation")
                 }
                 forRealmModel -> {
                     emitStatement("proxyState.checkValidObject(item)")

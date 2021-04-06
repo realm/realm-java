@@ -1,7 +1,6 @@
 package io.realm
 
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.entities.DogPrimaryKey
 import io.realm.rule.BlockingLooperThread
 import org.junit.After
 import org.junit.Before
@@ -143,6 +142,11 @@ class ParameterizedSetTests(
     fun freeze() {
         tester.freeze()
     }
+
+    @Test
+    fun setters() {
+        tester.setters()
+    }
 }
 
 /**
@@ -185,6 +189,7 @@ interface SetTester : GenericTester {
     fun removeAll()
     fun clear()
     fun freeze()
+    fun setters()
 }
 
 fun <T : Any> RealmSet<T>.init(values: List<T?>): RealmSet<T> {

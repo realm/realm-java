@@ -168,6 +168,9 @@ class UnmanagedSetTester<T : Any>(
             RealmSet<T>().freeze()
         }
     }
+
+    // Not a valid test on unmanaged sets
+    override fun setters() = Unit
 }
 
 fun unmanagedSetFactory(): List<SetTester> {

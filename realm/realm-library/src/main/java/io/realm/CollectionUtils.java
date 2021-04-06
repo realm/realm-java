@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
@@ -169,31 +167,6 @@ public class CollectionUtils {
         } else {
             return realm.copyToRealm(object);
         }
-    }
-
-    /**
-     * Called by both list, sets and dictionary operators to copy a RealmModel to Realm in case it has
-     * been deemed necessary.
-     *
-     * @param baseRealm The Realm instance to copy the object to.
-     * @param objects   collection of object to copy.
-     * @param <E>       The RealmModel type.
-     * @return the copied object
-     */
-    public static <E extends RealmModel> Collection<E> copyToRealm(BaseRealm baseRealm, Collection<E> objects) {
-        // At this point the object can only be a typed object, so the backing Realm cannot be a DynamicRealm.
-        Realm realm = (Realm) baseRealm;
-        Collection<E> managedObjects = new ArrayList<>();
-        for (E object : objects) {
-            String simpleClassName = realm.getConfiguration().getSchemaMediator().getSimpleClassName(object.getClass());
-            if (OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), simpleClassName) != null) {
-                managedObjects.add(realm.copyToRealmOrUpdate(object));
-            } else {
-                managedObjects.add(realm.copyToRealm(object));
-            }
-        }
-
-        return managedObjects;
     }
 
     /**
