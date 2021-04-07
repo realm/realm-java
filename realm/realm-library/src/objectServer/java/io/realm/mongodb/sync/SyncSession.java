@@ -29,6 +29,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.Nullable;
+
 import io.realm.annotations.Beta;
 import io.realm.mongodb.ErrorCode;
 import io.realm.mongodb.AppException;
@@ -192,17 +194,19 @@ public class SyncSession {
     }
 
     // This callback will happen on the thread running the Sync Client.
-    void notifySessionError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {
+    void notifySessionError(String nativeErrorCategory, int nativeErrorCode, String errorMessage, String clientResetPathInfo) {
         if (errorHandler == null) {
             return;
         }
         ErrorCode errCode = ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode);
         if (errCode == ErrorCode.CLIENT_RESET) {
             // errorMessage contains the path to the backed up file
-            RealmConfiguration backupRealmConfiguration = configuration.forErrorRecovery(errorMessage);
-            clientResetHandler.onClientReset(this, new ClientResetRequiredError(appNativePointer, errCode, "A Client Reset is required. " +
-                    "Read more here: https://docs.realm.io/sync/using-synced-realms/errors#client-reset.",
-                    configuration, backupRealmConfiguration));
+            if (clientResetPathInfo == null) {
+                throw new IllegalStateException("Missing Client Reset info.");
+            }
+            RealmConfiguration backupRealmConfiguration = configuration.forErrorRecovery(clientResetPathInfo);
+            clientResetHandler.onClientReset(this, new ClientResetRequiredError(appNativePointer,
+                    errCode, errorMessage, configuration, backupRealmConfiguration));
         } else {
             AppException wrappedError;
             if (errCode == ErrorCode.UNKNOWN) {
