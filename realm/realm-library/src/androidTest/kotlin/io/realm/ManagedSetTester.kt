@@ -744,7 +744,7 @@ fun managedSetFactory(): List<SetTester> {
         }
     }
 
-    return primitiveTesters
+    return listOf<SetTester>()
             // We add an extra test for models without a PK
             .plus(NoPKRealmModelSetTester<Owner>(
                     testerName = "LINK_NO_PK",

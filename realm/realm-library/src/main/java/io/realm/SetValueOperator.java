@@ -2,6 +2,7 @@ package io.realm;
 
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,6 +16,7 @@ import javax.annotation.Nullable;
 import io.realm.internal.OsSet;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
+import io.realm.internal.core.NativeMixed;
 import io.realm.internal.core.NativeMixedCollection;
 
 import static io.realm.CollectionUtils.SET_TYPE;
@@ -261,6 +263,8 @@ abstract class SetValueOperator<E> {
             return (SetIterator<T>) new ObjectIdSetIterator(osSet, baseRealm);
         } else if (valueClass == UUID.class) {
             return (SetIterator<T>) new UUIDSetIterator(osSet, baseRealm);
+        } else if (valueClass == Mixed.class) {
+            return (SetIterator<T>) new MixedSetIterator(osSet, baseRealm);
         } else if (CollectionUtils.isClassForRealmModel(valueClass)) {
             return (SetIterator<T>) new RealmModelSetIterator(osSet, baseRealm, valueClass);
         } else {
@@ -1183,6 +1187,91 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
 
 /**
  * TODO
+ */
+class MixedSetOperator extends SetValueOperator<Mixed> {
+
+    public MixedSetOperator(BaseRealm baseRealm, OsSet osSet, Class<Mixed> valueClass) {
+        super(baseRealm, osSet, valueClass);
+    }
+
+    @Override
+    boolean add(@Nullable Mixed value) {
+        return osSet.addMixed((value == null) ? Mixed.nullValue().getNativePtr() : value.getNativePtr());
+    }
+
+    @Override
+    boolean containsInternal(@Nullable Object o) {
+        Mixed value;
+        if (o == null) {
+            value = Mixed.nullValue();
+        } else {
+            value = (Mixed) o;
+        }
+        return osSet.containsMixed(value.getNativePtr());
+    }
+
+    @Override
+    boolean removeInternal(@Nullable Object o) {
+        // Object has been type-checked from caller
+        Mixed value;
+        if (o == null) {
+            value = Mixed.nullValue();
+        } else {
+            value = (Mixed) o;
+        }
+        return osSet.removeMixed(value.getNativePtr());
+    }
+
+    @NotNull
+    private NativeMixedCollection getNativeMixedCollection(Collection<? extends Mixed> mixedCollection) {
+        Mixed nullMixed = Mixed.nullValue();
+        long[] mixedPtrs = new long[mixedCollection.size()];
+        boolean[] notNull = new boolean[mixedCollection.size()];
+
+        int i = 0;
+        for (Mixed mixed : mixedCollection){
+            mixedPtrs[i] = (mixed == null) ? nullMixed.getNativePtr() : mixed.getNativePtr();
+            notNull[i] = true;
+            i++;
+        }
+
+        return NativeMixedCollection.newMixedCollection(mixedPtrs, notNull);
+    }
+
+    @Override
+    boolean containsAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeMixedCollection collection = getNativeMixedCollection((Collection<Mixed>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+    }
+
+    @Override
+    boolean addAllInternal(Collection<? extends Mixed> c) {
+        // Collection has been type-checked from caller
+        NativeMixedCollection collection = getNativeMixedCollection(c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
+    }
+
+    @Override
+    boolean removeAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeMixedCollection collection = getNativeMixedCollection((Collection<Mixed>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeMixedCollection collection = getNativeMixedCollection((Collection<Mixed>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
+    }
+}
+
+/**
+ * TODO
  *
  * @param <E>
  */
@@ -1380,6 +1469,21 @@ class ObjectIdSetIterator extends SetIterator<ObjectId> {
 class UUIDSetIterator extends SetIterator<UUID> {
     public UUIDSetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
+    }
+}
+
+/**
+ * TODO
+ */
+class MixedSetIterator extends SetIterator<Mixed> {
+    public MixedSetIterator(OsSet osSet, BaseRealm baseRealm) {
+        super(osSet, baseRealm);
+    }
+
+    @Override
+    protected Mixed getValueAtIndex(int position) {
+        NativeMixed nativeMixed = new NativeMixed(osSet.getMixed(position));
+        return new Mixed(MixedOperator.fromNativeMixed(baseRealm, nativeMixed));
     }
 }
 

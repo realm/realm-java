@@ -680,16 +680,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitStatement("final RealmSet<%s> original = value", genericType)
                         emitStatement("value = new RealmSet<%s>()", genericType)
                         beginControlFlow("for (%s item : original)", genericType)
-                            emitSingleLineComment("ensure (potential) RealmModel instances are copied to Realm if generic type is Mixed")
-                            beginControlFlow("if (item == null)")
-                                emitStatement("value.add(null)")
-                            nextControlFlow("else if (item.getType() == MixedType.OBJECT)")
-                                emitStatement("RealmModel realmModel = item.asRealmModel(RealmModel.class)")
-                                emitStatement("RealmModel modelFromRealm = realm.copyToRealmOrUpdate(realmModel)")
-                                emitStatement("value.add(Mixed.valueOf(modelFromRealm))")
-                            nextControlFlow("else")
-                                emitStatement("value.add(item)")
-                            endControlFlow()
+                            emitStatement("value.add(ProxyUtils.copyToRealmIfNeeded(proxyState, item))")
                         endControlFlow()
                     endControlFlow()
                 } else if (forRealmModel) {
@@ -715,7 +706,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             when {
                 forMixed -> {
                     // Add Mixed logic
-                    throw UnsupportedOperationException("Missing Mixed implementation")
+                    emitStatement("OsSet osSet = proxyState.getRow\$realm().getMixedSet(%s)", fieldColKeyVariableReference(field))
                 }
                 forRealmModel -> {
                     emitStatement("OsSet osSet = proxyState.getRow\$realm().getModelSet(%s)", fieldColKeyVariableReference(field))
@@ -735,8 +726,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
             when {
                 forMixed -> {
-                    // Add Mixed logic
-                    throw UnsupportedOperationException("Missing Mixed implementation")
+                    emitStatement("osSet.addMixed(ProxyUtils.copyToRealmIfNeeded(proxyState, item).getNativePtr())")
                 }
                 forRealmModel -> {
                     emitStatement("proxyState.checkValidObject(item)")

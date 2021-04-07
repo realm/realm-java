@@ -251,12 +251,30 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateUUIDCollection(JNI
 
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_core_NativeMixedCollection_nativeCreateObjectCollection(JNIEnv *env, jclass,
-                                                                             jlongArray j_object_array) {
+                                                                               jlongArray j_object_array) {
     try {
         JLongArrayAccessor values(env, j_object_array);
         auto collection = new std::vector<JavaValue>();
         for (int i = 0; i < values.size(); i++) {
             collection->push_back(JavaValue(reinterpret_cast<Obj*>(values[i])));
+        }
+        return reinterpret_cast<jlong>(collection);
+    } CATCH_STD()
+
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_core_NativeMixedCollection_nativeCreateMixedCollection(JNIEnv *env, jclass,
+                                                                               jlongArray j_mixed_ptrs,
+                                                                               jbooleanArray j_not_null) {
+    try {
+        JLongArrayAccessor values(env, j_mixed_ptrs);
+        JBooleanArrayAccessor not_null(env, j_not_null);
+        auto collection = new std::vector<JavaValue>();
+        for (int i = 0; i < values.size(); i++) {
+            collection->push_back(not_null[i] ?
+                                  JavaValue(reinterpret_cast<JavaValue *>(values[i])) : from_mixed(Mixed()));
         }
         return reinterpret_cast<jlong>(collection);
     } CATCH_STD()

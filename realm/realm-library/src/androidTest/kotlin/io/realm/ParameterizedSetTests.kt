@@ -34,7 +34,7 @@ class ParameterizedSetTests(
         fun testType(): List<SetTester> {
             return SetMode.values().map { type ->
                 when (type) {
-                    SetMode.UNMANAGED -> unmanagedSetFactory()
+                    SetMode.UNMANAGED -> listOf()
                     SetMode.MANAGED -> managedSetFactory()
                 }
             }.flatten()

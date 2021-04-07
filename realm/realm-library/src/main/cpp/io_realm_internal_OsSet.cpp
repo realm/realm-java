@@ -255,11 +255,24 @@ Java_io_realm_internal_OsSet_nativeContainsUUID(JNIEnv* env, jclass, jlong set_p
 
 JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_OsSet_nativeContainsRow(JNIEnv* env, jclass, jlong set_ptr,
-                                                jlong j_obj_key) {
+                                               jlong j_obj_key) {
     try {
         auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
         ObjKey object_key(j_obj_key);
         size_t found = set.find_any(object_key);
+        return found != npos;       // npos represents "not found"
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsSet_nativeContainsMixed(JNIEnv* env, jclass, jlong set_ptr,
+                                               jlong mixed_ptr) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& java_value = *reinterpret_cast<JavaValue*>(mixed_ptr);
+        size_t found = set.find_any(java_value.to_mixed());
         return found != npos;       // npos represents "not found"
     }
     CATCH_STD()
@@ -519,6 +532,29 @@ Java_io_realm_internal_OsSet_nativeAddRow(JNIEnv* env, jclass, jlong set_ptr,
     return nullptr;
 }
 
+
+
+JNIEXPORT jlongArray JNICALL
+Java_io_realm_internal_OsSet_nativeAddMixed(JNIEnv* env, jclass, jlong set_ptr,
+                                          jlong mixed_ptr) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& java_value = *reinterpret_cast<JavaValue*>(mixed_ptr);
+
+        // TODO: abstract this call so that the rest is the same for all types
+        const std::pair<size_t, bool>& add_pair = set.insert(java_value.to_mixed());
+
+        jlong ret[2];
+        ret[0] = add_pair.first;    // index
+        ret[1] = add_pair.second;   // found (or not)
+        jlongArray ret_array = env->NewLongArray(2);
+        env->SetLongArrayRegion(ret_array, 0, 2, ret);
+        return ret_array;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
 JNIEXPORT jlongArray JNICALL
 Java_io_realm_internal_OsSet_nativeRemoveNull(JNIEnv* env, jclass, jlong set_ptr) {
     try {
@@ -765,13 +801,46 @@ Java_io_realm_internal_OsSet_nativeRemoveRow(JNIEnv* env, jclass, jlong set_ptr,
     return nullptr;
 }
 
+JNIEXPORT jlongArray JNICALL
+Java_io_realm_internal_OsSet_nativeRemoveMixed(JNIEnv* env, jclass, jlong set_ptr,
+                                             jlong mixed_ptr) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& java_value = *reinterpret_cast<JavaValue*>(mixed_ptr);
+
+        // TODO: abstract this call so that the rest is the same for all types
+        const std::pair<size_t, bool>& remove_pair = set.remove(java_value.to_mixed());
+
+        jlong ret[2];
+        ret[0] = remove_pair.first;     // index
+        ret[1] = remove_pair.second;    // found (or not)
+        jlongArray ret_array = env->NewLongArray(2);
+        env->SetLongArrayRegion(ret_array, 0, 2, ret);
+        return ret_array;
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_OsSet_nativeGetRow(JNIEnv* env, jclass, jlong set_ptr,
-                                             jint j_index) {
+                                          jint j_index) {
     try {
         auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
         const Obj &obj = set.get(j_index);
         return obj.get_key().value;
+    }
+    CATCH_STD()
+    return -1;
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_OsSet_nativeGetMixed(JNIEnv* env, jclass, jlong set_ptr,
+                                          jint j_index) {
+    try {
+        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        const Mixed& mixed = set.get_any(j_index);
+        return reinterpret_cast<jlong>(new JavaValue(from_mixed(mixed)));
     }
     CATCH_STD()
     return -1;

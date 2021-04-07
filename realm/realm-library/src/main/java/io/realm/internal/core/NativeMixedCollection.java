@@ -205,6 +205,10 @@ public final class NativeMixedCollection implements NativeObject {
         return new NativeMixedCollection(nativeCreateObjectCollection(objectValues));
     }
 
+    public static NativeMixedCollection newMixedCollection(long[] mixedPtrs, boolean[] notNull) {
+        return new NativeMixedCollection(nativeCreateMixedCollection(mixedPtrs, notNull));
+    }
+
     private NativeMixedCollection(long nativePtr) {
         this.nativePtr = nativePtr;
         NativeContext.dummyContext.addReference(this);
@@ -249,6 +253,8 @@ public final class NativeMixedCollection implements NativeObject {
     private static native long nativeCreateUUIDCollection(String[] uuidValues, boolean[] notNull);
 
     private static native long nativeCreateObjectCollection(long[] objectValues);
+
+    private static native long nativeCreateMixedCollection(long[] mixedPtrs, boolean[] notNull);
 
     private static native int nativeGetCollectionSize(long nativePtr);
 
