@@ -262,7 +262,7 @@ public class Property implements NativeObject {
                 return type;
             case MIXED_SET:
                 type = TYPE_MIXED | TYPE_SET;
-                return type;
+                break;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported filed type: '%s'.", fieldType.name()));

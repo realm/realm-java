@@ -16,10 +16,7 @@
 
 package io.realm
 
-import io.realm.entities.AllTypes
-import io.realm.entities.DogPrimaryKey
-import io.realm.entities.Owner
-import io.realm.entities.SetContainerClass
+import io.realm.entities.*
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import io.realm.rule.BlockingLooperThread
@@ -51,10 +48,7 @@ class ManagedSetTester<T : Any>(
     private lateinit var looperThread: BlockingLooperThread
     private lateinit var realm: Realm
 
-    override fun toString(): String = when (mixedType) {
-        null -> "ManagedSet-${testerName}"
-        else -> "ManagedSet-${testerName}" + mixedType.name.let { "-$it" }
-    }
+    override fun toString(): String = "ManagedSet-${testerName}"
 
     override fun setUp(config: RealmConfiguration, looperThread: BlockingLooperThread) {
         this.config = config
@@ -750,26 +744,34 @@ fun managedSetFactory(): List<SetTester> {
         }
     }
 
-    // Create Mixed testers now
-    // TODO
-
-    // Put them together
-    // return primitiveTesters.plus(mixedTesters)
-
-    // Validate with no PK models
     return primitiveTesters
-            .plus(
-                    NoPKRealmModelSetTester<Owner>(
-                            testerName = "LINK_NO_PK",
-                            setGetter = AllTypes::getColumnRealmModelNoPkSet,
-                            setSetter = AllTypes::setColumnRealmModelNoPkSet,
-                            managedSetGetter = SetContainerClass::myRealmModelNoPkSet,
-                            managedCollectionGetter = SetContainerClass::myRealmModelNoPkList,
-                            initializedSet = listOf(VALUE_LINK_NO_PK_HELLO, VALUE_LINK_NO_PK_BYE),
-                            notPresentValue = VALUE_LINK_NO_PK_NOT_PRESENT,
-                            toArrayManaged = ToArrayManaged.RealmModelNoPKManaged()
-                    )
-            )
+            // We add an extra test for models without a PK
+            .plus(NoPKRealmModelSetTester<Owner>(
+                    testerName = "LINK_NO_PK",
+                    setGetter = AllTypes::getColumnRealmModelNoPkSet,
+                    setSetter = AllTypes::setColumnRealmModelNoPkSet,
+                    managedSetGetter = SetContainerClass::myRealmModelNoPkSet,
+                    managedCollectionGetter = SetContainerClass::myRealmModelNoPkList,
+                    initializedSet = listOf(VALUE_LINK_NO_PK_HELLO, VALUE_LINK_NO_PK_BYE),
+                    notPresentValue = VALUE_LINK_NO_PK_NOT_PRESENT,
+                    toArrayManaged = ToArrayManaged.RealmModelNoPKManaged()
+            ))
+            // Then we add the tests for Mixed types
+            .plus(MixedType.values().map { mixedType ->
+                ManagedSetTester<Mixed>(
+                        testerName = "MIXED-${mixedType.name}",
+                        mixedType = mixedType,
+                        setGetter = AllTypes::getColumnMixedSet,
+                        setSetter = AllTypes::setColumnMixedSet,
+                        managedSetGetter = SetContainerClass::myMixedSet,
+                        managedCollectionGetter = SetContainerClass::myMixedList,
+                        initializedSet = getMixedKeyValuePairs(mixedType).map {
+                            it.second
+                        },
+                        notPresentValue = VALUE_MIXED_NOT_PRESENT,
+                        toArrayManaged = ToArrayManaged.MixedManaged()
+                )
+            })
 }
 
 /**
