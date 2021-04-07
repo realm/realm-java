@@ -1094,15 +1094,10 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
         }
         // Check we can add this object into the Realm
         boolean copyObject = CollectionUtils.checkCanObjectBeCopied(baseRealm, value, valueClass.getName(), SET_TYPE);
-        if (CollectionUtils.isEmbedded(baseRealm, value)) {
-            // Embedded objects arent allowed in RealmSets
-            throw new IllegalArgumentException("Embedded objects are not supported by RealmSets.");
-        } else {
-            // Add value into set
-            RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, (RealmModel) value) : value);
-            Row row$realm = proxy.realmGet$proxyState().getRow$realm();
-            return osSet.addRow(row$realm.getObjectKey());
-        }
+        // Add value into set
+        RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, (RealmModel) value) : value);
+        Row row$realm = proxy.realmGet$proxyState().getRow$realm();
+        return osSet.addRow(row$realm.getObjectKey());
     }
 
     /**

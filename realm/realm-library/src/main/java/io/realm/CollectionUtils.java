@@ -37,7 +37,7 @@ public class CollectionUtils {
     }
 
     /**
-     * Called by both list and set operators to determine whether a RealmModel is an embedded object
+     * Called by both list operators to determine whether a RealmModel is an embedded object
      *
      * @param realm  the Realm instance to check against.
      * @param object the object to check.

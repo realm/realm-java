@@ -17,10 +17,6 @@
 package io.realm.processor
 
 import com.squareup.javawriter.JavaWriter
-import com.sun.tools.javac.code.Attribute
-import com.sun.tools.javac.code.Symbol
-import com.sun.tools.javac.code.Type
-import com.sun.tools.javac.util.Pair
 import io.realm.processor.ext.beginMethod
 import io.realm.processor.ext.beginType
 import java.io.BufferedWriter
@@ -443,7 +439,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             // Getter - End
 
             // Setter - Start
-            val isEmbedded = isFieldTypeEmbedded(field.asType())
+            val isEmbedded = Utils.isFieldTypeEmbedded(field.asType(), classCollection)
             val linkedQualifiedClassName: QualifiedClassName = Utils.getFieldTypeQualifiedName(field)
             val linkedProxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field)
             emitAnnotation("Override")
@@ -1491,7 +1487,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                 when {
                     Utils.isRealmModel(field) -> {
-                        val isEmbedded = isFieldTypeEmbedded(field.asType())
+                        val isEmbedded = Utils.isFieldTypeEmbedded(field.asType(), classCollection)
                         emitEmptyLine()
                         emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
                         beginControlFlow("if (%sObj != null)", fieldName)
@@ -1512,7 +1508,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     }
                     Utils.isRealmModelList(field) -> {
                         val genericType: TypeMirror = Utils.getGenericType(field)!!
-                        val isEmbedded = isFieldTypeEmbedded(genericType)
+                        val isEmbedded = Utils.isFieldTypeEmbedded(genericType, classCollection)
                         emitEmptyLine()
                         emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                         beginControlFlow("if (%sList != null)", fieldName)
@@ -1641,7 +1637,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         val getter = metadata.getInternalGetter(fieldName)
 
                         if (Utils.isRealmModel(field)) {
-                            val isEmbedded = isFieldTypeEmbedded(field.asType())
+                            val isEmbedded = Utils.isFieldTypeEmbedded(field.asType(), classCollection)
 
                             emitEmptyLine()
                             emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
@@ -1662,7 +1658,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                         } else if (Utils.isRealmModelList(field)) {
                             val genericType: TypeMirror = Utils.getGenericType(field)!!
-                            val isEmbedded = isFieldTypeEmbedded(genericType)
+                            val isEmbedded = Utils.isFieldTypeEmbedded(genericType, classCollection)
 
                             emitEmptyLine()
                             emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
@@ -1777,7 +1773,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 val getter = metadata.getInternalGetter(fieldName)
 
                 if (Utils.isRealmModel(field)) {
-                    val isEmbedded = isFieldTypeEmbedded(field.asType())
+                    val isEmbedded = Utils.isFieldTypeEmbedded(field.asType(), classCollection)
                     emitEmptyLine()
                     emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
                     beginControlFlow("if (%sObj != null)", fieldName)
@@ -1800,7 +1796,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     endControlFlow()
                 } else if (Utils.isRealmModelList(field)) {
                     val genericType: TypeMirror = Utils.getGenericType(field)!!
-                    val isEmbedded = isFieldTypeEmbedded(genericType)
+                    val isEmbedded = Utils.isFieldTypeEmbedded(genericType, classCollection)
 
                     emitEmptyLine()
                     emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
@@ -1961,7 +1957,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                         when {
                             Utils.isRealmModel(field) -> {
-                                val isEmbedded = isFieldTypeEmbedded(field.asType())
+                                val isEmbedded = Utils.isFieldTypeEmbedded(field.asType(), classCollection)
                                 emitEmptyLine()
                                 emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
                                 beginControlFlow("if (%sObj != null)", fieldName)
@@ -1985,7 +1981,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             }
                             Utils.isRealmModelList(field) -> {
                                 val genericType: TypeMirror = Utils.getGenericType(field)!!
-                                val isEmbedded = isFieldTypeEmbedded(genericType)
+                                val isEmbedded = Utils.isFieldTypeEmbedded(genericType, classCollection)
                                 emitEmptyLine()
                                 emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
                                 emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
@@ -2237,7 +2233,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                     when {
                         Utils.isRealmModel(field) -> {
-                            val isEmbedded = isFieldTypeEmbedded(field.asType())
+                            val isEmbedded = Utils.isFieldTypeEmbedded(field.asType(), classCollection)
                             val fieldColKey: String = fieldColKeyVariableReference(field)
                             val linkedQualifiedClassName: QualifiedClassName = Utils.getFieldTypeQualifiedName(field)
                             val linkedProxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field)
@@ -2274,7 +2270,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val listElementType: TypeMirror = Utils.getGenericType(field)!!
                             val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
                             val linkedProxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field)
-                            val isEmbedded = isFieldTypeEmbedded(listElementType)
+                            val isEmbedded = Utils.isFieldTypeEmbedded(listElementType, classCollection)
 
                             emitStatement("RealmList<%s> %sUnmanagedList = unmanagedSource.%s()", genericType, fieldName, getter)
                             beginControlFlow("if (%sUnmanagedList != null)", fieldName)
@@ -2347,7 +2343,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Utils.isRealmDictionary(field) -> {
                             val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
                             val listElementType: TypeMirror = Utils.getGenericType(field)!!
-                            val isEmbedded = isFieldTypeEmbedded(listElementType)
+                            val isEmbedded = Utils.isFieldTypeEmbedded(listElementType, classCollection)
                             val linkedProxyClass: SimpleClassName = Utils.getDictionaryGenericProxyClassSimpleName(field)
 
                             emitStatement("RealmDictionary<${genericType}> ${fieldName}UnmanagedDictionary = unmanagedSource.${getter}()")
@@ -2590,7 +2586,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitStatement("builder.addNull(%s)", fieldColKeyVariableReference(field))
                             nextControlFlow("else")
 
-                            val isEmbedded = isFieldTypeEmbedded(field.asType())
+                            val isEmbedded = Utils.isFieldTypeEmbedded(field.asType(), classCollection)
                             if (isEmbedded) {
                                 // Embedded objects are created in-place as we need to know the
                                 // parent object + the property containing it.
@@ -2624,7 +2620,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val genericType: QualifiedClassName = Utils.getRealmListType(field)!!
                             val fieldTypeMetaData: TypeMirror = Utils.getGenericType(field)!!
 
-                            val isEmbedded = isFieldTypeEmbedded(fieldTypeMetaData)
+                            val isEmbedded = Utils.isFieldTypeEmbedded(fieldTypeMetaData, classCollection)
                             val proxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field)
 
                             emitEmptyLine()
@@ -2716,7 +2712,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                             val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
                             val listElementType: TypeMirror = Utils.getGenericType(field)!!
-                            val isEmbedded = isFieldTypeEmbedded(listElementType)
+                            val isEmbedded = Utils.isFieldTypeEmbedded(listElementType, classCollection)
                             val linkedProxyClass: SimpleClassName = Utils.getDictionaryGenericProxyClassSimpleName(field)
 
                             emitStatement("RealmDictionary<${genericType}> ${fieldName}UnmanagedDictionary = realmObjectSource.${getter}()")
@@ -3040,7 +3036,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     }
                     when {
                         Utils.isRealmModel(field) -> {
-                            val isEmbedded = isFieldTypeEmbedded(field.asType())
+                            val isEmbedded = Utils.isFieldTypeEmbedded(field.asType(), classCollection)
                             RealmJsonTypeHelper.emitFillRealmObjectWithJsonValue(
                                     "objProxy",
                                     metadata.getInternalSetter(fieldName),
@@ -3059,7 +3055,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     fieldName,
                                     (field.asType() as DeclaredType).typeArguments[0].toString(),
                                     Utils.getProxyClassSimpleName(field),
-                                    isFieldTypeEmbedded(fieldType),
+                                    Utils.isFieldTypeEmbedded(fieldType, classCollection),
                                     writer)
                         }
                         Utils.isRealmValueList(field) || Utils.isMixedList(field) -> emitStatement("ProxyUtils.setRealmListWithJsonObject(realm, objProxy.%1\$s(), json, \"%2\$s\", update)", metadata.getInternalGetter(fieldName), fieldName)
@@ -3348,40 +3344,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             }
             return count
         }
-
-    }
-
-    // Returns whether a type of a Realm field is embedded or not.
-    // For types which are part of this processing round we can look it up immediately from 
-    // the metadata in the `classCollection`. For types defined in other modules we will 
-    // have to use the slower approach of inspecting the `embedded` property of the
-    // RealmClass annotation using the compiler tool api. 
-    private fun isFieldTypeEmbedded(type: TypeMirror) : Boolean  {
-        val fieldType = QualifiedClassName(type)
-        val fieldTypeMetaData: ClassMetaData? = classCollection.getClassFromQualifiedNameOrNull(fieldType)
-        return fieldTypeMetaData?.embedded ?: type.isEmbedded()
-    }
-
-    private fun TypeMirror.isEmbedded() : Boolean {
-        var isEmbedded = false
-
-        if (this is Type.ClassType) {
-            val declarationAttributes: com.sun.tools.javac.util.List<Attribute.Compound>? = tsym.metadata?.declarationAttributes
-            if (declarationAttributes != null) {
-                loop@for (attribute: Attribute.Compound in declarationAttributes) {
-                    if (attribute.type.tsym.qualifiedName.toString() == "io.realm.annotations.RealmClass") {
-                        for (pair: Pair<Symbol.MethodSymbol, Attribute> in attribute.values) {
-                            if (pair.fst.name.toString() == "embedded") {
-                                isEmbedded = pair.snd.value as Boolean
-                                break@loop
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return isEmbedded
     }
 
     private fun containsDictionary(fields: ArrayList<RealmFieldElement>): Boolean {
