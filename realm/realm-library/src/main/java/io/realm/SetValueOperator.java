@@ -1110,7 +1110,11 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
      *
      * @param value model object
      */
-    private void checkValidObject(RealmModel value) {
+    private void checkValidObject(@Nullable RealmModel value) {
+        // Realm model sets cannot contain null values
+        if (value == null) {
+            throw new NullPointerException("This set does not permit null values.");
+        }
         if (!RealmObject.isValid(value) || !RealmObject.isManaged(value)) {
             throw new IllegalArgumentException("'value' is not a valid managed object.");
         }
@@ -1121,11 +1125,6 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
 
     @Override
     boolean containsInternal(@Nullable Object value) {
-        // Realm model sets cannot contain null values
-        if (value == null) {
-            throw new NullPointerException("This set does not permit null values.");
-        }
-
         checkValidObject((RealmModel) value);
         Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
         return osSet.containsRow(row$realm.getObjectKey());
@@ -1133,10 +1132,6 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
 
     @Override
     boolean removeInternal(@Nullable Object value) {
-        // Realm model sets cannot contain null values
-        if (value == null) {
-            throw new NullPointerException("This set does not permit null values.");
-        }
         checkValidObject((RealmModel) value);
         Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
         return osSet.removeRow(row$realm.getObjectKey());
@@ -1151,10 +1146,6 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
     @Override
     boolean containsAllInternal(Collection<?> collection) {
         // Collection has been type-checked from caller
-        // Realm model sets cannot contain null values
-        if (collection.contains(null)) {
-            throw new NullPointerException("This set does not permit null values.");
-        }
         //noinspection unchecked
         Collection<T> realmModelCollection = (Collection<T>) collection;
         // All models must be managed and from the same set's Realm
@@ -1177,10 +1168,6 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
     @Override
     boolean removeAllInternal(Collection<?> c) {
         // Collection has been type-checked from caller
-        // Realm model sets cannot contain null values
-        if (c.contains(null)) {
-            throw new NullPointerException("This set does not permit null values.");
-        }
         //noinspection unchecked
         Collection<T> realmModelCollection = (Collection<T>) c;
         checkValidCollection(realmModelCollection);
@@ -1191,10 +1178,6 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
     @Override
     boolean retainAllInternal(Collection<?> c) {
         // Collection has been type-checked from caller
-        // Realm model sets cannot contain null values
-        if (c.contains(null)) {
-            throw new NullPointerException("This set does not permit null values.");
-        }
         //noinspection unchecked
         Collection<T> realmModelCollection = (Collection<T>) c;
         checkValidCollection(realmModelCollection);

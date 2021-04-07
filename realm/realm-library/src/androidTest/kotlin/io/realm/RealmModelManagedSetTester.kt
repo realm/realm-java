@@ -118,9 +118,13 @@ class RealmModelManagedSetTester<T : RealmModel>(
             }
         }
 
-        // Test with objects from another realm
-        objectFromOtherThread {
-            set.contains(it)
+        // Test with object from another realm
+        accessTransactionRealmInLooperThread { looperRealm ->
+            val value = looperRealm.copyToRealmOrUpdate(unmanagedNotPresentValue)
+
+            assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
+                set.contains(value)
+            }
         }
     }
 
@@ -147,9 +151,13 @@ class RealmModelManagedSetTester<T : RealmModel>(
             }
         }
 
-        // Test with objects from another realm
-        objectFromOtherThread {
-            set.add(it)
+        // Test with object from another realm
+        accessTransactionRealmInLooperThread { looperRealm ->
+            val value = looperRealm.copyToRealmOrUpdate(unmanagedNotPresentValue)
+
+            assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
+                set.add(value)
+            }
         }
 
         assertTrue(set.containsAll(managedInitializedSet))
@@ -167,10 +175,13 @@ class RealmModelManagedSetTester<T : RealmModel>(
             }
         }
 
+        // Test with object from another realm
+        accessTransactionRealmInLooperThread { looperRealm ->
+            val value = looperRealm.copyToRealmOrUpdate(unmanagedNotPresentValue)
 
-        // Test with objects from another realm
-        objectFromOtherThread {
-            set.remove(it)
+            assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
+                set.remove(value)
+            }
         }
     }
 
@@ -192,10 +203,13 @@ class RealmModelManagedSetTester<T : RealmModel>(
             }
         }
 
-
         // Test with objects from another realm
-        objectsFromOtherThread {
-            set.containsAll(it)
+        accessTransactionRealmInLooperThread { looperRealm ->
+            val values = looperRealm.copyToRealmOrUpdate(unmanagedInitializedSet)
+
+            assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
+                set.containsAll(values)
+            }
         }
     }
 
@@ -280,10 +294,13 @@ class RealmModelManagedSetTester<T : RealmModel>(
             }
         }
 
-
         // Test with objects from another realm
-        objectsFromOtherThread {
-            set.addAll(it)
+        accessTransactionRealmInLooperThread { looperRealm ->
+            val values = looperRealm.copyToRealmOrUpdate(unmanagedInitializedSet)
+
+            assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
+                set.addAll(values)
+            }
         }
     }
 
@@ -305,10 +322,13 @@ class RealmModelManagedSetTester<T : RealmModel>(
             }
         }
 
-
         // Test with objects from another realm
-        objectsFromOtherThread {
-            set.retainAll(it)
+        accessTransactionRealmInLooperThread { looperRealm ->
+            val values = looperRealm.copyToRealmOrUpdate(unmanagedInitializedSet)
+
+            assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
+                set.retainAll(values)
+            }
         }
     }
 
@@ -331,8 +351,12 @@ class RealmModelManagedSetTester<T : RealmModel>(
         }
 
         // Test with objects from another realm
-        objectsFromOtherThread {
-            set.removeAll(it)
+        accessTransactionRealmInLooperThread { looperRealm ->
+            val values = looperRealm.copyToRealmOrUpdate(unmanagedInitializedSet)
+
+            assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
+                set.removeAll(values)
+            }
         }
     }
 
@@ -343,49 +367,22 @@ class RealmModelManagedSetTester<T : RealmModel>(
     override fun setters() {
         managedTester.setters()
 
-        // Test with objects from another realm
-        looperThread.runBlocking {
-            Realm.getInstance(realm.configuration).use { alternativeRealm ->
-                val alternativeObject = createAllTypesManagedContainerAndAssert(alternativeRealm, "alternativeObject")
+        accessTransactionRealmInLooperThread { looperRealm ->
+            val alternativeObject = createAllTypesManagedContainerAndAssert(looperRealm, "alternativeObject", true)
+            val alternativeSet = RealmSet<T>().init(managedInitializedSet)
 
-                alternativeRealm.executeTransaction {
-                    val alternativeSet = RealmSet<T>().init(managedInitializedSet)
-
-                    assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
-                        setSetter(alternativeObject, alternativeSet)
-                    }
-                }
+            assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
+                setSetter(alternativeObject, alternativeSet)
             }
-            looperThread.testComplete()
         }
     }
 
-    private fun objectsFromOtherThread(block: (values: List<T?>) -> Unit) {
+    private fun accessTransactionRealmInLooperThread(block: (looperRealm: Realm) -> Unit) {
         // Test with objects from another realm
         looperThread.runBlocking {
-            Realm.getInstance(realm.configuration).use { alternativeRealm ->
-                alternativeRealm.executeTransaction {
-                    val values: List<T?> = alternativeRealm.copyToRealmOrUpdate(unmanagedInitializedSet)
-
-                    assertFailsWith<IllegalArgumentException>("Cannot pass an object from another Realm instance") {
-                        block(values)
-                    }
-                }
-            }
-            looperThread.testComplete()
-        }
-    }
-
-    private fun objectFromOtherThread(block: (values: T) -> Unit) {
-        // Test with objects from another realm
-        looperThread.runBlocking {
-            Realm.getInstance(realm.configuration).use { alternativeRealm ->
-                alternativeRealm.executeTransaction {
-                    val value = alternativeRealm.copyToRealmOrUpdate(unmanagedNotPresentValue)
-
-                    assertFailsWith<IllegalArgumentException>("Cannot pass an object from another Realm instance") {
-                        block(value)
-                    }
+            Realm.getInstance(realm.configuration).use { looperRealm ->
+                looperRealm.executeTransaction {
+                    block(looperRealm)
                 }
             }
             looperThread.testComplete()
