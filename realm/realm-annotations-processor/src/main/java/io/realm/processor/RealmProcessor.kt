@@ -354,14 +354,11 @@ class RealmProcessor : AbstractProcessor() {
         var allValid = true
 
         for (field in realmModelSetsToValidate) {
-            val genericType = (field.asType() as DeclaredType).typeArguments.toString()
-            val qualifiedClassName = QualifiedClassName(genericType)
+            val genericClassName = (field.asType() as DeclaredType).typeArguments.toString()
+            val genericType = processingEnv.elementUtils.getTypeElement(genericClassName).asType()
 
-            if(!classCollection.containsQualifiedClass(qualifiedClassName))
-                continue
-
-            val clazz = classCollection.getClassFromQualifiedName(qualifiedClassName)
-            if(clazz.embedded && allValid){
+            val embedded = Utils.isFieldTypeEmbedded(genericType, classCollection)
+            if(embedded && allValid){
                 Utils.error("RealmSets field ${field.javaName} at ${field.fieldReference} do not support embedded objects.")
                 allValid = false
             }

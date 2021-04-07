@@ -379,9 +379,8 @@ public class RealmProcessorTest {
         }
     }
 
-    // Not supported RealmSets of embedded objects
     @Test
-    public void compileEmbeddedObjectSet() throws IOException {
+    public void compileSetWithEmbeddedObjectNotSupported() throws IOException {
         RealmSyntheticTestClass.Builder builder = new RealmSyntheticTestClass.Builder()
                 .name("InvalidRequiredType");
 
