@@ -16,8 +16,9 @@
 package io.realm.entities
 
 import io.realm.RealmObject
+import io.realm.RealmResults
+import io.realm.annotations.LinkingObjects
 import io.realm.annotations.PrimaryKey
-import io.realm.annotations.RealmClass
 import io.realm.annotations.RealmField
 import org.bson.types.ObjectId
 
@@ -33,5 +34,8 @@ open class SyncDog: RealmObject() {
     // var realmId: String? = null
     var breed: String? = null
     var name: String = ""
+
+    @LinkingObjects("columnRealmObject")
+    val syncAllTypes: RealmResults<SyncAllTypes>? = null
 }
 
