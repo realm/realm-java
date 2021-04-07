@@ -1,3 +1,21 @@
+## 10.4.1 (YYYY-MM-DD)
+
+### Enhancements
+* None.
+
+### Fixes
+* [RealmApp] Client Reset errors now correctly forward the server error message. (Issue [#7363](https://github.com/realm/realm-java/issues/7363), since 10.0.0)
+* [RealmApp] All `AppException`s now correctly report the error message through `RuntimeException.getMessage()` instead of only through `AppException.getErrorMessage()`. 
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* None.
+
+
 ## 10.4.0 (2021-03-26)
 
 All releases from 10.4.0 and forward are now found on `mavenCentral()` instead of `jcenter()`. 
