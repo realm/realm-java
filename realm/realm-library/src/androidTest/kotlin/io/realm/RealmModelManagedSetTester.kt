@@ -189,6 +189,10 @@ class RealmModelManagedSetTester<T : Any>(
         }
     }
 
+    override fun copyToRealm() {
+        managedTester.copyToRealm()
+    }
+
     override fun containsAll() {
         // Test with managed realm objects
         managedTester.containsAll()

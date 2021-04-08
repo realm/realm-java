@@ -25,6 +25,7 @@ import io.realm.kotlin.where
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
+import java.nio.ByteBuffer
 import java.util.*
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KFunction2
@@ -129,6 +130,8 @@ class NoPKRealmModelSetTester<T : RealmModel>(
             }
         }
     }
+
+    override fun copyToRealm() = Unit
 
     override fun toArray() {
         val set = initAndAssertEmptySet()

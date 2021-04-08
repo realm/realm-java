@@ -342,6 +342,29 @@ class ManagedSetTester<T : Any>(
         }
     }
 
+    override fun copyToRealm() {
+        // Instantiate container and set dictionary on container
+        val manualInstance = AllTypes().apply {
+            setSetter.call(this, initializedSet)
+        }
+
+        // Copy to Realm
+        realm.executeTransaction {
+            val allTypesObject = realm.copyToRealm(manualInstance)
+            assertNotNull(allTypesObject)
+        }
+
+        // Get set from container from Realm
+        val allTypesObject = realm.where<AllTypes>().findFirst()
+        assertNotNull(allTypesObject)
+        val set: RealmSet<T> = setGetter.call(allTypesObject)
+
+        assertFalse(set.isEmpty())
+        set.forEachIndexed { index, value ->
+            assertEquals(initializedSet[index], value)
+        }
+    }
+
     override fun retainAll() {
         val set = initAndAssertEmptySet()
 

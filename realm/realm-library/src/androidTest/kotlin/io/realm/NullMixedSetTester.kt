@@ -49,6 +49,8 @@ class NullMixedSetTester(
 
     override fun isFrozen() = Unit          // Tested in frozen
 
+    override fun copyToRealm() = Unit
+
     override fun size() {
         val set = initAndAssertEmptySet()
 
