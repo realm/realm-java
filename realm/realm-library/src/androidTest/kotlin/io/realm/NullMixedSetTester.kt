@@ -51,6 +51,8 @@ class NullMixedSetTester(
 
     override fun copyToRealm() = Unit
 
+    override fun copyToRealmOrUpdate() = Unit
+
     override fun size() {
         val set = initAndAssertEmptySet()
 

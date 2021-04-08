@@ -25,6 +25,7 @@ import org.bson.types.ObjectId
 import java.util.*
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KFunction2
+import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 import kotlin.test.*
 
@@ -44,7 +45,8 @@ class ManagedSetTester<T : Any>(
         private val nullable: Boolean = true,
         private val equalsTo: (expected: T?, value: T?) -> Boolean = { expected, value ->
            expected == value
-        }
+        },
+        private val primaryKeyAllTypesSetProperty: KMutableProperty1<AllTypesPrimaryKey, RealmSet<T>>
 ) : SetTester {
 
     private lateinit var config: RealmConfiguration
@@ -350,10 +352,10 @@ class ManagedSetTester<T : Any>(
     }
 
     // Separate method to allow calls from RealmModelSetManagedTester with unmanaged realm objects
-    fun doCopyToRealmTest(testingSet: List<T?>) {
+    fun doCopyToRealmTest(expectedSet: List<T?>) {
         // Instantiate container and set dictionary on container
         val manualInstance = AllTypes().apply {
-            setSetter.call(this, RealmSet<T>().init(testingSet))
+            setSetter.call(this, RealmSet<T>().init(expectedSet))
         }
 
         // Copy to Realm
@@ -368,16 +370,54 @@ class ManagedSetTester<T : Any>(
         val set: RealmSet<T> = setGetter.call(allTypesObject)
 
         assertFalse(set.isEmpty())
+        assertSetContainsSet(expectedSet, set)
+    }
+
+    private fun assertSetContainsSet(expectedSet: List<T?>, set: RealmSet<T>){
         set.forEach { value ->
             var setContainsValue = false
 
-            testingSet.forEach { expected ->
+            expectedSet.forEach { expected ->
                 if (equalsTo(expected, value))
                     setContainsValue = true
             }
 
             assertTrue(setContainsValue)
         }
+    }
+
+    override fun copyToRealmOrUpdate() {
+        // Instantiate container and set dictionary on container
+        val manualInstance = AllTypesPrimaryKey().apply {
+            primaryKeyAllTypesSetProperty.setter(this, RealmSet<T>().init(initializedSet))
+        }
+
+        // Copy to Realm
+        realm.executeTransaction {
+            val allTypesObject = realm.copyToRealmOrUpdate(manualInstance)
+            assertNotNull(allTypesObject)
+        }
+
+        // Get dictionary from container from Realm
+        val allTypesPrimaryKey = realm.where<AllTypesPrimaryKey>().findFirst()!!
+        val set = primaryKeyAllTypesSetProperty.get(allTypesPrimaryKey)
+        assertFalse(set.isEmpty())
+
+        assertSetContainsSet(initializedSet, set)
+
+        primaryKeyAllTypesSetProperty.getter(manualInstance).add(notPresentValue)
+
+        // Copy to Realm with non managed updated model
+        realm.executeTransaction {
+            val allTypesObject = realm.copyToRealmOrUpdate(manualInstance)
+            assertNotNull(allTypesObject)
+        }
+
+        val updatedContainer = realm.where<AllTypesPrimaryKey>().findFirst()!!
+        val updatedSet = primaryKeyAllTypesSetProperty.get(updatedContainer)
+        assertEquals(initializedSet.size + 1, updatedSet.size)
+
+        assertSetContainsSet(initializedSet.plus(notPresentValue), set)
     }
 
     override fun retainAll() {
@@ -629,6 +669,7 @@ fun managedSetFactory(): List<SetTester> {
                         managedCollectionGetter = SetContainerClass::myLongList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO.toLong(), VALUE_NUMERIC_BYE.toLong(), null),
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toLong(),
+                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnLongSet,
                         toArrayManaged = ToArrayManaged.LongManaged()
                 )
             SetSupportedType.INTEGER ->
@@ -640,6 +681,7 @@ fun managedSetFactory(): List<SetTester> {
                         managedCollectionGetter = SetContainerClass::myIntList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO, VALUE_NUMERIC_BYE, null),
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT,
+                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnIntegerSet,
                         toArrayManaged = ToArrayManaged.IntManaged()
                 )
             SetSupportedType.SHORT ->
@@ -651,6 +693,7 @@ fun managedSetFactory(): List<SetTester> {
                         managedCollectionGetter = SetContainerClass::myShortList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO.toShort(), VALUE_NUMERIC_BYE.toShort(), null),
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toShort(),
+                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnShortSet,
                         toArrayManaged = ToArrayManaged.ShortManaged()
                 )
             SetSupportedType.BYTE ->
@@ -662,6 +705,7 @@ fun managedSetFactory(): List<SetTester> {
                         managedCollectionGetter = SetContainerClass::myByteList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO.toByte(), VALUE_NUMERIC_BYE.toByte(), null),
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toByte(),
+                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnByteSet,
                         toArrayManaged = ToArrayManaged.ByteManaged()
                 )
             SetSupportedType.FLOAT ->
@@ -673,6 +717,7 @@ fun managedSetFactory(): List<SetTester> {
                         managedCollectionGetter = SetContainerClass::myFloatList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO.toFloat(), VALUE_NUMERIC_BYE.toFloat(), null),
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toFloat(),
+                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnFloatSet,
                         toArrayManaged = ToArrayManaged.FloatManaged()
                 )
             SetSupportedType.DOUBLE ->
@@ -684,6 +729,7 @@ fun managedSetFactory(): List<SetTester> {
                         managedCollectionGetter = SetContainerClass::myDoubleList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO.toDouble(), VALUE_NUMERIC_BYE.toDouble(), null),
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toDouble(),
+                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnDoubleSet,
                         toArrayManaged = ToArrayManaged.DoubleManaged()
                 )
             SetSupportedType.STRING ->
@@ -695,6 +741,7 @@ fun managedSetFactory(): List<SetTester> {
                         managedCollectionGetter = SetContainerClass::myStringList,
                         initializedSet = listOf(VALUE_STRING_HELLO, VALUE_STRING_BYE, null),
                         notPresentValue = VALUE_STRING_NOT_PRESENT,
+                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnStringSet,
                         toArrayManaged = ToArrayManaged.StringManaged()
                 )
             SetSupportedType.BOOLEAN ->
@@ -706,6 +753,7 @@ fun managedSetFactory(): List<SetTester> {
                         managedCollectionGetter = SetContainerClass::myBooleanList,
                         initializedSet = listOf(VALUE_BOOLEAN_HELLO, null),
                         notPresentValue = VALUE_BOOLEAN_NOT_PRESENT,
+                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnBooleanSet,
                         toArrayManaged = ToArrayManaged.BooleanManaged()
                 )
             SetSupportedType.DATE ->
@@ -717,6 +765,7 @@ fun managedSetFactory(): List<SetTester> {
                         managedCollectionGetter = SetContainerClass::myDateList,
                         initializedSet = listOf(VALUE_DATE_HELLO, VALUE_DATE_BYE, null),
                         notPresentValue = VALUE_DATE_NOT_PRESENT,
+                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnDateSet,
                         toArrayManaged = ToArrayManaged.DateManaged()
                 )
             SetSupportedType.DECIMAL128 ->
@@ -728,6 +777,7 @@ fun managedSetFactory(): List<SetTester> {
                         managedCollectionGetter = SetContainerClass::myDecimal128List,
                         initializedSet = listOf(VALUE_DECIMAL128_HELLO, VALUE_DECIMAL128_BYE, null),
                         notPresentValue = VALUE_DECIMAL128_NOT_PRESENT,
+                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnDecimal128Set,
                         toArrayManaged = ToArrayManaged.Decimal128Managed()
                 )
             SetSupportedType.BINARY ->
@@ -739,10 +789,11 @@ fun managedSetFactory(): List<SetTester> {
                         managedCollectionGetter = SetContainerClass::myBinaryList,
                         initializedSet = listOf(VALUE_BINARY_HELLO, VALUE_BINARY_BYE, null),
                         notPresentValue = VALUE_BINARY_NOT_PRESENT,
-                        toArrayManaged = ToArrayManaged.BinaryManaged(),
                         equalsTo = { expected, value ->
                             Arrays.equals(expected, value)
-                        }
+                        },
+                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnBinarySet,
+                        toArrayManaged = ToArrayManaged.BinaryManaged()
                 )
 
             SetSupportedType.OBJECT_ID ->
@@ -754,6 +805,7 @@ fun managedSetFactory(): List<SetTester> {
                         managedCollectionGetter = SetContainerClass::myObjectIdList,
                         initializedSet = listOf(VALUE_OBJECT_ID_HELLO, VALUE_OBJECT_ID_BYE, null),
                         notPresentValue = VALUE_OBJECT_ID_NOT_PRESENT,
+                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnObjectIdSet,
                         toArrayManaged = ToArrayManaged.ObjectIdManaged()
                 )
 
@@ -766,6 +818,7 @@ fun managedSetFactory(): List<SetTester> {
                         managedCollectionGetter = SetContainerClass::myUUIDList,
                         initializedSet = listOf(VALUE_UUID_HELLO, VALUE_UUID_BYE, null),
                         notPresentValue = VALUE_UUID_NOT_PRESENT,
+                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnUUIDSet,
                         toArrayManaged = ToArrayManaged.UUIDManaged()
                 )
 
@@ -778,6 +831,7 @@ fun managedSetFactory(): List<SetTester> {
                         managedCollectionGetter = SetContainerClass::myRealmModelList,
                         unmanagedInitializedSet = listOf(VALUE_LINK_HELLO, VALUE_LINK_BYE),
                         unmanagedNotPresentValue = VALUE_LINK_NOT_PRESENT,
+                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnRealmModelSet,
                         toArrayManaged = ToArrayManaged.RealmModelManaged(),
                         insertObjects = { realm, objects ->
                             realm.copyToRealmOrUpdate(objects)
@@ -856,7 +910,8 @@ fun managedSetFactory(): List<SetTester> {
                                 } else {
                                     false
                                 }
-                            }
+                            },
+                            primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnMixedSet
                     )
                     MixedType.NULL -> NullMixedSetTester(
                             testerName = "MIXED-${mixedType.name}",
@@ -876,7 +931,8 @@ fun managedSetFactory(): List<SetTester> {
                             toArrayManaged = ToArrayManaged.MixedManaged(),
                             equalsTo = { expected, value ->
                                 (expected == null && value == Mixed.nullValue()) || ((expected != null) && (expected == value))
-                            }
+                            },
+                            primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnMixedSet
                     )
                 }
             })

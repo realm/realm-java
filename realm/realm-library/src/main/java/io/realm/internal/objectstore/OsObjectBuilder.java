@@ -847,6 +847,24 @@ public class OsObjectBuilder implements Closeable {
         addSetItem(builderPtr, columnKey, set, mixedSetItemCallback);
     }
 
+    public <T extends RealmModel> void addObjectSet(long columnKey, @Nullable RealmSet<T> set) {
+        if (set != null) {
+            long setPtr = nativeStartSet(set.size());
+            for (T entry : set) {
+                if (entry == null) {
+                    throw new IllegalArgumentException("This 'RealmSet' is not nullable. A non-null value is expected.");
+                } else {
+                    RealmObjectProxy realmObjectProxy = (RealmObjectProxy) entry;
+                    long objectPtr = ((UncheckedRow) realmObjectProxy.realmGet$proxyState().getRow$realm()).getNativePtr();
+                    nativeAddObjectListItem(setPtr, objectPtr);
+                }
+            }
+            nativeStopSet(builderPtr, columnKey, setPtr);
+        } else {
+            addEmptySet(columnKey);
+        }
+    }
+
     private <T> void addSetItem(long builderPtr,
                                 long columnKey,
                                 @Nullable Set<T> set,
@@ -857,7 +875,7 @@ public class OsObjectBuilder implements Closeable {
             for (T item : set) {
                 if (item == null) {
                     if (!isNullable) {
-                        throw new IllegalArgumentException("This 'RealmList' is not nullable. A non-null value is expected.");
+                        throw new IllegalArgumentException("This 'RealmSet' is not nullable. A non-null value is expected.");
                     }
                     nativeAddNullSetItem(setPtr);
                 } else {

@@ -133,6 +133,8 @@ class NoPKRealmModelSetTester<T : RealmModel>(
 
     override fun copyToRealm() = Unit
 
+    override fun copyToRealmOrUpdate() = Unit
+
     override fun toArray() {
         val set = initAndAssertEmptySet()
 

@@ -143,6 +143,8 @@ class UnmanagedSetTester<T : Any>(
 
     override fun copyToRealm() = Unit  // Not applicable
 
+    override fun copyToRealmOrUpdate() = Unit  // Not applicable
+
     override fun removeAll() {
         val realmSet = RealmSet<T>()
         realmSet.addAll(values)

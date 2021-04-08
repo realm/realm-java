@@ -297,6 +297,15 @@ object Utils {
     }
 
     /**
+     * @return `true` if a given field type is `RealmSet` and its element type is value type,
+     * `false` otherwise.
+     */
+    fun isRealmValueSet(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmSetElementTypeMirror(field) ?: return false
+        return !isRealmModel(elementTypeMirror) && !isMixed(elementTypeMirror)
+    }
+
+    /**
      * @return `true` if a given field type is `RealmSet<Mixed>`, `false` otherwise.
      */
     fun isMixedSet(field: VariableElement): Boolean {
