@@ -757,7 +757,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
                 Utils.isMixed(field) ||
                 Utils.isRealmModelDictionary(field) ||
                 Utils.isRealmModelSet(field) ||
-                Utils.isMixedDictionary(field)) {
+                Utils.isMixedDictionary(field)||
+                Utils.isMixedSet(field)) {
             _objectReferenceFields.add(field)
         } else {
             basicTypeFields.add(field)

@@ -114,6 +114,11 @@ class ParameterizedSetTests(
     }
 
     @Test
+    fun copyToRealm() {
+        tester.copyToRealm()
+    }
+
+    @Test
     fun containsAll() {
         tester.containsAll()
     }
