@@ -67,6 +67,7 @@ public class RealmProcessorTest {
     private final JavaFileObject realmSetModel = JavaFileObjects.forResource("some/test/RealmSetModel.java");
     private final JavaFileObject realmSetModelWrongType = JavaFileObjects.forResource("some/test/RealmSetModelWrongType.java");
     private final JavaFileObject realmSetMissingGenericsModel = JavaFileObjects.forResource("some/test/RealmSetMissingGenerics.java");
+    private final JavaFileObject embeddedObject = JavaFileObjects.forResource("some/test/EmbeddedObject.java");
 
     @Test
     public void compileSimpleFile() {
@@ -364,7 +365,7 @@ public class RealmProcessorTest {
     public void compileInvalidRequiredTypes() throws IOException {
         final String[] invalidRequiredAnnotationFieldTypes = {"byte", "short", "int", "long", "float", "double",
                 "boolean", "RealmList<Simple>", "Simple", "Mixed", "RealmList<Mixed>", "RealmDictionary<Simple>",
-                "RealmDictionary<Mixed>"};
+                "RealmDictionary<Mixed>", "RealmSet<Simple>", "RealmSet<Mixed>"};
 
         for (String fieldType : invalidRequiredAnnotationFieldTypes) {
             RealmSyntheticTestClass javaFileObject = new RealmSyntheticTestClass.Builder()
@@ -376,6 +377,21 @@ public class RealmProcessorTest {
                     .processedWith(new RealmProcessor())
                     .failsToCompile();
         }
+    }
+
+    @Test
+    public void compileSetWithEmbeddedObjectNotSupported() throws IOException {
+        RealmSyntheticTestClass.Builder builder = new RealmSyntheticTestClass.Builder()
+                .name("InvalidRequiredType");
+
+        builder.field()
+                .name("embeddedSet")
+                .type("RealmSet<EmbeddedObject>");
+
+        assertAbout(javaSources())
+                .that(Arrays.asList(embeddedObject, builder.build()))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
     }
 
     @Test

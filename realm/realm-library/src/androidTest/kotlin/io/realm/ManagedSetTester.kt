@@ -17,8 +17,11 @@
 package io.realm
 
 import io.realm.entities.AllTypes
+import io.realm.entities.DogPrimaryKey
+import io.realm.entities.Owner
 import io.realm.entities.SetContainerClass
 import io.realm.kotlin.createObject
+import io.realm.kotlin.where
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
@@ -40,7 +43,8 @@ class ManagedSetTester<T : Any>(
         private val managedCollectionGetter: KProperty1<SetContainerClass, RealmList<T>>,
         private val initializedSet: List<T?>,
         private val notPresentValue: T,
-        private val toArrayManaged: ToArrayManaged<T>
+        private val toArrayManaged: ToArrayManaged<T>,
+        private val nullable: Boolean = true
 ) : SetTester {
 
     private lateinit var config: RealmConfiguration
@@ -191,8 +195,14 @@ class ManagedSetTester<T : Any>(
                 set.remove<Any>(somethingEntirelyDifferent)
             }
 
-            // Does not change if we remove null and null is not present
-            assertFalse(set.remove(null))
+            if (nullable) {
+                // Does not change if we remove null and null is not present
+                assertFalse(set.remove(null))
+            } else {
+                assertFailsWith<java.lang.NullPointerException>("Set does not support null values") {
+                    set.remove(null)
+                }
+            }
         }
 
         assertEquals(0, set.size)
@@ -547,6 +557,21 @@ class ManagedSetTester<T : Any>(
         assertEquals(set.size, frozenSet.size)
     }
 
+    override fun setters() {
+        val allFields = createAllTypesManagedContainerAndAssert(realm)
+        val aSet = RealmSet<T>().init(initializedSet)
+
+        realm.executeTransaction {
+            setSetter(allFields, aSet)
+            assertEquals(aSet.size, setGetter(allFields).size)
+
+            // Validate it can assign the set to itself
+            val managedSet = setGetter(allFields)
+            setSetter(allFields, managedSet)
+            assertEquals(aSet.size, setGetter(allFields).size)
+        }
+    }
+
     //----------------------------------
     // Private stuff
     //----------------------------------
@@ -709,12 +734,17 @@ fun managedSetFactory(): List<SetTester> {
                         toArrayManaged = ToArrayManaged.UUIDManaged()
                 )
 
-//            SetSupportedType.LINK ->
-//                UnmanagedSetTester<RealmModel>(
-//                        testerName = "UnmanagedRealmModel",
-//                        values = listOf(VALUE_LINK_HELLO, VALUE_LINK_BYE, null),
-//                        notPresentValue = VALUE_LINK_NOT_PRESENT
-//                )
+            SetSupportedType.LINK ->
+                RealmModelManagedSetTester<DogPrimaryKey>(
+                        testerName = "LINK",
+                        setGetter = AllTypes::getColumnRealmModelSet,
+                        setSetter = AllTypes::setColumnRealmModelSet,
+                        managedSetGetter = SetContainerClass::myRealmModelSet,
+                        managedCollectionGetter = SetContainerClass::myRealmModelList,
+                        unmanagedInitializedSet = listOf(VALUE_LINK_HELLO, VALUE_LINK_BYE),
+                        unmanagedNotPresentValue = VALUE_LINK_NOT_PRESENT,
+                        toArrayManaged = ToArrayManaged.RealmModelManaged()
+                )
             // Ignore Mixed in this switch
             else -> null
         }
@@ -724,8 +754,22 @@ fun managedSetFactory(): List<SetTester> {
     // TODO
 
     // Put them together
-//    return primitiveTesters.plus(mixedTesters)
+    // return primitiveTesters.plus(mixedTesters)
+
+    // Validate with no PK models
     return primitiveTesters
+            .plus(
+                    NoPKRealmModelSetTester<Owner>(
+                            testerName = "LINK_NO_PK",
+                            setGetter = AllTypes::getColumnRealmModelNoPkSet,
+                            setSetter = AllTypes::setColumnRealmModelNoPkSet,
+                            managedSetGetter = SetContainerClass::myRealmModelNoPkSet,
+                            managedCollectionGetter = SetContainerClass::myRealmModelNoPkList,
+                            initializedSet = listOf(VALUE_LINK_NO_PK_HELLO, VALUE_LINK_NO_PK_BYE),
+                            notPresentValue = VALUE_LINK_NO_PK_NOT_PRESENT,
+                            toArrayManaged = ToArrayManaged.RealmModelNoPKManaged()
+                    )
+            )
 }
 
 /**
@@ -823,8 +867,13 @@ abstract class ToArrayManaged<T> {
                 test(realm, set, values, emptyArray(), arrayOf())
     }
 
-    class RealmModelManaged : ToArrayManaged<RealmModel>() {
-        override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<RealmModel>, values: List<RealmModel?>) =
+    class RealmModelManaged : ToArrayManaged<DogPrimaryKey>() {
+        override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<DogPrimaryKey>, values: List<DogPrimaryKey?>) =
+                test(realm, set, values, emptyArray(), arrayOf())
+    }
+
+    class RealmModelNoPKManaged : ToArrayManaged<Owner>() {
+        override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<Owner>, values: List<Owner?>) =
                 test(realm, set, values, emptyArray(), arrayOf())
     }
 

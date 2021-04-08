@@ -31,6 +31,9 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
 import io.realm.internal.util.Pair;
 
+import static io.realm.CollectionUtils.DICTIONARY_TYPE;
+
+
 /**
  * Abstracts certain operations from value operators depending on the type of Realm we are working
  * with.
@@ -91,7 +94,7 @@ class SelectorForMap<K, V> extends TypeSelectorForMap<K, V> {
 
     @Override
     public Collection<V> getValues() {
-        boolean forPrimitives = !RealmModel.class.isAssignableFrom(valueClass);
+        boolean forPrimitives = !CollectionUtils.isClassForRealmModel(valueClass);
         return produceResults(baseRealm, osMap.tableAndValuePtrs(), forPrimitives, valueClass);
     }
 
@@ -145,7 +148,7 @@ class LinkSelectorForMap<K, V extends RealmModel> extends SelectorForMap<K, V> {
                 long objKey = osMap.createAndPutEmbeddedObject(key);
                 CollectionUtils.updateEmbeddedObject((Realm) baseRealm, value, objKey);
             } else {
-                boolean copyObject = CollectionUtils.checkCanObjectBeCopied(baseRealm, value, valueClass.getSimpleName());
+                boolean copyObject = CollectionUtils.checkCanObjectBeCopied(baseRealm, value, valueClass.getSimpleName(), DICTIONARY_TYPE);
                 RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, value) : value);
                 osMap.putRow(key, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
             }

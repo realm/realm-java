@@ -16,6 +16,10 @@
  
 package io.realm.processor
 
+import com.sun.tools.javac.code.Attribute
+import com.sun.tools.javac.code.Symbol
+import com.sun.tools.javac.code.Type
+import com.sun.tools.javac.util.Pair
 import io.realm.annotations.RealmNamingPolicy
 import io.realm.processor.nameconverter.*
 import javax.annotation.processing.Messager
@@ -274,6 +278,14 @@ object Utils {
      */
     fun isRealmSet(field: VariableElement): Boolean {
         return typeUtils.isAssignable(field.asType(), realmSet)
+    }
+
+    /**
+     * @return `true` if a given field type is `RealmSet<RealmModel>`, `false` otherwise.
+     */
+    fun isRealmModelSet(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmSetElementTypeMirror(field) ?: return false
+        return isRealmModel(elementTypeMirror)
     }
 
     /**
@@ -596,5 +608,38 @@ object Utils {
     fun getSimpleColumnInfoClassName(className: QualifiedClassName): String {
         val simpleModelClassName = className.getSimpleName()
         return "${getProxyClassName(className)}.${simpleModelClassName}ColumnInfo"
+    }
+
+    // Returns whether a type of a Realm field is embedded or not.
+    // For types which are part of this processing round we can look it up immediately from
+    // the metadata in the `classCollection`. For types defined in other modules we will
+    // have to use the slower approach of inspecting the `embedded` property of the
+    // RealmClass annotation using the compiler tool api.
+    fun isFieldTypeEmbedded(type: TypeMirror, classCollection: ClassCollection) : Boolean  {
+        val fieldType = QualifiedClassName(type)
+        val fieldTypeMetaData: ClassMetaData? = classCollection.getClassFromQualifiedNameOrNull(fieldType)
+        return fieldTypeMetaData?.embedded ?: type.isEmbedded()
+    }
+
+    private fun TypeMirror.isEmbedded() : Boolean {
+        var isEmbedded = false
+
+        if (this is Type.ClassType) {
+            val declarationAttributes: com.sun.tools.javac.util.List<Attribute.Compound>? = tsym.metadata?.declarationAttributes
+            if (declarationAttributes != null) {
+                loop@for (attribute: Attribute.Compound in declarationAttributes) {
+                    if (attribute.type.tsym.qualifiedName.toString() == "io.realm.annotations.RealmClass") {
+                        for (pair: Pair<Symbol.MethodSymbol, Attribute> in attribute.values) {
+                            if (pair.fst.name.toString() == "embedded") {
+                                isEmbedded = pair.snd.value as Boolean
+                                break@loop
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return isEmbedded
     }
 }

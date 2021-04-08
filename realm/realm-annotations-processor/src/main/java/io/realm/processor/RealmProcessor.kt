@@ -16,20 +16,19 @@
 
 package io.realm.processor
 
+import io.realm.annotations.RealmClass
+import io.realm.annotations.RealmModule
 import java.io.IOException
-import java.util.HashSet
-
+import java.util.*
 import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.RoundEnvironment
 import javax.annotation.processing.SupportedAnnotationTypes
 import javax.annotation.processing.SupportedOptions
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.ElementKind
-import javax.lang.model.element.TypeElement
-
-import io.realm.annotations.RealmClass
-import io.realm.annotations.RealmModule
 import javax.lang.model.element.Name
+import javax.lang.model.element.TypeElement
+import javax.lang.model.type.DeclaredType
 import javax.lang.model.type.TypeMirror
 
 
@@ -152,6 +151,9 @@ class RealmProcessor : AbstractProcessor() {
     // List of backlinks
     private val backlinksToValidate = HashSet<Backlink>()
 
+    // List of realm model sets
+    private val realmModelSetsToValidate = HashSet<RealmFieldElement>()
+
     private var hasProcessedModules = false
     private var round = -1
 
@@ -185,6 +187,9 @@ class RealmProcessor : AbstractProcessor() {
                 return ABORT
             }
             if (!validateBacklinks()) {
+                return ABORT
+            }
+            if (!validateRealmModelSets()) {
                 return ABORT
             }
             hasProcessedModules = true
@@ -230,6 +235,7 @@ class RealmProcessor : AbstractProcessor() {
 
             classCollection.addClass(metadata)
             backlinksToValidate.addAll(metadata.backlinkFields)
+            realmModelSetsToValidate.addAll(metadata.realmModelSetFields)
         }
 
         return true
@@ -332,6 +338,28 @@ class RealmProcessor : AbstractProcessor() {
 
             // If the class is here, we can validate it.
             if (!backlink.validateTarget(clazz) && allValid) {
+                allValid = false
+            }
+        }
+
+        return allValid
+    }
+
+    // Because library classes are processed separately, there is no guarantee that this method can
+    // see all of the classes necessary to completely validate all of the realm model sets.  If it can find
+    // the fully-qualified class, though, and prove that the generic type is an embedded object,
+    // it can catch the error at compile time. Otherwise it is caught at runtime, when validating the
+    // schema.
+    private fun validateRealmModelSets(): Boolean {
+        var allValid = true
+
+        for (field in realmModelSetsToValidate) {
+            val genericClassName = (field.asType() as DeclaredType).typeArguments.toString()
+            val genericType = processingEnv.elementUtils.getTypeElement(genericClassName).asType()
+
+            val embedded = Utils.isFieldTypeEmbedded(genericType, classCollection)
+            if(embedded && allValid){
+                Utils.error("RealmSets field ${field.javaName} at ${field.fieldReference} do not support embedded objects.")
                 allValid = false
             }
         }

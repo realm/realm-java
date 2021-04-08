@@ -67,18 +67,27 @@ fun createCollectionAllTypesManagedContainerAndAssert(
  */
 fun createAllTypesManagedContainerAndAssert(
         realm: Realm,
-        id: String? = null
+        id: String? = null,
+        inTransaction: Boolean = false
 ): AllTypes {
     var allTypesObject: AllTypes? = null
-    realm.executeTransaction { transactionRealm ->
-        allTypesObject = transactionRealm.createObject()
-        assertNotNull(allTypesObject)
 
-        // Assign id if we have one
-        if (id != null) {
-            allTypesObject!!.columnString = id
-        }
+    if(!inTransaction){
+        realm.beginTransaction()
     }
+
+    allTypesObject = realm.createObject()
+    assertNotNull(allTypesObject)
+
+    // Assign id if we have one
+    if (id != null) {
+        allTypesObject!!.columnString = id
+    }
+
+    if (!inTransaction) {
+        realm.commitTransaction()
+    }
+
     val allTypesObjectFromRealm = if (id == null) {
         realm.where<AllTypes>().equalTo(AllTypes.FIELD_STRING, "").findFirst()
     } else {

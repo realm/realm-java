@@ -42,6 +42,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     private val nullableValueListFields = LinkedHashSet<RealmFieldElement>() // Set of fields whose elements can be nullable
     private val nullableValueMapFields = LinkedHashSet<RealmFieldElement>() // Set of fields whose elements can be nullable
     private val nullableValueSetFields = LinkedHashSet<RealmFieldElement>() // Set of fields whose elements can be nullable
+    private val realmModelSets = LinkedHashSet<RealmFieldElement>()
 
     // package name for model class.
     private lateinit var packageName: String
@@ -134,6 +135,9 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
 
     val primaryKeyGetter: String
         get() = getInternalGetter(primaryKey!!.simpleName.toString())
+
+    val realmModelSetFields: Set<RealmFieldElement>
+        get() = realmModelSets.toSet()
 
     /**
      * Returns `true if the class is considered to be a valid RealmObject class.
@@ -708,6 +712,10 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
                     nullableValueSetFields.add(field)
                 }
             }
+
+            if (containsRealmModelClasses) {
+                realmModelSets.add(field)
+            }
         } else if (isRequiredField(field)) {
             if (!checkBasicRequiredAnnotationUsage(field)) {
                 return false
@@ -748,6 +756,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
                 Utils.isMixedList(field) ||
                 Utils.isMixed(field) ||
                 Utils.isRealmModelDictionary(field) ||
+                Utils.isRealmModelSet(field) ||
                 Utils.isMixedDictionary(field)) {
             _objectReferenceFields.add(field)
         } else {

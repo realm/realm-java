@@ -130,7 +130,8 @@ public enum RealmFieldType {
     DOUBLE_SET(CORE_TYPE_VALUE_DOUBLE + SET_OFFSET),
     DECIMAL128_SET(CORE_TYPE_VALUE_DECIMAL128 + SET_OFFSET),
     OBJECT_ID_SET(CORE_TYPE_VALUE_BINARY + SET_OFFSET),
-    UUID_SET(CORE_TYPE_VALUE_UUID + SET_OFFSET);
+    UUID_SET(CORE_TYPE_VALUE_UUID + SET_OFFSET),
+    LINK_SET(CORE_TYPE_VALUE_OBJECT + SET_OFFSET);
 
 
     // Primitive array for fast mapping between between native values and their Realm type.
@@ -237,6 +238,7 @@ public enum RealmFieldType {
             case CORE_TYPE_VALUE_DECIMAL128 + SET_OFFSET:
             case CORE_TYPE_VALUE_OBJECTID + SET_OFFSET:
             case CORE_TYPE_VALUE_UUID + SET_OFFSET:
+            case CORE_TYPE_VALUE_OBJECT + SET_OFFSET:
                 return false;
             default:
                 throw new RuntimeException("Unsupported Realm type:  " + this);

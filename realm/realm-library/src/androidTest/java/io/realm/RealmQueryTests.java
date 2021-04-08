@@ -2696,6 +2696,7 @@ public class RealmQueryTests extends QueryTests {
                     case DECIMAL128_SET:
                     case OBJECT_ID_SET:
                     case UUID_SET:
+                    case LINK_SET:
                         // TODO: https://github.com/realm/realm-java/issues/7382
                         // TODO: https://github.com/realm/realm-java/issues/7383
                         break;
@@ -2942,6 +2943,7 @@ public class RealmQueryTests extends QueryTests {
                     case DECIMAL128_SET:
                     case OBJECT_ID_SET:
                     case UUID_SET:
+                    case LINK_SET:
                         // TODO: https://github.com/realm/realm-java/issues/7382
                         // TODO: https://github.com/realm/realm-java/issues/7383
                         break;
@@ -3180,6 +3182,7 @@ public class RealmQueryTests extends QueryTests {
         types.remove(RealmFieldType.DECIMAL128_SET);
         types.remove(RealmFieldType.OBJECT_ID_SET);
         types.remove(RealmFieldType.UUID_SET);
+        types.remove(RealmFieldType.LINK_SET);
 
 
         // Iterate all fields of AllTypes table and verify that distinct either:
@@ -4213,6 +4216,7 @@ public class RealmQueryTests extends QueryTests {
             case DECIMAL128_SET:
             case OBJECT_ID_SET:
             case UUID_SET:
+            case LINK_SET:
                 return false;
             case TYPED_LINK:
         }

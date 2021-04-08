@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import io.realm.RealmModel;
 import io.realm.internal.core.NativeMixedCollection;
 
 public class OsSet implements NativeObject {
@@ -488,6 +489,27 @@ public class OsSet implements NativeObject {
         }
         return indexAndFound[1] == VALUE_FOUND;
     }
+    // ----------------------------------------------------
+    // Realm model operations
+    // ----------------------------------------------------
+
+    public boolean containsRow(long rowPtr) {
+        return nativeContainsRow(nativePtr, rowPtr);
+    }
+
+    public boolean addRow(long rowPtr) {
+        long[] indexAndFound = nativeAddRow(nativePtr, rowPtr);
+        return indexAndFound[1] != VALUE_NOT_FOUND;
+    }
+
+    public boolean removeRow(long rowPtr) {
+        long[] indexAndFound = nativeRemoveRow(nativePtr, rowPtr);
+        return indexAndFound[1] != VALUE_NOT_FOUND;
+    }
+
+    public long getRow(int index) {
+        return nativeGetRow(nativePtr, index);
+    }
 
     // ----------------------------------------------------
     // Set operations
@@ -569,6 +591,8 @@ public class OsSet implements NativeObject {
 
     private static native boolean nativeContainsUUID(long nativePtr, String value);
 
+    private static native boolean nativeContainsRow(long nativePtr, long rowPtr);
+
     private static native long[] nativeAddNull(long nativePtr);
 
     private static native long[] nativeAddBoolean(long nativePtr, boolean value);
@@ -591,6 +615,8 @@ public class OsSet implements NativeObject {
 
     private static native long[] nativeAddUUID(long nativePtr, String value);
 
+    private static native long[] nativeAddRow(long nativePtr, long rowPtr);
+
     private static native long[] nativeRemoveNull(long nativePtr);
 
     private static native long[] nativeRemoveBoolean(long nativePtr, boolean value);
@@ -612,6 +638,10 @@ public class OsSet implements NativeObject {
     private static native long[] nativeRemoveObjectId(long nativePtr, String value);
 
     private static native long[] nativeRemoveUUID(long nativePtr, String value);
+
+    private static native long[] nativeRemoveRow(long nativePtr, long rowPtr);
+
+    private static native long nativeGetRow(long nativePtr, int index);
 
     private static native boolean nativeContainsAllMixedCollection(long nativePtr, long mixedCollectionPtr);
 

@@ -142,6 +142,11 @@ class ParameterizedSetTests(
     fun freeze() {
         tester.freeze()
     }
+
+    @Test
+    fun setters() {
+        tester.setters()
+    }
 }
 
 /**
@@ -184,4 +189,13 @@ interface SetTester : GenericTester {
     fun removeAll()
     fun clear()
     fun freeze()
+    fun setters()
+}
+
+fun <T : Any> RealmSet<T>.init(values: List<T?>): RealmSet<T> {
+    return this.apply {
+        for (value in values) {
+            this.add(value)
+        }
+    }
 }
