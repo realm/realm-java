@@ -1196,7 +1196,16 @@ class MixedSetOperator extends SetValueOperator<Mixed> {
 
     @Override
     boolean add(@Nullable Mixed value) {
-        return osSet.addMixed((value == null) ? Mixed.nullValue().getNativePtr() : value.getNativePtr());
+        if (value == null){
+            value = Mixed.nullValue();
+        } else if(value.getType() == MixedType.OBJECT) {
+            RealmModel realmModel = value.asRealmModel(RealmModel.class);
+            boolean copyObject = CollectionUtils.checkCanObjectBeCopied(baseRealm, realmModel, valueClass.getName(), SET_TYPE);
+            RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, realmModel) : realmModel);
+            value = Mixed.valueOf(proxy);
+        }
+
+        return osSet.addMixed(value.getNativePtr());
     }
 
     @Override
@@ -1207,6 +1216,7 @@ class MixedSetOperator extends SetValueOperator<Mixed> {
         } else {
             value = (Mixed) o;
         }
+        checkValidObject(value);
         return osSet.containsMixed(value.getNativePtr());
     }
 
@@ -1219,19 +1229,31 @@ class MixedSetOperator extends SetValueOperator<Mixed> {
         } else {
             value = (Mixed) o;
         }
+        checkValidObject(value);
         return osSet.removeMixed(value.getNativePtr());
+    }
+
+    private void checkValidObject(Mixed mixed){
+        try {
+            mixed.checkValidObject(baseRealm);
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalArgumentException("Mixed collection contains unmanaged objects.", exception);
+        }
     }
 
     @NotNull
     private NativeMixedCollection getNativeMixedCollection(Collection<? extends Mixed> mixedCollection) {
-        Mixed nullMixed = Mixed.nullValue();
         long[] mixedPtrs = new long[mixedCollection.size()];
         boolean[] notNull = new boolean[mixedCollection.size()];
 
         int i = 0;
-        for (Mixed mixed : mixedCollection){
-            mixedPtrs[i] = (mixed == null) ? nullMixed.getNativePtr() : mixed.getNativePtr();
-            notNull[i] = true;
+        for (Mixed mixed : mixedCollection) {
+            if (mixed != null) {
+                checkValidObject(mixed);
+
+                mixedPtrs[i] = mixed.getNativePtr();
+                notNull[i] = true;
+            }
             i++;
         }
 
@@ -1247,10 +1269,14 @@ class MixedSetOperator extends SetValueOperator<Mixed> {
     }
 
     @Override
-    boolean addAllInternal(Collection<? extends Mixed> c) {
+    boolean addAllInternal(Collection<? extends Mixed> collection) {
         // Collection has been type-checked from caller
-        NativeMixedCollection collection = getNativeMixedCollection(c);
-        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
+        // Use add method as it contains all the necessary checks
+        boolean result = false;
+        for (Mixed model : collection) {
+            result |= add(model);
+        }
+        return result;
     }
 
     @Override

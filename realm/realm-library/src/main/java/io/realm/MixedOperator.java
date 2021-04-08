@@ -22,7 +22,6 @@ import org.bson.types.ObjectId;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Objects;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
@@ -99,7 +98,7 @@ public abstract class MixedOperator {
 
     abstract <T> T getValue(Class<T> clazz);
 
-    MixedType getType(){
+    MixedType getType() {
         return this.type;
     }
 
@@ -107,9 +106,11 @@ public abstract class MixedOperator {
         return type.getTypedClass();
     }
 
-    boolean coercedEquals(MixedOperator mixedOperator){
+    boolean coercedEquals(MixedOperator mixedOperator) {
         return getNativeMixed().coercedEquals(mixedOperator.getNativeMixed());
     }
+
+    public void checkValidObject(BaseRealm realm) { }
 }
 
 final class NullMixedOperator extends MixedOperator {
@@ -140,6 +141,7 @@ final class NullMixedOperator extends MixedOperator {
     public int hashCode() {
         return super.hashCode();
     }
+
     @Override
     public boolean equals(Object other) {
         return (other != null) && getClass().equals(other.getClass());
@@ -429,6 +431,16 @@ class RealmModelOperator extends MixedOperator {
     @Override
     public String toString() {
         return this.value.toString();
+    }
+
+    @Override
+    public void checkValidObject(BaseRealm realm) {
+        if (!RealmObject.isValid(value) || !RealmObject.isManaged(value)) {
+            throw new IllegalArgumentException("Realm object is not a valid managed object.");
+        }
+        if (((RealmObjectProxy) value).realmGet$proxyState().getRealm$realm() != realm) {
+            throw new IllegalArgumentException("Realm object belongs to a different Realm.");
+        }
     }
 }
 

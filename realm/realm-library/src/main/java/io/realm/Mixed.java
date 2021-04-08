@@ -18,7 +18,6 @@ package io.realm;
 
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 import java.util.UUID;
@@ -489,5 +488,9 @@ public class Mixed {
     @Override
     public String toString() {
         return this.operator.toString();
+    }
+
+    void checkValidObject(BaseRealm realm){
+        operator.checkValidObject(realm);
     }
 }

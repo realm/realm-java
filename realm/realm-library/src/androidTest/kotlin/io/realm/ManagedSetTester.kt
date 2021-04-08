@@ -737,7 +737,11 @@ fun managedSetFactory(): List<SetTester> {
                         managedCollectionGetter = SetContainerClass::myRealmModelList,
                         unmanagedInitializedSet = listOf(VALUE_LINK_HELLO, VALUE_LINK_BYE),
                         unmanagedNotPresentValue = VALUE_LINK_NOT_PRESENT,
-                        toArrayManaged = ToArrayManaged.RealmModelManaged()
+                        toArrayManaged = ToArrayManaged.RealmModelManaged(),
+                        manageObjects = { realm, objects ->
+                            realm.copyToRealmOrUpdate(objects)
+                        },
+                        nullable = false
                 )
             // Ignore Mixed in this switch
             else -> null
@@ -758,19 +762,45 @@ fun managedSetFactory(): List<SetTester> {
             ))
             // Then we add the tests for Mixed types
             .plus(MixedType.values().map { mixedType ->
-                ManagedSetTester<Mixed>(
-                        testerName = "MIXED-${mixedType.name}",
-                        mixedType = mixedType,
-                        setGetter = AllTypes::getColumnMixedSet,
-                        setSetter = AllTypes::setColumnMixedSet,
-                        managedSetGetter = SetContainerClass::myMixedSet,
-                        managedCollectionGetter = SetContainerClass::myMixedList,
-                        initializedSet = getMixedKeyValuePairs(mixedType).map {
-                            it.second
-                        },
-                        notPresentValue = VALUE_MIXED_NOT_PRESENT,
-                        toArrayManaged = ToArrayManaged.MixedManaged()
-                )
+                when (mixedType) {
+                    MixedType.OBJECT -> RealmModelManagedSetTester<Mixed>(
+                            testerName = "LINK",
+                            setGetter = AllTypes::getColumnMixedSet,
+                            setSetter = AllTypes::setColumnMixedSet,
+                            managedSetGetter = SetContainerClass::myMixedSet,
+                            managedCollectionGetter = SetContainerClass::myMixedList,
+                            unmanagedInitializedSet = getMixedKeyValuePairs(mixedType).map {
+                                it.second
+                            },
+                            unmanagedNotPresentValue = Mixed.valueOf(VALUE_LINK_NOT_PRESENT),
+                            toArrayManaged = ToArrayManaged.MixedManaged(),
+                            manageObjects = { realm, objects ->
+                                objects.map { mixed ->
+                                    if (mixed?.type == MixedType.OBJECT) {
+                                        val unmanagedObject = mixed.asRealmModel(DogPrimaryKey::class.java)
+                                        val managedObject = realm.copyToRealmOrUpdate(unmanagedObject)
+                                        Mixed.valueOf(managedObject)
+                                    } else {
+                                        mixed
+                                    }
+                                }
+                            },
+                            nullable = true
+                    )
+                    else -> ManagedSetTester<Mixed>(
+                            testerName = "MIXED-${mixedType.name}",
+                            mixedType = mixedType,
+                            setGetter = AllTypes::getColumnMixedSet,
+                            setSetter = AllTypes::setColumnMixedSet,
+                            managedSetGetter = SetContainerClass::myMixedSet,
+                            managedCollectionGetter = SetContainerClass::myMixedList,
+                            initializedSet = getMixedKeyValuePairs(mixedType).map {
+                                it.second
+                            },
+                            notPresentValue = VALUE_MIXED_NOT_PRESENT,
+                            toArrayManaged = ToArrayManaged.MixedManaged()
+                    )
+                }
             })
 }
 
