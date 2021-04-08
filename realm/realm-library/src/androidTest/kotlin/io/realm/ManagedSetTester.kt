@@ -343,9 +343,13 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun copyToRealm() {
+        doCopyToRealmTest(initializedSet)
+    }
+
+    fun doCopyToRealmTest(testingSet: List<T?>){
         // Instantiate container and set dictionary on container
         val manualInstance = AllTypes().apply {
-            setSetter.call(this, initializedSet)
+            setSetter.call(this, testingSet)
         }
 
         // Copy to Realm
