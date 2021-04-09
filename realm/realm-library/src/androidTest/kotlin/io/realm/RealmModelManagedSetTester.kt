@@ -17,12 +17,14 @@
 package io.realm
 
 import io.realm.entities.AllTypes
+import io.realm.entities.AllTypesPrimaryKey
 import io.realm.entities.SetContainerClass
 import io.realm.kotlin.createObject
 import io.realm.rule.BlockingLooperThread
 import java.lang.IllegalArgumentException
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KFunction2
+import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 import kotlin.test.*
 
@@ -45,7 +47,8 @@ class RealmModelManagedSetTester<T : Any>(
         private val insertObjects: (realm: Realm, objects: List<T?>) -> List<T?>,
         private val deleteObjects: (objects: List<T?>) -> Unit,
         private val nullable: Boolean,
-        private val equalsTo: (expected: T?, value: T?) -> Boolean
+        private val equalsTo: (expected: T?, value: T?) -> Boolean,
+        private val primaryKeyAllTypesSetProperty: KMutableProperty1<AllTypesPrimaryKey, RealmSet<T>>
 ) : SetTester {
 
     private lateinit var managedTester: ManagedSetTester<T>
@@ -86,7 +89,8 @@ class RealmModelManagedSetTester<T : Any>(
                 notPresentValue = managedNotPresentValue,
                 toArrayManaged = toArrayManaged,
                 nullable = nullable,
-                equalsTo = equalsTo
+                equalsTo = equalsTo,
+                primaryKeyAllTypesSetProperty = primaryKeyAllTypesSetProperty
         )
 
         this.managedTester.setUp(config, looperThread)
@@ -200,6 +204,10 @@ class RealmModelManagedSetTester<T : Any>(
 
         // Call with unmanaged objects
         managedTester.doCopyToRealmTest(unmanagedInitializedSet)
+    }
+
+    override fun copyToRealmOrUpdate() {
+        managedTester.copyToRealmOrUpdate()
     }
 
     override fun containsAll() {

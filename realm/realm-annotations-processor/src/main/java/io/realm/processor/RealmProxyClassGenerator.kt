@@ -2781,9 +2781,47 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Utils.isRealmValueDictionary(field) -> {
                             emitStatement("builder.${OsObjectBuilderTypeHelper.getOsObjectBuilderName(field)}(${fieldColKey}, realmObjectSource.${getter}())")
                         }
-                        Utils.isRealmSet(field) -> {
-                            // TODO: sets
-                            emitSingleLineComment("TODO: Set")
+                        Utils.isMixedSet(field) -> {
+                            emitEmptyLine()
+
+                            emitStatement("RealmSet<Mixed> ${fieldName}UnmanagedSet = realmObjectSource.${getter}()")
+                            beginControlFlow("if (${fieldName}UnmanagedSet != null)")
+                                emitStatement("RealmSet<Mixed> ${fieldName}ManagedCopy = new RealmSet<Mixed>()")
+                                beginControlFlow("for (Mixed mixedItem: ${fieldName}UnmanagedSet)")
+                                    emitStatement("mixedItem = ProxyUtils.copyOrUpdate(mixedItem, realm, true, cache, flags)")
+                                    emitStatement("${fieldName}ManagedCopy.add(mixedItem)")
+                                endControlFlow()
+
+                                emitStatement("builder.addMixedSet(${fieldColKey}, ${fieldName}ManagedCopy)")
+                            nextControlFlow("else")
+                                emitStatement("builder.addMixedSet(${fieldColKey}, new RealmSet<Mixed>())")
+                            endControlFlow()
+                        }
+                        Utils.isRealmModelSet(field) -> {
+                            val genericType: QualifiedClassName = Utils.getSetType(field)!!
+                            val proxyClass: SimpleClassName = Utils.getSetGenericProxyClassSimpleName(field)
+
+                            emitEmptyLine()
+                            emitStatement("RealmSet<${genericType}> ${fieldName}UnmanagedSet = realmObjectSource.${getter}()")
+                            beginControlFlow("if (${fieldName}UnmanagedSet != null)")
+                                emitStatement("RealmSet<${genericType}> ${fieldName}ManagedCopy = new RealmSet<${genericType}>()")
+
+                                beginControlFlow("for (${genericType} ${fieldName}Item: ${fieldName}UnmanagedSet)")
+                                    emitStatement("$genericType cache${fieldName} = (${genericType}) cache.get(${fieldName}Item)")
+                                    beginControlFlow("if (cache${fieldName} != null)")
+                                        emitStatement("${fieldName}ManagedCopy.add(cache${fieldName})")
+                                    nextControlFlow("else")
+                                        emitStatement("${fieldName}ManagedCopy.add(${proxyClass}.copyOrUpdate(realm, (${columnInfoClassNameSetGeneric(field)}) realm.getSchema().getColumnInfo(${genericType}.class), ${fieldName}Item, true, cache, flags))")
+                                    endControlFlow()
+                                endControlFlow()
+                                emitStatement("builder.addObjectSet(${fieldColKey}, ${fieldName}ManagedCopy)")
+
+                            nextControlFlow("else")
+                                emitStatement("builder.addObjectSet(${fieldColKey}, new RealmSet<${genericType}>())")
+                            endControlFlow()
+                        }
+                        Utils.isRealmValueSet(field) -> {
+                            emitStatement("builder.${OsObjectBuilderTypeHelper.getOsObjectBuilderName(field)}(${fieldColKey}, realmObjectSource.${getter}())")
                         }
                         else -> {
                             emitStatement("builder.%s(%s, realmObjectSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey, getter)

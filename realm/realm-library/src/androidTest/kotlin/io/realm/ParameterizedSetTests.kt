@@ -119,6 +119,11 @@ class ParameterizedSetTests(
     }
 
     @Test
+    fun copyToRealmOrUpdate() {
+        tester.copyToRealmOrUpdate()
+    }
+
+    @Test
     fun containsAll() {
         tester.containsAll()
     }
@@ -190,6 +195,7 @@ interface SetTester : GenericTester {
     fun remove()
     fun containsAll()
     fun copyToRealm()
+    fun copyToRealmOrUpdate()
     fun addAll()
     fun retainAll()
     fun removeAll()

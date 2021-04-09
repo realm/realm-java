@@ -25,6 +25,7 @@ import java.util.UUID;
 import io.realm.Mixed;
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.RealmSet;
 import io.realm.annotations.PrimaryKey;
 
 public class AllTypesPrimaryKey extends RealmObject {
@@ -55,6 +56,23 @@ public class AllTypesPrimaryKey extends RealmObject {
     private RealmList<Decimal128> columnDecimal128List;
     private RealmList<UUID> columnUUIDList;
     private RealmList<Mixed> columnMixedList;
+
+    public RealmSet<Boolean> columnBooleanSet;
+    public RealmSet<String> columnStringSet;
+    public RealmSet<Integer> columnIntegerSet;
+    public RealmSet<Float> columnFloatSet;
+    public RealmSet<Long> columnLongSet;
+    public RealmSet<Short> columnShortSet;
+    public RealmSet<Double> columnDoubleSet;
+    public RealmSet<Byte> columnByteSet;
+    public RealmSet<byte[]> columnBinarySet;
+    public RealmSet<Date> columnDateSet;
+    public RealmSet<ObjectId> columnObjectIdSet;
+    public RealmSet<UUID> columnUUIDSet;
+    public RealmSet<Decimal128> columnDecimal128Set;
+    public RealmSet<DogPrimaryKey> columnRealmModelSet;
+    public RealmSet<Owner> columnRealmModelNoPkSet;
+    public RealmSet<Mixed> columnMixedSet;
 
     public String getColumnString() {
         return columnString;
