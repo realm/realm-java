@@ -85,6 +85,8 @@ class NullMixedSetTester(
         assertFalse(set.contains(Mixed.nullValue()))
     }
 
+    override fun putRequired() = Unit
+
     override fun iterator() = Unit // Not tested
 
     override fun toArray() = Unit // Not tested

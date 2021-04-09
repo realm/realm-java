@@ -28,6 +28,7 @@ public:
     static const char* IllegalArgument;
     static const char* OutOfMemory;
     static const char* RealmMigrationNeeded;
+    static const char* NullPointerException;
 };
 
 } // namespace realm

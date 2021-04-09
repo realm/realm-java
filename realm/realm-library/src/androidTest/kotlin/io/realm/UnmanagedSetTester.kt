@@ -117,6 +117,8 @@ class UnmanagedSetTester<T : Any>(
         assertFalse(realmSet.remove(notPresentValue))
     }
 
+    override fun putRequired() = Unit
+
     override fun containsAll() {
         val realmSet = RealmSet<T>()
         realmSet.addAll(values)

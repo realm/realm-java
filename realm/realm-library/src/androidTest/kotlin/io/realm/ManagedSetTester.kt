@@ -37,6 +37,7 @@ class ManagedSetTester<T : Any>(
         private val mixedType: MixedType? = null,
         private val setGetter: KFunction1<AllTypes, RealmSet<T>>,
         private val setSetter: KFunction2<AllTypes, RealmSet<T>, Unit>,
+        private val requiredSetGetter: KFunction1<AllTypes, RealmSet<T>>? = null,
         private val managedSetGetter: KProperty1<SetContainerClass, RealmSet<T>>,
         private val managedCollectionGetter: KProperty1<SetContainerClass, RealmList<T>>,
         private val initializedSet: List<T?>,
@@ -420,6 +421,53 @@ class ManagedSetTester<T : Any>(
         assertSetContainsSet(initializedSet.plus(notPresentValue), set)
     }
 
+    override fun putRequired() {
+        // RealmModel and Mixed setters are ignored since they cannot be marked with "@Required"
+        if (requiredSetGetter != null) {
+            val allTypesObject = createAllTypesManagedContainerAndAssert(realm)
+            assertNotNull(allTypesObject)
+            val set: RealmSet<T> = requiredSetGetter.call(allTypesObject)
+            // Check we can't insert null on a RealmDictionary marked as "@Required"
+            realm.executeTransaction {
+                assertFailsWith<java.lang.NullPointerException> {
+                    set.add(null)
+                }
+                assertFailsWith<java.lang.NullPointerException> {
+                    set.remove(null)
+                }
+                assertFailsWith<java.lang.NullPointerException> {
+                    set.contains(null)
+                }
+                assertFailsWith<java.lang.NullPointerException> {
+                    set.addAll(listOf(null))
+                }
+                assertFailsWith<java.lang.NullPointerException> {
+                    set.removeAll(listOf(null))
+                }
+                assertFailsWith<java.lang.NullPointerException> {
+                    set.containsAll(listOf(null))
+                }
+                assertFailsWith<java.lang.NullPointerException> {
+                    set.add(initializedSet[0])
+                    set.retainAll(listOf(null))
+                }
+            }
+
+            // Now check it works normally for the same field but without null values
+            realm.executeTransaction {
+                set.add(notPresentValue)
+                set.remove(notPresentValue)
+                set.contains(notPresentValue)
+
+                set.addAll(listOf(notPresentValue))
+                set.removeAll(listOf(notPresentValue))
+                set.containsAll(listOf(notPresentValue))
+                set.add(notPresentValue)
+                set.retainAll(listOf(notPresentValue))
+            }
+        }
+    }
+
     override fun retainAll() {
         val set = initAndAssertEmptySet()
 
@@ -665,6 +713,7 @@ fun managedSetFactory(): List<SetTester> {
                         testerName = "Long",
                         setGetter = AllTypes::getColumnLongSet,
                         setSetter = AllTypes::setColumnLongSet,
+                        requiredSetGetter = AllTypes::getColumnRequiredLongSet,
                         managedSetGetter = SetContainerClass::myLongSet,
                         managedCollectionGetter = SetContainerClass::myLongList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO.toLong(), VALUE_NUMERIC_BYE.toLong(), null),
@@ -677,6 +726,7 @@ fun managedSetFactory(): List<SetTester> {
                         testerName = "Integer",
                         setGetter = AllTypes::getColumnIntegerSet,
                         setSetter = AllTypes::setColumnIntegerSet,
+                        requiredSetGetter = AllTypes::getColumnRequiredIntegerSet,
                         managedSetGetter = SetContainerClass::myIntSet,
                         managedCollectionGetter = SetContainerClass::myIntList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO, VALUE_NUMERIC_BYE, null),
@@ -689,6 +739,7 @@ fun managedSetFactory(): List<SetTester> {
                         testerName = "Short",
                         setGetter = AllTypes::getColumnShortSet,
                         setSetter = AllTypes::setColumnShortSet,
+                        requiredSetGetter = AllTypes::getColumnRequiredShortSet,
                         managedSetGetter = SetContainerClass::myShortSet,
                         managedCollectionGetter = SetContainerClass::myShortList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO.toShort(), VALUE_NUMERIC_BYE.toShort(), null),
@@ -701,6 +752,7 @@ fun managedSetFactory(): List<SetTester> {
                         testerName = "Byte",
                         setGetter = AllTypes::getColumnByteSet,
                         setSetter = AllTypes::setColumnByteSet,
+                        requiredSetGetter = AllTypes::getColumnRequiredByteSet,
                         managedSetGetter = SetContainerClass::myByteSet,
                         managedCollectionGetter = SetContainerClass::myByteList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO.toByte(), VALUE_NUMERIC_BYE.toByte(), null),
@@ -713,6 +765,7 @@ fun managedSetFactory(): List<SetTester> {
                         testerName = "Float",
                         setGetter = AllTypes::getColumnFloatSet,
                         setSetter = AllTypes::setColumnFloatSet,
+                        requiredSetGetter = AllTypes::getColumnRequiredFloatSet,
                         managedSetGetter = SetContainerClass::myFloatSet,
                         managedCollectionGetter = SetContainerClass::myFloatList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO.toFloat(), VALUE_NUMERIC_BYE.toFloat(), null),
@@ -725,6 +778,7 @@ fun managedSetFactory(): List<SetTester> {
                         testerName = "Double",
                         setGetter = AllTypes::getColumnDoubleSet,
                         setSetter = AllTypes::setColumnDoubleSet,
+                        requiredSetGetter = AllTypes::getColumnRequiredDoubleSet,
                         managedSetGetter = SetContainerClass::myDoubleSet,
                         managedCollectionGetter = SetContainerClass::myDoubleList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO.toDouble(), VALUE_NUMERIC_BYE.toDouble(), null),
@@ -737,6 +791,7 @@ fun managedSetFactory(): List<SetTester> {
                         testerName = "String",
                         setGetter = AllTypes::getColumnStringSet,
                         setSetter = AllTypes::setColumnStringSet,
+                        requiredSetGetter = AllTypes::getColumnRequiredStringSet,
                         managedSetGetter = SetContainerClass::myStringSet,
                         managedCollectionGetter = SetContainerClass::myStringList,
                         initializedSet = listOf(VALUE_STRING_HELLO, VALUE_STRING_BYE, null),
@@ -749,6 +804,7 @@ fun managedSetFactory(): List<SetTester> {
                         testerName = "Boolean",
                         setGetter = AllTypes::getColumnBooleanSet,
                         setSetter = AllTypes::setColumnBooleanSet,
+                        requiredSetGetter = AllTypes::getColumnRequiredBooleanSet,
                         managedSetGetter = SetContainerClass::myBooleanSet,
                         managedCollectionGetter = SetContainerClass::myBooleanList,
                         initializedSet = listOf(VALUE_BOOLEAN_HELLO, null),
@@ -761,6 +817,7 @@ fun managedSetFactory(): List<SetTester> {
                         testerName = "Date",
                         setGetter = AllTypes::getColumnDateSet,
                         setSetter = AllTypes::setColumnDateSet,
+                        requiredSetGetter = AllTypes::getColumnRequiredDateSet,
                         managedSetGetter = SetContainerClass::myDateSet,
                         managedCollectionGetter = SetContainerClass::myDateList,
                         initializedSet = listOf(VALUE_DATE_HELLO, VALUE_DATE_BYE, null),
@@ -773,6 +830,7 @@ fun managedSetFactory(): List<SetTester> {
                         testerName = "Decimal128",
                         setGetter = AllTypes::getColumnDecimal128Set,
                         setSetter = AllTypes::setColumnDecimal128Set,
+                        requiredSetGetter = AllTypes::getColumnRequiredDecimal128Set,
                         managedSetGetter = SetContainerClass::myDecimal128Set,
                         managedCollectionGetter = SetContainerClass::myDecimal128List,
                         initializedSet = listOf(VALUE_DECIMAL128_HELLO, VALUE_DECIMAL128_BYE, null),
@@ -785,6 +843,7 @@ fun managedSetFactory(): List<SetTester> {
                         testerName = "Binary",
                         setGetter = AllTypes::getColumnBinarySet,
                         setSetter = AllTypes::setColumnBinarySet,
+                        requiredSetGetter = AllTypes::getColumnRequiredBinarySet,
                         managedSetGetter = SetContainerClass::myBinarySet,
                         managedCollectionGetter = SetContainerClass::myBinaryList,
                         initializedSet = listOf(VALUE_BINARY_HELLO, VALUE_BINARY_BYE, null),
@@ -795,12 +854,12 @@ fun managedSetFactory(): List<SetTester> {
                         primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnBinarySet,
                         toArrayManaged = ToArrayManaged.BinaryManaged()
                 )
-
             SetSupportedType.OBJECT_ID ->
                 ManagedSetTester<ObjectId>(
                         testerName = "ObjectId",
                         setGetter = AllTypes::getColumnObjectIdSet,
                         setSetter = AllTypes::setColumnObjectIdSet,
+                        requiredSetGetter = AllTypes::getColumnRequiredObjectIdSet,
                         managedSetGetter = SetContainerClass::myObjectIdSet,
                         managedCollectionGetter = SetContainerClass::myObjectIdList,
                         initializedSet = listOf(VALUE_OBJECT_ID_HELLO, VALUE_OBJECT_ID_BYE, null),
@@ -814,6 +873,7 @@ fun managedSetFactory(): List<SetTester> {
                         testerName = "UUID",
                         setGetter = AllTypes::getColumnUUIDSet,
                         setSetter = AllTypes::setColumnUUIDSet,
+                        requiredSetGetter = AllTypes::getColumnRequiredUUIDSet,
                         managedSetGetter = SetContainerClass::myUUIDSet,
                         managedCollectionGetter = SetContainerClass::myUUIDList,
                         initializedSet = listOf(VALUE_UUID_HELLO, VALUE_UUID_BYE, null),

@@ -101,6 +101,8 @@ class NoPKRealmModelSetTester<T : RealmModel>(
         assertFalse(set.isEmpty())
     }
 
+    override fun putRequired() = Unit // Not tested
+
     override fun contains() {
         val set = initAndAssertEmptySet()
 
