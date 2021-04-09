@@ -197,10 +197,12 @@ class RealmModelManagedSetTester<T : Any>(
     }
 
     override fun copyToRealm() {
+        // This specific test case needs unmanaged objects on PK models
         realm.executeTransaction {
             deleteObjects(managedInitializedSet)
         }
 
+        // Call with unmanaged objects
         managedTester.doCopyToRealmTest(unmanagedInitializedSet)
     }
 

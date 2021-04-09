@@ -17,15 +17,8 @@
 package io.realm
 
 import io.realm.entities.AllTypes
-import io.realm.entities.DogPrimaryKey
-import io.realm.entities.Owner
 import io.realm.entities.SetContainerClass
-import io.realm.kotlin.createObject
-import io.realm.kotlin.where
 import io.realm.rule.BlockingLooperThread
-import org.bson.types.Decimal128
-import org.bson.types.ObjectId
-import java.nio.ByteBuffer
 import java.util.*
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KFunction2
