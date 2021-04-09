@@ -225,7 +225,7 @@ class DictionaryManager<V> extends ManagedMapManager<String, V> {
     }
 
     @Override
-    public boolean containsKeyInternal(@Nullable Object key) {
+    public boolean containsKeyInternal(Object key) {
         if (key == null) {
             throw new NullPointerException("Null keys are not allowed when calling 'containsKey'.");
         }
@@ -264,7 +264,7 @@ class DictionaryManager<V> extends ManagedMapManager<String, V> {
     }
 
     @Override
-    public V put(@Nullable String key, V value) {
+    public V put(String key, V value) {
         if (key == null) {
             throw new NullPointerException("Null keys are not allowed.");
         }

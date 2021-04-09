@@ -75,7 +75,7 @@ class SelectorForMap<K, V> extends TypeSelectorForMap<K, V> {
     protected final Class<K> keyClass;
     protected final Class<V> valueClass;
 
-    public SelectorForMap(BaseRealm baseRealm,
+    SelectorForMap(BaseRealm baseRealm,
                           OsMap osMap,
                           Class<K> keyClass,
                           Class<V> valueClass) {
@@ -124,7 +124,7 @@ class SelectorForMap<K, V> extends TypeSelectorForMap<K, V> {
  */
 class LinkSelectorForMap<K, V extends RealmModel> extends SelectorForMap<K, V> {
 
-    public LinkSelectorForMap(BaseRealm baseRealm, OsMap osMap, Class<K> keyClass, Class<V> valueClass) {
+    LinkSelectorForMap(BaseRealm baseRealm, OsMap osMap, Class<K> keyClass, Class<V> valueClass) {
         super(baseRealm, osMap, keyClass, valueClass);
     }
 
@@ -172,7 +172,7 @@ class DynamicSelectorForMap<K, V> extends TypeSelectorForMap<K, V> {
 
     private final String className;
 
-    public DynamicSelectorForMap(BaseRealm baseRealm,
+    DynamicSelectorForMap(BaseRealm baseRealm,
                                  OsMap osMap,
                                  String className) {
         super(baseRealm, osMap);
