@@ -4153,7 +4153,7 @@ public class RealmQueryTests extends QueryTests {
         RealmResults<DictionaryAllTypes> results = realm.where(DictionaryAllTypes.class).containsKey(DictionaryAllTypes.FIELD_STRING_DICTIONARY, "hello world1").findAll();
         assertEquals(2, results.size());
         assertEquals("Test1", results.get(0).getColumnStringDictionary().get("hello world1"));
-        assertEquals("Test2", results.get(1).getColumnStringDictionary().get("hello world1"));
+        assertEquals("Test2", results.get(1).getColumnStringDictionary().get("hello world2"));
     }
 
     @Test
