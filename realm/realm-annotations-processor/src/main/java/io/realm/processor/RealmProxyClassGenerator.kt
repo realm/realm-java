@@ -705,8 +705,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
             when {
                 forMixed -> {
-                    // Add Mixed logic
-                    emitStatement("OsSet osSet = proxyState.getRow\$realm().getMixedSet(%s)", fieldColKeyVariableReference(field))
+                    emitStatement("OsSet osSet = proxyState.getRow\$realm().getMixedSet(${fieldColKeyVariableReference(field)})")
                 }
                 forRealmModel -> {
                     emitStatement("OsSet osSet = proxyState.getRow\$realm().getModelSet(%s)", fieldColKeyVariableReference(field))
@@ -2509,7 +2508,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         }
                         Utils.isRealmModelDictionary(field) -> {
                             val proxyClassSimpleName = Utils.getDictionaryGenericProxyClassSimpleName(field)
-                            val valueDictionaryFieldType = Utils.getDictionaryValueTypeQualifiedName(field)
                             val genericType = requireNotNull(Utils.getGenericTypeQualifiedName(field))
 
                             emitEmptyLine()

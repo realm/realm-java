@@ -796,8 +796,9 @@ fun managedSetFactory(): List<SetTester> {
         }
     }
 
+    // Add extra tests for Mixed datatype and Realm Models without PK
     return primitiveTesters
-            // We add an extra test for models without a PK
+            // We add an extra test for Realm models without a PK
             .plus(NoPKRealmModelSetTester<Owner>(
                     testerName = "LINK_NO_PK",
                     setGetter = AllTypes::getColumnRealmModelNoPkSet,
@@ -812,7 +813,7 @@ fun managedSetFactory(): List<SetTester> {
             .plus(MixedType.values().map { mixedType ->
                 when (mixedType) {
                     MixedType.OBJECT -> RealmModelManagedSetTester<Mixed>(
-                            testerName = "LINK",
+                            testerName = "MIXED-${mixedType.name}",
                             setGetter = AllTypes::getColumnMixedSet,
                             setSetter = AllTypes::setColumnMixedSet,
                             managedSetGetter = SetContainerClass::myMixedSet,
