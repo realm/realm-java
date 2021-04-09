@@ -23,7 +23,8 @@ import kotlin.reflect.KFunction1
 import kotlin.test.*
 
 /**
- * Tester for Mixed containing values.
+ * Tester for Mixed containing null values. It evaluates that null is accepted as a value and that only a null instance
+ * can exist in a RealmSet.
  */
 class NullMixedSetTester(
         private val testerName: String,

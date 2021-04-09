@@ -1250,7 +1250,6 @@ class MixedSetOperator extends SetValueOperator<Mixed> {
         for (Mixed mixed : mixedCollection) {
             if (mixed != null) {
                 checkValidObject(mixed);
-
                 mixedPtrs[i] = mixed.getNativePtr();
                 notNull[i] = true;
             }
