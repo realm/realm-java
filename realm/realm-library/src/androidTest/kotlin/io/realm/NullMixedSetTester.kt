@@ -34,7 +34,7 @@ class NullMixedSetTester(
     private lateinit var looperThread: BlockingLooperThread
     private lateinit var realm: Realm
 
-    override fun toString(): String = "NoPKRealmModelSetTester-${testerName}"
+    override fun toString(): String = "NullMixedSetTester-${testerName}"
 
     override fun setUp(config: RealmConfiguration, looperThread: BlockingLooperThread) {
         this.config = config
