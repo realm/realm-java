@@ -41,7 +41,11 @@ class ManagedSetTester<T : Any>(
         private val initializedSet: List<T?>,
         private val notPresentValue: T,
         private val toArrayManaged: ToArrayManaged<T>,
-        private val nullable: Boolean = true
+        private val nullable: Boolean = true,
+        private val equalsTo: (expected: T?, value: T?) -> Boolean = { expected, value ->
+            // Used to assert that the contents of two collections are the same.
+           expected == value
+        }
 ) : SetTester {
 
     private lateinit var config: RealmConfiguration
@@ -339,6 +343,39 @@ class ManagedSetTester<T : Any>(
             assertFailsWith<NullPointerException> {
                 set.addAll(TestHelper.getNull())
             }
+        }
+    }
+
+    override fun copyToRealm() {
+        doCopyToRealmTest(initializedSet)
+    }
+
+    // Separate method to allow calls from RealmModelSetManagedTester with unmanaged realm objects
+    fun doCopyToRealmTest(testingSet: List<T?>) {
+        // Instantiate container and set dictionary on container
+        val manualInstance = AllTypes().apply {
+            setSetter.call(this, RealmSet<T>().init(testingSet))
+        }
+
+        // Copy to Realm
+        realm.executeTransaction {
+            val allTypesObject = realm.copyToRealm(manualInstance)
+            assertNotNull(allTypesObject)
+        }
+
+        // Get set from container from Realm
+        val allTypesObject = realm.where<AllTypes>().findFirst()
+        assertNotNull(allTypesObject)
+        val set: RealmSet<T> = setGetter.call(allTypesObject)
+
+        assertFalse(set.isEmpty())
+        set.forEach loop@{ value ->
+            testingSet.forEach{ expected ->
+                if (equalsTo(expected, value)){
+                    return@loop
+                }
+            }
+            fail("Missing value")
         }
     }
 
@@ -701,7 +738,10 @@ fun managedSetFactory(): List<SetTester> {
                         managedCollectionGetter = SetContainerClass::myBinaryList,
                         initializedSet = listOf(VALUE_BINARY_HELLO, VALUE_BINARY_BYE, null),
                         notPresentValue = VALUE_BINARY_NOT_PRESENT,
-                        toArrayManaged = ToArrayManaged.BinaryManaged()
+                        toArrayManaged = ToArrayManaged.BinaryManaged(),
+                        equalsTo = { expected, value ->
+                            Arrays.equals(expected, value)
+                        }
                 )
 
             SetSupportedType.OBJECT_ID ->
@@ -738,8 +778,16 @@ fun managedSetFactory(): List<SetTester> {
                         unmanagedInitializedSet = listOf(VALUE_LINK_HELLO, VALUE_LINK_BYE),
                         unmanagedNotPresentValue = VALUE_LINK_NOT_PRESENT,
                         toArrayManaged = ToArrayManaged.RealmModelManaged(),
-                        manageObjects = { realm, objects ->
+                        insertObjects = { realm, objects ->
                             realm.copyToRealmOrUpdate(objects)
+                        },
+                        deleteObjects = { objects ->
+                            objects.forEach {
+                                it!!.deleteFromRealm()
+                            }
+                        },
+                        equalsTo = { expected: DogPrimaryKey?, value: DogPrimaryKey? ->
+                            (expected == null && value == null) || ((expected != null && value != null) && (expected.id == value.id))
                         },
                         nullable = false
                 )
@@ -775,7 +823,7 @@ fun managedSetFactory(): List<SetTester> {
                             },
                             unmanagedNotPresentValue = Mixed.valueOf(VALUE_LINK_NOT_PRESENT),
                             toArrayManaged = ToArrayManaged.MixedManaged(),
-                            manageObjects = { realm, objects ->
+                            insertObjects = { realm, objects ->
                                 objects.map { mixed ->
                                     if (mixed?.type == MixedType.OBJECT) {
                                         val unmanagedObject = mixed.asRealmModel(DogPrimaryKey::class.java)
@@ -786,7 +834,30 @@ fun managedSetFactory(): List<SetTester> {
                                     }
                                 }
                             },
-                            nullable = true
+                            deleteObjects = { objects: List<Mixed?> ->
+                                objects.map { mixed ->
+                                    if (mixed?.type == MixedType.OBJECT) {
+                                        val managedObject = mixed.asRealmModel(DogPrimaryKey::class.java)
+                                        managedObject.deleteFromRealm()
+                                    } else {
+                                        mixed
+                                    }
+                                }
+                            },
+                            nullable = true,
+                            equalsTo = { expected, value ->
+                                if (expected == null && value == Mixed.nullValue()) {
+                                    true
+                                } else if(expected != null && value != Mixed.nullValue()) {
+                                    val expectedModel = expected.asRealmModel(DogPrimaryKey::class.java)
+                                    // Managed Mixed values are cannot be null but Mixed.nullValue()
+                                    val valueModel = value!!.asRealmModel(DogPrimaryKey::class.java)
+
+                                    expectedModel.id == valueModel.id
+                                } else {
+                                    false
+                                }
+                            }
                     )
                     MixedType.NULL -> NullMixedSetTester(
                             testerName = "MIXED-${mixedType.name}",
@@ -803,7 +874,10 @@ fun managedSetFactory(): List<SetTester> {
                                 it.second
                             },
                             notPresentValue = VALUE_MIXED_NOT_PRESENT,
-                            toArrayManaged = ToArrayManaged.MixedManaged()
+                            toArrayManaged = ToArrayManaged.MixedManaged(),
+                            equalsTo = { expected, value ->
+                                (expected == null && value == Mixed.nullValue()) || ((expected != null) && (expected == value))
+                            }
                     )
                 }
             })

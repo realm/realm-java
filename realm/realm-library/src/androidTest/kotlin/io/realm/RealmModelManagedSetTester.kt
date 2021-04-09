@@ -42,8 +42,10 @@ class RealmModelManagedSetTester<T : Any>(
         private val unmanagedInitializedSet: List<T?>,
         private val unmanagedNotPresentValue: T,
         private val toArrayManaged: ToArrayManaged<T>,
-        private val manageObjects: (realm: Realm, objects: List<T?>) -> List<T?>,
-        private val nullable: Boolean
+        private val insertObjects: (realm: Realm, objects: List<T?>) -> List<T?>,
+        private val deleteObjects: (objects: List<T?>) -> Unit,
+        private val nullable: Boolean,
+        private val equalsTo: (expected: T?, value: T?) -> Boolean
 ) : SetTester {
 
     private lateinit var managedTester: ManagedSetTester<T>
@@ -69,8 +71,8 @@ class RealmModelManagedSetTester<T : Any>(
         this.realm = Realm.getInstance(config)
 
         realm.executeTransaction { transactionRealm ->
-            managedInitializedSet = manageObjects(transactionRealm, unmanagedInitializedSet)
-            managedNotPresentValue = manageObjects(transactionRealm, listOf<T?>(unmanagedNotPresentValue))[0]!!
+            managedInitializedSet = insertObjects(transactionRealm, unmanagedInitializedSet)
+            managedNotPresentValue = insertObjects(transactionRealm, listOf<T?>(unmanagedNotPresentValue))[0]!!
         }
 
         this.managedTester = ManagedSetTester(
@@ -83,7 +85,8 @@ class RealmModelManagedSetTester<T : Any>(
                 initializedSet = managedInitializedSet,
                 notPresentValue = managedNotPresentValue,
                 toArrayManaged = toArrayManaged,
-                nullable = nullable
+                nullable = nullable,
+                equalsTo = equalsTo
         )
 
         this.managedTester.setUp(config, looperThread)
@@ -124,7 +127,7 @@ class RealmModelManagedSetTester<T : Any>(
 
         // Test with object from another realm
         accessTransactionRealmInLooperThread { looperRealm ->
-            val value = manageObjects(looperRealm, listOf<T?>(unmanagedNotPresentValue))[0]
+            val value = insertObjects(looperRealm, listOf<T?>(unmanagedNotPresentValue))[0]
 
             assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
                 set.contains(value)
@@ -157,7 +160,7 @@ class RealmModelManagedSetTester<T : Any>(
 
         // Test with object from another realm
         accessTransactionRealmInLooperThread { looperRealm ->
-            val value = manageObjects(looperRealm, listOf<T?>(unmanagedNotPresentValue))[0]
+            val value = insertObjects(looperRealm, listOf<T?>(unmanagedNotPresentValue))[0]
 
             assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
                 set.add(value)
@@ -181,12 +184,22 @@ class RealmModelManagedSetTester<T : Any>(
 
         // Test with object from another realm
         accessTransactionRealmInLooperThread { looperRealm ->
-            val value = manageObjects(looperRealm, listOf<T?>(unmanagedNotPresentValue))[0]
+            val value = insertObjects(looperRealm, listOf<T?>(unmanagedNotPresentValue))[0]
 
             assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
                 set.remove(value)
             }
         }
+    }
+
+    override fun copyToRealm() {
+        // This specific test case needs unmanaged objects on PK models
+        realm.executeTransaction {
+            deleteObjects(managedInitializedSet)
+        }
+
+        // Call with unmanaged objects
+        managedTester.doCopyToRealmTest(unmanagedInitializedSet)
     }
 
     override fun containsAll() {
@@ -211,7 +224,7 @@ class RealmModelManagedSetTester<T : Any>(
 
         // Test with objects from another realm
         accessTransactionRealmInLooperThread { looperRealm ->
-            val values = manageObjects(looperRealm, unmanagedInitializedSet)
+            val values = insertObjects(looperRealm, unmanagedInitializedSet)
 
             assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
                 set.containsAll(values)
@@ -304,7 +317,7 @@ class RealmModelManagedSetTester<T : Any>(
 
         // Test with objects from another realm
         accessTransactionRealmInLooperThread { looperRealm ->
-            val values = manageObjects(looperRealm, unmanagedInitializedSet)
+            val values = insertObjects(looperRealm, unmanagedInitializedSet)
 
             assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
                 set.addAll(values)
@@ -334,7 +347,7 @@ class RealmModelManagedSetTester<T : Any>(
 
         // Test with objects from another realm
         accessTransactionRealmInLooperThread { looperRealm ->
-            val values = manageObjects(looperRealm, unmanagedInitializedSet)
+            val values = insertObjects(looperRealm, unmanagedInitializedSet)
 
             assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
                 set.retainAll(values)
@@ -363,7 +376,7 @@ class RealmModelManagedSetTester<T : Any>(
 
         // Test with objects from another realm
         accessTransactionRealmInLooperThread { looperRealm ->
-            val values = manageObjects(looperRealm, unmanagedInitializedSet)
+            val values = insertObjects(looperRealm, unmanagedInitializedSet)
 
             assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
                 set.removeAll(values)

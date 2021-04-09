@@ -111,6 +111,14 @@ object Utils {
         }
     }
 
+    fun getSetGenericModelClassQualifiedName(field: VariableElement): QualifiedClassName {
+        return if (typeUtils.isAssignable(field.asType(), realmSet)) {
+            getGenericTypeQualifiedName(field)!!
+        } else {
+            getFieldTypeQualifiedName(field)
+        }
+    }
+
     /**
      * @return the proxy class name for a given clazz
      */
@@ -286,6 +294,14 @@ object Utils {
     fun isRealmModelSet(field: VariableElement): Boolean {
         val elementTypeMirror = TypeMirrors.getRealmSetElementTypeMirror(field) ?: return false
         return isRealmModel(elementTypeMirror)
+    }
+
+    /**
+     * @return `true` if a given field type is `RealmSet<Mixed>`, `false` otherwise.
+     */
+    fun isMixedSet(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmSetElementTypeMirror(field) ?: return false
+        return isMixed(elementTypeMirror)
     }
 
     /**

@@ -473,7 +473,7 @@ public class Mixed {
      * @return true if the target has the same value
      */
     @Override
-    public final boolean equals(Object other) {
+    public final boolean equals(@Nullable Object other) {
         if (other == this) { return true; }
         if (!(other instanceof Mixed)) { return false; }
         Mixed otherMixed = ((Mixed) other);

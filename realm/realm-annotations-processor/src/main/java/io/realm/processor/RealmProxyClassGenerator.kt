@@ -2378,9 +2378,40 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 endControlFlow()
                             endControlFlow()
                         }
-                        Utils.isRealmSet(field) -> {
-                            // TODO sets
-                            emitSingleLineComment("TODO: sets")
+                        Utils.isMixedSet(field) -> {
+                            emitStatement("RealmSet<Mixed> ${fieldName}UnmanagedSet = unmanagedSource.${getter}()")
+                            beginControlFlow("if (${fieldName}UnmanagedSet != null)")
+                                emitStatement("RealmSet<Mixed> ${fieldName}ManagedSet = managedCopy.${getter}()")
+                                emitStatement("${fieldName}ManagedSet.clear()")
+
+                                beginControlFlow("for (Mixed mixedItem: ${fieldName}UnmanagedSet)")
+                                    emitStatement("mixedItem = ProxyUtils.copyOrUpdate(mixedItem, realm, update, cache, flags)")
+                                    emitStatement("${fieldName}ManagedSet.add(mixedItem)")
+                                endControlFlow()
+                            endControlFlow()
+                            emitEmptyLine()
+                        }
+                        Utils.isRealmModelSet(field) -> {
+                            val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
+                            val linkedProxyClass: SimpleClassName = Utils.getSetGenericProxyClassSimpleName(field)
+
+                            emitStatement("RealmSet<${genericType}> ${fieldName}UnmanagedSet = unmanagedSource.${getter}()")
+                            beginControlFlow("if (${fieldName}UnmanagedSet != null)")
+                                emitStatement("RealmSet<${genericType}> ${fieldName}ManagedSet = managedCopy.${getter}()")
+                                // Clear is needed. See bug https://github.com/realm/realm-java/issues/4957
+                                emitStatement("${fieldName}ManagedSet.clear()")
+                                beginControlFlow("for ($genericType ${fieldName}UnmanagedItem: ${fieldName}UnmanagedSet)")
+                                    emitStatement("$genericType cache${fieldName} = (${genericType}) cache.get(${fieldName}UnmanagedItem)")
+
+                                    beginControlFlow("if (cache${fieldName} != null)")
+                                        emitStatement("${fieldName}ManagedSet.add(cache${fieldName})")
+                                    nextControlFlow("else")
+                                        emitStatement("${fieldName}ManagedSet.add(${linkedProxyClass}.copyOrUpdate(realm, (${columnInfoClassNameSetGeneric(field)}) realm.getSchema().getColumnInfo(${Utils.getGenericTypeQualifiedName(field)}.class), ${fieldName}UnmanagedItem, update, cache, flags))")
+                                    endControlFlow()
+
+                                endControlFlow()
+                            endControlFlow()
+                            emitEmptyLine()
                         }
                         else -> {
                             throw IllegalStateException("Unsupported field: $field")
@@ -3214,6 +3245,11 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
     private fun columnInfoClassNameDictionaryGeneric(field: VariableElement): String {
         val qualifiedModelClassName = Utils.getDictionaryGenericModelClassQualifiedName(field)
+        return Utils.getSimpleColumnInfoClassName(qualifiedModelClassName)
+    }
+
+    private fun columnInfoClassNameSetGeneric(field: VariableElement): String {
+        val qualifiedModelClassName = Utils.getSetGenericModelClassQualifiedName(field)
         return Utils.getSimpleColumnInfoClassName(qualifiedModelClassName)
     }
 
