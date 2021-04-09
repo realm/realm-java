@@ -4136,13 +4136,13 @@ public class RealmQueryTests extends QueryTests {
 
     private void fillDictionaryTests(){
         realm.executeTransaction(transactionRealm -> {
-            DictionaryAllTypes allTypes1 = realm.createObject(DictionaryAllTypes.class);
+            DictionaryAllTypes allTypes1 = realm.createObject(DictionaryAllTypes.class, "PK1");
             allTypes1.getColumnStringDictionary().put("hello world1", "Test1");
 
-            DictionaryAllTypes allTypes2 = realm.createObject(DictionaryAllTypes.class);
+            DictionaryAllTypes allTypes2 = realm.createObject(DictionaryAllTypes.class, "PK2");
             allTypes2.getColumnStringDictionary().put("hello world1", "Test2");
 
-            DictionaryAllTypes allTypes3 = realm.createObject(DictionaryAllTypes.class);
+            DictionaryAllTypes allTypes3 = realm.createObject(DictionaryAllTypes.class, "PK3");
             allTypes3.getColumnStringDictionary().put("hello world2", "Test2");
         });
     }
