@@ -2396,16 +2396,16 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
                             val linkedProxyClass: SimpleClassName = Utils.getSetGenericProxyClassSimpleName(field)
 
-                            emitStatement("RealmSet<%s> %sUnmanagedSet = unmanagedSource.%s()", genericType, fieldName, getter)
-                            beginControlFlow("if (%sUnmanagedSet != null)", fieldName)
-                                emitStatement("RealmSet<%s> %sManagedSet = managedCopy.%s()", genericType, fieldName, getter)
+                            emitStatement("RealmSet<${genericType}> ${fieldName}UnmanagedSet = unmanagedSource.${getter}()")
+                            beginControlFlow("if (${fieldName}UnmanagedSet != null)")
+                                emitStatement("RealmSet<${genericType}> ${fieldName}ManagedSet = managedCopy.${getter}()")
                                 // Clear is needed. See bug https://github.com/realm/realm-java/issues/4957
-                                emitStatement("%sManagedSet.clear()", fieldName)
-                                beginControlFlow("for ($genericType ${fieldName}UnmanagedItem: %sUnmanagedSet)", fieldName)
-                                    emitStatement("%1\$s cache%2\$s = (%1\$s) cache.get(%2\$sUnmanagedItem)", genericType, fieldName)
+                                emitStatement("${fieldName}ManagedSet.clear()")
+                                beginControlFlow("for ($genericType ${fieldName}UnmanagedItem: ${fieldName}UnmanagedSet)")
+                                    emitStatement("$genericType cache${fieldName} = (${genericType}) cache.get(${fieldName}UnmanagedItem)")
 
-                                    beginControlFlow("if (cache%s != null)", fieldName)
-                                        emitStatement("%1\$sManagedSet.add(cache%1\$s)", fieldName)
+                                    beginControlFlow("if (cache${fieldName} != null)")
+                                        emitStatement("${fieldName}ManagedSet.add(cache${fieldName})")
                                     nextControlFlow("else")
                                         emitStatement("${fieldName}ManagedSet.add(${linkedProxyClass}.copyOrUpdate(realm, (${columnInfoClassNameSetGeneric(field)}) realm.getSchema().getColumnInfo(${Utils.getGenericTypeQualifiedName(field)}.class), ${fieldName}UnmanagedItem, update, cache, flags))")
                                     endControlFlow()

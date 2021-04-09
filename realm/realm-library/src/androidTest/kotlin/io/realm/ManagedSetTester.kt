@@ -43,6 +43,7 @@ class ManagedSetTester<T : Any>(
         private val toArrayManaged: ToArrayManaged<T>,
         private val nullable: Boolean = true,
         private val equalsTo: (expected: T?, value: T?) -> Boolean = { expected, value ->
+            // Used to assert that the contents of two collections are the same.
            expected == value
         }
 ) : SetTester {
