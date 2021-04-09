@@ -192,17 +192,23 @@ public final class NativeMixedCollection implements NativeObject {
 
     public static NativeMixedCollection newRealmModelCollection(Collection<? extends RealmModel> collection) {
         long[] objectValues = new long[collection.size()];
+        boolean[] notNull = new boolean[collection.size()];
 
         int i = 0;
         for (RealmModel model : collection) {
             if (model != null) {
                 RealmObjectProxy proxy = (RealmObjectProxy) model;
                 objectValues[i] = ((UncheckedRow) proxy.realmGet$proxyState().getRow$realm()).getNativePtr();
+                notNull[i] = true;
             }
             i++;
         }
 
-        return new NativeMixedCollection(nativeCreateObjectCollection(objectValues));
+        return new NativeMixedCollection(nativeCreateObjectCollection(objectValues, notNull));
+    }
+
+    public static NativeMixedCollection newMixedCollection(long[] mixedPtrs, boolean[] notNull) {
+        return new NativeMixedCollection(nativeCreateMixedCollection(mixedPtrs, notNull));
     }
 
     private NativeMixedCollection(long nativePtr) {
@@ -248,7 +254,9 @@ public final class NativeMixedCollection implements NativeObject {
 
     private static native long nativeCreateUUIDCollection(String[] uuidValues, boolean[] notNull);
 
-    private static native long nativeCreateObjectCollection(long[] objectValues);
+    private static native long nativeCreateObjectCollection(long[] objectValues, boolean[] notNull);
+
+    private static native long nativeCreateMixedCollection(long[] mixedPtrs, boolean[] notNull);
 
     private static native int nativeGetCollectionSize(long nativePtr);
 

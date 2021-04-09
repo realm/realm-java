@@ -4217,6 +4217,7 @@ public class RealmQueryTests extends QueryTests {
             case OBJECT_ID_SET:
             case UUID_SET:
             case LINK_SET:
+            case MIXED_SET:
                 return false;
             case TYPED_LINK:
         }

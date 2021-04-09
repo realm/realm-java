@@ -41,7 +41,7 @@ open class SetContainerClass : RealmObject() {
     val myObjectIdSet = RealmSet<ObjectId>()
     val myUUIDSet = RealmSet<UUID>()
     val myDecimal128Set = RealmSet<Decimal128>()
-//    val myMixedSet = RealmSet<Mixed>()
+    val myMixedSet = RealmSet<Mixed>()
 
     val myRealmModelNoPkList = RealmList<Owner>()
     val myRealmModelList = RealmList<DogPrimaryKey>()

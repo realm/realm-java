@@ -43,7 +43,7 @@ object OsObjectBuilderTypeHelper {
     )
 
     private val QUALIFIED_SET_VALUES: Map<QualifiedClassName, String> = mapOf(
-//            QualifiedClassName("io.realm.Mixed") to "MixedSet",
+            QualifiedClassName("io.realm.Mixed") to "MixedSet",
             QualifiedClassName("java.lang.Boolean") to "BooleanSet",
             QualifiedClassName("java.lang.String") to "StringSet",
             QualifiedClassName("java.lang.Integer") to "IntegerSet",

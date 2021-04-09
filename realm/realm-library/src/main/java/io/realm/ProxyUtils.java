@@ -409,7 +409,11 @@ class ProxyUtils {
     static <T extends RealmModel> Mixed copyToRealmIfNeeded(ProxyState<T> proxyState, @Nullable Mixed value) {
         final Realm realm = (Realm) proxyState.getRealm$realm();
 
-        if ((value != null) && (value.getType() == MixedType.OBJECT)) {
+        if(value == null){
+            return Mixed.nullValue();
+        }
+
+        if (value.getType() == MixedType.OBJECT) {
             RealmModel mixedRealmModel = value.asRealmModel(RealmModel.class);
 
             if (realm.getSchema().getSchemaForClass(mixedRealmModel.getClass()).isEmbedded()) {

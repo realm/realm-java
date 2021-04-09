@@ -32,7 +32,7 @@ import kotlin.test.*
  * It delegates the validation of managed realm models to the ManagedSetTester class, as it will validate all the paths,
  * whereas in this test we validate Realm models specific cases.
  */
-class RealmModelManagedSetTester<T : RealmModel>(
+class RealmModelManagedSetTester<T : Any>(
         private val testerName: String,
         private val mixedType: MixedType? = null,
         private val setGetter: KFunction1<AllTypes, RealmSet<T>>,
@@ -41,14 +41,16 @@ class RealmModelManagedSetTester<T : RealmModel>(
         private val managedCollectionGetter: KProperty1<SetContainerClass, RealmList<T>>,
         private val unmanagedInitializedSet: List<T?>,
         private val unmanagedNotPresentValue: T,
-        private val toArrayManaged: ToArrayManaged<T>
+        private val toArrayManaged: ToArrayManaged<T>,
+        private val manageObjects: (realm: Realm, objects: List<T?>) -> List<T?>,
+        private val nullable: Boolean
 ) : SetTester {
 
     private lateinit var managedTester: ManagedSetTester<T>
     private lateinit var config: RealmConfiguration
     private lateinit var looperThread: BlockingLooperThread
     private lateinit var realm: Realm
-    private lateinit var managedInitializedSet: MutableList<T>
+    private lateinit var managedInitializedSet: List<T?>
     private lateinit var managedNotPresentValue: T
 
     private fun initAndAssertEmptySet(realm: Realm = this.realm): RealmSet<T> {
@@ -66,9 +68,9 @@ class RealmModelManagedSetTester<T : RealmModel>(
         this.looperThread = looperThread
         this.realm = Realm.getInstance(config)
 
-        realm.executeTransaction {
-            managedInitializedSet = realm.copyToRealmOrUpdate(unmanagedInitializedSet)
-            managedNotPresentValue = realm.copyToRealmOrUpdate(unmanagedNotPresentValue)
+        realm.executeTransaction { transactionRealm ->
+            managedInitializedSet = manageObjects(transactionRealm, unmanagedInitializedSet)
+            managedNotPresentValue = manageObjects(transactionRealm, listOf<T?>(unmanagedNotPresentValue))[0]!!
         }
 
         this.managedTester = ManagedSetTester(
@@ -81,7 +83,7 @@ class RealmModelManagedSetTester<T : RealmModel>(
                 initializedSet = managedInitializedSet,
                 notPresentValue = managedNotPresentValue,
                 toArrayManaged = toArrayManaged,
-                nullable = false
+                nullable = nullable
         )
 
         this.managedTester.setUp(config, looperThread)
@@ -113,14 +115,16 @@ class RealmModelManagedSetTester<T : RealmModel>(
                 set.contains(unmanagedNotPresentValue)
             }
 
-            assertFailsWith<java.lang.NullPointerException>("Set does not support null values") {
-                assertFalse(set.contains(null))
+            if (!nullable) {
+                assertFailsWith<java.lang.NullPointerException>("Set does not support null values") {
+                    assertFalse(set.contains(null))
+                }
             }
         }
 
         // Test with object from another realm
         accessTransactionRealmInLooperThread { looperRealm ->
-            val value = looperRealm.copyToRealmOrUpdate(unmanagedNotPresentValue)
+            val value = manageObjects(looperRealm, listOf<T?>(unmanagedNotPresentValue))[0]
 
             assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
                 set.contains(value)
@@ -153,7 +157,7 @@ class RealmModelManagedSetTester<T : RealmModel>(
 
         // Test with object from another realm
         accessTransactionRealmInLooperThread { looperRealm ->
-            val value = looperRealm.copyToRealmOrUpdate(unmanagedNotPresentValue)
+            val value = manageObjects(looperRealm, listOf<T?>(unmanagedNotPresentValue))[0]
 
             assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
                 set.add(value)
@@ -177,7 +181,7 @@ class RealmModelManagedSetTester<T : RealmModel>(
 
         // Test with object from another realm
         accessTransactionRealmInLooperThread { looperRealm ->
-            val value = looperRealm.copyToRealmOrUpdate(unmanagedNotPresentValue)
+            val value = manageObjects(looperRealm, listOf<T?>(unmanagedNotPresentValue))[0]
 
             assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
                 set.remove(value)
@@ -197,15 +201,17 @@ class RealmModelManagedSetTester<T : RealmModel>(
                 set.containsAll(unmanagedInitializedSet)
             }
 
-            // Checks it does not contain nulls
-            assertFailsWith<java.lang.NullPointerException>("Set does not support null values") {
-                assertFalse(set.containsAll(listOf(null)))
+            if (!nullable) {
+                // Checks it does not contain nulls
+                assertFailsWith<java.lang.NullPointerException>("Set does not support null values") {
+                    assertFalse(set.containsAll(listOf(null)))
+                }
             }
         }
 
         // Test with objects from another realm
         accessTransactionRealmInLooperThread { looperRealm ->
-            val values = looperRealm.copyToRealmOrUpdate(unmanagedInitializedSet)
+            val values = manageObjects(looperRealm, unmanagedInitializedSet)
 
             assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
                 set.containsAll(values)
@@ -220,8 +226,10 @@ class RealmModelManagedSetTester<T : RealmModel>(
         val set = initAndAssertEmptySet()
         realm.executeTransaction { transactionRealm ->
             // Changes after adding collection
-            assertFailsWith<java.lang.NullPointerException>("Cannot add null values into this set") {
-                set.addAll(listOf(null))
+            if(!nullable){
+                assertFailsWith<java.lang.NullPointerException>("Cannot add null values into this set") {
+                    set.addAll(listOf(null))
+                }
             }
 
             assertTrue(set.addAll(unmanagedInitializedSet))
@@ -296,7 +304,7 @@ class RealmModelManagedSetTester<T : RealmModel>(
 
         // Test with objects from another realm
         accessTransactionRealmInLooperThread { looperRealm ->
-            val values = looperRealm.copyToRealmOrUpdate(unmanagedInitializedSet)
+            val values = manageObjects(looperRealm, unmanagedInitializedSet)
 
             assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
                 set.addAll(values)
@@ -316,15 +324,17 @@ class RealmModelManagedSetTester<T : RealmModel>(
                 set.retainAll(unmanagedInitializedSet)
             }
 
-            // Check throws exception when null values are passed
-            assertFailsWith<java.lang.NullPointerException>("Collections with nulls are not permitted") {
-                set.retainAll(listOf(null))
+            if (!nullable) {
+                // Check throws exception when null values are passed
+                assertFailsWith<java.lang.NullPointerException>("Collections with nulls are not permitted") {
+                    set.retainAll(listOf(null))
+                }
             }
         }
 
         // Test with objects from another realm
         accessTransactionRealmInLooperThread { looperRealm ->
-            val values = looperRealm.copyToRealmOrUpdate(unmanagedInitializedSet)
+            val values = manageObjects(looperRealm, unmanagedInitializedSet)
 
             assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
                 set.retainAll(values)
@@ -343,16 +353,17 @@ class RealmModelManagedSetTester<T : RealmModel>(
             assertFailsWith<IllegalArgumentException>("Collection with unmanaged objects not permitted") {
                 set.removeAll(unmanagedInitializedSet)
             }
-
-            // Check throws exception when null values are passed
-            assertFailsWith<java.lang.NullPointerException>("Collections with nulls are not permitted") {
-                set.removeAll(listOf(null))
+            if (!nullable) {
+                // Check throws exception when null values are passed
+                assertFailsWith<java.lang.NullPointerException>("Collections with nulls are not permitted") {
+                    set.removeAll(listOf(null))
+                }
             }
         }
 
         // Test with objects from another realm
         accessTransactionRealmInLooperThread { looperRealm ->
-            val values = looperRealm.copyToRealmOrUpdate(unmanagedInitializedSet)
+            val values = manageObjects(looperRealm, unmanagedInitializedSet)
 
             assertFailsWith<IllegalArgumentException>("Cannot pass values from another Realm") {
                 set.removeAll(values)

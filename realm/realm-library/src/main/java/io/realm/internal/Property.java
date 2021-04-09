@@ -37,24 +37,24 @@ import static io.realm.RealmFieldType.INTEGER_LIST;
 import static io.realm.RealmFieldType.INTEGER_SET;
 import static io.realm.RealmFieldType.LINK_SET;
 import static io.realm.RealmFieldType.MIXED_LIST;
+import static io.realm.RealmFieldType.MIXED_SET;
 import static io.realm.RealmFieldType.OBJECT_ID_LIST;
 import static io.realm.RealmFieldType.OBJECT_ID_SET;
-import static io.realm.RealmFieldType.STRING_SET;
-import static io.realm.RealmFieldType.TYPED_LINK;
-import static io.realm.RealmFieldType.UUID_LIST;
 import static io.realm.RealmFieldType.STRING_LIST;
-import static io.realm.RealmFieldType.STRING_TO_MIXED_MAP;
-import static io.realm.RealmFieldType.STRING_TO_BOOLEAN_MAP;
+import static io.realm.RealmFieldType.STRING_SET;
 import static io.realm.RealmFieldType.STRING_TO_BINARY_MAP;
+import static io.realm.RealmFieldType.STRING_TO_BOOLEAN_MAP;
 import static io.realm.RealmFieldType.STRING_TO_DATE_MAP;
 import static io.realm.RealmFieldType.STRING_TO_DECIMAL128_MAP;
 import static io.realm.RealmFieldType.STRING_TO_DOUBLE_MAP;
 import static io.realm.RealmFieldType.STRING_TO_FLOAT_MAP;
 import static io.realm.RealmFieldType.STRING_TO_INTEGER_MAP;
 import static io.realm.RealmFieldType.STRING_TO_LINK_MAP;
+import static io.realm.RealmFieldType.STRING_TO_MIXED_MAP;
 import static io.realm.RealmFieldType.STRING_TO_OBJECT_ID_MAP;
 import static io.realm.RealmFieldType.STRING_TO_STRING_MAP;
 import static io.realm.RealmFieldType.STRING_TO_UUID_MAP;
+import static io.realm.RealmFieldType.UUID_LIST;
 import static io.realm.RealmFieldType.UUID_SET;
 
 
@@ -260,6 +260,9 @@ public class Property implements NativeObject {
             case LINK_SET:
                 type = TYPE_OBJECT | TYPE_SET;
                 return type;
+            case MIXED_SET:
+                type = TYPE_MIXED | TYPE_SET;
+                break;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported filed type: '%s'.", fieldType.name()));
@@ -369,6 +372,8 @@ public class Property implements NativeObject {
                 return UUID_SET;
             case TYPE_OBJECT | TYPE_SET:
                 return LINK_SET;
+            case TYPE_MIXED | TYPE_SET:
+                return MIXED_SET;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported property type: '%d'", propertyType));

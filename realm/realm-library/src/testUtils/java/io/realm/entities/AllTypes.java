@@ -123,7 +123,7 @@ public class AllTypes extends RealmObject {
     private RealmSet<Decimal128> columnDecimal128Set;
     private RealmSet<DogPrimaryKey> columnRealmModelSet;
     private RealmSet<Owner> columnRealmModelNoPkSet;
-//    private RealmSet<Mixed> columnMixedSet;
+    private RealmSet<Mixed> columnMixedSet;
 
     public String getColumnString() {
         return columnString;
@@ -456,5 +456,13 @@ public class AllTypes extends RealmObject {
 
     public void setColumnRealmModelNoPkSet(RealmSet<Owner> columnRealmModelNoPkSet) {
         this.columnRealmModelNoPkSet = columnRealmModelNoPkSet;
+    }
+
+    public RealmSet<Mixed> getColumnMixedSet() {
+        return columnMixedSet;
+    }
+
+    public void setColumnMixedSet(RealmSet<Mixed> columnMixedSet) {
+        this.columnMixedSet = columnMixedSet;
     }
 }

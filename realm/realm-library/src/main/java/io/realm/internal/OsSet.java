@@ -24,7 +24,6 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import io.realm.RealmModel;
 import io.realm.internal.core.NativeMixedCollection;
 
 public class OsSet implements NativeObject {
@@ -489,6 +488,7 @@ public class OsSet implements NativeObject {
         }
         return indexAndFound[1] == VALUE_FOUND;
     }
+
     // ----------------------------------------------------
     // Realm model operations
     // ----------------------------------------------------
@@ -509,6 +509,28 @@ public class OsSet implements NativeObject {
 
     public long getRow(int index) {
         return nativeGetRow(nativePtr, index);
+    }
+
+    // ----------------------------------------------------
+    // Mixed operations
+    // ----------------------------------------------------
+
+    public boolean containsMixed(long mixedPtr) {
+        return nativeContainsMixed(nativePtr, mixedPtr);
+    }
+
+    public boolean addMixed(long mixedPtr) {
+        long[] indexAndFound = nativeAddMixed(nativePtr, mixedPtr);
+        return indexAndFound[1] != VALUE_NOT_FOUND;
+    }
+
+    public boolean removeMixed(long mixedPtr) {
+        long[] indexAndFound = nativeRemoveMixed(nativePtr, mixedPtr);
+        return indexAndFound[1] != VALUE_NOT_FOUND;
+    }
+
+    public long getMixed(int index) {
+        return nativeGetMixed(nativePtr, index);
     }
 
     // ----------------------------------------------------
@@ -593,6 +615,8 @@ public class OsSet implements NativeObject {
 
     private static native boolean nativeContainsRow(long nativePtr, long rowPtr);
 
+    private static native boolean nativeContainsMixed(long nativePtr, long mixedPtr);
+
     private static native long[] nativeAddNull(long nativePtr);
 
     private static native long[] nativeAddBoolean(long nativePtr, boolean value);
@@ -616,6 +640,8 @@ public class OsSet implements NativeObject {
     private static native long[] nativeAddUUID(long nativePtr, String value);
 
     private static native long[] nativeAddRow(long nativePtr, long rowPtr);
+
+    private static native long[] nativeAddMixed(long nativePtr, long mixed_ptr);
 
     private static native long[] nativeRemoveNull(long nativePtr);
 
@@ -641,7 +667,11 @@ public class OsSet implements NativeObject {
 
     private static native long[] nativeRemoveRow(long nativePtr, long rowPtr);
 
+    private static native long[] nativeRemoveMixed(long nativePtr, long mixedPtr);
+
     private static native long nativeGetRow(long nativePtr, int index);
+
+    private static native long nativeGetMixed(long nativePtr, int index);
 
     private static native boolean nativeContainsAllMixedCollection(long nativePtr, long mixedCollectionPtr);
 
