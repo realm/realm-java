@@ -47,11 +47,11 @@ class NullMixedSetTester(
 
     override fun isValid() = assertTrue(initAndAssertEmptySet().isValid)
 
-    override fun isFrozen() = Unit          // Tested in frozen
+    override fun isFrozen() = Unit // Tested in frozen
 
-    override fun copyToRealm() = Unit
+    override fun copyToRealm() = Unit // Not applicable
 
-    override fun copyToRealmOrUpdate() = Unit
+    override fun copyToRealmOrUpdate() = Unit // Not applicable
 
     override fun size() {
         val set = initAndAssertEmptySet()
@@ -85,7 +85,7 @@ class NullMixedSetTester(
         assertFalse(set.contains(Mixed.nullValue()))
     }
 
-    override fun putRequired() = Unit
+    override fun putRequired() = Unit // Not tested
 
     override fun iterator() = Unit // Not tested
 
