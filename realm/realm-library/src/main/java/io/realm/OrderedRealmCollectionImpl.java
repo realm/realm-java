@@ -634,7 +634,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      *
      * @param <T> the type of the collection.
      */
-    static abstract class CollectionOperator<T> {
+    abstract static class CollectionOperator<T> {
 
         protected final BaseRealm baseRealm;
         protected final OsResults osResults;
@@ -643,7 +643,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
         @Nullable
         protected final String className;
 
-        public CollectionOperator(BaseRealm baseRealm,
+        CollectionOperator(BaseRealm baseRealm,
                                   OsResults osResults,
                                   @Nullable Class<T> classSpec,
                                   @Nullable String className) {
@@ -688,7 +688,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     static class ModelCollectionOperator<T> extends CollectionOperator<T> {
 
-        public ModelCollectionOperator(BaseRealm baseRealm,
+        ModelCollectionOperator(BaseRealm baseRealm,
                                        OsResults osResults,
                                        @Nullable Class<T> clazz,
                                        @Nullable String className) {
@@ -732,7 +732,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
      */
     static class PrimitiveValueOperator<T> extends CollectionOperator<T> {
 
-        public PrimitiveValueOperator(BaseRealm baseRealm,
+        PrimitiveValueOperator(BaseRealm baseRealm,
                                       OsResults osResults,
                                       @Nullable Class<T> classSpec,
                                       @Nullable String className) {
@@ -782,7 +782,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
 
     static class IntegerValueOperator extends PrimitiveValueOperator<Integer> {
 
-        public IntegerValueOperator(BaseRealm baseRealm,
+        IntegerValueOperator(BaseRealm baseRealm,
                                     OsResults osResults,
                                     @Nullable Class<Integer> classSpec,
                                     @Nullable String className) {
@@ -808,7 +808,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
 
     static class ShortValueOperator extends PrimitiveValueOperator<Short> {
 
-        public ShortValueOperator(BaseRealm baseRealm,
+        ShortValueOperator(BaseRealm baseRealm,
                                   OsResults osResults,
                                   @Nullable Class<Short> classSpec,
                                   @Nullable String className) {
@@ -834,7 +834,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
 
     static class ByteValueOperator extends PrimitiveValueOperator<Byte> {
 
-        public ByteValueOperator(BaseRealm baseRealm,
+        ByteValueOperator(BaseRealm baseRealm,
                                  OsResults osResults,
                                  @Nullable Class<Byte> classSpec,
                                  @Nullable String className) {
@@ -860,7 +860,7 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
 
     static class MixedValueOperator extends PrimitiveValueOperator<Mixed> {
 
-        public MixedValueOperator(BaseRealm baseRealm,
+        MixedValueOperator(BaseRealm baseRealm,
                                   OsResults osResults,
                                   @Nullable Class<Mixed> classSpec,
                                   @Nullable String className) {

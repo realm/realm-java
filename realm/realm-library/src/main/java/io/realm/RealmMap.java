@@ -331,7 +331,7 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
          * @param value the value to insert.
          * @return the inserted value.
          */
-        protected abstract V putInternal(K key, V value);
+        protected abstract V putInternal(K key, @Nullable V value);
 
         protected abstract void addChangeListener(RealmMap<K, V> realmMap, MapChangeListener<K, V> listener);
 
@@ -352,12 +352,12 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
         // ------------------------------------------
 
         @Override
-        public V put(K key, V value) {
+        public V put(K key, @Nullable V value) {
             checkValidKey(key);
             return putInternal(key, value);
         }
 
-        protected void checkValidKey(@Nullable K key) {
+        protected void checkValidKey(K key) {
             if (key == null) {
                 // As per Map interface
                 throw new NullPointerException("Null keys are not allowed.");

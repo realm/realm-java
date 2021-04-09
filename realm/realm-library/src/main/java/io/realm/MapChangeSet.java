@@ -67,7 +67,7 @@ class MapChangeSetImpl<K> implements MapChangeSet<K> {
 
     private final MapChangeSet<K> delegate;
 
-    public MapChangeSetImpl(MapChangeSet<K> delegate) {
+    MapChangeSetImpl(MapChangeSet<K> delegate) {
         this.delegate = delegate;
     }
 
@@ -99,7 +99,7 @@ class StringMapChangeSet implements MapChangeSet<String> {
 
     private final OsMapChangeSet osMapChangeSet;
 
-    public StringMapChangeSet(long nativePtr) {
+    StringMapChangeSet(long nativePtr) {
         osMapChangeSet = new OsMapChangeSet(nativePtr);
     }
 
