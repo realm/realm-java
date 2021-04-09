@@ -55,7 +55,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
     private final EqualsHelper<K, V> equalsHelper;
     private final TypeSelectorForMap typeSelectorForMap;
 
-    public RealmMapEntrySet(BaseRealm baseRealm,
+    RealmMapEntrySet(BaseRealm baseRealm,
                             OsMap osMap,
                             IteratorType iteratorType,
                             @Nullable TypeSelectorForMap typeSelectorForMap) {
@@ -66,7 +66,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
         this.typeSelectorForMap = typeSelectorForMap;
     }
 
-    public RealmMapEntrySet(BaseRealm baseRealm,
+    RealmMapEntrySet(BaseRealm baseRealm,
                             OsMap osMap,
                             IteratorType iteratorType,
                             EqualsHelper<K, V> equalsHelper,
@@ -275,7 +275,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
         private int pos = -1;
 
-        public EntrySetIterator(OsMap osMap, BaseRealm baseRealm) {
+        EntrySetIterator(OsMap osMap, BaseRealm baseRealm) {
             this.osMap = osMap;
             this.baseRealm = baseRealm;
         }
@@ -302,7 +302,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     private static class LongValueIterator<K> extends EntrySetIterator<K, Long> {
 
-        public LongValueIterator(OsMap osMap, BaseRealm baseRealm) {
+        LongValueIterator(OsMap osMap, BaseRealm baseRealm) {
             super(osMap, baseRealm);
         }
 
@@ -321,7 +321,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     private static class ByteValueIterator<K> extends EntrySetIterator<K, Byte> {
 
-        public ByteValueIterator(OsMap osMap, BaseRealm baseRealm) {
+        ByteValueIterator(OsMap osMap, BaseRealm baseRealm) {
             super(osMap, baseRealm);
         }
 
@@ -340,7 +340,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     private static class ShortValueIterator<K> extends EntrySetIterator<K, Short> {
 
-        public ShortValueIterator(OsMap osMap, BaseRealm baseRealm) {
+        ShortValueIterator(OsMap osMap, BaseRealm baseRealm) {
             super(osMap, baseRealm);
         }
 
@@ -359,7 +359,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     private static class IntegerValueIterator<K> extends EntrySetIterator<K, Integer> {
 
-        public IntegerValueIterator(OsMap osMap, BaseRealm baseRealm) {
+        IntegerValueIterator(OsMap osMap, BaseRealm baseRealm) {
             super(osMap, baseRealm);
         }
 
@@ -378,7 +378,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     private static class FloatValueIterator<K> extends EntrySetIterator<K, Float> {
 
-        public FloatValueIterator(OsMap osMap, BaseRealm baseRealm) {
+        FloatValueIterator(OsMap osMap, BaseRealm baseRealm) {
             super(osMap, baseRealm);
         }
 
@@ -395,7 +395,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     private static class DoubleValueIterator<K> extends EntrySetIterator<K, Double> {
 
-        public DoubleValueIterator(OsMap osMap, BaseRealm baseRealm) {
+        DoubleValueIterator(OsMap osMap, BaseRealm baseRealm) {
             super(osMap, baseRealm);
         }
 
@@ -412,7 +412,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     private static class StringValueIterator<K> extends EntrySetIterator<K, String> {
 
-        public StringValueIterator(OsMap osMap, BaseRealm baseRealm) {
+        StringValueIterator(OsMap osMap, BaseRealm baseRealm) {
             super(osMap, baseRealm);
         }
 
@@ -429,7 +429,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     private static class BooleanValueIterator<K> extends EntrySetIterator<K, Boolean> {
 
-        public BooleanValueIterator(OsMap osMap, BaseRealm baseRealm) {
+        BooleanValueIterator(OsMap osMap, BaseRealm baseRealm) {
             super(osMap, baseRealm);
         }
 
@@ -446,7 +446,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     private static class DateValueIterator<K> extends EntrySetIterator<K, Date> {
 
-        public DateValueIterator(OsMap osMap, BaseRealm baseRealm) {
+        DateValueIterator(OsMap osMap, BaseRealm baseRealm) {
             super(osMap, baseRealm);
         }
 
@@ -463,7 +463,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     private static class Decimal128ValueIterator<K> extends EntrySetIterator<K, Decimal128> {
 
-        public Decimal128ValueIterator(OsMap osMap, BaseRealm baseRealm) {
+        Decimal128ValueIterator(OsMap osMap, BaseRealm baseRealm) {
             super(osMap, baseRealm);
         }
 
@@ -480,7 +480,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     private static class BinaryValueIterator<K> extends EntrySetIterator<K, byte[]> {
 
-        public BinaryValueIterator(OsMap osMap, BaseRealm baseRealm) {
+        BinaryValueIterator(OsMap osMap, BaseRealm baseRealm) {
             super(osMap, baseRealm);
         }
 
@@ -497,7 +497,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     private static class ObjectIdValueIterator<K> extends EntrySetIterator<K, ObjectId> {
 
-        public ObjectIdValueIterator(OsMap osMap, BaseRealm baseRealm) {
+        ObjectIdValueIterator(OsMap osMap, BaseRealm baseRealm) {
             super(osMap, baseRealm);
         }
 
@@ -514,7 +514,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     private static class UUIDValueIterator<K> extends EntrySetIterator<K, UUID> {
 
-        public UUIDValueIterator(OsMap osMap, BaseRealm baseRealm) {
+        UUIDValueIterator(OsMap osMap, BaseRealm baseRealm) {
             super(osMap, baseRealm);
         }
 
@@ -533,7 +533,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
         private final TypeSelectorForMap<K, V> typeSelectorForMap;
 
-        public RealmModelValueIterator(OsMap osMap,
+        RealmModelValueIterator(OsMap osMap,
                                        BaseRealm baseRealm,
                                        TypeSelectorForMap<K, V> typeSelectorForMap) {
             super(osMap, baseRealm);
@@ -556,7 +556,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
 
     private static class MixedValueIterator<K> extends EntrySetIterator<K, Mixed> {
 
-        public MixedValueIterator(OsMap osMap, BaseRealm baseRealm) {
+        MixedValueIterator(OsMap osMap, BaseRealm baseRealm) {
             super(osMap, baseRealm);
         }
 
@@ -582,7 +582,7 @@ abstract class EqualsHelper<K, V> {
         return false;
     }
 
-    abstract protected boolean compareInternal(@Nullable V value, @Nullable V otherValue);
+    protected abstract boolean compareInternal(@Nullable V value, @Nullable V otherValue);
 }
 
 class GenericEquals<K, V> extends EqualsHelper<K, V> {
