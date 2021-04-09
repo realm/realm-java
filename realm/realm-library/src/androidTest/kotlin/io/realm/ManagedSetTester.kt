@@ -765,7 +765,7 @@ fun managedSetFactory(): List<SetTester> {
             .plus(MixedType.values().map { mixedType ->
                 when (mixedType) {
                     MixedType.OBJECT -> RealmModelManagedSetTester<Mixed>(
-                            testerName = "LINK",
+                            testerName = "MIXED-${mixedType.name}",
                             setGetter = AllTypes::getColumnMixedSet,
                             setSetter = AllTypes::setColumnMixedSet,
                             managedSetGetter = SetContainerClass::myMixedSet,

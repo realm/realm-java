@@ -705,8 +705,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
             when {
                 forMixed -> {
-                    // Add Mixed logic
-                    emitStatement("OsSet osSet = proxyState.getRow\$realm().getMixedSet({fieldColKeyVariableReference(field)}})")
+                    emitStatement("OsSet osSet = proxyState.getRow\$realm().getMixedSet(${fieldColKeyVariableReference(field)})")
                 }
                 forRealmModel -> {
                     emitStatement("OsSet osSet = proxyState.getRow\$realm().getModelSet(%s)", fieldColKeyVariableReference(field))

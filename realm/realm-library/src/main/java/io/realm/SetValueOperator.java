@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
@@ -1093,15 +1094,19 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
     @Override
     boolean add(T value) {
         // Realm model sets cannot contain null values
+        RealmObjectProxy proxy = (RealmObjectProxy) getManagedObject(value);
+        Row row$realm = proxy.realmGet$proxyState().getRow$realm();
+        return osSet.addRow(row$realm.getObjectKey());
+    }
+
+    private T getManagedObject(T value) {
         if (value == null) {
             throw new NullPointerException("This set does not permit null values.");
         }
         // Check we can add this object into the Realm
         boolean copyObject = CollectionUtils.checkCanObjectBeCopied(baseRealm, value, valueClass.getName(), SET_TYPE);
         // Add value into set
-        RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, (RealmModel) value) : value);
-        Row row$realm = proxy.realmGet$proxyState().getRow$realm();
-        return osSet.addRow(row$realm.getObjectKey());
+        return (T) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, (RealmModel) value) : value);
     }
 
     /**
@@ -1157,11 +1162,12 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
     boolean addAllInternal(Collection<? extends T> collection) {
         // Collection has been type-checked from caller
         // Use add method as it contains all the necessary checks
-        boolean result = false;
-        for (T model : collection) {
-            result |= add(model);
+        List<T> managedRealmObjectCollection = new ArrayList<>(collection.size());
+        for (T item: collection){
+            managedRealmObjectCollection.add(getManagedObject(item));
         }
-        return result;
+        NativeMixedCollection mixedCollection = NativeMixedCollection.newRealmModelCollection(managedRealmObjectCollection);
+        return osSet.collectionFunnel(mixedCollection, OsSet.ExternalCollectionOperation.ADD_ALL);
     }
 
     @Override
@@ -1196,6 +1202,12 @@ class MixedSetOperator extends SetValueOperator<Mixed> {
 
     @Override
     boolean add(@Nullable Mixed value) {
+        value = getManagedMixed(value);
+        return osSet.addMixed(value.getNativePtr());
+    }
+
+    @NotNull
+    private Mixed getManagedMixed(@Nullable Mixed value) {
         if (value == null){
             value = Mixed.nullValue();
         } else if(value.getType() == MixedType.OBJECT) {
@@ -1204,8 +1216,7 @@ class MixedSetOperator extends SetValueOperator<Mixed> {
             RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, realmModel) : realmModel);
             value = Mixed.valueOf(proxy);
         }
-
-        return osSet.addMixed(value.getNativePtr());
+        return value;
     }
 
     @Override
@@ -1270,12 +1281,12 @@ class MixedSetOperator extends SetValueOperator<Mixed> {
     @Override
     boolean addAllInternal(Collection<? extends Mixed> collection) {
         // Collection has been type-checked from caller
-        // Use add method as it contains all the necessary checks
-        boolean result = false;
-        for (Mixed model : collection) {
-            result |= add(model);
+        List<Mixed> managedMixedCollection = new ArrayList<>(collection.size());
+        for (Mixed mixed: collection){
+            managedMixedCollection.add(getManagedMixed(mixed));
         }
-        return result;
+        NativeMixedCollection nativeMixedCollection = getNativeMixedCollection(managedMixedCollection);
+        return osSet.collectionFunnel(nativeMixedCollection, OsSet.ExternalCollectionOperation.ADD_ALL);
     }
 
     @Override
