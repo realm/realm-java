@@ -68,6 +68,7 @@ import io.realm.rule.RunTestInLooperThread;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -4152,8 +4153,14 @@ public class RealmQueryTests extends QueryTests {
         fillDictionaryTests();
         RealmResults<DictionaryAllTypes> results = realm.where(DictionaryAllTypes.class).containsKey(DictionaryAllTypes.FIELD_STRING_DICTIONARY, "hello world1").findAll();
         assertEquals(2, results.size());
-        assertEquals("Test1", results.get(0).getColumnStringDictionary().get("hello world1"));
-        assertEquals("Test2", results.get(1).getColumnStringDictionary().get("hello world2"));
+
+        // We can't assert on values since we don't know the order in which the results are delivered, so better to assert that the keys are contained in the results
+        DictionaryAllTypes results0 = results.get(0);
+        assertNotNull(results0);
+        assertTrue(results0.getColumnStringDictionary().containsKey("hello world1"));
+        DictionaryAllTypes results1 = results.get(1);
+        assertNotNull(results1);
+        assertTrue(results1.getColumnStringDictionary().containsKey("hello world1"));
     }
 
     @Test
