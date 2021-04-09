@@ -369,15 +369,13 @@ class ManagedSetTester<T : Any>(
         val set: RealmSet<T> = setGetter.call(allTypesObject)
 
         assertFalse(set.isEmpty())
-        set.forEach { value ->
-            var setContainsValue = false
-
-            testingSet.forEach { expected ->
-                if (equalsTo(expected, value))
-                    setContainsValue = true
+        set.forEach loop@{ value ->
+            testingSet.forEach{ expected ->
+                if (equalsTo(expected, value)){
+                    return@loop
+                }
             }
-
-            assertTrue(setContainsValue)
+            fail("Missing value")
         }
     }
 
@@ -851,6 +849,7 @@ fun managedSetFactory(): List<SetTester> {
                                     true
                                 } else if(expected != null && value != Mixed.nullValue()) {
                                     val expectedModel = expected.asRealmModel(DogPrimaryKey::class.java)
+                                    // Managed Mixed values are cannot be null but Mixed.nullValue()
                                     val valueModel = value!!.asRealmModel(DogPrimaryKey::class.java)
 
                                     expectedModel.id == valueModel.id
