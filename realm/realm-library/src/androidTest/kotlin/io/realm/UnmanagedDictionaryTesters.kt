@@ -210,10 +210,10 @@ class UnmanagedGenericTester<T : Any>(
         }
     }
 
-    override fun copyToRealm() = Unit                                   // Not applicable
-    override fun copyToRealmOrUpdate() = Unit                           // Not applicable
-    override fun copyFromRealm() = Unit                                 // Not applicable
-    override fun fieldAccessors() = Unit                                // Not applicable
+    override fun copyToRealm() = Unit                                       // Not applicable
+    override fun copyToRealmOrUpdate() = Unit                               // Not applicable
+    override fun copyFromRealm() = Unit                                     // Not applicable
+    override fun fieldAccessors(otherConfig: RealmConfiguration?) = Unit    // Not applicable
 
     override fun addMapChangeListener() {
         val dictionary = RealmDictionary<T>()

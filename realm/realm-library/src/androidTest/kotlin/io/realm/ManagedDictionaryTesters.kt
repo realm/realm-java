@@ -25,6 +25,7 @@ import io.realm.kotlin.where
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
+import java.lang.reflect.InvocationTargetException
 import java.util.*
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KFunction2
@@ -486,7 +487,7 @@ class ManagedDictionaryTester<T : Any>(
         }
     }
 
-    override fun fieldAccessors() {
+    override fun fieldAccessors(otherConfig: RealmConfiguration?) {
         realm.executeTransaction { transactionRealm ->
             val container = transactionRealm.createObject<PopulatedDictionaryClass>()
             val dictionary = populatedGetter.get(container)
@@ -494,6 +495,15 @@ class ManagedDictionaryTester<T : Any>(
             assertTrue(dictionary.isManaged)
             assertFalse(dictionary.isEmpty())
         }
+
+        assertNotNull(otherConfig)
+        typeAsserter.assertAccessorSetter(
+            realm,
+            dictionaryGetter,
+            dictionarySetter,
+            initializedDictionary,
+            otherConfig
+        )
     }
 
     override fun addMapChangeListener() {
@@ -949,6 +959,24 @@ open class TypeAsserter<T> {
     open fun assertEqualsHelper(realm: Realm, value: T?, valueFromRealm: T?) =
             assertEquals(value, valueFromRealm)
 
+    // RealmModel requires different testing here
+    open fun assertAccessorSetter(
+        realm: Realm,
+        dictionaryGetter: KFunction1<DictionaryAllTypes, RealmDictionary<T>>,
+        dictionarySetter: KFunction2<DictionaryAllTypes, RealmDictionary<T>, Unit>,
+        initializedDictionary: RealmDictionary<T>,
+        otherConfig: RealmConfiguration
+    ) {
+        realm.executeTransaction { transactionRealm ->
+            val anotherContainer = transactionRealm.createObject<DictionaryAllTypes>("PRIMARY_KEY")
+            dictionarySetter.call(anotherContainer, initializedDictionary)
+            val dictionary = dictionaryGetter.call(anotherContainer)
+            assertNotNull(dictionary)
+            assertTrue(dictionary.isManaged)
+            assertEquals(initializedDictionary.size, dictionary.size)
+        }
+    }
+
     fun assertChangeListenerUpdates(
             testerClass: String,
             operation: ChangeListenerOperation,
@@ -1120,6 +1148,54 @@ class RealmModelAsserter : TypeAsserter<DogPrimaryKey>() {
 
         assertNotNull(modelFromRealm)
         assertEquals(modelFromRealm, valueFromRealm)
+    }
+
+    override fun assertAccessorSetter(
+        realm: Realm,
+        dictionaryGetter: KFunction1<DictionaryAllTypes, RealmDictionary<DogPrimaryKey>>,
+        dictionarySetter: KFunction2<DictionaryAllTypes, RealmDictionary<DogPrimaryKey>, Unit>,
+        initializedDictionary: RealmDictionary<DogPrimaryKey>,
+        otherConfig: RealmConfiguration
+    ) {
+        realm.executeTransaction { transactionRealm ->
+            // Setter fails when calling with a dictionary that contains unmanaged objects
+            // The throwable is an IllegalArgumentException wrapped inside an InvocationTargetException
+            // due to calling 'call' on the KFunction2
+            val anotherContainer = transactionRealm.createObject<DictionaryAllTypes>("A_PK")
+            assertFailsWith<InvocationTargetException> {
+                dictionarySetter.call(anotherContainer, initializedDictionary)
+            }.let { e ->
+                assertTrue {
+                    e.targetException is IllegalArgumentException
+                }
+            }
+        }
+
+        // Setter fails when calling with a dictionary containing managed objects from another Realm
+        var otherRealmDictionary: RealmDictionary<DogPrimaryKey>? = null
+        val otherRealm = Realm.getInstance(otherConfig)
+        otherRealm.executeTransaction { transactionRealm ->
+            val otherRealmContainer = transactionRealm.createObject<DictionaryAllTypes>("ANOTHER_PK")
+            otherRealmDictionary = dictionaryGetter.call(otherRealmContainer)
+                .apply { this.putAll(initializedDictionary) }
+        }
+
+        realm.executeTransaction { transactionRealm ->
+            val anotherContainer = transactionRealm.createObject<DictionaryAllTypes>("YET_ANOTHER_PK")
+
+            // The throwable is an IllegalArgumentException wrapped inside an InvocationTargetException
+            // due to calling 'call' on the KFunction2
+            assertFailsWith<InvocationTargetException> {
+                dictionarySetter.call(anotherContainer, otherRealmDictionary)
+            }.let { e ->
+                assertTrue {
+                    e.targetException is IllegalArgumentException
+                }
+            }
+        }
+
+        // Remember to close the other Realm!
+        otherRealm.close()
     }
 }
 
