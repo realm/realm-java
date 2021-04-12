@@ -25,9 +25,12 @@ import java.util.UUID;
 import io.realm.Mixed;
 import io.realm.RealmDictionary;
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
 public class DictionaryAllTypes extends RealmObject {
+
+    public static final String FIELD_STRING_DICTIONARY = "columnStringDictionary";
 
     private RealmDictionary<DogPrimaryKey> columnRealmDictionary;
 

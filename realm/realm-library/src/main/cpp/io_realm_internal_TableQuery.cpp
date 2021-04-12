@@ -199,6 +199,20 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageFloat(J
 }
 
 // double Aggregates
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeSumMixed(JNIEnv *env, jobject,
+                                                                              jlong nativeQueryPtr, jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
+    ConstTableRef pTable = pQuery->get_table();
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Mixed)) {
+        return nullptr;
+    }
+    try {
+        Decimal128 decimal128 = pQuery->sum_mixed(ColKey(columnKey));
+        RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
+    }
+    CATCH_STD()
+    return nullptr;
+}
 
 JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeSumDouble(JNIEnv *env, jobject,
                                                                             jlong nativeQueryPtr, jlong columnKey) {
@@ -233,6 +247,23 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDouble(
     return nullptr;
 }
 
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumMixed(JNIEnv *env, jobject,
+                                                                               jlong nativeQueryPtr,
+                                                                               jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
+    ConstTableRef pTable = pQuery->get_table();
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Mixed)) {
+        return nullptr;
+    }
+    try {
+        ObjKey return_ndx;
+        Mixed result = pQuery->maximum_mixed(ColKey(columnKey), &return_ndx);
+        return JavaClassGlobalDef::new_mixed(env, bool(return_ndx) ? result : Mixed());
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
 JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDecimal128(JNIEnv *env, jobject,
                                                                                        jlong nativeQueryPtr,
                                                                                        jlong columnKey) {
@@ -258,9 +289,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeSumDecimal1
         return 0;
     }
     try {
-
-//        Decimal128 decimal128 = pQuery->sum_decimal128(ColKey(columnKey)); //FIXME waiting for Core to add sum_decimal into query.hpp
-        Decimal128 decimal128 = pQuery->get_table()->sum_decimal(ColKey(columnKey));
+        Decimal128 decimal128 = pQuery->sum_decimal128(ColKey(columnKey));
         RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
     }
     CATCH_STD()
@@ -281,6 +310,23 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(
         if (bool(return_ndx)) {
             return JavaClassGlobalDef::new_double(env, result);
         }
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumMixed(JNIEnv *env, jobject,
+                                                                               jlong nativeQueryPtr,
+                                                                               jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
+    ConstTableRef pTable = pQuery->get_table();
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Mixed)) {
+        return nullptr;
+    }
+    try {
+        ObjKey return_ndx;
+        const Mixed result = pQuery->minimum_mixed(ColKey(columnKey), &return_ndx);
+        return JavaClassGlobalDef::new_mixed(env, bool(return_ndx) ? result : Mixed());
     }
     CATCH_STD()
     return nullptr;
@@ -315,6 +361,22 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble(
     }
     CATCH_STD()
     return 0;
+}
+
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeAverageMixed(JNIEnv *env, jobject,
+                                                                                  jlong nativeQueryPtr,
+                                                                                  jlong columnKey) {
+    Query *pQuery = Q(nativeQueryPtr);
+    ConstTableRef pTable = pQuery->get_table();
+    if (!TYPE_VALID(env, pTable, columnKey, col_type_Mixed)) {
+        return nullptr;
+    }
+    try {
+        Decimal128 decimal128 = pQuery->average_mixed(ColKey(columnKey));
+        RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
+    }
+    CATCH_STD()
+    return nullptr;
 }
 
 JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeAverageDecimal128(JNIEnv *env, jobject,
@@ -406,7 +468,7 @@ void rawQuery(jlong j_query_ptr,
               const std::vector<Mixed> &args,
               jlong j_mapping_ptr,
               bool onlyOrder = false) {
-    auto& query = *reinterpret_cast<Query *>(j_query_ptr);
+    auto &query = *reinterpret_cast<Query *>(j_query_ptr);
 
     query_parser::KeyPathMapping mapping;
     if (j_mapping_ptr) {

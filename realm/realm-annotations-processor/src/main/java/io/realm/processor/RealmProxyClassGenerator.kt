@@ -607,12 +607,13 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         beginControlFlow("if (entryValue == null)")
                             emitStatement("osMap.put(entryKey, null)")
                         nextControlFlow("else")
-                            emitStatement("osMap.putMixed(entryKey, entryValue.getNativePtr())")
+                            emitStatement("osMap.putMixed(entryKey, ProxyUtils.copyToRealmIfNeeded(proxyState, entryValue).getNativePtr())")
                         endControlFlow()
                     } else if (forRealmModel) {
                         beginControlFlow("if (entryValue == null)")
                             emitStatement("osMap.put(entryKey, null)")
                         nextControlFlow("else")
+                            emitStatement("proxyState.checkValidObject(entryValue)")
                             emitStatement("osMap.putRow(entryKey, ((RealmObjectProxy) entryValue).realmGet\$proxyState().getRow\$realm().getObjectKey())")
                         endControlFlow()
                     } else {

@@ -19,6 +19,7 @@ package io.realm
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
+import java.lang.NullPointerException
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -119,7 +120,7 @@ class UnmanagedDictionaryTester<T : Any>(
         }
 
         // Cannot add a null key
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<NullPointerException> {
             realmDictionary[null] = keyValuePairs[0].second
         }
     }
@@ -209,10 +210,10 @@ class UnmanagedDictionaryTester<T : Any>(
         }
     }
 
-    override fun copyToRealm() = Unit                                   // Not applicable
-    override fun copyToRealmOrUpdate() = Unit                           // Not applicable
-    override fun copyFromRealm() = Unit                                 // Not applicable
-    override fun fieldAccessors() = Unit                                // Not applicable
+    override fun copyToRealm() = Unit                                       // Not applicable
+    override fun copyToRealmOrUpdate() = Unit                               // Not applicable
+    override fun copyFromRealm() = Unit                                     // Not applicable
+    override fun fieldAccessors(otherConfig: RealmConfiguration?) = Unit    // Not applicable
 
     override fun addMapChangeListener() {
         val dictionary = RealmDictionary<T>()

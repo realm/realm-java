@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.util.Log;
+
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +28,7 @@ import org.mockito.internal.util.collections.Sets;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -44,6 +47,7 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
+import io.realm.entities.DictionaryAllTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.IndexedFields;
 import io.realm.entities.NoPrimaryKeyNullTypes;
@@ -66,6 +70,7 @@ import io.realm.rule.RunTestInLooperThread;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -247,6 +252,10 @@ public class RealmQueryTests extends QueryTests {
 
         FIND_FIRST,
         FIND_FIRST_ASYNC,
+
+        CONTAINS_KEY,
+        CONTAINS_VALUE,
+        CONTAINS_ENTRY,
     }
 
     private static void callThreadConfinedMethod(RealmQuery<?> query, ThreadConfinedMethods method) {
@@ -357,6 +366,10 @@ public class RealmQueryTests extends QueryTests {
             case SORT_WITH_MANY_ORDERS: query.sort(new String[] {AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID}, new Sort[] {Sort.DESCENDING, Sort.DESCENDING}); break;
             case FIND_FIRST: query.findFirst(); break;
             case FIND_FIRST_ASYNC: query.findFirstAsync(); break;
+
+            case CONTAINS_KEY: query.containsKey(AllJavaTypes.FIELD_STRING, null); break;
+            case CONTAINS_VALUE: query.containsValue(AllJavaTypes.FIELD_STRING, (String) null); break;
+            case CONTAINS_ENTRY: query.containsEntry(AllJavaTypes.FIELD_STRING, new AbstractMap.SimpleImmutableEntry<>(null, null)); break;
 
             default:
                 throw new AssertionError("missing case for " + method);
@@ -2697,9 +2710,10 @@ public class RealmQueryTests extends QueryTests {
                     case OBJECT_ID_SET:
                     case UUID_SET:
                     case LINK_SET:
+                    case MIXED_SET:
                         // TODO: https://github.com/realm/realm-java/issues/7382
                         // TODO: https://github.com/realm/realm-java/issues/7383
-                        break;
+                        continue;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -2944,9 +2958,10 @@ public class RealmQueryTests extends QueryTests {
                     case OBJECT_ID_SET:
                     case UUID_SET:
                     case LINK_SET:
+                    case MIXED_SET:
                         // TODO: https://github.com/realm/realm-java/issues/7382
                         // TODO: https://github.com/realm/realm-java/issues/7383
-                        break;
+                        continue;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -3183,6 +3198,7 @@ public class RealmQueryTests extends QueryTests {
         types.remove(RealmFieldType.OBJECT_ID_SET);
         types.remove(RealmFieldType.UUID_SET);
         types.remove(RealmFieldType.LINK_SET);
+        types.remove(RealmFieldType.MIXED_SET);
 
 
         // Iterate all fields of AllTypes table and verify that distinct either:
@@ -3193,6 +3209,9 @@ public class RealmQueryTests extends QueryTests {
         for (String fieldName : fieldNames) {
             String field = prefix + fieldName;
             RealmFieldType type = schema.getFieldType(fieldName);
+
+            Log.e("---", "---> type: " + type.toString());
+
             if (supportDistinct(type)) {
                 // Actual query
                 RealmResults<AllTypes> distinct = realm.where(AllTypes.class)
@@ -3837,14 +3856,14 @@ public class RealmQueryTests extends QueryTests {
             realm.where(AllTypes.class).rawPredicate("columnRealmObject = $0", allTypes);
             fail();
         } catch (IllegalArgumentException e) {
-            assertTrue(e.getMessage().contains("Argument[0] is not a valid managed object."));
+            assertTrue("Real message: " + e.getMessage(), e.getMessage().contains("RealmObject is not a valid managed object."));
         }
 
         try {
             realm.where(AllTypes.class).rawPredicate("columnRealmObject = $0", new AllTypes());
             fail();
         } catch (IllegalArgumentException e) {
-            assertTrue(e.getMessage().contains("Argument[0] is not a valid managed object."));
+            assertTrue("Real message: " + e.getMessage(), e.getMessage().contains("RealmObject is not a valid managed object."));
         }
     }
 
@@ -4163,6 +4182,99 @@ public class RealmQueryTests extends QueryTests {
         } catch (RealmException e) {
             assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowQueriesOnUiThread"));
         }
+    }
+
+    private void fillDictionaryTests(){
+        realm.executeTransaction(transactionRealm -> {
+            DictionaryAllTypes allTypes1 = realm.createObject(DictionaryAllTypes.class);
+            allTypes1.getColumnStringDictionary().put("hello world1", "Test1");
+
+            DictionaryAllTypes allTypes2 = realm.createObject(DictionaryAllTypes.class);
+            allTypes2.getColumnStringDictionary().put("hello world1", "Test2");
+
+            DictionaryAllTypes allTypes3 = realm.createObject(DictionaryAllTypes.class);
+            allTypes3.getColumnStringDictionary().put("hello world2", "Test2");
+        });
+    }
+
+    @Test
+    public void dictionary_containsKey(){
+        fillDictionaryTests();
+        RealmResults<DictionaryAllTypes> results = realm.where(DictionaryAllTypes.class).containsKey(DictionaryAllTypes.FIELD_STRING_DICTIONARY, "hello world1").findAll();
+        assertEquals(2, results.size());
+
+        // We can't assert on values since we don't know the order in which the results are delivered, so better to assert that the keys are contained in the results
+        DictionaryAllTypes results0 = results.get(0);
+        assertNotNull(results0);
+        assertTrue(results0.getColumnStringDictionary().containsKey("hello world1"));
+        DictionaryAllTypes results1 = results.get(1);
+        assertNotNull(results1);
+        assertTrue(results1.getColumnStringDictionary().containsKey("hello world1"));
+    }
+
+    @Test
+    public void dictionary_doesntContainKey(){
+        fillDictionaryTests();
+        RealmResults<DictionaryAllTypes> results = realm.where(DictionaryAllTypes.class).containsKey(DictionaryAllTypes.FIELD_STRING_DICTIONARY, "Do I exist?").findAll();
+        assertEquals(0, results.size());
+    }
+
+    @Test
+    public void dictionary_containsKeyNonLatin(){
+        fillDictionaryTests();
+        RealmResults<DictionaryAllTypes> results = realm.where(DictionaryAllTypes.class).containsKey(DictionaryAllTypes.FIELD_STRING_DICTIONARY, "델타").findAll();
+        assertEquals(0, results.size());
+    }
+
+    @Test
+    public void dictionary_containsValue(){
+        fillDictionaryTests();
+        RealmResults<DictionaryAllTypes> results = realm.where(DictionaryAllTypes.class).containsValue(DictionaryAllTypes.FIELD_STRING_DICTIONARY, "Test2").findAll();
+        assertEquals(2, results.size());
+        assertEquals("Test2", results.get(0).getColumnStringDictionary().get("hello world1"));
+        assertEquals("Test2", results.get(1).getColumnStringDictionary().get("hello world2"));
+    }
+
+    @Test
+    public void dictionary_doesntContainsValue(){
+        fillDictionaryTests();
+        RealmResults<DictionaryAllTypes> results = realm.where(DictionaryAllTypes.class).containsValue(DictionaryAllTypes.FIELD_STRING_DICTIONARY, "who am I").findAll();
+        assertEquals(0, results.size());
+    }
+
+    @Test
+    public void dictionary_containsEntry(){
+        fillDictionaryTests();
+        RealmResults<DictionaryAllTypes> results = realm.where(DictionaryAllTypes.class).containsEntry(DictionaryAllTypes.FIELD_STRING_DICTIONARY, new AbstractMap.SimpleImmutableEntry<>("hello world1", "Test2")).findAll();
+        assertEquals(1, results.size());
+        assertEquals("Test2", results.first().getColumnStringDictionary().get("hello world1"));
+    }
+
+    @Test
+    public void dictionary_doesntContainsEntry(){
+        fillDictionaryTests();
+        RealmResults<DictionaryAllTypes> results = realm.where(DictionaryAllTypes.class).containsEntry(DictionaryAllTypes.FIELD_STRING_DICTIONARY, new AbstractMap.SimpleImmutableEntry<>("is this", "real")).findAll();
+        assertEquals(0, results.size());
+    }
+
+    @Test
+    public void dictionary_containsKeyNull(){
+        fillDictionaryTests();
+        RealmResults<DictionaryAllTypes> results = realm.where(DictionaryAllTypes.class).containsKey(DictionaryAllTypes.FIELD_STRING_DICTIONARY, null).findAll();
+        assertEquals(0, results.size());
+    }
+
+    @Test
+    public void dictionary_containsValueNull(){
+        fillDictionaryTests();
+        RealmResults<DictionaryAllTypes> results = realm.where(DictionaryAllTypes.class).containsValue(DictionaryAllTypes.FIELD_STRING_DICTIONARY, (Date) null).findAll();
+        assertEquals(0, results.size());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void dictionary_dictionary_containsEntryNull(){
+        fillDictionaryTests();
+        realm.where(DictionaryAllTypes.class).containsEntry(DictionaryAllTypes.FIELD_STRING_DICTIONARY, null);
     }
 
     // FIXME Maybe move to QueryDescriptor or maybe even to RealmFieldType?

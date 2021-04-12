@@ -18,6 +18,7 @@ package io.realm;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -54,9 +55,14 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
         this.typeSelectorForMap = typeSelectorForMap;
     }
 
+    protected abstract boolean containsKeyInternal(@Nullable Object key);
+
+    protected abstract void validateMap(Map<? extends K, ? extends V> map);
+
     protected abstract RealmMap<K, V> freezeInternal(Pair<BaseRealm, OsMap> frozenBaseRealmMap);
 
     protected abstract MapChangeSet<K> changeSetFactory(long nativeChangeSetPtr);
+
 
     @Override
     public abstract V put(K key, V value);
@@ -81,6 +87,10 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
 
     @Override
     public V remove(Object key) {
+        if (key == null) {
+            throw new NullPointerException("Null keys are not allowed.");
+        }
+
         //noinspection unchecked
         V removedValue = mapValueOperator.get((K) key);
         mapValueOperator.remove(key);
@@ -98,8 +108,8 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
     }
 
     @Override
-    public boolean containsKey(Object key) {
-        return mapValueOperator.containsKey(key);
+    public boolean containsKey(@Nullable Object key) {
+        return containsKeyInternal(key);
     }
 
     @Override
@@ -109,8 +119,8 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
 
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {
-        //noinspection unchecked
-        mapValueOperator.putAll((Map<K, V>) m);
+        validateMap(m);
+        mapValueOperator.putAll(m);
     }
 
     @Override
@@ -177,6 +187,10 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
         return !mapObserverPairs.isEmpty();
     }
 
+    protected boolean isNotNullItemTypeValid(@Nullable Object item, Class<?> clazz) {
+        return item == null || item.getClass() == clazz;
+    }
+
     OsMap getOsMap() {
         return mapValueOperator.osMap;
     }
@@ -211,20 +225,61 @@ class DictionaryManager<V> extends ManagedMapManager<String, V> {
     }
 
     @Override
+    public boolean containsKeyInternal(Object key) {
+        if (key == null) {
+            throw new NullPointerException("Null keys are not allowed when calling 'containsKey'.");
+        }
+        if (!isNotNullItemTypeValid(key, String.class)) {
+            throw new ClassCastException("Only String keys can be used with 'containsKey'.");
+        }
+        return mapValueOperator.containsKey(key);
+    }
+
+    @Override
+    protected void validateMap(Map<? extends String, ? extends V> map) {
+        for (Map.Entry<? extends String, ? extends V> entry : map.entrySet()) {
+            String key = entry.getKey();
+            if (key == null) {
+                throw new NullPointerException("Null keys are not allowed.");
+            }
+        }
+    }
+
+    @Override
     protected RealmDictionary<V> freezeInternal(Pair<BaseRealm, OsMap> frozenBaseRealmMap) {
         BaseRealm frozenBaseRealm = frozenBaseRealmMap.first;
-        OsMap osMap = frozenBaseRealmMap.second;
         return typeSelectorForMap.freeze(frozenBaseRealm);
     }
 
     @Override
     public V get(Object key) {
+        if (key == null) {
+            throw new NullPointerException("Null keys are not allowed when calling 'get'.");
+        }
+        if (!isNotNullItemTypeValid(key, String.class)) {
+            throw new ClassCastException("Only String keys can be used with 'containsKey'.");
+        }
+
         return mapValueOperator.get((String) key);
     }
 
     @Override
     public V put(String key, V value) {
-        return mapValueOperator.put(key, value);
+        if (key == null) {
+            throw new NullPointerException("Null keys are not allowed.");
+        }
+        try {
+            return mapValueOperator.put(key, value);
+        } catch (IllegalStateException e) {
+            // If the exception caught here is caused by adding null to a dictionary marked as
+            // "@Required" we have to convert it to NullPointerException as per the Java Map
+            // interface
+            if (Objects.requireNonNull(e.getMessage()).contains("Data type mismatch")) {
+                throw new NullPointerException("Cannot insert null values in a dictionary marked with '@Required'.");
+            } else {
+                throw e;
+            }
+        }
     }
 
     @Override
@@ -247,15 +302,18 @@ class DictionaryManager<V> extends ManagedMapManager<String, V> {
  */
 abstract class MapValueOperator<K, V> {
 
+    protected final Class<V> valueClass;
     protected final BaseRealm baseRealm;
     protected final OsMap osMap;
     protected final TypeSelectorForMap<K, V> typeSelectorForMap;
     protected final RealmMapEntrySet.IteratorType iteratorType;
 
-    MapValueOperator(BaseRealm baseRealm,
+    MapValueOperator(Class<V> valueClass,
+                     BaseRealm baseRealm,
                      OsMap osMap,
                      TypeSelectorForMap<K, V> typeSelectorForMap,
                      RealmMapEntrySet.IteratorType iteratorType) {
+        this.valueClass = valueClass;
         this.baseRealm = baseRealm;
         this.osMap = osMap;
         this.typeSelectorForMap = typeSelectorForMap;
@@ -270,7 +328,7 @@ abstract class MapValueOperator<K, V> {
 
     public abstract Set<Map.Entry<K, V>> entrySet();
 
-    public abstract boolean containsValue(@Nullable Object value);
+    public abstract boolean containsValueInternal(@Nullable Object value);
 
     public void remove(Object key) {
         osMap.remove(key);
@@ -288,6 +346,14 @@ abstract class MapValueOperator<K, V> {
         return osMap.containsKey(key);
     }
 
+    public boolean containsValue(@Nullable Object value) {
+        if (value != null && value.getClass() != valueClass) {
+            throw new ClassCastException("Only '" + valueClass.getSimpleName() +
+                    "'  values can be used with 'containsValue'.");
+        }
+        return containsValueInternal(value);
+    }
+
     public boolean isValid() {
         if (baseRealm.isClosed()) {
             return false;
@@ -303,10 +369,10 @@ abstract class MapValueOperator<K, V> {
         osMap.clear();
     }
 
-    public void putAll(Map<K, V> map) {
+    public void putAll(Map<? extends K, ? extends V> map) {
         // TODO: inefficient, pass array of keys and array of values to JNI instead,
         //  which requires operators to implement it as it varies from type to type
-        for (Map.Entry<K, V> entry : map.entrySet()) {
+        for (Map.Entry<? extends K, ? extends V> entry : map.entrySet()) {
             put(entry.getKey(), entry.getValue());
         }
     }
@@ -341,7 +407,7 @@ class MixedValueOperator<K> extends MapValueOperator<K, Mixed> {
     MixedValueOperator(BaseRealm baseRealm,
                        OsMap osMap,
                        TypeSelectorForMap<K, Mixed> typeSelectorForMap) {
-        super(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.MIXED);
+        super(Mixed.class, baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.MIXED);
     }
 
     @Nullable
@@ -374,7 +440,7 @@ class MixedValueOperator<K> extends MapValueOperator<K, Mixed> {
     }
 
     @Override
-    public boolean containsValue(@Nullable Object value) {
+    public boolean containsValueInternal(@Nullable Object value) {
         // Mixed dictionaries store null values as Mixed.nullValue()
         if (value == null) {
             return false;
@@ -393,19 +459,21 @@ class GenericPrimitiveValueOperator<K, V> extends MapValueOperator<K, V> {
 
     private final EqualsHelper<K, V> equalsHelper;
 
-    GenericPrimitiveValueOperator(BaseRealm baseRealm,
+    GenericPrimitiveValueOperator(Class<V> valueClass,
+                                  BaseRealm baseRealm,
                                   OsMap osMap,
                                   TypeSelectorForMap<K, V> typeSelectorForMap,
                                   RealmMapEntrySet.IteratorType iteratorType) {
-        this(baseRealm, osMap, typeSelectorForMap, iteratorType, new GenericEquals<>());
+        this(valueClass, baseRealm, osMap, typeSelectorForMap, iteratorType, new GenericEquals<>());
     }
 
-    GenericPrimitiveValueOperator(BaseRealm baseRealm,
+    GenericPrimitiveValueOperator(Class<V> valueClass,
+                                  BaseRealm baseRealm,
                                   OsMap osMap,
                                   TypeSelectorForMap<K, V> typeSelectorForMap,
                                   RealmMapEntrySet.IteratorType iteratorType,
                                   EqualsHelper<K, V> equalsHelper) {
-        super(baseRealm, osMap, typeSelectorForMap, iteratorType);
+        super(valueClass, baseRealm, osMap, typeSelectorForMap, iteratorType);
         this.equalsHelper = equalsHelper;
     }
 
@@ -433,7 +501,7 @@ class GenericPrimitiveValueOperator<K, V> extends MapValueOperator<K, V> {
     }
 
     @Override
-    public boolean containsValue(@Nullable Object value) {
+    public boolean containsValueInternal(@Nullable Object value) {
         return osMap.containsPrimitiveValue(value);
     }
 
@@ -462,7 +530,7 @@ class IntegerValueOperator<K> extends GenericPrimitiveValueOperator<K, Integer> 
     IntegerValueOperator(BaseRealm baseRealm,
                          OsMap osMap,
                          TypeSelectorForMap<K, Integer> typeSelectorForMap) {
-        super(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.INTEGER);
+        super(Integer.class, baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.INTEGER);
     }
 
     @Override
@@ -481,7 +549,7 @@ class ShortValueOperator<K> extends GenericPrimitiveValueOperator<K, Short> {
     ShortValueOperator(BaseRealm baseRealm,
                        OsMap osMap,
                        TypeSelectorForMap<K, Short> typeSelectorForMap) {
-        super(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.SHORT);
+        super(Short.class, baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.SHORT);
     }
 
     @Override
@@ -500,7 +568,7 @@ class ByteValueOperator<K> extends GenericPrimitiveValueOperator<K, Byte> {
     ByteValueOperator(BaseRealm baseRealm,
                       OsMap osMap,
                       TypeSelectorForMap<K, Byte> typeSelectorForMap) {
-        super(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.BYTE);
+        super(Byte.class, baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.BYTE);
     }
 
     @Override
@@ -517,7 +585,8 @@ class RealmModelValueOperator<K, V> extends MapValueOperator<K, V> {
     RealmModelValueOperator(BaseRealm baseRealm,
                             OsMap osMap,
                             TypeSelectorForMap<K, V> typeSelectorForMap) {
-        super(baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.OBJECT);
+        //noinspection unchecked
+        super((Class<V>) RealmModel.class, baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.OBJECT);
     }
 
     @Nullable
@@ -543,7 +612,7 @@ class RealmModelValueOperator<K, V> extends MapValueOperator<K, V> {
     }
 
     @Override
-    public boolean containsValue(@Nullable Object value) {
+    public boolean containsValueInternal(@Nullable Object value) {
         if (value == null) {
             return osMap.containsPrimitiveValue(null);
         } else if (value instanceof RealmObjectProxy) {
@@ -552,6 +621,14 @@ class RealmModelValueOperator<K, V> extends MapValueOperator<K, V> {
             return osMap.containsRealmModel(row$realm.getObjectKey(), tablePtr);
         }
         throw new IllegalArgumentException("Only managed models can be contained in this dictionary.");
+    }
+
+    @Override
+    public boolean containsValue(@Nullable Object value) {
+        if (value != null && !RealmModel.class.isAssignableFrom(value.getClass())) {
+            throw new ClassCastException("Only RealmModel values can be used with 'containsValue'.");
+        }
+        return containsValueInternal(value);
     }
 }
 

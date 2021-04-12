@@ -186,7 +186,7 @@ class ParameterizedDictionaryTests(
 
     @Test
     fun fieldAccessors() {
-        tester.fieldAccessors()
+        tester.fieldAccessors(configFactory.createConfiguration("alternativeRealm"))
     }
 
     @Test
