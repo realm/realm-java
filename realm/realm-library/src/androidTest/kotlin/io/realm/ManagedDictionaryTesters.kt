@@ -648,38 +648,16 @@ class ManagedDictionaryTester<T : Any>(
             realm: Realm = this.realm,
             id: String? = null
     ): RealmDictionary<T> {
-//<<<<<<< HEAD
         val allTypesObject = createCollectionAllTypesManagedContainerAndAssert(realm, id)
-//=======
-//        val allTypesObject = createAllTypesManagedContainerAndAssert(realm, id)
-//>>>>>>> el/dict-datatype-story
         assertNotNull(allTypesObject)
         return dictionaryGetter.call(allTypesObject)
     }
-
-//    private fun createAllTypesManagedContainerAndAssert(
-//            realm: Realm,
-//            id: String? = null
-//    ): DictionaryAllTypes {
-//        realm.executeTransaction { transactionRealm ->
-//            transactionRealm.createObject<DictionaryAllTypes>(id)
-//        }
-//        val allTypesObject = realm.where<DictionaryAllTypes>()
-//                .equalTo("id", id)
-//                .findFirst()
-//        assertNotNull(allTypesObject)
-//        return allTypesObject
-//    }
 
     private fun putInternal(
             initialized: RealmDictionary<T>,
             alternative: RealmDictionary<T>
     ) {
-//<<<<<<< HEAD
         val dictionary = initAndAssert(id = "internal")
-//=======
-//        val dictionary = initAndAssert(id = "anotherDictionary")
-//>>>>>>> el/dict-datatype-story
 
         realm.executeTransaction {
             // Check we get null since previous values are not present
