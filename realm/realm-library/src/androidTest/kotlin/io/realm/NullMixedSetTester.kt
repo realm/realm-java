@@ -27,8 +27,8 @@ import kotlin.test.*
  * can exist in a RealmSet.
  */
 class NullMixedSetTester(
-        private val testerName: String,
-        private val setGetter: KFunction1<AllTypes, RealmSet<Mixed>>
+    private val testerName: String,
+    private val setGetter: KFunction1<AllTypes, RealmSet<Mixed>>
 ) : SetTester {
     private lateinit var config: RealmConfiguration
     private lateinit var looperThread: BlockingLooperThread
@@ -218,6 +218,12 @@ class NullMixedSetTester(
     override fun freeze() = Unit // Not tested
 
     override fun setters() = Unit // Not tested
+
+    override fun addRealmChangeListener() = Unit
+
+    override fun addSetChangeListener() = Unit
+
+    override fun hasListeners() = Unit
 
     //----------------------------------
     // Private stuff

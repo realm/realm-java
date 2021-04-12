@@ -154,7 +154,7 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
     }
 
     public void addChangeListener(RealmMap<K, V> realmMap, MapChangeListener<K, V> listener) {
-        checkForAddRemoveListener(listener, true);
+        CollectionUtils.checkForAddRemoveListener(baseRealm, listener, true);
         if (mapObserverPairs.isEmpty()) {
             mapValueOperator.startListening(this);
         }
@@ -178,7 +178,7 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
     }
 
     public void removeAllChangeListeners() {
-        checkForAddRemoveListener(null, false);
+        CollectionUtils.checkForAddRemoveListener(baseRealm, null, false);
         mapObserverPairs.clear();
         mapValueOperator.stopListening();
     }
@@ -193,14 +193,6 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
 
     OsMap getOsMap() {
         return mapValueOperator.osMap;
-    }
-
-    private void checkForAddRemoveListener(@Nullable Object listener, boolean checkListener) {
-        if (checkListener && listener == null) {
-            throw new IllegalArgumentException("Listener should not be null");
-        }
-        baseRealm.checkIfValid();
-        baseRealm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
     }
 }
 

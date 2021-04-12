@@ -173,8 +173,15 @@ class UnmanagedSetTester<T : Any>(
         }
     }
 
-    // Not a valid test on unmanaged sets
-    override fun setters() = Unit
+    override fun setters() = Unit                       // Not a valid test on unmanaged sets
+
+    override fun addRealmChangeListener() = Unit        // Not a valid test on unmanaged sets
+
+    override fun addSetChangeListener() = Unit          // Not a valid test on unmanaged sets
+
+    override fun hasListeners() {
+        assertFalse(RealmSet<T>().hasListeners())
+    }
 }
 
 fun unmanagedSetFactory(): List<SetTester> {

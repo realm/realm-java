@@ -1006,14 +1006,6 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         }
     }
 
-    private void checkForAddRemoveListener(@Nullable Object listener, boolean checkListener) {
-        if (checkListener && listener == null) {
-            throw new IllegalArgumentException("Listener should not be null");
-        }
-        baseRealm.checkIfValid();
-        baseRealm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
-    }
-
     /**
      * Adds a change listener to this {@link RealmList}.
      * <p>
@@ -1048,7 +1040,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * {@link android.app.IntentService} thread.
      */
     public void addChangeListener(OrderedRealmCollectionChangeListener<RealmList<E>> listener) {
-        checkForAddRemoveListener(listener, true);
+        CollectionUtils.checkForAddRemoveListener(baseRealm, listener, true);
         osListOperator.getOsList().addListener(this, listener);
     }
 
@@ -1061,7 +1053,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @see io.realm.RealmChangeListener
      */
     public void removeChangeListener(OrderedRealmCollectionChangeListener<RealmList<E>> listener) {
-        checkForAddRemoveListener(listener, true);
+        CollectionUtils.checkForAddRemoveListener(baseRealm, listener, true);
         osListOperator.getOsList().removeListener(this, listener);
     }
 
@@ -1099,7 +1091,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * {@link android.app.IntentService} thread.
      */
     public void addChangeListener(RealmChangeListener<RealmList<E>> listener) {
-        checkForAddRemoveListener(listener, true);
+        CollectionUtils.checkForAddRemoveListener(baseRealm, listener, true);
         osListOperator.getOsList().addListener(this, listener);
     }
 
@@ -1112,7 +1104,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @see io.realm.RealmChangeListener
      */
     public void removeChangeListener(RealmChangeListener<RealmList<E>> listener) {
-        checkForAddRemoveListener(listener, true);
+        CollectionUtils.checkForAddRemoveListener(baseRealm, listener, true);
         osListOperator.getOsList().removeListener(this, listener);
     }
 
@@ -1123,7 +1115,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @see io.realm.RealmChangeListener
      */
     public void removeAllChangeListeners() {
-        checkForAddRemoveListener(null, false);
+        CollectionUtils.checkForAddRemoveListener(baseRealm, null, false);
         osListOperator.getOsList().removeAllListeners();
     }
 

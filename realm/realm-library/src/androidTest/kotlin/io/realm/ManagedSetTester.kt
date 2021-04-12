@@ -643,12 +643,121 @@ class ManagedSetTester<T : Any>(
         }
     }
 
+    override fun addRealmChangeListener() {
+        looperThread.runBlocking {
+            val looperThreadRealm = Realm.getInstance(config)
+
+            // Get set
+            val set = initAndAssertEmptySet(looperThreadRealm)
+
+            // Define operation we perform on the dictionary
+            var operation = ChangeListenerOperation.UNDEFINED
+
+            set.addChangeListener { newSet ->
+                when (operation) {
+                    ChangeListenerOperation.INSERT -> {
+                        assertEquals(initializedSet.size, newSet.size)
+                    }
+                    ChangeListenerOperation.DELETE -> {
+                        assertTrue(newSet.isEmpty())
+                        looperThreadRealm.close()
+                        looperThread.testComplete()
+                    }
+                    else -> Unit
+                }
+            }
+
+            // Insert objects in set
+            looperThreadRealm.executeTransaction {
+                operation = ChangeListenerOperation.INSERT
+                set.addAll(initializedSet)
+            }
+
+            // Clear set
+            looperThreadRealm.executeTransaction {
+                operation = ChangeListenerOperation.DELETE
+                set.clear()
+            }
+        }
+    }
+
+    override fun addSetChangeListener() {
+        looperThread.runBlocking {
+            val looperThreadRealm = Realm.getInstance(config)
+
+            // Get set
+            val set = initAndAssertEmptySet(looperThreadRealm)
+
+            // Define operation we perform on the dictionary
+            var operation = ChangeListenerOperation.UNDEFINED
+
+            set.addChangeListener { newSet, changes ->
+                when (operation) {
+                    ChangeListenerOperation.INSERT -> {
+                        assertEquals(initializedSet.size, newSet.size)
+                        assertEquals(initializedSet.size, changes.numberOfInsertions)
+                    }
+                    ChangeListenerOperation.DELETE -> {
+                        assertTrue(newSet.isEmpty())
+                        assertEquals(initializedSet.size, changes.numberOfDeletions)
+                        looperThreadRealm.close()
+                        looperThread.testComplete()
+                    }
+                    else -> Unit
+                }
+            }
+
+            // Insert objects in set
+            looperThreadRealm.executeTransaction {
+                operation = ChangeListenerOperation.INSERT
+                set.addAll(initializedSet)
+            }
+
+            // Clear set
+            looperThreadRealm.executeTransaction {
+                operation = ChangeListenerOperation.DELETE
+                set.clear()
+            }
+        }
+    }
+
+    override fun hasListeners() {
+        looperThread.runBlocking {
+            val looperThreadRealm = Realm.getInstance(config)
+
+            // Check for RealmChangeListener
+            val set = initAndAssertEmptySet(looperThreadRealm)
+            assertFalse(set.hasListeners())
+
+            set.addChangeListener { _ -> /* no-op */ }
+
+            assertTrue(set.hasListeners())
+
+            // Check for MapChangeListener
+            val anotherSet = initAndAssertEmptySet(looperThreadRealm, "anotherId")
+            assertFalse(anotherSet.hasListeners())
+
+            anotherSet.addChangeListener { _ -> /* no-op */ }
+
+            assertTrue(anotherSet.hasListeners())
+
+            // Housekeeping and bye-bye
+            set.removeAllChangeListeners()
+            anotherSet.removeAllChangeListeners()
+            looperThreadRealm.close()
+            looperThread.testComplete()
+        }
+    }
+
     //----------------------------------
     // Private stuff
     //----------------------------------
 
-    private fun initAndAssertEmptySet(realm: Realm = this.realm): RealmSet<T> {
-        val allTypesObject = createAllTypesManagedContainerAndAssert(realm)
+    private fun initAndAssertEmptySet(
+        realm: Realm = this.realm,
+        id: String? = null
+    ): RealmSet<T> {
+        val allTypesObject = createAllTypesManagedContainerAndAssert(realm, id)
         assertNotNull(allTypesObject)
         val set = setGetter.call(allTypesObject)
         assertTrue(set.isEmpty())

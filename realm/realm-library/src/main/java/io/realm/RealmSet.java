@@ -31,6 +31,7 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.Freezable;
 import io.realm.internal.ManageableObject;
+import io.realm.internal.ObservableMap;
 import io.realm.internal.OsSet;
 
 /**
@@ -213,6 +214,64 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
     }
 
     // ------------------------------------------
+    // RealmSet API
+    // ------------------------------------------
+
+    /**
+     * TODO
+     *
+     * @param listener the listener to be notified.
+     * @throws IllegalArgumentException if the change listener is {@code null}.
+     * @throws IllegalStateException    if you try to add a listener from a non-Looper or
+     *                                  {@link android.app.IntentService} thread.
+     */
+    public void addChangeListener(RealmChangeListener<RealmSet<E>> listener) {
+        setStrategy.addChangeListener(this, listener);
+    }
+
+    /**
+     * TODO
+     *
+     * @param listener the listener to be notified.
+     * @throws IllegalArgumentException if the change listener is {@code null}.
+     * @throws IllegalStateException    if you try to add a listener from a non-Looper or
+     *                                  {@link android.app.IntentService} thread.
+     */
+    public void addChangeListener(SetChangeListener<E> listener) {
+        setStrategy.addChangeListener(this, listener);
+    }
+
+    /**
+     * Removes the specified change listener.
+     *
+     * @param listener the change listener to be removed.
+     * @throws IllegalArgumentException if the change listener is {@code null}.
+     * @throws IllegalStateException    if you try to remove a listener from a non-Looper Thread.
+     */
+    public void removeChangeListener(SetChangeListener<E> listener) {
+        setStrategy.removeChangeListener(this, listener);
+    }
+
+    /**
+     * Removes all user-defined change listeners.
+     *
+     * @throws IllegalStateException if you try to remove listeners from a non-Looper Thread.
+     * @see io.realm.RealmChangeListener
+     */
+    public void removeAllChangeListeners() {
+        setStrategy.removeAllChangeListeners();
+    }
+
+    /**
+     * Indicates whether a set has any listeners attached to it.
+     *
+     * @return {@code true} if any listeners have been added, {@code false} otherwise.
+     */
+    public boolean hasListeners() {
+        return setStrategy.hasListeners();
+    }
+
+    // ------------------------------------------
     // Private stuff
     // ------------------------------------------
 
@@ -268,6 +327,16 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
      */
     private abstract static class SetStrategy<E> implements Set<E>, ManageableObject, Freezable<RealmSet<E>> {
         abstract OsSet getOsSet();
+
+        abstract void addChangeListener(RealmSet<E> set, RealmChangeListener<RealmSet<E>> listener);
+
+        abstract void addChangeListener(RealmSet<E> set, SetChangeListener<E> listener);
+
+        abstract void removeChangeListener(RealmSet<E> set, SetChangeListener<E> listener);
+
+        abstract void removeAllChangeListeners();
+
+        abstract boolean hasListeners();
     }
 
     /**
@@ -432,6 +501,35 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
         }
 
         // ------------------------------------------
+        // RealmSet API
+        // ------------------------------------------
+
+        @Override
+        void addChangeListener(RealmSet<E> set, RealmChangeListener<RealmSet<E>> listener) {
+            setValueOperator.addChangeListener(set, listener);
+        }
+
+        @Override
+        void addChangeListener(RealmSet<E> set, SetChangeListener<E> listener) {
+            setValueOperator.addChangeListener(set, listener);
+        }
+
+        @Override
+        void removeChangeListener(RealmSet<E> set, SetChangeListener<E> listener) {
+            setValueOperator.removeChangeListener(set, listener);
+        }
+
+        @Override
+        void removeAllChangeListeners() {
+            setValueOperator.removeAllChangeListeners();
+        }
+
+        @Override
+        boolean hasListeners() {
+            return setValueOperator.hasListeners();
+        }
+
+        // ------------------------------------------
         // Private stuff
         // ------------------------------------------
 
@@ -567,6 +665,35 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
         @Override
         OsSet getOsSet() {
             throw new UnsupportedOperationException("Unmanaged RealmSets do not have a representation in native code.");
+        }
+
+        // ------------------------------------------
+        // RealmSet API
+        // ------------------------------------------
+
+        @Override
+        void addChangeListener(RealmSet<E> set, RealmChangeListener<RealmSet<E>> listener) {
+            throw new UnsupportedOperationException("Unmanaged RealmSets do not support change listeners.");
+        }
+
+        @Override
+        void addChangeListener(RealmSet<E> set, SetChangeListener<E> listener) {
+            throw new UnsupportedOperationException("Unmanaged RealmSets do not support change listeners.");
+        }
+
+        @Override
+        void removeChangeListener(RealmSet<E> set, SetChangeListener<E> listener) {
+            throw new UnsupportedOperationException("Cannot remove change listener because unmanaged RealmSets do not support change listeners.");
+        }
+
+        @Override
+        void removeAllChangeListeners() {
+            throw new UnsupportedOperationException("Cannot remove change listeners because unmanaged RealmSets do not support change listeners.");
+        }
+
+        @Override
+        boolean hasListeners() {
+            return false;
         }
     }
 }

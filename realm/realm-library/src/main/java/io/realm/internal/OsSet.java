@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import io.realm.SetChangeSet;
 import io.realm.internal.core.NativeMixedCollection;
 
 public class OsSet implements NativeObject {
@@ -35,6 +36,8 @@ public class OsSet implements NativeObject {
         RETAIN_ALL
     }
 
+    public static final int NOT_FOUND = -1;             // This means something was not found in OS
+
     private static final int VALUE_NOT_FOUND = 0;       // comes from a native boolean
     private static final int VALUE_FOUND = 1;           // comes from a native boolean
 
@@ -43,21 +46,44 @@ public class OsSet implements NativeObject {
     private final long nativePtr;
     private final NativeContext context;
     private final OsSharedRealm osSharedRealm;
+    private final Table targetTable;                // TODO: not sure this is needed
 
     public OsSet(UncheckedRow row, long columnKey) {
         this.osSharedRealm = row.getTable().getSharedRealm();
-        this.nativePtr = nativeCreate(osSharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
+        long[] pointers = nativeCreate(osSharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
+        this.nativePtr = pointers[0];
+        if (pointers[1] != NOT_FOUND) {
+            this.targetTable = new Table(osSharedRealm, pointers[1]);
+        } else {
+            this.targetTable = null;
+        }
         this.context = osSharedRealm.context;
         context.addReference(this);
     }
 
     // Used to freeze sets
-    private OsSet(OsSharedRealm osSharedRealm, long nativePtr) {
+    private OsSet(OsSharedRealm osSharedRealm, long nativePtr, Table targetTable) {
         this.osSharedRealm = osSharedRealm;
         this.nativePtr = nativePtr;
+        this.targetTable = targetTable;
         this.context = osSharedRealm.context;
         context.addReference(this);
     }
+
+//    public OsSet(UncheckedRow row, long columnKey) {
+//        this.osSharedRealm = row.getTable().getSharedRealm();
+//        this.nativePtr = nativeCreate(osSharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
+//        this.context = osSharedRealm.context;
+//        context.addReference(this);
+//    }
+//
+//    // Used to freeze sets
+//    private OsSet(OsSharedRealm osSharedRealm, long nativePtr) {
+//        this.osSharedRealm = osSharedRealm;
+//        this.nativePtr = nativePtr;
+//        this.context = osSharedRealm.context;
+//        context.addReference(this);
+//    }
 
     @Override
     public long getNativePtr() {
@@ -559,7 +585,30 @@ public class OsSet implements NativeObject {
 
     public OsSet freeze(OsSharedRealm frozenSharedRealm) {
         long frozenNativePtr = nativeFreeze(this.nativePtr, frozenSharedRealm.getNativePtr());
-        return new OsSet(frozenSharedRealm, frozenNativePtr);
+        return new OsSet(frozenSharedRealm, frozenNativePtr, targetTable);
+    }
+
+    // ----------------------------------------------------
+    // Change listeners
+    // ----------------------------------------------------
+
+    public void startListening(ObservableSet observableSet) {
+        nativeStartListening(nativePtr, observableSet);
+    }
+
+    public void stopListening() {
+        nativeStopListening(nativePtr);
+    }
+
+    public <T> void notifyChangeListeners(long nativeChangeSetPtr,
+                                          ObserverPairList<ObservableSet.SetObserverPair<T>> setObserverPairs) {
+        OsCollectionChangeSet collectionChangeSet = new OsCollectionChangeSet(nativeChangeSetPtr, false);
+        SetChangeSet setChangeSet = new SetChangeSet(collectionChangeSet);
+        if (setChangeSet.isEmpty()) {
+            // First time "query" returns. Do nothing.
+            return;
+        }
+        setObserverPairs.foreach(new ObservableSet.Callback<>(setChangeSet));
     }
 
     // ----------------------------------------------------
@@ -583,7 +632,7 @@ public class OsSet implements NativeObject {
 
     private static native long nativeGetFinalizerPtr();
 
-    private static native long nativeCreate(long sharedRealmPtr, long nativeRowPtr, long columnKey);
+    private static native long[] nativeCreate(long sharedRealmPtr, long nativeRowPtr, long columnKey);
 
     private static native boolean nativeIsValid(long nativePtr);
 
@@ -692,4 +741,8 @@ public class OsSet implements NativeObject {
     private static native void nativeClear(long nativePtr);
 
     private static native long nativeFreeze(long nativePtr, long frozenRealmPtr);
+
+    private static native void nativeStartListening(long nativePtr, ObservableSet observableSet);
+
+    private static native void nativeStopListening(long nativePtr);
 }

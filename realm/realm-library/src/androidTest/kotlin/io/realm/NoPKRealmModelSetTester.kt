@@ -302,6 +302,12 @@ class NoPKRealmModelSetTester<T : RealmModel>(
 
     override fun setters() = Unit // Not tested
 
+    override fun addRealmChangeListener() = Unit
+
+    override fun addSetChangeListener() = Unit
+
+    override fun hasListeners() = Unit
+
     //----------------------------------
     // Private stuff
     //----------------------------------

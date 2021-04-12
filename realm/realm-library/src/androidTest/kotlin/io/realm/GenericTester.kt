@@ -39,8 +39,8 @@ interface GenericTester {
  *  container instead of "DictionaryAllTypes".
  */
 fun createCollectionAllTypesManagedContainerAndAssert(
-        realm: Realm,
-        id: String? = null
+    realm: Realm,
+    id: String? = null
 ): DictionaryAllTypes {
     var dictionaryAllTypesObject: DictionaryAllTypes? = null
     realm.executeTransaction { transactionRealm ->
@@ -66,22 +66,20 @@ fun createCollectionAllTypesManagedContainerAndAssert(
  *  method once sets are done.
  */
 fun createAllTypesManagedContainerAndAssert(
-        realm: Realm,
-        id: String? = null,
-        inTransaction: Boolean = false
+    realm: Realm,
+    id: String? = null,
+    inTransaction: Boolean = false
 ): AllTypes {
-    var allTypesObject: AllTypes? = null
-
-    if(!inTransaction){
+    if (!inTransaction) {
         realm.beginTransaction()
     }
 
-    allTypesObject = realm.createObject()
+    val allTypesObject: AllTypes = realm.createObject()
     assertNotNull(allTypesObject)
 
     // Assign id if we have one
     if (id != null) {
-        allTypesObject!!.columnString = id
+        allTypesObject.columnString = id
     }
 
     if (!inTransaction) {
@@ -94,5 +92,5 @@ fun createAllTypesManagedContainerAndAssert(
         realm.where<AllTypes>().equalTo(AllTypes.FIELD_STRING, id).findFirst()
     }
     assertEquals(allTypesObject, allTypesObjectFromRealm)
-    return allTypesObject!!
+    return allTypesObject
 }

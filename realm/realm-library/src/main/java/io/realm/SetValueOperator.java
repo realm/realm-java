@@ -14,6 +14,9 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import io.realm.internal.ObservableCollection;
+import io.realm.internal.ObservableSet;
+import io.realm.internal.ObserverPairList;
 import io.realm.internal.OsSet;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -28,11 +31,13 @@ import static io.realm.CollectionUtils.SET_TYPE;
  *
  * @param <E>
  */
-abstract class SetValueOperator<E> {
+abstract class SetValueOperator<E> implements ObservableSet {
 
     protected final BaseRealm baseRealm;
     protected final OsSet osSet;
     protected final Class<E> valueClass;
+
+    protected final ObserverPairList<ObservableSet.SetObserverPair<E>> setObserverPairs = new ObserverPairList<>();
 
     SetValueOperator(BaseRealm baseRealm, OsSet osSet, Class<E> valueClass) {
         this.baseRealm = baseRealm;
@@ -53,6 +58,11 @@ abstract class SetValueOperator<E> {
     abstract boolean removeAllInternal(Collection<?> c);
 
     abstract boolean retainAllInternal(Collection<?> c);
+
+    @Override
+    public void notifyChangeListeners(long nativeChangeSetPtr) {
+        osSet.notifyChangeListeners(nativeChangeSetPtr, setObserverPairs);
+    }
 
     boolean contains(@Nullable Object o) {
         if (!isObjectSameType(o)) {
@@ -155,6 +165,42 @@ abstract class SetValueOperator<E> {
         return new RealmSet<>(frozenRealm, frozenOsSet, valueClass);
     }
 
+    public void addChangeListener(RealmSet<E> realmSet, SetChangeListener<E> listener) {
+        CollectionUtils.checkForAddRemoveListener(baseRealm, listener, true);
+        if (setObserverPairs.isEmpty()) {
+            osSet.startListening(this);
+        }
+        ObservableSet.SetObserverPair<E> setObserverPair = new ObservableSet.SetObserverPair<>(realmSet, listener);
+        setObserverPairs.add(setObserverPair);
+    }
+
+    public void addChangeListener(RealmSet<E> realmSet, RealmChangeListener<RealmSet<E>> listener) {
+        SetChangeListener<E> changeListener = new SetChangeListener<E>() {
+            @Override
+            public void onChange(RealmSet<E> set, SetChangeSet changes) {
+                listener.onChange(set);
+            }
+        };
+        addChangeListener(realmSet, changeListener);
+    }
+
+    public void removeChangeListener(RealmSet<E> realmSet, SetChangeListener<E> listener) {
+        setObserverPairs.remove(realmSet, listener);
+        if (setObserverPairs.isEmpty()) {
+            osSet.stopListening();
+        }
+    }
+
+    public void removeAllChangeListeners() {
+        CollectionUtils.checkForAddRemoveListener(baseRealm, null, false);
+        setObserverPairs.clear();
+        osSet.stopListening();
+    }
+
+    public boolean hasListeners() {
+        return !setObserverPairs.isEmpty();
+    }
+
     OsSet getOsSet() {
         return osSet;
     }
@@ -166,7 +212,7 @@ abstract class SetValueOperator<E> {
     }
 
     protected boolean funnelCollection(OsSet otherOsSet,
-            OsSet.ExternalCollectionOperation operation) {
+                                       OsSet.ExternalCollectionOperation operation) {
         // Special case if the passed collection is the same native set as this one
         if (osSet.getNativePtr() == otherOsSet.getNativePtr()) {
             switch (operation) {
@@ -236,8 +282,8 @@ abstract class SetValueOperator<E> {
 
     @SuppressWarnings("unchecked")
     private static <T> SetIterator<T> iteratorFactory(Class<T> valueClass,
-            OsSet osSet,
-            BaseRealm baseRealm) {
+                                                      OsSet osSet,
+                                                      BaseRealm baseRealm) {
         if (valueClass == Boolean.class) {
             return (SetIterator<T>) new BooleanSetIterator(osSet, baseRealm);
         } else if (valueClass == String.class) {
@@ -1163,7 +1209,7 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
         // Collection has been type-checked from caller
         // Use add method as it contains all the necessary checks
         List<T> managedRealmObjectCollection = new ArrayList<>(collection.size());
-        for (T item: collection){
+        for (T item : collection) {
             managedRealmObjectCollection.add(getManagedObject(item));
         }
         NativeMixedCollection mixedCollection = NativeMixedCollection.newRealmModelCollection(managedRealmObjectCollection);
@@ -1208,9 +1254,9 @@ class MixedSetOperator extends SetValueOperator<Mixed> {
 
     @NotNull
     private Mixed getManagedMixed(@Nullable Mixed value) {
-        if (value == null){
+        if (value == null) {
             value = Mixed.nullValue();
-        } else if(value.getType() == MixedType.OBJECT) {
+        } else if (value.getType() == MixedType.OBJECT) {
             RealmModel realmModel = value.asRealmModel(RealmModel.class);
             boolean copyObject = CollectionUtils.checkCanObjectBeCopied(baseRealm, realmModel, valueClass.getName(), SET_TYPE);
             RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, realmModel) : realmModel);
@@ -1244,7 +1290,7 @@ class MixedSetOperator extends SetValueOperator<Mixed> {
         return osSet.removeMixed(value.getNativePtr());
     }
 
-    private void checkValidObject(Mixed mixed){
+    private void checkValidObject(Mixed mixed) {
         try {
             mixed.checkValidObject(baseRealm);
         } catch (IllegalArgumentException exception) {
@@ -1282,7 +1328,7 @@ class MixedSetOperator extends SetValueOperator<Mixed> {
     boolean addAllInternal(Collection<? extends Mixed> collection) {
         // Collection has been type-checked from caller
         List<Mixed> managedMixedCollection = new ArrayList<>(collection.size());
-        for (Mixed mixed: collection){
+        for (Mixed mixed : collection) {
             managedMixedCollection.add(getManagedMixed(mixed));
         }
         NativeMixedCollection nativeMixedCollection = getNativeMixedCollection(managedMixedCollection);
@@ -1527,6 +1573,7 @@ class MixedSetIterator extends SetIterator<Mixed> {
  * TODO
  */
 class RealmModelSetIterator<T extends RealmModel> extends SetIterator<T> {
+
     private final Class<T> valueClass;
 
     RealmModelSetIterator(OsSet osSet, BaseRealm baseRealm, Class<T> valueClass) {

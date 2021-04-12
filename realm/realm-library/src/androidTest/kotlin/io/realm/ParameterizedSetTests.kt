@@ -157,6 +157,21 @@ class ParameterizedSetTests(
     fun setters() {
         tester.setters()
     }
+
+    @Test
+    fun addRealmChangeListener() {
+        tester.addRealmChangeListener()
+    }
+
+    @Test
+    fun addSetChangeListener() {
+        tester.addSetChangeListener()
+    }
+
+    @Test
+    fun hasListeners() {
+        tester.hasListeners()
+    }
 }
 
 /**
@@ -202,6 +217,9 @@ interface SetTester : GenericTester {
     fun clear()
     fun freeze()
     fun setters()
+    fun addSetChangeListener()
+    fun addRealmChangeListener()
+    fun hasListeners()
 }
 
 fun <T : Any> RealmSet<T>.init(values: List<T?>): RealmSet<T> {
