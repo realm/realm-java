@@ -138,9 +138,6 @@ public class AllTypes extends RealmObject {
     @Required private RealmSet<ObjectId> columnRequiredObjectIdSet;
     @Required private RealmSet<UUID> columnRequiredUUIDSet;
     @Required private RealmSet<Decimal128> columnRequiredDecimal128Set;
-//    @Required private RealmSet<Owner> columnRealmModelNoPkSet;
-//    @Required private RealmSet<DogPrimaryKey> columnRealmModelSet;
-//    @Required private RealmSet<Mixed> columnMixedSet;
 
     public String getColumnString() {
         return columnString;

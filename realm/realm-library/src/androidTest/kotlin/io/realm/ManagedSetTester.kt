@@ -354,7 +354,7 @@ class ManagedSetTester<T : Any>(
 
     // Separate method to allow calls from RealmModelSetManagedTester with unmanaged realm objects
     fun doCopyToRealmTest(expectedSet: List<T?>) {
-        // Instantiate container and set dictionary on container
+        // Instantiate container and set Set on container
         val manualInstance = AllTypes().apply {
             setSetter.call(this, RealmSet<T>().init(expectedSet))
         }
@@ -388,7 +388,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun copyToRealmOrUpdate() {
-        // Instantiate container and set dictionary on container
+        // Instantiate container and set Set on container
         val manualInstance = AllTypesPrimaryKey().apply {
             primaryKeyAllTypesSetProperty.setter(this, RealmSet<T>().init(initializedSet))
         }
@@ -399,7 +399,7 @@ class ManagedSetTester<T : Any>(
             assertNotNull(allTypesObject)
         }
 
-        // Get dictionary from container from Realm
+        // Get Set from container from Realm
         val allTypesPrimaryKey = realm.where<AllTypesPrimaryKey>().findFirst()!!
         val set = primaryKeyAllTypesSetProperty.get(allTypesPrimaryKey)
         assertFalse(set.isEmpty())
@@ -427,7 +427,7 @@ class ManagedSetTester<T : Any>(
             val allTypesObject = createAllTypesManagedContainerAndAssert(realm)
             assertNotNull(allTypesObject)
             val set: RealmSet<T> = requiredSetGetter.call(allTypesObject)
-            // Check we can't insert null on a RealmDictionary marked as "@Required"
+            // Check we can't insert null on a RealmSet marked as "@Required"
             realm.executeTransaction {
                 assertFailsWith<java.lang.NullPointerException> {
                     set.add(null)
