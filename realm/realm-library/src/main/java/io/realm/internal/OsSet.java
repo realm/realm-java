@@ -46,44 +46,22 @@ public class OsSet implements NativeObject {
     private final long nativePtr;
     private final NativeContext context;
     private final OsSharedRealm osSharedRealm;
-    private final Table targetTable;                // TODO: not sure this is needed
 
     public OsSet(UncheckedRow row, long columnKey) {
         this.osSharedRealm = row.getTable().getSharedRealm();
         long[] pointers = nativeCreate(osSharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
         this.nativePtr = pointers[0];
-        if (pointers[1] != NOT_FOUND) {
-            this.targetTable = new Table(osSharedRealm, pointers[1]);
-        } else {
-            this.targetTable = null;
-        }
         this.context = osSharedRealm.context;
         context.addReference(this);
     }
 
     // Used to freeze sets
-    private OsSet(OsSharedRealm osSharedRealm, long nativePtr, Table targetTable) {
+    private OsSet(OsSharedRealm osSharedRealm, long nativePtr) {
         this.osSharedRealm = osSharedRealm;
         this.nativePtr = nativePtr;
-        this.targetTable = targetTable;
         this.context = osSharedRealm.context;
         context.addReference(this);
     }
-
-//    public OsSet(UncheckedRow row, long columnKey) {
-//        this.osSharedRealm = row.getTable().getSharedRealm();
-//        this.nativePtr = nativeCreate(osSharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
-//        this.context = osSharedRealm.context;
-//        context.addReference(this);
-//    }
-//
-//    // Used to freeze sets
-//    private OsSet(OsSharedRealm osSharedRealm, long nativePtr) {
-//        this.osSharedRealm = osSharedRealm;
-//        this.nativePtr = nativePtr;
-//        this.context = osSharedRealm.context;
-//        context.addReference(this);
-//    }
 
     @Override
     public long getNativePtr() {
@@ -585,7 +563,7 @@ public class OsSet implements NativeObject {
 
     public OsSet freeze(OsSharedRealm frozenSharedRealm) {
         long frozenNativePtr = nativeFreeze(this.nativePtr, frozenSharedRealm.getNativePtr());
-        return new OsSet(frozenSharedRealm, frozenNativePtr, targetTable);
+        return new OsSet(frozenSharedRealm, frozenNativePtr);
     }
 
     // ----------------------------------------------------

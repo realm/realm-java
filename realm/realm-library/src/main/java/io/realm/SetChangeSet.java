@@ -19,10 +19,14 @@ package io.realm;
 import io.realm.internal.OsCollectionChangeSet;
 
 /**
- * TODO
+ * This class describes the changes made to a set during the last update.
+ * <p>
+ * {@link SetChangeSet} is passed to the {@link SetChangeListener} which is registered
+ * by {@link RealmSet#addChangeListener(SetChangeListener)}.
  */
 public class SetChangeSet {
 
+    // Internally, this change set is like a list change set's but without the indices
     private final OsCollectionChangeSet osCollectionChangeSet;
 
     public SetChangeSet(OsCollectionChangeSet osCollectionChangeSet) {
@@ -30,35 +34,32 @@ public class SetChangeSet {
     }
 
     /**
-     * TODO
+     * The number of entries that have been inserted.
      *
-     * @return
+     * @return the number of insertions.
      */
     public int getNumberOfInsertions() {
         return osCollectionChangeSet.getInsertions().length;
     }
 
     /**
-     * TODO
+     * The number of entries that have been deleted
      *
-     * @return
-     */
-    public int getNumberOfModifications() {
-        return osCollectionChangeSet.getChanges().length;
-    }
-
-    /**
-     * TODO
-     *
-     * @return
+     * @return the number of deletions
      */
     public int getNumberOfDeletions() {
         return osCollectionChangeSet.getDeletions().length;
     }
 
+    /**
+     * Whether the change set is empty or not. This is needed to detect whether a notification has
+     * been triggered right after subscription.
+     *
+     * @return whether the change set contains changes.
+     */
     public boolean isEmpty() {
-        // Since this wrap a Object Store changeset, it will always contains changes if an
-        // Object Store changeset exists.
+        // Since this wraps an Object Store change set, it will always contains changes if an
+        // Object Store change set exists.
         return osCollectionChangeSet.getNativePtr() == 0;
     }
 }
