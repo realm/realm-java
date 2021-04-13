@@ -733,7 +733,7 @@ class ManagedSetTester<T : Any>(
 
             assertTrue(set.hasListeners())
 
-            // Check for MapChangeListener
+            // Check for SetChangeListener
             val anotherSet = initAndAssertEmptySet(looperThreadRealm, "anotherId")
             assertFalse(anotherSet.hasListeners())
 
