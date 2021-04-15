@@ -125,7 +125,7 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
     }
 
     @Override
-    public boolean containsKey(Object key) {
+    public boolean containsKey(@Nullable Object key) {
         return mapStrategy.containsKey(key);
     }
 
@@ -331,7 +331,7 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
          * @param value the value to insert.
          * @return the inserted value.
          */
-        protected abstract V putInternal(K key, V value);
+        protected abstract V putInternal(K key, @Nullable V value);
 
         protected abstract void addChangeListener(RealmMap<K, V> realmMap, MapChangeListener<K, V> listener);
 
@@ -352,14 +352,15 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
         // ------------------------------------------
 
         @Override
-        public V put(K key, V value) {
+        public V put(K key, @Nullable V value) {
             checkValidKey(key);
             return putInternal(key, value);
         }
 
-        protected void checkValidKey(@Nullable K key) {
+        protected void checkValidKey(K key) {
             if (key == null) {
-                throw new IllegalArgumentException("Null keys are not allowed.");
+                // As per Map interface
+                throw new NullPointerException("Null keys are not allowed.");
             }
 
             if (key.getClass() == String.class) {
@@ -424,7 +425,7 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
         }
 
         @Override
-        public boolean containsKey(Object key) {
+        public boolean containsKey(@Nullable Object key) {
             return managedMapManager.containsKey(key);
         }
 
@@ -568,12 +569,12 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
         }
 
         @Override
-        public boolean containsKey(Object key) {
+        public boolean containsKey(@Nullable Object key) {
             return unmanagedMap.containsKey(key);
         }
 
         @Override
-        public boolean containsValue(Object value) {
+        public boolean containsValue(@Nullable Object value) {
             return unmanagedMap.containsValue(value);
         }
 

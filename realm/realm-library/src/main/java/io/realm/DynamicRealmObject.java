@@ -628,6 +628,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                 case UUID:
                     value = UUID.fromString(strValue);
                     break;
+                case MIXED:
+                    value = Mixed.valueOf(strValue);
+                    break;
                 default:
                     throw new IllegalArgumentException(String.format(Locale.US,
                             "Field %s is not a String field, " +
@@ -677,6 +680,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             setObjectId(fieldName, (ObjectId) value);
         } else if (valueClass == UUID.class) {
             setUUID(fieldName, (UUID) value);
+        } else if (valueClass == Mixed.class) {
+            setMixed(fieldName, (Mixed) value);
         } else {
             throw new IllegalArgumentException("Value is of an type not supported: " + value.getClass());
         }

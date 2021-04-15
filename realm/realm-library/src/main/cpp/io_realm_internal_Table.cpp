@@ -314,6 +314,8 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeGetColumnType(JNIEnv*,
     if (column_type != type_LinkList &&  table->is_list(column_key)) {
         // add the offset so it can be mapped correctly in Java (RealmFieldType#fromNativeValue)
         return int(column_type) + int(PropertyType::Array);
+    } else if (column_key.is_set()) {
+        return int(column_type) + int(PropertyType::Set);
     } else if (column_key.is_dictionary()) {
         return int(column_type) + int(PropertyType::Dictionary);
     }

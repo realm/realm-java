@@ -607,12 +607,13 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         beginControlFlow("if (entryValue == null)")
                             emitStatement("osMap.put(entryKey, null)")
                         nextControlFlow("else")
-                            emitStatement("osMap.putMixed(entryKey, entryValue.getNativePtr())")
+                            emitStatement("osMap.putMixed(entryKey, ProxyUtils.copyToRealmIfNeeded(proxyState, entryValue).getNativePtr())")
                         endControlFlow()
                     } else if (forRealmModel) {
                         beginControlFlow("if (entryValue == null)")
                             emitStatement("osMap.put(entryKey, null)")
                         nextControlFlow("else")
+                            emitStatement("proxyState.checkValidObject(entryValue)")
                             emitStatement("osMap.putRow(entryKey, ((RealmObjectProxy) entryValue).realmGet\$proxyState().getRow\$realm().getObjectKey())")
                         endControlFlow()
                     } else {
@@ -705,8 +706,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
             when {
                 forMixed -> {
-                    // Add Mixed logic
-                    emitStatement("OsSet osSet = proxyState.getRow\$realm().getMixedSet(%s)", fieldColKeyVariableReference(field))
+                    emitStatement("OsSet osSet = proxyState.getRow\$realm().getMixedSet(${fieldColKeyVariableReference(field)})")
                 }
                 forRealmModel -> {
                     emitStatement("OsSet osSet = proxyState.getRow\$realm().getModelSet(%s)", fieldColKeyVariableReference(field))
@@ -2396,16 +2396,16 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
                             val linkedProxyClass: SimpleClassName = Utils.getSetGenericProxyClassSimpleName(field)
 
-                            emitStatement("RealmSet<%s> %sUnmanagedSet = unmanagedSource.%s()", genericType, fieldName, getter)
-                            beginControlFlow("if (%sUnmanagedSet != null)", fieldName)
-                                emitStatement("RealmSet<%s> %sManagedSet = managedCopy.%s()", genericType, fieldName, getter)
+                            emitStatement("RealmSet<${genericType}> ${fieldName}UnmanagedSet = unmanagedSource.${getter}()")
+                            beginControlFlow("if (${fieldName}UnmanagedSet != null)")
+                                emitStatement("RealmSet<${genericType}> ${fieldName}ManagedSet = managedCopy.${getter}()")
                                 // Clear is needed. See bug https://github.com/realm/realm-java/issues/4957
-                                emitStatement("%sManagedSet.clear()", fieldName)
-                                beginControlFlow("for ($genericType ${fieldName}UnmanagedItem: %sUnmanagedSet)", fieldName)
-                                    emitStatement("%1\$s cache%2\$s = (%1\$s) cache.get(%2\$sUnmanagedItem)", genericType, fieldName)
+                                emitStatement("${fieldName}ManagedSet.clear()")
+                                beginControlFlow("for ($genericType ${fieldName}UnmanagedItem: ${fieldName}UnmanagedSet)")
+                                    emitStatement("$genericType cache${fieldName} = (${genericType}) cache.get(${fieldName}UnmanagedItem)")
 
-                                    beginControlFlow("if (cache%s != null)", fieldName)
-                                        emitStatement("%1\$sManagedSet.add(cache%1\$s)", fieldName)
+                                    beginControlFlow("if (cache${fieldName} != null)")
+                                        emitStatement("${fieldName}ManagedSet.add(cache${fieldName})")
                                     nextControlFlow("else")
                                         emitStatement("${fieldName}ManagedSet.add(${linkedProxyClass}.copyOrUpdate(realm, (${columnInfoClassNameSetGeneric(field)}) realm.getSchema().getColumnInfo(${Utils.getGenericTypeQualifiedName(field)}.class), ${fieldName}UnmanagedItem, update, cache, flags))")
                                     endControlFlow()
@@ -2509,7 +2509,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         }
                         Utils.isRealmModelDictionary(field) -> {
                             val proxyClassSimpleName = Utils.getDictionaryGenericProxyClassSimpleName(field)
-                            val valueDictionaryFieldType = Utils.getDictionaryValueTypeQualifiedName(field)
                             val genericType = requireNotNull(Utils.getGenericTypeQualifiedName(field))
 
                             emitEmptyLine()

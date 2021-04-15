@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
@@ -33,7 +34,7 @@ abstract class SetValueOperator<E> {
     protected final OsSet osSet;
     protected final Class<E> valueClass;
 
-    public SetValueOperator(BaseRealm baseRealm, OsSet osSet, Class<E> valueClass) {
+    SetValueOperator(BaseRealm baseRealm, OsSet osSet, Class<E> valueClass) {
         this.baseRealm = baseRealm;
         this.osSet = osSet;
         this.valueClass = valueClass;
@@ -278,7 +279,7 @@ abstract class SetValueOperator<E> {
  */
 class BooleanOperator extends SetValueOperator<Boolean> {
 
-    public BooleanOperator(BaseRealm baseRealm, OsSet osSet, Class<Boolean> valueClass) {
+    BooleanOperator(BaseRealm baseRealm, OsSet osSet, Class<Boolean> valueClass) {
         super(baseRealm, osSet, valueClass);
     }
 
@@ -336,7 +337,7 @@ class BooleanOperator extends SetValueOperator<Boolean> {
  */
 class StringOperator extends SetValueOperator<String> {
 
-    public StringOperator(BaseRealm baseRealm, OsSet osSet, Class<String> valueClass) {
+    StringOperator(BaseRealm baseRealm, OsSet osSet, Class<String> valueClass) {
         super(baseRealm, osSet, valueClass);
     }
 
@@ -395,7 +396,7 @@ class StringOperator extends SetValueOperator<String> {
  */
 class IntegerOperator extends SetValueOperator<Integer> {
 
-    public IntegerOperator(BaseRealm baseRealm, OsSet osSet, Class<Integer> valueClass) {
+    IntegerOperator(BaseRealm baseRealm, OsSet osSet, Class<Integer> valueClass) {
         super(baseRealm, osSet, valueClass);
     }
 
@@ -459,7 +460,7 @@ class IntegerOperator extends SetValueOperator<Integer> {
  */
 class LongOperator extends SetValueOperator<Long> {
 
-    public LongOperator(BaseRealm baseRealm, OsSet osSet, Class<Long> valueClass) {
+    LongOperator(BaseRealm baseRealm, OsSet osSet, Class<Long> valueClass) {
         super(baseRealm, osSet, valueClass);
     }
 
@@ -516,7 +517,7 @@ class LongOperator extends SetValueOperator<Long> {
  */
 class ShortOperator extends SetValueOperator<Short> {
 
-    public ShortOperator(BaseRealm baseRealm, OsSet osSet, Class<Short> valueClass) {
+    ShortOperator(BaseRealm baseRealm, OsSet osSet, Class<Short> valueClass) {
         super(baseRealm, osSet, valueClass);
     }
 
@@ -580,7 +581,7 @@ class ShortOperator extends SetValueOperator<Short> {
  */
 class ByteOperator extends SetValueOperator<Byte> {
 
-    public ByteOperator(BaseRealm baseRealm, OsSet osSet, Class<Byte> valueClass) {
+    ByteOperator(BaseRealm baseRealm, OsSet osSet, Class<Byte> valueClass) {
         super(baseRealm, osSet, valueClass);
     }
 
@@ -644,7 +645,7 @@ class ByteOperator extends SetValueOperator<Byte> {
  */
 class FloatOperator extends SetValueOperator<Float> {
 
-    public FloatOperator(BaseRealm baseRealm, OsSet osSet, Class<Float> valueClass) {
+    FloatOperator(BaseRealm baseRealm, OsSet osSet, Class<Float> valueClass) {
         super(baseRealm, osSet, valueClass);
     }
 
@@ -707,7 +708,7 @@ class FloatOperator extends SetValueOperator<Float> {
  */
 class DoubleOperator extends SetValueOperator<Double> {
 
-    public DoubleOperator(BaseRealm baseRealm, OsSet osSet, Class<Double> valueClass) {
+    DoubleOperator(BaseRealm baseRealm, OsSet osSet, Class<Double> valueClass) {
         super(baseRealm, osSet, valueClass);
     }
 
@@ -770,7 +771,7 @@ class DoubleOperator extends SetValueOperator<Double> {
  */
 class BinaryOperator extends SetValueOperator<byte[]> {
 
-    public BinaryOperator(BaseRealm baseRealm, OsSet osSet, Class<byte[]> valueClass) {
+    BinaryOperator(BaseRealm baseRealm, OsSet osSet, Class<byte[]> valueClass) {
         super(baseRealm, osSet, valueClass);
     }
 
@@ -833,7 +834,7 @@ class BinaryOperator extends SetValueOperator<byte[]> {
  */
 class DateOperator extends SetValueOperator<Date> {
 
-    public DateOperator(BaseRealm baseRealm, OsSet osSet, Class<Date> valueClass) {
+    DateOperator(BaseRealm baseRealm, OsSet osSet, Class<Date> valueClass) {
         super(baseRealm, osSet, valueClass);
     }
 
@@ -896,7 +897,7 @@ class DateOperator extends SetValueOperator<Date> {
  */
 class Decimal128Operator extends SetValueOperator<Decimal128> {
 
-    public Decimal128Operator(BaseRealm baseRealm, OsSet osSet, Class<Decimal128> valueClass) {
+    Decimal128Operator(BaseRealm baseRealm, OsSet osSet, Class<Decimal128> valueClass) {
         super(baseRealm, osSet, valueClass);
     }
 
@@ -959,7 +960,7 @@ class Decimal128Operator extends SetValueOperator<Decimal128> {
  */
 class ObjectIdOperator extends SetValueOperator<ObjectId> {
 
-    public ObjectIdOperator(BaseRealm baseRealm, OsSet osSet, Class<ObjectId> valueClass) {
+    ObjectIdOperator(BaseRealm baseRealm, OsSet osSet, Class<ObjectId> valueClass) {
         super(baseRealm, osSet, valueClass);
     }
 
@@ -1022,7 +1023,7 @@ class ObjectIdOperator extends SetValueOperator<ObjectId> {
  */
 class UUIDOperator extends SetValueOperator<UUID> {
 
-    public UUIDOperator(BaseRealm baseRealm, OsSet osSet, Class<UUID> valueClass) {
+    UUIDOperator(BaseRealm baseRealm, OsSet osSet, Class<UUID> valueClass) {
         super(baseRealm, osSet, valueClass);
     }
 
@@ -1086,22 +1087,26 @@ class UUIDOperator extends SetValueOperator<UUID> {
  */
 class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
 
-    public RealmModelSetOperator(BaseRealm baseRealm, OsSet osSet, Class<T> valueClass) {
+    RealmModelSetOperator(BaseRealm baseRealm, OsSet osSet, Class<T> valueClass) {
         super(baseRealm, osSet, valueClass);
     }
 
     @Override
-    boolean add(@Nullable T value) {
+    boolean add(T value) {
         // Realm model sets cannot contain null values
+        RealmObjectProxy proxy = (RealmObjectProxy) getManagedObject(value);
+        Row row$realm = proxy.realmGet$proxyState().getRow$realm();
+        return osSet.addRow(row$realm.getObjectKey());
+    }
+
+    private T getManagedObject(T value) {
         if (value == null) {
             throw new NullPointerException("This set does not permit null values.");
         }
         // Check we can add this object into the Realm
         boolean copyObject = CollectionUtils.checkCanObjectBeCopied(baseRealm, value, valueClass.getName(), SET_TYPE);
         // Add value into set
-        RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, (RealmModel) value) : value);
-        Row row$realm = proxy.realmGet$proxyState().getRow$realm();
-        return osSet.addRow(row$realm.getObjectKey());
+        return (T) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, (RealmModel) value) : value);
     }
 
     /**
@@ -1109,7 +1114,7 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
      *
      * @param value model object
      */
-    private void checkValidObject(@Nullable RealmModel value) {
+    private void checkValidObject(RealmModel value) {
         // Realm model sets cannot contain null values
         if (value == null) {
             throw new NullPointerException("This set does not permit null values.");
@@ -1123,14 +1128,14 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
     }
 
     @Override
-    boolean containsInternal(@Nullable Object value) {
+    boolean containsInternal(Object value) {
         checkValidObject((RealmModel) value);
         Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
         return osSet.containsRow(row$realm.getObjectKey());
     }
 
     @Override
-    boolean removeInternal(@Nullable Object value) {
+    boolean removeInternal(Object value) {
         checkValidObject((RealmModel) value);
         Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
         return osSet.removeRow(row$realm.getObjectKey());
@@ -1157,11 +1162,12 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
     boolean addAllInternal(Collection<? extends T> collection) {
         // Collection has been type-checked from caller
         // Use add method as it contains all the necessary checks
-        boolean result = false;
-        for (T model : collection) {
-            result |= add(model);
+        List<T> managedRealmObjectCollection = new ArrayList<>(collection.size());
+        for (T item: collection){
+            managedRealmObjectCollection.add(getManagedObject(item));
         }
-        return result;
+        NativeMixedCollection mixedCollection = NativeMixedCollection.newRealmModelCollection(managedRealmObjectCollection);
+        return osSet.collectionFunnel(mixedCollection, OsSet.ExternalCollectionOperation.ADD_ALL);
     }
 
     @Override
@@ -1196,6 +1202,12 @@ class MixedSetOperator extends SetValueOperator<Mixed> {
 
     @Override
     boolean add(@Nullable Mixed value) {
+        value = getManagedMixed(value);
+        return osSet.addMixed(value.getNativePtr());
+    }
+
+    @NotNull
+    private Mixed getManagedMixed(@Nullable Mixed value) {
         if (value == null){
             value = Mixed.nullValue();
         } else if(value.getType() == MixedType.OBJECT) {
@@ -1204,8 +1216,7 @@ class MixedSetOperator extends SetValueOperator<Mixed> {
             RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, realmModel) : realmModel);
             value = Mixed.valueOf(proxy);
         }
-
-        return osSet.addMixed(value.getNativePtr());
+        return value;
     }
 
     @Override
@@ -1250,7 +1261,6 @@ class MixedSetOperator extends SetValueOperator<Mixed> {
         for (Mixed mixed : mixedCollection) {
             if (mixed != null) {
                 checkValidObject(mixed);
-
                 mixedPtrs[i] = mixed.getNativePtr();
                 notNull[i] = true;
             }
@@ -1271,12 +1281,12 @@ class MixedSetOperator extends SetValueOperator<Mixed> {
     @Override
     boolean addAllInternal(Collection<? extends Mixed> collection) {
         // Collection has been type-checked from caller
-        // Use add method as it contains all the necessary checks
-        boolean result = false;
-        for (Mixed model : collection) {
-            result |= add(model);
+        List<Mixed> managedMixedCollection = new ArrayList<>(collection.size());
+        for (Mixed mixed: collection){
+            managedMixedCollection.add(getManagedMixed(mixed));
         }
-        return result;
+        NativeMixedCollection nativeMixedCollection = getNativeMixedCollection(managedMixedCollection);
+        return osSet.collectionFunnel(nativeMixedCollection, OsSet.ExternalCollectionOperation.ADD_ALL);
     }
 
     @Override
@@ -1308,7 +1318,7 @@ abstract class SetIterator<E> implements Iterator<E> {
 
     private int pos = -1;
 
-    public SetIterator(OsSet osSet, BaseRealm baseRealm) {
+    SetIterator(OsSet osSet, BaseRealm baseRealm) {
         this.osSet = osSet;
         this.baseRealm = baseRealm;
     }
@@ -1341,7 +1351,7 @@ abstract class SetIterator<E> implements Iterator<E> {
  * TODO
  */
 class BooleanSetIterator extends SetIterator<Boolean> {
-    public BooleanSetIterator(OsSet osSet, BaseRealm baseRealm) {
+    BooleanSetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
     }
 }
@@ -1350,7 +1360,7 @@ class BooleanSetIterator extends SetIterator<Boolean> {
  * TODO
  */
 class StringSetIterator extends SetIterator<String> {
-    public StringSetIterator(OsSet osSet, BaseRealm baseRealm) {
+    StringSetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
     }
 }
@@ -1359,7 +1369,7 @@ class StringSetIterator extends SetIterator<String> {
  * TODO
  */
 class IntegerSetIterator extends SetIterator<Integer> {
-    public IntegerSetIterator(OsSet osSet, BaseRealm baseRealm) {
+    IntegerSetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
     }
 
@@ -1379,7 +1389,7 @@ class IntegerSetIterator extends SetIterator<Integer> {
  * TODO
  */
 class LongSetIterator extends SetIterator<Long> {
-    public LongSetIterator(OsSet osSet, BaseRealm baseRealm) {
+    LongSetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
     }
 }
@@ -1388,7 +1398,7 @@ class LongSetIterator extends SetIterator<Long> {
  * TODO
  */
 class ShortSetIterator extends SetIterator<Short> {
-    public ShortSetIterator(OsSet osSet, BaseRealm baseRealm) {
+    ShortSetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
     }
 
@@ -1408,7 +1418,7 @@ class ShortSetIterator extends SetIterator<Short> {
  * TODO
  */
 class ByteSetIterator extends SetIterator<Byte> {
-    public ByteSetIterator(OsSet osSet, BaseRealm baseRealm) {
+    ByteSetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
     }
 
@@ -1428,7 +1438,7 @@ class ByteSetIterator extends SetIterator<Byte> {
  * TODO
  */
 class FloatSetIterator extends SetIterator<Float> {
-    public FloatSetIterator(OsSet osSet, BaseRealm baseRealm) {
+    FloatSetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
     }
 }
@@ -1437,7 +1447,7 @@ class FloatSetIterator extends SetIterator<Float> {
  * TODO
  */
 class DoubleSetIterator extends SetIterator<Double> {
-    public DoubleSetIterator(OsSet osSet, BaseRealm baseRealm) {
+    DoubleSetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
     }
 }
@@ -1446,7 +1456,7 @@ class DoubleSetIterator extends SetIterator<Double> {
  * TODO
  */
 class BinarySetIterator extends SetIterator<byte[]> {
-    public BinarySetIterator(OsSet osSet, BaseRealm baseRealm) {
+    BinarySetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
     }
 
@@ -1465,7 +1475,7 @@ class BinarySetIterator extends SetIterator<byte[]> {
  * TODO
  */
 class DateSetIterator extends SetIterator<Date> {
-    public DateSetIterator(OsSet osSet, BaseRealm baseRealm) {
+    DateSetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
     }
 }
@@ -1474,7 +1484,7 @@ class DateSetIterator extends SetIterator<Date> {
  * TODO
  */
 class Decimal128SetIterator extends SetIterator<Decimal128> {
-    public Decimal128SetIterator(OsSet osSet, BaseRealm baseRealm) {
+    Decimal128SetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
     }
 }
@@ -1484,7 +1494,7 @@ class Decimal128SetIterator extends SetIterator<Decimal128> {
  */
 
 class ObjectIdSetIterator extends SetIterator<ObjectId> {
-    public ObjectIdSetIterator(OsSet osSet, BaseRealm baseRealm) {
+    ObjectIdSetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
     }
 }
@@ -1493,7 +1503,7 @@ class ObjectIdSetIterator extends SetIterator<ObjectId> {
  * TODO
  */
 class UUIDSetIterator extends SetIterator<UUID> {
-    public UUIDSetIterator(OsSet osSet, BaseRealm baseRealm) {
+    UUIDSetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
     }
 }
@@ -1519,7 +1529,7 @@ class MixedSetIterator extends SetIterator<Mixed> {
 class RealmModelSetIterator<T extends RealmModel> extends SetIterator<T> {
     private final Class<T> valueClass;
 
-    public RealmModelSetIterator(OsSet osSet, BaseRealm baseRealm, Class<T> valueClass) {
+    RealmModelSetIterator(OsSet osSet, BaseRealm baseRealm, Class<T> valueClass) {
         super(osSet, baseRealm);
         this.valueClass = valueClass;
     }

@@ -45,6 +45,7 @@ class ManagedSetTester<T : Any>(
         private val toArrayManaged: ToArrayManaged<T>,
         private val nullable: Boolean = true,
         private val equalsTo: (expected: T?, value: T?) -> Boolean = { expected, value ->
+            // Used to assert that the contents of two collections are the same.
            expected == value
         },
         private val primaryKeyAllTypesSetProperty: KMutableProperty1<AllTypesPrimaryKey, RealmSet<T>>
@@ -375,15 +376,13 @@ class ManagedSetTester<T : Any>(
     }
 
     private fun assertSetContainsSet(expectedSet: List<T?>, set: RealmSet<T>){
-        set.forEach { value ->
-            var setContainsValue = false
-
+        set.forEach loop@{ value ->
             expectedSet.forEach { expected ->
-                if (equalsTo(expected, value))
-                    setContainsValue = true
+                if (equalsTo(expected, value)){
+                    return@loop
+                }
             }
-
-            assertTrue(setContainsValue)
+            fail("Missing value")
         }
     }
 
@@ -924,8 +923,9 @@ fun managedSetFactory(): List<SetTester> {
         }
     }
 
+    // Add extra tests for Mixed datatype and Realm Models without PK
     return primitiveTesters
-            // We add an extra test for models without a PK
+            // We add an extra test for Realm models without a PK
             .plus(NoPKRealmModelSetTester<Owner>(
                     testerName = "LINK_NO_PK",
                     setGetter = AllTypes::getColumnRealmModelNoPkSet,
@@ -940,7 +940,7 @@ fun managedSetFactory(): List<SetTester> {
             .plus(MixedType.values().map { mixedType ->
                 when (mixedType) {
                     MixedType.OBJECT -> RealmModelManagedSetTester<Mixed>(
-                            testerName = "LINK",
+                            testerName = "MIXED-${mixedType.name}",
                             setGetter = AllTypes::getColumnMixedSet,
                             setSetter = AllTypes::setColumnMixedSet,
                             managedSetGetter = SetContainerClass::myMixedSet,
@@ -977,6 +977,7 @@ fun managedSetFactory(): List<SetTester> {
                                     true
                                 } else if(expected != null && value != Mixed.nullValue()) {
                                     val expectedModel = expected.asRealmModel(DogPrimaryKey::class.java)
+                                    // Managed Mixed values are cannot be null but Mixed.nullValue()
                                     val valueModel = value!!.asRealmModel(DogPrimaryKey::class.java)
 
                                     expectedModel.id == valueModel.id

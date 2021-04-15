@@ -16,10 +16,8 @@
 
 package io.realm.entities
 
-import io.realm.MutableRealmInteger
-import io.realm.RealmList
-import io.realm.RealmObject
-import io.realm.TestHelper
+import androidx.annotation.Nullable
+import io.realm.*
 import io.realm.annotations.PrimaryKey
 import io.realm.annotations.RealmField
 import io.realm.annotations.Required
@@ -82,6 +80,8 @@ open class SyncAllTypes : RealmObject() {
     @Required
     var columnUUID: UUID = UUID.randomUUID()
 
+    var columnMixed: Mixed? = Mixed.nullValue()
+
     val columnRealmInteger: MutableRealmInteger = MutableRealmInteger.ofNull()
 
     var columnRealmObject: SyncDog? = null
@@ -106,11 +106,12 @@ open class SyncAllTypes : RealmObject() {
     var columnDateList: RealmList<Date> = RealmList()
     @Required
     var columnDecimal128List: RealmList<Decimal128> = RealmList()
-
     @Required
     var columnObjectIdList: RealmList<ObjectId> = RealmList()
     @Required
     var columnUUIDList: RealmList<UUID> = RealmList()
+
+    var columnMixedList: RealmList<Mixed> = RealmList()
 
     fun setColumnMutableRealmInteger(value: Int) {
         columnRealmInteger.set(value.toLong())

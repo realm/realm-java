@@ -23,11 +23,14 @@ import java.util.Date;
 import java.util.UUID;
 
 import io.realm.MixedType;
+import io.realm.RealmModel;
 import io.realm.internal.NativeContext;
 import io.realm.internal.NativeObject;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
+import io.realm.internal.Table;
 
 
 public class NativeMixed implements NativeObject {
@@ -84,7 +87,7 @@ public class NativeMixed implements NativeObject {
         this(createMixedLink(model));
     }
 
-    private static long createMixedLink(RealmObjectProxy model){
+    private static long createMixedLink(RealmObjectProxy model) {
         Row row$realm = model.realmGet$proxyState().getRow$realm();
 
         long targetTablePtr = row$realm.getTable().getNativePtr();
@@ -145,11 +148,16 @@ public class NativeMixed implements NativeObject {
 
     public Decimal128 asDecimal128() {
         long[] data = nativeMixedAsDecimal128(nativePtr);
-        return Decimal128.fromIEEE754BIDEncoding(data[1], data[0]);
+        return Decimal128.fromIEEE754BIDEncoding(data[1]/*high*/, data[0]/*low*/);
     }
 
     public UUID asUUID() {
         return UUID.fromString(nativeMixedAsUUID(nativePtr));
+    }
+
+    public <T extends RealmModel> Class<T> getModelClass(OsSharedRealm osSharedRealm, RealmProxyMediator mediator) {
+        String className = Table.getClassNameForTable(nativeGetRealmModelTableName(nativePtr, osSharedRealm.getNativePtr()));
+        return mediator.getClazz(className);
     }
 
     public String getRealmModelTableName(OsSharedRealm osSharedRealm) {
