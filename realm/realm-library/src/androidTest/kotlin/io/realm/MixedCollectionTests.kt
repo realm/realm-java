@@ -23,16 +23,14 @@ import io.realm.entities.*
 import io.realm.internal.core.NativeMixedCollection
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.*
 import org.junit.runner.RunWith
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 @RunWith(AndroidJUnit4::class)
+@Ignore("RUNNING THESE TESTS MAKES OTHER TESTS FAIL.")
 class MixedCollectionTests {
     private lateinit var realmConfiguration: RealmConfiguration
     private lateinit var realm: Realm
