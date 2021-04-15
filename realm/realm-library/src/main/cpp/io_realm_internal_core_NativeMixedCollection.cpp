@@ -302,7 +302,7 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeGetCollectionItem(JNIEnv
                                                                           jint j_index) {
     try {
         auto &collection = *reinterpret_cast<std::vector<JavaValue> *>(j_native_ptr);
-        return reinterpret_cast<jlong>(&collection[j_index]);
+        return reinterpret_cast<jlong>(new JavaValue(collection[j_index]));
     } CATCH_STD()
 
     return reinterpret_cast<jlong>(nullptr);
