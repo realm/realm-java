@@ -421,32 +421,45 @@ class ManagedSetTester<T : Any>(
         assertSetContainsSet(initializedSet.plus(notPresentValue), set)
     }
 
-    override fun putRequired() {
+    override fun requiredConstraints() {
         // RealmModel and Mixed setters are ignored since they cannot be marked with "@Required"
         if (requiredSetGetter != null) {
             val allTypesObject = createAllTypesManagedContainerAndAssert(realm)
             assertNotNull(allTypesObject)
             val set: RealmSet<T> = requiredSetGetter.call(allTypesObject)
-            // Check we can't insert null on a RealmSet marked as "@Required"
+            // Check we can't operate with nulls on a RealmSet marked as "@Required"
             realm.executeTransaction {
+                // Validate we cannot use Null values on add
                 assertFailsWith<java.lang.NullPointerException> {
                     set.add(null)
                 }
+
+                // Validate we cannot use Null values on remove
                 assertFailsWith<java.lang.NullPointerException> {
                     set.remove(null)
                 }
+
+                // Validate we cannot use Null values on contains
                 assertFailsWith<java.lang.NullPointerException> {
                     set.contains(null)
                 }
+
+                // Validate we cannot use Null values on addAll
                 assertFailsWith<java.lang.NullPointerException> {
                     set.addAll(listOf(null))
                 }
+
+                // Validate we cannot use Null values on removeAll
                 assertFailsWith<java.lang.NullPointerException> {
                     set.removeAll(listOf(null))
                 }
+
+                // Validate we cannot use Null values on containsAll
                 assertFailsWith<java.lang.NullPointerException> {
                     set.containsAll(listOf(null))
                 }
+
+                // Validate we cannot use Null values on retainAll
                 assertFailsWith<java.lang.NullPointerException> {
                     set.add(initializedSet[0])
                     set.retainAll(listOf(null))
