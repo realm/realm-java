@@ -39,6 +39,7 @@ class UnmanagedSetTester<T : Any>(
     }
 
     override fun setUp(config: RealmConfiguration, looperThread: BlockingLooperThread) = Unit
+
     override fun tearDown() = Unit
 
     override fun isManaged() {
@@ -116,6 +117,8 @@ class UnmanagedSetTester<T : Any>(
         assertEquals(values.size - 1, realmSet.size)
         assertFalse(realmSet.remove(notPresentValue))
     }
+
+    override fun requiredConstraints() = Unit // Not tested
 
     override fun containsAll() {
         val realmSet = RealmSet<T>()

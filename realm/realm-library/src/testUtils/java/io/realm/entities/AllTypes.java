@@ -125,6 +125,20 @@ public class AllTypes extends RealmObject {
     private RealmSet<Owner> columnRealmModelNoPkSet;
     private RealmSet<Mixed> columnMixedSet;
 
+    @Required private RealmSet<Boolean> columnRequiredBooleanSet;
+    @Required private RealmSet<String> columnRequiredStringSet;
+    @Required private RealmSet<Integer> columnRequiredIntegerSet;
+    @Required private RealmSet<Float> columnRequiredFloatSet;
+    @Required private RealmSet<Long> columnRequiredLongSet;
+    @Required private RealmSet<Short> columnRequiredShortSet;
+    @Required private RealmSet<Double> columnRequiredDoubleSet;
+    @Required private RealmSet<Byte> columnRequiredByteSet;
+    @Required private RealmSet<byte[]> columnRequiredBinarySet;
+    @Required private RealmSet<Date> columnRequiredDateSet;
+    @Required private RealmSet<ObjectId> columnRequiredObjectIdSet;
+    @Required private RealmSet<UUID> columnRequiredUUIDSet;
+    @Required private RealmSet<Decimal128> columnRequiredDecimal128Set;
+
     public String getColumnString() {
         return columnString;
     }
@@ -464,5 +478,109 @@ public class AllTypes extends RealmObject {
 
     public void setColumnMixedSet(RealmSet<Mixed> columnMixedSet) {
         this.columnMixedSet = columnMixedSet;
+    }
+
+    public RealmSet<Boolean> getColumnRequiredBooleanSet() {
+        return columnRequiredBooleanSet;
+    }
+
+    public void setColumnRequiredBooleanSet(RealmSet<Boolean> columnRequiredBooleanSet) {
+        this.columnRequiredBooleanSet = columnRequiredBooleanSet;
+    }
+
+    public RealmSet<String> getColumnRequiredStringSet() {
+        return columnRequiredStringSet;
+    }
+
+    public void setColumnRequiredStringSet(RealmSet<String> columnRequiredStringSet) {
+        this.columnRequiredStringSet = columnRequiredStringSet;
+    }
+
+    public RealmSet<Integer> getColumnRequiredIntegerSet() {
+        return columnRequiredIntegerSet;
+    }
+
+    public void setColumnRequiredIntegerSet(RealmSet<Integer> columnRequiredIntegerSet) {
+        this.columnRequiredIntegerSet = columnRequiredIntegerSet;
+    }
+
+    public RealmSet<Float> getColumnRequiredFloatSet() {
+        return columnRequiredFloatSet;
+    }
+
+    public void setColumnRequiredFloatSet(RealmSet<Float> columnRequiredFloatSet) {
+        this.columnRequiredFloatSet = columnRequiredFloatSet;
+    }
+
+    public RealmSet<Long> getColumnRequiredLongSet() {
+        return columnRequiredLongSet;
+    }
+
+    public void setColumnRequiredLongSet(RealmSet<Long> columnRequiredLongSet) {
+        this.columnRequiredLongSet = columnRequiredLongSet;
+    }
+
+    public RealmSet<Short> getColumnRequiredShortSet() {
+        return columnRequiredShortSet;
+    }
+
+    public void setColumnRequiredShortSet(RealmSet<Short> columnRequiredShortSet) {
+        this.columnRequiredShortSet = columnRequiredShortSet;
+    }
+
+    public RealmSet<Double> getColumnRequiredDoubleSet() {
+        return columnRequiredDoubleSet;
+    }
+
+    public void setColumnRequiredDoubleSet(RealmSet<Double> columnRequiredDoubleSet) {
+        this.columnRequiredDoubleSet = columnRequiredDoubleSet;
+    }
+
+    public RealmSet<Byte> getColumnRequiredByteSet() {
+        return columnRequiredByteSet;
+    }
+
+    public void setColumnRequiredByteSet(RealmSet<Byte> columnRequiredByteSet) {
+        this.columnRequiredByteSet = columnRequiredByteSet;
+    }
+
+    public RealmSet<byte[]> getColumnRequiredBinarySet() {
+        return columnRequiredBinarySet;
+    }
+
+    public void setColumnRequiredBinarySet(RealmSet<byte[]> columnRequiredBinarySet) {
+        this.columnRequiredBinarySet = columnRequiredBinarySet;
+    }
+
+    public RealmSet<Date> getColumnRequiredDateSet() {
+        return columnRequiredDateSet;
+    }
+
+    public void setColumnRequiredDateSet(RealmSet<Date> columnRequiredDateSet) {
+        this.columnRequiredDateSet = columnRequiredDateSet;
+    }
+
+    public RealmSet<ObjectId> getColumnRequiredObjectIdSet() {
+        return columnRequiredObjectIdSet;
+    }
+
+    public void setColumnRequiredObjectIdSet(RealmSet<ObjectId> columnRequiredObjectIdSet) {
+        this.columnRequiredObjectIdSet = columnRequiredObjectIdSet;
+    }
+
+    public RealmSet<UUID> getColumnRequiredUUIDSet() {
+        return columnRequiredUUIDSet;
+    }
+
+    public void setColumnRequiredUUIDSet(RealmSet<UUID> columnRequiredUUIDSet) {
+        this.columnRequiredUUIDSet = columnRequiredUUIDSet;
+    }
+
+    public RealmSet<Decimal128> getColumnRequiredDecimal128Set() {
+        return columnRequiredDecimal128Set;
+    }
+
+    public void setColumnRequiredDecimal128Set(RealmSet<Decimal128> columnRequiredDecimal128Set) {
+        this.columnRequiredDecimal128Set = columnRequiredDecimal128Set;
     }
 }

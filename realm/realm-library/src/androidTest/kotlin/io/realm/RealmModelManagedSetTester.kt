@@ -111,6 +111,8 @@ class RealmModelManagedSetTester<T : Any>(
 
     override fun isEmpty() = managedTester.isEmpty()
 
+    override fun requiredConstraints() = Unit // Not tested
+
     override fun contains() {
         managedTester.contains()
 
