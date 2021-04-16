@@ -23,7 +23,7 @@ import io.realm.MapChangeSet;
 import io.realm.RealmChangeListener;
 import io.realm.RealmMap;
 
-// Helper class for supporting add change listeners to RealmMaps via ManagedMapManager and its subclases.
+// Helper class for supporting add change listeners to RealmMaps via ManagedMapManager and its subclasses.
 @Keep   // Prevent this class from being obfuscated by proguard
 public interface ObservableMap {
 

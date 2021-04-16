@@ -411,6 +411,16 @@ class RealmModelManagedSetTester<T : Any>(
         }
     }
 
+    override fun addRealmChangeListener() = Unit
+
+    override fun addSetChangeListener() = Unit
+
+    override fun removeSetChangeListener() = Unit
+
+    override fun removeRealmChangeListener() = Unit
+
+    override fun hasListeners() = Unit
+
     private fun accessTransactionRealmInLooperThread(block: (looperRealm: Realm) -> Unit) {
         // Test with objects from another realm
         looperThread.runBlocking {

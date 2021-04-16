@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import io.realm.SetChangeSet;
 import io.realm.internal.core.NativeMixedCollection;
 
 public class OsSet implements NativeObject {
@@ -34,6 +35,8 @@ public class OsSet implements NativeObject {
         REMOVE_ALL,
         RETAIN_ALL
     }
+
+    public static final int NOT_FOUND = -1;             // This means something was not found in OS
 
     private static final int VALUE_NOT_FOUND = 0;       // comes from a native boolean
     private static final int VALUE_FOUND = 1;           // comes from a native boolean
@@ -46,7 +49,8 @@ public class OsSet implements NativeObject {
 
     public OsSet(UncheckedRow row, long columnKey) {
         this.osSharedRealm = row.getTable().getSharedRealm();
-        this.nativePtr = nativeCreate(osSharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
+        long[] pointers = nativeCreate(osSharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
+        this.nativePtr = pointers[0];
         this.context = osSharedRealm.context;
         context.addReference(this);
     }
@@ -563,6 +567,29 @@ public class OsSet implements NativeObject {
     }
 
     // ----------------------------------------------------
+    // Change listeners
+    // ----------------------------------------------------
+
+    public void startListening(ObservableSet observableSet) {
+        nativeStartListening(nativePtr, observableSet);
+    }
+
+    public void stopListening() {
+        nativeStopListening(nativePtr);
+    }
+
+    public <T> void notifyChangeListeners(long nativeChangeSetPtr,
+                                          ObserverPairList<ObservableSet.SetObserverPair<T>> setObserverPairs) {
+        OsCollectionChangeSet collectionChangeSet = new OsCollectionChangeSet(nativeChangeSetPtr, false);
+        SetChangeSet setChangeSet = new SetChangeSet(collectionChangeSet);
+        if (setChangeSet.isEmpty()) {
+            // First time "query" returns. Do nothing.
+            return;
+        }
+        setObserverPairs.foreach(new ObservableSet.Callback<>(setChangeSet));
+    }
+
+    // ----------------------------------------------------
     // Private stuff
     // ----------------------------------------------------
 
@@ -583,7 +610,7 @@ public class OsSet implements NativeObject {
 
     private static native long nativeGetFinalizerPtr();
 
-    private static native long nativeCreate(long sharedRealmPtr, long nativeRowPtr, long columnKey);
+    private static native long[] nativeCreate(long sharedRealmPtr, long nativeRowPtr, long columnKey);
 
     private static native boolean nativeIsValid(long nativePtr);
 
@@ -692,4 +719,8 @@ public class OsSet implements NativeObject {
     private static native void nativeClear(long nativePtr);
 
     private static native long nativeFreeze(long nativePtr, long frozenRealmPtr);
+
+    private static native void nativeStartListening(long nativePtr, ObservableSet observableSet);
+
+    private static native void nativeStopListening(long nativePtr);
 }

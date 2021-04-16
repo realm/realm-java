@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
@@ -167,6 +169,20 @@ public class CollectionUtils {
         } else {
             return realm.copyToRealm(object);
         }
+    }
+
+    /**
+     * Checks whether it is possible to add or remove a provided listener.
+     *
+     * @param listener      The listener to be checked.
+     * @param checkListener whether the check should be performed.
+     */
+    public static void checkForAddRemoveListener(BaseRealm baseRealm, @Nullable Object listener, boolean checkListener) {
+        if (checkListener && listener == null) {
+            throw new IllegalArgumentException("Listener should not be null");
+        }
+        baseRealm.checkIfValid();
+        baseRealm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
     }
 
     /**

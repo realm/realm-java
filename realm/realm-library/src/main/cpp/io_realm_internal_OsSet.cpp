@@ -26,6 +26,7 @@
 #include "java_object_accessor.hpp"
 #include "java_exception_def.hpp"
 #include "jni_util/java_exception_thrower.hpp"
+#include "observable_collection_wrapper.hpp"
 #include "util.hpp"
 
 using namespace realm;
@@ -33,8 +34,10 @@ using namespace realm::util;
 using namespace realm::object_store;
 using namespace realm::_impl;
 
+typedef ObservableCollectionWrapper<object_store::Set> SetWrapper;
+
 void finalize_set(jlong ptr) {
-    delete reinterpret_cast<object_store::Set*>(ptr);
+    delete reinterpret_cast<SetWrapper*>(ptr);
 }
 
 inline bool isSetNullable(JNIEnv *env, realm::object_store::Set &set) {
@@ -50,23 +53,47 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSet_nativeGetFinalizerPtr(JNIEn
     return reinterpret_cast<jlong>(&finalize_set);
 }
 
-JNIEXPORT jlong JNICALL
+JNIEXPORT jlongArray JNICALL
 Java_io_realm_internal_OsSet_nativeCreate(JNIEnv* env, jclass, jlong shared_realm_ptr,
                                           jlong obj_ptr, jlong column_key) {
     try {
         auto obj = *reinterpret_cast<realm::Obj*>(obj_ptr);
         auto shared_realm = *reinterpret_cast<SharedRealm*>(shared_realm_ptr);
-        auto set_ptr = new object_store::Set(shared_realm, obj, ColKey(column_key));
-        return reinterpret_cast<jlong>(set_ptr);
+
+        // Return an array of pointers: first to the wrapper, second to the table (if applicable)
+        jlong ret[2];
+
+        // Get set, put it in the wrapper and save pointer to be returned
+        object_store::Set set(shared_realm, obj, ColKey(column_key));
+        auto wrapper_ptr = new SetWrapper(set, "io/realm/internal/ObservableSet");
+        ret[0] = reinterpret_cast<jlong>(wrapper_ptr);
+
+        // Special case for objects: return the table. Ignore for other types
+        if (wrapper_ptr->collection().get_type() == PropertyType::Object) {
+            auto target_table_ptr = new TableRef(obj.get_table());
+            ret[1] = reinterpret_cast<jlong>(target_table_ptr);
+        } else {
+            ret[1] = reinterpret_cast<jlong>(nullptr);
+        }
+
+        jlongArray ret_array = env->NewLongArray(2);
+        if (!ret_array) {
+            ThrowException(env, OutOfMemory, "Could not allocate memory to create OsSet.");
+            return nullptr;
+        }
+
+        env->SetLongArrayRegion(ret_array, 0, 2, ret);
+        return ret_array;
     }
     CATCH_STD()
-    return reinterpret_cast<jlong>(nullptr);
+    return nullptr;
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeIsValid(JNIEnv* env, jclass, jlong set_ptr) {
+Java_io_realm_internal_OsSet_nativeIsValid(JNIEnv* env, jclass, jlong wrapper_ptr) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         return set.is_valid();
     }
     CATCH_STD()
@@ -74,9 +101,10 @@ Java_io_realm_internal_OsSet_nativeIsValid(JNIEnv* env, jclass, jlong set_ptr) {
 }
 
 JNIEXPORT jobject JNICALL
-Java_io_realm_internal_OsSet_nativeGetValueAtIndex(JNIEnv* env, jclass, jlong set_ptr, jint position) {
+Java_io_realm_internal_OsSet_nativeGetValueAtIndex(JNIEnv* env, jclass, jlong wrapper_ptr, jint position) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         const Mixed& value = set.get_any(position);
         if (value.is_null()) {
             return nullptr;
@@ -113,9 +141,10 @@ Java_io_realm_internal_OsSet_nativeGetValueAtIndex(JNIEnv* env, jclass, jlong se
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_OsSet_nativeSize(JNIEnv* env, jclass, jlong set_ptr) {
+Java_io_realm_internal_OsSet_nativeSize(JNIEnv* env, jclass, jlong wrapper_ptr) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         return set.size();
     }
     CATCH_STD()
@@ -123,9 +152,11 @@ Java_io_realm_internal_OsSet_nativeSize(JNIEnv* env, jclass, jlong set_ptr) {
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeContainsNull(JNIEnv *env, jclass, jlong set_ptr) {
+Java_io_realm_internal_OsSet_nativeContainsNull(JNIEnv *env, jclass, jlong wrapper_ptr) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set *>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
+
         if (isSetNullable(env, set)) {
             size_t found = set.find_any(Mixed());
             return found != npos;       // npos represents "not found"
@@ -136,10 +167,11 @@ Java_io_realm_internal_OsSet_nativeContainsNull(JNIEnv *env, jclass, jlong set_p
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeContainsBoolean(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeContainsBoolean(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                    jboolean j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         size_t found = set.find_any(Mixed(bool(j_value)));
         return found != npos;       // npos represents "not found"
     }
@@ -148,10 +180,11 @@ Java_io_realm_internal_OsSet_nativeContainsBoolean(JNIEnv* env, jclass, jlong se
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeContainsString(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeContainsString(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                   jstring j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         JStringAccessor value(env, j_value);
         size_t found = set.find_any(Mixed(StringData(value)));
         return found != npos;       // npos represents "not found"
@@ -161,10 +194,11 @@ Java_io_realm_internal_OsSet_nativeContainsString(JNIEnv* env, jclass, jlong set
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeContainsLong(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeContainsLong(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                 jlong j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         size_t found = set.find_any(Mixed(j_value));
         return found != npos;       // npos represents "not found"
     }
@@ -173,10 +207,11 @@ Java_io_realm_internal_OsSet_nativeContainsLong(JNIEnv* env, jclass, jlong set_p
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeContainsFloat(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeContainsFloat(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                  jfloat j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         size_t found = set.find_any(Mixed(j_value));
         return found != npos;       // npos represents "not found"
     }
@@ -185,10 +220,11 @@ Java_io_realm_internal_OsSet_nativeContainsFloat(JNIEnv* env, jclass, jlong set_
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeContainsDouble(JNIEnv* env, jclass, jlong set_ptr,
-                                                 jdouble j_value) {
+Java_io_realm_internal_OsSet_nativeContainsDouble(JNIEnv* env, jclass, jlong wrapper_ptr,
+                                                  jdouble j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         size_t found = set.find_any(Mixed(j_value));
         return found != npos;       // npos represents "not found"
     }
@@ -197,10 +233,11 @@ Java_io_realm_internal_OsSet_nativeContainsDouble(JNIEnv* env, jclass, jlong set
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeContainsBinary(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeContainsBinary(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                   jbyteArray j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         const OwnedBinaryData& data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
         size_t found = set.find_any(Mixed(data.get()));
         return found != npos;       // npos represents "not found"
@@ -210,10 +247,11 @@ Java_io_realm_internal_OsSet_nativeContainsBinary(JNIEnv* env, jclass, jlong set
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeContainsDate(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeContainsDate(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                 jlong j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         realm::Timestamp timestamp = from_milliseconds(j_value);
         size_t found = set.find_any(Mixed(timestamp));
         return found != npos;       // npos represents "not found"
@@ -223,10 +261,11 @@ Java_io_realm_internal_OsSet_nativeContainsDate(JNIEnv* env, jclass, jlong set_p
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeContainsDecimal128(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeContainsDecimal128(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                       jlong j_low_value, jlong j_high_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
         Decimal128 decimal128 = Decimal128(raw);
         size_t found = set.find_any(Mixed(decimal128));
@@ -237,10 +276,11 @@ Java_io_realm_internal_OsSet_nativeContainsDecimal128(JNIEnv* env, jclass, jlong
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeContainsObjectId(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeContainsObjectId(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                     jstring j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         JStringAccessor data(env, j_value);
         const ObjectId object_id = ObjectId(StringData(data).data());
         size_t found = set.find_any(Mixed(object_id));
@@ -251,10 +291,11 @@ Java_io_realm_internal_OsSet_nativeContainsObjectId(JNIEnv* env, jclass, jlong s
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeContainsUUID(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeContainsUUID(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                 jstring j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         JStringAccessor value(env, j_value);
         const UUID& uuid = UUID(StringData(value).data());
         size_t found = set.find_any(Mixed(uuid));
@@ -265,10 +306,11 @@ Java_io_realm_internal_OsSet_nativeContainsUUID(JNIEnv* env, jclass, jlong set_p
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeContainsRow(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeContainsRow(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                jlong j_obj_key) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         ObjKey object_key(j_obj_key);
         size_t found = set.find_any(object_key);
         return found != npos;       // npos represents "not found"
@@ -278,10 +320,11 @@ Java_io_realm_internal_OsSet_nativeContainsRow(JNIEnv* env, jclass, jlong set_pt
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeContainsMixed(JNIEnv* env, jclass, jlong set_ptr,
-                                               jlong mixed_ptr) {
+Java_io_realm_internal_OsSet_nativeContainsMixed(JNIEnv* env, jclass, jlong wrapper_ptr,
+                                                 jlong mixed_ptr) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         auto& java_value = *reinterpret_cast<JavaValue*>(mixed_ptr);
         size_t found = set.find_any(java_value.to_mixed());
         return found != npos;       // npos represents "not found"
@@ -291,9 +334,10 @@ Java_io_realm_internal_OsSet_nativeContainsMixed(JNIEnv* env, jclass, jlong set_
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeAddNull(JNIEnv* env, jclass, jlong set_ptr) {
+Java_io_realm_internal_OsSet_nativeAddNull(JNIEnv* env, jclass, jlong wrapper_ptr) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         JavaAccessorContext context(env);
 
         if (isSetNullable(env, set)) {
@@ -311,10 +355,11 @@ Java_io_realm_internal_OsSet_nativeAddNull(JNIEnv* env, jclass, jlong set_ptr) {
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeAddBoolean(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeAddBoolean(JNIEnv* env, jclass, jlong wrapper_ptr,
                                               jboolean j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         JavaAccessorContext context(env);
 
         // TODO: abstract this call so that the rest is the same for all types
@@ -332,9 +377,10 @@ Java_io_realm_internal_OsSet_nativeAddBoolean(JNIEnv* env, jclass, jlong set_ptr
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeAddString(JNIEnv* env, jclass, jlong set_ptr, jstring j_value) {
+Java_io_realm_internal_OsSet_nativeAddString(JNIEnv* env, jclass, jlong wrapper_ptr, jstring j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         JStringAccessor value(env, j_value);
         JavaAccessorContext context(env);
 
@@ -353,9 +399,10 @@ Java_io_realm_internal_OsSet_nativeAddString(JNIEnv* env, jclass, jlong set_ptr,
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeAddLong(JNIEnv* env, jclass, jlong set_ptr, jlong j_value) {
+Java_io_realm_internal_OsSet_nativeAddLong(JNIEnv* env, jclass, jlong wrapper_ptr, jlong j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         JavaAccessorContext context(env);
 
         // TODO: abstract this call so that the rest is the same for all types
@@ -373,9 +420,10 @@ Java_io_realm_internal_OsSet_nativeAddLong(JNIEnv* env, jclass, jlong set_ptr, j
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeAddFloat(JNIEnv* env, jclass, jlong set_ptr, jfloat j_value) {
+Java_io_realm_internal_OsSet_nativeAddFloat(JNIEnv* env, jclass, jlong wrapper_ptr, jfloat j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         JavaAccessorContext context(env);
 
         // TODO: abstract this call so that the rest is the same for all types
@@ -393,10 +441,11 @@ Java_io_realm_internal_OsSet_nativeAddFloat(JNIEnv* env, jclass, jlong set_ptr, 
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeAddDouble(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeAddDouble(JNIEnv* env, jclass, jlong wrapper_ptr,
                                              jdouble j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         JavaAccessorContext context(env);
 
         // TODO: abstract this call so that the rest is the same for all types
@@ -414,10 +463,11 @@ Java_io_realm_internal_OsSet_nativeAddDouble(JNIEnv* env, jclass, jlong set_ptr,
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeAddBinary(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeAddBinary(JNIEnv* env, jclass, jlong wrapper_ptr,
                                              jbyteArray j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         JavaAccessorContext context(env);
         JByteArrayAccessor data(env, j_value);
 
@@ -436,10 +486,11 @@ Java_io_realm_internal_OsSet_nativeAddBinary(JNIEnv* env, jclass, jlong set_ptr,
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeAddDate(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeAddDate(JNIEnv* env, jclass, jlong wrapper_ptr,
                                            jlong j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         JavaAccessorContext context(env);
 
         // TODO: abstract this call so that the rest is the same for all types
@@ -457,10 +508,11 @@ Java_io_realm_internal_OsSet_nativeAddDate(JNIEnv* env, jclass, jlong set_ptr,
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeAddDecimal128(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeAddDecimal128(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                  jlong j_low_value, jlong j_high_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         JavaAccessorContext context(env);
         Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
         Decimal128 decimal128 = Decimal128(raw);
@@ -480,10 +532,11 @@ Java_io_realm_internal_OsSet_nativeAddDecimal128(JNIEnv* env, jclass, jlong set_
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeAddObjectId(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeAddObjectId(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                jstring j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         JavaAccessorContext context(env);
         JStringAccessor data(env, j_value);
         const ObjectId object_id = ObjectId(StringData(data).data());
@@ -503,10 +556,11 @@ Java_io_realm_internal_OsSet_nativeAddObjectId(JNIEnv* env, jclass, jlong set_pt
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeAddUUID(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeAddUUID(JNIEnv* env, jclass, jlong wrapper_ptr,
                                            jstring j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         JavaAccessorContext context(env);
         JStringAccessor value(env, j_value);
         const UUID& uuid = UUID(StringData(value).data());
@@ -526,10 +580,11 @@ Java_io_realm_internal_OsSet_nativeAddUUID(JNIEnv* env, jclass, jlong set_ptr,
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeAddRow(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeAddRow(JNIEnv* env, jclass, jlong wrapper_ptr,
                                           jlong j_obj_key) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         ObjKey object_key(j_obj_key);
 
         // TODO: abstract this call so that the rest is the same for all types
@@ -549,10 +604,11 @@ Java_io_realm_internal_OsSet_nativeAddRow(JNIEnv* env, jclass, jlong set_ptr,
 
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeAddMixed(JNIEnv* env, jclass, jlong set_ptr,
-                                          jlong mixed_ptr) {
+Java_io_realm_internal_OsSet_nativeAddMixed(JNIEnv* env, jclass, jlong wrapper_ptr,
+                                            jlong mixed_ptr) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         auto& java_value = *reinterpret_cast<JavaValue*>(mixed_ptr);
 
         // TODO: abstract this call so that the rest is the same for all types
@@ -570,9 +626,11 @@ Java_io_realm_internal_OsSet_nativeAddMixed(JNIEnv* env, jclass, jlong set_ptr,
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeRemoveNull(JNIEnv* env, jclass, jlong set_ptr) {
+Java_io_realm_internal_OsSet_nativeRemoveNull(JNIEnv* env, jclass, jlong wrapper_ptr) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
+
         if (isSetNullable(env, set)) {
             const std::pair<size_t, bool> &remove_pair = set.remove_any(Mixed());
             jlong ret[2];
@@ -588,10 +646,11 @@ Java_io_realm_internal_OsSet_nativeRemoveNull(JNIEnv* env, jclass, jlong set_ptr
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeRemoveBoolean(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeRemoveBoolean(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                  jboolean j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
 
         // TODO: abstract this call so that the rest is the same for all types
         const std::pair<size_t, bool>& remove_pair = set.remove_any(Mixed(bool(j_value)));
@@ -608,9 +667,10 @@ Java_io_realm_internal_OsSet_nativeRemoveBoolean(JNIEnv* env, jclass, jlong set_
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeRemoveString(JNIEnv* env, jclass, jlong set_ptr, jstring j_value) {
+Java_io_realm_internal_OsSet_nativeRemoveString(JNIEnv* env, jclass, jlong wrapper_ptr, jstring j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         JStringAccessor value(env, j_value);
 
         // TODO: abstract this call so that the rest is the same for all types
@@ -628,10 +688,11 @@ Java_io_realm_internal_OsSet_nativeRemoveString(JNIEnv* env, jclass, jlong set_p
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeRemoveLong(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeRemoveLong(JNIEnv* env, jclass, jlong wrapper_ptr,
                                               jlong j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
 
         // TODO: abstract this call so that the rest is the same for all types
         const std::pair<size_t, bool>& remove_pair = set.remove_any(Mixed(j_value));
@@ -648,10 +709,11 @@ Java_io_realm_internal_OsSet_nativeRemoveLong(JNIEnv* env, jclass, jlong set_ptr
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeRemoveFloat(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeRemoveFloat(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                jfloat j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
 
         // TODO: abstract this call so that the rest is the same for all types
         const std::pair<size_t, bool>& remove_pair = set.remove_any(Mixed(j_value));
@@ -668,10 +730,11 @@ Java_io_realm_internal_OsSet_nativeRemoveFloat(JNIEnv* env, jclass, jlong set_pt
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeRemoveDouble(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeRemoveDouble(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                 jdouble j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
 
         // TODO: abstract this call so that the rest is the same for all types
         const std::pair<size_t, bool>& remove_pair = set.remove_any(Mixed(j_value));
@@ -688,10 +751,11 @@ Java_io_realm_internal_OsSet_nativeRemoveDouble(JNIEnv* env, jclass, jlong set_p
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeRemoveBinary(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeRemoveBinary(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                 jbyteArray j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         const OwnedBinaryData& data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
 
         // TODO: abstract this call so that the rest is the same for all types
@@ -709,10 +773,11 @@ Java_io_realm_internal_OsSet_nativeRemoveBinary(JNIEnv* env, jclass, jlong set_p
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeRemoveDate(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeRemoveDate(JNIEnv* env, jclass, jlong wrapper_ptr,
                                               jlong j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         realm::Timestamp timestamp = from_milliseconds(j_value);
 
         // TODO: abstract this call so that the rest is the same for all types
@@ -730,10 +795,11 @@ Java_io_realm_internal_OsSet_nativeRemoveDate(JNIEnv* env, jclass, jlong set_ptr
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeRemoveDecimal128(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeRemoveDecimal128(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                     jlong j_low_value, jlong j_high_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
         Decimal128 decimal128 = Decimal128(raw);
 
@@ -752,10 +818,11 @@ Java_io_realm_internal_OsSet_nativeRemoveDecimal128(JNIEnv* env, jclass, jlong s
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeRemoveObjectId(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeRemoveObjectId(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                   jstring j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         JStringAccessor data(env, j_value);
         const ObjectId object_id = ObjectId(StringData(data).data());
 
@@ -775,10 +842,11 @@ Java_io_realm_internal_OsSet_nativeRemoveObjectId(JNIEnv* env, jclass, jlong set
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeRemoveUUID(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeRemoveUUID(JNIEnv* env, jclass, jlong wrapper_ptr,
                                               jstring j_value) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         JStringAccessor value(env, j_value);
         const UUID& uuid = UUID(StringData(value).data());
 
@@ -797,10 +865,11 @@ Java_io_realm_internal_OsSet_nativeRemoveUUID(JNIEnv* env, jclass, jlong set_ptr
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeRemoveRow(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeRemoveRow(JNIEnv* env, jclass, jlong wrapper_ptr,
                                              jlong j_obj_key) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         ObjKey object_key(j_obj_key);
 
         // TODO: abstract this call so that the rest is the same for all types
@@ -818,10 +887,11 @@ Java_io_realm_internal_OsSet_nativeRemoveRow(JNIEnv* env, jclass, jlong set_ptr,
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeRemoveMixed(JNIEnv* env, jclass, jlong set_ptr,
-                                             jlong mixed_ptr) {
+Java_io_realm_internal_OsSet_nativeRemoveMixed(JNIEnv* env, jclass, jlong wrapper_ptr,
+                                               jlong mixed_ptr) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         auto& java_value = *reinterpret_cast<JavaValue*>(mixed_ptr);
 
         // TODO: abstract this call so that the rest is the same for all types
@@ -839,10 +909,11 @@ Java_io_realm_internal_OsSet_nativeRemoveMixed(JNIEnv* env, jclass, jlong set_pt
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_OsSet_nativeGetRow(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeGetRow(JNIEnv* env, jclass, jlong wrapper_ptr,
                                           jint j_index) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         const Obj &obj = set.get(j_index);
         return obj.get_key().value;
     }
@@ -851,10 +922,11 @@ Java_io_realm_internal_OsSet_nativeGetRow(JNIEnv* env, jclass, jlong set_ptr,
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_OsSet_nativeGetMixed(JNIEnv* env, jclass, jlong set_ptr,
-                                          jint j_index) {
+Java_io_realm_internal_OsSet_nativeGetMixed(JNIEnv* env, jclass, jlong wrapper_ptr,
+                                            jint j_index) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         const Mixed& mixed = set.get_any(j_index);
         return reinterpret_cast<jlong>(new JavaValue(from_mixed(mixed)));
     }
@@ -863,9 +935,11 @@ Java_io_realm_internal_OsSet_nativeGetMixed(JNIEnv* env, jclass, jlong set_ptr,
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeContainsAll(JNIEnv*, jclass, jlong set_ptr, jlong other_set_ptr) {
-    auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
-    auto& other_set = *reinterpret_cast<realm::object_store::Set*>(other_set_ptr);
+Java_io_realm_internal_OsSet_nativeContainsAll(JNIEnv*, jclass, jlong wrapper_ptr, jlong other_wrapper_ptr) {
+    auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+    object_store::Set& set = wrapper.collection();
+    auto& other_wrapper = *reinterpret_cast<SetWrapper*>(other_wrapper_ptr);
+    object_store::Set& other_set = other_wrapper.collection();
 
     // If other set is a subset of set then set contains other set
     bool is_contained = other_set.is_subset_of(set);
@@ -873,9 +947,11 @@ Java_io_realm_internal_OsSet_nativeContainsAll(JNIEnv*, jclass, jlong set_ptr, j
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeUnion(JNIEnv*, jclass, jlong set_ptr, jlong other_set_ptr) {
-    auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
-    auto& other_set = *reinterpret_cast<realm::object_store::Set*>(other_set_ptr);
+Java_io_realm_internal_OsSet_nativeUnion(JNIEnv*, jclass, jlong wrapper_ptr, jlong other_wrapper_ptr) {
+    auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+    object_store::Set& set = wrapper.collection();
+    auto& other_wrapper = *reinterpret_cast<SetWrapper*>(other_wrapper_ptr);
+    object_store::Set& other_set = other_wrapper.collection();
 
     // If other set is a subset of set it means set will not change after the union
     bool has_changed = !other_set.is_subset_of(set);
@@ -886,10 +962,12 @@ Java_io_realm_internal_OsSet_nativeUnion(JNIEnv*, jclass, jlong set_ptr, jlong o
 JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_OsSet_nativeAsymmetricDifference(JNIEnv*,
                                                         jclass,
-                                                        jlong set_ptr,
-                                                        jlong other_set_ptr) {
-    auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
-    auto& other_set = *reinterpret_cast<realm::object_store::Set*>(other_set_ptr);
+                                                        jlong wrapper_ptr,
+                                                        jlong other_wrapper_ptr) {
+    auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+    object_store::Set& set = wrapper.collection();
+    auto& other_wrapper = *reinterpret_cast<SetWrapper*>(other_wrapper_ptr);
+    object_store::Set& other_set = other_wrapper.collection();
 
     // If other set is a subset of set it means set will change after the difference
     bool has_changed = other_set.is_subset_of(set);
@@ -900,10 +978,12 @@ Java_io_realm_internal_OsSet_nativeAsymmetricDifference(JNIEnv*,
 JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_OsSet_nativeIntersect(JNIEnv*,
                                              jclass,
-                                             jlong set_ptr,
-                                             jlong other_set_ptr) {
-    auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
-    auto& other_set = *reinterpret_cast<realm::object_store::Set*>(other_set_ptr);
+                                             jlong wrapper_ptr,
+                                             jlong other_wrapper_ptr) {
+    auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+    object_store::Set& set = wrapper.collection();
+    auto& other_wrapper = *reinterpret_cast<SetWrapper*>(other_wrapper_ptr);
+    object_store::Set& other_set = other_wrapper.collection();
 
     // If other set intersects set it means set will not change after the intersection
     bool has_changed = !set.intersects(other_set);
@@ -912,33 +992,35 @@ Java_io_realm_internal_OsSet_nativeIntersect(JNIEnv*,
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_OsSet_nativeClear(JNIEnv* env, jclass, jlong set_ptr) {
+Java_io_realm_internal_OsSet_nativeClear(JNIEnv* env, jclass, jlong wrapper_ptr) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         set.remove_all();
     }
     CATCH_STD()
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_OsSet_nativeFreeze(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeFreeze(JNIEnv* env, jclass, jlong wrapper_ptr,
                                           jlong frozen_realm_ptr) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         auto& shared_realm_ptr = *reinterpret_cast<std::shared_ptr<Realm>*>(frozen_realm_ptr);
-        const object_store::Set& frozen_set = set.freeze(shared_realm_ptr);
-        auto* frozen_set_ptr = new object_store::Set(frozen_set);
-        return reinterpret_cast<jlong>(frozen_set_ptr);
+        object_store::Set frozen_set = set.freeze(shared_realm_ptr);
+        return reinterpret_cast<jlong>(new SetWrapper(frozen_set, "io/realm/internal/ObservableSet"));
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeContainsAllMixedCollection(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeContainsAllMixedCollection(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                               jlong mixed_collection_ptr) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         auto &collection = *reinterpret_cast<std::vector<JavaValue> *>(mixed_collection_ptr);
         const std::vector<Mixed>& mixed_collection = to_mixed_vector(collection);
 
@@ -959,10 +1041,11 @@ Java_io_realm_internal_OsSet_nativeContainsAllMixedCollection(JNIEnv* env, jclas
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeAddAllMixedCollection(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeAddAllMixedCollection(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                          jlong mixed_collection_ptr) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         auto& collection = *reinterpret_cast<std::vector<JavaValue> *>(mixed_collection_ptr);
         const std::vector<Mixed>& mixed_collection = to_mixed_vector(collection);
         bool set_has_changed = false;
@@ -984,10 +1067,11 @@ Java_io_realm_internal_OsSet_nativeAddAllMixedCollection(JNIEnv* env, jclass, jl
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeRemoveAllMixedCollection(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeRemoveAllMixedCollection(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                             jlong mixed_collection_ptr) {
     try {
-        auto& set = *reinterpret_cast<realm::object_store::Set*>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         auto& collection = *reinterpret_cast<std::vector<JavaValue> *>(mixed_collection_ptr);
         const std::vector<Mixed>& mixed_collection = to_mixed_vector(collection);
         bool set_has_changed = false;
@@ -1009,10 +1093,11 @@ Java_io_realm_internal_OsSet_nativeRemoveAllMixedCollection(JNIEnv* env, jclass,
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeRetainAllMixedCollection(JNIEnv* env, jclass, jlong set_ptr,
+Java_io_realm_internal_OsSet_nativeRetainAllMixedCollection(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                             jlong mixed_collection_ptr) {
     try {
-        auto &set = *reinterpret_cast<realm::object_store::Set *>(set_ptr);
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        object_store::Set& set = wrapper.collection();
         auto &collection = *reinterpret_cast<std::vector<JavaValue> *>(mixed_collection_ptr);
         const std::vector<Mixed> &mixed_collection = to_mixed_vector(collection);
 
@@ -1035,7 +1120,6 @@ Java_io_realm_internal_OsSet_nativeRetainAllMixedCollection(JNIEnv* env, jclass,
         // Insert shared elements now
         set.remove_all();
         for (auto& shared_element : common_elements) {
-            // TODO: this might trigger unwanted notifications if the set is effectively the same
             set.insert_any(shared_element);
         }
 
@@ -1043,4 +1127,23 @@ Java_io_realm_internal_OsSet_nativeRetainAllMixedCollection(JNIEnv* env, jclass,
     }
     CATCH_STD()
     return false;
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_OsSet_nativeStartListening(JNIEnv* env, jclass, jlong wrapper_ptr,
+                                                  jobject j_observable_map) {
+    try {
+        auto wrapper = reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        wrapper->start_listening(env, j_observable_map);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_OsSet_nativeStopListening(JNIEnv* env, jclass, jlong wrapper_ptr) {
+    try {
+        auto wrapper = reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        wrapper->stop_listening();
+    }
+    CATCH_STD()
 }
