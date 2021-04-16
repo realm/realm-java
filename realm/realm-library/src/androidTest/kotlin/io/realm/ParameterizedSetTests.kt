@@ -139,6 +139,11 @@ class ParameterizedSetTests(
     }
 
     @Test
+    fun putRequired() {
+        tester.requiredConstraints()
+    }
+
+    @Test
     fun removeAll() {
         tester.removeAll()
     }
@@ -213,6 +218,7 @@ interface SetTester : GenericTester {
     fun copyToRealmOrUpdate()
     fun addAll()
     fun retainAll()
+    fun requiredConstraints()
     fun removeAll()
     fun clear()
     fun freeze()

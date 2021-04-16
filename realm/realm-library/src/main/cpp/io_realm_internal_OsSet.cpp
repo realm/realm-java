@@ -40,6 +40,15 @@ void finalize_set(jlong ptr) {
     delete reinterpret_cast<SetWrapper*>(ptr);
 }
 
+inline bool isSetNullable(JNIEnv *env, realm::object_store::Set &set) {
+    if (is_nullable(set.get_type())) {
+        return true;
+    }
+
+    THROW_JAVA_EXCEPTION(env, JavaExceptionDef::NullPointerException,
+                         "This 'RealmSet' is not nullable. A non-null value is expected.");
+}
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSet_nativeGetFinalizerPtr(JNIEnv*, jclass) {
     return reinterpret_cast<jlong>(&finalize_set);
 }
@@ -147,8 +156,11 @@ Java_io_realm_internal_OsSet_nativeContainsNull(JNIEnv *env, jclass, jlong wrapp
     try {
         auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
         object_store::Set& set = wrapper.collection();
-        size_t found = set.find_any(Mixed());
-        return found != npos;       // npos represents "not found"
+
+        if (isSetNullable(env, set)) {
+            size_t found = set.find_any(Mixed());
+            return found != npos;       // npos represents "not found"
+        }
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
@@ -327,13 +339,16 @@ Java_io_realm_internal_OsSet_nativeAddNull(JNIEnv* env, jclass, jlong wrapper_pt
         auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
         object_store::Set& set = wrapper.collection();
         JavaAccessorContext context(env);
-        const std::pair<size_t, bool>& add_pair = set.insert(context, Any());
-        jlong ret[2];
-        ret[0] = add_pair.first;    // index
-        ret[1] = add_pair.second;   // found (or not)
-        jlongArray ret_array = env->NewLongArray(2);
-        env->SetLongArrayRegion(ret_array, 0, 2, ret);
-        return ret_array;
+
+        if (isSetNullable(env, set)) {
+            const std::pair<size_t, bool> &add_pair = set.insert(context, Any());
+            jlong ret[2];
+            ret[0] = add_pair.first;    // index
+            ret[1] = add_pair.second;   // found (or not)
+            jlongArray ret_array = env->NewLongArray(2);
+            env->SetLongArrayRegion(ret_array, 0, 2, ret);
+            return ret_array;
+        }
     }
     CATCH_STD()
     return nullptr;
@@ -615,13 +630,16 @@ Java_io_realm_internal_OsSet_nativeRemoveNull(JNIEnv* env, jclass, jlong wrapper
     try {
         auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
         object_store::Set& set = wrapper.collection();
-        const std::pair<size_t, bool>& remove_pair = set.remove_any(Mixed());
-        jlong ret[2];
-        ret[0] = remove_pair.first;     // index
-        ret[1] = remove_pair.second;    // found (or not)
-        jlongArray ret_array = env->NewLongArray(2);
-        env->SetLongArrayRegion(ret_array, 0, 2, ret);
-        return ret_array;
+
+        if (isSetNullable(env, set)) {
+            const std::pair<size_t, bool> &remove_pair = set.remove_any(Mixed());
+            jlong ret[2];
+            ret[0] = remove_pair.first;     // index
+            ret[1] = remove_pair.second;    // found (or not)
+            jlongArray ret_array = env->NewLongArray(2);
+            env->SetLongArrayRegion(ret_array, 0, 2, ret);
+            return ret_array;
+        }
     }
     CATCH_STD()
     return nullptr;
@@ -1007,11 +1025,13 @@ Java_io_realm_internal_OsSet_nativeContainsAllMixedCollection(JNIEnv* env, jclas
         const std::vector<Mixed>& mixed_collection = to_mixed_vector(collection);
 
         for (const Mixed& mixed : mixed_collection) {
-            size_t found;
-            found = set.find_any(mixed);
+            if (!mixed.is_null() || isSetNullable(env, set)) {
+                size_t found;
+                found = set.find_any(mixed);
 
-            if (found == npos) {    // npos represents "not found"
-                return false;
+                if (found == npos) {    // npos represents "not found"
+                    return false;
+                }
             }
         }
         return true;
@@ -1030,12 +1050,14 @@ Java_io_realm_internal_OsSet_nativeAddAllMixedCollection(JNIEnv* env, jclass, jl
         const std::vector<Mixed>& mixed_collection = to_mixed_vector(collection);
         bool set_has_changed = false;
 
-        for (const Mixed& mixed : mixed_collection) {
-            const std::pair<size_t, bool>& insert_pair = set.insert_any(mixed);
+        for (const Mixed &mixed : mixed_collection) {
+            if (!mixed.is_null() || isSetNullable(env, set)) {
+                const std::pair<size_t, bool> &insert_pair = set.insert_any(mixed);
 
-            // If we get true it means the element was not there and therefore it has changed
-            if (insert_pair.second) {
-                set_has_changed = true;
+                // If we get true it means the element was not there and therefore it has changed
+                if (insert_pair.second) {
+                    set_has_changed = true;
+                }
             }
         }
         return set_has_changed;
@@ -1054,12 +1076,14 @@ Java_io_realm_internal_OsSet_nativeRemoveAllMixedCollection(JNIEnv* env, jclass,
         const std::vector<Mixed>& mixed_collection = to_mixed_vector(collection);
         bool set_has_changed = false;
 
-        for (const Mixed& mixed : mixed_collection) {
-            const std::pair<size_t, bool>& remove_pair = set.remove_any(mixed);
+        for (const Mixed &mixed : mixed_collection) {
+            if (!mixed.is_null() || isSetNullable(env, set)) {
+                const std::pair<size_t, bool> &remove_pair = set.remove_any(mixed);
 
-            // If we get true it means the element was not there and therefore it has changed
-            if (remove_pair.second) {
-                set_has_changed = true;
+                // If we get true it means the element was not there and therefore it has changed
+                if (remove_pair.second) {
+                    set_has_changed = true;
+                }
             }
         }
         return set_has_changed;
@@ -1081,20 +1105,21 @@ Java_io_realm_internal_OsSet_nativeRetainAllMixedCollection(JNIEnv* env, jclass,
         bool set_has_changed = false;
 
         for (const Mixed &mixed : mixed_collection) {
-            // Check for present values
-            if (set.find_any(mixed) != realm::npos) {
-                // Put shared elements and store them in an auxiliary structure to use later
-                common_elements.push_back(mixed);
-            } else {
-                // If an element is not found that means the set will change
-                set_has_changed = true;
+            if (!mixed.is_null() || isSetNullable(env, set)) {
+                // Check for present values
+                if (set.find_any(mixed) != realm::npos) {
+                    // Put shared elements and store them in an auxiliary structure to use later
+                    common_elements.push_back(mixed);
+                } else {
+                    // If an element is not found that means the set will change
+                    set_has_changed = true;
+                }
             }
         }
 
         // Insert shared elements now
         set.remove_all();
         for (auto& shared_element : common_elements) {
-            // TODO: this might trigger unwanted notifications if the set is effectively the same
             set.insert_any(shared_element);
         }
 
