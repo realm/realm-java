@@ -2205,6 +2205,637 @@ public class RealmQuery<E> {
     }
 
     /**
+     * Condition that field, if a set field, contains an instance of the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAny(String fieldName, @Nullable Boolean value) {
+        realm.checkIfValid();
+        this.query.containsAny(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, contains an instance of the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAny(String fieldName, @Nullable Byte value) {
+        realm.checkIfValid();
+        this.query.containsAny(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, contains an instance of the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAny(String fieldName, @Nullable Short value) {
+        realm.checkIfValid();
+        this.query.containsAny(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, contains an instance of the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAny(String fieldName, @Nullable Integer value) {
+        realm.checkIfValid();
+        this.query.containsAny(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, contains an instance of the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAny(String fieldName, @Nullable Long value) {
+        realm.checkIfValid();
+        this.query.containsAny(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, contains an instance of the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAny(String fieldName, @Nullable Double value) {
+        realm.checkIfValid();
+        this.query.containsAny(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, contains an instance of the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAny(String fieldName, @Nullable Float value) {
+        realm.checkIfValid();
+        this.query.containsAny(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, contains an instance of the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAny(String fieldName, @Nullable String value) {
+        realm.checkIfValid();
+        this.query.containsAny(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, contains an instance of the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAny(String fieldName, @Nullable byte[] value) {
+        realm.checkIfValid();
+        this.query.containsAny(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, contains an instance of the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAny(String fieldName, @Nullable Date value) {
+        realm.checkIfValid();
+        this.query.containsAny(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, contains an instance of the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAny(String fieldName, @Nullable Decimal128 value) {
+        realm.checkIfValid();
+        this.query.containsAny(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, contains an instance of the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAny(String fieldName, @Nullable ObjectId value) {
+        realm.checkIfValid();
+        this.query.containsAny(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, contains an instance of the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAny(String fieldName, @Nullable UUID value) {
+        realm.checkIfValid();
+        this.query.containsAny(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, contains an instance of the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAny(String fieldName, Mixed value) {
+        realm.checkIfValid();
+        this.query.containsAny(realm.getSchema().getKeyPathMapping(), fieldName, value);
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, contains an instance of the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAny(String fieldName, RealmModel value) {
+        realm.checkIfValid();
+        this.query.containsAny(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, only contains the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAll(String fieldName, @Nullable Boolean value) {
+        realm.checkIfValid();
+        this.query.containsAll(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, only contains the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAll(String fieldName, @Nullable Byte value) {
+        realm.checkIfValid();
+        this.query.containsAll(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, only contains the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAll(String fieldName, @Nullable Short value) {
+        realm.checkIfValid();
+        this.query.containsAll(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, only contains the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAll(String fieldName, @Nullable Integer value) {
+        realm.checkIfValid();
+        this.query.containsAll(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, only contains the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAll(String fieldName, @Nullable Long value) {
+        realm.checkIfValid();
+        this.query.containsAll(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, only contains the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAll(String fieldName, @Nullable Double value) {
+        realm.checkIfValid();
+        this.query.containsAll(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, only contains the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAll(String fieldName, @Nullable Float value) {
+        realm.checkIfValid();
+        this.query.containsAll(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, only contains the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAll(String fieldName, @Nullable String value) {
+        realm.checkIfValid();
+        this.query.containsAll(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, only contains the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAll(String fieldName, @Nullable byte[] value) {
+        realm.checkIfValid();
+        this.query.containsAll(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, only contains the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAll(String fieldName, @Nullable Date value) {
+        realm.checkIfValid();
+        this.query.containsAll(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, only contains the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAll(String fieldName, @Nullable Decimal128 value) {
+        realm.checkIfValid();
+        this.query.containsAll(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, only contains the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAll(String fieldName, @Nullable ObjectId value) {
+        realm.checkIfValid();
+        this.query.containsAll(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, only contains the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAll(String fieldName, @Nullable UUID value) {
+        realm.checkIfValid();
+        this.query.containsAll(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, only contains the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAll(String fieldName, Mixed value) {
+        realm.checkIfValid();
+        this.query.containsAll(realm.getSchema().getKeyPathMapping(), fieldName, value);
+        return this;
+    }
+
+    /**
+     * Condition that field, if a set field, only contains the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsAll(String fieldName, RealmModel value) {
+        realm.checkIfValid();
+        this.query.containsAll(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+
+    /**
+     * Condition that value, if a set field, does not contain the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsNone(String fieldName, @Nullable Boolean value) {
+        realm.checkIfValid();
+        this.query.containsNone(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * //     * Condition that value, if a set field, does not contain the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsNone(String fieldName, @Nullable Byte value) {
+        realm.checkIfValid();
+        this.query.containsNone(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that value, if a set field, does not contain the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsNone(String fieldName, @Nullable Short value) {
+        realm.checkIfValid();
+        this.query.containsNone(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that value, if a set field, does not contain the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsNone(String fieldName, @Nullable Integer value) {
+        realm.checkIfValid();
+        this.query.containsNone(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that value, if a set field, does not contain the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsNone(String fieldName, @Nullable Long value) {
+        realm.checkIfValid();
+        this.query.containsNone(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that value, if a set field, does not contain the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsNone(String fieldName, @Nullable Double value) {
+        realm.checkIfValid();
+        this.query.containsNone(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that value, if a set field, does not contain the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsNone(String fieldName, @Nullable Float value) {
+        realm.checkIfValid();
+        this.query.containsNone(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that value, if a set field, does not contain the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsNone(String fieldName, @Nullable String value) {
+        realm.checkIfValid();
+        this.query.containsNone(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that value, if a set field, does not contain the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsNone(String fieldName, @Nullable byte[] value) {
+        realm.checkIfValid();
+        this.query.containsNone(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that value, if a set field, does not contain the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsNone(String fieldName, @Nullable Date value) {
+        realm.checkIfValid();
+        this.query.containsNone(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that value, if a set field, does not contain the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsNone(String fieldName, @Nullable Decimal128 value) {
+        realm.checkIfValid();
+        this.query.containsNone(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that value, if a set field, does not contain the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsNone(String fieldName, @Nullable ObjectId value) {
+        realm.checkIfValid();
+        this.query.containsNone(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that value, if a set field, does not contain the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsNone(String fieldName, @Nullable UUID value) {
+        realm.checkIfValid();
+        this.query.containsNone(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
+     * Condition that value, if a set field, does not contain the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsNone(String fieldName, Mixed value) {
+        realm.checkIfValid();
+        this.query.containsNone(realm.getSchema().getKeyPathMapping(), fieldName, value);
+        return this;
+    }
+
+    /**
+     * Condition that value, if a set field, does not contain the specified value.
+     *
+     * @param fieldName the field to compare.
+     * @param value     the value to search for.
+     * @return the query object.
+     * @throws java.lang.IllegalArgumentException if the field name isn't valid.
+     */
+    public RealmQuery<E> containsNone(String fieldName, RealmModel value) {
+        realm.checkIfValid();
+        this.query.containsNone(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        return this;
+    }
+
+    /**
      * Calculates the sum of a given field.
      *
      * @param fieldName the field to sum. Only number and Mixed fields are supported.

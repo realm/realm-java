@@ -17,18 +17,13 @@
 package io.realm.internal;
 
 import org.bson.types.Decimal128;
-import org.bson.types.ObjectId;
 
 import java.util.Date;
-import java.util.Map;
-import java.util.UUID;
 
 import javax.annotation.Nullable;
 
 import io.realm.Mixed;
 import io.realm.MixedNativeFunctionsImpl;
-import io.realm.RealmModel;
-import io.realm.RealmObject;
 import io.realm.Sort;
 import io.realm.internal.core.NativeMixed;
 import io.realm.internal.objectstore.OsKeyPathMapping;
@@ -317,6 +312,24 @@ public class TableQuery implements NativeObject {
 
     public TableQuery containsEntry(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed key, Mixed value) {
         mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + "[$0] == $1", key, value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery containsAny(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, "ANY " + escapeFieldName(fieldName) + " == $1", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery containsAll(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, "ALL " + escapeFieldName(fieldName) + " == $1", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery containsNone(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
+        mixedNativeFunctions.callRawPredicate(this, mapping, "NONE " + escapeFieldName(fieldName) + " == $1", value);
         queryValidated = false;
         return this;
     }
