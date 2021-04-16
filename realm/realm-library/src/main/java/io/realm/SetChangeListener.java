@@ -18,7 +18,7 @@ package io.realm;
 
 /**
  * {@link SetChangeListener} can be registered with a {@link RealmSet} to receive a notification
- * with a {@link SetChangeSet} to describe the details of what have been changed in the map since
+ * with a {@link SetChangeSet} to describe the details of what have been changed in the set since
  * last time.
  * <p>
  * Realm instances on a thread without an {@link android.os.Looper} cannot register a
