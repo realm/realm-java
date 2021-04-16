@@ -27,7 +27,9 @@ import javax.annotation.Nullable;
 import io.realm.SetChangeSet;
 import io.realm.internal.core.NativeMixedCollection;
 
-public class OsSet implements NativeObject {
+
+public class OsSet implements NativeObject, OsCollection {
+
 
     public enum ExternalCollectionOperation {
         CONTAINS_ALL,
@@ -46,6 +48,7 @@ public class OsSet implements NativeObject {
     private final long nativePtr;
     private final NativeContext context;
     private final OsSharedRealm osSharedRealm;
+    private final Table targetTable;
 
     public OsSet(UncheckedRow row, long columnKey) {
         this.osSharedRealm = row.getTable().getSharedRealm();
@@ -53,13 +56,20 @@ public class OsSet implements NativeObject {
         this.nativePtr = pointers[0];
         this.context = osSharedRealm.context;
         context.addReference(this);
+
+        if (pointers[1] != 0) {
+            targetTable = new Table(osSharedRealm, pointers[1]);
+        } else {
+            targetTable = null;
+        }
     }
 
     // Used to freeze sets
-    private OsSet(OsSharedRealm osSharedRealm, long nativePtr) {
+    private OsSet(OsSharedRealm osSharedRealm, long nativePtr, @Nullable Table targetTable) {
         this.osSharedRealm = osSharedRealm;
         this.nativePtr = nativePtr;
         this.context = osSharedRealm.context;
+        this.targetTable = targetTable;
         context.addReference(this);
     }
 
@@ -73,8 +83,17 @@ public class OsSet implements NativeObject {
         return nativeFinalizerPtr;
     }
 
+    @Override
     public boolean isValid() {
         return nativeIsValid(nativePtr);
+    }
+
+    public TableQuery getQuery() {
+        return new TableQuery(context, targetTable, nativeGetQuery(nativePtr));
+    }
+
+    public void deleteAll() {
+        nativeDeleteAll(nativePtr);
     }
 
     public Object getValueAtIndex(int position) {
@@ -86,7 +105,7 @@ public class OsSet implements NativeObject {
     }
 
     public boolean collectionFunnel(NativeMixedCollection collection,
-                                    ExternalCollectionOperation operation) {
+            ExternalCollectionOperation operation) {
         switch (operation) {
             case CONTAINS_ALL:
                 return nativeContainsAllMixedCollection(nativePtr, collection.getNativePtr());
@@ -563,7 +582,7 @@ public class OsSet implements NativeObject {
 
     public OsSet freeze(OsSharedRealm frozenSharedRealm) {
         long frozenNativePtr = nativeFreeze(this.nativePtr, frozenSharedRealm.getNativePtr());
-        return new OsSet(frozenSharedRealm, frozenNativePtr);
+        return new OsSet(frozenSharedRealm, frozenNativePtr, targetTable);
     }
 
     // ----------------------------------------------------
@@ -579,7 +598,7 @@ public class OsSet implements NativeObject {
     }
 
     public <T> void notifyChangeListeners(long nativeChangeSetPtr,
-                                          ObserverPairList<ObservableSet.SetObserverPair<T>> setObserverPairs) {
+            ObserverPairList<ObservableSet.SetObserverPair<T>> setObserverPairs) {
         OsCollectionChangeSet collectionChangeSet = new OsCollectionChangeSet(nativeChangeSetPtr, false);
         SetChangeSet setChangeSet = new SetChangeSet(collectionChangeSet);
         if (setChangeSet.isEmpty()) {
@@ -613,6 +632,10 @@ public class OsSet implements NativeObject {
     private static native long[] nativeCreate(long sharedRealmPtr, long nativeRowPtr, long columnKey);
 
     private static native boolean nativeIsValid(long nativePtr);
+
+    private static native long nativeGetQuery(long nativePtr);
+
+    private static native void nativeDeleteAll(long nativePtr);
 
     private static native Object nativeGetValueAtIndex(long nativePtr, int position);
 

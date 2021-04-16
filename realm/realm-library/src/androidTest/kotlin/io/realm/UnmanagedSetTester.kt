@@ -189,6 +189,40 @@ class UnmanagedSetTester<T : Any>(
     override fun hasListeners() {
         assertFalse(RealmSet<T>().hasListeners())
     }
+
+    override fun aggregations() {
+        val set = RealmSet<T>()
+
+        // Aggregation operations are not supported on primitive types.
+        assertFailsWith<java.lang.UnsupportedOperationException> {
+            set.min("aFieldName")
+        }
+
+        assertFailsWith<java.lang.UnsupportedOperationException> {
+            set.max("aFieldName")
+        }
+
+        assertFailsWith<java.lang.UnsupportedOperationException> {
+            set.average("aFieldName")
+        }
+
+        assertFailsWith<java.lang.UnsupportedOperationException> {
+            set.sum("aFieldName")
+        }
+
+        assertFailsWith<java.lang.UnsupportedOperationException> {
+            set.minDate("aFieldName")
+        }
+
+        assertFailsWith<java.lang.UnsupportedOperationException> {
+            set.maxDate("aFieldName")
+        }
+
+        // deleteAllFromRealm is only supported on managed sets.
+        assertFailsWith<java.lang.UnsupportedOperationException> {
+            set.deleteAllFromRealm()
+        }
+    }
 }
 
 fun unmanagedSetFactory(): List<SetTester> {

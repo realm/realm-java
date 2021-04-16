@@ -314,6 +314,8 @@ class NoPKRealmModelSetTester<T : RealmModel>(
 
     override fun hasListeners() = Unit
 
+    override fun aggregations() = Unit
+
     //----------------------------------
     // Private stuff
     //----------------------------------

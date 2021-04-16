@@ -30,15 +30,16 @@ import javax.annotation.Nullable;
 
 import io.realm.annotations.Required;
 import io.realm.exceptions.RealmException;
+import io.realm.internal.OsCollection;
 import io.realm.internal.OsList;
 import io.realm.internal.OsResults;
+import io.realm.internal.OsSet;
 import io.realm.internal.PendingRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.Util;
-import io.realm.internal.core.NativeMixed;
 
 
 /**
@@ -74,7 +75,7 @@ public class RealmQuery<E> {
     private Class<E> clazz;
     private String className;
     private final boolean forValues;
-    private final OsList osList;
+    private final OsCollection osCollection;
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private static final String EMPTY_VALUES = "Non-empty 'values' must be provided.";
@@ -146,13 +147,13 @@ public class RealmQuery<E> {
             // TODO Queries on primitive lists are not yet supported
             this.schema = null;
             this.table = null;
-            this.osList = null;
+            this.osCollection = null;
             this.query = null;
         } else {
             //noinspection unchecked
             this.schema = realm.getSchema().getSchemaForClass((Class<? extends RealmModel>) clazz);
             this.table = schema.getTable();
-            this.osList = null;
+            this.osCollection = null;
             this.query = table.where();
         }
     }
@@ -165,13 +166,13 @@ public class RealmQuery<E> {
             // TODO Queries on primitive lists are not yet supported
             this.schema = null;
             this.table = null;
-            this.osList = null;
+            this.osCollection = null;
             this.query = null;
         } else {
             //noinspection unchecked
             this.schema = realm.getSchema().getSchemaForClass((Class<? extends RealmModel>) clazz);
             this.table = queryResults.getTable();
-            this.osList = null;
+            this.osCollection = null;
             this.query = queryResults.getOsResults().where();
         }
     }
@@ -184,14 +185,33 @@ public class RealmQuery<E> {
             // TODO Queries on primitive lists are not yet supported
             this.schema = null;
             this.table = null;
-            this.osList = null;
+            this.osCollection = null;
             this.query = null;
         } else {
             //noinspection unchecked
             this.schema = realm.getSchema().getSchemaForClass((Class<? extends RealmModel>) clazz);
             this.table = schema.getTable();
-            this.osList = osList;
+            this.osCollection = osList;
             this.query = osList.getQuery();
+        }
+    }
+
+    RealmQuery(BaseRealm realm, OsSet osSet, Class<E> clazz) {
+        this.realm = realm;
+        this.clazz = clazz;
+        this.forValues = !isClassForRealmModel(clazz);
+        if (forValues) {
+            // TODO Queries on primitive lists are not yet supported
+            this.schema = null;
+            this.table = null;
+            this.osCollection = null;
+            this.query = null;
+        } else {
+            //noinspection unchecked
+            this.schema = realm.getSchema().getSchemaForClass((Class<? extends RealmModel>) clazz);
+            this.table = schema.getTable();
+            this.osCollection = osSet;
+            this.query = osSet.getQuery();
         }
     }
 
@@ -202,7 +222,7 @@ public class RealmQuery<E> {
         this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.getTable();
         this.query = table.where();
-        this.osList = null;
+        this.osCollection = null;
     }
 
     private RealmQuery(RealmResults<DynamicRealmObject> queryResults, String className) {
@@ -212,7 +232,7 @@ public class RealmQuery<E> {
         this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.getTable();
         this.query = queryResults.getOsResults().where();
-        this.osList = null;
+        this.osCollection = null;
     }
 
     private RealmQuery(BaseRealm realm, OsList osList, String className) {
@@ -222,7 +242,7 @@ public class RealmQuery<E> {
         this.schema = realm.getSchema().getSchemaForClass(className);
         this.table = schema.getTable();
         this.query = osList.getQuery();
-        this.osList = osList;
+        this.osCollection = osList;
     }
 
     /**
@@ -236,8 +256,8 @@ public class RealmQuery<E> {
             return false;
         }
 
-        if (osList != null) {
-            return osList.isValid();
+        if (osCollection != null) {
+            return osCollection.isValid();
         }
         return (table != null) && table.isValid();
     }

@@ -18,10 +18,12 @@ package io.realm
 
 import io.realm.entities.AllTypes
 import io.realm.entities.AllTypesPrimaryKey
+import io.realm.entities.DogPrimaryKey
 import io.realm.entities.SetContainerClass
 import io.realm.kotlin.createObject
 import io.realm.rule.BlockingLooperThread
 import java.lang.IllegalArgumentException
+import java.lang.UnsupportedOperationException
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KFunction2
 import kotlin.reflect.KMutableProperty1
@@ -35,20 +37,20 @@ import kotlin.test.*
  * whereas in this test we validate Realm models specific cases.
  */
 class RealmModelManagedSetTester<T : Any>(
-        private val testerName: String,
-        private val mixedType: MixedType? = null,
-        private val setGetter: KFunction1<AllTypes, RealmSet<T>>,
-        private val setSetter: KFunction2<AllTypes, RealmSet<T>, Unit>,
-        private val managedSetGetter: KProperty1<SetContainerClass, RealmSet<T>>,
-        private val managedCollectionGetter: KProperty1<SetContainerClass, RealmList<T>>,
-        private val unmanagedInitializedSet: List<T?>,
-        private val unmanagedNotPresentValue: T,
-        private val toArrayManaged: ToArrayManaged<T>,
-        private val insertObjects: (realm: Realm, objects: List<T?>) -> List<T?>,
-        private val deleteObjects: (objects: List<T?>) -> Unit,
-        private val nullable: Boolean,
-        private val equalsTo: (expected: T?, value: T?) -> Boolean,
-        private val primaryKeyAllTypesSetProperty: KMutableProperty1<AllTypesPrimaryKey, RealmSet<T>>
+    private val testerName: String,
+    private val mixedType: MixedType? = null,
+    private val setGetter: KFunction1<AllTypes, RealmSet<T>>,
+    private val setSetter: KFunction2<AllTypes, RealmSet<T>, Unit>,
+    private val managedSetGetter: KProperty1<SetContainerClass, RealmSet<T>>,
+    private val managedCollectionGetter: KProperty1<SetContainerClass, RealmList<T>>,
+    private val unmanagedInitializedSet: List<T?>,
+    private val unmanagedNotPresentValue: T,
+    private val toArrayManaged: ToArrayManaged<T>,
+    private val insertObjects: (realm: Realm, objects: List<T?>) -> List<T?>,
+    private val deleteObjects: (objects: List<T?>) -> Unit,
+    private val nullable: Boolean,
+    private val equalsTo: (expected: T?, value: T?) -> Boolean,
+    private val primaryKeyAllTypesSetProperty: KMutableProperty1<AllTypesPrimaryKey, RealmSet<T>>
 ) : SetTester {
 
     private lateinit var managedTester: ManagedSetTester<T>
@@ -79,18 +81,18 @@ class RealmModelManagedSetTester<T : Any>(
         }
 
         this.managedTester = ManagedSetTester(
-                testerName = testerName,
-                mixedType = mixedType,
-                setGetter = setGetter,
-                setSetter = setSetter,
-                managedSetGetter = managedSetGetter,
-                managedCollectionGetter = managedCollectionGetter,
-                initializedSet = managedInitializedSet,
-                notPresentValue = managedNotPresentValue,
-                toArrayManaged = toArrayManaged,
-                nullable = nullable,
-                equalsTo = equalsTo,
-                primaryKeyAllTypesSetProperty = primaryKeyAllTypesSetProperty
+            testerName = testerName,
+            mixedType = mixedType,
+            setGetter = setGetter,
+            setSetter = setSetter,
+            managedSetGetter = managedSetGetter,
+            managedCollectionGetter = managedCollectionGetter,
+            initializedSet = managedInitializedSet,
+            notPresentValue = managedNotPresentValue,
+            toArrayManaged = toArrayManaged,
+            nullable = nullable,
+            equalsTo = equalsTo,
+            primaryKeyAllTypesSetProperty = primaryKeyAllTypesSetProperty
         )
 
         this.managedTester.setUp(config, looperThread)
@@ -249,7 +251,7 @@ class RealmModelManagedSetTester<T : Any>(
         val set = initAndAssertEmptySet()
         realm.executeTransaction { transactionRealm ->
             // Changes after adding collection
-            if(!nullable){
+            if (!nullable) {
                 assertFailsWith<java.lang.NullPointerException>("Cannot add null values into this set") {
                     set.addAll(listOf(null))
                 }
@@ -307,7 +309,8 @@ class RealmModelManagedSetTester<T : Any>(
             assertTrue(set.containsAll(sameValuesManagedList))
 
             // Changes after adding a managed list with other elements
-            val differentValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            val differentValuesManagedList =
+                managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
             differentValuesManagedList.addAll(listOf(unmanagedNotPresentValue))
             assertTrue(set.addAll(differentValuesManagedList))
             assertTrue(set.containsAll(differentValuesManagedList))
@@ -315,7 +318,8 @@ class RealmModelManagedSetTester<T : Any>(
             // Does not change after adding an empty managed list
             set.clear()
             assertTrue(set.addAll(unmanagedInitializedSet))
-            val emptyValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            val emptyValuesManagedList =
+                managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
             assertFalse(set.addAll(emptyValuesManagedList))
             assertEquals(unmanagedInitializedSet.size, set.size)
 
@@ -420,6 +424,38 @@ class RealmModelManagedSetTester<T : Any>(
     override fun removeRealmChangeListener() = Unit
 
     override fun hasListeners() = Unit
+
+    override fun aggregations() {
+        if (mixedType == null){
+            val set = initAndAssertEmptySet()
+
+            realm.executeTransaction {
+                set.addAll(managedInitializedSet)
+            }
+
+            assertEquals(VALUE_AGE_HELLO, set.min(DogPrimaryKey.AGE))
+            assertEquals(VALUE_AGE_BYE, set.max(DogPrimaryKey.AGE))
+            assertEquals((VALUE_AGE_HELLO + VALUE_AGE_BYE) / 2.toDouble(), set.average(DogPrimaryKey.AGE))
+            assertEquals(VALUE_AGE_HELLO + VALUE_AGE_BYE, set.sum(DogPrimaryKey.AGE))
+            assertEquals(VALUE_BIRTHDAY_HELLO, set.minDate(DogPrimaryKey.BIRTHDAY))
+            assertEquals(VALUE_BIRTHDAY_BYE, set.maxDate(DogPrimaryKey.BIRTHDAY))
+
+            // Delete all should clear the set and remove all objects from the set
+            realm.executeTransaction {
+                set.addAll(managedInitializedSet)
+                assertEquals(managedInitializedSet.size, set.size)
+                set.deleteAllFromRealm()
+                assertTrue(set.isEmpty())
+
+                for (element in managedInitializedSet){
+                    assertFalse(RealmObject.isValid(element as RealmModel))
+                }
+            }
+        } else {
+            // Aggregations on Mixed type are not supported
+            managedTester.aggregations()
+        }
+    }
 
     private fun accessTransactionRealmInLooperThread(block: (looperRealm: Realm) -> Unit) {
         // Test with objects from another realm

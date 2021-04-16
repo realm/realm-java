@@ -308,8 +308,20 @@ internal val VALUE_UUID_HELLO = UUID.nameUUIDFromBytes(VALUE_BINARY_HELLO)
 internal val VALUE_UUID_BYE = UUID.nameUUIDFromBytes(VALUE_BINARY_BYE)
 internal val VALUE_UUID_NOT_PRESENT = UUID.nameUUIDFromBytes(VALUE_BINARY_NOT_PRESENT)
 
-internal val VALUE_LINK_HELLO = DogPrimaryKey(42, VALUE_STRING_HELLO)
-internal val VALUE_LINK_BYE = DogPrimaryKey(43, VALUE_STRING_BYE)
+internal const val VALUE_AGE_HELLO = 10.toLong()
+internal val VALUE_BIRTHDAY_HELLO = Date(0)
+
+internal const val VALUE_AGE_BYE = 20.toLong()
+internal val VALUE_BIRTHDAY_BYE = Date(10)
+
+internal val VALUE_LINK_HELLO = DogPrimaryKey(42, VALUE_STRING_HELLO).apply {
+    age = VALUE_AGE_HELLO
+    birthday = VALUE_BIRTHDAY_HELLO
+}
+internal val VALUE_LINK_BYE = DogPrimaryKey(43, VALUE_STRING_BYE).apply {
+    age = VALUE_AGE_BYE
+    birthday = VALUE_BIRTHDAY_BYE
+}
 internal val VALUE_LINK_NOT_PRESENT = DogPrimaryKey(44, VALUE_STRING_NOT_PRESENT)
 
 internal val VALUE_LINK_NO_PK_HELLO = Owner().apply { name = VALUE_STRING_HELLO }
