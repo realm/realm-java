@@ -248,6 +248,17 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
      * @throws IllegalArgumentException if the change listener is {@code null}.
      * @throws IllegalStateException    if you try to remove a listener from a non-Looper Thread.
      */
+    public void removeChangeListener(RealmChangeListener<RealmSet<E>> listener) {
+        setStrategy.removeChangeListener(this, listener);
+    }
+
+    /**
+     * Removes the specified change listener.
+     *
+     * @param listener the change listener to be removed.
+     * @throws IllegalArgumentException if the change listener is {@code null}.
+     * @throws IllegalStateException    if you try to remove a listener from a non-Looper Thread.
+     */
     public void removeChangeListener(SetChangeListener<E> listener) {
         setStrategy.removeChangeListener(this, listener);
     }
@@ -331,6 +342,8 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
         abstract void addChangeListener(RealmSet<E> set, RealmChangeListener<RealmSet<E>> listener);
 
         abstract void addChangeListener(RealmSet<E> set, SetChangeListener<E> listener);
+
+        abstract void removeChangeListener(RealmSet<E> set, RealmChangeListener<RealmSet<E>> listener);
 
         abstract void removeChangeListener(RealmSet<E> set, SetChangeListener<E> listener);
 
@@ -515,6 +528,11 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
         }
 
         @Override
+        void removeChangeListener(RealmSet<E> set, RealmChangeListener<RealmSet<E>> listener) {
+            setValueOperator.removeChangeListener(set, listener);
+        }
+
+        @Override
         void removeChangeListener(RealmSet<E> set, SetChangeListener<E> listener) {
             setValueOperator.removeChangeListener(set, listener);
         }
@@ -679,6 +697,11 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
         @Override
         void addChangeListener(RealmSet<E> set, SetChangeListener<E> listener) {
             throw new UnsupportedOperationException("Unmanaged RealmSets do not support change listeners.");
+        }
+
+        @Override
+        void removeChangeListener(RealmSet<E> set, RealmChangeListener<RealmSet<E>> listener) {
+            throw new UnsupportedOperationException("Cannot remove change listener because unmanaged RealmSets do not support change listeners.");
         }
 
         @Override

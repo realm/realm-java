@@ -782,6 +782,40 @@ class ManagedSetTester<T : Any>(
         }
     }
 
+    override fun removeRealmChangeListener() {
+        looperThread.runBlocking {
+            val looperThreadRealm = Realm.getInstance(config)
+
+            // Get set
+            val set = initAndAssertEmptySet(looperThreadRealm)
+
+            val listener: (RealmSet<T>) -> Unit = { _ -> /* no-op */ }
+            set.addChangeListener(listener)
+
+            assertTrue(set.hasListeners())
+
+            set.removeChangeListener(listener)
+            assertFalse(set.hasListeners())
+        }
+    }
+
+    override fun removeSetChangeListener() {
+        looperThread.runBlocking {
+            val looperThreadRealm = Realm.getInstance(config)
+
+            // Get set
+            val set = initAndAssertEmptySet(looperThreadRealm)
+
+            val listener: (RealmSet<T>, SetChangeSet) -> Unit = { _, _ -> /* no-op */ }
+            set.addChangeListener(listener)
+
+            assertTrue(set.hasListeners())
+
+            set.removeChangeListener(listener)
+            assertFalse(set.hasListeners())
+        }
+    }
+
     override fun hasListeners() {
         looperThread.runBlocking {
             val looperThreadRealm = Realm.getInstance(config)

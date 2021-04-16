@@ -225,6 +225,8 @@ interface SetTester : GenericTester {
     fun setters()
     fun addSetChangeListener()
     fun addRealmChangeListener()
+    fun removeSetChangeListener()
+    fun removeRealmChangeListener()
     fun hasListeners()
 }
 

@@ -184,6 +184,15 @@ abstract class SetValueOperator<E> implements ObservableSet {
         addChangeListener(realmSet, changeListener);
     }
 
+    public void removeChangeListener(RealmSet<E> realmSet, RealmChangeListener<RealmSet<E>> listener) {
+        removeChangeListener(realmSet, new SetChangeListener<E>() {
+            @Override
+            public void onChange(RealmSet<E> set, SetChangeSet changes) {
+                listener.onChange(set);
+            }
+        });
+    }
+
     public void removeChangeListener(RealmSet<E> realmSet, SetChangeListener<E> listener) {
         setObserverPairs.remove(realmSet, listener);
         if (setObserverPairs.isEmpty()) {
