@@ -18,7 +18,9 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.entities.*
+import io.realm.entities.SetContainerAfterMigrationClass
+import io.realm.entities.SetContainerMigrationClass
+import io.realm.entities.StringOnly
 import io.realm.kotlin.createObject
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
