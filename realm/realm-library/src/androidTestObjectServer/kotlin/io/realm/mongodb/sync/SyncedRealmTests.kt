@@ -26,8 +26,11 @@ import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
-import io.realm.mongodb.*
+import io.realm.mongodb.App
+import io.realm.mongodb.Credentials
 import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
+import io.realm.mongodb.User
+import io.realm.mongodb.close
 import org.bson.BsonNull
 import org.bson.BsonString
 import org.bson.types.Decimal128
@@ -506,33 +509,6 @@ class SyncedRealmTests {
         }
     }
 
-    // Float is not supported in sync yet. The intention of this test is to catch when it does.
-    // Once it is supported we must add it to the data roundtrip test.
-    @Test
-    fun catch_float32NotSupportedInSync() {
-        val user1: User = createNewUser()
-        val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
-
-        Realm.getInstance(config1).use { realm1 ->
-            realm1.executeTransaction {
-                val syncObject = SyncAllTypes().apply {
-                    columnMixed = Mixed.valueOf(10.5.toFloat())
-                    columnRealmInteger.set(10)
-                }
-
-                realm1.copyToRealmOrUpdate(syncObject)
-            }
-
-            try {
-                realm1.syncSession.uploadAllLocalChanges()
-                fail("Sync now support float32 values.")
-            } catch (ignore: AppException) {
-
-            }
-        }
-    }
-
-
     @Test
     fun allTypes_roundTrip() {
         val expectedMixedValues = arrayListOf(
@@ -599,6 +575,7 @@ class SyncedRealmTests {
                     realm1.executeTransaction {
                         expectedRealmObject = realm1.copyToRealmOrUpdate(expectedRealmObject)
                         expectedRealmList.add(expectedRealmObject)
+                        expectedRealmDict["key"] = expectedRealmObject
 
                         // Populate object to round-trip
                         val syncObject = SyncAllTypes().apply {
@@ -743,8 +720,8 @@ class SyncedRealmTests {
 
     private fun createCustomConfig(user: User, partitionValue: String = defaultPartitionValue): SyncConfiguration {
         return SyncConfiguration.Builder(user, partitionValue)
-                .schema(SyncColor::class.java)
-                .build()
+            .schema(SyncColor::class.java)
+            .build()
     }
 
     private fun createNewUser(): User {
