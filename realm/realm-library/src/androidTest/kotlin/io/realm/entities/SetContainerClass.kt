@@ -20,6 +20,7 @@ import io.realm.Mixed
 import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.RealmSet
+import io.realm.annotations.PrimaryKey
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import java.util.*
@@ -65,7 +66,11 @@ open class SetContainerClass : RealmObject() {
     }
 }
 
-open class SetMigrationContainerClass : RealmObject() {
+open class SetContainerMigrationClass : RealmObject() {
+
+    @PrimaryKey
+    var id: String? = ""
+
     val myRealmModelSet = RealmSet<StringOnly>()
     val myBooleanSet = RealmSet<Boolean>()
     val myStringSet = RealmSet<String>()
@@ -83,6 +88,16 @@ open class SetMigrationContainerClass : RealmObject() {
     val myMixedSet = RealmSet<Mixed>()
 
     companion object {
-        const val CLASS_NAME = "SetMigrationContainerClass"
+        const val CLASS_NAME = "SetContainerMigrationClass"
+    }
+}
+
+open class SetContainerAfterMigrationClass : RealmObject() {
+
+    @PrimaryKey
+    var id: String? = ""
+
+    companion object {
+        const val CLASS_NAME = "SetContainerAfterMigrationClass"
     }
 }

@@ -18,7 +18,8 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.entities.SetMigrationContainerClass
+import io.realm.entities.SetContainerAfterMigrationClass
+import io.realm.entities.SetContainerMigrationClass
 import io.realm.entities.StringOnly
 import io.realm.kotlin.createObject
 import org.bson.types.Decimal128
@@ -30,6 +31,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -43,77 +45,77 @@ class SetMiscTests {
     private val setFields = listOf(
         // The "java.lang" prefix in primitive types is needed or else Kotlin will map it to raw primitives
         Triple(
-            SetMigrationContainerClass::myBooleanSet,
+            SetContainerMigrationClass::myBooleanSet,
             java.lang.Boolean::class.java,
             RealmFieldType.BOOLEAN_SET
         ),
         Triple(
-            SetMigrationContainerClass::myIntSet,
+            SetContainerMigrationClass::myIntSet,
             java.lang.Integer::class.java,
             RealmFieldType.INTEGER_SET
         ),
         Triple(
-            SetMigrationContainerClass::myFloatSet,
+            SetContainerMigrationClass::myFloatSet,
             java.lang.Float::class.java,
             RealmFieldType.FLOAT_SET
         ),
         Triple(
-            SetMigrationContainerClass::myLongSet,
+            SetContainerMigrationClass::myLongSet,
             java.lang.Long::class.java,
             RealmFieldType.INTEGER_SET
         ),
         Triple(
-            SetMigrationContainerClass::myShortSet,
+            SetContainerMigrationClass::myShortSet,
             java.lang.Short::class.java,
             RealmFieldType.INTEGER_SET
         ),
         Triple(
-            SetMigrationContainerClass::myByteSet,
+            SetContainerMigrationClass::myByteSet,
             java.lang.Byte::class.java,
             RealmFieldType.INTEGER_SET
         ),
         Triple(
-            SetMigrationContainerClass::myDoubleSet,
+            SetContainerMigrationClass::myDoubleSet,
             java.lang.Double::class.java,
             RealmFieldType.DOUBLE_SET
         ),
         Triple(
-            SetMigrationContainerClass::myStringSet,
+            SetContainerMigrationClass::myStringSet,
             String::class.java,
             RealmFieldType.STRING_SET
         ),
         Triple(
-            SetMigrationContainerClass::myBinarySet,
+            SetContainerMigrationClass::myBinarySet,
             ByteArray::class.java,
             RealmFieldType.BINARY_SET
         ),
         Triple(
-            SetMigrationContainerClass::myDateSet,
+            SetContainerMigrationClass::myDateSet,
             Date::class.java,
             RealmFieldType.DATE_SET
         ),
         Triple(
-            SetMigrationContainerClass::myObjectIdSet,
+            SetContainerMigrationClass::myObjectIdSet,
             ObjectId::class.java,
             RealmFieldType.OBJECT_ID_SET
         ),
         Triple(
-            SetMigrationContainerClass::myUUIDSet,
+            SetContainerMigrationClass::myUUIDSet,
             UUID::class.java,
             RealmFieldType.UUID_SET
         ),
         Triple(
-            SetMigrationContainerClass::myDecimal128Set,
+            SetContainerMigrationClass::myDecimal128Set,
             Decimal128::class.java,
             RealmFieldType.DECIMAL128_SET
         ),
         Triple(
-            SetMigrationContainerClass::myMixedSet,
+            SetContainerMigrationClass::myMixedSet,
             Mixed::class.java,
             RealmFieldType.MIXED_SET
         ),
         Triple(
-            SetMigrationContainerClass::myRealmModelSet,
+            SetContainerMigrationClass::myRealmModelSet,
             StringOnly::class.java,
             RealmFieldType.LINK_SET
         )
@@ -142,24 +144,26 @@ class SetMiscTests {
         // Creates v1 of the Realm.
         val realmConfig = configFactory.createConfigurationBuilder()
             .schemaVersion(1)
-            .schema(StringOnly::class.java, SetMigrationContainerClass::class.java)
+            .schema(StringOnly::class.java, SetContainerMigrationClass::class.java)
             .migration { realm, _, _ ->
-                val schema = realm.schema.create(SetMigrationContainerClass.CLASS_NAME)
+                val schema = realm.schema.create(SetContainerMigrationClass.CLASS_NAME)
 
                 setFields.forEach {
-                    if (it.third == RealmFieldType.LINK_SET) {
+                    val objectSchema = if (it.third == RealmFieldType.LINK_SET) {
                         val realmModelSchema = realm.schema.get(it.second.simpleName)
                         assertNotNull(realmModelSchema)
                         schema.addRealmSetField(it.first.name, realmModelSchema)
                     } else {
                         schema.addRealmSetField(it.first.name, it.second)
                     }
+                    assertNotNull(objectSchema)
+                    assertTrue(objectSchema.hasField(it.first.name))
                 }
             }.build()
 
         realm = Realm.getInstance(realmConfig)
 
-        val objectSchema = realm.schema.get(SetMigrationContainerClass.CLASS_NAME)
+        val objectSchema = realm.schema.get(SetContainerMigrationClass.CLASS_NAME)
         assertNotNull(objectSchema)
         setFields.forEach {
             assertTrue(objectSchema.hasField(it.first.name))
@@ -167,13 +171,72 @@ class SetMiscTests {
         }
 
         realm.executeTransaction { transactionRealm ->
-            val container = transactionRealm.createObject<SetMigrationContainerClass>()
+            val container = transactionRealm.createObject<SetContainerMigrationClass>()
             setFields.forEach {
                 val set = it.first.get(container)
                 assertNotNull(set)
                 assertTrue(set.isEmpty())
             }
         }
+
+        realm.close()
+    }
+
+    @Test
+    fun migrate_removeRealmSet() {
+        // Creates v0 of the Realm.
+        val originalConfig = configFactory.createConfigurationBuilder()
+            .schema(StringOnly::class.java, SetContainerAfterMigrationClass::class.java)
+            .build()
+
+        // Initialize the schema
+        Realm.getInstance(originalConfig).close()
+        val localRealm = DynamicRealm.getInstance(originalConfig)
+        localRealm.executeTransaction {
+            val schema = it.schema
+
+            // Remove the "end-result" class from schema as we need to recreate it "from scratch"
+            schema.remove(SetContainerAfterMigrationClass.CLASS_NAME)
+            val createdSchema = schema.create(SetContainerAfterMigrationClass.CLASS_NAME)
+            createdSchema.addField("id", String::class.java)
+                .addPrimaryKey("id")
+
+            setFields.forEach { setField ->
+                // Now add the fields that will be removed in the migration
+                if (setField.third == RealmFieldType.LINK_SET) {
+                    createdSchema.addRealmObjectField(setField.first.name, createdSchema)
+                } else {
+                    createdSchema.addField(setField.first.name, setField.second)
+                }
+            }
+            assertEquals(setFields.size + 1, createdSchema.fieldNames.size)
+        }
+        localRealm.close()
+
+        // Creates v1 of the Realm.
+        val realmConfig = configFactory.createConfigurationBuilder()
+            .schemaVersion(1)
+            .schema(StringOnly::class.java, SetContainerAfterMigrationClass::class.java)
+            .migration { realm, _, _ ->
+                val schema = realm.schema.get(SetContainerAfterMigrationClass.CLASS_NAME)
+                assertNotNull(schema)
+
+                setFields.forEach {
+                    assertTrue(schema.hasField(it.first.name))
+                    schema.removeField(it.first.name)
+                    assertFalse(schema.hasField(it.first.name))
+                }
+                assertEquals(1, schema.fieldNames.size)
+            }.build()
+
+        realm = Realm.getInstance(realmConfig)
+
+        val objectSchema = realm.schema.get(SetContainerAfterMigrationClass.CLASS_NAME)
+        assertNotNull(objectSchema)
+        setFields.forEach {
+            assertFalse(objectSchema.hasField(it.first.name))
+        }
+        assertEquals(1, objectSchema.fieldNames.size)
 
         realm.close()
     }
