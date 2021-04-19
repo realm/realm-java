@@ -147,6 +147,8 @@ class SetMiscTests {
             .schema(StringOnly::class.java, SetContainerMigrationClass::class.java)
             .migration { realm, _, _ ->
                 val schema = realm.schema.create(SetContainerMigrationClass.CLASS_NAME)
+                schema.addField("id", String::class.java)
+                    .addPrimaryKey("id")
 
                 setFields.forEach {
                     val objectSchema = if (it.third == RealmFieldType.LINK_SET) {
@@ -171,7 +173,7 @@ class SetMiscTests {
         }
 
         realm.executeTransaction { transactionRealm ->
-            val container = transactionRealm.createObject<SetContainerMigrationClass>()
+            val container = transactionRealm.createObject<SetContainerMigrationClass>("")
             setFields.forEach {
                 val set = it.first.get(container)
                 assertNotNull(set)
