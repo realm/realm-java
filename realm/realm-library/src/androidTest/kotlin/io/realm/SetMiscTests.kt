@@ -18,9 +18,7 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.entities.SetContainerAfterMigrationClass
-import io.realm.entities.SetContainerMigrationClass
-import io.realm.entities.StringOnly
+import io.realm.entities.*
 import io.realm.kotlin.createObject
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
@@ -30,10 +28,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 @RunWith(AndroidJUnit4::class)
 class SetMiscTests {
@@ -241,5 +236,25 @@ class SetMiscTests {
         assertEquals(1, objectSchema.fieldNames.size)
 
         realm.close()
+    }
+
+    @Test
+    fun insert_unsupportedOperation() {
+        realm = Realm.getInstance(configFactory.createConfiguration())
+        realm.executeTransaction {
+            assertFailsWith<UnsupportedOperationException> {
+                realm.insert(SetContainerMigrationClass())
+            }
+        }
+    }
+
+    @Test
+    fun insertOrUpdate_unsupportedOperation() {
+        realm = Realm.getInstance(configFactory.createConfiguration())
+        realm.executeTransaction {
+            assertFailsWith<UnsupportedOperationException> {
+                realm.insertOrUpdate(SetContainerMigrationClass())
+            }
+        }
     }
 }
