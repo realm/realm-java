@@ -54,8 +54,7 @@ class ParameterizedDictionaryTests(
         fun testTypes(): List<DictionaryTester> {
             return DictionaryMode.values().map { type ->
                 when (type) {
-//                    DictionaryMode.UNMANAGED -> unmanagedFactory()
-                    DictionaryMode.UNMANAGED -> listOf()
+                    DictionaryMode.UNMANAGED -> unmanagedFactory()
                     DictionaryMode.MANAGED -> managedFactory()
                 }
             }.flatten()
@@ -186,7 +185,7 @@ class ParameterizedDictionaryTests(
 
     @Test
     fun fieldAccessors() {
-        tester.fieldAccessors()
+        tester.fieldAccessors(configFactory.createConfiguration("alternativeRealm"))
     }
 
     @Test

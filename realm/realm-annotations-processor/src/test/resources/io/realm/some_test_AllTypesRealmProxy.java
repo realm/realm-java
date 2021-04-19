@@ -1494,6 +1494,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             if (entryValue == null) {
                 osMap.put(entryKey, null);
             } else {
+                proxyState.checkValidObject(entryValue);
                 osMap.putRow(entryKey, ((RealmObjectProxy) entryValue).realmGet$proxyState().getRow$realm().getObjectKey());
             }
         }
@@ -2036,7 +2037,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             if (entryValue == null) {
                 osMap.put(entryKey, null);
             } else {
-                osMap.putMixed(entryKey, entryValue.getNativePtr());
+                osMap.putMixed(entryKey, ProxyUtils.copyToRealmIfNeeded(proxyState, entryValue).getNativePtr());
             }
         }
     }
