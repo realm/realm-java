@@ -16,7 +16,7 @@
 
 package io.realm
 
-import io.realm.entities.AllTypes
+import io.realm.entities.SetAllTypes
 import io.realm.entities.SetContainerClass
 import io.realm.rule.BlockingLooperThread
 import java.util.*
@@ -34,8 +34,8 @@ import kotlin.test.*
  */
 class NoPKRealmModelSetTester<T : RealmModel>(
         private val testerName: String,
-        private val setGetter: KFunction1<AllTypes, RealmSet<T>>,
-        private val setSetter: KFunction2<AllTypes, RealmSet<T>, Unit>,
+        private val setGetter: KFunction1<SetAllTypes, RealmSet<T>>,
+        private val setSetter: KFunction2<SetAllTypes, RealmSet<T>, Unit>,
         private val managedSetGetter: KProperty1<SetContainerClass, RealmSet<T>>,
         private val managedCollectionGetter: KProperty1<SetContainerClass, RealmList<T>>,
         private val initializedSet: List<T?>,
@@ -66,14 +66,14 @@ class NoPKRealmModelSetTester<T : RealmModel>(
 
     override fun tearDown() = realm.close()
 
-    override fun isManaged() = assertTrue(initAndAssertEmptySet().isManaged)
+    override fun isManaged() = assertTrue(initAndAssertEmptySet(id = "id").isManaged)
 
-    override fun isValid() = assertTrue(initAndAssertEmptySet().isValid)
+    override fun isValid() = assertTrue(initAndAssertEmptySet(id = "id").isValid)
 
     override fun isFrozen() = Unit          // Tested in frozen
 
     override fun size() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             initializedSet.forEach { value ->
@@ -84,7 +84,7 @@ class NoPKRealmModelSetTester<T : RealmModel>(
     }
 
     override fun isEmpty() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             initializedSet.forEach { value ->
@@ -97,7 +97,7 @@ class NoPKRealmModelSetTester<T : RealmModel>(
     override fun requiredConstraints() = Unit // Not tested
 
     override fun contains() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         managedInitializedSet.forEach { value ->
             assertFalse(set.contains(value))
@@ -113,7 +113,7 @@ class NoPKRealmModelSetTester<T : RealmModel>(
     }
 
     override fun iterator() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         assertNotNull(set.iterator())
         realm.executeTransaction {
@@ -131,7 +131,7 @@ class NoPKRealmModelSetTester<T : RealmModel>(
     override fun copyToRealmOrUpdate() = Unit // Not tested
 
     override fun toArray() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         // Empty set
         assertEquals(0, set.toArray().size)
@@ -155,12 +155,12 @@ class NoPKRealmModelSetTester<T : RealmModel>(
     }
 
     override fun toArrayWithParameter() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
         toArrayManaged.assertToArrayWithParameter(realm, set, initializedSet)
     }
 
     override fun add() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             // Adding a value for the first time returns true
@@ -178,7 +178,7 @@ class NoPKRealmModelSetTester<T : RealmModel>(
     }
 
     override fun remove() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             set.addAll(initializedSet)
@@ -195,7 +195,7 @@ class NoPKRealmModelSetTester<T : RealmModel>(
     }
 
     override fun containsAll() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction { transactionRealm ->
             set.addAll(initializedSet)
@@ -215,7 +215,7 @@ class NoPKRealmModelSetTester<T : RealmModel>(
     }
 
     override fun addAll() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction { _ ->
             // Changes after adding collection
@@ -237,7 +237,7 @@ class NoPKRealmModelSetTester<T : RealmModel>(
     }
 
     override fun retainAll() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction { transactionRealm ->
             // Does not change after empty set intersects with another collection
@@ -257,8 +257,7 @@ class NoPKRealmModelSetTester<T : RealmModel>(
     }
 
     override fun removeAll() {
-        // FIXME: add cases for managed lists just as we do in containsAll
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction { transactionRealm ->
             // Does not change after removing a some values from an empty set
@@ -279,7 +278,7 @@ class NoPKRealmModelSetTester<T : RealmModel>(
     }
 
     override fun clear() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             set.add(notPresentValue)
@@ -290,7 +289,7 @@ class NoPKRealmModelSetTester<T : RealmModel>(
     }
 
     override fun freeze() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             set.addAll(initializedSet)
@@ -318,8 +317,11 @@ class NoPKRealmModelSetTester<T : RealmModel>(
     // Private stuff
     //----------------------------------
 
-    private fun initAndAssertEmptySet(realm: Realm = this.realm): RealmSet<T> {
-        val allTypesObject = createAllTypesManagedContainerAndAssert(realm)
+    private fun initAndAssertEmptySet(
+        realm: Realm = this.realm,
+        id: String? = null
+    ): RealmSet<T> {
+        val allTypesObject = createAllTypesManagedContainerAndAssert(realm, id)
         assertNotNull(allTypesObject)
         val set = setGetter.call(allTypesObject)
         assertTrue(set.isEmpty())

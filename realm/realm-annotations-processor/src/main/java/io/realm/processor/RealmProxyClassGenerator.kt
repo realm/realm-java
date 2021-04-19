@@ -1454,6 +1454,14 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 return@apply
             }
 
+            // Throw if model contains a set field until we add support for it
+            if (containsSet(metadata.fields)) {
+                emitStatement("throw new UnsupportedOperationException(\"Calls to 'insert' with RealmModels containing RealmSet properties are not supported yet.\")")
+                endMethod()
+                emitEmptyLine()
+                return@apply
+            }
+
             // If object is already in the Realm there is nothing to update, unless it is an embedded
             // object. In which case we always update the underlying object.
             if (!metadata.embedded) {
@@ -1602,6 +1610,14 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     return@apply
                 }
 
+                // Throw if model contains a set field until we add support for it
+                if (containsSet(metadata.fields)) {
+                    emitStatement("throw new UnsupportedOperationException(\"Calls to 'insert' with RealmModels containing RealmSet properties are not supported yet.\")")
+                    endMethod()
+                    emitEmptyLine()
+                    return@apply
+                }
+
                 emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
                 emitStatement("long tableNativePtr = table.getNativePtr()")
                 emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)", columnInfoClassName(), columnInfoClassName(), qualifiedJavaClassName)
@@ -1740,6 +1756,14 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             // Throw if model contains a dictionary field until we add support for it
             if (containsDictionary(metadata.fields)) {
                 emitStatement("throw new UnsupportedOperationException(\"Calls to 'insertOrUpdate' with RealmModels containing RealmDictionary properties are not supported yet.\")")
+                endMethod()
+                emitEmptyLine()
+                return@apply
+            }
+
+            // Throw if model contains a set field until we add support for it
+            if (containsSet(metadata.fields)) {
+                emitStatement("throw new UnsupportedOperationException(\"Calls to 'insertOrUpdate' with RealmModels containing RealmSet properties are not supported yet.\")")
                 endMethod()
                 emitEmptyLine()
                 return@apply
@@ -1917,6 +1941,14 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 // Throw if model contains a dictionary field until we add support for it
                 if (containsDictionary(metadata.fields)) {
                     emitStatement("throw new UnsupportedOperationException(\"Calls to 'insertOrUpdate' with RealmModels containing RealmDictionary properties are not supported yet.\")")
+                    endMethod()
+                    emitEmptyLine()
+                    return@apply
+                }
+
+                // Throw if model contains a set field until we add support for it
+                if (containsSet(metadata.fields)) {
+                    emitStatement("throw new UnsupportedOperationException(\"Calls to 'insertOrUpdate' with RealmModels containing RealmSet properties are not supported yet.\")")
                     endMethod()
                     emitEmptyLine()
                     return@apply
@@ -3013,6 +3045,14 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     return@apply
                 }
 
+                // Throw if model contains a set field until we add support for it
+                if (containsSet(metadata.fields)) {
+                    emitStatement("throw new UnsupportedOperationException(\"Creation of RealmModels from JSON containing RealmSet properties is not supported yet.\")")
+                    endMethod()
+                    emitEmptyLine()
+                    return@apply
+                }
+
                 val modelOrListCount = countModelOrListFields(metadata.fields)
                 if (modelOrListCount == 0) {
                     emitStatement("final List<String> excludeFields = Collections.<String> emptyList()")
@@ -3172,6 +3212,14 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             // Throw if model contains a dictionary field until we add support for it
             if (containsDictionary(metadata.fields)) {
                 emitStatement("throw new UnsupportedOperationException(\"Creation of RealmModels from JSON containing RealmDictionary properties is not supported yet.\")")
+                endMethod()
+                emitEmptyLine()
+                return@apply
+            }
+
+            // Throw if model contains a set field until we add support for it
+            if (containsSet(metadata.fields)) {
+                emitStatement("throw new UnsupportedOperationException(\"Creation of RealmModels from JSON containing RealmSet properties is not supported yet.\")")
                 endMethod()
                 emitEmptyLine()
                 return@apply
@@ -3413,6 +3461,15 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     private fun containsDictionary(fields: ArrayList<RealmFieldElement>): Boolean {
         for (field in fields) {
             if (Utils.isRealmDictionary(field)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun containsSet(fields: ArrayList<RealmFieldElement>): Boolean {
+        for (field in fields) {
+            if (Utils.isRealmSet(field)) {
                 return true
             }
         }
