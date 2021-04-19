@@ -65,6 +65,24 @@ open class SetContainerClass : RealmObject() {
     }
 }
 
-//open class EmbeddedObjectDictionaryContainerClass : RealmObject() {
-//    val myEmbeddedObjectDictionary = RealmDictionary<EmbeddedSimpleChild>()
-//}
+open class SetMigrationContainerClass : RealmObject() {
+    val myRealmModelSet = RealmSet<StringOnly>()
+    val myBooleanSet = RealmSet<Boolean>()
+    val myStringSet = RealmSet<String>()
+    val myIntSet = RealmSet<Int>()
+    val myFloatSet = RealmSet<Float>()
+    val myLongSet = RealmSet<Long>()
+    val myShortSet = RealmSet<Short>()
+    val myDoubleSet = RealmSet<Double>()
+    val myByteSet = RealmSet<Byte>()
+    val myBinarySet = RealmSet<ByteArray>()
+    val myDateSet = RealmSet<Date>()
+    val myObjectIdSet = RealmSet<ObjectId>()
+    val myUUIDSet = RealmSet<UUID>()
+    val myDecimal128Set = RealmSet<Decimal128>()
+    val myMixedSet = RealmSet<Mixed>()
+
+    companion object {
+        const val CLASS_NAME = "SetMigrationContainerClass"
+    }
+}
